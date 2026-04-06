@@ -30,6 +30,8 @@ import { createValidateRouter } from './routes/validate.js';
 import { createUuidRouter } from './routes/uuid.js';
 import { createTimestampRouter } from './routes/timestamp.js';
 import { createRandomRouter } from './routes/random.js';
+import { createImageRouter } from './routes/image.js';
+import { createCsvRouter } from './routes/csv.js';
 import type { AppVariables } from './middleware/types.js';
 
 // ---------------------------------------------------------------------------
@@ -326,6 +328,16 @@ export function createApp() {
   // Random utility (stateless, CSPRNG)
   // -------------------------------------------------------------------------
   app.route('/v1/random', createRandomRouter());
+
+  // -------------------------------------------------------------------------
+  // Image API (stateless image processing)
+  // -------------------------------------------------------------------------
+  app.route('/v1/image', createImageRouter());
+
+  // -------------------------------------------------------------------------
+  // CSV API (stateless CSV processing)
+  // -------------------------------------------------------------------------
+  app.route('/v1/csv', createCsvRouter());
 
   // -------------------------------------------------------------------------
   // Error handling
