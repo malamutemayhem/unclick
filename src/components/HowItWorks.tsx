@@ -28,8 +28,13 @@ const HowItWorks = () => (
     </FadeIn>
     <FadeIn delay={0.05}>
       <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-        Three steps. Genuinely.
+        Three steps. That's it.
       </h2>
+    </FadeIn>
+    <FadeIn delay={0.1}>
+      <p className="mt-3 text-body">
+        One API key. Every tool in the suite. No per-tool accounts, no extra setup.
+      </p>
     </FadeIn>
 
     <div className="mt-14 relative">
