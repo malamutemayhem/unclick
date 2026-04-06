@@ -48,7 +48,10 @@ const Problem = () => (
               <div className="line-through opacity-60">Wait for redirect</div>
               <div className="line-through opacity-60">Parse response</div>
             </div>
-            <div className="mt-3 font-mono text-xs text-destructive/50">~4200ms</div>
+            <div className="mt-3 flex justify-between font-mono text-xs text-destructive/50">
+              <span>~4,200ms</span>
+              <span>~18,000 tokens</span>
+            </div>
           </motion.div>
 
           <motion.div
