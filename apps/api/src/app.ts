@@ -32,6 +32,9 @@ import { createTimestampRouter } from './routes/timestamp.js';
 import { createRandomRouter } from './routes/random.js';
 import { createImageRouter } from './routes/image.js';
 import { createCsvRouter } from './routes/csv.js';
+import { createJsonRouter } from './routes/json.js';
+import { createMarkdownRouter } from './routes/markdown.js';
+import { createDiffRouter } from './routes/diff.js';
 import type { AppVariables } from './middleware/types.js';
 
 // ---------------------------------------------------------------------------
@@ -338,6 +341,21 @@ export function createApp() {
   // CSV API (stateless CSV processing)
   // -------------------------------------------------------------------------
   app.route('/v1/csv', createCsvRouter());
+
+  // -------------------------------------------------------------------------
+  // JSON utility (stateless)
+  // -------------------------------------------------------------------------
+  app.route('/v1/json', createJsonRouter());
+
+  // -------------------------------------------------------------------------
+  // Markdown utility (stateless)
+  // -------------------------------------------------------------------------
+  app.route('/v1/markdown', createMarkdownRouter());
+
+  // -------------------------------------------------------------------------
+  // Diff utility (stateless)
+  // -------------------------------------------------------------------------
+  app.route('/v1/diff', createDiffRouter());
 
   // -------------------------------------------------------------------------
   // Error handling

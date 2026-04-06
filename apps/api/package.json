@@ -18,8 +18,10 @@
     "@scalar/hono-api-reference": "^0.5.162",
     "@types/papaparse": "^5.5.2",
     "@unclick/core": "*",
+    "diff": "^8.0.4",
     "drizzle-orm": "^0.38.3",
     "hono": "^4.6.3",
+    "marked": "^17.0.6",
     "papaparse": "^5.5.3",
     "qrcode": "^1.5.4",
     "sharp": "^0.34.5",
@@ -27,6 +29,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/diff": "^7.0.2",
     "@types/node": "^22.0.0",
     "@types/qrcode": "^1.5.6",
     "drizzle-kit": "^0.30.4",
