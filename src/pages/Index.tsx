@@ -7,9 +7,11 @@ import CodeBlock from "@/components/CodeBlock";
 import Pricing from "@/components/Pricing";
 import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
+import Particles from "@/components/Particles";
 
 const Index = () => (
   <div className="film-grain min-h-screen">
+    <Particles />
     <Navbar />
     <Hero />
     <Strip />

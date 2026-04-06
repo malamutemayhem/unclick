@@ -1,13 +1,23 @@
 import FadeIn from "./FadeIn";
 
-const Strip = () => (
-  <FadeIn>
-    <section className="border-y border-border py-8">
-      <p className="text-center font-mono text-sm font-medium tracking-wide text-primary sm:text-base">
-        No browser. No clicks. No workarounds. Just endpoints.
-      </p>
-    </section>
-  </FadeIn>
-);
+const Strip = () => {
+  const text = "No browser. No clicks. No workarounds. Just endpoints.";
+  const repeated = `${text}  ·  ${text}  ·  ${text}  ·  ${text}  ·  `;
+  
+  return (
+    <FadeIn>
+      <section className="border-y border-border overflow-hidden py-6">
+        <div className="animate-marquee whitespace-nowrap flex">
+          <span className="font-mono text-sm font-medium tracking-wider text-primary px-2">
+            {repeated}
+          </span>
+          <span className="font-mono text-sm font-medium tracking-wider text-primary px-2">
+            {repeated}
+          </span>
+        </div>
+      </section>
+    </FadeIn>
+  );
+};
 
 export default Strip;
