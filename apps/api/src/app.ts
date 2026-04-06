@@ -38,6 +38,9 @@ import { createDiffRouter } from './routes/diff.js';
 import { createCronRouter } from './routes/cron.js';
 import { createWebhookBinRouter } from './routes/webhook.js';
 import { createKvRouter } from './routes/kv.js';
+import { createRegexRouter } from './routes/regex.js';
+import { createColorRouter } from './routes/color.js';
+import { createIpRouter } from './routes/ip.js';
 import type { AppVariables } from './middleware/types.js';
 
 // ---------------------------------------------------------------------------
@@ -372,6 +375,21 @@ export function createApp() {
   // KV store (persistent key-value scratchpad)
   // -------------------------------------------------------------------------
   app.route('/v1/kv', createKvRouter(db));
+
+  // -------------------------------------------------------------------------
+  // Regex utility (stateless)
+  // -------------------------------------------------------------------------
+  app.route('/v1/regex', createRegexRouter());
+
+  // -------------------------------------------------------------------------
+  // Color utility (stateless)
+  // -------------------------------------------------------------------------
+  app.route('/v1/color', createColorRouter());
+
+  // -------------------------------------------------------------------------
+  // IP utility (stateless)
+  // -------------------------------------------------------------------------
+  app.route('/v1/ip', createIpRouter());
 
   // -------------------------------------------------------------------------
   // Error handling
