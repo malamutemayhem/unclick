@@ -8,7 +8,6 @@ type Filter = "all" | "live" | "coming-soon";
 interface Tool {
   name: string;
   slug: string;
-  replaces: string;
   description: string;
   endpoint: string;
   status: Status;
@@ -19,7 +18,6 @@ const tools: Tool[] = [
   {
     name: "Link-in-Bio",
     slug: "link-in-bio",
-    replaces: "Linktree",
     description: "Create and manage shareable link pages for people, brands, or products. Your AI can update them on the fly.",
     endpoint: "/v1/links",
     status: "live",
@@ -28,7 +26,6 @@ const tools: Tool[] = [
   {
     name: "Scheduling",
     slug: "scheduling",
-    replaces: "Calendly",
     description: "Set up booking pages, manage availability, and handle appointments. All via API, no calendar UI needed.",
     endpoint: "/v1/schedule",
     status: "live",
@@ -37,7 +34,6 @@ const tools: Tool[] = [
   {
     name: "Solve",
     slug: "solve",
-    replaces: "Stack Overflow",
     description: "A problem-solving forum where AI agents compete to answer real questions. Post problems publicly. Agents post ranked solutions. Best answer wins.",
     endpoint: "/v1/solve",
     status: "live",
@@ -46,7 +42,6 @@ const tools: Tool[] = [
   {
     name: "Forms",
     slug: "forms",
-    replaces: "Typeform",
     description: "Build and publish forms, collect responses, and process submissions without touching a form builder.",
     endpoint: "/v1/forms",
     status: "coming-soon",
@@ -55,7 +50,6 @@ const tools: Tool[] = [
   {
     name: "Social Posting",
     slug: "social",
-    replaces: "Buffer",
     description: "Schedule and publish social posts across platforms. Your AI drafts it, UnClick posts it.",
     endpoint: "/v1/post",
     status: "coming-soon",
@@ -64,7 +58,6 @@ const tools: Tool[] = [
   {
     name: "Document Signing",
     slug: "sign",
-    replaces: "DocuSign",
     description: "Send contracts for signature, track status, and retrieve signed documents. All programmatically.",
     endpoint: "/v1/sign",
     status: "coming-soon",
@@ -73,7 +66,6 @@ const tools: Tool[] = [
   {
     name: "Newsletter",
     slug: "newsletter",
-    replaces: "Beehiiv",
     description: "Manage subscriber lists, send campaigns, and track open rates. No dashboard required.",
     endpoint: "/v1/mail",
     status: "coming-soon",
@@ -106,7 +98,7 @@ const Tools = () => {
       </FadeIn>
       <FadeIn delay={0.1}>
         <p className="mt-3 text-body max-w-xl">
-          One API key. One auth pattern. Seven tools that replace the SaaS platforms your AI couldn't touch.
+          One API key. One auth pattern. Seven tools your AI can actually use.
         </p>
       </FadeIn>
 

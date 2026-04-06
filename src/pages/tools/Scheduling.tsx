@@ -76,7 +76,7 @@ const SchedulingPage = () => (
         <p className="mt-4 max-w-2xl text-body text-lg leading-relaxed">
           Set up booking pages, manage availability, and handle appointments. All via API.
           Your AI can create event types, check available slots, and book meetings without
-          a calendar UI in sight. Think Calendly, built for machines.
+          a calendar UI in sight.
         </p>
       </FadeIn>
       <FadeIn delay={0.15}>

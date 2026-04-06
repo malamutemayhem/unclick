@@ -67,7 +67,7 @@ const LinkInBioPage = () => (
       <FadeIn delay={0.1}>
         <p className="mt-4 max-w-2xl text-body text-lg leading-relaxed">
           Create and manage shareable link pages. Your AI can publish a page, add links, apply themes,
-          and pull analytics without touching a dashboard. Think Linktree, built for machines.
+          and pull analytics without touching a dashboard.
         </p>
       </FadeIn>
       <FadeIn delay={0.15}>
