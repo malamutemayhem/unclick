@@ -25,6 +25,8 @@ import { createHashRouter } from './routes/hash.js';
 import { createEncodeRouter } from './routes/encode.js';
 import { createShortenRouter, createPublicShortenRouter } from './routes/shorten.js';
 import { createQrRouter } from './routes/qr.js';
+import { createTransformRouter } from './routes/transform.js';
+import { createValidateRouter } from './routes/validate.js';
 import type { AppVariables } from './middleware/types.js';
 
 // ---------------------------------------------------------------------------
@@ -296,6 +298,16 @@ export function createApp() {
   // Encode/decode utility (stateless)
   // -------------------------------------------------------------------------
   app.route('/v1', createEncodeRouter());
+
+  // -------------------------------------------------------------------------
+  // Transform API (stateless text transformation)
+  // -------------------------------------------------------------------------
+  app.route('/v1/transform', createTransformRouter());
+
+  // -------------------------------------------------------------------------
+  // Validate API (stateless input validation)
+  // -------------------------------------------------------------------------
+  app.route('/v1/validate', createValidateRouter());
 
   // -------------------------------------------------------------------------
   // Error handling
