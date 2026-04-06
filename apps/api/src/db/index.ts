@@ -173,6 +173,7 @@ export async function initDb(): Promise<void> {
     );
     CREATE INDEX IF NOT EXISTS link_clicks_link_idx ON link_clicks(link_id, created_at);
     CREATE INDEX IF NOT EXISTS link_clicks_page_idx ON link_clicks(page_id, created_at);
+    CREATE INDEX IF NOT EXISTS link_clicks_org_idx ON link_clicks(org_id, created_at);
 
     CREATE TABLE IF NOT EXISTS page_views (
       id TEXT PRIMARY KEY,
@@ -295,12 +296,14 @@ export async function initDb(): Promise<void> {
       cancel_token TEXT NOT NULL,
       cancelled_at TIMESTAMPTZ,
       rescheduled_from_id TEXT,
+      idempotency_key TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
     CREATE INDEX IF NOT EXISTS bookings_org_idx ON bookings(org_id, start_time);
     CREATE INDEX IF NOT EXISTS bookings_event_type_idx ON bookings(event_type_id, start_time);
     CREATE INDEX IF NOT EXISTS bookings_cancel_token_idx ON bookings(cancel_token);
+    CREATE UNIQUE INDEX IF NOT EXISTS bookings_idempotency_key_idx ON bookings(idempotency_key) WHERE idempotency_key IS NOT NULL;
 
     CREATE TABLE IF NOT EXISTS booking_answers (
       id TEXT PRIMARY KEY,

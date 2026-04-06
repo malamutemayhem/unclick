@@ -6,6 +6,7 @@ import { ok, Errors } from '@unclick/core';
 import type { Db } from '../../db/index.js';
 import { themes, linkPages } from '../../db/schema.js';
 import type { AppVariables } from '../../middleware/types.js';
+import { requireScope } from '../../middleware/auth.js';
 
 const ThemeOverrideSchema = z.object({
   base_theme: z.string().optional(),
@@ -50,7 +51,7 @@ export function createThemesRouter(db: Db) {
   });
 
   // POST /pages/:page_id/theme — apply theme
-  router.post('/', zv('json', z.object({ theme_id: z.string() })), async (c) => {
+  router.post('/', requireScope('links:write'), zv('json', z.object({ theme_id: z.string() })), async (c) => {
     const { orgId } = c.get('org');
     const pageId = c.req.param('page_id') as string;
     const { theme_id } = c.req.valid('json');
@@ -75,7 +76,7 @@ export function createThemesRouter(db: Db) {
   });
 
   // PATCH /pages/:page_id/theme — customize theme
-  router.patch('/', zv('json', ThemeOverrideSchema), async (c) => {
+  router.patch('/', requireScope('links:write'), zv('json', ThemeOverrideSchema), async (c) => {
     const { orgId } = c.get('org');
     const pageId = c.req.param('page_id') as string;
     const body = c.req.valid('json');
