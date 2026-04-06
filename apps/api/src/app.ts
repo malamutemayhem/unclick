@@ -27,6 +27,9 @@ import { createShortenRouter, createPublicShortenRouter } from './routes/shorten
 import { createQrRouter } from './routes/qr.js';
 import { createTransformRouter } from './routes/transform.js';
 import { createValidateRouter } from './routes/validate.js';
+import { createJsonRouter } from './routes/json.js';
+import { createMarkdownRouter } from './routes/markdown.js';
+import { createDiffRouter } from './routes/diff.js';
 import type { AppVariables } from './middleware/types.js';
 
 // ---------------------------------------------------------------------------
@@ -308,6 +311,21 @@ export function createApp() {
   // Validate API (stateless input validation)
   // -------------------------------------------------------------------------
   app.route('/v1/validate', createValidateRouter());
+
+  // -------------------------------------------------------------------------
+  // JSON utility (stateless)
+  // -------------------------------------------------------------------------
+  app.route('/v1/json', createJsonRouter());
+
+  // -------------------------------------------------------------------------
+  // Markdown utility (stateless)
+  // -------------------------------------------------------------------------
+  app.route('/v1/markdown', createMarkdownRouter());
+
+  // -------------------------------------------------------------------------
+  // Diff utility (stateless)
+  // -------------------------------------------------------------------------
+  app.route('/v1/diff', createDiffRouter());
 
   // -------------------------------------------------------------------------
   // Error handling
