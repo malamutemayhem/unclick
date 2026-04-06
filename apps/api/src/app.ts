@@ -21,6 +21,8 @@ import { createEventTypesRouter } from './routes/scheduling/event-types.js';
 import { createBookingsRouter, createPublicBookingRouter } from './routes/scheduling/bookings.js';
 import { createCalendarRouter } from './routes/scheduling/calendar.js';
 import { createSolveRouter } from './routes/solve.js';
+import { createTransformRouter } from './routes/transform.js';
+import { createValidateRouter } from './routes/validate.js';
 import type { AppVariables } from './middleware/types.js';
 
 // ---------------------------------------------------------------------------
@@ -267,6 +269,16 @@ export function createApp() {
   app.route('/v1/scheduling/event-types', createEventTypesRouter(db));
   app.route('/v1/scheduling/bookings', createBookingsRouter(db));
   app.route('/v1/scheduling/calendar', createCalendarRouter(db));
+
+  // -------------------------------------------------------------------------
+  // Transform API (stateless text transformation)
+  // -------------------------------------------------------------------------
+  app.route('/v1/transform', createTransformRouter());
+
+  // -------------------------------------------------------------------------
+  // Validate API (stateless input validation)
+  // -------------------------------------------------------------------------
+  app.route('/v1/validate', createValidateRouter());
 
   // -------------------------------------------------------------------------
   // Error handling
