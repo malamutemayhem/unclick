@@ -14,20 +14,20 @@ const Problem = () => (
       </FadeIn>
       <FadeIn delay={0.1}>
         <h2 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">
-          The tools exist. They just weren't built for machines.
+          You have an AI. Why are you still doing this yourself?
         </h2>
       </FadeIn>
       <FadeIn delay={0.2}>
         <p className="mt-6 text-body leading-relaxed">
-          Right now, asking your AI to update your link page is like asking someone to cook dinner
-          while wearing oven mitts. They can do it — but it's slow, clumsy, and things break.
+          Right now, asking your AI to update your link page or booking calendar is like asking someone
+          to cook dinner while wearing oven mitts. They can do it, but it's slow, clumsy, and things break.
           Browser automation, screen scraping, brittle workarounds.
         </p>
       </FadeIn>
       <FadeIn delay={0.3}>
         <p className="mt-4 text-body leading-relaxed">
-          UnClick takes the mitts off. We rebuilt the platforms your AI needs — Linktree, Calendly,
-          and more — as clean REST APIs. Same functionality. One-tenth the effort.
+          UnClick takes the mitts off. The business tools your AI needs, rebuilt as clean APIs.
+          Same functionality. Your agent handles it in seconds instead of minutes.
         </p>
       </FadeIn>
 
@@ -63,8 +63,8 @@ const Problem = () => (
           >
             <div className="text-xs font-mono text-primary/60 uppercase tracking-wider mb-3">The UnClick way</div>
             <div className="space-y-2 font-mono text-xs text-heading">
-              <div>POST /v1/schedule/events</div>
-              <div className="text-primary">→ 201 Created</div>
+              <div className="text-body italic">"Add a booking link for Friday."</div>
+              <div className="text-primary">Done. 38ms.</div>
             </div>
             <div className="mt-3 flex justify-between font-mono text-xs text-primary/50">
               <span>~38ms</span>
