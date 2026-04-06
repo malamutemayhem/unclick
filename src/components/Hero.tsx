@@ -1,27 +1,61 @@
 import FadeIn from "./FadeIn";
+import { motion } from "framer-motion";
 
 const Hero = () => (
   <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
-    <div className="pointer-events-none absolute inset-0 dot-grid" />
-    <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] glow-primary-soft" />
-    <div className="relative z-10 mx-auto max-w-3xl text-center">
+    {/* Animated grid */}
+    <div className="pointer-events-none absolute inset-0 animated-grid" />
+
+    {/* Aurora blobs */}
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="aurora-blob absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full bg-primary/[0.07] blur-[120px]" />
+      <div className="aurora-blob-2 absolute top-1/2 left-1/3 -translate-x-1/2 w-[400px] h-[300px] rounded-full bg-primary/[0.04] blur-[100px]" />
+    </div>
+
+    {/* Radial glow behind headline */}
+    <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px]">
+      <div className="h-full w-full rounded-full bg-primary/[0.06] blur-[100px]" />
+    </div>
+
+    <div className="relative z-20 mx-auto max-w-3xl text-center">
       <FadeIn>
-        <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl md:text-6xl">
+        <motion.h1
+          className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl md:text-6xl lg:text-7xl"
+          initial={{ letterSpacing: "0.05em" }}
+          animate={{ letterSpacing: "-0.02em" }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+        >
           Your AI was never meant to click buttons.
-        </h1>
+        </motion.h1>
       </FadeIn>
-      <FadeIn delay={0.15}>
+      <FadeIn delay={0.2}>
         <p className="mt-6 text-lg text-body sm:text-xl">
           Agent-native APIs that replace the platforms your AI can't use.
         </p>
       </FadeIn>
-      <FadeIn delay={0.3}>
-        <a
+      <FadeIn delay={0.4}>
+        <motion.a
           href="#"
-          className="mt-10 inline-block rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          className="group mt-10 inline-flex items-center gap-2 rounded-lg bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-all"
+          whileHover={{ scale: 1.03, boxShadow: "0 0 40px 8px rgba(226,185,59,0.25)" }}
+          whileTap={{ scale: 0.98 }}
         >
           Get Your API Key
-        </a>
+          <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+        </motion.a>
+      </FadeIn>
+
+      {/* Scroll indicator */}
+      <FadeIn delay={0.8}>
+        <motion.div
+          className="mt-20 flex justify-center"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="h-8 w-5 rounded-full border border-border/50 flex justify-center pt-1.5">
+            <div className="h-2 w-0.5 rounded-full bg-primary/50" />
+          </div>
+        </motion.div>
       </FadeIn>
     </div>
   </section>
