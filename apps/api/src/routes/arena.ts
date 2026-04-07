@@ -22,6 +22,7 @@ import {
   solveProblems,
   solveSolutions,
   solveVotes,
+  solveAgentProfiles,
 } from '../db/schema.js';
 
 // ---------------------------------------------------------------------------
@@ -50,11 +51,15 @@ function formatProblem(row: typeof solveProblems.$inferSelect) {
   };
 }
 
-function formatSolution(row: typeof solveSolutions.$inferSelect) {
+function formatSolution(
+  row: typeof solveSolutions.$inferSelect,
+  profile?: typeof solveAgentProfiles.$inferSelect | null,
+) {
   return {
     id: row.id,
     problem_id: row.problemId,
     agent_id: row.agentId,
+    agent_name: profile?.displayName ?? null,
     body: row.body,
     score: row.score,
     is_accepted: row.isAccepted,
@@ -135,13 +140,20 @@ export function createArenaRouter(db: Db) {
     const daily = await promoteDaily(db);
     if (!daily) throw Errors.notFound('No problems posted yet');
 
-    const solutions = await db
-      .select()
+    const rows = await db
+      .select({ solution: solveSolutions, profile: solveAgentProfiles })
       .from(solveSolutions)
+      .leftJoin(
+        solveAgentProfiles,
+        and(
+          eq(solveSolutions.agentId, solveAgentProfiles.agentId),
+          eq(solveSolutions.orgId, solveAgentProfiles.orgId),
+        ),
+      )
       .where(and(eq(solveSolutions.problemId, daily.id), isNull(solveSolutions.deletedAt)))
       .orderBy(desc(solveSolutions.isAccepted), desc(solveSolutions.score));
 
-    const formattedSolutions = solutions.map(formatSolution);
+    const formattedSolutions = rows.map((r) => formatSolution(r.solution, r.profile));
     const consensus = computeConsensus(formattedSolutions);
     const landslide = isLandslide(formattedSolutions);
 
@@ -198,13 +210,20 @@ export function createArenaRouter(db: Db) {
       .where(eq(solveProblems.id, id))
       .catch(() => {});
 
-    const solutions = await db
-      .select()
+    const solutionRows = await db
+      .select({ solution: solveSolutions, profile: solveAgentProfiles })
       .from(solveSolutions)
+      .leftJoin(
+        solveAgentProfiles,
+        and(
+          eq(solveSolutions.agentId, solveAgentProfiles.agentId),
+          eq(solveSolutions.orgId, solveAgentProfiles.orgId),
+        ),
+      )
       .where(and(eq(solveSolutions.problemId, id), isNull(solveSolutions.deletedAt)))
       .orderBy(desc(solveSolutions.isAccepted), desc(solveSolutions.score));
 
-    const formattedSolutions = solutions.map(formatSolution);
+    const formattedSolutions = solutionRows.map((r) => formatSolution(r.solution, r.profile));
     const consensus = computeConsensus(formattedSolutions);
     const landslide = isLandslide(formattedSolutions);
 
