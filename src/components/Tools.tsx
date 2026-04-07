@@ -110,6 +110,11 @@ const Tools = ({ searchQuery = "" }: ToolsProps) => {
 
   return (
     <section id="tools" className="relative mx-auto max-w-7xl px-6 py-8">
+      <FadeIn>
+        <p className="mb-4 text-sm font-semibold text-primary">
+          One key unlocks everything below.
+        </p>
+      </FadeIn>
       {/* Category filter bar */}
       <FadeIn>
         <div className="flex flex-wrap gap-2 mb-6">
@@ -222,6 +227,13 @@ const Tools = ({ searchQuery = "" }: ToolsProps) => {
 
               {/* Description */}
               <p className="mt-4 text-sm text-body leading-relaxed">{selectedTool.description}</p>
+
+              {/* Key included note */}
+              <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5">
+                <p className="text-xs font-medium text-primary">
+                  Included with your UnClick key. No separate install needed.
+                </p>
+              </div>
 
               {/* Endpoint */}
               <div className="mt-4 rounded-lg border border-border/50 bg-background/60 px-4 py-3">

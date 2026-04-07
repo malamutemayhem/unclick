@@ -64,17 +64,17 @@ const steps = [
   {
     n: "1",
     label: "Enter your email",
-    detail: "Free forever. No credit card. Your key unlocks all 33 tools immediately.",
+    detail: "Free forever. No credit card. One key. Every tool. Unlocked immediately.",
   },
   {
     n: "2",
     label: "Copy the prompt or config",
-    detail: "Pick your install method below. Your key is already inserted. One click to copy.",
+    detail: "Pick your install method below. Your key is already inserted. One copy-paste connects all 33 tools.",
   },
   {
     n: "3",
     label: "Paste and go",
-    detail: "Drop the prompt into your agent's chat, or paste the config and restart your AI.",
+    detail: "Drop the config or prompt into your agent and restart. All tools activate at once. No per-tool setup.",
   },
 ];
 
@@ -149,7 +149,7 @@ const InstallSection = () => {
       </FadeIn>
       <FadeIn delay={0.1}>
         <p className="mt-3 text-body max-w-xl">
-          No developer knowledge needed. If you can edit a text file, you can install UnClick.
+          No developer knowledge needed. Sign up once and every tool is yours. No per-tool installs, ever.
         </p>
       </FadeIn>
 

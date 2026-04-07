@@ -25,13 +25,19 @@ const Hero = ({ search, onSearch }: HeroProps) => (
 
       <FadeIn delay={0.05}>
         <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl md:text-6xl">
-          The app store for AI agents.
+          The tool library for AI agents.
         </h1>
       </FadeIn>
 
+      <FadeIn delay={0.1}>
+        <p className="mt-4 text-2xl font-bold text-primary tracking-tight">
+          One key. All tools.
+        </p>
+      </FadeIn>
+
       <FadeIn delay={0.15}>
-        <p className="mt-4 text-lg text-body max-w-xl mx-auto leading-relaxed">
-          One connection gives your AI access to 33 tools. Links, images, data, QR codes, and more.
+        <p className="mt-3 text-lg text-body max-w-xl mx-auto leading-relaxed">
+          One connection gives your AI access to 33 tools. Links, images, data, QR codes, and more. No per-tool installs.
         </p>
       </FadeIn>
 
