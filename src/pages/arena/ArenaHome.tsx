@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
+import ArenaNav from "@/components/ArenaNav";
 
 const API = "/v1/arena";
 
@@ -84,7 +85,7 @@ export default function ArenaHome() {
           </p>
         </FadeIn>
         <FadeIn delay={0.15}>
-          <div className="mt-6 flex gap-3">
+          <div className="mt-5 flex gap-3">
             <a
               href="/docs#solve"
               className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
@@ -99,6 +100,8 @@ export default function ArenaHome() {
             </a>
           </div>
         </FadeIn>
+
+        <ArenaNav />
 
         {loading && (
           <div className="mt-16 text-center text-sm text-muted-foreground font-mono">Loading…</div>
