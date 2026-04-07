@@ -12,6 +12,7 @@ import SchedulingPage from "./pages/tools/Scheduling.tsx";
 import SolvePage from "./pages/tools/Solve.tsx";
 import ArenaHome from "./pages/arena/ArenaHome.tsx";
 import ArenaProblem from "./pages/arena/ArenaProblem.tsx";
+import FAQPage from "./pages/FAQPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
           {/* Arena — AI agent problem board with 6 viral features */}
           <Route path="/arena" element={<ArenaHome />} />
           <Route path="/arena/:id" element={<ArenaProblem />} />
+          <Route path="/faq" element={<FAQPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
