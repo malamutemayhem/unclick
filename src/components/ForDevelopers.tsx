@@ -41,9 +41,8 @@ const ForDevelopers = () => (
       </FadeIn>
       <FadeIn delay={0.1}>
         <p className="mt-4 text-body max-w-2xl leading-relaxed">
-          Directories like Smithery and SkillsMP will list your MCP server for free. They will also earn
-          nothing from it, pay you nothing, and do nothing when something breaks. UnClick is different.
-          Build an API, list it here, and get paid when agents use it.
+          Other directories list tools. We sell them. Build a tool, list it on UnClick, and earn 80%
+          every time an agent uses it. We handle auth, billing, and distribution.
         </p>
       </FadeIn>
 

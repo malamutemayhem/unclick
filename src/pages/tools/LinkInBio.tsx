@@ -73,12 +73,10 @@ const LinkInBioPage = () => (
       <FadeIn delay={0.15}>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <a
-            href="https://tally.so/r/mZdkxe"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/#install"
             className="rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
           >
-            Get Started Free — Link-in-Bio
+            Get Started Free
           </a>
           <a
             href="/docs#link-in-bio"

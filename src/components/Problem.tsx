@@ -62,7 +62,7 @@ const Problem = () => (
             <div className="text-xs font-mono text-primary/60 uppercase tracking-wider mb-3">With UnClick</div>
             <div className="space-y-2 font-mono text-xs text-heading">
               <div className="text-body italic">"Shorten this URL."</div>
-              <div className="text-primary">POST /shorten — done.</div>
+              <div className="text-primary">POST /shorten - done.</div>
             </div>
             <div className="mt-3 flex justify-between font-mono text-xs text-primary/50">
               <span>~38ms</span>

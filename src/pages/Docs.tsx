@@ -514,7 +514,7 @@ const DocsPage = () => (
           <p className="mt-2 text-sm text-body">
             Pass your API key as a Bearer token:{" "}
             <code className="font-mono text-xs bg-card/50 px-1.5 py-0.5 rounded">Authorization: Bearer YOUR_API_KEY</code>.
-            Get a free key at <a href="https://tally.so/r/mZdkxe" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">unclick.world</a>.
+            Get a free key at <a href="/#install" className="text-primary underline underline-offset-4">unclick.world</a>.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {ALL_SCOPES.map((scope) => (

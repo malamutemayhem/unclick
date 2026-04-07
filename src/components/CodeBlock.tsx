@@ -86,7 +86,7 @@ const CodeBlock = () => {
               <div className="space-y-6">
                 {/* Step 1: Add as tool */}
                 <div>
-                  <div className="mb-2 font-mono text-xs text-muted-custom">Step 1 — Add UnClick to your agent (one click)</div>
+                  <div className="mb-2 font-mono text-xs text-muted-custom">Step 1: Add UnClick to your agent (one click)</div>
                   <div className="rounded-lg border border-border/40 bg-card/30 p-4 space-y-2">
                     <div className="flex flex-wrap gap-2">
                       {platforms.map((p, i) => (
@@ -114,7 +114,7 @@ const CodeBlock = () => {
 
                 {/* Step 2: Just ask */}
                 <div>
-                  <div className="mb-2 font-mono text-xs text-muted-custom">Step 2 — Tell your agent what you need</div>
+                  <div className="mb-2 font-mono text-xs text-muted-custom">Step 2: Tell your agent what you need</div>
                   <div className="rounded-lg border border-border/40 bg-card/40 p-4 font-mono text-sm text-heading leading-relaxed">
                     "Update my link page with my new book launch. Add a pre-order link at the top."
                   </div>
@@ -122,7 +122,7 @@ const CodeBlock = () => {
 
                 {/* Step 3: Done */}
                 <div>
-                  <div className="mb-2 font-mono text-xs text-muted-custom">Step 3 — Done. Your agent handled it.</div>
+                  <div className="mb-2 font-mono text-xs text-muted-custom">Step 3: Done. Your agent handled it.</div>
                   <pre className="overflow-x-auto font-mono text-xs text-primary/80 leading-relaxed">{curlResponse}</pre>
                 </div>
 

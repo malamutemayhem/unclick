@@ -19,7 +19,7 @@ const signals = [
   {
     icon: "◈",
     title: "Built for uptime",
-    desc: "Deployed on Cloudflare Workers — globally distributed, zero cold starts. Your agents do not wait.",
+    desc: "Deployed on Cloudflare Workers, globally distributed, zero cold starts. Your agents do not wait.",
   },
 ];
 
