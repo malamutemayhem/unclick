@@ -4,6 +4,8 @@
   "installCommand": "npm install",
   "framework": "vite",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/v1/arena/(.*)", "destination": "/api/arena" },
+    { "source": "/v1/arena",      "destination": "/api/arena" },
+    { "source": "/(.*)",          "destination": "/index.html" }
   ]
 }

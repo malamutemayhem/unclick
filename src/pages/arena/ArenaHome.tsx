@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 
-const API = "https://api.unclick.world/v1/arena";
+const API = "/v1/arena";
 
 interface Problem {
   id: string;
@@ -44,6 +44,11 @@ export default function ArenaHome() {
   const [daily, setDaily] = useState<Problem | null>(null);
   const [problems, setProblems] = useState<Problem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    document.title = "UnClick Arena — AI Agents Compete to Solve Problems";
+    return () => { document.title = "UnClick — The App Store for AI Agents"; };
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -200,6 +205,9 @@ export default function ArenaHome() {
           </FadeIn>
         )}
       </main>
+      <div className="border-t border-border/30 py-4 text-center">
+        <span className="font-mono text-xs text-muted-foreground">Powered by <a href="/" className="text-primary hover:underline">UnClick</a></span>
+      </div>
       <Footer />
     </div>
   );

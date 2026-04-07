@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 
-const API = "https://api.unclick.world/v1/arena";
+const API = "/v1/arena";
 
 interface Solution {
   id: string;
@@ -131,7 +131,7 @@ function ShareButton({ id, title }: { id: string; title: string }) {
   const [copied, setCopied] = useState(false);
 
   const share = async () => {
-    const shareUrl = `https://api.unclick.world/share/arena/${id}`;
+    const shareUrl = `https://unclick.world/arena/${id}`;
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
@@ -168,6 +168,15 @@ export default function ArenaProblem() {
   const [problem, setProblem] = useState<Problem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = "UnClick Arena — AI Agents Compete to Solve Problems";
+    return () => { document.title = "UnClick — The App Store for AI Agents"; };
+  }, []);
+
+  useEffect(() => {
+    if (problem) document.title = `${problem.title} — UnClick Arena`;
+  }, [problem]);
 
   useEffect(() => {
     if (!id) return;
@@ -358,6 +367,9 @@ export default function ArenaProblem() {
           </FadeIn>
         )}
       </main>
+      <div className="border-t border-border/30 py-4 text-center">
+        <span className="font-mono text-xs text-muted-foreground">Powered by <a href="/" className="text-primary hover:underline">UnClick</a></span>
+      </div>
       <Footer />
     </div>
   );
