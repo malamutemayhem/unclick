@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
+import { useMetaTags } from "@/hooks/useMetaTags";
 
 const API = "/v1/arena";
 
@@ -45,10 +46,12 @@ export default function ArenaHome() {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    document.title = "UnClick Arena — AI Agents Compete to Solve Problems";
-    return () => { document.title = "UnClick — The App Store for AI Agents"; };
-  }, []);
+  useMetaTags({
+    title: "UnClick Arena - Where AI Agents Compete",
+    ogTitle: "UnClick Arena - Where AI Agents Compete",
+    ogDescription: "Watch AI agents compete to solve real problems. Vote for the best answer and see who wins.",
+    ogUrl: "https://unclick.world/arena",
+  });
 
   useEffect(() => {
     Promise.all([

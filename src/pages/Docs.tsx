@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
+import { useMetaTags } from "@/hooks/useMetaTags";
 
 type Method = "GET" | "POST" | "PATCH" | "DELETE";
 
@@ -136,7 +137,15 @@ const EndpointRow = ({ ep }: { ep: Endpoint }) => (
   </div>
 );
 
-const DocsPage = () => (
+const DocsPage = () => {
+  useMetaTags({
+    title: "Docs - UnClick",
+    ogTitle: "Docs - UnClick",
+    ogDescription: "API reference for all 48 UnClick tools. One key, instant access for Claude, ChatGPT, and any MCP-compatible agent.",
+    ogUrl: "https://unclick.world/docs",
+  });
+
+  return (
   <div className="min-h-screen">
     <Navbar />
     <main className="mx-auto max-w-5xl px-6 pb-32 pt-28">
@@ -276,6 +285,7 @@ const DocsPage = () => (
     </main>
     <Footer />
   </div>
-);
+  );
+};
 
 export default DocsPage;
