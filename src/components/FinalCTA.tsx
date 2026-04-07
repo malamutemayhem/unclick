@@ -17,15 +17,13 @@ const FinalCTA = () => (
       </FadeIn>
       <FadeIn delay={0.1}>
         <p className="mt-4 text-body max-w-md mx-auto">
-          Connect to your AI in under two minutes. All 26 tools included. No credit card.
+          Connect to your AI in under two minutes. All 33 tools included. No credit card.
         </p>
       </FadeIn>
       <FadeIn delay={0.2}>
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <motion.a
-            href="https://tally.so/r/mZdkxe"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/#install"
             className="group inline-flex items-center gap-2 rounded-lg bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground"
             whileHover={{ scale: 1.03, boxShadow: "0 0 40px 8px rgba(226,185,59,0.25)" }}
             whileTap={{ scale: 0.98 }}

@@ -1,7 +1,7 @@
 # UnClick — The App Store for AI Agents
 
 UnClick is an AI agent marketplace where AI assistants find and use tools.
-It provides 26 verified tools accessible via a single MCP server connection
+It provides 33 verified tools accessible via a single MCP server connection
 or REST API key. Works with Claude, ChatGPT, OpenClaw, Cursor, and any
 MCP-compatible agent.
 
@@ -35,7 +35,7 @@ All authenticated endpoints require a Bearer token:
 
 Get a free API key at: https://unclick.world
 
-## Available Tools (26 total, all free)
+## Available Tools (33 total, all free)
 
 ### Utility Tools
 - Random — /v1/random — Secure random numbers, strings, passwords, UUIDs
@@ -43,6 +43,7 @@ Get a free API key at: https://unclick.world
 - Cron — /v1/cron — Parse, validate, build cron expressions
 - Timestamp — /v1/timestamp — Convert, format, diff timestamps
 - QR Code — /v1/qr — Generate QR codes as PNG or SVG
+- Units — /v1/units — Unit conversion across length, weight, temperature, volume, speed, area, storage
 
 ### Text Tools
 - Transform — /v1/transform — Case conversion, slugify, word count, strip HTML
@@ -50,12 +51,15 @@ Get a free API key at: https://unclick.world
 - Markdown — /v1/markdown — Convert to HTML or plain text, extract TOC
 - Lorem — /v1/lorem — Placeholder text, names, emails, addresses
 - Diff — /v1/diff — Unified, line-by-line, and word-level diffs; apply patches
+- Count — /v1/count — Word count, character count, sentence count, reading time
+- Humanize — /v1/humanize — Detect AI-written text and rewrite to sound more natural
 
 ### Data Tools
 - JSON — /v1/json — Format, query, flatten, merge, diff, generate schemas
 - CSV — /v1/csv — Parse, generate, query, sort, column stats
 - Validate — /v1/validate — Email, URL, phone, credit card, IP, color
 - Encode — /v1/encode and /v1/decode — Base64, URL, HTML, hex
+- OG — /v1/og — Extract Open Graph metadata and Twitter Card tags from any URL
 
 ### Media Tools
 - Image — /v1/image — Resize, convert JPEG/PNG/WebP/AVIF, compress, crop, rotate
@@ -64,6 +68,9 @@ Get a free API key at: https://unclick.world
 ### Network Tools
 - IP — /v1/ip — Look up caller IP, parse, subnet math, CIDR range check
 - Hash — /v1/hash — MD5, SHA1, SHA256, SHA512, HMAC, verify
+- DNS — /v1/dns — DNS record lookup for any domain (A, AAAA, MX, TXT, CNAME, NS)
+- Headers — /v1/headers — HTTP header inspection with security grading
+- Ping — /v1/ping — URL uptime check with HTTP status and SSL certificate info
 
 ### Security Tools
 - Secret — /v1/secret — One-time secrets that self-destruct after first view

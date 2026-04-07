@@ -1,7 +1,7 @@
 import FadeIn from "./FadeIn";
 
 const Strip = () => {
-  const text = "26 tools. One connection. Any MCP agent.";
+  const text = "33 tools. One connection. Any MCP agent.";
   const repeated = `${text}  ·  ${text}  ·  ${text}  ·  ${text}  ·  `;
 
   return (

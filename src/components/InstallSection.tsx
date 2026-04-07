@@ -72,9 +72,9 @@ const configs: Record<Client, { code: string; label: string; file: string }> = {
 const clients: Client[] = ["Claude Desktop", "Cursor", "OpenClaw", "Direct API"];
 
 const steps = [
-  { n: "1", label: "Request your free API key", detail: "Email hello@unclick.world to request a key. Keys are issued instantly once self-serve signup is ready." },
+  { n: "1", label: "Request your free API key", detail: "Free, no credit card needed. Email hello@unclick.world to get your key." },
   { n: "2", label: "Copy the config below", detail: "Pick your AI client, copy the snippet, and replace YOUR_API_KEY." },
-  { n: "3", label: "Restart your AI and ask", detail: 'Your AI now has all 26 tools. Try: "shorten this link" or "make a QR code."' },
+  { n: "3", label: "Restart your AI and ask", detail: 'Your AI now has all 33 tools. Try: "shorten this link" or "make a QR code."' },
 ];
 
 const InstallSection = () => {

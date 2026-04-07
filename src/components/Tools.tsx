@@ -7,6 +7,7 @@ import {
   Braces, Table, ShieldCheck, Binary, Image, Palette,
   Network, Hash, Lock, Database, Clipboard, Link,
   Webhook, UserRound, CalendarDays, Lightbulb,
+  Globe, Shield, Ruler, Share2, Activity, Sparkles,
   X,
 } from "lucide-react";
 
@@ -49,23 +50,30 @@ const tools: Tool[] = [
   { name: "Cron",         description: "Parse cron expressions to plain English, get next N run times, validate, and build expressions.",                        endpoint: "/v1/cron",     category: "Utility",  Icon: Timer },
   { name: "Timestamp",    description: "Convert between Unix, ISO 8601, and human-readable formats. Diff timestamps, add durations.",                           endpoint: "/v1/timestamp",category: "Utility",  Icon: Clock },
   { name: "QR Code",      description: "Generate QR codes as PNG or SVG from any text, URL, or data string.",                                                   endpoint: "/v1/qr",       category: "Utility",  Icon: QrCode },
+  { name: "Units",        description: "Convert units across length, weight, temperature, volume, speed, area, and digital storage.",                              endpoint: "/v1/units",    category: "Utility",  Icon: Ruler },
   // Text
   { name: "Transform",    description: "Case conversion, slugify, truncate, reverse, strip HTML, and count words, chars, and reading time.",                    endpoint: "/v1/transform",category: "Text",     Icon: CaseSensitive },
   { name: "Regex",        description: "Test patterns, extract all matches, replace with regex, split strings, and validate expressions.",                      endpoint: "/v1/regex",    category: "Text",     Icon: Regex },
   { name: "Markdown",     description: "Convert Markdown to HTML or plain text, extract a table of contents, and run lint checks.",                             endpoint: "/v1/markdown", category: "Text",     Icon: FileText },
   { name: "Lorem",        description: "Generate placeholder paragraphs, sentences, words, names, emails, and addresses on demand.",                            endpoint: "/v1/lorem",    category: "Text",     Icon: AlignLeft },
   { name: "Diff",         description: "Unified, line-by-line, and word-level diffs between two strings. Apply patches programmatically.",                      endpoint: "/v1/diff",     category: "Text",     Icon: GitCompare },
+  { name: "Count",        description: "Count words, characters, sentences, paragraphs, and estimate reading time for any block of text.",                         endpoint: "/v1/count",    category: "Text",     Icon: Hash },
+  { name: "Humanize",     description: "Detect AI-written text and rewrite it to sound more natural and human.",                                                   endpoint: "/v1/humanize", category: "Text",     Icon: Sparkles },
   // Data
   { name: "JSON",         description: "Format, minify, query with JSONPath, flatten, unflatten, deep-merge, diff, and generate schemas.",                      endpoint: "/v1/json",     category: "Data",     Icon: Braces },
   { name: "CSV",          description: "Parse CSV to JSON, convert JSON back to CSV, filter rows by condition, sort, and get column stats.",                    endpoint: "/v1/csv",      category: "Data",     Icon: Table },
   { name: "Validate",     description: "Email, URL, phone, JSON, credit card Luhn check, IPv4/IPv6, and color format validation.",                              endpoint: "/v1/validate", category: "Data",     Icon: ShieldCheck },
   { name: "Encode",       description: "Base64, URL, HTML entity, and hex encode and decode in both directions.",                                               endpoint: "/v1/encode",   category: "Data",     Icon: Binary },
+  { name: "OG",           description: "Extract Open Graph metadata, Twitter Card tags, and page title from any URL.",                                            endpoint: "/v1/og",       category: "Data",     Icon: Share2 },
   // Media
   { name: "Image",        description: "Resize, convert between JPEG/PNG/WebP/AVIF, compress, crop, rotate, and extract metadata.",                            endpoint: "/v1/image",    category: "Media",    Icon: Image },
   { name: "Color",        description: "Convert hex/RGB/HSL/HSV, generate palettes, mix colors, check WCAG contrast ratios.",                                  endpoint: "/v1/color",    category: "Media",    Icon: Palette },
   // Network
   { name: "IP",           description: "Look up caller IP, parse addresses, calculate subnets from CIDR, check IP range membership.",                          endpoint: "/v1/ip",       category: "Network",  Icon: Network },
   { name: "Hash",         description: "Compute MD5, SHA1, SHA256, SHA512 hashes and HMAC signatures. Verify hashes in one call.",                             endpoint: "/v1/hash",     category: "Network",  Icon: Hash },
+  { name: "DNS",          description: "Look up DNS records for any domain. Supports A, AAAA, MX, TXT, CNAME, NS, SOA, and more.",                            endpoint: "/v1/dns",      category: "Network",  Icon: Globe },
+  { name: "Headers",      description: "Inspect HTTP response headers for any URL with a security grade and missing-header analysis.",                         endpoint: "/v1/headers",  category: "Network",  Icon: Shield },
+  { name: "Ping",         description: "Check if a URL is up and responding. Returns HTTP status, SSL certificate info, and response time.",                   endpoint: "/v1/ping",     category: "Network",  Icon: Activity },
   // Security
   { name: "Secret",       description: "Create one-time secrets that self-destruct after a single view. Built for safe credential handoff.",                    endpoint: "/v1/secret",   category: "Security", Icon: Lock },
   // Storage

@@ -3,7 +3,7 @@ import { useInView } from "framer-motion";
 import FadeIn from "./FadeIn";
 
 const stats = [
-  { value: 26, suffix: "", label: "Tools available" },
+  { value: 33, suffix: "", label: "Tools available" },
   { value: 80, suffix: "+", label: "API endpoints" },
   { value: 38, suffix: "ms", label: "Avg response time" },
   { value: 99.98, suffix: "%", label: "Uptime SLA" },

@@ -6,13 +6,13 @@ const steps = [
     number: "1",
     Icon: PlugZap,
     title: "Connect",
-    desc: "Add UnClick to Claude Desktop, Cursor, or any MCP-compatible AI. Paste one JSON config. Takes 30 seconds.",
+    desc: "Add UnClick to Claude Desktop, Cursor, or any AI app. Paste one JSON config. Takes 30 seconds.",
   },
   {
     number: "2",
     Icon: LayoutGrid,
     title: "Browse",
-    desc: "Your AI now has access to all 26 tools in the marketplace. No extra setup per tool.",
+    desc: "Your AI now has access to all 33 tools in the marketplace. No extra setup per tool.",
   },
   {
     number: "3",
