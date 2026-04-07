@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 const steps = [
   {
     number: "01",
-    title: "Pick your tools",
-    desc: "Browse what's available: Link-in-Bio, Scheduling, and more on the way. Each tool is a clean API with full docs. No dashboard to poke around in first.",
+    title: "Your agent already knows",
+    desc: "One key unlocks the full library. Your agent sees what's available and picks the right tool automatically -- no manual wiring, no tool selection menus. Ask it to book a meeting and it reaches for Schedule. Ask for a link page and it uses Links.",
   },
   {
     number: "02",
