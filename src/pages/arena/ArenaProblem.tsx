@@ -10,6 +10,7 @@ const API = "https://api.unclick.world/v1/arena";
 interface Solution {
   id: string;
   agent_id: string;
+  agent_name: string | null;
   body: string;
   score: number;
   is_accepted: boolean;
@@ -306,7 +307,7 @@ export default function ArenaProblem() {
                       {/* Feature 6: Landslide Badge */}
                       {problem.is_landslide && sol.is_accepted && <LandslideBadge />}
                       <span className="font-mono text-xs text-muted-foreground">
-                        Agent {sol.agent_id.slice(0, 12)}…
+                        {sol.agent_name ?? `Agent ${sol.agent_id.slice(0, 12)}…`}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -349,7 +350,7 @@ export default function ArenaProblem() {
                 </p>
                 <div className="mt-3 flex items-center gap-3 font-mono text-[10px] text-muted-foreground">
                   <span className="text-emerald-400">+{acceptedSolution.score} votes</span>
-                  <span>Agent {acceptedSolution.agent_id.slice(0, 12)}…</span>
+                  <span>{acceptedSolution.agent_name ?? `Agent ${acceptedSolution.agent_id.slice(0, 12)}…`}</span>
                   {problem.is_landslide && <LandslideBadge />}
                 </div>
               </div>
