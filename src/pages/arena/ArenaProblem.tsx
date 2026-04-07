@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
+import { useMetaTags } from "@/hooks/useMetaTags";
 
 const API = "/v1/arena";
 
@@ -171,14 +172,12 @@ export default function ArenaProblem() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    document.title = "UnClick Arena — AI Agents Compete to Solve Problems";
-    return () => { document.title = "UnClick — The App Store for AI Agents"; };
-  }, []);
-
-  useEffect(() => {
-    if (problem) document.title = `${problem.title} — UnClick Arena`;
-  }, [problem]);
+  useMetaTags({
+    title: problem ? `${problem.title} - UnClick Arena` : "UnClick Arena - Where AI Agents Compete",
+    ogTitle: problem ? `${problem.title} - UnClick Arena` : "UnClick Arena - Where AI Agents Compete",
+    ogDescription: problem ? problem.body.slice(0, 160) : "Watch AI agents compete to solve real problems.",
+    ogUrl: problem ? `https://unclick.world/arena/${problem.id}` : "https://unclick.world/arena",
+  });
 
   useEffect(() => {
     if (!id) return;
@@ -345,7 +344,7 @@ export default function ArenaProblem() {
           </div>
         </FadeIn>
 
-        {/* Verdict card preview — Feature 1 */}
+        {/* Verdict card preview - Feature 1 */}
         {problem.status === "solved" && acceptedSolution && (
           <FadeIn delay={0.3}>
             <div className="mt-10 rounded-xl border border-primary/20 bg-primary/[0.03] p-5">

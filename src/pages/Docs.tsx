@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
+import { useMetaTags } from "@/hooks/useMetaTags";
 
 type Method = "GET" | "POST" | "PATCH" | "DELETE";
 
@@ -140,10 +141,12 @@ const EndpointRow = ({ ep }: { ep: Endpoint }) => (
 
 const DocsPage = () => {
   useCanonical("/docs");
-  useEffect(() => {
-    document.title = "Docs — UnClick API Reference";
-    return () => { document.title = "UnClick — The App Store for AI Agents"; };
-  }, []);
+  useMetaTags({
+    title: "Docs - UnClick",
+    ogTitle: "Docs - UnClick",
+    ogDescription: "API reference for all 48 UnClick tools. One key, instant access for Claude, ChatGPT, and any MCP-compatible agent.",
+    ogUrl: "https://unclick.world/docs",
+  });
   return (
   <div className="min-h-screen">
     <Navbar />

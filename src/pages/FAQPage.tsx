@@ -3,13 +3,16 @@ import Navbar from "@/components/Navbar";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import { useCanonical } from "@/hooks/use-canonical";
+import { useMetaTags } from "@/hooks/useMetaTags";
 
 const FAQPage = () => {
   useCanonical("/faq");
-  useEffect(() => {
-    document.title = "FAQ — UnClick AI Agent Marketplace";
-    return () => { document.title = "UnClick — The App Store for AI Agents"; };
-  }, []);
+  useMetaTags({
+    title: "FAQ - UnClick",
+    ogTitle: "FAQ - UnClick",
+    ogDescription: "Answers to common questions about UnClick, MCP tools, the Arena, and how to get started.",
+    ogUrl: "https://unclick.world/faq",
+  });
   return (
     <div className="min-h-screen">
       <Navbar />
