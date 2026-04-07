@@ -17,6 +17,7 @@ const Navbar = () => {
           <a href={toolsHref} className="text-sm text-body transition-colors hover:text-heading">Tools</a>
           <a href={installHref} className="text-sm text-body transition-colors hover:text-heading">Install</a>
           <a href="/docs" className="text-sm text-body transition-colors hover:text-heading">Docs</a>
+          <a href="/faq" className="text-sm text-body transition-colors hover:text-heading">FAQ</a>
         </div>
 
         <div className="flex items-center gap-3">
@@ -66,6 +67,7 @@ const Navbar = () => {
               <a href={toolsHref} onClick={() => setOpen(false)} className="py-2 text-sm text-body transition-colors hover:text-heading">Tools</a>
               <a href={installHref} onClick={() => setOpen(false)} className="py-2 text-sm text-body transition-colors hover:text-heading">Install</a>
               <a href="/docs" onClick={() => setOpen(false)} className="py-2 text-sm text-body transition-colors hover:text-heading">Docs</a>
+              <a href="/faq" onClick={() => setOpen(false)} className="py-2 text-sm text-body transition-colors hover:text-heading">FAQ</a>
               <a
                 href={installHref}
                 className="mt-2 rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"

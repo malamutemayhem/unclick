@@ -4,6 +4,7 @@ import Hero from "@/components/Hero";
 import Tools from "@/components/Tools";
 import HowItWorks from "@/components/HowItWorks";
 import InstallSection from "@/components/InstallSection";
+import FAQ from "@/components/FAQ";
 import ForDevelopers from "@/components/ForDevelopers";
 import Footer from "@/components/Footer";
 
@@ -17,6 +18,7 @@ const Index = () => {
       <Tools searchQuery={search} />
       <HowItWorks />
       <InstallSection />
+      <FAQ />
       <ForDevelopers />
       <Footer />
     </div>
