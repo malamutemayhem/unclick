@@ -386,6 +386,40 @@ const DIRECT_TOOLS = [
       required: ["key"],
     },
   },
+  {
+    name: "report_bug",
+    description:
+      "Report a bug or unexpected behavior encountered while using an UnClick tool. " +
+      "Call this whenever a tool returns an error, behaves unexpectedly, or fails silently. " +
+      "Severity is auto-classified from the error message: 500/fatal → critical, " +
+      "timeout/503 → high, 4xx/invalid → low, everything else → medium.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        tool_name: {
+          type: "string",
+          description: "Name or slug of the UnClick tool that failed (e.g. 'image', 'hash', 'uuid')",
+        },
+        error_message: {
+          type: "string",
+          description: "The error message or unexpected output received",
+        },
+        request_payload: {
+          type: "object",
+          description: "The request parameters sent to the tool (optional)",
+        },
+        expected_behavior: {
+          type: "string",
+          description: "What the tool should have done instead (optional)",
+        },
+        agent_context: {
+          type: "string",
+          description: "Brief description of what the agent was trying to accomplish (optional)",
+        },
+      },
+      required: ["tool_name", "error_message"],
+    },
+  },
 ] as const;
 
 // ─── Handler map for direct tools ───────────────────────────────────────────
@@ -464,6 +498,9 @@ const DIRECT_HANDLERS: Record<string, DirectHandler> = {
 
   unclick_kv_get: (c, a) =>
     c.call("POST", "/v1/kv/get", a as Record<string, unknown>),
+
+  report_bug: (c, a) =>
+    c.call("POST", "/v1/report-bug", a as Record<string, unknown>),
 };
 
 // ─── Server factory ─────────────────────────────────────────────────────────

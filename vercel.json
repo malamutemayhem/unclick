@@ -6,6 +6,7 @@
   "rewrites": [
     { "source": "/v1/arena/(.*)", "destination": "/api/arena" },
     { "source": "/v1/arena",      "destination": "/api/arena" },
+    { "source": "/v1/report-bug", "destination": "/api/report-bug" },
     { "source": "/(.*)",          "destination": "/index.html" }
   ]
 }
