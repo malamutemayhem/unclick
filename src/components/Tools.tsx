@@ -15,10 +15,11 @@ import {
   MessageCircle, MessageSquare, Users, Wind, Globe2,
   ShoppingCart, Receipt, Store, ArrowUpCircle,
   KeyRound, TrendingUp,
+  Building2, Train, Radio, Newspaper, HelpCircle, Calculator,
 } from "lucide-react";
 
 // ToolCategory: the category label stored on each tool (used for card badges and icon colours)
-type ToolCategory = "Utility" | "Text" | "Data" | "Media" | "Network" | "Security" | "Storage" | "Platform" | "Social" | "Commerce";
+type ToolCategory = "Utility" | "Text" | "Data" | "Media" | "Network" | "Security" | "Storage" | "Platform" | "Social" | "Commerce" | "AU Business" | "AU Transport" | "Weather" | "Music & Radio" | "News & Media" | "Fun & Games";
 // Category: values available in the filter bar ("Local" / "Platform" are section-level filters)
 type Category = "All" | "Local" | "Platform" | ToolCategory;
 
@@ -33,29 +34,41 @@ interface Tool {
 }
 
 const categoryColors: Record<ToolCategory, string> = {
-  Utility:  "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  Text:     "bg-sky-500/10 text-sky-400 border-sky-500/20",
-  Data:     "bg-violet-500/10 text-violet-400 border-violet-500/20",
-  Media:    "bg-pink-500/10 text-pink-400 border-pink-500/20",
-  Network:  "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  Security: "bg-red-500/10 text-red-400 border-red-500/20",
-  Storage:  "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  Platform: "bg-primary/10 text-primary border-primary/20",
-  Social:   "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  Commerce: "bg-teal-500/10 text-teal-400 border-teal-500/20",
+  Utility:       "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  Text:          "bg-sky-500/10 text-sky-400 border-sky-500/20",
+  Data:          "bg-violet-500/10 text-violet-400 border-violet-500/20",
+  Media:         "bg-pink-500/10 text-pink-400 border-pink-500/20",
+  Network:       "bg-orange-500/10 text-orange-400 border-orange-500/20",
+  Security:      "bg-red-500/10 text-red-400 border-red-500/20",
+  Storage:       "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  Platform:      "bg-primary/10 text-primary border-primary/20",
+  Social:        "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  Commerce:      "bg-teal-500/10 text-teal-400 border-teal-500/20",
+  "AU Business": "bg-lime-500/10 text-lime-400 border-lime-500/20",
+  "AU Transport":"bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  Weather:       "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+  "Music & Radio":"bg-purple-500/10 text-purple-400 border-purple-500/20",
+  "News & Media": "bg-rose-500/10 text-rose-400 border-rose-500/20",
+  "Fun & Games":  "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
 };
 
 const categoryIconBg: Record<ToolCategory, string> = {
-  Utility:  "bg-amber-500/10 text-amber-400",
-  Text:     "bg-sky-500/10 text-sky-400",
-  Data:     "bg-violet-500/10 text-violet-400",
-  Media:    "bg-pink-500/10 text-pink-400",
-  Network:  "bg-orange-500/10 text-orange-400",
-  Security: "bg-red-500/10 text-red-400",
-  Storage:  "bg-emerald-500/10 text-emerald-400",
-  Platform: "bg-primary/10 text-primary",
-  Social:   "bg-blue-500/10 text-blue-400",
-  Commerce: "bg-teal-500/10 text-teal-400",
+  Utility:       "bg-amber-500/10 text-amber-400",
+  Text:          "bg-sky-500/10 text-sky-400",
+  Data:          "bg-violet-500/10 text-violet-400",
+  Media:         "bg-pink-500/10 text-pink-400",
+  Network:       "bg-orange-500/10 text-orange-400",
+  Security:      "bg-red-500/10 text-red-400",
+  Storage:       "bg-emerald-500/10 text-emerald-400",
+  Platform:      "bg-primary/10 text-primary",
+  Social:        "bg-blue-500/10 text-blue-400",
+  Commerce:      "bg-teal-500/10 text-teal-400",
+  "AU Business": "bg-lime-500/10 text-lime-400",
+  "AU Transport":"bg-cyan-500/10 text-cyan-400",
+  Weather:       "bg-indigo-500/10 text-indigo-400",
+  "Music & Radio":"bg-purple-500/10 text-purple-400",
+  "News & Media": "bg-rose-500/10 text-rose-400",
+  "Fun & Games":  "bg-yellow-500/10 text-yellow-400",
 };
 
 const tools: Tool[] = [
@@ -896,6 +909,110 @@ const tools: Tool[] = [
     ],
     examplePrompt: "Ask your AI to generate a monthly business performance summary with key metrics and trends",
   },
+  // ── AU Business ───────────────────────────────────────────────────────────
+  {
+    name: "ABN Lookup",
+    description: "Look up any Australian business by ABN or name. Verify GST registration and entity status instantly using the free Australian Business Registry. No API key or account needed.",
+    endpoint: "/v1/abn",
+    category: "AU Business",
+    Icon: Building2,
+    capabilities: [
+      "Look up any business by 11-digit ABN for full entity details",
+      "Search the ABR by business name to find matching ABNs",
+      "Verify GST registration status and effective registration date",
+      "Retrieve entity type, ABN status, state, and postcode",
+    ],
+    examplePrompt: "Ask your AI to verify whether a supplier is GST-registered before processing an invoice",
+  },
+  // ── AU Transport ──────────────────────────────────────────────────────────
+  {
+    name: "PTV",
+    description: "Live train, tram and bus departures, disruptions and route info for Victoria's public transport network. Search any stop or route and get real-time timetable data directly from Public Transport Victoria.",
+    endpoint: "/v1/ptv",
+    category: "AU Transport",
+    Icon: Train,
+    capabilities: [
+      "Search stops, routes, and outlets across Melbourne and regional Victoria",
+      "Get next departures for any stop by route type: train, tram, bus, or Vline",
+      "Fetch current and planned service disruptions network-wide",
+      "List all stops on a route and available directions per line",
+    ],
+    examplePrompt: "Ask your AI to check the next tram departures from Flinders Street towards Docklands",
+  },
+  // ── Weather ───────────────────────────────────────────────────────────────
+  {
+    name: "Weather",
+    description: "Free professional-grade weather forecasts and historical data for any location worldwide. No API key needed. Pass a city name or coordinates to get current conditions, daily forecasts, or hourly data for the next 48 hours.",
+    endpoint: "/v1/weather",
+    category: "Weather",
+    Icon: CloudSun,
+    capabilities: [
+      "Current conditions: temperature, wind speed, and weather description",
+      "Daily forecasts up to 16 days: high, low, precipitation, and wind",
+      "Hourly data for the next 48 hours with humidity and precipitation",
+      "Accepts city names or latitude/longitude coordinates",
+    ],
+    examplePrompt: "Ask your AI to get a 7-day weather forecast for Melbourne before planning an outdoor event",
+  },
+  // ── Music & Radio ─────────────────────────────────────────────────────────
+  {
+    name: "Radio Browser",
+    description: "Search and discover 50,000+ internet radio stations worldwide by genre, country or language. No setup required. Stream URLs returned directly so your AI can recommend stations or build radio playlists.",
+    endpoint: "/v1/radio",
+    category: "Music & Radio",
+    Icon: Radio,
+    capabilities: [
+      "Search 50,000+ stations by name, country, language, or genre tag",
+      "Browse stations by country or genre: jazz, classical, news, rock, and more",
+      "Get top-clicked and highest-voted stations globally",
+      "List all countries with station counts for discovery",
+    ],
+    examplePrompt: "Ask your AI to find the top jazz radio stations in Australia with stream URLs",
+  },
+  // ── News & Media ──────────────────────────────────────────────────────────
+  {
+    name: "Hacker News",
+    description: "Browse Hacker News top stories, Ask HN, Show HN and comments. Perfect for daily tech news briefings. Fetch the top 30 stories by score, newest submissions, or Ask HN and Show HN threads in one call.",
+    endpoint: "/v1/hn",
+    category: "News & Media",
+    Icon: Newspaper,
+    capabilities: [
+      "Fetch top, new, and best stories with title, URL, score, and comment count",
+      "Browse Ask HN and Show HN threads separately",
+      "Retrieve any item by ID including full comment thread IDs",
+      "Look up user profiles with karma and recent submission history",
+    ],
+    examplePrompt: "Ask your AI to summarise the top 10 Hacker News stories this morning",
+  },
+  // ── Fun & Games ───────────────────────────────────────────────────────────
+  {
+    name: "Trivia",
+    description: "Pull trivia questions from 4,000+ questions across 24 categories. Great for building quizzes and games. Filter by category, difficulty, and question type. Answers are decoded and shuffled automatically.",
+    endpoint: "/v1/trivia",
+    category: "Fun & Games",
+    Icon: HelpCircle,
+    capabilities: [
+      "Fetch up to 50 trivia questions per call across 24 topic categories",
+      "Filter by difficulty: easy, medium, or hard",
+      "Choose question type: multiple choice (4 options) or true/false",
+      "Answers decoded from HTML entities and shuffled automatically",
+    ],
+    examplePrompt: "Ask your AI to generate a 10-question pub quiz on Science and Nature at medium difficulty",
+  },
+  {
+    name: "Number Facts",
+    description: "Get interesting facts about any number, date or year. No setup required. Great for trivia bots, educational content, and fun daily briefings. Covers math, history, and general trivia for any integer.",
+    endpoint: "/v1/numbers",
+    category: "Fun & Games",
+    Icon: Calculator,
+    capabilities: [
+      "Get trivia, math, date, or year facts for any number",
+      "Fetch a random interesting number fact for any type",
+      "Date facts use month/day encoding (e.g. 315 = March 15)",
+      "Year facts cover historical events for any year",
+    ],
+    examplePrompt: "Ask your AI to share a fun fact about today's date for a daily newsletter",
+  },
 ];
 
 // Platform connectors: tools that require a one-time external account connection
@@ -918,6 +1035,7 @@ const PLATFORM_CONNECTOR_NAMES = new Set(Object.keys(PLATFORM_CONNECTOR_SLUGS));
 const categories: Category[] = [
   "All", "Local", "Platform",
   "Utility", "Text", "Data", "Media", "Network", "Security", "Storage", "Social", "Commerce",
+  "AU Business", "AU Transport", "Weather", "Music & Radio", "News & Media", "Fun & Games",
 ];
 
 interface ToolsProps {

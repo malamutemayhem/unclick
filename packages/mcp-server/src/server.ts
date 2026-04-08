@@ -89,6 +89,34 @@ import {
   shopifyShop,
   shopifyFulfillments,
 } from "./shopify-tool.js";
+import { abnLookup, abnSearch } from "./abn-tool.js";
+import {
+  ptvSearch,
+  ptvDepartures,
+  ptvDisruptions,
+  ptvStopsOnRoute,
+  ptvRouteDirections,
+} from "./ptv-tool.js";
+import { weatherCurrent, weatherForecast, weatherHourly } from "./openmeteo-tool.js";
+import {
+  radioSearch,
+  radioByCountry,
+  radioTopClicked,
+  radioTopVoted,
+  radioByTag,
+  radioCountries,
+} from "./radiobrowser-tool.js";
+import {
+  hnTopStories,
+  hnNewStories,
+  hnBestStories,
+  hnAskHn,
+  hnShowHn,
+  hnItem,
+  hnUser,
+} from "./hackernews-tool.js";
+import { triviaQuestions, triviaCategories } from "./trivia-tool.js";
+import { numberFact, numberRandom } from "./numbers-tool.js";
 
 // ─── Search helper ──────────────────────────────────────────────────────────
 
@@ -1968,6 +1996,394 @@ const DIRECT_TOOLS = [
       required: ["store", "access_token", "order_id"],
     },
   },
+  // ── ABN Lookup (AU Business Registry) ────────────────────────────────────
+  {
+    name: "abn_lookup",
+    description:
+      "Look up an Australian business by ABN (Australian Business Number). " +
+      "Returns entity name, type, ABN status, GST registration status, and main business location. " +
+      "Uses the free ABR JSONP API — no authentication required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        abn: { type: "string", description: "11-digit Australian Business Number (spaces optional)." },
+      },
+      required: ["abn"],
+    },
+  },
+  {
+    name: "abn_search",
+    description:
+      "Search Australian businesses by name using the ABR registry. " +
+      "Returns a list of matching businesses with their ABNs, status, and location. " +
+      "Uses the free ABR JSONP API — no authentication required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        name:     { type: "string", description: "Business name to search for (partial matches supported)." },
+        postcode: { type: "string", description: "Optional Australian postcode to narrow results." },
+      },
+      required: ["name"],
+    },
+  },
+  // ── PTV (Public Transport Victoria) ──────────────────────────────────────
+  {
+    name: "ptv_search",
+    description:
+      "Search Public Transport Victoria stops, routes, and outlets by name or keyword. " +
+      "Source: Licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        query: { type: "string", description: "Search term, e.g. 'Flinders Street', 'Route 96', 'Melbourne Central'." },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "ptv_departures",
+    description:
+      "Get next departures from a PTV stop. Returns scheduled departure times, route, and direction. " +
+      "route_type: 0=Train, 1=Tram, 2=Bus, 3=Vline. " +
+      "Source: Licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        stop_id:          { type: "number", description: "PTV stop ID (obtain from ptv_search)." },
+        route_type:       { type: "number", enum: [0, 1, 2, 3, 4], description: "0=Train, 1=Tram, 2=Bus, 3=Vline, 4=Night Bus." },
+        max_results:      { type: "number", description: "Max departures to return (default 5, max 20).", default: 5 },
+        route_id:         { type: "number", description: "Filter by specific route ID (optional)." },
+        direction_id:     { type: "number", description: "Filter by direction ID (optional)." },
+        look_backwards:   { type: "boolean", description: "Include past departures (default false).", default: false },
+        include_cancelled: { type: "boolean", description: "Include cancelled services (default false).", default: false },
+      },
+      required: ["stop_id", "route_type"],
+    },
+  },
+  {
+    name: "ptv_disruptions",
+    description:
+      "Get current service disruptions on Victoria's public transport network. " +
+      "Optionally filter by route type. " +
+      "Source: Licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        route_type:        { type: "number", enum: [0, 1, 2, 3, 4], description: "Filter by route type: 0=Train, 1=Tram, 2=Bus, 3=Vline, 4=Night Bus (optional)." },
+        disruption_status: { type: "string", enum: ["current", "planned"], description: "Filter by disruption status (optional)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "ptv_stops_on_route",
+    description:
+      "List all stops along a PTV route in order. " +
+      "Source: Licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        route_id:    { type: "number", description: "PTV route ID." },
+        route_type:  { type: "number", enum: [0, 1, 2, 3, 4], description: "0=Train, 1=Tram, 2=Bus, 3=Vline, 4=Night Bus." },
+        direction_id: { type: "number", description: "Filter by direction ID (optional)." },
+      },
+      required: ["route_id", "route_type"],
+    },
+  },
+  {
+    name: "ptv_route_directions",
+    description:
+      "Get available directions for a PTV route (e.g. City / Frankston for Frankston line). " +
+      "Source: Licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        route_id: { type: "number", description: "PTV route ID." },
+      },
+      required: ["route_id"],
+    },
+  },
+  // ── Open-Meteo (Weather) ──────────────────────────────────────────────────
+  {
+    name: "weather_current",
+    description:
+      "Get the current weather for any location worldwide. " +
+      "Returns temperature, wind speed and direction, and WMO weather code description. " +
+      "Pass latitude+longitude or a city name — no API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        latitude:  { type: "number", description: "Latitude of the location." },
+        longitude: { type: "number", description: "Longitude of the location." },
+        city:      { type: "string", description: "City name (alternative to latitude/longitude, e.g. 'Melbourne')." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "weather_forecast",
+    description:
+      "Get a daily weather forecast for any location worldwide — up to 16 days. " +
+      "Returns max/min temperature, precipitation, wind speed, and weather description per day. " +
+      "Pass latitude+longitude or a city name — no API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        latitude:  { type: "number", description: "Latitude of the location." },
+        longitude: { type: "number", description: "Longitude of the location." },
+        city:      { type: "string", description: "City name (alternative to latitude/longitude)." },
+        days:      { type: "number", minimum: 1, maximum: 16, default: 7, description: "Number of forecast days (1-16, default 7)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "weather_hourly",
+    description:
+      "Get hourly weather data for the next 48 hours for any location worldwide. " +
+      "Returns temperature, precipitation, wind speed, humidity, and weather code per hour. " +
+      "Pass latitude+longitude or a city name — no API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        latitude:  { type: "number", description: "Latitude of the location." },
+        longitude: { type: "number", description: "Longitude of the location." },
+        city:      { type: "string", description: "City name (alternative to latitude/longitude)." },
+      },
+      required: [],
+    },
+  },
+  // ── Radio Browser ─────────────────────────────────────────────────────────
+  {
+    name: "radio_search",
+    description:
+      "Search 50,000+ internet radio stations by name, country, language, or genre tag. " +
+      "Returns stream URLs, codec, bitrate, and vote counts. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        name:     { type: "string", description: "Station name to search for (partial match)." },
+        country:  { type: "string", description: "Country name, e.g. 'Australia', 'Germany'." },
+        language: { type: "string", description: "Language name, e.g. 'english', 'french'." },
+        tag:      { type: "string", description: "Genre/tag, e.g. 'jazz', 'classical', 'news', 'pop'." },
+        limit:    { type: "number", minimum: 1, maximum: 100, default: 20, description: "Max stations to return (default 20)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "radio_by_country",
+    description:
+      "Get all internet radio stations in a specific country. " +
+      "Returns stream URLs, codec, bitrate, and vote counts. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        country: { type: "string", description: "Country name, e.g. 'Australia', 'United Kingdom'." },
+        limit:   { type: "number", minimum: 1, maximum: 100, default: 30, description: "Max stations to return (default 30)." },
+      },
+      required: ["country"],
+    },
+  },
+  {
+    name: "radio_top_clicked",
+    description:
+      "Get the most-clicked internet radio stations globally. " +
+      "Returns the stations users have tuned into most recently. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 100, default: 20, description: "Max stations to return (default 20)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "radio_top_voted",
+    description:
+      "Get the highest-voted internet radio stations globally. " +
+      "Returns stations ranked by community vote count. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 100, default: 20, description: "Max stations to return (default 20)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "radio_by_tag",
+    description:
+      "Get internet radio stations by genre tag. " +
+      "Use tags like 'jazz', 'classical', 'news', 'rock', 'pop', 'country'. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        tag:   { type: "string", description: "Genre tag, e.g. 'jazz', 'classical', 'news', 'rock'." },
+        limit: { type: "number", minimum: 1, maximum: 100, default: 30, description: "Max stations to return (default 30)." },
+      },
+      required: ["tag"],
+    },
+  },
+  {
+    name: "radio_countries",
+    description:
+      "List all countries with available internet radio stations and station counts, sorted by station count. " +
+      "No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  // ── Hacker News ───────────────────────────────────────────────────────────
+  {
+    name: "hn_top_stories",
+    description:
+      "Get the current top stories from Hacker News. " +
+      "Returns title, URL, score, author, and comment count. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 30, default: 10, description: "Number of stories to return (default 10, max 30)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "hn_new_stories",
+    description:
+      "Get the newest stories from Hacker News. " +
+      "Returns title, URL, score, author, and comment count. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 30, default: 10, description: "Number of stories to return (default 10, max 30)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "hn_best_stories",
+    description:
+      "Get the best (highest quality) stories from Hacker News. " +
+      "Returns title, URL, score, author, and comment count. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 30, default: 10, description: "Number of stories to return (default 10, max 30)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "hn_ask_hn",
+    description:
+      "Get Ask HN posts from Hacker News — community questions and discussions. " +
+      "Returns title, text, score, author, and comment count. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 30, default: 10, description: "Number of posts to return (default 10, max 30)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "hn_show_hn",
+    description:
+      "Get Show HN posts from Hacker News — projects and products shared by the community. " +
+      "Returns title, URL, score, author, and comment count. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 30, default: 10, description: "Number of posts to return (default 10, max 30)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "hn_item",
+    description:
+      "Get a specific Hacker News story, comment, or poll by item ID. " +
+      "Returns full item details including comment thread IDs. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id: { type: "number", description: "Numeric Hacker News item ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "hn_user",
+    description:
+      "Get a Hacker News user profile including karma, creation date, and recent submission IDs. " +
+      "No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        username: { type: "string", description: "Hacker News username." },
+      },
+      required: ["username"],
+    },
+  },
+  // ── Open Trivia Database ──────────────────────────────────────────────────
+  {
+    name: "trivia_questions",
+    description:
+      "Fetch trivia questions from the Open Trivia Database. " +
+      "4,000+ questions across 24 categories. Answers are HTML-decoded and shuffled. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        amount:     { type: "number", minimum: 1, maximum: 50, default: 10, description: "Number of questions to return (default 10, max 50)." },
+        category:   { type: "number", description: "Category ID from trivia_categories (optional, omit for any category)." },
+        difficulty: { type: "string", enum: ["easy", "medium", "hard"], description: "Question difficulty (optional)." },
+        type:       { type: "string", enum: ["multiple", "boolean"], description: "Question type: 'multiple' (4 choices) or 'boolean' (True/False) (optional)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "trivia_categories",
+    description:
+      "List all available trivia categories from the Open Trivia Database. " +
+      "Returns category IDs and names for use with trivia_questions. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  // ── Numbers API ───────────────────────────────────────────────────────────
+  {
+    name: "number_fact",
+    description:
+      "Get an interesting fact about a specific number, date, or year from the Numbers API. " +
+      "Types: trivia (default), math, date (month/day as number, e.g. 42 = Feb 11), year. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        number: { type: "string", description: "The number to get a fact about (integer, or month/day for type=date)." },
+        type:   { type: "string", enum: ["trivia", "math", "date", "year"], default: "trivia", description: "Fact type: trivia, math, date, or year (default: trivia)." },
+      },
+      required: ["number"],
+    },
+  },
+  {
+    name: "number_random",
+    description:
+      "Get an interesting fact about a random number from the Numbers API. " +
+      "Types: trivia (default), math, date, year. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        type: { type: "string", enum: ["trivia", "math", "date", "year"], default: "trivia", description: "Fact type: trivia, math, date, or year (default: trivia)." },
+      },
+      required: [],
+    },
+  },
 ] as const;
 
 // ─── Handler map for direct tools ───────────────────────────────────────────
@@ -2407,6 +2823,54 @@ const DIRECT_HANDLERS: Record<string, DirectHandler> = {
   shopify_collections:  async (_c, a) => shopifyCollections(a),
   shopify_shop:         async (_c, a) => shopifyShop(a),
   shopify_fulfillments: async (_c, a) => shopifyFulfillments(a),
+
+  // ── ABN Lookup handlers ───────────────────────────────────────────────────
+
+  abn_lookup: async (_c, a) => abnLookup(a),
+  abn_search: async (_c, a) => abnSearch(a),
+
+  // ── PTV handlers ──────────────────────────────────────────────────────────
+
+  ptv_search:          async (_c, a) => ptvSearch(a),
+  ptv_departures:      async (_c, a) => ptvDepartures(a),
+  ptv_disruptions:     async (_c, a) => ptvDisruptions(a),
+  ptv_stops_on_route:  async (_c, a) => ptvStopsOnRoute(a),
+  ptv_route_directions: async (_c, a) => ptvRouteDirections(a),
+
+  // ── Open-Meteo handlers ───────────────────────────────────────────────────
+
+  weather_current:  async (_c, a) => weatherCurrent(a),
+  weather_forecast: async (_c, a) => weatherForecast(a),
+  weather_hourly:   async (_c, a) => weatherHourly(a),
+
+  // ── Radio Browser handlers ────────────────────────────────────────────────
+
+  radio_search:      async (_c, a) => radioSearch(a),
+  radio_by_country:  async (_c, a) => radioByCountry(a),
+  radio_top_clicked: async (_c, a) => radioTopClicked(a),
+  radio_top_voted:   async (_c, a) => radioTopVoted(a),
+  radio_by_tag:      async (_c, a) => radioByTag(a),
+  radio_countries:   async (_c, a) => radioCountries(a),
+
+  // ── Hacker News handlers ──────────────────────────────────────────────────
+
+  hn_top_stories: async (_c, a) => hnTopStories(a),
+  hn_new_stories: async (_c, a) => hnNewStories(a),
+  hn_best_stories: async (_c, a) => hnBestStories(a),
+  hn_ask_hn:       async (_c, a) => hnAskHn(a),
+  hn_show_hn:      async (_c, a) => hnShowHn(a),
+  hn_item:         async (_c, a) => hnItem(a),
+  hn_user:         async (_c, a) => hnUser(a),
+
+  // ── Trivia handlers ───────────────────────────────────────────────────────
+
+  trivia_questions:  async (_c, a) => triviaQuestions(a),
+  trivia_categories: async (_c, a) => triviaCategories(a),
+
+  // ── Numbers API handlers ──────────────────────────────────────────────────
+
+  number_fact:   async (_c, a) => numberFact(a),
+  number_random: async (_c, a) => numberRandom(a),
 };
 
 // ─── Server factory ─────────────────────────────────────────────────────────
