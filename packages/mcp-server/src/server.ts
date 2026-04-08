@@ -89,6 +89,256 @@ import {
   shopifyShop,
   shopifyFulfillments,
 } from "./shopify-tool.js";
+import {
+  guardianSearch,
+  guardianSections,
+  guardianArticle,
+  guardianTags,
+} from "./guardian-tool.js";
+import {
+  newsTopHeadlines,
+  newsSearch,
+  newsSources,
+} from "./newsapi-tool.js";
+import {
+  tmdbSearchMovies,
+  tmdbSearchTv,
+  tmdbMovie,
+  tmdbTv,
+  tmdbTrending,
+  tmdbNowPlaying,
+  tmdbUpcoming,
+  tmdbPopularTv,
+} from "./tmdb-tool.js";
+import {
+  nasaApod,
+  nasaAsteroids,
+  nasaMarsPhotos,
+  nasaEarthImagery,
+  nasaEpic,
+} from "./nasa-tool.js";
+import {
+  f1Sessions,
+  f1Drivers,
+  f1Positions,
+  f1Laps,
+  f1PitStops,
+  f1CarData,
+  f1TeamRadio,
+  f1Weather,
+} from "./openf1-tool.js";
+import {
+  fplBootstrap,
+  fplPlayer,
+  fplGameweek,
+  fplFixtures,
+  fplMyTeam,
+  fplManager,
+  fplLeaguesClassic,
+} from "./fpl-tool.js";
+import {
+  chessPlayer,
+  chessPlayerStats,
+  chessPlayerGames,
+  chessPuzzlesRandom,
+  chessLeaderboards,
+} from "./chessdotcom-tool.js";
+import {
+  lichessUser,
+  lichessUserGames,
+  lichessPuzzleDaily,
+  lichessTopPlayers,
+  lichessTournament,
+} from "./lichess-tool.js";
+import { abnLookup, abnSearch } from "./abn-tool.js";
+import {
+  ptvSearch,
+  ptvDepartures,
+  ptvDisruptions,
+  ptvStopsOnRoute,
+  ptvRouteDirections,
+} from "./ptv-tool.js";
+import { weatherCurrent, weatherForecast, weatherHourly } from "./openmeteo-tool.js";
+import {
+  radioSearch,
+  radioByCountry,
+  radioTopClicked,
+  radioTopVoted,
+  radioByTag,
+  radioCountries,
+} from "./radiobrowser-tool.js";
+import {
+  hnTopStories,
+  hnNewStories,
+  hnBestStories,
+  hnAskHn,
+  hnShowHn,
+  hnItem,
+  hnUser,
+} from "./hackernews-tool.js";
+import { triviaQuestions, triviaCategories } from "./trivia-tool.js";
+import { numberFact, numberRandom } from "./numbers-tool.js";
+import {
+  ticketmasterSearchEvents,
+  ticketmasterGetEvent,
+  ticketmasterSearchVenues,
+  ticketmasterGetVenue,
+  ticketmasterSearchAttractions,
+} from "./ticketmaster-tool.js";
+import {
+  seatgeekSearchEvents,
+  seatgeekGetEvent,
+  seatgeekSearchPerformers,
+  seatgeekGetPerformer,
+  seatgeekSearchVenues,
+} from "./seatgeek-tool.js";
+import {
+  yelpSearch,
+  yelpGetBusiness,
+  yelpGetReviews,
+  yelpAutocomplete,
+  yelpSearchEvents,
+} from "./yelp-tool.js";
+import {
+  bandsintownArtist,
+  bandsintownEvents,
+  bandsintownRecommended,
+} from "./bandsintown-tool.js";
+import {
+  setlistfmSearchArtist,
+  setlistfmArtistSetlists,
+  setlistfmSearchSetlists,
+  setlistfmGetSetlist,
+} from "./setlistfm-tool.js";
+import {
+  eventbriteSearchEvents,
+  eventbriteGetEvent,
+  eventbriteGetEventAttendees,
+  eventbriteCreateEvent,
+  eventbriteListCategories,
+  eventbriteGetVenue,
+} from "./eventbrite-tool.js";
+import {
+  foursquareSearchPlaces,
+  foursquareGetPlace,
+  foursquareGetPhotos,
+  foursquareGetTips,
+  foursquareAutocomplete,
+} from "./foursquare-tool.js";
+import {
+  lastfmArtistInfo,
+  lastfmArtistSearch,
+  lastfmSimilarArtists,
+  lastfmArtistTopTracks,
+  lastfmTrackInfo,
+  lastfmChartTopArtists,
+  lastfmChartTopTracks,
+  lastfmAlbumInfo,
+} from "./lastfm-tool.js";
+import {
+  discogsSearch,
+  discogsGetRelease,
+  discogsGetArtist,
+  discogsArtistReleases,
+  discogsGetLabel,
+  discogsMarketplaceStats,
+} from "./discogs-tool.js";
+import {
+  mbSearchArtists,
+  mbSearchReleases,
+  mbSearchRecordings,
+  mbGetArtist,
+  mbGetRelease,
+} from "./musicbrainz-tool.js";
+import {
+  geniusSearch,
+  geniusGetSong,
+  geniusGetArtist,
+  geniusArtistSongs,
+} from "./genius-tool.js";
+import {
+  openlibrarySearch,
+  openlibraryGetBook,
+  openlibraryGetEdition,
+  openlibraryGetAuthor,
+  openlibraryAuthorWorks,
+  openlibraryTrending,
+} from "./openlibrary-tool.js";
+import {
+  omdbSearch,
+  omdbGetByTitle,
+  omdbGetById,
+} from "./omdb-tool.js";
+import {
+  podcastSearch,
+  podcastGetByFeedUrl,
+  podcastGetEpisodes,
+  podcastSearchEpisodes,
+  podcastTrending,
+  podcastRecentEpisodes,
+} from "./podcastindex-tool.js";
+import {
+  twitchGetStreams,
+  twitchSearchChannels,
+  twitchSearchCategories,
+  twitchGetTopGames,
+  twitchGetUser,
+  twitchGetChannel,
+  twitchGetClips,
+  twitchGetVideos,
+} from "./twitch-tool.js";
+import {
+  stockQuote,
+  stockSearch,
+  stockDaily,
+  stockIntraday,
+  forexRate,
+  cryptoDaily,
+} from "./alphavantage-tool.js";
+import {
+  cryptoPrice,
+  cryptoCoin,
+  cryptoSearch,
+  cryptoTrending,
+  cryptoTopCoins,
+  cryptoCoinHistory,
+} from "./coingecko-tool.js";
+import {
+  forexLatest,
+  forexHistorical,
+  forexCurrencies,
+  forexConvert,
+} from "./openexchangerates-tool.js";
+import {
+  countryAll,
+  countryByName,
+  countryByCode,
+  countryByRegion,
+  countryByCurrency,
+  countryByLanguage,
+} from "./restcountries-tool.js";
+import {
+  ipLookup,
+  ipBatch,
+} from "./ipapi-tool.js";
+import {
+  cmcListings,
+  cmcQuotes,
+  cmcInfo,
+  cmcTrending,
+  cmcGlobalMetrics,
+} from "./coinmarketcap-tool.js";
+import {
+  tomorrowRealtime,
+  tomorrowForecast,
+  tomorrowHistory,
+} from "./tomorrowio-tool.js";
+import {
+  wiseExchangeRates,
+  wiseProfile,
+  wiseAccounts,
+  wiseCreateQuote,
+} from "./wise-tool.js";
 
 // ─── Search helper ──────────────────────────────────────────────────────────
 
@@ -1968,6 +2218,2299 @@ const DIRECT_TOOLS = [
       required: ["store", "access_token", "order_id"],
     },
   },
+  // ── The Guardian ─────────────────────────────────────────────────────────────
+  {
+    name: "guardian_search",
+    description: "Search The Guardian's full article archive by keyword. Returns headline, URL, date, section, and trail text. Requires a free Guardian API key.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:   { type: "string", description: "Guardian API key. Get one free at https://open-platform.theguardian.com/access/" },
+        query:     { type: "string", description: "Search query." },
+        section:   { type: "string", description: "Filter by section slug, e.g. 'world', 'sport', 'technology'." },
+        from_date: { type: "string", description: "Start date in YYYY-MM-DD format." },
+        page_size: { type: "number", description: "Number of results to return (max 50, default 10).", default: 10 },
+      },
+      required: ["api_key", "query"],
+    },
+  },
+  {
+    name: "guardian_sections",
+    description: "List all sections in The Guardian (e.g. world, sport, technology, culture). Use section IDs to filter guardian_search.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Guardian API key." },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "guardian_article",
+    description: "Fetch the full body text of a Guardian article by its path ID. Returns headline, byline, date, section, and complete HTML body.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Guardian API key." },
+        id:      { type: "string", description: "Article path ID from guardian_search, e.g. 'world/2024/jan/01/article-slug'." },
+      },
+      required: ["api_key", "id"],
+    },
+  },
+  {
+    name: "guardian_tags",
+    description: "Search Guardian tags and topics by keyword. Returns tag IDs usable as section filters.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Guardian API key." },
+        query:   { type: "string", description: "Tag search query." },
+      },
+      required: ["api_key", "query"],
+    },
+  },
+  // ── NewsAPI ───────────────────────────────────────────────────────────────────
+  {
+    name: "news_top_headlines",
+    description: "Fetch top news headlines from 150,000+ sources worldwide. Filter by country, category, or keyword. Requires a NewsAPI key.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:   { type: "string", description: "NewsAPI key. Get one free at https://newsapi.org/register" },
+        country:   { type: "string", description: "2-letter ISO country code, e.g. 'us', 'gb', 'au'." },
+        category:  { type: "string", enum: ["business", "entertainment", "general", "health", "science", "sports", "technology"], description: "News category." },
+        query:     { type: "string", description: "Keywords to filter headlines." },
+        page_size: { type: "number", description: "Number of results (max 100, default 20).", default: 20 },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "news_search",
+    description: "Search across 150,000+ news sources and blogs for any topic. Returns full article metadata including title, source, URL, and publication date.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:   { type: "string", description: "NewsAPI key." },
+        query:     { type: "string", description: "Keywords to search for." },
+        from_date: { type: "string", description: "Start date in ISO 8601 format, e.g. '2024-01-01'." },
+        language:  { type: "string", description: "2-letter language code, e.g. 'en', 'fr', 'de'." },
+        sort_by:   { type: "string", enum: ["relevancy", "popularity", "publishedAt"], default: "publishedAt", description: "Sort order." },
+        page_size: { type: "number", description: "Number of results (max 100, default 20).", default: 20 },
+      },
+      required: ["api_key", "query"],
+    },
+  },
+  {
+    name: "news_sources",
+    description: "List available news sources on NewsAPI. Filter by category, country, and language.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:  { type: "string", description: "NewsAPI key." },
+        category: { type: "string", description: "Filter by category." },
+        country:  { type: "string", description: "Filter by 2-letter ISO country code." },
+        language: { type: "string", description: "Filter by 2-letter language code." },
+      },
+      required: ["api_key"],
+    },
+  },
+  // ── TMDB ─────────────────────────────────────────────────────────────────────
+  {
+    name: "tmdb_search_movies",
+    description: "Search The Movie Database for movies by title. Returns title, release date, overview, rating, and poster. Requires a free TMDB API key.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "TMDB API key. Get one free at https://www.themoviedb.org/settings/api" },
+        query:   { type: "string", description: "Movie title or keywords." },
+        year:    { type: "number", description: "Filter by release year." },
+      },
+      required: ["api_key", "query"],
+    },
+  },
+  {
+    name: "tmdb_search_tv",
+    description: "Search TMDB for TV shows by title. Returns name, first air date, overview, rating, and poster.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "TMDB API key." },
+        query:   { type: "string", description: "TV show title or keywords." },
+      },
+      required: ["api_key", "query"],
+    },
+  },
+  {
+    name: "tmdb_movie",
+    description: "Get full TMDB movie details including cast (top 10), runtime, budget, revenue, genres, and tagline.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "TMDB API key." },
+        id:      { type: "string", description: "TMDB movie ID (from tmdb_search_movies)." },
+      },
+      required: ["api_key", "id"],
+    },
+  },
+  {
+    name: "tmdb_tv",
+    description: "Get full TMDB TV show details including cast, seasons, episodes, and status.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "TMDB API key." },
+        id:      { type: "string", description: "TMDB TV show ID (from tmdb_search_tv)." },
+      },
+      required: ["api_key", "id"],
+    },
+  },
+  {
+    name: "tmdb_trending",
+    description: "Get trending movies, TV shows, or both on TMDB for today or this week.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:     { type: "string", description: "TMDB API key." },
+        media_type:  { type: "string", enum: ["movie", "tv", "all"], default: "all", description: "Media type to fetch." },
+        time_window: { type: "string", enum: ["day", "week"], default: "week", description: "Trending window: day or week." },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "tmdb_now_playing",
+    description: "Get movies currently playing in theatres. Returns title, release date, overview, and rating.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "TMDB API key." },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "tmdb_upcoming",
+    description: "Get upcoming movies releasing soon. Returns title, release date, overview, and rating.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "TMDB API key." },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "tmdb_popular_tv",
+    description: "Get currently popular TV shows on TMDB. Returns name, first air date, overview, and rating.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "TMDB API key." },
+      },
+      required: ["api_key"],
+    },
+  },
+  // ── NASA ──────────────────────────────────────────────────────────────────────
+  {
+    name: "nasa_apod",
+    description: "Fetch NASA's Astronomy Picture of the Day with explanation text and image URL. Use DEMO_KEY for low-volume access or provide a NASA API key.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "NASA API key. Use 'DEMO_KEY' for limited free access or get a full key at https://api.nasa.gov/", default: "DEMO_KEY" },
+        date:    { type: "string", description: "Date in YYYY-MM-DD format. Defaults to today." },
+      },
+    },
+  },
+  {
+    name: "nasa_asteroids",
+    description: "Get near-Earth objects (asteroids) for a date range. Returns hazard status, size estimates, and close approach distance.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:    { type: "string", description: "NASA API key.", default: "DEMO_KEY" },
+        start_date: { type: "string", description: "Start date in YYYY-MM-DD format." },
+        end_date:   { type: "string", description: "End date in YYYY-MM-DD format (max 7-day window)." },
+      },
+      required: ["start_date", "end_date"],
+    },
+  },
+  {
+    name: "nasa_mars_photos",
+    description: "Browse Mars rover photos from Curiosity, Opportunity, Spirit, or Perseverance. Filter by sol (Martian day), Earth date, and camera.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:    { type: "string", description: "NASA API key.", default: "DEMO_KEY" },
+        rover:      { type: "string", enum: ["curiosity", "opportunity", "spirit", "perseverance"], default: "curiosity", description: "Rover name." },
+        sol:        { type: "number", description: "Martian sol (day) number." },
+        earth_date: { type: "string", description: "Earth date in YYYY-MM-DD format (alternative to sol)." },
+        camera:     { type: "string", description: "Camera abbreviation, e.g. 'FHAZ', 'NAVCAM', 'MAST', 'CHEMCAM'." },
+      },
+      required: ["rover"],
+    },
+  },
+  {
+    name: "nasa_earth_imagery",
+    description: "Retrieve NASA Landsat satellite imagery for any latitude/longitude coordinate and optional date.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "NASA API key.", default: "DEMO_KEY" },
+        lat:     { type: "number", description: "Latitude in decimal degrees." },
+        lon:     { type: "number", description: "Longitude in decimal degrees." },
+        date:    { type: "string", description: "Date in YYYY-MM-DD format." },
+      },
+      required: ["lat", "lon"],
+    },
+  },
+  {
+    name: "nasa_epic",
+    description: "Get NASA EPIC (Earth Polychromatic Imaging Camera) photos of Earth from the DSCOVR spacecraft.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "NASA API key.", default: "DEMO_KEY" },
+        date:    { type: "string", description: "Date in YYYY-MM-DD format. Omit for the most recent available set." },
+      },
+    },
+  },
+  // ── OpenF1 ────────────────────────────────────────────────────────────────────
+  {
+    name: "f1_sessions",
+    description: "List Formula 1 sessions (race, qualifying, practice) from the OpenF1 API. Filter by year, country, or session name. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        year:         { type: "number", description: "Season year, e.g. 2024." },
+        country:      { type: "string", description: "Country name, e.g. 'Monaco', 'Italy'." },
+        session_name: { type: "string", description: "Session name, e.g. 'Race', 'Qualifying', 'Sprint'." },
+      },
+    },
+  },
+  {
+    name: "f1_drivers",
+    description: "Get driver information for an F1 session. Returns full name, team, country, and headshot URL.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        session_key: { type: "number", description: "Session key from f1_sessions." },
+      },
+    },
+  },
+  {
+    name: "f1_positions",
+    description: "Get real-time or historical position data for an F1 session.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        session_key:   { type: "number", description: "Session key from f1_sessions." },
+        driver_number: { type: "number", description: "Driver number to filter results." },
+      },
+      required: ["session_key"],
+    },
+  },
+  {
+    name: "f1_laps",
+    description: "Get lap times and sector splits for an F1 session. Filter by driver and lap number.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        session_key:   { type: "number", description: "Session key from f1_sessions." },
+        driver_number: { type: "number", description: "Driver number to filter results." },
+        lap_number:    { type: "number", description: "Specific lap number." },
+      },
+      required: ["session_key"],
+    },
+  },
+  {
+    name: "f1_pit_stops",
+    description: "Get pit stop data for an F1 session including lap number and pit stop duration.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        session_key:   { type: "number", description: "Session key from f1_sessions." },
+        driver_number: { type: "number", description: "Driver number to filter results." },
+      },
+      required: ["session_key"],
+    },
+  },
+  {
+    name: "f1_car_data",
+    description: "Get car telemetry data for an F1 session: speed, throttle, brake, DRS status, gear, and RPM.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        session_key:   { type: "number", description: "Session key from f1_sessions." },
+        driver_number: { type: "number", description: "Driver number to filter results. Strongly recommended to avoid huge payloads." },
+      },
+      required: ["session_key"],
+    },
+  },
+  {
+    name: "f1_team_radio",
+    description: "Get team radio messages for an F1 session. Returns timestamps and audio recording URLs.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        session_key:   { type: "number", description: "Session key from f1_sessions." },
+        driver_number: { type: "number", description: "Driver number to filter results." },
+      },
+      required: ["session_key"],
+    },
+  },
+  {
+    name: "f1_weather",
+    description: "Get track weather conditions during an F1 session: air temperature, track temperature, humidity, wind, and rainfall.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        session_key: { type: "number", description: "Session key from f1_sessions." },
+      },
+      required: ["session_key"],
+    },
+  },
+  // ── Fantasy Premier League ────────────────────────────────────────────────────
+  {
+    name: "fpl_bootstrap",
+    description: "Fetch the full FPL static data: all players, teams, gameweek schedule, and top 20 scorers. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+    },
+  },
+  {
+    name: "fpl_player",
+    description: "Get detailed stats and upcoming fixtures for an FPL player by their element ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id: { type: "string", description: "Player element ID from fpl_bootstrap." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "fpl_gameweek",
+    description: "Get live scores for all players in a specific FPL gameweek.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        gw: { type: "number", description: "Gameweek number (1-38)." },
+      },
+      required: ["gw"],
+    },
+  },
+  {
+    name: "fpl_fixtures",
+    description: "Get FPL match fixtures for a specific gameweek or all remaining fixtures.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        gw: { type: "number", description: "Gameweek number. Omit to get all fixtures." },
+      },
+    },
+  },
+  {
+    name: "fpl_my_team",
+    description: "Get a manager's team picks for a specific FPL gameweek (public data).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        team_id: { type: "string", description: "FPL manager team ID." },
+        gw:      { type: "number", description: "Gameweek number." },
+      },
+      required: ["team_id", "gw"],
+    },
+  },
+  {
+    name: "fpl_manager",
+    description: "Get an FPL manager's profile: overall rank, total points, team value, and history.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        team_id: { type: "string", description: "FPL manager team ID." },
+      },
+      required: ["team_id"],
+    },
+  },
+  {
+    name: "fpl_leagues_classic",
+    description: "Get standings for a classic FPL league by league ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        league_id: { type: "string", description: "FPL classic league ID." },
+        page:      { type: "number", description: "Page number for standings (default 1).", default: 1 },
+      },
+      required: ["league_id"],
+    },
+  },
+  // ── Chess.com ─────────────────────────────────────────────────────────────────
+  {
+    name: "chess_player",
+    description: "Get a Chess.com player's public profile: title, country, followers, join date. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        username: { type: "string", description: "Chess.com username." },
+      },
+      required: ["username"],
+    },
+  },
+  {
+    name: "chess_player_stats",
+    description: "Get a Chess.com player's ratings across game types: rapid, blitz, bullet, and daily.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        username: { type: "string", description: "Chess.com username." },
+      },
+      required: ["username"],
+    },
+  },
+  {
+    name: "chess_player_games",
+    description: "Get a Chess.com player's games for a specific month. Returns last 20 games with result, rating, and time control.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        username: { type: "string", description: "Chess.com username." },
+        year:     { type: "number", description: "Year (e.g. 2024)." },
+        month:    { type: "number", description: "Month (1-12)." },
+      },
+      required: ["username", "year", "month"],
+    },
+  },
+  {
+    name: "chess_puzzles_random",
+    description: "Get a random Chess.com chess puzzle. Returns FEN position, PGN, and puzzle URL.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+    },
+  },
+  {
+    name: "chess_leaderboards",
+    description: "Get Chess.com global leaderboards. Returns top players for rapid, blitz, bullet, and daily by default.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        game_type: {
+          type: "string",
+          enum: [
+            "live_rapid", "live_blitz", "live_bullet", "live_bughouse",
+            "live_blitz960", "live_threecheck", "live_crazyhouse",
+            "live_kingofthehill", "tactics", "lessons", "puzzle_rush",
+            "daily", "daily960",
+          ],
+          description: "Game type for full leaderboard. Omit to get top 5 for major formats.",
+        },
+      },
+    },
+  },
+  // ── Lichess ───────────────────────────────────────────────────────────────────
+  {
+    name: "lichess_user",
+    description: "Get a Lichess user's profile: ratings by variant, game count, play time, and online status. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        username: { type: "string", description: "Lichess username." },
+      },
+      required: ["username"],
+    },
+  },
+  {
+    name: "lichess_user_games",
+    description: "Get recent games for a Lichess user. Returns result, rating, speed, opening, and players.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        username: { type: "string", description: "Lichess username." },
+        max:      { type: "number", description: "Number of games to return (max 50, default 10).", default: 10 },
+      },
+      required: ["username"],
+    },
+  },
+  {
+    name: "lichess_puzzle_daily",
+    description: "Get today's Lichess daily puzzle. Returns FEN, solution moves, themes, rating, and a link.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+    },
+  },
+  {
+    name: "lichess_top_players",
+    description: "Get the top 10 Lichess players for a chess variant (bullet, blitz, rapid, etc.).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        perfType: {
+          type: "string",
+          enum: [
+            "ultraBullet", "bullet", "blitz", "rapid", "classical",
+            "chess960", "crazyhouse", "antichess", "atomic", "horde",
+            "kingOfTheHill", "racingKings", "threeCheck",
+          ],
+          default: "bullet",
+          description: "Chess variant / time control.",
+        },
+      },
+    },
+  },
+  {
+    name: "lichess_tournament",
+    description: "Get details for a Lichess tournament by ID: name, status, player count, and podium.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id: { type: "string", description: "Lichess tournament ID." },
+      },
+      required: ["id"],
+    },
+  },
+  // ── ABN (Australian Business Register) ───────────────────────────────────────
+  {
+    name: "abn_lookup",
+    description: "Look up an Australian business by ABN (Australian Business Number). Returns entity name, type, ABN status, GST registration status, and main business location. Uses the free ABR JSONP API — no authentication required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        abn: { type: "string", description: "11-digit Australian Business Number (spaces optional)." },
+      },
+      required: ["abn"],
+    },
+  },
+  {
+    name: "abn_search",
+    description: "Search Australian businesses by name using the ABR registry. Returns a list of matching businesses with their ABNs, status, and location. Uses the free ABR JSONP API — no authentication required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        name:     { type: "string", description: "Business name to search for (partial matches supported)." },
+        postcode: { type: "string", description: "Optional Australian postcode to narrow results." },
+      },
+      required: ["name"],
+    },
+  },
+  // ── PTV (Public Transport Victoria) ──────────────────────────────────────────
+  {
+    name: "ptv_search",
+    description: "Search Public Transport Victoria stops, routes, and outlets by name or keyword.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        query: { type: "string", description: "Search term, e.g. 'Flinders Street', 'Route 96', 'Melbourne Central'." },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "ptv_departures",
+    description: "Get next departures from a PTV stop. Returns scheduled departure times, route, and direction. route_type: 0=Train, 1=Tram, 2=Bus, 3=Vline.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        stop_id:           { type: "number", description: "PTV stop ID (obtain from ptv_search)." },
+        route_type:        { type: "number", enum: [0, 1, 2, 3, 4], description: "0=Train, 1=Tram, 2=Bus, 3=Vline, 4=Night Bus." },
+        max_results:       { type: "number", description: "Max departures to return (default 5, max 20).", default: 5 },
+        route_id:          { type: "number", description: "Filter by specific route ID (optional)." },
+        direction_id:      { type: "number", description: "Filter by direction ID (optional)." },
+        look_backwards:    { type: "boolean", description: "Include past departures (default false).", default: false },
+        include_cancelled: { type: "boolean", description: "Include cancelled services (default false).", default: false },
+      },
+      required: ["stop_id", "route_type"],
+    },
+  },
+  {
+    name: "ptv_disruptions",
+    description: "Get current service disruptions on Victoria's public transport network. Optionally filter by route type.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        route_type:        { type: "number", enum: [0, 1, 2, 3, 4], description: "Filter by route type: 0=Train, 1=Tram, 2=Bus, 3=Vline, 4=Night Bus (optional)." },
+        disruption_status: { type: "string", enum: ["current", "planned"], description: "Filter by disruption status (optional)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "ptv_stops_on_route",
+    description: "List all stops along a PTV route in order.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        route_id:     { type: "number", description: "PTV route ID." },
+        route_type:   { type: "number", enum: [0, 1, 2, 3, 4], description: "0=Train, 1=Tram, 2=Bus, 3=Vline, 4=Night Bus." },
+        direction_id: { type: "number", description: "Filter by direction ID (optional)." },
+      },
+      required: ["route_id", "route_type"],
+    },
+  },
+  {
+    name: "ptv_route_directions",
+    description: "Get available directions for a PTV route (e.g. City / Frankston for Frankston line).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        route_id: { type: "number", description: "PTV route ID." },
+      },
+      required: ["route_id"],
+    },
+  },
+  // ── Open-Meteo (Weather) ──────────────────────────────────────────────────────
+  {
+    name: "weather_current",
+    description: "Get the current weather for any location worldwide. Returns temperature, wind speed and direction, and WMO weather code description. Pass latitude+longitude or a city name — no API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        latitude:  { type: "number", description: "Latitude of the location." },
+        longitude: { type: "number", description: "Longitude of the location." },
+        city:      { type: "string", description: "City name (alternative to latitude/longitude, e.g. 'Melbourne')." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "weather_forecast",
+    description: "Get a daily weather forecast for any location worldwide — up to 16 days. Returns max/min temperature, precipitation, wind speed, and weather description per day. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        latitude:  { type: "number", description: "Latitude of the location." },
+        longitude: { type: "number", description: "Longitude of the location." },
+        city:      { type: "string", description: "City name (alternative to latitude/longitude)." },
+        days:      { type: "number", minimum: 1, maximum: 16, default: 7, description: "Number of forecast days (1-16, default 7)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "weather_hourly",
+    description: "Get hourly weather data for the next 48 hours for any location worldwide. Returns temperature, precipitation, wind speed, humidity, and weather code per hour. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        latitude:  { type: "number", description: "Latitude of the location." },
+        longitude: { type: "number", description: "Longitude of the location." },
+        city:      { type: "string", description: "City name (alternative to latitude/longitude)." },
+      },
+      required: [],
+    },
+  },
+  // ── Radio Browser ─────────────────────────────────────────────────────────────
+  {
+    name: "radio_search",
+    description: "Search 50,000+ internet radio stations by name, country, language, or genre tag. Returns stream URLs, codec, bitrate, and vote counts. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        name:     { type: "string", description: "Station name to search for (partial match)." },
+        country:  { type: "string", description: "Country name, e.g. 'Australia', 'Germany'." },
+        language: { type: "string", description: "Language name, e.g. 'english', 'french'." },
+        tag:      { type: "string", description: "Genre/tag, e.g. 'jazz', 'classical', 'news', 'pop'." },
+        limit:    { type: "number", minimum: 1, maximum: 100, default: 20, description: "Max stations to return (default 20)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "radio_by_country",
+    description: "Get all internet radio stations in a specific country. Returns stream URLs, codec, bitrate, and vote counts. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        country: { type: "string", description: "Country name, e.g. 'Australia', 'United Kingdom'." },
+        limit:   { type: "number", minimum: 1, maximum: 100, default: 30, description: "Max stations to return (default 30)." },
+      },
+      required: ["country"],
+    },
+  },
+  {
+    name: "radio_top_clicked",
+    description: "Get the most-clicked internet radio stations globally. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 100, default: 20, description: "Max stations to return (default 20)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "radio_top_voted",
+    description: "Get the highest-voted internet radio stations globally. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 100, default: 20, description: "Max stations to return (default 20)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "radio_by_tag",
+    description: "Get internet radio stations by genre tag. Use tags like 'jazz', 'classical', 'news', 'rock', 'pop', 'country'. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        tag:   { type: "string", description: "Genre tag, e.g. 'jazz', 'classical', 'news', 'rock'." },
+        limit: { type: "number", minimum: 1, maximum: 100, default: 30, description: "Max stations to return (default 30)." },
+      },
+      required: ["tag"],
+    },
+  },
+  {
+    name: "radio_countries",
+    description: "List all countries with available internet radio stations and station counts, sorted by station count. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  // ── Hacker News ───────────────────────────────────────────────────────────────
+  {
+    name: "hn_top_stories",
+    description: "Get the current top stories from Hacker News. Returns title, URL, score, author, and comment count. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 30, default: 10, description: "Number of stories to return (default 10, max 30)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "hn_new_stories",
+    description: "Get the newest stories from Hacker News. Returns title, URL, score, author, and comment count. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 30, default: 10, description: "Number of stories to return (default 10, max 30)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "hn_best_stories",
+    description: "Get the best (highest quality) stories from Hacker News. Returns title, URL, score, author, and comment count. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 30, default: 10, description: "Number of stories to return (default 10, max 30)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "hn_ask_hn",
+    description: "Get Ask HN posts from Hacker News — community questions and discussions. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 30, default: 10, description: "Number of posts to return (default 10, max 30)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "hn_show_hn",
+    description: "Get Show HN posts from Hacker News — projects and products shared by the community. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", minimum: 1, maximum: 30, default: 10, description: "Number of posts to return (default 10, max 30)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "hn_item",
+    description: "Get a specific Hacker News story, comment, or poll by item ID. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id: { type: "number", description: "Numeric Hacker News item ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "hn_user",
+    description: "Get a Hacker News user profile including karma, creation date, and recent submission IDs. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        username: { type: "string", description: "Hacker News username." },
+      },
+      required: ["username"],
+    },
+  },
+  // ── Open Trivia Database ──────────────────────────────────────────────────────
+  {
+    name: "trivia_questions",
+    description: "Fetch trivia questions from the Open Trivia Database. 4,000+ questions across 24 categories. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        amount:     { type: "number", minimum: 1, maximum: 50, default: 10, description: "Number of questions to return (default 10, max 50)." },
+        category:   { type: "number", description: "Category ID from trivia_categories (optional)." },
+        difficulty: { type: "string", enum: ["easy", "medium", "hard"], description: "Question difficulty (optional)." },
+        type:       { type: "string", enum: ["multiple", "boolean"], description: "Question type: 'multiple' (4 choices) or 'boolean' (True/False) (optional)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "trivia_categories",
+    description: "List all available trivia categories from the Open Trivia Database. Returns category IDs and names for use with trivia_questions. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  // ── Numbers API ───────────────────────────────────────────────────────────────
+  {
+    name: "number_fact",
+    description: "Get an interesting fact about a specific number, date, or year from the Numbers API. Types: trivia (default), math, date, year. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        number: { type: "string", description: "The number to get a fact about (integer, or month/day for type=date)." },
+        type:   { type: "string", enum: ["trivia", "math", "date", "year"], default: "trivia", description: "Fact type: trivia, math, date, or year (default: trivia)." },
+      },
+      required: ["number"],
+    },
+  },
+  {
+    name: "number_random",
+    description: "Get an interesting fact about a random number from the Numbers API. Types: trivia (default), math, date, year. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        type: { type: "string", enum: ["trivia", "math", "date", "year"], default: "trivia", description: "Fact type: trivia, math, date, or year (default: trivia)." },
+      },
+      required: [],
+    },
+  },
+  // ── Ticketmaster ──────────────────────────────────────────────────────────────
+  {
+    name: "ticketmaster_search_events",
+    description: "Search live events on Ticketmaster by keyword, city, country, date range, or classification. Requires a Ticketmaster API key.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:            { type: "string", description: "Ticketmaster API key. Get one free at https://developer.ticketmaster.com/" },
+        keyword:            { type: "string", description: "Event keyword (artist, team, show name)." },
+        city:               { type: "string", description: "City name to filter events." },
+        countryCode:        { type: "string", description: "2-letter ISO country code, e.g. 'US', 'GB', 'AU'." },
+        startDateTime:      { type: "string", description: "Start date/time in ISO 8601 format, e.g. '2024-06-01T00:00:00Z'." },
+        classificationName: { type: "string", description: "Classification name, e.g. 'Music', 'Sports', 'Arts'." },
+        size:               { type: "number", description: "Number of results to return (default 20).", default: 20 },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "ticketmaster_get_event",
+    description: "Get full details for a specific Ticketmaster event by ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Ticketmaster API key." },
+        id:      { type: "string", description: "Ticketmaster event ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "ticketmaster_search_venues",
+    description: "Search Ticketmaster venues by keyword, city, or country.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:     { type: "string", description: "Ticketmaster API key." },
+        keyword:     { type: "string", description: "Venue name or keyword." },
+        city:        { type: "string", description: "City name." },
+        countryCode: { type: "string", description: "2-letter ISO country code." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "ticketmaster_get_venue",
+    description: "Get full details for a specific Ticketmaster venue by ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Ticketmaster API key." },
+        id:      { type: "string", description: "Ticketmaster venue ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "ticketmaster_search_attractions",
+    description: "Search Ticketmaster attractions (artists, teams, performers) by keyword.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Ticketmaster API key." },
+        keyword: { type: "string", description: "Attraction name or keyword." },
+      },
+      required: [],
+    },
+  },
+  // ── SeatGeek ─────────────────────────────────────────────────────────────────
+  {
+    name: "seatgeek_search_events",
+    description: "Search live events on SeatGeek by keyword, city, performer, or date. Requires a SeatGeek client ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        client_id:          { type: "string", description: "SeatGeek client ID. Get one at https://platform.seatgeek.com/" },
+        q:                  { type: "string", description: "Search query (event name, artist, team)." },
+        venue_city:         { type: "string", description: "City name to filter events." },
+        type:               { type: "string", description: "Event type, e.g. 'concert', 'sports', 'theater'." },
+        performers:         { type: "string", description: "Performer slug to filter events." },
+        datetime_local_gte: { type: "string", description: "Start date/time in ISO 8601 format." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "seatgeek_get_event",
+    description: "Get full details for a specific SeatGeek event by ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        client_id: { type: "string", description: "SeatGeek client ID." },
+        id:        { type: "string", description: "SeatGeek event ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "seatgeek_search_performers",
+    description: "Search SeatGeek performers (artists, teams) by name.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        client_id: { type: "string", description: "SeatGeek client ID." },
+        q:         { type: "string", description: "Performer name or keyword." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "seatgeek_get_performer",
+    description: "Get full details for a specific SeatGeek performer by ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        client_id: { type: "string", description: "SeatGeek client ID." },
+        id:        { type: "string", description: "SeatGeek performer ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "seatgeek_search_venues",
+    description: "Search SeatGeek venues by name or city.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        client_id: { type: "string", description: "SeatGeek client ID." },
+        q:         { type: "string", description: "Venue name or keyword." },
+        city:      { type: "string", description: "City name." },
+      },
+      required: [],
+    },
+  },
+  // ── Yelp ──────────────────────────────────────────────────────────────────────
+  {
+    name: "yelp_search",
+    description: "Search Yelp businesses by term and location. Returns name, rating, review count, price, address, and categories. Requires a Yelp API key.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:    { type: "string", description: "Yelp Fusion API key. Get one at https://www.yelp.com/developers" },
+        term:       { type: "string", description: "Search term, e.g. 'coffee', 'pizza', 'plumber'." },
+        location:   { type: "string", description: "Location string, e.g. 'San Francisco, CA' or '94105'." },
+        categories: { type: "string", description: "Comma-separated category aliases, e.g. 'restaurants,bars'." },
+        price:      { type: "string", description: "Price filter: '1' ($), '2' ($$), '3' ($$$), '4' ($$$$). Comma-separate for multiple." },
+        sort_by:    { type: "string", enum: ["best_match", "rating", "review_count", "distance"], description: "Sort order." },
+        limit:      { type: "number", minimum: 1, maximum: 50, description: "Max results (default 20).", default: 20 },
+      },
+      required: ["location"],
+    },
+  },
+  {
+    name: "yelp_get_business",
+    description: "Get detailed information for a specific Yelp business by ID or alias.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Yelp Fusion API key." },
+        id:      { type: "string", description: "Yelp business ID or alias." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "yelp_get_reviews",
+    description: "Get up to 3 review excerpts for a Yelp business.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Yelp Fusion API key." },
+        id:      { type: "string", description: "Yelp business ID or alias." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "yelp_autocomplete",
+    description: "Get autocomplete suggestions for Yelp search. Returns term, business, and category suggestions.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:   { type: "string", description: "Yelp Fusion API key." },
+        text:      { type: "string", description: "Text to autocomplete." },
+        latitude:  { type: "number", description: "Latitude for local suggestions." },
+        longitude: { type: "number", description: "Longitude for local suggestions." },
+      },
+      required: ["text"],
+    },
+  },
+  {
+    name: "yelp_search_events",
+    description: "Search Yelp local events by location or category.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:    { type: "string", description: "Yelp Fusion API key." },
+        location:   { type: "string", description: "Location string, e.g. 'Austin, TX'." },
+        categories: { type: "string", description: "Event categories to filter by." },
+      },
+      required: [],
+    },
+  },
+  // ── Bandsintown ───────────────────────────────────────────────────────────────
+  {
+    name: "bandsintown_artist",
+    description: "Get a Bandsintown artist profile including name, image, and upcoming event count. No API key required — uses public app_id.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        artist_name: { type: "string", description: "Artist name, e.g. 'Radiohead', 'Taylor Swift'." },
+        app_id:      { type: "string", description: "App identifier (default: 'unclick'). Optional." },
+      },
+      required: ["artist_name"],
+    },
+  },
+  {
+    name: "bandsintown_events",
+    description: "Get upcoming concert events for an artist on Bandsintown. Returns venue, city, country, date, and lineup.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        artist_name: { type: "string", description: "Artist name." },
+        app_id:      { type: "string", description: "App identifier (default: 'unclick'). Optional." },
+        date:        { type: "string", description: "Filter by date: 'upcoming', 'past', or ISO date range 'YYYY-MM-DD,YYYY-MM-DD'." },
+      },
+      required: ["artist_name"],
+    },
+  },
+  {
+    name: "bandsintown_recommended",
+    description: "Get recommended events near a location based on an artist.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        artist_name: { type: "string", description: "Artist name to base recommendations on." },
+        location:    { type: "string", description: "Location string, e.g. 'Austin,TX' or lat/lon '33.74,-84.39'." },
+        app_id:      { type: "string", description: "App identifier (default: 'unclick'). Optional." },
+      },
+      required: ["artist_name", "location"],
+    },
+  },
+  // ── Setlist.fm ────────────────────────────────────────────────────────────────
+  {
+    name: "setlistfm_search_artist",
+    description: "Search for artists on Setlist.fm by name. Returns artist name, MBID, and setlist count. Requires a Setlist.fm API key.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:    { type: "string", description: "Setlist.fm API key. Get one at https://api.setlist.fm/" },
+        artistName: { type: "string", description: "Artist name to search for." },
+      },
+      required: ["artistName"],
+    },
+  },
+  {
+    name: "setlistfm_artist_setlists",
+    description: "Get recent setlists for an artist on Setlist.fm by their MusicBrainz ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Setlist.fm API key." },
+        mbid:    { type: "string", description: "Artist MusicBrainz ID (from setlistfm_search_artist)." },
+        page:    { type: "number", description: "Page number for paginated results.", default: 1 },
+      },
+      required: ["mbid"],
+    },
+  },
+  {
+    name: "setlistfm_search_setlists",
+    description: "Search Setlist.fm setlists by artist name, venue name, city, or year.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:    { type: "string", description: "Setlist.fm API key." },
+        artistName: { type: "string", description: "Artist name." },
+        venueName:  { type: "string", description: "Venue name." },
+        cityName:   { type: "string", description: "City name." },
+        year:       { type: "number", description: "Year of the concert." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "setlistfm_get_setlist",
+    description: "Get a specific Setlist.fm setlist by its ID. Returns the full song list played at a concert.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:   { type: "string", description: "Setlist.fm API key." },
+        setlistId: { type: "string", description: "Setlist ID from setlistfm_artist_setlists or setlistfm_search_setlists." },
+      },
+      required: ["setlistId"],
+    },
+  },
+  // ── Eventbrite ────────────────────────────────────────────────────────────────
+  {
+    name: "eventbrite_search_events",
+    description: "Search public events on Eventbrite by keyword, location, or date. Requires an Eventbrite private token.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        token:                { type: "string", description: "Eventbrite private token. Get one at https://www.eventbrite.com/platform/api" },
+        q:                    { type: "string", description: "Search query." },
+        location_address:     { type: "string", description: "Location, e.g. 'Melbourne, Australia'." },
+        start_date_range_start: { type: "string", description: "Start date in ISO 8601 format." },
+        category_id:          { type: "string", description: "Category ID from eventbrite_list_categories." },
+        sort_by:              { type: "string", enum: ["date", "distance", "best"], description: "Sort order." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "eventbrite_get_event",
+    description: "Get full details for a specific Eventbrite event by ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        token: { type: "string", description: "Eventbrite private token." },
+        id:    { type: "string", description: "Eventbrite event ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "eventbrite_get_event_attendees",
+    description: "Get the list of attendees for an Eventbrite event (requires organizer access).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        token: { type: "string", description: "Eventbrite private token." },
+        id:    { type: "string", description: "Eventbrite event ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "eventbrite_create_event",
+    description: "Create a new event on Eventbrite under an organization.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        token:           { type: "string", description: "Eventbrite private token." },
+        organization_id: { type: "string", description: "Eventbrite organization ID." },
+        name:            { type: "string", description: "Event name." },
+        start:           { type: "object", description: "Start time object with 'utc' (ISO 8601) and 'timezone' (e.g. 'America/New_York') keys." },
+        end:             { type: "object", description: "End time object with 'utc' (ISO 8601) and 'timezone' keys." },
+        currency:        { type: "string", description: "Event currency code, e.g. 'USD', 'AUD'." },
+        venue_id:        { type: "string", description: "Eventbrite venue ID (optional)." },
+      },
+      required: ["organization_id", "name", "start", "end", "currency"],
+    },
+  },
+  {
+    name: "eventbrite_list_categories",
+    description: "List all available Eventbrite event categories and subcategories.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        token: { type: "string", description: "Eventbrite private token." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "eventbrite_get_venue",
+    description: "Get details for a specific Eventbrite venue by ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        token: { type: "string", description: "Eventbrite private token." },
+        id:    { type: "string", description: "Eventbrite venue ID." },
+      },
+      required: ["id"],
+    },
+  },
+  // ── Foursquare ────────────────────────────────────────────────────────────────
+  {
+    name: "foursquare_search_places",
+    description: "Search Foursquare Places by query, location (lat/lon), or city name. Returns name, address, categories, and rating. Requires a Foursquare API key.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key:    { type: "string", description: "Foursquare API key. Get one at https://developer.foursquare.com/" },
+        query:      { type: "string", description: "Search query, e.g. 'coffee', 'museum'." },
+        ll:         { type: "string", description: "Lat/lon in 'lat,lon' format, e.g. '37.7749,-122.4194'." },
+        near:       { type: "string", description: "City/place name, e.g. 'Melbourne, Australia'." },
+        categories: { type: "string", description: "Comma-separated Foursquare category IDs." },
+        limit:      { type: "number", minimum: 1, maximum: 50, description: "Max results (default 10).", default: 10 },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "foursquare_get_place",
+    description: "Get full details for a Foursquare place by FSQ ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Foursquare API key." },
+        fsq_id:  { type: "string", description: "Foursquare place ID (from foursquare_search_places)." },
+      },
+      required: ["fsq_id"],
+    },
+  },
+  {
+    name: "foursquare_get_photos",
+    description: "Get photos for a Foursquare place by FSQ ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Foursquare API key." },
+        fsq_id:  { type: "string", description: "Foursquare place ID." },
+      },
+      required: ["fsq_id"],
+    },
+  },
+  {
+    name: "foursquare_get_tips",
+    description: "Get tips (user reviews) for a Foursquare place by FSQ ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Foursquare API key." },
+        fsq_id:  { type: "string", description: "Foursquare place ID." },
+      },
+      required: ["fsq_id"],
+    },
+  },
+  {
+    name: "foursquare_autocomplete",
+    description: "Get Foursquare place autocomplete suggestions for a query.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        api_key: { type: "string", description: "Foursquare API key." },
+        query:   { type: "string", description: "Search query text." },
+        ll:      { type: "string", description: "Lat/lon in 'lat,lon' format for local suggestions." },
+      },
+      required: ["query"],
+    },
+  },
+  // ── Last.fm ───────────────────────────────────────────────────────────────────
+  {
+    name: "lastfm_artist_info",
+    description: "Get Last.fm artist info: biography, tags, listener count, and similar artists. Requires LASTFM_API_KEY env var.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        artist: { type: "string", description: "Artist name." },
+      },
+      required: ["artist"],
+    },
+  },
+  {
+    name: "lastfm_artist_search",
+    description: "Search Last.fm for artists by name.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        artist: { type: "string", description: "Artist name to search for." },
+      },
+      required: ["artist"],
+    },
+  },
+  {
+    name: "lastfm_similar_artists",
+    description: "Get similar artists to a given artist on Last.fm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        artist: { type: "string", description: "Artist name." },
+      },
+      required: ["artist"],
+    },
+  },
+  {
+    name: "lastfm_artist_top_tracks",
+    description: "Get the top tracks for an artist on Last.fm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        artist: { type: "string", description: "Artist name." },
+      },
+      required: ["artist"],
+    },
+  },
+  {
+    name: "lastfm_track_info",
+    description: "Get info for a specific track on Last.fm including play count, tags, and wiki.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        artist: { type: "string", description: "Artist name." },
+        track:  { type: "string", description: "Track name." },
+      },
+      required: ["artist", "track"],
+    },
+  },
+  {
+    name: "lastfm_chart_top_artists",
+    description: "Get the top artists chart on Last.fm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", description: "Number of artists to return (default 50).", default: 50 },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "lastfm_chart_top_tracks",
+    description: "Get the top tracks chart on Last.fm.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit: { type: "number", description: "Number of tracks to return (default 50).", default: 50 },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "lastfm_album_info",
+    description: "Get info for a specific album on Last.fm including tracklist, tags, and wiki.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        artist: { type: "string", description: "Artist name." },
+        album:  { type: "string", description: "Album name." },
+      },
+      required: ["artist", "album"],
+    },
+  },
+  // ── Discogs ───────────────────────────────────────────────────────────────────
+  {
+    name: "discogs_search",
+    description: "Search the Discogs database for releases, artists, labels, and masters. Requires DISCOGS_TOKEN env var.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        query:         { type: "string", description: "General search query." },
+        artist:        { type: "string", description: "Filter by artist name." },
+        release_title: { type: "string", description: "Filter by release title." },
+        genre:         { type: "string", description: "Filter by genre." },
+        style:         { type: "string", description: "Filter by style." },
+        year:          { type: "string", description: "Filter by release year." },
+        type:          { type: "string", enum: ["release", "master", "artist", "label"], description: "Result type." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "discogs_get_release",
+    description: "Get full details for a Discogs release by ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id: { type: "number", description: "Discogs release ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "discogs_get_artist",
+    description: "Get a Discogs artist profile by ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id: { type: "number", description: "Discogs artist ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "discogs_artist_releases",
+    description: "Get all releases for a Discogs artist by ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id:         { type: "number", description: "Discogs artist ID." },
+        sort:       { type: "string", enum: ["year", "title", "format"], description: "Sort field." },
+        sort_order: { type: "string", enum: ["asc", "desc"], description: "Sort direction." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "discogs_get_label",
+    description: "Get a Discogs record label profile by ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id: { type: "number", description: "Discogs label ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "discogs_marketplace_stats",
+    description: "Get marketplace pricing stats for a Discogs release: lowest price, median price, and number of for-sale listings.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        release_id: { type: "number", description: "Discogs release ID." },
+      },
+      required: ["release_id"],
+    },
+  },
+  // ── MusicBrainz ───────────────────────────────────────────────────────────────
+  {
+    name: "mb_search_artists",
+    description: "Search the MusicBrainz database for artists by name. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        query: { type: "string", description: "Artist name or search query." },
+        limit: { type: "number", description: "Max results (default 25).", default: 25 },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "mb_search_releases",
+    description: "Search MusicBrainz for releases (albums, singles) by title. Optionally filter by artist.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        query:  { type: "string", description: "Release title or search query." },
+        artist: { type: "string", description: "Artist name to filter by." },
+        limit:  { type: "number", description: "Max results (default 25).", default: 25 },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "mb_search_recordings",
+    description: "Search MusicBrainz for recordings (tracks/songs) by title. Optionally filter by artist.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        query:  { type: "string", description: "Recording title or search query." },
+        artist: { type: "string", description: "Artist name to filter by." },
+        limit:  { type: "number", description: "Max results (default 25).", default: 25 },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "mb_get_artist",
+    description: "Get a MusicBrainz artist by their MBID (MusicBrainz ID), including their releases.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        mbid: { type: "string", description: "MusicBrainz artist ID (UUID format)." },
+      },
+      required: ["mbid"],
+    },
+  },
+  {
+    name: "mb_get_release",
+    description: "Get a MusicBrainz release by their MBID, including track recordings.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        mbid: { type: "string", description: "MusicBrainz release ID (UUID format)." },
+      },
+      required: ["mbid"],
+    },
+  },
+  // ── Genius ────────────────────────────────────────────────────────────────────
+  {
+    name: "genius_search",
+    description: "Search Genius for songs by keyword. Returns song title, artist, URL, and thumbnail. Requires GENIUS_ACCESS_TOKEN env var.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        q: { type: "string", description: "Search query (song title, artist, or lyrics snippet)." },
+      },
+      required: ["q"],
+    },
+  },
+  {
+    name: "genius_get_song",
+    description: "Get details for a specific Genius song by ID: title, artist, album, release date, and URL.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id: { type: "number", description: "Genius song ID (from genius_search)." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "genius_get_artist",
+    description: "Get a Genius artist profile by ID: name, image, follower count, and description.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id: { type: "number", description: "Genius artist ID." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "genius_artist_songs",
+    description: "Get songs by a Genius artist. Returns title, URL, and release date.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id:       { type: "number", description: "Genius artist ID." },
+        sort:     { type: "string", enum: ["title", "popularity"], default: "popularity", description: "Sort order." },
+        per_page: { type: "number", description: "Songs per page (default 20).", default: 20 },
+      },
+      required: ["id"],
+    },
+  },
+  // ── Open Library ──────────────────────────────────────────────────────────────
+  {
+    name: "openlibrary_search",
+    description: "Search Open Library for books by title, author, ISBN, or general query. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        q:      { type: "string", description: "General search query." },
+        title:  { type: "string", description: "Search by book title." },
+        author: { type: "string", description: "Search by author name." },
+        isbn:   { type: "string", description: "Search by ISBN." },
+        limit:  { type: "number", description: "Max results (default 10).", default: 10 },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "openlibrary_get_book",
+    description: "Get a book's details from Open Library by work key (e.g. OL45804W).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        key: { type: "string", description: "Open Library work key, e.g. 'OL45804W'." },
+      },
+      required: ["key"],
+    },
+  },
+  {
+    name: "openlibrary_get_edition",
+    description: "Get a specific edition of a book from Open Library by ISBN.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        isbn: { type: "string", description: "ISBN-10 or ISBN-13." },
+      },
+      required: ["isbn"],
+    },
+  },
+  {
+    name: "openlibrary_get_author",
+    description: "Get an author profile from Open Library by author key (e.g. OL23919A).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        key: { type: "string", description: "Open Library author key, e.g. 'OL23919A'." },
+      },
+      required: ["key"],
+    },
+  },
+  {
+    name: "openlibrary_author_works",
+    description: "Get all works by an author from Open Library.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        key: { type: "string", description: "Open Library author key, e.g. 'OL23919A'." },
+      },
+      required: ["key"],
+    },
+  },
+  {
+    name: "openlibrary_trending",
+    description: "Get trending books from Open Library today. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+    },
+  },
+  // ── OMDB ──────────────────────────────────────────────────────────────────────
+  {
+    name: "omdb_search",
+    description: "Search the Open Movie Database (OMDB) for movies, series, or episodes by title. Requires OMDB_API_KEY env var.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        s:    { type: "string", description: "Search query (title or keywords)." },
+        type: { type: "string", enum: ["movie", "series", "episode"], description: "Media type filter." },
+        y:    { type: "string", description: "Filter by release year." },
+        page: { type: "number", description: "Page number (default 1).", default: 1 },
+      },
+      required: ["s"],
+    },
+  },
+  {
+    name: "omdb_get_by_title",
+    description: "Get OMDB details for a movie or series by title. Returns ratings, plot, cast, and awards.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        t:    { type: "string", description: "Title to search for." },
+        type: { type: "string", enum: ["movie", "series", "episode"], description: "Media type filter." },
+        y:    { type: "string", description: "Filter by release year." },
+      },
+      required: ["t"],
+    },
+  },
+  {
+    name: "omdb_get_by_id",
+    description: "Get OMDB details for a movie or series by IMDb ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        i: { type: "string", description: "IMDb ID, e.g. 'tt0111161'." },
+      },
+      required: ["i"],
+    },
+  },
+  // ── Podcast Index ─────────────────────────────────────────────────────────────
+  {
+    name: "podcast_search",
+    description: "Search the Podcast Index for podcasts by keyword. Requires PODCASTINDEX_API_KEY and PODCASTINDEX_API_SECRET env vars.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        q:   { type: "string", description: "Search query." },
+        max: { type: "number", description: "Max results (default 10).", default: 10 },
+      },
+      required: ["q"],
+    },
+  },
+  {
+    name: "podcast_get_by_feed_url",
+    description: "Get Podcast Index details for a podcast by its RSS feed URL.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        url: { type: "string", description: "RSS feed URL of the podcast." },
+      },
+      required: ["url"],
+    },
+  },
+  {
+    name: "podcast_get_episodes",
+    description: "Get episodes for a podcast by its Podcast Index feed ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        feed_id: { type: "number", description: "Podcast Index feed ID." },
+        max:     { type: "number", description: "Max episodes (default 10).", default: 10 },
+        since:   { type: "number", description: "Return episodes published after this Unix timestamp." },
+      },
+      required: ["feed_id"],
+    },
+  },
+  {
+    name: "podcast_search_episodes",
+    description: "Search Podcast Index for individual episodes by keyword.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        q:   { type: "string", description: "Search query." },
+        max: { type: "number", description: "Max results (default 10).", default: 10 },
+      },
+      required: ["q"],
+    },
+  },
+  {
+    name: "podcast_trending",
+    description: "Get trending podcasts from the Podcast Index.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        max:  { type: "number", description: "Max results (default 10).", default: 10 },
+        lang: { type: "string", description: "Language filter, e.g. 'en'." },
+        cat:  { type: "string", description: "Category filter." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "podcast_recent_episodes",
+    description: "Get the most recently published episodes across all podcasts on Podcast Index.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        max: { type: "number", description: "Max results (default 10).", default: 10 },
+      },
+      required: [],
+    },
+  },
+  // ── Twitch ────────────────────────────────────────────────────────────────────
+  {
+    name: "twitch_get_streams",
+    description: "Get live streams on Twitch. Filter by game, user login, or language. Requires TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET env vars.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        game_id:    { type: "string", description: "Twitch game/category ID to filter streams." },
+        user_login: { type: "string", description: "Twitch username to get stream for." },
+        language:   { type: "string", description: "Language filter, e.g. 'en', 'es', 'ko'." },
+        first:      { type: "number", description: "Max results (default 20).", default: 20 },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "twitch_search_channels",
+    description: "Search Twitch channels by name. Returns channel info and live status.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        query:     { type: "string", description: "Channel name or keyword to search for." },
+        live_only: { type: "boolean", description: "Return only live channels.", default: false },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "twitch_search_categories",
+    description: "Search Twitch game categories/tags by name.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        query: { type: "string", description: "Category name to search for." },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "twitch_get_top_games",
+    description: "Get the top games/categories currently being streamed on Twitch.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        first: { type: "number", description: "Max results (default 20).", default: 20 },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "twitch_get_user",
+    description: "Get a Twitch user's profile by login name.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        login: { type: "string", description: "Twitch username (login)." },
+      },
+      required: ["login"],
+    },
+  },
+  {
+    name: "twitch_get_channel",
+    description: "Get channel information for a Twitch broadcaster by broadcaster ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        broadcaster_id: { type: "string", description: "Twitch broadcaster user ID." },
+      },
+      required: ["broadcaster_id"],
+    },
+  },
+  {
+    name: "twitch_get_clips",
+    description: "Get clips for a Twitch broadcaster or game category.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        broadcaster_id: { type: "string", description: "Twitch broadcaster user ID." },
+        game_id:        { type: "string", description: "Twitch game/category ID." },
+        first:          { type: "number", description: "Max results (default 20).", default: 20 },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "twitch_get_videos",
+    description: "Get videos (VODs) for a Twitch user or game category.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        user_id: { type: "string", description: "Twitch user ID." },
+        game_id: { type: "string", description: "Twitch game/category ID." },
+        first:   { type: "number", description: "Max results (default 20).", default: 20 },
+      },
+      required: [],
+    },
+  },
+  // ── Alpha Vantage ──────────────────────────────────────────────────────────────
+  {
+    name: "stock_quote",
+    description: "Get the real-time quote for a stock symbol from Alpha Vantage. Returns price, change, volume, and more. Requires ALPHAVANTAGE_API_KEY env var.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        symbol: { type: "string", description: "Stock symbol, e.g. 'AAPL', 'MSFT', 'TSLA'." },
+      },
+      required: ["symbol"],
+    },
+  },
+  {
+    name: "stock_search",
+    description: "Search for stocks and ETFs by keyword using Alpha Vantage.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        keywords: { type: "string", description: "Company name or ticker symbol to search for." },
+      },
+      required: ["keywords"],
+    },
+  },
+  {
+    name: "stock_daily",
+    description: "Get daily OHLCV (open, high, low, close, volume) time series for a stock.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        symbol:   { type: "string", description: "Stock symbol, e.g. 'AAPL'." },
+        outputsize: { type: "string", enum: ["compact", "full"], default: "compact", description: "compact=last 100 days, full=20+ years." },
+      },
+      required: ["symbol"],
+    },
+  },
+  {
+    name: "stock_intraday",
+    description: "Get intraday OHLCV time series for a stock at 1, 5, 15, 30, or 60 minute intervals.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        symbol:   { type: "string", description: "Stock symbol." },
+        interval: { type: "string", enum: ["1min", "5min", "15min", "30min", "60min"], default: "5min", description: "Time interval." },
+      },
+      required: ["symbol"],
+    },
+  },
+  {
+    name: "forex_rate",
+    description: "Get the real-time exchange rate between two currencies using Alpha Vantage.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        from_currency: { type: "string", description: "Source currency code, e.g. 'USD', 'EUR'." },
+        to_currency:   { type: "string", description: "Target currency code, e.g. 'AUD', 'GBP'." },
+      },
+      required: ["from_currency", "to_currency"],
+    },
+  },
+  {
+    name: "crypto_daily",
+    description: "Get daily open/high/low/close for a cryptocurrency using Alpha Vantage.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        symbol:   { type: "string", description: "Crypto symbol, e.g. 'BTC', 'ETH'." },
+        market:   { type: "string", description: "Market currency, e.g. 'USD'.", default: "USD" },
+        outputsize: { type: "string", enum: ["compact", "full"], default: "compact", description: "compact=last 100 days, full=all data." },
+      },
+      required: ["symbol"],
+    },
+  },
+  // ── CoinGecko ──────────────────────────────────────────────────────────────────
+  {
+    name: "crypto_price",
+    description: "Get real-time price, market cap, 24h volume, and 24h change for one or more cryptocurrencies using CoinGecko. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        ids:          { type: "string", description: "Comma-separated CoinGecko coin IDs, e.g. 'bitcoin,ethereum,solana'." },
+        vs_currencies: { type: "string", description: "Comma-separated target currencies, e.g. 'usd,aud,eur'.", default: "usd" },
+      },
+      required: ["ids"],
+    },
+  },
+  {
+    name: "crypto_coin",
+    description: "Get detailed data for a cryptocurrency: description, market data, ATH, developer stats, and social links.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id: { type: "string", description: "CoinGecko coin ID, e.g. 'bitcoin', 'ethereum'." },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "crypto_search",
+    description: "Search CoinGecko for coins, NFTs, and exchanges by keyword.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        query: { type: "string", description: "Search query (coin name or symbol)." },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "crypto_trending",
+    description: "Get the top 7 trending cryptocurrencies on CoinGecko in the last 24 hours. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+    },
+  },
+  {
+    name: "crypto_top_coins",
+    description: "Get the top cryptocurrencies by market cap from CoinGecko.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit:        { type: "number", minimum: 1, maximum: 250, default: 10, description: "Number of coins to return (default 10)." },
+        vs_currency:  { type: "string", default: "usd", description: "Target currency for prices (default 'usd')." },
+        order:        { type: "string", enum: ["market_cap_desc", "market_cap_asc", "volume_desc"], default: "market_cap_desc", description: "Sort order." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "crypto_coin_history",
+    description: "Get historical price, market cap, and volume for a cryptocurrency on a specific date.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        id:   { type: "string", description: "CoinGecko coin ID, e.g. 'bitcoin'." },
+        date: { type: "string", description: "Date in DD-MM-YYYY format, e.g. '30-12-2023'." },
+      },
+      required: ["id", "date"],
+    },
+  },
+  // ── Open Exchange Rates ────────────────────────────────────────────────────────
+  {
+    name: "forex_latest",
+    description: "Get the latest exchange rates for all currencies from Open Exchange Rates (base: USD on free plan). Requires OPENEXCHANGERATES_APP_ID env var.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        symbols: { type: "string", description: "Comma-separated currency codes to return, e.g. 'AUD,EUR,GBP'. Omit for all currencies." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "forex_historical",
+    description: "Get historical exchange rates for a specific date from Open Exchange Rates.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        date:    { type: "string", description: "Date in YYYY-MM-DD format." },
+        symbols: { type: "string", description: "Comma-separated currency codes." },
+      },
+      required: ["date"],
+    },
+  },
+  {
+    name: "forex_currencies",
+    description: "List all available currencies on Open Exchange Rates with their names.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+    },
+  },
+  {
+    name: "forex_convert",
+    description: "Convert an amount from one currency to another using Open Exchange Rates.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        from:   { type: "string", description: "Source currency code, e.g. 'USD'." },
+        to:     { type: "string", description: "Target currency code, e.g. 'AUD'." },
+        amount: { type: "number", description: "Amount to convert." },
+      },
+      required: ["from", "to", "amount"],
+    },
+  },
+  // ── REST Countries ────────────────────────────────────────────────────────────
+  {
+    name: "country_all",
+    description: "Get information for all 250 countries. Returns name, capital, region, population, area, currencies, languages, flag, and maps. No API key required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        fields: { type: "string", description: "Comma-separated fields to include, e.g. 'name,capital,population'." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "country_by_name",
+    description: "Get country information by name (full or partial match).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        name:     { type: "string", description: "Country name, e.g. 'Australia', 'United States'." },
+        fullText: { type: "boolean", description: "If true, match full name only (default: false).", default: false },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "country_by_code",
+    description: "Get country information by ISO 2-letter or 3-letter country code.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        code: { type: "string", description: "ISO 3166-1 alpha-2 or alpha-3 country code, e.g. 'AU', 'USA'." },
+      },
+      required: ["code"],
+    },
+  },
+  {
+    name: "country_by_region",
+    description: "Get all countries in a geographic region.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        region: { type: "string", enum: ["Africa", "Americas", "Asia", "Europe", "Oceania"], description: "Geographic region." },
+      },
+      required: ["region"],
+    },
+  },
+  {
+    name: "country_by_currency",
+    description: "Get all countries that use a specific currency.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        currency: { type: "string", description: "Currency code, e.g. 'USD', 'EUR', 'AUD'." },
+      },
+      required: ["currency"],
+    },
+  },
+  {
+    name: "country_by_language",
+    description: "Get all countries that use a specific language.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        language: { type: "string", description: "Language code, e.g. 'eng', 'fra', 'spa'." },
+      },
+      required: ["language"],
+    },
+  },
+  // ── IP API ────────────────────────────────────────────────────────────────────
+  {
+    name: "ip_lookup",
+    description: "Look up geolocation and network info for an IP address. Returns country, region, city, lat/lon, ISP, and timezone. No API key required (100 req/min free).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        ip: { type: "string", description: "IP address to look up. Omit to look up the caller's IP." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "ip_batch",
+    description: "Look up geolocation for multiple IP addresses in a single request (max 100).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        addresses: { type: "array", items: { type: "string" }, description: "Array of IP addresses to look up (max 100)." },
+      },
+      required: ["addresses"],
+    },
+  },
+  // ── CoinMarketCap ─────────────────────────────────────────────────────────────
+  {
+    name: "cmc_listings",
+    description: "Get the latest cryptocurrency listings from CoinMarketCap, sorted by market cap. Requires COINMARKETCAP_API_KEY env var.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit:   { type: "number", minimum: 1, maximum: 5000, default: 100, description: "Number of cryptocurrencies to return (default 100)." },
+        convert: { type: "string", default: "USD", description: "Target currency for price conversion (default 'USD')." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "cmc_quotes",
+    description: "Get latest market data quotes for specific cryptocurrencies by symbol or ID.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        symbol:  { type: "string", description: "Comma-separated crypto symbols, e.g. 'BTC,ETH,SOL'." },
+        convert: { type: "string", default: "USD", description: "Target currency for conversion." },
+      },
+      required: ["symbol"],
+    },
+  },
+  {
+    name: "cmc_info",
+    description: "Get static metadata for cryptocurrencies: description, logo, website, whitepaper, and social links.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        symbol: { type: "string", description: "Comma-separated crypto symbols, e.g. 'BTC,ETH'." },
+      },
+      required: ["symbol"],
+    },
+  },
+  {
+    name: "cmc_trending",
+    description: "Get the latest trending cryptocurrencies on CoinMarketCap.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        limit:   { type: "number", default: 10, description: "Number of results (default 10)." },
+        convert: { type: "string", default: "USD", description: "Target currency for price conversion." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "cmc_global_metrics",
+    description: "Get global crypto market metrics from CoinMarketCap: total market cap, 24h volume, Bitcoin dominance, and active currencies.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        convert: { type: "string", default: "USD", description: "Target currency for conversion." },
+      },
+      required: [],
+    },
+  },
+  // ── Tomorrow.io ────────────────────────────────────────────────────────────────
+  {
+    name: "tomorrow_realtime",
+    description: "Get real-time weather conditions for any location using Tomorrow.io. Returns temperature, humidity, wind, UV index, and more. Requires TOMORROWIO_API_KEY env var.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        location: { type: "string", description: "Location string: city name, lat/lon ('37.77,-122.41'), or postal code." },
+      },
+      required: ["location"],
+    },
+  },
+  {
+    name: "tomorrow_forecast",
+    description: "Get hourly and daily weather forecast for a location using Tomorrow.io.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        location:  { type: "string", description: "Location string: city name, lat/lon, or postal code." },
+        timesteps: { type: "string", enum: ["1h", "1d"], default: "1h", description: "Forecast timestep: hourly ('1h') or daily ('1d')." },
+      },
+      required: ["location"],
+    },
+  },
+  {
+    name: "tomorrow_history",
+    description: "Get historical weather data for a location and time range using Tomorrow.io.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        location:  { type: "string", description: "Location string: city name, lat/lon, or postal code." },
+        startTime: { type: "string", description: "Start time in ISO 8601 format, e.g. '2024-01-01T00:00:00Z'." },
+        endTime:   { type: "string", description: "End time in ISO 8601 format." },
+      },
+      required: ["location", "startTime", "endTime"],
+    },
+  },
+  // ── Wise ──────────────────────────────────────────────────────────────────────
+  {
+    name: "wise_exchange_rates",
+    description: "Get the Wise (TransferWise) exchange rate between two currencies. Requires WISE_API_TOKEN env var.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        source: { type: "string", description: "Source currency code, e.g. 'USD', 'GBP'." },
+        target: { type: "string", description: "Target currency code, e.g. 'AUD', 'EUR'." },
+        amount: { type: "number", description: "Amount to convert (optional)." },
+      },
+      required: ["source", "target"],
+    },
+  },
+  {
+    name: "wise_profile",
+    description: "Get Wise account profiles (personal and business) associated with the API token.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+    },
+  },
+  {
+    name: "wise_accounts",
+    description: "Get borderless account balances for a Wise profile.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        profileId: { type: "string", description: "Wise profile ID (from wise_profile)." },
+      },
+      required: ["profileId"],
+    },
+  },
+  {
+    name: "wise_create_quote",
+    description: "Create a Wise transfer quote to get the exact rate and fees for a transfer.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        sourceCurrency: { type: "string", description: "Source currency code, e.g. 'USD'." },
+        targetCurrency: { type: "string", description: "Target currency code, e.g. 'AUD'." },
+        sourceAmount:   { type: "number", description: "Amount to send in source currency (provide either sourceAmount or targetAmount)." },
+        targetAmount:   { type: "number", description: "Amount to receive in target currency." },
+      },
+      required: ["sourceCurrency", "targetCurrency"],
+    },
+  },
 ] as const;
 
 // ─── Handler map for direct tools ───────────────────────────────────────────
@@ -2407,6 +4950,307 @@ const DIRECT_HANDLERS: Record<string, DirectHandler> = {
   shopify_collections:  async (_c, a) => shopifyCollections(a),
   shopify_shop:         async (_c, a) => shopifyShop(a),
   shopify_fulfillments: async (_c, a) => shopifyFulfillments(a),
+
+  // ── Guardian handlers ─────────────────────────────────────────────────────
+
+  guardian_search:   async (_c, a) => guardianSearch(a),
+  guardian_sections: async (_c, a) => guardianSections(a),
+  guardian_article:  async (_c, a) => guardianArticle(a),
+  guardian_tags:     async (_c, a) => guardianTags(a),
+
+  // ── NewsAPI handlers ──────────────────────────────────────────────────────
+
+  news_top_headlines: async (_c, a) => newsTopHeadlines(a),
+  news_search:        async (_c, a) => newsSearch(a),
+  news_sources:       async (_c, a) => newsSources(a),
+
+  // ── TMDB handlers ─────────────────────────────────────────────────────────
+
+  tmdb_search_movies: async (_c, a) => tmdbSearchMovies(a),
+  tmdb_search_tv:     async (_c, a) => tmdbSearchTv(a),
+  tmdb_movie:         async (_c, a) => tmdbMovie(a),
+  tmdb_tv:            async (_c, a) => tmdbTv(a),
+  tmdb_trending:      async (_c, a) => tmdbTrending(a),
+  tmdb_now_playing:   async (_c, a) => tmdbNowPlaying(a),
+  tmdb_upcoming:      async (_c, a) => tmdbUpcoming(a),
+  tmdb_popular_tv:    async (_c, a) => tmdbPopularTv(a),
+
+  // ── NASA handlers ─────────────────────────────────────────────────────────
+
+  nasa_apod:            async (_c, a) => nasaApod(a),
+  nasa_asteroids:       async (_c, a) => nasaAsteroids(a),
+  nasa_mars_photos:     async (_c, a) => nasaMarsPhotos(a),
+  nasa_earth_imagery:   async (_c, a) => nasaEarthImagery(a),
+  nasa_epic:            async (_c, a) => nasaEpic(a),
+
+  // ── OpenF1 handlers ───────────────────────────────────────────────────────
+
+  f1_sessions:   async (_c, a) => f1Sessions(a),
+  f1_drivers:    async (_c, a) => f1Drivers(a),
+  f1_positions:  async (_c, a) => f1Positions(a),
+  f1_laps:       async (_c, a) => f1Laps(a),
+  f1_pit_stops:  async (_c, a) => f1PitStops(a),
+  f1_car_data:   async (_c, a) => f1CarData(a),
+  f1_team_radio: async (_c, a) => f1TeamRadio(a),
+  f1_weather:    async (_c, a) => f1Weather(a),
+
+  // ── FPL handlers ──────────────────────────────────────────────────────────
+
+  fpl_bootstrap:       async (_c, a) => fplBootstrap(a),
+  fpl_player:          async (_c, a) => fplPlayer(a),
+  fpl_gameweek:        async (_c, a) => fplGameweek(a),
+  fpl_fixtures:        async (_c, a) => fplFixtures(a),
+  fpl_my_team:         async (_c, a) => fplMyTeam(a),
+  fpl_manager:         async (_c, a) => fplManager(a),
+  fpl_leagues_classic: async (_c, a) => fplLeaguesClassic(a),
+
+  // ── Chess.com handlers ────────────────────────────────────────────────────
+
+  chess_player:         async (_c, a) => chessPlayer(a),
+  chess_player_stats:   async (_c, a) => chessPlayerStats(a),
+  chess_player_games:   async (_c, a) => chessPlayerGames(a),
+  chess_puzzles_random: async (_c, a) => chessPuzzlesRandom(a),
+  chess_leaderboards:   async (_c, a) => chessLeaderboards(a),
+
+  // ── Lichess handlers ──────────────────────────────────────────────────────
+
+  lichess_user:          async (_c, a) => lichessUser(a),
+  lichess_user_games:    async (_c, a) => lichessUserGames(a),
+  lichess_puzzle_daily:  async (_c, a) => lichessPuzzleDaily(a),
+  lichess_top_players:   async (_c, a) => lichessTopPlayers(a),
+  lichess_tournament:    async (_c, a) => lichessTournament(a),
+
+  // ── ABN handlers ─────────────────────────────────────────────────────────
+
+  abn_lookup: async (_c, a) => abnLookup(a),
+  abn_search: async (_c, a) => abnSearch(a),
+
+  // ── PTV handlers ─────────────────────────────────────────────────────────
+
+  ptv_search:           async (_c, a) => ptvSearch(a),
+  ptv_departures:       async (_c, a) => ptvDepartures(a),
+  ptv_disruptions:      async (_c, a) => ptvDisruptions(a),
+  ptv_stops_on_route:   async (_c, a) => ptvStopsOnRoute(a),
+  ptv_route_directions: async (_c, a) => ptvRouteDirections(a),
+
+  // ── Open-Meteo handlers ───────────────────────────────────────────────────
+
+  weather_current:  async (_c, a) => weatherCurrent(a),
+  weather_forecast: async (_c, a) => weatherForecast(a),
+  weather_hourly:   async (_c, a) => weatherHourly(a),
+
+  // ── Radio Browser handlers ────────────────────────────────────────────────
+
+  radio_search:      async (_c, a) => radioSearch(a),
+  radio_by_country:  async (_c, a) => radioByCountry(a),
+  radio_top_clicked: async (_c, a) => radioTopClicked(a),
+  radio_top_voted:   async (_c, a) => radioTopVoted(a),
+  radio_by_tag:      async (_c, a) => radioByTag(a),
+  radio_countries:   async (_c, a) => radioCountries(a),
+
+  // ── Hacker News handlers ──────────────────────────────────────────────────
+
+  hn_top_stories:  async (_c, a) => hnTopStories(a),
+  hn_new_stories:  async (_c, a) => hnNewStories(a),
+  hn_best_stories: async (_c, a) => hnBestStories(a),
+  hn_ask_hn:       async (_c, a) => hnAskHn(a),
+  hn_show_hn:      async (_c, a) => hnShowHn(a),
+  hn_item:         async (_c, a) => hnItem(a),
+  hn_user:         async (_c, a) => hnUser(a),
+
+  // ── Trivia handlers ───────────────────────────────────────────────────────
+
+  trivia_questions:  async (_c, a) => triviaQuestions(a),
+  trivia_categories: async (_c, a) => triviaCategories(a),
+
+  // ── Numbers API handlers ──────────────────────────────────────────────────
+
+  number_fact:   async (_c, a) => numberFact(a),
+  number_random: async (_c, a) => numberRandom(a),
+
+  // ── Ticketmaster handlers ─────────────────────────────────────────────────
+
+  ticketmaster_search_events:      async (_c, a) => ticketmasterSearchEvents(a),
+  ticketmaster_get_event:          async (_c, a) => ticketmasterGetEvent(a),
+  ticketmaster_search_venues:      async (_c, a) => ticketmasterSearchVenues(a),
+  ticketmaster_get_venue:          async (_c, a) => ticketmasterGetVenue(a),
+  ticketmaster_search_attractions: async (_c, a) => ticketmasterSearchAttractions(a),
+
+  // ── SeatGeek handlers ─────────────────────────────────────────────────────
+
+  seatgeek_search_events:    async (_c, a) => seatgeekSearchEvents(a),
+  seatgeek_get_event:        async (_c, a) => seatgeekGetEvent(a),
+  seatgeek_search_performers: async (_c, a) => seatgeekSearchPerformers(a),
+  seatgeek_get_performer:    async (_c, a) => seatgeekGetPerformer(a),
+  seatgeek_search_venues:    async (_c, a) => seatgeekSearchVenues(a),
+
+  // ── Yelp handlers ─────────────────────────────────────────────────────────
+
+  yelp_search:        async (_c, a) => yelpSearch(a),
+  yelp_get_business:  async (_c, a) => yelpGetBusiness(a),
+  yelp_get_reviews:   async (_c, a) => yelpGetReviews(a),
+  yelp_autocomplete:  async (_c, a) => yelpAutocomplete(a),
+  yelp_search_events: async (_c, a) => yelpSearchEvents(a),
+
+  // ── Bandsintown handlers ──────────────────────────────────────────────────
+
+  bandsintown_artist:      async (_c, a) => bandsintownArtist(a),
+  bandsintown_events:      async (_c, a) => bandsintownEvents(a),
+  bandsintown_recommended: async (_c, a) => bandsintownRecommended(a),
+
+  // ── Setlist.fm handlers ───────────────────────────────────────────────────
+
+  setlistfm_search_artist:   async (_c, a) => setlistfmSearchArtist(a),
+  setlistfm_artist_setlists: async (_c, a) => setlistfmArtistSetlists(a),
+  setlistfm_search_setlists: async (_c, a) => setlistfmSearchSetlists(a),
+  setlistfm_get_setlist:     async (_c, a) => setlistfmGetSetlist(a),
+
+  // ── Eventbrite handlers ───────────────────────────────────────────────────
+
+  eventbrite_search_events:      async (_c, a) => eventbriteSearchEvents(a),
+  eventbrite_get_event:          async (_c, a) => eventbriteGetEvent(a),
+  eventbrite_get_event_attendees: async (_c, a) => eventbriteGetEventAttendees(a),
+  eventbrite_create_event:       async (_c, a) => eventbriteCreateEvent(a),
+  eventbrite_list_categories:    async (_c, a) => eventbriteListCategories(a),
+  eventbrite_get_venue:          async (_c, a) => eventbriteGetVenue(a),
+
+  // ── Foursquare handlers ───────────────────────────────────────────────────
+
+  foursquare_search_places: async (_c, a) => foursquareSearchPlaces(a),
+  foursquare_get_place:     async (_c, a) => foursquareGetPlace(a),
+  foursquare_get_photos:    async (_c, a) => foursquareGetPhotos(a),
+  foursquare_get_tips:      async (_c, a) => foursquareGetTips(a),
+  foursquare_autocomplete:  async (_c, a) => foursquareAutocomplete(a),
+
+  // ── Last.fm handlers ──────────────────────────────────────────────────────
+
+  lastfm_artist_info:       async (_c, a) => lastfmArtistInfo(a),
+  lastfm_artist_search:     async (_c, a) => lastfmArtistSearch(a),
+  lastfm_similar_artists:   async (_c, a) => lastfmSimilarArtists(a),
+  lastfm_artist_top_tracks: async (_c, a) => lastfmArtistTopTracks(a),
+  lastfm_track_info:        async (_c, a) => lastfmTrackInfo(a),
+  lastfm_chart_top_artists: async (_c, a) => lastfmChartTopArtists(a),
+  lastfm_chart_top_tracks:  async (_c, a) => lastfmChartTopTracks(a),
+  lastfm_album_info:        async (_c, a) => lastfmAlbumInfo(a),
+
+  // ── Discogs handlers ──────────────────────────────────────────────────────
+
+  discogs_search:            async (_c, a) => discogsSearch(a),
+  discogs_get_release:       async (_c, a) => discogsGetRelease(a),
+  discogs_get_artist:        async (_c, a) => discogsGetArtist(a),
+  discogs_artist_releases:   async (_c, a) => discogsArtistReleases(a),
+  discogs_get_label:         async (_c, a) => discogsGetLabel(a),
+  discogs_marketplace_stats: async (_c, a) => discogsMarketplaceStats(a),
+
+  // ── MusicBrainz handlers ──────────────────────────────────────────────────
+
+  mb_search_artists:    async (_c, a) => mbSearchArtists(a),
+  mb_search_releases:   async (_c, a) => mbSearchReleases(a),
+  mb_search_recordings: async (_c, a) => mbSearchRecordings(a),
+  mb_get_artist:        async (_c, a) => mbGetArtist(a),
+  mb_get_release:       async (_c, a) => mbGetRelease(a),
+
+  // ── Genius handlers ───────────────────────────────────────────────────────
+
+  genius_search:       async (_c, a) => geniusSearch(a),
+  genius_get_song:     async (_c, a) => geniusGetSong(a),
+  genius_get_artist:   async (_c, a) => geniusGetArtist(a),
+  genius_artist_songs: async (_c, a) => geniusArtistSongs(a),
+
+  // ── Open Library handlers ─────────────────────────────────────────────────
+
+  openlibrary_search:       async (_c, a) => openlibrarySearch(a),
+  openlibrary_get_book:     async (_c, a) => openlibraryGetBook(a),
+  openlibrary_get_edition:  async (_c, a) => openlibraryGetEdition(a),
+  openlibrary_get_author:   async (_c, a) => openlibraryGetAuthor(a),
+  openlibrary_author_works: async (_c, a) => openlibraryAuthorWorks(a),
+  openlibrary_trending:     async (_c, a) => openlibraryTrending(a),
+
+  // ── OMDB handlers ─────────────────────────────────────────────────────────
+
+  omdb_search:       async (_c, a) => omdbSearch(a),
+  omdb_get_by_title: async (_c, a) => omdbGetByTitle(a),
+  omdb_get_by_id:    async (_c, a) => omdbGetById(a),
+
+  // ── Podcast Index handlers ────────────────────────────────────────────────
+
+  podcast_search:          async (_c, a) => podcastSearch(a),
+  podcast_get_by_feed_url: async (_c, a) => podcastGetByFeedUrl(a),
+  podcast_get_episodes:    async (_c, a) => podcastGetEpisodes(a),
+  podcast_search_episodes: async (_c, a) => podcastSearchEpisodes(a),
+  podcast_trending:        async (_c, a) => podcastTrending(a),
+  podcast_recent_episodes: async (_c, a) => podcastRecentEpisodes(a),
+
+  // ── Twitch handlers ───────────────────────────────────────────────────────
+
+  twitch_get_streams:        async (_c, a) => twitchGetStreams(a),
+  twitch_search_channels:    async (_c, a) => twitchSearchChannels(a),
+  twitch_search_categories:  async (_c, a) => twitchSearchCategories(a),
+  twitch_get_top_games:      async (_c, a) => twitchGetTopGames(a),
+  twitch_get_user:           async (_c, a) => twitchGetUser(a),
+  twitch_get_channel:        async (_c, a) => twitchGetChannel(a),
+  twitch_get_clips:          async (_c, a) => twitchGetClips(a),
+  twitch_get_videos:         async (_c, a) => twitchGetVideos(a),
+
+  // ── Alpha Vantage handlers ────────────────────────────────────────────────
+
+  stock_quote:    async (_c, a) => stockQuote(a),
+  stock_search:   async (_c, a) => stockSearch(a),
+  stock_daily:    async (_c, a) => stockDaily(a),
+  stock_intraday: async (_c, a) => stockIntraday(a),
+  forex_rate:     async (_c, a) => forexRate(a),
+  crypto_daily:   async (_c, a) => cryptoDaily(a),
+
+  // ── CoinGecko handlers ────────────────────────────────────────────────────
+
+  crypto_price:        async (_c, a) => cryptoPrice(a),
+  crypto_coin:         async (_c, a) => cryptoCoin(a),
+  crypto_search:       async (_c, a) => cryptoSearch(a),
+  crypto_trending:     async (_c, a) => cryptoTrending(a),
+  crypto_top_coins:    async (_c, a) => cryptoTopCoins(a),
+  crypto_coin_history: async (_c, a) => cryptoCoinHistory(a),
+
+  // ── Open Exchange Rates handlers ──────────────────────────────────────────
+
+  forex_latest:     async (_c, a) => forexLatest(a),
+  forex_historical: async (_c, a) => forexHistorical(a),
+  forex_currencies: async (_c, a) => forexCurrencies(a),
+  forex_convert:    async (_c, a) => forexConvert(a),
+
+  // ── REST Countries handlers ───────────────────────────────────────────────
+
+  country_all:         async (_c, a) => countryAll(a),
+  country_by_name:     async (_c, a) => countryByName(a),
+  country_by_code:     async (_c, a) => countryByCode(a),
+  country_by_region:   async (_c, a) => countryByRegion(a),
+  country_by_currency: async (_c, a) => countryByCurrency(a),
+  country_by_language: async (_c, a) => countryByLanguage(a),
+
+  // ── IP API handlers ───────────────────────────────────────────────────────
+
+  ip_lookup: async (_c, a) => ipLookup(a),
+  ip_batch:  async (_c, a) => ipBatch(a),
+
+  // ── CoinMarketCap handlers ────────────────────────────────────────────────
+
+  cmc_listings:       async (_c, a) => cmcListings(a),
+  cmc_quotes:         async (_c, a) => cmcQuotes(a),
+  cmc_info:           async (_c, a) => cmcInfo(a),
+  cmc_trending:       async (_c, a) => cmcTrending(a),
+  cmc_global_metrics: async (_c, a) => cmcGlobalMetrics(a),
+
+  // ── Tomorrow.io handlers ──────────────────────────────────────────────────
+
+  tomorrow_realtime: async (_c, a) => tomorrowRealtime(a),
+  tomorrow_forecast: async (_c, a) => tomorrowForecast(a),
+  tomorrow_history:  async (_c, a) => tomorrowHistory(a),
+
+  // ── Wise handlers ─────────────────────────────────────────────────────────
+
+  wise_exchange_rates: async (_c, a) => wiseExchangeRates(a),
+  wise_profile:        async (_c, a) => wiseProfile(a),
+  wise_accounts:       async (_c, a) => wiseAccounts(a),
+  wise_create_quote:   async (_c, a) => wiseCreateQuote(a),
 };
 
 // ─── Server factory ─────────────────────────────────────────────────────────
