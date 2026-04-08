@@ -35,6 +35,60 @@ import {
 } from "./converter-tools.js";
 import { csuitAnalyze } from "./csuite-tool.js";
 import { vaultAction } from "./vault-tool.js";
+import {
+  telegramSend,
+  telegramRead,
+  telegramSearch,
+  telegramSendMedia,
+  telegramGetUpdates,
+  telegramManageChat,
+} from "./telegram-tool.js";
+import { slackAction } from "./slack-tool.js";
+import {
+  discordSend,
+  discordRead,
+  discordThread,
+  discordReact,
+  discordChannels,
+  discordMembers,
+  discordSearch,
+} from "./discord-tool.js";
+import {
+  redditRead,
+  redditPost,
+  redditComment,
+  redditSearch,
+  redditUser,
+  redditVote,
+  redditSubscribe,
+} from "./reddit-tool.js";
+import { blueskyAction } from "./bluesky-tool.js";
+import { mastodonAction } from "./mastodon-tool.js";
+import {
+  amazonSearch,
+  amazonProduct,
+  amazonBrowse,
+  amazonVariations,
+} from "./amazon-tool.js";
+import {
+  xeroInvoices,
+  xeroContacts,
+  xeroAccounts,
+  xeroPayments,
+  xeroBankTransactions,
+  xeroReports,
+  xeroQuotes,
+  xeroOrganisation,
+} from "./xero-tool.js";
+import {
+  shopifyProducts,
+  shopifyOrders,
+  shopifyCustomers,
+  shopifyInventory,
+  shopifyCollections,
+  shopifyShop,
+  shopifyFulfillments,
+} from "./shopify-tool.js";
 
 // ─── Search helper ──────────────────────────────────────────────────────────
 
@@ -982,6 +1036,938 @@ const DIRECT_TOOLS = [
       required: ["action", "master_password"],
     },
   },
+  // ── Telegram Bot API tools ────────────────────────────────────────────────
+  {
+    name: "telegram_send",
+    description:
+      "Send a text message to a Telegram chat, group, or channel via your bot. " +
+      "Supports plain text and Markdown/HTML formatting. " +
+      "Get a bot token from @BotFather. The bot must be a member of the target chat.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Telegram bot token from @BotFather (e.g. 123456:ABC-DEF...)." },
+        chat_id: { type: ["string", "number"], description: "Target chat ID or @username (e.g. -1001234567890 or @mychannel)." },
+        text: { type: "string", description: "Message text to send (up to 4096 characters)." },
+        parse_mode: { type: "string", enum: ["Markdown", "HTML", "MarkdownV2"], description: "Optional formatting mode. Default is plain text." },
+        reply_to_message_id: { type: "number", description: "Optional message ID to reply to." },
+        disable_notification: { type: "boolean", description: "Send silently without notification sound. Default false." },
+      },
+      required: ["bot_token", "chat_id", "text"],
+    },
+  },
+  {
+    name: "telegram_read",
+    description:
+      "Read recent messages received by your Telegram bot. " +
+      "Returns messages the bot has received since the last getUpdates call (or from a given offset). " +
+      "Filter by chat_id to see messages from a specific chat.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Telegram bot token from @BotFather." },
+        chat_id: { type: ["string", "number"], description: "Optional chat ID to filter messages (e.g. -1001234567890)." },
+        limit: { type: "number", minimum: 1, maximum: 100, default: 20, description: "Max number of recent messages to return. Default 20." },
+        offset: { type: "number", description: "Update ID offset for pagination. Use next_offset from a previous response." },
+      },
+      required: ["bot_token"],
+    },
+  },
+  {
+    name: "telegram_search",
+    description:
+      "Search for messages containing a keyword in your bot's recent message history. " +
+      "Searches across all updates the bot has received. Filter by chat_id for a specific chat.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Telegram bot token from @BotFather." },
+        query: { type: "string", description: "Keyword or phrase to search for (case-insensitive)." },
+        chat_id: { type: ["string", "number"], description: "Optional chat ID to narrow search to a specific chat." },
+        limit: { type: "number", minimum: 1, maximum: 50, default: 10, description: "Max number of matching messages to return. Default 10." },
+        offset: { type: "number", description: "Update ID offset to start from." },
+      },
+      required: ["bot_token", "query"],
+    },
+  },
+  {
+    name: "telegram_send_media",
+    description:
+      "Send a photo, document, audio, video, or animation to a Telegram chat via your bot. " +
+      "The media must be accessible via a public URL. Supports optional captions.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Telegram bot token from @BotFather." },
+        chat_id: { type: ["string", "number"], description: "Target chat ID or @username." },
+        media_type: { type: "string", enum: ["photo", "document", "audio", "video", "animation"], description: "Type of media to send." },
+        media_url: { type: "string", description: "Public URL of the media file to send." },
+        caption: { type: "string", description: "Optional caption for the media (up to 1024 characters)." },
+        parse_mode: { type: "string", enum: ["Markdown", "HTML", "MarkdownV2"], description: "Formatting mode for the caption." },
+        disable_notification: { type: "boolean", description: "Send silently without notification sound. Default false." },
+      },
+      required: ["bot_token", "chat_id", "media_type", "media_url"],
+    },
+  },
+  {
+    name: "telegram_get_updates",
+    description:
+      "Fetch pending updates (messages, edited messages, channel posts) from the Telegram Bot API. " +
+      "Use offset to mark previous updates as processed and avoid seeing them again.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Telegram bot token from @BotFather." },
+        limit: { type: "number", minimum: 1, maximum: 100, default: 20, description: "Max number of updates to return." },
+        offset: { type: "number", description: "Update ID offset. Pass next_offset from previous response to mark updates as read." },
+        timeout: { type: "number", minimum: 0, maximum: 30, default: 0, description: "Seconds to wait for long polling. 0 = return immediately." },
+        allowed_updates: { type: "array", items: { type: "string" }, description: "List of update types to receive, e.g. ['message', 'channel_post']." },
+      },
+      required: ["bot_token"],
+    },
+  },
+  {
+    name: "telegram_manage_chat",
+    description:
+      "Manage a Telegram chat: get chat info, list admins, pin a message, or unpin a message. " +
+      "The bot must be an admin with the appropriate permissions to pin/unpin.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Telegram bot token from @BotFather." },
+        chat_id: { type: ["string", "number"], description: "Target chat ID or @username." },
+        action: {
+          type: "string",
+          enum: ["info", "members", "pin", "unpin"],
+          description: "info: get chat details. members: list admins. pin: pin a message (requires message_id). unpin: unpin a message (message_id optional).",
+        },
+        message_id: { type: "number", description: "Message ID to pin or unpin (required for pin, optional for unpin)." },
+        disable_notification: { type: "boolean", description: "Pin without notification. Applies to pin action only. Default false." },
+      },
+      required: ["bot_token", "chat_id", "action"],
+    },
+  },
+  // ── Slack Web API ─────────────────────────────────────────────────────────
+  {
+    name: "slack",
+    description:
+      "Send and receive Slack messages, search conversations, manage reactions, " +
+      "upload files, and list channels via the official Slack Web API. " +
+      "Requires a Bot Token (xoxb-...) with the appropriate OAuth scopes. " +
+      "Actions: slack_send, slack_read, slack_search, slack_thread_reply, " +
+      "slack_channels, slack_react, slack_upload.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        action: {
+          type: "string",
+          enum: ["slack_send", "slack_read", "slack_search", "slack_thread_reply", "slack_channels", "slack_react", "slack_upload"],
+          description:
+            "slack_send: post a message to a channel or DM. " +
+            "slack_read: fetch recent messages from a channel (conversation history). " +
+            "slack_search: search messages across the workspace. " +
+            "slack_thread_reply: reply to an existing message thread. " +
+            "slack_channels: list channels the bot can access. " +
+            "slack_react: add an emoji reaction to a message. " +
+            "slack_upload: upload a text file to a channel.",
+        },
+        bot_token: { type: "string", description: "Slack Bot Token starting with xoxb-. Create one at api.slack.com/apps under 'OAuth and Permissions'." },
+        channel: { type: "string", description: "Channel ID (e.g. C01234ABCDE) or name (e.g. #general). Used by: slack_send, slack_read, slack_thread_reply, slack_react, slack_upload." },
+        text: { type: "string", description: "Message text (supports Slack mrkdwn). Required by slack_send and slack_thread_reply unless blocks is provided." },
+        blocks: { description: "Slack Block Kit payload (array of block objects). Optional alternative/addition to text for rich messages." },
+        thread_ts: { type: "string", description: "Parent message timestamp to reply in a thread. Required for slack_thread_reply. Optional for slack_send." },
+        username: { type: "string", description: "Override the bot display name for this message (slack_send only)." },
+        limit: { type: "number", minimum: 1, maximum: 200, default: 20, description: "Max messages to return (slack_read: 1-200; slack_channels: 1-1000)." },
+        oldest: { type: "string", description: "Return messages after this Unix timestamp (slack_read only)." },
+        latest: { type: "string", description: "Return messages before this Unix timestamp (slack_read only)." },
+        query: { type: "string", description: "Search query string (slack_search only). Supports Slack search modifiers." },
+        count: { type: "number", minimum: 1, maximum: 100, default: 20, description: "Max search results to return (slack_search only)." },
+        sort: { type: "string", enum: ["score", "timestamp"], default: "timestamp", description: "Sort search results by relevance or recency (slack_search only)." },
+        sort_dir: { type: "string", enum: ["asc", "desc"], default: "desc", description: "Sort direction for search results (slack_search only)." },
+        types: { type: "string", default: "public_channel", description: "Comma-separated channel types to include (slack_channels only)." },
+        exclude_archived: { type: "boolean", default: true, description: "Exclude archived channels from results (slack_channels only)." },
+        timestamp: { type: "string", description: "Message timestamp (ts) to react to (slack_react only)." },
+        emoji: { type: "string", description: "Emoji name without colons, e.g. 'thumbsup' or '+1' (slack_react only)." },
+        filename: { type: "string", default: "file.txt", description: "Filename for the uploaded file (slack_upload only)." },
+        content: { type: "string", description: "Text content of the file to upload (slack_upload only)." },
+        channels: { type: "string", description: "Comma-separated channel IDs to share the file with (slack_upload only)." },
+        initial_comment: { type: "string", description: "Optional message to post alongside the uploaded file (slack_upload only)." },
+      },
+      required: ["action", "bot_token"],
+    },
+  },
+  // ── Discord REST API v10 ──────────────────────────────────────────────────
+  {
+    name: "discord_send",
+    description: "Send a message to a Discord channel. Optionally reply to an existing message or enable TTS.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Discord bot token (starts with Bot ...)" },
+        channel_id: { type: "string", description: "ID of the channel to send the message to" },
+        content: { type: "string", description: "Message text (up to 2000 characters)" },
+        reply_to: { type: "string", description: "Message ID to reply to (optional)" },
+        tts: { type: "boolean", default: false, description: "Send as text-to-speech (optional)" },
+      },
+      required: ["bot_token", "channel_id", "content"],
+    },
+  },
+  {
+    name: "discord_read",
+    description: "Read recent messages from a Discord channel.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Discord bot token" },
+        channel_id: { type: "string", description: "ID of the channel to read" },
+        limit: { type: "number", minimum: 1, maximum: 100, default: 50, description: "Number of messages to fetch (default 50, max 100)" },
+        before: { type: "string", description: "Fetch messages before this message ID (optional)" },
+        after: { type: "string", description: "Fetch messages after this message ID (optional)" },
+      },
+      required: ["bot_token", "channel_id"],
+    },
+  },
+  {
+    name: "discord_thread",
+    description:
+      "Create a thread from a message, create a standalone thread in a channel, or reply to an existing thread. " +
+      "Provide thread_id to reply. Provide message_id to start a thread from that message. " +
+      "Provide neither to create a standalone thread.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Discord bot token" },
+        channel_id: { type: "string", description: "Channel to create the thread in" },
+        name: { type: "string", description: "Thread name (required when creating a thread)" },
+        content: { type: "string", description: "Initial or reply message content" },
+        thread_id: { type: "string", description: "Existing thread ID to reply to (optional)" },
+        message_id: { type: "string", description: "Message ID to start a thread from (optional)" },
+        auto_archive_duration: { type: "number", enum: [60, 1440, 4320, 10080], description: "Minutes until the thread auto-archives: 60, 1440, 4320, or 10080 (optional)" },
+      },
+      required: ["bot_token", "channel_id"],
+    },
+  },
+  {
+    name: "discord_react",
+    description: "Add an emoji reaction to a Discord message.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Discord bot token" },
+        channel_id: { type: "string", description: "Channel containing the message" },
+        message_id: { type: "string", description: "ID of the message to react to" },
+        emoji: { type: "string", description: "Unicode emoji (e.g. '👍') or custom emoji in name:id format (e.g. 'thumbsup:123456789')" },
+      },
+      required: ["bot_token", "channel_id", "message_id", "emoji"],
+    },
+  },
+  {
+    name: "discord_channels",
+    description: "List all channels in a Discord guild (server).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Discord bot token" },
+        guild_id: { type: "string", description: "Guild (server) ID" },
+      },
+      required: ["bot_token", "guild_id"],
+    },
+  },
+  {
+    name: "discord_members",
+    description: "List members of a Discord guild. Requires the SERVER MEMBERS INTENT to be enabled on the bot.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Discord bot token" },
+        guild_id: { type: "string", description: "Guild (server) ID" },
+        limit: { type: "number", minimum: 1, maximum: 1000, default: 100, description: "Number of members to return (default 100, max 1000)" },
+        after: { type: "string", description: "Return members after this user ID for pagination (optional)" },
+      },
+      required: ["bot_token", "guild_id"],
+    },
+  },
+  {
+    name: "discord_search",
+    description: "Search messages in a Discord guild using Discord's search endpoint.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bot_token: { type: "string", description: "Discord bot token" },
+        guild_id: { type: "string", description: "Guild (server) ID to search in" },
+        query: { type: "string", description: "Text to search for in message content" },
+        channel_id: { type: "string", description: "Restrict search to this channel (optional)" },
+        author_id: { type: "string", description: "Restrict search to messages from this user ID (optional)" },
+        has: { type: "string", enum: ["link", "embed", "file", "video", "image", "sound", "sticker"], description: "Filter by attachment type (optional)" },
+        limit: { type: "number", minimum: 1, maximum: 25, default: 25, description: "Max results (default 25)" },
+        offset: { type: "number", default: 0, description: "Pagination offset (optional)" },
+      },
+      required: ["bot_token", "guild_id", "query"],
+    },
+  },
+  // ── Reddit OAuth2 API ─────────────────────────────────────────────────────
+  {
+    name: "reddit_read",
+    description:
+      "Read posts from a subreddit. Supports hot, new, top, and rising feeds. " +
+      "Returns post titles, scores, authors, URLs, and comment counts. " +
+      "Requires a Reddit OAuth2 bearer token with the 'read' scope.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Reddit OAuth2 bearer token (scope: read)." },
+        subreddit: { type: "string", description: "Subreddit name, e.g. 'programming' or 'r/programming'." },
+        sort: { type: "string", enum: ["hot", "new", "top", "rising"], default: "hot", description: "Feed sort order (default: hot)." },
+        limit: { type: "number", minimum: 1, maximum: 100, default: 25, description: "Number of posts to return (1-100, default 25)." },
+        after: { type: "string", description: "Pagination cursor from a previous response (optional)." },
+        t: { type: "string", enum: ["hour", "day", "week", "month", "year", "all"], description: "Time filter for 'top' sort (optional)." },
+      },
+      required: ["access_token", "subreddit"],
+    },
+  },
+  {
+    name: "reddit_post",
+    description:
+      "Submit a new post to a subreddit. Supports text (self) posts and link posts. " +
+      "Requires a Reddit OAuth2 bearer token with the 'submit' scope.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Reddit OAuth2 bearer token (scope: submit)." },
+        subreddit: { type: "string", description: "Subreddit to post to, e.g. 'test' or 'r/test'." },
+        title: { type: "string", description: "Post title (required)." },
+        kind: { type: "string", enum: ["self", "link"], description: "'self' for text posts, 'link' for URL posts." },
+        text: { type: "string", description: "Post body in Markdown (required when kind is 'self')." },
+        url: { type: "string", description: "URL to submit (required when kind is 'link')." },
+        nsfw: { type: "boolean", default: false, description: "Mark post as NSFW (default false)." },
+        spoiler: { type: "boolean", default: false, description: "Mark post as spoiler (default false)." },
+        flair_id: { type: "string", description: "Flair template ID (optional)." },
+        flair_text: { type: "string", description: "Flair text (optional)." },
+      },
+      required: ["access_token", "subreddit", "title", "kind"],
+    },
+  },
+  {
+    name: "reddit_comment",
+    description:
+      "Post a comment on a Reddit post or reply to an existing comment. " +
+      "Use the fullname of the parent (t3_ for posts, t1_ for comments). " +
+      "Requires a Reddit OAuth2 bearer token with the 'submit' scope.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Reddit OAuth2 bearer token (scope: submit)." },
+        parent_id: { type: "string", description: "Fullname of the post or comment to reply to, e.g. 't3_abc123' or 't1_def456'." },
+        text: { type: "string", description: "Comment body in Markdown." },
+      },
+      required: ["access_token", "parent_id", "text"],
+    },
+  },
+  {
+    name: "reddit_search",
+    description:
+      "Search posts across all of Reddit or within a specific subreddit. " +
+      "Supports relevance, hot, top, new, and comments sort orders. " +
+      "Requires a Reddit OAuth2 bearer token with the 'read' scope.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Reddit OAuth2 bearer token (scope: read)." },
+        query: { type: "string", description: "Search query string." },
+        subreddit: { type: "string", description: "Restrict search to this subreddit (optional)." },
+        sort: { type: "string", enum: ["relevance", "hot", "top", "new", "comments"], default: "relevance", description: "Result sort order (default: relevance)." },
+        t: { type: "string", enum: ["hour", "day", "week", "month", "year", "all"], description: "Time filter for 'top' sort (optional)." },
+        limit: { type: "number", minimum: 1, maximum: 100, default: 25, description: "Number of results to return (1-100, default 25)." },
+        after: { type: "string", description: "Pagination cursor from a previous response (optional)." },
+      },
+      required: ["access_token", "query"],
+    },
+  },
+  {
+    name: "reddit_user",
+    description:
+      "Get a Reddit user's profile and recent activity (posts and comments). " +
+      "Requires a Reddit OAuth2 bearer token with the 'read' scope.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Reddit OAuth2 bearer token (scope: read)." },
+        username: { type: "string", description: "Reddit username, e.g. 'spez' or 'u/spez'." },
+        include_posts: { type: "boolean", default: true, description: "Include recent posts in the response (default true)." },
+        include_comments: { type: "boolean", default: true, description: "Include recent comments in the response (default true)." },
+        limit: { type: "number", minimum: 1, maximum: 100, default: 10, description: "Max recent posts/comments to return per type (default 10)." },
+      },
+      required: ["access_token", "username"],
+    },
+  },
+  {
+    name: "reddit_vote",
+    description:
+      "Upvote, downvote, or remove your vote on a Reddit post or comment. " +
+      "Pass the fullname of the item (t3_ for posts, t1_ for comments). " +
+      "Requires a Reddit OAuth2 bearer token with the 'vote' scope.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Reddit OAuth2 bearer token (scope: vote)." },
+        id: { type: "string", description: "Fullname of the post or comment, e.g. 't3_abc123' or 't1_def456'." },
+        dir: { type: "number", enum: [1, 0, -1], description: "Vote direction: 1 = upvote, 0 = remove vote, -1 = downvote." },
+      },
+      required: ["access_token", "id", "dir"],
+    },
+  },
+  {
+    name: "reddit_subscribe",
+    description:
+      "Subscribe to or unsubscribe from a subreddit. " +
+      "Requires a Reddit OAuth2 bearer token with the 'subscribe' scope.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Reddit OAuth2 bearer token (scope: subscribe)." },
+        subreddit: { type: "string", description: "Subreddit name, e.g. 'programming' or 'r/programming'." },
+        action: { type: "string", enum: ["sub", "unsub"], description: "'sub' to subscribe, 'unsub' to unsubscribe." },
+      },
+      required: ["access_token", "subreddit", "action"],
+    },
+  },
+  // ── Bluesky / AT Protocol ─────────────────────────────────────────────────
+  {
+    name: "bluesky",
+    description:
+      "Post, read, reply, like, repost, search, and follow on Bluesky social network via the AT Protocol. " +
+      "Authenticates per-call with your Bluesky handle/email and app password. " +
+      "Actions: bluesky_post, bluesky_read_feed, bluesky_reply, bluesky_like, bluesky_repost, " +
+      "bluesky_search, bluesky_profile, bluesky_follow.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        action: {
+          type: "string",
+          enum: ["bluesky_post", "bluesky_read_feed", "bluesky_reply", "bluesky_like", "bluesky_repost", "bluesky_search", "bluesky_profile", "bluesky_follow"],
+          description:
+            "bluesky_post: create a new post (up to 300 chars). " +
+            "bluesky_read_feed: read home timeline or a user's posts. " +
+            "bluesky_reply: reply to an existing post. " +
+            "bluesky_like: like a post by URI. " +
+            "bluesky_repost: repost/share a post by URI. " +
+            "bluesky_search: search posts or users by keyword. " +
+            "bluesky_profile: get a user's profile. " +
+            "bluesky_follow: follow or unfollow a user.",
+        },
+        identifier: { type: "string", description: "Your Bluesky handle (e.g. alice.bsky.social) or email address." },
+        password: { type: "string", description: "Your Bluesky app password. Create one at Settings > Privacy and Security > App Passwords." },
+        text: { type: "string", description: "Post or reply text (max 300 characters). Required for bluesky_post and bluesky_reply." },
+        langs: { type: "array", items: { type: "string" }, description: "BCP-47 language tags for the post, e.g. ['en']. Optional." },
+        feed_type: { type: "string", enum: ["home", "user"], default: "home", description: "bluesky_read_feed: 'home' for your timeline, 'user' for a specific actor's posts." },
+        actor: { type: "string", description: "Handle or DID of the target user. Required for bluesky_profile and bluesky_follow. Optional for bluesky_read_feed." },
+        post_uri: { type: "string", description: "AT URI of the post to like or repost. Required for bluesky_like and bluesky_repost." },
+        parent_uri: { type: "string", description: "AT URI of the post to reply to. Required for bluesky_reply." },
+        root_uri: { type: "string", description: "AT URI of the root post in the thread. Optional for bluesky_reply (defaults to parent_uri)." },
+        query: { type: "string", description: "Search query string. Required for bluesky_search." },
+        type: { type: "string", enum: ["posts", "users"], default: "posts", description: "bluesky_search: search 'posts' (default) or 'users'." },
+        unfollow: { type: "boolean", default: false, description: "bluesky_follow: set true to unfollow instead of follow." },
+        limit: { type: "number", minimum: 1, maximum: 100, default: 20, description: "Max results to return for feed/search operations." },
+        cursor: { type: "string", description: "Pagination cursor from a previous response." },
+      },
+      required: ["action", "identifier", "password"],
+    },
+  },
+  // ── Mastodon (works with any Mastodon-compatible instance) ───────────────
+  {
+    name: "mastodon_post",
+    description: "Create a new toot/status on Mastodon (or any compatible instance: Pleroma, Akkoma, Misskey). Supports visibility settings and content warnings.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        instance_url: { type: "string", description: "Your Mastodon instance URL, e.g. 'mastodon.social'" },
+        access_token: { type: "string", description: "Your Mastodon access token" },
+        status: { type: "string", description: "The text content of the toot" },
+        visibility: { type: "string", enum: ["public", "unlisted", "private", "direct"], default: "public", description: "Who can see this post" },
+        spoiler_text: { type: "string", description: "Content warning text shown before the post body" },
+        sensitive: { type: "boolean", default: false, description: "Mark media as sensitive" },
+        media_ids: { type: "array", items: { type: "string" }, description: "IDs of already-uploaded media attachments to attach (up to 4)" },
+      },
+      required: ["instance_url", "access_token", "status"],
+    },
+  },
+  {
+    name: "mastodon_read_timeline",
+    description: "Read posts from a Mastodon timeline. home = accounts you follow, local = your instance only, public = federated (whole Fediverse).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        instance_url: { type: "string", description: "Your Mastodon instance URL" },
+        access_token: { type: "string", description: "Your Mastodon access token" },
+        timeline: { type: "string", enum: ["home", "local", "public"], default: "home", description: "Which timeline to read" },
+        limit: { type: "number", minimum: 1, maximum: 40, default: 20, description: "Number of posts to return" },
+        max_id: { type: "string", description: "Return posts older than this status ID (for pagination)" },
+      },
+      required: ["instance_url", "access_token"],
+    },
+  },
+  {
+    name: "mastodon_reply",
+    description: "Reply to an existing Mastodon status.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        instance_url: { type: "string", description: "Your Mastodon instance URL" },
+        access_token: { type: "string", description: "Your Mastodon access token" },
+        in_reply_to_id: { type: "string", description: "ID of the status to reply to" },
+        status: { type: "string", description: "Text content of your reply" },
+        visibility: { type: "string", enum: ["public", "unlisted", "private", "direct"], description: "Visibility of the reply (defaults to same as the original post)" },
+        spoiler_text: { type: "string", description: "Optional content warning text" },
+      },
+      required: ["instance_url", "access_token", "in_reply_to_id", "status"],
+    },
+  },
+  {
+    name: "mastodon_boost",
+    description: "Boost (reblog) a Mastodon status, or undo a boost.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        instance_url: { type: "string", description: "Your Mastodon instance URL" },
+        access_token: { type: "string", description: "Your Mastodon access token" },
+        status_id: { type: "string", description: "ID of the status to boost" },
+        unboost: { type: "boolean", default: false, description: "If true, removes the boost instead" },
+      },
+      required: ["instance_url", "access_token", "status_id"],
+    },
+  },
+  {
+    name: "mastodon_favorite",
+    description: "Favorite (like) a Mastodon status, or remove a favorite.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        instance_url: { type: "string", description: "Your Mastodon instance URL" },
+        access_token: { type: "string", description: "Your Mastodon access token" },
+        status_id: { type: "string", description: "ID of the status to favorite" },
+        unfavorite: { type: "boolean", default: false, description: "If true, removes the favorite instead" },
+      },
+      required: ["instance_url", "access_token", "status_id"],
+    },
+  },
+  {
+    name: "mastodon_search",
+    description: "Search Mastodon for posts, accounts, or hashtags. Omit 'type' to search all three categories at once.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        instance_url: { type: "string", description: "Your Mastodon instance URL" },
+        access_token: { type: "string", description: "Your Mastodon access token" },
+        query: { type: "string", description: "Search term, hashtag, or account handle" },
+        type: { type: "string", enum: ["accounts", "statuses", "hashtags"], description: "Limit results to one category (optional)" },
+        limit: { type: "number", minimum: 1, maximum: 40, default: 20 },
+        resolve: { type: "boolean", default: true, description: "Resolve remote accounts/posts via WebFinger" },
+      },
+      required: ["instance_url", "access_token", "query"],
+    },
+  },
+  {
+    name: "mastodon_profile",
+    description: "Get account information for a Mastodon user. Omit account_id and acct to return your own profile.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        instance_url: { type: "string", description: "Your Mastodon instance URL" },
+        access_token: { type: "string", description: "Your Mastodon access token" },
+        account_id: { type: "string", description: "Numeric account ID (takes priority over acct)" },
+        acct: { type: "string", description: "Account handle, e.g. 'user@mastodon.social' or just 'user'" },
+      },
+      required: ["instance_url", "access_token"],
+    },
+  },
+  {
+    name: "mastodon_follow",
+    description: "Follow or unfollow a Mastodon account. Returns the updated relationship.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        instance_url: { type: "string", description: "Your Mastodon instance URL" },
+        access_token: { type: "string", description: "Your Mastodon access token" },
+        account_id: { type: "string", description: "Numeric ID of the account to follow/unfollow" },
+        unfollow: { type: "boolean", default: false, description: "If true, unfollows instead" },
+      },
+      required: ["instance_url", "access_token", "account_id"],
+    },
+  },
+  {
+    name: "mastodon_notifications",
+    description: "Read your Mastodon notifications. Notification types: mention, status, reblog, follow, follow_request, favourite, poll, update.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        instance_url: { type: "string", description: "Your Mastodon instance URL" },
+        access_token: { type: "string", description: "Your Mastodon access token" },
+        limit: { type: "number", minimum: 1, maximum: 30, default: 15, description: "Number of notifications to return" },
+        max_id: { type: "string", description: "Return notifications older than this ID (for pagination)" },
+        types: { type: "array", items: { type: "string", enum: ["mention", "status", "reblog", "follow", "follow_request", "favourite", "poll", "update"] }, description: "Filter to specific notification types (optional)" },
+      },
+      required: ["instance_url", "access_token"],
+    },
+  },
+  // ── Amazon Product Advertising API 5.0 ───────────────────────────────────
+  {
+    name: "amazon_search",
+    description:
+      "Search Amazon products by keyword, category (SearchIndex), browse node, or any combination. " +
+      "Uses Amazon PA-API 5.0 SearchItems endpoint. Returns titles, prices, images, ratings, and direct product URLs. " +
+      "Requires an Amazon Associates account: Access Key, Secret Key, and Partner Tag.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_key:     { type: "string", description: "Amazon PA-API access key ID" },
+        secret_key:     { type: "string", description: "Amazon PA-API secret access key" },
+        partner_tag:    { type: "string", description: "Amazon Associates partner/tracking tag (e.g. mytag-20)" },
+        keywords:       { type: "string", description: "Search keywords (e.g. 'wireless headphones')" },
+        search_index:   { type: "string", description: "Product category / SearchIndex (e.g. Electronics, Books, Apparel, All). Defaults to All." },
+        browse_node_id: { type: "string", description: "Amazon browse node ID to filter results" },
+        sort_by:        { type: "string", enum: ["AvgCustomerReviews", "Featured", "NewestArrivals", "Price:HighToLow", "Price:LowToHigh", "Relevance"], description: "Sort order for results" },
+        min_price:      { type: "number", description: "Minimum price in cents (e.g. 1000 = $10.00)" },
+        max_price:      { type: "number", description: "Maximum price in cents (e.g. 5000 = $50.00)" },
+        item_count:     { type: "number", description: "Number of results to return (1-10, default 10)", default: 10 },
+        item_page:      { type: "number", description: "Results page number (1-10)", default: 1 },
+        marketplace:    { type: "string", enum: ["US","CA","MX","BR","UK","DE","FR","IT","ES","NL","SE","PL","BE","IN","JP","AU","SG","AE","SA","TR"], default: "US", description: "Amazon marketplace country code (default: US)" },
+      },
+      required: ["access_key", "secret_key", "partner_tag"],
+    },
+  },
+  {
+    name: "amazon_product",
+    description:
+      "Get detailed product information for one or more Amazon products by ASIN. " +
+      "Uses Amazon PA-API 5.0 GetItems endpoint. Returns full details: title, price, features, images, ratings, brand, availability. " +
+      "Requires an Amazon Associates account.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_key:  { type: "string", description: "Amazon PA-API access key ID" },
+        secret_key:  { type: "string", description: "Amazon PA-API secret access key" },
+        partner_tag: { type: "string", description: "Amazon Associates partner/tracking tag" },
+        asin:        { type: "string", description: "Single product ASIN (e.g. B08N5WRWNW)" },
+        asins:       { type: "array", items: { type: "string" }, description: "Array of ASINs for batch lookup (up to 10)" },
+        marketplace: { type: "string", enum: ["US","CA","MX","BR","UK","DE","FR","IT","ES","NL","SE","PL","BE","IN","JP","AU","SG","AE","SA","TR"], default: "US", description: "Amazon marketplace country code (default: US)" },
+      },
+      required: ["access_key", "secret_key", "partner_tag"],
+    },
+  },
+  {
+    name: "amazon_browse",
+    description:
+      "Browse Amazon product categories by browse node ID. " +
+      "Uses Amazon PA-API 5.0 GetBrowseNodes endpoint. Returns node name, parent ancestor, and child subcategories.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_key:      { type: "string", description: "Amazon PA-API access key ID" },
+        secret_key:      { type: "string", description: "Amazon PA-API secret access key" },
+        partner_tag:     { type: "string", description: "Amazon Associates partner/tracking tag" },
+        browse_node_id:  { type: "string", description: "Single browse node ID (e.g. 172282 for Electronics)" },
+        browse_node_ids: { type: "array", items: { type: "string" }, description: "Array of browse node IDs for batch lookup" },
+        marketplace:     { type: "string", enum: ["US","CA","MX","BR","UK","DE","FR","IT","ES","NL","SE","PL","BE","IN","JP","AU","SG","AE","SA","TR"], default: "US", description: "Amazon marketplace country code (default: US)" },
+      },
+      required: ["access_key", "secret_key", "partner_tag"],
+    },
+  },
+  {
+    name: "amazon_variations",
+    description:
+      "Get all product variations for an Amazon parent ASIN (colors, sizes, styles, etc.). " +
+      "Uses Amazon PA-API 5.0 GetVariations endpoint. Returns each variation with its own ASIN, price, and images.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_key:      { type: "string", description: "Amazon PA-API access key ID" },
+        secret_key:      { type: "string", description: "Amazon PA-API secret access key" },
+        partner_tag:     { type: "string", description: "Amazon Associates partner/tracking tag" },
+        asin:            { type: "string", description: "Parent product ASIN whose variations to retrieve" },
+        variation_count: { type: "number", description: "Number of variations to return (1-10, default 10)", default: 10 },
+        variation_page:  { type: "number", description: "Variations page number (1-10)", default: 1 },
+        marketplace:     { type: "string", enum: ["US","CA","MX","BR","UK","DE","FR","IT","ES","NL","SE","PL","BE","IN","JP","AU","SG","AE","SA","TR"], default: "US", description: "Amazon marketplace country code (default: US)" },
+      },
+      required: ["access_key", "secret_key", "partner_tag", "asin"],
+    },
+  },
+  // ── Xero accounting (OAuth 2.0, Xero API v2) ─────────────────────────────
+  {
+    name: "xero_invoices",
+    description: "List, get, or create invoices in Xero. Requires a valid OAuth 2.0 access_token and your Xero tenant_id.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Xero OAuth 2.0 Bearer token" },
+        tenant_id:    { type: "string", description: "Xero organisation tenant ID" },
+        action:       { type: "string", enum: ["list", "get", "create"], default: "list", description: "Operation to perform" },
+        invoice_id:   { type: "string", description: "Invoice ID or number (required for action='get')" },
+        body:         { type: "object", description: "Invoice object to create (required for action='create'). Must include Type, Contact.ContactID, and LineItems." },
+        where:        { type: "string", description: "OData-style filter, e.g. \"Status==\"DRAFT\"\"" },
+        order:        { type: "string", description: "Sort field, e.g. \"DueDate DESC\"" },
+        page:         { type: "number", description: "Page number (100 records per page)" },
+        page_size:    { type: "number", description: "Records per page (max 1000)" },
+        statuses:     { type: "string", description: "Comma-separated statuses, e.g. \"DRAFT,SUBMITTED\"" },
+        contact_ids:  { type: "string", description: "Comma-separated ContactIDs to filter by" },
+        ids:          { type: "string", description: "Comma-separated InvoiceIDs to fetch" },
+      },
+      required: ["access_token", "tenant_id"],
+    },
+  },
+  {
+    name: "xero_contacts",
+    description: "List, get, or create contacts (customers and suppliers) in Xero. Requires access_token and tenant_id.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token:     { type: "string", description: "Xero OAuth 2.0 Bearer token" },
+        tenant_id:        { type: "string", description: "Xero organisation tenant ID" },
+        action:           { type: "string", enum: ["list", "get", "create"], default: "list" },
+        contact_id:       { type: "string", description: "Contact ID (required for action='get')" },
+        body:             { type: "object", description: "Contact object to create (required for action='create'). Must include Name." },
+        where:            { type: "string", description: "OData-style filter" },
+        order:            { type: "string", description: "Sort field" },
+        page:             { type: "number", description: "Page number" },
+        page_size:        { type: "number", description: "Records per page" },
+        search_term:      { type: "string", description: "Search contacts by name, email, or account number" },
+        ids:              { type: "string", description: "Comma-separated ContactIDs to fetch" },
+        include_archived: { type: "boolean", description: "Include archived contacts (default false)" },
+      },
+      required: ["access_token", "tenant_id"],
+    },
+  },
+  {
+    name: "xero_accounts",
+    description: "List the chart of accounts for a Xero organisation. Returns all accounts with their codes, types, and balances.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Xero OAuth 2.0 Bearer token" },
+        tenant_id:    { type: "string", description: "Xero organisation tenant ID" },
+        where:        { type: "string", description: "OData-style filter, e.g. \"Type==\"BANK\"\"" },
+        order:        { type: "string", description: "Sort field, e.g. \"Code ASC\"" },
+      },
+      required: ["access_token", "tenant_id"],
+    },
+  },
+  {
+    name: "xero_payments",
+    description: "List or create payments in Xero. action='list' returns payments; action='create' records a payment against an invoice.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Xero OAuth 2.0 Bearer token" },
+        tenant_id:    { type: "string", description: "Xero organisation tenant ID" },
+        action:       { type: "string", enum: ["list", "create"], default: "list" },
+        body:         { type: "object", description: "Payment object (required for action='create'). Must include Invoice.InvoiceID, Account.AccountID, Date, and Amount." },
+        where:        { type: "string", description: "OData-style filter" },
+        order:        { type: "string", description: "Sort field" },
+        page:         { type: "number", description: "Page number" },
+      },
+      required: ["access_token", "tenant_id"],
+    },
+  },
+  {
+    name: "xero_bank_transactions",
+    description: "List bank transactions for a Xero organisation. Returns spend and receive money transactions from bank accounts.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Xero OAuth 2.0 Bearer token" },
+        tenant_id:    { type: "string", description: "Xero organisation tenant ID" },
+        where:        { type: "string", description: "OData-style filter" },
+        order:        { type: "string", description: "Sort field" },
+        page:         { type: "number", description: "Page number (100 per page)" },
+      },
+      required: ["access_token", "tenant_id"],
+    },
+  },
+  {
+    name: "xero_reports",
+    description:
+      "Retrieve financial reports from Xero. " +
+      "Common report IDs: ProfitAndLoss, BalanceSheet, CashSummary, ExecutiveSummary, TrialBalance, BankSummary, AgedReceivablesByContact, AgedPayablesByContact.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Xero OAuth 2.0 Bearer token" },
+        tenant_id:    { type: "string", description: "Xero organisation tenant ID" },
+        report_id:    { type: "string", description: "Report identifier. Options: ProfitAndLoss, BalanceSheet, CashSummary, ExecutiveSummary, TrialBalance, BankSummary, AgedReceivablesByContact, AgedPayablesByContact." },
+        from_date:    { type: "string", description: "Report start date, e.g. '2024-01-01'" },
+        to_date:      { type: "string", description: "Report end date, e.g. '2024-12-31'" },
+        date:         { type: "string", description: "As-at date for balance sheet reports" },
+        periods:      { type: "number", description: "Number of periods to compare" },
+        timeframe:    { type: "string", description: "Comparison period: MONTH, QUARTER, YEAR" },
+        contact_id:   { type: "string", description: "ContactID for aged receivables/payables reports" },
+        account_id:   { type: "string", description: "AccountID to filter by" },
+      },
+      required: ["access_token", "tenant_id", "report_id"],
+    },
+  },
+  {
+    name: "xero_quotes",
+    description: "List, get, or create quotes (sales quotes) in Xero. Requires access_token and tenant_id.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Xero OAuth 2.0 Bearer token" },
+        tenant_id:    { type: "string", description: "Xero organisation tenant ID" },
+        action:       { type: "string", enum: ["list", "get", "create"], default: "list" },
+        quote_id:     { type: "string", description: "Quote ID (required for action='get')" },
+        body:         { type: "object", description: "Quote object to create (required for action='create'). Must include Contact.ContactID and LineItems." },
+        status:       { type: "string", description: "Filter by status: DRAFT, SENT, DECLINED, ACCEPTED, INVOICED, DELETED" },
+        contact_id:   { type: "string", description: "Filter by ContactID" },
+        date_from:    { type: "string", description: "Filter quotes from this date, e.g. '2024-01-01'" },
+        date_to:      { type: "string", description: "Filter quotes to this date, e.g. '2024-12-31'" },
+        page:         { type: "number", description: "Page number" },
+      },
+      required: ["access_token", "tenant_id"],
+    },
+  },
+  {
+    name: "xero_organisation",
+    description: "Get organisation and tenant information from Xero. Returns legal name, organisation type, base currency, country, financial year end, and subscription status.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        access_token: { type: "string", description: "Xero OAuth 2.0 Bearer token" },
+        tenant_id:    { type: "string", description: "Xero organisation tenant ID" },
+      },
+      required: ["access_token", "tenant_id"],
+    },
+  },
+  // ── Shopify Admin API ─────────────────────────────────────────────────────
+  {
+    name: "shopify_products",
+    description: "Manage Shopify products via the Admin REST API. List all products, get a single product by ID, create a new product, or update an existing one.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        store:            { type: "string", description: "Shopify store domain, e.g. 'mystore' or 'mystore.myshopify.com'." },
+        access_token:     { type: "string", description: "Shopify Admin API access token (shpat_...)." },
+        action:           { type: "string", enum: ["list", "get", "create", "update"], default: "list", description: "list: all products. get: one by ID. create: new product. update: edit existing." },
+        id:               { type: "string", description: "Product ID (required for get and update)." },
+        product:          { type: "object", description: "Product data for create or update. Keys: title, body_html, vendor, product_type, tags, variants, images, status." },
+        limit:            { type: "number", minimum: 1, maximum: 250, default: 50 },
+        page_info:        { type: "string", description: "Cursor for paginating through results (from _pagination.next)." },
+        status:           { type: "string", enum: ["active", "archived", "draft"], description: "Filter by product status (list only)." },
+        vendor:           { type: "string", description: "Filter by vendor (list only)." },
+        product_type:     { type: "string", description: "Filter by product type (list only)." },
+        published_status: { type: "string", enum: ["published", "unpublished", "any"], description: "Filter by published status (list only)." },
+        title:            { type: "string", description: "Filter by title (list only)." },
+        since_id:         { type: "string", description: "Return only products after this ID (list only)." },
+        fields:           { type: "string", description: "Comma-separated list of fields to return." },
+      },
+      required: ["store", "access_token"],
+    },
+  },
+  {
+    name: "shopify_orders",
+    description: "List or retrieve Shopify orders via the Admin REST API. Filter by status, financial status, fulfillment status, and date ranges.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        store:              { type: "string", description: "Shopify store domain." },
+        access_token:       { type: "string", description: "Shopify Admin API access token." },
+        action:             { type: "string", enum: ["list", "get"], default: "list", description: "list: all orders. get: one order by ID." },
+        id:                 { type: "string", description: "Order ID (required for get)." },
+        limit:              { type: "number", minimum: 1, maximum: 250, default: 50 },
+        status:             { type: "string", enum: ["open", "closed", "cancelled", "any"], default: "any" },
+        financial_status:   { type: "string", enum: ["authorized", "pending", "paid", "partially_paid", "refunded", "voided", "partially_refunded", "any"] },
+        fulfillment_status: { type: "string", enum: ["shipped", "partial", "unshipped", "unfulfilled", "any"] },
+        since_id:           { type: "string" },
+        created_at_min:     { type: "string", description: "ISO 8601 datetime, e.g. '2024-01-01T00:00:00Z'." },
+        created_at_max:     { type: "string", description: "ISO 8601 datetime." },
+        page_info:          { type: "string", description: "Cursor for next/previous page." },
+        fields:             { type: "string", description: "Comma-separated fields to return." },
+      },
+      required: ["store", "access_token"],
+    },
+  },
+  {
+    name: "shopify_customers",
+    description: "List, retrieve, or search Shopify customers via the Admin REST API.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        store:          { type: "string", description: "Shopify store domain." },
+        access_token:   { type: "string", description: "Shopify Admin API access token." },
+        action:         { type: "string", enum: ["list", "get", "search"], default: "list", description: "list: all customers. get: one by ID. search: query by email/name/phone." },
+        id:             { type: "string", description: "Customer ID (required for get)." },
+        query:          { type: "string", description: "Search query (required for search), e.g. 'email:foo@bar.com' or 'Bob'." },
+        limit:          { type: "number", minimum: 1, maximum: 250, default: 50 },
+        since_id:       { type: "string" },
+        created_at_min: { type: "string" },
+        created_at_max: { type: "string" },
+        updated_at_min: { type: "string" },
+        page_info:      { type: "string" },
+        fields:         { type: "string" },
+      },
+      required: ["store", "access_token"],
+    },
+  },
+  {
+    name: "shopify_inventory",
+    description: "Get inventory levels for specific items or locations from Shopify. At least one of inventory_item_ids or location_ids must be provided.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        store:               { type: "string", description: "Shopify store domain." },
+        access_token:        { type: "string", description: "Shopify Admin API access token." },
+        inventory_item_ids:  { description: "One or more inventory item IDs (string or array of strings)." },
+        location_ids:        { description: "One or more location IDs (string or array of strings)." },
+        limit:               { type: "number", minimum: 1, maximum: 250, default: 50 },
+      },
+      required: ["store", "access_token"],
+    },
+  },
+  {
+    name: "shopify_collections",
+    description: "List Shopify collections (custom and/or smart) via the Admin REST API.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        store:        { type: "string", description: "Shopify store domain." },
+        access_token: { type: "string", description: "Shopify Admin API access token." },
+        type:         { type: "string", enum: ["all", "custom", "smart"], default: "all", description: "Which collection type to fetch." },
+        limit:        { type: "number", minimum: 1, maximum: 250, default: 50 },
+        since_id:     { type: "string" },
+        title:        { type: "string", description: "Filter by collection title." },
+        fields:       { type: "string" },
+      },
+      required: ["store", "access_token"],
+    },
+  },
+  {
+    name: "shopify_shop",
+    description: "Get store information for a Shopify shop: name, email, domain, currency, timezone, plan, and more.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        store:        { type: "string", description: "Shopify store domain." },
+        access_token: { type: "string", description: "Shopify Admin API access token." },
+      },
+      required: ["store", "access_token"],
+    },
+  },
+  {
+    name: "shopify_fulfillments",
+    description: "List or create fulfillments for a Shopify order via the Admin REST API.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        store:        { type: "string", description: "Shopify store domain." },
+        access_token: { type: "string", description: "Shopify Admin API access token." },
+        order_id:     { type: "string", description: "The order ID to list or create fulfillments for." },
+        action:       { type: "string", enum: ["list", "create"], default: "list", description: "list: all fulfillments for the order. create: create a new fulfillment." },
+        fulfillment:  { type: "object", description: "Fulfillment data for action='create'. Keys: location_id (required), tracking_number, tracking_company, tracking_url, notify_customer, line_items_by_fulfillment_order." },
+        limit:        { type: "number", minimum: 1, maximum: 250, default: 50 },
+        since_id:     { type: "string" },
+        fields:       { type: "string" },
+      },
+      required: ["store", "access_token", "order_id"],
+    },
+  },
 ] as const;
 
 // ─── Handler map for direct tools ───────────────────────────────────────────
@@ -1279,6 +2265,148 @@ const DIRECT_HANDLERS: Record<string, DirectHandler> = {
     const bytes = Math.round(value * (unitMap[unit] ?? 1));
     return { size: raw, bytes, unit: (match[2] ?? "B").toUpperCase() };
   },
+
+  // ── Telegram handlers ─────────────────────────────────────────────────────
+
+  telegram_send:        async (_c, a) => telegramSend(a),
+  telegram_read:        async (_c, a) => telegramRead(a),
+  telegram_search:      async (_c, a) => telegramSearch(a),
+  telegram_send_media:  async (_c, a) => telegramSendMedia(a),
+  telegram_get_updates: async (_c, a) => telegramGetUpdates(a),
+  telegram_manage_chat: async (_c, a) => telegramManageChat(a),
+
+  // ── Slack handler ─────────────────────────────────────────────────────────
+
+  slack: async (_c, a) => {
+    const action = String(a.action ?? "").trim();
+    if (!action) return { error: "action is required." };
+    return slackAction(action, a);
+  },
+
+  // ── Discord handlers ──────────────────────────────────────────────────────
+
+  discord_send:     async (_c, a) => discordSend(a),
+  discord_read:     async (_c, a) => discordRead(a),
+  discord_thread:   async (_c, a) => discordThread(a),
+  discord_react:    async (_c, a) => discordReact(a),
+  discord_channels: async (_c, a) => discordChannels(a),
+  discord_members:  async (_c, a) => discordMembers(a),
+  discord_search:   async (_c, a) => discordSearch(a),
+
+  // ── Reddit handlers ───────────────────────────────────────────────────────
+
+  reddit_read: async (_c, a) =>
+    redditRead({
+      access_token: String(a.access_token ?? ""),
+      subreddit:    String(a.subreddit ?? ""),
+      sort:         a.sort  ? String(a.sort)  : undefined,
+      limit:        a.limit ? Number(a.limit) : undefined,
+      after:        a.after ? String(a.after) : undefined,
+      t:            a.t     ? String(a.t)     : undefined,
+    }),
+
+  reddit_post: async (_c, a) =>
+    redditPost({
+      access_token: String(a.access_token ?? ""),
+      subreddit:    String(a.subreddit ?? ""),
+      title:        String(a.title ?? ""),
+      kind:         String(a.kind ?? "self"),
+      text:         a.text       ? String(a.text)       : undefined,
+      url:          a.url        ? String(a.url)        : undefined,
+      nsfw:         a.nsfw === true,
+      spoiler:      a.spoiler === true,
+      flair_id:     a.flair_id   ? String(a.flair_id)   : undefined,
+      flair_text:   a.flair_text ? String(a.flair_text) : undefined,
+    }),
+
+  reddit_comment: async (_c, a) =>
+    redditComment({
+      access_token: String(a.access_token ?? ""),
+      parent_id:    String(a.parent_id ?? ""),
+      text:         String(a.text ?? ""),
+    }),
+
+  reddit_search: async (_c, a) =>
+    redditSearch({
+      access_token: String(a.access_token ?? ""),
+      query:        String(a.query ?? ""),
+      subreddit:    a.subreddit ? String(a.subreddit) : undefined,
+      sort:         a.sort      ? String(a.sort)      : undefined,
+      t:            a.t         ? String(a.t)         : undefined,
+      limit:        a.limit     ? Number(a.limit)     : undefined,
+      after:        a.after     ? String(a.after)     : undefined,
+    }),
+
+  reddit_user: async (_c, a) =>
+    redditUser({
+      access_token:     String(a.access_token ?? ""),
+      username:         String(a.username ?? ""),
+      include_posts:    a.include_posts !== false,
+      include_comments: a.include_comments !== false,
+      limit:            a.limit ? Number(a.limit) : undefined,
+    }),
+
+  reddit_vote: async (_c, a) =>
+    redditVote({
+      access_token: String(a.access_token ?? ""),
+      id:           String(a.id ?? ""),
+      dir:          Number(a.dir ?? 0),
+    }),
+
+  reddit_subscribe: async (_c, a) =>
+    redditSubscribe({
+      access_token: String(a.access_token ?? ""),
+      subreddit:    String(a.subreddit ?? ""),
+      action:       String(a.action ?? "sub"),
+    }),
+
+  // ── Bluesky handler ───────────────────────────────────────────────────────
+
+  bluesky: async (_c, a) => {
+    const action = String(a.action ?? "").trim();
+    if (!action) return { error: "action is required." };
+    return blueskyAction(action, a);
+  },
+
+  // ── Mastodon handlers ─────────────────────────────────────────────────────
+
+  mastodon_post:          async (_c, a) => mastodonAction("mastodon_post", a),
+  mastodon_read_timeline: async (_c, a) => mastodonAction("mastodon_read_timeline", a),
+  mastodon_reply:         async (_c, a) => mastodonAction("mastodon_reply", a),
+  mastodon_boost:         async (_c, a) => mastodonAction("mastodon_boost", a),
+  mastodon_favorite:      async (_c, a) => mastodonAction("mastodon_favorite", a),
+  mastodon_search:        async (_c, a) => mastodonAction("mastodon_search", a),
+  mastodon_profile:       async (_c, a) => mastodonAction("mastodon_profile", a),
+  mastodon_follow:        async (_c, a) => mastodonAction("mastodon_follow", a),
+  mastodon_notifications: async (_c, a) => mastodonAction("mastodon_notifications", a),
+
+  // ── Amazon handlers ───────────────────────────────────────────────────────
+
+  amazon_search:     async (_c, a) => amazonSearch(a),
+  amazon_product:    async (_c, a) => amazonProduct(a),
+  amazon_browse:     async (_c, a) => amazonBrowse(a),
+  amazon_variations: async (_c, a) => amazonVariations(a),
+
+  // ── Xero handlers ─────────────────────────────────────────────────────────
+
+  xero_invoices:          async (_c, a) => xeroInvoices(a),
+  xero_contacts:          async (_c, a) => xeroContacts(a),
+  xero_accounts:          async (_c, a) => xeroAccounts(a),
+  xero_payments:          async (_c, a) => xeroPayments(a),
+  xero_bank_transactions: async (_c, a) => xeroBankTransactions(a),
+  xero_reports:           async (_c, a) => xeroReports(a),
+  xero_quotes:            async (_c, a) => xeroQuotes(a),
+  xero_organisation:      async (_c, a) => xeroOrganisation(a),
+
+  // ── Shopify handlers ──────────────────────────────────────────────────────
+
+  shopify_products:     async (_c, a) => shopifyProducts(a),
+  shopify_orders:       async (_c, a) => shopifyOrders(a),
+  shopify_customers:    async (_c, a) => shopifyCustomers(a),
+  shopify_inventory:    async (_c, a) => shopifyInventory(a),
+  shopify_collections:  async (_c, a) => shopifyCollections(a),
+  shopify_shop:         async (_c, a) => shopifyShop(a),
+  shopify_fulfillments: async (_c, a) => shopifyFulfillments(a),
 };
 
 // ─── Server factory ─────────────────────────────────────────────────────────
