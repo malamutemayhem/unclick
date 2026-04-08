@@ -1,9 +1,15 @@
 // ─── Xero Accounting API integration ──────────────────────────────────────────
 // Uses Xero API v2 (https://api.xero.com/api.xro/2.0/) via fetch.
-// Auth: OAuth 2.0 Bearer token provided by the caller (external OAuth flow).
+// Auth: OAuth 2.0 Bearer token. Credentials are auto-resolved via vault-bridge:
+//   1. Inline args (access_token + tenant_id passed directly)
+//   2. Env vars  UNCLICK_XERO_ACCESS_TOKEN / UNCLICK_XERO_TENANT_ID
+//   3. Local vault  keys "xero/access_token" and "xero/tenant_id"
+//   4. Supabase  via UNCLICK_API_KEY + unclick.world/api/credentials
 // All requests require Xero-Tenant-Id header.
 // Rate limit: 60 calls/min on Starter tier.
 // No external dependencies.
+
+import { resolveCredentials } from "./vault-bridge.js";
 
 const XERO_BASE = "https://api.xero.com/api.xro/2.0";
 
@@ -86,17 +92,8 @@ async function xeroFetch(opts: XeroFetchOptions): Promise<unknown> {
   return { data, ...(Object.keys(rateInfo).length > 0 && { rate_limit: rateInfo }) };
 }
 
-// ─── Validation helpers ───────────────────────────────────────────────────────
-
-function requireAuth(args: Record<string, unknown>): { error: string } | null {
-  if (!args.access_token || String(args.access_token).trim() === "") {
-    return { error: "access_token is required." };
-  }
-  if (!args.tenant_id || String(args.tenant_id).trim() === "") {
-    return { error: "tenant_id is required." };
-  }
-  return null;
-}
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+// requireAuth is replaced by vault-bridge resolveCredentials (see imports above).
 
 function token(args: Record<string, unknown>): string {
   return String(args.access_token).trim();
@@ -113,8 +110,9 @@ function str(v: unknown): string | undefined {
 // ─── 1. Invoices ──────────────────────────────────────────────────────────────
 
 export async function xeroInvoices(args: Record<string, unknown>): Promise<unknown> {
-  const authErr = requireAuth(args);
-  if (authErr) return authErr;
+  const resolved = await resolveCredentials("xero", args);
+  if ("error" in resolved) return resolved;
+  args = resolved;
 
   const action = str(args.action) ?? "list";
 
@@ -163,8 +161,9 @@ export async function xeroInvoices(args: Record<string, unknown>): Promise<unkno
 // ─── 2. Contacts ─────────────────────────────────────────────────────────────
 
 export async function xeroContacts(args: Record<string, unknown>): Promise<unknown> {
-  const authErr = requireAuth(args);
-  if (authErr) return authErr;
+  const resolved = await resolveCredentials("xero", args);
+  if ("error" in resolved) return resolved;
+  args = resolved;
 
   const action = str(args.action) ?? "list";
 
@@ -213,8 +212,9 @@ export async function xeroContacts(args: Record<string, unknown>): Promise<unkno
 // ─── 3. Accounts ─────────────────────────────────────────────────────────────
 
 export async function xeroAccounts(args: Record<string, unknown>): Promise<unknown> {
-  const authErr = requireAuth(args);
-  if (authErr) return authErr;
+  const resolved = await resolveCredentials("xero", args);
+  if ("error" in resolved) return resolved;
+  args = resolved;
 
   return xeroFetch({
     accessToken: token(args),
@@ -231,8 +231,9 @@ export async function xeroAccounts(args: Record<string, unknown>): Promise<unkno
 // ─── 4. Payments ─────────────────────────────────────────────────────────────
 
 export async function xeroPayments(args: Record<string, unknown>): Promise<unknown> {
-  const authErr = requireAuth(args);
-  if (authErr) return authErr;
+  const resolved = await resolveCredentials("xero", args);
+  if ("error" in resolved) return resolved;
+  args = resolved;
 
   const action = str(args.action) ?? "list";
 
@@ -266,8 +267,9 @@ export async function xeroPayments(args: Record<string, unknown>): Promise<unkno
 // ─── 5. Bank Transactions ─────────────────────────────────────────────────────
 
 export async function xeroBankTransactions(args: Record<string, unknown>): Promise<unknown> {
-  const authErr = requireAuth(args);
-  if (authErr) return authErr;
+  const resolved = await resolveCredentials("xero", args);
+  if ("error" in resolved) return resolved;
+  args = resolved;
 
   return xeroFetch({
     accessToken: token(args),
@@ -285,8 +287,9 @@ export async function xeroBankTransactions(args: Record<string, unknown>): Promi
 // ─── 6. Reports ──────────────────────────────────────────────────────────────
 
 export async function xeroReports(args: Record<string, unknown>): Promise<unknown> {
-  const authErr = requireAuth(args);
-  if (authErr) return authErr;
+  const resolved = await resolveCredentials("xero", args);
+  if ("error" in resolved) return resolved;
+  args = resolved;
 
   const reportId = str(args.report_id);
   if (!reportId) {
@@ -318,8 +321,9 @@ export async function xeroReports(args: Record<string, unknown>): Promise<unknow
 // ─── 7. Quotes ───────────────────────────────────────────────────────────────
 
 export async function xeroQuotes(args: Record<string, unknown>): Promise<unknown> {
-  const authErr = requireAuth(args);
-  if (authErr) return authErr;
+  const resolved = await resolveCredentials("xero", args);
+  if ("error" in resolved) return resolved;
+  args = resolved;
 
   const action = str(args.action) ?? "list";
 
@@ -366,8 +370,9 @@ export async function xeroQuotes(args: Record<string, unknown>): Promise<unknown
 // ─── 8. Organisation ─────────────────────────────────────────────────────────
 
 export async function xeroOrganisation(args: Record<string, unknown>): Promise<unknown> {
-  const authErr = requireAuth(args);
-  if (authErr) return authErr;
+  const resolved = await resolveCredentials("xero", args);
+  if ("error" in resolved) return resolved;
+  args = resolved;
 
   return xeroFetch({
     accessToken: token(args),
