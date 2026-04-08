@@ -93,14 +93,15 @@ async function sendBugEmail(params: {
   created_at: string;
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
+  console.log("[sendBugEmail] RESEND_API_KEY present:", !!apiKey);
   if (!apiKey) {
-    console.warn("RESEND_API_KEY not set - skipping bug notification email");
+    console.warn("[sendBugEmail] RESEND_API_KEY not set - skipping bug notification email");
     return;
   }
 
   const { tool_name, error_message, severity, expected_behavior, agent_context, created_at } = params;
 
-  const body = [
+  const emailBody = [
     `Tool: ${tool_name}`,
     `Severity: ${severity.toUpperCase()}`,
     `Timestamp: ${created_at}`,
@@ -111,21 +112,36 @@ async function sendBugEmail(params: {
     agent_context ? `\nAgent Context:\n${typeof agent_context === "string" ? agent_context : JSON.stringify(agent_context, null, 2)}` : "",
   ].filter(Boolean).join("\n");
 
-  await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "UnClick Bugs <bugs@unclick.world>",
-      to: ["creativelead@malamutemayhem.com"],
-      subject: `[UnClick Bug] ${severity.toUpperCase()}: ${tool_name}`,
-      text: body,
-    }),
-  }).catch((err) => {
-    console.error("Failed to send bug notification email:", err);
-  });
+  console.log("[sendBugEmail] Sending to Resend API...");
+  let resendRes: Response;
+  try {
+    resendRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "UnClick Bugs <bugs@unclick.world>",
+        to: ["creativelead@malamutemayhem.com"],
+        subject: `[UnClick Bug] ${severity.toUpperCase()}: ${tool_name}`,
+        text: emailBody,
+      }),
+    });
+  } catch (err) {
+    console.error("[sendBugEmail] Network error calling Resend:", err);
+    return;
+  }
+
+  const resendText = await resendRes.text();
+  console.log("[sendBugEmail] Resend response status:", resendRes.status);
+  console.log("[sendBugEmail] Resend response body:", resendText);
+
+  if (!resendRes.ok) {
+    console.error("[sendBugEmail] Resend API error - email not sent");
+  } else {
+    console.log("[sendBugEmail] Email sent successfully");
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -197,8 +213,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "Failed to store bug report", detail: error.message });
   }
 
-  // Fire-and-forget email — don't block the response
-  sendBugEmail({
+  // Await the email so Vercel doesn't terminate before the request completes
+  await sendBugEmail({
     tool_name: String(tool_name),
     error_message: String(error_message),
     severity,
