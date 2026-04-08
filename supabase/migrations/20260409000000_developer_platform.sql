@@ -6,15 +6,17 @@ create table developer_profiles (
   github_username text,
   stripe_account_id text, -- Stripe Connect Express account ID
   stripe_onboarded boolean default false,
+  stripe_onboarding_deferred boolean default true, -- deferred until first payout request or $5 balance
+  payout_threshold numeric(10,2) default 0, -- 0 = no minimum for first 6 months
   status text default 'active' check (status in ('active', 'suspended', 'pending')),
   total_earned numeric(10,2) default 0,
   created_at timestamptz default now()
 );
 
--- Tool submissions from developers
+-- Tool submissions from developers (developer_id is nullable for anonymous submissions)
 create table tool_submissions (
   id uuid primary key default gen_random_uuid(),
-  developer_id uuid references developer_profiles(id) on delete cascade,
+  developer_id uuid references developer_profiles(id) on delete set null,
   tool_name text not null,
   category text not null,
   description text not null,
@@ -65,14 +67,41 @@ create table developer_payouts (
   created_at timestamptz default now()
 );
 
+-- Demo rate limits (tracks per-IP daily call counts for the /api/tools/demo endpoint)
+create table demo_rate_limits (
+  ip_hash text not null,
+  call_date date not null,
+  call_count integer not null default 0,
+  primary key (ip_hash, call_date)
+);
+
 -- RLS policies
 alter table developer_profiles enable row level security;
 alter table tool_submissions enable row level security;
 alter table marketplace_tools enable row level security;
 alter table developer_payouts enable row level security;
 
--- Developers can only see their own data
+-- developer_profiles: authenticated developers see/manage their own profile
 create policy "developers_own_profile" on developer_profiles for all using (auth.uid() = user_id);
-create policy "developers_own_submissions" on tool_submissions for all using (developer_id in (select id from developer_profiles where user_id = auth.uid()));
+
+-- tool_submissions: anonymous INSERT allowed (no account required to submit a tool)
+create policy "tool_submissions_anon_insert" on tool_submissions
+  for insert with check (true);
+
+-- tool_submissions: anyone can read (needed for unauthenticated status checks)
+create policy "tool_submissions_public_read" on tool_submissions
+  for select using (true);
+
+-- tool_submissions: only the owning developer can update their submission
+create policy "tool_submissions_developer_update" on tool_submissions
+  for update using (
+    developer_id in (select id from developer_profiles where user_id = auth.uid())
+  );
+
+-- marketplace_tools: public read for active tools
 create policy "marketplace_tools_public_read" on marketplace_tools for select using (is_active = true);
-create policy "developers_own_payouts" on developer_payouts for select using (developer_id in (select id from developer_profiles where user_id = auth.uid()));
+
+-- developer_payouts: developers see only their own payout history
+create policy "developers_own_payouts" on developer_payouts for select using (
+  developer_id in (select id from developer_profiles where user_id = auth.uid())
+);

@@ -3,9 +3,9 @@
  *
  * Route: POST /api/developer-stripe-onboard
  *
- * Creates a Stripe Connect Express account for a developer and returns
- * an onboarding URL. On completion, updates developer_profiles with
- * stripe_account_id and stripe_onboarded=true.
+ * Triggered only when a developer requests their first payout or their
+ * balance hits $5. Not called at signup. Sets stripe_onboarding_deferred=false
+ * on the developer profile when initiated.
  *
  * Body params:
  *   - developer_id: UUID of the developer_profiles record
@@ -113,20 +113,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(502).json({ error: "Failed to reach payment service. Please try again." });
   }
 
-  // Step 3: Store the Stripe account ID in developer_profiles
+  // Step 3: Persist stripe_account_id and mark onboarding as initiated (no longer deferred)
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   const { error: updateError } = await supabase
     .from("developer_profiles")
     .update({
       stripe_account_id: stripeAccountId,
-      stripe_onboarded: false, // will be set to true via webhook or return_url handler
+      stripe_onboarding_deferred: false, // onboarding has been initiated
+      stripe_onboarded: false, // set to true via Stripe webhook on completion
     })
     .eq("id", developer_id);
 
   if (updateError) {
     console.error("Supabase update error:", updateError.message);
-    // Non-fatal: return the onboarding URL anyway so the developer can proceed
+    // Non-fatal: return the onboarding URL so the developer can still proceed
     console.warn("Could not persist stripe_account_id for developer:", developer_id);
   }
 
