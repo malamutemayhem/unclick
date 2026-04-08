@@ -14,6 +14,7 @@ import ArenaHome from "./pages/arena/ArenaHome.tsx";
 import ArenaProblem from "./pages/arena/ArenaProblem.tsx";
 import FAQPage from "./pages/FAQPage.tsx";
 import SettingsPage from "./pages/Settings.tsx";
+import ConnectPage  from "./pages/Connect.tsx";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,8 @@ const App = () => (
           <Route path="/arena/:id" element={<ArenaProblem />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          {/* Platform connector flow — /connect/:platform handles both connect + OAuth callback */}
+          <Route path="/connect/:platform" element={<ConnectPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
