@@ -717,6 +717,119 @@ const DIRECT_TOOLS = [
       required: ["jsonl"],
     },
   },
+  // ── Number base converters ───────────────────────────────────────────────
+  {
+    name: "binary_to_decimal",
+    description: "Convert a binary string (base 2) to a decimal number.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        binary: { type: "string", description: "Binary string, e.g. '1010'" },
+      },
+      required: ["binary"],
+    },
+  },
+  {
+    name: "decimal_to_binary",
+    description: "Convert a decimal number to a binary string (base 2).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        decimal: { type: "number", description: "Decimal integer, e.g. 10" },
+      },
+      required: ["decimal"],
+    },
+  },
+  {
+    name: "hex_to_decimal",
+    description: "Convert a hexadecimal string to a decimal number.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        hex: { type: "string", description: "Hex string (with or without 0x prefix), e.g. 'FF' or '0xff'" },
+      },
+      required: ["hex"],
+    },
+  },
+  {
+    name: "decimal_to_hex",
+    description: "Convert a decimal number to a hexadecimal string.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        decimal: { type: "number", description: "Decimal integer, e.g. 255" },
+      },
+      required: ["decimal"],
+    },
+  },
+  {
+    name: "octal_to_decimal",
+    description: "Convert an octal string (base 8) to a decimal number.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        octal: { type: "string", description: "Octal string, e.g. '17'" },
+      },
+      required: ["octal"],
+    },
+  },
+  {
+    name: "decimal_to_octal",
+    description: "Convert a decimal number to an octal string (base 8).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        decimal: { type: "number", description: "Decimal integer, e.g. 15" },
+      },
+      required: ["decimal"],
+    },
+  },
+  // ── Temperature converters ───────────────────────────────────────────────
+  {
+    name: "celsius_to_fahrenheit",
+    description: "Convert a temperature from Celsius to Fahrenheit.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        celsius: { type: "number", description: "Temperature in Celsius, e.g. 100" },
+      },
+      required: ["celsius"],
+    },
+  },
+  {
+    name: "fahrenheit_to_celsius",
+    description: "Convert a temperature from Fahrenheit to Celsius.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        fahrenheit: { type: "number", description: "Temperature in Fahrenheit, e.g. 212" },
+      },
+      required: ["fahrenheit"],
+    },
+  },
+  // ── Byte size converters ─────────────────────────────────────────────────
+  {
+    name: "bytes_to_human",
+    description: "Convert a byte count to a human-readable size string (e.g. 1048576 → '1 MB').",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        bytes: { type: "number", description: "Number of bytes, e.g. 1048576" },
+      },
+      required: ["bytes"],
+    },
+  },
+  {
+    name: "human_to_bytes",
+    description: "Convert a human-readable size string to bytes (e.g. '1.5 GB' → 1610612736).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        size: { type: "string", description: "Size string, e.g. '1.5 GB', '512 MB', '2 TB'" },
+      },
+      required: ["size"],
+    },
+  },
   {
     name: "report_bug",
     description:
@@ -946,6 +1059,91 @@ const DIRECT_HANDLERS: Record<string, DirectHandler> = {
 
   unclick_jsonl_to_json: async (_c, a) =>
     jsonlToJson(String(a.jsonl ?? ""), Number(a.indent ?? 2)),
+
+  // ── Encoding & utility converter handlers ─────────────────────────────────
+
+  binary_to_decimal: async (_c, a) => {
+    const bin = String(a.binary ?? "").trim().replace(/^0b/i, "");
+    if (!/^[01]+$/.test(bin)) return { error: "Invalid binary string. Use only 0 and 1." };
+    const decimal = parseInt(bin, 2);
+    return { binary: bin, decimal, decimal_string: String(decimal) };
+  },
+
+  decimal_to_binary: async (_c, a) => {
+    const n = Math.trunc(Number(a.decimal));
+    if (!Number.isFinite(n)) return { error: "Invalid decimal number." };
+    const binary = Math.abs(n).toString(2);
+    return { decimal: n, binary: n < 0 ? `-${binary}` : binary };
+  },
+
+  hex_to_decimal: async (_c, a) => {
+    const hex = String(a.hex ?? "").trim().replace(/^0x/i, "");
+    if (!/^[0-9a-fA-F]+$/.test(hex)) return { error: "Invalid hex string." };
+    const decimal = parseInt(hex, 16);
+    return { hex: hex.toUpperCase(), decimal, decimal_string: String(decimal) };
+  },
+
+  decimal_to_hex: async (_c, a) => {
+    const n = Math.trunc(Number(a.decimal));
+    if (!Number.isFinite(n)) return { error: "Invalid decimal number." };
+    const hex = Math.abs(n).toString(16).toUpperCase();
+    return { decimal: n, hex: n < 0 ? `-${hex}` : hex, hex_prefixed: n < 0 ? `-0x${hex}` : `0x${hex}` };
+  },
+
+  octal_to_decimal: async (_c, a) => {
+    const oct = String(a.octal ?? "").trim().replace(/^0o/i, "");
+    if (!/^[0-7]+$/.test(oct)) return { error: "Invalid octal string. Use only digits 0–7." };
+    const decimal = parseInt(oct, 8);
+    return { octal: oct, decimal, decimal_string: String(decimal) };
+  },
+
+  decimal_to_octal: async (_c, a) => {
+    const n = Math.trunc(Number(a.decimal));
+    if (!Number.isFinite(n)) return { error: "Invalid decimal number." };
+    const octal = Math.abs(n).toString(8);
+    return { decimal: n, octal: n < 0 ? `-${octal}` : octal };
+  },
+
+  celsius_to_fahrenheit: async (_c, a) => {
+    const c = Number(a.celsius);
+    if (!Number.isFinite(c)) return { error: "Invalid Celsius value." };
+    const f = (c * 9) / 5 + 32;
+    return { celsius: c, fahrenheit: Math.round(f * 100) / 100 };
+  },
+
+  fahrenheit_to_celsius: async (_c, a) => {
+    const f = Number(a.fahrenheit);
+    if (!Number.isFinite(f)) return { error: "Invalid Fahrenheit value." };
+    const c = ((f - 32) * 5) / 9;
+    return { fahrenheit: f, celsius: Math.round(c * 100) / 100 };
+  },
+
+  bytes_to_human: async (_c, a) => {
+    const bytes = Number(a.bytes);
+    if (!Number.isFinite(bytes) || bytes < 0) return { error: "Invalid byte count." };
+    const units = ["B", "KB", "MB", "GB", "TB", "PB"];
+    let value = bytes;
+    let unitIndex = 0;
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex++;
+    }
+    const rounded = Math.round(value * 100) / 100;
+    return { bytes, human: `${rounded} ${units[unitIndex]}`, value: rounded, unit: units[unitIndex] };
+  },
+
+  human_to_bytes: async (_c, a) => {
+    const raw = String(a.size ?? "").trim();
+    const match = raw.match(/^([0-9]*\.?[0-9]+)\s*(B|KB|MB|GB|TB|PB)?$/i);
+    if (!match) return { error: `Cannot parse size string: "${raw}". Expected format like '1.5 GB' or '512 MB'.` };
+    const value = parseFloat(match[1]);
+    const unitMap: Record<string, number> = {
+      b: 1, kb: 1024, mb: 1024 ** 2, gb: 1024 ** 3, tb: 1024 ** 4, pb: 1024 ** 5,
+    };
+    const unit = (match[2] ?? "b").toLowerCase();
+    const bytes = Math.round(value * (unitMap[unit] ?? 1));
+    return { size: raw, bytes, unit: (match[2] ?? "B").toUpperCase() };
+  },
 };
 
 // ─── Server factory ─────────────────────────────────────────────────────────
