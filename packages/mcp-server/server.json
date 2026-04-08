@@ -1,0 +1,16 @@
+{
+  "name": "io.github.malamutemayhem/unclick-mcp-server",
+  "title": "UnClick MCP Server",
+  "description": "AI agent tool marketplace with 60+ tools spanning social media, e-commerce, accounting, messaging, and utility categories. Connect any AI agent to real-world services through a single MCP interface.",
+  "version": "0.1.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@unclick/mcp-server",
+      "version": "0.1.1",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
