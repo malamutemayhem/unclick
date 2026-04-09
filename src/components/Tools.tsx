@@ -760,6 +760,20 @@ const tools: Tool[] = [
     examplePrompt: "Ask your AI to send a daily briefing to a Telegram channel when a report completes",
   },
   {
+    name: "LINE",
+    description: "Send text and rich Flex Messages to LINE users and groups, reply to webhook events, broadcast to all followers, and look up user and group profiles via the LINE Messaging API. Built for agents that need to notify customers, automate support replies, and run campaigns on LINE Official Accounts.",
+    endpoint: "/v1/line",
+    category: "Social",
+    Icon: BellRing,
+    capabilities: [
+      "Push text messages to individual users, groups, or rooms by ID",
+      "Send rich Flex Messages with custom layouts, buttons, and carousels",
+      "Reply to webhook events using reply tokens within the validity window",
+      "Broadcast text messages to all followers of a LINE Official Account",
+    ],
+    examplePrompt: "Ask your AI to send a LINE message to a customer when their order ships",
+  },
+  {
     name: "Slack",
     description: "Post messages, files, and rich Block Kit layouts to any Slack workspace channel or DM via OAuth or webhook. Manage channel memberships, search messages, and create scheduled posts. Built for agents delivering workflow summaries, escalating alerts, and automating team communications without managing a Slack app from scratch.",
     endpoint: "/v1/slack",
@@ -1675,6 +1689,22 @@ const tools: Tool[] = [
     ],
     examplePrompt: "Ask your AI to analyse the tone of global news coverage about a company over the last week",
   },
+
+  // ── Design ─────────────────────────────────────────────────────────────────
+  {
+    name: "Figma",
+    description: "Read Figma file structure, export nodes as images, manage comments, and browse team projects and published components via the Figma REST API. Built for agents that need to inspect designs, generate assets, annotate screens, and surface design system components without opening the Figma desktop app.",
+    endpoint: "/v1/figma",
+    category: "Platform",
+    Icon: PenSquare,
+    capabilities: [
+      "Read file structure: pages, frames, and component inventory",
+      "Export any node as PNG, JPG, SVG, or PDF at configurable scale",
+      "Get and post comments on files, optionally pinned to canvas coordinates",
+      "List all projects in a team and published components in a file",
+    ],
+    examplePrompt: "Ask your AI to export all frames on the 'Mobile' page as PNGs and summarise the layout",
+  },
 ];
 
 // Platform connectors: tools that require a one-time external account connection
@@ -1685,6 +1715,8 @@ const PLATFORM_CONNECTOR_SLUGS: Record<string, string> = {
   "Reddit":         "reddit",
   "Bluesky":        "bluesky",
   "Mastodon":       "mastodon",
+  "LINE":           "line",
+  "Figma":          "figma",
   "Shopify":        "shopify",
   "Amazon":         "amazon",
   "Xero":           "xero",

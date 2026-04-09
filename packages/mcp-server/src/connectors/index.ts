@@ -41,6 +41,8 @@ import { redditConnector }   from "./reddit.js";
 import { slackConnector }    from "./slack.js";
 import { blueskyConnector }  from "./bluesky.js";
 import { mastodonConnector } from "./mastodon.js";
+import { lineConnector }     from "./line.js";
+import { figmaConnector }    from "./figma.js";
 
 export {
   xeroConnector,
@@ -51,6 +53,8 @@ export {
   slackConnector,
   blueskyConnector,
   mastodonConnector,
+  lineConnector,
+  figmaConnector,
 };
 
 export const CONNECTORS: Record<string, ConnectorConfig> = {
@@ -62,4 +66,6 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
   slack:    slackConnector,
   bluesky:  blueskyConnector,
   mastodon: mastodonConnector,
+  line:     lineConnector,
+  figma:    figmaConnector,
 };
