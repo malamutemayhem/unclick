@@ -278,17 +278,17 @@ const tools: Tool[] = [
   },
   {
     name: "Humanize",
-    description: "Detect AI-generated text and rewrite it to sound natural, authentic, and human. The detector returns a probability score and analysis of AI-typical patterns; the rewriter rephrases content while preserving meaning, tone, and key facts. Built for agents that generate content and need to pass AI detectors or significantly improve readability and engagement.",
+    description: "Detects AI writing patterns and rewrites text to sound like a real person wrote it. Returns a confidence score, the specific patterns found, and a clean rewrite. Catches em dashes, hedging phrases, banned transition starters, semicolon overuse, passive voice, and AI vocabulary — then strips or replaces each one. One call does both analysis and rewrite.",
     endpoint: "/v1/humanize",
     category: "Text",
     Icon: Sparkles,
     capabilities: [
-      "Detect AI-generated text with a 0-100% confidence score",
-      "Identify specific AI patterns: repetition, hedging language, robotic transitions",
-      "Rewrite AI text to sound human: varied sentence length, active voice, natural flow",
-      "Preserve tone settings: formal, conversational, casual, or academic",
+      "Score text 0-100 for AI confidence and return exactly which patterns were detected",
+      "Catch em dashes, semicolons, hedging phrases, transition starters, passive voice, and AI vocabulary",
+      "Rewrite to active voice, natural contractions, varied sentence length, and plain word choices",
+      "Four tone modes: conversational (default), formal, casual, academic",
     ],
-    examplePrompt: "Ask your AI to rewrite a product description to sound more human and less generated",
+    examplePrompt: "POST /v1/humanize with your AI-drafted copy and get back a clean human rewrite plus an ai_score and patterns_found list",
   },
   {
     name: "Summarize",
