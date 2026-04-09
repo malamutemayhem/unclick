@@ -19,7 +19,7 @@ import {
   Bookmark, Users2, Zap, CloudRain, Building2, Archive,
   Package, Leaf, FlaskConical, Bird, Flame, Ticket,
   MapPin, Clock4, PenSquare, Droplets, Dices,
-  Beer, Music2, Server, NotebookPen, Apple,
+  Beer, Music2, Server, NotebookPen, Apple, Radio,
 } from "lucide-react";
 
 // ToolCategory: the category label stored on each tool (used for card badges and icon colours)
@@ -1646,6 +1646,34 @@ const tools: Tool[] = [
       "Shipping emissions by weight, distance, and transport method",
     ],
     examplePrompt: "Ask your AI to calculate the carbon footprint of a return flight from Sydney to London",
+  },
+  {
+    name: "Radio Browser",
+    description: "Search and discover 50,000+ free internet radio stations from around the world. Filter by country, language, or genre. No API key required.",
+    endpoint: "/v1/radio",
+    category: "Media",
+    Icon: Radio,
+    capabilities: [
+      "Search stations by name, country, language, or genre tag",
+      "Browse top stations ranked by listener clicks or community votes",
+      "Filter stations by genre: jazz, classical, news, talk, hip-hop, and more",
+      "List all countries with station counts and browse by region",
+    ],
+    examplePrompt: "Ask your AI to find the top jazz radio stations in France",
+  },
+  {
+    name: "GDELT",
+    description: "Tap into the GDELT Project — real-time global news intelligence updated every 15 minutes. Search news from every country and language, analyse sentiment trends, and map where stories are breaking. No API key required.",
+    endpoint: "/v1/gdelt",
+    category: "Data",
+    Icon: Globe2,
+    capabilities: [
+      "Search global news by keyword with optional date range, language, and country filters",
+      "Tone analysis: track positive/negative sentiment for any topic across global media",
+      "Geographic event mapping: see where in the world a story is covered most",
+      "Trend detection: classify whether a topic is surging, stable, or fading in the news cycle",
+    ],
+    examplePrompt: "Ask your AI to analyse the tone of global news coverage about a company over the last week",
   },
 ];
 
