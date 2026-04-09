@@ -40,87 +40,63 @@ function formatToolSummary(tool: ToolDef): string {
 
 // ─── MCP Tool definitions ───────────────────────────────────────────────────
 
-const META_TOOLS = [
-  {
-    name: "unclick_search",
-    description:
-      "Search the UnClick tool marketplace by keyword or description. " +
-      "Use this to discover which tools are available for a task. " +
-      "Example: 'I need to resize an image' → returns the image tool with its endpoints.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        query: {
-          type: "string",
-          description: "Search term — describe what you want to do",
-        },
-        category: {
-          type: "string",
-          enum: ["text", "data", "media", "time", "network", "generation", "storage", "platform"],
-          description: "Optional: filter by category",
-        },
+const UNCLICK_TOOL = {
+  name: "unclick",
+  description:
+    "Access all UnClick tools with a single permission. Search for tools, get their details, " +
+    "call any endpoint, or report bugs — all through one interface.",
+  inputSchema: {
+    type: "object" as const,
+    properties: {
+      action: {
+        type: "string",
+        enum: ["call", "search", "tool_info", "report_bug"],
+        description:
+          "'call' — invoke any endpoint. " +
+          "'search' — find tools by keyword. " +
+          "'tool_info' — get endpoint details for a tool slug. " +
+          "'report_bug' — report unexpected behaviour.",
       },
-      required: ["query"],
-    },
-  },
-  {
-    name: "unclick_browse",
-    description:
-      "Browse all available UnClick tools, optionally filtered by category. " +
-      "Returns a list of tools with their slugs and descriptions.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        category: {
-          type: "string",
-          enum: ["text", "data", "media", "time", "network", "generation", "storage", "platform"],
-          description: "Optional: filter to a specific category",
-        },
+      endpoint_id: {
+        type: "string",
+        description: "Endpoint identifier for action 'call' (e.g. 'image.resize', 'hash.compute'). Use action 'search' to discover IDs.",
+      },
+      params: {
+        type: "object",
+        description: "Parameters to pass when action is 'call'.",
+      },
+      query: {
+        type: "string",
+        description: "Search term when action is 'search'.",
+      },
+      slug: {
+        type: "string",
+        description: "Tool slug when action is 'tool_info' (e.g. 'image', 'hash', 'csv').",
+      },
+      tool_name: {
+        type: "string",
+        description: "Name or slug of the failing tool when action is 'report_bug'.",
+      },
+      error_message: {
+        type: "string",
+        description: "Error message or unexpected output when action is 'report_bug'.",
+      },
+      request_payload: {
+        type: "object",
+        description: "Request parameters sent to the tool (optional, for report_bug).",
+      },
+      expected_behavior: {
+        type: "string",
+        description: "What the tool should have done instead (optional, for report_bug).",
+      },
+      agent_context: {
+        type: "string",
+        description: "Brief description of what was being attempted (optional, for report_bug).",
       },
     },
+    required: ["action"],
   },
-  {
-    name: "unclick_tool_info",
-    description:
-      "Get detailed information about a specific UnClick tool including all its endpoints, " +
-      "required parameters, and response shapes. Use this after unclick_search to understand " +
-      "exactly how to call a tool.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        slug: {
-          type: "string",
-          description:
-            "Tool slug, e.g. 'image', 'hash', 'csv', 'cron'. " +
-            "Available slugs: " + CATALOG.map((t) => t.slug).join(", "),
-        },
-      },
-      required: ["slug"],
-    },
-  },
-  {
-    name: "unclick_call",
-    description:
-      "Call any UnClick tool endpoint. Specify the endpoint ID and parameters. " +
-      "Use unclick_search or unclick_tool_info to discover endpoint IDs and required params. " +
-      "Example: endpoint_id='image.resize', params={image: '<base64>', width: 800, height: 600}",
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        endpoint_id: {
-          type: "string",
-          description:
-            "Endpoint identifier, e.g. 'image.resize', 'hash.compute', 'csv.parse', 'cron.next'",
-        },
-        params: {
-          type: "object",
-          description: "Parameters for the endpoint. Use unclick_tool_info to see required params.",
-        },
-      },
-      required: ["endpoint_id", "params"],
-    },
-  },
-] as const;
+} as const;
 
 const DIRECT_TOOLS = [
   {
@@ -519,12 +495,7 @@ export function createServer(): Server {
 
   // LIST TOOLS
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    const tools = [
-      ...META_TOOLS,
-      ...DIRECT_TOOLS,
-      ...ADDITIONAL_TOOLS,
-    ];
-    return { tools };
+    return { tools: [UNCLICK_TOOL] };
   });
 
   // CALL TOOL
@@ -533,63 +504,62 @@ export function createServer(): Server {
     const args = (rawArgs ?? {}) as Record<string, unknown>;
 
     try {
-      // ── Meta tools ──────────────────────────────────────────────
-      if (name === "unclick_search") {
-        const results = searchTools(
-          String(args.query ?? ""),
-          args.category as string | undefined
+      if (name !== "unclick") {
+        return {
+          content: [{ type: "text", text: `Unknown tool: ${name}` }],
+          isError: true,
+        };
+      }
+
+      const action = String(args.action ?? "");
+
+      // ── action: search ───────────────────────────────────────────
+      if (action === "search") {
+        const query = String(args.query ?? "");
+        const catalogResults = searchTools(query);
+
+        // Also search ADDITIONAL_TOOLS by name and description
+        const q = query.toLowerCase();
+        type AdditionalTool = { name: string; description: string };
+        const additionalResults = (ADDITIONAL_TOOLS as readonly AdditionalTool[]).filter(
+          (t) => !q || t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q)
         );
-        if (results.length === 0) {
+
+        if (catalogResults.length === 0 && additionalResults.length === 0) {
           return {
             content: [
               {
                 type: "text",
-                text: `No tools found matching "${args.query}". Try unclick_browse to see all available tools.`,
+                text: `No tools found matching "${query}". Try a broader search term.`,
               },
             ],
           };
         }
-        const text = results.map(formatToolSummary).join("\n\n---\n\n");
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Found ${results.length} tool(s) matching "${args.query}":\n\n${text}`,
-            },
-          ],
-        };
-      }
 
-      if (name === "unclick_browse") {
-        const filtered = args.category
-          ? CATALOG.filter((t) => t.category === args.category)
-          : CATALOG;
-
-        const byCategory = filtered.reduce<Record<string, ToolDef[]>>((acc, tool) => {
-          (acc[tool.category] ??= []).push(tool);
-          return acc;
-        }, {});
-
-        const lines: string[] = [];
-        for (const [cat, tools] of Object.entries(byCategory)) {
-          lines.push(`## ${cat.toUpperCase()}`);
-          for (const tool of tools) {
-            lines.push(`- **${tool.name}** (\`${tool.slug}\`) — ${tool.description}`);
-          }
-          lines.push("");
+        const parts: string[] = [];
+        if (catalogResults.length > 0) {
+          parts.push(catalogResults.map(formatToolSummary).join("\n\n---\n\n"));
+        }
+        if (additionalResults.length > 0) {
+          const addLines = additionalResults.map(
+            (t) => `**${t.name}** — ${t.description}\n_Call with: action "call", endpoint_id "${t.name}"_`
+          );
+          parts.push(addLines.join("\n\n---\n\n"));
         }
 
+        const total = catalogResults.length + additionalResults.length;
         return {
           content: [
             {
               type: "text",
-              text: `UnClick Tool Catalog (${filtered.length} tools)\n\n${lines.join("\n")}`,
+              text: `Found ${total} tool(s) matching "${query}":\n\n${parts.join("\n\n---\n\n")}`,
             },
           ],
         };
       }
 
-      if (name === "unclick_tool_info") {
+      // ── action: tool_info ────────────────────────────────────────
+      if (action === "tool_info") {
         const slug = String(args.slug ?? "");
         const tool = TOOL_MAP.get(slug);
         if (!tool) {
@@ -626,7 +596,7 @@ export function createServer(): Server {
         }
 
         lines.push(
-          `\n> Call any endpoint with: \`unclick_call\` → \`{ endpoint_id: "<id>", params: {...} }\``
+          `\n> Call any endpoint with: \`unclick\` → \`{ action: "call", endpoint_id: "<id>", params: {...} }\``
         );
 
         return {
@@ -634,66 +604,54 @@ export function createServer(): Server {
         };
       }
 
-      if (name === "unclick_call") {
+      // ── action: call ─────────────────────────────────────────────
+      if (action === "call") {
         const endpointId = String(args.endpoint_id ?? "");
         const params = (args.params ?? {}) as Record<string, unknown>;
 
+        // 1. Catalog endpoint map (e.g. "image.resize", "hash.compute")
         const entry = ENDPOINT_MAP.get(endpointId);
-        if (!entry) {
-          return {
-            content: [
-              {
-                type: "text",
-                text: `Endpoint "${endpointId}" not found. Use unclick_tool_info to see valid endpoint IDs.`,
-              },
-            ],
-            isError: true,
-          };
+        if (entry) {
+          const client = createClient();
+          const result = await client.call(entry.endpoint.method, entry.endpoint.path, params);
+          return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
         }
 
-        const client = createClient();
-        const result = await client.call(entry.endpoint.method, entry.endpoint.path, params);
+        // 2. Direct handlers (e.g. "unclick_hash", "unclick_shorten_url")
+        const directHandler = DIRECT_HANDLERS[endpointId];
+        if (directHandler) {
+          const client = createClient();
+          const result = await directHandler(client, params);
+          return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        }
+
+        // 3. Additional handlers (e.g. "rawg_search_games", "riot_summoner")
+        const additionalHandler = ADDITIONAL_HANDLERS[endpointId];
+        if (additionalHandler) {
+          const result = await additionalHandler(params);
+          return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+        }
+
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(result, null, 2),
+              text: `Endpoint "${endpointId}" not found. Use action "search" to discover available endpoint IDs.`,
             },
           ],
+          isError: true,
         };
       }
 
-      // ── Direct tools ─────────────────────────────────────────────
-      const handler = DIRECT_HANDLERS[name];
-      if (handler) {
+      // ── action: report_bug ───────────────────────────────────────
+      if (action === "report_bug") {
         const client = createClient();
-        const result = await handler(client, args);
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(result, null, 2),
-            },
-          ],
-        };
-      }
-
-      // ── Additional tools (third-party integrations) ───────────────
-      const additionalHandler = ADDITIONAL_HANDLERS[name];
-      if (additionalHandler) {
-        const result = await additionalHandler(args);
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(result, null, 2),
-            },
-          ],
-        };
+        const result = await DIRECT_HANDLERS.report_bug(client, args);
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
       }
 
       return {
-        content: [{ type: "text", text: `Unknown tool: ${name}` }],
+        content: [{ type: "text", text: `Unknown action: "${action}". Valid actions: call, search, tool_info, report_bug` }],
         isError: true,
       };
     } catch (err) {
