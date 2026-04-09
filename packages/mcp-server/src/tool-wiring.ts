@@ -411,6 +411,16 @@ import {
 } from "./telegram-tool.js";
 
 import {
+  lineSendMessage, lineSendFlexMessage, lineGetProfile,
+  lineGetGroupSummary, lineReplyMessage, lineBroadcast,
+} from "./line-tool.js";
+
+import {
+  figmaGetFile, figmaGetNode, figmaGetImages,
+  figmaGetComments, figmaPostComment, figmaGetComponents, figmaGetTeamProjects,
+} from "./figma-tool.js";
+
+import {
   amazonSearch, amazonProduct, amazonBrowse, amazonVariations,
 } from "./amazon-tool.js";
 
@@ -5632,6 +5642,179 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── line-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "line_send_message",
+    description: "Send a text message to a LINE user, group, or room.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        channel_access_token: { type: "string" },
+        to: { type: "string", description: "User ID, group ID, or room ID" },
+        message: { type: "string" },
+      },
+      required: ["channel_access_token", "to", "message"],
+    },
+  },
+  {
+    name: "line_send_flex_message",
+    description: "Send a rich Flex Message to a LINE user or group.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        channel_access_token: { type: "string" },
+        to: { type: "string" },
+        alt_text: { type: "string", description: "Fallback text shown in push notifications" },
+        contents: { description: "Flex Message container as JSON object or string" },
+      },
+      required: ["channel_access_token", "to", "alt_text", "contents"],
+    },
+  },
+  {
+    name: "line_get_profile",
+    description: "Get a LINE user's display name, profile picture, and status message.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        channel_access_token: { type: "string" },
+        user_id: { type: "string" },
+      },
+      required: ["channel_access_token", "user_id"],
+    },
+  },
+  {
+    name: "line_get_group_summary",
+    description: "Get a LINE group's name and picture URL.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        channel_access_token: { type: "string" },
+        group_id: { type: "string" },
+      },
+      required: ["channel_access_token", "group_id"],
+    },
+  },
+  {
+    name: "line_reply_message",
+    description: "Reply to a LINE message using a reply token from a webhook event.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        channel_access_token: { type: "string" },
+        reply_token: { type: "string" },
+        messages: { description: "Array of LINE message objects (max 5), or use message for a single text reply" },
+        message: { type: "string", description: "Convenience: single text message to reply with" },
+      },
+      required: ["channel_access_token", "reply_token"],
+    },
+  },
+  {
+    name: "line_broadcast",
+    description: "Broadcast a text message to all followers of your LINE Official Account.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        channel_access_token: { type: "string" },
+        message: { type: "string" },
+      },
+      required: ["channel_access_token", "message"],
+    },
+  },
+
+  // ── figma-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "figma_get_file",
+    description: "Get a Figma file's structure and metadata — pages, frames, and component count.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        personal_access_token: { type: "string" },
+        file_key: { type: "string", description: "Alphanumeric file ID from the Figma URL" },
+        depth: { type: "number", description: "How deep to traverse the node tree (default: full)" },
+      },
+      required: ["personal_access_token", "file_key"],
+    },
+  },
+  {
+    name: "figma_get_node",
+    description: "Get a specific node by ID within a Figma file.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        personal_access_token: { type: "string" },
+        file_key: { type: "string" },
+        node_id: { type: "string", description: "Node ID (e.g. '1:2' or '1-2')" },
+      },
+      required: ["personal_access_token", "file_key", "node_id"],
+    },
+  },
+  {
+    name: "figma_get_images",
+    description: "Export/render Figma nodes as images (PNG, JPG, SVG, or PDF).",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        personal_access_token: { type: "string" },
+        file_key: { type: "string" },
+        node_ids: { description: "Comma-separated node IDs or array of node ID strings" },
+        format: { type: "string", description: "png, jpg, svg, or pdf (default: png)" },
+        scale: { type: "number", description: "Image scale factor 0.01–4 (default: 1, PNG/JPG only)" },
+      },
+      required: ["personal_access_token", "file_key", "node_ids"],
+    },
+  },
+  {
+    name: "figma_get_comments",
+    description: "Get all comments on a Figma file.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        personal_access_token: { type: "string" },
+        file_key: { type: "string" },
+      },
+      required: ["personal_access_token", "file_key"],
+    },
+  },
+  {
+    name: "figma_post_comment",
+    description: "Add a comment to a Figma file, optionally pinned to canvas coordinates.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        personal_access_token: { type: "string" },
+        file_key: { type: "string" },
+        message: { type: "string" },
+        x: { type: "number", description: "Canvas X coordinate to pin the comment" },
+        y: { type: "number", description: "Canvas Y coordinate to pin the comment" },
+      },
+      required: ["personal_access_token", "file_key", "message"],
+    },
+  },
+  {
+    name: "figma_get_components",
+    description: "Get all published components in a Figma file.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        personal_access_token: { type: "string" },
+        file_key: { type: "string" },
+      },
+      required: ["personal_access_token", "file_key"],
+    },
+  },
+  {
+    name: "figma_get_team_projects",
+    description: "List all projects for a Figma team.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        personal_access_token: { type: "string" },
+        team_id: { type: "string", description: "Team ID from your Figma team URL" },
+      },
+      required: ["personal_access_token", "team_id"],
+    },
+  },
+
   // ── amazon-tool.ts ───────────────────────────────────────────────────────────
   {
     name: "amazon_search",
@@ -6614,6 +6797,23 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   telegram_send_media:     (args) => telegramSendMedia(args),
   telegram_get_updates:    (args) => telegramGetUpdates(args),
   telegram_manage_chat:    (args) => telegramManageChat(args),
+
+  // line-tool.ts
+  line_send_message:       (args) => lineSendMessage(args),
+  line_send_flex_message:  (args) => lineSendFlexMessage(args),
+  line_get_profile:        (args) => lineGetProfile(args),
+  line_get_group_summary:  (args) => lineGetGroupSummary(args),
+  line_reply_message:      (args) => lineReplyMessage(args),
+  line_broadcast:          (args) => lineBroadcast(args),
+
+  // figma-tool.ts
+  figma_get_file:          (args) => figmaGetFile(args),
+  figma_get_node:          (args) => figmaGetNode(args),
+  figma_get_images:        (args) => figmaGetImages(args),
+  figma_get_comments:      (args) => figmaGetComments(args),
+  figma_post_comment:      (args) => figmaPostComment(args),
+  figma_get_components:    (args) => figmaGetComponents(args),
+  figma_get_team_projects: (args) => figmaGetTeamProjects(args),
 
   // amazon-tool.ts
   amazon_search:           (args) => amazonSearch(args),
