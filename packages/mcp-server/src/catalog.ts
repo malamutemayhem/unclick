@@ -1854,6 +1854,80 @@ export const CATALOG: ToolDef[] = [
     ],
   },
   {
+    slug: "humanize",
+    name: "Humanize Text",
+    description:
+      "Detect AI writing patterns and rewrite text to sound like a real person wrote it. " +
+      "Returns an AI confidence score (0–100), specific patterns found, and a clean humanized rewrite.",
+    category: "text",
+    scope: "humanize:use",
+    endpoints: [
+      {
+        id: "humanize.rewrite",
+        name: "Rewrite",
+        description:
+          "Rewrite AI-generated text to sound more natural and human. Replaces AI vocabulary, " +
+          "removes hedging phrases, adds contractions, and varies sentence rhythm.",
+        method: "POST",
+        path: "/v1/humanize/rewrite",
+        requiresAuth: true,
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Text to humanize (max 50,000 chars)" },
+            tone: {
+              type: "string",
+              enum: ["casual", "professional", "conversational"],
+              default: "conversational",
+              description: "Target tone for the rewrite",
+            },
+            strength: {
+              type: "string",
+              enum: ["light", "medium", "heavy"],
+              default: "medium",
+              description: "How aggressively to rewrite — light (word swaps only), medium (+ adverbs/contractions), heavy (full cleanup)",
+            },
+          },
+          required: ["text"],
+        },
+      },
+      {
+        id: "humanize.detect",
+        name: "Detect AI",
+        description:
+          "Score text for AI-writing patterns. Returns a 0–100 AI confidence score and a breakdown by category " +
+          "(ai_vocabulary, sentence_uniformity, hedging_phrases, contraction_avoidance, paragraph_uniformity, filler_phrases).",
+        method: "POST",
+        path: "/v1/humanize/detect",
+        requiresAuth: true,
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Text to analyse (max 50,000 chars)" },
+          },
+          required: ["text"],
+        },
+      },
+      {
+        id: "humanize.suggest",
+        name: "Suggest",
+        description:
+          "Return line-level suggestions for making text sound more human, without rewriting it. " +
+          "Flags AI vocabulary, hedging phrases, filler transitions, em dashes, and excessive adverbs.",
+        method: "POST",
+        path: "/v1/humanize/suggest",
+        requiresAuth: true,
+        inputSchema: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "Text to analyse (max 50,000 chars)" },
+          },
+          required: ["text"],
+        },
+      },
+    ],
+  },
+  {
     slug: "webhook",
     name: "Webhook Bin",
     description:

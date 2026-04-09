@@ -388,6 +388,32 @@ const DIRECT_TOOLS = [
     },
   },
   {
+    name: "humanize_text",
+    description:
+      "Detect AI writing patterns and rewrite text to sound like a real person wrote it. " +
+      "Returns an AI confidence score (0–100), specific patterns found (em_dashes, hedging_phrases, " +
+      "passive_voice, long_sentences, etc.), and a clean humanized rewrite.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "Text to humanize (max 50,000 chars)" },
+        tone: {
+          type: "string",
+          enum: ["casual", "professional", "conversational"],
+          default: "conversational",
+          description: "Target tone for the rewrite",
+        },
+        strength: {
+          type: "string",
+          enum: ["light", "medium", "heavy"],
+          default: "medium",
+          description: "Rewrite intensity — light (word swaps only), medium (+ adverbs/contractions), heavy (full cleanup)",
+        },
+      },
+      required: ["text"],
+    },
+  },
+  {
     name: "report_bug",
     description:
       "Report a bug or unexpected behavior encountered while using an UnClick tool. " +
@@ -499,6 +525,9 @@ const DIRECT_HANDLERS: Record<string, DirectHandler> = {
 
   unclick_kv_get: (c, a) =>
     c.call("POST", "/v1/kv/get", a as Record<string, unknown>),
+
+  humanize_text: (c, a) =>
+    c.call("POST", "/v1/humanize/rewrite", a as Record<string, unknown>),
 
   report_bug: (c, a) =>
     c.call("POST", "/v1/report-bug", a as Record<string, unknown>),
