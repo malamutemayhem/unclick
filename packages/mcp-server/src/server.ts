@@ -7,6 +7,7 @@ import {
 import { CATALOG, TOOL_MAP, ENDPOINT_MAP, type ToolDef } from "./catalog.js";
 import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
+import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 
 // ─── Search helper ──────────────────────────────────────────────────────────
 
@@ -643,6 +644,15 @@ export function createServer(): Server {
         const endpointId = String(args.endpoint_id ?? "");
         const params = (args.params ?? {}) as Record<string, unknown>;
 
+        // Check local handlers first (avoids remote API dependency)
+        const localHandler = LOCAL_CATALOG_HANDLERS[endpointId];
+        if (localHandler) {
+          const result = await localHandler(params);
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          };
+        }
+
         const entry = ENDPOINT_MAP.get(endpointId);
         if (!entry) {
           return {
@@ -656,6 +666,7 @@ export function createServer(): Server {
           };
         }
 
+        // Fall back to remote API for endpoints without local implementations
         const client = createClient();
         const result = await client.call(entry.endpoint.method, entry.endpoint.path, params);
         return {
