@@ -9,6 +9,7 @@
 //   SUPABASE_SERVICE_ROLE_KEY - service role key (bypasses RLS)
 
 import { encrypt, decrypt, hashKeyFull } from "./keychain-crypto.js";
+import { resolveCredential } from "./keychain-secure-input.js";
 
 // ─── Supabase helpers ─────────────────────────────────────────────────────────
 
@@ -606,6 +607,30 @@ export async function keychainGetCredential(platform: string, label = "default")
   }
 }
 
+// ─── Secure connect (env detection + localhost input page) ────────────────────
+
+async function keychainSecureConnect(args: Record<string, unknown>): Promise<unknown> {
+  const platform = String(args.platform ?? "").trim().toLowerCase();
+  const label    = String(args.label    ?? "default").trim() || "default";
+
+  if (!platform) return { error: "platform is required." };
+
+  const state = resolveCredential(platform, args.setup_url ? String(args.setup_url) : undefined);
+
+  if (state.status === "awaiting_input") {
+    return {
+      status:  "awaiting_input",
+      url:     state.url,
+      message: state.message,
+      next_step: `Open the URL in a browser, paste your key, then call keychain_secure_connect again with the same platform to complete the connection.`,
+    };
+  }
+
+  // Credential resolved - proceed with the same flow as keychain_connect
+  const credential = state.value!;
+  return keychainConnect({ ...args, platform, credential, label });
+}
+
 // ─── Public dispatcher ────────────────────────────────────────────────────────
 
 export async function keychainAction(
@@ -618,9 +643,10 @@ export async function keychainAction(
       case "keychain_status":         return keychainStatus(args);
       case "keychain_disconnect":     return keychainDisconnect(args);
       case "keychain_list_platforms": return keychainListPlatforms(args);
+      case "keychain_secure_connect": return keychainSecureConnect(args);
       default:
         return {
-          error: `Unknown keychain action: "${action}". Valid actions: keychain_connect, keychain_status, keychain_disconnect, keychain_list_platforms.`,
+          error: `Unknown keychain action: "${action}". Valid actions: keychain_connect, keychain_status, keychain_disconnect, keychain_list_platforms, keychain_secure_connect.`,
         };
     }
   } catch (err) {

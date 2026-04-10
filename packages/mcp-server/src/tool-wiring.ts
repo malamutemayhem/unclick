@@ -7228,6 +7228,19 @@ export const ADDITIONAL_TOOLS = [
       },
     },
   },
+  {
+    name: "keychain_secure_connect",
+    description: "Securely connect a platform credential without exposing the key in chat. Checks environment variables first; if not found, opens a localhost secure input page for the user to paste their key. Call once to get the URL, then call again after the user submits to complete the connection.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        platform:  { type: "string", description: "Platform ID: github, stripe, openai, vercel, cloudflare, etc." },
+        label:     { type: "string", description: "Optional label to distinguish multiple credentials for the same platform (default: 'default')." },
+        setup_url: { type: "string", description: "Optional URL to the platform's API key settings page, shown on the input page." },
+      },
+      required: ["platform"],
+    },
+  },
 
   // ── github-tool.ts ───────────────────────────────────────────────────────────
   {
@@ -11713,6 +11726,7 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   keychain_status:         (args) => keychainAction("keychain_status",         args),
   keychain_disconnect:     (args) => keychainAction("keychain_disconnect",     args),
   keychain_list_platforms: (args) => keychainAction("keychain_list_platforms", args),
+  keychain_secure_connect: (args) => keychainAction("keychain_secure_connect", args),
 
   // github-tool.ts
   github_action:           (args) => githubAction(String(args.action ?? ""), args),
