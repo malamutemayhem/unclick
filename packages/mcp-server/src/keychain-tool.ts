@@ -66,6 +66,89 @@ async function logMeter(
   }
 }
 
+// ─── Connection test logging ──────────────────────────────────────────────────
+
+async function logConnectionTest(
+  supabaseUrl: string,
+  serviceKey:  string,
+  platform:    string,
+  keyHash:     string,
+  result: {
+    success:        boolean;
+    status_code?:   number;
+    error_message?: string;
+    response_ms:    number;
+    auth_method:    string;
+    auto_bug_filed: boolean;
+  }
+): Promise<void> {
+  try {
+    await sbFetch(
+      `${supabaseUrl}/rest/v1/connection_tests`,
+      "POST",
+      { ...sbHeaders(serviceKey), Prefer: "return=minimal" },
+      {
+        key_hash:       keyHash,
+        platform,
+        success:        result.success,
+        status_code:    result.status_code ?? null,
+        error_message:  result.error_message ?? null,
+        response_ms:    result.response_ms,
+        auth_method:    result.auth_method,
+        auto_bug_filed: result.auto_bug_filed,
+      }
+    );
+  } catch {
+    // logging must never block the main operation
+  }
+}
+
+// ─── Auto bug report on connection failure ────────────────────────────────────
+
+async function autoBugReport(
+  supabaseUrl:  string,
+  serviceKey:   string,
+  platform:     string,
+  errorMessage: string,
+  statusCode?:  number
+): Promise<boolean> {
+  try {
+    // Dedup: skip if a bug for this platform was filed in the last 24 hours
+    const cutoff  = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const checkUrl = `${supabaseUrl}/rest/v1/bug_reports?tool_name=eq.${encodeURIComponent(platform)}&created_at=gte.${encodeURIComponent(cutoff)}&select=id&limit=1`;
+    const { ok: checkOk, data: checkData } = await sbFetch(checkUrl, "GET", sbHeaders(serviceKey));
+    if (checkOk) {
+      const existing = checkData as Array<unknown>;
+      if (existing && existing.length > 0) return false;
+    }
+
+    // Severity: high for auth failures, medium for timeouts, low for other
+    let severity = "low";
+    const msg = errorMessage.toLowerCase();
+    if (statusCode === 401 || statusCode === 403 || msg.includes("unauthorized") || msg.includes("forbidden")) {
+      severity = "high";
+    } else if (msg.includes("timeout") || msg.includes("timed out") || msg.includes("econnreset") || msg.includes("network")) {
+      severity = "medium";
+    }
+
+    const { ok } = await sbFetch(
+      `${supabaseUrl}/rest/v1/bug_reports`,
+      "POST",
+      { ...sbHeaders(serviceKey), Prefer: "return=minimal" },
+      {
+        tool_name:     platform,
+        error_message: errorMessage,
+        agent_context: "Auto-filed by Keychain connection test",
+        severity,
+        status:        "open",
+      }
+    );
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 // ─── Platform test configuration ─────────────────────────────────────────────
 // Describes how to authenticate against each platform's test endpoint.
 // Platforms not listed here default to: GET with Authorization: Bearer <cred>.
@@ -75,24 +158,28 @@ interface PlatformTestConfig {
   buildHeaders: (credential: string) => Record<string, string>;
   body?:        unknown;
   skip?:        boolean;  // true for OAuth platforms or those with no testable endpoint
+  auth_method?: string;
 }
 
 const PLATFORM_TEST_CONFIG: Record<string, PlatformTestConfig> = {
   // Stripe: Basic auth with key as username, empty password
   stripe: {
+    auth_method:  "basic",
     buildHeaders: (cred) => ({
       Authorization: `Basic ${Buffer.from(`${cred}:`).toString("base64")}`,
     }),
   },
   // Twilio: Basic auth with AccountSID:AuthToken as a single credential string
   twilio: {
+    auth_method:  "basic",
     buildHeaders: (cred) => ({
       Authorization: `Basic ${Buffer.from(cred).toString("base64")}`,
     }),
   },
   // Anthropic: x-api-key header + version header, POST with minimal body
   anthropic: {
-    method: "POST",
+    method:       "POST",
+    auth_method:  "x-api-key",
     buildHeaders: (cred) => ({
       "x-api-key":          cred,
       "anthropic-version":  "2023-06-01",
@@ -106,6 +193,7 @@ const PLATFORM_TEST_CONFIG: Record<string, PlatformTestConfig> = {
   },
   // Notion: Bearer + required Notion-Version header
   notion: {
+    auth_method:  "bearer",
     buildHeaders: (cred) => ({
       Authorization:    `Bearer ${cred}`,
       "Notion-Version": "2022-06-28",
@@ -113,7 +201,8 @@ const PLATFORM_TEST_CONFIG: Record<string, PlatformTestConfig> = {
   },
   // Linear: Bearer + POST GraphQL
   linear: {
-    method: "POST",
+    method:       "POST",
+    auth_method:  "bearer",
     buildHeaders: (cred) => ({
       Authorization:  `Bearer ${cred}`,
       "Content-Type": "application/json",
@@ -122,17 +211,20 @@ const PLATFORM_TEST_CONFIG: Record<string, PlatformTestConfig> = {
   },
   // Shopify: custom header - but test URL has {store} placeholder so test is skipped
   shopify: {
-    skip: true,
+    skip:         true,
+    auth_method:  "custom-header",
     buildHeaders: (cred) => ({ "X-Shopify-Access-Token": cred }),
   },
   // Xero: OAuth2 - cannot test with a bare API key
   xero: {
-    skip: true,
+    skip:         true,
+    auth_method:  "oauth2",
     buildHeaders: () => ({}),
   },
   // Railway: Bearer + POST GraphQL
   railway: {
-    method: "POST",
+    method:       "POST",
+    auth_method:  "bearer",
     buildHeaders: (cred) => ({
       Authorization:  `Bearer ${cred}`,
       "Content-Type": "application/json",
@@ -148,9 +240,13 @@ function defaultBuildHeaders(cred: string): Record<string, string> {
 // ─── Credential test ──────────────────────────────────────────────────────────
 
 interface TestResult {
-  passed:  boolean;
-  skipped: boolean;
-  message: string;
+  passed:         boolean;
+  skipped:        boolean;
+  message:        string;
+  status_code?:   number;
+  response_ms:    number;
+  error_message?: string;
+  auth_method:    string;
 }
 
 async function testCredential(
@@ -158,27 +254,32 @@ async function testCredential(
   credential:   string,
   testEndpoint: string | null
 ): Promise<TestResult> {
+  const config      = PLATFORM_TEST_CONFIG[platform];
+  const auth_method = config?.auth_method ?? "bearer";
+
   if (!testEndpoint) {
-    return { passed: false, skipped: true, message: "No test endpoint configured." };
+    return { passed: false, skipped: true, message: "No test endpoint configured.", response_ms: 0, auth_method };
   }
 
   // Skip endpoints with dynamic placeholders (e.g. {project_ref}, {store})
   if (/\{[^}]+\}/.test(testEndpoint)) {
     return {
-      passed:  true,
-      skipped: true,
-      message: `${platform} credential accepted without live test (dynamic endpoint).`,
+      passed:      true,
+      skipped:     true,
+      message:     `${platform} credential accepted without live test (dynamic endpoint).`,
+      response_ms: 0,
+      auth_method,
     };
   }
-
-  const config = PLATFORM_TEST_CONFIG[platform];
 
   // Skip OAuth or explicitly skipped platforms
   if (config?.skip) {
     return {
-      passed:  true,
-      skipped: true,
-      message: `${platform} credential stored (live test not available for this platform type).`,
+      passed:      true,
+      skipped:     true,
+      message:     `${platform} credential stored (live test not available for this platform type).`,
+      response_ms: 0,
+      auth_method,
     };
   }
 
@@ -193,32 +294,52 @@ async function testCredential(
       fetchOptions.body = JSON.stringify(body);
     }
 
-    const res = await fetch(testEndpoint, fetchOptions);
-    const ms  = Date.now() - start;
+    const res  = await fetch(testEndpoint, fetchOptions);
+    const ms   = Date.now() - start;
 
     if (res.ok || res.status === 200) {
-      return { passed: true, skipped: false, message: `Credential verified in ${ms}ms.` };
+      return {
+        passed:      true,
+        skipped:     false,
+        message:     `Credential verified in ${ms}ms.`,
+        status_code: res.status,
+        response_ms: ms,
+        auth_method,
+      };
     }
 
     if (res.status === 401 || res.status === 403) {
+      const errMsg = `Credential rejected by ${platform} (HTTP ${res.status}). Check your token.`;
       return {
-        passed:  false,
-        skipped: false,
-        message: `Credential rejected by ${platform} (HTTP ${res.status}). Check your token.`,
+        passed:        false,
+        skipped:       false,
+        message:       errMsg,
+        status_code:   res.status,
+        response_ms:   ms,
+        error_message: errMsg,
+        auth_method,
       };
     }
 
     // Other non-200s (rate limits, partial responses) - treat as passing
     return {
-      passed:  true,
-      skipped: false,
-      message: `${platform} responded with HTTP ${res.status} - credential appears valid.`,
+      passed:      true,
+      skipped:     false,
+      message:     `${platform} responded with HTTP ${res.status} - credential appears valid.`,
+      status_code: res.status,
+      response_ms: ms,
+      auth_method,
     };
   } catch (err) {
+    const ms     = Date.now() - start;
+    const errMsg = `Could not reach ${platform} test endpoint: ${err instanceof Error ? err.message : String(err)}`;
     return {
-      passed:  false,
-      skipped: false,
-      message: `Could not reach ${platform} test endpoint: ${err instanceof Error ? err.message : String(err)}`,
+      passed:        false,
+      skipped:       false,
+      message:       errMsg,
+      response_ms:   ms,
+      error_message: errMsg,
+      auth_method,
     };
   }
 }
@@ -260,7 +381,20 @@ async function keychainConnect(args: Record<string, unknown>): Promise<unknown> 
   const testEndpoint = connector.test_endpoint ? String(connector.test_endpoint) : null;
 
   // Test the credential before storing
-  const test = await testCredential(platform, credential, testEndpoint);
+  const test         = await testCredential(platform, credential, testEndpoint);
+  const autoBugFiled = !test.passed && !test.skipped
+    ? await autoBugReport(supaUrl, serviceKey, platform, test.error_message ?? test.message, test.status_code)
+    : false;
+
+  await logConnectionTest(supaUrl, serviceKey, platform, keyHash, {
+    success:        test.passed,
+    status_code:    test.status_code,
+    error_message:  test.error_message,
+    response_ms:    test.response_ms,
+    auth_method:    test.auth_method,
+    auto_bug_filed: autoBugFiled,
+  });
+
   if (!test.passed) {
     await logMeter(supaUrl, serviceKey, keyHash, platform, "connect", false, Date.now() - start);
     return {
