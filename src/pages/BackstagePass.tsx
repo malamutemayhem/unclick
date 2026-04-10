@@ -25,6 +25,10 @@ import {
   Mic,
   Video,
   Eye,
+  EyeOff,
+  Lock,
+  Activity,
+  Bug,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -175,11 +179,47 @@ const STEPS = [
   },
 ];
 
-const SECURITY_BULLETS = [
-  "Your credentials are encrypted with AES-256-GCM before they touch our database.",
-  "We validate every key works before storing it - no dead credentials.",
-  "Zero-knowledge design: we encrypt with your UnClick API key, not ours.",
-  "Every connection attempt is logged for your audit trail.",
+const SECURITY_POINTS: {
+  icon: React.ElementType;
+  headline: string;
+  description: string;
+}[] = [
+  {
+    icon: EyeOff,
+    headline: "Your keys never appear in your AI conversation",
+    description:
+      "BackstagePass opens a secure local page for credential entry. Nothing is typed in chat. No transcript exposure. No conversation logs catching your secrets.",
+  },
+  {
+    icon: Lock,
+    headline: "We encrypt before we store",
+    description:
+      "AES-256-GCM encryption, the same standard banks use. Your credentials are encrypted with a key derived from YOUR API key, not ours.",
+  },
+  {
+    icon: CheckCircle2,
+    headline: "We test before we save",
+    description:
+      "Every credential is validated against the real API before storage. Wrong key? Expired token? You will know immediately, not three days later.",
+  },
+  {
+    icon: Zap,
+    headline: "Auto-detect, no paste needed",
+    description:
+      "If your environment already has GITHUB_TOKEN or OPENAI_API_KEY set, BackstagePass picks it up automatically. Zero friction, zero exposure.",
+  },
+  {
+    icon: Activity,
+    headline: "Every access is logged",
+    description:
+      "See exactly when each credential was used, by which tool, and whether it succeeded. Full audit trail, always.",
+  },
+  {
+    icon: Bug,
+    headline: "Failed connections file their own bug reports",
+    description:
+      "When a platform connection breaks, BackstagePass automatically reports the issue. You don't have to notice, diagnose, or report problems manually.",
+  },
 ];
 
 const PRICING = [
@@ -380,23 +420,34 @@ export default function BackstagePassPage() {
       {/* ---- Security ---- */}
       <section className="mx-auto max-w-5xl px-6 pb-24">
         <FadeIn>
-          <div className="rounded-2xl border border-primary/20 bg-primary/[0.03] p-8">
-            <span className="font-mono text-xs font-medium uppercase tracking-widest text-primary">
-              Security
-            </span>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-heading">
-              Built to hold real credentials
-            </h2>
-            <ul className="mt-6 space-y-3">
-              {SECURITY_BULLETS.map((bullet, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span className="text-sm text-body leading-relaxed">{bullet}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <span className="font-mono text-xs font-medium uppercase tracking-widest text-primary">
+            Security
+          </span>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-heading">
+            Security that works for you, not against you
+          </h2>
+          <p className="mt-3 max-w-2xl text-body leading-relaxed">
+            Most credential managers make you feel like you are in a vault. BackstagePass makes you feel like you are backstage.
+          </p>
         </FadeIn>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {SECURITY_POINTS.map((point, i) => {
+            const Icon = point.icon;
+            return (
+              <FadeIn key={point.headline} delay={i * 0.06}>
+                <div className="flex h-full flex-col gap-4 rounded-xl border border-border/40 bg-card/20 p-5 transition-colors hover:border-primary/30 hover:bg-card/40">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
+                    <Icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-heading leading-snug">{point.headline}</p>
+                    <p className="mt-2 text-xs text-body leading-relaxed">{point.description}</p>
+                  </div>
+                </div>
+              </FadeIn>
+            );
+          })}
+        </div>
       </section>
 
       {/* ---- For Developers ---- */}
