@@ -666,6 +666,16 @@ export function createServer(): Server {
           };
         }
 
+        // Try ADDITIONAL_HANDLERS via dot-to-underscore key conversion ("foo.bar" -> "foo_bar")
+        const handlerKey = endpointId.replace(/\./g, "_");
+        const additionalHandler = ADDITIONAL_HANDLERS[handlerKey];
+        if (additionalHandler) {
+          const result = await additionalHandler(params);
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          };
+        }
+
         // Fall back to remote API for endpoints without local implementations
         const client = createClient();
         const result = await client.call(entry.endpoint.method, entry.endpoint.path, params);
