@@ -1032,6 +1032,21 @@ const tools: Tool[] = [
     examplePrompt: "Ask your AI to generate a monthly business performance summary with key metrics and trends",
   },
 
+  {
+    name: "QC Checklist",
+    description: "Run a sequential quality checklist against any website. Checks SSL, meta tags, og:image validity, robots.txt, sitemap, broken links, response times, and copy quality (em dashes, banned words). Each check runs one at a time and reports pass, fail, or warn with detail.",
+    endpoint: "/v1/qc",
+    category: "Platform",
+    Icon: CheckCircle2,
+    capabilities: [
+      "Site load check: verify HTTP 200 and flag slow responses over 3 seconds",
+      "Meta tag audit: title, description, og:title, og:description, og:image",
+      "Link checker: scan up to 20 links and report any 404s",
+      "Copy audit: detect em dashes, en dashes, and configurable banned words in visible text",
+    ],
+    examplePrompt: "Ask your AI to run a full QC checklist on your site and report any failures",
+  },
+
   // ── Zero-Config Utilities ──────────────────────────────────────────────────
   {
     name: "Calculator",
