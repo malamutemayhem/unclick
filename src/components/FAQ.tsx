@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { SITE_STATS } from "@/config/site-stats";
 import { motion } from "framer-motion";
 import FadeIn from "./FadeIn";
 import {
@@ -14,15 +15,15 @@ const faqData = [
     items: [
       {
         q: "What is UnClick?",
-        a: "UnClick is a managed MCP (Model Context Protocol) server that gives AI agents instant access to 61+ real-world tools: web search, email, calendars, code execution, data lookups, and more. Instead of building and maintaining integrations yourself, you point your AI agent at UnClick and it handles everything with a single API key.",
+        a: `UnClick is a managed MCP (Model Context Protocol) server that gives AI agents instant access to ${SITE_STATS.TOOLS_DISPLAY} real-world tools: web search, email, calendars, code execution, data lookups, and more. Instead of building and maintaining integrations yourself, you point your AI agent at UnClick and it handles everything with a single API key.`,
       },
       {
         q: "How does UnClick work?",
-        a: "UnClick exposes its tools over the Model Context Protocol (MCP), an open standard that lets AI agents discover and call external capabilities. You add UnClick's MCP endpoint to your agent's config, provide your API key, and your agent can immediately start calling any of the 139+ available tools with no per-integration setup required.",
+        a: `UnClick exposes its tools over the Model Context Protocol (MCP), an open standard that lets AI agents discover and call external capabilities. You add UnClick's MCP endpoint to your agent's config, provide your API key, and your agent can immediately start calling any of the ${SITE_STATS.TOOLS_DISPLAY} available tools with no per-integration setup required.`,
       },
       {
         q: "Is UnClick free?",
-        a: "Yes. UnClick has a free tier that gives you access to all 139+ tools with no upfront cost. Simply sign up with your email to get an API key and start using tools immediately.",
+        a: `Yes. UnClick has a free tier that gives you access to all ${SITE_STATS.TOOLS_DISPLAY} tools with no upfront cost. Simply sign up with your email to get an API key and start using tools immediately.`,
       },
       {
         q: "What AI agents work with UnClick?",
@@ -39,7 +40,7 @@ const faqData = [
     items: [
       {
         q: "How many tools does UnClick have?",
-        a: "UnClick currently offers 139+ tools across categories including web, productivity, data, communication, code, and more. New tools are added regularly.",
+        a: `UnClick currently offers ${SITE_STATS.TOOLS_DISPLAY} tools across categories including web, productivity, data, communication, code, and more. New tools are added regularly.`,
       },
       {
         q: "What kinds of tools are available?",
@@ -93,7 +94,7 @@ const faqData = [
       },
       {
         q: "What's the difference between UnClick and other MCP servers?",
-        a: "Most MCP servers focus on a single integration (e.g., one database, one API). UnClick is a unified MCP server covering 139+ tools across dozens of categories, so you configure one server and get everything. It's also managed: no infrastructure to run, no credentials to rotate, no integrations to maintain.",
+        a: `Most MCP servers focus on a single integration (e.g., one database, one API). UnClick is a unified MCP server covering ${SITE_STATS.TOOLS_DISPLAY} tools across dozens of categories, so you configure one server and get everything. It's also managed: no infrastructure to run, no credentials to rotate, no integrations to maintain.`,
       },
     ],
   },

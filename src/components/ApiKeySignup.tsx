@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SITE_STATS } from "@/config/site-stats";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 
@@ -152,7 +153,7 @@ const ApiKeySignup = ({ onKeyReady }: ApiKeySignupProps) => {
       >
         <p className="text-sm font-medium text-heading mb-1">Get your free API key</p>
         <p className="text-xs text-muted-foreground mb-4">
-          No credit card. No waitlist. Covers all 139+ tools immediately.
+          No credit card. No waitlist. Covers all {SITE_STATS.TOOLS_DISPLAY} tools immediately.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
           <input

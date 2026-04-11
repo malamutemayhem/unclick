@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { SITE_STATS } from "@/config/site-stats";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
@@ -144,7 +145,7 @@ const DocsPage = () => {
   useMetaTags({
     title: "Docs - UnClick",
     ogTitle: "Docs - UnClick",
-    ogDescription: "API reference for all 110 UnClick tools. One key, instant access for Claude, ChatGPT, and any MCP-compatible agent.",
+    ogDescription: `API reference for all ${SITE_STATS.TOOL_FILES} UnClick tools. One key, instant access for Claude, ChatGPT, and any MCP-compatible agent.`,
     ogUrl: "https://unclick.world/docs",
   });
   return (
@@ -157,7 +158,7 @@ const DocsPage = () => {
       </FadeIn>
       <FadeIn delay={0.05}>
         <p className="mt-4 max-w-2xl text-body text-lg leading-relaxed">
-          Connect your AI agent once and it gets access to 139+ tools across eight categories. Here's what each one does.
+          Connect your AI agent once and it gets access to {SITE_STATS.TOOLS_DISPLAY} tools across eight categories. Here's what each one does.
         </p>
       </FadeIn>
 
