@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { SITE_STATS } from "@/config/site-stats";
 import {
   Github,
   Database,
@@ -158,20 +159,17 @@ const STEPS = [
   {
     number: "01",
     title: "Install UnClick",
-    code: "npx @unclick/mcp-server",
-    desc: "One npm command. Your AI gets 4 tools instantly. No config files, no setup wizard.",
+    desc: `One install. Your AI gets instant access to ${SITE_STATS.TOOLS_DISPLAY} tools across every category. Text, data, media, finance, social, security, and more.`,
   },
   {
     number: "02",
     title: "Connect your platforms",
-    code: 'unclick_call("keychain_connect", { platform: "github", apiKey: "..." })',
-    desc: "Your agent calls keychain_connect with your API key. Encrypted, validated, stored. One call per platform.",
+    desc: `Tell your AI which platforms you use. It connects them securely in seconds. GitHub, Stripe, Supabase, Vercel, Slack, and ${SITE_STATS.PLATFORMS_DISPLAY} more.`,
   },
   {
     number: "03",
     title: "Your AI just works",
-    code: 'unclick_call("github_list_repos", {})',
-    desc: "Every tool call is authenticated automatically. You never think about credentials again.",
+    desc: "From now on, your AI handles everything. Platform connections stay active, credentials are encrypted, and every tool works without you lifting a finger.",
   },
 ];
 
@@ -228,10 +226,10 @@ export default function BackstagePassPage() {
   useMetaTags({
     title: "BackstagePass - Your AI's Backstage Pass | UnClick",
     description:
-      "Connect your platforms once. Your AI agent handles the rest. BackstagePass is UnClick's encrypted credential vault for AI agents - supporting 20+ platforms.",
+      `Connect your platforms once. Your AI agent handles the rest. BackstagePass is UnClick's encrypted credential vault for AI agents - supporting ${SITE_STATS.PLATFORMS_DISPLAY} platforms.`,
     ogTitle: "BackstagePass - Your AI's Backstage Pass | UnClick",
     ogDescription:
-      "Connect once. Your agent handles the rest. No more hunting for API keys. 20+ platforms, AES-256-GCM encryption.",
+      `Connect once. Your agent handles the rest. No more hunting for API keys. ${SITE_STATS.PLATFORMS_DISPLAY} platforms, AES-256-GCM encryption.`,
     ogUrl: "https://unclick.world/backstagepass",
   });
 
@@ -301,7 +299,7 @@ export default function BackstagePassPage() {
         </FadeIn>
         <FadeIn delay={0.2}>
           <p className="mt-6 text-xs text-muted-foreground">
-            20+ platforms supported. More every week.
+            {SITE_STATS.PLATFORMS_DISPLAY} platforms supported. More every week.
           </p>
         </FadeIn>
       </section>
@@ -323,15 +321,6 @@ export default function BackstagePassPage() {
                 <span className="font-mono text-3xl font-bold text-primary/40">{step.number}</span>
                 <h3 className="mt-4 text-base font-semibold text-heading">{step.title}</h3>
                 <p className="mt-2 flex-1 text-sm text-body leading-relaxed">{step.desc}</p>
-                <div className="mt-4 overflow-hidden rounded-lg border border-border/30 bg-[#0d0d0d]">
-                  <div className="flex items-center justify-between border-b border-border/20 px-3 py-1.5">
-                    <span className="font-mono text-[10px] text-muted-foreground">terminal</span>
-                    <CopyButton code={step.code} />
-                  </div>
-                  <pre className="overflow-x-auto px-3 py-2.5">
-                    <code className="font-mono text-[11px] leading-relaxed text-body">{step.code}</code>
-                  </pre>
-                </div>
               </div>
             </FadeIn>
           ))}

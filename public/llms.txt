@@ -1,5 +1,6 @@
 # UnClick
-> The app store for AI agents. 139+ tools across social, finance, dev, security, and more.
+# Update counts from src/config/site-stats.ts
+> The app store for AI agents. 172+ tools across social, finance, dev, security, and more.
 
 ## What is UnClick
 UnClick is an MCP-compatible tool marketplace where AI agents discover and use tools through a single install. One npm package gives access to 450+ callable endpoints across 60+ integrations. No per-tool installs. No configuration per service.

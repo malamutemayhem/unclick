@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { SITE_STATS } from "@/config/site-stats";
 import FadeIn from "./FadeIn";
 import ApiKeySignup from "./ApiKeySignup";
 import { motion } from "framer-motion";
@@ -69,7 +70,7 @@ const steps = [
   {
     n: "2",
     label: "Copy the prompt or config",
-    detail: "Pick your install method below. Your key is already inserted. One copy-paste connects all 172+ tools.",
+    detail: `Pick your install method below. Your key is already inserted. One copy-paste connects all ${SITE_STATS.TOOLS_DISPLAY} tools.`,
   },
   {
     n: "3",
