@@ -292,6 +292,12 @@ export default function BackstagePassPage() {
               Get Started
             </a>
             <Link
+              to="/backstagepass/manage"
+              className="rounded-md border border-primary/40 bg-primary/10 px-6 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+            >
+              Manage Connections
+            </Link>
+            <Link
               to="/docs"
               className="rounded-md border border-border/60 bg-card/20 px-6 py-2.5 text-sm font-medium text-heading transition-colors hover:bg-card/40"
             >
