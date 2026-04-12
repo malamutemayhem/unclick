@@ -16,7 +16,7 @@ import ArenaLeaderboard from "./pages/arena/ArenaLeaderboard.tsx";
 import ArenaSubmitProblem from "./pages/arena/ArenaSubmitProblem.tsx";
 import FAQPage from "./pages/FAQPage.tsx";
 import SettingsPage from "./pages/Settings.tsx";
-import ConnectPage  from "./pages/Connect.tsx";
+import ConnectPage from "./pages/Connect.tsx";
 import DevelopersPage from "./pages/Developers.tsx";
 import DeveloperDocsPage from "./pages/DeveloperDocs.tsx";
 import DeveloperSubmitPage from "./pages/DeveloperSubmit.tsx";
@@ -26,6 +26,12 @@ import PrivacyPage from "./pages/Privacy.tsx";
 import BackstagePassPage from "./pages/BackstagePass.tsx";
 import MemoryPage from "./pages/Memory.tsx";
 import PricingPage from "./pages/Pricing.tsx";
+import OrganiserPage from "./pages/Organiser.tsx";
+import DispatchPage from "./pages/Dispatch.tsx";
+import CrewsPage from "./pages/Crews.tsx";
+import ToolsPage from "./pages/Tools.tsx";
+import NewToAIPage from "./pages/NewToAI.tsx";
+import SmartHomePage from "./pages/SmartHome.tsx";
 
 const queryClient = new QueryClient();
 
@@ -58,8 +64,14 @@ const App = () => (
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/backstagepass" element={<BackstagePassPage />} />
-          {/* New ecosystem pages */}
+          {/* Core product pages */}
+          <Route path="/tools" element={<ToolsPage />} />
           <Route path="/memory" element={<MemoryPage />} />
+          <Route path="/organiser" element={<OrganiserPage />} />
+          <Route path="/dispatch" element={<DispatchPage />} />
+          <Route path="/crews" element={<CrewsPage />} />
+          <Route path="/new-to-ai" element={<NewToAIPage />} />
+          <Route path="/smarthome" element={<SmartHomePage />} />
           <Route path="/pricing" element={<PricingPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
