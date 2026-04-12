@@ -24,6 +24,8 @@ import VibeCodingPage from "./pages/VibeCoding.tsx";
 import TermsPage from "./pages/Terms.tsx";
 import PrivacyPage from "./pages/Privacy.tsx";
 import BackstagePassPage from "./pages/BackstagePass.tsx";
+import MemoryPage from "./pages/Memory.tsx";
+import PricingPage from "./pages/Pricing.tsx";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +58,9 @@ const App = () => (
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/backstagepass" element={<BackstagePassPage />} />
+          {/* New ecosystem pages */}
+          <Route path="/memory" element={<MemoryPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
