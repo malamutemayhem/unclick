@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Key, Brain } from "lucide-react";
+import { Wrench, Brain, Calendar, Users, Trophy, Sparkles } from "lucide-react";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -10,10 +10,12 @@ const Navbar = () => {
   const installHref = isHome ? "#install" : "/#install";
 
   const navLinks = [
-    { label: "Tools", href: isHome ? "#tools" : "/#tools", anchor: true },
+    { label: "Start Here", href: "/new-to-ai", icon: Sparkles },
+    { label: "Tools", href: "/tools", icon: Wrench },
     { label: "Memory", href: "/memory", icon: Brain },
-    { label: "BackstagePass", href: "/backstagepass", icon: Key },
-    { label: "Arena", href: "/arena" },
+    { label: "Organiser", href: "/organiser", icon: Calendar },
+    { label: "Crews", href: "/crews", icon: Users },
+    { label: "Arena", href: "/arena", icon: Trophy },
     { label: "Pricing", href: "/pricing" },
     { label: "Docs", href: "/docs" },
   ];
@@ -28,15 +30,7 @@ const Navbar = () => {
         {/* Desktop nav */}
         <div className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) =>
-            link.anchor ? (
-              <a
-                key={link.label}
-                href={link.href}
-                className="text-sm text-body transition-colors hover:text-heading"
-              >
-                {link.label}
-              </a>
-            ) : (
+            link.icon ? (
               <Link
                 key={link.label}
                 to={link.href}
@@ -46,7 +40,19 @@ const Navbar = () => {
                     : "text-body"
                 }`}
               >
-                {link.icon && <link.icon className="h-3.5 w-3.5 shrink-0" />}
+                <link.icon className="h-3.5 w-3.5 shrink-0" />
+                {link.label}
+              </Link>
+            ) : (
+              <Link
+                key={link.label}
+                to={link.href}
+                className={`text-sm transition-colors hover:text-heading ${
+                  pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href))
+                    ? "text-heading"
+                    : "text-body"
+                }`}
+              >
                 {link.label}
               </Link>
             )
@@ -98,15 +104,16 @@ const Navbar = () => {
           >
             <div className="flex flex-col gap-1 px-6 py-4">
               {navLinks.map((link) =>
-                link.anchor ? (
-                  <a
+                link.icon ? (
+                  <Link
                     key={link.label}
-                    href={link.href}
+                    to={link.href}
                     onClick={() => setOpen(false)}
-                    className="py-2 text-sm text-body transition-colors hover:text-heading"
+                    className="flex items-center gap-2 py-2 text-sm text-body transition-colors hover:text-heading"
                   >
+                    <link.icon className="h-3.5 w-3.5 shrink-0" />
                     {link.label}
-                  </a>
+                  </Link>
                 ) : (
                   <Link
                     key={link.label}
