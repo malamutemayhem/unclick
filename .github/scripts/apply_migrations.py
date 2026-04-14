@@ -43,6 +43,10 @@ def run_sql(sql: str) -> list[dict] | None:
         headers={
             "Authorization": f"Bearer {ACCESS_TOKEN}",
             "Content-Type": "application/json",
+            # Cloudflare (which fronts api.supabase.com) blocks the default
+            # Python-urllib UA with error 1010. Any normal UA is fine.
+            "User-Agent": "unclick-migrations/1.0 (+github-actions)",
+            "Accept": "application/json",
         },
         method="POST",
     )
