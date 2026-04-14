@@ -305,7 +305,7 @@ const Tools = () => {
                     e.preventDefault();
                     document.getElementById(cat.id)?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="group relative rounded-xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm transition-all hover:border-primary/30 hover:bg-card/80 cursor-pointer"
+                  className="group relative block h-full rounded-xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm transition-all hover:border-primary/30 hover:bg-card/80 cursor-pointer"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
