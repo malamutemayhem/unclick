@@ -72,6 +72,70 @@ function isValidApiKeyShape(key: unknown): key is string {
 
 const TICKET_TTL_HOURS = 24;
 
+// SQL the endpoint self-heals to on cold start if the table is missing.
+// Mirrors supabase/migrations/20260414100000_install_tickets.sql.
+const SCHEMA_SQL = `
+CREATE TABLE IF NOT EXISTS install_tickets (
+  ticket        TEXT        PRIMARY KEY,
+  api_key       TEXT        NOT NULL,
+  expires_at    TIMESTAMPTZ NOT NULL,
+  redeemed_at   TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_install_tickets_api_key
+  ON install_tickets(api_key);
+CREATE INDEX IF NOT EXISTS idx_install_tickets_expires
+  ON install_tickets(expires_at)
+  WHERE redeemed_at IS NULL;
+ALTER TABLE install_tickets ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename  = 'install_tickets'
+      AND policyname = 'No direct access'
+  ) THEN
+    CREATE POLICY "No direct access" ON install_tickets
+      USING (false)
+      WITH CHECK (false);
+  END IF;
+END $$;
+`;
+
+let schemaChecked = false;
+
+async function ensureSchema(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+): Promise<void> {
+  if (schemaChecked) return;
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/exec_sql`, {
+      method: "POST",
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sql: SCHEMA_SQL }),
+    });
+    if (res.ok) {
+      schemaChecked = true;
+    } else {
+      // exec_sql may not exist on the project; log once but don't block. The
+      // migration can still be applied manually via the SQL editor.
+      const text = await res.text().catch(() => "");
+      console.warn(
+        "[install-ticket] ensureSchema non-ok response:",
+        res.status,
+        text.slice(0, 200),
+      );
+    }
+  } catch (err) {
+    console.warn("[install-ticket] ensureSchema failed:", err);
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -89,6 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "Database service unavailable" });
   }
   const supabase = createClient(supabaseUrl, supabaseKey);
+  await ensureSchema(supabaseUrl, supabaseKey);
 
   const body = (req.body ?? {}) as Record<string, unknown>;
   const action = body.action;
