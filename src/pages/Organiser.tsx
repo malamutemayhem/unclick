@@ -20,7 +20,7 @@ import {
 const FEATURES = [
   {
     title: "Calendar Sync",
-    desc: "Google, Outlook, Apple â unified behind a single MCP interface",
+    desc: "Google, Outlook, Apple - unified behind a single MCP interface",
     icon: Calendar,
   },
   {
@@ -30,7 +30,7 @@ const FEATURES = [
   },
   {
     title: "Booking Pages",
-    desc: "Share your availability. Let anyone book a slot â like Calendly, but AI-native",
+    desc: "Share your availability. Let anyone book a slot - like Calendly, but AI-native",
     icon: LinkIcon,
   },
   {
@@ -108,9 +108,9 @@ const COMPARISON = [
   {
     feature: "Price",
     unclick: "Free / $29 Pro",
-    calendly: "$12â$20/mo",
-    cal: "Freeâ$120/mo",
-    notion: "$10â$20/mo",
+    calendly: "$12 - $20/mo",
+    cal: "Free - $120/mo",
+    notion: "$10 - $20/mo",
   },
 ];
 
@@ -144,7 +144,7 @@ const Organiser = () => {
           <FadeIn delay={0.1}>
             <p className="mt-4 text-lg text-body max-w-xl mx-auto leading-relaxed">
               UnClick Organiser syncs your Google, Outlook, and Apple calendars
-              into a single AI-powered view â with smart tasks, booking pages,
+              into a single AI-powered view - with smart tasks, booking pages,
               and daily briefings built in.
             </p>
           </FadeIn>

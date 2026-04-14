@@ -213,7 +213,7 @@ const Memory = () => {
           <FadeIn delay={0.1}>
             <p className="mt-4 text-body max-w-xl mx-auto leading-relaxed">
               UnClick Memory stores everything in YOUR Supabase instance. We never see your data.
-              If you leave, your data stays—it’s already yours.
+              If you leave, your data stays - it’s already yours.
             </p>
           </FadeIn>
           <FadeIn delay={0.15}>

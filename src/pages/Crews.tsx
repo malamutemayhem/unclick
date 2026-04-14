@@ -132,7 +132,7 @@ const Crews = () => {
 
           <FadeIn delay={0.1}>
             <p className="mt-4 text-lg text-body max-w-2xl mx-auto leading-relaxed">
-              UnClick Crews lets you define AI agent personas â each with their own tools, memory context, and expertise.
+              UnClick Crews lets you define AI agent personas - each with their own tools, memory context, and expertise.
               A developer, a researcher, a writer, an organiser. They collaborate through Claude's Agent Teams, powered by
               UnClick's 172+ MCP tools.
             </p>
@@ -305,7 +305,7 @@ const Crews = () => {
           <FadeIn delay={0.1}>
             <p className="mt-4 text-body max-w-xl mx-auto leading-relaxed">
               CrewAI builds abstractions. AutoGen builds frameworks. LangGraph builds graphs.
-              UnClick Crews doesn't reinvent tooling â it uses the tools you already have through MCP.
+              UnClick Crews doesn't reinvent tooling - it uses the tools you already have through MCP.
               No new abstractions, no vendor lock-in. Your agents use the same tools a human would.
             </p>
           </FadeIn>

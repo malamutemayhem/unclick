@@ -22,28 +22,28 @@ const FEATURES = [
     title: "Tools",
     subtitle: "The toolbox",
     icon: Wrench,
-    analogy: "Like giving your assistant access to email, calendar, weather, news, and 172 other services. They can check the weather, search Amazon, look up stocks, and more — without you doing it manually.",
+    analogy: "Like giving your assistant access to email, calendar, weather, news, and 172 other services. They can check the weather, search Amazon, look up stocks, and more - without you doing it manually.",
   },
   {
     id: "memory",
     title: "Memory",
     subtitle: "The filing cabinet",
     icon: Brain,
-    analogy: "AI assistants normally forget everything between conversations. Memory is like giving them a notebook that carries over — they remember your preferences, past decisions, and ongoing projects.",
+    analogy: "AI assistants normally forget everything between conversations. Memory is like giving them a notebook that carries over - they remember your preferences, past decisions, and ongoing projects.",
   },
   {
     id: "organiser",
     title: "Organiser",
     subtitle: "The day planner",
     icon: Calendar,
-    analogy: "Your AI can see your calendar across Google, Outlook, and Apple. It can schedule meetings, create to-do lists, and give you a morning briefing — all from one place.",
+    analogy: "Your AI can see your calendar across Google, Outlook, and Apple. It can schedule meetings, create to-do lists, and give you a morning briefing - all from one place.",
   },
   {
     id: "backstagepass",
     title: "BackstagePass",
     subtitle: "The keys to the office",
     icon: Key,
-    analogy: "Some tools need passwords and API keys. BackstagePass keeps those credentials safe and hands them to your AI only when needed — like a secure key card system.",
+    analogy: "Some tools need passwords and API keys. BackstagePass keeps those credentials safe and hands them to your AI only when needed - like a secure key card system.",
   },
 ];
 
@@ -67,11 +67,11 @@ const FAQ = [
   },
   {
     q: "What AI does it work with?",
-    a: "UnClick works with Claude (by Anthropic), and any AI that supports MCP — a universal standard for AI tools.",
+    a: "UnClick works with Claude (by Anthropic), and any AI that supports MCP - a universal standard for AI tools.",
   },
   {
     q: "What's MCP?",
-    a: "Model Context Protocol. Think of it as a universal adapter — like how USB-C lets you plug any charger into any phone. MCP lets any AI use any tool.",
+    a: "Model Context Protocol. Think of it as a universal adapter - like how USB-C lets you plug any charger into any phone. MCP lets any AI use any tool.",
   },
   {
     q: "Is it safe?",
@@ -89,7 +89,7 @@ const HowItWorks = [
   {
     step: 2,
     title: "AI uses UnClick's tools",
-    desc: "Behind the scenes, the AI uses UnClick to actually do the task — like a personal assistant making calls on your behalf.",
+    desc: "Behind the scenes, the AI uses UnClick to actually do the task - like a personal assistant making calls on your behalf.",
     icon: Zap,
   },
   {
@@ -161,7 +161,7 @@ const NewToAI = () => {
 
           <FadeIn delay={0.1}>
             <p className="mt-4 text-lg text-body max-w-2xl mx-auto leading-relaxed">
-              UnClick gives AI assistants the tools they need to help you — like giving a new employee the keys to the office, a phone, and a filing cabinet.
+              UnClick gives AI assistants the tools they need to help you - like giving a new employee the keys to the office, a phone, and a filing cabinet.
             </p>
           </FadeIn>
 
@@ -319,7 +319,7 @@ const NewToAI = () => {
                 <Lock className="h-6 w-6 text-primary shrink-0" />
               </div>
               <p className="text-body leading-relaxed">
-                Your data stays yours. UnClick doesn't store your conversations, read your emails, or sell your information. The tools just pass information between you and the services you already use — like a translator, not a spy.
+                Your data stays yours. UnClick doesn't store your conversations, read your emails, or sell your information. The tools just pass information between you and the services you already use - like a translator, not a spy.
               </p>
             </div>
           </FadeIn>

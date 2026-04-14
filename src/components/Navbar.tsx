@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wrench, Brain, Calendar, Users, Trophy } from "lucide-react";
+import { Wrench, Brain, Calendar, Users, Trophy, HelpCircle } from "lucide-react";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -17,6 +17,7 @@ const Navbar = () => {
     { label: "Arena", href: "/arena", icon: Trophy },
     { label: "Pricing", href: "/pricing" },
     { label: "Docs", href: "/docs" },
+    { label: "New to AI?", href: "/new-to-ai", icon: HelpCircle },
   ];
 
   return (

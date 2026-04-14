@@ -165,7 +165,7 @@ const CATEGORIES = [
     name: "Dev & Infra",
     icon: Terminal,
     count: 8,
-    desc: "GitHub, Vercel, Cloudflare â manage repos, deployments, and infrastructure.",
+    desc: "GitHub, Vercel, Cloudflare - manage repos, deployments, and infrastructure.",
     tools: ["github_list_repos", "vercel_list_projects"],
   },
   {
@@ -182,7 +182,7 @@ const CATEGORIES = [
     name: "Smart Home",
     icon: Home,
     count: 87,
-    desc: "Home Assistant control â lights, locks, thermostats, cameras, automations, and 2,000+ device integrations.",
+    desc: "Home Assistant control - lights, locks, thermostats, cameras, automations, and 2,000+ device integrations.",
     tools: ["control_device", "get_entity_state", "trigger_automation"],
     featured: true,
   },
@@ -260,7 +260,7 @@ const Tools = () => {
 
           <FadeIn delay={0.1}>
             <p className="mt-4 text-lg text-body max-w-xl mx-auto leading-relaxed">
-              Every tool your AI agent needs â weather, email, finance, security, social media, gaming, and more. All accessible through a single MCP server. No API keys to manage. No rate limits to worry about.
+              Every tool your AI agent needs - weather, email, finance, security, social media, gaming, and more. All accessible through a single MCP server. No API keys to manage. No rate limits to worry about.
             </p>
           </FadeIn>
 
@@ -346,7 +346,7 @@ const Tools = () => {
               <h2 className="text-2xl font-semibold tracking-tight">Email Tools</h2>
             </div>
             <p className="text-body mt-2 max-w-2xl">
-              AI-powered email management. Search, read, send, and organize â all through natural language.
+              AI-powered email management. Search, read, send, and organize - all through natural language.
             </p>
           </FadeIn>
 

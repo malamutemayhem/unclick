@@ -29,7 +29,7 @@ import {
 const FEATURES = [
   {
     title: "Device Control",
-    desc: "Lights, locks, thermostats, speakers, blinds â control every device with natural language",
+    desc: "Lights, locks, thermostats, speakers, blinds - control every device with natural language",
     icon: Lightbulb,
   },
   {
@@ -39,7 +39,7 @@ const FEATURES = [
   },
   {
     title: "State Queries",
-    desc: "\"Is the garage door open?\" \"What's the living room temperature?\" â instant answers",
+    desc: "\"Is the garage door open?\" \"What's the living room temperature?\" - instant answers",
     icon: Eye,
   },
   {
@@ -92,12 +92,12 @@ const HOW_IT_WORKS = [
   {
     step: "2",
     title: "Add to your config",
-    desc: "One entry in your MCP config alongside your other UnClick servers. Works with Claude, Cursor, Cowork â anything MCP-compatible.",
+    desc: "One entry in your MCP config alongside your other UnClick servers. Works with Claude, Cursor, Cowork - anything MCP-compatible.",
   },
   {
     step: "3",
     title: "Talk to your home",
-    desc: "\"Turn off all the lights downstairs\", \"Set the thermostat to 21Â°\", \"Show me the front door camera\" â all through natural language.",
+    desc: "\"Turn off all the lights downstairs\", \"Set the thermostat to 21Â°\", \"Show me the front door camera\" - all through natural language.",
   },
 ];
 
@@ -227,13 +227,13 @@ export default function SmartHomePage() {
               Alexa and Google Home can turn on a light, but they can't
               reason. They don't know you have a meeting at 9am and should
               warm the office at 8:45. They can't check your calendar, dim
-              the lights for a film, and pause notifications â all from one
+              the lights for a film, and pause notifications - all from one
               request. They're voice-activated switches, not intelligent
               agents.
             </p>
             <p className="mt-4 max-w-3xl text-body leading-relaxed">
               UnClick + Home Assistant changes this. Your AI agent has full
-              context â your schedule from Organiser, your preferences from
+              context - your schedule from Organiser, your preferences from
               Memory, your devices from Home Assistant. It doesn't just
               follow commands. It understands what you need.
             </p>
@@ -476,28 +476,28 @@ export default function SmartHomePage() {
                       {row.unclick ? (
                         <span className="text-green-400">â</span>
                       ) : (
-                        <span className="text-muted-foreground">â</span>
+                        <span className="text-muted-foreground"> - </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {row.alexa ? (
                         <span className="text-green-400">â</span>
                       ) : (
-                        <span className="text-muted-foreground">â</span>
+                        <span className="text-muted-foreground"> - </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {row.google ? (
                         <span className="text-green-400">â</span>
                       ) : (
-                        <span className="text-muted-foreground">â</span>
+                        <span className="text-muted-foreground"> - </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {row.apple ? (
                         <span className="text-green-400">â</span>
                       ) : (
-                        <span className="text-muted-foreground">â</span>
+                        <span className="text-muted-foreground"> - </span>
                       )}
                     </td>
                   </tr>

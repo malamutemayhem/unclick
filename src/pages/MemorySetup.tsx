@@ -4,10 +4,10 @@
  * BYOD (Bring Your Own Database) flow for connecting UnClick Memory to the
  * user's own Supabase project. Designed for the fewest-possible clicks:
  *
- *   Step 1 (Account)     - confirm / edit email, copy API key to clipboard
- *   Step 2 (Supabase)    - one paste of the service_role key; the URL is
+ *   Step 1 (Account) - confirm / edit email, copy API key to clipboard
+ *   Step 2 (Supabase) - one paste of the service_role key; the URL is
  *                          auto-extracted from the JWT payload
- *   Step 3 (Done)        - drop-in MCP config snippet + success state
+ *   Step 3 (Done) - drop-in MCP config snippet + success state
  *
  * If the serverless fn couldn't run the schema automatically (exec_sql RPC
  * isn't always available), we surface the SQL for a one-click copy-paste
@@ -239,7 +239,7 @@ export default function MemorySetupPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={!emailEditable}
-                      placeholder={emailEditable ? "you@example.com" : "—"}
+                      placeholder={emailEditable ? "you@example.com" : " - "}
                       className="flex-1"
                     />
                     <Button
@@ -331,7 +331,7 @@ export default function MemorySetupPage() {
                   />
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
                     Paste the key that starts with <span className="font-mono">eyJ</span>. NOT the anon
-                    key — we need service_role to create tables.
+                    key - we need service_role to create tables.
                   </p>
                 </div>
 

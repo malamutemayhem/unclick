@@ -63,7 +63,7 @@ const TIERS = [
 const FAQ_ITEMS = [
   {
     q: "What happens to my data if I cancel?",
-    a: "It stays in your database. It's yours. We never store your memory data — only your encrypted connection string.",
+    a: "It stays in your database. It's yours. We never store your memory data - only your encrypted connection string.",
   },
   {
     q: "Can I start free and upgrade later?",

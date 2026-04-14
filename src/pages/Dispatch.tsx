@@ -28,7 +28,7 @@ const DISPATCH_FEATURES = [
   },
   {
     title: "Session Bridge",
-    desc: "End one session, start another â context preserved",
+    desc: "End one session, start another - context preserved",
     icon: RefreshCw,
   },
   {
@@ -72,7 +72,7 @@ const SETUP_STEPS = [
   {
     step: 2,
     title: "Add CLAUDE.md to project root",
-    desc: "Session bridge protocol â context travels between environments",
+    desc: "Session bridge protocol - context travels between environments",
   },
   {
     step: 3,
