@@ -29,6 +29,7 @@ ALTER TABLE install_tickets ENABLE ROW LEVEL SECURITY;
 
 -- No direct client access; all reads/writes go through service-role in
 -- /api/install-ticket.
+DROP POLICY IF EXISTS "No direct access" ON install_tickets;
 CREATE POLICY "No direct access" ON install_tickets
   USING (false)
   WITH CHECK (false);
