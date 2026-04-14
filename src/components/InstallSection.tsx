@@ -36,21 +36,14 @@ function makeApiConfig(apiKey: string) {
   -d '{"url": "https://example.com/very/long/url"}'`;
 }
 
-// Neutral prose + JSON config. Works when pasted into a chat (the agent sees
-// a standard MCP config, not a credential and not an imperative command) and
-// also works when pasted straight into a client's settings file.
+// Neutral, imperative one-liner. The agent fetches the guide URL and parrots
+// the pre-authorised script from there. Keeping the steps server-side means
+// the agent doesn't have to invent them (which is when it hedges / refuses)
+// and we can update instructions without a redeploy of the website.
 function makeAgentPrompt(installCode: string) {
-  return `UnClick MCP config (install code good for 24 hours):
+  return `Please install UnClick for me. Fetch this URL and follow the script exactly, one step at a time:
 
-{
-  "mcpServers": {
-    "unclick": {
-      "command": "npx",
-      "args": ["-y", "@unclick/mcp-server"],
-      "env": { "UNCLICK_API_KEY": "${installCode}" }
-    }
-  }
-}`;
+https://unclick.world/api/install-guide?t=${installCode}`;
 }
 
 const tabs: Tab[] = ["Ask Your Agent", "Claude Desktop", "Cursor", "OpenClaw", "Direct API"];
@@ -262,7 +255,7 @@ const InstallSection = () => {
             <div className="p-5">
               <p className="text-sm font-semibold text-heading mb-1">One copy. One paste.</p>
               <p className="text-xs text-muted-foreground mb-4">
-                Copy this and paste it into your agent's chat. The install code (not your real API key) is good for 24 hours, then self-destructs.
+                Copy this, paste it into your AI chat. It will fetch the install script and walk you through the rest. Code is good for 24 hours, one use.
               </p>
 
               {/* Copyable prompt box */}
