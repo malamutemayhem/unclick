@@ -43,7 +43,7 @@ function makeApiConfig(apiKey: string) {
 function makeAgentPrompt(installCode: string) {
   return `Please install UnClick for me. Fetch this URL and follow the script exactly, one step at a time:
 
-https://unclick.world/api/install-guide?t=${installCode}`;
+https://unclick.world/api/install-ticket?t=${installCode}`;
 }
 
 const tabs: Tab[] = ["Ask Your Agent", "Claude Desktop", "Cursor", "OpenClaw", "Direct API"];
