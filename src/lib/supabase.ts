@@ -1,9 +1,15 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Fall back to harmless placeholders so the module doesn't throw at load time
+// on preview deploys that don't have the env vars set. Any runtime call will
+// still fail, but it'll fail where it can be caught instead of blanking the app.
+export const supabase = createClient(
+  supabaseUrl || "https://placeholder.supabase.co",
+  supabaseAnonKey || "placeholder-anon-key",
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SQL MIGRATIONS: run in Supabase dashboard (SQL Editor)
