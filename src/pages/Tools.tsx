@@ -267,10 +267,10 @@ const Tools = () => {
           <FadeIn delay={0.2}>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
-                to="/pricing"
+                to="/#install"
                 className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
               >
-                Get API Key
+                Get Started Free
               </Link>
               <a
                 href="#categories"
@@ -527,41 +527,6 @@ const Tools = () => {
         </div>
       </section>
 
-      {/* Setup Section */}
-      <section className="px-6 py-16 bg-card/30">
-        <div className="mx-auto max-w-3xl">
-          <FadeIn>
-            <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl">
-              Add 172+ tools in one line
-            </h2>
-            <p className="mt-3 text-center text-body max-w-xl mx-auto">
-              No configuration. No dependencies. One command to access everything.
-            </p>
-          </FadeIn>
-
-          <FadeIn delay={0.1}>
-            <div className="mt-8 rounded-xl border border-border/60 bg-[#1e1e2e] p-5 font-mono text-xs text-green-400 overflow-x-auto">
-              <div className="text-muted-foreground mb-2">~/.claude/mcp.json</div>
-              <pre>{`{
-  "mcpServers": {
-    "unclick": {
-      "command": "npx",
-      "args": ["-y", "@unclick/mcp-server"],
-      "env": { "UNCLICK_API_KEY": "your-key" }
-    }
-  }
-}`}</pre>
-            </div>
-          </FadeIn>
-
-          <FadeIn delay={0.15}>
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              Works with Cowork, Claude Code, Cursor, and any MCP client.
-            </p>
-          </FadeIn>
-        </div>
-      </section>
-
       {/* Final CTA */}
       <section className="px-6 py-20">
         <div className="mx-auto max-w-2xl text-center">
@@ -574,7 +539,7 @@ const Tools = () => {
           <FadeIn delay={0.1}>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
-                to="/pricing"
+                to="/#install"
                 className="rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
               >
                 Get Started Free

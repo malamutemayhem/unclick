@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wrench, Brain, Calendar, Users, Trophy, Sparkles } from "lucide-react";
+import { Wrench, Brain, Calendar, Users, Trophy } from "lucide-react";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -10,7 +10,6 @@ const Navbar = () => {
   const installHref = isHome ? "#install" : "/#install";
 
   const navLinks = [
-    { label: "Start Here", href: "/new-to-ai", icon: Sparkles },
     { label: "Tools", href: "/tools", icon: Wrench },
     { label: "Memory", href: "/memory", icon: Brain },
     { label: "Organiser", href: "/organiser", icon: Calendar },
@@ -22,13 +21,13 @@ const Navbar = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
-      <div className="container mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
-        <Link to="/">
+      <div className="container mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-6">
+        <Link to="/" className="shrink-0">
           <img src="/logo-wordmark.svg" alt="UnClick" style={{ height: "3.3rem" }} className="w-auto pt-2 pb-[3px]" />
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) =>
             link.icon ? (
               <Link
@@ -62,7 +61,7 @@ const Navbar = () => {
         <div className="flex items-center gap-3">
           <a
             href={installHref}
-            className="hidden rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:block"
+            className="hidden whitespace-nowrap rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:block"
           >
             Get Started Free
           </a>
