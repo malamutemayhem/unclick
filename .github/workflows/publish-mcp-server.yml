@@ -2,8 +2,11 @@ name: Publish MCP server
 
 # Auto-publishes @unclick/mcp-server to npm whenever files under
 # packages/mcp-server/ change on main. Bumps the patch version, pushes the
-# version bump commit back, then publishes. One-time setup: set the
-# NPM_TOKEN repository secret to an "Automation" type npm token.
+# version bump commit back, then publishes. Skips if the last commit is
+# itself the bot bump ([skip ci]).
+#
+# One-time setup: set the NPM_TOKEN repo secret to an "Automation" type
+# npm token (Bypass 2FA).
 
 on:
   push:
@@ -11,13 +14,17 @@ on:
     paths:
       - "packages/mcp-server/**"
       - ".github/workflows/publish-mcp-server.yml"
-  workflow_dispatch: # lets you trigger manually from the Actions tab
+  workflow_dispatch:
+
+concurrency:
+  group: publish-mcp-server
+  cancel-in-progress: false
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # needed to push the version-bump commit back
+      contents: write
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -30,6 +37,7 @@ jobs:
         with:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
+          cache: "npm"
 
       - name: Skip if last commit was a bot version bump
         id: skip_check
@@ -41,15 +49,19 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Install dependencies
+      - name: Install (workspace aware)
         if: steps.skip_check.outputs.skip == 'false'
-        working-directory: packages/mcp-server
-        run: npm install
+        run: npm ci --no-audit --no-fund
 
       - name: Build
         if: steps.skip_check.outputs.skip == 'false'
         working-directory: packages/mcp-server
         run: npm run build
+
+      - name: Verify package contents
+        if: steps.skip_check.outputs.skip == 'false'
+        working-directory: packages/mcp-server
+        run: npm pack --dry-run
 
       - name: Configure git identity
         if: steps.skip_check.outputs.skip == 'false'
@@ -72,3 +84,20 @@ jobs:
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Verify published version
+        if: steps.skip_check.outputs.skip == 'false'
+        working-directory: packages/mcp-server
+        run: |
+          local_ver=$(node -p "require('./package.json').version")
+          echo "Published @unclick/mcp-server@${local_ver}"
+          # Give npm registry a moment to propagate, then confirm.
+          for i in 1 2 3 4 5; do
+            remote_ver=$(npm view @unclick/mcp-server version 2>/dev/null || echo "")
+            if [ "$remote_ver" = "$local_ver" ]; then
+              echo "Confirmed on registry."
+              exit 0
+            fi
+            sleep 4
+          done
+          echo "Warning: registry still shows ${remote_ver}, expected ${local_ver}"

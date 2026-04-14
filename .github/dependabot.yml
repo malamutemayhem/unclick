@@ -1,0 +1,46 @@
+version: 2
+
+# Keeps GH Actions and both npm package manifests fresh without the manual
+# "it's been a month, let me update npm packages" drudgery. PRs get opened
+# against main; CI validates them; you merge when green.
+
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels: [dependencies, ci]
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels: [dependencies, website]
+    open-pull-requests-limit: 5
+    groups:
+      radix:
+        patterns: ["@radix-ui/*"]
+      tanstack:
+        patterns: ["@tanstack/*"]
+      testing:
+        patterns:
+          - "@testing-library/*"
+          - "@playwright/*"
+          - "vitest"
+          - "jsdom"
+      eslint:
+        patterns:
+          - "eslint*"
+          - "@eslint/*"
+          - "typescript-eslint"
+
+  - package-ecosystem: npm
+    directory: "/packages/mcp-server"
+    schedule:
+      interval: weekly
+    labels: [dependencies, mcp-server]
+    open-pull-requests-limit: 5
+    groups:
+      types:
+        patterns: ["@types/*"]
