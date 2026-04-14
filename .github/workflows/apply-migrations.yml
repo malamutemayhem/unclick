@@ -9,10 +9,11 @@ name: Apply Supabase migrations
 #   SUPABASE_PROJECT_REF   - the xxxxx from xxxxx.supabase.co
 #   SUPABASE_DB_PASSWORD   - database password (Dashboard → Database → Settings)
 #
-# Connection note: we force the *session pooler* (port 5432) via an explicit
-# --db-url. The CLI's auto-selection sometimes picks the transaction pooler
-# (port 6543), which doesn't support the DDL operations migrations need and
-# returns a cryptic "unexpected EOF". Session pooler supports everything.
+# Connection note: we force the *transaction pooler* (port 6543) via an
+# explicit --db-url. The CLI's auto-selection was picking different pooler
+# modes across runs, causing flaky "unexpected EOF" errors. Transaction
+# pooler is universally available on Supabase; session pooler (5432)
+# returns "Tenant or user not found" if not enabled for the project.
 #
 # Self-healing: if the remote DB has legacy migrations that pre-date the repo's
 # migration directory, the CLI refuses to push. We catch that specific error,
@@ -50,7 +51,7 @@ jobs:
         run: |
           ENCODED_PW=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['SUPABASE_DB_PASSWORD'], safe=''))")
           HOST="aws-1-${SUPABASE_REGION}.pooler.supabase.com"
-          URL="postgresql://postgres.${SUPABASE_PROJECT_REF}:${ENCODED_PW}@${HOST}:5432/postgres"
+          URL="postgresql://postgres.${SUPABASE_PROJECT_REF}:${ENCODED_PW}@${HOST}:6543/postgres"
           # Mask the URL so the password can't leak in logs
           echo "::add-mask::$URL"
           echo "db_url=$URL" >> "$GITHUB_OUTPUT"
