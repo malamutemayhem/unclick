@@ -1,23 +1,22 @@
 name: Apply Supabase migrations
 
 # Runs any new SQL files under supabase/migrations/** against the production
-# Supabase project whenever they land on main. Removes the manual "open
-# the SQL editor and paste" step.
+# Supabase project whenever they land on main.
 #
-# One-time setup (GitHub repo → Settings → Secrets and variables → Actions):
+# Why the Management API and not the Supabase CLI:
+# The CLI has to go through the Supabase pooler (Supavisor), which on free
+# tier projects intermittently returns "Tenant or user not found" or trips
+# its circuit breaker after a few failures. The Management API
+# (api.supabase.com) talks to the database over Supabase's internal network,
+# bypassing the pooler entirely. No DB password, no URL encoding, no ports.
+#
+# One-time setup (GitHub → Settings → Secrets and variables → Actions):
 #   SUPABASE_ACCESS_TOKEN  - https://supabase.com/dashboard/account/tokens
 #   SUPABASE_PROJECT_REF   - the xxxxx from xxxxx.supabase.co
-#   SUPABASE_DB_PASSWORD   - database password (Dashboard → Database → Settings)
 #
-# Connection note: we force the *transaction pooler* (port 6543) via an
-# explicit --db-url. The CLI's auto-selection was picking different pooler
-# modes across runs, causing flaky "unexpected EOF" errors. Transaction
-# pooler is universally available on Supabase; session pooler (5432)
-# returns "Tenant or user not found" if not enabled for the project.
-#
-# Self-healing: if the remote DB has legacy migrations that pre-date the repo's
-# migration directory, the CLI refuses to push. We catch that specific error,
-# mark the orphans as reverted (bookkeeping only, DB data untouched), retry.
+# Bookkeeping: the workflow keeps a tiny `public._claude_migrations` table
+# listing which versions have been applied. New migrations run; already-applied
+# ones are skipped. Idempotent and re-runnable.
 
 on:
   push:
@@ -32,62 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-      SUPABASE_REGION: ap-southeast-2
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Link project
-        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
-
-      - name: Build explicit session-pooler URL
-        id: dburl
-        run: |
-          ENCODED_PW=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['SUPABASE_DB_PASSWORD'], safe=''))")
-          HOST="aws-1-${SUPABASE_REGION}.pooler.supabase.com"
-          URL="postgresql://postgres.${SUPABASE_PROJECT_REF}:${ENCODED_PW}@${HOST}:6543/postgres"
-          # Mask the URL so the password can't leak in logs
-          echo "::add-mask::$URL"
-          echo "db_url=$URL" >> "$GITHUB_OUTPUT"
-
-      - name: Push pending migrations (self-healing)
-        env:
-          DB_URL: ${{ steps.dburl.outputs.db_url }}
-        run: |
-          set +e
-          output=$(supabase db push --db-url "$DB_URL" --include-all --yes 2>&1)
-          status=$?
-          echo "$output"
-
-          if [ $status -eq 0 ]; then
-            echo "Migrations applied cleanly."
-            exit 0
-          fi
-
-          # Detect the orphan-migration case. If present, extract the list of
-          # version IDs the CLI wants marked reverted and repair them.
-          if echo "$output" | grep -q "Remote migration versions not found"; then
-            echo "Detected orphan legacy migrations on remote. Reconciling."
-            ids=$(echo "$output" \
-              | grep -oE 'supabase migration repair --status reverted [0-9 ]+' \
-              | head -1 \
-              | sed 's/supabase migration repair --status reverted //')
-            if [ -z "$ids" ]; then
-              echo "Could not extract migration IDs from CLI output. Bailing."
-              exit 1
-            fi
-            echo "Marking as reverted: $ids"
-            supabase migration repair --db-url "$DB_URL" --status reverted $ids || exit 1
-            echo "Retrying push."
-            supabase db push --db-url "$DB_URL" --include-all --yes
-            exit $?
-          fi
-
-          # Some other error. Surface it.
-          exit $status
+      - name: Apply pending migrations via Management API
+        run: python3 .github/scripts/apply_migrations.py
