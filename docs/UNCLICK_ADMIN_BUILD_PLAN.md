@@ -1,18 +1,37 @@
-# UNCLICK ADMIN SHELL + HOSTED MEMORY BUILD PLAN
+# UNCLICK ADMIN SHELL + HOSTED MEMORY BUILD PLAN (v2)
 
 **For execution by Claude Code**
 **Author: Chris Byrne (with Cowork strategy session, April 15, 2026)**
 **Repo: malamutemayhem/unclick-agent-native-endpoints**
-**Production branch: `claude/setup-malamute-mayhem-zkquO`**
+
+**v2 changelog (April 15, 2026):** Corrections folded in from a prior Claude Code exploration session that caught codebase drift in v1. See "CODEBASE GROUND TRUTH" below for the specifics.
 
 ---
 
 ## BEFORE YOU START
 
 1. Call `get_startup_context` to load Chris's full operating context (Bailey charter, standing rules, infrastructure details, etc.).
-2. Read `packages/memory-mcp/CLAUDE.md` for the session bridge protocol.
-3. Work on the production branch `claude/setup-malamute-mayhem-zkquO`. Do not push to `main`; it is stale.
+2. Read the project root `CLAUDE.md` for the session bridge protocol and current architecture notes. Do NOT read `packages/memory-mcp/CLAUDE.md`; that package is deprecated.
+3. **Branch:** If your harness has already cut a dedicated phase branch (something like `claude/phase-1-admin-build-*`), use it. Otherwise, cut a new branch off `claude/setup-malamute-mayhem-zkquO` named `claude/phase-N-<description>` for your phase. Do not push to `main`; it is stale.
 4. At the end of the session, call `write_session_summary` before leaving.
+
+---
+
+## CODEBASE GROUND TRUTH (READ BEFORE TOUCHING ANY FILE)
+
+These corrections override anything the older master context report says:
+
+1. **Active memory code lives in `packages/mcp-server/src/memory/`.** `packages/memory-mcp/` is DEPRECATED per the project root `CLAUDE.md`. Do not modify `packages/memory-mcp/`. Any reference in this plan to memory source files points to `packages/mcp-server/src/memory/`.
+
+2. **The tenant key is `api_key_hash`, not `user_id`.** The existing `memory_configs` table (see `supabase/migrations/20260414000000_memory_byod.sql`) uses `api_key_hash` as its join key. Use `api_key_hash` for all memory-layer tenancy. This keeps Phase 1 independent of Phase 2 auth.
+
+3. **`api_keys` already has `user_id UUID` and `tier TEXT DEFAULT 'free'`** (see `supabase/migrations/20260410100000_keychain_mvp.sql:1-13`). The `user_id` column exists but is unwired to `auth.users` yet. The `tier` column is ready for cap enforcement on day one.
+
+4. **`/api/mcp` does not validate the api_key.** It just stuffs it into `process.env.UNCLICK_API_KEY` and trusts downstream code (see `api/mcp.ts:46-65`). Phase 1 MUST add validation at that boundary (lookup the api_key_hash in the `api_keys` table, confirm it is active, attach tier to the request context).
+
+5. **BYOD encryption property must be preserved.** Service role keys are AES-256-GCM encrypted with PBKDF2 derived from the user's own api_key. UnClick staff cannot decrypt user BYOD data. Managed cloud mode must not break this property for BYOD users who have it set up.
+
+6. **Setup UI lives at `src/pages/MemorySetup.tsx`**, not just the `/api/memory-admin` endpoint.
 
 ---
 
@@ -43,7 +62,7 @@ The build must honor Chris's standing rules:
 
 5. **Memory is hosted by default, with caps on free tier.** BYOD Supabase stays available as an escape hatch for power users and privacy-first customers. One-click onboarding beats five-step setup every time.
 
-6. **Free tier caps (starting values, adjust with real data later):** 50 MB storage per user, 5,000 facts max, basic layers only, no nightly extraction. Pro tier at $29/mo removes all caps and enables nightly extraction plus decay.
+6. **Free tier caps (starting values, adjust with real data later):** 50 MB storage per user, 5,000 facts max, basic layers only, no nightly extraction. Pro tier at $29/mo removes all caps and enables nightly extraction plus decay. The `tier` column on `api_keys` is the source of truth for enforcement.
 
 7. **Third-party MCP tools are not fought.** They coexist. The agent resolves conflicts via user preference (stored in memory) first, then capability match, then default to UnClick Suite.
 
@@ -53,13 +72,15 @@ The build must honor Chris's standing rules:
 
 10. **Data portability is a first-class feature.** Export everything as a button. "Bring your own database anytime." This is the trust anchor that makes hosted-by-default acceptable.
 
+11. **BYOD encryption property is non-negotiable.** Where a user has configured BYOD, their service role key must remain AES-256-GCM encrypted with PBKDF2 from their own api_key. UnClick staff must not be able to decrypt user BYOD data. Managed cloud mode is UnClick-hosted Supabase tenancy, NOT a weakening of BYOD for existing BYOD users.
+
 ---
 
 ## KNOWN BLOCKERS CLAUDE CODE CANNOT SOLVE
 
 Flag these to Chris when you hit them. Do not work around them silently.
 
-1. **NPM publish token for @unclick/memory-mcp.** Two automation tokens exist but are masked. Chris needs to either generate a fresh one or set up a GitHub Actions workflow (.github/workflows/publish.yml) with NPM_TOKEN as a GitHub secret for permanent auto-publish. The workflow path is recommended for permanence.
+1. **NPM publish for the memory package.** The publish target may need to be rethought given `packages/memory-mcp/` is deprecated. Verify with Chris whether the npm package should ship from `packages/mcp-server/` or a new dedicated package extracted from `packages/mcp-server/src/memory/`. If shipping, a GitHub Actions workflow (.github/workflows/publish.yml) with NPM_TOKEN as a GitHub secret is the recommended permanent fix.
 
 2. **Vercel Hobby plan 12-function cap.** Current count is already at or near 12. New API endpoints cannot be added as separate files. Either consolidate existing endpoints into action-routed handlers (like `/api/memory-admin` already does with 12+ actions), or Chris upgrades to Vercel Pro. Recommend consolidation unless Chris says otherwise.
 
@@ -75,46 +96,56 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 
 ### PHASE 1: Memory backend completion
 
-**Goal:** Memory works end-to-end for every user out of the box, zero setup, persisting across sessions.
+**Goal:** Memory works end-to-end for every user out of the box, zero setup, persisting across sessions, tenanted by `api_key_hash`.
 
-**Current state:**
-- `packages/memory-mcp` is 100% publish-ready, 17 tools, local and Supabase backends.
+**Current state (verified in v2):**
+- Active memory code: `packages/mcp-server/src/memory/`.
+- `memory_configs` table already exists, keyed by `api_key_hash`, with encrypted BYOD service role key.
 - LocalBackend breaks in serverless (Vercel `/tmp` wipes between cold starts). This is the critical bug to fix.
-- BYOD Supabase works but requires 5-step setup.
-- The remote `/api/mcp?key=...` install path is what most users use and it has no working memory today.
+- BYOD Supabase works but requires multi-step setup via `src/pages/MemorySetup.tsx`.
+- `/api/mcp?key=...` is the dominant install path and today does not validate the key.
 
 **Work:**
 
-1. **Add UnClick-hosted cloud mode as the new default.** The existing Supabase project (xmooqsylqlknuksiddca.supabase.co) gets a memory schema (see `packages/memory-mcp/schema.sql`). Every authenticated UnClick user gets a row-level-security-scoped slice of this shared Postgres. New users get this automatically. No Supabase account creation required.
+1. **Add `/api/mcp` api_key validation.** At request entry, hash the inbound key, look it up in `api_keys`, confirm active and not revoked, attach `{ api_key_hash, tier, user_id }` to the request context. Reject invalid keys with a clear error. This is a new Phase 1 work item and is a prerequisite for everything else.
 
-2. **Modify `packages/memory-mcp/src/db.ts` backend factory** to add a third mode: "managed cloud" (connects to UnClick's central Supabase using the user's api_key as the auth context). Order of precedence becomes:
-   - `SUPABASE_URL` env set -> direct Supabase (existing BYOD explicit mode)
-   - `UNCLICK_API_KEY` set AND no BYOD override -> managed cloud via `/api/memory-admin`
-   - `UNCLICK_API_KEY` set AND BYOD configured via `/api/memory-admin?action=config` -> user's own Supabase
-   - Nothing set -> local JSON files
+2. **Add UnClick-hosted managed cloud mode as the new default.** The existing Supabase project (xmooqsylqlknuksiddca.supabase.co) gets a memory schema applied. Every api_key gets a row-level-security-scoped slice of this shared Postgres, keyed by `api_key_hash`. New installs get this automatically. No Supabase account creation required from the user.
 
-3. **Add free-tier cap enforcement** in the server layer. When a user hits 50 MB or 5,000 facts, new writes return a "limit reached, upgrade or prune" response. Caps are configurable per user (paid tiers lift them).
+3. **Modify the memory backend factory in `packages/mcp-server/src/memory/`** to add managed cloud mode. Order of precedence becomes:
+   - Explicit `SUPABASE_URL` env set on the server -> direct Supabase (existing BYOD explicit mode, preserved)
+   - Valid api_key AND `memory_configs` row exists for this `api_key_hash` -> BYOD mode (decrypt service_role with PBKDF2 from api_key, connect to user's own Supabase)
+   - Valid api_key AND no `memory_configs` row -> managed cloud mode (UnClick's central Supabase, RLS scoped to this api_key_hash)
+   - No valid api_key -> reject (Phase 1 work item #1 handles this)
+   - Local JSON files remain available for the standalone npm package use case only, not for `/api/mcp` serverless
 
-4. **Add nightly extraction + decay job** (Pro tier). Scheduled Vercel cron that runs once per 24h, processes new conversation log entries into extracted facts, runs the hot/warm/cold decay on existing facts. Gate by tier.
+4. **Add free-tier cap enforcement** at the server boundary. Read `tier` from the request context. When a free-tier user hits 50 MB storage or 5,000 facts, new writes return a clear "limit reached, upgrade or prune" response with actionable next steps. Caps are per-tier, read from a config constant.
 
-5. **Publish `@unclick/memory-mcp` to npm.** Blocked on token; see "Known Blockers." Recommend setting up the GitHub Actions workflow as the permanent fix.
+5. **Add nightly extraction + decay job** (Pro tier). Scheduled Vercel cron (once per 24h) that processes new conversation log entries into extracted facts and runs the hot/warm/cold decay on existing facts. Gated by `tier`.
+
+6. **Resolve the npm publish target with Chris.** Clarify whether the public package ships from `packages/mcp-server/` or a new dedicated extraction. Once resolved, set up the GitHub Actions workflow for auto-publish.
 
 **Acceptance criteria:**
 - A fresh install of UnClick via `/api/mcp?key=NEWUSER_KEY` writes a fact, reads it back in a second request, and the fact persists. No Supabase setup from the user.
-- Existing BYOD users are unaffected. Their service_role key continues to route their memory to their own Supabase.
-- Free tier cap enforcement returns a clear, actionable error message when hit.
-- Memory-mcp is live on npm at `@unclick/memory-mcp` and installable via `npx`.
+- Invalid api_keys to `/api/mcp` are rejected with a clear error.
+- Existing BYOD users (those with a `memory_configs` row) are unaffected. Their service role key continues to route their memory to their own Supabase, and encryption property is preserved (PBKDF2 from api_key still required to decrypt).
+- Free tier cap enforcement returns a clear, actionable error when hit.
+- Npm publish path is resolved with Chris.
 
 **Verification:**
-- Write a test agent that calls `add_fact`, `search_memory`, `get_startup_context` on a fresh api_key. Verify all three work.
+- Write a test agent that calls `add_fact`, `search_memory`, `get_startup_context` against `/api/mcp` on a fresh api_key. Verify all three work and persist across cold starts.
+- Inject an invalid api_key. Verify rejection with clear error.
+- Simulate a BYOD user (seed `memory_configs` row). Verify their writes route to their own Supabase, not managed cloud.
 - Force 5,001 fact writes on a free-tier test user. Verify the 5,001st returns a cap error.
-- Confirm npm install succeeds: `npx @unclick/memory-mcp@latest` runs and prints help.
 
 ---
 
 ### PHASE 2: Authentication foundation
 
-**Goal:** Users have real accounts tied to an email they own. localStorage is no longer the only identity.
+**Goal:** Users have real accounts tied to an email they own. localStorage is no longer the only identity. `api_keys.user_id` becomes real.
+
+**Current state (verified in v2):**
+- `api_keys.user_id UUID` column exists but is not yet a foreign key to `auth.users`, and is unwired.
+- `api_keys.email` column exists but is not verified or used to auth.
 
 **Work:**
 
@@ -125,9 +156,9 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 
 2. **Build `/login` and `/signup` routes.** Minimal UI. Email field, three OAuth buttons. That is it. No password field anywhere.
 
-3. **Tie `api_keys.email` to `auth.users.id`.** Schema migration: add `api_keys.user_id UUID REFERENCES auth.users(id)`. Backfill where possible (where email matches an existing auth user).
+3. **Wire `api_keys.user_id` to `auth.users.id`.** Schema migration: add FK constraint `api_keys.user_id UUID REFERENCES auth.users(id)`. Backfill where possible (where `api_keys.email` matches a verified `auth.users.email`). Remaining rows have `user_id NULL` until claimed.
 
-4. **Build the localStorage-to-auth migration path.** An existing user with `unclick_api_key` in localStorage visits the dashboard, is prompted "Claim this account by verifying your email." Magic link sent to the email on record. On verify, `api_keys.user_id` is set, and the api_key becomes a child of the user account.
+4. **Build the localStorage-to-auth migration path.** An existing user with `unclick_api_key` in localStorage visits the dashboard. If `api_keys.user_id IS NULL` for their key, prompt "Claim this account by verifying your email." Magic link sent to `api_keys.email`. On verify, set `api_keys.user_id` to the authed user's id, and the api_key becomes a child of the user account.
 
 5. **Add session cookies and route protection.** All admin routes require an authenticated session. Unauthenticated users are redirected to `/login`.
 
@@ -135,12 +166,13 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 
 **Acceptance criteria:**
 - New user can sign up via magic link or OAuth and land on an authenticated dashboard.
-- Existing user with a localStorage api_key can claim their account via email verification.
+- Existing user with a localStorage api_key can claim their account via email verification and their api_key is bound to their auth user.
 - All `/app/*` routes return 302 to `/login` if no session.
 - No password field exists anywhere in the codebase.
 
 **Verification:**
 - End-to-end test: sign up with a new email, receive magic link, click, land on `/app/you`. Passes.
+- End-to-end test: pre-seed an api_key with an email, sign in with that email, verify claim flow sets `api_keys.user_id`. Passes.
 - Manually inspect: grep the codebase for "password" and confirm zero user-facing password fields.
 
 ---
@@ -187,8 +219,8 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 **Work:**
 
 1. **Profile card:** display name, email, profile picture (optional, default monogram).
-2. **Subscription card:** current tier (Free / Pro / Team), next billing date, manage billing link (Stripe customer portal). Stripe is already scaffolded for developer payouts; extend for subscription billing.
-3. **Paired devices card:** list of devices paired to this account. UI is minimal for now (just "This device" shown). Schema is ready for multi-device later.
+2. **Subscription card:** current tier (Free / Pro / Team) from `api_keys.tier`, next billing date, manage billing link (Stripe customer portal). Stripe is already scaffolded for developer payouts; extend for subscription billing.
+3. **Paired devices card:** list of devices paired to this account from `auth_devices`. UI is minimal for now (just "This device" shown). Schema is ready for multi-device later.
 4. **Security card:** active sessions, "sign out of all devices" button.
 5. **Danger zone card:** "Export everything" (downloads a zip of memory, credentials metadata, and account data as JSON) and "Delete my account" (hard delete after confirmation).
 
@@ -196,7 +228,7 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 - User can view and update their display name.
 - User can initiate an export and receive a downloadable archive.
 - User can sign out of all devices.
-- Account deletion works and cascades correctly (memory wiped, api_keys revoked, credentials purged).
+- Account deletion works and cascades correctly (memory wiped by `api_key_hash`, api_keys revoked, credentials purged).
 
 ---
 
@@ -206,9 +238,9 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 
 **Work:**
 
-1. **Header pulse indicator.** Small live dot that pulses whenever memory is being written. Subscribe via a Supabase realtime channel on the memory tables.
+1. **Header pulse indicator.** Small live dot that pulses whenever memory is being written. Subscribe via a Supabase realtime channel on the memory tables, filtered by this user's `api_key_hash`.
 
-2. **Six layer shelves.** Each layer (Business Context, Knowledge Library, Session Summaries, Extracted Facts, Conversation Log, Code Dumps) rendered as a horizontal strip. Each strip shows: layer name, fill percentage, last-touched timestamp, count of items. Click to expand.
+2. **Six layer shelves.** Each layer (Business Context, Knowledge Library, Session Summaries, Extracted Facts, Conversation Log, Code Dumps) rendered as a horizontal strip. Each strip shows: layer name, fill percentage against the tier cap, last-touched timestamp, count of items. Click to expand.
 
 3. **Fact cards.** Inside each layer, items are cards, not rows. Each card shows:
    - The fact or summary text in plain language
@@ -227,10 +259,10 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 
 8. **Global search with autocomplete,** scoped to memory, integrated with the shell's Ctrl+K search.
 
-9. **BYOD migration button** in a corner card: "Bring your own database." Opens the existing `/memory/setup` wizard.
+9. **BYOD migration button** in a corner card: "Bring your own database." Opens the existing `src/pages/MemorySetup.tsx` flow.
 
 **Acceptance criteria:**
-- All six layers render with real data from the user's memory.
+- All six layers render with real data from the user's memory (scoped by `api_key_hash`).
 - Pin, edit, forget actions work and persist.
 - Timeline view correctly groups memories by day.
 - Relationship graph shows at least direct relationships (same session).
@@ -314,7 +346,7 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 **Work:**
 
 1. **Create a scoped MCP context** for the assistant. It has access to:
-   - Read/write the current user's memory (all layers)
+   - Read/write the current user's memory (all layers, scoped by `api_key_hash`)
    - Read/write the current user's credentials (metadata only, never secrets)
    - Read/modify the current user's account (email, subscription, tool preferences)
    - Read the current user's activity
@@ -366,6 +398,9 @@ Most of this already exists. Verify and fill gaps:
 
 ## WHAT NOT TO DO
 
+- Do not touch `packages/memory-mcp/`. It is deprecated.
+- Do not break the BYOD encryption property. PBKDF2-from-api_key for AES-256-GCM service role key encryption must remain intact for BYOD users.
+- Do not use `user_id` as the memory tenancy key. Use `api_key_hash`.
 - Do not build RBAC, team seats, SSO, or SAML. Single-user for now. Team tier is Phase 11+.
 - Do not add billing inside the admin's core UI until Phase 4's subscription card. Marketing-site pricing is fine.
 - Do not build an appearance or theming system. Dark + amber, ship it.
@@ -378,11 +413,12 @@ Most of this already exists. Verify and fill gaps:
 
 ## QUESTIONS TO ASK CHRIS IF UNCERTAIN
 
-1. Free tier caps (50 MB storage, 5k facts): comfortable starting values, or different numbers?
-2. OAuth providers: all three (Google, Microsoft, GitHub), or just Google and Microsoft?
-3. Export format: JSON-only, or also CSV/Markdown for human-readable memory export?
-4. Assistant model: same Claude that powers the agent, or a dedicated smaller model for cost?
-5. Domain: admin lives at `unclick.world/app` or its own subdomain like `app.unclick.world`?
+1. Npm publish target: ship from `packages/mcp-server/` or a new extracted package from `packages/mcp-server/src/memory/`?
+2. Free tier caps (50 MB storage, 5k facts): comfortable starting values, or different numbers?
+3. OAuth providers: all three (Google, Microsoft, GitHub), or just Google and Microsoft?
+4. Export format: JSON-only, or also CSV/Markdown for human-readable memory export?
+5. Assistant model: same Claude that powers the agent, or a dedicated smaller model for cost?
+6. Domain: admin lives at `unclick.world/app` or its own subdomain like `app.unclick.world`?
 
 ---
 
