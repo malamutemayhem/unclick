@@ -45,6 +45,7 @@ function formatToolSummary(tool: ToolDef): string {
 const META_TOOLS = [
   {
     name: "unclick_search",
+    displayName: "Search Available Tools",
     description:
       "Search the UnClick tool marketplace by keyword or description. " +
       "Use this to discover which tools are available for a task. " +
@@ -67,6 +68,7 @@ const META_TOOLS = [
   },
   {
     name: "unclick_browse",
+    displayName: "Browse Tool Catalog",
     description:
       "Browse all available UnClick tools, optionally filtered by category. " +
       "Returns a list of tools with their slugs and descriptions.",
@@ -83,6 +85,7 @@ const META_TOOLS = [
   },
   {
     name: "unclick_tool_info",
+    displayName: "Get Tool Details",
     description:
       "Get detailed information about a specific UnClick tool including all its endpoints, " +
       "required parameters, and response shapes. Use this after unclick_search to understand " +
@@ -102,6 +105,7 @@ const META_TOOLS = [
   },
   {
     name: "unclick_call",
+    displayName: "Execute Tool",
     description:
       "Call any UnClick tool endpoint. Specify the endpoint ID and parameters. " +
       "Use unclick_search or unclick_tool_info to discover endpoint IDs and required params. " +
@@ -128,6 +132,7 @@ const META_TOOLS = [
   // with endpoint_id like "memory.add_fact", "memory.search_memory", etc.
   {
     name: "get_startup_context",
+    displayName: "Load Session Context",
     description:
       "Load persistent UnClick Memory at session start. Returns business context (standing rules), " +
       "recent session summaries, and hot facts. Call this FIRST in every new session to understand " +
@@ -146,6 +151,7 @@ const META_TOOLS = [
   },
   {
     name: "write_session_summary",
+    displayName: "Save Session Summary",
     description:
       "Write a session summary at the end of a session. Critical for cross-session continuity. " +
       "Call this BEFORE the session ends (when the user says goodbye, or context is running low). " +
@@ -166,6 +172,7 @@ const META_TOOLS = [
   },
   {
     name: "add_fact",
+    displayName: "Store New Fact",
     description:
       "Add a new atomic fact to UnClick Memory. One fact = one statement. " +
       "Use when the user states a preference, makes a decision, or shares important info. " +
@@ -187,6 +194,7 @@ const META_TOOLS = [
   },
   {
     name: "search_memory",
+    displayName: "Search Conversations",
     description:
       "Full-text search across UnClick Memory conversation logs. Use when you need to recall " +
       "something specific from a previous session.",
@@ -201,6 +209,7 @@ const META_TOOLS = [
   },
   {
     name: "set_business_context",
+    displayName: "Update Business Context",
     description:
       "Add or update a standing rule in UnClick Memory (Layer 1). Business context is ALWAYS loaded " +
       "at session start. Use for standing rules, client info, and preferences that are always relevant.",

@@ -1,6 +1,8 @@
 export interface EndpointDef {
   id: string;
   name: string;
+  /** Human-readable display name shown in admin UIs */
+  displayName?: string;
   description: string;
   method: "GET" | "POST" | "DELETE" | "PATCH";
   path: string;
@@ -1918,6 +1920,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.get_startup_context",
         name: "Get Startup Context",
+        displayName: "Load Session Context",
         description: "Load business context, recent sessions, and hot facts. Call FIRST in every new session.",
         method: "POST",
         path: "/v1/memory/startup",
@@ -1930,6 +1933,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.search_memory",
         name: "Search Memory",
+        displayName: "Search Conversations",
         description: "Full-text search across conversation logs.",
         method: "POST",
         path: "/v1/memory/search",
@@ -1946,6 +1950,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.search_facts",
         name: "Search Facts",
+        displayName: "Search Facts",
         description: "Search active (non-superseded) extracted facts.",
         method: "POST",
         path: "/v1/memory/facts/search",
@@ -1959,6 +1964,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.search_library",
         name: "Search Library",
+        displayName: "Search Knowledge Library",
         description: "Search versioned reference documents in the Knowledge Library.",
         method: "POST",
         path: "/v1/memory/library/search",
@@ -1972,6 +1978,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.get_library_doc",
         name: "Get Library Doc",
+        displayName: "Read Library Document",
         description: "Get the full content of a library doc by slug.",
         method: "POST",
         path: "/v1/memory/library/get",
@@ -1985,6 +1992,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.list_library",
         name: "List Library",
+        displayName: "List Knowledge Library",
         description: "List all documents in the Knowledge Library.",
         method: "POST",
         path: "/v1/memory/library/list",
@@ -1994,6 +2002,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.write_session_summary",
         name: "Write Session Summary",
+        displayName: "Save Session Summary",
         description: "Save an end-of-session summary. Call BEFORE session ends.",
         method: "POST",
         path: "/v1/memory/session/write",
@@ -2015,6 +2024,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.add_fact",
         name: "Add Fact",
+        displayName: "Store New Fact",
         description: "Add an atomic fact. One fact = one statement.",
         method: "POST",
         path: "/v1/memory/facts/add",
@@ -2033,6 +2043,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.supersede_fact",
         name: "Supersede Fact",
+        displayName: "Replace Existing Fact",
         description: "Replace an outdated fact with a new version (old one marked superseded, never deleted).",
         method: "POST",
         path: "/v1/memory/facts/supersede",
@@ -2051,6 +2062,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.log_conversation",
         name: "Log Conversation",
+        displayName: "Log Conversation",
         description: "Log a conversation exchange for later search.",
         method: "POST",
         path: "/v1/memory/conversation/log",
@@ -2069,6 +2081,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.get_conversation_detail",
         name: "Get Conversation Detail",
+        displayName: "View Conversation Detail",
         description: "Retrieve the full conversation log for a session.",
         method: "POST",
         path: "/v1/memory/conversation/get",
@@ -2082,6 +2095,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.store_code",
         name: "Store Code",
+        displayName: "Store Code Snippet",
         description: "Store a code block in the code dump layer.",
         method: "POST",
         path: "/v1/memory/code/store",
@@ -2101,6 +2115,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.get_business_context",
         name: "Get Business Context",
+        displayName: "Get Business Context",
         description: "Get all business context entries (standing rules).",
         method: "POST",
         path: "/v1/memory/context/get",
@@ -2110,6 +2125,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.set_business_context",
         name: "Set Business Context",
+        displayName: "Update Business Context",
         description: "Add or update a business context entry (always loaded at session start).",
         method: "POST",
         path: "/v1/memory/context/set",
@@ -2128,6 +2144,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.upsert_library_doc",
         name: "Upsert Library Doc",
+        displayName: "Save Library Document",
         description: "Create or update a Knowledge Library document (auto-versioned).",
         method: "POST",
         path: "/v1/memory/library/upsert",
@@ -2147,6 +2164,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.manage_decay",
         name: "Manage Decay",
+        displayName: "Run Memory Decay",
         description: "Run the memory decay manager. Promotes/demotes items between hot/warm/cold tiers.",
         method: "POST",
         path: "/v1/memory/decay",
@@ -2156,6 +2174,7 @@ export const CATALOG: ToolDef[] = [
       {
         id: "memory.memory_status",
         name: "Memory Status",
+        displayName: "Check Memory Status",
         description: "Get memory usage stats: storage mode, counts per layer, decay tier distribution.",
         method: "POST",
         path: "/v1/memory/status",

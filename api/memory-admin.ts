@@ -412,6 +412,231 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({ success: true });
       }
 
+      // ── Phase 4: Admin tab actions ──────────────────────────────────
+
+      case "admin_business_context": {
+        const method = (req.query.method as string) || "list";
+
+        if (method === "list") {
+          const { data, error } = await supabase
+            .from("business_context")
+            .select("*")
+            .order("priority", { ascending: true });
+          if (error) throw error;
+          return res.status(200).json({ data: data ?? [] });
+        }
+
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+
+        if (method === "create") {
+          const { category, key, value } = req.body ?? {};
+          if (!category || !key || value === undefined) {
+            return res.status(400).json({ error: "category, key, and value required" });
+          }
+          // Auto-increment priority: max existing + 1
+          const { data: maxRow } = await supabase
+            .from("business_context")
+            .select("priority")
+            .order("priority", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          const nextPriority = ((maxRow as { priority?: number } | null)?.priority ?? -1) + 1;
+
+          const { data, error } = await supabase
+            .from("business_context")
+            .insert({
+              category,
+              key,
+              value: typeof value === "string" ? value : JSON.stringify(value),
+              priority: nextPriority,
+              decay_tier: "hot",
+              updated_at: new Date().toISOString(),
+              last_accessed: new Date().toISOString(),
+            })
+            .select()
+            .single();
+          if (error) throw error;
+          return res.status(200).json({ success: true, data });
+        }
+
+        if (method === "update") {
+          const { id, value, priority, category } = req.body ?? {};
+          if (!id) return res.status(400).json({ error: "id required" });
+          const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+          if (value !== undefined) updates.value = typeof value === "string" ? value : JSON.stringify(value);
+          if (priority !== undefined) updates.priority = priority;
+          if (category !== undefined) updates.category = category;
+
+          const { error } = await supabase
+            .from("business_context")
+            .update(updates)
+            .eq("id", id);
+          if (error) throw error;
+          return res.status(200).json({ success: true });
+        }
+
+        if (method === "delete") {
+          const { id } = req.body ?? {};
+          if (!id) return res.status(400).json({ error: "id required" });
+          const { error } = await supabase
+            .from("business_context")
+            .delete()
+            .eq("id", id);
+          if (error) throw error;
+          return res.status(200).json({ success: true });
+        }
+
+        if (method === "reorder") {
+          const { items } = req.body ?? {};
+          if (!Array.isArray(items)) return res.status(400).json({ error: "items array required" });
+          // items: [{ id, priority }]
+          for (const item of items as Array<{ id: string; priority: number }>) {
+            const { error } = await supabase
+              .from("business_context")
+              .update({ priority: item.priority, updated_at: new Date().toISOString() })
+              .eq("id", item.id);
+            if (error) throw error;
+          }
+          return res.status(200).json({ success: true });
+        }
+
+        return res.status(400).json({ error: `Unknown method: ${method}` });
+      }
+
+      case "admin_sessions": {
+        const method = (req.query.method as string) || "list";
+
+        if (method === "list") {
+          const { data, error } = await supabase
+            .from("session_summaries")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(20);
+          if (error) throw error;
+          return res.status(200).json({ data: data ?? [] });
+        }
+
+        if (method === "transcript") {
+          const sessionId = req.query.session_id as string;
+          if (!sessionId) return res.status(400).json({ error: "session_id required" });
+          const { data, error } = await supabase
+            .from("conversation_log")
+            .select("*")
+            .eq("session_id", sessionId)
+            .order("created_at", { ascending: true });
+          if (error) throw error;
+          return res.status(200).json({ data: data ?? [] });
+        }
+
+        return res.status(400).json({ error: `Unknown method: ${method}` });
+      }
+
+      case "admin_library": {
+        const method = (req.query.method as string) || "list";
+
+        if (method === "list") {
+          const { data, error } = await supabase
+            .from("knowledge_library")
+            .select("id, slug, title, updated_at, version, decay_tier")
+            .order("updated_at", { ascending: false });
+          if (error) throw error;
+          return res.status(200).json({ data: data ?? [] });
+        }
+
+        if (method === "view") {
+          const id = req.query.id as string;
+          if (!id) return res.status(400).json({ error: "id required" });
+          const { data, error } = await supabase
+            .from("knowledge_library")
+            .select("*")
+            .eq("id", id)
+            .single();
+          if (error) throw error;
+          return res.status(200).json({ data });
+        }
+
+        if (method === "history") {
+          const slug = req.query.slug as string;
+          if (!slug) return res.status(400).json({ error: "slug required" });
+          const { data, error } = await supabase
+            .from("knowledge_library_history")
+            .select("*")
+            .eq("slug", slug)
+            .order("version", { ascending: false });
+          if (error) throw error;
+          return res.status(200).json({ data: data ?? [] });
+        }
+
+        return res.status(400).json({ error: `Unknown method: ${method}` });
+      }
+
+      case "admin_memory_activity": {
+        const method = (req.query.method as string) || "facts_by_day";
+
+        if (method === "facts_by_day") {
+          // Facts created per day, last 30 days
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+          const { data, error } = await supabase
+            .from("extracted_facts")
+            .select("created_at")
+            .gte("created_at", thirtyDaysAgo)
+            .order("created_at", { ascending: true });
+          if (error) throw error;
+
+          const byDay: Record<string, number> = {};
+          for (const row of data ?? []) {
+            const day = (row as { created_at: string }).created_at.slice(0, 10);
+            byDay[day] = (byDay[day] || 0) + 1;
+          }
+          return res.status(200).json({ data: byDay });
+        }
+
+        if (method === "storage") {
+          const [facts, bc, lib, sessions, convos, code] = await Promise.all([
+            supabase.from("extracted_facts").select("id", { count: "exact", head: true }),
+            supabase.from("business_context").select("id", { count: "exact", head: true }),
+            supabase.from("knowledge_library").select("id", { count: "exact", head: true }),
+            supabase.from("session_summaries").select("id", { count: "exact", head: true }),
+            supabase.from("conversation_log").select("id", { count: "exact", head: true }),
+            supabase.from("code_dumps").select("id", { count: "exact", head: true }),
+          ]);
+          return res.status(200).json({
+            fact_count: facts.count ?? 0,
+            business_context_count: bc.count ?? 0,
+            library_count: lib.count ?? 0,
+            session_count: sessions.count ?? 0,
+            conversation_count: convos.count ?? 0,
+            code_count: code.count ?? 0,
+            total_items: (facts.count ?? 0) + (bc.count ?? 0) + (lib.count ?? 0) +
+              (sessions.count ?? 0) + (convos.count ?? 0) + (code.count ?? 0),
+          });
+        }
+
+        if (method === "recent_decay") {
+          const { data, error } = await supabase
+            .from("extracted_facts")
+            .select("id, fact, category, decay_tier, updated_at, status")
+            .neq("decay_tier", "hot")
+            .order("updated_at", { ascending: false })
+            .limit(20);
+          if (error) throw error;
+          return res.status(200).json({ data: data ?? [] });
+        }
+
+        if (method === "most_accessed") {
+          const { data, error } = await supabase
+            .from("extracted_facts")
+            .select("id, fact, category, access_count, decay_tier")
+            .eq("status", "active")
+            .order("access_count", { ascending: false })
+            .limit(10);
+          if (error) throw error;
+          return res.status(200).json({ data: data ?? [] });
+        }
+
+        return res.status(400).json({ error: `Unknown method: ${method}` });
+      }
+
       // ── BYOD / wizard actions ────────────────────────────────────────
       case "setup_status": {
         const apiKey = String(req.query.api_key ?? "").trim();
