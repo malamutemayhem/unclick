@@ -34,7 +34,7 @@ export default function ConnectedServices({ connectors, loading }: ConnectedServ
         </p>
         <Link
           to="/settings"
-          className="mt-3 inline-flex items-center gap-1.5 text-xs text-amber-500 hover:text-amber-400 transition-colors"
+          className="mt-3 inline-flex items-center gap-1.5 text-xs text-[#61C1C4] hover:text-[#61C1C4]/80 transition-colors"
         >
           Go to Keychain
           <ExternalLink className="h-3 w-3" />

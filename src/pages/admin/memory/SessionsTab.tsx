@@ -127,7 +127,7 @@ export default function SessionsTab({ apiKey }: { apiKey: string }) {
                 </div>
                 <div className="mt-1 flex flex-wrap gap-1.5">
                   {(s.topics ?? []).map((t) => (
-                    <span key={t} className="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-500/80">{t}</span>
+                    <span key={t} className="rounded bg-[#61C1C4]/10 px-1.5 py-0.5 text-[10px] text-[#61C1C4]/80">{t}</span>
                   ))}
                 </div>
                 <p className="mt-1 text-sm text-white/60 line-clamp-2">{s.summary}</p>
@@ -148,7 +148,7 @@ export default function SessionsTab({ apiKey }: { apiKey: string }) {
                     <ul className="space-y-1">
                       {s.decisions!.map((d, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-white/60">
-                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500/50" />
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#61C1C4]/50" />
                           {d}
                         </li>
                       ))}

@@ -1,7 +1,6 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Wrench, Rocket } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { useSession } from "@/lib/auth";
 import UnClickTools from "./tools/UnClickTools";
 import ConnectedServices from "./tools/ConnectedServices";
 
@@ -18,17 +17,17 @@ export default function AdminToolsPage() {
   const [connectors, setConnectors] = useState<Connector[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const apiKey = useMemo(() => localStorage.getItem("unclick_api_key") ?? "", []);
+  const { session } = useSession();
 
   useEffect(() => {
-    if (!apiKey) {
+    if (!session) {
       setLoading(false);
       return;
     }
     (async () => {
       try {
         const res = await fetch("/api/memory-admin?action=admin_tools", {
-          headers: { Authorization: `Bearer ${apiKey}` },
+          headers: { Authorization: `Bearer ${session.access_token}` },
         });
         if (res.ok) {
           const body = await res.json();
@@ -39,30 +38,22 @@ export default function AdminToolsPage() {
         setLoading(false);
       }
     })();
-  }, [apiKey]);
+  }, [session]);
 
-  if (!apiKey) {
+  if (!session) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A]">
-        <Navbar />
-        <main className="mx-auto max-w-6xl px-6 pb-32 pt-28">
-          <p className="text-sm text-white/50">
-            No API key found. Set your UnClick API key in Settings to access Tools Admin.
-          </p>
-        </main>
-        <Footer />
-      </div>
+      <p className="text-sm text-white/50">
+        Sign in to access Tools Admin.
+      </p>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
-      <Navbar />
-      <main className="mx-auto max-w-6xl px-6 pb-32 pt-28">
+    <>
         {/* Header */}
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
-            <Wrench className="h-5 w-5 text-amber-500" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#61C1C4]/10">
+            <Wrench className="h-5 w-5 text-[#61C1C4]" />
           </div>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-white">Tools</h1>
@@ -95,8 +86,6 @@ export default function AdminToolsPage() {
             </p>
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+    </>
   );
 }

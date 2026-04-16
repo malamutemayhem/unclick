@@ -49,7 +49,7 @@ const UTILITY_TOOLS: ToolEntry[] = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  memory: "bg-amber-500/15 text-amber-500",
+  memory: "bg-[#61C1C4]/15 text-[#61C1C4]",
   text: "bg-blue-400/15 text-blue-400",
   data: "bg-green-400/15 text-green-400",
   media: "bg-purple-400/15 text-purple-400",
@@ -101,9 +101,9 @@ export default function UnClickTools({ metering }: UnClickToolsProps) {
       {/* Memory Tools group */}
       <div>
         <div className="mb-3 flex items-center gap-2">
-          <Brain className="h-4 w-4 text-amber-500" />
+          <Brain className="h-4 w-4 text-[#61C1C4]" />
           <h3 className="text-sm font-semibold text-white">Memory Tools</h3>
-          <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-500">
+          <span className="rounded bg-[#61C1C4]/15 px-1.5 py-0.5 text-[10px] font-medium text-[#61C1C4]">
             {MEMORY_TOOLS.length} tools
           </span>
         </div>

@@ -78,7 +78,7 @@ export default function FactsTab({ apiKey }: { apiKey: string }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search facts..."
-            className="w-full rounded-lg border border-white/[0.06] bg-white/[0.03] pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-amber-500/50 focus:outline-none"
+            className="w-full rounded-lg border border-white/[0.06] bg-white/[0.03] pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-[#61C1C4]/50 focus:outline-none"
           />
         </div>
         <label className="flex items-center gap-2 text-xs text-white/40">

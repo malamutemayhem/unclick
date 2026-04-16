@@ -140,6 +140,101 @@ function bearerFrom(req: VercelRequest): string {
   return (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "").trim();
 }
 
+/**
+ * Resolve a Supabase Auth session JWT to the underlying auth.users row.
+ * Used by Phase 2 auth actions (claim_api_key, auth_device_*) which are
+ * called from the browser with the active supabase-js session token.
+ * Returns null if the token is missing, invalid, or expired.
+ *
+ * Distinct from bearerFrom() + api_keys lookup, which is the
+ * api_key-based auth path used by BYOD and memory tooling.
+ */
+async function resolveSessionUser(
+  req: VercelRequest,
+  supabaseUrl: string,
+  serviceRoleKey: string,
+): Promise<{ id: string; email: string | null } | null> {
+  const token = bearerFrom(req);
+  if (!token) return null;
+  // Tokens that look like UnClick api_keys (uc_* / agt_*) are never
+  // valid session JWTs. Reject early to avoid sending garbage to
+  // supabase.auth.getUser.
+  if (token.startsWith("uc_") || token.startsWith("agt_")) return null;
+
+  try {
+    // Use an anon client scoped to this token. getUser() verifies the
+    // JWT against the project's Auth secret server-side.
+    const scoped = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+    const { data, error } = await scoped.auth.getUser(token);
+    if (error || !data?.user) return null;
+    return { id: data.user.id, email: data.user.email ?? null };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve a session JWT all the way to the tenant's api_key_hash.
+ * Used by Phase 3 admin_* actions so each surface can query mc_*
+ * tables scoped to the authenticated user's tenant.
+ *
+ * Path: Bearer JWT -> auth.users row -> api_keys.user_id -> key_hash.
+ * Handles both old-shape (api_key plaintext) and new-shape (key_hash)
+ * api_keys rows.
+ */
+async function resolveSessionTenant(
+  req: VercelRequest,
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  sb: ReturnType<typeof createClient>,
+): Promise<{ userId: string; email: string | null; apiKeyHash: string; tier: string } | null> {
+  const user = await resolveSessionUser(req, supabaseUrl, serviceRoleKey);
+  if (!user) return null;
+
+  // New shape: key_hash column from Phase 1 keychain_mvp migration
+  const { data: newRow, error: newErr } = await sb
+    .from("api_keys")
+    .select("key_hash, tier")
+    .eq("user_id", user.id)
+    .limit(1)
+    .maybeSingle();
+
+  if (!newErr && newRow?.key_hash) {
+    return {
+      userId: user.id,
+      email: user.email,
+      apiKeyHash: newRow.key_hash,
+      tier: newRow.tier ?? "free",
+    };
+  }
+
+  // Old shape fallback: api_key plaintext column, compute hash
+  try {
+    const { data: oldRow } = await sb
+      .from("api_keys")
+      .select("api_key, status")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (oldRow?.api_key) {
+      return {
+        userId: user.id,
+        email: user.email,
+        apiKeyHash: sha256hex(oldRow.api_key),
+        tier: "free",
+      };
+    }
+  } catch {
+    // 42703 = column doesn't exist on fresh DB, treat as not found
+  }
+
+  return null;
+}
+
 // ─── Handler ───────────────────────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -859,15 +954,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       case "admin_tools": {
-        const apiKey = bearerFrom(req);
-        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
-        const tenant = sha256hex(apiKey);
+        const tenant = await resolveSessionTenant(req, supabaseUrl, supabaseKey, supabase);
+        if (!tenant) return res.status(401).json({ error: "Not signed in" });
 
         // Metering events grouped by operation
         const { data: metering } = await supabase
           .from("metering_events")
           .select("operation")
-          .eq("key_hash", tenant);
+          .eq("key_hash", tenant.apiKeyHash);
 
         const meteringMap: Record<string, { count: number; last_used?: string }> = {};
         for (const m of metering ?? []) {
@@ -884,7 +978,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { data: creds } = await supabase
           .from("platform_credentials")
           .select("platform, is_valid, last_tested_at")
-          .eq("key_hash", tenant);
+          .eq("key_hash", tenant.apiKeyHash);
 
         const credMap = new Map<string, { is_valid: boolean; last_tested_at: string | null }>();
         for (const c of creds ?? []) {

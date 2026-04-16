@@ -1,8 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Brain } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import StorageBar from "./memory/StorageBar";
 import ContextTab from "./memory/ContextTab";
 import FactsTab from "./memory/FactsTab";
@@ -63,26 +61,18 @@ export default function AdminMemoryPage() {
 
   if (!apiKey) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A]">
-        <Navbar />
-        <main className="mx-auto max-w-6xl px-6 pb-32 pt-28">
-          <p className="text-sm text-white/50">
-            No API key found. Set your UnClick API key in Settings to access Memory Admin.
-          </p>
-        </main>
-        <Footer />
-      </div>
+      <p className="text-sm text-white/50">
+        No API key found. Set your UnClick API key in Settings to access Memory Admin.
+      </p>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
-      <Navbar />
-      <main className="mx-auto max-w-6xl px-6 pb-32 pt-28">
+    <>
         {/* Header */}
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
-            <Brain className="h-5 w-5 text-amber-500" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#61C1C4]/10">
+            <Brain className="h-5 w-5 text-[#61C1C4]" />
           </div>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-white">Memory Admin</h1>
@@ -101,13 +91,13 @@ export default function AdminMemoryPage() {
               onClick={() => setTab(tab.id)}
               className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
                 activeTab === tab.id
-                  ? "text-amber-500"
+                  ? "text-[#61C1C4]"
                   : "text-white/40 hover:text-white/60"
               }`}
             >
               {tab.label}
               {activeTab === tab.id && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500 rounded-t" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#61C1C4] rounded-t" />
               )}
             </button>
           ))}
@@ -119,8 +109,6 @@ export default function AdminMemoryPage() {
         {activeTab === "sessions" && <SessionsTab apiKey={apiKey} />}
         {activeTab === "library" && <LibraryTab apiKey={apiKey} />}
         {activeTab === "activity" && <MemoryActivityTab apiKey={apiKey} />}
-      </main>
-      <Footer />
-    </div>
+    </>
   );
 }

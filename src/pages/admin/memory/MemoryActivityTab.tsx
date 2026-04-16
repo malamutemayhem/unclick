@@ -88,7 +88,7 @@ export default function MemoryActivityTab({ apiKey }: { apiKey: string }) {
             {sortedDays.map(([day, count]) => (
               <div key={day} className="group relative flex-1 min-w-0" title={`${day}: ${count} facts`}>
                 <div
-                  className="w-full rounded-t bg-amber-500/60 transition-colors group-hover:bg-amber-500"
+                  className="w-full rounded-t bg-[#61C1C4]/60 transition-colors group-hover:bg-[#61C1C4]"
                   style={{ height: `${Math.max(4, (count / maxCount) * 80)}px` }}
                 />
               </div>
