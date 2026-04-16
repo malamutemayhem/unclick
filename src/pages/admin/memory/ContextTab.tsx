@@ -6,7 +6,7 @@ interface ContextEntry {
   id: string;
   category: string;
   key: string;
-  value: string;
+  value: unknown;
   priority: number;
   decay_tier: string;
 }
@@ -16,6 +16,13 @@ const DECAY_COLORS: Record<string, string> = {
   warm: "bg-amber-500",
   cold: "bg-blue-400",
 };
+
+/** Safely render a JSONB value that might be an object */
+function displayValue(v: unknown): string {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  return JSON.stringify(v, null, 2);
+}
 
 export default function ContextTab({ apiKey }: { apiKey: string }) {
   const [entries, setEntries] = useState<ContextEntry[]>([]);
@@ -90,7 +97,7 @@ export default function ContextTab({ apiKey }: { apiKey: string }) {
 
   const startEdit = (e: ContextEntry) => {
     setEditId(e.id);
-    setForm({ category: e.category, key: e.key, value: e.value });
+    setForm({ category: e.category, key: e.key, value: displayValue(e.value) });
     setShowForm(false);
   };
 
@@ -165,7 +172,7 @@ export default function ContextTab({ apiKey }: { apiKey: string }) {
                     {entry.decay_tier}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-white/60 line-clamp-2">{entry.value}</p>
+                <p className="mt-1 text-xs text-white/60 line-clamp-2">{displayValue(entry.value)}</p>
               </div>
 
               {/* Actions */}
