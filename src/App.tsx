@@ -25,7 +25,8 @@ import TermsPage from "./pages/Terms.tsx";
 import PrivacyPage from "./pages/Privacy.tsx";
 import BackstagePassPage from "./pages/BackstagePass.tsx";
 import MemoryPage from "./pages/Memory.tsx";
-import MemoryAdminPage from "./pages/MemoryAdmin.tsx";
+import MemoryAdminPage from "./pages/admin/AdminMemory.tsx";
+import AdminToolsPage from "./pages/admin/AdminTools.tsx";
 import MemorySetupPage from "./pages/MemorySetup.tsx";
 import PricingPage from "./pages/Pricing.tsx";
 import OrganiserPage from "./pages/Organiser.tsx";
@@ -71,6 +72,8 @@ const App = () => (
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="/memory" element={<MemoryPage />} />
           <Route path="/memory/admin" element={<MemoryAdminPage />} />
+          <Route path="/admin/memory" element={<MemoryAdminPage />} />
+          <Route path="/admin/tools" element={<AdminToolsPage />} />
           <Route path="/memory/setup" element={<MemorySetupPage />} />
           <Route path="/organiser" element={<OrganiserPage />} />
           <Route path="/dispatch" element={<DispatchPage />} />
