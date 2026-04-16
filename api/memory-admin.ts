@@ -258,19 +258,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     switch (action) {
       case "status": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
         const [bc, lib, sessions, facts, convos, code] = await Promise.all([
-          supabase.from("business_context").select("id", { count: "exact", head: true }),
-          supabase.from("knowledge_library").select("id", { count: "exact", head: true }),
-          supabase.from("session_summaries").select("id", { count: "exact", head: true }),
-          supabase.from("extracted_facts").select("id", { count: "exact", head: true }),
-          supabase.from("conversation_log").select("id", { count: "exact", head: true }),
-          supabase.from("code_dumps").select("id", { count: "exact", head: true }),
+          supabase.from("mc_business_context").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
+          supabase.from("mc_knowledge_library").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
+          supabase.from("mc_session_summaries").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
+          supabase.from("mc_extracted_facts").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
+          supabase.from("mc_conversation_log").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
+          supabase.from("mc_code_dumps").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
         ]);
 
         // Decay tier distribution from facts
         const { data: factsTiers } = await supabase
-          .from("extracted_facts")
-          .select("decay_tier, status");
+          .from("mc_extracted_facts")
+          .select("decay_tier, status")
+          .eq("api_key_hash", apiKeyHash);
 
         const tiers = { hot: 0, warm: 0, cold: 0 };
         const statuses = { active: 0, superseded: 0, archived: 0, disputed: 0 };
@@ -299,9 +304,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       case "business_context": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
         const { data, error } = await supabase
-          .from("business_context")
+          .from("mc_business_context")
           .select("*")
+          .eq("api_key_hash", apiKeyHash)
           .order("category")
           .order("key");
 
@@ -310,10 +320,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       case "sessions": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
         const limit = parseInt(req.query.limit as string) || 20;
+
         const { data, error } = await supabase
-          .from("session_summaries")
+          .from("mc_session_summaries")
           .select("*")
+          .eq("api_key_hash", apiKeyHash)
           .order("created_at", { ascending: false })
           .limit(limit);
 
@@ -322,11 +337,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       case "facts": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
         const query = req.query.query as string;
         const showAll = req.query.show_all === "true";
         let q = supabase
-          .from("extracted_facts")
+          .from("mc_extracted_facts")
           .select("*")
+          .eq("api_key_hash", apiKeyHash)
           .order("created_at", { ascending: false })
           .limit(100);
 
@@ -350,9 +370,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       case "library": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
         const { data, error } = await supabase
-          .from("knowledge_library")
+          .from("mc_knowledge_library")
           .select("slug, title, category, tags, version, updated_at, created_at")
+          .eq("api_key_hash", apiKeyHash)
           .order("category")
           .order("title");
 
@@ -361,20 +386,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       case "library_doc": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
         const slug = req.query.slug as string;
         if (!slug) return res.status(400).json({ error: "slug parameter required" });
 
         const { data, error } = await supabase
-          .from("knowledge_library")
+          .from("mc_knowledge_library")
           .select("*")
+          .eq("api_key_hash", apiKeyHash)
           .eq("slug", slug)
           .single();
 
         if (error) throw error;
 
         const { data: history } = await supabase
-          .from("knowledge_library_history")
+          .from("mc_knowledge_library_history")
           .select("*")
+          .eq("api_key_hash", apiKeyHash)
           .eq("slug", slug)
           .order("version", { ascending: false });
 
@@ -382,12 +412,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       case "conversations": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
         const sessionId = req.query.session_id as string;
+
         if (!sessionId) {
           // Return distinct session IDs with message counts
           const { data, error } = await supabase
-            .from("conversation_log")
+            .from("mc_conversation_log")
             .select("session_id, created_at")
+            .eq("api_key_hash", apiKeyHash)
             .order("created_at", { ascending: false })
             .limit(500);
 
@@ -413,8 +448,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const { data, error } = await supabase
-          .from("conversation_log")
+          .from("mc_conversation_log")
           .select("*")
+          .eq("api_key_hash", apiKeyHash)
           .eq("session_id", sessionId)
           .order("created_at", { ascending: true });
 
@@ -423,10 +459,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       case "code": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
         const sessionId = req.query.session_id as string;
+
         let q = supabase
-          .from("code_dumps")
+          .from("mc_code_dumps")
           .select("*")
+          .eq("api_key_hash", apiKeyHash)
           .order("created_at", { ascending: false })
           .limit(50);
 
@@ -455,13 +496,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "delete_fact": {
         if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
         const factId = req.body?.fact_id || req.query.fact_id;
         if (!factId) return res.status(400).json({ error: "fact_id required" });
 
         const { error } = await supabase
-          .from("extracted_facts")
+          .from("mc_extracted_facts")
           .update({ status: "archived" })
-          .eq("id", factId);
+          .eq("id", factId)
+          .eq("api_key_hash", apiKeyHash);
 
         if (error) throw error;
         return res.status(200).json({ success: true });
@@ -469,13 +514,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "delete_session": {
         if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
         const sessionId = req.body?.session_id || req.query.session_id;
         if (!sessionId) return res.status(400).json({ error: "session_id required" });
 
         const { error } = await supabase
-          .from("session_summaries")
+          .from("mc_session_summaries")
           .delete()
-          .eq("id", sessionId);
+          .eq("id", sessionId)
+          .eq("api_key_hash", apiKeyHash);
 
         if (error) throw error;
         return res.status(200).json({ success: true });
@@ -483,15 +532,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "update_business_context": {
         if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
         const { category, key, value, priority } = req.body ?? {};
         if (!category || !key || value === undefined) {
           return res.status(400).json({ error: "category, key, and value required" });
         }
 
         const { error } = await supabase
-          .from("business_context")
+          .from("mc_business_context")
           .upsert(
             {
+              api_key_hash: apiKeyHash,
               category,
               key,
               value: typeof value === "string" ? value : JSON.stringify(value),
@@ -754,8 +807,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         switch (method) {
           case "list": {
             const { data, error } = await supabase
-              .from("business_context")
+              .from("mc_business_context")
               .select("*")
+              .eq("api_key_hash", tenant)
               .order("priority", { ascending: true });
             if (error) throw error;
             return res.status(200).json({ data: data ?? [] });
@@ -768,14 +822,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
             // Auto-increment priority
             const { data: maxRow } = await supabase
-              .from("business_context")
+              .from("mc_business_context")
               .select("priority")
+              .eq("api_key_hash", tenant)
               .order("priority", { ascending: false })
               .limit(1);
             const nextPriority = ((maxRow?.[0]?.priority as number) ?? 0) + 1;
             const { data, error } = await supabase
-              .from("business_context")
+              .from("mc_business_context")
               .insert({
+                api_key_hash: tenant,
                 category,
                 key,
                 value: typeof value === "string" ? value : JSON.stringify(value),
@@ -797,7 +853,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             if (val !== undefined) updates.value = typeof val === "string" ? val : JSON.stringify(val);
             if (pri !== undefined) updates.priority = pri;
             if (cat !== undefined) updates.category = cat;
-            const { error } = await supabase.from("business_context").update(updates).eq("id", id);
+            const { error } = await supabase.from("mc_business_context").update(updates).eq("id", id).eq("api_key_hash", tenant);
             if (error) throw error;
             return res.status(200).json({ success: true });
           }
@@ -807,7 +863,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
             const delId = req.body?.id ?? req.query.id;
             if (!delId) return res.status(400).json({ error: "id required" });
-            const { error } = await supabase.from("business_context").delete().eq("id", delId);
+            const { error } = await supabase.from("mc_business_context").delete().eq("id", delId).eq("api_key_hash", tenant);
             if (error) throw error;
             return res.status(200).json({ success: true });
           }
@@ -817,9 +873,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             if (!items?.length) return res.status(400).json({ error: "items array required" });
             for (const item of items) {
               await supabase
-                .from("business_context")
+                .from("mc_business_context")
                 .update({ priority: item.priority, updated_at: new Date().toISOString() })
-                .eq("id", item.id);
+                .eq("id", item.id)
+                .eq("api_key_hash", tenant);
             }
             return res.status(200).json({ success: true });
           }
@@ -831,14 +888,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case "admin_sessions": {
         const apiKey = bearerFrom(req);
         if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
         const method = (req.body?.method ?? req.query.method ?? "list") as string;
 
         if (method === "transcript") {
           const sessionId = req.body?.session_id ?? req.query.session_id;
           if (!sessionId) return res.status(400).json({ error: "session_id required" });
           const { data, error } = await supabase
-            .from("conversation_log")
+            .from("mc_conversation_log")
             .select("*")
+            .eq("api_key_hash", apiKeyHash)
             .eq("session_id", sessionId)
             .order("created_at", { ascending: true });
           if (error) throw error;
@@ -847,8 +906,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // list
         const { data, error } = await supabase
-          .from("session_summaries")
+          .from("mc_session_summaries")
           .select("*")
+          .eq("api_key_hash", apiKeyHash)
           .order("created_at", { ascending: false })
           .limit(20);
         if (error) throw error;
@@ -858,14 +918,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case "admin_library": {
         const apiKey = bearerFrom(req);
         if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
         const method = (req.body?.method ?? req.query.method ?? "list") as string;
 
         if (method === "view") {
           const docId = req.body?.id ?? req.query.id;
           if (!docId) return res.status(400).json({ error: "id required" });
           const { data, error } = await supabase
-            .from("knowledge_library")
+            .from("mc_knowledge_library")
             .select("*")
+            .eq("api_key_hash", apiKeyHash)
             .eq("id", docId)
             .single();
           if (error) throw error;
@@ -876,8 +938,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const slug = (req.body?.slug ?? req.query.slug) as string;
           if (!slug) return res.status(400).json({ error: "slug required" });
           const { data, error } = await supabase
-            .from("knowledge_library_history")
+            .from("mc_knowledge_library_history")
             .select("*")
+            .eq("api_key_hash", apiKeyHash)
             .eq("slug", slug)
             .order("version", { ascending: false });
           if (error) throw error;
@@ -886,8 +949,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // list
         const { data, error } = await supabase
-          .from("knowledge_library")
+          .from("mc_knowledge_library")
           .select("id, slug, title, updated_at, version, decay_tier, category, tags")
+          .eq("api_key_hash", apiKeyHash)
           .order("updated_at", { ascending: false });
         if (error) throw error;
         return res.status(200).json({ data: data ?? [] });
@@ -896,11 +960,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case "admin_memory_activity": {
         const apiKey = bearerFrom(req);
         if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
 
         // Facts by day (last 30 days)
         const { data: allFacts } = await supabase
-          .from("extracted_facts")
+          .from("mc_extracted_facts")
           .select("created_at")
+          .eq("api_key_hash", apiKeyHash)
           .gte("created_at", new Date(Date.now() - 30 * 86400000).toISOString())
           .order("created_at", { ascending: true });
 
@@ -912,26 +978,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // Storage counts (reuse status logic)
         const [bc, lib, sessions, facts, convos, code] = await Promise.all([
-          supabase.from("business_context").select("id", { count: "exact", head: true }),
-          supabase.from("knowledge_library").select("id", { count: "exact", head: true }),
-          supabase.from("session_summaries").select("id", { count: "exact", head: true }),
-          supabase.from("extracted_facts").select("id", { count: "exact", head: true }),
-          supabase.from("conversation_log").select("id", { count: "exact", head: true }),
-          supabase.from("code_dumps").select("id", { count: "exact", head: true }),
+          supabase.from("mc_business_context").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
+          supabase.from("mc_knowledge_library").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
+          supabase.from("mc_session_summaries").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
+          supabase.from("mc_extracted_facts").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
+          supabase.from("mc_conversation_log").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
+          supabase.from("mc_code_dumps").select("id", { count: "exact", head: true }).eq("api_key_hash", apiKeyHash),
         ]);
 
         // Recent decay transitions
         const { data: recentDecay } = await supabase
-          .from("extracted_facts")
+          .from("mc_extracted_facts")
           .select("id, fact, category, decay_tier, updated_at")
+          .eq("api_key_hash", apiKeyHash)
           .neq("decay_tier", "hot")
           .order("updated_at", { ascending: false })
           .limit(20);
 
         // Most accessed facts
         const { data: topFacts } = await supabase
-          .from("extracted_facts")
+          .from("mc_extracted_facts")
           .select("id, fact, category, access_count, decay_tier")
+          .eq("api_key_hash", apiKeyHash)
           .eq("status", "active")
           .order("access_count", { ascending: false })
           .limit(10);
