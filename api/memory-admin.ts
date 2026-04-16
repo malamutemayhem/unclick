@@ -81,7 +81,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 
-// ─── Crypto helpers (mirror /api/credentials) ──────────────────────────────
+// ─── Crypto helpers (mirror /api/credentials) ──────────────────────────────────
 
 const PBKDF2_ITERATIONS = 100_000;
 const KEY_BYTES = 32;
@@ -279,7 +279,7 @@ async function resolveSessionTenant(
   return null;
 }
 
-// ─── Handler ───────────────────────────────────────────────────────────────
+// ─── Handler ─────────────────────────────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -897,7 +897,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             key_hash: keyHash,
             key_prefix: keyPrefix,
             user_id: user.id,
-            email: user.email,
             tier: "free",
             is_active: true,
           });
@@ -1205,7 +1204,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      // ── Cron actions ────────────────────────────────────────────────
+      // ── Cron actions ────────────────────────────────────────────────────
       case "nightly_decay": {
         // Vercel cron sends Authorization: Bearer <CRON_SECRET>. Reject any
         // request that doesn't match. If CRON_SECRET is unset the endpoint
