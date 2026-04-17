@@ -1,6 +1,6 @@
 # Phase 5 Build Desk Foundation -- Automated Claude Code Runner
 # Usage: Open PowerShell in your unclick repo directory, then run:
-#   .\run-phase5.ps1
+#   .\docs\briefs\run-phase5.ps1
 #
 # This script feeds each chunk to Claude Code sequentially.
 # After each chunk completes, it pauses for you to review before continuing.
@@ -8,8 +8,8 @@
 
 $ErrorActionPreference = "Stop"
 
-$briefsDir = $PSScriptRoot
-if (-not $briefsDir) { $briefsDir = "." }
+$briefsDir = Join-Path $PSScriptRoot ""
+if (-not $briefsDir) { $briefsDir = ".\docs\briefs\" }
 
 $chunks = @(
     @{ file = "phase5-chunk0-agents-md.md";         desc = "Chunk 0: Create AGENTS.md and CLAUDE.md" },
@@ -45,14 +45,9 @@ Write-Host "Current branch: $currentBranch" -ForegroundColor Yellow
 
 if ($currentBranch -ne "claude/phase-5-build-desk-foundation") {
     Write-Host "Creating and switching to claude/phase-5-build-desk-foundation..." -ForegroundColor Yellow
-
-    # Make sure we have the deploy branch
     git fetch origin "claude/setup-malamute-mayhem-zkquO" 2>$null
-
-    # Create the new branch off the deploy branch
     git checkout -b "claude/phase-5-build-desk-foundation" "origin/claude/setup-malamute-mayhem-zkquO" 2>$null
     if ($LASTEXITCODE -ne 0) {
-        # Branch might already exist
         git checkout "claude/phase-5-build-desk-foundation" 2>$null
     }
 }
@@ -92,8 +87,8 @@ for ($i = 0; $i -lt $chunks.Count; $i++) {
     Write-Host "Sending to Claude Code..." -ForegroundColor Cyan
     Write-Host ""
 
-    # Run Claude Code with the brief as the prompt
-    $briefContent | claude --dangerously-skip-permissions
+    # Use --print and -p to run non-interactively (avoids raw mode stdin error)
+    claude --print -p $briefContent --dangerously-skip-permissions
 
     Write-Host ""
     Write-Host "Chunk $($i+1) complete." -ForegroundColor Green
