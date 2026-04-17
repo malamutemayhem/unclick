@@ -34,7 +34,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Brain, Database, Monitor, CheckCircle2, ArrowRight } from "lucide-react";
+import AIChatPanel from "@/components/admin/AIChatPanel";
+import { isAdminAIChatEnabled } from "@/components/admin/aiChatConfig";
+import { Brain, Database, Monitor, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 
 interface MemoryConfigStatus {
   configured: boolean;
@@ -69,6 +71,8 @@ export default function MemoryAdminPage() {
   const [config, setConfig] = useState<MemoryConfigStatus | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chatOpen, setChatOpen] = useState(false);
+  const chatEnabled = isAdminAIChatEnabled();
 
   useEffect(() => {
     let cancelled = false;
@@ -116,10 +120,25 @@ export default function MemoryAdminPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Brain className="h-5 w-5" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-semibold tracking-tight">Memory Admin</h1>
             <p className="text-sm text-body">View and manage your agent's persistent memory</p>
           </div>
+          {chatEnabled && (
+            <button
+              onClick={() => setChatOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+            >
+              <Sparkles className="h-4 w-4" />
+              Ask memory
+              <span
+                className="rounded-full px-1.5 py-0.5 font-mono text-[9px] font-semibold"
+                style={{ backgroundColor: "#E2B93B22", color: "#E2B93B" }}
+              >
+                BETA
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Top-level nudge: user has 2+ devices on local storage but no cloud config */}
@@ -256,6 +275,7 @@ export default function MemoryAdminPage() {
         </div>
       </main>
       <Footer />
+      {chatEnabled && <AIChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />}
     </div>
   );
 }
