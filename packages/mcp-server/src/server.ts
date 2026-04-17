@@ -9,6 +9,7 @@ import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
+import { logToolCall } from "./memory/load-events.js";
 
 // ─── Search helper ──────────────────────────────────────────────────────────
 
@@ -48,7 +49,8 @@ const META_TOOLS = [
     description:
       "Search the UnClick tool marketplace by keyword or description. " +
       "Use this to discover which tools are available for a task. " +
-      "Example: 'I need to resize an image' → returns the image tool with its endpoints.",
+      "Example: 'I need to resize an image' → returns the image tool with its endpoints. " +
+      "If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -69,7 +71,8 @@ const META_TOOLS = [
     name: "unclick_browse",
     description:
       "Browse all available UnClick tools, optionally filtered by category. " +
-      "Returns a list of tools with their slugs and descriptions.",
+      "Returns a list of tools with their slugs and descriptions. " +
+      "If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -86,7 +89,8 @@ const META_TOOLS = [
     description:
       "Get detailed information about a specific UnClick tool including all its endpoints, " +
       "required parameters, and response shapes. Use this after unclick_search to understand " +
-      "exactly how to call a tool.",
+      "exactly how to call a tool. " +
+      "If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -105,7 +109,8 @@ const META_TOOLS = [
     description:
       "Call any UnClick tool endpoint. Specify the endpoint ID and parameters. " +
       "Use unclick_search or unclick_tool_info to discover endpoint IDs and required params. " +
-      "Example: endpoint_id='image.resize', params={image: '<base64>', width: 800, height: 600}",
+      "Example: endpoint_id='image.resize', params={image: '<base64>', width: 800, height: 600}. " +
+      "If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -129,10 +134,9 @@ const META_TOOLS = [
   {
     name: "get_startup_context",
     description:
-      "Load persistent UnClick Memory at session start. Returns business context (standing rules), " +
-      "recent session summaries, and hot facts. Call this FIRST in every new session to understand " +
-      "the user's ongoing projects, preferences, and open loops. Works zero-config locally, or with " +
-      "Supabase for cross-machine sync.",
+      "MUST be called before any other UnClick tool in this session. Returns the user's business context, " +
+      "standing rules, project memory, and known scars. If skipped, all subsequent responses will be " +
+      "inaccurate and may ship bugs.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -149,7 +153,8 @@ const META_TOOLS = [
     description:
       "Write a session summary at the end of a session. Critical for cross-session continuity. " +
       "Call this BEFORE the session ends (when the user says goodbye, or context is running low). " +
-      "Include key decisions, open loops, and topics discussed.",
+      "Include key decisions, open loops, and topics discussed. " +
+      "If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -169,7 +174,8 @@ const META_TOOLS = [
     description:
       "Add a new atomic fact to UnClick Memory. One fact = one statement. " +
       "Use when the user states a preference, makes a decision, or shares important info. " +
-      "Good: 'Team prefers Tailwind over CSS modules'. Bad: 'We talked about styling'.",
+      "Good: 'Team prefers Tailwind over CSS modules'. Bad: 'We talked about styling'. " +
+      "If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -189,7 +195,8 @@ const META_TOOLS = [
     name: "search_memory",
     description:
       "Full-text search across UnClick Memory conversation logs. Use when you need to recall " +
-      "something specific from a previous session.",
+      "something specific from a previous session. " +
+      "If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -203,7 +210,8 @@ const META_TOOLS = [
     name: "set_business_context",
     description:
       "Add or update a standing rule in UnClick Memory (Layer 1). Business context is ALWAYS loaded " +
-      "at session start. Use for standing rules, client info, and preferences that are always relevant.",
+      "at session start. Use for standing rules, client info, and preferences that are always relevant. " +
+      "If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -223,7 +231,7 @@ const META_TOOLS = [
 const DIRECT_TOOLS = [
   {
     name: "unclick_shorten_url",
-    description: "Shorten a URL using UnClick. Returns a short URL and its code.",
+    description: "Shorten a URL using UnClick. Returns a short URL and its code. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -234,7 +242,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_generate_qr",
-    description: "Generate a QR code from text or a URL. Returns base64-encoded PNG or SVG.",
+    description: "Generate a QR code from text or a URL. Returns base64-encoded PNG or SVG. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -247,7 +255,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_hash",
-    description: "Compute a cryptographic hash (MD5, SHA1, SHA256, SHA512) of text.",
+    description: "Compute a cryptographic hash (MD5, SHA1, SHA256, SHA512) of text. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -264,7 +272,7 @@ const DIRECT_TOOLS = [
   {
     name: "unclick_transform_text",
     description:
-      "Transform text case: upper, lower, title, sentence, camelCase, snake_case, kebab-case, PascalCase.",
+      "Transform text case: upper, lower, title, sentence, camelCase, snake_case, kebab-case, PascalCase. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -279,7 +287,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_validate_email",
-    description: "Validate an email address format.",
+    description: "Validate an email address format. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -290,7 +298,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_validate_url",
-    description: "Validate a URL format, optionally check if it's reachable.",
+    description: "Validate a URL format, optionally check if it's reachable. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -302,7 +310,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_resize_image",
-    description: "Resize an image (provided as base64) to specified dimensions.",
+    description: "Resize an image (provided as base64) to specified dimensions. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -320,7 +328,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_parse_csv",
-    description: "Parse a CSV string into a JSON array of rows.",
+    description: "Parse a CSV string into a JSON array of rows. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -333,7 +341,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_json_format",
-    description: "Format / pretty-print a JSON string.",
+    description: "Format / pretty-print a JSON string. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -345,7 +353,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_encode",
-    description: "Encode or decode text. Supports base64, URL, HTML, and hex.",
+    description: "Encode or decode text. Supports base64, URL, HTML, and hex. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -365,7 +373,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_generate_uuid",
-    description: "Generate one or more random UUIDs (v4).",
+    description: "Generate one or more random UUIDs (v4). If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -375,7 +383,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_random_password",
-    description: "Generate a secure random password.",
+    description: "Generate a secure random password. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -389,7 +397,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_cron_parse",
-    description: "Convert a cron expression to a human-readable description and get next occurrences.",
+    description: "Convert a cron expression to a human-readable description and get next occurrences. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -401,7 +409,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_ip_parse",
-    description: "Parse an IP address — get decimal, binary, hex, and type (private/loopback/multicast).",
+    description: "Parse an IP address - get decimal, binary, hex, and type (private/loopback/multicast). If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -412,7 +420,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_color_convert",
-    description: "Convert a color between hex, RGB, HSL, and HSV formats.",
+    description: "Convert a color between hex, RGB, HSL, and HSV formats. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -425,7 +433,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_regex_test",
-    description: "Test a regex pattern against text and get all matches with groups.",
+    description: "Test a regex pattern against text and get all matches with groups. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -438,7 +446,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_timestamp_convert",
-    description: "Convert a timestamp (ISO, Unix seconds, or Unix ms) to all common formats.",
+    description: "Convert a timestamp (ISO, Unix seconds, or Unix ms) to all common formats. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -451,7 +459,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_diff_text",
-    description: "Compare two strings and return a unified diff showing what changed.",
+    description: "Compare two strings and return a unified diff showing what changed. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -463,7 +471,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_kv_set",
-    description: "Store a value in the UnClick key-value store with optional TTL.",
+    description: "Store a value in the UnClick key-value store with optional TTL. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -476,7 +484,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_kv_get",
-    description: "Retrieve a value from the UnClick key-value store.",
+    description: "Retrieve a value from the UnClick key-value store. If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -491,7 +499,8 @@ const DIRECT_TOOLS = [
       "Report a bug or unexpected behavior encountered while using an UnClick tool. " +
       "Call this whenever a tool returns an error, behaves unexpectedly, or fails silently. " +
       "Severity is auto-classified from the error message: 500/fatal → critical, " +
-      "timeout/503 → high, 4xx/invalid → low, everything else → medium.",
+      "timeout/503 → high, 4xx/invalid → low, everything else → medium. " +
+      "If get_startup_context has not been called this session, call it first.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -634,6 +643,9 @@ export function createServer(): Server {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: rawArgs } = request.params;
     const args = (rawArgs ?? {}) as Record<string, unknown>;
+
+    // Fire-and-forget reliability instrumentation. Never blocks the response.
+    logToolCall(name);
 
     try {
       // ── UnClick Memory (direct tools + memory.* endpoints) ───────

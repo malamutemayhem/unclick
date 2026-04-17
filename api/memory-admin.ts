@@ -28,6 +28,15 @@
  *                   + nudge signal
  *   - list_devices: GET with Bearer <api_key>
  *   - remove_device: DELETE ?fingerprint=... with Bearer (or ?dismiss=1)
+ *
+ * Reliability instrumentation (keyed by UnClick API key hash):
+ *   - log_tool_event: POST with Bearer <api_key> and { tool_name, client_type }
+ *                     MCP server fire-and-forgets this on every tool call.
+ *                     Server sets was_first_call_in_session=true when no row
+ *                     for this api_key_hash exists in the last 30 minutes.
+ *   - admin_memory_load_metrics: GET with Bearer <api_key>. Returns 7-day
+ *                                 totals, get_startup_context-as-first-call
+ *                                 count, compliance %, and client_type split.
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
@@ -646,6 +655,120 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .eq("device_fingerprint", fp);
         if (error) throw error;
         return res.status(200).json({ success: true });
+      }
+
+      // ── Reliability instrumentation ─────────────────────────────────
+      case "log_tool_event": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const body = req.body as { tool_name?: string; client_type?: string };
+        const toolName = (body?.tool_name ?? "").trim();
+        if (!toolName) return res.status(400).json({ error: "tool_name required" });
+        const clientType = (body?.client_type ?? "").trim() || null;
+        const apiKeyHash = sha256hex(apiKey);
+
+        const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+        const { count } = await supabase
+          .from("memory_load_events")
+          .select("id", { count: "exact", head: true })
+          .eq("api_key_hash", apiKeyHash)
+          .gte("created_at", thirtyMinutesAgo);
+
+        const wasFirstCallInSession = (count ?? 0) === 0;
+
+        const { error } = await supabase.from("memory_load_events").insert({
+          api_key_hash: apiKeyHash,
+          tool_name: toolName,
+          client_type: clientType,
+          was_first_call_in_session: wasFirstCallInSession,
+        });
+        if (error) throw error;
+
+        return res.status(200).json({
+          success: true,
+          was_first_call_in_session: wasFirstCallInSession,
+        });
+      }
+
+      case "admin_memory_load_metrics": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        const { data, error } = await supabase
+          .from("memory_load_events")
+          .select("tool_name, client_type, was_first_call_in_session")
+          .eq("api_key_hash", apiKeyHash)
+          .gte("created_at", sevenDaysAgo);
+        if (error) throw error;
+
+        const rows = (data ?? []) as Array<{
+          tool_name: string;
+          client_type: string | null;
+          was_first_call_in_session: boolean;
+        }>;
+
+        const totalToolCalls = rows.length;
+        const firstCalls = rows.filter((r) => r.was_first_call_in_session);
+        const totalFirstCalls = firstCalls.length;
+        const startupContextFirstCalls = firstCalls.filter(
+          (r) => r.tool_name === "get_startup_context"
+        ).length;
+        const compliancePercentage =
+          totalFirstCalls > 0
+            ? Number(((startupContextFirstCalls / totalFirstCalls) * 100).toFixed(2))
+            : 0;
+
+        const byClientType: Record<
+          string,
+          {
+            total_tool_calls: number;
+            first_calls_in_session: number;
+            get_startup_context_first_calls: number;
+            compliance_percentage: number;
+          }
+        > = {};
+        for (const row of rows) {
+          const key = row.client_type ?? "unknown";
+          const bucket =
+            byClientType[key] ??
+            (byClientType[key] = {
+              total_tool_calls: 0,
+              first_calls_in_session: 0,
+              get_startup_context_first_calls: 0,
+              compliance_percentage: 0,
+            });
+          bucket.total_tool_calls++;
+          if (row.was_first_call_in_session) {
+            bucket.first_calls_in_session++;
+            if (row.tool_name === "get_startup_context") {
+              bucket.get_startup_context_first_calls++;
+            }
+          }
+        }
+        for (const bucket of Object.values(byClientType)) {
+          bucket.compliance_percentage =
+            bucket.first_calls_in_session > 0
+              ? Number(
+                  (
+                    (bucket.get_startup_context_first_calls /
+                      bucket.first_calls_in_session) *
+                    100
+                  ).toFixed(2)
+                )
+              : 0;
+        }
+
+        return res.status(200).json({
+          window_days: 7,
+          total_tool_calls: totalToolCalls,
+          total_first_calls_in_session: totalFirstCalls,
+          get_startup_context_first_calls: startupContextFirstCalls,
+          compliance_percentage: compliancePercentage,
+          by_client_type: byClientType,
+        });
       }
 
       default:
