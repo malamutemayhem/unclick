@@ -1,6 +1,9 @@
 /**
- * Shared config for the admin AI chat panel.
- * Kept in a separate file so tests and future embeds can share it.
+ * Shared config + kill-switch helpers for the admin AI chat panel.
+ *
+ * Keeps three-level kill switch (env flag, tenant settings, API guard)
+ * alongside the Phase 7 tool-calling wiring (suggestion chips + tool
+ * call labels).
  */
 
 export const ADMIN_AI_CHAT_API = "/api/memory-admin?action=admin_ai_chat";
@@ -58,8 +61,61 @@ export function describeToolCall(toolName: string, input: unknown): string {
   }
 }
 
-/** Is the AI chat feature flag on (frontend side)? */
-export function isAdminAIChatEnabled(): boolean {
+/** Frontend env-level kill switch. */
+export function aiChatEnvEnabled(): boolean {
   const flag = (import.meta.env.VITE_AI_CHAT_ENABLED ?? "").toString().toLowerCase();
   return flag === "1" || flag === "true" || flag === "yes";
 }
+
+/** Legacy alias kept for existing callers. */
+export function isAdminAIChatEnabled(): boolean {
+  return aiChatEnvEnabled();
+}
+
+export interface AiChatTenantSettings {
+  ai_chat_enabled: boolean;
+  ai_chat_provider: "google" | "openai" | "anthropic";
+  ai_chat_model: string;
+  ai_chat_system_prompt: string | null;
+  ai_chat_max_turns: number;
+  has_api_key: boolean;
+}
+
+export interface AiChatTenantResponse {
+  env_enabled: boolean;
+  settings: AiChatTenantSettings;
+}
+
+export async function fetchAiChatTenantSettings(
+  apiKey: string,
+): Promise<AiChatTenantResponse | null> {
+  if (!aiChatEnvEnabled() || !apiKey) return null;
+  try {
+    const res = await fetch("/api/memory-admin?action=tenant_settings", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as AiChatTenantResponse;
+  } catch {
+    return null;
+  }
+}
+
+export const PROVIDER_MODELS: Record<
+  AiChatTenantSettings["ai_chat_provider"],
+  { label: string; value: string }[]
+> = {
+  google: [
+    { label: "Gemini 2.0 Flash", value: "gemini-2.0-flash" },
+    { label: "Gemini 1.5 Flash", value: "gemini-1.5-flash" },
+    { label: "Gemini 1.5 Pro", value: "gemini-1.5-pro" },
+  ],
+  openai: [
+    { label: "GPT-4o mini", value: "gpt-4o-mini" },
+    { label: "GPT-4o", value: "gpt-4o" },
+  ],
+  anthropic: [
+    { label: "Claude Haiku 4.5", value: "claude-haiku-4-5" },
+    { label: "Claude Sonnet 4.6", value: "claude-sonnet-4-6" },
+  ],
+};

@@ -36,8 +36,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ClaimKeyBanner from "@/components/ClaimKeyBanner";
 import AIChatPanel from "@/components/admin/AIChatPanel";
-import { isAdminAIChatEnabled } from "@/components/admin/aiChatConfig";
-import { Brain, Database, Monitor, CheckCircle2, ArrowRight, Layers, FileText, Search, Code, Clock, Sparkles, Plug, Hammer } from "lucide-react";
+import {
+  isAdminAIChatEnabled,
+  fetchAiChatTenantSettings,
+  type AiChatTenantSettings,
+} from "@/components/admin/aiChatConfig";
+import { Brain, Database, Monitor, CheckCircle2, ArrowRight, Layers, FileText, Search, Code, Clock, Sparkles, Plug, Hammer, BookOpen, MessageSquare } from "lucide-react";
 
 interface MemoryConfigStatus {
   configured: boolean;
@@ -121,26 +125,33 @@ export default function MemoryAdminPage() {
   const [status, setStatus] = useState<MemoryStatus | null>(null);
   const [connection, setConnection] = useState<ConnectionCheck | null>(null);
   const [loading, setLoading] = useState(true);
+  const [apiKey, setApiKey] = useState<string>("");
+  const [aiChatSettings, setAiChatSettings] = useState<AiChatTenantSettings | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
-  const chatEnabled = isAdminAIChatEnabled();
+  const [statusCounts, setStatusCounts] = useState<{
+    facts: number;
+    sessions: number;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    const apiKey = localStorage.getItem("unclick_api_key") ?? "";
-    if (!apiKey) {
+    const key = localStorage.getItem("unclick_api_key") ?? "";
+    setApiKey(key);
+    if (!key) {
       setLoading(false);
       return;
     }
 
     (async () => {
       try {
-        const [cfgRes, devRes, statusRes, connRes] = await Promise.all([
-          fetch(`/api/memory-admin?action=setup_status&api_key=${encodeURIComponent(apiKey)}`),
+        const [cfgRes, devRes, aiRes, statusRes, connRes] = await Promise.all([
+          fetch(`/api/memory-admin?action=setup_status&api_key=${encodeURIComponent(key)}`),
           fetch("/api/memory-admin?action=list_devices", {
-            headers: { Authorization: `Bearer ${apiKey}` },
+            headers: { Authorization: `Bearer ${key}` },
           }),
+          fetchAiChatTenantSettings(key),
           fetch("/api/memory-admin?action=status", {
-            headers: { Authorization: `Bearer ${apiKey}` },
+            headers: { Authorization: `Bearer ${key}` },
           }),
           fetch(
             `/api/memory-admin?action=admin_check_connection&api_key=${encodeURIComponent(apiKey)}`,
@@ -154,10 +165,18 @@ export default function MemoryAdminPage() {
           const body = (await devRes.json()) as { data: Device[] };
           setDevices(body.data ?? []);
         }
+        if (!cancelled && aiRes?.env_enabled) {
+          setAiChatSettings(aiRes.settings);
+        }
         if (!cancelled && statusRes.ok) {
           const body = (await statusRes.json()) as MemoryStatus & { data?: MemoryStatus };
           // Endpoint may return raw counts or wrap them under `data`.
-          setStatus(body.data ?? body);
+          const parsed = body.data ?? body;
+          setStatus(parsed);
+          setStatusCounts({
+            facts: parsed.facts ?? 0,
+            sessions: parsed.sessions ?? 0,
+          });
         }
         if (!cancelled && connRes.ok) {
           setConnection((await connRes.json()) as ConnectionCheck);
@@ -174,6 +193,13 @@ export default function MemoryAdminPage() {
 
   const hasApiKey =
     typeof window !== "undefined" && Boolean(localStorage.getItem("unclick_api_key"));
+  // Three-level kill switch: env flag + tenant setting + api key present.
+  // If the backend tenant_settings endpoint isn't deployed yet we fall back
+  // to the env-only check so Phase 7's 9-tool chat still shows up.
+  const chatEnabled =
+    isAdminAIChatEnabled() &&
+    (aiChatSettings ? Boolean(aiChatSettings.ai_chat_enabled) : true) &&
+    Boolean(apiKey);
 
   const localCount = devices.filter((d) => d.storage_mode === "local").length;
   const cloudCount = devices.filter((d) => d.storage_mode === "cloud").length;
@@ -200,7 +226,7 @@ export default function MemoryAdminPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Brain className="h-5 w-5" />
           </div>
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-semibold tracking-tight">Memory Admin</h1>
             <p className="text-sm text-body">View and manage your agent's persistent memory</p>
           </div>
@@ -217,6 +243,13 @@ export default function MemoryAdminPage() {
             >
               <span className={`h-2 w-2 rounded-full ${tier.dot}`} />
               {loading ? "..." : tier.label}
+            </Link>
+            <Link
+              to="/memory/setup-guide"
+              className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              Setup Guide
             </Link>
             <Link
               to="/memory/connect"
