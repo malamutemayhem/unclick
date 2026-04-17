@@ -33,6 +33,12 @@
  *   - admin_build_tasks: method=list|get|create|update_status|soft_delete
  *   - admin_build_workers: method=list|register|update|delete|health_check
  *   - admin_build_dispatch: POST with task_id + worker_id (same tenant)
+ *
+ * Memory reliability instrumentation (Bearer <api_key>):
+ *   - log_tool_event: POST from MCP server; inserts memory_load_events row,
+ *                     sets was_first_call_in_session via 30-minute window
+ *   - admin_memory_load_metrics: 7-day totals, get_startup_context compliance,
+ *                                breakdown by client_type
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
@@ -1154,6 +1160,98 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             "Nightly extraction (LLM fact distillation from conversation_log) " +
             "is not yet implemented. See docs/sessions for the open question " +
             "to Chris about model selection.",
+        });
+      }
+
+      // ── Memory reliability instrumentation ───────────────────────────
+      case "log_tool_event": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
+        const toolName = String(req.body?.tool_name ?? "").trim();
+        if (!toolName) return res.status(400).json({ error: "tool_name required" });
+        const sessionIdentifier = req.body?.session_identifier
+          ? String(req.body.session_identifier)
+          : null;
+        const clientType = req.body?.client_type ? String(req.body.client_type) : null;
+
+        // 30-minute window governs session detection. Scope by session_identifier
+        // when present, else by tenant alone.
+        const windowStart = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+        let probe = supabase
+          .from("memory_load_events")
+          .select("id", { count: "exact", head: true })
+          .eq("api_key_hash", apiKeyHash)
+          .gte("created_at", windowStart);
+        if (sessionIdentifier) {
+          probe = probe.eq("session_identifier", sessionIdentifier);
+        }
+        const probeRes = await probe;
+        if (probeRes.error) throw probeRes.error;
+        const wasFirst = (probeRes.count ?? 0) === 0;
+
+        const { data, error } = await supabase
+          .from("memory_load_events")
+          .insert({
+            api_key_hash: apiKeyHash,
+            tool_name: toolName,
+            session_identifier: sessionIdentifier,
+            client_type: clientType,
+            was_first_call_in_session: wasFirst,
+          })
+          .select()
+          .single();
+        if (error) throw error;
+        return res.status(200).json({ data });
+      }
+
+      case "admin_memory_load_metrics": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
+        const windowStart = new Date(
+          Date.now() - 7 * 24 * 60 * 60 * 1000
+        ).toISOString();
+        const { data, error } = await supabase
+          .from("memory_load_events")
+          .select("tool_name, client_type, was_first_call_in_session")
+          .eq("api_key_hash", apiKeyHash)
+          .gte("created_at", windowStart);
+        if (error) throw error;
+
+        const rows = (data ?? []) as Array<{
+          tool_name: string;
+          client_type: string | null;
+          was_first_call_in_session: boolean;
+        }>;
+
+        const totalEvents = rows.length;
+        const firstCalls = rows.filter((r) => r.was_first_call_in_session);
+        const totalSessions = firstCalls.length;
+        const compliantSessions = firstCalls.filter(
+          (r) => r.tool_name === "get_startup_context"
+        ).length;
+        const compliancePct =
+          totalSessions === 0
+            ? 0
+            : Math.round((compliantSessions / totalSessions) * 1000) / 10;
+
+        const byClientType: Record<string, number> = {};
+        for (const r of rows) {
+          const key = r.client_type ?? "unknown";
+          byClientType[key] = (byClientType[key] ?? 0) + 1;
+        }
+
+        return res.status(200).json({
+          window: "7d",
+          total_events: totalEvents,
+          total_sessions: totalSessions,
+          compliant_sessions: compliantSessions,
+          get_startup_context_compliance_pct: compliancePct,
+          by_client_type: byClientType,
         });
       }
 

@@ -9,6 +9,12 @@ import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
+import { logToolCall } from "./memory/load-events.js";
+
+// Appended to every tool description except get_startup_context itself, so the
+// agent sees the session-start protocol reminder every time it lists tools.
+const GSC_REMINDER =
+  " If get_startup_context has not been called this session, call it first.";
 
 // ─── Search helper ──────────────────────────────────────────────────────────
 
@@ -48,7 +54,8 @@ const META_TOOLS = [
     description:
       "Search Available Tools - Search the UnClick tool marketplace by keyword or description. " +
       "Use this to discover which tools are available for a task. " +
-      "Example: 'I need to resize an image' returns the image tool with its endpoints.",
+      "Example: 'I need to resize an image' returns the image tool with its endpoints." +
+      GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -69,7 +76,7 @@ const META_TOOLS = [
     name: "unclick_browse",
     description:
       "Browse Tool Catalog - Browse all available UnClick tools, optionally filtered by category. " +
-      "Returns a list of tools with their slugs and descriptions.",
+      "Returns a list of tools with their slugs and descriptions." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -86,7 +93,7 @@ const META_TOOLS = [
     description:
       "Get Tool Details - Get detailed information about a specific UnClick tool including all its endpoints, " +
       "required parameters, and response shapes. Use this after unclick_search to understand " +
-      "exactly how to call a tool.",
+      "exactly how to call a tool." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -105,7 +112,8 @@ const META_TOOLS = [
     description:
       "Execute Tool - Call any UnClick tool endpoint. Specify the endpoint ID and parameters. " +
       "Use unclick_search or unclick_tool_info to discover endpoint IDs and required params. " +
-      "Example: endpoint_id='image.resize', params={image: '<base64>', width: 800, height: 600}",
+      "Example: endpoint_id='image.resize', params={image: '<base64>', width: 800, height: 600}" +
+      GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -129,9 +137,10 @@ const META_TOOLS = [
   {
     name: "get_startup_context",
     description:
-      "Load Session Context - CALL THIS FIRST at the start of every session. Returns the user's business " +
-      "context (standing rules), recent session summaries, active facts, and knowledge library index. " +
-      "This is the user's persistent memory across all sessions and devices.",
+      "Load Session Context - MUST be called FIRST at the start of every session, before any other " +
+      "UnClick tool. Returns the user's business context (standing rules), recent session summaries, " +
+      "active facts, known scars, and knowledge library index. This is the user's persistent memory " +
+      "across all sessions and devices. If skipped, subsequent responses will be inaccurate.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -148,7 +157,8 @@ const META_TOOLS = [
     description:
       "Save Session Summary - Write a session summary at the end of a session. Critical for " +
       "cross-session continuity. Call this BEFORE the session ends (when the user says goodbye, or " +
-      "context is running low). Include key decisions, open loops, and topics discussed.",
+      "context is running low). Include key decisions, open loops, and topics discussed." +
+      GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -168,7 +178,8 @@ const META_TOOLS = [
     description:
       "Store New Fact - Add a new atomic fact to UnClick Memory. One fact = one statement. " +
       "Use when the user states a preference, makes a decision, or shares important info. " +
-      "Good: 'Team prefers Tailwind over CSS modules'. Bad: 'We talked about styling'.",
+      "Good: 'Team prefers Tailwind over CSS modules'. Bad: 'We talked about styling'." +
+      GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -188,7 +199,7 @@ const META_TOOLS = [
     name: "search_memory",
     description:
       "Search Conversations - Full-text search across UnClick Memory conversation logs. Use when " +
-      "you need to recall something specific from a previous session.",
+      "you need to recall something specific from a previous session." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -203,7 +214,7 @@ const META_TOOLS = [
     description:
       "Update Business Context - Add or update a standing rule in UnClick Memory (Layer 1). Business " +
       "context is ALWAYS loaded at session start. Use for standing rules, client info, and preferences " +
-      "that are always relevant.",
+      "that are always relevant." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -223,7 +234,7 @@ const META_TOOLS = [
 const DIRECT_TOOLS = [
   {
     name: "unclick_shorten_url",
-    description: "Shorten a URL using UnClick. Returns a short URL and its code.",
+    description: "Shorten a URL using UnClick. Returns a short URL and its code." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -234,7 +245,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_generate_qr",
-    description: "Generate a QR code from text or a URL. Returns base64-encoded PNG or SVG.",
+    description: "Generate a QR code from text or a URL. Returns base64-encoded PNG or SVG." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -247,7 +258,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_hash",
-    description: "Compute a cryptographic hash (MD5, SHA1, SHA256, SHA512) of text.",
+    description: "Compute a cryptographic hash (MD5, SHA1, SHA256, SHA512) of text." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -264,7 +275,8 @@ const DIRECT_TOOLS = [
   {
     name: "unclick_transform_text",
     description:
-      "Transform text case: upper, lower, title, sentence, camelCase, snake_case, kebab-case, PascalCase.",
+      "Transform text case: upper, lower, title, sentence, camelCase, snake_case, kebab-case, PascalCase." +
+      GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -279,7 +291,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_validate_email",
-    description: "Validate an email address format.",
+    description: "Validate an email address format." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -290,7 +302,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_validate_url",
-    description: "Validate a URL format, optionally check if it's reachable.",
+    description: "Validate a URL format, optionally check if it's reachable." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -302,7 +314,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_resize_image",
-    description: "Resize an image (provided as base64) to specified dimensions.",
+    description: "Resize an image (provided as base64) to specified dimensions." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -320,7 +332,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_parse_csv",
-    description: "Parse a CSV string into a JSON array of rows.",
+    description: "Parse a CSV string into a JSON array of rows." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -333,7 +345,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_json_format",
-    description: "Format / pretty-print a JSON string.",
+    description: "Format / pretty-print a JSON string." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -345,7 +357,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_encode",
-    description: "Encode or decode text. Supports base64, URL, HTML, and hex.",
+    description: "Encode or decode text. Supports base64, URL, HTML, and hex." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -365,7 +377,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_generate_uuid",
-    description: "Generate one or more random UUIDs (v4).",
+    description: "Generate one or more random UUIDs (v4)." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -375,7 +387,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_random_password",
-    description: "Generate a secure random password.",
+    description: "Generate a secure random password." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -389,7 +401,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_cron_parse",
-    description: "Convert a cron expression to a human-readable description and get next occurrences.",
+    description: "Convert a cron expression to a human-readable description and get next occurrences." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -401,7 +413,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_ip_parse",
-    description: "Parse an IP address — get decimal, binary, hex, and type (private/loopback/multicast).",
+    description: "Parse an IP address - get decimal, binary, hex, and type (private/loopback/multicast)." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -412,7 +424,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_color_convert",
-    description: "Convert a color between hex, RGB, HSL, and HSV formats.",
+    description: "Convert a color between hex, RGB, HSL, and HSV formats." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -425,7 +437,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_regex_test",
-    description: "Test a regex pattern against text and get all matches with groups.",
+    description: "Test a regex pattern against text and get all matches with groups." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -438,7 +450,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_timestamp_convert",
-    description: "Convert a timestamp (ISO, Unix seconds, or Unix ms) to all common formats.",
+    description: "Convert a timestamp (ISO, Unix seconds, or Unix ms) to all common formats." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -451,7 +463,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_diff_text",
-    description: "Compare two strings and return a unified diff showing what changed.",
+    description: "Compare two strings and return a unified diff showing what changed." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -463,7 +475,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_kv_set",
-    description: "Store a value in the UnClick key-value store with optional TTL.",
+    description: "Store a value in the UnClick key-value store with optional TTL." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -476,7 +488,7 @@ const DIRECT_TOOLS = [
   },
   {
     name: "unclick_kv_get",
-    description: "Retrieve a value from the UnClick key-value store.",
+    description: "Retrieve a value from the UnClick key-value store." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -491,7 +503,7 @@ const DIRECT_TOOLS = [
       "Report a bug or unexpected behavior encountered while using an UnClick tool. " +
       "Call this whenever a tool returns an error, behaves unexpectedly, or fails silently. " +
       "Severity is auto-classified from the error message: 500/fatal → critical, " +
-      "timeout/503 → high, 4xx/invalid → low, everything else → medium.",
+      "timeout/503 → high, 4xx/invalid → low, everything else → medium." + GSC_REMINDER,
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -634,6 +646,9 @@ export function createServer(): Server {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: rawArgs } = request.params;
     const args = (rawArgs ?? {}) as Record<string, unknown>;
+
+    // Fire-and-forget reliability instrumentation (see memory/load-events.ts).
+    logToolCall(name);
 
     try {
       // ── UnClick Memory (direct tools + memory.* endpoints) ───────
