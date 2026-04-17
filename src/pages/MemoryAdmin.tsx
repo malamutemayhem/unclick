@@ -35,7 +35,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ClaimKeyBanner from "@/components/ClaimKeyBanner";
-import { Brain, Database, Monitor, CheckCircle2, ArrowRight, Layers, FileText, Search, Code, Clock } from "lucide-react";
+import { Brain, Database, Monitor, CheckCircle2, ArrowRight, Layers, FileText, Search, Code, Clock, BookOpen } from "lucide-react";
 
 interface MemoryConfigStatus {
   configured: boolean;
@@ -148,10 +148,17 @@ export default function MemoryAdminPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Brain className="h-5 w-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight">Memory Admin</h1>
             <p className="text-sm text-body">View and manage your agent's persistent memory</p>
           </div>
+          <Link
+            to="/memory/setup-guide"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            Setup Guide
+          </Link>
         </div>
 
         {/* Stat cards: counts per memory layer from ?action=status */}
