@@ -1,19 +1,34 @@
 /**
- * Lightweight instrumentation for memory-related events.
+ * Instrumentation surface for UnClick Memory.
  *
- * Writes a single row per event to memory_load_events. In local mode the row
- * lands in ~/.unclick/memory/memory_load_events.json; in cloud mode it is
- * inserted into the memory_load_events table if one exists (errors are
- * swallowed so callers never see instrumentation failures).
+ * Two related responsibilities live here:
  *
- * Used today by the MCP Resources ReadResource handler; the same helper can
- * be reused later for tool-call logging without changing the schema.
+ * 1. Low-level event logger. Writes a single row per event to
+ *    memory_load_events (local JSON in dev, Supabase table in cloud).
+ *    Used by the MCP Resources ReadResource handler and other callers
+ *    that want to record a memory-related event directly.
+ *
+ * 2. Thin wrappers over session-state.ts so server.ts can keep its
+ *    request handlers focused on protocol work while still recording
+ *    which autoload path (instructions / prompt / resource / tool
+ *    description) actually reached the agent. The session snapshot is
+ *    flushed to memory_load_events by load-events.ts on the first tool
+ *    call.
  */
 
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import * as crypto from "crypto";
+
+import {
+  markPromptUsed,
+  markResourceRead,
+  markContextLoaded,
+  setClientInfo,
+  setInstructionsSent,
+  type AutoloadMethod,
+} from "./session-state.js";
 
 const DATA_DIR = path.join(os.homedir(), ".unclick", "memory");
 const TABLE = "memory_load_events";
@@ -72,4 +87,32 @@ export function logMemoryLoadEvent(event: Omit<MemoryLoadEvent, "created_at">): 
   } else {
     appendLocal(row);
   }
+}
+
+/** Called from the Initialize handler. */
+export function trackInitialize(
+  clientInfo: { name?: string; version?: string } | undefined,
+  instructionsSent: boolean
+): void {
+  setClientInfo(clientInfo);
+  setInstructionsSent(instructionsSent);
+  if (instructionsSent) {
+    markContextLoaded("instructions");
+  }
+}
+
+/** Called from GetPromptRequest handler for any prompt read. */
+export function trackPromptUsed(name: string): void {
+  markPromptUsed(name);
+}
+
+/** Called from ReadResourceRequest handler for any resource read. */
+export function trackResourceRead(uri: string): void {
+  markResourceRead(uri);
+}
+
+/** Explicit hook for code paths that load context outside of the
+ *  prompt / resource / instructions flow (e.g. direct RPC or manual). */
+export function trackManualLoad(method: AutoloadMethod = "manual"): void {
+  markContextLoaded(method);
 }

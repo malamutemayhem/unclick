@@ -22,7 +22,12 @@ import {
   DEFAULT_AUTOLOAD_INSTRUCTIONS,
   type TenantSettings,
 } from "./memory/tenant-settings.js";
-import { logMemoryLoadEvent } from "./memory/instrumentation.js";
+import {
+  logMemoryLoadEvent,
+  trackInitialize,
+  trackPromptUsed,
+  trackResourceRead,
+} from "./memory/instrumentation.js";
 
 // Appended to every tool description except get_startup_context itself, so the
 // agent sees the session-start protocol reminder every time it lists tools.
@@ -808,6 +813,11 @@ export async function createServer(): Promise<Server> {
     }
   );
 
+  // Capture client info + mark instructions_sent for this session.
+  server.oninitialized = () => {
+    trackInitialize(server.getClientVersion(), Boolean(instructions));
+  };
+
   // Subscribed resource URIs for this connection. Stdio transport means one
   // process per client, so a simple Set is enough.
   const subscribedUris = new Set<string>();
@@ -848,6 +858,8 @@ export async function createServer(): Promise<Server> {
       const { name, arguments: rawArgs } = request.params;
       const promptArgs = (rawArgs ?? {}) as Record<string, unknown>;
 
+      trackPromptUsed(name);
+
       if (name !== "load-memory") {
         throw new Error(`Unknown prompt: ${name}`);
       }
@@ -877,6 +889,7 @@ export async function createServer(): Promise<Server> {
 
     server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
       const uri = request.params.uri;
+      trackResourceRead(uri);
       const payload = await readResourcePayload(uri);
       const text = JSON.stringify(payload, null, 2);
 
@@ -914,8 +927,9 @@ export async function createServer(): Promise<Server> {
     const { name, arguments: rawArgs } = request.params;
     const args = (rawArgs ?? {}) as Record<string, unknown>;
 
-    // Fire-and-forget reliability instrumentation (see memory/load-events.ts).
-    logToolCall(name);
+    // Fire-and-forget instrumentation. Catch errors so logging never
+    // breaks a real tool call.
+    logToolCall(name).catch(() => {});
 
     try {
       // ── UnClick Memory (direct tools + memory.* endpoints) ───────
