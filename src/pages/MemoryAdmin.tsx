@@ -34,7 +34,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Brain, Database, Monitor, CheckCircle2, ArrowRight } from "lucide-react";
+import { Brain, Database, Monitor, CheckCircle2, ArrowRight, MessageSquare } from "lucide-react";
+import AIChatPanel from "@/components/admin/AIChatPanel";
+import {
+  aiChatEnvEnabled,
+  fetchAiChatTenantSettings,
+  type AiChatTenantSettings,
+} from "@/components/admin/aiChatConfig";
 
 interface MemoryConfigStatus {
   configured: boolean;
@@ -69,22 +75,34 @@ export default function MemoryAdminPage() {
   const [config, setConfig] = useState<MemoryConfigStatus | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
+  const [apiKey, setApiKey] = useState<string>("");
+  const [aiChatSettings, setAiChatSettings] = useState<AiChatTenantSettings | null>(null);
+  const [aiChatOpen, setAiChatOpen] = useState(false);
+  const [statusCounts, setStatusCounts] = useState<{
+    facts: number;
+    sessions: number;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    const apiKey = localStorage.getItem("unclick_api_key") ?? "";
-    if (!apiKey) {
+    const key = localStorage.getItem("unclick_api_key") ?? "";
+    setApiKey(key);
+    if (!key) {
       setLoading(false);
       return;
     }
 
     (async () => {
       try {
-        const [cfgRes, devRes] = await Promise.all([
-          fetch(`/api/memory-admin?action=setup_status&api_key=${encodeURIComponent(apiKey)}`),
+        const [cfgRes, devRes, aiRes, statusRes] = await Promise.all([
+          fetch(`/api/memory-admin?action=setup_status&api_key=${encodeURIComponent(key)}`),
           fetch("/api/memory-admin?action=list_devices", {
-            headers: { Authorization: `Bearer ${apiKey}` },
+            headers: { Authorization: `Bearer ${key}` },
           }),
+          fetchAiChatTenantSettings(key),
+          aiChatEnvEnabled()
+            ? fetch("/api/memory-admin?action=status")
+            : Promise.resolve(null),
         ]);
 
         if (!cancelled && cfgRes.ok) {
@@ -93,6 +111,18 @@ export default function MemoryAdminPage() {
         if (!cancelled && devRes.ok) {
           const body = (await devRes.json()) as { data: Device[] };
           setDevices(body.data ?? []);
+        }
+        if (!cancelled && aiRes?.env_enabled) {
+          setAiChatSettings(aiRes.settings);
+        }
+        if (!cancelled && statusRes && statusRes.ok) {
+          const body = (await statusRes.json()) as {
+            layers?: { extracted_facts?: number; session_summaries?: number };
+          };
+          setStatusCounts({
+            facts: body.layers?.extracted_facts ?? 0,
+            sessions: body.layers?.session_summaries ?? 0,
+          });
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -103,6 +133,9 @@ export default function MemoryAdminPage() {
       cancelled = true;
     };
   }, []);
+
+  const aiChatVisible =
+    aiChatEnvEnabled() && Boolean(aiChatSettings?.ai_chat_enabled) && Boolean(apiKey);
 
   const localCount = devices.filter((d) => d.storage_mode === "local").length;
   const cloudCount = devices.filter((d) => d.storage_mode === "cloud").length;
@@ -116,10 +149,27 @@ export default function MemoryAdminPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Brain className="h-5 w-5" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-semibold tracking-tight">Memory Admin</h1>
             <p className="text-sm text-body">View and manage your agent's persistent memory</p>
           </div>
+          {aiChatVisible && (
+            <button
+              onClick={() => setAiChatOpen(true)}
+              className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition-colors hover:bg-muted/20"
+              style={{ borderColor: "rgba(97, 193, 196, 0.4)", color: "#61C1C4" }}
+              title="Open UnClick AI (beta)"
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span className="hidden sm:inline">UnClick AI</span>
+              <span
+                className="rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase text-black"
+                style={{ backgroundColor: "#E2B93B" }}
+              >
+                Beta
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Top-level nudge: user has 2+ devices on local storage but no cloud config */}
@@ -256,6 +306,15 @@ export default function MemoryAdminPage() {
         </div>
       </main>
       <Footer />
+      {aiChatVisible && (
+        <AIChatPanel
+          open={aiChatOpen}
+          onClose={() => setAiChatOpen(false)}
+          apiKey={apiKey}
+          factCount={statusCounts?.facts}
+          sessionCount={statusCounts?.sessions}
+        />
+      )}
     </div>
   );
 }
