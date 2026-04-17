@@ -28,6 +28,11 @@
  *                   + nudge signal
  *   - list_devices: GET with Bearer <api_key>
  *   - remove_device: DELETE ?fingerprint=... with Bearer (or ?dismiss=1)
+ *
+ * Build Desk admin actions (Bearer <api_key>, tenant-scoped by sha256hex):
+ *   - admin_build_tasks: method=list|get|create|update_status|soft_delete
+ *   - admin_build_workers: method=list|register|update|delete|health_check
+ *   - admin_build_dispatch: POST with task_id + worker_id (same tenant)
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
@@ -1150,6 +1155,281 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             "is not yet implemented. See docs/sessions for the open question " +
             "to Chris about model selection.",
         });
+      }
+
+      // ── Build Desk admin actions ─────────────────────────────────────
+      case "admin_build_tasks": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+        const method = String(req.query.method ?? req.body?.method ?? "list").trim();
+
+        switch (method) {
+          case "list": {
+            const { data, error } = await supabase
+              .from("build_tasks")
+              .select("*")
+              .eq("api_key_hash", apiKeyHash)
+              .order("created_at", { ascending: false });
+            if (error) throw error;
+            return res.status(200).json({ data: data ?? [] });
+          }
+          case "get": {
+            const taskId = String(req.query.task_id ?? req.body?.task_id ?? "").trim();
+            if (!taskId) return res.status(400).json({ error: "task_id required" });
+            const { data, error } = await supabase
+              .from("build_tasks")
+              .select("*")
+              .eq("api_key_hash", apiKeyHash)
+              .eq("id", taskId)
+              .maybeSingle();
+            if (error) throw error;
+            if (!data) return res.status(404).json({ error: "Task not found" });
+            return res.status(200).json({ data });
+          }
+          case "create": {
+            if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+            const {
+              title,
+              description,
+              status,
+              plan_json,
+              acceptance_criteria_json,
+              assigned_worker_id,
+              parent_task_id,
+            } = req.body ?? {};
+            if (!title) return res.status(400).json({ error: "title required" });
+
+            if (assigned_worker_id) {
+              const { data: w, error: wErr } = await supabase
+                .from("build_workers")
+                .select("id")
+                .eq("api_key_hash", apiKeyHash)
+                .eq("id", assigned_worker_id)
+                .maybeSingle();
+              if (wErr) throw wErr;
+              if (!w) return res.status(400).json({ error: "assigned_worker_id not found" });
+            }
+            if (parent_task_id) {
+              const { data: p, error: pErr } = await supabase
+                .from("build_tasks")
+                .select("id")
+                .eq("api_key_hash", apiKeyHash)
+                .eq("id", parent_task_id)
+                .maybeSingle();
+              if (pErr) throw pErr;
+              if (!p) return res.status(400).json({ error: "parent_task_id not found" });
+            }
+
+            const { data, error } = await supabase
+              .from("build_tasks")
+              .insert({
+                api_key_hash: apiKeyHash,
+                title,
+                description: description ?? null,
+                status: status ?? "draft",
+                plan_json: plan_json ?? null,
+                acceptance_criteria_json: acceptance_criteria_json ?? null,
+                assigned_worker_id: assigned_worker_id ?? null,
+                parent_task_id: parent_task_id ?? null,
+              })
+              .select()
+              .single();
+            if (error) throw error;
+            return res.status(200).json({ data });
+          }
+          case "update_status": {
+            if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+            const { task_id, status } = req.body ?? {};
+            if (!task_id || !status) {
+              return res.status(400).json({ error: "task_id and status required" });
+            }
+            const { data, error } = await supabase
+              .from("build_tasks")
+              .update({ status, updated_at: new Date().toISOString() })
+              .eq("api_key_hash", apiKeyHash)
+              .eq("id", task_id)
+              .select()
+              .maybeSingle();
+            if (error) throw error;
+            if (!data) return res.status(404).json({ error: "Task not found" });
+            return res.status(200).json({ data });
+          }
+          case "soft_delete": {
+            if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+            const { task_id } = req.body ?? {};
+            if (!task_id) return res.status(400).json({ error: "task_id required" });
+            const { data, error } = await supabase
+              .from("build_tasks")
+              .update({ status: "failed", updated_at: new Date().toISOString() })
+              .eq("api_key_hash", apiKeyHash)
+              .eq("id", task_id)
+              .select()
+              .maybeSingle();
+            if (error) throw error;
+            if (!data) return res.status(404).json({ error: "Task not found" });
+            return res.status(200).json({ success: true });
+          }
+          default:
+            return res.status(400).json({ error: `Unknown method: ${method}` });
+        }
+      }
+
+      case "admin_build_workers": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+        const method = String(req.query.method ?? req.body?.method ?? "list").trim();
+
+        switch (method) {
+          case "list": {
+            const { data, error } = await supabase
+              .from("build_workers")
+              .select("*")
+              .eq("api_key_hash", apiKeyHash)
+              .order("created_at", { ascending: false });
+            if (error) throw error;
+            return res.status(200).json({ data: data ?? [] });
+          }
+          case "register": {
+            if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+            const { name, worker_type, connection_config_json, status } = req.body ?? {};
+            if (!name || !worker_type) {
+              return res.status(400).json({ error: "name and worker_type required" });
+            }
+            const { data, error } = await supabase
+              .from("build_workers")
+              .insert({
+                api_key_hash: apiKeyHash,
+                name,
+                worker_type,
+                connection_config_json: connection_config_json ?? null,
+                status: status ?? "offline",
+              })
+              .select()
+              .single();
+            if (error) throw error;
+            return res.status(200).json({ data });
+          }
+          case "update": {
+            if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+            const { worker_id, name, worker_type, connection_config_json, status } = req.body ?? {};
+            if (!worker_id) return res.status(400).json({ error: "worker_id required" });
+            const updates: Record<string, unknown> = {};
+            if (name !== undefined) updates.name = name;
+            if (worker_type !== undefined) updates.worker_type = worker_type;
+            if (connection_config_json !== undefined) {
+              updates.connection_config_json = connection_config_json;
+            }
+            if (status !== undefined) updates.status = status;
+            if (Object.keys(updates).length === 0) {
+              return res.status(400).json({ error: "No fields to update" });
+            }
+            const { data, error } = await supabase
+              .from("build_workers")
+              .update(updates)
+              .eq("api_key_hash", apiKeyHash)
+              .eq("id", worker_id)
+              .select()
+              .maybeSingle();
+            if (error) throw error;
+            if (!data) return res.status(404).json({ error: "Worker not found" });
+            return res.status(200).json({ data });
+          }
+          case "delete": {
+            if (req.method !== "POST" && req.method !== "DELETE") {
+              return res.status(405).json({ error: "POST or DELETE required" });
+            }
+            const workerId = String(
+              req.body?.worker_id ?? req.query.worker_id ?? ""
+            ).trim();
+            if (!workerId) return res.status(400).json({ error: "worker_id required" });
+            const { error } = await supabase
+              .from("build_workers")
+              .delete()
+              .eq("api_key_hash", apiKeyHash)
+              .eq("id", workerId);
+            if (error) throw error;
+            return res.status(200).json({ success: true });
+          }
+          case "health_check": {
+            if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+            const { worker_id, status } = req.body ?? {};
+            if (!worker_id) return res.status(400).json({ error: "worker_id required" });
+            const updates: Record<string, unknown> = {
+              last_health_check_at: new Date().toISOString(),
+            };
+            if (status !== undefined) updates.status = status;
+            const { data, error } = await supabase
+              .from("build_workers")
+              .update(updates)
+              .eq("api_key_hash", apiKeyHash)
+              .eq("id", worker_id)
+              .select()
+              .maybeSingle();
+            if (error) throw error;
+            if (!data) return res.status(404).json({ error: "Worker not found" });
+            return res.status(200).json({ data });
+          }
+          default:
+            return res.status(400).json({ error: `Unknown method: ${method}` });
+        }
+      }
+
+      case "admin_build_dispatch": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+        const { task_id, worker_id, payload_json } = req.body ?? {};
+        if (!task_id || !worker_id) {
+          return res.status(400).json({ error: "task_id and worker_id required" });
+        }
+
+        const [taskRes, workerRes] = await Promise.all([
+          supabase
+            .from("build_tasks")
+            .select("id")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", task_id)
+            .maybeSingle(),
+          supabase
+            .from("build_workers")
+            .select("id")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", worker_id)
+            .maybeSingle(),
+        ]);
+        if (taskRes.error) throw taskRes.error;
+        if (workerRes.error) throw workerRes.error;
+        if (!taskRes.data) return res.status(404).json({ error: "task_id not found" });
+        if (!workerRes.data) return res.status(404).json({ error: "worker_id not found" });
+
+        const { data: eventData, error: eventErr } = await supabase
+          .from("build_dispatch_events")
+          .insert({
+            api_key_hash: apiKeyHash,
+            task_id,
+            worker_id,
+            event_type: "dispatched",
+            payload_json: payload_json ?? null,
+          })
+          .select()
+          .single();
+        if (eventErr) throw eventErr;
+
+        const { error: updErr } = await supabase
+          .from("build_tasks")
+          .update({
+            status: "dispatched",
+            assigned_worker_id: worker_id,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("api_key_hash", apiKeyHash)
+          .eq("id", task_id);
+        if (updErr) throw updErr;
+
+        return res.status(200).json({ data: eventData });
       }
 
       default:
