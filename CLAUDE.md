@@ -1,53 +1,42 @@
-# UnClick
+# Agent Operating Guide -- UnClick
 
-AI agent operating system. One npm install gives agents access to 450+ callable endpoints across 60+ integrations AND persistent cross-session memory, all via the MCP protocol.
+This repo is UnClick: an MCP-native memory, identity, and credential layer for AI agents.
 
-## Monorepo structure
+## FIRST ACTION -- EVERY SESSION
 
-```
-packages/mcp-server/            # THE npm package (@unclick/mcp-server) - published to npm
-packages/mcp-server/src/memory/ # Built-in memory module (6-layer architecture)
-packages/memory-mcp/            # DEPRECATED standalone package (kept for reference)
-src/                            # React website (Vite + TypeScript)
-api/                            # Vercel serverless functions (REST API endpoints)
-```
+Before reading any code or responding to the user, call the UnClick MCP server's `get_startup_context` tool. This returns Chris's business context, standing rules, project memory, and known scars. Your responses will be inaccurate and potentially ship bugs if you skip this step.
 
-## Key files
+If the UnClick MCP server is not configured in the current client, tell the user before proceeding.
 
-| File | Purpose |
-|------|---------|
-| `packages/mcp-server/src/server.ts` | MCP server entrypoint, registers meta-tools + 5 direct memory tools |
-| `packages/mcp-server/src/tool-wiring.ts` | Maps tool names to API calls |
-| `packages/mcp-server/src/memory/handlers.ts` | Memory operation dispatcher (all 17 ops) |
-| `packages/mcp-server/src/memory/db.ts` | Backend factory (local JSON or Supabase) |
-| `src/pages/tools/Tools.tsx` | Website tools grid, one tile per integration |
+## Standing rules (non-negotiable)
 
-## Architecture
+- No em dashes anywhere -- copy, comments, commit messages, all of it.
+- The term is "prompt composition", not "prompt engineering".
+- Deploy branch is `claude/setup-malamute-mayhem-zkquO`, not main. Vercel deploys from this branch.
+- Vercel function cap is 12. Fold new endpoints into `api/memory-admin.ts` via action routing.
+- Admin pages: use `useSession()`, wrap in `RequireAuth`, follow AdminShell pattern.
+- Admin queries use `mc_*` tables with `api_key_hash` filtering.
+- Brand: teal `#61C1C4` primary, amber `#E2B93B` secondary.
+- Render JSONB values safely -- `business_context.value` and `session_summaries.decisions/open_loops` must use `displayValue()` / `displayItem()` helpers or they crash React.
 
-**4 meta-tools** let agents discover and call anything dynamically:
+## Before declaring done
 
-- `unclick_search` - find tools by keyword
-- `unclick_browse` - list all tools, optionally by category
-- `unclick_tool_info` - get endpoints and params for a specific tool
-- `unclick_call` - execute any endpoint with parameters (including `memory.*`)
+- Grep your diff for em dashes and confirm none exist.
+- Count `api/*.ts` files and confirm 12 or fewer.
+- Confirm no standalone Navbar/Footer was added to any `/admin/*` page.
+- Confirm every new SQL table has `api_key_hash` for tenant isolation.
+- Write a session summary via `write_session_summary` before you finish.
 
-**5 direct memory tools** expose the session protocol agents should follow:
+## Project structure (verify before assuming)
 
-- `get_startup_context` - call FIRST in every session
-- `write_session_summary` - call BEFORE session ends
-- `add_fact` - record preferences, decisions, important info
-- `search_memory` - recall anything from prior sessions
-- `set_business_context` - set standing rules (always loaded)
+- Monorepo root: website + `packages/mcp-server`
+- Admin surfaces live in `src/pages/admin/`
+- API routes in `api/`
+- Supabase migrations in `supabase/migrations/`
+- MCP server catalogue in `packages/mcp-server/src/`
 
-The other 12 memory operations (manage_decay, store_code, log_conversation, supersede_fact, upsert_library_doc, etc.) are callable via `unclick_call` with `endpoint_id: "memory.<op>"`.
+## When stuck
 
-## Adding a new tool
-
-1. Create `api/*-tool.ts` with the Vercel handler and endpoint logic
-2. Wire it in `packages/mcp-server/src/tool-wiring.ts` (add name, description, category, and endpoint mapping)
-3. Add a tile in `src/pages/tools/Tools.tsx`
-
-## Style rules
-
-- No em dashes anywhere in code or content (use a regular dash or restructure the sentence)
-- No per-tool MCP registrations EXCEPT the 5 direct memory tools (everything else goes through the 4 meta-tools)
+- Call `get_startup_context` again to refresh context.
+- Search `docs/sessions/` for the most recent session summary of similar work.
+- Ask Chris before making architectural changes.
