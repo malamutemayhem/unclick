@@ -42,7 +42,10 @@
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { streamText, tool, stepCountIs, convertToModelMessages, type UIMessage } from "ai";
+import { google } from "@ai-sdk/google";
+import { z } from "zod";
 import * as crypto from "crypto";
 import * as fs from "fs";
 import * as path from "path";
@@ -244,6 +247,272 @@ async function resolveSessionTenant(
   }
 
   return null;
+}
+
+// ─── Admin AI chat helpers ─────────────────────────────────────────────────
+
+function isAdminChatEnabled(): boolean {
+  const flag = (process.env.AI_CHAT_ENABLED ?? "").toLowerCase();
+  return flag === "1" || flag === "true" || flag === "yes";
+}
+
+function buildAdminChatTools(supabase: SupabaseClient) {
+  return {
+    search_memory: tool({
+      description:
+        "Search the user's UnClick Memory for facts or session history matching a query. Returns matching extracted_facts and session_summaries.",
+      inputSchema: z.object({
+        query: z.string().describe("Text to search for in facts and session summaries"),
+        limit: z.number().int().positive().max(25).optional().describe("Max results per table"),
+      }),
+      execute: async ({ query, limit = 10 }) => {
+        const pattern = `%${query.replace(/[%_]/g, (m) => `\\${m}`)}%`;
+        const [factsRes, sessionsRes] = await Promise.all([
+          supabase
+            .from("extracted_facts")
+            .select("id, fact, category, confidence, status, created_at")
+            .eq("status", "active")
+            .ilike("fact", pattern)
+            .order("confidence", { ascending: false })
+            .limit(limit),
+          supabase
+            .from("session_summaries")
+            .select("id, session_id, platform, summary, topics, created_at")
+            .ilike("summary", pattern)
+            .order("created_at", { ascending: false })
+            .limit(limit),
+        ]);
+        return {
+          query,
+          facts: factsRes.data ?? [],
+          sessions: sessionsRes.data ?? [],
+          error: factsRes.error?.message ?? sessionsRes.error?.message ?? null,
+        };
+      },
+    }),
+
+    add_fact: tool({
+      description:
+        "Store a new fact in the user's UnClick Memory (extracted_facts). Use this when the user tells you something worth remembering across sessions.",
+      inputSchema: z.object({
+        category: z.string().describe("Fact category, e.g. 'preferences', 'technical', 'clients'"),
+        key: z.string().optional().describe("Short key/label for the fact (stored as a topic tag)"),
+        value: z.string().describe("The fact itself, stated atomically"),
+        tier: z.enum(["hot", "warm", "cold"]).optional().describe("Decay tier, default 'hot'"),
+      }),
+      execute: async ({ category, value, tier = "hot" }) => {
+        const { data, error } = await supabase
+          .from("extracted_facts")
+          .insert({
+            fact: value,
+            category,
+            decay_tier: tier,
+            source_type: "admin_chat",
+            confidence: 1.0,
+            status: "active",
+          })
+          .select("id")
+          .single();
+        if (error) return { success: false, error: error.message };
+        return { success: true, fact_id: data.id };
+      },
+    }),
+
+    update_business_context: tool({
+      description:
+        "Upsert a business_context entry (standing rule, preference, client profile). Always loaded at session startup.",
+      inputSchema: z.object({
+        category: z.string().describe("e.g. 'standing_rules', 'clients', 'brand'"),
+        key: z.string().describe("Unique key within the category"),
+        value: z.string().describe("The context value as a JSON-encoded string or plain text"),
+      }),
+      execute: async ({ category, key, value }) => {
+        let stored: unknown = value;
+        try {
+          stored = JSON.parse(value);
+        } catch {
+          stored = value;
+        }
+        const { error } = await supabase
+          .from("business_context")
+          .upsert(
+            {
+              category,
+              key,
+              value: stored,
+              priority: 50,
+              decay_tier: "hot",
+              updated_at: new Date().toISOString(),
+              last_accessed: new Date().toISOString(),
+            },
+            { onConflict: "category,key" }
+          );
+        if (error) return { success: false, error: error.message };
+        return { success: true, category, key };
+      },
+    }),
+
+    get_memory_stats: tool({
+      description:
+        "Get current memory usage statistics: layer counts, decay tier distribution, and fact status breakdown.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        const [bc, lib, sessions, facts, convos, code] = await Promise.all([
+          supabase.from("business_context").select("id", { count: "exact", head: true }),
+          supabase.from("knowledge_library").select("id", { count: "exact", head: true }),
+          supabase.from("session_summaries").select("id", { count: "exact", head: true }),
+          supabase.from("extracted_facts").select("id", { count: "exact", head: true }),
+          supabase.from("conversation_log").select("id", { count: "exact", head: true }),
+          supabase.from("code_dumps").select("id", { count: "exact", head: true }),
+        ]);
+        const { data: factsTiers } = await supabase
+          .from("extracted_facts")
+          .select("decay_tier, status");
+        const tiers = { hot: 0, warm: 0, cold: 0 };
+        const statuses = { active: 0, superseded: 0, archived: 0, disputed: 0 };
+        for (const f of factsTiers ?? []) {
+          if (f.decay_tier && tiers[f.decay_tier as keyof typeof tiers] !== undefined) {
+            tiers[f.decay_tier as keyof typeof tiers]++;
+          }
+          if (f.status && statuses[f.status as keyof typeof statuses] !== undefined) {
+            statuses[f.status as keyof typeof statuses]++;
+          }
+        }
+        return {
+          layers: {
+            business_context: bc.count ?? 0,
+            knowledge_library: lib.count ?? 0,
+            session_summaries: sessions.count ?? 0,
+            extracted_facts: facts.count ?? 0,
+            conversation_log: convos.count ?? 0,
+            code_dumps: code.count ?? 0,
+          },
+          decay_tiers: tiers,
+          fact_statuses: statuses,
+        };
+      },
+    }),
+
+    list_recent_sessions: tool({
+      description: "List recent work session summaries, ordered by most recent first.",
+      inputSchema: z.object({
+        limit: z.number().int().positive().max(25).optional(),
+      }),
+      execute: async ({ limit = 10 }) => {
+        const { data, error } = await supabase
+          .from("session_summaries")
+          .select("id, session_id, platform, summary, topics, decisions, open_loops, created_at")
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (error) return { sessions: [], error: error.message };
+        return { sessions: data ?? [] };
+      },
+    }),
+
+    write_session_summary: tool({
+      description:
+        "Write a summary of the current conversation as a session_summaries record. Use this at the end of a session, or when the user asks to save a recap.",
+      inputSchema: z.object({
+        summary: z.string().describe("Narrative summary of the conversation"),
+        decisions: z.array(z.string()).optional().describe("Decisions made in this session"),
+        open_loops: z.array(z.string()).optional().describe("Unfinished threads or follow-ups"),
+        topics: z.array(z.string()).optional().describe("Topic tags for searchability"),
+      }),
+      execute: async ({ summary, decisions, open_loops, topics }) => {
+        const { data, error } = await supabase
+          .from("session_summaries")
+          .insert({
+            session_id: `admin-chat-${Date.now()}`,
+            platform: "admin-chat",
+            summary,
+            decisions: decisions ?? [],
+            open_loops: open_loops ?? [],
+            topics: topics ?? [],
+          })
+          .select("id")
+          .single();
+        if (error) return { success: false, error: error.message };
+        return { success: true, summary_id: data.id };
+      },
+    }),
+  };
+}
+
+async function buildAdminChatSystemPrompt(supabase: SupabaseClient): Promise<string> {
+  const [bcRes, sessRes, factsRes] = await Promise.all([
+    supabase
+      .from("business_context")
+      .select("category, key, value, priority")
+      .in("decay_tier", ["hot", "warm"])
+      .order("priority", { ascending: false })
+      .limit(40),
+    supabase
+      .from("session_summaries")
+      .select("session_id, platform, summary, topics, created_at")
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("extracted_facts")
+      .select("fact, category, confidence")
+      .eq("status", "active")
+      .in("decay_tier", ["hot", "warm"])
+      .order("confidence", { ascending: false })
+      .limit(30),
+  ]);
+
+  const bc = bcRes.data ?? [];
+  const sessions = sessRes.data ?? [];
+  const facts = factsRes.data ?? [];
+
+  const ctxBlock = bc.length
+    ? bc
+        .map((r) => {
+          const v = typeof r.value === "string" ? r.value : JSON.stringify(r.value);
+          return `- [${r.category}/${r.key}] ${v}`;
+        })
+        .join("\n")
+    : "(none yet)";
+
+  const factsBlock = facts.length
+    ? facts.map((f) => `- (${f.category}) ${f.fact}`).join("\n")
+    : "(none yet)";
+
+  const sessionsBlock = sessions.length
+    ? sessions
+        .map((s) => {
+          const when = s.created_at ? new Date(s.created_at).toISOString().slice(0, 10) : "unknown";
+          const topics = Array.isArray(s.topics) && s.topics.length ? ` [${s.topics.join(", ")}]` : "";
+          return `- ${when} (${s.platform ?? "unknown"})${topics}: ${s.summary}`;
+        })
+        .join("\n")
+    : "(none yet)";
+
+  return [
+    "You are the UnClick Memory admin assistant. You help the user inspect and curate their persistent memory.",
+    "",
+    "You have tools available to interact with this user's UnClick Memory. Use them when appropriate:",
+    "- search_memory: Find specific facts or session history",
+    "- add_fact: Store new information the user tells you",
+    "- update_business_context: Update their business identity or settings",
+    "- get_memory_stats: Check memory health and load rates",
+    "- list_recent_sessions: Review what happened in recent sessions",
+    "- write_session_summary: Save a summary of this conversation",
+    "",
+    "When the user tells you something worth remembering, proactively use add_fact to store it. When they ask about past work, use list_recent_sessions or search_memory. Be helpful and proactive with tools, but always tell the user what you did.",
+    "",
+    "Style: concise, direct, no fluff. Use Markdown sparingly. Do not use em dashes; use a regular dash or restructure.",
+    "",
+    "CURRENT MEMORY SNAPSHOT",
+    "",
+    "Business context (standing rules + preferences):",
+    ctxBlock,
+    "",
+    "Recent sessions:",
+    sessionsBlock,
+    "",
+    "Active facts (highest confidence):",
+    factsBlock,
+  ].join("\n");
 }
 
 // ─── Handler ───────────────────────────────────────────────────────────────
@@ -1528,6 +1797,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (updErr) throw updErr;
 
         return res.status(200).json({ data: eventData });
+      }
+
+      case "admin_ai_chat": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        if (!isAdminChatEnabled()) {
+          return res.status(503).json({
+            error: "Admin AI chat is disabled. Set AI_CHAT_ENABLED=true to turn it on.",
+          });
+        }
+        if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+          return res.status(503).json({
+            error: "GOOGLE_GENERATIVE_AI_API_KEY is not configured on the server.",
+          });
+        }
+
+        const body = req.body as { messages?: UIMessage[] } | undefined;
+        const messages = Array.isArray(body?.messages) ? body!.messages! : [];
+        if (messages.length === 0) {
+          return res.status(400).json({ error: "messages array is required" });
+        }
+
+        const systemPrompt = await buildAdminChatSystemPrompt(supabase);
+        const tools = buildAdminChatTools(supabase);
+
+        const modelMessages = await convertToModelMessages(messages);
+        const result = streamText({
+          model: google("gemini-2.0-flash"),
+          system: systemPrompt,
+          messages: modelMessages,
+          tools,
+          stopWhen: stepCountIs(5),
+          onError({ error }) {
+            console.error("admin_ai_chat stream error:", error);
+          },
+        });
+
+        result.pipeUIMessageStreamToResponse(res);
+        return;
       }
 
       default:
