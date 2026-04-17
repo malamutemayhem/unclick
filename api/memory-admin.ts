@@ -621,6 +621,226 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({ data: data ?? [] });
       }
 
+      // ── Instrumentation: log a tool call from the MCP server ─────────
+      case "log_tool_event": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const body = (req.body ?? {}) as {
+          api_key_hash?: string | null;
+          session_id?: string;
+          client_name?: string | null;
+          client_version?: string | null;
+          first_tool?: string | null;
+          context_loaded?: boolean;
+          tools_called_before_context?: number;
+          instructions_sent?: boolean;
+          prompt_used?: boolean;
+          resource_read?: boolean;
+          autoload_method?: string | null;
+        };
+
+        const bearer = bearerFrom(req);
+        const apiKeyHash = body.api_key_hash ?? (bearer ? sha256hex(bearer) : null);
+
+        const { error } = await supabase.from("memory_load_events").insert({
+          api_key_hash: apiKeyHash,
+          session_id: body.session_id ?? null,
+          client_name: body.client_name ?? null,
+          client_version: body.client_version ?? null,
+          first_tool: body.first_tool ?? null,
+          context_loaded: Boolean(body.context_loaded),
+          tools_called_before_context: body.tools_called_before_context ?? 0,
+          instructions_sent: Boolean(body.instructions_sent),
+          prompt_used: Boolean(body.prompt_used),
+          resource_read: Boolean(body.resource_read),
+          autoload_method: body.autoload_method ?? "none",
+        });
+        if (error) throw error;
+        return res.status(200).json({ success: true });
+      }
+
+      // ── Admin: load metrics (rolling 7-day window + per-client / per-method
+      //    breakdown + trend vs. prior week) ──────────────────────────────
+      case "admin_memory_load_metrics": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
+        const now = Date.now();
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        const windowStart = new Date(now - sevenDaysMs).toISOString();
+        const prevWindowStart = new Date(now - 2 * sevenDaysMs).toISOString();
+
+        const { data: recent, error } = await supabase
+          .from("memory_load_events")
+          .select(
+            "created_at,client_name,client_version,first_tool,context_loaded," +
+            "tools_called_before_context,instructions_sent,prompt_used,resource_read,autoload_method"
+          )
+          .eq("api_key_hash", apiKeyHash)
+          .gte("created_at", prevWindowStart)
+          .order("created_at", { ascending: false })
+          .limit(5000);
+        if (error) throw error;
+
+        type Row = {
+          created_at: string;
+          client_name: string | null;
+          client_version: string | null;
+          first_tool: string | null;
+          context_loaded: boolean | null;
+          tools_called_before_context: number | null;
+          instructions_sent: boolean | null;
+          prompt_used: boolean | null;
+          resource_read: boolean | null;
+          autoload_method: string | null;
+        };
+
+        const rows = (recent ?? []) as Row[];
+        const current = rows.filter((r) => r.created_at >= windowStart);
+        const previous = rows.filter(
+          (r) => r.created_at < windowStart && r.created_at >= prevWindowStart
+        );
+
+        const totalSessions = current.length;
+        const loadedCount = current.filter((r) => r.context_loaded).length;
+        const loadRate = totalSessions === 0 ? 0 : (loadedCount / totalSessions) * 100;
+
+        const byMethod: Record<string, number> = {
+          instructions: 0,
+          prompt: 0,
+          resource: 0,
+          tool_description: 0,
+          manual: 0,
+          none: 0,
+        };
+        for (const r of current) {
+          const m = r.autoload_method ?? "none";
+          byMethod[m] = (byMethod[m] ?? 0) + 1;
+        }
+
+        const byClient: Record<
+          string,
+          { total: number; loaded: number; rate: number }
+        > = {};
+        for (const r of current) {
+          const name = r.client_name ?? "unknown";
+          const entry = (byClient[name] ??= { total: 0, loaded: 0, rate: 0 });
+          entry.total += 1;
+          if (r.context_loaded) entry.loaded += 1;
+        }
+        for (const entry of Object.values(byClient)) {
+          entry.rate = entry.total === 0 ? 0 : (entry.loaded / entry.total) * 100;
+        }
+
+        const prevTotal = previous.length;
+        let direction: "up" | "down" | "stable" = "stable";
+        if (totalSessions > prevTotal) direction = "up";
+        else if (totalSessions < prevTotal) direction = "down";
+
+        const missing = current
+          .filter((r) => !r.context_loaded)
+          .slice(0, 5)
+          .map((r) => ({
+            created_at: r.created_at,
+            client_name: r.client_name,
+            client_version: r.client_version,
+            first_tool: r.first_tool,
+          }));
+
+        return res.status(200).json({
+          total_sessions_7d: totalSessions,
+          context_loaded_count: loadedCount,
+          load_rate_percent: Math.round(loadRate * 10) / 10,
+          by_method: byMethod,
+          by_client: byClient,
+          trend: {
+            current_week: totalSessions,
+            previous_week: prevTotal,
+            direction,
+          },
+          sessions_without_context: {
+            count: totalSessions - loadedCount,
+            recent: missing,
+          },
+        });
+      }
+
+      // ── Admin: sessions in the last 24h where context was never loaded
+      //    before the first tool call ───────────────────────────────────
+      case "admin_missed_context_alerts": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+        const { data, error } = await supabase
+          .from("memory_load_events")
+          .select(
+            "created_at,session_id,client_name,client_version,first_tool," +
+            "tools_called_before_context,context_loaded,autoload_method"
+          )
+          .eq("api_key_hash", apiKeyHash)
+          .gte("created_at", since)
+          .order("created_at", { ascending: false })
+          .limit(1000);
+        if (error) throw error;
+
+        type Row = {
+          created_at: string;
+          session_id: string | null;
+          client_name: string | null;
+          client_version: string | null;
+          first_tool: string | null;
+          tools_called_before_context: number | null;
+          context_loaded: boolean | null;
+          autoload_method: string | null;
+        };
+
+        const rows = (data ?? []) as Row[];
+        const missed = rows.filter((r) => {
+          if (!r.first_tool) return false;
+          const neverLoaded = !r.context_loaded;
+          const loadedLate = Boolean(r.context_loaded) && r.first_tool !== "get_startup_context";
+          return neverLoaded || loadedLate;
+        });
+
+        const byClient: Record<
+          string,
+          {
+            total: number;
+            sessions: Array<{
+              created_at: string;
+              session_id: string | null;
+              client_version: string | null;
+              first_tool: string | null;
+              tools_called_before_context: number;
+              context_ever_loaded: boolean;
+            }>;
+          }
+        > = {};
+
+        for (const r of missed) {
+          const name = r.client_name ?? "unknown";
+          const entry = (byClient[name] ??= { total: 0, sessions: [] });
+          entry.total += 1;
+          entry.sessions.push({
+            created_at: r.created_at,
+            session_id: r.session_id,
+            client_version: r.client_version,
+            first_tool: r.first_tool,
+            tools_called_before_context: r.tools_called_before_context ?? 0,
+            context_ever_loaded: Boolean(r.context_loaded),
+          });
+        }
+
+        return res.status(200).json({
+          window_hours: 24,
+          total_missed: missed.length,
+          by_client: byClient,
+        });
+      }
+
       case "remove_device": {
         if (req.method !== "DELETE") return res.status(405).json({ error: "DELETE required" });
         const apiKey = bearerFrom(req);

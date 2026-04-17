@@ -3,12 +3,22 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { CATALOG, TOOL_MAP, ENDPOINT_MAP, type ToolDef } from "./catalog.js";
 import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
+import { logToolCall } from "./memory/load-events.js";
+import {
+  trackInitialize,
+  trackPromptUsed,
+  trackResourceRead,
+} from "./memory/instrumentation.js";
 
 // ─── Search helper ──────────────────────────────────────────────────────────
 
@@ -604,6 +614,13 @@ const DIRECT_HANDLERS: Record<string, DirectHandler> = {
 
 // ─── Server factory ─────────────────────────────────────────────────────────
 
+const SERVER_INSTRUCTIONS =
+  "UnClick provides a persistent cross-session memory layer. " +
+  "At the START of every session, call the `get_startup_context` tool first " +
+  "(or read the `memory://startup-context` resource, or use the `load-memory` prompt) " +
+  "to hydrate business context, recent session summaries, and hot facts. " +
+  "Before the session ends, call `write_session_summary` to preserve continuity.";
+
 export function createServer(): Server {
   const server = new Server(
     {
@@ -620,9 +637,15 @@ export function createServer(): Server {
       ],
     },
     {
-      capabilities: { tools: {} },
+      capabilities: { tools: {}, prompts: {}, resources: {} },
+      instructions: SERVER_INSTRUCTIONS,
     }
   );
+
+  // Capture client info + mark instructions_sent for this session.
+  server.oninitialized = () => {
+    trackInitialize(server.getClientVersion(), Boolean(SERVER_INSTRUCTIONS));
+  };
 
   // LIST TOOLS — expose only the 4 meta tools; individual tools remain callable
   // via unclick_call for backwards compat but aren't advertised to reduce noise.
@@ -630,10 +653,83 @@ export function createServer(): Server {
     return { tools: [...META_TOOLS] };
   });
 
+  // PROMPTS: a single `load-memory` prompt that tells the agent to hydrate
+  // context. Registering this lets clients surface it in their command palette
+  // and also lets us track autoload via prompt usage.
+  server.setRequestHandler(ListPromptsRequestSchema, async () => ({
+    prompts: [
+      {
+        name: "load-memory",
+        description:
+          "Hydrate persistent UnClick Memory for this session (business context, " +
+          "recent summaries, hot facts). Run this at session start.",
+      },
+    ],
+  }));
+
+  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+    const promptName = request.params.name;
+    trackPromptUsed(promptName);
+    if (promptName === "load-memory") {
+      return {
+        description: "Load UnClick Memory startup context",
+        messages: [
+          {
+            role: "user" as const,
+            content: {
+              type: "text" as const,
+              text:
+                "Before doing anything else, call the `get_startup_context` tool " +
+                "to load UnClick Memory for this session, then use the returned " +
+                "business context, recent session summaries, and hot facts to inform " +
+                "your replies.",
+            },
+          },
+        ],
+      };
+    }
+    throw new Error(`Unknown prompt: ${promptName}`);
+  });
+
+  // RESOURCES: expose startup context as a readable memory:// resource.
+  server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+    resources: [
+      {
+        uri: "memory://startup-context",
+        name: "UnClick Memory startup context",
+        description:
+          "Business context, recent session summaries, and hot facts. Read this at session start.",
+        mimeType: "application/json",
+      },
+    ],
+  }));
+
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    const uri = request.params.uri;
+    trackResourceRead(uri);
+    if (uri === "memory://startup-context") {
+      const result = await MEMORY_HANDLERS.get_startup_context({ num_sessions: 5 });
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: "application/json",
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    }
+    throw new Error(`Unknown resource: ${uri}`);
+  });
+
   // CALL TOOL
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: rawArgs } = request.params;
     const args = (rawArgs ?? {}) as Record<string, unknown>;
+
+    // Fire-and-forget instrumentation. Catch errors so logging never
+    // breaks a real tool call.
+    logToolCall(name).catch(() => {});
 
     try {
       // ── UnClick Memory (direct tools + memory.* endpoints) ───────
