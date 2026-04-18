@@ -9,6 +9,7 @@ import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
+import { webSearch, webScrape, searchDocs } from "./web-tools.js";
 
 // ─── Search helper ──────────────────────────────────────────────────────────
 
@@ -132,7 +133,9 @@ const META_TOOLS = [
       "Load persistent UnClick Memory at session start. Returns business context (standing rules), " +
       "recent session summaries, and hot facts. Call this FIRST in every new session to understand " +
       "the user's ongoing projects, preferences, and open loops. Works zero-config locally, or with " +
-      "Supabase for cross-machine sync.",
+      "Supabase for cross-machine sync. If you pass session_tools (list of other MCP tool names " +
+      "currently available), UnClick also returns tool_guidance - flagging conflicts and suggesting " +
+      "where UnClick's built-ins can replace duplicate tools.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -140,6 +143,14 @@ const META_TOOLS = [
           type: "number",
           description: "Number of recent session summaries to load (1-20, default 5)",
           default: 5,
+        },
+        session_tools: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Optional: names of other MCP tools currently available in this session. " +
+            "When provided, UnClick classifies them (compatible / replaceable / conflicting) " +
+            "and returns tool_guidance with nudges.",
         },
       },
     },
@@ -216,6 +227,70 @@ const META_TOOLS = [
         priority: { type: "number", description: "Priority for loading order (higher = loaded first)" },
       },
       required: ["category", "key", "value"],
+    },
+  },
+  // ── Built-in web tools (back up UnClick's tool-replacement nudges) ───────
+  {
+    name: "web_search",
+    description:
+      "Search the web and return results. Use this for finding current information, researching " +
+      "topics, or answering questions that need up-to-date data. UnClick remembers your searches " +
+      "so you don't have to repeat them.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        query: { type: "string", description: "What to search for" },
+        limit: { type: "number", description: "Max results (1-10)", default: 5 },
+        topic: {
+          type: "string",
+          enum: ["general", "news", "code", "academic"],
+          default: "general",
+        },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "web_scrape",
+    description:
+      "Fetch a web page and extract its content as clean text. Use this to read articles, " +
+      "documentation, or any web page. UnClick remembers pages you've read.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        url: { type: "string", description: "The URL to fetch" },
+        format: {
+          type: "string",
+          enum: ["text", "markdown", "html"],
+          default: "markdown",
+        },
+      },
+      required: ["url"],
+    },
+  },
+  {
+    name: "search_docs",
+    description:
+      "Look up documentation for any library or framework. Returns current, version-specific " +
+      "docs and code examples. Use this instead of searching the web for API references.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        library: {
+          type: "string",
+          description: "Library name (e.g., 'react', 'next.js', 'express')",
+        },
+        topic: {
+          type: "string",
+          description: "Specific topic or API to look up (optional)",
+        },
+        max_tokens: {
+          type: "number",
+          description: "Max content length (default 5000)",
+          default: 5000,
+        },
+      },
+      required: ["library"],
     },
   },
 ] as const;
@@ -639,6 +714,26 @@ export function createServer(): Server {
       // ── UnClick Memory (direct tools + memory.* endpoints) ───────
       if (MEMORY_HANDLERS[name]) {
         const result = await MEMORY_HANDLERS[name](args);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      // ── Built-in web tools ───────────────────────────────────────
+      if (name === "web_search") {
+        const result = await webSearch(args as Parameters<typeof webSearch>[0]);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+      if (name === "web_scrape") {
+        const result = await webScrape(args as Parameters<typeof webScrape>[0]);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+      if (name === "search_docs") {
+        const result = await searchDocs(args as Parameters<typeof searchDocs>[0]);
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         };
