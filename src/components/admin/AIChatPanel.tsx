@@ -178,29 +178,101 @@ export default function AIChatPanel() {
         }
         setMessages((prev) => [...prev, reply]);
       } else {
+        // admin_ai_chat expects UIMessage[] (AI SDK v6). Build the full
+        // conversation as `parts`-shaped messages and stream the response.
+        const history = [...messages, userMsg].filter(
+          (m) => m.role === "user" || m.role === "assistant",
+        );
+        const uiMessages = history.map((m) => ({
+          id: m.id,
+          role: m.role,
+          parts: [{ type: "text" as const, text: m.content }],
+        }));
+
         const res = await fetch("/api/memory-admin?action=admin_ai_chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
           },
-          body: JSON.stringify({ session_id: sessionId, content: text }),
+          body: JSON.stringify({ messages: uiMessages, api_key: apiKey }),
         });
-        const body = (await res.json()) as {
-          message_id?: string;
-          reply?: string;
-          error?: string;
-        };
-        if (!res.ok) throw new Error(body?.error ?? `chat failed (${res.status})`);
+
+        if (!res.ok) {
+          const errText = await res.text();
+          let msg = `chat failed (${res.status})`;
+          try {
+            const parsed = JSON.parse(errText) as { error?: string };
+            if (parsed?.error) msg = parsed.error;
+          } catch {
+            /* non-JSON error body */
+          }
+          throw new Error(msg);
+        }
+
+        if (!res.body) throw new Error("Empty response body");
+
+        const assistantId = `a_${Date.now()}`;
         setMessages((prev) => [
           ...prev,
           {
-            id: body.message_id ?? `g_${Date.now()}`,
+            id: assistantId,
             role: "assistant",
-            content: body.reply ?? "(no reply)",
+            content: "",
             created_at: new Date().toISOString(),
           },
         ]);
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let acc = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const payload = trimmed.slice(5).trim();
+            if (!payload || payload === "[DONE]") continue;
+            let chunk: unknown;
+            try {
+              chunk = JSON.parse(payload);
+            } catch {
+              continue;
+            }
+            const c = chunk as Record<string, unknown>;
+            // v6 uses `delta`, v5 used `textDelta`. Also accept plain text chunks.
+            const delta =
+              typeof c.delta === "string"
+                ? c.delta
+                : typeof c.textDelta === "string"
+                  ? c.textDelta
+                  : c.type === "text" && typeof c.text === "string"
+                    ? c.text
+                    : "";
+            if (delta) {
+              acc += delta;
+              setMessages((prev) =>
+                prev.map((m) => (m.id === assistantId ? { ...m, content: acc } : m)),
+              );
+            } else if (c.type === "error" && typeof c.errorText === "string") {
+              throw new Error(c.errorText);
+            }
+          }
+        }
+
+        if (!acc) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId ? { ...m, content: "(no reply)" } : m,
+            ),
+          );
+        }
       }
     } catch (err) {
       setMessages((prev) => [
