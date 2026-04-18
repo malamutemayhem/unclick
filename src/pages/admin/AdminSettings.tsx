@@ -18,6 +18,10 @@ import {
   Bug,
   Zap,
   X as XIcon,
+  Eye,
+  Download,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 const DEFAULT_INSTRUCTIONS =
@@ -57,6 +61,30 @@ interface ConnectionCheck {
   fact_count: number;
   last_session: string | null;
   last_used_at: string | null;
+}
+
+interface SessionPreview {
+  identity: Array<{ category: string; key: string; value: unknown; priority: number }>;
+  hot_facts: Array<{
+    id: string;
+    fact: string;
+    category: string;
+    confidence: number;
+    created_at: string;
+  }>;
+  recent_sessions: Array<{
+    id: string;
+    summary: string;
+    topics: string[] | null;
+    platform: string | null;
+    created_at: string;
+  }>;
+}
+
+function previewValue(v: unknown): string {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  return JSON.stringify(v);
 }
 
 const STATUS_TONE: Record<string, string> = {
@@ -109,6 +137,28 @@ function Toggle({
           }`}
         />
       </button>
+    </div>
+  );
+}
+
+function PreviewGroup({
+  title,
+  count,
+  children,
+}: {
+  title: string;
+  count: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="mb-1.5 flex items-center gap-2 text-[11px] uppercase tracking-wider text-white/50">
+        <span>{title}</span>
+        <span className="rounded-full border border-white/[0.08] px-1.5 py-0.5 font-mono text-[10px] text-white/40">
+          {count}
+        </span>
+      </div>
+      {children}
     </div>
   );
 }
@@ -177,6 +227,11 @@ export default function AdminSettings() {
   const [connection, setConnection] = useState<ConnectionCheck | null>(null);
   const [connectionLoading, setConnectionLoading] = useState(true);
 
+  const [preview, setPreview] = useState<SessionPreview | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
   useEffect(() => {
     if (!apiKey) {
       setLoading(false);
@@ -236,6 +291,46 @@ export default function AdminSettings() {
     if (!settings) return;
     setSettings({ ...settings, [key]: value });
     setSaveMsg(null);
+  }
+
+  async function handleOpenPreview() {
+    const next = !previewOpen;
+    setPreviewOpen(next);
+    if (next && !preview && apiKey) {
+      setPreviewLoading(true);
+      try {
+        const res = await fetch("/api/memory-admin?action=admin_session_preview", {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        if (res.ok) {
+          setPreview((await res.json()) as SessionPreview);
+        }
+      } finally {
+        setPreviewLoading(false);
+      }
+    }
+  }
+
+  async function handleExport() {
+    if (!apiKey || exporting) return;
+    setExporting(true);
+    try {
+      const res = await fetch("/api/memory-admin?action=admin_export_all", {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `unclick-memory-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
   }
 
   async function handleSave() {
@@ -409,6 +504,123 @@ export default function AdminSettings() {
             other memory tools (Mem0, Zep, mem-based agents) leads to duplicated facts and
             conflicting context. Use UnClick as your default and turn the others off.
           </span>
+        </div>
+
+        {/* What loads at session start */}
+        <div className="mt-5 rounded-md border border-white/[0.06] bg-white/[0.02]">
+          <button
+            type="button"
+            onClick={handleOpenPreview}
+            className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-xs text-white/70 hover:text-white"
+          >
+            <span className="inline-flex items-center gap-2">
+              <Eye className="h-3.5 w-3.5 text-[#61C1C4]" />
+              <span className="font-semibold text-white">See what loads at session start</span>
+            </span>
+            {previewOpen ? (
+              <ChevronDown className="h-3.5 w-3.5 text-white/40" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5 text-white/40" />
+            )}
+          </button>
+
+          {previewOpen && (
+            <div className="border-t border-white/[0.04] px-4 py-4">
+              {previewLoading ? (
+                <p className="text-xs text-white/50">Loading preview...</p>
+              ) : !preview ||
+                (preview.identity.length === 0 &&
+                  preview.hot_facts.length === 0 &&
+                  preview.recent_sessions.length === 0) ? (
+                <p className="text-xs text-white/50">
+                  Nothing to load yet. Add identity entries or facts in Memory so your AI has
+                  something to read at session start.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <PreviewGroup title="Identity (always loaded)" count={preview.identity.length}>
+                    {preview.identity.length === 0 ? (
+                      <p className="text-xs text-white/40">No entries.</p>
+                    ) : (
+                      <ul className="space-y-1 text-xs text-white/70">
+                        {preview.identity.map((e) => (
+                          <li key={`${e.category}-${e.key}`} className="flex gap-2">
+                            <span className="shrink-0 rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-white/40">
+                              {e.category}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="font-medium text-white">{e.key}</span>
+                              <span className="text-white/50">: {previewValue(e.value)}</span>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </PreviewGroup>
+
+                  <PreviewGroup title="Hot facts (top 10)" count={preview.hot_facts.length}>
+                    {preview.hot_facts.length === 0 ? (
+                      <p className="text-xs text-white/40">No hot facts yet.</p>
+                    ) : (
+                      <ul className="space-y-1 text-xs text-white/70">
+                        {preview.hot_facts.map((f) => (
+                          <li key={f.id} className="flex gap-2">
+                            <span className="shrink-0 rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-white/40">
+                              {f.category}
+                            </span>
+                            <span className="min-w-0 truncate">{f.fact}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </PreviewGroup>
+
+                  <PreviewGroup
+                    title="Recent sessions (last 5)"
+                    count={preview.recent_sessions.length}
+                  >
+                    {preview.recent_sessions.length === 0 ? (
+                      <p className="text-xs text-white/40">No sessions recorded yet.</p>
+                    ) : (
+                      <ul className="space-y-1 text-xs text-white/70">
+                        {preview.recent_sessions.map((s) => (
+                          <li key={s.id} className="flex gap-2">
+                            <span className="shrink-0 text-[10px] text-white/30">
+                              {new Date(s.created_at).toLocaleDateString()}
+                            </span>
+                            <span className="min-w-0 truncate">{s.summary}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </PreviewGroup>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-md border border-white/[0.06] bg-white/[0.02] p-4 text-xs">
+          <div>
+            <p className="font-semibold text-white">Your data, your file.</p>
+            <p className="mt-0.5 text-white/50">
+              Download a full snapshot of everything UnClick has stored for you.
+              No lock-in. Keep a backup or move to another tool any time.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-white/[0.08] px-3 py-2 text-xs font-semibold text-white hover:bg-white/[0.04] disabled:opacity-50"
+          >
+            {exporting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Download className="h-3.5 w-3.5" />
+            )}
+            Export my memory
+          </button>
         </div>
       </section>
 

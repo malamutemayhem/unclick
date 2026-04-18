@@ -1,6 +1,15 @@
 import { useEffect, useState, useCallback } from "react";
-import { ChevronUp, ChevronDown, Pencil, Trash2, Plus, Shield } from "lucide-react";
+import { ChevronUp, ChevronDown, Pencil, Trash2, Plus, Shield, Sparkles, Loader2 } from "lucide-react";
 import EmptyState from "./EmptyState";
+
+type TemplateKey = "freelancer" | "developer" | "founder" | "creator";
+
+const TEMPLATES: Array<{ key: TemplateKey; label: string; tagline: string }> = [
+  { key: "freelancer", label: "Freelancer", tagline: "Independent. Hours, clients, cadence." },
+  { key: "developer", label: "Developer", tagline: "Stack, code style, testing habits." },
+  { key: "founder", label: "Founder", tagline: "Focus, weekly rhythm, reporting style." },
+  { key: "creator", label: "Creator", tagline: "Platforms, voice, publishing rhythm." },
+];
 
 interface ContextEntry {
   id: string;
@@ -30,6 +39,7 @@ export default function ContextTab({ apiKey }: { apiKey: string }) {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ category: "", key: "", value: "" });
+  const [applyingTemplate, setApplyingTemplate] = useState<TemplateKey | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -101,24 +111,68 @@ export default function ContextTab({ apiKey }: { apiKey: string }) {
     setShowForm(false);
   };
 
+  const applyTemplate = async (key: TemplateKey) => {
+    setApplyingTemplate(key);
+    try {
+      await fetch("/api/memory-admin?action=admin_context_apply_template", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ template: key }),
+      });
+      await load();
+    } finally {
+      setApplyingTemplate(null);
+    }
+  };
+
   if (loading) {
     return <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 animate-pulse rounded-lg bg-white/[0.03] border border-white/[0.06]" />)}</div>;
   }
 
   if (entries.length === 0 && !showForm) {
     return (
-      <EmptyState
-        icon={Shield}
-        heading="Your identity is empty"
-        description="Add your business name, preferences, and standing rules so every AI session knows who you are from the start."
-        steps={[
-          "Add your name and role",
-          "Add your key projects and clients",
-          "Add your preferences - how you like to work",
-        ]}
-        cta="Add your first entry"
-        onAction={() => setShowForm(true)}
-      />
+      <div className="space-y-6">
+        <EmptyState
+          icon={Shield}
+          heading="Your identity is empty"
+          description="Add your business name, preferences, and standing rules so every AI session knows who you are from the start."
+          cta="Add your first entry"
+          onAction={() => setShowForm(true)}
+        />
+
+        <div className="rounded-xl border border-[#61C1C4]/20 bg-white/[0.03] p-5">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-[#61C1C4]" />
+            <h3 className="text-sm font-semibold text-white">
+              Not sure where to start? Pick a template.
+            </h3>
+          </div>
+          <p className="mt-1 text-xs text-white/50">
+            We will drop a handful of starter entries you can keep, edit, or delete.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {TEMPLATES.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => applyTemplate(t.key)}
+                disabled={applyingTemplate !== null}
+                className="group relative rounded-lg border border-white/[0.06] bg-white/[0.02] p-4 text-left transition-colors hover:border-[#61C1C4]/40 hover:bg-white/[0.04] disabled:opacity-50"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold text-white">{t.label}</span>
+                  {applyingTemplate === t.key ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-[#61C1C4]" />
+                  ) : (
+                    <Plus className="h-3.5 w-3.5 text-white/40 group-hover:text-[#61C1C4]" />
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-white/50">{t.tagline}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 

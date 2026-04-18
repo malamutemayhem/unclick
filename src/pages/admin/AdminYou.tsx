@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSession, signOut } from "@/lib/auth";
 import ClaimKeyBanner from "@/components/ClaimKeyBanner";
 import {
@@ -23,7 +23,102 @@ import {
   Check,
   Plus,
   AlertTriangle,
+  Brain,
+  ArrowRight,
 } from "lucide-react";
+
+interface MemoryNudge {
+  connected: boolean;
+  context_count: number;
+  fact_count: number;
+}
+
+const NUDGE_DISMISS_KEY = "unclick_admin_memory_nudge_dismissed_at";
+const NUDGE_SNOOZE_MS = 24 * 60 * 60 * 1000; // 24h
+
+function MemoryNudgeBanner({ apiKey }: { apiKey: string }) {
+  const [state, setState] = useState<MemoryNudge | null>(null);
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const at = localStorage.getItem(NUDGE_DISMISS_KEY);
+      if (at && Date.now() - Number(at) < NUDGE_SNOOZE_MS) {
+        setDismissed(true);
+        return;
+      }
+    } catch {
+      // ignore
+    }
+    if (!apiKey) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/memory-admin?action=admin_check_connection&api_key=${encodeURIComponent(apiKey)}`
+        );
+        if (!res.ok) return;
+        const body = (await res.json()) as MemoryNudge;
+        if (!cancelled) setState(body);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [apiKey]);
+
+  if (dismissed || !state) return null;
+
+  const hasMemory = state.fact_count > 0 || state.context_count > 0;
+  if (state.connected && hasMemory) return null;
+
+  const heading = !state.connected
+    ? "Finish connecting UnClick"
+    : "Your memory is empty";
+  const body = !state.connected
+    ? "UnClick is installed but your AI hasn't checked in yet. Run the Connect command so your sessions can load memory automatically."
+    : "Add your identity or a few facts so every AI session starts with context instead of from scratch.";
+  const cta = !state.connected ? "Connect UnClick" : "Add memory";
+  const to = !state.connected ? "/memory/connect" : "/admin/memory?tab=identity";
+
+  const handleDismiss = () => {
+    try {
+      localStorage.setItem(NUDGE_DISMISS_KEY, String(Date.now()));
+    } catch {
+      // ignore
+    }
+    setDismissed(true);
+  };
+
+  return (
+    <div className="mb-6 flex flex-wrap items-start gap-3 rounded-xl border border-[#E2B93B]/30 bg-[#E2B93B]/[0.06] p-4">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E2B93B]/15 text-[#E2B93B]">
+        <Brain className="h-4 w-4" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-white">{heading}</p>
+        <p className="mt-1 text-xs text-[#E2B93B]/90">{body}</p>
+      </div>
+      <div className="flex items-center gap-2">
+        <Link
+          to={to}
+          className="inline-flex items-center gap-1 rounded-md bg-[#61C1C4] px-3 py-1.5 text-xs font-semibold text-black hover:opacity-90"
+        >
+          {cta} <ArrowRight className="h-3 w-3" />
+        </Link>
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className="rounded-md px-2 py-1 text-xs text-white/50 hover:text-white"
+        >
+          Later
+        </button>
+      </div>
+    </div>
+  );
+}
 
 interface DeviceRow {
   id: string;
@@ -177,6 +272,9 @@ export default function AdminYou() {
       </div>
 
       <ClaimKeyBanner />
+      {profile?.api_key?.prefix ? (
+        <MemoryNudgeBanner apiKey={localStorage.getItem("unclick_api_key") ?? ""} />
+      ) : null}
 
       {loading ? (
         <div className="flex items-center gap-2 py-12 text-[#666]">

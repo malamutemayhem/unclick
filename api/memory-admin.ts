@@ -63,6 +63,13 @@
  * Memory management actions:
  *   - admin_update_fact: POST, updates fact text, category, and/or confidence.
  *   - admin_fact_add: POST, inserts a new manually-authored fact.
+ *   - admin_context_apply_template: POST, seeds business_context from a
+ *                                   built-in starter template (freelancer,
+ *                                   developer, founder, creator).
+ *   - admin_session_preview: GET, returns a dry-run of get_startup_context
+ *                            for the admin UI to show what will load.
+ *   - admin_export_all: GET, returns the user's entire memory snapshot as JSON
+ *                       for self-hosted export / portability.
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
@@ -2305,6 +2312,171 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (error) throw error;
         return res.status(200).json({ success: true, data });
+      }
+
+      case "admin_context_apply_template": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
+        const template = String(req.body?.template ?? "").trim().toLowerCase();
+        const templates: Record<string, Array<{ category: string; key: string; value: string }>> = {
+          freelancer: [
+            { category: "identity", key: "role", value: "Independent freelancer" },
+            { category: "preference", key: "working_hours", value: "Weekdays, deep work 9am-1pm" },
+            { category: "preference", key: "communication", value: "Short, direct, no filler" },
+            { category: "workflow", key: "delivery_cadence", value: "Weekly demo, daily short updates" },
+            { category: "standing_rule", key: "estimates", value: "Always quote a range, never a single number" },
+          ],
+          developer: [
+            { category: "identity", key: "role", value: "Software engineer" },
+            { category: "preference", key: "preferred_stack", value: "TypeScript, React, Node, Postgres" },
+            { category: "preference", key: "code_style", value: "Prefer small pure functions, avoid unnecessary abstractions" },
+            { category: "standing_rule", key: "testing", value: "Write a failing test first for any non-trivial change" },
+            { category: "workflow", key: "pr_review", value: "Explain the why in PR descriptions, not the what" },
+          ],
+          founder: [
+            { category: "identity", key: "role", value: "Founder / CEO" },
+            { category: "preference", key: "communication", value: "High signal, decisions over discussion" },
+            { category: "workflow", key: "weekly_rhythm", value: "Mondays plan, Fridays review, ship often" },
+            { category: "standing_rule", key: "focus", value: "Default no to anything that is not the top priority this week" },
+            { category: "technical", key: "reporting", value: "Numbers first, narrative second" },
+          ],
+          creator: [
+            { category: "identity", key: "role", value: "Content creator" },
+            { category: "preference", key: "platforms", value: "Primary: YouTube. Secondary: X, LinkedIn." },
+            { category: "preference", key: "voice", value: "Friendly, concrete, no hype" },
+            { category: "workflow", key: "publishing", value: "Two long-form per week, daily short-form" },
+            { category: "standing_rule", key: "hooks", value: "Always lead with the payoff, not the setup" },
+          ],
+        };
+
+        const entries = templates[template];
+        if (!entries) {
+          return res.status(400).json({
+            error: "Unknown template. Use one of: freelancer, developer, founder, creator.",
+          });
+        }
+
+        const { data: existing } = await supabase
+          .from("mc_business_context")
+          .select("category, key, priority")
+          .eq("api_key_hash", apiKeyHash);
+        const seenKeys = new Set((existing ?? []).map((r) => `${r.category}/${r.key}`));
+        let maxPriority = 0;
+        for (const row of existing ?? []) {
+          if ((row.priority ?? 0) > maxPriority) maxPriority = row.priority ?? 0;
+        }
+
+        const toInsert = entries
+          .filter((e) => !seenKeys.has(`${e.category}/${e.key}`))
+          .map((e, i) => ({
+            api_key_hash: apiKeyHash,
+            category: e.category,
+            key: e.key,
+            value: e.value,
+            priority: maxPriority + i + 1,
+            decay_tier: "hot",
+            updated_at: new Date().toISOString(),
+            last_accessed: new Date().toISOString(),
+          }));
+
+        if (toInsert.length === 0) {
+          return res.status(200).json({ success: true, inserted: 0, skipped: entries.length });
+        }
+
+        const { error } = await supabase.from("mc_business_context").insert(toInsert);
+        if (error) throw error;
+        return res.status(200).json({
+          success: true,
+          inserted: toInsert.length,
+          skipped: entries.length - toInsert.length,
+        });
+      }
+
+      case "admin_session_preview": {
+        // Dry-run of get_startup_context so the admin UI can show users what
+        // their AI actually sees at the start of every session.
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
+        const [ctxRes, factsRes, sessionsRes] = await Promise.all([
+          supabase
+            .from("mc_business_context")
+            .select("category, key, value, priority")
+            .eq("api_key_hash", apiKeyHash)
+            .order("priority", { ascending: true }),
+          supabase
+            .from("mc_extracted_facts")
+            .select("id, fact, category, confidence, decay_tier, created_at")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "active")
+            .eq("decay_tier", "hot")
+            .order("confidence", { ascending: false })
+            .order("created_at", { ascending: false })
+            .limit(10),
+          supabase
+            .from("mc_session_summaries")
+            .select("id, summary, topics, created_at, platform")
+            .eq("api_key_hash", apiKeyHash)
+            .order("created_at", { ascending: false })
+            .limit(5),
+        ]);
+
+        return res.status(200).json({
+          identity: ctxRes.data ?? [],
+          hot_facts: factsRes.data ?? [],
+          recent_sessions: sessionsRes.data ?? [],
+        });
+      }
+
+      case "admin_export_all": {
+        // Full portable snapshot of the user's memory. Users can download this
+        // and move to another memory backend if they ever want to leave.
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
+        const [ctx, facts, sessions, library] = await Promise.all([
+          supabase
+            .from("mc_business_context")
+            .select("category, key, value, priority, decay_tier, created_at, updated_at")
+            .eq("api_key_hash", apiKeyHash)
+            .order("priority", { ascending: true }),
+          supabase
+            .from("mc_extracted_facts")
+            .select("fact, category, confidence, status, decay_tier, source_type, created_at, updated_at")
+            .eq("api_key_hash", apiKeyHash)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("mc_session_summaries")
+            .select("session_id, summary, topics, decisions, open_loops, platform, duration_minutes, created_at")
+            .eq("api_key_hash", apiKeyHash)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("mc_knowledge_library")
+            .select("slug, title, category, tags, content, version, updated_at")
+            .eq("api_key_hash", apiKeyHash)
+            .order("updated_at", { ascending: false }),
+        ]);
+
+        const payload = {
+          exported_at: new Date().toISOString(),
+          schema_version: 1,
+          business_context: ctx.data ?? [],
+          extracted_facts: facts.data ?? [],
+          session_summaries: sessions.data ?? [],
+          knowledge_library: library.data ?? [],
+        };
+
+        res.setHeader("Content-Type", "application/json");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="unclick-memory-${new Date().toISOString().slice(0, 10)}.json"`
+        );
+        return res.status(200).send(JSON.stringify(payload, null, 2));
       }
 
       // ── Cron actions ────────────────────────────────────────────────────
