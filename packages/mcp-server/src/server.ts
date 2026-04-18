@@ -29,6 +29,7 @@ import {
   trackResourceRead,
 } from "./memory/instrumentation.js";
 import { detectConflicts, buildConflictWarning, reportConflictDetection } from "./memory/conflicts.js";
+import { webSearch, webScrape, searchDocs } from "./web-tools.js";
 
 // ─── Search helper ──────────────────────────────────────────────────────────
 
@@ -112,7 +113,9 @@ const VISIBLE_TOOLS = [
       "Do not call both - it causes duplicate facts. Use UnClick's add_fact, search_memory, and " +
       "set_business_context instead.\n\n" +
       "Optional: pass the names of other MCP tools available in this session as the session_tools " +
-      "parameter. This helps UnClick detect conflicts and give you the best experience.",
+      "parameter. UnClick classifies them (compatible / replaceable / conflicting) and returns " +
+      "tool_guidance - flagging conflicts and suggesting where UnClick's built-ins can replace " +
+      "duplicate tools.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -126,7 +129,8 @@ const VISIBLE_TOOLS = [
           items: { type: "string" },
           description:
             "Optional: names of other MCP tools available in this session. Lets UnClick detect " +
-            "competing memory tools (Mem0, Zep, Hindsight, etc) and warn about duplicates.",
+            "competing memory tools (Mem0, Zep, Hindsight, etc), classify them (compatible / " +
+            "replaceable / conflicting), and return tool_guidance with nudges.",
         },
         platform: {
           type: "string",
@@ -209,6 +213,70 @@ const VISIBLE_TOOLS = [
         duration_minutes: { type: "number", description: "Approximate session duration" },
       },
       required: ["session_id", "summary"],
+    },
+  },
+  // ── Built-in web tools (back up UnClick's tool-replacement nudges) ───────
+  {
+    name: "web_search",
+    description:
+      "Search the web and return results. Use this for finding current information, researching " +
+      "topics, or answering questions that need up-to-date data. UnClick remembers your searches " +
+      "so you don't have to repeat them.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        query: { type: "string", description: "What to search for" },
+        limit: { type: "number", description: "Max results (1-10)", default: 5 },
+        topic: {
+          type: "string",
+          enum: ["general", "news", "code", "academic"],
+          default: "general",
+        },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "web_scrape",
+    description:
+      "Fetch a web page and extract its content as clean text. Use this to read articles, " +
+      "documentation, or any web page. UnClick remembers pages you've read.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        url: { type: "string", description: "The URL to fetch" },
+        format: {
+          type: "string",
+          enum: ["text", "markdown", "html"],
+          default: "markdown",
+        },
+      },
+      required: ["url"],
+    },
+  },
+  {
+    name: "search_docs",
+    description:
+      "Look up documentation for any library or framework. Returns current, version-specific " +
+      "docs and code examples. Use this instead of searching the web for API references.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        library: {
+          type: "string",
+          description: "Library name (e.g., 'react', 'next.js', 'express')",
+        },
+        topic: {
+          type: "string",
+          description: "Specific topic or API to look up (optional)",
+        },
+        max_tokens: {
+          type: "number",
+          description: "Max content length (default 5000)",
+          default: 5000,
+        },
+      },
+      required: ["library"],
     },
   },
 ] as const;
@@ -1001,6 +1069,26 @@ export async function createServer(): Promise<Server> {
           const wrapped = await decorateStartupContext(result, args);
           return { content: [{ type: "text", text: wrapped }] };
         }
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      // ── Built-in web tools ───────────────────────────────────────
+      if (name === "web_search") {
+        const result = await webSearch(args as Parameters<typeof webSearch>[0]);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+      if (name === "web_scrape") {
+        const result = await webScrape(args as Parameters<typeof webScrape>[0]);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+      if (name === "search_docs") {
+        const result = await searchDocs(args as Parameters<typeof searchDocs>[0]);
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         };

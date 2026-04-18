@@ -7,6 +7,11 @@
  */
 
 import { getBackend } from "./db.js";
+import {
+  buildToolGuidance,
+  classifyTools,
+  reportToolDetections,
+} from "./tool-awareness.js";
 
 type Args = Record<string, unknown>;
 
@@ -29,7 +34,23 @@ function bool(v: unknown, fallback = false): boolean {
 export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> = {
   async get_startup_context(args) {
     const db = await getBackend();
-    return db.getStartupContext(num(args.num_sessions, 5));
+    const context = await db.getStartupContext(num(args.num_sessions, 5));
+
+    // Optional: if the client passed the list of other tools in this session,
+    // classify them and attach tool_guidance so the agent can nudge the user.
+    const sessionTools = Array.isArray(args.session_tools)
+      ? args.session_tools.map(String).filter(Boolean)
+      : [];
+
+    if (sessionTools.length === 0) {
+      return context;
+    }
+
+    const detections = classifyTools(sessionTools);
+    const nudgeable = await reportToolDetections(detections);
+    const tool_guidance = buildToolGuidance(detections, nudgeable);
+
+    return { ...(context as Record<string, unknown>), tool_guidance };
   },
 
   async search_memory(args) {

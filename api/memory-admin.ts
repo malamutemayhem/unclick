@@ -81,6 +81,14 @@
  *   - conflict_resolve: POST with Bearer + { tool } -- user removed the conflict
  *   - check_duplicates: GET ?threshold=0.6 -- returns near-duplicate fact pairs
  *   - health_summary:  GET ?api_key=... -- full health status for the user
+ *
+ * Tool awareness actions:
+ *   - tool_detect: POST with Bearer + { detections: [...] }
+ *                   Upserts detections and returns which tools are currently
+ *                   nudge-eligible (not dismissed, not nudged in the last 7d)
+ *   - admin_tool_scan: GET with Bearer - groups detections for the admin UI
+ *   - dismiss_tool_nudge: POST with Bearer + { tool_name, dismissed } - sets
+ *                   nudge_dismissed for the "Keep it" button
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
@@ -2722,6 +2730,162 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .eq("id", fId)
           .eq("api_key_hash", tenant.apiKeyHash);
 
+        if (error) throw error;
+        return res.status(200).json({ success: true });
+      }
+
+      // ── Tool awareness ───────────────────────────────────────────────
+      case "tool_detect": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
+        const body = req.body as {
+          detections?: Array<{
+            tool_name?: string;
+            tool_category?: string;
+            classification?: string;
+          }>;
+        };
+        const incoming = Array.isArray(body?.detections) ? body!.detections! : [];
+        if (incoming.length === 0) {
+          return res.status(200).json({ success: true, nudgeable: [] });
+        }
+
+        const valid = incoming
+          .map((d) => ({
+            tool_name: String(d.tool_name ?? "").trim(),
+            tool_category: String(d.tool_category ?? "").trim(),
+            classification: String(d.classification ?? "").trim(),
+          }))
+          .filter(
+            (d) =>
+              d.tool_name &&
+              d.tool_category &&
+              ["replaceable", "conflicting", "compatible"].includes(d.classification)
+          );
+
+        const nowIso = new Date().toISOString();
+        const toolNames = valid.map((d) => d.tool_name);
+
+        // Load existing rows once so we can respect last_nudged_at + nudge_dismissed
+        const { data: existing } = await supabase
+          .from("tool_detections")
+          .select("tool_name,last_nudged_at,nudge_dismissed,classification")
+          .eq("api_key_hash", apiKeyHash)
+          .in("tool_name", toolNames);
+
+        const existingMap = new Map<
+          string,
+          { last_nudged_at: string | null; nudge_dismissed: boolean; classification: string }
+        >();
+        for (const row of (existing ?? []) as Array<{
+          tool_name: string;
+          last_nudged_at: string | null;
+          nudge_dismissed: boolean;
+          classification: string;
+        }>) {
+          existingMap.set(row.tool_name, {
+            last_nudged_at: row.last_nudged_at,
+            nudge_dismissed: row.nudge_dismissed,
+            classification: row.classification,
+          });
+        }
+
+        // Upsert each detection (update last_detected_at, keep first_detected_at)
+        const rows = valid.map((d) => ({
+          api_key_hash: apiKeyHash,
+          tool_name: d.tool_name,
+          tool_category: d.tool_category,
+          classification: d.classification,
+          last_detected_at: nowIso,
+        }));
+
+        const { error: upErr } = await supabase
+          .from("tool_detections")
+          .upsert(rows, { onConflict: "api_key_hash,tool_name" });
+        if (upErr) throw upErr;
+
+        // Determine which tools are nudge-eligible (not dismissed, not nudged in 7d)
+        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+        const nudgeable: string[] = [];
+        const toMarkNudged: string[] = [];
+        for (const d of valid) {
+          if (d.classification === "compatible") continue;
+          const existingRow = existingMap.get(d.tool_name);
+          if (existingRow?.nudge_dismissed) continue;
+          const lastNudged = existingRow?.last_nudged_at
+            ? new Date(existingRow.last_nudged_at).getTime()
+            : 0;
+          const sinceLast = Date.now() - lastNudged;
+          if (!lastNudged || sinceLast > SEVEN_DAYS_MS) {
+            nudgeable.push(d.tool_name);
+            toMarkNudged.push(d.tool_name);
+          }
+        }
+
+        // Stamp last_nudged_at so we don't re-nudge within 7 days.
+        if (toMarkNudged.length > 0) {
+          await supabase
+            .from("tool_detections")
+            .update({ last_nudged_at: nowIso })
+            .eq("api_key_hash", apiKeyHash)
+            .in("tool_name", toMarkNudged);
+        }
+
+        return res.status(200).json({ success: true, nudgeable });
+      }
+
+      case "admin_tool_scan": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const { data, error } = await supabase
+          .from("tool_detections")
+          .select("tool_name,tool_category,classification,last_detected_at,first_detected_at,nudge_dismissed,last_nudged_at")
+          .eq("api_key_hash", sha256hex(apiKey))
+          .order("last_detected_at", { ascending: false });
+        if (error) throw error;
+
+        const rows = (data ?? []) as Array<{
+          tool_name: string;
+          tool_category: string;
+          classification: "replaceable" | "conflicting" | "compatible";
+          last_detected_at: string;
+          first_detected_at: string;
+          nudge_dismissed: boolean;
+          last_nudged_at: string | null;
+        }>;
+
+        const replaceable = rows.filter((r) => r.classification === "replaceable");
+        const conflicting = rows.filter((r) => r.classification === "conflicting");
+        const compatible = rows.filter((r) => r.classification === "compatible");
+
+        return res.status(200).json({
+          replaceable,
+          conflicting,
+          compatible,
+          summary: {
+            replaceable: replaceable.length,
+            conflicting: conflicting.length,
+            compatible: compatible.length,
+          },
+        });
+      }
+
+      case "dismiss_tool_nudge": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const body = req.body as { tool_name?: string; dismissed?: boolean };
+        const toolName = String(body?.tool_name ?? "").trim();
+        if (!toolName) return res.status(400).json({ error: "tool_name required" });
+        const dismissed = body?.dismissed !== false; // default true
+        const { error } = await supabase
+          .from("tool_detections")
+          .update({ nudge_dismissed: dismissed })
+          .eq("api_key_hash", sha256hex(apiKey))
+          .eq("tool_name", toolName);
         if (error) throw error;
         return res.status(200).json({ success: true });
       }
