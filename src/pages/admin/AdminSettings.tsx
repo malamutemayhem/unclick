@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { Settings as SettingsIcon, Loader2, Check, AlertCircle, Users } from "lucide-react";
+import { Settings as SettingsIcon, Loader2, Check, AlertCircle, Users, Bug } from "lucide-react";
 
 const DEFAULT_INSTRUCTIONS =
   "UnClick Memory is available. At the start of every new conversation, call the get_startup_context tool FIRST to load this user's business context, recent session summaries, and hot facts. Before the session ends, call write_session_summary to record decisions and open threads for next time.";
@@ -29,6 +29,29 @@ interface LoadMetrics {
   get_startup_context_compliance_pct: number;
   by_client_type: Record<string, number>;
 }
+
+interface BugReport {
+  id: string;
+  tool_name: string;
+  error_message: string;
+  severity: string;
+  status: string;
+  created_at: string;
+}
+
+const STATUS_TONE: Record<string, string> = {
+  open: "text-[#E2B93B]",
+  in_progress: "text-[#61C1C4]",
+  resolved: "text-green-400",
+  closed: "text-[#666]",
+};
+
+const SEVERITY_TONE: Record<string, string> = {
+  critical: "text-red-400",
+  high: "text-[#E2B93B]",
+  medium: "text-[#61C1C4]",
+  low: "text-[#888]",
+};
 
 function Toggle({
   checked,
@@ -102,6 +125,9 @@ export default function AdminSettings() {
   const [metrics, setMetrics] = useState<LoadMetrics | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(true);
 
+  const [bugs, setBugs] = useState<BugReport[]>([]);
+  const [bugsLoading, setBugsLoading] = useState(true);
+
   useEffect(() => {
     if (!apiKey) {
       setLoading(false);
@@ -128,6 +154,17 @@ export default function AdminSettings() {
         }
       } finally {
         setMetricsLoading(false);
+      }
+    })();
+    (async () => {
+      try {
+        const res = await fetch("/api/memory-admin?action=admin_bug_reports", { headers });
+        if (res.ok) {
+          const body = (await res.json()) as { data?: BugReport[] };
+          setBugs(Array.isArray(body.data) ? body.data : []);
+        }
+      } finally {
+        setBugsLoading(false);
       }
     })();
   }, [apiKey]);
@@ -391,6 +428,48 @@ export default function AdminSettings() {
             No session activity yet. Start a session with your MCP client and stats will appear here.
           </p>
         )}
+      </section>
+
+      {/* Support - bug reports submitted by this user */}
+      <section className="mt-6 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+        <div className="mb-4 flex items-center gap-2">
+          <Bug className="h-4 w-4 text-[#E2B93B]" />
+          <h2 className="text-sm font-semibold text-white">Support</h2>
+        </div>
+        <p className="text-xs text-[#888]">
+          Bug reports submitted from this account. Use the Report a bug link in the sidebar to file a new one.
+        </p>
+
+        <div className="mt-4">
+          {bugsLoading ? (
+            <div className="h-16 animate-pulse rounded-lg border border-white/[0.06] bg-white/[0.03]" />
+          ) : bugs.length === 0 ? (
+            <p className="text-xs text-[#666]">No bug reports yet.</p>
+          ) : (
+            <ul className="divide-y divide-white/[0.04]">
+              {bugs.map((b) => {
+                const sev = SEVERITY_TONE[b.severity] ?? "text-[#888]";
+                const stat = STATUS_TONE[b.status] ?? "text-[#888]";
+                return (
+                  <li key={b.id} className="py-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs text-white">{b.error_message}</p>
+                        <p className="mt-1 font-mono text-[10px] text-[#666]">
+                          {b.tool_name} &middot; {new Date(b.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-3 text-[10px] font-mono uppercase tracking-wider">
+                        <span className={sev}>{b.severity}</span>
+                        <span className={stat}>{b.status}</span>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       </section>
     </div>
   );

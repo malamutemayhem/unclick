@@ -2,9 +2,8 @@
  * AdminShell - OS shell layout for the admin surfaces.
  *
  * Persistent sidebar (desktop) or top nav (tablet) with surface icons,
- * user avatar/email, logout. Floating chat assistant in the bottom-right
- * corner that pops open the real AIChatPanel when enabled. Content
- * rendered via React Router <Outlet>.
+ * a global Ctrl+K search bar in the header, user avatar/email, logout.
+ * Content rendered via React Router <Outlet>.
  *
  * Dark palette: bg #0A0A0A, primary teal #61C1C4, secondary amber #E2B93B.
  * Each surface is extractable as a native app later.
@@ -13,8 +12,8 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useSession, signOut } from "@/lib/auth";
-import AIChatPanel from "@/components/admin/AIChatPanel";
-import { aiChatEnvEnabled } from "@/components/admin/aiChatConfig";
+import AdminSearchBar from "@/components/admin/AdminSearchBar";
+import BugReportButton from "@/components/admin/BugReportButton";
 import {
   User,
   Brain,
@@ -23,16 +22,13 @@ import {
   Activity,
   Settings,
   LogOut,
-  MessageCircle,
   X,
   Menu,
-  Sparkles,
 } from "lucide-react";
 
 const surfaces = [
   { path: "/admin/you", label: "You", icon: User },
   { path: "/admin/memory", label: "Memory", icon: Brain },
-  { path: "/admin/orchestrator", label: "Orchestrator", icon: Sparkles },
   { path: "/admin/keychain", label: "Keychain", icon: KeyRound },
   { path: "/admin/tools", label: "Tools", icon: Wrench },
   { path: "/admin/activity", label: "Activity", icon: Activity },
@@ -66,12 +62,7 @@ function SurfaceLink({ path, label, icon: Icon, onClick }: {
 export default function AdminShell() {
   const { user } = useSession();
   const navigate = useNavigate();
-  const [chatOpen, setChatOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
-  // If the AI chat feature flag is off, hide the bubble entirely. No
-  // "Coming soon" placeholder - either it works or it's not there.
-  const chatBubbleEnabled = aiChatEnvEnabled();
 
   async function handleLogout() {
     await signOut();
@@ -105,6 +96,10 @@ export default function AdminShell() {
           </a>
         </nav>
 
+        <div className="border-t border-white/[0.06] p-3">
+          <BugReportButton />
+        </div>
+
         <div className="border-t border-white/[0.06] p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#61C1C4]/10 text-[#61C1C4]">
@@ -125,6 +120,13 @@ export default function AdminShell() {
           </div>
         </div>
       </aside>
+
+      {/* ── Desktop top bar (md+) with global search ───────────────── */}
+      <header className="fixed inset-x-0 top-0 z-30 hidden h-14 items-center border-b border-white/[0.06] bg-[#0A0A0A] md:flex md:pl-56">
+        <div className="flex-1 px-4 lg:px-8">
+          <AdminSearchBar />
+        </div>
+      </header>
 
       {/* ── Mobile/tablet top bar (<md) ────────────────────────────── */}
       <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-white/[0.06] bg-[#0A0A0A] px-4 md:hidden">
@@ -156,6 +158,9 @@ export default function AdminShell() {
       {/* Mobile nav drawer */}
       {mobileNavOpen && (
         <div className="fixed inset-x-0 top-14 z-30 border-b border-white/[0.06] bg-[#0A0A0A] p-3 md:hidden">
+          <div className="mb-3">
+            <AdminSearchBar />
+          </div>
           <nav className="flex flex-col gap-1">
             {surfaces.map((s) => (
               <SurfaceLink
@@ -165,6 +170,9 @@ export default function AdminShell() {
               />
             ))}
           </nav>
+          <div className="mt-3 border-t border-white/[0.06] pt-3">
+            <BugReportButton />
+          </div>
           <div className="mt-2 border-t border-white/[0.06] pt-2">
             <p className="truncate px-3 text-xs text-[#666]">
               {user?.email ?? "Unknown"}
@@ -174,53 +182,11 @@ export default function AdminShell() {
       )}
 
       {/* ── Main content ───────────────────────────────────────────── */}
-      <main className="min-h-screen flex-1 pt-14 md:ml-56 md:pt-0">
+      <main className="min-h-screen flex-1 pt-14 md:ml-56 md:pt-14">
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
           <Outlet />
         </div>
       </main>
-
-      {/* ── Floating chat assistant (only when env-enabled) ────────── */}
-      {chatBubbleEnabled && (
-        <div className="fixed bottom-6 right-6 z-50">
-          {chatOpen && (
-            <div className="mb-3 w-[22rem] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111111] shadow-2xl sm:w-[26rem]">
-              <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
-                <div className="flex items-center gap-2 text-sm font-semibold text-[#ccc]">
-                  <Sparkles className="h-4 w-4 text-[#61C1C4]" />
-                  Assistant
-                </div>
-                <div className="flex items-center gap-1">
-                  <Link
-                    to="/admin/orchestrator"
-                    onClick={() => setChatOpen(false)}
-                    className="rounded-md px-2 py-1 font-mono text-[10px] text-[#888] transition-colors hover:bg-white/[0.04] hover:text-[#ccc]"
-                    title="Open full Orchestrator"
-                  >
-                    Expand
-                  </Link>
-                  <button
-                    onClick={() => setChatOpen(false)}
-                    className="rounded-md p-1 text-[#666] hover:text-[#ccc]"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-              <div className="bg-[#0A0A0A] p-3">
-                <AIChatPanel />
-              </div>
-            </div>
-          )}
-          <button
-            onClick={() => setChatOpen((v) => !v)}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-[#61C1C4] text-black shadow-lg transition-transform hover:scale-105 active:scale-95"
-            aria-label="Open assistant"
-          >
-            <MessageCircle className="h-5 w-5" />
-          </button>
-        </div>
-      )}
     </div>
   );
 }

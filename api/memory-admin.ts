@@ -53,6 +53,12 @@
  *                              Bumps the channel_status.last_seen timestamp.
  *   - admin_ai_chat: POST with Bearer <api_key>, body { session_id, content }
  *                    Gemini fallback used when no Channel plugin is active.
+ *
+ * Admin spotlight + bug visibility:
+ *   - admin_search: GET with Bearer <api_key>, ?query=&limit=
+ *                   Searches facts/sessions/business context via ilike.
+ *   - admin_bug_reports: GET with Bearer <api_key>, ?limit=
+ *                        Recent bug reports scoped to this api_key_hash.
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
@@ -2680,7 +2686,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           settings: {
             ai_chat_enabled: row?.ai_chat_enabled ?? false,
             ai_chat_provider: row?.ai_chat_provider ?? "google",
-            ai_chat_model: row?.ai_chat_model ?? "gemini-2.0-flash",
+            ai_chat_model: row?.ai_chat_model ?? "gemini-2.5-flash-lite",
             ai_chat_system_prompt: row?.ai_chat_system_prompt ?? null,
             ai_chat_max_turns: row?.ai_chat_max_turns ?? 20,
             has_api_key: Boolean(row?.ai_chat_api_key_encrypted),
@@ -2761,7 +2767,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const modelMessages = await convertToModelMessages(messages);
         const result = streamText({
-          model: google("gemini-2.0-flash"),
+          model: google("gemini-2.5-flash-lite"),
           system: systemPrompt,
           messages: modelMessages,
           tools,
@@ -2869,6 +2875,103 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (error) throw error;
 
         return res.status(200).json({ success: true });
+      }
+
+      // ── Global admin spotlight search across facts/sessions/context ──
+      case "admin_search": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
+        const query = String(req.query.query ?? "").trim();
+        if (!query) return res.status(200).json({ data: [] });
+        const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 8, 1), 25);
+
+        const escaped = query.replace(/[%_\\]/g, (c) => `\\${c}`);
+        const pattern = `%${escaped}%`;
+
+        const [factsRes, sessionsRes, contextRes] = await Promise.all([
+          supabase
+            .from("mc_extracted_facts")
+            .select("id, fact, created_at")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "active")
+            .ilike("fact", pattern)
+            .order("created_at", { ascending: false })
+            .limit(limit),
+          supabase
+            .from("mc_session_summaries")
+            .select("id, summary, created_at")
+            .eq("api_key_hash", apiKeyHash)
+            .ilike("summary", pattern)
+            .order("created_at", { ascending: false })
+            .limit(limit),
+          supabase
+            .from("mc_business_context")
+            .select("id, category, key, value, updated_at")
+            .eq("api_key_hash", apiKeyHash)
+            .or(`key.ilike.${pattern},value::text.ilike.${pattern}`)
+            .order("updated_at", { ascending: false })
+            .limit(limit),
+        ]);
+
+        type Hit = {
+          type: "fact" | "session" | "context";
+          id: string;
+          preview: string;
+          created_at: string;
+        };
+        const truncate = (s: string, n = 140) =>
+          s.length > n ? `${s.slice(0, n - 1).trimEnd()}...` : s;
+
+        const results: Hit[] = [];
+        for (const row of factsRes.data ?? []) {
+          results.push({
+            type: "fact",
+            id: String(row.id),
+            preview: truncate(String(row.fact ?? "")),
+            created_at: String(row.created_at ?? ""),
+          });
+        }
+        for (const row of sessionsRes.data ?? []) {
+          results.push({
+            type: "session",
+            id: String(row.id),
+            preview: truncate(String(row.summary ?? "")),
+            created_at: String(row.created_at ?? ""),
+          });
+        }
+        for (const row of contextRes.data ?? []) {
+          const valText =
+            typeof row.value === "string" ? row.value : JSON.stringify(row.value ?? "");
+          results.push({
+            type: "context",
+            id: String(row.id),
+            preview: truncate(`${row.category}/${row.key}: ${valText}`),
+            created_at: String(row.updated_at ?? ""),
+          });
+        }
+
+        results.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+
+        return res.status(200).json({ data: results.slice(0, limit * 2) });
+      }
+
+      // ── Bug reports visible to the submitting api_key_hash ──────────
+      case "admin_bug_reports": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+        const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 20, 1), 100);
+
+        const { data, error } = await supabase
+          .from("bug_reports")
+          .select("id, tool_name, error_message, severity, status, created_at, updated_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (error) throw error;
+        return res.status(200).json({ data: data ?? [] });
       }
 
       default:

@@ -33,6 +33,11 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
+import * as crypto from "crypto";
+
+function sha256hex(input: string): string {
+  return crypto.createHash("sha256").update(input).digest("hex");
+}
 
 // ---------------------------------------------------------------------------
 // Severity classification
@@ -171,6 +176,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
+  const authHeader = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "").trim();
+  const bodyApiKey = typeof req.body?.api_key === "string" ? req.body.api_key.trim() : "";
+  const rawApiKey = authHeader || bodyApiKey;
+  const apiKeyHash = rawApiKey ? sha256hex(rawApiKey) : null;
+
   const severity = classifySeverity(String(error_message), request_payload);
 
   // ---------------------------------------------------------------------------
@@ -204,6 +214,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       agent_context: agent_context ? String(agent_context) : null,
       severity,
       status: "open",
+      api_key_hash: apiKeyHash,
     })
     .select("id, severity, status, created_at")
     .single();

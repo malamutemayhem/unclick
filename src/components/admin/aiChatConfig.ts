@@ -145,9 +145,7 @@ export const PROVIDER_MODELS: Record<
   { label: string; value: string }[]
 > = {
   google: [
-    { label: "Gemini 2.0 Flash", value: "gemini-2.0-flash" },
-    { label: "Gemini 1.5 Flash", value: "gemini-1.5-flash" },
-    { label: "Gemini 1.5 Pro", value: "gemini-1.5-pro" },
+    { label: "Gemini 2.5 Flash Lite", value: "gemini-2.5-flash-lite" },
   ],
   openai: [
     { label: "GPT-4o mini", value: "gpt-4o-mini" },
