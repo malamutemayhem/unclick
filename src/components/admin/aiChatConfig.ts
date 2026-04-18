@@ -1,12 +1,51 @@
 /**
  * Shared config + kill-switch helpers for the admin AI chat panel.
  *
- * Keeps three-level kill switch (env flag, tenant settings, API guard)
+ * Supports two modes for Phase 8:
+ *   channel - messages are written to Supabase and picked up by a local
+ *             Claude Code Channel plugin (uses the user's Claude subscription).
+ *   gemini  - server-side Gemini fallback via admin_ai_chat. Uses the
+ *             Phase 7 tool-calling stack (9 tools) when available.
+ *
+ * We prefer channel mode when a plugin has checked in recently (heartbeat
+ * within 90 seconds) and auto-fall back to Gemini otherwise.
+ *
+ * Keeps the three-level kill switch (env flag, tenant settings, API guard)
  * alongside the Phase 7 tool-calling wiring (suggestion chips + tool
  * call labels).
  */
 
 export const ADMIN_AI_CHAT_API = "/api/memory-admin?action=admin_ai_chat";
+
+export const CHANNEL_STATUS_POLL_MS = 60_000;
+export const CHANNEL_REPLY_POLL_MS = 3_000;
+export const CHANNEL_REPLY_TIMEOUT_MS = 5 * 60_000;
+
+export const API_KEY_STORAGE = "unclick_api_key";
+export const SESSION_STORAGE_KEY = "unclick_admin_chat_session";
+
+export type ChatMode = "channel" | "gemini";
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  created_at: string;
+  status?: string;
+}
+
+export interface ChannelStatus {
+  channel_active: boolean;
+  last_seen: string | null;
+  client_info: string | null;
+}
+
+export function newSessionId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
 
 export interface AIChatSuggestion {
   label: string;

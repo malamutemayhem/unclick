@@ -1,322 +1,362 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { Sparkles, Send, X, Loader2, Wrench, AlertCircle, RotateCw } from "lucide-react";
+/**
+ * Admin AI Chat Panel
+ *
+ * Routes chat through a local Claude Code session when a Channel plugin is
+ * online (preferred) and falls back to server-side Gemini when it is not.
+ *
+ * Channel mode uses /api/memory-admin?action=admin_channel_send to queue the
+ * user message, then polls admin_channel_poll until the assistant row appears.
+ * Gemini mode uses admin_ai_chat which replies synchronously.
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Send, Loader2, Terminal, Sparkles, Trash2, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
-  ADMIN_AI_CHAT_API,
-  ADMIN_CHAT_SUGGESTIONS,
-  describeToolCall,
+  API_KEY_STORAGE,
+  CHANNEL_REPLY_POLL_MS,
+  CHANNEL_REPLY_TIMEOUT_MS,
+  CHANNEL_STATUS_POLL_MS,
+  SESSION_STORAGE_KEY,
+  newSessionId,
+  type ChatMessage,
+  type ChannelStatus,
+  type ChatMode,
 } from "./aiChatConfig";
 
-interface AIChatPanelProps {
-  open: boolean;
-  onClose: () => void;
+interface PendingNotice {
+  kind: "connected" | "dropped";
+  message: string;
 }
 
-interface ChatStats {
-  factCount: number;
-  sessionCount: number;
-}
+export default function AIChatPanel() {
+  const [apiKey, setApiKey] = useState<string>("");
+  const [sessionId, setSessionId] = useState<string>("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState<string>("");
+  const [sending, setSending] = useState(false);
+  const [waiting, setWaiting] = useState(false);
+  const [mode, setMode] = useState<ChatMode>("gemini");
+  const [channelInfo, setChannelInfo] = useState<ChannelStatus | null>(null);
+  const [notice, setNotice] = useState<PendingNotice | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-export default function AIChatPanel({ open, onClose }: AIChatPanelProps) {
-  const [input, setInput] = useState("");
-  const [stats, setStats] = useState<ChatStats | null>(null);
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
-
-  const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: ADMIN_AI_CHAT_API,
-        body: () => {
-          const apiKey =
-            typeof window !== "undefined" ? localStorage.getItem("unclick_api_key") ?? "" : "";
-          return apiKey ? { api_key: apiKey } : {};
-        },
-      }),
-    []
-  );
+  const channelActive = channelInfo?.channel_active === true;
 
   useEffect(() => {
-    if (!open) return;
-    const apiKey =
-      typeof window !== "undefined" ? localStorage.getItem("unclick_api_key") ?? "" : "";
+    try {
+      setApiKey(localStorage.getItem(API_KEY_STORAGE) ?? "");
+      const existing = localStorage.getItem(SESSION_STORAGE_KEY);
+      if (existing) {
+        setSessionId(existing);
+      } else {
+        const fresh = newSessionId();
+        localStorage.setItem(SESSION_STORAGE_KEY, fresh);
+        setSessionId(fresh);
+      }
+    } catch {
+      setSessionId(newSessionId());
+    }
+  }, []);
+
+  // ── Channel presence polling ─────────────────────────────────────────────
+  const checkChannel = useCallback(async () => {
     if (!apiKey) return;
-    let cancelled = false;
-    (async () => {
+    try {
+      const res = await fetch("/api/memory-admin?action=admin_channel_status", {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as ChannelStatus;
+      setChannelInfo(data);
+      setMode((prev) => {
+        const next: ChatMode = data.channel_active ? "channel" : "gemini";
+        if (next !== prev) {
+          setNotice(
+            next === "channel"
+              ? {
+                  kind: "connected",
+                  message: "Claude Code is online. Switching to your Claude session.",
+                }
+              : {
+                  kind: "dropped",
+                  message:
+                    "Claude Code channel dropped. Falling back to the AI assistant.",
+                }
+          );
+        }
+        return next;
+      });
+    } catch {
+      // network hiccup, ignore
+    }
+  }, [apiKey]);
+
+  useEffect(() => {
+    if (!apiKey) return;
+    checkChannel();
+    const id = window.setInterval(checkChannel, CHANNEL_STATUS_POLL_MS);
+    return () => window.clearInterval(id);
+  }, [apiKey, checkChannel]);
+
+  // ── Scroll on new messages ───────────────────────────────────────────────
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, waiting]);
+
+  // ── Poll for a channel reply ─────────────────────────────────────────────
+  async function waitForChannelReply(afterIso: string): Promise<ChatMessage | null> {
+    const deadline = Date.now() + CHANNEL_REPLY_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, CHANNEL_REPLY_POLL_MS));
       try {
-        const res = await fetch("/api/memory-admin?action=status", {
+        const qs = new URLSearchParams({
+          action: "admin_channel_poll",
+          session_id: sessionId,
+          after: afterIso,
+        }).toString();
+        const res = await fetch(`/api/memory-admin?${qs}`, {
           headers: { Authorization: `Bearer ${apiKey}` },
         });
-        if (!res.ok) return;
-        const body = (await res.json()) as {
-          layers?: { extracted_facts?: number; session_summaries?: number };
-        };
-        if (cancelled) return;
-        setStats({
-          factCount: body.layers?.extracted_facts ?? 0,
-          sessionCount: body.layers?.session_summaries ?? 0,
-        });
+        if (!res.ok) continue;
+        const body = (await res.json()) as { data: ChatMessage[] };
+        const assistant = (body.data ?? []).find(
+          (m) => m.role === "assistant" && (m.status === "completed" || !m.status)
+        );
+        if (assistant) return assistant;
       } catch {
-        /* ignore */
+        // keep polling
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [open]);
+    }
+    return null;
+  }
 
-  const { messages, sendMessage, status, stop, error, clearError, regenerate } = useChat({
-    transport,
-  });
-
-  const busy = status === "submitted" || status === "streaming";
-
-  useEffect(() => {
-    if (!scrollerRef.current) return;
-    scrollerRef.current.scrollTop = scrollerRef.current.scrollHeight;
-  }, [messages, status]);
-
-  const submit = () => {
+  // ── Send ─────────────────────────────────────────────────────────────────
+  async function handleSend() {
     const text = input.trim();
-    if (!text || busy) return;
+    if (!text || sending || !apiKey || !sessionId) return;
+    setSending(true);
     setInput("");
-    void sendMessage({ text });
-  };
 
-  const sendSuggestion = (prompt: string) => {
-    if (busy) return;
-    setInput("");
-    void sendMessage({ text: prompt });
-  };
+    const userMsg: ChatMessage = {
+      id: `local_${Date.now()}`,
+      role: "user",
+      content: text,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+
+    try {
+      if (mode === "channel") {
+        const sendAt = new Date().toISOString();
+        const sendRes = await fetch("/api/memory-admin?action=admin_channel_send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({ session_id: sessionId, content: text }),
+        });
+        if (!sendRes.ok) throw new Error(`send failed (${sendRes.status})`);
+        setWaiting(true);
+        const reply = await waitForChannelReply(sendAt);
+        setWaiting(false);
+        if (!reply) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `err_${Date.now()}`,
+              role: "system",
+              content:
+                "No reply from Claude Code within the timeout. Is the channel plugin still running?",
+              created_at: new Date().toISOString(),
+            },
+          ]);
+          return;
+        }
+        setMessages((prev) => [...prev, reply]);
+      } else {
+        const res = await fetch("/api/memory-admin?action=admin_ai_chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({ session_id: sessionId, content: text }),
+        });
+        const body = (await res.json()) as {
+          message_id?: string;
+          reply?: string;
+          error?: string;
+        };
+        if (!res.ok) throw new Error(body?.error ?? `chat failed (${res.status})`);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: body.message_id ?? `g_${Date.now()}`,
+            role: "assistant",
+            content: body.reply ?? "(no reply)",
+            created_at: new Date().toISOString(),
+          },
+        ]);
+      }
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `err_${Date.now()}`,
+          role: "system",
+          content: `Error: ${(err as Error).message}`,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setSending(false);
+      setWaiting(false);
+    }
+  }
+
+  function handleClear() {
+    setMessages([]);
+    const fresh = newSessionId();
+    localStorage.setItem(SESSION_STORAGE_KEY, fresh);
+    setSessionId(fresh);
+    setNotice(null);
+  }
+
+  const indicator = useMemo(() => {
+    if (channelActive) {
+      return {
+        dot: "bg-primary",
+        label: "Connected to Claude Code",
+        icon: <Terminal className="h-3.5 w-3.5" />,
+      };
+    }
+    return {
+      dot: "bg-muted-foreground",
+      label: "Using AI Assistant",
+      icon: <Sparkles className="h-3.5 w-3.5" />,
+    };
+  }, [channelActive]);
+
+  if (!apiKey) {
+    return (
+      <div className="rounded-xl border border-border/40 bg-card/20 p-6 text-xs text-muted-foreground">
+        Sign in with your UnClick API key to use the admin chat.
+      </div>
+    );
+  }
 
   return (
-    <>
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:bg-black/20"
-          onClick={onClose}
-          aria-hidden="true"
-        />
-      )}
-      <aside
-        className={`fixed right-0 top-0 z-50 flex h-screen w-full max-w-[400px] flex-col border-l border-border/50 bg-background shadow-2xl transition-transform duration-200 ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
-        aria-hidden={!open}
-        role="dialog"
-        aria-label="Memory AI assistant"
-      >
-        <header className="flex items-center justify-between gap-2 border-b border-border/40 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-heading">Memory assistant</p>
-              <p className="text-[10px] text-muted-foreground">Ask, search, remember</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span
-              className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold"
-              style={{ backgroundColor: "#E2B93B22", color: "#E2B93B", borderColor: "#E2B93B55" }}
-            >
-              BETA
+    <div className="flex h-[520px] flex-col rounded-xl border border-border/40 bg-card/20">
+      <header className="flex items-center justify-between gap-3 border-b border-border/30 px-5 py-3">
+        <div className="flex items-center gap-2">
+          <span className={`h-2 w-2 rounded-full ${indicator.dot}`} />
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-heading">
+            {indicator.icon}
+            {indicator.label}
+          </span>
+          {channelInfo?.client_info && channelActive && (
+            <span className="ml-2 truncate font-mono text-[10px] text-muted-foreground">
+              {channelInfo.client_info}
             </span>
-            <button
-              onClick={onClose}
-              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted/20 hover:text-heading"
-              aria-label="Close chat"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        </header>
-
-        <div className="border-b border-border/30 bg-muted/10 px-4 py-2 text-[11px] text-muted-foreground">
-          {stats
-            ? `AI can see: your business context, ${stats.factCount} facts, ${stats.sessionCount} sessions, build tasks`
-            : "AI can see: your business context, facts, sessions, build tasks"}
-        </div>
-
-        <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-          {messages.length === 0 ? (
-            <EmptyState onPick={sendSuggestion} disabled={busy} />
-          ) : (
-            messages.map((m) => <MessageView key={m.id} message={m} />)
-          )}
-          {busy && (
-            <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Thinking...
-            </div>
           )}
         </div>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" onClick={checkChannel} title="Refresh channel status">
+            <RefreshCw className="h-3.5 w-3.5" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleClear} title="Clear chat">
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </header>
 
-        {error && (
-          <div className="mx-3 mb-2 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <div className="min-w-0 flex-1">
-              <p className="font-medium">Something went wrong</p>
-              <p className="truncate text-[11px] opacity-80">{error.message}</p>
-            </div>
-            <button
-              onClick={() => {
-                clearError();
-                void regenerate();
-              }}
-              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-destructive/40 bg-background/40 px-2 py-1 text-[11px] font-medium text-destructive hover:bg-destructive/10"
-            >
-              <RotateCw className="h-3 w-3" />
-              Retry
-            </button>
+      {notice && (
+        <div
+          className={`border-b px-5 py-2 text-[11px] ${
+            notice.kind === "connected"
+              ? "border-primary/20 bg-primary/5 text-primary"
+              : "border-amber-500/20 bg-amber-500/5 text-amber-200"
+          }`}
+        >
+          {notice.message}
+        </div>
+      )}
+
+      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        {messages.length === 0 && (
+          <p className="text-center text-xs text-muted-foreground">
+            {mode === "channel"
+              ? "Ask your agent anything. Messages flow through your Claude Code session."
+              : "Ask your agent anything. Connect Claude Code for a free bridge via your own session."}
+          </p>
+        )}
+        {messages.map((msg) => (
+          <MessageBubble key={msg.id} msg={msg} />
+        ))}
+        {waiting && (
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Waiting for Claude Code to reply...
           </div>
         )}
+      </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            submit();
-          }}
-          className="flex items-end gap-2 border-t border-border/40 bg-background px-3 py-3"
-        >
+      <div className="border-t border-border/30 p-3">
+        <div className="flex items-end gap-2">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                submit();
+                handleSend();
               }
             }}
-            placeholder="Ask about your memory, add facts, or request a summary..."
-            rows={1}
-            disabled={busy}
-            className="min-h-[38px] max-h-32 flex-1 resize-none rounded-lg border border-border/50 bg-card/40 px-3 py-2 text-sm text-heading placeholder:text-muted-foreground/70 focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/40 disabled:opacity-60"
+            rows={2}
+            placeholder={
+              mode === "channel"
+                ? "Message your Claude Code session..."
+                : "Message the AI assistant..."
+            }
+            className="flex-1 resize-none rounded-md border border-border/60 bg-card/60 px-3 py-2 text-xs text-heading placeholder:text-muted-foreground/60 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/40"
           />
-          {busy ? (
-            <button
-              type="button"
-              onClick={stop}
-              className="flex h-[38px] items-center justify-center rounded-lg border border-border/50 bg-muted/20 px-3 text-xs font-medium text-heading hover:bg-muted/30"
-            >
-              Stop
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={!input.trim()}
-              className="flex h-[38px] w-[38px] items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
-              aria-label="Send message"
-            >
-              <Send className="h-4 w-4" />
-            </button>
-          )}
-        </form>
-      </aside>
-    </>
-  );
-}
-
-function EmptyState({
-  onPick,
-  disabled,
-}: {
-  onPick: (prompt: string) => void;
-  disabled: boolean;
-}) {
-  return (
-    <div className="space-y-3 py-4">
-      <p className="text-xs text-muted-foreground">Try one of these to get started:</p>
-      <div className="flex flex-col gap-2">
-        {ADMIN_CHAT_SUGGESTIONS.map((s) => (
-          <button
-            key={s.label}
-            onClick={() => onPick(s.prompt)}
-            disabled={disabled}
-            className="rounded-lg border border-border/40 bg-card/30 px-3 py-2 text-left text-xs text-heading transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:opacity-50"
-          >
-            {s.label}
-          </button>
-        ))}
+          <Button onClick={handleSend} disabled={sending || !input.trim()} size="sm">
+            {sending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Send className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
 
-function MessageView({ message }: { message: UIMessage }) {
-  const isUser = message.role === "user";
-  const containerCls = isUser
-    ? "ml-6 rounded-lg bg-primary/10 px-3 py-2 text-sm text-heading"
-    : "mr-6 rounded-lg bg-card/40 px-3 py-2 text-sm text-heading";
-
+function MessageBubble({ msg }: { msg: ChatMessage }) {
+  if (msg.role === "system") {
+    return (
+      <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-200">
+        {msg.content}
+      </div>
+    );
+  }
+  const isUser = msg.role === "user";
   return (
-    <div className={containerCls}>
-      {message.parts.map((part, i) => {
-        if (part.type === "text") {
-          if (isUser) {
-            return (
-              <p key={i} className="whitespace-pre-wrap break-words">
-                {part.text}
-              </p>
-            );
-          }
-          return (
-            <div
-              key={i}
-              className="prose prose-invert prose-sm max-w-none break-words [&_code]:text-primary [&_p]:my-1 [&_pre]:bg-muted/30"
-            >
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{part.text}</ReactMarkdown>
-            </div>
-          );
-        }
-
-        if (part.type === "dynamic-tool") {
-          return (
-            <ToolPill
-              key={i}
-              toolName={part.toolName}
-              state={part.state}
-              input={part.input}
-            />
-          );
-        }
-
-        if (typeof part.type === "string" && part.type.startsWith("tool-")) {
-          const toolName = part.type.slice("tool-".length);
-          const p = part as unknown as { state?: string; input?: unknown };
-          return (
-            <ToolPill key={i} toolName={toolName} state={p.state} input={p.input} />
-          );
-        }
-
-        return null;
-      })}
-    </div>
-  );
-}
-
-function ToolPill({
-  toolName,
-  state,
-  input,
-}: {
-  toolName: string;
-  state?: string;
-  input?: unknown;
-}) {
-  const label = describeToolCall(toolName, input);
-  const running = state === "input-streaming" || state === "input-available";
-  return (
-    <div className="my-1.5 inline-flex max-w-full items-center gap-1.5 truncate rounded-full border border-border/40 bg-muted/20 px-2 py-0.5 text-[11px] text-muted-foreground">
-      {running ? (
-        <Loader2 className="h-3 w-3 shrink-0 animate-spin" />
-      ) : (
-        <Wrench className="h-3 w-3 shrink-0" />
-      )}
-      <span className="truncate">{label}</span>
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-xs leading-relaxed ${
+          isUser
+            ? "bg-primary/15 text-heading"
+            : "border border-border/40 bg-card/60 text-body"
+        }`}
+      >
+        {msg.content}
+      </div>
     </div>
   );
 }

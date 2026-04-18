@@ -41,6 +41,18 @@
  *                     sets was_first_call_in_session via 30-minute window
  *   - admin_memory_load_metrics: 7-day totals, get_startup_context compliance,
  *                                breakdown by client_type
+ *
+ * Channels orchestrator actions (route admin chat via local Claude Code):
+ *   - admin_channel_send: POST with Bearer <api_key>, body { session_id, content }
+ *                         Inserts a pending user message into chat_messages.
+ *   - admin_channel_poll: GET with Bearer <api_key>, ?session_id=&after=<iso>
+ *                         Returns messages after the given timestamp (Realtime fallback).
+ *   - admin_channel_status: GET with Bearer <api_key>
+ *                           Reports whether a Channel plugin has checked in recently.
+ *   - admin_channel_heartbeat: POST with Bearer <api_key>, body { client_info }
+ *                              Bumps the channel_status.last_seen timestamp.
+ *   - admin_ai_chat: POST with Bearer <api_key>, body { session_id, content }
+ *                    Gemini fallback used when no Channel plugin is active.
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
@@ -2761,6 +2773,102 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         result.pipeUIMessageStreamToResponse(res);
         return;
+      }
+
+      // ── Channels orchestrator ─────────────────────────────────────────
+      case "admin_channel_send": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const body = req.body as { session_id?: string; content?: string };
+        const sessionId = (body?.session_id ?? "").trim();
+        const content = (body?.content ?? "").toString();
+        if (!sessionId) return res.status(400).json({ error: "session_id required" });
+        if (!content.trim()) return res.status(400).json({ error: "content required" });
+
+        const { data, error } = await supabase
+          .from("chat_messages")
+          .insert({
+            api_key_hash: sha256hex(apiKey),
+            session_id: sessionId,
+            role: "user",
+            content,
+            status: "pending",
+          })
+          .select("id, session_id, created_at")
+          .single();
+        if (error) throw error;
+
+        return res.status(200).json({
+          message_id: data.id,
+          session_id: data.session_id,
+          created_at: data.created_at,
+        });
+      }
+
+      case "admin_channel_poll": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const sessionId = String(req.query.session_id ?? "").trim();
+        const after = String(req.query.after ?? "").trim();
+        if (!sessionId) return res.status(400).json({ error: "session_id required" });
+
+        let q = supabase
+          .from("chat_messages")
+          .select("*")
+          .eq("api_key_hash", sha256hex(apiKey))
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: true })
+          .limit(200);
+
+        if (after) q = q.gt("created_at", after);
+
+        const { data, error } = await q;
+        if (error) throw error;
+        return res.status(200).json({ data: data ?? [] });
+      }
+
+      case "admin_channel_status": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const { data, error } = await supabase
+          .from("channel_status")
+          .select("last_seen, client_info")
+          .eq("api_key_hash", sha256hex(apiKey))
+          .maybeSingle();
+        if (error) throw error;
+
+        const lastSeen = data?.last_seen ?? null;
+        const ageMs = lastSeen ? Date.now() - new Date(lastSeen).getTime() : Infinity;
+        const active = ageMs < 90_000; // 90s grace window for 30s heartbeats
+
+        return res.status(200).json({
+          channel_active: active,
+          last_seen: lastSeen,
+          client_info: data?.client_info ?? null,
+        });
+      }
+
+      case "admin_channel_heartbeat": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const body = req.body as { client_info?: string };
+        const clientInfo = (body?.client_info ?? "").toString().slice(0, 500);
+
+        const { error } = await supabase
+          .from("channel_status")
+          .upsert(
+            {
+              api_key_hash: sha256hex(apiKey),
+              client_info: clientInfo || null,
+              last_seen: new Date().toISOString(),
+            },
+            { onConflict: "api_key_hash" }
+          );
+        if (error) throw error;
+
+        return res.status(200).json({ success: true });
       }
 
       default:

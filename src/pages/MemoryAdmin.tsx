@@ -30,7 +30,7 @@
  *   8. Search - full-text search across everything
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -127,7 +127,10 @@ export default function MemoryAdminPage() {
   const [loading, setLoading] = useState(true);
   const [apiKey, setApiKey] = useState<string>("");
   const [aiChatSettings, setAiChatSettings] = useState<AiChatTenantSettings | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
+  const chatPanelRef = useRef<HTMLDivElement>(null);
+  const scrollToChat = () => {
+    chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const [statusCounts, setStatusCounts] = useState<{
     facts: number;
     sessions: number;
@@ -261,7 +264,7 @@ export default function MemoryAdminPage() {
             </Link>
             {chatEnabled && (
               <button
-                onClick={() => setChatOpen(true)}
+                onClick={scrollToChat}
                 className="inline-flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
               >
                 <Sparkles className="h-3.5 w-3.5" />
@@ -295,7 +298,7 @@ export default function MemoryAdminPage() {
               </div>
               {chatEnabled && (
                 <button
-                  onClick={() => setChatOpen(true)}
+                  onClick={scrollToChat}
                   className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90"
                 >
                   <Sparkles className="h-4 w-4" />
@@ -317,9 +320,8 @@ export default function MemoryAdminPage() {
           <div className="grid gap-3 sm:grid-cols-3">
             <button
               type="button"
-              onClick={() => setChatOpen(true)}
-              disabled={!chatEnabled}
-              className="group flex items-start gap-3 rounded-xl border border-border/40 bg-card/40 p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={scrollToChat}
+              className="group flex items-start gap-3 rounded-xl border border-border/40 bg-card/40 p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5"
             >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
                 <Sparkles className="h-4 w-4" />
@@ -327,7 +329,7 @@ export default function MemoryAdminPage() {
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-heading">AI Assistant</p>
                 <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                  {chatEnabled ? "Chat with your memory" : "Coming soon"}
+                  {chatEnabled ? "Chat with your memory" : "Chat disabled"}
                 </p>
               </div>
             </button>
@@ -535,6 +537,22 @@ export default function MemoryAdminPage() {
           </div>
         </div>
 
+        <div ref={chatPanelRef} className="mt-6 scroll-mt-28">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-heading">
+            <MessageSquare className="h-4 w-4 text-primary" />
+            Chat with your agent
+          </h2>
+          {chatEnabled ? (
+            <AIChatPanel />
+          ) : (
+            <div className="rounded-xl border border-border/40 bg-card/20 p-6 text-xs text-muted-foreground">
+              Chat is disabled. Set VITE_AI_CHAT_ENABLED=true and sign in with
+              your UnClick API key to use the dual-mode (Claude Code channel +
+              Gemini fallback) chat.
+            </div>
+          )}
+        </div>
+
         <div className="mt-6 rounded-xl border border-border/40 bg-card/20 p-8">
           <p className="text-sm text-body">
             Full dashboard UI coming soon. Memory layer browsing + editing is wired up at{" "}
@@ -550,7 +568,6 @@ export default function MemoryAdminPage() {
         </div>
       </main>
       <Footer />
-      {chatEnabled && <AIChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />}
     </div>
   );
 }
