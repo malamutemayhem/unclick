@@ -1,5 +1,5 @@
 /**
- * UnClick MCP Endpoint — Vercel serverless function
+ * UnClick MCP Endpoint - Vercel serverless function
  *
  * Serves the UnClick MCP server over Streamable HTTP (JSON-RPC + SSE).
  * Agents connect here to discover and call all UnClick tools.
@@ -10,7 +10,7 @@
  *   Content-Type: application/json
  *   Body: MCP JSON-RPC message (initialize, tools/list, tools/call, etc.)
  *
- * The endpoint is stateless — each request spins up a fresh MCP server
+ * The endpoint is stateless - each request spins up a fresh MCP server
  * instance, which is safe for serverless and works with all MCP clients.
  */
 
@@ -19,7 +19,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { createServer } from "../packages/mcp-server/src/server.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // ── CORS — allow any origin so AI agents can connect from anywhere ──────────
+  // ── CORS - allow any origin so AI agents can connect from anywhere ──────────
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader(
@@ -43,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // ── Auth — extract API key from Authorization header ───────────────────────
+  // ── Auth - extract API key from Authorization header ───────────────────────
   const authHeader = (req.headers.authorization as string) ?? "";
   const apiKey = authHeader.replace(/^Bearer\s+/i, "").trim();
 
@@ -66,7 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // ── MCP over Streamable HTTP (stateless per-request) ───────────────────────
   const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined, // stateless mode — no sessions in serverless
+    sessionIdGenerator: undefined, // stateless mode - no sessions in serverless
   });
 
   const server = createServer();

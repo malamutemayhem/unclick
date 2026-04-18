@@ -9,7 +9,7 @@
  *   - Nothing set              -> Local JSON files (zero-config)
  *
  * This makes the wizard experience seamless: after setup.html succeeds, all
- * the user needs in their MCP config is UNCLICK_API_KEY — the server bootstraps
+ * the user needs in their MCP config is UNCLICK_API_KEY - the server bootstraps
  * cloud memory automatically on startup.
  */
 
