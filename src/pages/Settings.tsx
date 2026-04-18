@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight } from "lucide-react";
+import HealthCheck from "@/components/HealthCheck";
 
-type SettingsSection = "profile" | "api-keys" | "notifications" | "admin";
+type SettingsSection = "health" | "profile" | "api-keys" | "notifications" | "admin";
 
 const NAV_ITEMS: { id: SettingsSection; label: string; description: string }[] = [
+  { id: "health", label: "Health Check", description: "Detect competing memory tools" },
   { id: "profile", label: "Profile", description: "Manage your account details" },
   { id: "api-keys", label: "API Keys", description: "Create and revoke API keys" },
   { id: "notifications", label: "Notifications", description: "Configure alerts and emails" },
@@ -34,22 +34,7 @@ function ProfileSection() {
   );
 }
 
-function maskKey(key: string): string {
-  if (key.length <= 10) return "***";
-  return `${key.slice(0, 6)}${"*".repeat(Math.max(4, key.length - 10))}${key.slice(-4)}`;
-}
-
 function ApiKeysSection() {
-  const [apiKey, setApiKey] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      setApiKey(localStorage.getItem("unclick_api_key"));
-    } catch {
-      setApiKey(null);
-    }
-  }, []);
-
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border/40 bg-card/20 p-8">
@@ -57,31 +42,15 @@ function ApiKeysSection() {
         <p className="mt-1 text-sm text-body">
           Use API keys to authenticate requests to the UnClick API.
         </p>
-
-        {apiKey ? (
-          <div className="mt-6 rounded-lg border border-border/40 bg-muted/10 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <code className="font-mono text-xs text-heading">{maskKey(apiKey)}</code>
-              <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[10px] text-primary">
-                Active
-              </span>
-            </div>
-            <p className="mt-3 text-xs text-body">
-              This key is stored locally in your browser. Revoke or rotate from the CLI.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-6 rounded-lg border border-dashed border-border/50 bg-muted/5 p-6 text-center">
-            <p className="text-sm text-body">You don't have an API key on this device yet.</p>
-            <Link
-              to="/memory/setup"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-            >
-              Get started
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-        )}
+        <div className="mt-6 rounded-lg border border-dashed border-border/50 bg-muted/5 p-6 text-center">
+          <span className="font-mono text-xs text-muted-foreground">
+            Key management coming soon. See{" "}
+            <a href="/docs" className="text-primary hover:underline">
+              /docs
+            </a>{" "}
+            to get started
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -115,7 +84,24 @@ function AdminSection() {
   );
 }
 
+function HealthCheckSection() {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-base font-semibold text-heading">Health Check</h2>
+        <p className="mt-1 text-sm text-body">
+          We look for competing memory tools that would cause duplicate facts or mixed-up
+          responses. Non-memory tools (GitHub, Slack, browsers, databases) don't overlap with
+          UnClick and are always safe to run alongside it.
+        </p>
+      </div>
+      <HealthCheck />
+    </div>
+  );
+}
+
 const SECTION_CONTENT: Record<SettingsSection, React.ReactNode> = {
+  health: <HealthCheckSection />,
   profile: <ProfileSection />,
   "api-keys": <ApiKeysSection />,
   notifications: <NotificationsSection />,
@@ -123,7 +109,7 @@ const SECTION_CONTENT: Record<SettingsSection, React.ReactNode> = {
 };
 
 export default function SettingsPage() {
-  const [active, setActive] = useState<SettingsSection>("profile");
+  const [active, setActive] = useState<SettingsSection>("health");
 
   return (
     <div className="min-h-screen">
