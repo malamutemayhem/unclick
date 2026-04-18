@@ -14,6 +14,7 @@ import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useSession, signOut } from "@/lib/auth";
 import AdminSearchBar from "@/components/admin/AdminSearchBar";
 import BugReportButton from "@/components/admin/BugReportButton";
+import MemoryHealthPill from "@/components/admin/MemoryHealthPill";
 import {
   User,
   Brain,
@@ -123,8 +124,11 @@ export default function AdminShell() {
 
       {/* ── Desktop top bar (md+) with global search ───────────────── */}
       <header className="fixed inset-x-0 top-0 z-30 hidden h-14 items-center border-b border-white/[0.06] bg-[#0A0A0A] md:flex md:pl-56">
-        <div className="flex-1 px-4 lg:px-8">
-          <AdminSearchBar />
+        <div className="flex flex-1 items-center gap-3 px-4 lg:px-8">
+          <div className="flex-1">
+            <AdminSearchBar />
+          </div>
+          <MemoryHealthPill />
         </div>
       </header>
 

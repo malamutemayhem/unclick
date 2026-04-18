@@ -232,6 +232,10 @@ export default function AdminSettings() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
+  const [clearStage, setClearStage] = useState<"idle" | "confirm" | "clearing" | "done">("idle");
+  const [clearConfirmText, setClearConfirmText] = useState("");
+  const [clearError, setClearError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!apiKey) {
       setLoading(false);
@@ -330,6 +334,38 @@ export default function AdminSettings() {
       URL.revokeObjectURL(url);
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function handleClearAll() {
+    if (clearConfirmText !== "DELETE") {
+      setClearError("Type DELETE exactly to confirm.");
+      return;
+    }
+    setClearStage("clearing");
+    setClearError(null);
+    try {
+      const res = await fetch("/api/memory-admin?action=admin_clear_all", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: "DELETE" }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setClearError(body.error ?? "Failed to clear memory.");
+        setClearStage("confirm");
+        return;
+      }
+      setClearStage("done");
+      setConnection((prev) =>
+        prev
+          ? { ...prev, context_count: 0, fact_count: 0, has_context: false, last_session: null }
+          : prev
+      );
+      setPreview(null);
+    } catch (err) {
+      setClearError((err as Error).message);
+      setClearStage("confirm");
     }
   }
 
@@ -467,7 +503,7 @@ export default function AdminSettings() {
           <ul className="mt-2 space-y-2 text-sm">
             <SetupItem
               done={Boolean(connection?.connected)}
-              label="MCP server connected"
+              label="UnClick is connected to your AI tool"
               hint="Run the Connect command so Claude Code can reach UnClick."
             />
             <SetupItem
@@ -627,9 +663,10 @@ export default function AdminSettings() {
       {/* Auto-Load card */}
       <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
         <div className="mb-2">
-          <h2 className="text-sm font-semibold text-white">Memory Auto-Load Configuration</h2>
+          <h2 className="text-sm font-semibold text-white">How memory loads</h2>
           <p className="mt-1 text-xs text-[#888]">
-            Control how UnClick Memory loads in AI clients. These settings affect all sessions using your API key.
+            Fine-tune how UnClick greets your AI clients. These settings affect every session
+            using your API key.
           </p>
         </div>
 
@@ -649,7 +686,7 @@ export default function AdminSettings() {
               checked={settings.autoload_enabled}
               onChange={(v) => updateField("autoload_enabled", v)}
               label="Auto-load instructions"
-              description="When on, the MCP server sends an instructions directive at session start telling the AI to call get_startup_context. Turn off if you prefer to trigger memory loading manually."
+              description="When on, UnClick tells your AI to load memory at the start of every session. Turn off if you prefer to trigger memory loading manually."
             />
 
             {settings.autoload_enabled && (
@@ -688,7 +725,7 @@ export default function AdminSettings() {
               checked={settings.prompt_enabled}
               onChange={(v) => updateField("prompt_enabled", v)}
               label="Enable memory prompts"
-              description="When on, the MCP server advertises the load-memory prompt to clients. Lets users manually trigger memory loading in clients that show prompts."
+              description="Adds a one-click button inside AI tools that show prompts, so you can pull memory on demand."
             />
 
             <Toggle
@@ -696,7 +733,7 @@ export default function AdminSettings() {
               checked={settings.resources_enabled}
               onChange={(v) => updateField("resources_enabled", v)}
               label="Enable memory resources"
-              description="When on, the MCP server advertises memory as subscribable resources. Clients can auto-attach memory context to every message."
+              description="Lets compatible AI tools attach your memory as a pinned resource, so context rides along every message."
             />
           </div>
         ) : (
@@ -733,9 +770,10 @@ export default function AdminSettings() {
       {/* Memory Load Rate card */}
       <section className="mt-6 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
         <div className="mb-4">
-          <h2 className="text-sm font-semibold text-white">Memory Load Rate</h2>
+          <h2 className="text-sm font-semibold text-white">How often it is actually loading</h2>
           <p className="mt-1 text-xs text-[#888]">
-            How often sessions begin with get_startup_context. Tracked over the last 7 days.
+            Percentage of your recent sessions that started by reading UnClick memory.
+            Higher is better. Tracked over the last 7 days.
           </p>
         </div>
 
@@ -805,8 +843,89 @@ export default function AdminSettings() {
           </div>
         ) : (
           <p className="text-xs text-[#666]">
-            No session activity yet. Start a session with your MCP client and stats will appear here.
+            No session activity yet. Start a conversation in Claude Code or another AI tool and stats will appear here.
           </p>
+        )}
+      </section>
+
+      {/* Danger zone - nuclear reset */}
+      <section className="mt-6 rounded-xl border border-red-500/20 bg-red-500/[0.03] p-6">
+        <div className="mb-3 flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-red-400" />
+          <h2 className="text-sm font-semibold text-red-300">Danger zone</h2>
+        </div>
+        <p className="text-xs text-red-200/80">
+          Delete everything UnClick has stored for you. Identity, facts, session summaries,
+          and the knowledge library will be wiped. This cannot be undone. Export first if
+          you might want it back.
+        </p>
+
+        {clearStage === "idle" && (
+          <button
+            type="button"
+            onClick={() => {
+              setClearStage("confirm");
+              setClearConfirmText("");
+              setClearError(null);
+            }}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-red-500/40 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/10"
+          >
+            Clear all memory
+          </button>
+        )}
+
+        {clearStage === "confirm" && (
+          <div className="mt-4 space-y-3 rounded-md border border-red-500/30 bg-red-500/5 p-4">
+            <p className="text-xs text-red-200">
+              Type <code className="rounded bg-red-500/10 px-1 font-mono text-red-300">DELETE</code> to
+              confirm. We will wipe every memory row tied to your account.
+            </p>
+            <input
+              type="text"
+              value={clearConfirmText}
+              onChange={(e) => {
+                setClearConfirmText(e.target.value);
+                setClearError(null);
+              }}
+              placeholder="Type DELETE"
+              className="w-full rounded-md border border-red-500/30 bg-[#0A0A0A] px-3 py-2 text-sm text-white placeholder:text-red-200/30 focus:border-red-400 focus:outline-none"
+            />
+            {clearError && <p className="text-xs text-red-400">{clearError}</p>}
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setClearStage("idle");
+                  setClearConfirmText("");
+                  setClearError(null);
+                }}
+                className="rounded-md px-3 py-1.5 text-xs text-white/60 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleClearAll}
+                disabled={clearConfirmText !== "DELETE"}
+                className="inline-flex items-center gap-1.5 rounded-md bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-500/90 disabled:opacity-50"
+              >
+                Wipe memory
+              </button>
+            </div>
+          </div>
+        )}
+
+        {clearStage === "clearing" && (
+          <div className="mt-4 flex items-center gap-2 text-xs text-red-200">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Clearing memory...
+          </div>
+        )}
+
+        {clearStage === "done" && (
+          <div className="mt-4 rounded-md border border-green-500/30 bg-green-500/5 p-3 text-xs text-green-300">
+            Memory cleared. Nothing stored for this account right now. You can start fresh.
+          </div>
         )}
       </section>
 

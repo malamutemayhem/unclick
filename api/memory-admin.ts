@@ -70,6 +70,8 @@
  *                            for the admin UI to show what will load.
  *   - admin_export_all: GET, returns the user's entire memory snapshot as JSON
  *                       for self-hosted export / portability.
+ *   - admin_clear_all: POST with body.confirm === "DELETE", deletes every
+ *                      memory row scoped to the user's api_key_hash.
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
@@ -2430,6 +2432,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           hot_facts: factsRes.data ?? [],
           recent_sessions: sessionsRes.data ?? [],
         });
+      }
+
+      case "admin_clear_all": {
+        // Nuclear option: delete every memory row scoped to this api_key_hash.
+        // Guard with a body.confirm === "DELETE" phrase so a typo or a
+        // mis-fired fetch cannot wipe a user's data.
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+
+        const confirm = String(req.body?.confirm ?? "").trim();
+        if (confirm !== "DELETE") {
+          return res.status(400).json({
+            error: "To confirm, send body.confirm = \"DELETE\".",
+          });
+        }
+
+        const tables = [
+          "mc_extracted_facts",
+          "mc_business_context",
+          "mc_session_summaries",
+          "mc_conversation_log",
+          "mc_code_dumps",
+          "mc_knowledge_library",
+          "mc_knowledge_library_history",
+        ];
+
+        const deleted: Record<string, number | null> = {};
+        for (const t of tables) {
+          const { count, error } = await supabase
+            .from(t)
+            .delete({ count: "exact" })
+            .eq("api_key_hash", apiKeyHash);
+          if (error) {
+            console.error(`admin_clear_all: failed on ${t}:`, error.message);
+          }
+          deleted[t] = count ?? 0;
+        }
+
+        return res.status(200).json({ success: true, deleted });
       }
 
       case "admin_export_all": {

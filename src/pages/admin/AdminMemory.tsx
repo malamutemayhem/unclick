@@ -64,9 +64,13 @@ export default function AdminMemoryPage() {
 
   if (!apiKey) {
     return (
-      <p className="text-sm text-white/50">
-        No API key found. Set your UnClick API key in Settings to access Memory Admin.
-      </p>
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-8 text-center">
+        <p className="text-sm text-white/70">No API key found for this session.</p>
+        <p className="mt-2 text-xs text-white/50">
+          Sign in or grab a free key from the homepage, then come back to see what UnClick
+          remembers about you.
+        </p>
+      </div>
     );
   }
 

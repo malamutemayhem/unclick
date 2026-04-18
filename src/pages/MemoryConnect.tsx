@@ -189,9 +189,14 @@ export default function MemoryConnectPage() {
 
   const checkLine = useMemo(() => {
     if (!check) return null;
-    if (!check.connected) return "Not connected yet. Run the command above and start a Claude Code session.";
+    if (!check.connected) {
+      return "Not connected yet. Run the command above and start a Claude Code session.";
+    }
     const parts: string[] = [];
-    parts.push(`${check.fact_count} ${check.fact_count === 1 ? "fact" : "facts"} loaded`);
+    parts.push(`${check.fact_count} ${check.fact_count === 1 ? "fact" : "facts"} stored`);
+    if (check.context_count > 0) {
+      parts.push(`${check.context_count} identity ${check.context_count === 1 ? "entry" : "entries"}`);
+    }
     if (check.last_session) parts.push(`last session ${formatRelative(check.last_session)}`);
     else if (check.last_used_at) parts.push(`last seen ${formatRelative(check.last_used_at)}`);
     return `Connected. ${parts.join(", ")}.`;
@@ -474,9 +479,9 @@ export default function MemoryConnectPage() {
         {/* Footer link back to admin */}
         <FadeIn delay={0.25}>
           <div className="mt-8 flex items-center justify-between rounded-lg border border-border/40 bg-card/30 p-4 text-xs text-body">
-            <span>Want to see what's in your memory?</span>
-            <Link to="/memory/admin" className="text-primary hover:underline">
-              Open admin &rarr;
+            <span>Want to see what UnClick remembers about you?</span>
+            <Link to="/admin/memory" className="text-primary hover:underline">
+              Open memory &rarr;
             </Link>
           </div>
         </FadeIn>

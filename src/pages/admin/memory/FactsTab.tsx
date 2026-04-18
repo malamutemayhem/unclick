@@ -43,6 +43,7 @@ export default function FactsTab({ apiKey }: { apiKey: string }) {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showAddForm, setShowAddForm] = useState(false);
@@ -79,9 +80,21 @@ export default function FactsTab({ apiKey }: { apiKey: string }) {
 
   const activeFacts = useMemo(() => facts.filter((f) => f.status === "active"), [facts]);
 
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const f of activeFacts) {
+      const c = f.category || "general";
+      counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    return counts;
+  }, [activeFacts]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     let list = activeFacts;
+    if (categoryFilter !== "all") {
+      list = list.filter((f) => (f.category || "general") === categoryFilter);
+    }
     if (q) {
       list = list.filter(
         (f) =>
@@ -97,7 +110,7 @@ export default function FactsTab({ apiKey }: { apiKey: string }) {
       sorted.sort((a, b) => (a.category ?? "").localeCompare(b.category ?? ""));
     }
     return sorted;
-  }, [activeFacts, query, sortMode]);
+  }, [activeFacts, query, sortMode, categoryFilter]);
 
   function toggleSelect(id: string) {
     setSelected((prev) => {
@@ -234,6 +247,39 @@ export default function FactsTab({ apiKey }: { apiKey: string }) {
           <Plus className="h-3.5 w-3.5" /> Add fact
         </button>
       </div>
+
+      {/* Category filter chips */}
+      {activeFacts.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => setCategoryFilter("all")}
+            className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+              categoryFilter === "all"
+                ? "border-[#61C1C4]/60 bg-[#61C1C4]/10 text-[#61C1C4]"
+                : "border-white/[0.06] bg-white/[0.03] text-white/60 hover:text-white"
+            }`}
+          >
+            All <span className="text-white/30">({activeFacts.length})</span>
+          </button>
+          {Array.from(categoryCounts.entries())
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([cat, count]) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setCategoryFilter(cat)}
+                className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                  categoryFilter === cat
+                    ? "border-[#61C1C4]/60 bg-[#61C1C4]/10 text-[#61C1C4]"
+                    : "border-white/[0.06] bg-white/[0.03] text-white/60 hover:text-white"
+                }`}
+              >
+                {cat} <span className="text-white/30">({count})</span>
+              </button>
+            ))}
+        </div>
+      )}
 
       {/* Bulk actions */}
       {selected.size > 0 && (
