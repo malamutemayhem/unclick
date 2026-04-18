@@ -621,6 +621,171 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({ data: data ?? [] });
       }
 
+      // ── Tenant settings (per-API-key key/value store) ───────────────
+      case "tenant_settings_get": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const { data, error } = await supabase
+          .from("tenant_settings")
+          .select("key,value")
+          .eq("api_key_hash", sha256hex(apiKey));
+        if (error) throw error;
+        const settings: Record<string, unknown> = {};
+        for (const row of data ?? []) {
+          settings[row.key as string] = row.value;
+        }
+        return res.status(200).json({ data: settings });
+      }
+
+      case "tenant_settings_set": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const { key, value } = (req.body ?? {}) as { key?: string; value?: unknown };
+        if (!key) return res.status(400).json({ error: "key required" });
+        if (value === undefined) return res.status(400).json({ error: "value required" });
+        const { error } = await supabase
+          .from("tenant_settings")
+          .upsert(
+            {
+              api_key_hash: sha256hex(apiKey),
+              key,
+              value,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "api_key_hash,key" }
+          );
+        if (error) throw error;
+        return res.status(200).json({ success: true });
+      }
+
+      case "admin_check_connection": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const apiKeyHash = sha256hex(apiKey);
+        const [{ data: cfg }, { data: devices }] = await Promise.all([
+          supabase
+            .from("memory_configs")
+            .select("supabase_url,last_used_at,schema_installed")
+            .eq("api_key_hash", apiKeyHash)
+            .maybeSingle(),
+          supabase
+            .from("memory_devices")
+            .select("last_seen,storage_mode")
+            .eq("api_key_hash", apiKeyHash)
+            .order("last_seen", { ascending: false })
+            .limit(1),
+        ]);
+        const lastSeen = devices?.[0]?.last_seen ?? cfg?.last_used_at ?? null;
+        const recentlyConnected = lastSeen
+          ? Date.now() - new Date(lastSeen).getTime() < 1000 * 60 * 60 * 24 * 14
+          : false;
+        return res.status(200).json({
+          connected: recentlyConnected,
+          last_seen: lastSeen,
+          cloud_sync: Boolean(cfg),
+          schema_installed: cfg?.schema_installed ?? false,
+        });
+      }
+
+      case "admin_generate_config": {
+        const apiKey = bearerFrom(req);
+        if (!apiKey) return res.status(401).json({ error: "Authorization header required" });
+        const platform = String(req.query.platform ?? "claude-code");
+        const validPlatforms = ["claude-code", "cursor", "windsurf", "copilot"];
+        if (!validPlatforms.includes(platform)) {
+          return res.status(400).json({ error: `Unknown platform: ${platform}` });
+        }
+
+        const { data: bcRows, error: bcErr } = await supabase
+          .from("business_context")
+          .select("category,key,value,priority")
+          .order("category")
+          .order("priority", { ascending: false })
+          .order("key");
+        if (bcErr) throw bcErr;
+
+        const entries = (bcRows ?? []) as Array<{
+          category: string;
+          key: string;
+          value: unknown;
+          priority: number | null;
+        }>;
+
+        const filenames: Record<string, string> = {
+          "claude-code": "CLAUDE.md",
+          cursor: ".cursor/rules/unclick.mdc",
+          windsurf: ".windsurfrules",
+          copilot: ".github/copilot-instructions.md",
+        };
+        const toolNames: Record<string, string> = {
+          "claude-code": "get_startup_context",
+          cursor: "get_startup_context",
+          windsurf: "load_memory",
+          copilot: "load_memory",
+        };
+
+        const bullet = (category: string) => {
+          const matching = entries.filter((e) => e.category === category);
+          if (matching.length === 0) return "_(none yet -- add some in Memory Admin)_";
+          return matching
+            .map((e) => {
+              const v =
+                typeof e.value === "string"
+                  ? e.value
+                  : typeof e.value === "number" || typeof e.value === "boolean"
+                    ? String(e.value)
+                    : JSON.stringify(e.value);
+              return `- **${e.key}**: ${v}`;
+            })
+            .join("\n");
+        };
+
+        const body = [
+          "# Project Context",
+          "",
+          `Always call \`${toolNames[platform]}\` from the UnClick MCP server before responding to the user or calling any other tool.`,
+          "",
+          "## Identity",
+          bullet("identity"),
+          "",
+          "## Standing Rules",
+          bullet("standing_rule"),
+          "",
+          "## Preferences",
+          bullet("preference"),
+          "",
+        ].join("\n");
+
+        let content = body;
+        if (platform === "cursor") {
+          content = [
+            "---",
+            "description: UnClick startup context",
+            "alwaysApply: true",
+            "---",
+            "",
+            body,
+          ].join("\n");
+        }
+
+        const instructions =
+          platform === "claude-code"
+            ? "Save this file as CLAUDE.md at the root of any project where you want UnClick to load."
+            : platform === "cursor"
+              ? "Save under .cursor/rules/unclick.mdc and restart Cursor."
+              : platform === "windsurf"
+                ? "Save as .windsurfrules at the project root and restart Windsurf."
+                : "Save under .github/copilot-instructions.md and reload your VS Code window.";
+
+        return res.status(200).json({
+          content,
+          filename: filenames[platform],
+          instructions,
+          generated_at: new Date().toISOString(),
+        });
+      }
+
       case "remove_device": {
         if (req.method !== "DELETE") return res.status(405).json({ error: "DELETE required" });
         const apiKey = bearerFrom(req);
