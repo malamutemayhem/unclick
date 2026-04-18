@@ -31,7 +31,7 @@ import {
 const API_KEY_STORAGE = "unclick_api_key";
 const MCP_URL = "https://unclick.world/api/mcp";
 const CLAUDE_MD_SNIPPET =
-  "Always call get_startup_context from the unclick MCP server before doing anything else.";
+  "Always call load_memory from the unclick MCP server before doing anything else.";
 
 interface CheckResult {
   connected: boolean;
