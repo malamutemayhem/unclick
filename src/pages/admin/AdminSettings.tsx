@@ -1,427 +1,285 @@
 /**
  * AdminSettings - Settings surface (/admin/settings)
  *
- * Controls tenant-scoped MCP server behavior. Toggle memory auto-load,
- * prompt advertising, and resource subscriptions. Customize the auto-load
- * instructions text. Includes a live read-only view of memory load rate
- * metrics so tenants can see whether their settings are working.
+ * Grouped sections (top to bottom):
+ *   - Connection      platform picker + connection status
+ *   - AI Config       generated config file preview / download
+ *   - Memory Loading  auto-load toggle (tenant_settings.autoload)
+ *   - Isolation       single-memory-tool guidance
+ *   - Danger Zone     clear / export
+ *   - Support         bug reporting
+ *
+ * Controls hit /api/memory-admin with the user's API key:
+ *   tenant_settings_get / tenant_settings_set for the auto-load toggle,
+ *   admin_check_connection for live connection status,
+ *   admin_generate_config for server-side config regeneration,
+ *   business_context + configGenerator for the local preview.
+ *
+ * Rendered inside AdminShell's <Outlet>, so we emit plain content only.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import {
+  generateConfig,
+  platformFilename,
+  platformLabel,
+  type BusinessContextEntry,
+  type Platform,
+} from "@/lib/configGenerator";
 import {
   Settings as SettingsIcon,
-  Loader2,
-  Check,
-  AlertCircle,
-  Users,
-  Bug,
-  Zap,
-  X as XIcon,
-  Eye,
+  CheckCircle2,
+  XCircle,
+  Copy,
   Download,
+  RefreshCw,
+  AlertTriangle,
+  Bug,
   ChevronDown,
-  ChevronRight,
+  ChevronUp,
+  FileText,
+  Loader2,
 } from "lucide-react";
 
-const DEFAULT_INSTRUCTIONS =
-  "UnClick Memory is available. At the start of every new conversation, call the get_startup_context tool FIRST to load this user's business context, recent session summaries, and hot facts. Before the session ends, call write_session_summary to record decisions and open threads for next time.";
+const API_KEY_STORAGE = "unclick_api_key";
+const PLATFORM_STORAGE = "unclick_platform";
+const PLATFORMS: Platform[] = ["claude-code", "cursor", "windsurf", "copilot"];
 
-const MAX_INSTRUCTIONS = 2000;
+const SERVER_URL = "https://unclick.world/api/mcp";
 
-interface AutoLoadSettings {
-  autoload_enabled: boolean;
-  prompt_enabled: boolean;
-  resources_enabled: boolean;
-  autoload_instructions: string | null;
-}
-
-interface LoadMetrics {
-  total_events: number;
-  total_sessions: number;
-  compliant_sessions: number;
-  get_startup_context_compliance_pct: number;
-  by_client_type: Record<string, number>;
-}
-
-interface BugReport {
-  id: string;
-  tool_name: string;
-  error_message: string;
-  severity: string;
-  status: string;
-  created_at: string;
-}
-
-interface ConnectionCheck {
+interface ConnectionStatus {
   connected: boolean;
-  configured: boolean;
-  has_context: boolean;
-  context_count: number;
-  fact_count: number;
-  last_session: string | null;
-  last_used_at: string | null;
+  last_seen: string | null;
+  cloud_sync: boolean;
+  schema_installed?: boolean;
 }
 
-interface SessionPreview {
-  identity: Array<{ category: string; key: string; value: unknown; priority: number }>;
-  hot_facts: Array<{
-    id: string;
-    fact: string;
-    category: string;
-    confidence: number;
-    created_at: string;
-  }>;
-  recent_sessions: Array<{
-    id: string;
-    summary: string;
-    topics: string[] | null;
-    platform: string | null;
-    created_at: string;
-  }>;
+interface GeneratedConfigResponse {
+  content: string;
+  filename: string;
+  instructions: string;
+  generated_at: string;
 }
 
-function previewValue(v: unknown): string {
-  if (v == null) return "";
-  if (typeof v === "string") return v;
-  return JSON.stringify(v);
-}
-
-const STATUS_TONE: Record<string, string> = {
-  open: "text-[#E2B93B]",
-  in_progress: "text-[#61C1C4]",
-  resolved: "text-green-400",
-  closed: "text-[#666]",
-};
-
-const SEVERITY_TONE: Record<string, string> = {
-  critical: "text-red-400",
-  high: "text-[#E2B93B]",
-  medium: "text-[#61C1C4]",
-  low: "text-[#888]",
-};
-
-function Toggle({
-  checked,
-  onChange,
-  label,
-  description,
-  id,
-}: {
-  checked: boolean;
-  onChange: (next: boolean) => void;
-  label: string;
-  description: string;
-  id: string;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-6 py-4">
-      <div className="min-w-0 flex-1">
-        <label htmlFor={id} className="block text-sm font-medium text-white cursor-pointer">
-          {label}
-        </label>
-        <p className="mt-1 text-xs text-[#888]">{description}</p>
-      </div>
-      <button
-        id={id}
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-          checked ? "bg-[#61C1C4]" : "bg-white/[0.08]"
-        }`}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-            checked ? "translate-x-6" : "translate-x-1"
-          }`}
-        />
-      </button>
-    </div>
-  );
-}
-
-function PreviewGroup({
-  title,
-  count,
-  children,
-}: {
-  title: string;
-  count: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <div className="mb-1.5 flex items-center gap-2 text-[11px] uppercase tracking-wider text-white/50">
-        <span>{title}</span>
-        <span className="rounded-full border border-white/[0.08] px-1.5 py-0.5 font-mono text-[10px] text-white/40">
-          {count}
-        </span>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function SetupItem({
-  done,
-  label,
-  hint,
-}: {
-  done: boolean;
-  label: string;
-  hint: string;
-}) {
-  return (
-    <li className="flex items-start gap-3">
-      <span
-        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-          done ? "bg-green-500/20 text-green-400" : "bg-white/[0.04] text-white/40"
-        }`}
-      >
-        {done ? <Check className="h-3 w-3" /> : <XIcon className="h-3 w-3" />}
-      </span>
-      <div className="min-w-0">
-        <p className={`text-sm ${done ? "text-white/80" : "text-white"}`}>{label}</p>
-        {!done && <p className="text-[11px] text-[#666]">{hint}</p>}
-      </div>
-    </li>
-  );
-}
-
-function rateTone(pct: number): { color: string; label: string; message: string } {
-  if (pct > 80) {
-    return {
-      color: "text-green-400",
-      label: "Excellent",
-      message: "Memory loads reliably at session start.",
-    };
+function getStoredPlatform(): Platform {
+  try {
+    const v = localStorage.getItem(PLATFORM_STORAGE);
+    if (v && PLATFORMS.includes(v as Platform)) return v as Platform;
+  } catch {
+    /* ignore */
   }
-  if (pct >= 50) {
-    return {
-      color: "text-[#E2B93B]",
-      label: "Moderate",
-      message: "Some sessions miss memory loading.",
-    };
+  return "claude-code";
+}
+
+function getApiKey(): string {
+  try {
+    return localStorage.getItem(API_KEY_STORAGE) ?? "";
+  } catch {
+    return "";
   }
-  return {
-    color: "text-red-400",
-    label: "Low",
-    message: "Most sessions are running without context.",
-  };
+}
+
+function formatRelative(iso: string | null): string {
+  if (!iso) return "never";
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
 }
 
 export default function AdminSettings() {
-  const apiKey = useMemo(() => localStorage.getItem("unclick_api_key") ?? "", []);
-  const [settings, setSettings] = useState<AutoLoadSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saveMsg, setSaveMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const { toast } = useToast();
+  const [apiKey] = useState<string>(getApiKey);
+  const [platform, setPlatform] = useState<Platform>(getStoredPlatform);
 
-  const [metrics, setMetrics] = useState<LoadMetrics | null>(null);
-  const [metricsLoading, setMetricsLoading] = useState(true);
+  const [connection, setConnection] = useState<ConnectionStatus | null>(null);
+  const [loadingConnection, setLoadingConnection] = useState(true);
 
-  const [bugs, setBugs] = useState<BugReport[]>([]);
-  const [bugsLoading, setBugsLoading] = useState(true);
+  const [autoload, setAutoload] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [autoloadSaving, setAutoloadSaving] = useState(false);
 
-  const [connection, setConnection] = useState<ConnectionCheck | null>(null);
-  const [connectionLoading, setConnectionLoading] = useState(true);
-
-  const [preview, setPreview] = useState<SessionPreview | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
+  const [businessContext, setBusinessContext] = useState<BusinessContextEntry[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [exporting, setExporting] = useState(false);
+  const [serverConfig, setServerConfig] = useState<GeneratedConfigResponse | null>(null);
+  const [generating, setGenerating] = useState(false);
 
-  const [clearStage, setClearStage] = useState<"idle" | "confirm" | "clearing" | "done">("idle");
-  const [clearConfirmText, setClearConfirmText] = useState("");
-  const [clearError, setClearError] = useState<string | null>(null);
+  const [howToCheckOpen, setHowToCheckOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(PLATFORM_STORAGE, platform);
+    } catch {
+      /* ignore */
+    }
+  }, [platform]);
 
   useEffect(() => {
     if (!apiKey) {
-      setLoading(false);
-      setMetricsLoading(false);
-      setBugsLoading(false);
-      setConnectionLoading(false);
+      setLoadingConnection(false);
+      setSettingsLoaded(true);
       return;
     }
-    const headers = { Authorization: `Bearer ${apiKey}` };
+    let cancelled = false;
     (async () => {
+      const authHeader = { Authorization: `Bearer ${apiKey}` };
       try {
-        const res = await fetch("/api/memory-admin?action=admin_get_autoload_settings", { headers });
-        if (res.ok) {
-          const body = await res.json();
-          setSettings(body.settings);
+        const [connRes, settingsRes, bcRes] = await Promise.all([
+          fetch("/api/memory-admin?action=admin_check_connection", { headers: authHeader }),
+          fetch("/api/memory-admin?action=tenant_settings_get", { headers: authHeader }),
+          fetch("/api/memory-admin?action=business_context"),
+        ]);
+        if (!cancelled && connRes.ok) {
+          setConnection((await connRes.json()) as ConnectionStatus);
+        }
+        if (!cancelled) {
+          if (settingsRes.ok) {
+            const body = (await settingsRes.json()) as { data?: Record<string, unknown> };
+            setAutoload(Boolean(body.data?.autoload));
+            setSettingsError(null);
+          } else {
+            const body = (await settingsRes.json().catch(() => ({}))) as { error?: string };
+            setSettingsError(body.error ?? `Settings request failed (${settingsRes.status})`);
+          }
+          setSettingsLoaded(true);
+        }
+        if (!cancelled && bcRes.ok) {
+          const body = (await bcRes.json()) as { data: BusinessContextEntry[] };
+          setBusinessContext(body.data ?? []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setSettingsError((err as Error).message);
+          setSettingsLoaded(true);
         }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoadingConnection(false);
       }
     })();
-    (async () => {
-      try {
-        const res = await fetch("/api/memory-admin?action=admin_memory_load_metrics", { headers });
-        if (res.ok) {
-          setMetrics(await res.json());
-        }
-      } finally {
-        setMetricsLoading(false);
-      }
-    })();
-    (async () => {
-      try {
-        const res = await fetch("/api/memory-admin?action=admin_bug_reports", { headers });
-        if (res.ok) {
-          const body = (await res.json()) as { data?: BugReport[] };
-          setBugs(Array.isArray(body.data) ? body.data : []);
-        }
-      } finally {
-        setBugsLoading(false);
-      }
-    })();
-    (async () => {
-      try {
-        const res = await fetch(
-          `/api/memory-admin?action=admin_check_connection&api_key=${encodeURIComponent(apiKey)}`
-        );
-        if (res.ok) {
-          setConnection((await res.json()) as ConnectionCheck);
-        }
-      } finally {
-        setConnectionLoading(false);
-      }
-    })();
+    return () => {
+      cancelled = true;
+    };
   }, [apiKey]);
 
-  function updateField<K extends keyof AutoLoadSettings>(key: K, value: AutoLoadSettings[K]) {
-    if (!settings) return;
-    setSettings({ ...settings, [key]: value });
-    setSaveMsg(null);
-  }
-
-  async function handleOpenPreview() {
-    const next = !previewOpen;
-    setPreviewOpen(next);
-    if (next && !preview && apiKey) {
-      setPreviewLoading(true);
-      try {
-        const res = await fetch("/api/memory-admin?action=admin_session_preview", {
-          headers: { Authorization: `Bearer ${apiKey}` },
-        });
-        if (res.ok) {
-          setPreview((await res.json()) as SessionPreview);
-        }
-      } finally {
-        setPreviewLoading(false);
-      }
-    }
-  }
-
-  async function handleExport() {
-    if (!apiKey || exporting) return;
-    setExporting(true);
-    try {
-      const res = await fetch("/api/memory-admin?action=admin_export_all", {
-        headers: { Authorization: `Bearer ${apiKey}` },
+  const handleAutoloadChange = async (next: boolean) => {
+    if (!apiKey) {
+      toast({
+        title: "API key required",
+        description: "Add your UnClick API key on the You page first.",
+        variant: "destructive",
       });
-      if (!res.ok) return;
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `unclick-memory-${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } finally {
-      setExporting(false);
-    }
-  }
-
-  async function handleClearAll() {
-    if (clearConfirmText !== "DELETE") {
-      setClearError("Type DELETE exactly to confirm.");
       return;
     }
-    setClearStage("clearing");
-    setClearError(null);
+    setAutoloadSaving(true);
+    const previous = autoload;
+    setAutoload(next);
     try {
-      const res = await fetch("/api/memory-admin?action=admin_clear_all", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ confirm: "DELETE" }),
-      });
-      const body = await res.json();
-      if (!res.ok) {
-        setClearError(body.error ?? "Failed to clear memory.");
-        setClearStage("confirm");
-        return;
-      }
-      setClearStage("done");
-      setConnection((prev) =>
-        prev
-          ? { ...prev, context_count: 0, fact_count: 0, has_context: false, last_session: null }
-          : prev
-      );
-      setPreview(null);
-    } catch (err) {
-      setClearError((err as Error).message);
-      setClearStage("confirm");
-    }
-  }
-
-  async function handleSave() {
-    if (!settings || !apiKey) return;
-    setSaving(true);
-    setSaveMsg(null);
-    try {
-      const res = await fetch("/api/memory-admin?action=admin_update_autoload_settings", {
+      const res = await fetch("/api/memory-admin?action=tenant_settings_set", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(settings),
+        body: JSON.stringify({ key: "autoload", value: next }),
       });
-      const body = await res.json();
       if (!res.ok) {
-        setSaveMsg({ type: "error", text: body.error ?? "Failed to save settings" });
-        return;
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? "Save failed");
       }
-      setSettings(body.settings);
-      setSaveMsg({ type: "success", text: "Settings saved" });
-    } catch {
-      setSaveMsg({ type: "error", text: "Network error - please try again" });
+      toast({
+        title: next ? "Auto-load on" : "Auto-load off",
+        description: next
+          ? "Your AI tool will receive your memory at session start."
+          : "Memory will only load when your AI explicitly asks for it.",
+      });
+    } catch (err) {
+      setAutoload(previous);
+      toast({
+        title: "Could not save",
+        description: (err as Error).message,
+        variant: "destructive",
+      });
     } finally {
-      setSaving(false);
+      setAutoloadSaving(false);
     }
-  }
+  };
 
-  function resetInstructions() {
-    updateField("autoload_instructions", DEFAULT_INSTRUCTIONS);
-  }
+  const previewLocal = generateConfig(platform, businessContext);
 
-  if (!apiKey) {
-    return (
-      <div>
-        <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#61C1C4]/10">
-            <SettingsIcon className="h-5 w-5 text-[#61C1C4]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-white">Settings</h1>
-          </div>
-        </div>
-        <p className="text-sm text-white/50">
-          No API key found. Set your UnClick API key in You to access Settings.
-        </p>
-      </div>
-    );
-  }
+  const regenerateFromServer = async () => {
+    if (!apiKey) return;
+    setGenerating(true);
+    try {
+      const res = await fetch(
+        `/api/memory-admin?action=admin_generate_config&platform=${platform}`,
+        { headers: { Authorization: `Bearer ${apiKey}` } }
+      );
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? "Generation failed");
+      }
+      setServerConfig((await res.json()) as GeneratedConfigResponse);
+    } catch (err) {
+      toast({
+        title: "Could not generate config",
+        description: (err as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
 
-  const instructionsValue = settings?.autoload_instructions ?? "";
-  const charCount = instructionsValue.length;
-  const pct = metrics?.get_startup_context_compliance_pct ?? 0;
-  const tone = rateTone(pct);
+  const handlePreview = async () => {
+    setPreviewOpen(true);
+    if (apiKey) await regenerateFromServer();
+  };
+
+  const activeConfig = serverConfig
+    ? { content: serverConfig.content, filename: serverConfig.filename }
+    : { content: previewLocal.content, filename: previewLocal.filename };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(activeConfig.content);
+      toast({ title: "Copied", description: `${activeConfig.filename} copied to clipboard.` });
+    } catch {
+      toast({ title: "Copy failed", variant: "destructive" });
+    }
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([activeConfig.content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = activeConfig.filename.split("/").pop() ?? "config.md";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleClearMemory = () => {
+    toast({
+      title: "Heads up",
+      description: "Clear-all is available from the Memory page right now.",
+    });
+  };
+
+  const handleExport = () => {
+    if (!apiKey) return;
+    window.open(`/api/memory-admin?action=business_context`, "_blank");
+  };
 
   return (
     <div>
@@ -432,544 +290,273 @@ export default function AdminSettings() {
         </div>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-white">Settings</h1>
-          <p className="text-sm text-white/50">
-            Control how UnClick Memory loads in AI clients
-          </p>
+          <p className="text-sm text-white/50">Manage how UnClick connects to your AI tool.</p>
         </div>
       </div>
 
-      {/* Default Memory status card */}
-      <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6 mb-6">
-        <div className="mb-2 flex items-center gap-2">
-          <Zap className="h-4 w-4 text-[#61C1C4]" />
-          <h2 className="text-sm font-semibold text-white">Make UnClick your default memory</h2>
-        </div>
-        <p className="mt-1 text-xs text-[#888]">
-          When enabled, UnClick loads your business context, facts, and session history at the
-          start of every AI session, before any other memory tool.
-        </p>
-
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
-            <p className="text-[11px] uppercase tracking-wider text-[#666]">Status</p>
-            {connectionLoading ? (
-              <p className="mt-1 text-sm text-white/40">Checking...</p>
-            ) : connection?.connected ? (
-              <div className="mt-1 flex items-center gap-2">
-                <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
-                <span className="text-sm font-medium text-white">Connected</span>
-              </div>
-            ) : (
-              <div className="mt-1 flex items-center gap-2">
-                <span className="inline-block h-2 w-2 rounded-full bg-white/30" />
-                <span className="text-sm text-white/50">Not connected</span>
-              </div>
-            )}
-          </div>
-          <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] uppercase tracking-wider text-[#666]">Auto-load</p>
-                <p className="mt-1 text-sm text-white">
-                  {settings?.autoload_enabled ? "On" : "Off"}
-                </p>
-                <p className="mt-0.5 text-[11px] text-[#666]">
-                  Controls the instructions directive.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  settings && updateField("autoload_enabled", !settings.autoload_enabled)
-                }
-                disabled={!settings}
-                aria-label="Toggle auto-load"
-                className={`mt-1 relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                  settings?.autoload_enabled ? "bg-[#61C1C4]" : "bg-white/[0.08]"
-                } disabled:opacity-50`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    settings?.autoload_enabled ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-5">
-          <p className="text-[11px] uppercase tracking-wider text-[#666]">Setup required</p>
-          <ul className="mt-2 space-y-2 text-sm">
-            <SetupItem
-              done={Boolean(connection?.connected)}
-              label="UnClick is connected to your AI tool"
-              hint="Run the Connect command so Claude Code can reach UnClick."
-            />
-            <SetupItem
-              done={Boolean(settings?.autoload_enabled)}
-              label="Auto-load instruction enabled"
-              hint="Turn on the auto-load toggle above."
-            />
-            <SetupItem
-              done={
-                Boolean(connection) &&
-                (connection!.has_context || connection!.fact_count > 0)
-              }
-              label="At least one fact or identity entry stored"
-              hint="Add something in Memory so there is context to load."
-            />
-          </ul>
-        </div>
-
-        {(!connection?.connected ||
-          !settings?.autoload_enabled ||
-          !(connection?.has_context || (connection?.fact_count ?? 0) > 0)) && (
-          <Link
-            to="/memory/connect"
-            className="mt-5 inline-flex items-center gap-1.5 rounded-md bg-[#61C1C4] px-4 py-2 text-xs font-semibold text-black transition-opacity hover:opacity-90"
-          >
-            Complete setup
-          </Link>
-        )}
-
-        <div className="mt-5 flex items-start gap-2 rounded-md border border-[#E2B93B]/30 bg-[#E2B93B]/[0.06] p-3 text-xs text-[#E2B93B]/90">
-          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <span>
-            <span className="font-semibold">One memory at a time.</span> Running UnClick alongside
-            other memory tools (Mem0, Zep, mem-based agents) leads to duplicated facts and
-            conflicting context. Use UnClick as your default and turn the others off.
-          </span>
-        </div>
-
-        {/* What loads at session start */}
-        <div className="mt-5 rounded-md border border-white/[0.06] bg-white/[0.02]">
-          <button
-            type="button"
-            onClick={handleOpenPreview}
-            className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-xs text-white/70 hover:text-white"
-          >
-            <span className="inline-flex items-center gap-2">
-              <Eye className="h-3.5 w-3.5 text-[#61C1C4]" />
-              <span className="font-semibold text-white">See what loads at session start</span>
-            </span>
-            {previewOpen ? (
-              <ChevronDown className="h-3.5 w-3.5 text-white/40" />
-            ) : (
-              <ChevronRight className="h-3.5 w-3.5 text-white/40" />
-            )}
-          </button>
-
-          {previewOpen && (
-            <div className="border-t border-white/[0.04] px-4 py-4">
-              {previewLoading ? (
-                <p className="text-xs text-white/50">Loading preview...</p>
-              ) : !preview ||
-                (preview.identity.length === 0 &&
-                  preview.hot_facts.length === 0 &&
-                  preview.recent_sessions.length === 0) ? (
-                <p className="text-xs text-white/50">
-                  Nothing to load yet. Add identity entries or facts in Memory so your AI has
-                  something to read at session start.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  <PreviewGroup title="Identity (always loaded)" count={preview.identity.length}>
-                    {preview.identity.length === 0 ? (
-                      <p className="text-xs text-white/40">No entries.</p>
-                    ) : (
-                      <ul className="space-y-1 text-xs text-white/70">
-                        {preview.identity.map((e) => (
-                          <li key={`${e.category}-${e.key}`} className="flex gap-2">
-                            <span className="shrink-0 rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-white/40">
-                              {e.category}
-                            </span>
-                            <span className="min-w-0">
-                              <span className="font-medium text-white">{e.key}</span>
-                              <span className="text-white/50">: {previewValue(e.value)}</span>
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </PreviewGroup>
-
-                  <PreviewGroup title="Hot facts (top 10)" count={preview.hot_facts.length}>
-                    {preview.hot_facts.length === 0 ? (
-                      <p className="text-xs text-white/40">No hot facts yet.</p>
-                    ) : (
-                      <ul className="space-y-1 text-xs text-white/70">
-                        {preview.hot_facts.map((f) => (
-                          <li key={f.id} className="flex gap-2">
-                            <span className="shrink-0 rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-white/40">
-                              {f.category}
-                            </span>
-                            <span className="min-w-0 truncate">{f.fact}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </PreviewGroup>
-
-                  <PreviewGroup
-                    title="Recent sessions (last 5)"
-                    count={preview.recent_sessions.length}
-                  >
-                    {preview.recent_sessions.length === 0 ? (
-                      <p className="text-xs text-white/40">No sessions recorded yet.</p>
-                    ) : (
-                      <ul className="space-y-1 text-xs text-white/70">
-                        {preview.recent_sessions.map((s) => (
-                          <li key={s.id} className="flex gap-2">
-                            <span className="shrink-0 text-[10px] text-white/30">
-                              {new Date(s.created_at).toLocaleDateString()}
-                            </span>
-                            <span className="min-w-0 truncate">{s.summary}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </PreviewGroup>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-md border border-white/[0.06] bg-white/[0.02] p-4 text-xs">
-          <div>
-            <p className="font-semibold text-white">Your data, your file.</p>
-            <p className="mt-0.5 text-white/50">
-              Download a full snapshot of everything UnClick has stored for you.
-              No lock-in. Keep a backup or move to another tool any time.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={exporting}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-white/[0.08] px-3 py-2 text-xs font-semibold text-white hover:bg-white/[0.04] disabled:opacity-50"
-          >
-            {exporting ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Download className="h-3.5 w-3.5" />
-            )}
-            Export my memory
-          </button>
-        </div>
-      </section>
-
-      {/* Auto-Load card */}
-      <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
-        <div className="mb-2">
-          <h2 className="text-sm font-semibold text-white">How memory loads</h2>
-          <p className="mt-1 text-xs text-[#888]">
-            Fine-tune how UnClick greets your AI clients. These settings affect every session
-            using your API key.
+      <div className="space-y-6">
+        {/* CONNECTION */}
+        <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <h2 className="text-sm font-semibold text-white">Connection</h2>
+          <p className="mt-1 text-xs text-white/60">
+            Pick which AI tool you use. Setup steps and config-file format follow your choice.
           </p>
-        </div>
 
-        {loading ? (
-          <div className="space-y-3 py-4">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-16 animate-pulse rounded-lg bg-white/[0.03] border border-white/[0.06]"
-              />
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {PLATFORMS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPlatform(p)}
+                className={`rounded-md border px-3 py-2 text-sm transition-colors ${
+                  platform === p
+                    ? "border-[#61C1C4] bg-[#61C1C4]/10 text-white"
+                    : "border-white/[0.08] bg-white/[0.02] text-white/70 hover:border-[#61C1C4]/40 hover:text-white"
+                }`}
+              >
+                {platformLabel(p)}
+              </button>
             ))}
           </div>
-        ) : settings ? (
-          <div className="divide-y divide-white/[0.04]">
-            <Toggle
-              id="autoload-enabled"
-              checked={settings.autoload_enabled}
-              onChange={(v) => updateField("autoload_enabled", v)}
-              label="Auto-load instructions"
-              description="When on, UnClick tells your AI to load memory at the start of every session. Turn off if you prefer to trigger memory loading manually."
-            />
 
-            {settings.autoload_enabled && (
-              <div className="py-4">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="autoload-instructions" className="block text-sm font-medium text-white">
-                    Instructions text
-                  </label>
-                  <button
-                    onClick={resetInstructions}
-                    className="text-xs text-[#61C1C4] hover:opacity-80"
-                  >
-                    Reset to default
-                  </button>
-                </div>
-                <p className="mt-1 text-xs text-[#888]">
-                  Sent verbatim to the client at session start.
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4 text-xs">
+              <p className="text-[11px] uppercase tracking-wider text-white/40">Status</p>
+              <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-white">
+                {loadingConnection ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-white/40" />
+                    Checking...
+                  </>
+                ) : connection?.connected ? (
+                  <>
+                    <CheckCircle2 className="h-3.5 w-3.5 text-[#61C1C4]" />
+                    Connected
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-3.5 w-3.5 text-[#E2B93B]" />
+                    Not connected
+                  </>
+                )}
+              </p>
+              {connection?.last_seen && (
+                <p className="mt-1 text-[11px] text-white/40">
+                  Last seen {formatRelative(connection.last_seen)}
                 </p>
-                <textarea
-                  id="autoload-instructions"
-                  value={instructionsValue}
-                  onChange={(e) => updateField("autoload_instructions", e.target.value)}
-                  placeholder={DEFAULT_INSTRUCTIONS}
-                  rows={5}
-                  maxLength={MAX_INSTRUCTIONS}
-                  className="mt-3 w-full rounded-md border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-[#61C1C4]/50 focus:outline-none"
-                />
-                <div className="mt-1 flex justify-end text-[11px] text-[#666]">
-                  {charCount} / {MAX_INSTRUCTIONS}
-                </div>
-              </div>
-            )}
-
-            <Toggle
-              id="prompt-enabled"
-              checked={settings.prompt_enabled}
-              onChange={(v) => updateField("prompt_enabled", v)}
-              label="Enable memory prompts"
-              description="Adds a one-click button inside AI tools that show prompts, so you can pull memory on demand."
-            />
-
-            <Toggle
-              id="resources-enabled"
-              checked={settings.resources_enabled}
-              onChange={(v) => updateField("resources_enabled", v)}
-              label="Enable memory resources"
-              description="Lets compatible AI tools attach your memory as a pinned resource, so context rides along every message."
-            />
+              )}
+            </div>
+            <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4 text-xs">
+              <p className="text-[11px] uppercase tracking-wider text-white/40">Server</p>
+              <code className="mt-1 block truncate font-mono text-[11px] text-white">
+                {SERVER_URL}
+              </code>
+            </div>
           </div>
-        ) : (
-          <p className="py-4 text-sm text-white/50">Unable to load settings.</p>
-        )}
 
-        {/* Save bar */}
-        <div className="mt-4 flex items-center justify-end gap-3 border-t border-white/[0.04] pt-4">
-          {saveMsg && (
-            <span
-              className={`flex items-center gap-1.5 text-xs ${
-                saveMsg.type === "success" ? "text-green-400" : "text-red-400"
-              }`}
+          <div className="mt-4">
+            <Link
+              to="/memory/connect"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#61C1C4] hover:underline"
             >
-              {saveMsg.type === "success" ? (
-                <Check className="h-3.5 w-3.5" />
-              ) : (
-                <AlertCircle className="h-3.5 w-3.5" />
-              )}
-              {saveMsg.text}
-            </span>
-          )}
-          <button
-            onClick={handleSave}
-            disabled={saving || loading || !settings}
-            className="inline-flex items-center gap-2 rounded-md bg-[#61C1C4] px-4 py-2 text-xs font-semibold text-black transition-colors hover:opacity-90 disabled:opacity-50"
-          >
-            {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-            {saving ? "Saving..." : "Save settings"}
-          </button>
-        </div>
-      </section>
+              View setup steps for {platformLabel(platform)}
+            </Link>
+          </div>
+        </section>
 
-      {/* Memory Load Rate card */}
-      <section className="mt-6 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
-        <div className="mb-4">
-          <h2 className="text-sm font-semibold text-white">How often it is actually loading</h2>
-          <p className="mt-1 text-xs text-[#888]">
-            Percentage of your recent sessions that started by reading UnClick memory.
-            Higher is better. Tracked over the last 7 days.
+        {/* AI CONFIG */}
+        <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <h2 className="text-sm font-semibold text-white">Your AI Config</h2>
+          <p className="mt-1 text-xs text-white/60">
+            UnClick can generate a config file for your AI tool so it knows who you are from the
+            first message.
           </p>
-        </div>
 
-        {metricsLoading ? (
-          <div className="h-24 animate-pulse rounded-lg bg-white/[0.03] border border-white/[0.06]" />
-        ) : metrics && metrics.total_sessions > 0 ? (
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-baseline gap-3">
-                <span className={`text-3xl font-semibold ${tone.color}`}>{pct}%</span>
-                <span className={`text-xs font-medium uppercase tracking-wider ${tone.color}`}>
-                  {tone.label}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-[#888]">{tone.message}</p>
-              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/[0.04]">
-                <div
-                  className={`h-full rounded-full ${
-                    pct > 80
-                      ? "bg-green-500"
-                      : pct >= 50
-                      ? "bg-[#E2B93B]"
-                      : "bg-red-500"
-                  }`}
-                  style={{ width: `${Math.max(pct, 2)}%` }}
-                />
-              </div>
+          <div className="mt-4 space-y-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <FileText className="h-4 w-4 text-white/40" />
+              <span className="text-white/50">Config file type:</span>
+              <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-[11px] text-[#61C1C4]">
+                {platformFilename(platform)}
+              </code>
+              <span className="text-white/40">(auto-selected from your platform choice)</span>
             </div>
+            {serverConfig && (
+              <p className="text-white/40">
+                Last generated {formatRelative(serverConfig.generated_at)} for{" "}
+                {platformLabel(platform)}.
+              </p>
+            )}
+          </div>
 
-            <div className="grid gap-4 border-t border-white/[0.04] pt-4 sm:grid-cols-2">
-              <div>
-                <p className="text-[11px] uppercase tracking-wider text-[#666]">
-                  Sessions tracked (7d)
-                </p>
-                <p className="mt-1 font-mono text-lg text-white">
-                  {metrics.total_sessions.toLocaleString()}
-                </p>
-                <p className="text-[11px] text-[#666]">
-                  {metrics.compliant_sessions.toLocaleString()} with startup context
-                </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={handlePreview}>
+              {previewOpen ? "Refresh preview" : "Preview"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={regenerateFromServer}
+              disabled={generating || !apiKey}
+            >
+              <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${generating ? "animate-spin" : ""}`} />
+              Regenerate
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleCopy}>
+              <Copy className="mr-1.5 h-3.5 w-3.5" />
+              Copy
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownload}>
+              <Download className="mr-1.5 h-3.5 w-3.5" />
+              Download
+            </Button>
+          </div>
+
+          {previewOpen && (
+            <div className="mt-4 rounded-md border border-white/[0.06] bg-black/40">
+              <div className="border-b border-white/[0.06] px-3 py-2 font-mono text-[11px] text-white/40">
+                {activeConfig.filename}
               </div>
+              <pre className="max-h-[420px] overflow-auto p-3 font-mono text-[11px] leading-relaxed text-white/90">
+                {activeConfig.content}
+              </pre>
+            </div>
+          )}
+        </section>
 
-              {Object.keys(metrics.by_client_type).length > 0 && (
-                <div>
-                  <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[#666]">
-                    <Users className="h-3 w-3" />
-                    By client
-                  </p>
-                  <ul className="mt-1 space-y-1">
-                    {Object.entries(metrics.by_client_type)
-                      .sort((a, b) => b[1] - a[1])
-                      .map(([client, count]) => (
-                        <li
-                          key={client}
-                          className="flex items-center justify-between text-xs"
-                        >
-                          <span className="text-white/70">{client}</span>
-                          <span className="font-mono text-[#888]">
-                            {count.toLocaleString()}
-                          </span>
-                        </li>
-                      ))}
-                  </ul>
-                </div>
-              )}
+        {/* MEMORY LOADING */}
+        <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <h2 className="text-sm font-semibold text-white">Memory Loading</h2>
+
+          <div className="mt-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-white">
+                Automatically loads your memory when an AI session starts
+              </p>
+              <p className="mt-1 max-w-md text-xs text-white/60">
+                When on, your AI tool receives your identity, facts, and session history before
+                you even type anything.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <span className="text-xs text-white/40">{autoload ? "On" : "Off"}</span>
+              <Switch
+                checked={autoload}
+                onCheckedChange={handleAutoloadChange}
+                disabled={autoloadSaving || !apiKey || !settingsLoaded}
+                aria-label="Auto-load memory at session start"
+              />
             </div>
           </div>
-        ) : (
-          <p className="text-xs text-[#666]">
-            No session activity yet. Start a conversation in Claude Code or another AI tool and stats will appear here.
+
+          {!apiKey && (
+            <p className="mt-3 text-[11px] text-[#E2B93B]">
+              Add your UnClick API key on the You page to change this.
+            </p>
+          )}
+          {apiKey && settingsError && (
+            <p className="mt-3 text-[11px] text-[#E2B93B]">
+              Could not reach settings service: {settingsError}
+            </p>
+          )}
+        </section>
+
+        {/* ISOLATION */}
+        <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <h2 className="text-sm font-semibold text-white">Isolation</h2>
+          <p className="mt-1 text-sm font-medium text-white">
+            UnClick works best as your only memory tool.
           </p>
-        )}
-      </section>
+          <p className="mt-2 text-xs text-white/60">
+            Running multiple memory tools (like Mem0, Zep, or Hindsight alongside UnClick) causes
+            duplicate facts and confused AI responses. Other tools like GitHub, Slack, or database
+            connectors work fine.
+          </p>
 
-      {/* Danger zone - nuclear reset */}
-      <section className="mt-6 rounded-xl border border-red-500/20 bg-red-500/[0.03] p-6">
-        <div className="mb-3 flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-red-400" />
-          <h2 className="text-sm font-semibold text-red-300">Danger zone</h2>
-        </div>
-        <p className="text-xs text-red-200/80">
-          Delete everything UnClick has stored for you. Identity, facts, session summaries,
-          and the knowledge library will be wiped. This cannot be undone. Export first if
-          you might want it back.
-        </p>
-
-        {clearStage === "idle" && (
           <button
             type="button"
-            onClick={() => {
-              setClearStage("confirm");
-              setClearConfirmText("");
-              setClearError(null);
-            }}
-            className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-red-500/40 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/10"
+            onClick={() => setHowToCheckOpen((v) => !v)}
+            className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-[#61C1C4] hover:underline"
           >
-            Clear all memory
+            How to check what is running
+            {howToCheckOpen ? (
+              <ChevronUp className="h-3 w-3" />
+            ) : (
+              <ChevronDown className="h-3 w-3" />
+            )}
           </button>
-        )}
 
-        {clearStage === "confirm" && (
-          <div className="mt-4 space-y-3 rounded-md border border-red-500/30 bg-red-500/5 p-4">
-            <p className="text-xs text-red-200">
-              Type <code className="rounded bg-red-500/10 px-1 font-mono text-red-300">DELETE</code> to
-              confirm. We will wipe every memory row tied to your account.
-            </p>
-            <input
-              type="text"
-              value={clearConfirmText}
-              onChange={(e) => {
-                setClearConfirmText(e.target.value);
-                setClearError(null);
-              }}
-              placeholder="Type DELETE"
-              className="w-full rounded-md border border-red-500/30 bg-[#0A0A0A] px-3 py-2 text-sm text-white placeholder:text-red-200/30 focus:border-red-400 focus:outline-none"
-            />
-            {clearError && <p className="text-xs text-red-400">{clearError}</p>}
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setClearStage("idle");
-                  setClearConfirmText("");
-                  setClearError(null);
-                }}
-                className="rounded-md px-3 py-1.5 text-xs text-white/60 hover:text-white"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleClearAll}
-                disabled={clearConfirmText !== "DELETE"}
-                className="inline-flex items-center gap-1.5 rounded-md bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-500/90 disabled:opacity-50"
-              >
-                Wipe memory
-              </button>
-            </div>
-          </div>
-        )}
-
-        {clearStage === "clearing" && (
-          <div className="mt-4 flex items-center gap-2 text-xs text-red-200">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Clearing memory...
-          </div>
-        )}
-
-        {clearStage === "done" && (
-          <div className="mt-4 rounded-md border border-green-500/30 bg-green-500/5 p-3 text-xs text-green-300">
-            Memory cleared. Nothing stored for this account right now. You can start fresh.
-          </div>
-        )}
-      </section>
-
-      {/* Support - bug reports submitted by this user */}
-      <section className="mt-6 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <Bug className="h-4 w-4 text-[#E2B93B]" />
-          <h2 className="text-sm font-semibold text-white">Support</h2>
-        </div>
-        <p className="text-xs text-[#888]">
-          Bug reports submitted from this account. Use the Report a bug link in the sidebar to file a new one.
-        </p>
-
-        <div className="mt-4">
-          {bugsLoading ? (
-            <div className="h-16 animate-pulse rounded-lg border border-white/[0.06] bg-white/[0.03]" />
-          ) : bugs.length === 0 ? (
-            <p className="text-xs text-[#666]">No bug reports yet.</p>
-          ) : (
-            <ul className="divide-y divide-white/[0.04]">
-              {bugs.map((b) => {
-                const sev = SEVERITY_TONE[b.severity] ?? "text-[#888]";
-                const stat = STATUS_TONE[b.status] ?? "text-[#888]";
-                return (
-                  <li key={b.id} className="py-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs text-white">{b.error_message}</p>
-                        <p className="mt-1 font-mono text-[10px] text-[#666]">
-                          {b.tool_name} &middot; {new Date(b.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-3 text-[10px] font-mono uppercase tracking-wider">
-                        <span className={sev}>{b.severity}</span>
-                        <span className={stat}>{b.status}</span>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
+          {howToCheckOpen && (
+            <ul className="mt-3 space-y-2 rounded-md border border-white/[0.06] bg-white/[0.02] p-3 text-xs text-white/70">
+              <li>
+                <span className="font-semibold text-white">Claude Code:</span> Run{" "}
+                <code className="rounded bg-white/[0.06] px-1 font-mono text-[11px] text-[#61C1C4]">
+                  claude mcp list
+                </code>{" "}
+                in your terminal.
+              </li>
+              <li>
+                <span className="font-semibold text-white">Cursor:</span> Settings, Tools and MCP.
+                Look for memory-related servers.
+              </li>
+              <li>
+                <span className="font-semibold text-white">Windsurf:</span> Settings, Cascade, MCP
+                Servers.
+              </li>
+              <li>
+                <span className="font-semibold text-white">Copilot:</span> VS Code Settings, MCP
+                Servers.
+              </li>
             </ul>
           )}
-        </div>
-      </section>
+        </section>
+
+        {/* DANGER ZONE */}
+        <section className="rounded-xl border border-[#E2B93B]/30 bg-[#E2B93B]/[0.05] p-6">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+            <AlertTriangle className="h-4 w-4 text-[#E2B93B]" />
+            Danger Zone
+          </h2>
+          <p className="mt-1 text-xs text-white/60">
+            Permanent actions. Double-check before clicking.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={handleClearMemory}>
+              Clear all memory
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={!apiKey}>
+              Export everything
+            </Button>
+          </div>
+        </section>
+
+        {/* SUPPORT */}
+        <section className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+            <Bug className="h-4 w-4 text-white/40" />
+            Support
+          </h2>
+          <p className="mt-1 text-xs text-white/60">Found something off? Let us know.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <a
+              href="https://github.com/anthropics/claude-code/issues/new"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-xs font-medium text-white/80 transition-colors hover:border-[#61C1C4]/40 hover:text-white"
+            >
+              Report a bug
+            </a>
+            <a
+              href="https://github.com/anthropics/claude-code/issues"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-xs font-medium text-white/80 transition-colors hover:border-[#61C1C4]/40 hover:text-white"
+            >
+              View submitted bugs
+            </a>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
