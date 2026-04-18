@@ -7,6 +7,7 @@
  */
 
 import { getBackend } from "./db.js";
+import { resolveAgent, filterContextByLayers } from "./agent.js";
 
 type Args = Record<string, unknown>;
 
@@ -29,7 +30,32 @@ function bool(v: unknown, fallback = false): boolean {
 export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> = {
   async get_startup_context(args) {
     const db = await getBackend();
-    return db.getStartupContext(num(args.num_sessions, 5));
+    const slug = typeof args.agent_slug === "string" ? args.agent_slug : undefined;
+    const id = typeof args.agent_id === "string" ? args.agent_id : undefined;
+
+    const [baseContext, resolved] = await Promise.all([
+      db.getStartupContext(num(args.num_sessions, 5)),
+      resolveAgent({ agent_slug: slug, agent_id: id }),
+    ]);
+
+    if (!resolved) return baseContext;
+
+    const scoped = filterContextByLayers(baseContext, resolved.enabled_memory_layers);
+    return {
+      agent: {
+        id: resolved.agent.id,
+        slug: resolved.agent.slug,
+        name: resolved.agent.name,
+        role: resolved.agent.role,
+        description: resolved.agent.description,
+        system_prompt: resolved.agent.system_prompt,
+        is_default: resolved.agent.is_default,
+      },
+      enabled_tools: resolved.enabled_tools,
+      enabled_memory_layers: resolved.enabled_memory_layers,
+      memory:
+        scoped && typeof scoped === "object" ? scoped : { _raw: baseContext },
+    };
   },
 
   async search_memory(args) {

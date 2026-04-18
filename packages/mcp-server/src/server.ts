@@ -132,7 +132,8 @@ const META_TOOLS = [
       "Load persistent UnClick Memory at session start. Returns business context (standing rules), " +
       "recent session summaries, and hot facts. Call this FIRST in every new session to understand " +
       "the user's ongoing projects, preferences, and open loops. Works zero-config locally, or with " +
-      "Supabase for cross-machine sync.",
+      "Supabase for cross-machine sync. If the user has defined agent profiles in UnClick, pass " +
+      "agent_slug to load that agent's personality, scoped tools, and scoped memory layers.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -140,6 +141,16 @@ const META_TOOLS = [
           type: "number",
           description: "Number of recent session summaries to load (1-20, default 5)",
           default: 5,
+        },
+        agent_slug: {
+          type: "string",
+          description:
+            "Optional: slug of the UnClick agent profile to load (e.g. 'research-assistant'). " +
+            "Falls back to the user's default agent. If no agents exist, behaves as before.",
+        },
+        agent_id: {
+          type: "string",
+          description: "Optional: UUID of the UnClick agent profile (alternative to agent_slug).",
         },
       },
     },

@@ -35,6 +35,7 @@ import ToolsPage from "./pages/Tools.tsx";
 import NewToAIPage from "./pages/NewToAI.tsx";
 import SmartHomePage from "./pages/SmartHome.tsx";
 import InstallRecoverPage from "./pages/InstallRecover.tsx";
+import AdminAgentsPage from "./pages/admin/AdminAgents.tsx";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
           {/* Core product pages */}
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="/memory" element={<MemoryPage />} />
+          <Route path="/admin/agents" element={<AdminAgentsPage />} />
           <Route path="/memory/admin" element={<MemoryAdminPage />} />
           <Route path="/memory/setup" element={<MemorySetupPage />} />
           <Route path="/organiser" element={<OrganiserPage />} />
