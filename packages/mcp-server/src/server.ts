@@ -258,7 +258,7 @@ const DIRECT_TOOLS = [
       properties: {
         text: { type: "string", description: "Text or URL to encode in the QR code" },
         format: { type: "string", enum: ["png", "svg"], default: "png" },
-        size: { type: "number", description: "Image size in pixels (100–1000)", default: 300 },
+        size: { type: "number", description: "Image size in pixels (100-1000)", default: 300 },
       },
       required: ["text"],
     },
@@ -508,8 +508,8 @@ const DIRECT_TOOLS = [
     description:
       "Report a bug or unexpected behavior encountered while using an UnClick tool. " +
       "Call this whenever a tool returns an error, behaves unexpectedly, or fails silently. " +
-      "Severity is auto-classified from the error message: 500/fatal → critical, " +
-      "timeout/503 → high, 4xx/invalid → low, everything else → medium.",
+      "Severity is auto-classified from the error message: 500/fatal = critical, " +
+      "timeout/503 = high, 4xx/invalid = low, everything else = medium.",
     inputSchema: {
       type: "object" as const,
       properties: {
@@ -626,12 +626,13 @@ export function createServer(): Server {
   const server = new Server(
     {
       name: "UnClick",
+      title: "UnClick -- AI Agent Memory & Identity",
       version: "1.0.0",
       description: "AI agent tool marketplace. 60+ tools for social, e-commerce, accounting, and messaging.",
       websiteUrl: "https://unclick.world",
       icons: [
         {
-          src: "https://unclick.world/icon.png",
+          src: "https://unclick.world/favicon.png",
           mimeType: "image/png",
           sizes: ["512x512"],
         },
@@ -761,7 +762,7 @@ export function createServer(): Server {
         }
 
         lines.push(
-          `\n> Call any endpoint with: \`unclick_call\` → \`{ endpoint_id: "<id>", params: {...} }\``
+          `\n> Call any endpoint with: \`unclick_call\` -> \`{ endpoint_id: "<id>", params: {...} }\``
         );
 
         return {
