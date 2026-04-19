@@ -33,6 +33,11 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
+import * as crypto from "crypto";
+
+function sha256hex(input: string): string {
+  return crypto.createHash("sha256").update(input).digest("hex");
+}
 
 // ---------------------------------------------------------------------------
 // Severity classification
@@ -93,7 +98,6 @@ async function sendBugEmail(params: {
   created_at: string;
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
-  console.log("[sendBugEmail] RESEND_API_KEY present:", !!apiKey);
   if (!apiKey) {
     console.warn("[sendBugEmail] RESEND_API_KEY not set - skipping bug notification email");
     return;
@@ -112,7 +116,6 @@ async function sendBugEmail(params: {
     agent_context ? `\nAgent Context:\n${typeof agent_context === "string" ? agent_context : JSON.stringify(agent_context, null, 2)}` : "",
   ].filter(Boolean).join("\n");
 
-  console.log("[sendBugEmail] Sending to Resend API...");
   let resendRes: Response;
   try {
     resendRes = await fetch("https://api.resend.com/emails", {
@@ -133,14 +136,9 @@ async function sendBugEmail(params: {
     return;
   }
 
-  const resendText = await resendRes.text();
-  console.log("[sendBugEmail] Resend response status:", resendRes.status);
-  console.log("[sendBugEmail] Resend response body:", resendText);
-
   if (!resendRes.ok) {
-    console.error("[sendBugEmail] Resend API error - email not sent");
-  } else {
-    console.log("[sendBugEmail] Email sent successfully");
+    const resendText = await resendRes.text();
+    console.error("[sendBugEmail] Resend API error - email not sent:", resendRes.status, resendText);
   }
 }
 
@@ -170,6 +168,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       error: "tool_name and error_message are required",
     });
   }
+
+  const authHeader = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "").trim();
+  const bodyApiKey = typeof req.body?.api_key === "string" ? req.body.api_key.trim() : "";
+  const rawApiKey = authHeader || bodyApiKey;
+  const apiKeyHash = rawApiKey ? sha256hex(rawApiKey) : null;
 
   const severity = classifySeverity(String(error_message), request_payload);
 
@@ -204,6 +207,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       agent_context: agent_context ? String(agent_context) : null,
       severity,
       status: "open",
+      api_key_hash: apiKeyHash,
     })
     .select("id, severity, status, created_at")
     .single();

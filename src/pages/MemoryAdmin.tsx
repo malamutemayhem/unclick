@@ -34,7 +34,17 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Brain, Database, Monitor, CheckCircle2, ArrowRight } from "lucide-react";
+import DuplicateFactsBanner from "@/components/DuplicateFactsBanner";
+import {
+  Brain,
+  Database,
+  Monitor,
+  CheckCircle2,
+  ArrowRight,
+  AlertTriangle,
+  Sparkles,
+  Plug,
+} from "lucide-react";
 
 interface MemoryConfigStatus {
   configured: boolean;
@@ -52,6 +62,42 @@ interface Device {
   last_seen: string;
 }
 
+interface ToolDetection {
+  tool_name: string;
+  tool_category: string;
+  classification: "replaceable" | "conflicting" | "compatible";
+  last_detected_at: string;
+  first_detected_at: string;
+  nudge_dismissed: boolean;
+  last_nudged_at: string | null;
+}
+
+interface ToolScan {
+  replaceable: ToolDetection[];
+  conflicting: ToolDetection[];
+  compatible: ToolDetection[];
+  summary: { replaceable: number; conflicting: number; compatible: number };
+}
+
+const REPLACEMENT_HINTS: Record<string, { alt: string; copy: string }> = {
+  Exa: {
+    alt: "web_search",
+    copy: "UnClick has built-in web search that also remembers what you find. You could simplify by using UnClick's search.",
+  },
+  Tavily: {
+    alt: "web_search",
+    copy: "UnClick search covers what Tavily does, and it remembers your searches across sessions.",
+  },
+  Firecrawl: {
+    alt: "web_scrape",
+    copy: "UnClick can scrape and extract web content. It also remembers extracted pages.",
+  },
+  context7: {
+    alt: "search_docs",
+    copy: "UnClick can look up library docs and remembers which ones you use most.",
+  },
+};
+
 function formatRelative(iso: string | null | undefined): string {
   if (!iso) return "never";
   const ts = new Date(iso).getTime();
@@ -68,6 +114,7 @@ function formatRelative(iso: string | null | undefined): string {
 export default function MemoryAdminPage() {
   const [config, setConfig] = useState<MemoryConfigStatus | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
+  const [toolScan, setToolScan] = useState<ToolScan | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -80,9 +127,12 @@ export default function MemoryAdminPage() {
 
     (async () => {
       try {
-        const [cfgRes, devRes] = await Promise.all([
+        const [cfgRes, devRes, scanRes] = await Promise.all([
           fetch(`/api/memory-admin?action=setup_status&api_key=${encodeURIComponent(apiKey)}`),
           fetch("/api/memory-admin?action=list_devices", {
+            headers: { Authorization: `Bearer ${apiKey}` },
+          }),
+          fetch("/api/memory-admin?action=admin_tool_scan", {
             headers: { Authorization: `Bearer ${apiKey}` },
           }),
         ]);
@@ -94,6 +144,9 @@ export default function MemoryAdminPage() {
           const body = (await devRes.json()) as { data: Device[] };
           setDevices(body.data ?? []);
         }
+        if (!cancelled && scanRes.ok) {
+          setToolScan((await scanRes.json()) as ToolScan);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -103,6 +156,30 @@ export default function MemoryAdminPage() {
       cancelled = true;
     };
   }, []);
+
+  async function dismissNudge(toolName: string, dismissed = true): Promise<void> {
+    const apiKey = localStorage.getItem("unclick_api_key") ?? "";
+    if (!apiKey) return;
+    await fetch("/api/memory-admin?action=dismiss_tool_nudge", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ tool_name: toolName, dismissed }),
+    });
+    setToolScan((prev) => {
+      if (!prev) return prev;
+      const update = (list: ToolDetection[]): ToolDetection[] =>
+        list.map((t) => (t.tool_name === toolName ? { ...t, nudge_dismissed: dismissed } : t));
+      return {
+        ...prev,
+        replaceable: update(prev.replaceable),
+        conflicting: update(prev.conflicting),
+        compatible: update(prev.compatible),
+      };
+    });
+  }
 
   const localCount = devices.filter((d) => d.storage_mode === "local").length;
   const cloudCount = devices.filter((d) => d.storage_mode === "cloud").length;
@@ -121,6 +198,9 @@ export default function MemoryAdminPage() {
             <p className="text-sm text-body">View and manage your agent's persistent memory</p>
           </div>
         </div>
+
+        {/* Duplicate fact detection - shown when two memory tools have been saving overlapping facts */}
+        <DuplicateFactsBanner />
 
         {/* Top-level nudge: user has 2+ devices on local storage but no cloud config */}
         {shouldNudge && (
@@ -241,18 +321,142 @@ export default function MemoryAdminPage() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-xl border border-border/40 bg-card/20 p-8">
-          <p className="text-sm text-body">
-            Full dashboard UI coming soon. Memory layer browsing + editing is wired up at{" "}
-            <code className="rounded bg-muted/20 px-1.5 py-0.5 font-mono text-xs text-primary">
-              /api/memory-admin
-            </code>
-          </p>
-          <div className="mt-6 rounded-lg border border-dashed border-border/50 bg-muted/5 p-6 text-center">
-            <span className="font-mono text-xs text-muted-foreground">
-              Layer browser coming soon
-            </span>
+        <div className="mt-6 rounded-xl border border-border/40 bg-card/20 p-6">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-heading">
+              <Plug className="h-4 w-4 text-primary" />
+              Your connected tools
+            </h2>
+            {toolScan && (
+              <span className="font-mono text-[11px] text-muted-foreground">
+                {toolScan.summary.replaceable} could simplify · {toolScan.summary.conflicting}{" "}
+                conflicts · {toolScan.summary.compatible} compatible
+              </span>
+            )}
           </div>
+
+          {loading ? (
+            <p className="mt-3 text-xs text-muted-foreground">Loading...</p>
+          ) : !toolScan || toolScan.summary.replaceable + toolScan.summary.conflicting + toolScan.summary.compatible === 0 ? (
+            <p className="mt-3 text-xs text-muted-foreground">
+              UnClick hasn't seen any other MCP tools in your sessions yet. Pass
+              {" "}<code className="rounded bg-muted/20 px-1 font-mono text-[10px] text-primary">session_tools</code>{" "}
+              to <code className="rounded bg-muted/20 px-1 font-mono text-[10px] text-primary">get_startup_context</code>{" "}
+              to enable detection.
+            </p>
+          ) : (
+            <div className="mt-4 space-y-6">
+              {toolScan.conflicting.length > 0 && (
+                <section>
+                  <h3 className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-amber-400">
+                    <AlertTriangle className="h-3 w-3" /> Memory conflicts
+                  </h3>
+                  <ul className="space-y-2">
+                    {toolScan.conflicting.map((t) => (
+                      <li
+                        key={t.tool_name}
+                        className="flex items-start justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/[0.04] p-3"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-heading">{t.tool_name}</p>
+                          <p className="mt-0.5 text-xs text-body">
+                            Running two memory tools causes duplicate facts. We recommend removing
+                            {" "}{t.tool_name} so UnClick handles all your memory.
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 flex-col items-end gap-1">
+                          <span className="font-mono text-[10px] text-muted-foreground">
+                            seen {formatRelative(t.last_detected_at)}
+                          </span>
+                          {!t.nudge_dismissed ? (
+                            <button
+                              onClick={() => dismissNudge(t.tool_name, true)}
+                              className="rounded-md border border-border/50 bg-card/40 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-heading"
+                            >
+                              I've removed it
+                            </button>
+                          ) : (
+                            <span className="font-mono text-[10px] text-primary">dismissed</span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {toolScan.replaceable.length > 0 && (
+                <section>
+                  <h3 className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
+                    <Sparkles className="h-3 w-3" /> UnClick can handle these
+                  </h3>
+                  <ul className="space-y-2">
+                    {toolScan.replaceable.map((t) => {
+                      const hint = REPLACEMENT_HINTS[t.tool_name];
+                      return (
+                        <li
+                          key={t.tool_name}
+                          className="flex items-start justify-between gap-3 rounded-lg border border-primary/20 bg-primary/[0.04] p-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-heading">{t.tool_name}</p>
+                            <p className="mt-0.5 text-xs text-body">
+                              {hint?.copy ??
+                                "UnClick has a built-in alternative that also remembers what you do."}
+                            </p>
+                            {hint?.alt && (
+                              <p className="mt-1 font-mono text-[10px] text-primary">
+                                Try: {hint.alt}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 flex-col items-end gap-1">
+                            <span className="font-mono text-[10px] text-muted-foreground">
+                              seen {formatRelative(t.last_detected_at)}
+                            </span>
+                            {!t.nudge_dismissed ? (
+                              <button
+                                onClick={() => dismissNudge(t.tool_name, true)}
+                                className="rounded-md border border-border/50 bg-card/40 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-heading"
+                              >
+                                Keep {t.tool_name}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => dismissNudge(t.tool_name, false)}
+                                className="rounded-md border border-border/50 bg-card/40 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-heading"
+                              >
+                                Show nudge
+                              </button>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              )}
+
+              {toolScan.compatible.length > 0 && (
+                <section>
+                  <h3 className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
+                    <CheckCircle2 className="h-3 w-3" /> Works great with UnClick
+                  </h3>
+                  <ul className="flex flex-wrap gap-2">
+                    {toolScan.compatible.map((t) => (
+                      <li
+                        key={t.tool_name}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/[0.04] px-3 py-1 text-xs text-heading"
+                      >
+                        <CheckCircle2 className="h-3 w-3 text-primary" />
+                        {t.tool_name}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+            </div>
+          )}
         </div>
       </main>
       <Footer />
