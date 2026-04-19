@@ -213,14 +213,18 @@ export default function AdminAccount() {
 
     (async () => {
       try {
-        const headers = { Authorization: `Bearer ${session.access_token}` };
+        const jwtHeaders = { Authorization: `Bearer ${session.access_token}` };
+        // business_context, facts, sessions endpoints expect raw API key auth
+        // (they hash the bearer token directly), not JWT. Use localStorage key.
+        const apiKey = localStorage.getItem("unclick_api_key") ?? "";
+        const keyHeaders = apiKey ? { Authorization: `Bearer ${apiKey}` } : jwtHeaders;
         const [profileRes, devicesRes, bootRes, contextRes, factsRes, sessionsRes] = await Promise.all([
-          fetch("/api/memory-admin?action=admin_profile", { headers }),
-          fetch("/api/memory-admin?action=auth_device_list", { headers }),
-          fetch("/api/memory-admin?action=admin_boot_summary", { headers }),
-          fetch("/api/memory-admin?action=business_context", { headers }),
-          fetch("/api/memory-admin?action=facts", { headers }),
-          fetch("/api/memory-admin?action=sessions&limit=1", { headers }),
+          fetch("/api/memory-admin?action=admin_profile", { headers: jwtHeaders }),
+          fetch("/api/memory-admin?action=auth_device_list", { headers: jwtHeaders }),
+          fetch("/api/memory-admin?action=admin_boot_summary", { headers: jwtHeaders }),
+          fetch("/api/memory-admin?action=business_context", { headers: keyHeaders }),
+          fetch("/api/memory-admin?action=facts", { headers: keyHeaders }),
+          fetch("/api/memory-admin?action=sessions&limit=1", { headers: keyHeaders }),
         ]);
 
         if (!cancelled && profileRes.ok) {
@@ -603,12 +607,12 @@ function MemoryHealthCard({
 }) {
   const hasCategory = (cat: string) => contextRows.some((r) => r.category === cat);
   const checks = [
-    { label: "Identity set", ok: hasCategory("identity"), to: "/admin/memory?tab=identity" },
-    { label: "Preferences set", ok: hasCategory("preference"), to: "/admin/memory?tab=identity" },
-    { label: "At least 5 facts", ok: factCount >= 5, to: "/admin/memory?tab=facts" },
-    { label: "A saved session", ok: sessionCount >= 1, to: "/admin/memory?tab=sessions" },
-    { label: "Standing rules", ok: hasCategory("standing_rule"), to: "/admin/memory?tab=identity" },
-    { label: "Repository context", ok: hasCategory("repository"), to: "/admin/projects" },
+    { label: "Identity set", ok: hasCategory("identity"), to: "/admin/memory/identity" },
+    { label: "Preferences set", ok: hasCategory("preference"), to: "/admin/memory/identity" },
+    { label: "At least 5 facts", ok: factCount >= 5, to: "/admin/memory/knowledge" },
+    { label: "A saved session", ok: sessionCount >= 1, to: "/admin/memory/sessions" },
+    { label: "Standing rules", ok: hasCategory("standing_rule"), to: "/admin/memory/identity" },
+    { label: "Repository context", ok: hasCategory("repository"), to: "/admin/memory/codebase" },
   ];
   const filled = checks.filter((c) => c.ok).length;
   const pct = Math.round((filled / checks.length) * 100);
