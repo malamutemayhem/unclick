@@ -20,18 +20,18 @@ interface ContextEntry {
   decay_tier: string;
 }
 
+/** Safely convert a JSONB value to a displayable string. */
+function displayValue(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (v == null) return "";
+  return JSON.stringify(v, null, 2);
+}
+
 const DECAY_COLORS: Record<string, string> = {
   hot: "bg-red-500",
   warm: "bg-amber-500",
   cold: "bg-blue-400",
 };
-
-/** Safely render a JSONB value that might be an object */
-function displayValue(v: unknown): string {
-  if (v == null) return "";
-  if (typeof v === "string") return v;
-  return JSON.stringify(v, null, 2);
-}
 
 export default function ContextTab({ apiKey }: { apiKey: string }) {
   const [entries, setEntries] = useState<ContextEntry[]>([]);

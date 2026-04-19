@@ -1,30 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wrench, Brain, Calendar, Users, Trophy, HelpCircle, UserCircle2 } from "lucide-react";
+import { Wrench, Brain, Calendar, Users, Trophy, HelpCircle } from "lucide-react";
+import { useSession } from "@/lib/auth";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
-  const [hasSession, setHasSession] = useState(false);
   const { pathname } = useLocation();
   const isHome = pathname === "/";
   const installHref = isHome ? "#install" : "/#install";
-
-  // Reflect login state from localStorage. We check on every route change
-  // so the admin link appears immediately after a user claims their key
-  // on the Install section, without needing a full page reload.
-  useEffect(() => {
-    const check = () => {
-      try {
-        setHasSession(Boolean(localStorage.getItem("unclick_api_key")));
-      } catch {
-        setHasSession(false);
-      }
-    };
-    check();
-    window.addEventListener("storage", check);
-    return () => window.removeEventListener("storage", check);
-  }, [pathname]);
+  const session = useSession();
+  const isLoggedIn = Boolean(session);
 
   const navLinks = [
     { label: "Tools", href: "/tools", icon: Wrench },
@@ -77,22 +63,28 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          {hasSession ? (
+          {isLoggedIn ? (
             <Link
-              to="/memory/admin"
-              className="hidden items-center gap-1.5 whitespace-nowrap rounded-md border border-border/60 bg-card/40 px-3 py-1.5 text-sm font-medium text-heading transition-colors hover:border-primary/30 hover:bg-card/70 sm:inline-flex"
-              aria-label="Admin"
+              to="/admin/you"
+              className="hidden whitespace-nowrap text-sm text-body transition-colors hover:text-heading hover:underline sm:inline-block"
             >
-              <UserCircle2 className="h-4 w-4" />
-              Admin
+              Dashboard
             </Link>
           ) : (
-            <a
-              href={installHref}
-              className="hidden whitespace-nowrap rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:block"
-            >
-              Get Started Free
-            </a>
+            <>
+              <Link
+                to="/login"
+                className="hidden whitespace-nowrap text-sm text-body transition-colors hover:text-heading hover:underline sm:inline-block"
+              >
+                Log in
+              </Link>
+              <a
+                href={installHref}
+                className="hidden whitespace-nowrap rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:block"
+              >
+                Get Started Free
+              </a>
+            </>
           )}
 
           {/* Hamburger button */}
@@ -153,23 +145,31 @@ const Navbar = () => {
                   </Link>
                 )
               )}
-              {hasSession ? (
+              {isLoggedIn ? (
                 <Link
-                  to="/memory/admin"
+                  to="/admin/you"
                   onClick={() => setOpen(false)}
-                  className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md border border-border/60 bg-card/40 px-4 py-2 text-center text-sm font-medium text-heading"
+                  className="mt-2 py-2 text-sm text-body transition-colors hover:text-heading"
                 >
-                  <UserCircle2 className="h-4 w-4" />
-                  Admin
+                  Dashboard
                 </Link>
               ) : (
-                <a
-                  href={installHref}
-                  onClick={() => setOpen(false)}
-                  className="mt-2 rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
-                >
-                  Get Started Free
-                </a>
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setOpen(false)}
+                    className="mt-2 py-2 text-sm text-body transition-colors hover:text-heading"
+                  >
+                    Log in
+                  </Link>
+                  <a
+                    href={installHref}
+                    onClick={() => setOpen(false)}
+                    className="mt-2 rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
+                  >
+                    Get Started Free
+                  </a>
+                </>
               )}
             </div>
           </motion.div>

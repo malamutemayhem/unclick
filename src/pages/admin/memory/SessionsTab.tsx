@@ -14,6 +14,13 @@ interface Session {
   created_at: string;
 }
 
+/** Safely convert a JSONB array item to a displayable string. */
+function displayItem(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (v == null) return "";
+  return JSON.stringify(v);
+}
+
 interface TranscriptMessage {
   id: string;
   role: string;
@@ -27,13 +34,6 @@ const ROLE_COLORS: Record<string, string> = {
   system: "bg-white/10 text-white/50",
   tool: "bg-green-500/20 text-green-400",
 };
-
-/** Safely render a JSONB array item that might be an object */
-function displayItem(v: unknown): string {
-  if (v == null) return "";
-  if (typeof v === "string") return v;
-  return JSON.stringify(v);
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
