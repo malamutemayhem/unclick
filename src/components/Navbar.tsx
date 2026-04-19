@@ -9,7 +9,7 @@ const Navbar = () => {
   const { pathname } = useLocation();
   const isHome = pathname === "/";
   const installHref = isHome ? "#install" : "/#install";
-  const session = useSession();
+  const { session } = useSession();
   const isLoggedIn = Boolean(session);
 
   const navLinks = [

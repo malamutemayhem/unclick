@@ -26,14 +26,19 @@ export async function signOut() {
 
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     supabase.auth.getSession().then(({ data }) => {
-      if (!cancelled) setSession(data.session);
+      if (!cancelled) {
+        setSession(data.session);
+        setLoading(false);
+      }
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
+      setLoading(false);
     });
     return () => {
       cancelled = true;
@@ -41,5 +46,9 @@ export function useSession() {
     };
   }, []);
 
-  return session;
+  return {
+    session,
+    user: session?.user ?? null,
+    loading,
+  };
 }
