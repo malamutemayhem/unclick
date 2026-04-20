@@ -1,78 +1,238 @@
 /**
- * AdminKeychain - Keychain surface (/admin/keychain)
+ * AdminKeychain — BackstagePass admin surface (/admin/keychain)
  *
- * BackstagePass with a face. Lists connected services from
- * platform_credentials + platform_connectors, shows status
- * indicators (active/expired), with placeholder reconnect/remove UI.
+ * Full CRUD on the user_credentials vault:
+ *   - List every credential the signed-in user owns (metadata only)
+ *   - Reveal one credential's plaintext values (requires the user's
+ *     plaintext UnClick api_key, read from localStorage.unclick_api_key)
+ *   - Copy revealed values to clipboard, auto-clearing after 60s
+ *   - Rename a credential (label-only edit, no decrypt required)
+ *   - Rotate a credential's values (prompt for new JSON, re-encrypt
+ *     server-side with the user's api_key)
+ *   - Delete a credential (confirmation required)
+ *   - Audit log drawer showing every reveal / update / delete event
+ *
+ * Security model:
+ *   - Listing and metadata-only edits use the Supabase session JWT.
+ *   - Reveal and rotate actions additionally require the plaintext
+ *     UnClick api_key in the request body (proof-of-possession). The
+ *     server re-hashes it and compares to the session's api_keys row
+ *     before decrypting.
+ *   - All mutations land in `backstagepass_audit`.
+ *
+ * Backend: /api/backstagepass?action={list,reveal,update,delete,audit}
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "@/lib/auth";
 import {
+  AlertTriangle,
+  CheckCircle2,
+  Clipboard,
+  ClipboardCheck,
+  Eye,
+  EyeOff,
   KeyRound,
   Loader2,
-  CheckCircle2,
-  XCircle,
+  Pencil,
   RefreshCw,
-  Trash2,
-  ExternalLink,
+  RotateCw,
   Shield,
+  Trash2,
+  X,
+  XCircle,
 } from "lucide-react";
 
+// ─── Types ───────────────────────────────────────────────────────
+
 interface Credential {
-  id: string;
-  platform: string;
-  label: string;
-  is_valid: boolean;
-  last_tested_at: string | null;
-  created_at: string;
+  id:              string;
+  platform:        string;
+  label:           string | null;
+  is_valid:        boolean;
+  last_tested_at:  string | null;
+  last_used_at:    string | null;
+  expires_at:      string | null;
+  created_at:      string;
+  updated_at:      string;
   connector: {
-    id: string;
-    name: string;
+    id:       string;
+    name:     string;
     category: string;
-    icon: string | null;
+    icon:     string | null;
   } | null;
 }
+
+interface AuditEntry {
+  id:            string;
+  action:        string;
+  credential_id: string | null;
+  platform_slug: string | null;
+  label:         string | null;
+  ip:            string | null;
+  user_agent:    string | null;
+  success:       boolean;
+  metadata:      Record<string, unknown>;
+  created_at:    string;
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────
 
 function timeAgo(iso: string | null): string {
   if (!iso) return "never";
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return "just now";
+  if (mins < 1)  return "just now";
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24)  return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   return `${days}d ago`;
 }
 
+function readLocalApiKey(): string | null {
+  try {
+    const k = localStorage.getItem("unclick_api_key");
+    return k && (k.startsWith("uc_") || k.startsWith("agt_")) ? k : null;
+  } catch {
+    return null;
+  }
+}
+
+function maskValue(v: string): string {
+  if (v.length <= 8) return "•".repeat(Math.max(v.length, 4));
+  return `${v.slice(0, 4)}${"•".repeat(8)}${v.slice(-4)}`;
+}
+
+// ─── Component ──────────────────────────────────────────────────
+
 export default function AdminKeychain() {
   const { session } = useSession();
+
   const [credentials, setCredentials] = useState<Credential[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState<string | null>(null);
 
-  useEffect(() => {
+  // Reveal cache keyed by credential.id. When the user reveals a row
+  // we keep plaintext here until they hide it or the auto-clear timer
+  // fires. Never persisted anywhere.
+  const [revealed, setRevealed]       = useState<Record<string, Record<string, string>>>({});
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [revealError, setRevealError] = useState<Record<string, string>>({});
+  const [revealing, setRevealing]     = useState<Record<string, boolean>>({});
+
+  // Modals
+  const [editTarget, setEditTarget]     = useState<Credential | null>(null);
+  const [rotateTarget, setRotateTarget] = useState<Credential | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Credential | null>(null);
+  const [auditOpen, setAuditOpen]       = useState(false);
+
+  // Audit log (only fetched when drawer opens)
+  const [auditEntries, setAuditEntries] = useState<AuditEntry[] | null>(null);
+  const [auditLoading, setAuditLoading] = useState(false);
+
+  const authHeader = useMemo(
+    () => (session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+    [session],
+  );
+
+  const fetchList = useCallback(async () => {
     if (!session) return;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await fetch("/api/memory-admin?action=admin_credentials", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        if (!cancelled && res.ok) {
-          const body = await res.json();
-          setCredentials(body.data ?? []);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/backstagepass?action=list", { headers: authHeader });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? `List failed with ${res.status}`);
       }
-    })();
+      const body = await res.json();
+      setCredentials(body.data ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load credentials");
+    } finally {
+      setLoading(false);
+    }
+  }, [session, authHeader]);
 
-    return () => { cancelled = true; };
-  }, [session]);
+  useEffect(() => { void fetchList(); }, [fetchList]);
 
-  // Group by category
+  // Auto-clear revealed plaintext after 60s per row. We track a set of
+  // scheduled timeouts so hiding a row manually cancels its timer.
+  useEffect(() => {
+    const timers: number[] = [];
+    for (const id of Object.keys(revealed)) {
+      const t = window.setTimeout(() => {
+        setRevealed((prev) => {
+          const { [id]: _gone, ...rest } = prev;
+          return rest;
+        });
+      }, 60_000);
+      timers.push(t);
+    }
+    return () => { for (const t of timers) window.clearTimeout(t); };
+  }, [revealed]);
+
+  async function handleReveal(cred: Credential) {
+    const apiKey = readLocalApiKey();
+    if (!apiKey) {
+      setRevealError((p) => ({
+        ...p,
+        [cred.id]: "No UnClick API key in this browser. Visit /admin/you to claim or regenerate.",
+      }));
+      return;
+    }
+    setRevealing((p) => ({ ...p, [cred.id]: true }));
+    setRevealError((p) => ({ ...p, [cred.id]: "" }));
+    try {
+      const res = await fetch("/api/backstagepass?action=reveal", {
+        method:  "POST",
+        headers: { ...authHeader, "Content-Type": "application/json" },
+        body:    JSON.stringify({ id: cred.id, api_key: apiKey }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? `Reveal failed with ${res.status}`);
+      setRevealed((p) => ({ ...p, [cred.id]: body.values ?? {} }));
+    } catch (err) {
+      setRevealError((p) => ({
+        ...p,
+        [cred.id]: err instanceof Error ? err.message : "Reveal failed",
+      }));
+    } finally {
+      setRevealing((p) => ({ ...p, [cred.id]: false }));
+    }
+  }
+
+  function handleHide(cred: Credential) {
+    setRevealed((p) => {
+      const { [cred.id]: _gone, ...rest } = p;
+      return rest;
+    });
+  }
+
+  async function copyToClipboard(field: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedField(field);
+      window.setTimeout(() => setCopiedField((c) => (c === field ? null : c)), 2_000);
+    } catch {
+      // no-op — browser blocked clipboard
+    }
+  }
+
+  async function openAudit() {
+    setAuditOpen(true);
+    if (auditEntries !== null) return;
+    setAuditLoading(true);
+    try {
+      const res = await fetch("/api/backstagepass?action=audit&limit=100", { headers: authHeader });
+      const body = await res.json().catch(() => ({}));
+      setAuditEntries(body.data ?? []);
+    } finally {
+      setAuditLoading(false);
+    }
+  }
+
   const grouped = credentials.reduce<Record<string, Credential[]>>((acc, cred) => {
     const cat = cred.connector?.category ?? "Other";
     if (!acc[cat]) acc[cat] = [];
@@ -82,26 +242,49 @@ export default function AdminKeychain() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-white">Keychain</h1>
-        <p className="mt-1 text-sm text-[#888]">
-          Connected services and credentials
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-white">BackstagePass</h1>
+          <p className="mt-1 text-sm text-[#888]">
+            Your encrypted credential vault. {credentials.length} credential{credentials.length === 1 ? "" : "s"} stored.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={openAudit}
+            className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] transition-colors hover:border-[#E2B93B]/20 hover:text-[#E2B93B]"
+          >
+            Audit log
+          </button>
+          <button
+            onClick={() => void fetchList()}
+            disabled={loading}
+            title="Refresh"
+            className="rounded-lg border border-white/[0.06] p-2 text-[#888] transition-colors hover:border-[#E2B93B]/20 hover:text-[#E2B93B] disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+          </button>
+        </div>
       </div>
 
       {/* Encryption notice */}
       <div className="mb-6 flex items-start gap-3 rounded-xl border border-[#E2B93B]/20 bg-[#E2B93B]/5 px-4 py-3">
         <Shield className="mt-0.5 h-4 w-4 shrink-0 text-[#E2B93B]" />
         <div>
-          <p className="text-xs font-medium text-[#E2B93B]">
-            End-to-end encrypted
-          </p>
+          <p className="text-xs font-medium text-[#E2B93B]">End-to-end encrypted</p>
           <p className="mt-0.5 text-[11px] text-[#888]">
-            All credentials are encrypted with AES-256-GCM using a key derived
-            from your API key. UnClick staff cannot decrypt them.
+            Credentials are AES-256-GCM encrypted with a key derived from your UnClick API key.
+            UnClick staff cannot decrypt them — even revealing a value requires your API key to be present in this browser.
           </p>
         </div>
       </div>
+
+      {/* List */}
+      {error && (
+        <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-400">
+          {error}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center gap-2 py-12 text-[#666]">
@@ -114,10 +297,7 @@ export default function AdminKeychain() {
           <p className="mt-3 text-sm text-[#666]">No credentials stored</p>
           <p className="mt-1 text-xs text-[#444]">
             Connect a platform via{" "}
-            <a
-              href="/backstagepass"
-              className="text-[#E2B93B] underline-offset-2 hover:underline"
-            >
+            <a href="/backstagepass" className="text-[#E2B93B] underline-offset-2 hover:underline">
               BackstagePass
             </a>{" "}
             or the MCP server to see it here
@@ -131,74 +311,476 @@ export default function AdminKeychain() {
                 {category}
               </h3>
               <div className="space-y-2">
-                {creds.map((cred) => (
-                  <div
-                    key={cred.id}
-                    className="group flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#111111] p-4"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.04] text-sm font-semibold text-[#888]">
-                        {cred.connector?.icon ?? cred.platform.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-white">
-                          {cred.connector?.name ?? cred.platform}
-                        </p>
-                        <p className="text-[11px] text-[#666]">
-                          {cred.label} - added {timeAgo(cred.created_at)}
-                        </p>
-                      </div>
-                    </div>
+                {creds.map((cred) => {
+                  const plaintext = revealed[cred.id];
+                  const isOpen    = Boolean(plaintext);
+                  const busy      = revealing[cred.id];
+                  const errMsg    = revealError[cred.id];
 
-                    <div className="flex items-center gap-2">
-                      {/* Status badge */}
-                      {cred.is_valid ? (
-                        <span className="flex items-center gap-1 rounded-full border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-[10px] font-medium text-green-400">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Active
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-400">
-                          <XCircle className="h-3 w-3" />
-                          Expired
-                        </span>
+                  return (
+                    <div
+                      key={cred.id}
+                      className="rounded-xl border border-white/[0.06] bg-[#111111] p-4"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-sm font-semibold text-[#888]">
+                            {cred.connector?.icon ?? cred.platform.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-white">
+                              {cred.connector?.name ?? cred.platform}
+                            </p>
+                            <p className="truncate text-[11px] text-[#666]">
+                              {cred.label ?? "default"} · added {timeAgo(cred.created_at)}
+                              {cred.last_used_at ? ` · last used ${timeAgo(cred.last_used_at)}` : ""}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex shrink-0 items-center gap-2">
+                          {cred.is_valid ? (
+                            <span className="flex items-center gap-1 rounded-full border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-[10px] font-medium text-green-400">
+                              <CheckCircle2 className="h-3 w-3" /> Active
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-400">
+                              <XCircle className="h-3 w-3" /> Invalid
+                            </span>
+                          )}
+
+                          <button
+                            onClick={() => (isOpen ? handleHide(cred) : void handleReveal(cred))}
+                            disabled={busy}
+                            className="rounded-md p-1.5 text-[#888] transition-colors hover:bg-white/[0.04] hover:text-white disabled:opacity-40"
+                            title={isOpen ? "Hide values" : "Reveal values"}
+                          >
+                            {busy ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : isOpen ? (
+                              <EyeOff className="h-3.5 w-3.5" />
+                            ) : (
+                              <Eye className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setEditTarget(cred)}
+                            className="rounded-md p-1.5 text-[#888] transition-colors hover:bg-white/[0.04] hover:text-white"
+                            title="Rename"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setRotateTarget(cred)}
+                            className="rounded-md p-1.5 text-[#888] transition-colors hover:bg-white/[0.04] hover:text-white"
+                            title="Rotate values"
+                          >
+                            <RotateCw className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget(cred)}
+                            className="rounded-md p-1.5 text-[#888] transition-colors hover:bg-red-500/10 hover:text-red-400"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {errMsg && (
+                        <p className="mt-3 text-[11px] text-red-400">{errMsg}</p>
                       )}
 
-                      {/* Action buttons (placeholder) */}
-                      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <button
-                          className="rounded-md p-1.5 text-[#666] transition-colors hover:bg-white/[0.04] hover:text-[#ccc]"
-                          title="Reconnect (coming soon)"
-                          onClick={() => {}}
-                        >
-                          <RefreshCw className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          className="rounded-md p-1.5 text-[#666] transition-colors hover:bg-red-500/10 hover:text-red-400"
-                          title="Remove (coming soon)"
-                          onClick={() => {}}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
+                      {isOpen && plaintext && (
+                        <div className="mt-3 space-y-1.5 rounded-lg border border-white/[0.04] bg-black/30 p-3">
+                          {Object.entries(plaintext).map(([field, value]) => {
+                            const key = `${cred.id}::${field}`;
+                            return (
+                              <div key={field} className="flex items-center justify-between gap-3 text-[11px]">
+                                <span className="shrink-0 font-mono text-[#666]">{field}</span>
+                                <code className="min-w-0 flex-1 truncate font-mono text-[#ccc]">
+                                  {maskValue(String(value))}
+                                </code>
+                                <div className="flex shrink-0 gap-1">
+                                  <button
+                                    onClick={() => void copyToClipboard(key, String(value))}
+                                    className="rounded p-1 text-[#666] transition-colors hover:text-[#E2B93B]"
+                                    title="Copy to clipboard"
+                                  >
+                                    {copiedField === key ? (
+                                      <ClipboardCheck className="h-3 w-3 text-green-400" />
+                                    ) : (
+                                      <Clipboard className="h-3 w-3" />
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <p className="mt-2 border-t border-white/[0.04] pt-2 text-[10px] text-[#444]">
+                            Auto-hides in 60s. Values are masked on-screen — click copy to get the full value onto your clipboard.
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Connect more link */}
-      <div className="mt-8 text-center">
-        <a
-          href="/backstagepass"
-          className="inline-flex items-center gap-2 rounded-lg border border-white/[0.06] px-4 py-2.5 text-sm text-[#888] transition-colors hover:border-[#E2B93B]/20 hover:text-[#E2B93B]"
+      {/* Edit-label modal */}
+      {editTarget && (
+        <EditLabelModal
+          cred={editTarget}
+          authHeader={authHeader}
+          onClose={() => setEditTarget(null)}
+          onSaved={() => { setEditTarget(null); void fetchList(); }}
+        />
+      )}
+
+      {/* Rotate-values modal */}
+      {rotateTarget && (
+        <RotateValuesModal
+          cred={rotateTarget}
+          authHeader={authHeader}
+          onClose={() => setRotateTarget(null)}
+          onSaved={() => { setRotateTarget(null); void fetchList(); }}
+        />
+      )}
+
+      {/* Delete confirmation */}
+      {deleteTarget && (
+        <DeleteModal
+          cred={deleteTarget}
+          authHeader={authHeader}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={() => { setDeleteTarget(null); void fetchList(); }}
+        />
+      )}
+
+      {/* Audit drawer */}
+      {auditOpen && (
+        <AuditDrawer
+          entries={auditEntries}
+          loading={auditLoading}
+          onClose={() => setAuditOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Modals ───────────────────────────────────────────────────────
+
+function ModalShell({
+  title,
+  onClose,
+  children,
+}: {
+  title:    string;
+  onClose:  () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-xl border border-white/[0.08] bg-[#111111] p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white">{title}</h3>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-[#888] transition-colors hover:bg-white/[0.04] hover:text-white"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function EditLabelModal({
+  cred,
+  authHeader,
+  onClose,
+  onSaved,
+}: {
+  cred:       Credential;
+  authHeader: Record<string, string>;
+  onClose:    () => void;
+  onSaved:    () => void;
+}) {
+  const [label, setLabel]   = useState(cred.label ?? "");
+  const [busy, setBusy]     = useState(false);
+  const [err, setErr]       = useState<string | null>(null);
+
+  async function save() {
+    setBusy(true); setErr(null);
+    try {
+      const res = await fetch("/api/backstagepass?action=update", {
+        method:  "POST",
+        headers: { ...authHeader, "Content-Type": "application/json" },
+        body:    JSON.stringify({ id: cred.id, label }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? `Update failed with ${res.status}`);
+      onSaved();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Update failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <ModalShell title={`Rename ${cred.connector?.name ?? cred.platform}`} onClose={onClose}>
+      <p className="mb-3 text-xs text-[#888]">
+        Labels distinguish multiple credentials for the same platform (e.g. "claude-code", "bailey-plex-3"). Leave blank for the default.
+      </p>
+      <input
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        placeholder="default"
+        className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
+        autoFocus
+      />
+      {err && <p className="mt-2 text-[11px] text-red-400">{err}</p>}
+      <div className="mt-4 flex justify-end gap-2">
+        <button
+          onClick={onClose}
+          className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] hover:text-white"
         >
-          <ExternalLink className="h-3.5 w-3.5" />
-          Connect a new service
-        </a>
+          Cancel
+        </button>
+        <button
+          onClick={() => void save()}
+          disabled={busy}
+          className="rounded-lg bg-[#E2B93B] px-3 py-2 text-xs font-medium text-black hover:bg-[#E2B93B]/90 disabled:opacity-50"
+        >
+          {busy ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
+function RotateValuesModal({
+  cred,
+  authHeader,
+  onClose,
+  onSaved,
+}: {
+  cred:       Credential;
+  authHeader: Record<string, string>;
+  onClose:    () => void;
+  onSaved:    () => void;
+}) {
+  const [json, setJson] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr]   = useState<string | null>(null);
+
+  async function save() {
+    setBusy(true); setErr(null);
+    try {
+      let values: Record<string, string>;
+      try {
+        values = JSON.parse(json);
+        if (typeof values !== "object" || values === null || Array.isArray(values)) {
+          throw new Error("Values must be a JSON object of string fields.");
+        }
+      } catch (e) {
+        throw new Error(e instanceof Error ? e.message : "Invalid JSON");
+      }
+
+      const apiKey = readLocalApiKey();
+      if (!apiKey) throw new Error("No UnClick API key in this browser. Visit /admin/you first.");
+
+      const res = await fetch("/api/backstagepass?action=update", {
+        method:  "POST",
+        headers: { ...authHeader, "Content-Type": "application/json" },
+        body:    JSON.stringify({ id: cred.id, values, api_key: apiKey }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? `Update failed with ${res.status}`);
+      onSaved();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Update failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <ModalShell title={`Rotate ${cred.connector?.name ?? cred.platform} values`} onClose={onClose}>
+      <p className="mb-3 text-xs text-[#888]">
+        Paste the new credential as a JSON object. This replaces the stored values and re-encrypts with your UnClick API key.
+      </p>
+      <div className="mb-2 text-[10px] text-[#666]">Example:</div>
+      <pre className="mb-3 overflow-x-auto rounded border border-white/[0.04] bg-black/40 p-2 text-[10px] text-[#888]">
+{`{
+  "api_key": "sk-ant-…"
+}`}
+      </pre>
+      <textarea
+        value={json}
+        onChange={(e) => setJson(e.target.value)}
+        rows={6}
+        placeholder='{ "api_key": "..." }'
+        className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
+        autoFocus
+      />
+      {err && <p className="mt-2 text-[11px] text-red-400">{err}</p>}
+      <div className="mt-4 flex justify-end gap-2">
+        <button
+          onClick={onClose}
+          className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] hover:text-white"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => void save()}
+          disabled={busy}
+          className="rounded-lg bg-[#E2B93B] px-3 py-2 text-xs font-medium text-black hover:bg-[#E2B93B]/90 disabled:opacity-50"
+        >
+          {busy ? "Rotating..." : "Rotate"}
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
+function DeleteModal({
+  cred,
+  authHeader,
+  onClose,
+  onDeleted,
+}: {
+  cred:       Credential;
+  authHeader: Record<string, string>;
+  onClose:    () => void;
+  onDeleted:  () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr]   = useState<string | null>(null);
+
+  async function doDelete() {
+    setBusy(true); setErr(null);
+    try {
+      const res = await fetch("/api/backstagepass?action=delete", {
+        method:  "POST",
+        headers: { ...authHeader, "Content-Type": "application/json" },
+        body:    JSON.stringify({ id: cred.id }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? `Delete failed with ${res.status}`);
+      onDeleted();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Delete failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <ModalShell title="Delete credential?" onClose={onClose}>
+      <div className="mb-3 flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-3">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+        <p className="text-xs text-red-400">
+          This permanently removes <span className="font-mono">{cred.platform}{cred.label ? ` [${cred.label}]` : ""}</span> from your vault. The audit log is preserved.
+        </p>
+      </div>
+      {err && <p className="mt-2 text-[11px] text-red-400">{err}</p>}
+      <div className="mt-4 flex justify-end gap-2">
+        <button
+          onClick={onClose}
+          className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] hover:text-white"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => void doDelete()}
+          disabled={busy}
+          className="rounded-lg bg-red-500 px-3 py-2 text-xs font-medium text-white hover:bg-red-500/90 disabled:opacity-50"
+        >
+          {busy ? "Deleting..." : "Delete"}
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
+function AuditDrawer({
+  entries,
+  loading,
+  onClose,
+}: {
+  entries: AuditEntry[] | null;
+  loading: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/70" onClick={onClose}>
+      <div
+        className="h-full w-full max-w-md overflow-y-auto border-l border-white/[0.08] bg-[#0a0a0a] p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-white">Audit log</h3>
+            <p className="text-[11px] text-[#666]">Every reveal, update, and delete on your vault.</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-[#888] transition-colors hover:bg-white/[0.04] hover:text-white"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center gap-2 py-12 text-[#666]">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm">Loading...</span>
+          </div>
+        ) : !entries || entries.length === 0 ? (
+          <p className="py-12 text-center text-xs text-[#666]">No audit events yet.</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {entries.map((e) => (
+              <li key={e.id} className="rounded-lg border border-white/[0.04] bg-[#111111] px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2 text-xs font-medium text-white">
+                    {e.success ? (
+                      <CheckCircle2 className="h-3 w-3 text-green-400" />
+                    ) : (
+                      <XCircle className="h-3 w-3 text-red-400" />
+                    )}
+                    {e.action}
+                  </span>
+                  <span className="text-[10px] text-[#555]">{timeAgo(e.created_at)}</span>
+                </div>
+                <p className="mt-1 text-[11px] text-[#888]">
+                  {e.platform_slug ?? "(no platform)"}
+                  {e.label ? ` [${e.label}]` : ""}
+                </p>
+                {(e.ip || e.user_agent) && (
+                  <p className="mt-0.5 truncate text-[10px] text-[#555]">
+                    {e.ip ?? ""}{e.ip && e.user_agent ? " · " : ""}{e.user_agent ?? ""}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
