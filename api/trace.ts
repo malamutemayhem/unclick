@@ -105,7 +105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     metadata:       typeof body.metadata === "object" && body.metadata !== null ? body.metadata : {},
   };
 
-  const tableUrl = `${supabaseUrl}/rest/v1/agent_activity`;
+  const tableUrl = `${supabaseUrl}/rest/v1/agent_trace`;
   const headers: Record<string, string> = {
     apikey:          serviceRoleKey,
     Authorization:   `Bearer ${serviceRoleKey}`,
@@ -125,7 +125,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // well-behaved clients can retry on their own schedule.
     const errorText = await supaRes.text().catch(() => "");
     // eslint-disable-next-line no-console
-    console.error("agent_activity insert failed", supaRes.status, errorText);
+    console.error("agent_trace insert failed", supaRes.status, errorText);
     return res.status(202).json({
       accepted: false,
       status:   supaRes.status,
