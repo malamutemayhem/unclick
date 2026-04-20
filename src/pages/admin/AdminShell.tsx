@@ -30,7 +30,7 @@ import {
 const surfaces = [
   { path: "/admin/you", label: "You", icon: User },
   { path: "/admin/memory", label: "Memory", icon: Brain },
-  { path: "/admin/keychain", label: "Keychain", icon: KeyRound },
+  { path: "/admin/keychain", label: "Keychain (BackstagePass)", icon: KeyRound },
   { path: "/admin/tools", label: "Tools", icon: Wrench },
   { path: "/admin/activity", label: "Activity", icon: Activity },
   { path: "/admin/settings", label: "Settings", icon: Settings },
@@ -72,7 +72,7 @@ export default function AdminShell() {
 
   return (
     <div className="flex min-h-screen bg-[#0A0A0A] text-[#ccc]">
-      {/* ── Desktop sidebar (md+) ──────────────────────────────────── */}
+      {/* ── Desktop sidebar (md+) ──────────────────────────── */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col border-r border-white/[0.06] bg-[#0A0A0A] md:flex">
         <div className="flex h-14 items-center px-5">
           <Link to="/">
@@ -122,7 +122,7 @@ export default function AdminShell() {
         </div>
       </aside>
 
-      {/* ── Desktop top bar (md+) with global search ───────────────── */}
+      {/* ── Desktop top bar (md+) with global search ───────────── */}
       <header className="fixed inset-x-0 top-0 z-30 hidden h-14 items-center border-b border-white/[0.06] bg-[#0A0A0A] md:flex md:pl-56">
         <div className="flex flex-1 items-center gap-3 px-4 lg:px-8">
           <div className="flex-1">
@@ -132,7 +132,7 @@ export default function AdminShell() {
         </div>
       </header>
 
-      {/* ── Mobile/tablet top bar (<md) ────────────────────────────── */}
+      {/* ── Mobile/tablet top bar (<md) ────────────────────── */}
       <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-white/[0.06] bg-[#0A0A0A] px-4 md:hidden">
         <Link to="/">
           <img
@@ -185,7 +185,7 @@ export default function AdminShell() {
         </div>
       )}
 
-      {/* ── Main content ───────────────────────────────────────────── */}
+      {/* ── Main content ────────────────────────────────── */}
       <main className="min-h-screen flex-1 pt-14 md:ml-56 md:pt-14">
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
           <Outlet />

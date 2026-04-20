@@ -50,7 +50,7 @@ export default function AdminShell({ title, subtitle, agentCount, children }: Ad
     },
     { label: "Memory", to: "/memory/admin", icon: Brain, matchPrefix: "/memory" },
     { label: "Tools", to: "/tools", icon: Wrench, matchPrefix: "/tools" },
-    { label: "Keychain", to: "/connect/github", icon: KeyRound, matchPrefix: "/connect" },
+    { label: "Keychain (BackstagePass)", to: "/admin/keychain", icon: KeyRound, matchPrefix: "/admin/keychain" },
     { label: "Activity", to: "/dispatch", icon: Activity, matchPrefix: "/dispatch" },
     { label: "Settings", to: "/settings", icon: SettingsIcon, matchPrefix: "/settings" },
   ];

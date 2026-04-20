@@ -15,7 +15,6 @@ import ArenaProblem from "./pages/arena/ArenaProblem.tsx";
 import ArenaLeaderboard from "./pages/arena/ArenaLeaderboard.tsx";
 import ArenaSubmitProblem from "./pages/arena/ArenaSubmitProblem.tsx";
 import FAQPage from "./pages/FAQPage.tsx";
-import SettingsPage from "./pages/Settings.tsx";
 import ConnectPage from "./pages/Connect.tsx";
 import DevelopersPage from "./pages/Developers.tsx";
 import DeveloperDocsPage from "./pages/DeveloperDocs.tsx";
@@ -74,7 +73,8 @@ const App = () => (
           <Route path="/developers/docs" element={<DeveloperDocsPage />} />
           <Route path="/developers/submit" element={<DeveloperSubmitPage />} />
           <Route path="/faq" element={<FAQPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          {/* Legacy /settings redirects into the admin shell */}
+          <Route path="/settings" element={<Navigate to="/admin/settings" replace />} />
           {/* Platform connector flow: /connect/:platform handles both connect + OAuth callback */}
           <Route path="/connect/:platform" element={<ConnectPage />} />
           <Route path="/developers/vibe-coding" element={<VibeCodingPage />} />
@@ -107,9 +107,8 @@ const App = () => (
             <Route path="tools" element={<AdminTools />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="agents" element={<AdminAgentsPage />} />
           </Route>
-          {/* AdminAgents ships its own shell wrapper, so register it at the top level */}
-          <Route path="/admin/agents" element={<AdminAgentsPage />} />
           {/* Phase 2 auth surface */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
