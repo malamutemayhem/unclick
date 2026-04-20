@@ -8,14 +8,6 @@ name: Publish MCP server
 # One-time setup: set the NPM_TOKEN repo secret to an "Automation" type
 # npm token (Bypass 2FA).
 
-on:
-  push:
-    branches: [main]
-    paths:
-      - "packages/mcp-server/**"
-      - ".github/workflows/publish-mcp-server.yml"
-  workflow_dispatch:
-
 concurrency:
   group: publish-mcp-server
   cancel-in-progress: false
