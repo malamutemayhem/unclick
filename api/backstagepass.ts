@@ -327,12 +327,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Fetch a single credential row scoped to this tenant. Used by reveal,
   // update, delete so they can't act on rows that don't belong to them.
+  // Locals copy the already-narrowed values so TS tracks them inside the closure.
+  const tenantHash   = tenant.apiKeyHash;
+  const sbUrl        = supabaseUrl;
+  const sbServiceKey = serviceRoleKey;
   async function fetchOwnedRow(id: string): Promise<Record<string, unknown> | null> {
-    const url = `${supabaseUrl}/rest/v1/user_credentials`
-      + `?api_key_hash=eq.${encodeURIComponent(tenant.apiKeyHash)}`
+    const url = `${sbUrl}/rest/v1/user_credentials`
+      + `?api_key_hash=eq.${encodeURIComponent(tenantHash)}`
       + `&id=eq.${encodeURIComponent(id)}`
       + `&select=*&limit=1`;
-    const { ok, data } = await supaFetch(url, "GET", supaHeaders(serviceRoleKey));
+    const { ok, data } = await supaFetch(url, "GET", supaHeaders(sbServiceKey));
     if (!ok) return null;
     const rows = (data as Array<Record<string, unknown>>) ?? [];
     return rows[0] ?? null;
