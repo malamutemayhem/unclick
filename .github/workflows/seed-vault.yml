@@ -1,0 +1,40 @@
+name: Seed BackstagePass vault
+
+on:
+  workflow_dispatch:
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Verify VAULT_PLAN_JSON secret is set
+        env:
+          VAULT_PLAN_JSON: ${{ secrets.VAULT_PLAN_JSON }}
+        run: |
+          if [ -z "$VAULT_PLAN_JSON" ]; then
+            echo "::error::VAULT_PLAN_JSON secret is not set. Add it under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          echo "Secret is set."
+
+      - name: Write plan to temp file
+        env:
+          VAULT_PLAN_JSON: ${{ secrets.VAULT_PLAN_JSON }}
+        run: |
+          printf '%s' "$VAULT_PLAN_JSON" > "$RUNNER_TEMP/plan.local.json"
+          node -e "JSON.parse(require('fs').readFileSync(process.env.RUNNER_TEMP + '/plan.local.json','utf8'))" \
+            && echo "Plan parses as JSON." \
+            || { echo "::error::VAULT_PLAN_JSON is not valid JSON."; exit 1; }
+
+      - name: Run seed script
+        run: node scripts/seed-vault-from-plan.mjs "$RUNNER_TEMP/plan.local.json"
+
+      - name: Delete plan file
+        if: always()
+        run: rm -f "$RUNNER_TEMP/plan.local.json"
