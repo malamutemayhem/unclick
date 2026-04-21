@@ -274,7 +274,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET" && action === "list") {
     const url = `${supabaseUrl}/rest/v1/user_credentials`
       + `?api_key_hash=eq.${encodeURIComponent(tenant.apiKeyHash)}`
-      + `&select=id,platform_slug,label,is_valid,last_tested_at,last_used_at,expires_at,created_at,updated_at`
+      + `&select=id,platform_slug,label,is_valid,last_tested_at,last_used_at,last_rotated_at,expires_at,created_at,updated_at`
       + `&order=platform_slug.asc,label.asc.nullsfirst`;
     const { ok, data } = await supaFetch(url, "GET", supaHeaders(serviceRoleKey));
     if (!ok) return res.status(502).json({ error: "Vault lookup failed." });
@@ -462,9 +462,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       patch.encryption_iv   = enc.iv;
       patch.encryption_tag  = enc.authTag;
       patch.encryption_salt = salt.toString("hex");
-      // Fresh rotation → assume valid until re-tested.
+      // Fresh rotation → assume valid until re-tested. Stamp last_rotated_at
+      // so the admin UI can surface rotation age and flag overdue rows.
       patch.is_valid        = true;
       patch.last_tested_at  = null;
+      patch.last_rotated_at = new Date().toISOString();
       valuesRotated = true;
     }
 
