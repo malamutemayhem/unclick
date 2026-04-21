@@ -47,21 +47,34 @@ import {
 // ─── Types ───────────────────────────────────────────────────────
 
 interface Credential {
-  id:              string;
-  platform:        string;
-  label:           string | null;
-  is_valid:        boolean;
-  last_tested_at:  string | null;
-  last_used_at:    string | null;
-  expires_at:      string | null;
-  created_at:      string;
-  updated_at:      string;
+  id:               string;
+  platform:         string;
+  label:            string | null;
+  is_valid:         boolean;
+  last_tested_at:   string | null;
+  last_used_at:     string | null;
+  last_rotated_at:  string | null;
+  expires_at:       string | null;
+  created_at:       string;
+  updated_at:       string;
   connector: {
     id:       string;
     name:     string;
     category: string;
     icon:     string | null;
   } | null;
+}
+
+// Rotation-reminder threshold. Credentials whose last_rotated_at is
+// older than this show an inline warning pill in the admin list. Kept
+// as a module constant so it is easy to find and tune.
+const ROTATION_WARNING_DAYS = 90;
+
+function daysSince(iso: string | null): number | null {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return null;
+  return Math.floor((Date.now() - t) / 86_400_000);
 }
 
 interface AuditEntry {
@@ -428,6 +441,19 @@ export default function AdminKeychain() {
                               <XCircle className="h-3 w-3" /> Invalid
                             </span>
                           )}
+
+                          {(() => {
+                            const age = daysSince(cred.last_rotated_at);
+                            if (age === null || age < ROTATION_WARNING_DAYS) return null;
+                            return (
+                              <span
+                                className="flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400"
+                                title={`Last rotated ${age} days ago. Rotate to refresh the encrypted secret.`}
+                              >
+                                <AlertTriangle className="h-3 w-3" /> Rotate ({age}d)
+                              </span>
+                            );
+                          })()}
 
                           <button
                             onClick={() => (isOpen ? handleHide(cred) : void handleReveal(cred))}
