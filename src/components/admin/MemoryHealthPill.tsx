@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { useSession } from "@/lib/auth";
 
 const API_KEY_STORAGE = "unclick_api_key";
 const REFRESH_MS = 60_000;
@@ -45,6 +46,7 @@ function shortTime(iso: string | null): string {
 
 export default function MemoryHealthPill() {
   const [data, setData] = useState<HealthData | null>(null);
+  const { session } = useSession();
   const apiKey = useMemo(() => {
     try {
       return localStorage.getItem(API_KEY_STORAGE) ?? "";
@@ -54,13 +56,21 @@ export default function MemoryHealthPill() {
   }, []);
 
   useEffect(() => {
-    if (!apiKey) return;
+    const token = session?.access_token;
+    if (!apiKey && !token) return;
     let cancelled = false;
     async function fetchOnce() {
       try {
-        const res = await fetch(
-          `/api/memory-admin?action=admin_check_connection&api_key=${encodeURIComponent(apiKey)}`
-        );
+        let res: Response;
+        if (apiKey) {
+          res = await fetch(
+            `/api/memory-admin?action=admin_check_connection&api_key=${encodeURIComponent(apiKey)}`
+          );
+        } else {
+          res = await fetch("/api/memory-admin?action=admin_check_connection", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
         if (!res.ok) return;
         const body = (await res.json()) as HealthData;
         if (!cancelled) setData(body);
@@ -74,7 +84,7 @@ export default function MemoryHealthPill() {
       cancelled = true;
       window.clearInterval(iv);
     };
-  }, [apiKey]);
+  }, [apiKey, session]);
 
   const tone = pickTone(data);
   const label =
