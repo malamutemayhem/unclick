@@ -36,6 +36,7 @@ import {
   Fingerprint,
   Sparkles,
   BookOpen,
+  FlaskConical,
 } from "lucide-react";
 
 function SurfaceLink({ path, label, icon: Icon, onClick }: {
@@ -151,6 +152,7 @@ export default function AdminShell() {
         <MemoryNavItem onClick={onLinkClick} />
         <SurfaceLink path="/admin/keychain" label="Keychain (BackstagePass)" icon={KeyRound} onClick={onLinkClick} />
         <SurfaceLink path="/admin/tools"    label="Tools"                    icon={Wrench}   onClick={onLinkClick} />
+        <SurfaceLink path="/admin/testpass" label="TestPass"                 icon={FlaskConical} onClick={onLinkClick} />
         <SurfaceLink path="/admin/activity" label="Activity"                 icon={Activity} onClick={onLinkClick} />
         <SurfaceLink path="/admin/agents"       label="Agents"        icon={Bot}       onClick={onLinkClick} />
         <SurfaceLink path="/admin/codebase"    label="Codebase"      icon={Code2}     onClick={onLinkClick} />

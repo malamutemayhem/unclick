@@ -2,18 +2,21 @@
  * TestPass API - Vercel serverless function
  *
  * Actions:
- *   GET  ?action=get_run&run_id=<uuid>              - fetch run + items
- *   POST ?action=start_run                          - create run, probe target, seed items
+ *   GET  ?action=get_run&run_id=<uuid>    - fetch run + items (raw shape)
+ *   GET  ?action=status&run_id=<uuid>     - poll run status (status, run, items)
+ *   GET  ?action=report_md&run_id=<uuid>  - markdown fix list for failed items
+ *   POST ?action=start_run                - create run, probe target, seed items
+ *   POST ?action=run                      - UI-friendly alias for start_run
+ *   POST ?action=save_pack                - upsert a pack from raw YAML
+ *   POST ?action=complete_run             - finalize a run
  *
  * Authentication: Supabase JWT Bearer token (session user = actor).
  * Service role key used server-side for DB writes (bypasses RLS which
  * checks actor_user_id = auth.uid() - that match happens at read time).
- *
- * Body shape for start_run:
- *   { pack_slug: string, target: RunTarget, profile?: RunProfile }
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import yaml from "js-yaml";
 import { probeServer } from "../packages/testpass/src/probe.js";
 import {
   createRun,
@@ -25,6 +28,7 @@ import {
 import { runDeterministicChecks } from "../packages/testpass/src/runner/deterministic.js";
 import { runAgentChecks } from "../packages/testpass/src/runner/agent.js";
 import { loadPackFromFile } from "../packages/testpass/src/pack-loader.js";
+import { PackSchema } from "../packages/testpass/src/pack-schema.js";
 import * as path from "node:path";
 import * as url from "node:url";
 import type { RunTarget, RunProfile } from "../packages/testpass/src/types.js";
@@ -90,6 +94,104 @@ async function getRunWithItems(
   return { run, items };
 }
 
+class RunSetupError extends Error {
+  constructor(public statusCode: number, message: string) {
+    super(message);
+  }
+}
+
+async function executeRun(
+  config: { supabaseUrl: string; serviceRoleKey: string },
+  supabaseUrl: string,
+  serviceKey: string,
+  actorUserId: string,
+  packSlug: string,
+  target: RunTarget,
+  profile: RunProfile
+): Promise<{ runId: string; evidenceRef: string | null; summary: Awaited<ReturnType<typeof computeVerdictSummary>> }> {
+  const packId = await getPackIdBySlug(supabaseUrl, serviceKey, packSlug);
+  if (!packId) throw new RunSetupError(404, `Pack '${packSlug}' not found`);
+
+  const packPath = path.resolve(__dirname, `../packages/testpass/packs/${packSlug}.yaml`);
+  let pack;
+  try {
+    pack = loadPackFromFile(packPath);
+  } catch {
+    throw new RunSetupError(422, `Pack YAML not found on server for '${packSlug}'`);
+  }
+
+  const runId = await createRun(config, { packId, target, profile, actorUserId });
+
+  let evidenceRef: string | undefined;
+  try {
+    const probeResult = await probeServer(target.url, { timeoutMs: 12_000 });
+    evidenceRef = await createEvidence(config, { kind: "tool_list", payload: probeResult });
+  } catch (err) {
+    console.error(`TestPass probe failed for run ${runId}:`, (err as Error).message);
+  }
+
+  await seedPendingItems(config, runId, pack, profile, evidenceRef);
+
+  if (target.url) {
+    try {
+      await runDeterministicChecks(config, runId, target.url, pack, profile);
+    } catch (err) {
+      console.error(`TestPass deterministic run failed for ${runId}:`, (err as Error).message);
+    }
+  }
+
+  try {
+    await runAgentChecks(config, runId, target.url, pack, profile, evidenceRef);
+  } catch (err) {
+    console.error(`TestPass agent run failed for ${runId}:`, (err as Error).message);
+  }
+
+  const summary = await computeVerdictSummary(config, runId);
+  const isDone = summary.pending === 0;
+  await updateRunStatus(
+    config,
+    runId,
+    isDone ? (summary.fail > 0 ? "failed" : "complete") : "running",
+    summary,
+  );
+
+  return { runId, evidenceRef: evidenceRef ?? null, summary };
+}
+
+function buildFixListMarkdown(
+  run: Record<string, unknown>,
+  items: Array<Record<string, unknown>>
+): string {
+  const failed = items.filter((it) => it.verdict === "fail");
+  const target = (run.target_url as string) ?? (run.target as { url?: string })?.url ?? "unknown";
+  const lines: string[] = [];
+  lines.push(`# TestPass Fix List`);
+  lines.push("");
+  lines.push(`**Target:** ${target}`);
+  lines.push(`**Run:** ${String(run.id ?? "")}`);
+  lines.push(`**Profile:** ${String(run.profile ?? "")}`);
+  lines.push("");
+  if (failed.length === 0) {
+    lines.push("No failed checks. Everything passed or is pending/NA.");
+    return lines.join("\n");
+  }
+  lines.push(`## ${failed.length} failing check${failed.length === 1 ? "" : "s"}`);
+  lines.push("");
+  for (const item of failed) {
+    const checkId = String(item.check_id ?? "");
+    const title = String(item.title ?? "");
+    const severity = String(item.severity ?? "");
+    const category = String(item.category ?? "");
+    const onFail = String(item.on_fail_comment ?? item.on_fail ?? "");
+    lines.push(`### ${checkId} - ${title}`);
+    lines.push(`- **Severity:** ${severity}`);
+    lines.push(`- **Category:** ${category}`);
+    if (onFail) lines.push(`- **How to fix:** ${onFail}`);
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") return json(res, 204, {});
 
@@ -105,7 +207,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const actorUserId = await getActorUserId(supabaseUrl, token);
   if (!actorUserId) return json(res, 401, { error: "Invalid session" });
 
-  const action = req.query.action as string;
+  // Support action in query string OR request body (UI sends in body for POSTs).
+  const bodyAction =
+    req.method !== "GET" && typeof req.body === "object" && req.body
+      ? (req.body as { action?: string }).action
+      : undefined;
+  const action = (req.query.action as string) ?? bodyAction ?? "";
   const config = { supabaseUrl, serviceRoleKey: serviceKey };
 
   if (req.method === "GET" && action === "get_run") {
@@ -114,6 +221,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const data = await getRunWithItems(supabaseUrl, serviceKey, runId, actorUserId);
     if (!data.run) return json(res, 404, { error: "Run not found" });
     return json(res, 200, data);
+  }
+
+  if (req.method === "GET" && action === "status") {
+    const runId = req.query.run_id as string;
+    if (!runId) return json(res, 400, { error: "run_id required" });
+    const data = await getRunWithItems(supabaseUrl, serviceKey, runId, actorUserId);
+    if (!data.run) return json(res, 404, { error: "Run not found" });
+    const run = data.run as { status?: string; summary?: unknown };
+    return json(res, 200, {
+      status: run.status ?? "running",
+      summary: run.summary ?? null,
+      run: data.run,
+      items: data.items,
+    });
+  }
+
+  if (req.method === "GET" && action === "report_md") {
+    const runId = req.query.run_id as string;
+    if (!runId) return json(res, 400, { error: "run_id required" });
+    const data = await getRunWithItems(supabaseUrl, serviceKey, runId, actorUserId);
+    if (!data.run) return json(res, 404, { error: "Run not found" });
+    const markdown = buildFixListMarkdown(
+      data.run as Record<string, unknown>,
+      data.items as Array<Record<string, unknown>>
+    );
+    return json(res, 200, { markdown });
   }
 
   if (req.method === "POST" && action === "start_run") {
@@ -125,71 +258,106 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!body.pack_slug || !body.target?.url) {
       return json(res, 400, { error: "pack_slug and target.url required" });
     }
-    const profile: RunProfile = body.profile ?? "standard";
-
-    // Resolve pack from DB (built-ins have null owner)
-    const packId = await getPackIdBySlug(supabaseUrl, serviceKey, body.pack_slug);
-    if (!packId) return json(res, 404, { error: `Pack '${body.pack_slug}' not found` });
-
-    // Load pack definition from bundled YAML (built-in packs only for now)
-    const packPath = path.resolve(__dirname, `../packages/testpass/packs/${body.pack_slug}.yaml`);
-    let pack;
     try {
-      pack = loadPackFromFile(packPath);
-    } catch {
-      return json(res, 422, { error: `Pack YAML not found on server for '${body.pack_slug}'` });
-    }
-
-    const runId = await createRun(config, {
-      packId,
-      target: body.target,
-      profile,
-      actorUserId,
-    });
-
-    // Probe the target MCP server and store evidence (non-blocking on failures)
-    let evidenceRef: string | undefined;
-    try {
-      const probeResult = await probeServer(body.target.url, { timeoutMs: 12_000 });
-      evidenceRef = await createEvidence(config, {
-        kind: "tool_list",
-        payload: probeResult,
+      const result = await executeRun(
+        config,
+        supabaseUrl,
+        serviceKey,
+        actorUserId,
+        body.pack_slug,
+        body.target,
+        body.profile ?? "standard",
+      );
+      return json(res, 201, {
+        run_id: result.runId,
+        evidence_ref: result.evidenceRef,
+        summary: result.summary,
       });
     } catch (err) {
-      // Probe failed - run continues with pending items, no evidence ref
-      console.error(`TestPass probe failed for run ${runId}:`, (err as Error).message);
+      if (err instanceof RunSetupError) return json(res, err.statusCode, { error: err.message });
+      throw err;
     }
+  }
 
-    await seedPendingItems(config, runId, pack, profile, evidenceRef);
-
-    // Run deterministic checks inline. Agent checks (check_type: agent)
-    // with no registered handler are left pending for a future runner.
-    if (body.target.url) {
-      try {
-        await runDeterministicChecks(config, runId, body.target.url, pack, profile);
-      } catch (err) {
-        console.error(`TestPass deterministic run failed for ${runId}:`, (err as Error).message);
-      }
-    }
-
-    // Run agent checks for any items still pending after the deterministic pass.
+  // UI-friendly alias: accepts flat { target_url, profile, pack_slug? }.
+  if (req.method === "POST" && action === "run") {
+    const body = req.body as {
+      target_url?: string;
+      profile?: RunProfile;
+      pack_slug?: string;
+    };
+    if (!body.target_url) return json(res, 400, { error: "target_url required" });
     try {
-      await runAgentChecks(config, runId, body.target.url, pack, profile, evidenceRef);
+      const result = await executeRun(
+        config,
+        supabaseUrl,
+        serviceKey,
+        actorUserId,
+        body.pack_slug ?? "testpass-core",
+        { type: "mcp", url: body.target_url },
+        body.profile ?? "standard",
+      );
+      return json(res, 201, {
+        run_id: result.runId,
+        evidence_ref: result.evidenceRef,
+        summary: result.summary,
+      });
     } catch (err) {
-      console.error(`TestPass agent run failed for ${runId}:`, (err as Error).message);
+      if (err instanceof RunSetupError) return json(res, err.statusCode, { error: err.message });
+      throw err;
+    }
+  }
+
+  if (req.method === "POST" && action === "save_pack") {
+    const body = req.body as { pack_yaml?: string };
+    if (!body.pack_yaml) return json(res, 400, { error: "pack_yaml required" });
+
+    let parsed: unknown;
+    try {
+      parsed = yaml.load(body.pack_yaml);
+    } catch (err) {
+      return json(res, 422, { error: `YAML parse error: ${(err as Error).message}` });
     }
 
-    // Finalize: any item still pending means agent checks are not configured.
-    const summary = await computeVerdictSummary(config, runId);
-    const isDone  = summary.pending === 0;
-    await updateRunStatus(
-      config,
-      runId,
-      isDone ? (summary.fail > 0 ? "failed" : "complete") : "running",
-      summary,
-    );
+    const validated = PackSchema.safeParse(parsed);
+    if (!validated.success) {
+      return json(res, 422, {
+        error: "Pack validation failed",
+        issues: validated.error.issues,
+      });
+    }
+    const pack = validated.data;
 
-    return json(res, 201, { run_id: runId, evidence_ref: evidenceRef ?? null, summary });
+    const upsertRes = await fetch(
+      `${supabaseUrl}/rest/v1/testpass_packs?on_conflict=slug`,
+      {
+        method: "POST",
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          "Content-Type": "application/json",
+          Prefer: "resolution=merge-duplicates,return=representation",
+        },
+        body: JSON.stringify({
+          slug: pack.id,
+          name: pack.name,
+          version: pack.version,
+          description: pack.description ?? "",
+          yaml: pack,
+          owner_user_id: actorUserId,
+        }),
+      },
+    );
+    if (!upsertRes.ok) {
+      const errText = await upsertRes.text();
+      return json(res, 500, { error: `Upsert failed: ${errText}` });
+    }
+    const rows = (await upsertRes.json()) as Array<{ id: string; slug: string }>;
+    return json(res, 200, {
+      pack_id: rows[0]?.id ?? null,
+      slug: rows[0]?.slug ?? pack.id,
+      item_count: pack.items.length,
+    });
   }
 
   // Complete a specific run (called when agent checks land after Chunk 4+)
