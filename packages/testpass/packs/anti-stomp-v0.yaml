@@ -1,0 +1,250 @@
+id: anti-stomp-v0
+name: Anti-Stomp Pack v0
+version: 0.1.0
+description: >
+  Guards against silent stomping of prior agent work. Uses git as the
+  authoritative audit trail. Catches undocumented deletions, orphaned
+  components, abandoned restructure branches, missing archaeology on
+  restore PRs, and unlinked memory facts.
+
+items:
+  # ── Deletion documentation ─────────────────────────────────────────────────
+
+  - id: DELETE-001
+    title: Deleted files must be documented in PR body
+    category: git-hygiene
+    severity: high
+    check_type: deterministic
+    description: >
+      Run git diff --name-only --diff-filter=D <base>..<head> filtered to
+      src/pages/, src/components/, src/admin/, packages/*/src/, api/.
+      Every deleted file path must appear verbatim in the PR body.
+    expected:
+      verify_type: shell
+      shell: "git diff --name-only --diff-filter=D {base}..{head}"
+      filter_paths: ["src/pages/", "src/components/", "src/admin/", "packages/*/src/", "api/"]
+      evidence_required: true
+    on_fail: >
+      Add a "## Deletions" section to the PR body listing each removed file
+      path and the rationale for its removal.
+    tags: [git, deletions, documentation]
+    profiles: [smoke, standard, deep]
+
+  - id: DELETE-002
+    title: Removed routes must be documented in PR body
+    category: git-hygiene
+    severity: high
+    check_type: deterministic
+    description: >
+      Diff the router config (grep for <Route patterns). Every route removed
+      between base and head must appear in the PR body by path or component
+      name. Applies to React Router and similar SPA routers.
+    expected:
+      verify_type: ast
+      shell: "git diff {base}..{head} -- {router_file}"
+      route_pattern: "<Route"
+      evidence_required: true
+    on_fail: >
+      Add a "## Deletions" entry for each removed route, including the path
+      pattern and the component it rendered.
+    tags: [git, routes, documentation]
+    profiles: [standard, deep]
+
+  # ── Orphaned code ──────────────────────────────────────────────────────────
+
+  - id: ORPHAN-001
+    title: No stranded components without imports
+    category: code-health
+    severity: medium
+    check_type: deterministic
+    description: >
+      For each src/components/**/*.tsx file on head, grep the repo for its
+      import path. A component with zero imports is stranded. Skip files
+      inside __tests__/ and files containing the comment // @entrypoint.
+    expected:
+      verify_type: shell
+      shell: "grep -rl {import_path} src/ --include='*.ts' --include='*.tsx'"
+      skip_patterns: ["__tests__/", "// @entrypoint"]
+      evidence_required: true
+    on_fail: >
+      Either delete the component, re-wire callers to import it, or add
+      // @entrypoint on line 1 to mark it as a standalone entry point.
+    tags: [code-health, orphans, imports]
+    profiles: [standard, deep]
+
+  - id: ORPHAN-002
+    title: No abandoned restructure branches without a logged disposition
+    category: git-hygiene
+    severity: medium
+    check_type: hybrid
+    description: >
+      Run git branch -a --sort=-committerdate | head -30 and filter for
+      branches whose name contains "restructure", "refactor", "redesign",
+      or "restore". Agent checks each match for an open PR. Flag any that
+      are unmerged and have no open PR.
+    expected:
+      verify_type: shell
+      shell: "git branch -a --sort=-committerdate"
+      filter_keywords: ["restructure", "refactor", "redesign", "restore"]
+      evidence_required: true
+    on_fail: >
+      For each abandoned branch: cherry-pick any unique commits, then delete
+      the branch, OR log its disposition in .auto-memory/abandoned-branches.md.
+    tags: [git, branches, hygiene]
+    profiles: [deep]
+
+  # ── Surface / design drift ─────────────────────────────────────────────────
+
+  - id: SURFACE-001
+    title: Design memory matches code structure
+    category: design-drift
+    severity: low
+    check_type: hybrid
+    description: >
+      Optional. For each project-*-ui.md in .auto-memory/, parse the
+      "Current structure" section and grep the code for every listed tab or
+      section name. Flag items in memory that are absent from the code
+      (and vice versa) unless a rationale is present in the memory file.
+    expected:
+      verify_type: file-parse
+      memory_dir: ".auto-memory/"
+      memory_glob: "project-*-ui.md"
+      evidence_required: false
+    on_fail: >
+      Restore the missing UI item, or update the memory file with a
+      "Removed:" note and the rationale.
+    tags: [design, memory, drift]
+    profiles: [deep]
+
+  - id: SURFACE-002
+    title: Nav items removed without PR body mention
+    category: git-hygiene
+    severity: high
+    check_type: deterministic
+    description: >
+      Grep sidebar/nav config files for navigation item definitions on base
+      and head. Any item present on base but absent on head must appear in
+      the PR body. Nav config is typically a routes array, sidebar component,
+      or AdminShell children.
+    expected:
+      verify_type: shell
+      shell: "git diff {base}..{head} -- {nav_files}"
+      evidence_required: true
+    on_fail: >
+      Add removed nav items to the PR body under "## Navigation Changes"
+      with the route path and reason for removal.
+    tags: [git, navigation, documentation]
+    profiles: [standard, deep]
+
+  # ── Import collapse ────────────────────────────────────────────────────────
+
+  - id: IMPORT-001
+    title: Component import count must not drop to zero without PR mention
+    category: code-health
+    severity: high
+    check_type: deterministic
+    description: >
+      For every component in src/components/, count import references on base
+      and head. A component whose reference count drops from N > 0 to 0
+      without mention in the PR body is a silent removal.
+    expected:
+      verify_type: shell
+      shell: "grep -rl {component_name} src/ --include='*.tsx' --include='*.ts'"
+      evidence_required: true
+    on_fail: >
+      Mention the component removal in the PR body under "## Deletions" or
+      restore its import usages.
+    tags: [code-health, imports, components]
+    profiles: [standard, deep]
+
+  # ── Process gates ──────────────────────────────────────────────────────────
+
+  - id: AUDIT-001
+    title: Restore/reorg PRs must include an Archaeology section
+    category: process
+    severity: high
+    check_type: deterministic
+    description: >
+      If the PR title contains any of: restore, reorg, refactor, fix nav,
+      fix sidebar — the PR body must contain a section titled "## Archaeology"
+      or "## Pre-restore audit" with git log output and a disposition per
+      item found. This check is a no-op for unmatched PR titles.
+    expected:
+      verify_type: pr-body
+      title_triggers: ["restore", "reorg", "refactor", "fix nav", "fix sidebar"]
+      body_required_sections: ["## Archaeology", "## Pre-restore audit"]
+      evidence_required: true
+    on_fail: >
+      Add an "## Archaeology" section. Run:
+      git log --all --diff-filter=D --name-only --pretty=format: -- '<target>/*' | sort -u
+      Record each found item with a disposition: restore, cherry-pick, or ignore (with reason).
+    tags: [process, archaeology, restore]
+    profiles: [smoke, standard, deep]
+
+  # ── Memory / git linkage ───────────────────────────────────────────────────
+
+  - id: GIT-LINK-001
+    title: Facts with change-type categories must link to a commit or PR
+    category: memory-hygiene
+    severity: medium
+    check_type: deterministic
+    description: >
+      For any row in mc_extracted_facts where category is one of "built",
+      "shipped", or "change" — at least one of commit_sha or pr_number must
+      be non-null. Facts without linkage cannot be audited or attributed.
+      This check is a no-op for other categories.
+    expected:
+      verify_type: db-query
+      table: mc_extracted_facts
+      trigger_categories: ["built", "shipped", "change"]
+      required_one_of: ["commit_sha", "pr_number"]
+      evidence_required: true
+    on_fail: >
+      Update the fact via save_fact with the commit_sha or pr_number
+      parameter to link it to the relevant code change.
+    tags: [memory, git-link, auditability]
+    profiles: [standard, deep]
+
+  # ── Session hygiene ────────────────────────────────────────────────────────
+
+  - id: GIT-HYGIENE-001
+    title: No uncommitted changes at session end
+    category: git-hygiene
+    severity: high
+    check_type: deterministic
+    description: >
+      At session end, git status --porcelain must return empty output.
+      Uncommitted work that vanishes on the next cold start is unrecoverable
+      and becomes exactly the kind of "prior work" that gets stomped.
+    expected:
+      verify_type: shell
+      shell: "git status --porcelain"
+      expected_output: ""
+      evidence_required: true
+    on_fail: >
+      Commit the work-in-progress and push to a branch, or explicitly stash
+      it, before ending the session.
+    tags: [git, uncommitted, hygiene]
+    profiles: [smoke, standard, deep]
+
+  # ── Repo structure ─────────────────────────────────────────────────────────
+
+  - id: PR-TEMPLATE-001
+    title: Repo must have a PR template with required sections
+    category: process
+    severity: medium
+    check_type: deterministic
+    description: >
+      Check that .github/PULL_REQUEST_TEMPLATE.md exists and contains all
+      required headings: Summary, Changes, Deletions, Archaeology, Testing.
+      One-time check; passes once the template is in place.
+    expected:
+      verify_type: file-parse
+      file: ".github/PULL_REQUEST_TEMPLATE.md"
+      required_sections: ["## Summary", "## Changes", "## Deletions", "## Archaeology", "## Testing"]
+      evidence_required: true
+    on_fail: >
+      Create .github/PULL_REQUEST_TEMPLATE.md with at minimum the Summary,
+      Changes, Deletions, Archaeology (conditional), and Testing sections.
+    tags: [process, template, documentation]
+    profiles: [smoke, standard, deep]

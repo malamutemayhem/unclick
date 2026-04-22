@@ -377,6 +377,8 @@ export class SupabaseBackend implements MemoryBackend {
           extractor_id: data.extractor_id ?? "manual",
           prompt_version: data.prompt_version ?? null,
           model_id: data.model_id ?? null,
+          commit_sha: data.commit_sha ?? null,
+          pr_number: data.pr_number ?? null,
         })
       )
       .select()

@@ -127,6 +127,8 @@ interface FactRow {
   decay_tier: string;
   created_at: string;
   updated_at: string;
+  commit_sha?: string;
+  pr_number?: number;
 }
 
 interface ConversationRow {
@@ -289,6 +291,8 @@ export class LocalBackend implements MemoryBackend {
       decay_tier: "hot",
       created_at: now(),
       updated_at: now(),
+      commit_sha: data.commit_sha,
+      pr_number: data.pr_number,
     });
     writeTable("extracted_facts", rows);
     return { id };

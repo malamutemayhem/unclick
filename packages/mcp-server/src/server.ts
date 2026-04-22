@@ -212,6 +212,8 @@ const VISIBLE_TOOLS = [
         confidence: { type: "number", minimum: 0, maximum: 1, default: 0.9 },
         source_session_id: { type: "string", description: "Session ID where this fact was learned" },
         preserve_as_blob: { type: "boolean", description: "If true, stores as a blob and extracts atomic facts via LLM instead of saving fact text directly" },
+        commit_sha: { type: "string", description: "Git commit SHA linking this fact to a code change (for audit trail)" },
+        pr_number: { type: "integer", description: "PR number linking this fact to a code review (for audit trail)" },
       },
       required: ["fact"],
     },

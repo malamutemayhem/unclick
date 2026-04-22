@@ -132,6 +132,8 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       prompt_version: typeof args.prompt_version === "string" ? args.prompt_version : undefined,
       model_id: typeof args.model_id === "string" ? args.model_id : undefined,
       preserve_as_blob: typeof args.preserve_as_blob === "boolean" ? args.preserve_as_blob : false,
+      commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
+      pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
     });
   },
 
