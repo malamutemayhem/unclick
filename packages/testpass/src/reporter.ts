@@ -2,7 +2,7 @@
  * reporter - Evidence report generators for TestPass runs.
  *
  * Three output formats:
- *   - HTML: self-contained (inline CSS + JS), safe to email or archive.
+ *   - HTML: self-contained (inline CSS + JS, screenshot <img> as base64 data URIs).
  *   - JSON: raw run + items data plus generation timestamp.
  *   - Markdown: fix-list grouped by severity for engineering triage.
  *
@@ -10,6 +10,7 @@
  * used by run-manager, so no Supabase SDK dependency is introduced.
  */
 
+import { readFile } from "node:fs/promises";
 import type { RunManagerConfig } from "./run-manager.js";
 
 interface RunRow {
@@ -47,6 +48,12 @@ interface ItemRow {
   created_at: string;
 }
 
+interface EvidenceRow {
+  id: string;
+  kind: string;
+  payload: Record<string, unknown> | null;
+}
+
 async function supaGet(
   config: RunManagerConfig,
   path: string
@@ -65,7 +72,7 @@ async function supaGet(
 async function fetchRunAndItems(
   config: RunManagerConfig,
   runId: string
-): Promise<{ run: RunRow; items: ItemRow[] }> {
+): Promise<{ run: RunRow; items: ItemRow[]; evidence: Map<string, EvidenceRow> }> {
   const [runRows, items] = await Promise.all([
     supaGet(config, `testpass_runs?id=eq.${runId}&select=*&limit=1`) as Promise<RunRow[]>,
     supaGet(
@@ -76,7 +83,22 @@ async function fetchRunAndItems(
   if (!runRows || runRows.length === 0) {
     throw new Error(`Run ${runId} not found`);
   }
-  return { run: runRows[0], items: items ?? [] };
+
+  const refs = Array.from(
+    new Set((items ?? []).map((i) => i.evidence_ref).filter((v): v is string => !!v))
+  );
+  let evidence: EvidenceRow[] = [];
+  if (refs.length > 0) {
+    const list = refs.map((r) => `"${r}"`).join(",");
+    evidence = (await supaGet(
+      config,
+      `testpass_evidence?id=in.(${encodeURIComponent(list)})&select=id,kind,payload`
+    )) as EvidenceRow[];
+  }
+  const evidenceMap = new Map<string, EvidenceRow>();
+  for (const e of evidence ?? []) evidenceMap.set(e.id, e);
+
+  return { run: runRows[0], items: items ?? [], evidence: evidenceMap };
 }
 
 function escapeHtml(value: unknown): string {
@@ -108,11 +130,43 @@ function badge(label: string, color: string): string {
   return `<span class="badge" style="background:${color}">${escapeHtml(label)}</span>`;
 }
 
+function mimeFromPath(p: string): string {
+  const ext = p.toLowerCase().split(".").pop() ?? "";
+  if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+  if (ext === "gif") return "image/gif";
+  if (ext === "webp") return "image/webp";
+  if (ext === "svg") return "image/svg+xml";
+  return "image/png";
+}
+
+// Resolve a screenshot evidence row to an inline HTML snippet.
+// Tries payload.value then payload.path; a data URI is used as-is,
+// a readable file is inlined as base64, and anything else falls back to plain text.
+async function renderScreenshot(ev: EvidenceRow): Promise<string> {
+  if (ev.kind !== "screenshot") return "";
+  const p = ev.payload ?? {};
+  const raw = (p.value ?? p.path ?? "") as string;
+  if (!raw || typeof raw !== "string") return "";
+
+  if (raw.startsWith("data:image/")) {
+    return `<img src="${escapeHtml(raw)}" alt="screenshot" class="shot">`;
+  }
+
+  try {
+    const buf = await readFile(raw);
+    const mime = mimeFromPath(raw);
+    const b64 = buf.toString("base64");
+    return `<img src="data:${mime};base64,${b64}" alt="screenshot" class="shot">`;
+  } catch {
+    return `<span class="shot-fallback">${escapeHtml(raw)}</span>`;
+  }
+}
+
 export async function generateHtmlReport(
   config: RunManagerConfig,
   runId: string
 ): Promise<string> {
-  const { run, items } = await fetchRunAndItems(config, runId);
+  const { run, items, evidence } = await fetchRunAndItems(config, runId);
   const s = run.verdict_summary ?? {
     total: items.length, check: 0, na: 0, fail: 0, other: 0, pending: 0, pass_rate: 0,
   };
@@ -120,10 +174,12 @@ export async function generateHtmlReport(
   const targetUrl = run.target?.url ?? "";
   const completedAt = run.completed_at ?? "(in progress)";
 
-  const rows = items
-    .map((item, idx) => {
+  const rowHtml = await Promise.all(
+    items.map(async (item, idx) => {
       const sevColor = SEVERITY_COLORS[item.severity] ?? "#6b7280";
       const verdColor = VERDICT_COLORS[item.verdict] ?? "#6b7280";
+      const ev = item.evidence_ref ? evidence.get(item.evidence_ref) : undefined;
+      const evidenceCell = ev && ev.kind === "screenshot" ? await renderScreenshot(ev) : "";
       return `<tr data-severity="${escapeHtml(item.severity)}" data-verdict="${escapeHtml(item.verdict)}">
         <td>${idx + 1}</td>
         <td><code>${escapeHtml(item.check_id)}</code></td>
@@ -132,9 +188,11 @@ export async function generateHtmlReport(
         <td>${badge(item.severity, sevColor)}</td>
         <td>${badge(item.verdict, verdColor)}</td>
         <td>${escapeHtml(item.on_fail_comment ?? "")}</td>
+        <td>${evidenceCell}</td>
       </tr>`;
     })
-    .join("\n");
+  );
+  const rows = rowHtml.join("\n");
 
   return `<!doctype html>
 <html lang="en">
@@ -161,6 +219,8 @@ export async function generateHtmlReport(
   tr:last-child td { border-bottom: none; }
   code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
   .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; color: #fff; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .shot { max-width: 240px; max-height: 160px; border: 1px solid #e5e7eb; border-radius: 4px; display: block; }
+  .shot-fallback { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 11px; color: #9ca3af; word-break: break-all; }
   .footer { margin-top: 24px; font-size: 11px; color: #9ca3af; }
 </style>
 </head>
@@ -188,6 +248,7 @@ export async function generateHtmlReport(
       <th data-col="4">Severity</th>
       <th data-col="5">Verdict</th>
       <th data-col="6">On-fail comment</th>
+      <th data-col="7">Evidence</th>
     </tr>
   </thead>
   <tbody>
