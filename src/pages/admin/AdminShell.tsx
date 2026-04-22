@@ -26,6 +26,7 @@ import {
   X,
   Menu,
   Bot,
+  Kanban,
   ChevronRight,
   ChevronDown,
   FileText,
@@ -129,6 +130,7 @@ export default function AdminShell() {
         <SurfaceLink path="/admin/tools"    label="Tools"                    icon={Wrench}   onClick={onLinkClick} />
         <SurfaceLink path="/admin/activity" label="Activity"                 icon={Activity} onClick={onLinkClick} />
         <SurfaceLink path="/admin/agents"   label="Agents"                   icon={Bot}      onClick={onLinkClick} />
+        <SurfaceLink path="/admin/build"    label="Build"                    icon={Kanban}   onClick={onLinkClick} />
         <SurfaceLink path="/admin/settings" label="Settings"                 icon={Settings} onClick={onLinkClick} />
       </>
     );
