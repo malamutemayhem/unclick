@@ -11,13 +11,14 @@
  * sends ?error=...&error_description=... which we surface inline.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useSession } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { posthog } from "@/lib/posthog";
+import { track } from "@/lib/analytics";
 import { Loader2 } from "lucide-react";
 
 export default function AuthCallbackPage() {
@@ -27,6 +28,7 @@ export default function AuthCallbackPage() {
 
   const urlError = params.get("error_description") || params.get("error");
   const [timedOut, setTimedOut] = useState(false);
+  const tracked = useRef(false);
 
   useEffect(() => {
     if (!loading && session) {
@@ -35,20 +37,29 @@ export default function AuthCallbackPage() {
       const method = provider === "email" ? "magic_link" : provider;
       const createdAt = user.created_at ? new Date(user.created_at).getTime() : 0;
       const isNewUser = createdAt > 0 && Date.now() - createdAt < 60_000;
+      // Fire auth_success via analytics wrapper exactly once per callback landing.
+      if (!tracked.current) {
+        tracked.current = true;
+        const created = user?.created_at ? Date.parse(user.created_at) : 0;
+        const lastSignIn = user?.last_sign_in_at ? Date.parse(user.last_sign_in_at) : 0;
+        const newUser =
+          created > 0 && lastSignIn > 0 && Math.abs(lastSignIn - created) < 10_000;
+        track("auth_success", { new_user: newUser, provider });
+      }
       posthog.identify(user.id, {
         email: user.email,
         provider,
         created_at: user.created_at,
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const track = (window as any).umami?.track;
+      const umamiTrack = (window as any).umami?.track;
       if (isNewUser) {
         // TODO(posthog-migration): remove umami call once PostHog validated
-        track?.("new_user_signup", { method, email: user.email });
+        umamiTrack?.("new_user_signup", { method, email: user.email });
         posthog.capture("signup_completed", { method, email: user.email });
       } else {
         // TODO(posthog-migration): remove umami call once PostHog validated
-        track?.("returning_user_signin", { method });
+        umamiTrack?.("returning_user_signin", { method });
         posthog.capture("signin_completed", { method });
       }
       // Check if MFA is required before entering the admin shell

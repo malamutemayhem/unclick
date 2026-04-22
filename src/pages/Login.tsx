@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Mail, Check } from "lucide-react";
 import { signInWithMagicLink, signInWithOAuth, useSession } from "@/lib/auth";
 import { posthog } from "@/lib/posthog";
+import { track } from "@/lib/analytics";
 import { useEffect } from "react";
 
 export default function LoginPage() {
@@ -45,6 +46,7 @@ export default function LoginPage() {
       return;
     }
     setBusy("magic");
+    track("login_started", { method: "magic" });
     try {
       await signInWithMagicLink(trimmed);
       setSent(true);
@@ -62,6 +64,7 @@ export default function LoginPage() {
   async function handleOAuth(provider: "google" | "azure") {
     setError("");
     setBusy(provider);
+    track("login_started", { method: provider });
     // TODO(posthog-migration): remove umami call once PostHog validated
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).umami?.track("signin", { method: provider });
