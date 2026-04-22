@@ -23,6 +23,9 @@ export interface FactInput {
   prompt_version?: string;
   model_id?: string;
   preserve_as_blob?: boolean;
+  // Git linkage (Anti-Stomp)
+  commit_sha?: string;
+  pr_number?: number;
 }
 
 export interface InvalidateFactInput {
