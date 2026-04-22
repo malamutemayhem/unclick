@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import FadeIn from "../components/FadeIn";
 import { useCanonical } from "../hooks/use-canonical";
+import { useMetaTags } from "../hooks/useMetaTags";
 import {
   Mail,
   TrendingUp,
@@ -234,6 +235,13 @@ const AUSTRALIA_TOOLS = [
 
 const Tools = () => {
   useCanonical("/tools");
+  useMetaTags({
+    title: "172+ AI Agent Tools - UnClick Marketplace",
+    description: "Browse 172+ verified tools across 60+ integrations - email, finance, productivity, dev tools and more. One npm install, instantly callable by any MCP-compatible AI agent.",
+    ogTitle: "UnClick Marketplace - 172+ Tools for AI Agents",
+    ogDescription: "Browse 172+ verified tools across 60+ integrations. One npm install gives your AI agent access to everything.",
+    ogUrl: "https://unclick.world/tools",
+  });
 
   return (
     <div className="min-h-screen">

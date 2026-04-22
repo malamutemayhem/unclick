@@ -33,5 +33,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
 
 Sitemap: https://unclick.world/sitemap.xml
