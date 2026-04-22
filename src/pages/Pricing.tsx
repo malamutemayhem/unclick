@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
+import { useMetaTags } from "@/hooks/useMetaTags";
 import { Check, ArrowRight } from "lucide-react";
 
 const TIERS = [
@@ -81,6 +82,13 @@ const FAQ_ITEMS = [
 
 const Pricing = () => {
   useCanonical("/pricing");
+  useMetaTags({
+    title: "Pricing - UnClick",
+    description: "Free forever for 100 tool calls/day. Pro at $29/mo unlocks unlimited calls, hosted memory, and priority support.",
+    ogTitle: "UnClick Pricing - Free to start, Pro when you need it",
+    ogDescription: "Free forever for 100 tool calls/day. Upgrade to Pro for unlimited access across 450+ tools.",
+    ogUrl: "https://unclick.world/pricing",
+  });
 
   return (
     <div className="min-h-screen">

@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
+import { useMetaTags } from "@/hooks/useMetaTags";
 import { Brain, Database, Shield, ArrowRight, Clock, Search, Code, Layers, Zap, RefreshCw } from "lucide-react";
 
 const MEMORY_LAYERS = [
@@ -57,6 +58,13 @@ const COMPARISON = [
 
 const Memory = () => {
   useCanonical("/memory");
+  useMetaTags({
+    title: "Persistent Memory for AI Agents - UnClick",
+    description: "Give your AI agent a 6-layer memory architecture: business context, facts, sessions, code, library docs, and conversations. Cross-session, cross-agent, self-hosted or cloud.",
+    ogTitle: "UnClick Memory - Persistent Cross-Session Memory for AI Agents",
+    ogDescription: "6-layer memory architecture for AI agents. Business context, facts, sessions, and more - all cross-session.",
+    ogUrl: "https://unclick.world/memory",
+  });
 
   return (
     <div className="min-h-screen">

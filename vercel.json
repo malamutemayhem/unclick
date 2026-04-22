@@ -4,6 +4,7 @@
   "installCommand": "npm install",
   "framework": "vite",
   "rewrites": [
+    { "source": "/sitemap.xml",   "destination": "/api/sitemap" },
     { "source": "/v1/arena/(.*)", "destination": "/api/arena" },
     { "source": "/v1/arena",      "destination": "/api/arena" },
     { "source": "/v1/report-bug",          "destination": "/api/report-bug" },
