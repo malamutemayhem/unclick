@@ -93,8 +93,7 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { runCouncilEngine } from "../src/lib/crews/engine";
-import { emitSignal } from "../src/lib/signals/emit";
+import { buildCard, type ConversationalCard } from "../packages/mcp-server/src/cards/card.js";
 import { streamText, tool, stepCountIs, convertToModelMessages, type UIMessage, type ModelMessage } from "ai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
@@ -5008,9 +5007,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
         if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
-        if (!process.env.ANTHROPIC_API_KEY) {
-          return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured in Vercel env." });
-        }
         const { crew_id, task_prompt, token_budget } = (req.body ?? {}) as {
           crew_id?: string;
           task_prompt?: string;
@@ -5019,6 +5015,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!crew_id || !task_prompt?.trim()) {
           return res.status(400).json({ error: "crew_id and task_prompt required" });
         }
+        // User-facing runs now route LLM traffic through MCP sampling. The HTTP
+        // path cannot do bidirectional sampling, so we create the run row for
+        // bookkeeping and return a card asking the caller to re-run via MCP.
         const { data: runRow, error: runErr } = await supabase
           .from("mc_crew_runs")
           .insert({
@@ -5026,44 +5025,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             crew_id,
             task_prompt: task_prompt.trim(),
             token_budget: token_budget ?? 150000,
-            status: "pending",
+            status: "failed",
+            result_artifact: {
+              error: "SAMPLING_NOT_SUPPORTED",
+              message:
+                "Orchestrator does not support sampling. Use Claude Desktop or another sampling-capable client.",
+            },
+            completed_at: new Date().toISOString(),
           })
           .select()
           .single();
         if (runErr) throw runErr;
-        // Respond immediately - engine runs after response, Vercel keeps function alive
-        res.status(202).json({ run_id: runRow.id });
-        await runCouncilEngine({
-          runId: runRow.id,
-          crewId: crew_id,
-          apiKeyHash,
-          taskPrompt: task_prompt.trim(),
-          tokenBudget: token_budget ?? 150000,
-          supabaseUrl,
-          serviceRoleKey: supabaseKey,
-        })
-          .then(() => {
-            void emitSignal({
-              apiKeyHash,
-              tool: "crews",
-              action: "run_complete",
-              severity: "info",
-              summary: "Crew run finished",
-              deepLink: `/admin/crews/runs/${runRow.id}`,
-            });
-          })
-          .catch((e: Error) => {
-            console.error("Council engine error:", e.message);
-            void emitSignal({
-              apiKeyHash,
-              tool: "crews",
-              action: "run_failed",
-              severity: "critical",
-              summary: `Crew run failed: ${e.message}`,
-              deepLink: `/admin/crews/runs/${runRow.id}`,
-            });
-          });
-        return;
+        const card: ConversationalCard = buildCard({
+          headline: "Crews Council run needs MCP sampling",
+          summary:
+            "This HTTP endpoint cannot run a Council round because LLM traffic now flows through MCP sampling. Start the run from a sampling-capable client (e.g. Claude Desktop) using the start_crew_run MCP tool.",
+          keyFacts: [
+            `run_id: ${runRow.id}`,
+            `crew_id: ${crew_id}`,
+            "status: failed (SAMPLING_NOT_SUPPORTED)",
+          ],
+          nextActions: [
+            "Install the UnClick MCP server in a sampling-capable client",
+            "Call the start_crew_run MCP tool with the same crew_id and task_prompt",
+          ],
+          deepLink: `/admin/crews/runs/${runRow.id}`,
+        });
+        return res.status(409).json({
+          error: "SAMPLING_NOT_SUPPORTED",
+          run_id: runRow.id,
+          card,
+        });
       }
 
       case "get_run": {
@@ -5089,7 +5081,51 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ]);
         if (runRes.error) throw runRes.error;
         if (!runRes.data) return res.status(404).json({ error: "Run not found" });
-        return res.status(200).json({ run: runRes.data, messages: msgsRes.data ?? [] });
+        const run = runRes.data as {
+          id: string;
+          status: string;
+          task_prompt: string;
+          tokens_used: number | null;
+          result_artifact: Record<string, unknown> | null;
+          started_at: string | null;
+          completed_at: string | null;
+        };
+        const messages = (msgsRes.data ?? []) as Array<{ stage?: string }>;
+        const stageCounts = messages.reduce<Record<string, number>>((acc, m) => {
+          const s = m.stage ?? "unknown";
+          acc[s] = (acc[s] ?? 0) + 1;
+          return acc;
+        }, {});
+        const stageSummary = Object.entries(stageCounts)
+          .map(([s, n]) => `${s}: ${n}`)
+          .join(", ") || "none";
+        const errArtifact = run.result_artifact as { error?: string; message?: string } | null;
+        const errorLine = errArtifact?.error
+          ? `error: ${errArtifact.error}${errArtifact.message ? ` (${errArtifact.message})` : ""}`
+          : null;
+        const card: ConversationalCard = buildCard({
+          headline: `Crews run ${run.status}`,
+          summary: run.task_prompt.slice(0, 240),
+          keyFacts: [
+            `run_id: ${run.id}`,
+            `status: ${run.status}`,
+            `tokens_used: ${run.tokens_used ?? 0}`,
+            `stages: ${stageSummary}`,
+            ...(errorLine ? [errorLine] : []),
+          ],
+          nextActions:
+            run.status === "complete"
+              ? ["Open the admin run page to review the synthesis"]
+              : run.status === "failed"
+                ? ["Inspect result_artifact for the failure reason", "Start a new run via MCP sampling"]
+                : ["Poll get_run until status is complete or failed"],
+          deepLink: `/admin/crews/runs/${run.id}`,
+        });
+        return res.status(200).json({
+          run: runRes.data,
+          messages: msgsRes.data ?? [],
+          card,
+        });
       }
 
       case "list_runs": {
@@ -5113,7 +5149,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (crewId) q = q.eq("crew_id", crewId);
         const { data, error } = await q;
         if (error) throw error;
-        return res.status(200).json({ data: data ?? [] });
+        const rows = (data ?? []) as Array<{
+          id: string;
+          crew_id: string;
+          status: string;
+          task_prompt: string;
+        }>;
+        const recent = rows.slice(0, 3).map((r) => {
+          const preview = r.task_prompt.length > 40
+            ? r.task_prompt.slice(0, 40) + "..."
+            : r.task_prompt;
+          return `${r.id} (${r.status}): ${preview}`;
+        });
+        const card: ConversationalCard = buildCard({
+          headline: `Found ${rows.length} Crews run${rows.length === 1 ? "" : "s"}`,
+          summary: crewId
+            ? `Runs for crew ${crewId}, newest first.`
+            : "All runs for this API key, newest first.",
+          keyFacts: [
+            `total: ${rows.length}`,
+            ...(recent.length > 0 ? recent : ["no runs yet"]),
+          ],
+          nextActions:
+            rows.length === 0
+              ? ["Call start_crew_run via MCP to kick off your first run"]
+              : [
+                  "Call get_run with a run_id to inspect a specific run",
+                  "Call start_crew_run via MCP to start a new one",
+                ],
+          deepLink: "/admin/crews/runs",
+        });
+        return res.status(200).json({ data: rows, card });
       }
 
       // ─── TestPass run management (Phase 9A visual UI) ─────────────────────
