@@ -116,7 +116,7 @@ export default function CrewRun() {
 
   const runError = run?.result_artifact?.error;
   const budgetExceeded = runError === "token_budget_exceeded";
-  const apiMissing = runError === "ANTHROPIC_API_KEY not configured in Vercel env.";
+  const samplingMissing = runError === "SAMPLING_NOT_SUPPORTED";
 
   function copyToClipboard() {
     void navigator.clipboard.writeText(synthMain).then(() => {
@@ -162,8 +162,8 @@ export default function CrewRun() {
             <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4 text-sm text-rose-400">
               {budgetExceeded
                 ? "This run used more words than the budget allows. Try a shorter task, or bump the budget in Settings."
-                : apiMissing
-                ? "Claude API not configured. Ask Bailey or check Vercel env vars."
+                : samplingMissing
+                ? "This run needs MCP sampling. Start it from Claude Desktop (or another sampling-capable client) using the start_crew_run MCP tool."
                 : (runError ?? "Run failed.")}
             </div>
           )}
