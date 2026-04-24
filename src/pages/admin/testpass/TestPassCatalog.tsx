@@ -21,7 +21,7 @@ export default function TestPassCatalog() {
   const token = session?.access_token;
   const authHeader = useMemo(() => (token ? { Authorization: `Bearer ${token}` } : {}), [token]);
 
-  const [tab, setTab] = useState<"runs" | "packs">("runs");
+  const [tab, setTab] = useState<"runs" | "packs" | "reports">("runs");
   const [runs, setRuns] = useState<RunRow[]>([]);
   const [packs, setPacks] = useState<PackCard[]>([]);
   const [loadingRuns, setLoadingRuns] = useState(false);
@@ -74,8 +74,8 @@ export default function TestPassCatalog() {
       </div>
 
       <div className="mb-6 flex gap-1 rounded-lg border border-white/[0.06] bg-[#111] p-1 w-fit">
-        {(["runs", "packs"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
+        {(["runs", "packs", "reports"] as const).map((t) => (
+          <button key={t} onClick={() => { if (t === "reports") { navigate("/admin/testpass/reports"); } else { setTab(t); } }}
             className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors capitalize ${tab === t ? "bg-white/[0.08] text-white" : "text-[#888] hover:text-white"}`}>
             {t}
           </button>
