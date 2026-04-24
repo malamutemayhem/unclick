@@ -5089,6 +5089,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           result_artifact: Record<string, unknown> | null;
           started_at: string | null;
           completed_at: string | null;
+          crew_id?: string;
         };
         const messages = (msgsRes.data ?? []) as Array<{ stage?: string }>;
         const stageCounts = messages.reduce<Record<string, number>>((acc, m) => {
@@ -5103,6 +5104,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const errorLine = errArtifact?.error
           ? `error: ${errArtifact.error}${errArtifact.message ? ` (${errArtifact.message})` : ""}`
           : null;
+        let agents: unknown[] = [];
+        if (run.crew_id) {
+          const crewRes = await supabase
+            .from("mc_crews")
+            .select("agent_ids")
+            .eq("id", run.crew_id)
+            .eq("api_key_hash", apiKeyHash)
+            .maybeSingle();
+          const agentIds: string[] = (crewRes.data as { agent_ids?: string[] } | null)?.agent_ids ?? [];
+          if (agentIds.length > 0) {
+            const { data: agentRows } = await supabase
+              .from("mc_agents")
+              .select("id,slug,name,category,colour_token")
+              .in("id", agentIds);
+            agents = agentRows ?? [];
+          }
+          const hasChairman = (agents as { slug?: string }[]).some((a) => a.slug === "chairman");
+          if (!hasChairman) {
+            const { data: chairRow } = await supabase
+              .from("mc_agents")
+              .select("id,slug,name,category,colour_token")
+              .eq("slug", "chairman")
+              .eq("is_system", true)
+              .maybeSingle();
+            if (chairRow) agents = [...agents, chairRow];
+          }
+        }
+        const agentNames = (agents as { name?: string }[]).map((a) => a.name).filter(Boolean).join(", ");
         const card: ConversationalCard = buildCard({
           headline: `Crews run ${run.status}`,
           summary: run.task_prompt.slice(0, 240),
@@ -5111,6 +5140,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             `status: ${run.status}`,
             `tokens_used: ${run.tokens_used ?? 0}`,
             `stages: ${stageSummary}`,
+            ...(agentNames ? [`agents: ${agentNames}`] : []),
             ...(errorLine ? [errorLine] : []),
           ],
           nextActions:
@@ -5124,6 +5154,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({
           run: runRes.data,
           messages: msgsRes.data ?? [],
+          agents,
           card,
         });
       }
