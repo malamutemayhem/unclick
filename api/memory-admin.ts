@@ -5203,6 +5203,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .eq("id", pack_id)
           .maybeSingle();
         if (!pack) return res.status(404).json({ error: "Pack not found" });
+
+        // Resolve api_key_hash for report linking (two-layer: raw key or session JWT)
+        const tpApiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+
+        // Find or create open report for this (api_key_hash, target, pack_id)
+        let reportId: string | null = null;
+        if (tpApiKeyHash) {
+          const { data: existingReport } = await supabase
+            .from("mc_testpass_reports")
+            .select("id, run_sequence")
+            .eq("api_key_hash", tpApiKeyHash)
+            .eq("target", target)
+            .eq("pack_id", pack_id)
+            .eq("status", "open")
+            .maybeSingle();
+          if (existingReport) {
+            reportId = existingReport.id as string;
+          } else {
+            const { data: newReport } = await supabase
+              .from("mc_testpass_reports")
+              .insert({
+                api_key_hash: tpApiKeyHash,
+                target,
+                pack_id,
+                status: "open",
+                run_sequence: [],
+              })
+              .select("id")
+              .maybeSingle();
+            if (newReport) reportId = newReport.id as string;
+          }
+        }
+
         const host = req.headers.host ?? "localhost:3000";
         const proto = host.includes("localhost") ? "http" : "https";
         const engineRes = await fetch(`${proto}://${host}/api/testpass`, {
@@ -5222,7 +5255,174 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
         const engineBody = (await engineRes.json().catch(() => ({}))) as Record<string, unknown>;
         if (!engineRes.ok) return res.status(engineRes.status).json(engineBody);
-        return res.status(200).json({ run_id: engineBody.run_id });
+
+        const runId = engineBody.run_id as string | undefined;
+
+        // Link run to report and append to run_sequence
+        if (runId && reportId && tpApiKeyHash) {
+          await supabase
+            .from("testpass_runs")
+            .update({ report_id: reportId })
+            .eq("id", runId);
+
+          // Append run to report's sequence via array append
+          const { data: currentReport } = await supabase
+            .from("mc_testpass_reports")
+            .select("run_sequence")
+            .eq("id", reportId)
+            .maybeSingle();
+          const currentSeq = (currentReport?.run_sequence as string[] | null) ?? [];
+          await supabase
+            .from("mc_testpass_reports")
+            .update({ run_sequence: [...currentSeq, runId] })
+            .eq("id", reportId);
+
+          // Check if all items in this run are Pass or N/A - if so, close the report
+          const summary = engineBody.summary as Record<string, number> | undefined;
+          if (summary) {
+            const failCount = summary.fail ?? 0;
+            const pendingCount = summary.pending ?? 0;
+            if (failCount === 0 && pendingCount === 0) {
+              const closedAt = new Date().toISOString();
+              await supabase
+                .from("mc_testpass_reports")
+                .update({ status: "complete", closed_at: closedAt })
+                .eq("id", reportId);
+              void emitSignal({
+                apiKeyHash: tpApiKeyHash,
+                tool: "testpass",
+                action: "report_closed",
+                severity: "info",
+                summary: "All checks cleared. Report closed.",
+                deepLink: `/admin/testpass/reports/${reportId}`,
+              });
+            } else {
+              void emitSignal({
+                apiKeyHash: tpApiKeyHash,
+                tool: "testpass",
+                action: "report_stalled",
+                severity: "action_needed",
+                summary: `Report has ${failCount} failing check${failCount === 1 ? "" : "s"}. Run again after fixes.`,
+                deepLink: `/admin/testpass/reports/${reportId}`,
+              });
+            }
+          }
+
+          void emitSignal({
+            apiKeyHash: tpApiKeyHash,
+            tool: "testpass",
+            action: "run_complete",
+            severity: "info",
+            summary: `TestPass run completed for ${target}`,
+            deepLink: `/admin/testpass/runs/${runId}`,
+          });
+        }
+
+        return res.status(200).json({ run_id: runId, report_id: reportId });
+      }
+
+      // ─── TestPass Phase 9B: report actions ────────────────────────────────
+
+      case "get_report": {
+        const tpUser = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!tpUser) return res.status(401).json({ error: "Authorization header required" });
+        const grApiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!grApiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const reportId = (req.body?.report_id ?? req.query.report_id ?? "") as string;
+        if (!reportId) return res.status(400).json({ error: "report_id required" });
+        const [reportRes, runsRes] = await Promise.all([
+          supabase
+            .from("mc_testpass_reports")
+            .select("*")
+            .eq("id", reportId)
+            .eq("api_key_hash", grApiKeyHash)
+            .maybeSingle(),
+          supabase
+            .from("testpass_runs")
+            .select("id, status, verdict_summary, started_at, completed_at, pack_name, target, profile")
+            .eq("report_id", reportId)
+            .order("started_at", { ascending: true }),
+        ]);
+        if (reportRes.error) throw reportRes.error;
+        if (!reportRes.data) return res.status(404).json({ error: "Report not found" });
+        if (runsRes.error) throw runsRes.error;
+        const runsRaw = runsRes.data ?? [];
+        type VerdictSummary = { check?: number; fail?: number; na?: number; other?: number; pending?: number };
+        const runsWithMeta = runsRaw.map((r, idx) => {
+          const vs = (r.verdict_summary ?? {}) as VerdictSummary;
+          const pass = vs.check ?? 0;
+          const fail = vs.fail ?? 0;
+          const na = vs.na ?? 0;
+          let delta: { fixed: number; new_fails: number } | null = null;
+          if (idx > 0) {
+            const prev = (runsRaw[idx - 1].verdict_summary ?? {}) as VerdictSummary;
+            delta = {
+              fixed: Math.max(0, (prev.fail ?? 0) - fail),
+              new_fails: Math.max(0, fail - (prev.fail ?? 0)),
+            };
+          }
+          return { ...r, run_number: idx + 1, pass, fail, na, delta };
+        });
+        return res.status(200).json({ report: reportRes.data, runs: runsWithMeta });
+      }
+
+      case "list_reports": {
+        const lrUser = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!lrUser) return res.status(401).json({ error: "Authorization header required" });
+        const lrApiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!lrApiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const lrBody = (req.body ?? {}) as { status?: string; target?: string; limit?: number };
+        const lrLimit = Math.min(Number(lrBody.limit ?? req.query.limit ?? 50), 200);
+        const lrStatus = (lrBody.status ?? req.query.status ?? "") as string;
+        const lrTarget = (lrBody.target ?? req.query.target ?? "") as string;
+        let lrQ = supabase
+          .from("mc_testpass_reports")
+          .select("*")
+          .eq("api_key_hash", lrApiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(lrLimit);
+        if (lrStatus) lrQ = lrQ.eq("status", lrStatus);
+        if (lrTarget) lrQ = lrQ.ilike("target", `%${lrTarget}%`);
+        const { data: reports, error: lrErr } = await lrQ;
+        if (lrErr) throw lrErr;
+        const reportsWithMeta = await Promise.all(
+          (reports ?? []).map(async (rpt) => {
+            const runSeq = (rpt.run_sequence as string[] | null) ?? [];
+            const runCount = runSeq.length;
+            let latestRun: Record<string, unknown> | null = null;
+            if (runCount > 0) {
+              const lastRunId = runSeq[runCount - 1];
+              const { data: lr } = await supabase
+                .from("testpass_runs")
+                .select("id, status, verdict_summary, started_at, completed_at")
+                .eq("id", lastRunId)
+                .maybeSingle();
+              latestRun = lr as Record<string, unknown> | null;
+            }
+            return { report: rpt, latest_run: latestRun, run_count: runCount };
+          })
+        );
+        return res.status(200).json({ reports: reportsWithMeta });
+      }
+
+      case "abandon_report": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const arUser = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!arUser) return res.status(401).json({ error: "Authorization header required" });
+        const arApiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!arApiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const arReportId = (req.body?.report_id ?? "") as string;
+        if (!arReportId) return res.status(400).json({ error: "report_id required" });
+        const { data: arData, error: arErr } = await supabase
+          .from("mc_testpass_reports")
+          .update({ status: "abandoned", closed_at: new Date().toISOString() })
+          .eq("id", arReportId)
+          .eq("api_key_hash", arApiKeyHash)
+          .select("*")
+          .maybeSingle();
+        if (arErr) throw arErr;
+        if (!arData) return res.status(404).json({ error: "Report not found" });
+        return res.status(200).json({ report: arData });
       }
 
       // ─── Signals Phase 1: notifications hub ───────────────────────────────

@@ -1,11 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, Check, ClipboardCopy, Download, Loader2, MessageSquare, X } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import { SEVERITY_BADGE, STATUS_LABEL, STATUS_PILL, VERDICT_ICON, elapsedLabel, fmtDate } from "./testpass-ui";
 
 type VS = { check?: number; fail?: number; na?: number; other?: number; pending?: number };
-interface RunData { id: string; pack_name: string; target: { url?: string }; profile: string; started_at: string; completed_at?: string; status: string; verdict_summary: VS; }
+interface RunData { id: string; pack_name: string; target: { url?: string }; profile: string; started_at: string; completed_at?: string; status: string; verdict_summary: VS; report_id?: string | null; }
+interface ReportBreadcrumb { id: string; target: string; run_sequence: string[]; }
+
+function useReportBreadcrumb(reportId: string | null | undefined, authHeader: Record<string, string>) {
+  const [reportInfo, setReportInfo] = useState<ReportBreadcrumb | null>(null);
+  useEffect(() => {
+    if (!reportId) return;
+    void fetch(`/api/memory-admin?action=get_report&report_id=${encodeURIComponent(reportId)}`, { headers: authHeader })
+      .then((r) => r.json().catch(() => ({})))
+      .then((body) => {
+        if (body.report) {
+          setReportInfo({ id: body.report.id as string, target: body.report.target as string, run_sequence: body.report.run_sequence as string[] });
+        }
+      })
+      .catch(() => undefined);
+  }, [reportId, authHeader]);
+  return reportInfo;
+}
 interface CheckItem { id: string; check_id: string; title: string; category: string; severity: "critical"|"high"|"medium"|"low"; verdict: "check"|"na"|"fail"|"other"|"pending"; on_fail_comment?: string|null; fix_recipe?: string[]|null; }
 
 export default function RunDetail() {
@@ -16,6 +33,7 @@ export default function RunDetail() {
   const authHeader = useMemo(() => (token ? { Authorization: `Bearer ${token}` } : {}), [token]);
 
   const [run, setRun] = useState<RunData | null>(null);
+  const reportBreadcrumb = useReportBreadcrumb(run?.report_id, authHeader);
   const [items, setItems] = useState<CheckItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +86,14 @@ export default function RunDetail() {
   return (
     <div className="flex flex-col gap-0">
       <button onClick={() => navigate("/admin/testpass")} className="mb-4 flex items-center gap-1.5 text-sm text-[#888] hover:text-white w-fit"><ArrowLeft className="h-4 w-4" /> All runs</button>
+      {reportBreadcrumb && run?.report_id && (
+        <p className="mb-3 text-xs text-[#666]">
+          Run {(reportBreadcrumb.run_sequence.indexOf(runId ?? "") + 1) || "?"} of {reportBreadcrumb.run_sequence.length} in report for{" "}
+          <Link to={`/admin/testpass/reports/${run.report_id}`} className="text-[#61C1C4] hover:underline">
+            {reportBreadcrumb.target}
+          </Link>
+        </p>
+      )}
 
       <div className="mb-6 rounded-xl border border-white/[0.06] bg-[#111] p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
