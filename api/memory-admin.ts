@@ -93,8 +93,7 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { runCouncilEngine } from "../src/lib/crews/engine";
-import { emitSignal } from "../src/lib/signals/emit";
+import { buildCard, type ConversationalCard } from "../packages/mcp-server/src/cards/card.js";
 import { streamText, tool, stepCountIs, convertToModelMessages, type UIMessage, type ModelMessage } from "ai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
@@ -5008,9 +5007,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
         if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
-        if (!process.env.ANTHROPIC_API_KEY) {
-          return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured in Vercel env." });
-        }
         const { crew_id, task_prompt, token_budget } = (req.body ?? {}) as {
           crew_id?: string;
           task_prompt?: string;
@@ -5019,6 +5015,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!crew_id || !task_prompt?.trim()) {
           return res.status(400).json({ error: "crew_id and task_prompt required" });
         }
+        // User-facing runs now route LLM traffic through MCP sampling. The HTTP
+        // path cannot do bidirectional sampling, so we create the run row for
+        // bookkeeping and return a card asking the caller to re-run via MCP.
         const { data: runRow, error: runErr } = await supabase
           .from("mc_crew_runs")
           .insert({
@@ -5026,44 +5025,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             crew_id,
             task_prompt: task_prompt.trim(),
             token_budget: token_budget ?? 150000,
-            status: "pending",
+            status: "failed",
+            result_artifact: {
+              error: "SAMPLING_NOT_SUPPORTED",
+              message:
+                "Orchestrator does not support sampling. Use Claude Desktop or another sampling-capable client.",
+            },
+            completed_at: new Date().toISOString(),
           })
           .select()
           .single();
         if (runErr) throw runErr;
-        // Respond immediately - engine runs after response, Vercel keeps function alive
-        res.status(202).json({ run_id: runRow.id });
-        await runCouncilEngine({
-          runId: runRow.id,
-          crewId: crew_id,
-          apiKeyHash,
-          taskPrompt: task_prompt.trim(),
-          tokenBudget: token_budget ?? 150000,
-          supabaseUrl,
-          serviceRoleKey: supabaseKey,
-        })
-          .then(() => {
-            void emitSignal({
-              apiKeyHash,
-              tool: "crews",
-              action: "run_complete",
-              severity: "info",
-              summary: "Crew run finished",
-              deepLink: `/admin/crews/runs/${runRow.id}`,
-            });
-          })
-          .catch((e: Error) => {
-            console.error("Council engine error:", e.message);
-            void emitSignal({
-              apiKeyHash,
-              tool: "crews",
-              action: "run_failed",
-              severity: "critical",
-              summary: `Crew run failed: ${e.message}`,
-              deepLink: `/admin/crews/runs/${runRow.id}`,
-            });
-          });
-        return;
+        const card: ConversationalCard = buildCard({
+          headline: "Crews Council run needs MCP sampling",
+          summary:
+            "This HTTP endpoint cannot run a Council round because LLM traffic now flows through MCP sampling. Start the run from a sampling-capable client (e.g. Claude Desktop) using the start_crew_run MCP tool.",
+          keyFacts: [
+            `run_id: ${runRow.id}`,
+            `crew_id: ${crew_id}`,
+            "status: failed (SAMPLING_NOT_SUPPORTED)",
+          ],
+          nextActions: [
+            "Install the UnClick MCP server in a sampling-capable client",
+            "Call the start_crew_run MCP tool with the same crew_id and task_prompt",
+          ],
+          deepLink: `/admin/crews/runs/${runRow.id}`,
+        });
+        return res.status(409).json({
+          error: "SAMPLING_NOT_SUPPORTED",
+          run_id: runRow.id,
+          card,
+        });
       }
 
       case "get_run": {
@@ -5089,7 +5081,82 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ]);
         if (runRes.error) throw runRes.error;
         if (!runRes.data) return res.status(404).json({ error: "Run not found" });
-        return res.status(200).json({ run: runRes.data, messages: msgsRes.data ?? [] });
+        const run = runRes.data as {
+          id: string;
+          status: string;
+          task_prompt: string;
+          tokens_used: number | null;
+          result_artifact: Record<string, unknown> | null;
+          started_at: string | null;
+          completed_at: string | null;
+          crew_id?: string;
+        };
+        const messages = (msgsRes.data ?? []) as Array<{ stage?: string }>;
+        const stageCounts = messages.reduce<Record<string, number>>((acc, m) => {
+          const s = m.stage ?? "unknown";
+          acc[s] = (acc[s] ?? 0) + 1;
+          return acc;
+        }, {});
+        const stageSummary = Object.entries(stageCounts)
+          .map(([s, n]) => `${s}: ${n}`)
+          .join(", ") || "none";
+        const errArtifact = run.result_artifact as { error?: string; message?: string } | null;
+        const errorLine = errArtifact?.error
+          ? `error: ${errArtifact.error}${errArtifact.message ? ` (${errArtifact.message})` : ""}`
+          : null;
+        let agents: unknown[] = [];
+        if (run.crew_id) {
+          const crewRes = await supabase
+            .from("mc_crews")
+            .select("agent_ids")
+            .eq("id", run.crew_id)
+            .eq("api_key_hash", apiKeyHash)
+            .maybeSingle();
+          const agentIds: string[] = (crewRes.data as { agent_ids?: string[] } | null)?.agent_ids ?? [];
+          if (agentIds.length > 0) {
+            const { data: agentRows } = await supabase
+              .from("mc_agents")
+              .select("id,slug,name,category,colour_token")
+              .in("id", agentIds);
+            agents = agentRows ?? [];
+          }
+          const hasChairman = (agents as { slug?: string }[]).some((a) => a.slug === "chairman");
+          if (!hasChairman) {
+            const { data: chairRow } = await supabase
+              .from("mc_agents")
+              .select("id,slug,name,category,colour_token")
+              .eq("slug", "chairman")
+              .eq("is_system", true)
+              .maybeSingle();
+            if (chairRow) agents = [...agents, chairRow];
+          }
+        }
+        const agentNames = (agents as { name?: string }[]).map((a) => a.name).filter(Boolean).join(", ");
+        const card: ConversationalCard = buildCard({
+          headline: `Crews run ${run.status}`,
+          summary: run.task_prompt.slice(0, 240),
+          keyFacts: [
+            `run_id: ${run.id}`,
+            `status: ${run.status}`,
+            `tokens_used: ${run.tokens_used ?? 0}`,
+            `stages: ${stageSummary}`,
+            ...(agentNames ? [`agents: ${agentNames}`] : []),
+            ...(errorLine ? [errorLine] : []),
+          ],
+          nextActions:
+            run.status === "complete"
+              ? ["Open the admin run page to review the synthesis"]
+              : run.status === "failed"
+                ? ["Inspect result_artifact for the failure reason", "Start a new run via MCP sampling"]
+                : ["Poll get_run until status is complete or failed"],
+          deepLink: `/admin/crews/runs/${run.id}`,
+        });
+        return res.status(200).json({
+          run: runRes.data,
+          messages: msgsRes.data ?? [],
+          agents,
+          card,
+        });
       }
 
       case "list_runs": {
@@ -5113,7 +5180,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (crewId) q = q.eq("crew_id", crewId);
         const { data, error } = await q;
         if (error) throw error;
-        return res.status(200).json({ data: data ?? [] });
+        const rows = (data ?? []) as Array<{
+          id: string;
+          crew_id: string;
+          status: string;
+          task_prompt: string;
+        }>;
+        const recent = rows.slice(0, 3).map((r) => {
+          const preview = r.task_prompt.length > 40
+            ? r.task_prompt.slice(0, 40) + "..."
+            : r.task_prompt;
+          return `${r.id} (${r.status}): ${preview}`;
+        });
+        const card: ConversationalCard = buildCard({
+          headline: `Found ${rows.length} Crews run${rows.length === 1 ? "" : "s"}`,
+          summary: crewId
+            ? `Runs for crew ${crewId}, newest first.`
+            : "All runs for this API key, newest first.",
+          keyFacts: [
+            `total: ${rows.length}`,
+            ...(recent.length > 0 ? recent : ["no runs yet"]),
+          ],
+          nextActions:
+            rows.length === 0
+              ? ["Call start_crew_run via MCP to kick off your first run"]
+              : [
+                  "Call get_run with a run_id to inspect a specific run",
+                  "Call start_crew_run via MCP to start a new one",
+                ],
+          deepLink: "/admin/crews/runs",
+        });
+        return res.status(200).json({ data: rows, card });
       }
 
       // ─── TestPass run management (Phase 9A visual UI) ─────────────────────
@@ -5203,6 +5300,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .eq("id", pack_id)
           .maybeSingle();
         if (!pack) return res.status(404).json({ error: "Pack not found" });
+
+        // Resolve api_key_hash for report linking (two-layer: raw key or session JWT)
+        const tpApiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+
+        // Find or create open report for this (api_key_hash, target, pack_id)
+        let reportId: string | null = null;
+        if (tpApiKeyHash) {
+          const { data: existingReport } = await supabase
+            .from("mc_testpass_reports")
+            .select("id, run_sequence")
+            .eq("api_key_hash", tpApiKeyHash)
+            .eq("target", target)
+            .eq("pack_id", pack_id)
+            .eq("status", "open")
+            .maybeSingle();
+          if (existingReport) {
+            reportId = existingReport.id as string;
+          } else {
+            const { data: newReport } = await supabase
+              .from("mc_testpass_reports")
+              .insert({
+                api_key_hash: tpApiKeyHash,
+                target,
+                pack_id,
+                status: "open",
+                run_sequence: [],
+              })
+              .select("id")
+              .maybeSingle();
+            if (newReport) reportId = newReport.id as string;
+          }
+        }
+
         const host = req.headers.host ?? "localhost:3000";
         const proto = host.includes("localhost") ? "http" : "https";
         const engineRes = await fetch(`${proto}://${host}/api/testpass`, {
@@ -5222,7 +5352,174 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
         const engineBody = (await engineRes.json().catch(() => ({}))) as Record<string, unknown>;
         if (!engineRes.ok) return res.status(engineRes.status).json(engineBody);
-        return res.status(200).json({ run_id: engineBody.run_id });
+
+        const runId = engineBody.run_id as string | undefined;
+
+        // Link run to report and append to run_sequence
+        if (runId && reportId && tpApiKeyHash) {
+          await supabase
+            .from("testpass_runs")
+            .update({ report_id: reportId })
+            .eq("id", runId);
+
+          // Append run to report's sequence via array append
+          const { data: currentReport } = await supabase
+            .from("mc_testpass_reports")
+            .select("run_sequence")
+            .eq("id", reportId)
+            .maybeSingle();
+          const currentSeq = (currentReport?.run_sequence as string[] | null) ?? [];
+          await supabase
+            .from("mc_testpass_reports")
+            .update({ run_sequence: [...currentSeq, runId] })
+            .eq("id", reportId);
+
+          // Check if all items in this run are Pass or N/A - if so, close the report
+          const summary = engineBody.summary as Record<string, number> | undefined;
+          if (summary) {
+            const failCount = summary.fail ?? 0;
+            const pendingCount = summary.pending ?? 0;
+            if (failCount === 0 && pendingCount === 0) {
+              const closedAt = new Date().toISOString();
+              await supabase
+                .from("mc_testpass_reports")
+                .update({ status: "complete", closed_at: closedAt })
+                .eq("id", reportId);
+              void emitSignal({
+                apiKeyHash: tpApiKeyHash,
+                tool: "testpass",
+                action: "report_closed",
+                severity: "info",
+                summary: "All checks cleared. Report closed.",
+                deepLink: `/admin/testpass/reports/${reportId}`,
+              });
+            } else {
+              void emitSignal({
+                apiKeyHash: tpApiKeyHash,
+                tool: "testpass",
+                action: "report_stalled",
+                severity: "action_needed",
+                summary: `Report has ${failCount} failing check${failCount === 1 ? "" : "s"}. Run again after fixes.`,
+                deepLink: `/admin/testpass/reports/${reportId}`,
+              });
+            }
+          }
+
+          void emitSignal({
+            apiKeyHash: tpApiKeyHash,
+            tool: "testpass",
+            action: "run_complete",
+            severity: "info",
+            summary: `TestPass run completed for ${target}`,
+            deepLink: `/admin/testpass/runs/${runId}`,
+          });
+        }
+
+        return res.status(200).json({ run_id: runId, report_id: reportId });
+      }
+
+      // ─── TestPass Phase 9B: report actions ────────────────────────────────
+
+      case "get_report": {
+        const tpUser = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!tpUser) return res.status(401).json({ error: "Authorization header required" });
+        const grApiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!grApiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const reportId = (req.body?.report_id ?? req.query.report_id ?? "") as string;
+        if (!reportId) return res.status(400).json({ error: "report_id required" });
+        const [reportRes, runsRes] = await Promise.all([
+          supabase
+            .from("mc_testpass_reports")
+            .select("*")
+            .eq("id", reportId)
+            .eq("api_key_hash", grApiKeyHash)
+            .maybeSingle(),
+          supabase
+            .from("testpass_runs")
+            .select("id, status, verdict_summary, started_at, completed_at, pack_name, target, profile")
+            .eq("report_id", reportId)
+            .order("started_at", { ascending: true }),
+        ]);
+        if (reportRes.error) throw reportRes.error;
+        if (!reportRes.data) return res.status(404).json({ error: "Report not found" });
+        if (runsRes.error) throw runsRes.error;
+        const runsRaw = runsRes.data ?? [];
+        type VerdictSummary = { check?: number; fail?: number; na?: number; other?: number; pending?: number };
+        const runsWithMeta = runsRaw.map((r, idx) => {
+          const vs = (r.verdict_summary ?? {}) as VerdictSummary;
+          const pass = vs.check ?? 0;
+          const fail = vs.fail ?? 0;
+          const na = vs.na ?? 0;
+          let delta: { fixed: number; new_fails: number } | null = null;
+          if (idx > 0) {
+            const prev = (runsRaw[idx - 1].verdict_summary ?? {}) as VerdictSummary;
+            delta = {
+              fixed: Math.max(0, (prev.fail ?? 0) - fail),
+              new_fails: Math.max(0, fail - (prev.fail ?? 0)),
+            };
+          }
+          return { ...r, run_number: idx + 1, pass, fail, na, delta };
+        });
+        return res.status(200).json({ report: reportRes.data, runs: runsWithMeta });
+      }
+
+      case "list_reports": {
+        const lrUser = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!lrUser) return res.status(401).json({ error: "Authorization header required" });
+        const lrApiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!lrApiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const lrBody = (req.body ?? {}) as { status?: string; target?: string; limit?: number };
+        const lrLimit = Math.min(Number(lrBody.limit ?? req.query.limit ?? 50), 200);
+        const lrStatus = (lrBody.status ?? req.query.status ?? "") as string;
+        const lrTarget = (lrBody.target ?? req.query.target ?? "") as string;
+        let lrQ = supabase
+          .from("mc_testpass_reports")
+          .select("*")
+          .eq("api_key_hash", lrApiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(lrLimit);
+        if (lrStatus) lrQ = lrQ.eq("status", lrStatus);
+        if (lrTarget) lrQ = lrQ.ilike("target", `%${lrTarget}%`);
+        const { data: reports, error: lrErr } = await lrQ;
+        if (lrErr) throw lrErr;
+        const reportsWithMeta = await Promise.all(
+          (reports ?? []).map(async (rpt) => {
+            const runSeq = (rpt.run_sequence as string[] | null) ?? [];
+            const runCount = runSeq.length;
+            let latestRun: Record<string, unknown> | null = null;
+            if (runCount > 0) {
+              const lastRunId = runSeq[runCount - 1];
+              const { data: lr } = await supabase
+                .from("testpass_runs")
+                .select("id, status, verdict_summary, started_at, completed_at")
+                .eq("id", lastRunId)
+                .maybeSingle();
+              latestRun = lr as Record<string, unknown> | null;
+            }
+            return { report: rpt, latest_run: latestRun, run_count: runCount };
+          })
+        );
+        return res.status(200).json({ reports: reportsWithMeta });
+      }
+
+      case "abandon_report": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const arUser = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!arUser) return res.status(401).json({ error: "Authorization header required" });
+        const arApiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!arApiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const arReportId = (req.body?.report_id ?? "") as string;
+        if (!arReportId) return res.status(400).json({ error: "report_id required" });
+        const { data: arData, error: arErr } = await supabase
+          .from("mc_testpass_reports")
+          .update({ status: "abandoned", closed_at: new Date().toISOString() })
+          .eq("id", arReportId)
+          .eq("api_key_hash", arApiKeyHash)
+          .select("*")
+          .maybeSingle();
+        if (arErr) throw arErr;
+        if (!arData) return res.status(404).json({ error: "Report not found" });
+        return res.status(200).json({ report: arData });
       }
 
       // ─── Signals Phase 1: notifications hub ───────────────────────────────

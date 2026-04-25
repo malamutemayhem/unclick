@@ -57,6 +57,8 @@ import AdminTestPass from "./pages/admin/AdminTestPass.tsx";
 import TestPassCatalog from "./pages/admin/testpass/TestPassCatalog.tsx";
 import NewRunWizard from "./pages/admin/testpass/NewRunWizard.tsx";
 import RunDetail from "./pages/admin/testpass/RunDetail.tsx";
+import ReportDetail from "./pages/admin/testpass/ReportDetail.tsx";
+import ReportsList from "./pages/admin/testpass/ReportsList.tsx";
 import CrewsCatalog from "./pages/admin/crews/CrewsCatalog.tsx";
 import CrewComposer from "./pages/admin/crews/CrewComposer.tsx";
 import CrewsRuns from "./pages/admin/crews/CrewsRuns.tsx";
@@ -137,6 +139,8 @@ const App = () => (
             <Route path="testpass/new"          element={<NewRunWizard />} />
             <Route path="testpass/runs/:id"     element={<RunDetail />} />
             <Route path="testpass/packs/:id/edit" element={<AdminTestPass />} />
+            <Route path="testpass/reports"      element={<ReportsList />} />
+            <Route path="testpass/reports/:id"  element={<ReportDetail />} />
             <Route path="crews"          element={<CrewsCatalog />} />
             <Route path="crews/new"      element={<CrewComposer />} />
             <Route path="crews/:id/edit" element={<CrewComposer />} />
