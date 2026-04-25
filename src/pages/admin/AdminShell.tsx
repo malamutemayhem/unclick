@@ -43,6 +43,7 @@ import {
   HeartPulse,
   ShieldCheck,
   ScrollText,
+  Fish,
 } from "lucide-react";
 
 function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
@@ -241,6 +242,7 @@ export default function AdminShell() {
       <>
         <SurfaceLink path="/admin/you"      label="You"                      icon={User}    onClick={onLinkClick} />
         <MemoryNavItem onClick={onLinkClick} />
+        <SurfaceLink path="/admin/fishbowl" label="Fishbowl"                 icon={Fish}     onClick={onLinkClick} />
         <SurfaceLink path="/admin/keychain" label="Keychain (BackstagePass)" icon={KeyRound} onClick={onLinkClick} />
         <SurfaceLink path="/admin/tools"    label="Tools"                    icon={Wrench}   onClick={onLinkClick} />
         <SurfaceLink path="/admin/activity" label="Activity"                 icon={Activity} onClick={onLinkClick} />

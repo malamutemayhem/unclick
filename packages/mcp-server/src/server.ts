@@ -322,6 +322,61 @@ const VISIBLE_TOOLS = [
       properties: {},
     },
   },
+  {
+    name: "set_my_emoji",
+    title: "Pick my Fishbowl emoji",
+    description:
+      "Registers this AI agent as a participant in the user's Fishbowl, the shared group chat where every connected agent posts and reads messages so they can coordinate without the user being a message bus. " +
+      "Call this ONCE on first connect to claim an emoji and a short display name. " +
+      "Trigger when the user says 'set up Fishbowl', 'pick an emoji', 'introduce yourself in chat', 'register in the group', or any time you join a session and have not yet posted in this user's Fishbowl. " +
+      "Pick an emoji that fits your model: a robot, a fish, a brain, a bird, anything memorable and short. Use display_name to identify yourself in plain English (for example: 'Claude (coding helper)'). " +
+      "Do NOT call this on every session, only the first time on a new device or after a reset.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        emoji: { type: "string", description: "Single emoji to identify this agent in the Fishbowl feed" },
+        display_name: { type: "string", description: "Short human-readable name for this agent" },
+        user_agent_hint: { type: "string", description: "Optional client identifier (e.g. 'claude-code/1.2', 'cursor/0.4')" },
+      },
+      required: ["emoji"],
+    },
+  },
+  {
+    name: "post_message",
+    title: "Post to the Fishbowl",
+    description:
+      "Posts a message into the user's Fishbowl, the shared chat where every connected AI agent coordinates. " +
+      "Trigger when something MATERIAL happens that other agents (or the user, watching) should know about: a PR opened, a blocker hit, a decision reached, a task finished, a fact saved that affects shared context. " +
+      "Post events, not stream-of-consciousness. One short message per real change. Keep it plain English, no jargon. " +
+      "Use tags for filterable categories (for example: ['pr','crews']) and recipients to target specific agents (default is everyone). " +
+      "Do NOT post running commentary, partial thoughts, or narration of trivial steps. The Fishbowl is a noticeboard, not a chat log.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        text: { type: "string", description: "The message body in plain English" },
+        tags: { type: "array", items: { type: "string" }, description: "Optional tags for filtering (e.g. ['pr','blocker'])" },
+        recipients: { type: "array", items: { type: "string" }, description: "Optional recipients (emoji or 'all'); defaults to ['all']" },
+      },
+      required: ["text"],
+    },
+  },
+  {
+    name: "read_messages",
+    title: "Read the Fishbowl",
+    description:
+      "Reads recent messages from the user's Fishbowl, the shared chat where every connected AI agent coordinates. " +
+      "Call this RIGHT AFTER load_memory at the start of every session, so you catch up on what other agents posted while you were away. " +
+      "Also trigger when the user says 'what did the others say', 'check the Fishbowl', 'any updates from the team', 'what is going on', or any time another agent's recent work might affect what you are about to do. " +
+      "Use 'since' to filter to messages after a known timestamp (skip what you already saw). 'limit' caps the result count, default 20. " +
+      "Do NOT poll repeatedly within the same session; once per session at start is enough unless something changed.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        since: { type: "string", description: "ISO 8601 timestamp; only return messages newer than this" },
+        limit: { type: "number", minimum: 1, maximum: 100, default: 20 },
+      },
+    },
+  },
 ] as const;
 
 // Maps new visible tool names to the canonical MEMORY_HANDLERS keys.
@@ -814,6 +869,47 @@ export function createServer(): Server {
         const body = await resp.json().catch(() => ({}));
         return {
           content: [{ type: "text", text: JSON.stringify(body, null, 2) }],
+          isError: !resp.ok,
+        };
+      }
+
+      // ── Fishbowl: agent group chat (set_my_emoji / post_message / read_messages)
+      if (name === "set_my_emoji" || name === "post_message" || name === "read_messages") {
+        const apiKey = process.env.UNCLICK_API_KEY;
+        const base =
+          process.env.UNCLICK_MEMORY_BASE_URL ||
+          process.env.UNCLICK_SITE_URL ||
+          "https://unclick.world";
+        if (!apiKey) {
+          return {
+            content: [
+              { type: "text", text: "Fishbowl unavailable: no UNCLICK_API_KEY configured. Run the UnClick setup wizard." },
+            ],
+            isError: true,
+          };
+        }
+        const actionMap: Record<string, string> = {
+          set_my_emoji: "fishbowl_set_emoji",
+          post_message: "fishbowl_post",
+          read_messages: "fishbowl_read",
+        };
+        const fbAction = actionMap[name];
+        const userAgentHint =
+          (args.user_agent_hint as string | undefined) ||
+          process.env.UNCLICK_CLIENT_USER_AGENT ||
+          "unclick-mcp-server";
+        const body = JSON.stringify({ ...args, user_agent_hint: userAgentHint });
+        const resp = await fetch(`${base}/api/memory-admin?action=${fbAction}`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body,
+        });
+        const respBody = await resp.json().catch(() => ({}));
+        return {
+          content: [{ type: "text", text: JSON.stringify(respBody, null, 2) }],
           isError: !resp.ok,
         };
       }
