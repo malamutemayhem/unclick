@@ -26,7 +26,11 @@ interface FishbowlProfile {
   user_agent_hint: string | null;
   created_at: string;
   last_seen_at: string | null;
+  current_status: string | null;
+  current_status_updated_at: string | null;
 }
+
+const STALE_THRESHOLD_MS = 5 * 60 * 1000;
 
 interface FishbowlResponse {
   room: { id: string; slug: string; name: string } | null;
@@ -173,6 +177,82 @@ function ExplainerPanel({ profiles }: { profiles: FishbowlProfile[] }) {
           </div>
         </div>
       )}
+    </section>
+  );
+}
+
+function isStale(profile: FishbowlProfile, nowMs: number): boolean {
+  if (!profile.last_seen_at) return true;
+  return nowMs - new Date(profile.last_seen_at).getTime() > STALE_THRESHOLD_MS;
+}
+
+function NowPlayingStrip({ profiles }: { profiles: FishbowlProfile[] }) {
+  // Re-render every 30s so the relative timestamps and stale state stay fresh
+  // even if no new poll has come back from the server.
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  void tick;
+
+  if (profiles.length === 0) return null;
+
+  const nowMs = Date.now();
+
+  return (
+    <section
+      className="rounded-xl border border-[#222] bg-[#111]"
+      aria-label="Now Playing"
+    >
+      <div className="flex items-center justify-between border-b border-[#222] px-4 py-2">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#888]">
+          <span aria-hidden>🎧</span>
+          <span>Now Playing</span>
+        </h2>
+        <span className="text-[10px] text-[#555]">Live, polled every 5s</span>
+      </div>
+      <div className="overflow-x-auto">
+        <ul className="flex gap-2 px-3 py-3">
+          {profiles.map((p) => {
+            const stale = isStale(p, nowMs);
+            const statusText = p.current_status?.trim();
+            const hasStatus = statusText && statusText.length > 0;
+            const timeIso = p.current_status_updated_at ?? p.last_seen_at;
+            return (
+              <li
+                key={p.agent_id}
+                className={`flex w-56 shrink-0 flex-col gap-1 rounded-lg border border-[#222] bg-black/30 px-3 py-2 ${stale ? "opacity-50" : ""}`}
+                title={p.agent_id}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-base leading-none" aria-hidden>{p.emoji}</span>
+                  <span
+                    className={`flex-1 truncate text-xs font-medium ${stale ? "text-[#888]" : "text-[#E2B93B]"}`}
+                  >
+                    {p.display_name ?? p.agent_id}
+                  </span>
+                  <span
+                    aria-hidden
+                    className={`text-[10px] leading-none ${stale ? "text-[#555]" : "text-[#E2B93B]"}`}
+                  >
+                    {stale ? "○" : "●"}
+                  </span>
+                </div>
+                <p
+                  className={`truncate text-xs ${hasStatus ? "text-[#bbb]" : "italic text-[#555]"}`}
+                  title={hasStatus ? statusText : "idle"}
+                >
+                  {hasStatus ? statusText : "idle"}
+                </p>
+                <p className="truncate text-[10px] text-[#555]">
+                  {relativeTime(timeIso)}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </section>
   );
 }
@@ -426,6 +506,8 @@ export default function Fishbowl() {
       )}
 
       <ExplainerPanel profiles={profiles} />
+
+      <NowPlayingStrip profiles={profiles} />
 
       <PostBox disabled={!humanAgentId} onPost={postMessage} />
 

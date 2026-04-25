@@ -5747,7 +5747,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             },
             { onConflict: "api_key_hash,agent_id" },
           )
-          .select("id, agent_id, emoji, display_name, user_agent_hint, created_at, last_seen_at")
+          .select("id, agent_id, emoji, display_name, user_agent_hint, created_at, last_seen_at, current_status, current_status_updated_at")
           .single();
         if (error) throw error;
         return res.status(200).json({ profile: data });
@@ -5809,9 +5809,64 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             },
             { onConflict: "api_key_hash,agent_id" },
           )
-          .select("id, agent_id, emoji, display_name, user_agent_hint, created_at, last_seen_at")
+          .select("id, agent_id, emoji, display_name, user_agent_hint, created_at, last_seen_at, current_status, current_status_updated_at")
           .single();
         if (error) throw error;
+        return res.status(200).json({ profile: data });
+      }
+
+      case "fishbowl_set_status": {
+        // Updates the agent's free-form Now Playing line. The row must already
+        // exist (set_my_emoji creates it). An empty string clears the status
+        // back to idle. Always bumps last_seen_at so the status timestamp and
+        // the activity timestamp stay coherent.
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) {
+          return res.status(401).json({
+            error: "Authorization header required",
+            how_to_fix: "Pass your UnClick API key as 'Authorization: Bearer <api_key>'. Run the UnClick setup wizard if you do not have one.",
+          });
+        }
+        const body = (req.body ?? {}) as { agent_id?: string | null; status?: string | null };
+
+        const agentId = (body.agent_id ?? "").toString().trim();
+        if (!agentId) {
+          return res.status(400).json({
+            error: "agent_id required",
+            how_to_fix: "Pass the same stable identifier you used for set_my_emoji so the status updates the right profile.",
+          });
+        }
+        if (agentId.length > 128) return res.status(400).json({ error: "agent_id must be at most 128 characters" });
+
+        // Status is required by the schema but an empty string is a valid
+        // "clear me" value, so we only validate length and reject non-strings.
+        if (body.status == null || typeof body.status !== "string") {
+          return res.status(400).json({ error: "status required (string; empty string clears)" });
+        }
+        const statusRaw = body.status;
+        if (statusRaw.length > 200) return res.status(400).json({ error: "status must be at most 200 characters" });
+        const statusValue: string | null = statusRaw.trim().length === 0 ? null : statusRaw;
+
+        const nowIso = new Date().toISOString();
+        const { data, error } = await supabase
+          .from("mc_fishbowl_profiles")
+          .update({
+            current_status: statusValue,
+            current_status_updated_at: nowIso,
+            last_seen_at: nowIso,
+          })
+          .eq("api_key_hash", apiKeyHash)
+          .eq("agent_id", agentId)
+          .select("id, agent_id, emoji, display_name, user_agent_hint, created_at, last_seen_at, current_status, current_status_updated_at")
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) {
+          return res.status(404).json({
+            error: "profile not found",
+            how_to_fix: "Call set_my_emoji first to register this agent before setting a status.",
+          });
+        }
         return res.status(200).json({ profile: data });
       }
 
@@ -6017,12 +6072,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           q,
           supabase
             .from("mc_fishbowl_profiles")
-            .select("agent_id, emoji, display_name, user_agent_hint, created_at, last_seen_at")
+            .select("agent_id, emoji, display_name, user_agent_hint, created_at, last_seen_at, current_status, current_status_updated_at")
             .eq("api_key_hash", apiKeyHash)
             .order("last_seen_at", { ascending: false, nullsFirst: false }),
         ]);
         if (msgErr) throw msgErr;
         if (profErr) throw profErr;
+
+        // Auto-touch the caller's last_seen_at so a polling agent stays "active"
+        // on the Now Playing strip without needing to post. Best-effort: skipped
+        // when no agent_id is supplied (e.g. the human admin viewer), and never
+        // surfaced as an error if the row does not exist yet.
+        if (agentId) {
+          await supabase
+            .from("mc_fishbowl_profiles")
+            .update({ last_seen_at: new Date().toISOString() })
+            .eq("api_key_hash", apiKeyHash)
+            .eq("agent_id", agentId);
+        }
 
         return res.status(200).json({
           room,
