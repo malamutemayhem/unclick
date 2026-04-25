@@ -5690,6 +5690,69 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // ─── Fishbowl Phase 1: agent group chat ───────────────────────────────
 
+      case "fishbowl_admin_claim": {
+        // Web-UI-only action. Auto-creates (or refreshes) a profile for the
+        // signed-in human admin so they can post into the Fishbowl as
+        // themselves rather than just listening in. Requires a Supabase
+        // session JWT, never accepts a raw api_key. The admin profile is
+        // marked with user_agent_hint='admin-ui' so AI agents cannot
+        // impersonate the human posting path (see fishbowl_post).
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+
+        const sessionUser = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!sessionUser) {
+          return res.status(401).json({
+            error: "Sign in required",
+            how_to_fix: "This endpoint requires the Supabase session JWT used by the UnClick admin UI. AI agents should use set_my_emoji instead.",
+          });
+        }
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) {
+          return res.status(401).json({
+            error: "No API key provisioned for this user",
+            how_to_fix: "Create your UnClick API key first via the setup wizard.",
+          });
+        }
+
+        const body = (req.body ?? {}) as { emoji?: string | null; display_name?: string | null };
+        const emoji = (body.emoji ?? "😎").toString().trim() || "😎";
+        if (Array.from(emoji).length > 8) return res.status(400).json({ error: "emoji must be at most 8 characters" });
+
+        // Default display name: the email's local part if available, else 'You'.
+        let displayName: string;
+        if (body.display_name != null) {
+          const dn = String(body.display_name).trim();
+          if (dn.length < 1) return res.status(400).json({ error: "display_name must be at least 1 character" });
+          if (dn.length > 64) return res.status(400).json({ error: "display_name must be at most 64 characters" });
+          displayName = dn;
+        } else if (sessionUser.email) {
+          const local = sessionUser.email.split("@")[0] ?? "You";
+          displayName = local.length > 0 && local.length <= 64 ? local : "You";
+        } else {
+          displayName = "You";
+        }
+
+        const agentId = `human-${sessionUser.id}`;
+        const nowIso = new Date().toISOString();
+        const { data, error } = await supabase
+          .from("mc_fishbowl_profiles")
+          .upsert(
+            {
+              api_key_hash: apiKeyHash,
+              agent_id: agentId,
+              emoji,
+              display_name: displayName,
+              user_agent_hint: "admin-ui",
+              last_seen_at: nowIso,
+            },
+            { onConflict: "api_key_hash,agent_id" },
+          )
+          .select("id, agent_id, emoji, display_name, user_agent_hint, created_at, last_seen_at")
+          .single();
+        if (error) throw error;
+        return res.status(200).json({ profile: data });
+      }
+
       case "fishbowl_set_emoji": {
         if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
@@ -5816,10 +5879,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // works, but the message will show a placeholder emoji.
         const { data: profile } = await supabase
           .from("mc_fishbowl_profiles")
-          .select("emoji, display_name")
+          .select("emoji, display_name, user_agent_hint")
           .eq("api_key_hash", apiKeyHash)
           .eq("agent_id", agentId)
           .maybeSingle();
+
+        // Guard against an AI agent impersonating the human admin by
+        // posting under a 'human-*' agent_id. The human profile is only
+        // ever created by fishbowl_admin_claim, which sets
+        // user_agent_hint='admin-ui'. If a 'human-*' post arrives without
+        // a matching admin-ui profile, reject it.
+        if (agentId.startsWith("human-") && profile?.user_agent_hint !== "admin-ui") {
+          return res.status(403).json({
+            error: "human-* agent_id is reserved for the admin UI",
+            how_to_fix: "AI agents should pick a different agent_id (for example 'claude-desktop-bailey-lenovo'). The human posting path is only available to the signed-in admin in the UnClick web UI.",
+          });
+        }
 
         // Get-or-create the default room for this tenant.
         const { data: existingRoom } = await supabase
@@ -5875,14 +5950,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         const body = (req.body ?? {}) as { since?: string; limit?: number; agent_id?: string | null };
 
+        // Read is a passive listen: posting and emoji-claim still require
+        // agent_id for attribution, but the human admin viewer in the web UI
+        // (and any tool that just wants to scan the chat) has no agent to
+        // identify as. If agent_id is supplied, validate it; if omitted,
+        // return everything the caller's tenant has posted.
         const agentId = (body.agent_id ?? req.query.agent_id ?? "").toString().trim();
-        if (!agentId) {
-          return res.status(400).json({
-            error: "agent_id required",
-            how_to_fix: "Pass a stable identifier for yourself (e.g. 'claude-desktop-bailey-lenovo'). Reuse the same value across set_my_emoji, post_message, and read_messages so the chat tracks you as one agent.",
-          });
+        if (agentId && agentId.length > 128) {
+          return res.status(400).json({ error: "agent_id must be at most 128 characters" });
         }
-        if (agentId.length > 128) return res.status(400).json({ error: "agent_id must be at most 128 characters" });
 
         const sinceParam = (body.since ?? req.query.since ?? "") as string;
         const limit = Math.min(Math.max(Number(body.limit ?? req.query.limit ?? 20) || 20, 1), 100);
