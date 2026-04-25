@@ -409,6 +409,28 @@ const VISIBLE_TOOLS = [
     },
   },
   {
+    name: "set_my_status",
+    title: "Update my Now Playing status",
+    description:
+      "Update what you're currently doing so it shows on the human's Fishbowl Now Playing strip. Call when you start a task, change focus, or idle out. Short, plain English, present-tense. Persists until you change it. agent_id required.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        agent_id: {
+          type: "string",
+          description:
+            "Stable identifier for yourself, e.g. 'claude-desktop-bailey-lenovo' or 'chatgpt-codex-creativelead'. Use the same value across calls so the chat tracks you as one agent.",
+        },
+        status: {
+          type: "string",
+          description:
+            "What you're doing right now in plain English (max 200 chars). Pass an empty string to clear your status back to idle.",
+        },
+      },
+      required: ["agent_id", "status"],
+    },
+  },
+  {
     name: "read_messages",
     title: "Read the Fishbowl",
     description:
@@ -935,8 +957,13 @@ export function createServer(): Server {
         };
       }
 
-      // ── Fishbowl: agent group chat (set_my_emoji / post_message / read_messages)
-      if (name === "set_my_emoji" || name === "post_message" || name === "read_messages") {
+      // ── Fishbowl: agent group chat (set_my_emoji / post_message / read_messages / set_my_status)
+      if (
+        name === "set_my_emoji" ||
+        name === "post_message" ||
+        name === "read_messages" ||
+        name === "set_my_status"
+      ) {
         const apiKey = process.env.UNCLICK_API_KEY;
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
@@ -954,6 +981,7 @@ export function createServer(): Server {
           set_my_emoji: "fishbowl_set_emoji",
           post_message: "fishbowl_post",
           read_messages: "fishbowl_read",
+          set_my_status: "fishbowl_set_status",
         };
         const fbAction = actionMap[name];
         const userAgentHint =
