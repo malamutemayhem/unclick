@@ -5688,6 +5688,186 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
+      // ─── Fishbowl Phase 1: agent group chat ───────────────────────────────
+
+      case "fishbowl_set_emoji": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) {
+          return res.status(401).json({
+            error: "Authorization header required",
+            how_to_fix: "Pass your UnClick API key as 'Authorization: Bearer <api_key>'. Run the UnClick setup wizard if you do not have one.",
+          });
+        }
+        const body = (req.body ?? {}) as {
+          emoji?: string;
+          display_name?: string | null;
+          user_agent_hint?: string | null;
+          agent_id?: string | null;
+        };
+        const emoji = (body.emoji ?? "").trim();
+        if (!emoji) return res.status(400).json({ error: "emoji required" });
+        const userAgentHint = (body.user_agent_hint ?? "").toString().trim() || null;
+        let agentId = (body.agent_id ?? "").toString().trim();
+        if (!agentId) {
+          const seed = `${apiKeyHash}|${userAgentHint ?? "unknown"}`;
+          agentId = crypto.createHash("sha256").update(seed).digest("hex").slice(0, 16);
+        }
+        const nowIso = new Date().toISOString();
+        const { data, error } = await supabase
+          .from("mc_fishbowl_profiles")
+          .upsert(
+            {
+              api_key_hash: apiKeyHash,
+              agent_id: agentId,
+              emoji,
+              display_name: body.display_name ?? null,
+              user_agent_hint: userAgentHint,
+              last_seen_at: nowIso,
+            },
+            { onConflict: "api_key_hash,agent_id" },
+          )
+          .select("id, agent_id, emoji, display_name, user_agent_hint, created_at, last_seen_at")
+          .single();
+        if (error) throw error;
+        return res.status(200).json({ profile: data });
+      }
+
+      case "fishbowl_post": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) {
+          return res.status(401).json({
+            error: "Authorization header required",
+            how_to_fix: "Pass your UnClick API key as 'Authorization: Bearer <api_key>'. Run the UnClick setup wizard if you do not have one.",
+          });
+        }
+        const body = (req.body ?? {}) as {
+          text?: string;
+          tags?: string[] | null;
+          recipients?: string[] | null;
+          user_agent_hint?: string | null;
+          agent_id?: string | null;
+        };
+        const text = (body.text ?? "").toString().trim();
+        if (!text) return res.status(400).json({ error: "text required" });
+
+        let agentId = (body.agent_id ?? "").toString().trim();
+        const userAgentHint = (body.user_agent_hint ?? "").toString().trim() || null;
+        if (!agentId) {
+          const seed = `${apiKeyHash}|${userAgentHint ?? "unknown"}`;
+          agentId = crypto.createHash("sha256").update(seed).digest("hex").slice(0, 16);
+        }
+
+        // Look up the agent's profile so we can decorate the message with its
+        // emoji and display name. Posting without registering first still
+        // works, but the message will show a placeholder emoji.
+        const { data: profile } = await supabase
+          .from("mc_fishbowl_profiles")
+          .select("emoji, display_name")
+          .eq("api_key_hash", apiKeyHash)
+          .eq("agent_id", agentId)
+          .maybeSingle();
+
+        // Get-or-create the default room for this tenant.
+        const { data: existingRoom } = await supabase
+          .from("mc_fishbowl_rooms")
+          .select("id")
+          .eq("api_key_hash", apiKeyHash)
+          .eq("slug", "default")
+          .maybeSingle();
+        let roomId = existingRoom?.id as string | undefined;
+        if (!roomId) {
+          const { data: newRoom, error: roomErr } = await supabase
+            .from("mc_fishbowl_rooms")
+            .insert({ api_key_hash: apiKeyHash, slug: "default", name: "Fishbowl" })
+            .select("id")
+            .single();
+          if (roomErr) throw roomErr;
+          roomId = newRoom.id;
+        }
+
+        const recipients = Array.isArray(body.recipients) && body.recipients.length > 0 ? body.recipients : ["all"];
+        const tags = Array.isArray(body.tags) ? body.tags : null;
+
+        const { data: inserted, error: insertErr } = await supabase
+          .from("mc_fishbowl_messages")
+          .insert({
+            api_key_hash: apiKeyHash,
+            room_id: roomId,
+            author_emoji: profile?.emoji ?? "🤖",
+            author_name: profile?.display_name ?? null,
+            author_agent_id: agentId,
+            recipients,
+            text,
+            tags,
+          })
+          .select("id, author_emoji, author_name, author_agent_id, recipients, text, tags, created_at")
+          .single();
+        if (insertErr) throw insertErr;
+
+        // Bump last_seen_at so the admin sidebar shows accurate activity.
+        await supabase
+          .from("mc_fishbowl_profiles")
+          .update({ last_seen_at: new Date().toISOString() })
+          .eq("api_key_hash", apiKeyHash)
+          .eq("agent_id", agentId);
+
+        return res.status(200).json({ message: inserted });
+      }
+
+      case "fishbowl_read": {
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) {
+          return res.status(401).json({
+            error: "Authorization header required",
+            how_to_fix: "Pass your UnClick API key as 'Authorization: Bearer <api_key>'. Run the UnClick setup wizard if you do not have one.",
+          });
+        }
+        const body = (req.body ?? {}) as { since?: string; limit?: number };
+        const sinceParam = (body.since ?? req.query.since ?? "") as string;
+        const limit = Math.min(Math.max(Number(body.limit ?? req.query.limit ?? 20) || 20, 1), 100);
+
+        const { data: room } = await supabase
+          .from("mc_fishbowl_rooms")
+          .select("id, slug, name")
+          .eq("api_key_hash", apiKeyHash)
+          .eq("slug", "default")
+          .maybeSingle();
+
+        if (!room) {
+          // No room yet means no posts yet. Return empty so the admin page
+          // can render its empty state without an error.
+          return res.status(200).json({ room: null, messages: [], profiles: [] });
+        }
+
+        let q = supabase
+          .from("mc_fishbowl_messages")
+          .select("id, author_emoji, author_name, author_agent_id, recipients, text, tags, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .eq("room_id", room.id)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (sinceParam) q = q.gt("created_at", sinceParam);
+
+        const [{ data: messages, error: msgErr }, { data: profiles, error: profErr }] = await Promise.all([
+          q,
+          supabase
+            .from("mc_fishbowl_profiles")
+            .select("agent_id, emoji, display_name, user_agent_hint, created_at, last_seen_at")
+            .eq("api_key_hash", apiKeyHash)
+            .order("last_seen_at", { ascending: false, nullsFirst: false }),
+        ]);
+        if (msgErr) throw msgErr;
+        if (profErr) throw profErr;
+
+        return res.status(200).json({
+          room,
+          messages: messages ?? [],
+          profiles: profiles ?? [],
+        });
+      }
+
       default:
         return res.status(400).json({ error: `Unknown action: ${action}` });
     }

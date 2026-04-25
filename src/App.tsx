@@ -70,6 +70,7 @@ import AdminModeration from "./pages/admin/AdminModeration.tsx";
 import AdminAuditLog from "./pages/admin/AdminAuditLog.tsx";
 import SignalsCatalog from "./pages/admin/signals/SignalsCatalog.tsx";
 import SignalsSettings from "./pages/admin/signals/SignalsSettings.tsx";
+import Fishbowl from "./pages/admin/Fishbowl.tsx";
 import BuildDeskPage from "./pages/BuildDesk.tsx";
 import { initPostHog } from "./lib/posthog.ts";
 
@@ -157,6 +158,7 @@ const App = () => (
             <Route path="audit-log"      element={<RequireAdmin><AdminAuditLog /></RequireAdmin>} />
             <Route path="signals"          element={<SignalsCatalog />} />
             <Route path="signals/settings" element={<SignalsSettings />} />
+            <Route path="fishbowl"         element={<Fishbowl />} />
           </Route>
           {/* Phase 2 auth surface */}
           <Route path="/login" element={<LoginPage />} />
