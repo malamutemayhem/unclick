@@ -33,6 +33,41 @@ function sha256hex(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
 
+// Tool execution must require a valid api_key. Protocol/lifecycle calls and
+// unknown methods are allowed through so the MCP SDK can return the proper
+// JSON-RPC response codes (for example -32601 for method not found).
+const AUTH_REQUIRED_METHODS = new Set<string>(["tools/call"]);
+
+type JsonRpcId = string | number | null;
+
+// Peek the JSON-RPC body so we can (1) echo the request id back in error
+// responses (JSON-RPC 2.0 § 5.1 requires id equality) and (2) decide whether
+// the request is attempting protected tool execution. Batches are handled
+// conservatively: any protected or malformed entry forces auth.
+function peekRpc(body: unknown): { id: JsonRpcId; authRequired: boolean } {
+  const entries = Array.isArray(body) ? body : [body];
+  let id: JsonRpcId = null;
+  let firstHasId = false;
+  let authRequired = entries.length === 0;
+  for (const entry of entries) {
+    if (!entry || typeof entry !== "object") {
+      authRequired = true;
+      continue;
+    }
+    const obj = entry as Record<string, unknown>;
+    const method = typeof obj.method === "string" ? obj.method : undefined;
+    if (!method || AUTH_REQUIRED_METHODS.has(method)) authRequired = true;
+    if (!firstHasId && "id" in obj) {
+      const raw = obj.id;
+      if (typeof raw === "string" || typeof raw === "number" || raw === null) {
+        id = raw;
+      }
+      firstHasId = true;
+    }
+  }
+  return { id, authRequired };
+}
+
 interface ApiKeyContext {
   api_key_hash: string;
   tier: string;
@@ -198,6 +233,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(204).end();
   }
 
+  // Peek up front so error responses can echo the request id and so the auth
+  // gate can recognise protected tool execution.
+  const peeked = peekRpc(req.body);
+
   if (req.method !== "POST") {
     return res.status(405).json({
       jsonrpc: "2.0",
@@ -205,7 +244,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         code: -32601,
         message: "Method Not Allowed. POST to this endpoint with an MCP JSON-RPC message.",
       },
-      id: null,
+      id: peeked.id,
     });
   }
 
@@ -236,7 +275,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (apiKey) {
     ctx = await validateApiKey(apiKey);
-    if (!ctx) {
+    if (!ctx && peeked.authRequired) {
       return res.status(401).json({
         jsonrpc: "2.0",
         error: {
@@ -245,22 +284,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             "Invalid or revoked API key. Check that the key is correct and still active. " +
             "Manage keys at https://unclick.world",
         },
-        id: null,
+        id: peeked.id,
       });
     }
-  } else {
+  } else if (peeked.authRequired) {
     // No api_key supplied - try resolving via Supabase session cookie.
+    // Unprotected protocol methods skip this so the MCP SDK can answer them.
     ctx = await validateSessionCookie(req);
     if (!ctx) {
       return res.status(401).json({
         jsonrpc: "2.0",
         error: {
-          code: -32600,
+          code: -32001,
           message:
             "Missing API key. Pass it as Authorization: Bearer <key> or as ?key=<key> in the URL. " +
             "Get a key at https://unclick.world",
         },
-        id: null,
+        id: peeked.id,
       });
     }
   }
@@ -281,11 +321,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } else {
     delete process.env.UNCLICK_API_KEY;
   }
-  process.env.UNCLICK_API_KEY_HASH = ctx.api_key_hash;
-  process.env.UNCLICK_TIER = ctx.tier;
-  if (ctx.user_id) {
-    process.env.UNCLICK_USER_ID = ctx.user_id;
+  // ctx is null only on unauthenticated handshake calls. Clear stale tenancy
+  // env vars from prior invocations on the same warm serverless instance.
+  if (ctx) {
+    process.env.UNCLICK_API_KEY_HASH = ctx.api_key_hash;
+    process.env.UNCLICK_TIER = ctx.tier;
+    if (ctx.user_id) {
+      process.env.UNCLICK_USER_ID = ctx.user_id;
+    } else {
+      delete process.env.UNCLICK_USER_ID;
+    }
   } else {
+    delete process.env.UNCLICK_API_KEY_HASH;
+    delete process.env.UNCLICK_TIER;
     delete process.env.UNCLICK_USER_ID;
   }
 
@@ -307,7 +355,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.status(500).json({
         jsonrpc: "2.0",
         error: { code: -32603, message: "Internal server error" },
-        id: null,
+        id: peeked.id,
       });
     }
   } finally {
