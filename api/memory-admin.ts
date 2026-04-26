@@ -94,6 +94,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { buildCard, type ConversationalCard } from "../packages/mcp-server/src/cards/card.js";
+import { emitSignal } from "../packages/mcp-server/src/signals/emit.js";
 import { streamText, tool, stepCountIs, convertToModelMessages, type UIMessage, type ModelMessage } from "ai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
