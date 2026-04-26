@@ -33,33 +33,30 @@ function sha256hex(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
 
-// MCP § lifecycle: handshake methods MUST be reachable without credentials.
-// Tool execution still requires a valid api_key.
-const HANDSHAKE_METHODS = new Set<string>([
-  "initialize",
-  "notifications/initialized",
-  "tools/list",
-]);
+// Tool execution must require a valid api_key. Protocol/lifecycle calls and
+// unknown methods are allowed through so the MCP SDK can return the proper
+// JSON-RPC response codes (for example -32601 for method not found).
+const AUTH_REQUIRED_METHODS = new Set<string>(["tools/call"]);
 
 type JsonRpcId = string | number | null;
 
 // Peek the JSON-RPC body so we can (1) echo the request id back in error
 // responses (JSON-RPC 2.0 § 5.1 requires id equality) and (2) decide whether
-// the request is an unauthenticated protocol handshake. Batches are handled
-// conservatively: any non-handshake entry forces auth.
-function peekRpc(body: unknown): { id: JsonRpcId; handshakeOnly: boolean } {
+// the request is attempting protected tool execution. Batches are handled
+// conservatively: any protected or malformed entry forces auth.
+function peekRpc(body: unknown): { id: JsonRpcId; authRequired: boolean } {
   const entries = Array.isArray(body) ? body : [body];
   let id: JsonRpcId = null;
   let firstHasId = false;
-  let handshakeOnly = entries.length > 0;
+  let authRequired = entries.length === 0;
   for (const entry of entries) {
     if (!entry || typeof entry !== "object") {
-      handshakeOnly = false;
+      authRequired = true;
       continue;
     }
     const obj = entry as Record<string, unknown>;
     const method = typeof obj.method === "string" ? obj.method : undefined;
-    if (!method || !HANDSHAKE_METHODS.has(method)) handshakeOnly = false;
+    if (!method || AUTH_REQUIRED_METHODS.has(method)) authRequired = true;
     if (!firstHasId && "id" in obj) {
       const raw = obj.id;
       if (typeof raw === "string" || typeof raw === "number" || raw === null) {
@@ -68,7 +65,7 @@ function peekRpc(body: unknown): { id: JsonRpcId; handshakeOnly: boolean } {
       firstHasId = true;
     }
   }
-  return { id, handshakeOnly };
+  return { id, authRequired };
 }
 
 interface ApiKeyContext {
@@ -237,7 +234,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Peek up front so error responses can echo the request id and so the auth
-  // gate can recognise unauthenticated handshake calls.
+  // gate can recognise protected tool execution.
   const peeked = peekRpc(req.body);
 
   if (req.method !== "POST") {
@@ -278,7 +275,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (apiKey) {
     ctx = await validateApiKey(apiKey);
-    if (!ctx && !peeked.handshakeOnly) {
+    if (!ctx && peeked.authRequired) {
       return res.status(401).json({
         jsonrpc: "2.0",
         error: {
@@ -290,9 +287,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: peeked.id,
       });
     }
-  } else if (!peeked.handshakeOnly) {
+  } else if (peeked.authRequired) {
     // No api_key supplied - try resolving via Supabase session cookie.
-    // Handshake methods skip this entirely per MCP § lifecycle.
+    // Unprotected protocol methods skip this so the MCP SDK can answer them.
     ctx = await validateSessionCookie(req);
     if (!ctx) {
       return res.status(401).json({
