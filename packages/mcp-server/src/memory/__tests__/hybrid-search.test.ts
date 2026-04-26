@@ -105,6 +105,69 @@ describe("embedText", () => {
   });
 });
 
+// ─── 2b. Keyword-fallback regression (P0) ─────────────────────────────────────
+//
+// Reproduces the production bug: a fact with NULL embedding whose proper-noun
+// content does not survive plainto_tsquery('english', ...) tokenization.
+// Hybrid returns []. ILIKE fallback must surface the row anyway.
+
+describe("acceptance: keyword fallback restores search when hybrid returns []", () => {
+  test("ILIKE fallback finds proper-noun fact with NULL embedding", async () => {
+    const url = process.env.TEST_SUPABASE_URL ?? process.env.SUPABASE_URL;
+    const key = process.env.TEST_SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      console.log("    [skipped] set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to run");
+      return;
+    }
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+
+    const factText = "Test owner is Chris Byrne for P0 search-memory regression";
+    const { data: inserted, error: insertErr } = await supabase
+      .from("extracted_facts")
+      .insert({
+        fact: factText,
+        category: "test",
+        confidence: 0.9,
+        status: "active",
+        source_type: "test",
+        decay_tier: "hot",
+        // Deliberately leave embedding NULL to simulate legacy / un-backfilled rows
+      })
+      .select("id")
+      .single();
+    assert.ok(!insertErr, `insert failed: ${insertErr?.message}`);
+    const factId = (inserted as { id: string }).id;
+
+    try {
+      // Force the keyword path by removing OPENAI_API_KEY: searchMemory will
+      // skip the hybrid lane and exercise keywordFallback directly.
+      const savedOpenAI = process.env.OPENAI_API_KEY;
+      delete process.env.OPENAI_API_KEY;
+      try {
+        const { SupabaseBackend } = await import("../supabase.js");
+        const backend = new SupabaseBackend({
+          url,
+          serviceRoleKey: key,
+          tenancy: { mode: "byod" },
+        });
+        const results = (await backend.searchMemory("Chris", 10)) as Array<{ id: string }>;
+        assert.ok(Array.isArray(results), "fallback should return an array");
+        const ids = results.map((r) => r.id);
+        assert.ok(
+          ids.includes(factId),
+          `Expected fact ${factId} via ILIKE fallback. Got ${ids.length} rows: ${JSON.stringify(results.slice(0, 3))}`
+        );
+        console.log(`    [passed] keyword fallback surfaced fact at position ${ids.indexOf(factId) + 1}`);
+      } finally {
+        if (savedOpenAI !== undefined) process.env.OPENAI_API_KEY = savedOpenAI;
+      }
+    } finally {
+      await supabase.from("extracted_facts").delete().eq("id", factId);
+    }
+  });
+});
+
 // ─── 3. Acceptance test (LOCOMO-style) ────────────────────────────────────────
 //
 // Requires real credentials. Skipped automatically when env vars are absent.

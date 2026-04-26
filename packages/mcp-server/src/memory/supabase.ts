@@ -268,30 +268,104 @@ export class SupabaseBackend implements MemoryBackend {
   }
 
   async searchMemory(query: string, maxResults: number, asOf?: string): Promise<unknown> {
-    // Attempt hybrid RRF search (keyword + vector) with bi-temporal filter.
-    // Falls back to keyword-only when OPENAI_API_KEY absent or RPC not deployed.
+    // Hybrid lane: BM25 + pgvector RRF over mc_extracted_facts and
+    // mc_session_summaries. Two well-known failure modes turn this into a
+    // black hole and force a fallback:
+    //
+    //   1. Per-row embeddings are NULL (legacy facts, BYOD installs without
+    //      backfill, or facts written before embedding wiring) so the vector
+    //      lane drops them.
+    //   2. plainto_tsquery('english', ...) tokenizes proper nouns and short
+    //      identifiers ("Chris", "Bailey", "UnClick") in ways that don't
+    //      align with the matching to_tsvector lexemes, so the keyword lane
+    //      misses too. Both branches fail, hybrid returns [].
+    //
+    // To stop returning [] when matching content exists, we run a robust
+    // ILIKE keyword fallback over the same tables whenever the hybrid call
+    // throws OR returns an empty result.
     try {
       const { embedText } = await import("./embeddings.js");
       const embedding = await embedText(query);
       if (embedding) {
-        const results = await this.rpc(
+        const results = await this.rpc<unknown>(
           "search_memory_hybrid",
           { search_query: query, query_embedding: embedding, max_results: maxResults, as_of: asOf ?? null },
           "mc_search_memory_hybrid",
           { p_search_query: query, p_query_embedding: embedding, p_max_results: maxResults, p_as_of: asOf ?? null }
         );
-        return results;
+        if (Array.isArray(results) && results.length > 0) return results;
       }
     } catch (err) {
       console.error("[search_memory] hybrid search failed, falling back to keyword:", err);
     }
+    return this.keywordFallback(query, maxResults);
+  }
 
-    return this.rpc(
-      "search_memory",
-      { search_query: query, max_results: maxResults },
-      "mc_search_memory",
-      { p_search_query: query, p_max_results: maxResults }
-    );
+  /**
+   * ILIKE-based keyword fallback over mc_extracted_facts +
+   * mc_session_summaries. Used when hybrid retrieval returns []. Returns
+   * rows shaped to mirror mc_search_memory_hybrid so callers don't branch.
+   * Never widens RLS: tenant scoping via api_key_hash is preserved.
+   */
+  private async keywordFallback(query: string, maxResults: number): Promise<unknown[]> {
+    const trimmed = query.trim();
+    if (!trimmed) return [];
+    const pattern = `%${trimmed.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+    const half = Math.max(1, Math.ceil(maxResults / 2));
+
+    let factQ = this.client
+      .from(this.tables.extracted_facts)
+      .select("id, fact, category, confidence, created_at")
+      .eq("status", "active")
+      .is("invalidated_at", null)
+      .ilike("fact", pattern)
+      .order("confidence", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(half);
+    if (this.tenancy.mode === "managed") {
+      factQ = factQ.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+
+    let sessQ = this.client
+      .from(this.tables.session_summaries)
+      .select("id, summary, created_at")
+      .ilike("summary", pattern)
+      .order("created_at", { ascending: false })
+      .limit(half);
+    if (this.tenancy.mode === "managed") {
+      sessQ = sessQ.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+
+    const [factsRes, sessRes] = await Promise.all([factQ, sessQ]);
+    type FactRow = { id: string; fact: string; category: string; confidence: number; created_at: string };
+    type SessRow = { id: string; summary: string; created_at: string };
+    const facts = ((factsRes.data ?? []) as FactRow[]).map((r) => ({
+      id: r.id,
+      source: "fact",
+      content: r.fact,
+      category: r.category,
+      confidence: r.confidence,
+      created_at: r.created_at,
+      final_score: r.confidence ?? 0,
+      rrf_score: 0,
+      kw_score: 1,
+      cosine_score: 0,
+    }));
+    const sessions = ((sessRes.data ?? []) as SessRow[]).map((r) => ({
+      id: r.id,
+      source: "session",
+      content: r.summary,
+      category: "session",
+      confidence: 1,
+      created_at: r.created_at,
+      final_score: 0.5,
+      rrf_score: 0,
+      kw_score: 1,
+      cosine_score: 0,
+    }));
+    return [...facts, ...sessions]
+      .sort((a, b) => (b.final_score ?? 0) - (a.final_score ?? 0))
+      .slice(0, maxResults);
   }
 
   async searchFacts(query: string): Promise<unknown> {
@@ -343,6 +417,9 @@ export class SupabaseBackend implements MemoryBackend {
       .select()
       .single();
     if (error) throw pgError("writeSessionSummary insert", error);
+    // Embed the summary so it joins the vector lane immediately (same
+    // motivation as addFact above). Fire-and-forget.
+    this.embedAndStore(this.tables.session_summaries, row.id, data.summary).catch(() => {});
     return { id: row.id };
   }
 
@@ -399,7 +476,27 @@ export class SupabaseBackend implements MemoryBackend {
     // Append audit row (fire-and-forget; never blocks the main insert)
     this.writeFactAudit(row.id, "insert", { category: data.category }).catch(() => {});
 
+    // Embed the fact so it joins the vector lane immediately. Without this,
+    // every newly inserted fact has NULL embedding and only the keyword lane
+    // can find it. Fire-and-forget so embedding latency / OpenAI outages
+    // never block the primary insert.
+    this.embedAndStore(this.tables.extracted_facts, row.id, data.fact).catch(() => {});
+
     return { id: row.id };
+  }
+
+  private async embedAndStore(table: string, id: string, text: string): Promise<void> {
+    const { embedText, EMBEDDING_MODEL } = await import("./embeddings.js");
+    const vec = await embedText(text);
+    if (!vec) return;
+    await this.client
+      .from(table)
+      .update({
+        embedding: JSON.stringify(vec),
+        embedding_model: EMBEDDING_MODEL,
+        embedding_created_at: now(),
+      })
+      .eq("id", id);
   }
 
   private async saveBlob(data: FactInput): Promise<{ id: string; fact_ids?: string[] }> {
