@@ -28,6 +28,7 @@ import * as crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createServer } from "../packages/mcp-server/src/server.js";
+import { normalizeAcceptHeader } from "./lib/mcp-protocol.js";
 
 function sha256hex(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
@@ -343,6 +344,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   });
 
   const server = await createServer();
+
+  // Normalize the Accept header before delegating to the SDK. The SDK's
+  // Streamable HTTP transport bounces requests that lack both
+  // "application/json" and "text/event-stream" with HTTP 406 + -32000 +
+  // id:null - which cascades into RPC-002 (id null), RPC-004/MCP-006
+  // (-32000 instead of -32601), and MCP-001/003/004 (initialize never
+  // returns a real result). Spec-strict clients send both; spec-curious
+  // ones (TestPass-core, plain JSON-RPC tools) send only application/json.
+  // Stateless mode always replies with a JSON body, so being more
+  // permissive than the SDK here is safe.
+  normalizeAcceptHeader(req);
 
   try {
     await server.connect(transport);
