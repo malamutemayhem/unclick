@@ -9,6 +9,8 @@ import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
+import { emitSignal } from "./signals/emit.js";
+import { createHash } from "node:crypto";
 
 // ─── Umami tool-usage tracking ──────────────────────────────────────────────
 //
@@ -43,6 +45,40 @@ function trackToolCall(toolName: string): void {
   } catch {
     // swallow synchronous errors (e.g. malformed env)
   }
+}
+
+function currentApiKeyHash(): string | null {
+  const configuredHash = process.env.UNCLICK_API_KEY_HASH?.trim();
+  if (configuredHash) return configuredHash;
+  const apiKey = process.env.UNCLICK_API_KEY?.trim();
+  if (!apiKey) return null;
+  return createHash("sha256").update(apiKey).digest("hex");
+}
+
+function failureSummary(toolName: string, result: unknown): string | null {
+  if (!result || typeof result !== "object") return null;
+  const record = result as Record<string, unknown>;
+  if (typeof record.error === "string" && record.error.trim()) {
+    return `${toolName}: ${record.error.trim()}`;
+  }
+  if (typeof record.headline === "string" && /\bfailed\b/i.test(record.headline)) {
+    return `${toolName}: ${record.headline}`;
+  }
+  return null;
+}
+
+function signalToolFailure(toolName: string, result: unknown): void {
+  const apiKeyHash = currentApiKeyHash();
+  const summary = failureSummary(toolName, result);
+  if (!apiKeyHash || !summary) return;
+  void emitSignal({
+    apiKeyHash,
+    tool: toolName,
+    action: "failed",
+    severity: "action_needed",
+    summary: summary.slice(0, 500),
+    payload: { source: "mcp-server" },
+  });
 }
 
 // ─── Search helper ──────────────────────────────────────────────────────────
@@ -1421,6 +1457,7 @@ export function createServer(): Server {
         const additionalHandler = ADDITIONAL_HANDLERS[handlerKey];
         if (additionalHandler) {
           const result = await additionalHandler(params);
+          signalToolFailure(handlerKey, result);
           return {
             content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
           };
@@ -1429,6 +1466,7 @@ export function createServer(): Server {
         // Fall back to remote API for endpoints without local implementations
         const client = createClient();
         const result = await client.call(entry.endpoint.method, entry.endpoint.path, params);
+        signalToolFailure(endpointId, result);
         return {
           content: [
             {
@@ -1444,6 +1482,7 @@ export function createServer(): Server {
       if (handler) {
         const client = createClient();
         const result = await handler(client, args);
+        signalToolFailure(name, result);
         return {
           content: [
             {
@@ -1458,6 +1497,7 @@ export function createServer(): Server {
       const additionalHandler = ADDITIONAL_HANDLERS[name];
       if (additionalHandler) {
         const result = await additionalHandler(args);
+        signalToolFailure(name, result);
         return {
           content: [
             {
@@ -1487,6 +1527,17 @@ export function createServer(): Server {
         message = parts.join(" ");
       } else {
         message = String(err);
+      }
+      const apiKeyHash = currentApiKeyHash();
+      if (apiKeyHash) {
+        void emitSignal({
+          apiKeyHash,
+          tool: name,
+          action: "exception",
+          severity: "action_needed",
+          summary: `${name}: ${message}`.slice(0, 500),
+          payload: { source: "mcp-server" },
+        });
       }
       return {
         content: [{ type: "text", text: `Error: ${message}` }],
