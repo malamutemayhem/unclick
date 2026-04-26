@@ -13,8 +13,19 @@ import {
 import type { Finding, RunRow, SecurityRunTarget } from "../types/index.js";
 import { verifyScopeOrThrow } from "../scope/verify.js";
 
-export * from "./security-headers.js";
-export * from "./run-store.js";
+// Public surface boundary.
+//
+// We deliberately do NOT re-export `./security-headers.js` or
+// `./run-store.js` from this barrel. The active probe (checkSecurityHeaders)
+// and the run-store write APIs (createRun, appendFinding, setRunStatus)
+// must stay internal so a consumer cannot route around the scope gate by
+// importing the probe directly from `@unclick/securitypass` or
+// `@unclick/securitypass/runner`. Enforced by scope-gate.test.ts.
+//
+// Public callers reach probes ONLY through `runSkeletonScan` (and, in
+// later chunks, `performStartRun`), both of which call verifyScopeOrThrow
+// before any I/O. The scope module is re-exported so consumers can type
+// the deny-all error.
 export * from "../scope/verify.js";
 
 export interface SkeletonScanResult {
