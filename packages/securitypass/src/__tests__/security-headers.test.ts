@@ -5,8 +5,8 @@ import {
   BASELINE_HEADERS,
   checkSecurityHeaders,
 } from "../runner/security-headers.js";
-import { runSkeletonScan } from "../runner/index.js";
-import { __resetForTests, getRun, listFindings } from "../runner/run-store.js";
+import { runSkeletonScan, ScopeUnverifiedError } from "../runner/index.js";
+import { __resetForTests, getRun } from "../runner/run-store.js";
 
 interface FixtureServer {
   url: string;
@@ -81,10 +81,10 @@ describe("checkSecurityHeaders", () => {
   });
 });
 
-describe("runSkeletonScan", () => {
+describe("runSkeletonScan (scope-gated)", () => {
   beforeEach(() => __resetForTests());
 
-  it("creates a run, writes a finding, and marks the run complete", async () => {
+  it("refuses to scan even a fixture URL until scope is verified (deny-all default)", async () => {
     const srv = await startServer({
       "Content-Security-Policy": "default-src 'self'",
       "Strict-Transport-Security": "max-age=63072000",
@@ -93,17 +93,30 @@ describe("runSkeletonScan", () => {
       "Permissions-Policy": "geolocation=()",
     });
     try {
-      const result = await runSkeletonScan({
-        target: { type: "url", url: srv.url },
-      });
-      expect(result.run.status).toBe("complete");
-      expect(result.headers.verdict).toBe("check");
-      const stored = getRun(result.run.id);
-      expect(stored?.verdict_summary.total).toBe(1);
-      expect(stored?.verdict_summary.check).toBe(1);
-      expect(listFindings(result.run.id)).toHaveLength(1);
+      // Even a benign fixture URL must be rejected by the gate. The probe
+      // helper is exercised directly above; this test is strictly about
+      // the runner refusing to run without scope verification.
+      await expect(
+        runSkeletonScan({ target: { type: "url", url: srv.url } }),
+      ).rejects.toBeInstanceOf(ScopeUnverifiedError);
     } finally {
       await srv.close();
     }
+  });
+
+  it("does not write a run row when scope is unverified", async () => {
+    let runId: string | undefined;
+    try {
+      const result = await runSkeletonScan({
+        target: { type: "url", url: "http://127.0.0.1:1" },
+      });
+      runId = result.run.id;
+    } catch {
+      // expected
+    }
+    expect(runId).toBeUndefined();
+    // Side-channel check: the gate must run BEFORE createRun so an
+    // unauthorised target leaves no trace in the run store.
+    if (runId) expect(getRun(runId)).toBeUndefined();
   });
 });

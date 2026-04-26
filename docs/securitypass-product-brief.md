@@ -52,6 +52,8 @@
 
 **Legal posture (moderate):** Defensive-first language. Scope-gated offensive testing on authorised targets only. NO zero-day weaponisation. NO autonomous exploit execution. Auto-disclosure flow for third-party findings. This is the only posture that survives Australian DTCA + US ACE + cyber insurance + investor optics.
 
+**Until Chunk 2 ships scope verification, all active probes are gated by deny-all and refuse to run.** The shared run path calls `verifyScopeOrThrow` before any network I/O, so the MCP tool, the future `performStartRun` API endpoint, the admin UI, and the scheduled-monitor cron all inherit the same gate. No bypass flag exists, including for tests.
+
 **Required ToS clauses:** scope warranty, prohibited use (no unauthorised targets, no malware, no DMCA circumvention, no sanctions/export violations), click-through scope acknowledgement per scan, liability cap (1x fees prior 12 mo), consequential damages limitation, willful misconduct carve-out, survival of indemnity.
 
 **Pack-as-Crews-template:** 10 hats live in Crews engine per the locked architecture.

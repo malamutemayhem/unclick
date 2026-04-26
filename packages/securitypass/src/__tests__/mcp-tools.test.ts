@@ -43,6 +43,15 @@ describe("SECURITYPASS_HANDLERS validation behaviour", () => {
     expect(result.error).toMatch(/run_id is required/);
   });
 
+  it("securitypass_run surfaces scope_unverified rather than throwing", async () => {
+    const result = (await SECURITYPASS_HANDLERS.securitypass_run({
+      pack_id: "any",
+      target_url: "https://example.com",
+    })) as { error?: string; next_step?: string };
+    expect(result.error).toBe("scope_unverified");
+    expect(result.next_step).toMatch(/securitypass_verify_scope/);
+  });
+
   it("securitypass_register_pack rejects invalid YAML", async () => {
     const result = (await SECURITYPASS_HANDLERS.securitypass_register_pack({
       pack_id: "p",

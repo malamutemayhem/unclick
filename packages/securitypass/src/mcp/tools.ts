@@ -6,6 +6,7 @@ import {
   listFindings,
 } from "../runner/run-store.js";
 import { runSkeletonScan } from "../runner/index.js";
+import { ScopeUnverifiedError } from "../scope/verify.js";
 
 // Shared MCP tool descriptor shape. Mirrors the structure used by
 // packages/mcp-server/src/server.ts so wiring SecurityPass into the catalog
@@ -134,17 +135,29 @@ export async function securitypassRun(args: Record<string, unknown>): Promise<un
 
   // TODO(securitypass-runner): once chunk 2 lands, dispatch to the full
   // pack-driven runner instead of the skeleton headers probe.
-  const result = await runSkeletonScan({
-    pack_id: packId,
-    target: { type: "url", url: targetUrl },
-    profile: (args.profile as "smoke" | "standard" | "deep") ?? "smoke",
-  });
-  return {
-    stub: true,
-    run_id: result.run.id,
-    status: result.run.status,
-    verdict_summary: result.run.verdict_summary,
-  };
+  try {
+    const result = await runSkeletonScan({
+      pack_id: packId,
+      target: { type: "url", url: targetUrl },
+      profile: (args.profile as "smoke" | "standard" | "deep") ?? "smoke",
+    });
+    return {
+      stub: true,
+      run_id: result.run.id,
+      status: result.run.status,
+      verdict_summary: result.run.verdict_summary,
+    };
+  } catch (err) {
+    if (err instanceof ScopeUnverifiedError) {
+      return {
+        error: "scope_unverified",
+        detail: err.message,
+        next_step:
+          "Call securitypass_verify_scope first. Until Chunk 2 ships real verification, all active probes are gated by deny-all.",
+      };
+    }
+    throw err;
+  }
 }
 
 export async function securitypassStatus(args: Record<string, unknown>): Promise<unknown> {
