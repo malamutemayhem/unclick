@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Loader2, Send } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import FishbowlTodos from "./fishbowl/Todos";
 import FishbowlIdeas from "./fishbowl/Ideas";
+import FishbowlSettings from "./fishbowl/Settings";
 
 interface FishbowlMessage {
   id: string;
@@ -542,6 +543,8 @@ export default function Fishbowl() {
       <ExplainerPanel profiles={profiles} />
 
       <NowPlayingStrip profiles={profiles} />
+
+      <FishbowlSettings profiles={profiles} />
 
       <FishbowlTodos authHeader={authHeader} humanAgentId={humanAgentId} />
 
