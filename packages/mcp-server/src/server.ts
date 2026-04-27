@@ -67,6 +67,11 @@ function failureSummary(toolName: string, result: unknown): string | null {
   return null;
 }
 
+function signalDeepLink(toolName: string): string | undefined {
+  if (toolName === "github_action") return "/admin/signals";
+  return undefined;
+}
+
 function signalToolFailure(toolName: string, result: unknown): void {
   const apiKeyHash = currentApiKeyHash();
   const summary = failureSummary(toolName, result);
@@ -77,6 +82,7 @@ function signalToolFailure(toolName: string, result: unknown): void {
     action: "failed",
     severity: "action_needed",
     summary: summary.slice(0, 500),
+    deepLink: signalDeepLink(toolName),
     payload: { source: "mcp-server" },
   });
 }
@@ -1577,6 +1583,7 @@ export function createServer(): Server {
           action: "exception",
           severity: "action_needed",
           summary: `${name}: ${message}`.slice(0, 500),
+          deepLink: signalDeepLink(name),
           payload: { source: "mcp-server" },
         });
       }
