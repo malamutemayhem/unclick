@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'packages/mcp-server/**'
-      - 'package-lock.json'
     tags:
       - 'v*'
   workflow_dispatch:
@@ -35,7 +32,24 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Detect publish scope
+        id: scope
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          changed_files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" 2>/dev/null || git show --name-only --format="" "${{ github.sha }}")
+          if echo "$changed_files" | grep -Eq '^(packages/mcp-server/|package-lock\.json$)'; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "No MCP server package changes detected; skipping publish."
+          fi
+
       - name: Set up Node
+        if: steps.scope.outputs.should_publish == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -43,6 +57,7 @@ jobs:
           cache: "npm"
 
       - name: Skip if last commit was a bot version bump
+        if: steps.scope.outputs.should_publish == 'true'
         id: skip_check
         run: |
           last_msg=$(git log -1 --pretty=%B)
@@ -53,43 +68,43 @@ jobs:
           fi
 
       - name: Install (workspace aware)
-        if: steps.skip_check.outputs.skip == 'false'
+        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
         run: npm ci --no-audit --no-fund
 
       - name: Build
-        if: steps.skip_check.outputs.skip == 'false'
+        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
         working-directory: packages/mcp-server
         run: npm run build
 
       - name: Verify package contents
-        if: steps.skip_check.outputs.skip == 'false'
+        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
         working-directory: packages/mcp-server
         run: npm pack --dry-run
 
       - name: Configure git identity
-        if: steps.skip_check.outputs.skip == 'false'
+        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
         run: |
           git config user.email "bot@unclick.world"
           git config user.name "UnClick Bot"
 
       - name: Bump patch version
-        if: steps.skip_check.outputs.skip == 'false'
+        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
         working-directory: packages/mcp-server
         run: npm version patch -m "chore: bump mcp-server to %s [skip ci]"
 
       - name: Push version bump
-        if: steps.skip_check.outputs.skip == 'false'
+        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
         run: git push --follow-tags
 
       - name: Publish to npm
-        if: steps.skip_check.outputs.skip == 'false'
+        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
         working-directory: packages/mcp-server
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Verify published version
-        if: steps.skip_check.outputs.skip == 'false'
+        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
         working-directory: packages/mcp-server
         run: |
           local_ver=$(node -p "require('./package.json').version")
