@@ -2,6 +2,12 @@ name: Publish MCP server
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - 'packages/mcp-server/**'
+      - 'package-lock.json'
+      - '.github/workflows/publish-mcp-server.yml'
     tags:
       - 'v*'
   workflow_dispatch:
