@@ -41,10 +41,17 @@ async function send(
   const start      = Date.now();
   const controller = new AbortController();
   const tid        = setTimeout(() => controller.abort(), timeoutMs);
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept:         "application/json",
+  };
+  if (process.env.TESTPASS_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.TESTPASS_TOKEN}`;
+  }
   try {
     const res = await fetch(url, {
       method:  "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers,
       body:    JSON.stringify(reqBody),
       signal:  controller.signal,
     });
