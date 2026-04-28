@@ -80,7 +80,7 @@ async function evaluateCheck(
     `Check ID: ${checkId}`,
     `Title: ${title}`,
     description ? `Description: ${description}` : null,
-    expected ? `Expected: ${JSON.stringify(expected)}` : null,
+    expected !== undefined ? `Expected: ${JSON.stringify(expected)}` : null,
     onFail ? `On fail guidance: ${onFail}` : null,
     `Target URL: ${targetUrl}`,
     probeData
