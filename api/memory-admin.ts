@@ -6171,8 +6171,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // compare directly against last_seen_at.
         const RELATIVE_RE = /^(\d+)\s*([smhd])$/i;
         const MAX_FUTURE_MS = 30 * 86_400_000;
+        const nextCheckinProvided = Object.prototype.hasOwnProperty.call(body, "next_checkin_at");
         let nextCheckinUpdate: { apply: boolean; iso: string | null } = { apply: false, iso: null };
-        if (Object.prototype.hasOwnProperty.call(body, "next_checkin_at")) {
+        if (nextCheckinProvided) {
           const raw = body.next_checkin_at;
           if (raw == null || (typeof raw === "string" && raw.trim() === "")) {
             nextCheckinUpdate = { apply: true, iso: null };
@@ -6204,7 +6205,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         }
 
-        const nowIso = new Date().toISOString();
+        const now = new Date();
+        const nowIso = now.toISOString();
         const updatePayload: Record<string, unknown> = {
           current_status: statusValue,
           current_status_updated_at: nowIso,
@@ -6212,6 +6214,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
         if (nextCheckinUpdate.apply) {
           updatePayload.next_checkin_at = nextCheckinUpdate.iso;
+        } else {
+          const { data: existingProfile, error: existingProfileErr } = await supabase
+            .from("mc_fishbowl_profiles")
+            .select("next_checkin_at")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("agent_id", agentId)
+            .maybeSingle();
+          if (existingProfileErr) throw existingProfileErr;
+          const existingNextCheckin = existingProfile?.next_checkin_at;
+          const existingNextCheckinMs =
+            typeof existingNextCheckin === "string" ? Date.parse(existingNextCheckin) : Number.NaN;
+          if (!Number.isNaN(existingNextCheckinMs) && existingNextCheckinMs < now.getTime()) {
+            updatePayload.next_checkin_at = new Date(now.getTime() + 30 * 60_000).toISOString();
+          }
         }
         const { data, error } = await supabase
           .from("mc_fishbowl_profiles")
