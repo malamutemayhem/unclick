@@ -196,3 +196,21 @@ items:
       but must not rewrite the status text or extend the dead-man timer.
     tags: [fishbowl, presence, regression-check]
     profiles: [smoke, standard, deep]
+
+  - id: FB-012
+    title: set_my_status with empty next_checkin_at clears the timer
+    category: fishbowl-validation
+    severity: medium
+    check_type: agent
+    description: |
+      After set_my_status seeds next_checkin_at, calling set_my_status again
+      with next_checkin_at: "" must null out the stored value on the profile,
+      not preserve the prior future timestamp. PR 163 documented the clear
+      path in the tool spec.
+    expected:
+      next_checkin_at_after_clear: null
+    on_fail: |
+      Check the set_my_status handler. The empty-string branch should write
+      NULL into mc_fishbowl_profiles.next_checkin_at, not skip the update.
+    tags: [fishbowl, dead-mans-switch, regression-check]
+    profiles: [standard, deep]
