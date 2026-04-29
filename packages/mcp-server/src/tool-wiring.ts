@@ -776,6 +776,12 @@ import {
   seopassLighthousePlan,
 } from "./seopass-tool.js";
 
+// ─── SecurityPass (security posture QC, sister to TestPass) ─────────────────
+import {
+  securitypassRun,
+  securitypassStatus,
+} from "./securitypass-tool.js";
+
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
 
@@ -12069,6 +12075,49 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── securitypass-tool.ts (security posture QC, repo-local today) ──────────
+  {
+    name: "securitypass_run",
+    description:
+      "Run SecurityPass against a local repo path or prepare a future scoped URL scan. Phase 2 wires gitleaks and osv-scanner for repo_path now; target_url stays gated until scope verification lands.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["repo_path"] },
+        { required: ["target_url"] },
+      ],
+      properties: {
+        repo_path: {
+          type: "string",
+          description: "Absolute or relative path to a local repository for secrets and supply-chain scanning.",
+        },
+        target_url: {
+          type: "string",
+          description: "Reserved for active web probing. Currently returns scope_unverified until the scope verifier lands.",
+        },
+        profile: {
+          type: "string",
+          enum: ["smoke", "standard", "deep"],
+          description: "Run depth hint. Phase 2 treats all profiles the same for repo-local scans.",
+        },
+      },
+    },
+  },
+  {
+    name: "securitypass_status",
+    description:
+      "Fetch the current status, verdict summary, and finding count for a SecurityPass run started in this MCP session.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The run id returned by securitypass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+
   // ── crews-tool.ts (Orchestrator Wizard) ──────────────────────────────────────
   {
     name: "start_crew_run",
@@ -13243,6 +13292,10 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   seopass_status:          (args) => seopassStatus(args),
   seopass_register_pack:   (args) => seopassRegisterPack(args),
   seopass_lighthouse_plan: (args) => seopassLighthousePlan(args),
+
+  // securitypass-tool.ts
+  securitypass_run:        (args) => securitypassRun(args),
+  securitypass_status:     (args) => securitypassStatus(args),
 
   // crews-tool.ts
   start_crew_run: (args) => crewsStartRun(args),

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Wrench, Rocket } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import { InfoCard } from "./memory/InfoCard";
@@ -89,14 +90,36 @@ export default function AdminToolsPage() {
         {/* Section 3 - Marketplace placeholder */}
         <section>
           <h2 className="mb-4 text-lg font-semibold text-white">Marketplace</h2>
-          <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-8 text-center">
-            <Rocket className="mx-auto h-8 w-8 text-white/20 mb-3" />
-            <p className="text-sm text-white/50">
-              Community tools and custom integrations - coming soon.
-            </p>
-            <p className="mt-1 text-xs text-white/30">
-              Build your own MCP tools or install from the UnClick marketplace.
-            </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Link
+              to="/admin/securitypass"
+              className="rounded-xl border border-white/[0.06] bg-[#111] p-5 transition-colors hover:border-red-400/30 hover:bg-white/[0.04]"
+            >
+              <div className="flex items-center gap-2">
+                <Rocket className="h-4 w-4 text-red-300" />
+                <h3 className="text-sm font-semibold text-white">SecurityPass</h3>
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-red-500/10 text-red-300">
+                  Pass family
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-white/50">
+                Repo-local secrets and supply-chain scans are live through MCP today. Scoped active probing is scaffolded
+                behind the disclaimer banner until verification lands.
+              </p>
+              <p className="mt-3 text-[11px] font-medium text-red-300">
+                Open SecurityPass →
+              </p>
+            </Link>
+
+            <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-8 text-center">
+              <Rocket className="mx-auto h-8 w-8 text-white/20 mb-3" />
+              <p className="text-sm text-white/50">
+                Community tools and custom integrations - coming soon.
+              </p>
+              <p className="mt-1 text-xs text-white/30">
+                Build your own MCP tools or install from the UnClick marketplace.
+              </p>
+            </div>
           </div>
         </section>
     </>
