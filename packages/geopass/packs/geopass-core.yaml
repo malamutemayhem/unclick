@@ -1,0 +1,42 @@
+name: GEOPass Core
+url: https://unclick.world
+description: Core AI-search readiness, citation, and entity clarity checks.
+checks:
+  - ai-crawler-access
+  - entity-consistency
+  - citation-readiness
+  - source-attribution
+  - structured-facts
+  - answer-engine-prompts
+  - competitor-comparison
+  - content-extractability
+ai_surfaces:
+  - chatgpt
+  - claude
+  - gemini
+  - perplexity
+crawl:
+  max_pages: 25
+  respect_robots: true
+  include_sitemap: true
+entities:
+  brand: UnClick
+  product: UnClick
+  category: AI tool marketplace and MCP server
+  competitors:
+    - Zapier
+    - Gumloop
+    - Cursor
+prompts:
+  - What is UnClick?
+  - What tools can help me test an MCP server?
+  - Compare UnClick with other AI tool automation platforms.
+budgets:
+  entity_confidence: ">= 80"
+  citation_targets: ">= 3"
+  crawler_blockers: "0"
+  prompt_coverage: ">= 60"
+tags:
+  - geo
+  - ai-search
+  - citations

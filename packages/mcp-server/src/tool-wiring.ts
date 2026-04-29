@@ -776,6 +776,14 @@ import {
   seopassLighthousePlan,
 } from "./seopass-tool.js";
 
+// --- GEOPass (AI search readiness QC, sister to UXPass) ----------------------
+import {
+  geopassRun,
+  geopassStatus,
+  geopassRegisterPack,
+  geopassCrawlPlan,
+} from "./geopass-tool.js";
+
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
 
@@ -11304,6 +11312,55 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // --- geopass-tool.ts (AI search readiness QC) ------------------------------
+  {
+    name: "geopass_run",
+    description: "Plan a GEOPass run against a URL or registered pack. Chunk 1 returns the AI-search crawl, entity, and citation-readiness plan without persisting results.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        url: { type: "string", description: "Target URL for a one-off GEOPass plan" },
+        pack_name: { type: "string", description: "Name of a registered GEOPass pack; the pack URL is used as the target" },
+      },
+    },
+  },
+  {
+    name: "geopass_status",
+    description: "Fetch the status for a GEOPass run. Chunk 1 reserves the tool shape; persistence lands later.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        run_id: { type: "string", description: "The GEOPass run id returned by a future geopass_run execution path" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "geopass_register_pack",
+    description: "Register a GEOPass pack from a YAML string. Validates required keys and stores the pack locally for geopass_run.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        pack_yaml: { type: "string", description: "Full GEOPass pack definition as a YAML string" },
+      },
+      required: ["pack_yaml"],
+    },
+  },
+  {
+    name: "geopass_crawl_plan",
+    description: "Build the crawler and extraction plan for a GEOPass target URL. Execution and persistence land in a later chunk.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        url: { type: "string", description: "Target URL for the crawl plan" },
+        max_pages: { type: "number", description: "Maximum pages to plan for crawling (default: 25)" },
+        respect_robots: { type: "boolean", description: "Whether the crawl should respect robots.txt (default: true)" },
+        include_sitemap: { type: "boolean", description: "Whether the crawler should inspect sitemap URLs (default: true)" },
+      },
+      required: ["url"],
+    },
+  },
+
   // ── crews-tool.ts (Orchestrator Wizard) ──────────────────────────────────────
   {
     name: "start_crew_run",
@@ -12475,6 +12532,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   seopass_status:          (args) => seopassStatus(args),
   seopass_register_pack:   (args) => seopassRegisterPack(args),
   seopass_lighthouse_plan: (args) => seopassLighthousePlan(args),
+
+  // geopass-tool.ts
+  geopass_run:           (args) => geopassRun(args),
+  geopass_status:        (args) => geopassStatus(args),
+  geopass_register_pack: (args) => geopassRegisterPack(args),
+  geopass_crawl_plan:    (args) => geopassCrawlPlan(args),
 
   // crews-tool.ts
   start_crew_run: (args) => crewsStartRun(args),
