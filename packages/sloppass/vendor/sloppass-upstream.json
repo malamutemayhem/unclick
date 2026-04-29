@@ -1,0 +1,18 @@
+{
+  "upstream": "https://github.com/promptfoo/promptfoo",
+  "package": "promptfoo",
+  "version": "0.121.9",
+  "tag": "0.121.9",
+  "commit": "195df77800b749679f73ed3f258d858d33d55b48",
+  "license": "MIT",
+  "trackedPaths": [
+    "src/evaluator.ts",
+    "src/configTypes.ts",
+    "src/types/index.ts",
+    "src/types/providers.ts",
+    "src/providers/registry.ts",
+    "src/assertions/index.ts"
+  ],
+  "localImplementation": "packages/sloppass/src",
+  "notes": "Hand-curated vendored snapshot of the small promptfoo primitives SlopPass keeps; aggressively stripped, not a wholesale fork."
+}

@@ -1,0 +1,33 @@
+{
+  "name": "@unclick/sloppass",
+  "version": "0.1.0",
+  "description": "SlopPass - scoped AI-code quality review with evidence, scope, and not-checked boundaries.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./types": "./dist/types.js",
+    "./runner": "./dist/runner/index.js",
+    "./reporter": "./dist/reporter.js",
+    "./vendor/promptfoo-lite": "./dist/vendor/promptfoo-lite/index.js"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "upstream:fetch": "git fetch promptfoo",
+    "upstream:log": "git log --oneline --decorate --max-count=20 promptfoo/main"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.5"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
