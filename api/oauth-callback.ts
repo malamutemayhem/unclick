@@ -22,6 +22,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { verifyOAuthStateToken } from "./oauth-state";
 
 // ─── Platform OAuth configs ────────────────────────────────────────────────────
 
@@ -182,16 +183,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST")    return res.status(405).json({ error: "Method not allowed." });
 
-  const { platform, code, api_key, store } = (req.body ?? {}) as {
+  const { platform, code, api_key, state, store } = (req.body ?? {}) as {
     platform?: string;
     code?:     string;
     api_key?:  string;
+    state?:    string;
     store?:    string; // Shopify only
   };
 
   if (!platform) return res.status(400).json({ error: "platform is required." });
   if (!code)     return res.status(400).json({ error: "code is required." });
   if (!api_key)  return res.status(400).json({ error: "api_key is required." });
+  if (!state)    return res.status(400).json({ error: "state is required." });
 
   if (!api_key.startsWith("uc_") && !api_key.startsWith("agt_")) {
     return res.status(400).json({ error: "Invalid api_key format." });
@@ -202,11 +205,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     : "https://unclick.world";
 
   try {
+    const statePayload = verifyOAuthStateToken(state, process.env);
+    if (statePayload.platform !== platform) {
+      return res.status(400).json({ error: "OAuth state platform mismatch." });
+    }
+    if (statePayload.redirectPath !== `/connect/${platform}`) {
+      return res.status(400).json({ error: "OAuth state redirect mismatch." });
+    }
+
     let credentials: Record<string, string>;
 
     if (platform === "shopify") {
-      if (!store) return res.status(400).json({ error: "store is required for Shopify." });
-      credentials = await exchangeShopify(code, store, process.env);
+      const verifiedStore = statePayload.store ?? store;
+      if (!verifiedStore) return res.status(400).json({ error: "store is required for Shopify." });
+      credentials = await exchangeShopify(code, verifiedStore, process.env);
     } else {
       const config = PLATFORM_CONFIGS[platform];
       if (!config) {
