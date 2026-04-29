@@ -20,6 +20,7 @@
     { "source": "/v1/arena/(.*)", "destination": "/api/arena" },
     { "source": "/v1/arena",      "destination": "/api/arena" },
     { "source": "/v1/report-bug",          "destination": "/api/report-bug" },
+    { "source": "/api/oauth-init",         "destination": "/api/oauth-init" },
     { "source": "/api/oauth-callback",     "destination": "/api/oauth-callback" },
     { "source": "/api/credentials",        "destination": "/api/credentials" },
     { "source": "/api/mcp",               "destination": "/api/mcp" },

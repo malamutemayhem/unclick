@@ -20,16 +20,17 @@ type PageState =
 const VITE_ENV = import.meta.env as Record<string, string>;
 
 /** Returns the OAuth2 authorization URL for a platform, or null if client_id not configured. */
-function buildOAuthUrl(connector: ConnectorConfig, redirectOrigin: string): string | null {
+function buildOAuthUrl(
+  connector: ConnectorConfig,
+  redirectOrigin: string,
+  state: string
+): string | null {
   if (connector.authType !== "oauth2") return null;
 
   // Platform-specific client IDs come from Vite public env vars
   const clientIdKey = `VITE_${connector.slug.toUpperCase()}_CLIENT_ID`;
   const clientId    = VITE_ENV[clientIdKey];
   if (!clientId) return null;
-
-  const state       = crypto.randomUUID();
-  sessionStorage.setItem(`oauth_state_${connector.slug}`, state);
 
   let authUrl = connector.authUrl ?? "";
 
@@ -158,13 +159,10 @@ export default function ConnectPage() {
     if (!code || !connector || callbackFired.current) return;
     callbackFired.current = true;
 
-    // CSRF state validation
-    const storedState = sessionStorage.getItem(`oauth_state_${connector.slug}`);
-    if (storedState && stateParam && storedState !== stateParam) {
-      setPageState({ kind: "error", message: "OAuth state mismatch. Please try again." });
+    if (!stateParam) {
+      setPageState({ kind: "error", message: "Missing OAuth state. Please try again." });
       return;
     }
-    sessionStorage.removeItem(`oauth_state_${connector.slug}`);
 
     const currentApiKey = apiKey || getApiKey();
     if (!currentApiKey) {
@@ -180,6 +178,7 @@ export default function ConnectPage() {
     const body: Record<string, string> = {
       platform: connector.slug,
       code,
+      state: stateParam,
       api_key:  currentApiKey,
     };
     const storedStore = sessionStorage.getItem("shopify_store");
@@ -311,8 +310,8 @@ export default function ConnectPage() {
 
   const isOAuth2          = connector.authType === "oauth2";
   const origin            = window.location.origin;
-  const oauthUrl          = isOAuth2 ? buildOAuthUrl(connector, origin) : null;
-  const oauthNotConfigured = isOAuth2 && !oauthUrl && connector.slug !== "shopify";
+  const oauthClientKey     = isOAuth2 ? VITE_ENV[`VITE_${connector.slug.toUpperCase()}_CLIENT_ID`] : "";
+  const oauthNotConfigured = isOAuth2 && !oauthClientKey && connector.slug !== "shopify";
 
   function handleFieldChange(key: string, value: string) {
     setFieldValues((prev) => ({ ...prev, [key]: value }));
@@ -350,14 +349,45 @@ export default function ConnectPage() {
     }
   }
 
-  function handleOAuthConnect() {
-    if (connector.slug === "shopify") {
-      const store = shopifyStore.trim().replace(".myshopify.com", "");
-      if (!store) return;
-      sessionStorage.setItem("shopify_store", store);
+  async function handleOAuthConnect() {
+    const normalizedStore =
+      connector.slug === "shopify"
+        ? shopifyStore.trim().replace(/\.myshopify\.com$/i, "")
+        : "";
+
+    if (connector.slug === "shopify" && !normalizedStore) return;
+
+    try {
+      const res = await fetch("/api/oauth-init", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          platform: connector.slug,
+          ...(normalizedStore ? { store: normalizedStore } : {}),
+        }),
+      });
+
+      const data = (await res.json()) as { state?: string; error?: string };
+      if (!res.ok || !data.state) {
+        setPageState({ kind: "error", message: data.error ?? "Failed to initialize OAuth." });
+        return;
+      }
+
+      if (normalizedStore) {
+        sessionStorage.setItem("shopify_store", normalizedStore);
+      }
+
+      const url = buildOAuthUrl(connector, origin, data.state);
+      if (!url) {
+        setPageState({ kind: "error", message: `OAuth2 setup pending for ${connector.name}.` });
+        return;
+      }
+
+      window.location.href = url;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Network error.";
+      setPageState({ kind: "error", message });
     }
-    const url = buildOAuthUrl(connector, origin);
-    if (url) window.location.href = url;
   }
 
   const allFieldsFilled = connector.credentialFields.every(
@@ -424,7 +454,7 @@ export default function ConnectPage() {
             ) : (
               <Button
                 className="w-full bg-[#E2B93B] hover:bg-[#E2B93B]/90 text-black font-semibold"
-                onClick={handleOAuthConnect}
+                onClick={() => void handleOAuthConnect()}
                 disabled={!apiKey.trim() || (connector.slug === "shopify" && !shopifyStore.trim())}
               >
                 Connect with {connector.name}
