@@ -36,6 +36,7 @@ This spec is now backed by live probe results from `🍿`'s verification batch, 
 
 - **W2 confirmed gap**: cron and system self-report rows are not being marked distinctly at write time today
 - **R2 confirmed gap**: `load_memory` still returns invalidated facts in the surfaced startup payload
+  - Implementation status: PR `#251` closed R2 at the SQL RPC layer (`mc_get_startup_context` + `get_startup_context` with `invalidated_at IS NULL`), and PR `#271` closed R2 at the MCP handler output layer.
 - **R3 confirmed gap**: probe batch measured roughly **33% startup-context pollution**, with near-duplicate cron-style rows occupying slots `5` and `6`
 - **R4 partial confirmation**: high-value durable facts still win the very top slot in at least some cases, for example Chris's timezone at `#1`, but cron self-reports still push other real facts down into slots `#7` through `#9`
 - **M1 unprobed**: startup metric reinforcement could not be verified from API responses because access metrics are not currently exposed in the relevant surface
