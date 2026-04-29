@@ -554,7 +554,8 @@ async function postFishbowlEvent(
     }
     if (!roomId) return;
 
-    await supabase.from("mc_fishbowl_messages").insert({
+    const eventAtIso = new Date().toISOString();
+    const { error: messageError } = await supabase.from("mc_fishbowl_messages").insert({
       api_key_hash: apiKeyHash,
       room_id: roomId,
       author_emoji: profile?.emoji ?? "🤖",
@@ -564,6 +565,17 @@ async function postFishbowlEvent(
       text: eventText,
       tags: ["event", eventTag],
     });
+    if (messageError) throw messageError;
+
+    await supabase
+      .from("mc_fishbowl_profiles")
+      .update({
+        last_seen_at: eventAtIso,
+        current_status_updated_at: eventAtIso,
+        next_checkin_at: null,
+      })
+      .eq("api_key_hash", apiKeyHash)
+      .eq("agent_id", agentId);
   } catch (err) {
     console.error(`[fishbowl postEvent ${eventTag}] failed:`, (err as Error).message);
   }
