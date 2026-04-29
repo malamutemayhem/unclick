@@ -26,6 +26,10 @@ Add this to your `claude_desktop_config.json` (or equivalent for Cursor, Windsur
 npm install -g @unclick/mcp-server
 ```
 
+## Operational Notes
+
+This repo follows the AGENTS.md fence rules for agent work.
+
 ## What it does
 
 Gives your agent access to a growing catalog of tools across developer utilities, social media, e-commerce, finance, messaging, media, security, and more. You don't need to install separate packages for each integration. One server provides access to everything in the catalog.
