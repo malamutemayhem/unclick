@@ -7,6 +7,7 @@ import {
   createReclaimSignal,
   createTimeBucket,
   decideStaleLease,
+  parseHeartbeatEtaMinutes,
 } from "../reliability.js";
 
 describe("reliability helpers", () => {
@@ -170,6 +171,19 @@ describe("reliability helpers", () => {
       createdAt: "2026-04-30T11:00:00.000Z",
       lastRealActionAt: "2026-04-30T10:59:30.000Z",
     });
+  });
+
+  it("parses heartbeat ETA from number and numeric string inputs", () => {
+    expect(parseHeartbeatEtaMinutes(4.8)).toBe(4);
+    expect(parseHeartbeatEtaMinutes("12")).toBe(12);
+    expect(parseHeartbeatEtaMinutes(" 0 ")).toBe(0);
+  });
+
+  it("clamps invalid or extreme heartbeat ETA values safely", () => {
+    expect(parseHeartbeatEtaMinutes(-8)).toBe(0);
+    expect(parseHeartbeatEtaMinutes(20000)).toBe(10080);
+    expect(parseHeartbeatEtaMinutes("not-a-number")).toBeUndefined();
+    expect(parseHeartbeatEtaMinutes(null)).toBeUndefined();
   });
 
   it("creates operator-safe telemetry without tenant hash or payload", () => {
