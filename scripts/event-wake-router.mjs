@@ -250,7 +250,7 @@ async function cheapTriage(brief, decision) {
   }
 }
 
-async function postWake(decision, triage, eventId) {
+async function postWake(decision, triage, eventId, event) {
   const eventSeconds = secondsSince(decision.eventCreatedAt);
   const wakeSecondsLabel = eventSeconds === null ? "unknown" : `${eventSeconds}s`;
   const recipients = decision.owner === "all" ? ["all"] : [decision.owner];
@@ -497,7 +497,7 @@ async function main() {
     return;
   }
 
-  const result = await postWake(finalDecision, triage, eventId);
+  const result = await postWake(finalDecision, triage, eventId, event);
   const reliability =
     result.posted || result.dry_run
       ? await registerWakeDispatch({ eventId, decision: finalDecision, triage, result, event })
