@@ -3,6 +3,7 @@ import {
   createDispatchId,
   createHeartbeat,
   createOperatorTelemetry,
+  parseOptionalFilterToken,
   createQueuedDispatch,
   createReclaimSignal,
   createTimeBucket,
@@ -314,5 +315,30 @@ describe("reliability helpers", () => {
       stale_seconds: 12,
       route: "oauth-health",
     });
+  });
+
+  it("parses optional heartbeat list filters safely", () => {
+    expect(parseOptionalFilterToken(undefined, "agent_id")).toEqual({});
+    expect(parseOptionalFilterToken("  ", "agent_id")).toEqual({});
+    expect(parseOptionalFilterToken("worker_1", "agent_id")).toEqual({ value: "worker_1" });
+    expect(parseOptionalFilterToken("dispatch_abc", "dispatch_id", 256)).toEqual({
+      value: "dispatch_abc",
+    });
+  });
+
+  it("rejects malformed heartbeat list filters", () => {
+    expect(parseOptionalFilterToken(["bad"], "agent_id").error).toBe("agent_id must be a string");
+    expect(parseOptionalFilterToken("bad id", "agent_id").error).toBe(
+      "agent_id must not contain whitespace",
+    );
+    expect(parseOptionalFilterToken("bad\tid", "dispatch_id", 256).error).toBe(
+      "dispatch_id must not contain whitespace",
+    );
+    expect(parseOptionalFilterToken(`a${"\u0001"}b`, "agent_id").error).toBe(
+      "agent_id contains invalid control characters",
+    );
+    expect(parseOptionalFilterToken("x".repeat(257), "dispatch_id", 256).error).toBe(
+      "dispatch_id must be at most 256 characters",
+    );
   });
 });

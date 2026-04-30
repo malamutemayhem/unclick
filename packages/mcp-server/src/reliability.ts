@@ -114,6 +114,11 @@ export interface OperatorTelemetry {
 
 const MAX_HEARTBEAT_ETA_MINUTES = 7 * 24 * 60;
 
+export interface OptionalFilterTokenResult {
+  value?: string;
+  error?: string;
+}
+
 export function createDispatchId(input: DispatchIdInput): string {
   const hash = createHash("sha256")
     .update(stableStringify(input))
@@ -327,6 +332,31 @@ export function createReclaimSignal(
       ...payload,
     },
   };
+}
+
+export function parseOptionalFilterToken(
+  input: unknown,
+  fieldName: string,
+  maxLength = 128,
+): OptionalFilterTokenResult {
+  if (input == null) return {};
+  if (typeof input !== "string") {
+    return { error: `${fieldName} must be a string` };
+  }
+
+  const value = input.trim();
+  if (!value) return {};
+  if (value.length > maxLength) {
+    return { error: `${fieldName} must be at most ${maxLength} characters` };
+  }
+  if (/\s/.test(value)) {
+    return { error: `${fieldName} must not contain whitespace` };
+  }
+  if (/[\u0000-\u001F\u007F]/.test(value)) {
+    return { error: `${fieldName} contains invalid control characters` };
+  }
+
+  return { value };
 }
 
 function stableStringify(value: unknown): string {

@@ -101,6 +101,7 @@ import {
   createDispatchId,
   createHeartbeat,
   parseHeartbeatEtaMinutes,
+  parseOptionalFilterToken,
   createReclaimSignal,
   createTimeBucket,
   decideStaleLease,
@@ -5020,8 +5021,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         switch (method) {
           case "list": {
             const limit = getClampedLimit(req.query.limit ?? req.body?.limit, 50, 200);
-            const agentId = String(req.query.agent_id ?? req.body?.agent_id ?? "").trim();
-            const dispatchId = String(req.query.dispatch_id ?? req.body?.dispatch_id ?? "").trim();
+            const agentIdFilter = parseOptionalFilterToken(
+              req.query.agent_id ?? req.body?.agent_id,
+              "agent_id",
+              128,
+            );
+            if (agentIdFilter.error) {
+              return res.status(400).json({ error: agentIdFilter.error });
+            }
+
+            const dispatchIdFilter = parseOptionalFilterToken(
+              req.query.dispatch_id ?? req.body?.dispatch_id,
+              "dispatch_id",
+              256,
+            );
+            if (dispatchIdFilter.error) {
+              return res.status(400).json({ error: dispatchIdFilter.error });
+            }
             let query = supabase
               .from("mc_agent_heartbeats")
               .select(
@@ -5031,8 +5047,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               .order("created_at", { ascending: false })
               .limit(limit);
 
-            if (agentId) query = query.eq("agent_id", agentId);
-            if (dispatchId) query = query.eq("dispatch_id", dispatchId);
+            if (agentIdFilter.value) query = query.eq("agent_id", agentIdFilter.value);
+            if (dispatchIdFilter.value) query = query.eq("dispatch_id", dispatchIdFilter.value);
 
             const { data, error } = await query;
             if (error) throw error;
