@@ -2,7 +2,7 @@ name: TestPass Scheduled Smoke
 
 on:
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
     inputs:
       pack_id:
