@@ -4895,7 +4895,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             const now = new Date();
             const leaseExpiresAt = new Date(now.getTime() + leaseSeconds * 1000).toISOString();
-            const { data: claimed, error: claimError } = await supabase
+            let claimQuery = supabase
               .from("mc_agent_dispatches")
               .update({
                 status: "leased",
@@ -4905,12 +4905,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               })
               .eq("api_key_hash", apiKeyHash)
               .eq("dispatch_id", dispatchId)
+              .eq("status", dispatch.status)
+              .eq("updated_at", dispatch.updated_at);
+
+            if (dispatch.lease_owner) {
+              claimQuery = claimQuery.eq("lease_owner", dispatch.lease_owner);
+            } else {
+              claimQuery = claimQuery.is("lease_owner", null);
+            }
+            if (dispatch.lease_expires_at) {
+              claimQuery = claimQuery.eq("lease_expires_at", dispatch.lease_expires_at);
+            } else {
+              claimQuery = claimQuery.is("lease_expires_at", null);
+            }
+
+            const { data: claimed, error: claimError } = await claimQuery
               .select(
                 "id, api_key_hash, dispatch_id, source, target_agent_id, task_ref, status, lease_owner, lease_expires_at, last_real_action_at, payload, created_at, updated_at",
               )
               .maybeSingle();
             if (claimError) throw claimError;
-            if (!claimed) return res.status(404).json({ error: "dispatch not found" });
+            if (!claimed) {
+              const latest = await supabase
+                .from("mc_agent_dispatches")
+                .select(
+                  "status, lease_owner, lease_expires_at, updated_at",
+                )
+                .eq("api_key_hash", apiKeyHash)
+                .eq("dispatch_id", dispatchId)
+                .maybeSingle();
+              if (latest.error) throw latest.error;
+              return res.status(409).json({
+                error: "dispatch claim lost race",
+                latest: latest.data ?? null,
+              });
+            }
 
             return res.status(200).json({
               data: claimed,
@@ -5020,6 +5049,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
 
             const dispatchId = String(body.dispatch_id ?? "").trim() || undefined;
+            let dispatchForHeartbeat: ReliabilityDispatchRow | null = null;
+            if (dispatchId) {
+              const { data: dispatchData, error: dispatchError } = await supabase
+                .from("mc_agent_dispatches")
+                .select(
+                  "id, api_key_hash, dispatch_id, source, target_agent_id, task_ref, status, lease_owner, lease_expires_at, last_real_action_at, payload, created_at, updated_at",
+                )
+                .eq("api_key_hash", apiKeyHash)
+                .eq("dispatch_id", dispatchId)
+                .maybeSingle();
+              if (dispatchError) throw dispatchError;
+              if (!dispatchData) {
+                return res.status(404).json({ error: "dispatch not found" });
+              }
+              dispatchForHeartbeat = dispatchData as ReliabilityDispatchRow;
+
+              const staleDecision = decideStaleLease(
+                {
+                  status: dispatchForHeartbeat.status,
+                  leaseExpiresAt: dispatchForHeartbeat.lease_expires_at,
+                  lastRealActionAt: dispatchForHeartbeat.last_real_action_at,
+                },
+                new Date(),
+              );
+
+              if (
+                dispatchForHeartbeat.status === "leased" &&
+                dispatchForHeartbeat.lease_owner &&
+                dispatchForHeartbeat.lease_owner !== agentId &&
+                !staleDecision.isStale
+              ) {
+                return res.status(409).json({
+                  error: "dispatch is actively leased by another agent",
+                  lease_owner: dispatchForHeartbeat.lease_owner,
+                  lease_expires_at: dispatchForHeartbeat.lease_expires_at,
+                });
+              }
+            }
             const etaMinutesRaw = body.eta_minutes;
             const etaMinutes =
               typeof etaMinutesRaw === "number" && Number.isFinite(etaMinutesRaw)
@@ -5041,6 +5108,52 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 Number.isNaN(lastRealActionAt.getTime()) ? undefined : lastRealActionAt,
             });
 
+            if (dispatchId) {
+              const dispatchPatch: Record<string, unknown> = {
+                last_real_action_at: heartbeat.lastRealActionAt ?? heartbeat.createdAt,
+                updated_at: new Date().toISOString(),
+              };
+              if (state === "completed") {
+                dispatchPatch.status = "completed";
+                dispatchPatch.lease_owner = null;
+                dispatchPatch.lease_expires_at = null;
+              }
+              let dispatchUpdateQuery = supabase
+                .from("mc_agent_dispatches")
+                .update(dispatchPatch)
+                .eq("api_key_hash", apiKeyHash)
+                .eq("dispatch_id", dispatchId)
+                .eq("updated_at", dispatchForHeartbeat?.updated_at ?? "");
+
+              if (dispatchForHeartbeat?.lease_owner) {
+                dispatchUpdateQuery = dispatchUpdateQuery.eq(
+                  "lease_owner",
+                  dispatchForHeartbeat.lease_owner,
+                );
+              } else {
+                dispatchUpdateQuery = dispatchUpdateQuery.is("lease_owner", null);
+              }
+
+              const { data: updatedDispatch, error: dispatchUpdateError } =
+                await dispatchUpdateQuery
+                  .select("dispatch_id, status, lease_owner, updated_at")
+                  .maybeSingle();
+              if (dispatchUpdateError) throw dispatchUpdateError;
+              if (!updatedDispatch) {
+                const latest = await supabase
+                  .from("mc_agent_dispatches")
+                  .select("dispatch_id, status, lease_owner, lease_expires_at, updated_at")
+                  .eq("api_key_hash", apiKeyHash)
+                  .eq("dispatch_id", dispatchId)
+                  .maybeSingle();
+                if (latest.error) throw latest.error;
+                return res.status(409).json({
+                  error: "dispatch changed before heartbeat update applied",
+                  latest: latest.data ?? null,
+                });
+              }
+            }
+
             const { data, error } = await supabase
               .from("mc_agent_heartbeats")
               .insert({
@@ -5060,24 +5173,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               )
               .single();
             if (error) throw error;
-
-            if (dispatchId) {
-              const dispatchPatch: Record<string, unknown> = {
-                last_real_action_at: heartbeat.lastRealActionAt ?? heartbeat.createdAt,
-                updated_at: new Date().toISOString(),
-              };
-              if (state === "completed") {
-                dispatchPatch.status = "completed";
-                dispatchPatch.lease_owner = null;
-                dispatchPatch.lease_expires_at = null;
-              }
-              const { error: dispatchUpdateError } = await supabase
-                .from("mc_agent_dispatches")
-                .update(dispatchPatch)
-                .eq("api_key_hash", apiKeyHash)
-                .eq("dispatch_id", dispatchId);
-              if (dispatchUpdateError) throw dispatchUpdateError;
-            }
 
             return res.status(200).json({ data });
           }
