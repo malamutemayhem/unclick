@@ -28,7 +28,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-// Mask a value like BackstagePass: first 4 chars + 8 bullets + last 4.
+// Mask a saved connection secret: first 4 chars + 8 bullets + last 4.
 // Short values collapse to plain bullets so the length cannot be leaked.
 function maskValue(v: string): string {
   if (!v) return "";
