@@ -100,6 +100,7 @@ import { buildCard, type ConversationalCard } from "../packages/mcp-server/src/c
 import {
   createDispatchId,
   createHeartbeat,
+  parseHeartbeatEtaMinutes,
   createReclaimSignal,
   createTimeBucket,
   decideStaleLease,
@@ -5077,11 +5078,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 });
               }
             }
-            const etaMinutesRaw = body.eta_minutes;
-            const etaMinutes =
-              typeof etaMinutesRaw === "number" && Number.isFinite(etaMinutesRaw)
-                ? Math.max(0, Math.floor(etaMinutesRaw))
-                : undefined;
+            const etaMinutes = parseHeartbeatEtaMinutes(body.eta_minutes);
             const lastRealActionAt = body.last_real_action_at
               ? new Date(String(body.last_real_action_at))
               : new Date();

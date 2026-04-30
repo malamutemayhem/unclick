@@ -112,6 +112,8 @@ export interface OperatorTelemetry {
   staleSeconds?: number;
 }
 
+const MAX_HEARTBEAT_ETA_MINUTES = 7 * 24 * 60;
+
 export function createDispatchId(input: DispatchIdInput): string {
   const hash = createHash("sha256")
     .update(stableStringify(input))
@@ -217,6 +219,22 @@ export function createHeartbeat(params: {
   }
 
   return heartbeat;
+}
+
+export function parseHeartbeatEtaMinutes(value: unknown): number | undefined {
+  let parsed: number | null = null;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    parsed = value;
+  } else if (typeof value === "string" && value.trim()) {
+    const parsedString = Number(value);
+    if (Number.isFinite(parsedString)) {
+      parsed = parsedString;
+    }
+  }
+
+  if (parsed === null) return undefined;
+  const clamped = Math.max(0, Math.floor(parsed));
+  return Math.min(clamped, MAX_HEARTBEAT_ETA_MINUTES);
 }
 
 export function createOperatorTelemetry(input: {
