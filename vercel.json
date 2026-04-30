@@ -15,6 +15,14 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.unclick.world" }],
+      "destination": "https://unclick.world/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/sitemap.xml",   "destination": "/api/sitemap" },
     { "source": "/v1/arena/(.*)", "destination": "/api/arena" },
