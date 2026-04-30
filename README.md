@@ -46,6 +46,11 @@ UnClick exposes a small direct surface for daily agent workflows, plus hidden in
 
 The agent starts with memory, uses direct Fishbowl tools for coordination, and can still call the hidden catalog tools by name when it needs dynamic endpoint discovery.
 
+### Compatibility and advanced memory operations
+
+- Legacy memory names still work as aliases: `get_startup_context` -> `load_memory`, `write_session_summary` -> `save_session`, `add_fact` -> `save_fact`, `set_business_context` -> `save_identity`.
+- The remaining memory operations are intentionally not listed in `ListTools` and are called through `unclick_call` with `endpoint_id: "memory.<op>"` (for example `memory.manage_decay`, `memory.store_code`, `memory.log_conversation`, `memory.supersede_fact`, `memory.upsert_library_doc`).
+
 ## Requirements
 
 - Node.js 18+
