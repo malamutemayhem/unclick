@@ -45,7 +45,7 @@ These tools remain callable by name, but they are hidden from `ListTools` to kee
 - `check_signals` - check whether the agent should wake up or act
 - Fishbowl coordination tools such as `read_messages`, `post_message`, `create_todo`, `list_todos`, `update_todo`, `complete_todo`, `create_idea`, `list_ideas`, `vote_on_idea`, and `promote_idea_to_todo`
 
-The old tool names still work as aliases for backward compatibility. The other 12 memory operations (manage_decay, store_code, log_conversation, supersede_fact, upsert_library_doc, etc.) are callable via `unclick_call` with `endpoint_id: "memory.<op>"`.
+The old tool names still work as aliases for backward compatibility. The other 13 memory operations (manage_decay, store_code, log_conversation, supersede_fact, upsert_library_doc, etc.) are callable via `unclick_call` with `endpoint_id: "memory.<op>"`.
 
 ## Adding a new tool
 
