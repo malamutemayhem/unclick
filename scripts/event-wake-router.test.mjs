@@ -44,4 +44,21 @@ describe("event wake router reliability dispatch", () => {
     assert.equal(request.payload.wake_owner, "🤖");
     assert.equal(request.payload.github_subject, "workflow-run-123");
   });
+
+  it("defaults missed-ACK handoff leases to ten minutes", () => {
+    const request = buildReliabilityDispatchRequest({
+      eventId: "wake-workflow_run-workflow-run-456-def",
+      decision: {
+        owner: "🤖",
+        reason: "PR checks completed green",
+        urgency: "high",
+      },
+      triage: { used: false },
+      result: { message_id: "msg-456" },
+      event: { workflow_run: { id: 456 } },
+    });
+
+    assert.equal(request.time_bucket_seconds, 600);
+    assert.equal(request.payload.ack_fail_after_seconds, 600);
+  });
 });
