@@ -47,7 +47,7 @@ jobs:
         # Run regardless of TestPass step outcome - infra failures still need a
         # human-readable comment so the PR doesn't look mysteriously broken.
         if: ${{ always() && github.event_name == 'pull_request' }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           RUN_ID: ${{ steps.testpass.outputs.run_id }}
           STATUS: ${{ steps.testpass.outputs.status }}
