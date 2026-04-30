@@ -33,7 +33,7 @@ jobs:
         id: testpass
         uses: ./.github/actions/testpass
         with:
-          token: ${{ secrets.TESTPASS_TOKEN }}
+          token: ${{ secrets.TESTPASS_CRON_SECRET || secrets.CRON_SECRET || secrets.TESTPASS_TOKEN }}
           pack_id: ${{ inputs.pack_id || 'testpass-core' }}
           profile: ${{ inputs.profile || 'smoke' }}
           server_url: ${{ inputs.server_url || 'https://unclick.world/api/mcp' }}
