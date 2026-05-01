@@ -7,6 +7,12 @@ export async function apiFetchJson({
   query = {},
   timeoutMs = 10_000,
 }) {
+  const describeBody = (value) => {
+    if (typeof value !== "string") return "";
+    const compact = value.replace(/\s+/g, " ").trim();
+    return compact ? ` body="${compact.slice(0, 160)}"` : "";
+  };
+
   const qs = new URLSearchParams({ action, ...query }).toString();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -22,9 +28,20 @@ export async function apiFetchJson({
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      throw new Error(`api ${action} -> ${res.status} ${text.slice(0, 200)}`);
+      throw new Error(`api ${action} -> ${res.status}${describeBody(text)}`);
     }
-    return res.json();
+    try {
+      return await res.json();
+    } catch (err) {
+      const text = await res.text().catch(() => "");
+      const reason =
+        err && typeof err === "object" && "message" in err
+          ? String(err.message)
+          : "unknown parse error";
+      throw new Error(
+        `api ${action} -> invalid json (${reason})${describeBody(text)}`
+      );
+    }
   } catch (err) {
     if (err && typeof err === "object" && err.name === "AbortError") {
       throw new Error(`api ${action} timeout after ${timeoutMs}ms`);
