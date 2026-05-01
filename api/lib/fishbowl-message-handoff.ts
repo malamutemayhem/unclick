@@ -5,6 +5,18 @@ export const FISHBOWL_MESSAGE_HANDOFF_LEASE_SECONDS = 600;
 const ACTION_TAGS = new Set(["needs-doing", "blocker", "tripwire"]);
 const PRE_DISPATCHED_AUTHORS = new Set(["github-action-wake-router"]);
 
+function normalizeToken(token: string): string {
+  return token.trim().toLowerCase();
+}
+
+function isHumanProfile(profile: FishbowlMessageRecipientProfile): boolean {
+  return (
+    profile.userAgentHint === "admin-ui" ||
+    profile.agentId.startsWith("human-") ||
+    profile.agentId.startsWith("human_")
+  );
+}
+
 export interface FishbowlMessageRecipientProfile {
   agentId: string;
   emoji: string | null | undefined;
@@ -53,21 +65,22 @@ export function planFishbowlMessageHandoffs(
   input: FishbowlMessageHandoffInput,
 ): FishbowlMessageHandoffPlan[] {
   if (PRE_DISPATCHED_AUTHORS.has(input.authorAgentId)) return [];
-  const tagSet = new Set(input.tags);
+  const normalizedTags = input.tags.map(normalizeToken).filter(Boolean);
+  const tagSet = new Set(normalizedTags);
   if (tagSet.has("wake")) return [];
-  const hasActionTag = input.tags.some((tag) => ACTION_TAGS.has(tag));
+  const hasActionTag = normalizedTags.some((tag) => ACTION_TAGS.has(tag));
   if (!hasActionTag) return [];
 
   const authorProfile = input.recipientProfiles.find(
     (profile) =>
-      profile.userAgentHint !== "admin-ui" &&
-      !profile.agentId.startsWith("human-") &&
+      !isHumanProfile(profile) &&
       profile.agentId === input.authorAgentId,
   );
   if (!authorProfile) return [];
 
   const recipients = input.recipients.map((recipient) => recipient.trim()).filter(Boolean);
   if (recipients.length !== 1 || recipients[0] === "all") return [];
+  if (recipients[0].toLowerCase() === "all") return [];
 
   const summary = input.text.length > 200 ? `${input.text.slice(0, 197)}...` : input.text;
   const plans: FishbowlMessageHandoffPlan[] = [];
@@ -76,8 +89,7 @@ export function planFishbowlMessageHandoffs(
   for (const recipient of recipients) {
     const matches = input.recipientProfiles.filter(
       (profile) =>
-        profile.userAgentHint !== "admin-ui" &&
-        !profile.agentId.startsWith("human-") &&
+        !isHumanProfile(profile) &&
         (profile.agentId === recipient || profile.emoji === recipient),
     );
     if (matches.length !== 1) continue;
