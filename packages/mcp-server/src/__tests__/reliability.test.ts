@@ -382,4 +382,28 @@ describe("reliability helpers", () => {
       "agent_id must be at most 128 characters",
     );
   });
+
+  it("parses reliability dispatch token fields with dispatch-specific bounds", () => {
+    expect(parseRequiredToken(" dispatch_abc ", "dispatch_id", 256)).toEqual({
+      value: "dispatch_abc",
+    });
+    expect(parseOptionalFilterToken(" lease_owner_1 ", "lease_owner", 128)).toEqual({
+      value: "lease_owner_1",
+    });
+    expect(parseRequiredToken("target-agent-1", "target_agent_id", 128)).toEqual({
+      value: "target-agent-1",
+    });
+  });
+
+  it("rejects malformed reliability dispatch token fields", () => {
+    expect(parseRequiredToken("bad dispatch", "dispatch_id", 256).error).toBe(
+      "dispatch_id must not contain whitespace",
+    );
+    expect(parseOptionalFilterToken("x".repeat(129), "lease_owner", 128).error).toBe(
+      "lease_owner must be at most 128 characters",
+    );
+    expect(parseRequiredToken("x".repeat(129), "target_agent_id", 128).error).toBe(
+      "target_agent_id must be at most 128 characters",
+    );
+  });
 });
