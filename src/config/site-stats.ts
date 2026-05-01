@@ -1,11 +1,11 @@
 // SINGLE SOURCE OF TRUTH for all site-wide statistics
 // Update these numbers here and they propagate everywhere
-// Last updated: 2026-04-11
+// Last updated: 2026-05-01
 
 export const SITE_STATS = {
   // Tool counts
   TOOL_GROUPS: 21,           // Number of tool groups in the hosted API catalog
-  TOOL_FILES: 172,           // Number of tool files in the repo
+  TOOL_FILES: 178,           // Number of tool files in the repo
   CALLABLE_ENDPOINTS: 450,   // Total callable endpoints across all tools
 
   // BackstagePass
