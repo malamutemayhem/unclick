@@ -5,6 +5,17 @@ import {
   shouldTrackCredentialName,
 } from "./systemCredentialInventory";
 
+const FORBIDDEN_SECRET_LIKE_PATTERNS: readonly RegExp[] = [
+  /\bsk-[a-z0-9_-]{8,}\b/i,
+  /\bgh[pousr]_[a-z0-9]{8,}\b/i,
+  /\bxox[baprs]-[a-z0-9-]{8,}\b/i,
+  /\bAKIA[0-9A-Z]{8,}\b/,
+  /\bBearer\s+[a-z0-9._-]{8,}\b/i,
+  /\bAuthorization:\s*[^\s]/i,
+  /\bSet-Cookie:\s*[^\s]/i,
+  /\brefresh[_-]?token\b/i,
+];
+
 describe("system credential inventory", () => {
   it("tracks critical GitHub Actions names without values", () => {
     const names = listSystemCredentialInventory()
@@ -36,6 +47,15 @@ describe("system credential inventory", () => {
       expect(entry.scope.length).toBeGreaterThan(0);
       expect(entry.workload.length).toBeGreaterThan(0);
       expect(entry.docsHint.toLowerCase()).not.toContain("secret value:");
+    }
+  });
+
+  it("keeps docs and rotation copy free of secret-like literals", () => {
+    for (const entry of listSystemCredentialInventory()) {
+      const combinedCopy = `${entry.docsHint}\n${entry.rotationImpact ?? ""}`;
+      for (const pattern of FORBIDDEN_SECRET_LIKE_PATTERNS) {
+        expect(combinedCopy).not.toMatch(pattern);
+      }
     }
   });
 
