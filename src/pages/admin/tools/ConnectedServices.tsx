@@ -19,6 +19,18 @@ interface ConnectedServicesProps {
 }
 
 export default function ConnectedServices({ connectors, loading }: ConnectedServicesProps) {
+  function formatLastTested(value: string | null): string {
+    if (!value) return "not tested yet";
+
+    const testedAt = new Date(value);
+    if (Number.isNaN(testedAt.getTime())) return "test time unknown";
+
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(testedAt);
+  }
+
   function getSetupLabel(authType?: Connector["auth_type"]): string {
     switch (authType) {
       case "oauth2":
@@ -52,7 +64,7 @@ export default function ConnectedServices({ connectors, loading }: ConnectedServ
         dot: "bg-amber-400",
         pillClass: "bg-amber-400/10 text-amber-200",
         pill: "Needs reconnection",
-        note: "Reconnect or retest this service in Connections.",
+        note: `Reconnect or retest this service in Connections. Last checked: ${formatLastTested(credential.last_tested_at)}.`,
       };
     }
 
@@ -69,7 +81,7 @@ export default function ConnectedServices({ connectors, loading }: ConnectedServ
       dot: "bg-green-500",
       pillClass: "bg-green-500/10 text-green-200",
       pill: "Connected",
-      note: "Ready for approved agent workflows.",
+      note: `Ready for approved agent workflows. Last checked: ${formatLastTested(credential.last_tested_at)}.`,
     };
   }
 
@@ -138,6 +150,11 @@ export default function ConnectedServices({ connectors, loading }: ConnectedServ
                   Test supported
                 </span>
               )}
+              {!hasTest && c.auth_type === "oauth2" && (
+                <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] text-white/45">
+                  OAuth status only
+                </span>
+              )}
             </div>
             <p className="mt-2 text-[11px] text-white/40">
               {status.note}
@@ -145,13 +162,13 @@ export default function ConnectedServices({ connectors, loading }: ConnectedServ
             </p>
             <div className="mt-3 flex items-center justify-between">
               <div className="text-[10px] text-white/30">
-                {c.setup_url ? "Setup guide available" : "Managed in Connections"}
+                {hasTest ? "Can be tested from Connections" : c.setup_url ? "Setup guide available" : "Managed in Connections"}
               </div>
               <Link
                 to="/admin/keychain"
                 className="text-[10px] text-white/30 hover:text-white/50 transition-colors"
               >
-                {c.credential ? "Manage" : "Set up"}
+                {c.credential && hasTest ? "Test" : c.credential ? "Manage" : "Set up"}
               </Link>
             </div>
           </div>
