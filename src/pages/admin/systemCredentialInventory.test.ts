@@ -83,6 +83,10 @@ describe("system credential inventory", () => {
     expect(shouldTrackCredentialName("GITHUB_TOKEN")).toBe(false);
     expect(shouldTrackCredentialName("VERCEL_URL")).toBe(false);
     expect(shouldTrackCredentialName("lowercase-token")).toBe(false);
+    expect(shouldTrackCredentialName("AKIAIOSFODNN7EXAMPLE")).toBe(false);
+    expect(shouldTrackCredentialName("ghp_12345678abcdefgh")).toBe(false);
+    expect(shouldTrackCredentialName("sk-test_12345678")).toBe(false);
+    expect(shouldTrackCredentialName("xoxb-12345678-abcdef12")).toBe(false);
   });
 
   it("rejects records that include value-shaped fields", () => {
@@ -96,6 +100,20 @@ describe("system credential inventory", () => {
       source: "vercel_env",
       name: "TESTPASS_TOKEN",
       value: "never-print-me",
+    })).toBeNull();
+  });
+
+  it("rejects records whose names look like pasted secret literals", () => {
+    expect(sanitizeInventoryRecord({
+      provider: "github",
+      source: "github_actions_secret",
+      name: "AKIAIOSFODNN7EXAMPLE",
+    })).toBeNull();
+
+    expect(sanitizeInventoryRecord({
+      provider: "vercel",
+      source: "vercel_env",
+      name: "sk-test_12345678",
     })).toBeNull();
   });
 
