@@ -60,17 +60,18 @@ export function testPassBackgroundFailureDispatchId(runId: string): string {
 export function planTestPassBackgroundFailureHandoff(
   input: TestPassBackgroundFailureHandoffInput,
 ): TestPassBackgroundFailureHandoffPlan | null {
+  const runId = (input.runId ?? "").trim();
   const targetAgentId = (input.targetAgentId ?? "").trim();
   const errorMessage = (input.errorMessage ?? "").trim();
-  if (!targetAgentId || !input.runId || !errorMessage) return null;
+  if (!targetAgentId || !runId || !errorMessage) return null;
 
   return {
     source: "testpass",
     targetAgentId,
-    taskRef: `testpass-run:${input.runId}`,
+    taskRef: `testpass-run:${runId}`,
     payload: {
       kind: "testpass_background_failure",
-      run_id: input.runId,
+      run_id: runId,
       pack_slug: input.packSlug,
       pack_name: input.packName,
       profile: input.profile,
