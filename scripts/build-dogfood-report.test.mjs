@@ -36,7 +36,16 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
 test("dogfood receipt includes structured proof for live TestPass and UXPass runs", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
   const output = path.join(dir, "latest.json");
-  const server = http.createServer((req, res) => {
+  const requests = [];
+  const server = http.createServer(async (req, res) => {
+    const chunks = [];
+    for await (const chunk of req) {
+      chunks.push(chunk);
+    }
+    const bodyText = Buffer.concat(chunks).toString("utf8");
+    const body = bodyText ? JSON.parse(bodyText) : {};
+    requests.push({ url: req.url, body });
+
     res.setHeader("Content-Type", "application/json");
     if (req.url === "/api/testpass-run") {
       res.end(JSON.stringify({
@@ -81,7 +90,10 @@ test("dogfood receipt includes structured proof for live TestPass and UXPass run
     const report = JSON.parse(await fs.readFile(output, "utf8"));
     const testpass = report.results.find((result) => result.id === "testpass");
     const uxpass = report.results.find((result) => result.id === "uxpass");
+    const testpassRequest = requests.find((request) => request.url === "/api/testpass-run");
+    const uxpassRequest = requests.find((request) => request.url === "/api/uxpass-run");
 
+    assert.equal(testpassRequest.body.source, "scheduled");
     assert.equal(testpass.runId, "testpass-run-123");
     assert.equal(testpass.targetUrl, "https://unclick.world/api/mcp");
     assert.deepEqual(testpass.proof, {
@@ -90,6 +102,7 @@ test("dogfood receipt includes structured proof for live TestPass and UXPass run
       targetUrl: "https://unclick.world/api/mcp",
     });
 
+    assert.equal(uxpassRequest.body.source, "scheduled");
     assert.equal(uxpass.runId, "uxpass-run-456");
     assert.equal(uxpass.targetUrl, "https://unclick.world");
     assert.deepEqual(uxpass.proof, {

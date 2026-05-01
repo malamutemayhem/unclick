@@ -168,6 +168,7 @@ async function runUXPass() {
     const { ok, status, json } = await postJson(`${apiBase}/api/uxpass-run`, token, {
       url: publicUrl,
       target_url: publicUrl,
+      source: "scheduled",
     });
 
     if (!ok) {
