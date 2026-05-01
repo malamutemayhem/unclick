@@ -119,6 +119,11 @@ export interface OptionalFilterTokenResult {
   error?: string;
 }
 
+export interface RequiredTokenResult {
+  value?: string;
+  error?: string;
+}
+
 export function createDispatchId(input: DispatchIdInput): string {
   const hash = createHash("sha256")
     .update(stableStringify(input))
@@ -357,6 +362,17 @@ export function parseOptionalFilterToken(
   }
 
   return { value };
+}
+
+export function parseRequiredToken(
+  input: unknown,
+  fieldName: string,
+  maxLength = 128,
+): RequiredTokenResult {
+  const parsed = parseOptionalFilterToken(input, fieldName, maxLength);
+  if (parsed.error) return parsed;
+  if (!parsed.value) return { error: `${fieldName} required` };
+  return { value: parsed.value };
 }
 
 function stableStringify(value: unknown): string {

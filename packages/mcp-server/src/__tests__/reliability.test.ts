@@ -4,6 +4,7 @@ import {
   createHeartbeat,
   createOperatorTelemetry,
   parseOptionalFilterToken,
+  parseRequiredToken,
   createQueuedDispatch,
   createReclaimSignal,
   createTimeBucket,
@@ -339,6 +340,21 @@ describe("reliability helpers", () => {
     );
     expect(parseOptionalFilterToken("x".repeat(257), "dispatch_id", 256).error).toBe(
       "dispatch_id must be at most 256 characters",
+    );
+  });
+
+  it("parses required publish tokens safely", () => {
+    expect(parseRequiredToken(" worker-1 ", "agent_id")).toEqual({ value: "worker-1" });
+    expect(parseRequiredToken(undefined, "agent_id")).toEqual({ error: "agent_id required" });
+    expect(parseRequiredToken("  ", "agent_id")).toEqual({ error: "agent_id required" });
+  });
+
+  it("rejects malformed required publish tokens", () => {
+    expect(parseRequiredToken("bad id", "agent_id").error).toBe(
+      "agent_id must not contain whitespace",
+    );
+    expect(parseRequiredToken("x".repeat(129), "agent_id", 128).error).toBe(
+      "agent_id must be at most 128 characters",
     );
   });
 });

@@ -103,6 +103,7 @@ import {
   createHeartbeat,
   parseHeartbeatEtaMinutes,
   parseOptionalFilterToken,
+  parseRequiredToken,
   createReclaimSignal,
   createTimeBucket,
   decideStaleLease,
@@ -5059,14 +5060,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           case "publish": {
             if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
             const body = (req.body ?? {}) as Record<string, unknown>;
-            const agentId = String(body.agent_id ?? "").trim();
             const state = body.state;
-            if (!agentId) return res.status(400).json({ error: "agent_id required" });
+            const agentIdResult = parseRequiredToken(body.agent_id, "agent_id", 128);
+            if (agentIdResult.error) return res.status(400).json({ error: agentIdResult.error });
+            const agentId = agentIdResult.value!;
             if (!isReliabilityHeartbeatState(state)) {
               return res.status(400).json({ error: "valid state required" });
             }
 
-            const dispatchId = String(body.dispatch_id ?? "").trim() || undefined;
+            const dispatchIdResult = parseOptionalFilterToken(body.dispatch_id, "dispatch_id", 256);
+            if (dispatchIdResult.error) {
+              return res.status(400).json({ error: dispatchIdResult.error });
+            }
+            const dispatchId = dispatchIdResult.value;
             let dispatchForHeartbeat: ReliabilityDispatchRow | null = null;
             if (dispatchId) {
               const { data: dispatchData, error: dispatchError } = await supabase
