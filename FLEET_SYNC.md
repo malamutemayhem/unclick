@@ -133,6 +133,12 @@ Current common worker lanes:
 
 Names may vary between chats. The lane and live Fishbowl status matter more than the display name.
 
+Fishbowl emojis are role badges, not the real identity. Use
+`docs/fishbowl-emoji-role-registry.md` for current badge assignments,
+duplicate handling, and the "who am I?" start rule. A worker that cannot state
+its emoji, display name, stable `agent_id`, role, and host/session should stop,
+read Fishbowl, register or re-identify, then continue.
+
 ## Start Or Resume Ritual
 
 Every worker should do this before acting:
