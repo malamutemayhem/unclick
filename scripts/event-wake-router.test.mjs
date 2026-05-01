@@ -337,4 +337,49 @@ describe("event wake router reliability dispatch", () => {
     assert.match(result.stdout, /No wake needed/);
     assert.doesNotMatch(result.stdout, /reliability_dispatch_dry_run/);
   });
+
+  it("fails closed when wake is required but wake token is missing", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "wake-router-"));
+    const eventPath = join(tempDir, "event.json");
+    const ledgerDir = join(tempDir, "ledger");
+    writeFileSync(
+      eventPath,
+      JSON.stringify({
+        action: "completed",
+        workflow_run: {
+          id: 460,
+          name: "TestPass Scheduled Smoke",
+          status: "completed",
+          conclusion: "failure",
+          html_url: "https://github.com/acme/repo/actions/runs/460",
+          created_at: "2026-04-30T17:00:00Z",
+          updated_at: "2026-04-30T17:05:00Z",
+          pull_requests: [],
+        },
+      }),
+    );
+
+    try {
+      const env = { ...process.env };
+      delete env.FISHBOWL_WAKE_TOKEN;
+      delete env.FISHBOWL_AUTOCLOSE_TOKEN;
+
+      const result = spawnSync(process.execPath, [scriptPath], {
+        cwd: repoRoot,
+        env: {
+          ...env,
+          GITHUB_EVENT_NAME: "workflow_run",
+          GITHUB_EVENT_PATH: eventPath,
+          WAKE_LEDGER_DIR: ledgerDir,
+          WAKE_ROUTER_DRY_RUN: "false",
+        },
+        encoding: "utf8",
+      });
+
+      assert.equal(result.status, 1, result.stderr || result.stdout);
+      assert.match(result.stderr, /required for reliability dispatch|required for wake posting/);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
