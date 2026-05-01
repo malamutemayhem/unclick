@@ -3,6 +3,7 @@
 export const FISHBOWL_MESSAGE_HANDOFF_LEASE_SECONDS = 600;
 
 const ACTION_TAGS = new Set(["needs-doing", "blocker", "tripwire"]);
+const PRE_DISPATCHED_AUTHORS = new Set(["github-action-wake-router"]);
 
 export interface FishbowlMessageRecipientProfile {
   agentId: string;
@@ -51,7 +52,9 @@ export interface FishbowlMessageHandoffDispatchRow {
 export function planFishbowlMessageHandoffs(
   input: FishbowlMessageHandoffInput,
 ): FishbowlMessageHandoffPlan[] {
+  if (PRE_DISPATCHED_AUTHORS.has(input.authorAgentId)) return [];
   const tagSet = new Set(input.tags);
+  if (tagSet.has("wake")) return [];
   const hasActionTag = input.tags.some((tag) => ACTION_TAGS.has(tag));
   if (!hasActionTag) return [];
 

@@ -104,4 +104,20 @@ describe("planFishbowlMessageHandoffs", () => {
       }),
     ).toEqual([]);
   });
+
+  it("stays silent for wake-router posts that already registered dispatch proof", () => {
+    expect(
+      planFishbowlMessageHandoffs({
+        ...baseInput,
+        authorAgentId: "github-action-wake-router",
+        tags: ["needs-doing"],
+      }),
+    ).toEqual([]);
+    expect(
+      planFishbowlMessageHandoffs({
+        ...baseInput,
+        tags: ["needs-doing", "wake"],
+      }),
+    ).toEqual([]);
+  });
 });
