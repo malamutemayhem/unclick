@@ -97,7 +97,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
-import { planFishbowlTodoHandoff } from "./lib/fishbowl-todo-handoff.js";
+import {
+  buildFishbowlTodoHandoffDispatchRow,
+  planFishbowlTodoHandoff,
+} from "./lib/fishbowl-todo-handoff.js";
 import { buildCard, type ConversationalCard } from "../packages/mcp-server/src/cards/card.js";
 import {
   createDispatchId,
@@ -7391,34 +7394,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 taskRef: handoffPlan.taskRef,
               });
               const now = new Date();
-              const leaseExpiresAt = new Date(
-                now.getTime() + handoffPlan.leaseSeconds * 1000,
-              ).toISOString();
-              const { error: upsertErr } = await supabase
+              const { data: dispatchRows, error: upsertErr } = await supabase
                 .from("mc_agent_dispatches")
-                .insert({
-                  api_key_hash: apiKeyHash,
-                  dispatch_id: dispatchId,
-                  source: handoffPlan.source,
-                  target_agent_id: handoffPlan.targetAgentId,
-                  task_ref: handoffPlan.taskRef,
-                  status: "queued",
-                  payload: handoffPlan.payload,
-                });
-              if (upsertErr && (upsertErr as { code?: string }).code !== "23505") {
+                .upsert(
+                  buildFishbowlTodoHandoffDispatchRow({
+                    apiKeyHash,
+                    dispatchId,
+                    plan: handoffPlan,
+                    now,
+                  }),
+                  { onConflict: "api_key_hash,dispatch_id" },
+                )
+                .select("dispatch_id,status,lease_owner,lease_expires_at");
+              if (upsertErr) {
                 throw upsertErr;
               }
-              await supabase
-                .from("mc_agent_dispatches")
-                .update({
-                  status: "leased",
-                  lease_owner: handoffPlan.targetAgentId,
-                  lease_expires_at: leaseExpiresAt,
-                  updated_at: now.toISOString(),
-                })
-                .eq("api_key_hash", apiKeyHash)
-                .eq("dispatch_id", dispatchId)
-                .eq("status", "queued");
+              const dispatchRow = dispatchRows?.[0];
+              if (
+                !dispatchRow ||
+                dispatchRow.status !== "leased" ||
+                dispatchRow.lease_owner !== handoffPlan.targetAgentId ||
+                !dispatchRow.lease_expires_at
+              ) {
+                throw new Error("handoff dispatch lease was not persisted");
+              }
             } catch (err) {
               console.warn("[fishbowl_create_todo] dispatch wrapping failed:", err);
             }

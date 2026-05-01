@@ -30,6 +30,20 @@ export interface FishbowlTodoHandoffPlan {
   leaseSeconds: number;
 }
 
+export interface FishbowlTodoHandoffDispatchRow {
+  api_key_hash: string;
+  dispatch_id: string;
+  source: "fishbowl";
+  target_agent_id: string;
+  task_ref: string;
+  status: "leased";
+  lease_owner: string;
+  lease_expires_at: string;
+  payload: FishbowlTodoHandoffPlan["payload"];
+  created_at: string;
+  updated_at: string;
+}
+
 export function planFishbowlTodoHandoff(
   input: FishbowlTodoHandoffInput,
 ): FishbowlTodoHandoffPlan | null {
@@ -50,5 +64,29 @@ export function planFishbowlTodoHandoff(
       ack_required: true,
     },
     leaseSeconds: FISHBOWL_TODO_HANDOFF_LEASE_SECONDS,
+  };
+}
+
+export function buildFishbowlTodoHandoffDispatchRow(params: {
+  apiKeyHash: string;
+  dispatchId: string;
+  plan: FishbowlTodoHandoffPlan;
+  now: Date;
+}): FishbowlTodoHandoffDispatchRow {
+  const nowIso = params.now.toISOString();
+  return {
+    api_key_hash: params.apiKeyHash,
+    dispatch_id: params.dispatchId,
+    source: params.plan.source,
+    target_agent_id: params.plan.targetAgentId,
+    task_ref: params.plan.taskRef,
+    status: "leased",
+    lease_owner: params.plan.targetAgentId,
+    lease_expires_at: new Date(
+      params.now.getTime() + params.plan.leaseSeconds * 1000,
+    ).toISOString(),
+    payload: params.plan.payload,
+    created_at: nowIso,
+    updated_at: nowIso,
   };
 }
