@@ -11,6 +11,7 @@ export interface SystemCredentialInventoryEntry {
   risk: SystemCredentialRisk;
   expected: boolean;
   docsHint: string;
+  rotationImpact: string;
 }
 
 const BLOCKED_VALUE_FIELDS = new Set([
@@ -41,6 +42,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "critical",
     expected: true,
     docsHint: "GitHub Actions secret metadata can confirm name and timestamps without returning the value.",
+    rotationImpact: "PR TestPass checks may fail until the new token is saved and a PR check is rerun.",
   },
   {
     provider: "github",
@@ -51,6 +53,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "critical",
     expected: true,
     docsHint: "Track by secret name only; scheduled proof should verify the cron gate.",
+    rotationImpact: "Scheduled TestPass smoke may return auth errors until the cron secret and matching route gate agree.",
   },
   {
     provider: "github",
@@ -61,6 +64,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "high",
     expected: true,
     docsHint: "Shared cron gates need rotation notes before any key swap.",
+    rotationImpact: "Scheduled jobs using this gate may stop until every scheduler and route environment is updated together.",
   },
   {
     provider: "github",
@@ -71,6 +75,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "high",
     expected: true,
     docsHint: "Use dogfood receipts for health evidence; never show the token value.",
+    rotationImpact: "UXPass dogfood receipts and scheduled captures may stop proving UX health until the replacement token is verified.",
   },
   {
     provider: "github",
@@ -81,6 +86,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "critical",
     expected: true,
     docsHint: "Wake dispatch proof is the safe health signal.",
+    rotationImpact: "Wake Router may stop creating WakePass handoff proof, so missed work can become quiet again.",
   },
   {
     provider: "github",
@@ -91,6 +97,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "high",
     expected: true,
     docsHint: "Auto-close workflow success proves the credential path without exposing it.",
+    rotationImpact: "Merged PRs may stop closing linked Fishbowl todos until auto-close is rerun successfully.",
   },
   {
     provider: "github",
@@ -101,6 +108,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "high",
     expected: true,
     docsHint: "Only static dry-run prompts should be used for future health probes.",
+    rotationImpact: "Ambiguous wake/no-wake routing may fall back to rules or fail closed until classifier access is restored.",
   },
   {
     provider: "github",
@@ -111,6 +119,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: false,
     docsHint: "Optional model key; track presence by metadata only.",
+    rotationImpact: "Optional Claude workflows may be unavailable until the replacement key is saved.",
   },
   {
     provider: "github",
@@ -121,6 +130,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "high",
     expected: false,
     docsHint: "Supabase automation should use metadata and successful job evidence only.",
+    rotationImpact: "Supabase CLI automation may fail until the token is refreshed and a safe metadata probe passes.",
   },
   {
     provider: "github",
@@ -131,6 +141,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: false,
     docsHint: "Project references are identifiers, but still useful for ownership mapping.",
+    rotationImpact: "Supabase automation may target the wrong project or fail until the project reference is confirmed.",
   },
   {
     provider: "github",
@@ -141,6 +152,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "critical",
     expected: false,
     docsHint: "Database password rotation needs explicit human approval.",
+    rotationImpact: "Database jobs can fail or lock out automation; rotate only with human approval and rollback notes.",
   },
   {
     provider: "github",
@@ -151,6 +163,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "high",
     expected: false,
     docsHint: "Treat as sensitive structured payload; inventory must never copy the contents.",
+    rotationImpact: "Vault planning workflows may lose their intended plan context until the payload is replaced safely.",
   },
   {
     provider: "vercel",
@@ -161,6 +174,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: true,
     docsHint: "Vercel metadata may include value-shaped fields; sanitize before display.",
+    rotationImpact: "Admin APIs may fail to reach Supabase if the runtime URL is changed incorrectly.",
   },
   {
     provider: "vercel",
@@ -171,6 +185,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "critical",
     expected: true,
     docsHint: "Service-role rotation needs human review and deploy coordination.",
+    rotationImpact: "Privileged admin operations can fail immediately; rotate only with deploy coordination and smoke proof.",
   },
   {
     provider: "vercel",
@@ -181,6 +196,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: true,
     docsHint: "Public runtime names can still help explain which app surface depends on them.",
+    rotationImpact: "Browser login and Supabase reads may fail if the public URL points at the wrong project.",
   },
   {
     provider: "vercel",
@@ -191,6 +207,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: true,
     docsHint: "Anon keys are not service-role secrets, but rotation can still break login flows.",
+    rotationImpact: "Browser auth and public Supabase access may fail until the anon key and project URL match.",
   },
   {
     provider: "vercel",
@@ -201,6 +218,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "high",
     expected: false,
     docsHint: "Future probes should use read-only model metadata, not user prompts.",
+    rotationImpact: "OpenAI-backed features may fail until a replacement key passes a read-only model metadata check.",
   },
   {
     provider: "vercel",
@@ -211,6 +229,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "high",
     expected: false,
     docsHint: "Track project ownership and last successful model metadata check.",
+    rotationImpact: "Claude-backed features may fail until a replacement key passes a read-only metadata check.",
   },
   {
     provider: "vercel",
@@ -221,6 +240,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "high",
     expected: false,
     docsHint: "Inventory by name only; never copy Vercel env values into RotatePass.",
+    rotationImpact: "Model routing may lose fallback capacity until OpenRouter access is verified.",
   },
   {
     provider: "vercel",
@@ -231,6 +251,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "critical",
     expected: true,
     docsHint: "Cron gate changes can break scheduled Pass receipts.",
+    rotationImpact: "Scheduled route calls can fail auth until Vercel env and scheduler secrets are changed together.",
   },
   {
     provider: "vercel",
@@ -241,6 +262,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: false,
     docsHint: "Identifier only; useful for ownership and blast-radius notes.",
+    rotationImpact: "Scheduled TestPass receipts may be attributed to the wrong identity until the ID is corrected.",
   },
   {
     provider: "vercel",
@@ -251,6 +273,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: false,
     docsHint: "Identifier only; pair with scheduled receipt status.",
+    rotationImpact: "Scheduled UXPass captures may be attributed to the wrong identity until the ID is corrected.",
   },
   {
     provider: "vercel",
@@ -261,6 +284,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: false,
     docsHint: "Prefer existing analytics receipt evidence over synthetic events.",
+    rotationImpact: "Analytics capture can drop or split events until the project key is corrected.",
   },
   {
     provider: "vercel",
@@ -271,6 +295,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: false,
     docsHint: "Host metadata is safe to show when known.",
+    rotationImpact: "Analytics scripts may post to the wrong host or fail until the endpoint is corrected.",
   },
   {
     provider: "vercel",
@@ -281,6 +306,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "critical",
     expected: false,
     docsHint: "Payments credentials require explicit human approval before any rotation work.",
+    rotationImpact: "Payments can fail immediately; rotate only with explicit human approval and Stripe smoke checks.",
   },
   {
     provider: "vercel",
@@ -291,6 +317,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "critical",
     expected: false,
     docsHint: "Webhook secret rotation can break payment event verification.",
+    rotationImpact: "Stripe webhook verification can fail until the endpoint secret and provider setting match.",
   },
   {
     provider: "vercel",
@@ -301,6 +328,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "high",
     expected: false,
     docsHint: "Email credential health should use delivery metadata only.",
+    rotationImpact: "Transactional email may stop sending until delivery metadata confirms the new key.",
   },
   {
     provider: "vercel",
@@ -311,6 +339,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: false,
     docsHint: "Email addresses are metadata, but still avoid broad public display.",
+    rotationImpact: "Admin notifications may go to the wrong inbox until the address is corrected.",
   },
   {
     provider: "vercel",
@@ -321,6 +350,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: false,
     docsHint: "Identifier only; track with analytics health evidence if used.",
+    rotationImpact: "Analytics dashboards may stop matching the site until the website ID is corrected.",
   },
   {
     provider: "vercel",
@@ -331,6 +361,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     risk: "normal",
     expected: false,
     docsHint: "Host metadata is safe to show when known.",
+    rotationImpact: "Analytics script loading or event capture may fail until the host URL is corrected.",
   },
 ]);
 
@@ -359,6 +390,9 @@ export function sanitizeInventoryRecord(record: Record<string, unknown>): System
     risk: record.risk === "critical" || record.risk === "high" ? record.risk : "normal",
     expected: record.expected === true,
     docsHint: typeof record.docsHint === "string" ? record.docsHint : "Metadata only; no secret value is available.",
+    rotationImpact: typeof record.rotationImpact === "string"
+      ? record.rotationImpact
+      : "Dependent workflows may fail until the replacement credential is verified.",
   };
 }
 

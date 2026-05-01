@@ -712,6 +712,9 @@ export default function AdminKeychain() {
                       <div className="min-w-0">
                         <p className="text-[#ccc]">{entry.workload}</p>
                         <p className="mt-0.5 text-[#666]">{entry.docsHint}</p>
+                        <p className="mt-1 text-[#777]">
+                          <span className="font-medium text-[#999]">If rotated:</span> {entry.rotationImpact}
+                        </p>
                       </div>
                       <div className="flex flex-wrap items-start gap-1 md:justify-end">
                         <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${risk.className}`}>
@@ -1398,14 +1401,9 @@ function RotateValuesModal({
   async function save() {
     setBusy(true); setErr(null);
     try {
-      let values: Record<string, string>;
-      try {
-        values = JSON.parse(json);
-        if (typeof values !== "object" || values === null || Array.isArray(values)) {
-          throw new Error("Values must be a JSON object of string fields.");
-        }
-      } catch (e) {
-        throw new Error(e instanceof Error ? e.message : "Invalid JSON");
+      const values: Record<string, string> = JSON.parse(json);
+      if (typeof values !== "object" || values === null || Array.isArray(values)) {
+        throw new Error("Values must be a JSON object of string fields.");
       }
 
       const apiKey = readLocalApiKey();

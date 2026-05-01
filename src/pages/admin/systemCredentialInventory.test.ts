@@ -35,7 +35,9 @@ describe("system credential inventory", () => {
       expect(entry.name).toMatch(/^[A-Z][A-Z0-9_]*$/);
       expect(entry.scope.length).toBeGreaterThan(0);
       expect(entry.workload.length).toBeGreaterThan(0);
+      expect(entry.rotationImpact.length).toBeGreaterThan(0);
       expect(entry.docsHint.toLowerCase()).not.toContain("secret value:");
+      expect(entry.rotationImpact.toLowerCase()).not.toContain("secret value:");
     }
   });
 
@@ -70,6 +72,7 @@ describe("system credential inventory", () => {
       risk: "critical",
       expected: true,
       docsHint: "Name and timestamps only.",
+      rotationImpact: "PR checks fail until updated.",
     })).toEqual({
       provider: "github",
       source: "github_actions_secret",
@@ -79,6 +82,15 @@ describe("system credential inventory", () => {
       risk: "critical",
       expected: true,
       docsHint: "Name and timestamps only.",
+      rotationImpact: "PR checks fail until updated.",
     });
+  });
+
+  it("adds safe fallback rotation impact for sanitized metadata", () => {
+    expect(sanitizeInventoryRecord({
+      provider: "github",
+      source: "github_actions_secret",
+      name: "UXPASS_TOKEN",
+    })?.rotationImpact).toBe("Dependent workflows may fail until the replacement credential is verified.");
   });
 });
