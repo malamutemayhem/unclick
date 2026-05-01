@@ -44,6 +44,14 @@ export const dogfoodReport = {
       checkedAt: "2026-05-01T00:50:00Z",
     },
     {
+      id: "securitypass",
+      name: "SecurityPass",
+      status: "pending",
+      summary: "Queued for recurring security review.",
+      evidence: "SecurityPass remains scope-gated until a small recurring runner proof is ready.",
+      checkedAt: "2026-05-01T00:50:00Z",
+    },
+    {
       id: "seopass",
       name: "SEOPass",
       status: "pending",
@@ -69,9 +77,9 @@ export const dogfoodReport = {
     },
   ] satisfies DogfoodPassResult[],
   trend: [
-    { date: "2026-04-29", passing: 0, failing: 0, pending: 5 },
-    { date: "2026-04-30", passing: 1, failing: 0, pending: 4 },
-    { date: "2026-05-01", passing: 1, failing: 0, pending: 4 },
+    { date: "2026-04-29", passing: 0, failing: 0, pending: 6 },
+    { date: "2026-04-30", passing: 1, failing: 0, pending: 5 },
+    { date: "2026-05-01", passing: 1, failing: 0, pending: 5 },
   ] satisfies DogfoodTrendPoint[],
   lastActionableFailure: {
     title: "Canonical public check target needs confirmation",
