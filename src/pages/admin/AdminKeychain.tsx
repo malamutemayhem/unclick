@@ -26,6 +26,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSession } from "@/lib/auth";
+import { buildSystemCredentialRows, type SystemCredentialRow } from "./systemCredentials";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -168,6 +169,80 @@ function readLocalApiKey(): string | null {
 function maskValue(v: string): string {
   if (v.length <= 8) return "•".repeat(Math.max(v.length, 4));
   return `${v.slice(0, 4)}${"•".repeat(8)}${v.slice(-4)}`;
+}
+
+function SystemCredentialsPanel({ rows }: { rows: SystemCredentialRow[] }) {
+  const needsAction = rows.filter((row) => row.rotationRisk !== "low" || row.status !== "healthy").length;
+  const healthy = rows.length - needsAction;
+  const statusClass: Record<SystemCredentialRow["status"], string> = {
+    healthy:  "border-green-500/20 bg-green-500/10 text-green-400",
+    untested: "border-[#E2B93B]/20 bg-[#E2B93B]/10 text-[#E2B93B]",
+    stale:    "border-amber-500/20 bg-amber-500/10 text-amber-400",
+    failing:  "border-red-500/20 bg-red-500/10 text-red-400",
+  };
+  const riskClass: Record<SystemCredentialRow["rotationRisk"], string> = {
+    low:    "text-green-400",
+    medium: "text-[#E2B93B]",
+    high:   "text-red-400",
+  };
+
+  return (
+    <section className="rounded-xl border border-white/[0.06] bg-[#101010] p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-[#E2B93B]" />
+            <h2 className="text-sm font-semibold text-white">System Credentials</h2>
+          </div>
+          <p className="mt-1 text-[11px] text-[#777]">
+            Metadata-only view for what each connection powers, when it was checked, and what rotation might affect.
+          </p>
+        </div>
+        <div className="flex gap-2 text-[10px]">
+          <span className="rounded-full border border-green-500/20 bg-green-500/10 px-2 py-1 text-green-400">
+            {healthy} healthy
+          </span>
+          <span className="rounded-full border border-[#E2B93B]/20 bg-[#E2B93B]/10 px-2 py-1 text-[#E2B93B]">
+            {needsAction} review
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-4 overflow-hidden rounded-lg border border-white/[0.04]">
+        <div className="grid grid-cols-[minmax(160px,1.15fr)_minmax(140px,1fr)_120px_120px] gap-3 border-b border-white/[0.04] bg-white/[0.02] px-3 py-2 text-[10px] uppercase tracking-wide text-[#555] max-lg:hidden">
+          <span>Credential</span>
+          <span>Used by</span>
+          <span>Status</span>
+          <span>Rotation</span>
+        </div>
+        <div className="divide-y divide-white/[0.04]">
+          {rows.slice(0, 8).map((row) => (
+            <div
+              key={row.id}
+              className="grid gap-3 px-3 py-3 text-xs max-lg:grid-cols-1 lg:grid-cols-[minmax(160px,1.15fr)_minmax(140px,1fr)_120px_120px] lg:items-center"
+            >
+              <div className="min-w-0">
+                <p className="truncate font-medium text-white">{row.displayName}</p>
+                <p className="mt-0.5 truncate text-[10px] text-[#666]">Owner: {row.ownerHint}</p>
+              </div>
+              <p className="min-w-0 truncate text-[11px] text-[#aaa]">{row.usedBy.join(", ")}</p>
+              <span className={`w-fit rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusClass[row.status]}`}>
+                {row.statusLabel}
+              </span>
+              <div>
+                <p className={`text-[11px] font-medium ${riskClass[row.rotationRisk]}`}>{row.rotationLabel}</p>
+                <p className="mt-0.5 text-[10px] text-[#555]">Last check {timeAgo(row.lastChecked)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="mt-3 text-[10px] text-[#555]">
+        This panel never displays raw keys, tokens, cookies, passkeys, or MFA secrets.
+      </p>
+    </section>
+  );
 }
 
 // ─── Component ──────────────────────────────────────────────────
@@ -499,6 +574,10 @@ export default function AdminKeychain() {
     acc[cat].push(cred);
     return acc;
   }, {});
+  const systemCredentialRows = useMemo(
+    () => buildSystemCredentialRows(credentials),
+    [credentials],
+  );
 
   return (
     <div>
@@ -537,10 +616,10 @@ export default function AdminKeychain() {
       <div className="mb-6 flex items-start gap-3 rounded-xl border border-[#E2B93B]/20 bg-[#E2B93B]/5 px-4 py-3">
         <Shield className="mt-0.5 h-4 w-4 shrink-0 text-[#E2B93B]" />
         <div>
-          <p className="text-xs font-medium text-[#E2B93B]">Encrypted connection secrets</p>
+          <p className="text-xs font-medium text-[#E2B93B]">Connections track health first</p>
           <p className="mt-0.5 text-[11px] text-[#888]">
-            Connection secrets are AES-256-GCM encrypted with a key derived from your UnClick API key.
-            UnClick staff cannot decrypt them — even revealing a value requires your API key to be present in this browser.
+            System Credentials shows ownership, usage, test freshness, and rotation risk from metadata only.
+            Raw secret values stay hidden unless you explicitly reveal one with your UnClick API key in this browser.
           </p>
         </div>
       </div>
@@ -574,6 +653,8 @@ export default function AdminKeychain() {
         </div>
       ) : (
         <div className="space-y-6">
+          <SystemCredentialsPanel rows={systemCredentialRows} />
+
           {Object.entries(grouped).map(([category, creds]) => (
             <div key={category}>
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#666]">
@@ -1151,7 +1232,7 @@ function RotateValuesModal({
           throw new Error("Values must be a JSON object of string fields.");
         }
       } catch (e) {
-        throw new Error(e instanceof Error ? e.message : "Invalid JSON");
+        throw new Error(e instanceof Error ? e.message : "Invalid JSON", { cause: e });
       }
 
       const apiKey = readLocalApiKey();
