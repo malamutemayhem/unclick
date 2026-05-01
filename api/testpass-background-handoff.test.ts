@@ -74,6 +74,7 @@ describe("planTestPassBackgroundFailureHandoff", () => {
   it("stays silent for normal accepted paths without an error", () => {
     expect(planTestPassBackgroundFailureHandoff({ ...baseInput, errorMessage: "" })).toBeNull();
     expect(planTestPassBackgroundFailureHandoff({ ...baseInput, targetAgentId: "" })).toBeNull();
+    expect(planTestPassBackgroundFailureHandoff({ ...baseInput, runId: "   " })).toBeNull();
   });
 
   it("keeps missed ACKs eligible for handoff_ack_missing reclaim signals", () => {

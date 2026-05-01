@@ -75,6 +75,7 @@ describe("planUxPassRunFailureHandoff", () => {
       .toBeNull();
     expect(planUxPassRunFailureHandoff({ ...baseInput, isScheduled: false })).toBeNull();
     expect(planUxPassRunFailureHandoff({ ...baseInput, targetAgentId: "" })).toBeNull();
+    expect(planUxPassRunFailureHandoff({ ...baseInput, runId: "   " })).toBeNull();
   });
 
   it("keeps runner exceptions eligible for the same ACK path", () => {

@@ -58,8 +58,9 @@ export function uxPassRunFailureDispatchId(runId: string): string {
 export function planUxPassRunFailureHandoff(
   input: UxPassRunFailureHandoffInput,
 ): UxPassRunFailureHandoffPlan | null {
+  const runId = (input.runId ?? "").trim();
   const targetAgentId = (input.targetAgentId ?? "").trim();
-  if (!input.isScheduled || !targetAgentId || !input.runId) return null;
+  if (!input.isScheduled || !targetAgentId || !runId) return null;
 
   const status = (input.status ?? "").trim();
   const rawError = (input.errorMessage ?? "").trim();
@@ -68,10 +69,10 @@ export function planUxPassRunFailureHandoff(
   return {
     source: "uxpass",
     targetAgentId,
-    taskRef: `uxpass-run:${input.runId}`,
+    taskRef: `uxpass-run:${runId}`,
     payload: {
       kind: "uxpass_run_failure",
-      run_id: input.runId,
+      run_id: runId,
       target_url: input.targetUrl,
       status: "failed",
       error_message: truncateMessage(rawError || "Scheduled UXPass run returned failed status"),
