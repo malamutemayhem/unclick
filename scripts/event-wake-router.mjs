@@ -303,9 +303,13 @@ async function postWake(decision, triage, eventId, event) {
     text,
   };
 
-  if (dryRun || !unclickApiKey) {
+  if (dryRun) {
     console.log(JSON.stringify({ dry_run: true, missing_key: !unclickApiKey, payload }, null, 2));
     return { posted: false, dry_run: true, payload };
+  }
+  if (!unclickApiKey) {
+    console.error("FISHBOWL_WAKE_TOKEN or FISHBOWL_AUTOCLOSE_TOKEN is required for wake posting.");
+    return { posted: false, dry_run: false, missing_key: true, payload };
   }
 
   const response = await fetch(`${apiUrl}?action=fishbowl_post`, {
@@ -376,7 +380,7 @@ async function registerWakeDispatch({ eventId, decision, triage, result, event }
     lease_seconds: ackFailSeconds,
   };
 
-  if (dryRun || !unclickApiKey) {
+  if (dryRun) {
     console.log(
       JSON.stringify(
         {
@@ -395,6 +399,15 @@ async function registerWakeDispatch({ eventId, decision, triage, result, event }
       dispatch_id: dispatchRequest.dispatch_id,
       upsert: dispatchRequest,
       claim: claimRequest,
+    };
+  }
+  if (!unclickApiKey) {
+    console.error("FISHBOWL_WAKE_TOKEN or FISHBOWL_AUTOCLOSE_TOKEN is required for reliability dispatch.");
+    return {
+      registered: false,
+      dry_run: false,
+      dispatch_id: dispatchRequest.dispatch_id,
+      error: "missing_wake_token",
     };
   }
 
