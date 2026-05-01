@@ -342,6 +342,27 @@ describe("event wake router reliability dispatch", () => {
     assert.doesNotMatch(result.stdout, /reliability_dispatch_dry_run/);
   });
 
+  it("keeps wake-router green-check self-echoes silent", () => {
+    const result = runDryWake("workflow_run", {
+      action: "completed",
+      workflow_run: {
+        id: 461,
+        name: "Event Wake Router",
+        status: "completed",
+        conclusion: "success",
+        html_url: "https://github.com/acme/repo/actions/runs/461",
+        created_at: "2026-04-30T17:00:00Z",
+        updated_at: "2026-04-30T17:05:00Z",
+        pull_requests: [{ number: 368 }],
+      },
+    });
+
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.match(result.stdout, /Wake router self-check completed green on PR #368/);
+    assert.match(result.stdout, /No wake needed/);
+    assert.doesNotMatch(result.stdout, /reliability_dispatch_dry_run/);
+  });
+
   it("keeps non-wake issue comments silent", () => {
     const result = runDryWake("issue_comment", {
       action: "created",

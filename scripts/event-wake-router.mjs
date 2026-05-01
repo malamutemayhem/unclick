@@ -122,6 +122,22 @@ function baseDecision(event) {
       };
     }
 
+    if (
+      run.status === "completed" &&
+      run.conclusion === "success" &&
+      run.name === "Event Wake Router" &&
+      prs.length > 0
+    ) {
+      return {
+        wake: false,
+        owner: "none",
+        urgency: "low",
+        reason: `Wake router self-check completed green on PR #${prs[0].number}`,
+        eventCreatedAt: run.updated_at || run.created_at,
+        needsTriage: false,
+      };
+    }
+
     if (run.status === "completed" && run.conclusion === "success" && prs.length > 0) {
       return {
         wake: true,
