@@ -133,6 +133,33 @@ Start with five routes:
 
 Browser extension routes come later through UnClick Local.
 
+## Where to call PinballWake
+
+PinballWake should sit at the start of any wake or handoff path that needs proof
+of delivery. Create the wake record before the first route is attempted, then let
+ACKs, heartbeats, leases, and reclaim decide whether the handoff landed.
+
+Use PinballWake for:
+
+- PR-ready, review-requested, green-check, and blocker-cleared events
+- direct Fishbowl handoffs that expect a worker response
+- scheduled TestPass, UXPass, FlowPass, SecurityPass, and rescan jobs
+- connector health failures that need an owner to refresh or reconnect
+- stale worker status, missed check-ins, and stuck Pass runs
+- manual `/wake` commands from GitHub, Fishbowl, or an operator surface
+
+Do not use PinballWake for:
+
+- zero-event heartbeat cycles
+- read-only status refreshes
+- dashboard page loads
+- duplicate comments on the same wake event
+- broad market or product research that does not hand work to a worker
+
+The risk of overuse is noisy alerts, duplicate leases, false missing-ACK signals,
+and worker fatigue. The rule is simple: if someone must ACK or take action, call
+PinballWake early. If nothing needs action, stay silent.
+
 ## ACK schema
 
 The first ACK object should include:

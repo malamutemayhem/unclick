@@ -118,6 +118,12 @@ status prose.
 Ready work should wake the right worker immediately instead of waiting for the
 next heartbeat. Cron remains the safety net, not the primary trigger.
 
+PinballWake should be called before the first delivery route for any event that
+expects a worker ACK. That gives the event an idempotent dispatch, lease, and
+reclaim path even if the first route fails. Do not wrap quiet health checks,
+dashboard reads, or zero-event heartbeats in PinballWake, because that creates
+alert noise without useful recovery.
+
 ## Scheduled TestPass Clock
 
 GitHub Actions `schedule` is a backup clock, not the primary TestPass cadence.
