@@ -9,8 +9,9 @@ export function initPostHog(): void {
   if (initialized || !key) return;
   posthog.init(key, {
     api_host: host,
+    defaults: "2026-01-30",
     autocapture: true,
-    capture_pageview: true,
+    capture_pageview: "history_change",
     persistence: "localStorage",
     respect_dnt: true,
   });
