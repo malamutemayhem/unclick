@@ -235,6 +235,12 @@ const results = [
   await runTestPass(),
   await runUXPass(),
   pendingResult(
+    "securitypass",
+    "SecurityPass",
+    "Queued for recurring security review.",
+    "SecurityPass remains scope-gated until a small recurring runner proof is ready.",
+  ),
+  pendingResult(
     "seopass",
     "SEOPass",
     "Queued for recurring search and metadata review.",
