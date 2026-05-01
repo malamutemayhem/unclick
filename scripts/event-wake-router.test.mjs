@@ -71,6 +71,7 @@ describe("event wake router reliability dispatch", () => {
     assert.equal(request.task_ref, "wake-workflow_run-workflow-run-123-abc");
     assert.equal(request.payload.ack_required, true);
     assert.equal(request.payload.handoff_message_id, "msg-123");
+    assert.equal(request.payload.route_attempted, "fishbowl");
     assert.equal(request.payload.ack_fail_after_seconds, 600);
     assert.equal(request.payload.wake_owner, "🤖");
     assert.equal(request.payload.github_subject, "workflow-run-123");
@@ -91,6 +92,25 @@ describe("event wake router reliability dispatch", () => {
 
     assert.equal(request.time_bucket_seconds, 600);
     assert.equal(request.payload.ack_fail_after_seconds, 600);
+  });
+
+  it("can register PinballWake proof before the Fishbowl route returns", () => {
+    const request = buildReliabilityDispatchRequest({
+      eventId: "wake-workflow_run-workflow-run-789-ghi",
+      decision: {
+        owner: "🤖",
+        reason: "PR checks completed green",
+        urgency: "high",
+      },
+      triage: { used: false },
+      result: null,
+      event: { workflow_run: { id: 789 } },
+    });
+
+    assert.equal(request.source, "wakepass");
+    assert.equal(request.payload.ack_required, true);
+    assert.equal(request.payload.route_attempted, "fishbowl");
+    assert.equal(request.payload.handoff_message_id, null);
   });
 
   it("runs the wake path in dry-run mode without crashing", () => {
@@ -129,6 +149,11 @@ describe("event wake router reliability dispatch", () => {
 
       assert.equal(result.status, 0, result.stderr || result.stdout);
       assert.match(result.stdout, /reliability_dispatch_dry_run/);
+      assert.ok(
+        result.stdout.indexOf("reliability_dispatch_dry_run") <
+          result.stdout.indexOf('"text": "Wake event id:'),
+        "PinballWake reliability proof should be prepared before the Fishbowl route payload",
+      );
       assert.doesNotMatch(result.stderr, /ReferenceError/);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });

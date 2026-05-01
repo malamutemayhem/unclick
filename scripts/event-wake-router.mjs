@@ -313,6 +313,7 @@ export function buildReliabilityDispatchRequest({
     payload: {
       ack_required: true,
       handoff_message_id: result?.message_id ?? null,
+      route_attempted: "fishbowl",
       wake_event_id: eventId,
       wake_reason: decision.reason,
       wake_urgency: decision.urgency,
@@ -497,14 +498,20 @@ async function main() {
     return;
   }
 
+  const reliability = await registerWakeDispatch({
+    eventId,
+    decision: finalDecision,
+    triage,
+    result: null,
+    event,
+  });
   const result = await postWake(finalDecision, triage, eventId, event);
-  const reliability =
-    result.posted || result.dry_run
-      ? await registerWakeDispatch({ eventId, decision: finalDecision, triage, result, event })
-      : null;
   const status = result.posted ? "wake_posted" : result.dry_run ? "wake_dry_run" : "wake_failed";
   writeLedger({ eventId, event, decision: finalDecision, triage, result, reliability, status });
-  if ((!result.posted && !result.dry_run) || (result.posted && !reliability?.registered)) {
+  if (
+    (!result.posted && !result.dry_run) ||
+    (!reliability?.registered && !reliability?.dry_run)
+  ) {
     process.exitCode = 1;
   }
 }
