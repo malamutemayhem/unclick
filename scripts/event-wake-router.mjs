@@ -106,6 +106,22 @@ function baseDecision(event) {
       };
     }
 
+    if (
+      run.status === "completed" &&
+      run.name === "Dogfood Report" &&
+      run.conclusion &&
+      run.conclusion !== "success"
+    ) {
+      return {
+        wake: true,
+        owner: "🦾",
+        urgency: "urgent",
+        reason: `Dogfood Report workflow ${run.conclusion}`,
+        eventCreatedAt: run.updated_at || run.created_at,
+        needsTriage: false,
+      };
+    }
+
     if (run.status === "completed" && run.conclusion === "success" && prs.length > 0) {
       return {
         wake: true,
