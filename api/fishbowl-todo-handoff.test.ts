@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildFishbowlTodoHandoffDispatchRow,
   FISHBOWL_TODO_HANDOFF_LEASE_SECONDS,
   planFishbowlTodoHandoff,
 } from "./lib/fishbowl-todo-handoff";
@@ -30,6 +31,30 @@ describe("planFishbowlTodoHandoff", () => {
       },
     });
     expect(plan?.leaseSeconds).toBe(FISHBOWL_TODO_HANDOFF_LEASE_SECONDS);
+  });
+
+  it("builds an already-leased dispatch row for reclaimable ACK tracking", () => {
+    const plan = planFishbowlTodoHandoff({ ...baseInput, assignedToAgentId: "agent_owner" })!;
+    const row = buildFishbowlTodoHandoffDispatchRow({
+      apiKeyHash: "hash_123",
+      dispatchId: "dispatch_123",
+      plan,
+      now: new Date("2026-05-01T02:00:00.000Z"),
+    });
+
+    expect(row).toMatchObject({
+      api_key_hash: "hash_123",
+      dispatch_id: "dispatch_123",
+      source: "fishbowl",
+      target_agent_id: "agent_owner",
+      task_ref: "todo-abc",
+      status: "leased",
+      lease_owner: "agent_owner",
+      lease_expires_at: "2026-05-01T02:10:00.000Z",
+      created_at: "2026-05-01T02:00:00.000Z",
+      updated_at: "2026-05-01T02:00:00.000Z",
+    });
+    expect(row.payload.ack_required).toBe(true);
   });
 
   it("dispatch payload triggers handoff_ack_missing on stale reclaim", () => {
