@@ -202,6 +202,49 @@ describe("event wake router reliability dispatch", () => {
     assert.doesNotMatch(result.stdout, /reliability_dispatch_dry_run/);
   });
 
+  it("wakes the builder when the Dogfood Report workflow fails", () => {
+    const result = runDryWake("workflow_run", {
+      action: "completed",
+      workflow_run: {
+        id: 458,
+        name: "Dogfood Report",
+        status: "completed",
+        conclusion: "failure",
+        html_url: "https://github.com/acme/repo/actions/runs/458",
+        created_at: "2026-04-30T16:00:00Z",
+        updated_at: "2026-04-30T16:05:00Z",
+        pull_requests: [],
+      },
+    });
+
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.match(result.stdout, /Dogfood Report workflow failure/);
+    assert.match(result.stdout, /"wake_owner": "🦾"/);
+    assert.match(result.stdout, /"wake_urgency": "urgent"/);
+    assert.match(result.stdout, /reliability_dispatch_dry_run/);
+    assert.match(result.stdout, /"ack_required": true/);
+  });
+
+  it("keeps successful Dogfood Report workflow runs silent", () => {
+    const result = runDryWake("workflow_run", {
+      action: "completed",
+      workflow_run: {
+        id: 459,
+        name: "Dogfood Report",
+        status: "completed",
+        conclusion: "success",
+        html_url: "https://github.com/acme/repo/actions/runs/459",
+        created_at: "2026-04-30T16:00:00Z",
+        updated_at: "2026-04-30T16:05:00Z",
+        pull_requests: [],
+      },
+    });
+
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.match(result.stdout, /No wake needed/);
+    assert.doesNotMatch(result.stdout, /reliability_dispatch_dry_run/);
+  });
+
   it("dogfoods issue comments with /wake into ACK-required dispatches", () => {
     const result = runDryWake("issue_comment", {
       action: "created",
