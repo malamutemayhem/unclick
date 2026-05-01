@@ -302,7 +302,7 @@ Each phase has a goal, concrete work, acceptance criteria, and a verification st
 
 1. **Category browser.** Use the existing 20 categories from `tool-wiring.ts`. Each category is a collapsible section.
 
-2. **Tool cards.** For each of the 172+ tools: name, one-line description, "enabled for my agent" toggle (default on), "prefer this for category X" button.
+2. **Tool cards.** For each of the 178+ tools: name, one-line description, "enabled for my agent" toggle (default on), "prefer this for category X" button.
 
 3. **Preference storage.** When the user sets a preference, store in the memory business_context layer under `tool_preference` category. The agent's tool resolution order picks these up automatically (preference wins over defaults).
 
