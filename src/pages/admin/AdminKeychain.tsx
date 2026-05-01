@@ -27,6 +27,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSession } from "@/lib/auth";
 import {
+  listSystemCredentialInventory,
+  type SystemCredentialInventoryEntry,
+  type SystemCredentialProvider,
+  type SystemCredentialRisk,
+} from "./systemCredentialInventory";
+import {
   AlertTriangle,
   CheckCircle2,
   Clipboard,
@@ -240,6 +246,31 @@ const HEALTH_BADGES: Record<CredentialHealthStatus, {
     icon: RotateCw,
   },
 };
+
+const SYSTEM_CREDENTIAL_PROVIDER_LABELS: Record<SystemCredentialProvider, string> = {
+  github: "GitHub",
+  vercel: "Vercel",
+};
+
+const SYSTEM_CREDENTIAL_RISK_BADGES: Record<SystemCredentialRisk, string> = {
+  critical: "border-red-500/20 bg-red-500/10 text-red-300",
+  high: "border-amber-500/20 bg-amber-500/10 text-amber-300",
+  normal: "border-white/[0.08] bg-white/[0.03] text-[#aaa]",
+};
+
+const SYSTEM_CREDENTIAL_RISK_LABELS: Record<SystemCredentialRisk, string> = {
+  critical: "Critical",
+  high: "High",
+  normal: "Normal",
+};
+
+function systemCredentialProviderLabel(provider: SystemCredentialProvider): string {
+  return SYSTEM_CREDENTIAL_PROVIDER_LABELS[provider];
+}
+
+function systemCredentialSourceLabel(entry: SystemCredentialInventoryEntry): string {
+  return entry.source === "github_actions_secret" ? "Actions secret" : "Env var";
+}
 
 // ─── Component ──────────────────────────────────────────────────
 
@@ -582,6 +613,10 @@ export default function AdminKeychain() {
     needs_rotation: 0,
   });
 
+  const systemCredentialInventory = useMemo(() => listSystemCredentialInventory(), []);
+  const expectedSystemCredentialCount = systemCredentialInventory.filter((entry) => entry.expected).length;
+  const criticalSystemCredentialCount = systemCredentialInventory.filter((entry) => entry.risk === "critical").length;
+
   return (
     <div>
       <div className="mb-8 flex items-start justify-between gap-4">
@@ -626,6 +661,73 @@ export default function AdminKeychain() {
           </p>
         </div>
       </div>
+
+      <section className="mb-6 rounded-xl border border-white/[0.06] bg-[#111111] p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#666]">System Credentials inventory</p>
+            <p className="mt-1 max-w-3xl text-[11px] text-[#888]">
+              Name-only map of GitHub and Vercel credentials that power UnClick. This panel explains blast radius without
+              reading, storing, or displaying secret values.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-[11px]">
+            <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[#aaa]">
+              {systemCredentialInventory.length} names
+            </span>
+            <span className="rounded-full border border-[#E2B93B]/20 bg-[#E2B93B]/10 px-2.5 py-1 text-[#E2B93B]">
+              {expectedSystemCredentialCount} expected
+            </span>
+            <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-red-300">
+              {criticalSystemCredentialCount} critical
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-4 overflow-x-auto">
+          <table className="min-w-full text-left text-xs">
+            <thead className="border-b border-white/[0.06] text-[10px] uppercase tracking-wider text-[#666]">
+              <tr>
+                <th className="whitespace-nowrap px-3 py-2 font-semibold">Name</th>
+                <th className="whitespace-nowrap px-3 py-2 font-semibold">Provider</th>
+                <th className="whitespace-nowrap px-3 py-2 font-semibold">Used by</th>
+                <th className="whitespace-nowrap px-3 py-2 font-semibold">Risk</th>
+                <th className="whitespace-nowrap px-3 py-2 font-semibold">Expected</th>
+                <th className="min-w-[260px] px-3 py-2 font-semibold">Safe note</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.04]">
+              {systemCredentialInventory.map((entry) => (
+                <tr key={`${entry.provider}:${entry.name}`} className="align-top">
+                  <td className="whitespace-nowrap px-3 py-3">
+                    <div className="font-mono text-[11px] text-white">{entry.name}</div>
+                    <div className="mt-1 text-[10px] text-[#666]">{systemCredentialSourceLabel(entry)}</div>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3 text-[#ddd]">
+                    {systemCredentialProviderLabel(entry.provider)}
+                  </td>
+                  <td className="max-w-[260px] px-3 py-3 text-[#aaa]">{entry.workload}</td>
+                  <td className="whitespace-nowrap px-3 py-3">
+                    <span className={`rounded-full border px-2 py-0.5 text-[10px] ${SYSTEM_CREDENTIAL_RISK_BADGES[entry.risk]}`}>
+                      {SYSTEM_CREDENTIAL_RISK_LABELS[entry.risk]}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3">
+                    <span className={`rounded-full border px-2 py-0.5 text-[10px] ${
+                      entry.expected
+                        ? "border-green-500/20 bg-green-500/10 text-green-300"
+                        : "border-white/[0.08] bg-white/[0.03] text-[#888]"
+                    }`}>
+                      {entry.expected ? "Yes" : "Optional"}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-[11px] leading-relaxed text-[#888]">{entry.docsHint}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       {credentials.length > 0 && (
         <div className="mb-6 rounded-xl border border-white/[0.06] bg-[#111111] p-4">
