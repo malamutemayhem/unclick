@@ -98,6 +98,10 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
 import {
+  buildFishbowlMessageHandoffDispatchRow,
+  planFishbowlMessageHandoffs,
+} from "./lib/fishbowl-message-handoff.js";
+import {
   buildFishbowlTodoHandoffDispatchRow,
   planFishbowlTodoHandoff,
 } from "./lib/fishbowl-todo-handoff.js";
@@ -7139,16 +7143,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             // Discover this tenant's human admin profiles so we can match
             // recipients against the human's actual emoji and agent_id, not
             // just the canonical 😎 fallback.
-            const { data: humanRows } = await supabase
+            const { data: profileRows } = await supabase
               .from("mc_fishbowl_profiles")
-              .select("agent_id, emoji")
-              .eq("api_key_hash", apiKeyHash)
-              .eq("user_agent_hint", "admin-ui");
+              .select("agent_id, emoji, user_agent_hint")
+              .eq("api_key_hash", apiKeyHash);
             const humanEmojis = new Set<string>(["😎"]);
             const humanAgentIds = new Set<string>();
-            for (const h of humanRows ?? []) {
-              if (h?.emoji) humanEmojis.add(h.emoji);
-              if (h?.agent_id) humanAgentIds.add(h.agent_id);
+            for (const profileRow of profileRows ?? []) {
+              if (profileRow?.user_agent_hint !== "admin-ui") continue;
+              if (profileRow?.emoji) humanEmojis.add(profileRow.emoji);
+              if (profileRow?.agent_id) humanAgentIds.add(profileRow.agent_id);
             }
 
             const targetsHuman = recipientList.some(
@@ -7184,6 +7188,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 policy_label: needsDoing ? "warning" : severity,
               },
             });
+
+            const handoffPlans = planFishbowlMessageHandoffs({
+              messageId: inserted.id,
+              text: summarySource,
+              tags: tagList,
+              recipients: recipientList,
+              authorAgentId: agentId,
+              recipientProfiles: (profileRows ?? []).map((profileRow) => ({
+                agentId: profileRow.agent_id,
+                emoji: profileRow.emoji,
+                userAgentHint: profileRow.user_agent_hint,
+              })),
+            });
+            for (const handoffPlan of handoffPlans) {
+              const dispatchId = createDispatchId({
+                source: handoffPlan.source,
+                targetAgentId: handoffPlan.targetAgentId,
+                taskRef: handoffPlan.taskRef,
+              });
+              const now = new Date();
+              const { data: dispatchRows, error: upsertErr } = await supabase
+                .from("mc_agent_dispatches")
+                .upsert(
+                  buildFishbowlMessageHandoffDispatchRow({
+                    apiKeyHash,
+                    dispatchId,
+                    plan: handoffPlan,
+                    now,
+                  }),
+                  { onConflict: "api_key_hash,dispatch_id" },
+                )
+                .select("dispatch_id,status,lease_owner,lease_expires_at");
+              if (upsertErr) throw upsertErr;
+
+              const dispatchRow = dispatchRows?.[0];
+              if (
+                !dispatchRow ||
+                dispatchRow.status !== "leased" ||
+                dispatchRow.lease_owner !== handoffPlan.targetAgentId ||
+                !dispatchRow.lease_expires_at
+              ) {
+                throw new Error("message handoff dispatch lease was not persisted");
+              }
+            }
           } catch (publishErr) {
             console.error(
               "[fishbowl_post] signal publish failed:",
