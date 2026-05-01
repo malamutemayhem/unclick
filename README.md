@@ -2,7 +2,7 @@
 
 **The app store for AI agents.** [unclick.world](https://unclick.world)
 
-450+ callable endpoints across 172+ tools, available to any MCP-compatible AI client. New tools ship to the API continuously. Your agent picks them up automatically; no package update is needed.
+450+ callable endpoints across 178+ tools, available to any MCP-compatible AI client. New tools ship to the API continuously. Your agent picks them up automatically; no package update is needed.
 <!-- Update counts from src/config/site-stats.ts -->
 
 ## Install
