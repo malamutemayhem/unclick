@@ -4735,6 +4735,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         switch (method) {
           case "list": {
             const limit = getClampedLimit(req.query.limit ?? req.body?.limit, 50, 200);
+            const status = String(req.query.status ?? req.body?.status ?? "").trim();
+            const source = String(req.query.source ?? req.body?.source ?? "").trim();
+            const targetAgentIdFilter = parseOptionalFilterToken(
+              req.query.target_agent_id ?? req.body?.target_agent_id,
+              "target_agent_id",
+              128,
+            );
+            if (targetAgentIdFilter.error) {
+              return res.status(400).json({ error: targetAgentIdFilter.error });
+            }
+            const leaseOwnerFilter = parseOptionalFilterToken(
+              req.query.lease_owner ?? req.body?.lease_owner,
+              "lease_owner",
+              128,
+            );
+            if (leaseOwnerFilter.error) {
+              return res.status(400).json({ error: leaseOwnerFilter.error });
+            }
+
             let query = supabase
               .from("mc_agent_dispatches")
               .select(
@@ -4744,17 +4763,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               .order("created_at", { ascending: false })
               .limit(limit);
 
-            const status = String(req.query.status ?? req.body?.status ?? "").trim();
-            const source = String(req.query.source ?? req.body?.source ?? "").trim();
-            const targetAgentId = String(
-              req.query.target_agent_id ?? req.body?.target_agent_id ?? "",
-            ).trim();
-            const leaseOwner = String(req.query.lease_owner ?? req.body?.lease_owner ?? "").trim();
-
             if (status) query = query.eq("status", status);
             if (source) query = query.eq("source", source);
-            if (targetAgentId) query = query.eq("target_agent_id", targetAgentId);
-            if (leaseOwner) query = query.eq("lease_owner", leaseOwner);
+            if (targetAgentIdFilter.value) {
+              query = query.eq("target_agent_id", targetAgentIdFilter.value);
+            }
+            if (leaseOwnerFilter.value) query = query.eq("lease_owner", leaseOwnerFilter.value);
 
             const { data, error } = await query;
             if (error) throw error;
@@ -4762,10 +4776,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
 
           case "get": {
-            const dispatchId = String(
-              req.query.dispatch_id ?? req.body?.dispatch_id ?? "",
-            ).trim();
-            if (!dispatchId) return res.status(400).json({ error: "dispatch_id required" });
+            const dispatchIdResult = parseRequiredToken(
+              req.query.dispatch_id ?? req.body?.dispatch_id,
+              "dispatch_id",
+              256,
+            );
+            if (dispatchIdResult.error) {
+              return res.status(400).json({ error: dispatchIdResult.error });
+            }
+            const dispatchId = dispatchIdResult.value!;
 
             const { data, error } = await supabase
               .from("mc_agent_dispatches")
@@ -4784,13 +4803,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
             const body = (req.body ?? {}) as Record<string, unknown>;
             const source = body.source;
-            const targetAgentId = String(body.target_agent_id ?? "").trim();
+            const targetAgentIdResult = parseRequiredToken(
+              body.target_agent_id,
+              "target_agent_id",
+              128,
+            );
             if (!isReliabilitySource(source)) {
               return res.status(400).json({ error: "valid source required" });
             }
-            if (!targetAgentId) {
-              return res.status(400).json({ error: "target_agent_id required" });
+            if (targetAgentIdResult.error) {
+              return res.status(400).json({ error: targetAgentIdResult.error });
             }
+            const targetAgentId = targetAgentIdResult.value!;
 
             const taskRef = String(body.task_ref ?? "").trim() || undefined;
             const promptHash = String(body.prompt_hash ?? "").trim() || undefined;
@@ -4800,7 +4824,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               createTimeBucket(new Date(), bucketSeconds);
             const payload =
               isRecord(body.payload) ? body.payload : isRecord(body.payload_json) ? body.payload_json : {};
-            const explicitDispatchId = String(body.dispatch_id ?? "").trim() || undefined;
+            const explicitDispatchIdResult = parseOptionalFilterToken(
+              body.dispatch_id,
+              "dispatch_id",
+              256,
+            );
+            if (explicitDispatchIdResult.error) {
+              return res.status(400).json({ error: explicitDispatchIdResult.error });
+            }
+            const explicitDispatchId = explicitDispatchIdResult.value;
             const dispatchId =
               explicitDispatchId ??
               createDispatchId({
@@ -4852,11 +4884,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           case "claim": {
             if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
             const body = (req.body ?? {}) as Record<string, unknown>;
-            const dispatchId = String(body.dispatch_id ?? "").trim();
-            const agentId = String(body.agent_id ?? "").trim();
-            if (!dispatchId || !agentId) {
-              return res.status(400).json({ error: "dispatch_id and agent_id required" });
-            }
+            const dispatchIdResult = parseRequiredToken(body.dispatch_id, "dispatch_id", 256);
+            if (dispatchIdResult.error) return res.status(400).json({ error: dispatchIdResult.error });
+            const dispatchId = dispatchIdResult.value!;
+            const agentIdResult = parseRequiredToken(body.agent_id, "agent_id", 128);
+            if (agentIdResult.error) return res.status(400).json({ error: agentIdResult.error });
+            const agentId = agentIdResult.value!;
 
             const leaseSeconds = getClampedLimit(body.lease_seconds, 60, 86400);
             const { data, error } = await supabase
@@ -4958,12 +4991,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           case "release": {
             if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
             const body = (req.body ?? {}) as Record<string, unknown>;
-            const dispatchId = String(body.dispatch_id ?? "").trim();
-            const agentId = String(body.agent_id ?? "").trim();
+            const dispatchIdResult = parseRequiredToken(body.dispatch_id, "dispatch_id", 256);
+            if (dispatchIdResult.error) return res.status(400).json({ error: dispatchIdResult.error });
+            const dispatchId = dispatchIdResult.value!;
+            const agentIdResult = parseRequiredToken(body.agent_id, "agent_id", 128);
+            if (agentIdResult.error) return res.status(400).json({ error: agentIdResult.error });
+            const agentId = agentIdResult.value!;
             const nextStatusRaw = body.status;
-            if (!dispatchId || !agentId) {
-              return res.status(400).json({ error: "dispatch_id and agent_id required" });
-            }
             if (nextStatusRaw !== undefined && !isReliabilityStatus(nextStatusRaw)) {
               return res.status(400).json({ error: "invalid status" });
             }
