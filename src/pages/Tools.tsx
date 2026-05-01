@@ -236,10 +236,10 @@ const AUSTRALIA_TOOLS = [
 const Tools = () => {
   useCanonical("/tools");
   useMetaTags({
-    title: "172+ AI Agent Tools - UnClick Marketplace",
-    description: "Browse 172+ verified tools across 60+ integrations - email, finance, productivity, dev tools and more. One npm install, instantly callable by any MCP-compatible AI agent.",
-    ogTitle: "UnClick Marketplace - 172+ Tools for AI Agents",
-    ogDescription: "Browse 172+ verified tools across 60+ integrations. One npm install gives your AI agent access to everything.",
+    title: "178+ AI Agent Tools - UnClick Marketplace",
+    description: "Browse 178+ verified tools across 60+ integrations - email, finance, productivity, dev tools and more. One npm install, instantly callable by any MCP-compatible AI agent.",
+    ogTitle: "UnClick Marketplace - 178+ Tools for AI Agents",
+    ogDescription: "Browse 178+ verified tools across 60+ integrations. One npm install gives your AI agent access to everything.",
     ogUrl: "https://unclick.world/tools",
   });
 
@@ -255,13 +255,13 @@ const Tools = () => {
         <div className="relative z-10 mx-auto max-w-3xl text-center">
           <FadeIn>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 backdrop-blur-sm">
-              <span className="font-mono text-xs font-medium text-primary">172+ Tools</span>
+              <span className="font-mono text-xs font-medium text-primary">178+ Tools</span>
             </div>
           </FadeIn>
 
           <FadeIn delay={0.05}>
             <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl md:text-6xl">
-              172+ tools.{" "}
+              178+ tools.{" "}
               <span className="text-primary">One command.</span>
             </h1>
           </FadeIn>
@@ -300,7 +300,7 @@ const Tools = () => {
               All categories
             </h2>
             <p className="mt-3 text-center text-body max-w-xl mx-auto">
-              19 categories. 172+ tools. Choose what you need.
+              19 categories. 178+ tools. Choose what you need.
             </p>
           </FadeIn>
 
