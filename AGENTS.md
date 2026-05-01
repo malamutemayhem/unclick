@@ -33,7 +33,7 @@ Current summary:
 - Old memory tool names still work as aliases: `get_startup_context`, `write_session_summary`, `add_fact`, `set_business_context`
 - Signals and Fishbowl coordination tools are visible first-party tools for worker operation
 
-The other memory operations (manage_decay, store_code, log_conversation, supersede_fact, upsert_library_doc, etc.) are callable via `unclick_call` with `endpoint_id: "memory.<op>"`.
+The other 13 memory operations (manage_decay, store_code, log_conversation, supersede_fact, upsert_library_doc, etc.) are callable via `unclick_call` with `endpoint_id: "memory.<op>"`.
 
 ## Adding a new tool
 
