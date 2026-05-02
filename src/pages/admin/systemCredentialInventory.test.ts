@@ -51,6 +51,19 @@ describe("system credential inventory", () => {
     }
   });
 
+  it("adds safe owner-confidence labels without provider lookups", () => {
+    const byName = new Map(listSystemCredentialHealthRows().map((entry) => [entry.name, entry]));
+
+    expect(byName.get("TESTPASS_TOKEN")).toMatchObject({
+      ownerLabel: "GitHub Actions - malamutemayhem/unclick-agent-native-endpoints",
+      ownerConfidence: "inferred",
+    });
+    expect(byName.get("SUPABASE_SERVICE_ROLE_KEY")).toMatchObject({
+      ownerLabel: "Vercel project environment",
+      ownerConfidence: "inferred",
+    });
+  });
+
   it("keeps docs and rotation copy free of secret-like literals", () => {
     for (const entry of listSystemCredentialInventory()) {
       const combinedCopy = `${entry.docsHint}\n${entry.rotationImpact ?? ""}`;
