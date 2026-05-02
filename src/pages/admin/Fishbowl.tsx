@@ -5,6 +5,7 @@ import FishbowlTodos from "./fishbowl/Todos";
 import FishbowlIdeas from "./fishbowl/Ideas";
 import FishbowlSettings from "./fishbowl/Settings";
 import { clusterProfiles, type ProfileCluster } from "./fishbowl/clusterProfiles";
+import { getLaneMessages, getMainFeedMessages } from "./fishbowl/messageLanes";
 
 interface FishbowlMessage {
   id: string;
@@ -489,6 +490,58 @@ function MessageBody({ m }: { m: FishbowlMessage }) {
   );
 }
 
+function MessageLane({
+  title,
+  icon,
+  messages,
+}: {
+  title: string;
+  icon: string;
+  messages: FishbowlMessage[];
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <section className="rounded-xl border border-white/[0.06] bg-white/[0.02]">
+      <button
+        type="button"
+        onClick={() => setExpanded((prev) => !prev)}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+        aria-expanded={expanded}
+      >
+        <span className="flex items-center gap-2 text-sm font-semibold text-[#ccc]">
+          <span aria-hidden>{icon}</span>
+          <span>{title}</span>
+          <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[11px] font-medium text-[#888]">
+            {messages.length}
+          </span>
+        </span>
+        {expanded ? (
+          <ChevronDown className="h-4 w-4 text-[#888]" aria-hidden />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-[#888]" aria-hidden />
+        )}
+      </button>
+
+      {expanded && (
+        <div className="border-t border-white/[0.06]">
+          {messages.length === 0 ? (
+            <p className="px-4 py-4 text-sm text-[#666]">No messages in this lane.</p>
+          ) : (
+            <ul className="max-h-72 divide-y divide-white/[0.04] overflow-y-auto">
+              {messages.map((m) => (
+                <li key={m.id} className="px-4 py-3 text-sm">
+                  <MessageBody m={m} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function groupMessagesByThread(messages: FishbowlMessage[]): ThreadGroup[] {
   const idSet = new Set(messages.map((m) => m.id));
   const repliesByParent = new Map<string, FishbowlMessage[]>();
@@ -527,7 +580,19 @@ export default function Fishbowl() {
   const [humanAgentId, setHumanAgentId] = useState<string | null>(null);
   const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
 
-  const groupedMessages = useMemo(() => groupMessagesByThread(messages), [messages]);
+  const heartbeatMessages = useMemo(
+    () => getLaneMessages(messages, "heartbeat"),
+    [messages],
+  );
+  const eventMessages = useMemo(
+    () => getLaneMessages(messages, "event"),
+    [messages],
+  );
+  const mainFeedMessages = useMemo(() => getMainFeedMessages(messages), [messages]);
+  const groupedMessages = useMemo(
+    () => groupMessagesByThread(mainFeedMessages),
+    [mainFeedMessages],
+  );
 
   // Cluster profiles by (emoji, display_name) once per profile update so all
   // three render sites (ExplainerPanel, NowPlayingStrip, sidebar) share the
@@ -645,6 +710,11 @@ export default function Fishbowl() {
 
       <PostBox disabled={!humanAgentId} onPost={postMessage} />
 
+      <div className="grid gap-3 md:grid-cols-2">
+        <MessageLane title="Heartbeats" icon="💓" messages={heartbeatMessages} />
+        <MessageLane title="Events" icon="🧭" messages={eventMessages} />
+      </div>
+
       {showEmptyState ? (
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-8 text-center">
           <p className="text-base text-[#ccc]">
@@ -664,9 +734,9 @@ export default function Fishbowl() {
               {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#888]" />}
             </div>
             <div className="max-h-[70vh] overflow-y-auto">
-              {messages.length === 0 ? (
+              {mainFeedMessages.length === 0 ? (
                 <p className="px-4 py-6 text-center text-sm text-[#666]">
-                  No messages yet. When your agents post, they will appear here.
+                  No action messages yet. Routine heartbeat and event chatter is grouped above.
                 </p>
               ) : (
                 <ul className="divide-y divide-white/[0.04]">
