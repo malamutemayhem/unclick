@@ -1,0 +1,93 @@
+{
+  "schema_version": "0.1",
+  "generated_at": "2026-05-02T02:30:00Z",
+  "source": "public seed receipt",
+  "product": "EnterprisePass",
+  "headline": "Enterprise-readiness guidance, not compliance certification.",
+  "target": {
+    "name": "UnClick",
+    "surface": "repo, docs, workflow, and public proof surfaces"
+  },
+  "status": "pending",
+  "readiness_band": "seed",
+  "wording_notice": "This report describes readiness indicators and evidence alignment. It is not a compliance certification, SOC report, ISO audit, legal opinion, or security attestation.",
+  "summary": {
+    "score_overall": null,
+    "headline": "EnterprisePass has a product boundary and seed artifact. Automated evidence checks are not live yet.",
+    "checks_total": 0,
+    "checks_pass": 0,
+    "checks_partial": 0,
+    "checks_fail": 0,
+    "checks_unknown": 0,
+    "checks_pending": 7
+  },
+  "categories": [
+    {
+      "id": "code_maintainability",
+      "name": "Code maintainability",
+      "status": "pending",
+      "summary": "Will review tests, build, lint, type safety, structure, oversized files, and brittle code signals."
+    },
+    {
+      "id": "secure_development",
+      "name": "Secure development",
+      "status": "pending",
+      "summary": "Will review security policy, dependency checks, branch protection evidence, and secret-scanning signals."
+    },
+    {
+      "id": "evidence_over_claims",
+      "name": "Evidence over claims",
+      "status": "pending",
+      "summary": "Will flag bold claims that do not point to docs, tests, PRs, workflow runs, or public receipts."
+    },
+    {
+      "id": "documentation_quality",
+      "name": "Documentation quality",
+      "status": "pending",
+      "summary": "Will review README, ADRs, runbooks, architecture notes, onboarding, and operating docs."
+    },
+    {
+      "id": "credential_environment_hygiene",
+      "name": "Credential and environment hygiene",
+      "status": "pending",
+      "summary": "Will review ownership, used-by mapping, staleness, rotation notes, and safe evidence from RotatePass or Connections."
+    },
+    {
+      "id": "investor_readiness",
+      "name": "Investor readiness",
+      "status": "pending",
+      "summary": "Will review license, bus-factor signals, operational discipline, and audit trail evidence."
+    },
+    {
+      "id": "ai_governance_readiness",
+      "name": "AI governance readiness",
+      "status": "pending",
+      "summary": "Will review model/provider inventory, human oversight, data/source notes, and AI-system evidence where applicable."
+    }
+  ],
+  "next_actions": [
+    "Build the Phase 0 static repo/docs scanner.",
+    "Link findings to existing TestPass, SecurityPass, SlopPass, LegalPass, RotatePass, and XPass receipts.",
+    "Render this JSON as a simple EnterprisePass report page only after evidence checks are available.",
+    "Keep all public copy in readiness language and avoid compliance-certification claims."
+  ],
+  "evidence": [
+    {
+      "type": "doc",
+      "path": "docs/enterprisepass-product-brief.md",
+      "summary": "Product boundary: readiness report, not certification."
+    },
+    {
+      "type": "doc",
+      "path": "docs/prd/xpass.md",
+      "summary": "EnterprisePass is listed as a scoped Pass-family product under XPass."
+    }
+  ],
+  "exclusions": [
+    "No ISO/SOC compliance conclusion.",
+    "No legal opinion.",
+    "No network security probing.",
+    "No raw secret storage.",
+    "No customer-facing certification claim."
+  ]
+}
