@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 const SCANNED_FILES = [
   "docs/rotatepass-connector-metadata.md",
   "docs/connectors/system-credentials-health-panel.md",
+  "docs/connectors/credential-action-routing.md",
+  "docs/connectors/setup-metadata-vocabulary.md",
   "docs/rotatepass-local-phase0.md",
 ] as const;
 
@@ -14,6 +16,9 @@ const SECRET_PATTERNS = [
   { name: "GitHub token", pattern: /\b(?:gh[pous]|ghs|pat)_[A-Za-z0-9_]{16,}\b/g },
   { name: "Stripe webhook secret", pattern: /\bwhsec_[A-Za-z0-9_]{16,}\b/g },
   { name: "Authorization bearer example", pattern: /\bAuthorization:\s*Bearer\s+[A-Za-z0-9._~+/=-]{16,}\b/g },
+  { name: "Cookie header", pattern: /\bCookie:\s*[^\r\n;]{8,}/gi },
+  { name: "Set-Cookie header", pattern: /\bSet-Cookie:\s*[^\r\n;]{8,}/gi },
+  { name: "Provider response body wording", pattern: /\b(?:provider|api)\s+response\s+body\b/gi },
 ];
 
 function withoutAllowedPrefixReferenceLines(content: string): string {
