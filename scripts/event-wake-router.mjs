@@ -403,6 +403,10 @@ export function buildReliabilityDispatchHandoffSyncRequest({
   });
 }
 
+export function shouldFailMissingHandoffMessageId(result) {
+  return Boolean(result?.posted) && !result?.message_id && !result?.dry_run;
+}
+
 async function registerWakeDispatch({ eventId, decision, triage, result, event }) {
   const dispatchRequest = buildReliabilityDispatchRequest({
     eventId,
@@ -680,6 +684,24 @@ async function main() {
     return;
   }
   const result = await postWake(finalDecision, triage, eventId, event);
+  if (shouldFailMissingHandoffMessageId(result)) {
+    const reliabilityWithError = {
+      ...(reliability || {}),
+      error: compactText("Fishbowl wake post succeeded but returned no message_id for ACK handoff sync.", 500),
+    };
+    console.error("Fishbowl wake post succeeded but returned no message_id. Failing closed.");
+    writeLedger({
+      eventId,
+      event,
+      decision: finalDecision,
+      triage,
+      result,
+      reliability: reliabilityWithError,
+      status: "wake_failed",
+    });
+    process.exitCode = 1;
+    return;
+  }
   const handoffSync = await syncWakeDispatchHandoffMessage({
     eventId,
     decision: finalDecision,
