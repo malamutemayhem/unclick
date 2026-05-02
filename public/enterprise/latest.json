@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "generated_at": "2026-05-02T02:30:00Z",
+  "generated_at": "2026-05-02T03:50:00Z",
   "source": "public seed receipt",
   "product": "EnterprisePass",
   "headline": "Enterprise-readiness guidance, not compliance certification.",
@@ -11,6 +11,12 @@
   "status": "pending",
   "readiness_band": "seed",
   "wording_notice": "This report describes readiness indicators and evidence alignment. It is not a compliance certification, SOC report, ISO audit, legal opinion, or security attestation.",
+  "readiness_score": {
+    "value": null,
+    "band": "seed",
+    "traffic_light": "yellow",
+    "rationale": "EnterprisePass has a safe public report shape, but automated evidence checks are not live yet."
+  },
   "summary": {
     "score_overall": null,
     "headline": "EnterprisePass has a product boundary and seed artifact. Automated evidence checks are not live yet.",
@@ -21,6 +27,15 @@
     "checks_unknown": 0,
     "checks_pending": 7
   },
+  "report_sections": [
+    "readiness_score",
+    "evidence",
+    "gaps",
+    "next_actions",
+    "future_regret_notes",
+    "exclusions",
+    "disclaimer"
+  ],
   "categories": [
     {
       "id": "code_maintainability",
@@ -71,6 +86,28 @@
     "Render this JSON as a simple EnterprisePass report page only after evidence checks are available.",
     "Keep all public copy in readiness language and avoid compliance-certification claims."
   ],
+  "gaps": [
+    {
+      "id": "phase_0_scanner_not_live",
+      "severity": "medium",
+      "summary": "The static repo/docs scanner is not implemented yet, so every category remains pending."
+    },
+    {
+      "id": "evidence_links_are_seed_only",
+      "severity": "medium",
+      "summary": "The current evidence list points to product boundary docs, not live Pass receipts or workflow runs."
+    },
+    {
+      "id": "category_results_not_scored",
+      "severity": "low",
+      "summary": "Category statuses are intentionally pending until automated or reviewed evidence exists."
+    }
+  ],
+  "future_regret_notes": [
+    "If claims are not linked to evidence, investor and enterprise reviews may treat the product as less mature than it is.",
+    "If credential ownership and rotation impact stay tribal, key changes can break proof workflows at the worst time.",
+    "If readiness gaps are discovered only during procurement, small fixes can become expensive emergency work."
+  ],
   "evidence": [
     {
       "type": "doc",
@@ -89,5 +126,6 @@
     "No network security probing.",
     "No raw secret storage.",
     "No customer-facing certification claim."
-  ]
+  ],
+  "disclaimer": "EnterprisePass is readiness guidance and evidence alignment only. It does not certify compliance, replace legal advice, or attest to security controls."
 }
