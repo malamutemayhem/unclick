@@ -751,6 +751,7 @@ export default function AdminKeychain() {
                           <p>Owner: {entry.ownerLabel} ({entry.ownerConfidence})</p>
                           <p>Last checked: {entry.lastCheckedAt ? timeAgo(entry.lastCheckedAt) : "manual check required"}</p>
                         </div>
+                        <p className="mt-1 text-[#777]">Health: {entry.healthSummary}</p>
                         <p className="mt-1 text-[#666]">{entry.docsHint}</p>
                         <div className="mt-1 space-y-0.5 text-[#888]">
                           {entry.safeRotationNotes.map((note) => (

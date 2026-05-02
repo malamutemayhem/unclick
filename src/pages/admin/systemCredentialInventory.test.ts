@@ -100,6 +100,7 @@ describe("system credential inventory", () => {
       ownerLabel: "GitHub Actions - malamutemayhem/unclick-agent-native-endpoints",
       ownerConfidence: "inferred",
       displayStatus: "metadata_only",
+      healthSummary: "Expected credential. Metadata-only inventory, no live provider check has run.",
       lastCheckedAt: null,
     });
     expect(testpass?.safeRotationNotes).toEqual(expect.arrayContaining([
@@ -111,11 +112,17 @@ describe("system credential inventory", () => {
     for (const entry of listSystemCredentialHealthRows()) {
       expect(entry.displayStatus).toBe("metadata_only");
       expect(entry.lastCheckedAt).toBeNull();
+      expect(entry.healthSummary).toContain("Metadata-only inventory");
+      expect(entry.healthSummary).toContain("no live provider check has run");
       expect(entry.safeRotationNotes.length).toBeGreaterThan(0);
-      expect(entry.safeRotationNotes.join("\n").toLowerCase()).not.toContain("secret value");
+      const displayCopy = [
+        entry.healthSummary,
+        ...entry.safeRotationNotes,
+      ].join("\n");
+      expect(displayCopy.toLowerCase()).not.toContain("secret value");
 
       for (const pattern of FORBIDDEN_SECRET_LIKE_PATTERNS) {
-        expect(entry.safeRotationNotes.join("\n")).not.toMatch(pattern);
+        expect(displayCopy).not.toMatch(pattern);
       }
     }
   });

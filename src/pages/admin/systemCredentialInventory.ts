@@ -20,6 +20,7 @@ export interface SystemCredentialHealthRow extends SystemCredentialInventoryEntr
   ownerLabel: string;
   ownerConfidence: SystemCredentialOwnerConfidence;
   displayStatus: SystemCredentialDisplayStatus;
+  healthSummary: string;
   lastCheckedAt: string | null;
   safeRotationNotes: readonly string[];
 }
@@ -413,6 +414,7 @@ export function deriveSystemCredentialHealthRow(entry: SystemCredentialInventory
     ownerLabel: ownerLabelFor(entry),
     ownerConfidence: "inferred",
     displayStatus: "metadata_only",
+    healthSummary: healthSummaryFor(entry),
     lastCheckedAt: null,
     safeRotationNotes: rotationNotesFor(entry),
   };
@@ -451,6 +453,14 @@ function rotationNotesFor(entry: SystemCredentialInventoryEntry): readonly strin
   }
 
   return notes;
+}
+
+function healthSummaryFor(entry: SystemCredentialInventoryEntry): string {
+  if (entry.expected) {
+    return "Expected credential. Metadata-only inventory, no live provider check has run.";
+  }
+
+  return "Optional credential. Metadata-only inventory, no live provider check has run.";
 }
 
 function verificationNoteFor(entry: SystemCredentialInventoryEntry): string {
