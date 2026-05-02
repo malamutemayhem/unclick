@@ -13,6 +13,8 @@ const scanPaths = [
   "docs/rotatepass-connector-metadata.md",
   "docs/rotatepass-local-phase0.md",
   "docs/connectors/phase-1-plan.md",
+  "docs/connectors/credential-action-routing.md",
+  "docs/connectors/setup-metadata-vocabulary.md",
   "docs/connectors/spec.md",
   "docs/connectors/system-credentials-health-panel.md",
   "docs/prd/backstagepass.md",
@@ -48,6 +50,14 @@ const blockedPatterns = [
   {
     name: "authorization-header",
     pattern: /\bAuthorization:\s*(?:Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{12,}/gi,
+  },
+  {
+    name: "cookie-header",
+    pattern: /\bCookie:\s*[A-Za-z0-9._~+/%=-]{8,}\s*=\s*[A-Za-z0-9._~+/%=-]{8,}/gi,
+  },
+  {
+    name: "set-cookie-header",
+    pattern: /\bSet-Cookie:\s*[A-Za-z0-9._~+/%=-]{8,}\s*=\s*[A-Za-z0-9._~+/%=-]{8,}/gi,
   },
   {
     name: "provider-response-access-token",
