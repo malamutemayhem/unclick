@@ -11,6 +11,7 @@ import {
   buildReliabilityDispatchRequest,
   deriveAckThresholds,
   normalizeDispatchOwner,
+  shouldFailMissingHandoffMessageId,
   wakeDispatchId,
 } from "./event-wake-router.mjs";
 
@@ -447,6 +448,13 @@ describe("event wake router reliability dispatch", () => {
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
+  });
+
+  it("fails closed when Fishbowl post succeeds without a message id", () => {
+    assert.equal(shouldFailMissingHandoffMessageId({ posted: true, message_id: null, dry_run: false }), true);
+    assert.equal(shouldFailMissingHandoffMessageId({ posted: true, message_id: "msg-1", dry_run: false }), false);
+    assert.equal(shouldFailMissingHandoffMessageId({ posted: true, message_id: null, dry_run: true }), false);
+    assert.equal(shouldFailMissingHandoffMessageId({ posted: false, message_id: null, dry_run: false }), false);
   });
 
   it("fails closed when the GitHub event payload is invalid JSON", () => {
