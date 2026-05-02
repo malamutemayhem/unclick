@@ -15,7 +15,9 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "@/lib/auth";
 import {
+  AlertTriangle,
   BarChart3,
+  CheckCircle2,
   ExternalLink,
   Loader2,
   Lock,
@@ -61,6 +63,36 @@ const DASHBOARDS = [
 ] as const;
 
 const POSTHOG_APP = "https://us.posthog.com/project/391352/dashboards";
+
+const posthogKeyConfigured = Boolean(import.meta.env.VITE_POSTHOG_KEY);
+const posthogHost = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? "https://us.i.posthog.com";
+
+const reliabilityChecks = [
+  {
+    label: "Capture key configured",
+    ok: posthogKeyConfigured,
+    detail: posthogKeyConfigured
+      ? "A PostHog browser key is present in this build. Value is hidden."
+      : "VITE_POSTHOG_KEY is missing from this build.",
+  },
+  {
+    label: "Capture host",
+    ok: Boolean(posthogHost),
+    detail: `Browser events are configured to post to ${posthogHost}.`,
+  },
+  {
+    label: "Route pageviews",
+    ok: true,
+    detail: "The app sends a manual $pageview event on route changes.",
+  },
+  {
+    label: "Dashboard embeds",
+    ok: DASHBOARDS.some((d) => d.url),
+    detail: DASHBOARDS.some((d) => d.url)
+      ? "At least one shared PostHog dashboard URL is configured."
+      : "No VITE_POSTHOG_DASHBOARD_* URLs are configured for this build.",
+  },
+] as const;
 
 // ── Component ─────────────────────────────────────────────────────
 
@@ -150,6 +182,41 @@ export default function AdminAnalytics() {
           </p>
         </div>
       )}
+
+      <div className="mb-6 rounded-xl border border-white/[0.06] bg-[#111111] p-4">
+        <div className="mb-3 flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-sm font-medium text-white">Reliability checklist</h2>
+            <p className="mt-1 text-xs text-[#777]">
+              Read-only checks for analytics visibility. Key values are never shown.
+            </p>
+          </div>
+          <span className="rounded-full border border-[#E2B93B]/20 bg-[#E2B93B]/10 px-2.5 py-1 text-[11px] text-[#E2B93B]">
+            Untested until receipt
+          </span>
+        </div>
+        <div className="grid gap-2 md:grid-cols-2">
+          {reliabilityChecks.map((check) => {
+            const Icon = check.ok ? CheckCircle2 : AlertTriangle;
+            return (
+              <div
+                key={check.label}
+                className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3"
+              >
+                <div className="flex items-center gap-2">
+                  <Icon className={`h-4 w-4 ${check.ok ? "text-emerald-300" : "text-[#E2B93B]"}`} />
+                  <p className="text-xs font-medium text-[#ddd]">{check.label}</p>
+                </div>
+                <p className="mt-1.5 text-[11px] leading-5 text-[#777]">{check.detail}</p>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-3 text-[11px] leading-5 text-[#666]">
+          This panel proves configuration shape only. Treat PostHog as healthy after a recent pageview or
+          funnel event is visible in PostHog.
+        </p>
+      </div>
 
       {/* Dashboard tabs */}
       <div className="mb-4 flex gap-1 overflow-x-auto rounded-xl border border-white/[0.06] bg-[#111111] p-1">
