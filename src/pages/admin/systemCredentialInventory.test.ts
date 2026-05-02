@@ -1,5 +1,6 @@
 import {
   hasSecretValueField,
+  listSystemCredentialHealthRows,
   listSystemCredentialInventory,
   sanitizeInventoryRecord,
   shouldTrackCredentialName,
@@ -46,21 +47,19 @@ describe("system credential inventory", () => {
       expect(entry.name).toMatch(/^[A-Z][A-Z0-9_]*$/);
       expect(entry.scope.length).toBeGreaterThan(0);
       expect(entry.workload.length).toBeGreaterThan(0);
-      expect(entry.ownerHint?.length ?? 0).toBeGreaterThan(0);
-      expect(["known", "inferred", "unknown"]).toContain(entry.ownerConfidence);
       expect(entry.docsHint.toLowerCase()).not.toContain("secret value:");
     }
   });
 
-  it("adds safe owner-confidence hints without provider lookups", () => {
-    const byName = new Map(listSystemCredentialInventory().map((entry) => [entry.name, entry]));
+  it("adds safe owner-confidence labels without provider lookups", () => {
+    const byName = new Map(listSystemCredentialHealthRows().map((entry) => [entry.name, entry]));
 
     expect(byName.get("TESTPASS_TOKEN")).toMatchObject({
-      ownerHint: "GitHub Actions repository metadata",
+      ownerLabel: "GitHub Actions - malamutemayhem/unclick-agent-native-endpoints",
       ownerConfidence: "inferred",
     });
     expect(byName.get("SUPABASE_SERVICE_ROLE_KEY")).toMatchObject({
-      ownerHint: "Vercel project environment metadata",
+      ownerLabel: "Vercel project environment",
       ownerConfidence: "inferred",
     });
   });
@@ -90,6 +89,42 @@ describe("system credential inventory", () => {
     for (const entry of criticalExpected) {
       expect(entry.rotationImpact?.length ?? 0).toBeGreaterThan(20);
       expect(entry.rotationImpact?.toLowerCase()).not.toContain("secret value");
+    }
+  });
+
+  it("derives metadata-only health rows with owner, status, and manual check state", () => {
+    const rows = listSystemCredentialHealthRows();
+    const testpass = rows.find((entry) => entry.name === "TESTPASS_TOKEN");
+
+    expect(testpass).toMatchObject({
+      ownerLabel: "GitHub Actions - malamutemayhem/unclick-agent-native-endpoints",
+      ownerConfidence: "inferred",
+      displayStatus: "metadata_only",
+      lastCheckedAt: null,
+    });
+    expect(testpass?.safeRotationNotes).toEqual(expect.arrayContaining([
+      "After rotation, rerun the TestPass PR check.",
+    ]));
+  });
+
+  it("adds safe rotation notes without claiming live credential health", () => {
+    for (const entry of listSystemCredentialHealthRows()) {
+      expect(entry.displayStatus).toBe("metadata_only");
+      expect(entry.lastCheckedAt).toBeNull();
+      expect(entry.safeRotationNotes.length).toBeGreaterThan(0);
+      expect(entry.safeRotationNotes.join("\n").toLowerCase()).not.toContain("secret value");
+
+      for (const pattern of FORBIDDEN_SECRET_LIKE_PATTERNS) {
+        expect(entry.safeRotationNotes.join("\n")).not.toMatch(pattern);
+      }
+    }
+  });
+
+  it("requires human review notes for critical system credentials", () => {
+    const criticalRows = listSystemCredentialHealthRows().filter((entry) => entry.risk === "critical");
+
+    for (const entry of criticalRows) {
+      expect(entry.safeRotationNotes.join("\n").toLowerCase()).toContain("human review");
     }
   });
 
@@ -143,16 +178,12 @@ describe("system credential inventory", () => {
       expected: true,
       docsHint: "Name and timestamps only.",
       rotationImpact: "PR checks may fail until the replacement is wired.",
-      ownerHint: "Explicit operator note.",
-      ownerConfidence: "known",
     })).toEqual({
       provider: "github",
       source: "github_actions_secret",
       name: "TESTPASS_TOKEN",
       scope: "repository actions secret",
       workload: "TestPass PR checks",
-      ownerHint: "Explicit operator note.",
-      ownerConfidence: "known",
       risk: "critical",
       expected: true,
       docsHint: "Name and timestamps only.",
@@ -166,7 +197,6 @@ describe("system credential inventory", () => {
       source: "github_actions_secret",
       name: "TESTPASS_TOKEN",
       docsHint: "Authorization: Bearer sk-secret-never-show",
-      ownerHint: "Provider body mentioned x-api-key",
       rotationImpact: "Provider body contained set-cookie: session=123",
     })).toEqual({
       provider: "github",
@@ -174,8 +204,6 @@ describe("system credential inventory", () => {
       name: "TESTPASS_TOKEN",
       scope: "unknown",
       workload: "unknown",
-      ownerHint: "GitHub Actions repository metadata",
-      ownerConfidence: "inferred",
       risk: "normal",
       expected: false,
       docsHint: "Metadata only; no secret value is available.",
@@ -196,8 +224,6 @@ describe("system credential inventory", () => {
       name: "TESTPASS_TOKEN",
       scope: "unknown",
       workload: "unknown",
-      ownerHint: "GitHub Actions repository metadata",
-      ownerConfidence: "inferred",
       risk: "normal",
       expected: false,
       docsHint: "Name and status metadata only.",
