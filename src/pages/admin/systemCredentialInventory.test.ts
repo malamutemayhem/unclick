@@ -46,8 +46,23 @@ describe("system credential inventory", () => {
       expect(entry.name).toMatch(/^[A-Z][A-Z0-9_]*$/);
       expect(entry.scope.length).toBeGreaterThan(0);
       expect(entry.workload.length).toBeGreaterThan(0);
+      expect(entry.ownerHint?.length ?? 0).toBeGreaterThan(0);
+      expect(["known", "inferred", "unknown"]).toContain(entry.ownerConfidence);
       expect(entry.docsHint.toLowerCase()).not.toContain("secret value:");
     }
+  });
+
+  it("adds safe owner-confidence hints without provider lookups", () => {
+    const byName = new Map(listSystemCredentialInventory().map((entry) => [entry.name, entry]));
+
+    expect(byName.get("TESTPASS_TOKEN")).toMatchObject({
+      ownerHint: "GitHub Actions repository metadata",
+      ownerConfidence: "inferred",
+    });
+    expect(byName.get("SUPABASE_SERVICE_ROLE_KEY")).toMatchObject({
+      ownerHint: "Vercel project environment metadata",
+      ownerConfidence: "inferred",
+    });
   });
 
   it("keeps docs and rotation copy free of secret-like literals", () => {
@@ -128,12 +143,16 @@ describe("system credential inventory", () => {
       expected: true,
       docsHint: "Name and timestamps only.",
       rotationImpact: "PR checks may fail until the replacement is wired.",
+      ownerHint: "Explicit operator note.",
+      ownerConfidence: "known",
     })).toEqual({
       provider: "github",
       source: "github_actions_secret",
       name: "TESTPASS_TOKEN",
       scope: "repository actions secret",
       workload: "TestPass PR checks",
+      ownerHint: "Explicit operator note.",
+      ownerConfidence: "known",
       risk: "critical",
       expected: true,
       docsHint: "Name and timestamps only.",
@@ -147,6 +166,7 @@ describe("system credential inventory", () => {
       source: "github_actions_secret",
       name: "TESTPASS_TOKEN",
       docsHint: "Authorization: Bearer sk-secret-never-show",
+      ownerHint: "Provider body mentioned x-api-key",
       rotationImpact: "Provider body contained set-cookie: session=123",
     })).toEqual({
       provider: "github",
@@ -154,6 +174,8 @@ describe("system credential inventory", () => {
       name: "TESTPASS_TOKEN",
       scope: "unknown",
       workload: "unknown",
+      ownerHint: "GitHub Actions repository metadata",
+      ownerConfidence: "inferred",
       risk: "normal",
       expected: false,
       docsHint: "Metadata only; no secret value is available.",
@@ -174,6 +196,8 @@ describe("system credential inventory", () => {
       name: "TESTPASS_TOKEN",
       scope: "unknown",
       workload: "unknown",
+      ownerHint: "GitHub Actions repository metadata",
+      ownerConfidence: "inferred",
       risk: "normal",
       expected: false,
       docsHint: "Name and status metadata only.",

@@ -50,6 +50,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   listSystemCredentialInventory,
   type SystemCredentialInventoryEntry,
+  type SystemCredentialOwnerConfidence,
   type SystemCredentialProvider,
   type SystemCredentialRisk,
 } from "./systemCredentialInventory";
@@ -268,6 +269,24 @@ const INVENTORY_RISK_BADGES: Record<SystemCredentialRisk, {
 const PROVIDER_LABELS: Record<SystemCredentialProvider, string> = {
   github: "GitHub",
   vercel: "Vercel",
+};
+
+const OWNER_CONFIDENCE_BADGES: Record<SystemCredentialOwnerConfidence, {
+  label: string;
+  className: string;
+}> = {
+  known: {
+    label: "Owner known",
+    className: "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
+  },
+  inferred: {
+    label: "Owner inferred",
+    className: "border-sky-500/20 bg-sky-500/10 text-sky-300",
+  },
+  unknown: {
+    label: "Owner unknown",
+    className: "border-white/[0.06] bg-white/[0.03] text-[#aaa]",
+  },
 };
 
 // ─── Component ──────────────────────────────────────────────────
@@ -675,7 +694,7 @@ export default function AdminKeychain() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-[#666]">System credential inventory</p>
             <p className="mt-1 text-[11px] text-[#888]">
-              Name-only map of which GitHub and Vercel credentials power each workflow.
+              Name-only map of which GitHub and Vercel credentials power each workflow, with safe owner hints.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -703,11 +722,17 @@ export default function AdminKeychain() {
               <div className="divide-y divide-white/[0.04]">
                 {inventoryByProvider[provider].map((entry) => {
                   const risk = INVENTORY_RISK_BADGES[entry.risk];
+                  const ownerConfidence = OWNER_CONFIDENCE_BADGES[entry.ownerConfidence ?? "unknown"];
                   return (
                     <div key={`${entry.provider}-${entry.name}-${entry.workload}`} className="grid gap-2 px-3 py-3 text-[11px] md:grid-cols-[minmax(12rem,0.9fr)_minmax(12rem,1fr)_auto]">
                       <div className="min-w-0">
                         <p className="truncate font-mono text-[#ddd]">{entry.name}</p>
                         <p className="mt-0.5 text-[#555]">{entry.scope}</p>
+                        {entry.ownerHint && (
+                          <p className="mt-1 text-[#777]">
+                            Owner: {entry.ownerHint}
+                          </p>
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="text-[#ccc]">{entry.workload}</p>
@@ -724,6 +749,9 @@ export default function AdminKeychain() {
                         </span>
                         <span className="rounded-full border border-white/[0.05] bg-white/[0.03] px-2 py-0.5 text-[10px] text-[#aaa]">
                           {entry.expected ? "Expected" : "Optional"}
+                        </span>
+                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${ownerConfidence.className}`}>
+                          {ownerConfidence.label}
                         </span>
                       </div>
                     </div>

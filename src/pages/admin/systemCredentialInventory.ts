@@ -1,6 +1,7 @@
 export type SystemCredentialProvider = "github" | "vercel";
 export type SystemCredentialSource = "github_actions_secret" | "vercel_env";
 export type SystemCredentialRisk = "critical" | "high" | "normal";
+export type SystemCredentialOwnerConfidence = "known" | "inferred" | "unknown";
 
 export interface SystemCredentialInventoryEntry {
   provider: SystemCredentialProvider;
@@ -8,6 +9,8 @@ export interface SystemCredentialInventoryEntry {
   name: string;
   scope: string;
   workload: string;
+  ownerHint?: string;
+  ownerConfidence?: SystemCredentialOwnerConfidence;
   risk: SystemCredentialRisk;
   expected: boolean;
   docsHint: string;
@@ -373,6 +376,7 @@ export function sanitizeInventoryRecord(record: Record<string, unknown>): System
   if (!shouldTrackCredentialName(name)) return null;
   if (record.provider !== "github" && record.provider !== "vercel") return null;
   if (record.source !== "github_actions_secret" && record.source !== "vercel_env") return null;
+  const ownerDefaults = defaultOwnerHint(record.provider, record.source);
 
   return {
     provider: record.provider,
@@ -380,6 +384,8 @@ export function sanitizeInventoryRecord(record: Record<string, unknown>): System
     name,
     scope: typeof record.scope === "string" ? record.scope : "unknown",
     workload: typeof record.workload === "string" ? record.workload : "unknown",
+    ownerHint: sanitizeMetadataCopy(record.ownerHint, ownerDefaults.ownerHint),
+    ownerConfidence: parseOwnerConfidence(record.ownerConfidence, ownerDefaults.ownerConfidence),
     risk: record.risk === "critical" || record.risk === "high" ? record.risk : "normal",
     expected: record.expected === true,
     docsHint: sanitizeMetadataCopy(record.docsHint, "Metadata only; no secret value is available."),
@@ -390,7 +396,10 @@ export function sanitizeInventoryRecord(record: Record<string, unknown>): System
 }
 
 export function listSystemCredentialInventory(): readonly SystemCredentialInventoryEntry[] {
-  return SYSTEM_CREDENTIAL_INVENTORY;
+  return SYSTEM_CREDENTIAL_INVENTORY.map((entry) => {
+    if (entry.ownerHint && entry.ownerConfidence) return entry;
+    return { ...entry, ...defaultOwnerHint(entry.provider, entry.source) };
+  });
 }
 
 function sanitizeMetadataCopy(
@@ -404,4 +413,35 @@ function sanitizeMetadataCopy(
   if (UNSAFE_METADATA_COPY_PATTERN.test(trimmed)) return fallback;
   if (options?.forbidAutomationClaims && UNSAFE_ROTATION_GUIDANCE_PATTERN.test(trimmed)) return fallback;
   return trimmed;
+}
+
+function defaultOwnerHint(
+  provider: SystemCredentialProvider,
+  source: SystemCredentialSource,
+): Pick<SystemCredentialInventoryEntry, "ownerHint" | "ownerConfidence"> {
+  if (provider === "github" && source === "github_actions_secret") {
+    return {
+      ownerHint: "GitHub Actions repository metadata",
+      ownerConfidence: "inferred",
+    };
+  }
+
+  if (provider === "vercel" && source === "vercel_env") {
+    return {
+      ownerHint: "Vercel project environment metadata",
+      ownerConfidence: "inferred",
+    };
+  }
+
+  return {
+    ownerHint: "Unknown owner",
+    ownerConfidence: "unknown",
+  };
+}
+
+function parseOwnerConfidence(
+  value: unknown,
+  fallback: SystemCredentialOwnerConfidence,
+): SystemCredentialOwnerConfidence {
+  return value === "known" || value === "inferred" || value === "unknown" ? value : fallback;
 }
