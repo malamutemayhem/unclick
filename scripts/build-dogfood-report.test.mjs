@@ -41,6 +41,12 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
     assert.match(report.statusLegend.pending, /live proof is not available yet/i);
     assert.match(report.proofPolicy, /passing only when a live check actually ran/i);
     assert.match(report.lastActionableFailure.detail, /Blocked reason:/);
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "testpass")?.stage, "live_gate");
+    assert.match(
+      report.xpassIndex.find((entry) => entry.id === "testpass")?.mentionProfile ?? "",
+      /protects merges/i,
+    );
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "enterprisepass")?.stage, "guidance");
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }
@@ -108,6 +114,7 @@ test("dogfood receipt includes structured proof for live TestPass and UXPass run
 
     assert.match(report.statusLegend.passing, /live check ran/i);
     assert.match(report.proofPolicy, /Blocked and pending are honest product states/i);
+    assert.equal(report.xpassIndex.length, 7);
 
     assert.equal(testpassRequest.body.source, "scheduled");
     assert.equal(testpass.runId, "testpass-run-123");

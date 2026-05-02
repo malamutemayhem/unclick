@@ -29,6 +29,16 @@ export interface DogfoodTrendPoint {
 
 export type DogfoodStatusLegend = Record<DogfoodStatus, string>;
 
+export interface XPassIndexEntry {
+  id: string;
+  name: string;
+  stage: "live_gate" | "live_dogfood" | "scope_gated" | "planned" | "guidance";
+  label: string;
+  automation: string;
+  mentionProfile: string;
+  nextStep: string;
+}
+
 export const dogfoodReport = {
   generatedAt: "2026-05-01T17:16:13.158Z",
   lastRunAt: "2026-05-01T17:16:13.158Z",
@@ -44,6 +54,71 @@ export const dogfoodReport = {
     pending: "The check is planned or scaffolded, but live proof is not available yet.",
   } satisfies DogfoodStatusLegend,
   proofPolicy: "Public dogfood receipts mark passing only when a live check actually ran. Blocked and pending are honest product states, not failures to hide.",
+  xpassIndex: [
+    {
+      id: "testpass",
+      name: "TestPass",
+      stage: "live_gate",
+      label: "Live trust gate",
+      automation: "PR check, scheduled smoke, dogfood receipt, wake-router watched",
+      mentionProfile: "High mention volume because it protects merges and cron trust.",
+      nextStep: "Keep it as the default proof gate while the rest of XPass catches up.",
+    },
+    {
+      id: "uxpass",
+      name: "UXPass",
+      stage: "live_dogfood",
+      label: "Live dogfood lane",
+      automation: "Dogfood receipt and run endpoint",
+      mentionProfile: "Medium mention volume when the dogfood receipt or runner needs attention.",
+      nextStep: "Promote to scheduled proof once the credential path is consistently healthy.",
+    },
+    {
+      id: "securitypass",
+      name: "SecurityPass",
+      stage: "scope_gated",
+      label: "Scope-gated",
+      automation: "Blocked public receipt until safe recurring proof exists",
+      mentionProfile: "Low mention volume by design because unsafe probes stay disabled.",
+      nextStep: "Add a deny-by-default recurring runner proof before live security checks.",
+    },
+    {
+      id: "seopass",
+      name: "SEOPass",
+      stage: "planned",
+      label: "Planned",
+      automation: "Scaffold-only public receipt",
+      mentionProfile: "Low mention volume until a recurring search and metadata runner lands.",
+      nextStep: "Define the smallest recurring metadata proof.",
+    },
+    {
+      id: "copypass",
+      name: "CopyPass",
+      stage: "planned",
+      label: "Planned",
+      automation: "Scaffold-only public receipt",
+      mentionProfile: "Low mention volume until copy checks become scheduled evidence.",
+      nextStep: "Define the copy quality receipt shape.",
+    },
+    {
+      id: "legalpass",
+      name: "LegalPass",
+      stage: "planned",
+      label: "Planned",
+      automation: "Scaffold-only public receipt",
+      mentionProfile: "Low mention volume until policy and claims checks become scheduled evidence.",
+      nextStep: "Keep guidance-only until legal review boundaries are explicit.",
+    },
+    {
+      id: "enterprisepass",
+      name: "EnterprisePass",
+      stage: "guidance",
+      label: "Guidance report",
+      automation: "Receipt guard and readiness report boundary",
+      mentionProfile: "Low mention volume while it remains a guidance layer, not certification.",
+      nextStep: "Add low-risk readiness checks without claiming compliance certification.",
+    },
+  ] satisfies XPassIndexEntry[],
   results: [
     {
       id: "testpass",

@@ -17,4 +17,14 @@ describe("Dogfood report proof policy", () => {
     expect(securitypass?.reasonCode).toBe("scope_gate");
     expect(securitypass?.nextProof).toMatch(/before marking this passing/i);
   });
+
+  it("keeps the XPass family maturity index visible", () => {
+    const testpass = dogfoodReport.xpassIndex.find((entry) => entry.id === "testpass");
+    const enterprisepass = dogfoodReport.xpassIndex.find((entry) => entry.id === "enterprisepass");
+
+    expect(testpass?.stage).toBe("live_gate");
+    expect(testpass?.mentionProfile).toMatch(/protects merges/i);
+    expect(enterprisepass?.stage).toBe("guidance");
+    expect(enterprisepass?.nextStep).toMatch(/without claiming compliance certification/i);
+  });
 });
