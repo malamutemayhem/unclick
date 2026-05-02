@@ -39,22 +39,27 @@ const FORBIDDEN_SECRET_VALUE_PATTERNS = [
   /\bxox[baprs]-[A-Za-z0-9-]{20,}/,
 ];
 
-function collectKeysAndStrings(value, keys = [], strings = []) {
+function isAllowedReportMetadataPath(path) {
+  return path === "readiness_score.value";
+}
+
+function collectKeysAndStrings(value, keyPaths = [], strings = [], path = []) {
   if (Array.isArray(value)) {
-    for (const item of value) collectKeysAndStrings(item, keys, strings);
-    return { keys, strings };
+    for (const item of value) collectKeysAndStrings(item, keyPaths, strings, path);
+    return { keyPaths, strings };
   }
 
   if (value && typeof value === "object") {
     for (const [key, child] of Object.entries(value)) {
-      keys.push(key);
-      collectKeysAndStrings(child, keys, strings);
+      const childPath = [...path, key];
+      keyPaths.push(childPath.join("."));
+      collectKeysAndStrings(child, keyPaths, strings, childPath);
     }
-    return { keys, strings };
+    return { keyPaths, strings };
   }
 
   if (typeof value === "string") strings.push(value);
-  return { keys, strings };
+  return { keyPaths, strings };
 }
 
 describe("EnterprisePass public receipt guard", () => {
@@ -98,8 +103,11 @@ describe("EnterprisePass public receipt guard", () => {
       assert.ok(evidence.summary);
     }
 
-    const { keys, strings } = collectKeysAndStrings(receipt);
-    const forbiddenKeys = keys.filter((key) => FORBIDDEN_SECRET_KEYS.has(key.toLowerCase()));
+    const { keyPaths, strings } = collectKeysAndStrings(receipt);
+    const forbiddenKeys = keyPaths.filter((path) => {
+      const key = path.split(".").at(-1) || "";
+      return FORBIDDEN_SECRET_KEYS.has(key.toLowerCase()) && !isAllowedReportMetadataPath(path);
+    });
     assert.deepEqual(forbiddenKeys, []);
 
     const secretLikeStrings = strings.filter((text) =>
