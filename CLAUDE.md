@@ -35,6 +35,23 @@ api/                            # Vercel serverless functions (REST API endpoint
 | `packages/mcp-server/src/memory/db.ts` | Backend factory (local JSON or Supabase) |
 | `src/pages/Tools.tsx` | Website tools grid, one tile per integration |
 
+## Local proof commands
+
+When a PR touches `packages/mcp-server/**`, run package-local tests from that workspace or use the workspace script. The root Vitest config only includes `src/**` and `api/**`, so a root command such as `npx vitest run packages/mcp-server/src/__tests__/reliability.test.ts` can report "No test files found" instead of proving the MCP package.
+
+Use this shape for one MCP package test file:
+
+```bash
+cd packages/mcp-server
+npx vitest run src/__tests__/reliability.test.ts
+```
+
+Use this for full MCP package coverage:
+
+```bash
+npm run test --workspace=@unclick/mcp-server
+```
+
 ## Architecture
 
 This is the canonical tool-surface summary for this repo.
