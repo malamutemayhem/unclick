@@ -31,6 +31,12 @@ const EXCLUDED_NAMES = new Set([
 ]);
 
 const NAME_PATTERN = /^[A-Z][A-Z0-9_]*$/;
+const SECRET_LITERAL_NAME_PATTERNS: readonly RegExp[] = [
+  /^AKIA[0-9A-Z]{8,}$/,
+  /^gh[pousr]_[a-z0-9]{8,}$/i,
+  /^sk-[a-z0-9_-]{8,}$/i,
+  /^xox[baprs]-[a-z0-9-]{8,}$/i,
+];
 const UNSAFE_METADATA_COPY_PATTERN =
   /(authorization:|bearer\s+[a-z0-9._-]{8,}|x-api-key|apikey|api[_ -]?key|refresh[_ -]?token|set-cookie:|cookie:|sk-[a-z0-9_-]{8,}|ghp_[a-z0-9]{8,}|xox[baprs]-[a-z0-9-]{8,})/i;
 const UNSAFE_ROTATION_GUIDANCE_PATTERN =
@@ -350,8 +356,11 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
 ]);
 
 export function shouldTrackCredentialName(name: string): boolean {
-  const normalized = name.trim().toUpperCase();
-  return NAME_PATTERN.test(normalized) && !EXCLUDED_NAMES.has(normalized);
+  const trimmed = name.trim();
+  const normalized = trimmed.toUpperCase();
+  if (!NAME_PATTERN.test(normalized)) return false;
+  if (EXCLUDED_NAMES.has(normalized)) return false;
+  return !SECRET_LITERAL_NAME_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
 
 export function hasSecretValueField(record: Record<string, unknown>): boolean {
