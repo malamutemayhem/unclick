@@ -23,9 +23,15 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
 
     const report = JSON.parse(await fs.readFile(output, "utf8"));
     const securitypass = report.results.find((result) => result.id === "securitypass");
+    const enterprisepass = report.results.find((result) => result.id === "enterprisepass");
 
     assert.equal(securitypass?.status, "blocked");
     assert.match(securitypass?.blockedReason ?? "", /scope-gated/i);
+    assert.equal(enterprisepass?.status, "pending");
+    assert.deepEqual(enterprisepass?.proof, {
+      kind: "planned",
+      targetUrl: "/enterprise/latest.json",
+    });
     assert.equal(report.status, "blocked");
     assert.match(report.lastActionableFailure.detail, /Blocked reason:/);
   } finally {

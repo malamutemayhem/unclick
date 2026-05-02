@@ -280,6 +280,13 @@ const results = [
     "Queued for recurring policy and claims review.",
     "LegalPass recurring public receipts will land after the runner surface is available.",
   ),
+  pendingResult(
+    "enterprisepass",
+    "EnterprisePass",
+    "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
+    "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
+    { proof: { kind: "planned", targetUrl: "/enterprise/latest.json" } },
+  ),
 ];
 
 const report = {

@@ -83,11 +83,20 @@ export const dogfoodReport = {
       evidence: "Public legal-quality receipts will appear here once recurring checks begin.",
       checkedAt: "2026-05-01T00:50:00Z",
     },
+    {
+      id: "enterprisepass",
+      name: "EnterprisePass",
+      status: "pending",
+      summary: "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
+      evidence: "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
+      checkedAt: "2026-05-02T02:30:00Z",
+      proof: { kind: "planned", targetUrl: "/enterprise/latest.json" },
+    },
   ] satisfies DogfoodPassResult[],
   trend: [
     { date: "2026-04-29", passing: 0, failing: 0, pending: 6 },
     { date: "2026-04-30", passing: 1, failing: 0, pending: 5 },
-    { date: "2026-05-01", passing: 1, failing: 0, blocked: 1, pending: 4 },
+    { date: "2026-05-01", passing: 1, failing: 0, blocked: 1, pending: 5 },
   ] satisfies DogfoodTrendPoint[],
   lastActionableFailure: {
     title: "SecurityPass needs attention",

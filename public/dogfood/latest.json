@@ -63,6 +63,18 @@
       "summary": "Queued for recurring policy and claims review.",
       "evidence": "LegalPass recurring public receipts will land after the runner surface is available.",
       "checkedAt": "2026-05-01T17:16:13.158Z"
+    },
+    {
+      "id": "enterprisepass",
+      "name": "EnterprisePass",
+      "status": "pending",
+      "summary": "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
+      "evidence": "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
+      "checkedAt": "2026-05-02T02:30:00Z",
+      "proof": {
+        "kind": "planned",
+        "targetUrl": "/enterprise/latest.json"
+      }
     }
   ],
   "trend": [
@@ -71,7 +83,7 @@
       "passing": 1,
       "failing": 0,
       "blocked": 2,
-      "pending": 3
+      "pending": 4
     }
   ],
   "lastActionableFailure": {
