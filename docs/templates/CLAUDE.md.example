@@ -9,6 +9,15 @@ Save new facts with `save_fact` as they come up -- don't batch until session end
 When the user corrects you, call `save_fact` immediately with the correction.
 Call `save_session` before closing out any substantive session.
 
+## Before you touch code
+
+Use this as the short start ritual before any edit, branch, or PR action:
+
+1. Refresh live GitHub, Actions, and Fishbowl state when those tools are available.
+2. Check `git status`. If the checkout is dirty or clearly belongs to another active lane, stop and create a fresh worktree from `origin/main` or the approved base.
+3. Confirm the files you want are not already owned by another active PR or worker.
+4. Claim one small chip, post status in Fishbowl when available, and default to a draft PR first when risk is unclear.
+
 ## Standing rules
 
 <!-- Add project-specific standing rules here. These supplement what's stored in UnClick. -->
