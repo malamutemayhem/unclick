@@ -47,7 +47,14 @@ export function deriveAckThresholds(failAfterSeconds) {
 }
 
 function readEvent() {
-  if (!eventPath) return {};
+  if (!eventPath) {
+    if (eventName !== "manual") {
+      return {
+        read_error: "GITHUB_EVENT_PATH is required for non-manual wake router events.",
+      };
+    }
+    return {};
+  }
   try {
     return JSON.parse(readFileSync(eventPath, "utf8"));
   } catch (err) {
