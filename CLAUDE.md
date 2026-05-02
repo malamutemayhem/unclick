@@ -6,6 +6,15 @@ AI agent operating system. One npm install gives agents access to 450+ callable 
 
 Read `FLEET_SYNC.md` first when working as part of the multi-PC worker fleet. It defines source-of-truth order, live worker lanes, Fishbowl coordination, no-stomp rules, and how older courier notes relate to the current process.
 
+## Before you touch code
+
+Use this as the short start ritual before any edit, branch, or PR action:
+
+1. Refresh live GitHub, Actions, and Fishbowl state.
+2. Check `git status`. If the checkout is dirty or clearly belongs to another active lane, stop and create a fresh worktree from `origin/main` or the approved base.
+3. Confirm the files you want are not already owned by another active PR or worker.
+4. Claim one small chip, post status in Fishbowl, and default to a draft PR first when risk is unclear.
+
 ## Monorepo structure
 
 ```

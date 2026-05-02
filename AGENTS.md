@@ -8,6 +8,15 @@ Read `FLEET_SYNC.md` first when operating as part of the multi-PC UnClick fleet.
 
 This file still applies to cloud async coding agents, especially proof-of-delivery, scope discipline, do-not-touch files, and no self-merging. Where this file's older "explicit assignment only" wording conflicts with an approved autopilot automation or Fishbowl assignment, follow `FLEET_SYNC.md` and `AUTOPILOT.md`.
 
+## Before you touch code
+
+Use this as the short start ritual before any edit, branch, or PR action:
+
+1. Refresh live GitHub, Actions, and Fishbowl state.
+2. Check `git status`. If the checkout is dirty or clearly belongs to another active lane, stop and create a fresh worktree from `origin/main` or the approved base.
+3. Confirm the files you want are not already owned by another active PR or worker.
+4. Claim one small chip, post status in Fishbowl, and default to a draft PR first when risk is unclear.
+
 ## Monorepo structure
 
 ```
