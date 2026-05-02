@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-05-01T17:16:13.158Z",
-  "lastRunAt": "2026-05-01T17:16:13.158Z",
+  "generatedAt": "2026-05-02T17:08:49.615Z",
+  "lastRunAt": "2026-05-02T17:08:49.615Z",
   "status": "blocked",
   "source": "nightly dogfood workflow",
   "headline": "We dogfood UnClick on UnClick.",
@@ -13,19 +13,84 @@
     "pending": "The check is planned or scaffolded, but live proof is not available yet."
   },
   "proofPolicy": "Public dogfood receipts mark passing only when a live check actually ran. Blocked and pending are honest product states, not failures to hide.",
+  "xpassIndex": [
+    {
+      "id": "testpass",
+      "name": "TestPass",
+      "stage": "live_gate",
+      "label": "Live trust gate",
+      "automation": "PR check, scheduled smoke, dogfood receipt, wake-router watched",
+      "mentionProfile": "High mention volume because it protects merges and cron trust.",
+      "nextStep": "Keep it as the default proof gate while the rest of XPass catches up."
+    },
+    {
+      "id": "uxpass",
+      "name": "UXPass",
+      "stage": "live_dogfood",
+      "label": "Live dogfood lane",
+      "automation": "Dogfood receipt and run endpoint",
+      "mentionProfile": "Medium mention volume when the dogfood receipt or runner needs attention.",
+      "nextStep": "Promote to scheduled proof once the credential path is consistently healthy."
+    },
+    {
+      "id": "securitypass",
+      "name": "SecurityPass",
+      "stage": "scope_gated",
+      "label": "Scope-gated",
+      "automation": "Blocked public receipt until safe recurring proof exists",
+      "mentionProfile": "Low mention volume by design because unsafe probes stay disabled.",
+      "nextStep": "Add a deny-by-default recurring runner proof before live security checks."
+    },
+    {
+      "id": "seopass",
+      "name": "SEOPass",
+      "stage": "planned",
+      "label": "Planned",
+      "automation": "Scaffold-only public receipt",
+      "mentionProfile": "Low mention volume until a recurring search and metadata runner lands.",
+      "nextStep": "Define the smallest recurring metadata proof."
+    },
+    {
+      "id": "copypass",
+      "name": "CopyPass",
+      "stage": "planned",
+      "label": "Planned",
+      "automation": "Scaffold-only public receipt",
+      "mentionProfile": "Low mention volume until copy checks become scheduled evidence.",
+      "nextStep": "Define the copy quality receipt shape."
+    },
+    {
+      "id": "legalpass",
+      "name": "LegalPass",
+      "stage": "planned",
+      "label": "Planned",
+      "automation": "Scaffold-only public receipt",
+      "mentionProfile": "Low mention volume until policy and claims checks become scheduled evidence.",
+      "nextStep": "Keep guidance-only until legal review boundaries are explicit."
+    },
+    {
+      "id": "enterprisepass",
+      "name": "EnterprisePass",
+      "stage": "guidance",
+      "label": "Guidance report",
+      "automation": "Receipt guard and readiness report boundary",
+      "mentionProfile": "Low mention volume while it remains a guidance layer, not certification.",
+      "nextStep": "Add low-risk readiness checks without claiming compliance certification."
+    }
+  ],
   "results": [
     {
       "id": "testpass",
       "name": "TestPass",
       "status": "passing",
       "summary": "Scheduled TestPass completed with 17 checks and 0 failures.",
-      "evidence": "Run 2097cbe4-03da-4c32-9c10-3ddf9c4ffff5 checked https://unclick.world/api/mcp.",
-      "checkedAt": "2026-05-01T17:16:13.158Z",
-      "runId": "2097cbe4-03da-4c32-9c10-3ddf9c4ffff5",
+      "evidence": "Run 8333c510-f9e1-4c37-91d5-f9f73d2c9b87 checked https://unclick.world/api/mcp.",
+      "checkedAt": "2026-05-02T17:08:49.615Z",
+      "runId": "8333c510-f9e1-4c37-91d5-f9f73d2c9b87",
       "targetUrl": "https://unclick.world/api/mcp",
       "proof": {
         "kind": "testpass_run",
-        "runId": "2097cbe4-03da-4c32-9c10-3ddf9c4ffff5",
+        "runId": "8333c510-f9e1-4c37-91d5-f9f73d2c9b87",
         "targetUrl": "https://unclick.world/api/mcp"
       }
     },
@@ -35,7 +100,7 @@
       "status": "blocked",
       "summary": "Scheduled UXPass could not run because DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET is missing.",
       "evidence": "Set one workflow secret so the nightly dogfood workflow can create a fresh uxpass_runs row.",
-      "checkedAt": "2026-05-01T17:16:13.158Z",
+      "checkedAt": "2026-05-02T17:08:49.615Z",
       "blockedReason": "Missing DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
       "reasonCode": "missing_credential",
       "nextProof": "Set one UXPass workflow secret, then rerun the dogfood report workflow."
@@ -46,7 +111,7 @@
       "status": "blocked",
       "summary": "SecurityPass is blocked until the recurring runner proof is ready.",
       "evidence": "SecurityPass remains scope-gated; the public dogfood receipt does not run security probes yet.",
-      "checkedAt": "2026-05-01T17:16:13.158Z",
+      "checkedAt": "2026-05-02T17:08:49.615Z",
       "blockedReason": "SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
       "reasonCode": "scope_gate",
       "nextProof": "Land a safe recurring SecurityPass runner receipt before marking this passing."
@@ -57,7 +122,7 @@
       "status": "pending",
       "summary": "Queued for recurring search and metadata review.",
       "evidence": "SEOPass is still scaffold-only for public dogfood receipts.",
-      "checkedAt": "2026-05-01T17:16:13.158Z",
+      "checkedAt": "2026-05-02T17:08:49.615Z",
       "reasonCode": "planned_runner",
       "nextProof": "Add a recurring SEOPass receipt before moving this out of pending."
     },
@@ -67,7 +132,7 @@
       "status": "pending",
       "summary": "Queued for recurring copy quality review.",
       "evidence": "CopyPass recurring public receipts will land after the runner surface is available.",
-      "checkedAt": "2026-05-01T17:16:13.158Z",
+      "checkedAt": "2026-05-02T17:08:49.615Z",
       "reasonCode": "planned_runner",
       "nextProof": "Add a recurring CopyPass receipt before moving this out of pending."
     },
@@ -77,7 +142,7 @@
       "status": "pending",
       "summary": "Queued for recurring policy and claims review.",
       "evidence": "LegalPass recurring public receipts will land after the runner surface is available.",
-      "checkedAt": "2026-05-01T17:16:13.158Z",
+      "checkedAt": "2026-05-02T17:08:49.615Z",
       "reasonCode": "planned_runner",
       "nextProof": "Add a recurring LegalPass receipt before moving this out of pending."
     },
@@ -87,18 +152,18 @@
       "status": "pending",
       "summary": "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
       "evidence": "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
-      "checkedAt": "2026-05-02T02:30:00Z",
+      "checkedAt": "2026-05-02T17:08:49.615Z",
+      "reasonCode": "planned_runner",
       "proof": {
         "kind": "planned",
         "targetUrl": "/enterprise/latest.json"
       },
-      "reasonCode": "planned_runner",
       "nextProof": "Wire automated evidence checks before moving this beyond readiness guidance."
     }
   ],
   "trend": [
     {
-      "date": "2026-05-01",
+      "date": "2026-05-02",
       "passing": 1,
       "failing": 0,
       "blocked": 2,
