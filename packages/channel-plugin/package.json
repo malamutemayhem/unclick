@@ -9,6 +9,8 @@
     "unclick-channel": "./index.js"
   },
   "files": [
+    "config.js",
+    "heartbeat-gate.js",
     "http.js",
     "index.js",
     "README.md"
