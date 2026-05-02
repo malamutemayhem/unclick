@@ -142,4 +142,24 @@ describe("system credential inventory", () => {
       rotationImpact: undefined,
     });
   });
+
+  it("drops rotation impact copy that implies automatic or provider-write rotation", () => {
+    expect(sanitizeInventoryRecord({
+      provider: "github",
+      source: "github_actions_secret",
+      name: "TESTPASS_TOKEN",
+      docsHint: "Name and status metadata only.",
+      rotationImpact: "Automatically rotate and revoke this key in provider settings without approval.",
+    })).toEqual({
+      provider: "github",
+      source: "github_actions_secret",
+      name: "TESTPASS_TOKEN",
+      scope: "unknown",
+      workload: "unknown",
+      risk: "normal",
+      expected: false,
+      docsHint: "Name and status metadata only.",
+      rotationImpact: undefined,
+    });
+  });
 });

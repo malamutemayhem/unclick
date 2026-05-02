@@ -33,6 +33,8 @@ const EXCLUDED_NAMES = new Set([
 const NAME_PATTERN = /^[A-Z][A-Z0-9_]*$/;
 const UNSAFE_METADATA_COPY_PATTERN =
   /(authorization:|bearer\s+[a-z0-9._-]{8,}|x-api-key|apikey|api[_ -]?key|refresh[_ -]?token|set-cookie:|cookie:|sk-[a-z0-9_-]{8,}|ghp_[a-z0-9]{8,}|xox[baprs]-[a-z0-9-]{8,})/i;
+const UNSAFE_ROTATION_GUIDANCE_PATTERN =
+  /\b(auto[- ]?rotate|automatic(?:ally)?\s+rotate|provider\s+(?:write|mutation|update|revoke)|self[- ]?serve\s+rotation|rotate\s+without\s+approval)\b/i;
 
 export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntry[] = Object.freeze([
   {
@@ -372,7 +374,9 @@ export function sanitizeInventoryRecord(record: Record<string, unknown>): System
     risk: record.risk === "critical" || record.risk === "high" ? record.risk : "normal",
     expected: record.expected === true,
     docsHint: sanitizeMetadataCopy(record.docsHint, "Metadata only; no secret value is available."),
-    rotationImpact: sanitizeMetadataCopy(record.rotationImpact),
+    rotationImpact: sanitizeMetadataCopy(record.rotationImpact, undefined, {
+      forbidAutomationClaims: true,
+    }),
   };
 }
 
@@ -380,10 +384,15 @@ export function listSystemCredentialInventory(): readonly SystemCredentialInvent
   return SYSTEM_CREDENTIAL_INVENTORY;
 }
 
-function sanitizeMetadataCopy(value: unknown, fallback?: string): string | undefined {
+function sanitizeMetadataCopy(
+  value: unknown,
+  fallback?: string,
+  options?: { forbidAutomationClaims?: boolean },
+): string | undefined {
   if (typeof value !== "string") return fallback;
   const trimmed = value.trim();
   if (!trimmed) return fallback;
   if (UNSAFE_METADATA_COPY_PATTERN.test(trimmed)) return fallback;
+  if (options?.forbidAutomationClaims && UNSAFE_ROTATION_GUIDANCE_PATTERN.test(trimmed)) return fallback;
   return trimmed;
 }
