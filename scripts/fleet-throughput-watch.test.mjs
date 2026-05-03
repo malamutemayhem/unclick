@@ -4,11 +4,13 @@ import { describe, it } from "node:test";
 import {
   buildQueuePacket,
   checksAreGreen,
+  chooseQueuePushRunner,
   classifyPullRequest,
   filterDuplicatePackets,
   jobKindForState,
   latestCommentSignals,
   routeWorkerForPr,
+  runnerCanAcceptQueuePushJob,
   stateRequiresCode,
 } from "./fleet-throughput-watch.mjs";
 
@@ -169,6 +171,63 @@ describe("QueuePush routing and packets", () => {
 
   it("routes QC-ready PRs to Popcorn", () => {
     assert.equal(routeWorkerForPr(pr({ draft: false }), [], "ready_for_qc"), "🍿");
+  });
+
+  it("does not treat probe-only runners as unattended code hands", () => {
+    const runner = {
+      emoji: "🦾",
+      readiness: "needs_probe",
+      capabilities: ["implementation", "status_relay"],
+      safeFor: ["small implementation"],
+    };
+
+    assert.equal(
+      runnerCanAcceptQueuePushJob(runner, {
+        kind: "implementation",
+        lane: "small implementation",
+        title: "Probe code hand",
+        requiresCode: true,
+      }),
+      false,
+    );
+    assert.equal(
+      runnerCanAcceptQueuePushJob(runner, {
+        kind: "status_relay",
+        lane: "small implementation",
+        title: "Probe status",
+        requiresCode: false,
+      }),
+      true,
+    );
+  });
+
+  it("lets a configured proven runner take matching code jobs", () => {
+    const custom = [
+      {
+        emoji: "🦾",
+        readiness: "builder_ready",
+        capabilities: ["implementation"],
+        safeFor: ["rotatepass"],
+      },
+      {
+        emoji: "🛠️",
+        readiness: "builder_ready",
+        capabilities: ["implementation"],
+        safeFor: ["pinballwake"],
+      },
+    ];
+
+    const runner = chooseQueuePushRunner(
+      {
+        kind: "implementation",
+        lane: "rotatepass redaction targeted proof",
+        title: "Fix RotatePass proof",
+        requiresCode: true,
+      },
+      custom,
+    );
+
+    assert.equal(runner?.emoji, "🦾");
   });
 
   it("maps process states to job kinds and code requirements", () => {

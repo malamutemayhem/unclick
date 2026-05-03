@@ -16,6 +16,47 @@ const agentEmoji = "📬";
 const agentDisplayName = "QueuePush";
 const agentMap = parseAgentMap(process.env.QUEUEPUSH_AGENT_MAP);
 
+export const DEFAULT_QUEUEPUSH_RUNNERS = [
+  {
+    emoji: "🛠️",
+    readiness: "builder_ready",
+    capabilities: ["implementation", "owner_decision", "qc_review", "status_relay"],
+    safeFor: ["wakepass", "pinballwake", "queuepush", "reliability"],
+  },
+  {
+    emoji: "🧠",
+    readiness: "builder_ready",
+    capabilities: ["implementation", "owner_decision", "merge_proof", "status_relay"],
+    safeFor: ["blocked_chris_only", "chris-only", "human policy", "merge", "master"],
+  },
+  {
+    emoji: "🧪",
+    readiness: "context_only",
+    capabilities: ["owner_decision", "qc_review", "status_relay"],
+    safeFor: ["rotatepass", "xpass", "system credentials", "systemcredential", "adminkeychain", "connectedservices"],
+  },
+  {
+    emoji: "🍿",
+    readiness: "review_only",
+    capabilities: ["qc_review", "status_relay"],
+    safeFor: ["ready_for_qc", "qc", "second-read", "proof review"],
+  },
+  {
+    emoji: "📣",
+    readiness: "context_only",
+    capabilities: ["owner_decision", "status_relay"],
+    safeFor: ["docs", "prd", "brief", "handoff", "status"],
+  },
+  {
+    emoji: "🦾",
+    readiness: "needs_probe",
+    capabilities: ["implementation", "status_relay"],
+    safeFor: ["small implementation", "docs"],
+  },
+];
+
+const queuepushRunnerRoster = parseRunnerRoster(process.env.QUEUEPUSH_RUNNER_ROSTER) || DEFAULT_QUEUEPUSH_RUNNERS;
+
 const STATES = new Set([
   "draft_green_needs_owner_lift",
   "hold_overlap",
@@ -50,6 +91,28 @@ function parseAgentMap(value) {
     );
   } catch {
     return {};
+  }
+}
+
+function parseRunnerRoster(value) {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) return null;
+    return parsed
+      .map((runner) => ({
+        emoji: String(runner?.emoji || "").trim(),
+        readiness: String(runner?.readiness || "").trim(),
+        capabilities: Array.isArray(runner?.capabilities)
+          ? runner.capabilities.map((capability) => String(capability).trim()).filter(Boolean)
+          : [],
+        safeFor: Array.isArray(runner?.safeFor)
+          ? runner.safeFor.map((lane) => String(lane).trim()).filter(Boolean)
+          : [],
+      }))
+      .filter((runner) => runner.emoji && runner.readiness && runner.capabilities.length > 0);
+  } catch {
+    return null;
   }
 }
 
@@ -159,32 +222,21 @@ export function latestCommentSignals(comments = []) {
 }
 
 export function routeWorkerForPr(pr, files = [], state = "") {
-  if (state === "ready_for_qc") return "🍿";
-  if (state === "blocked_chris_only") return "🧠";
-  if (state === "hold_overlap") return "🧪";
-  if (state === "dirty_branch") return "🛠️";
-
   const haystack = normalizeText(
     [
+      state,
       pr.title,
       pr.body,
       ...files.map((file) => file.filename || file.path || ""),
     ].join(" "),
   );
-
-  if (stateRequiresCode(state)) {
-    return "🛠️";
-  }
-  if (/\b(event-wake-router|fishbowl-watcher|wakepass|pinballwake|reliability)\b/.test(haystack)) {
-    return "🛠️";
-  }
-  if (/\b(rotatepass|system credentials|systemcredential|xpass|adminkeychain|connectedservices|redaction)\b/.test(haystack)) {
-    return "🧪";
-  }
-  if (/\b(docs|prd|brief)\b/.test(haystack)) {
-    return "📣";
-  }
-  return "📣";
+  const runner = chooseQueuePushRunner({
+    kind: jobKindForState(state),
+    lane: haystack,
+    title: pr.title || `PR #${pr.number}`,
+    requiresCode: stateRequiresCode(state),
+  });
+  return runner?.emoji || "📣";
 }
 
 export function jobKindForState(state) {
@@ -205,6 +257,33 @@ export function jobKindForState(state) {
 
 export function stateRequiresCode(state) {
   return jobKindForState(state) === "implementation";
+}
+
+export function runnerCanAcceptQueuePushJob(runner, job) {
+  if (!runner?.capabilities?.includes(job.kind)) return false;
+  if (runner.readiness === "offline") return false;
+  if (job.requiresCode) {
+    return runner.readiness === "builder_ready" || runner.readiness === "scoped_builder";
+  }
+  if (runner.readiness === "needs_probe") return job.kind === "status_relay";
+  return true;
+}
+
+export function chooseQueuePushRunner(job, runners = queuepushRunnerRoster) {
+  const lane = normalizeText([job.lane, job.title].join(" "));
+  const candidates = runners.filter((runner) => runnerCanAcceptQueuePushJob(runner, job));
+  const laneMatches = candidates.filter((runner) =>
+    (runner.safeFor || []).some((safeLane) => lane.includes(normalizeText(safeLane))),
+  );
+  if (job.kind === "qc_review") {
+    return (
+      laneMatches.find((runner) => runner.readiness === "review_only") ||
+      candidates.find((runner) => runner.readiness === "review_only") ||
+      laneMatches[0] ||
+      candidates[0]
+    );
+  }
+  return laneMatches[0] || candidates[0];
 }
 
 function packetHeadingForJobKind(jobKind) {
