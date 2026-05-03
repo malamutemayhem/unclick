@@ -157,8 +157,12 @@ describe("QueuePush routing and packets", () => {
 
     assert.equal(packet.worker, "🧪");
     assert.equal(packet.recipient, "🧪");
-    assert.match(packet.packetId, /^queuepush:pr-506:draft_green_needs_owner_lift:abcdef1:[a-f0-9]{10}$/);
+    assert.match(packet.packetId, /^queuepush:v2:pr-506:draft_green_needs_owner_lift:abcdef1:[a-f0-9]{10}$/);
+    assert.match(packet.text, /DIRECT BUILD PACKET/);
+    assert.match(packet.text, /You are assigned this now/);
     assert.match(packet.text, /worker: 🧪/);
+    assert.match(packet.text, /do: Claim it/);
+    assert.match(packet.text, /fallback: if not ACKed after two pulses/);
     assert.match(packet.text, /ack: done\/blocker/);
     assert.ok(packet.text.length < 1200);
   });

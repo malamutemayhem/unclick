@@ -76,10 +76,10 @@ function shortSha(sha) {
 export function queuepushPacketId(pr, state) {
   const sha = pr.head?.sha || pr.headRefOid || "unknown";
   const digest = createHash("sha256")
-    .update(`${repository}|${pr.number}|${state}|${sha}`)
+    .update(`${repository}|direct-build-v2|${pr.number}|${state}|${sha}`)
     .digest("hex")
     .slice(0, 10);
-  return `queuepush:pr-${pr.number}:${state}:${shortSha(sha)}:${digest}`;
+  return `queuepush:v2:pr-${pr.number}:${state}:${shortSha(sha)}:${digest}`;
 }
 
 export function checksAreGreen(checkRuns = [], statuses = []) {
@@ -228,6 +228,34 @@ export function expectedProofForState(state, pr) {
   }
 }
 
+export function directActionForState(state) {
+  switch (state) {
+    case "draft_green_needs_owner_lift":
+      return "Claim it, refresh proof, then lift draft or reply with the exact HOLD.";
+    case "hold_overlap":
+      return "Claim it, decide which lane survives, then rebase/supersede/close one lane.";
+    case "dirty_branch":
+      return "Claim it, update/rebuild until clean, or close and replace the stale branch.";
+    case "failed_targeted_proof":
+      return "Claim it, fix the failing proof, rerun the named test, or close the stale branch.";
+    case "ready_for_qc":
+      return "Claim it, second-read the diff, then pass/block with exact evidence.";
+    case "blocked_chris_only":
+      return "Call the exact Chris decision needed; do not code around it.";
+    default:
+      return "Claim it, inspect the PR, and reply done/blocker.";
+  }
+}
+
+function allowedFilesText(files = []) {
+  const names = files
+    .map((file) => file.filename || file.path)
+    .filter(Boolean);
+  if (names.length === 0) return "PR changed files only";
+  const preview = names.slice(0, 5).join(", ");
+  return names.length > 5 ? `${preview}, +${names.length - 5} more` : preview;
+}
+
 export function buildQueuePacket(input) {
   const { pr, state, reason, files = [] } = input;
   if (!STATES.has(state)) throw new Error(`Unknown QueuePush state: ${state}`);
@@ -244,13 +272,19 @@ export function buildQueuePacket(input) {
     360,
   );
   const expectedProof = expectedProofForState(state, pr);
+  const directAction = directActionForState(state);
   const text = [
     `QueuePush ID: ${packetId}`,
+    "DIRECT BUILD PACKET",
+    "You are assigned this now. Build it or reply blocker; do not just observe.",
     `worker: ${worker}`,
     `chip: ${chip}`,
     `context: ${context}`,
+    `allowed files: ${allowedFilesText(files)}`,
+    `do: ${directAction}`,
     `expected proof: ${expectedProof}`,
     "deadline: next worker pulse",
+    "fallback: if not ACKed after two pulses, Master/Courier may reroute.",
     "ack: done/blocker",
     `source: ${sourceUrl(pr)}`,
   ].join("\n");
