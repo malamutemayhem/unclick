@@ -76,10 +76,10 @@ function shortSha(sha) {
 export function queuepushPacketId(pr, state) {
   const sha = pr.head?.sha || pr.headRefOid || "unknown";
   const digest = createHash("sha256")
-    .update(`${repository}|direct-build-v2|${pr.number}|${state}|${sha}`)
+    .update(`${repository}|pinballwake-job-runner-v3|${pr.number}|${state}|${sha}`)
     .digest("hex")
     .slice(0, 10);
-  return `queuepush:v2:pr-${pr.number}:${state}:${shortSha(sha)}:${digest}`;
+  return `queuepush:v3:pr-${pr.number}:${state}:${shortSha(sha)}:${digest}`;
 }
 
 export function checksAreGreen(checkRuns = [], statuses = []) {
@@ -172,16 +172,65 @@ export function routeWorkerForPr(pr, files = [], state = "") {
     ].join(" "),
   );
 
-  if (/\b(rotatepass|system credentials|systemcredential|xpass|adminkeychain|connectedservices|redaction)\b/.test(haystack)) {
-    return "🧪";
+  if (stateRequiresCode(state)) {
+    return "🛠️";
   }
   if (/\b(event-wake-router|fishbowl-watcher|wakepass|pinballwake|reliability)\b/.test(haystack)) {
     return "🛠️";
+  }
+  if (/\b(rotatepass|system credentials|systemcredential|xpass|adminkeychain|connectedservices|redaction)\b/.test(haystack)) {
+    return "🧪";
   }
   if (/\b(docs|prd|brief)\b/.test(haystack)) {
     return "📣";
   }
   return "📣";
+}
+
+export function jobKindForState(state) {
+  switch (state) {
+    case "dirty_branch":
+    case "failed_targeted_proof":
+      return "implementation";
+    case "ready_for_qc":
+      return "qc_review";
+    case "blocked_chris_only":
+    case "draft_green_needs_owner_lift":
+    case "hold_overlap":
+      return "owner_decision";
+    default:
+      return "status_relay";
+  }
+}
+
+export function stateRequiresCode(state) {
+  return jobKindForState(state) === "implementation";
+}
+
+function packetHeadingForJobKind(jobKind) {
+  switch (jobKind) {
+    case "implementation":
+      return "DIRECT BUILD PACKET";
+    case "qc_review":
+      return "DIRECT QC PACKET";
+    case "owner_decision":
+      return "DIRECT DECISION PACKET";
+    default:
+      return "DIRECT STATUS PACKET";
+  }
+}
+
+function packetInstructionForJobKind(jobKind) {
+  switch (jobKind) {
+    case "implementation":
+      return "You are assigned this now. Build it or reply blocker; do not just observe.";
+    case "qc_review":
+      return "You are assigned QC now. Pass/block with evidence; do not rewrite the branch.";
+    case "owner_decision":
+      return "You are assigned the decision now. Decide, ACK, or reply blocker; do not start coding unless explicitly scoped.";
+    default:
+      return "You are assigned status follow-up now. ACK, route, or reply blocker.";
+  }
 }
 
 export function classifyPullRequest(input) {
@@ -261,6 +310,7 @@ export function buildQueuePacket(input) {
   if (!STATES.has(state)) throw new Error(`Unknown QueuePush state: ${state}`);
   const worker = routeWorkerForPr(pr, files, state);
   const packetId = queuepushPacketId(pr, state);
+  const jobKind = jobKindForState(state);
   const chip = `PR #${pr.number} ${state}`;
   const filePreview = files
     .slice(0, 4)
@@ -275,9 +325,11 @@ export function buildQueuePacket(input) {
   const directAction = directActionForState(state);
   const text = [
     `QueuePush ID: ${packetId}`,
-    "DIRECT BUILD PACKET",
-    "You are assigned this now. Build it or reply blocker; do not just observe.",
+    packetHeadingForJobKind(jobKind),
+    packetInstructionForJobKind(jobKind),
     `worker: ${worker}`,
+    `job kind: ${jobKind}`,
+    `requires code: ${stateRequiresCode(state) ? "yes" : "no"}`,
     `chip: ${chip}`,
     `context: ${context}`,
     `allowed files: ${allowedFilesText(files)}`,
@@ -292,6 +344,8 @@ export function buildQueuePacket(input) {
   return {
     packetId,
     worker,
+    jobKind,
+    requiresCode: stateRequiresCode(state),
     recipient: agentMap[worker] || worker,
     state,
     pr: pr.number,

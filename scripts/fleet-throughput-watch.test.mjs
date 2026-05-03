@@ -6,8 +6,10 @@ import {
   checksAreGreen,
   classifyPullRequest,
   filterDuplicatePackets,
+  jobKindForState,
   latestCommentSignals,
   routeWorkerForPr,
+  stateRequiresCode,
 } from "./fleet-throughput-watch.mjs";
 
 function pr(overrides = {}) {
@@ -125,10 +127,21 @@ describe("QueuePush PR classifier", () => {
 });
 
 describe("QueuePush routing and packets", () => {
-  it("routes RotatePass and XPass files to XPass Assistant", () => {
+  it("routes RotatePass and XPass owner decisions to XPass Assistant", () => {
     assert.equal(
       routeWorkerForPr(pr(), [{ filename: "src/pages/admin/systemCredentialInventory.ts" }], "draft_green_needs_owner_lift"),
       "🧪",
+    );
+  });
+
+  it("routes code-required RotatePass repair work to a proven builder", () => {
+    assert.equal(
+      routeWorkerForPr(
+        pr({ title: "RotatePass: harden metadata key redaction guard" }),
+        [{ filename: "src/pages/admin/systemCredentialInventory.test.ts" }],
+        "failed_targeted_proof",
+      ),
+      "🛠️",
     );
   });
 
@@ -143,11 +156,30 @@ describe("QueuePush routing and packets", () => {
     );
   });
 
+  it("keeps PinballWake owner decisions with Forge even when the PR mentions other lanes", () => {
+    assert.equal(
+      routeWorkerForPr(
+        pr({ title: "PinballWake job runner registry", body: "Also mentions XPass context." }),
+        [{ filename: "src/pages/admin/pinballwakeJobRunners.ts" }],
+        "draft_green_needs_owner_lift",
+      ),
+      "🛠️",
+    );
+  });
+
   it("routes QC-ready PRs to Popcorn", () => {
     assert.equal(routeWorkerForPr(pr({ draft: false }), [], "ready_for_qc"), "🍿");
   });
 
-  it("builds compact single-worker packet text with deterministic id", () => {
+  it("maps process states to job kinds and code requirements", () => {
+    assert.equal(jobKindForState("draft_green_needs_owner_lift"), "owner_decision");
+    assert.equal(jobKindForState("ready_for_qc"), "qc_review");
+    assert.equal(jobKindForState("failed_targeted_proof"), "implementation");
+    assert.equal(stateRequiresCode("failed_targeted_proof"), true);
+    assert.equal(stateRequiresCode("draft_green_needs_owner_lift"), false);
+  });
+
+  it("builds compact decision packet text with deterministic id", () => {
     const packet = buildQueuePacket({
       pr: pr({ number: 506 }),
       state: "draft_green_needs_owner_lift",
@@ -157,14 +189,34 @@ describe("QueuePush routing and packets", () => {
 
     assert.equal(packet.worker, "🧪");
     assert.equal(packet.recipient, "🧪");
-    assert.match(packet.packetId, /^queuepush:v2:pr-506:draft_green_needs_owner_lift:abcdef1:[a-f0-9]{10}$/);
-    assert.match(packet.text, /DIRECT BUILD PACKET/);
-    assert.match(packet.text, /You are assigned this now/);
+    assert.equal(packet.jobKind, "owner_decision");
+    assert.equal(packet.requiresCode, false);
+    assert.match(packet.packetId, /^queuepush:v3:pr-506:draft_green_needs_owner_lift:abcdef1:[a-f0-9]{10}$/);
+    assert.match(packet.text, /DIRECT DECISION PACKET/);
+    assert.match(packet.text, /Decide, ACK, or reply blocker/);
     assert.match(packet.text, /worker: 🧪/);
+    assert.match(packet.text, /job kind: owner_decision/);
+    assert.match(packet.text, /requires code: no/);
     assert.match(packet.text, /do: Claim it/);
     assert.match(packet.text, /fallback: if not ACKed after two pulses/);
     assert.match(packet.text, /ack: done\/blocker/);
     assert.ok(packet.text.length < 1200);
+  });
+
+  it("builds code-required implementation packets for proven builders", () => {
+    const packet = buildQueuePacket({
+      pr: pr({ number: 486, title: "RotatePass: harden metadata key redaction guard" }),
+      state: "failed_targeted_proof",
+      reason: "Targeted proof failed.",
+      files: [{ filename: "src/pages/admin/systemCredentialInventory.test.ts" }],
+    });
+
+    assert.equal(packet.worker, "🛠️");
+    assert.equal(packet.jobKind, "implementation");
+    assert.equal(packet.requiresCode, true);
+    assert.match(packet.text, /DIRECT BUILD PACKET/);
+    assert.match(packet.text, /Build it or reply blocker/);
+    assert.match(packet.text, /requires code: yes/);
   });
 
   it("dedupes packets already visible in recent Fishbowl messages", () => {
