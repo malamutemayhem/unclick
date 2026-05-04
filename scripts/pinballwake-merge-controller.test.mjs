@@ -191,6 +191,60 @@ describe("PinballWake merge controller", () => {
     );
   });
 
+  it("does not let direct proofJob input bypass submitted-proof validation", () => {
+    const unsubmittedProof = createCodingRoomJob({
+      jobId: "coding-room:proof:unsubmitted",
+      prNumber: 521,
+      worker: "pinballwake-job-runner",
+      chip: "not submitted",
+      files: ["scripts/pinballwake-merge-controller.mjs"],
+      status: "testing",
+      proof: {
+        result: "done",
+      },
+    });
+
+    assert.equal(
+      evaluateMergeReadiness({
+        pr: readyPr(),
+        proofJob: unsubmittedProof,
+        reviews: reviewJobs(),
+      }).reason,
+      "missing_submitted_proof",
+    );
+  });
+
+  it("does not let unscoped or unrelated proof/review jobs satisfy a target PR", () => {
+    const unscopedProof = proofJob({ prNumber: null });
+    const unscopedReviews = reviewJobs().map((job) => ({ ...job, pr_number: null }));
+
+    assert.equal(
+      evaluateMergeReadiness({
+        pr: readyPr({ number: 521 }),
+        ledger: createCodingRoomJobLedger({ jobs: [unscopedProof, ...unscopedReviews] }),
+      }).reason,
+      "missing_submitted_proof",
+    );
+
+    assert.equal(
+      evaluateMergeReadiness({
+        pr: readyPr({ number: 521 }),
+        ledger: createCodingRoomJobLedger({
+          jobs: [proofJob({ prNumber: 522 }), ...reviewJobs().map((job) => ({ ...job, pr_number: 522 }))],
+        }),
+      }).reason,
+      "missing_submitted_proof",
+    );
+
+    assert.equal(
+      evaluateMergeReadiness({
+        pr: readyPr({ number: 521 }),
+        ledger: createCodingRoomJobLedger({ jobs: [proofJob(), ...unscopedReviews] }),
+      }).reason,
+      "missing_review_pass",
+    );
+  });
+
   it("blocks missing required reviewer PASS ACKs", () => {
     const ledger = createCodingRoomJobLedger({
       jobs: [proofJob(), ...reviewJobs().filter((job) => job.proof.reviewer !== "forge")],

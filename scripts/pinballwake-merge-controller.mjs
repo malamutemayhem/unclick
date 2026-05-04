@@ -28,6 +28,16 @@ function prNumber(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function jobMatchesPr({ job, pr }) {
+  const wantedPr = prNumber(pr?.number ?? pr?.pr_number);
+  if (wantedPr === null) {
+    return true;
+  }
+
+  const jobPr = prNumber(job?.pr_number ?? job?.prNumber);
+  return jobPr !== null && jobPr === wantedPr;
+}
+
 function checkName(check = {}) {
   return String(check.name || check.context || check.workflowName || "unknown").trim();
 }
@@ -76,7 +86,6 @@ function reviewAck(job = {}) {
 }
 
 export function listMergeReviewJobs({ ledger, reviews, pr } = {}) {
-  const wantedPr = prNumber(pr?.number ?? pr?.pr_number);
   const ledgerJobs = Array.isArray(ledger?.jobs) ? ledger.jobs : [];
   const directReviews = Array.isArray(reviews) ? reviews : [];
 
@@ -85,8 +94,7 @@ export function listMergeReviewJobs({ ledger, reviews, pr } = {}) {
       return false;
     }
 
-    const jobPr = prNumber(job.pr_number ?? job.prNumber);
-    return wantedPr === null || jobPr === null || jobPr === wantedPr;
+    return jobMatchesPr({ job, pr });
   });
 }
 
@@ -108,15 +116,18 @@ export function findMergeReviewBlocker(reviews = []) {
 }
 
 export function findMergeProofJob({ ledger, proofJob, pr } = {}) {
-  if (proofJob) {
+  if (
+    proofJob &&
+    jobMatchesPr({ job: proofJob, pr }) &&
+    proofJob.status === "proof_submitted" &&
+    normalizeToken(proofJob.proof?.result) === "done"
+  ) {
     return proofJob;
   }
 
-  const wantedPr = prNumber(pr?.number ?? pr?.pr_number);
   const jobs = Array.isArray(ledger?.jobs) ? ledger.jobs : [];
   return jobs.find((job) => {
-    const jobPr = prNumber(job.pr_number ?? job.prNumber);
-    if (wantedPr !== null && jobPr !== null && jobPr !== wantedPr) {
+    if (!jobMatchesPr({ job, pr })) {
       return false;
     }
 
