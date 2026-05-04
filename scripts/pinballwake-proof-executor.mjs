@@ -253,7 +253,7 @@ export async function executeCodingRoomProofJob({
     job,
     proof: {
       result: "done",
-      changedFiles: [],
+      changedFiles: job.build_result?.changed_files || [],
       tests,
       prUrl: "",
       submittedAt: now,
