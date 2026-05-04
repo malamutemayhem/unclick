@@ -85,6 +85,7 @@ describe("PinballWake Planning Room", () => {
         research_report: {
           summary: "Keep docs-only scope and avoid raw key examples.",
           recommendation: "Use existing redaction wording pattern.",
+          ack_complete: true,
         },
       }),
       { now: "20260505" },
@@ -95,6 +96,26 @@ describe("PinballWake Planning Room", () => {
     assert.equal(result.route.ack_required, true);
     assert.match(result.scopepack.research_summary, /docs-only scope/);
     assert.ok(result.scopepack.risk_controls.some((control) => control.includes("ACK")));
+  });
+
+  it("requires ACK-complete evidence before DeepDive can become a ScopePack", () => {
+    const result = createPlanningRoomScopePack(
+      planningJob({
+        title: "Credentials redaction docs guard",
+        context: "Touches credentials and redaction.",
+        files: ["docs/redaction-guidance.md"],
+        tests: ["node --test scripts/pinballwake-autopilot-triage.test.mjs"],
+        research_report: {
+          summary: "Keep docs-only scope and avoid raw key examples.",
+          recommendation: "Use existing redaction wording pattern.",
+          ack_required: true,
+        },
+      }),
+      { now: "20260505" },
+    );
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "deep_research_ack_required_before_planning");
   });
 
   it("blocks unsafe owned paths before Coding Room can receive the plan", () => {
@@ -182,6 +203,7 @@ describe("PinballWake Planning Room", () => {
         research_report: {
           summary: "Generic research exists, but it is not an ACKed DeepDive result.",
           recommendation: "Use docs-only wording.",
+          ack_complete: true,
         },
       },
       {

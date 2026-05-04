@@ -43,6 +43,15 @@ function hasResearchArtifact(job = {}) {
   return Object.keys(research).length > 0;
 }
 
+function researchArtifactForJob(job = {}) {
+  return job.research_report || job.researchReport || job.scoutpass || job.scoutPass || job.deepdive || job.deepDive || null;
+}
+
+function researchAckComplete(research) {
+  if (!research || typeof research !== "object") return false;
+  return research.ack_complete === true || research.ack_status === "PASS" || research.ack === "PASS";
+}
+
 function routeNeedsResearch(route = {}) {
   return route.route === "research-then-planning" || route.route === "deep-research-then-planning";
 }
@@ -174,10 +183,20 @@ export function createPlanningRoomScopePack(job = {}, options = {}) {
     };
   }
 
+  const research = researchArtifactForJob(job);
+
+  if (route.route === "deep-research-then-planning" && !researchAckComplete(research)) {
+    return {
+      ok: false,
+      action: "blocker",
+      reason: "deep_research_ack_required_before_planning",
+      route,
+    };
+  }
+
   const ownedFiles = uniq(safeList(job.owned_files || job.ownedFiles || job.files).map(normalizePath));
   const lines = Number(job.estimated_lines ?? job.estimatedLines);
   const tests = safeList(job.tests || job.allowlist_tests || job.allowlistTests);
-  const research = job.research_report || job.researchReport || job.scoutpass || job.scoutPass || job.deepdive || job.deepDive;
 
   const scopepack = {
     scopepack_id: compactText(job.scopepack_id || `scopepack:${compactText(job.id || job.job_id || "manual", 60)}:${options.now || Date.now()}`, 120),
