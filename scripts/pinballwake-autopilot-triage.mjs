@@ -97,28 +97,54 @@ function hasSegment(path, pattern) {
   return path.split("/").some((segment) => pattern.test(segment));
 }
 
+function hasAnyTerm(text, terms) {
+  return terms.some((term) => new RegExp(`\\b${term}\\b`, "i").test(text));
+}
+
 function inferProtectedSurfaceReasons(job = {}) {
   const paths = jobPaths(job);
   const text = jobText(job);
   const reasons = new Set();
 
   for (const path of paths) {
+    const pathTerms = path.replace(/[\/_.-]+/g, " ");
+
     if (
       hasSegment(path, /^(auth|authentication|oauth|session|sessions|login|password|passkey|jwt)$/) ||
       hasSegment(path, /^(key|keys|keychain|credential|credentials|token|tokens|secret|secrets)$/) ||
-      /\b(auth|oauth|jwt|passkey|credential|token|secret|keychain)\b/.test(path)
+      hasAnyTerm(pathTerms, [
+        "auth",
+        "authentication",
+        "oauth",
+        "jwt",
+        "passkey",
+        "passkeys",
+        "credential",
+        "credentials",
+        "token",
+        "tokens",
+        "secret",
+        "secrets",
+        "keychain",
+        "api key",
+        "api keys",
+      ])
     ) {
       reasons.add("auth_or_keys");
       reasons.add("security_sensitive");
     }
 
-    if (hasSegment(path, /^(billing|payment|payments|stripe|checkout|invoice|invoices|subscription|subscriptions)$/)) {
+    if (
+      hasSegment(path, /^(billing|payment|payments|stripe|checkout|invoice|invoices|subscription|subscriptions)$/) ||
+      hasAnyTerm(pathTerms, ["billing", "payment", "payments", "stripe", "checkout", "invoice", "invoices", "subscription", "subscriptions"])
+    ) {
       reasons.add("billing");
     }
 
     if (
       hasSegment(path, /^(migration|migrations|schema|schemas|prisma|drizzle|supabase)$/) ||
-      /\b(fishbowl|room_jobs|ledger)\b.*\b(schema|migration)\b/.test(path)
+      /\b(fishbowl|room_jobs|ledger)\b.*\b(schema|migration)\b/.test(path) ||
+      hasAnyTerm(pathTerms, ["migration", "migrations", "schema", "schemas", "supabase", "ledger", "room jobs"])
     ) {
       reasons.add("schema_shared");
     }
@@ -151,34 +177,80 @@ function inferProtectedSurfaceReasons(job = {}) {
       reasons.add("legal_sensitive");
     }
 
-    if (hasSegment(path, /^(security|redaction|sanitize|sanitise|csrf|csp|waf)$/)) {
+    if (
+      hasSegment(path, /^(security|redaction|redactions|sanitize|sanitizes|sanitized|sanitization|sanitisation|sanitise|csrf|csp|waf)$/) ||
+      hasAnyTerm(pathTerms, [
+        "security",
+        "redaction",
+        "redactions",
+        "sanitize",
+        "sanitizes",
+        "sanitized",
+        "sanitization",
+        "sanitisation",
+        "sanitise",
+        "csrf",
+        "csp",
+        "waf",
+      ])
+    ) {
       reasons.add("security_sensitive");
     }
   }
 
-  if (/\b(auth|oauth|jwt|credential|secret|raw key|api key|billing|stripe|payment|migration|schema|proof allowlist|xpass|fsl|legal|privacy|top-level mcp)\b/.test(text)) {
-    if (/\b(auth|oauth|jwt|credential|secret|raw key|api key)\b/.test(text)) {
-      reasons.add("auth_or_keys");
-      reasons.add("security_sensitive");
-    }
-    if (/\b(billing|stripe|payment)\b/.test(text)) {
-      reasons.add("billing");
-    }
-    if (/\b(migration|schema)\b/.test(text)) {
-      reasons.add("schema_shared");
-    }
-    if (/\bproof allowlist\b/.test(text)) {
-      reasons.add("proof_allowlist");
-    }
-    if (/\bxpass\b/.test(text)) {
-      reasons.add("xpass_safety");
-    }
-    if (/\b(fsl|legal|privacy)\b/.test(text)) {
-      reasons.add("legal_sensitive");
-    }
-    if (/\btop-level mcp\b/.test(text)) {
-      reasons.add("top_level_mcp");
-    }
+  if (
+    hasAnyTerm(text, [
+      "auth",
+      "authentication",
+      "oauth",
+      "jwt",
+      "credential",
+      "credentials",
+      "secret",
+      "secrets",
+      "token",
+      "tokens",
+      "raw key",
+      "raw keys",
+      "api key",
+      "api keys",
+      "keychain",
+      "password",
+      "passwords",
+      "passkey",
+      "passkeys",
+    ])
+  ) {
+    reasons.add("auth_or_keys");
+    reasons.add("security_sensitive");
+  }
+
+  if (hasAnyTerm(text, ["billing", "stripe", "payment", "payments", "checkout", "invoice", "invoices", "subscription", "subscriptions"])) {
+    reasons.add("billing");
+  }
+
+  if (hasAnyTerm(text, ["migration", "migrations", "schema", "schemas", "supabase", "ledger", "room jobs", "room_jobs"])) {
+    reasons.add("schema_shared");
+  }
+
+  if (hasAnyTerm(text, ["proof allowlist", "proof allowlists", "allowlist", "allowlists", "proof executor", "proof command", "proof commands"])) {
+    reasons.add("proof_allowlist");
+  }
+
+  if (hasAnyTerm(text, ["xpass", "testpass", "pass safety", "proof safety", "safety policy", "safety guard"])) {
+    reasons.add("xpass_safety");
+  }
+
+  if (hasAnyTerm(text, ["fsl", "legal", "privacy", "license", "licenses", "terms", "dpa", "subprocessor", "subprocessors"])) {
+    reasons.add("legal_sensitive");
+  }
+
+  if (hasAnyTerm(text, ["security", "redaction", "redactions", "sanitize", "sanitization", "sanitisation", "csrf", "csp", "waf"])) {
+    reasons.add("security_sensitive");
+  }
+
+  if (hasAnyTerm(text, ["top-level mcp", "top level mcp", "mcp server", "mcp servers", "server registration"])) {
+    reasons.add("top_level_mcp");
   }
 
   return [...reasons];

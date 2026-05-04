@@ -111,6 +111,74 @@ describe("PinballWake Autopilot triage", () => {
     assert.match(xpassRoute.reason, /xpass_safety/);
   });
 
+  it("forces DeepDive from protected auth context even when owned files look generic", () => {
+    const route = chooseAutopilotRoute(
+      tinyJob({
+        title: "Small copy update for API keys and tokens",
+        context: "This mentions credentials, secrets, and raw keys but owns a generic file.",
+        files: ["docs/help-copy.md"],
+        estimated_lines: 9,
+      }),
+    );
+
+    assert.equal(route.route, "deep-research-then-planning");
+    assert.match(route.reason, /auth_or_keys/);
+  });
+
+  it("forces DeepDive from protected billing context even when owned files look generic", () => {
+    const route = chooseAutopilotRoute(
+      tinyJob({
+        title: "Tiny payments wording fix",
+        context: "Mentions Stripe invoices and subscriptions.",
+        files: ["docs/help-copy.md"],
+        estimated_lines: 9,
+      }),
+    );
+
+    assert.equal(route.route, "deep-research-then-planning");
+    assert.match(route.reason, /billing/);
+  });
+
+  it("forces DeepDive from security and redaction context even when owned files look generic", () => {
+    const route = chooseAutopilotRoute(
+      tinyJob({
+        title: "Small security note",
+        context: "Mentions redaction, sanitization, and secrets but owns a generic docs file.",
+        files: ["docs/help-copy.md"],
+        estimated_lines: 9,
+      }),
+    );
+
+    assert.equal(route.route, "deep-research-then-planning");
+    assert.match(route.reason, /security_sensitive/);
+  });
+
+  it("forces DeepDive from protected security filename stems even when metadata is missing", () => {
+    for (const file of [
+      "docs/redaction-policy.md",
+      "docs/sanitization-copy.md",
+      "docs/security-note.md",
+      "src/lib/redaction.ts",
+      "src/lib/sanitize.ts",
+      "src/lib/sanitization.ts",
+      "src/lib/security.ts",
+      "src/lib/csrf.ts",
+      "scripts/rotatepass-redaction-guard.test.mjs",
+    ]) {
+      const route = chooseAutopilotRoute(
+        tinyJob({
+          title: "Small docs update",
+          context: "No explicit protected tags.",
+          files: [file],
+          estimated_lines: 9,
+        }),
+      );
+
+      assert.equal(route.route, "deep-research-then-planning", file);
+      assert.match(route.reason, /security_sensitive/, file);
+    }
+  });
+
   it("routes novel medium work through Research then Planning", () => {
     const route = chooseAutopilotRoute(
       tinyJob({
