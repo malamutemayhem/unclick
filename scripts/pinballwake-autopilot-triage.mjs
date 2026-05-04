@@ -77,6 +77,113 @@ function parseTags(job = {}) {
   };
 }
 
+function jobText(job = {}) {
+  return [
+    job.title,
+    job.description,
+    job.problem_statement,
+    job.context,
+    ...(safeList(job.tags).map((tag) => `#${String(tag).replace(/^#/, "")}`)),
+  ]
+    .join(" ")
+    .toLowerCase();
+}
+
+function jobPaths(job = {}) {
+  return safeList(job.files || job.owned_files || job.ownedFiles).map((file) => normalizePath(file).toLowerCase());
+}
+
+function hasSegment(path, pattern) {
+  return path.split("/").some((segment) => pattern.test(segment));
+}
+
+function inferProtectedSurfaceReasons(job = {}) {
+  const paths = jobPaths(job);
+  const text = jobText(job);
+  const reasons = new Set();
+
+  for (const path of paths) {
+    if (
+      hasSegment(path, /^(auth|authentication|oauth|session|sessions|login|password|passkey|jwt)$/) ||
+      hasSegment(path, /^(key|keys|keychain|credential|credentials|token|tokens|secret|secrets)$/) ||
+      /\b(auth|oauth|jwt|passkey|credential|token|secret|keychain)\b/.test(path)
+    ) {
+      reasons.add("auth_or_keys");
+      reasons.add("security_sensitive");
+    }
+
+    if (hasSegment(path, /^(billing|payment|payments|stripe|checkout|invoice|invoices|subscription|subscriptions)$/)) {
+      reasons.add("billing");
+    }
+
+    if (
+      hasSegment(path, /^(migration|migrations|schema|schemas|prisma|drizzle|supabase)$/) ||
+      /\b(fishbowl|room_jobs|ledger)\b.*\b(schema|migration)\b/.test(path)
+    ) {
+      reasons.add("schema_shared");
+    }
+
+    if (
+      path.includes("pinballwake-proof-executor") ||
+      path.includes("proof-allowlist") ||
+      path.includes("allowlist") ||
+      /\bproof\b.*\ballowlist\b/.test(path)
+    ) {
+      reasons.add("proof_allowlist");
+    }
+
+    if (path.includes("xpass") || path.includes("testpass") || /\b(pass|proof|safety)\b.*\b(policy|guard)\b/.test(path)) {
+      reasons.add("xpass_safety");
+    }
+
+    if (
+      hasSegment(path, /^(mcp|mcp-server|servers)$/) ||
+      path === "mcp.json" ||
+      path === "server.js" ||
+      path === "server.ts" ||
+      path.endsWith("/mcp.json") ||
+      path.includes("native-endpoints")
+    ) {
+      reasons.add("top_level_mcp");
+    }
+
+    if (hasSegment(path, /^(license|legal|terms|privacy|dpa|subprocessors)$/) || /\b(fsl|license|terms|privacy)\b/.test(path)) {
+      reasons.add("legal_sensitive");
+    }
+
+    if (hasSegment(path, /^(security|redaction|sanitize|sanitise|csrf|csp|waf)$/)) {
+      reasons.add("security_sensitive");
+    }
+  }
+
+  if (/\b(auth|oauth|jwt|credential|secret|raw key|api key|billing|stripe|payment|migration|schema|proof allowlist|xpass|fsl|legal|privacy|top-level mcp)\b/.test(text)) {
+    if (/\b(auth|oauth|jwt|credential|secret|raw key|api key)\b/.test(text)) {
+      reasons.add("auth_or_keys");
+      reasons.add("security_sensitive");
+    }
+    if (/\b(billing|stripe|payment)\b/.test(text)) {
+      reasons.add("billing");
+    }
+    if (/\b(migration|schema)\b/.test(text)) {
+      reasons.add("schema_shared");
+    }
+    if (/\bproof allowlist\b/.test(text)) {
+      reasons.add("proof_allowlist");
+    }
+    if (/\bxpass\b/.test(text)) {
+      reasons.add("xpass_safety");
+    }
+    if (/\b(fsl|legal|privacy)\b/.test(text)) {
+      reasons.add("legal_sensitive");
+    }
+    if (/\btop-level mcp\b/.test(text)) {
+      reasons.add("top_level_mcp");
+    }
+  }
+
+  return [...reasons];
+}
+
 function estimateScope(job = {}) {
   if (Number.isFinite(job.scope)) {
     return clampAxis(job.scope);
@@ -202,7 +309,7 @@ function clampAxis(value) {
 }
 
 function forcedDeepReasons(job = {}, tags = parseTags(job)) {
-  const reasons = [];
+  const reasons = new Set(inferProtectedSurfaceReasons(job));
   const aliases = {
     auth_or_keys: [job.auth_or_keys, job.authOrKeys],
     billing: [job.billing],
@@ -218,15 +325,15 @@ function forcedDeepReasons(job = {}, tags = parseTags(job)) {
 
   for (const flag of FORCE_DEEP_FLAGS) {
     if ((aliases[flag] || []).some(bool)) {
-      reasons.push(flag);
+      reasons.add(flag);
     }
   }
 
   if (tags.forceDirection) {
-    reasons.push("direction");
+    reasons.add("direction");
   }
 
-  return reasons;
+  return [...reasons];
 }
 
 export function scoreAutopilotJob(job = {}) {

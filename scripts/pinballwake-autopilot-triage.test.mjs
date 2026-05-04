@@ -62,6 +62,55 @@ describe("PinballWake Autopilot triage", () => {
     assert.match(route.reason, /proof_allowlist/);
   });
 
+  it("forces DeepDive for under-tagged auth and key paths", () => {
+    const route = chooseAutopilotRoute(
+      tinyJob({
+        title: "Tiny login helper",
+        files: ["api/auth/session-token.ts"],
+        estimated_lines: 12,
+      }),
+    );
+
+    assert.equal(route.route, "deep-research-then-planning");
+    assert.equal(route.tier, "deep");
+    assert.match(route.reason, /auth_or_keys/);
+  });
+
+  it("forces DeepDive for under-tagged schema and migration paths", () => {
+    const route = chooseAutopilotRoute(
+      tinyJob({
+        title: "Small table wording fix",
+        files: ["supabase/migrations/20260504_room_jobs.sql"],
+        estimated_lines: 8,
+      }),
+    );
+
+    assert.equal(route.route, "deep-research-then-planning");
+    assert.match(route.reason, /schema_shared/);
+  });
+
+  it("forces DeepDive for under-tagged proof allowlist and XPass paths", () => {
+    const proofRoute = chooseAutopilotRoute(
+      tinyJob({
+        title: "Small proof command tweak",
+        files: ["scripts/pinballwake-proof-executor.mjs"],
+        estimated_lines: 14,
+      }),
+    );
+    const xpassRoute = chooseAutopilotRoute(
+      tinyJob({
+        title: "Small trust guard tweak",
+        files: ["scripts/xpass-policy-guard.mjs"],
+        estimated_lines: 14,
+      }),
+    );
+
+    assert.equal(proofRoute.route, "deep-research-then-planning");
+    assert.match(proofRoute.reason, /proof_allowlist/);
+    assert.equal(xpassRoute.route, "deep-research-then-planning");
+    assert.match(xpassRoute.reason, /xpass_safety/);
+  });
+
   it("routes novel medium work through Research then Planning", () => {
     const route = chooseAutopilotRoute(
       tinyJob({
