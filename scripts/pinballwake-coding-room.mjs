@@ -6,15 +6,20 @@ export const CODING_ROOM_STATUSES = new Set([
   "building",
   "testing",
   "blocked",
+  "review_stale",
+  "fallback_ready",
   "proof_submitted",
   "done",
   "expired",
 ]);
 
 export const CODING_ROOM_CODE_CAPABILITIES = new Set(["implementation", "test_fix", "docs_update"]);
+export const CODING_ROOM_REVIEW_CAPABILITIES = new Set(["qc_review", "release_safety", "merge_proof"]);
 export const CODING_ROOM_BUILDER_READINESS = new Set(["builder_ready", "scoped_builder"]);
+export const CODING_ROOM_REVIEW_READINESS = new Set(["review_only", "context_only", "builder_ready", "scoped_builder"]);
 
 const DEFAULT_LEASE_SECONDS = 1800;
+const DEFAULT_REVIEW_TIMEOUT_SECONDS = 900;
 
 function compactText(value, max = 240) {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
@@ -73,6 +78,7 @@ export function createCodingRoomJob(input = {}) {
     worker: compactText(input.worker || "", 80),
     chip: compactText(input.chip || "", 180),
     context: compactText(input.context || "", 500),
+    job_type: input.jobType || "code",
     status,
     owned_files: ownedFiles,
     expected_proof: {
@@ -80,6 +86,7 @@ export function createCodingRoomJob(input = {}) {
       requires_pr: expectedProof.requiresPr !== false,
       requires_changed_files: expectedProof.requiresChangedFiles !== false,
       requires_non_overlap: expectedProof.requiresNonOverlap !== false,
+      requires_tests: expectedProof.requiresTests !== false,
     },
     safety: {
       no_secrets: true,
@@ -96,6 +103,37 @@ export function createCodingRoomJob(input = {}) {
   };
 }
 
+export function createCodingRoomReviewJob(input = {}) {
+  const createdAt = input.createdAt || new Date().toISOString();
+  const timeoutSeconds = Number.isFinite(input.timeoutSeconds)
+    ? input.timeoutSeconds
+    : DEFAULT_REVIEW_TIMEOUT_SECONDS;
+  const job = createCodingRoomJob({
+    ...input,
+    jobType: "review",
+    ownedFiles: [],
+    expectedProof: {
+      requiresPr: false,
+      requiresChangedFiles: false,
+      requiresNonOverlap: false,
+      requiresTests: false,
+      tests: [],
+      ...input.expectedProof,
+    },
+    createdAt,
+    leaseExpiresAt: input.leaseExpiresAt || addSeconds(createdAt, timeoutSeconds),
+  });
+
+  return {
+    ...job,
+    review_kind: compactText(input.reviewKind || "qc_review", 80),
+    requested_reviewers: uniq((input.requestedReviewers || []).map((reviewer) => compactText(reviewer, 80))),
+    fallback_worker: compactText(input.fallbackWorker || "master", 80),
+    ack_deadline_at: input.ackDeadlineAt || addSeconds(createdAt, timeoutSeconds),
+    expected_ack: "done/blocker",
+  };
+}
+
 export function runnerCanClaimCodingRoomJob({ runner = {}, job, activeJobs = [] }) {
   if (!job) {
     return { ok: false, reason: "missing_job" };
@@ -103,6 +141,23 @@ export function runnerCanClaimCodingRoomJob({ runner = {}, job, activeJobs = [] 
 
   if (job.status !== "queued") {
     return { ok: false, reason: "job_not_queued" };
+  }
+
+  if (job.job_type === "review") {
+    const readiness = String(runner.readiness || "").trim();
+    if (!CODING_ROOM_REVIEW_READINESS.has(readiness)) {
+      return { ok: false, reason: "runner_not_review_ready" };
+    }
+
+    const capabilities = new Set(
+      Array.isArray(runner.capabilities) ? runner.capabilities.map((capability) => String(capability).trim()) : [],
+    );
+    const canReview = [...CODING_ROOM_REVIEW_CAPABILITIES].some((capability) => capabilities.has(capability));
+    if (!canReview) {
+      return { ok: false, reason: "runner_lacks_review_capability" };
+    }
+
+    return { ok: true, reason: "claimable_review" };
   }
 
   const readiness = String(runner.readiness || "").trim();
@@ -186,7 +241,7 @@ export function validateCodingRoomProof({ job, proof = {} }) {
   }
 
   const tests = Array.isArray(proof.tests) ? proof.tests : [];
-  if (tests.length === 0) {
+  if (job.expected_proof?.requires_tests !== false && tests.length === 0) {
     return { ok: false, reason: "test_proof_required" };
   }
 
@@ -196,6 +251,54 @@ export function validateCodingRoomProof({ job, proof = {} }) {
   }
 
   return { ok: true, status: "proof_submitted" };
+}
+
+export function reviewJobNeedsFallback({ job, now = new Date().toISOString() }) {
+  if (!job || job.job_type !== "review") {
+    return { ok: false, reason: "not_review_job" };
+  }
+
+  if (job.proof?.result) {
+    return { ok: false, reason: "review_already_answered" };
+  }
+
+  if (!["queued", "claimed"].includes(job.status)) {
+    return { ok: false, reason: "review_not_waiting" };
+  }
+
+  const deadline = parseIso(job.ack_deadline_at);
+  const current = parseIso(now);
+  if (deadline === null || current === null) {
+    return { ok: false, reason: "invalid_review_deadline" };
+  }
+
+  if (current <= deadline) {
+    return { ok: false, reason: "review_deadline_open" };
+  }
+
+  return {
+    ok: true,
+    reason: "review_ack_timeout",
+    fallback_worker: job.fallback_worker || "master",
+  };
+}
+
+export function markReviewFallbackReady({ job, now = new Date().toISOString() }) {
+  const fallback = reviewJobNeedsFallback({ job, now });
+  if (!fallback.ok) {
+    return fallback;
+  }
+
+  return {
+    ok: true,
+    job: {
+      ...job,
+      status: "fallback_ready",
+      fallback_reason: fallback.reason,
+      fallback_worker: fallback.fallback_worker,
+      fallback_ready_at: now,
+    },
+  };
 }
 
 export function submitCodingRoomProof({ job, proof = {} }) {

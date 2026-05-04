@@ -4,6 +4,9 @@ import { describe, it } from "node:test";
 import {
   claimCodingRoomJob,
   createCodingRoomJob,
+  createCodingRoomReviewJob,
+  markReviewFallbackReady,
+  reviewJobNeedsFallback,
   runnerCanClaimCodingRoomJob,
   submitCodingRoomProof,
   validateCodingRoomProof,
@@ -189,5 +192,122 @@ describe("PinballWake Coding Room skeleton", () => {
     assert.equal(result.ok, true);
     assert.equal(result.job.status, "proof_submitted");
     assert.equal(result.job.proof.pr_url, "https://github.com/example/repo/pull/1");
+  });
+
+  it("creates timed review jobs that do not need owned files", () => {
+    const job = createCodingRoomReviewJob({
+      source: "queuepush",
+      prNumber: 516,
+      worker: "gatekeeper",
+      chip: "final safety review",
+      reviewKind: "release_safety",
+      requestedReviewers: ["gatekeeper", "popcorn"],
+      fallbackWorker: "master",
+      createdAt: "2026-05-04T00:00:00.000Z",
+      timeoutSeconds: 600,
+    });
+
+    assert.equal(job.job_type, "review");
+    assert.equal(job.status, "queued");
+    assert.deepEqual(job.owned_files, []);
+    assert.equal(job.ack_deadline_at, "2026-05-04T00:10:00.000Z");
+    assert.equal(job.expected_ack, "done/blocker");
+    assert.equal(job.expected_proof.requires_tests, false);
+  });
+
+  it("lets review-ready workers claim review jobs without code ownership", () => {
+    const job = createCodingRoomReviewJob({
+      worker: "popcorn",
+      chip: "final QC review",
+      createdAt: "2026-05-04T00:00:00.000Z",
+    });
+
+    const result = claimCodingRoomJob({
+      runner: {
+        id: "popcorn",
+        readiness: "review_only",
+        capabilities: ["qc_review"],
+      },
+      job,
+      now: "2026-05-04T00:01:00.000Z",
+      leaseSeconds: 120,
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.job.status, "claimed");
+    assert.equal(result.job.claimed_by, "popcorn");
+  });
+
+  it("blocks builders with no review capability from review jobs", () => {
+    const job = createCodingRoomReviewJob({
+      worker: "gatekeeper",
+      chip: "final safety review",
+    });
+
+    const decision = runnerCanClaimCodingRoomJob({
+      runner: {
+        id: "forge",
+        readiness: "builder_ready",
+        capabilities: ["implementation"],
+      },
+      job,
+    });
+
+    assert.equal(decision.ok, false);
+    assert.equal(decision.reason, "runner_lacks_review_capability");
+  });
+
+  it("keeps review jobs open before the deadline and fallback-ready after timeout", () => {
+    const job = createCodingRoomReviewJob({
+      worker: "gatekeeper",
+      chip: "final safety review",
+      fallbackWorker: "master",
+      createdAt: "2026-05-04T00:00:00.000Z",
+      timeoutSeconds: 300,
+    });
+
+    assert.equal(
+      reviewJobNeedsFallback({
+        job,
+        now: "2026-05-04T00:04:59.000Z",
+      }).reason,
+      "review_deadline_open",
+    );
+
+    const fallback = markReviewFallbackReady({
+      job,
+      now: "2026-05-04T00:05:01.000Z",
+    });
+
+    assert.equal(fallback.ok, true);
+    assert.equal(fallback.job.status, "fallback_ready");
+    assert.equal(fallback.job.fallback_worker, "master");
+    assert.equal(fallback.job.fallback_reason, "review_ack_timeout");
+  });
+
+  it("does not fallback after a review has answered done/blocker", () => {
+    const job = createCodingRoomReviewJob({
+      worker: "gatekeeper",
+      chip: "final safety review",
+      createdAt: "2026-05-04T00:00:00.000Z",
+      timeoutSeconds: 300,
+    });
+    const answered = submitCodingRoomProof({
+      job,
+      proof: {
+        result: "done",
+        changedFiles: [],
+        tests: [],
+        prUrl: "",
+      },
+    }).job;
+
+    const fallback = reviewJobNeedsFallback({
+      job: answered,
+      now: "2026-05-04T00:10:00.000Z",
+    });
+
+    assert.equal(fallback.ok, false);
+    assert.equal(fallback.reason, "review_already_answered");
   });
 });
