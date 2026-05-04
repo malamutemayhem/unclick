@@ -53,6 +53,19 @@ function isCodeJob(job = {}) {
   return !job.job_type || job.job_type === "code";
 }
 
+const ACTIVE_RUNNABLE_STATUSES = new Set(["claimed", "building", "testing"]);
+
+function runnerTokens(runner = {}) {
+  return [runner.id, runner.emoji, runner.agent_id, runner.name]
+    .map((token) => String(token || "").trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function activeJobOwnerMatchesRunner({ job, runner }) {
+  const claimedBy = String(job?.claimed_by || "").trim().toLowerCase();
+  return Boolean(claimedBy) && runnerTokens(runner).includes(claimedBy);
+}
+
 function buildBlocker(stage, reason, extra = {}) {
   return {
     ok: true,
@@ -147,8 +160,37 @@ export function planCodingRoomPipelineDryRun({
     }
 
     steps.push(step("claim", "would_claim", { reason: claim.reason, job_id: job.job_id }));
-  } else {
+  } else if (ACTIVE_RUNNABLE_STATUSES.has(job.status)) {
+    if (!activeJobOwnerMatchesRunner({ job, runner: safeRunner })) {
+      steps.push(step("claim", "claim_blocked", { reason: "active_job_not_owned_by_runner", status: job.status }));
+      return {
+        ok: true,
+        action: "dry_run",
+        result: "blocker",
+        stage: "claim",
+        reason: "active_job_not_owned_by_runner",
+        job_id: job.job_id,
+        steps,
+        summary: summarizeSteps(steps),
+        ledger: safeLedger,
+      };
+    }
+
     steps.push(step("claim", "already_in_progress", { status: job.status, job_id: job.job_id }));
+  } else {
+    steps.push(step("claim", "claim_blocked", { reason: "non_runnable_job_status", status: job.status }));
+    return {
+      ok: true,
+      action: "dry_run",
+      result: "blocker",
+      stage: "claim",
+      reason: "non_runnable_job_status",
+      status: job.status,
+      job_id: job.job_id,
+      steps,
+      summary: summarizeSteps(steps),
+      ledger: safeLedger,
+    };
   }
 
   if (!isCodeJob(job)) {

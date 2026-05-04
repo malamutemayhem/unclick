@@ -242,4 +242,64 @@ describe("PinballWake pipeline dry-run planner", () => {
     assert.equal(result.stage, "claim");
     assert.equal(result.reason, "owned_file_overlap");
   });
+
+  it("refuses terminal and fallback statuses even when merge gates are ready", () => {
+    for (const status of ["blocked", "done", "expired", "fallback_ready", "proof_submitted"]) {
+      const job = codeJob({
+        jobId: `coding-room:pipeline:${status}`,
+        status,
+      });
+
+      const result = planCodingRoomPipelineDryRun({
+        ledger: createCodingRoomJobLedger({ jobs: [job, proofJob(), ...reviewJobs()] }),
+        runner,
+        jobId: job.job_id,
+        pr: readyPr(),
+      });
+
+      assert.equal(result.result, "blocker", status);
+      assert.equal(result.stage, "claim", status);
+      assert.equal(result.reason, "non_runnable_job_status", status);
+      assert.equal(result.steps.at(-1).result, "claim_blocked", status);
+    }
+  });
+
+  it("refuses active jobs that are not owned by the planning runner", () => {
+    const job = codeJob({
+      status: "claimed",
+      extra: {
+        claimedBy: "another-runner",
+      },
+    });
+
+    const result = planCodingRoomPipelineDryRun({
+      ledger: createCodingRoomJobLedger({ jobs: [job, proofJob(), ...reviewJobs()] }),
+      runner,
+      jobId: job.job_id,
+      pr: readyPr(),
+    });
+
+    assert.equal(result.result, "blocker");
+    assert.equal(result.stage, "claim");
+    assert.equal(result.reason, "active_job_not_owned_by_runner");
+  });
+
+  it("lets active jobs owned by the planning runner continue through dry-run planning", () => {
+    const job = codeJob({
+      status: "claimed",
+      extra: {
+        claimedBy: "pinballwake-job-runner",
+      },
+    });
+
+    const result = planCodingRoomPipelineDryRun({
+      ledger: createCodingRoomJobLedger({ jobs: [job, proofJob(), ...reviewJobs()] }),
+      runner,
+      jobId: job.job_id,
+      pr: readyPr(),
+    });
+
+    assert.equal(result.result, "merge_ready");
+    assert.equal(result.steps[0].result, "already_in_progress");
+  });
 });
