@@ -141,4 +141,32 @@ describe("PinballWake Planning Room", () => {
     assert.equal(result.route.reason, "stuck_pr_skip_research_plan_from_existing_diff");
     assert.equal(result.scopepack.scopepack_id, "scopepack:explicit-route:20260505");
   });
+
+  it("blocks caller-supplied routes that try to bypass protected job scoring", () => {
+    const result = createPlanningRoomScopePack(
+      {
+        id: "protected-bypass",
+        title: "Credentials redaction fix",
+        context: "Touches credentials, tokens, secrets, and redaction.",
+        files: ["docs/copy.md"],
+        tests: ["node --test scripts/pinballwake-planning-room.test.mjs"],
+        estimated_lines: 10,
+      },
+      {
+        route: {
+          ok: true,
+          route: "planning-only",
+          tier: "standard",
+          ack_required: false,
+          suggested_action: "build",
+          reason: "caller_supplied",
+          score: { axes: {}, total: 0, forced_deep_reasons: [] },
+        },
+      },
+    );
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "supplied_route_conflicts_with_job_risk");
+    assert.equal(result.computed_route.route, "deep-research-then-planning");
+  });
 });

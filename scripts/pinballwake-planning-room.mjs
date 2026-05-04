@@ -120,7 +120,19 @@ function defaultReviewerNeeds(route = {}) {
 }
 
 export function createPlanningRoomScopePack(job = {}, options = {}) {
-  const route = options.route || job.route || chooseAutopilotRoute(job);
+  const computedRoute = chooseAutopilotRoute(job);
+  const suppliedRoute = options.route || job.route || null;
+  const route = suppliedRoute || computedRoute;
+
+  if (suppliedRoute && routeNeedsResearch(computedRoute) && !routeNeedsResearch(suppliedRoute)) {
+    return {
+      ok: false,
+      action: "blocker",
+      reason: "supplied_route_conflicts_with_job_risk",
+      route: suppliedRoute,
+      computed_route: computedRoute,
+    };
+  }
 
   if (route.route === "direct-to-coding") {
     return {
