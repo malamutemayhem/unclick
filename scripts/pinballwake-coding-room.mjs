@@ -59,6 +59,10 @@ function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function normalizeWorkerToken(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
 export function codingRoomJobId({ source = "manual", prNumber = "none", chip = "", worker = "" }) {
   const digest = createHash("sha256")
     .update([source, prNumber, chip, worker].map((part) => String(part ?? "").trim()).join("|"))
@@ -221,9 +225,29 @@ export function runnerCanClaimCodingRoomJob({ runner = {}, job, activeJobs = [] 
     const capabilities = new Set(
       Array.isArray(runner.capabilities) ? runner.capabilities.map((capability) => String(capability).trim()) : [],
     );
-    const canReview = [...CODING_ROOM_REVIEW_CAPABILITIES].some((capability) => capabilities.has(capability));
-    if (!canReview) {
+    const reviewKind = String(job.review_kind || "").trim();
+    if (reviewKind && CODING_ROOM_REVIEW_CAPABILITIES.has(reviewKind) && !capabilities.has(reviewKind)) {
+      return { ok: false, reason: "runner_lacks_review_kind_capability", review_kind: reviewKind };
+    }
+
+    if (!reviewKind && ![...CODING_ROOM_REVIEW_CAPABILITIES].some((capability) => capabilities.has(capability))) {
       return { ok: false, reason: "runner_lacks_review_capability" };
+    }
+
+    const requestedReviewers = new Set(
+      (job.requested_reviewers || []).map(normalizeWorkerToken).filter(Boolean),
+    );
+    if (requestedReviewers.size > 0) {
+      const runnerTokens = [
+        runner.id,
+        runner.emoji,
+        runner.agent_id,
+        runner.name,
+      ].map(normalizeWorkerToken).filter(Boolean);
+      const matchesRequestedReviewer = runnerTokens.some((token) => requestedReviewers.has(token));
+      if (!matchesRequestedReviewer) {
+        return { ok: false, reason: "runner_not_requested_reviewer" };
+      }
     }
 
     return { ok: true, reason: "claimable_review" };

@@ -466,6 +466,80 @@ describe("PinballWake Coding Room skeleton", () => {
     assert.equal(result.job.claimed_by, "popcorn");
   });
 
+  it("requires review runners to match the requested review kind and reviewer", () => {
+    const safetyJob = createCodingRoomSafetyJob({
+      prNumber: 517,
+      requestedReviewers: ["gatekeeper"],
+      createdAt: "2026-05-04T00:00:00.000Z",
+    });
+
+    assert.deepEqual(
+      runnerCanClaimCodingRoomJob({
+        runner: {
+          id: "popcorn",
+          readiness: "review_only",
+          capabilities: ["qc_review"],
+        },
+        job: safetyJob,
+      }),
+      {
+        ok: false,
+        reason: "runner_lacks_review_kind_capability",
+        review_kind: "release_safety",
+      },
+    );
+
+    assert.equal(
+      runnerCanClaimCodingRoomJob({
+        runner: {
+          id: "gatekeeper",
+          readiness: "review_only",
+          capabilities: ["release_safety"],
+        },
+        job: safetyJob,
+      }).ok,
+      true,
+    );
+
+    const qcJob = createCodingRoomQcJob({
+      prNumber: 517,
+      requestedReviewers: ["popcorn"],
+      createdAt: "2026-05-04T00:00:00.000Z",
+    });
+
+    assert.equal(
+      runnerCanClaimCodingRoomJob({
+        runner: {
+          id: "gatekeeper",
+          readiness: "review_only",
+          capabilities: ["release_safety"],
+        },
+        job: qcJob,
+      }).reason,
+      "runner_lacks_review_kind_capability",
+    );
+  });
+
+  it("does not let a capable but unrequested reviewer claim someone else's review job", () => {
+    const qcJob = createCodingRoomQcJob({
+      prNumber: 517,
+      requestedReviewers: ["popcorn"],
+      createdAt: "2026-05-04T00:00:00.000Z",
+    });
+
+    const decision = runnerCanClaimCodingRoomJob({
+      runner: {
+        id: "backup-qc",
+        readiness: "review_only",
+        capabilities: ["qc_review"],
+      },
+      job: qcJob,
+    });
+
+    assert.equal(decision.ok, false);
+    assert.equal(decision.reason, "runner_not_requested_reviewer");
+  });
+
   it("blocks builders with no review capability from review jobs", () => {
     const job = createCodingRoomReviewJob({
       worker: "gatekeeper",
@@ -482,7 +556,7 @@ describe("PinballWake Coding Room skeleton", () => {
     });
 
     assert.equal(decision.ok, false);
-    assert.equal(decision.reason, "runner_lacks_review_capability");
+    assert.equal(decision.reason, "runner_lacks_review_kind_capability");
   });
 
   it("keeps review jobs open before the deadline and fallback-ready after timeout", () => {
