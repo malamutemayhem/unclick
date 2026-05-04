@@ -93,6 +93,41 @@ describe("PinballWake proof executor", () => {
     assert.equal(result.job.proof.tests[0].status, "passed");
   });
 
+  it("carries build changed files into done proof when required", async () => {
+    const job = {
+      ...proofJob({
+        tests: ["node --test scripts/pinballwake-proof-executor.test.mjs"],
+      }),
+      build_result: {
+        result: "done",
+        changed_files: ["scripts/pinballwake-proof-executor.mjs"],
+        submitted_at: "2026-05-04T00:00:30.000Z",
+      },
+      expected_proof: {
+        tests: ["node --test scripts/pinballwake-proof-executor.test.mjs"],
+        requires_pr: false,
+        requires_changed_files: true,
+        requires_non_overlap: true,
+        requires_tests: true,
+      },
+    };
+
+    const result = await executeCodingRoomProofJob({
+      job,
+      now: "2026-05-04T00:01:00.000Z",
+      runCommand: async (command) => ({
+        command,
+        status: "passed",
+        exit_code: 0,
+        output: "ok",
+      }),
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.result, "done");
+    assert.deepEqual(result.job.proof.changed_files, ["scripts/pinballwake-proof-executor.mjs"]);
+  });
+
   it("records blocker proof when a command is not allowlisted", async () => {
     const job = proofJob({
       tests: ["node scripts/danger.mjs"],
