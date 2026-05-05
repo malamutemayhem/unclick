@@ -10,6 +10,7 @@ import { test } from "node:test";
 import {
   resolveSweepTargets,
   runUxPassSiteSweep,
+  splitAllowedSweepTargets,
 } from "./uxpass-site-sweep.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -73,6 +74,7 @@ test("runs every target through the UXPass API and writes scoped proof", async (
       token: "ux-token",
       targetSha: "head-sha",
       now: "2026-05-05T00:00:00.000Z",
+      allowedOrigins: ["https://unclick.world", `http://127.0.0.1:${address.port}`],
     });
 
     assert.equal(receipt.status, "passing");
@@ -90,6 +92,93 @@ test("runs every target through the UXPass API and writes scoped proof", async (
   } finally {
     await close(server);
   }
+});
+
+test("splits owned URLs from off-origin site sweep targets", () => {
+  const targets = [
+    "https://unclick.world/",
+    "https://unclick.world/dashboard",
+    "https://example.com/steal-proof",
+  ];
+
+  const result = splitAllowedSweepTargets(targets, ["https://unclick.world"]);
+
+  assert.deepEqual(result.allowed, [
+    "https://unclick.world/",
+    "https://unclick.world/dashboard",
+  ]);
+  assert.equal(result.blocked.length, 1);
+  assert.equal(result.blocked[0].url, "https://example.com/steal-proof");
+  assert.equal(result.blocked[0].status, "blocked");
+  assert.match(result.blocked[0].summary, /owned-origin allowlist/i);
+});
+
+test("does not call the UXPass API for off-origin site sweep targets", async () => {
+  const requests = [];
+  const server = http.createServer(async (req, res) => {
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    requests.push({ url: req.url, body });
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({
+      run_id: `run-${requests.length}`,
+      status: "complete",
+      ux_score: 94,
+    }));
+  });
+
+  try {
+    await listen(server);
+    const address = server.address();
+    assert.ok(address && typeof address === "object");
+
+    const receipt = await runUxPassSiteSweep({
+      apiBase: `http://127.0.0.1:${address.port}`,
+      publicUrl: "https://unclick.world",
+      urls: ["/", "https://example.com/off-origin"],
+      token: "ux-token",
+      allowedOrigins: ["https://unclick.world", `http://127.0.0.1:${address.port}`],
+    });
+
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].body.target_url, "https://unclick.world/");
+    assert.equal(receipt.status, "blocked");
+    assert.equal(receipt.targets.length, 2);
+    assert.equal(receipt.targets[0].url, "https://example.com/off-origin");
+    assert.equal(receipt.targets[0].status, "blocked");
+  } finally {
+    await close(server);
+  }
+});
+
+test("blocks live sweeps when the API origin is outside the allowlist", async () => {
+  const receipt = await runUxPassSiteSweep({
+    apiBase: "https://evil.example",
+    publicUrl: "https://unclick.world",
+    urls: ["/"],
+    token: "ux-token",
+    allowedOrigins: ["https://unclick.world"],
+  });
+
+  assert.equal(receipt.status, "blocked");
+  assert.match(receipt.summary, /API origin is not allowed/i);
+  assert.equal(receipt.targets[0].status, "blocked");
+});
+
+test("blocks without a token warning when every target is off-origin", async () => {
+  const receipt = await runUxPassSiteSweep({
+    apiBase: "https://unclick.world",
+    publicUrl: "https://unclick.world",
+    urls: ["https://example.com/off-origin"],
+    token: "",
+    allowedOrigins: ["https://unclick.world"],
+  });
+
+  assert.equal(receipt.status, "blocked");
+  assert.match(receipt.summary, /every target was outside/i);
+  assert.equal(receipt.targets[0].status, "blocked");
+  assert.match(receipt.action_needed[0], /owned-origin allowlist/i);
 });
 
 test("fails the sweep when a target is below the UX score floor", async () => {
@@ -113,6 +202,7 @@ test("fails the sweep when a target is below the UX score floor", async () => {
       urls: ["/"],
       token: "ux-token",
       minScore: 80,
+      allowedOrigins: ["https://unclick.world", `http://127.0.0.1:${address.port}`],
     });
 
     assert.equal(receipt.status, "failing");

@@ -5,6 +5,7 @@ import path from "node:path";
 
 const DEFAULT_PATHS = ["/", "/dashboard", "/admin/you"];
 const DEFAULT_MIN_SCORE = 80;
+const DEFAULT_ALLOWED_ORIGINS = ["https://unclick.world", "https://www.unclick.world"];
 
 function argValue(name, fallback = "") {
   const prefix = `--${name}=`;
@@ -45,10 +46,47 @@ function unique(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
+function normalizeOrigin(value) {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return "";
+  }
+}
+
+function resolveAllowedOrigins(values = []) {
+  return unique((values.length > 0 ? values : DEFAULT_ALLOWED_ORIGINS).map(normalizeOrigin));
+}
+
+function isAllowedOrigin(url, allowedOrigins) {
+  const origin = normalizeOrigin(url);
+  return Boolean(origin && allowedOrigins.includes(origin));
+}
+
 export function resolveSweepTargets({ publicUrl, urls = [] } = {}) {
   const base = trimTrailingSlash(publicUrl || "https://unclick.world");
   const requested = unique(urls.length > 0 ? urls : DEFAULT_PATHS);
   return requested.map((url) => new URL(url, `${base}/`).toString());
+}
+
+export function splitAllowedSweepTargets(targets, allowedOrigins) {
+  const allowed = [];
+  const blocked = [];
+  for (const target of targets) {
+    if (isAllowedOrigin(target, allowedOrigins)) {
+      allowed.push(target);
+    } else {
+      blocked.push({
+        url: target,
+        status: "blocked",
+        run_id: null,
+        ux_score: null,
+        summary: `Target origin is outside the owned-origin allowlist: ${allowedOrigins.join(", ")}.`,
+        proof: null,
+      });
+    }
+  }
+  return { allowed, blocked };
 }
 
 async function postJson(fetchImpl, url, token, body) {
@@ -109,10 +147,12 @@ export async function runUxPassSiteSweep({
   targetSha = "",
   minScore = DEFAULT_MIN_SCORE,
   dryRun = false,
+  allowedOrigins = DEFAULT_ALLOWED_ORIGINS,
   now = new Date().toISOString(),
   fetchImpl = fetch,
 } = {}) {
   const targets = resolveSweepTargets({ publicUrl, urls });
+  const ownedOrigins = resolveAllowedOrigins(allowedOrigins);
   const apiUrl = `${trimTrailingSlash(apiBase)}/api/uxpass-run`;
 
   if (dryRun) {
@@ -129,8 +169,45 @@ export async function runUxPassSiteSweep({
     };
   }
 
+  const { allowed: allowedTargets, blocked: blockedTargets } = splitAllowedSweepTargets(targets, ownedOrigins);
+  if (!isAllowedOrigin(apiUrl, ownedOrigins)) {
+    const apiBlockedTargets = targets.map((url) => ({
+      url,
+      status: "blocked",
+      run_id: null,
+      ux_score: null,
+      summary: `UXPass API origin is outside the owned-origin allowlist: ${ownedOrigins.join(", ")}.`,
+      proof: null,
+    }));
+    return {
+      kind: "uxpass_site_sweep_receipt",
+      generated_at: now,
+      status: "blocked",
+      target_sha: targetSha || null,
+      min_score: minScore,
+      allowed_origins: ownedOrigins,
+      targets: apiBlockedTargets,
+      action_needed: actionNeeded(apiBlockedTargets),
+      summary: "UXPass site sweep could not run because the API origin is not allowed.",
+    };
+  }
+
+  if (allowedTargets.length === 0) {
+    return {
+      kind: "uxpass_site_sweep_receipt",
+      generated_at: now,
+      status: "blocked",
+      target_sha: targetSha || null,
+      min_score: minScore,
+      allowed_origins: ownedOrigins,
+      targets: blockedTargets,
+      action_needed: actionNeeded(blockedTargets),
+      summary: "UXPass site sweep did not run because every target was outside the owned-origin allowlist.",
+    };
+  }
+
   if (!token) {
-    const blockedTargets = targets.map((url) => ({
+    const missingTokenTargets = allowedTargets.map((url) => ({
       url,
       status: "blocked",
       run_id: null,
@@ -144,14 +221,15 @@ export async function runUxPassSiteSweep({
       status: "blocked",
       target_sha: targetSha || null,
       min_score: minScore,
-      targets: blockedTargets,
-      action_needed: actionNeeded(blockedTargets),
+      allowed_origins: ownedOrigins,
+      targets: [...missingTokenTargets, ...blockedTargets],
+      action_needed: actionNeeded([...missingTokenTargets, ...blockedTargets]),
       summary: "UXPass site sweep could not run because no token was available.",
     };
   }
 
-  const sweptTargets = [];
-  for (const url of targets) {
+  const sweptTargets = [...blockedTargets];
+  for (const url of allowedTargets) {
     try {
       const { ok, status, json } = await postJson(fetchImpl, apiUrl, token, {
         url,
@@ -199,6 +277,7 @@ export async function runUxPassSiteSweep({
     status,
     target_sha: targetSha || null,
     min_score: minScore,
+    allowed_origins: ownedOrigins,
     targets: sweptTargets,
     action_needed: actionNeeded(sweptTargets),
     summary: `UXPass site sweep ${status} across ${sweptTargets.length} URL(s).`,
@@ -225,6 +304,7 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
       || "",
     targetSha: argValue("target-sha", process.env.GITHUB_SHA || process.env.VERCEL_GIT_COMMIT_SHA || ""),
     minScore: Number(argValue("min-score", process.env.UXPASS_SITE_SWEEP_MIN_SCORE || DEFAULT_MIN_SCORE)),
+    allowedOrigins: splitList(process.env.UXPASS_SITE_SWEEP_ALLOWED_ORIGINS),
     dryRun,
   });
 

@@ -48,6 +48,7 @@ jobs:
           DOGFOOD_API_BASE: https://unclick.world
           DOGFOOD_PUBLIC_URL: ${{ inputs.public_url || 'https://unclick.world' }}
           UXPASS_SITE_SWEEP_URLS: ${{ inputs.site_sweep_urls || 'https://unclick.world,https://unclick.world/dashboard,https://unclick.world/admin/you' }}
+          UXPASS_SITE_SWEEP_ALLOWED_ORIGINS: https://unclick.world,https://www.unclick.world
           UXPASS_SITE_SWEEP_TOKEN: ${{ secrets.UXPASS_TOKEN || secrets.CRON_SECRET }}
         run: node scripts/uxpass-site-sweep.mjs --output public/dogfood/uxpass-site-sweep.json --target-sha "$GITHUB_SHA" --allow-non-passing
 
