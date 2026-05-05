@@ -152,6 +152,33 @@ describe("PinballWake Worker Registry Room", () => {
     assert.equal(verification.reason, "head_sha_mismatch");
   });
 
+  it("rejects ACKs replayed against a different review scope", () => {
+    const registry = registryFixture();
+    const signed = signGatekeeperAck(registry, {
+      prNumber: 536,
+      headSha: "4ec3745",
+      scope: "event-ledger-room-review",
+    });
+
+    const verification = verifySignedAckRecord({
+      registry,
+      ack: signed.ack,
+      expectedLane: "gatekeeper",
+      expectedPrNumber: 536,
+      expectedHeadSha: "4ec3745",
+      expectedScope: "worker-registry-room-review",
+      now: NOW,
+    });
+
+    assert.equal(verification.ok, false);
+    assert.equal(verification.reason, "scope_mismatch");
+
+    const event = createAckDecisionEvent({ ack: signed.ack, verification });
+    assert.equal(event.authority, "observer");
+    assert.equal(event.scope.ack_scope, "event-ledger-room-review");
+    assert.equal(event.payload.scope, "event-ledger-room-review");
+  });
+
   it("rejects stale ACKs outside the configured TTL", () => {
     const registry = registryFixture();
     const signed = signGatekeeperAck(registry, {
@@ -264,6 +291,7 @@ describe("PinballWake Worker Registry Room", () => {
         prNumber: 535,
         headSha: "8ea79d5",
         runId: "run-535",
+        scope: "event-ledger-room-review",
       },
       now: NOW,
     });

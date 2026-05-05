@@ -211,6 +211,7 @@ export function verifySignedAckRecord({
   expectedPrNumber = null,
   expectedHeadSha = "",
   expectedRunId = "",
+  expectedScope = "",
   now = new Date().toISOString(),
   ttlMs = DEFAULT_ACK_TTL_MS,
 } = {}) {
@@ -236,6 +237,9 @@ export function verifySignedAckRecord({
   }
   if (expectedRunId && payload.run_id !== compactText(expectedRunId, 160)) {
     return { ok: false, trusted: false, reason: "run_id_mismatch" };
+  }
+  if (expectedScope && payload.scope !== compactText(expectedScope, 300)) {
+    return { ok: false, trusted: false, reason: "scope_mismatch" };
   }
 
   const issuedMs = parseMs(payload.issued_at);
@@ -295,7 +299,7 @@ export function createAckDecisionEvent({ ack, verification, authority = "lane" }
 
   return {
     kind: "review_ack",
-    scope: { type: "pr", id: payload.pr_number },
+    scope: { type: "pr", id: payload.pr_number, ack_scope: payload.scope },
     actor: {
       id: payload.worker_id,
       role: payload.lane,
@@ -314,6 +318,7 @@ export function createAckDecisionEvent({ ack, verification, authority = "lane" }
       ack_id: payload.ack_id,
       run_id: payload.run_id,
       head_sha: payload.head_sha,
+      scope: payload.scope,
       trusted: Boolean(verification?.trusted),
       reason: verification?.reason || "unverified",
     },
@@ -335,6 +340,7 @@ export function evaluateWorkerRegistryRoom({
       expectedPrNumber: expected.prNumber ?? expected.pr_number ?? null,
       expectedHeadSha: expected.headSha || expected.head_sha || "",
       expectedRunId: expected.runId || expected.run_id || "",
+      expectedScope: expected.scope || expected.expectedScope || expected.expected_scope || "",
       now,
       ttlMs: expected.ttlMs ?? expected.ttl_ms ?? DEFAULT_ACK_TTL_MS,
     })
