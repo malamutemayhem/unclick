@@ -20,6 +20,19 @@ Read this before summarizing UnClick, routing UnClick work, or correcting anothe
 - **Worker Registry** is verified worker identity and signed ACK authority.
 - **ACK Ledger** is trusted PASS, BLOCKER, and HOLD evidence.
 
+## Visibility Warning
+
+UnClick Autopilot may not appear in public search, the public website, or the current tool catalog yet.
+
+Do not conclude "UnClick Autopilot does not exist" just because:
+
+- public web search returns no result
+- `unclick.world` does not mention it yet
+- the MCP tool catalog has no tool named `autopilot`
+- older memory only mentions Crews, Build, or Pass-era names
+
+Autopilot is current internal product and operating-system context for the development assembly line. Public naming, tool exposure, and website copy may lag behind internal work.
+
 ## Current Hierarchy
 
 ```text
@@ -80,6 +93,12 @@ I have connector-level context only. I need to load UnClick memory, the context 
 ```
 
 Do not infer the product map from public search results, one failed run, or old memory names.
+
+If public sources do not mention Autopilot, say:
+
+```text
+I do not see public Autopilot docs yet, but the canonical UnClick context says Autopilot is the current internal development assembly line above XPass.
+```
 
 ## Startup Ritual For Workers
 
