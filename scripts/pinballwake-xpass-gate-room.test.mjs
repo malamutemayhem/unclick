@@ -100,6 +100,25 @@ describe("PinballWake XPass Gate Room", () => {
     assert.deepEqual(result.receipt.action_needed, []);
   });
 
+  it("blocks unscoped receipts that do not name the target head", () => {
+    const result = evaluateXPassGate({
+      mode: "enforce",
+      target: { type: "pr", id: 547, sha: "abc123" },
+      changed_files: ["src/pages/admin/You.tsx"],
+      pass_results: [
+        { check: "UXPass", status: "passed", run_id: "ux-1" },
+        { check: "QualityPass", status: "passed", run_id: "quality-1", target_sha: "abc123" },
+      ],
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.result, "blocker");
+    assert.equal(result.reason, "unscoped_pass_result");
+    assert.deepEqual(result.unscoped_checks, ["uxpass"]);
+    assert.deepEqual(result.receipt.staleness.unscoped_checks, ["uxpass"]);
+    assert.match(result.receipt.action_needed.join("\n"), /UXPass receipt is missing target scope/);
+  });
+
   it("blocks stale receipts that were generated for another head", () => {
     const result = evaluateXPassGate({
       mode: "advisory",

@@ -283,6 +283,10 @@ function isStaleForTarget(result, inspectedTarget) {
   return Boolean(result?.target_sha && inspectedTarget?.sha && result.target_sha !== inspectedTarget.sha);
 }
 
+function isUnscopedForTarget(result, inspectedTarget) {
+  return Boolean(result && inspectedTarget?.sha && !result.target_sha);
+}
+
 function makeReceipt({
   inspectedTarget,
   selected,
@@ -290,6 +294,7 @@ function makeReceipt({
   missing,
   blockers,
   stale,
+  unscoped,
   skipped,
   now,
 }) {
@@ -316,9 +321,11 @@ function makeReceipt({
       ...missing.map((check) => `Run ${CHECK_LABELS[check] || check}.`),
       ...blockers.map((result) => `${result.name} returned ${result.status}.`),
       ...stale.map((result) => `${result.name} receipt is stale for this target.`),
+      ...unscoped.map((result) => `${result.name} receipt is missing target scope for this target.`),
     ],
     staleness: {
       stale_checks: stale.map((result) => result.check),
+      unscoped_checks: unscoped.map((result) => result.check),
       target_sha: inspectedTarget.sha || null,
     },
   };
@@ -340,6 +347,7 @@ export function evaluateXPassGate(input = {}) {
   const provided = [];
   const blockers = [];
   const stale = [];
+  const unscoped = [];
 
   for (const selectedCheck of selectedChecks) {
     if (hasAvailability && !available.has(selectedCheck)) {
@@ -361,6 +369,7 @@ export function evaluateXPassGate(input = {}) {
     if (result.status === "blocker") blockers.push(result);
     if (result.status === "missing") missing.push(selectedCheck);
     if (isStaleForTarget(result, inspectedTarget)) stale.push(result);
+    if (isUnscopedForTarget(result, inspectedTarget)) unscoped.push(result);
     if (result.status === "skipped") {
       skipped.push({
         check: selectedCheck,
@@ -377,11 +386,12 @@ export function evaluateXPassGate(input = {}) {
     missing: uniq(missing),
     blockers,
     stale,
+    unscoped,
     skipped,
     now,
   });
 
-  const hardIssues = blockers.length + stale.length;
+  const hardIssues = blockers.length + stale.length + unscoped.length;
   const missingCount = uniq(missing).length;
   const issueCount = hardIssues + missingCount;
   const ok = enforce ? issueCount === 0 : hardIssues === 0;
@@ -406,12 +416,15 @@ export function evaluateXPassGate(input = {}) {
           ? "missing_relevant_pass_results"
           : blockers.length
             ? "pass_result_blocker"
-            : "stale_pass_result",
+            : stale.length
+              ? "stale_pass_result"
+              : "unscoped_pass_result",
     target: inspectedTarget,
     selected_checks: selected,
     missing_checks: uniq(missing),
     blocked_checks: blockers.map((result) => result.check),
     stale_checks: stale.map((result) => result.check),
+    unscoped_checks: unscoped.map((result) => result.check),
     skipped_checks: skipped,
     receipt,
   };
