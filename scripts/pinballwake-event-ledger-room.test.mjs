@@ -8,6 +8,7 @@ import {
   appendEventLedgerEvent,
   createEventLedger,
   createTrustedReviewAckEvent,
+  loadEventLedger,
   readEventLedger,
   summarizeCommandControlScope,
   summarizeEventLedgerScope,
@@ -191,6 +192,40 @@ describe("PinballWake Event Ledger Room", () => {
     assert.equal(event.trust.trusted, false);
     assert.equal(event.trust.reason, "lane_actor_reviewer_mismatch");
     assert.equal(summary.result, "missing_ack");
+  });
+
+  it("does not trust non-lane authority as direct reviewer ACK evidence", () => {
+    let ledger = createEventLedger();
+    ledger = append(ledger, reviewAck({
+      reviewer: "gatekeeper",
+      actorId: "master",
+      actorRole: "master",
+      authority: "master",
+    }));
+
+    const event = ledger.events[0];
+    const summary = summarizeEventLedgerScope({
+      ledger,
+      scope: { type: "pr", id: 532 },
+      requiredReviewers: ["gatekeeper"],
+    });
+
+    assert.equal(event.trust.trusted, false);
+    assert.equal(event.trust.reason, "untrusted_review_authority");
+    assert.equal(summary.result, "missing_ack");
+  });
+
+  it("does not re-sign tampered history when loading an existing ledger", () => {
+    let ledger = createEventLedger();
+    ledger = append(ledger, reviewAck({ reviewer: "gatekeeper" }));
+    const tampered = JSON.parse(JSON.stringify(ledger));
+    tampered.events[0].payload.verdict = "BLOCKER";
+
+    const loaded = loadEventLedger(tampered);
+    const validation = validateEventLedger(loaded);
+
+    assert.equal(validation.ok, false);
+    assert.equal(validation.broken[0].reason, "event_hash_mismatch");
   });
 
   it("lets a newer lane PASS clear an older lane blocker for the same reviewer", () => {

@@ -24,7 +24,7 @@ const AUTHORITY_RANK = {
   system: 100,
 };
 
-const TRUSTED_REVIEW_AUTHORITIES = new Set(["lane", "room", "master", "system"]);
+const TRUSTED_REVIEW_AUTHORITIES = new Set(["lane"]);
 const COMMAND_AUTHORITIES = new Set(["master", "system"]);
 
 function getArg(name, fallback = "") {
@@ -141,7 +141,10 @@ function eventTrust(event = {}) {
     if (!TRUSTED_REVIEW_AUTHORITIES.has(authority)) {
       return { trusted: false, reason: "untrusted_review_authority", authority };
     }
-    if (authority === "lane" && actor.role && actor.role !== reviewer) {
+    if (!actor.role) {
+      return { trusted: false, reason: "missing_lane_actor_role", authority };
+    }
+    if (actor.role !== reviewer) {
       return { trusted: false, reason: "lane_actor_reviewer_mismatch", authority };
     }
   }
@@ -179,6 +182,16 @@ export function createEventLedger(input = {}) {
       previousHash: safeList(input.events)[index - 1]?.hash || null,
       sequence: index + 1,
     })),
+  };
+}
+
+export function loadEventLedger(input = {}) {
+  if (!input || typeof input !== "object") return createEventLedger();
+  return {
+    version: input.version || LEDGER_VERSION,
+    created_at: input.createdAt || input.created_at || new Date().toISOString(),
+    updated_at: input.updatedAt || input.updated_at || input.createdAt || input.created_at || new Date().toISOString(),
+    events: safeList(input.events),
   };
 }
 
@@ -406,7 +419,7 @@ export function createTrustedReviewAckEvent({
 export async function readEventLedger(filePath) {
   if (!filePath) return createEventLedger();
   try {
-    return JSON.parse(await readFile(filePath, "utf8"));
+    return loadEventLedger(JSON.parse(await readFile(filePath, "utf8")));
   } catch (error) {
     if (error?.code === "ENOENT") return createEventLedger();
     throw error;
@@ -430,7 +443,7 @@ export async function readEventLedgerRoomInput(filePath) {
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"))) {
   readEventLedgerRoomInput(getArg("input", process.env.PINBALLWAKE_EVENT_LEDGER_INPUT || ""))
     .then((input) => {
-      const ledger = createEventLedger(input.ledger || {});
+      const ledger = input.ledger ? loadEventLedger(input.ledger) : createEventLedger();
       const withEvents = safeList(input.append).reduce(
         (current, event) => appendEventLedgerEvent({ ledger: current, event, now: input.now }),
         ledger,
