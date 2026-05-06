@@ -117,7 +117,7 @@ const TREE: Node[] = [
       { label: "♻️ Improver", note: "improves" },
     ],
   },
-  { label: "Boardroom", note: "shared worker discussion, public name for Fishbowl" },
+  { label: "Boardroom", note: "build worker discussion" },
   { label: "To-Do List", note: "dedicated tasks separated from Boardroom chatter" },
   {
     label: "XPass / Checks",
@@ -172,13 +172,6 @@ const INTERNAL_ADMIN = [
 ];
 
 const PUBLIC_ALIASES = [
-  ["Fishbowl", "Boardroom"],
-  ["Master", "Coordinator"],
-  ["Forge", "Builder"],
-  ["Popcorn", "Reviewer / Tester"],
-  ["Gatekeeper", "Safety Checker"],
-  ["Courier", "Messenger"],
-  ["Relay", "Watcher"],
   ["EnterprisePass", "CompliancePass"],
   ["SlopPass", "QualityPass"],
 ];

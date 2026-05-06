@@ -1,11 +1,11 @@
 /**
- * Fishbowl Watcher (B1) - Vercel cron, every 15 minutes.
+ * Boardroom Watcher (B1) - Vercel cron, every 15 minutes.
  *
  * Two responsibilities:
  *   1. Dead-man's-switch: agents whose next_checkin_at has passed without a
  *      fresh pulse get a single mc_signals row per missed window so the human
  *      gets nudged via existing Signals delivery.
- *   2. Unread mention digest: if a tenant has unread fishbowl signals at
+ *   2. Unread mention digest: if a tenant has unread Boardroom signals at
  *      severity action_needed older than 10 minutes, emit a digest signal so
  *      the human gets a second nudge if the original push was dismissed.
  *   3. Stale status cleanup: clear old Now Playing text after 30 minutes so
@@ -381,7 +381,7 @@ async function listProfilesForTenant(
   return (data ?? []) as ProfileRow[];
 }
 
-async function ensureDefaultFishbowlRoomId(
+async function ensureDefaultBoardroomRoomId(
   supabase: ReturnType<typeof createClient>,
   apiKeyHash: string,
 ): Promise<string | null> {
@@ -399,7 +399,7 @@ async function ensureDefaultFishbowlRoomId(
 
   const { data: newRoom, error: roomErr } = await supabase
     .from("mc_fishbowl_rooms")
-    .insert({ api_key_hash: apiKeyHash, slug: "default", name: "Fishbowl" })
+    .insert({ api_key_hash: apiKeyHash, slug: "default", name: "Boardroom" })
     .select("id")
     .single();
   if (roomErr) {
@@ -415,7 +415,7 @@ async function postWakepassRerouteMessage(
   plan: WakepassReroutePlan,
   nowIso: string,
 ): Promise<void> {
-  const roomId = await ensureDefaultFishbowlRoomId(supabase, row.api_key_hash);
+  const roomId = await ensureDefaultBoardroomRoomId(supabase, row.api_key_hash);
   if (!roomId) return;
 
   const { error } = await supabase.from("mc_fishbowl_messages").insert({
@@ -514,7 +514,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       action: "checkin_missed",
       severity: "action_needed",
       summary,
-      deep_link: "/admin/fishbowl",
+      deep_link: "/admin/boardroom",
       payload: {
         agent_id: profile.agent_id,
         emoji: profile.emoji,
@@ -612,7 +612,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       action: signalToInsert.action,
       severity: signalToInsert.severity,
       summary: signalToInsert.summary,
-      deep_link: "/admin/fishbowl",
+      deep_link: "/admin/boardroom",
       payload: signalToInsert.payload,
     });
     if (!shouldMarkDispatchStaleAfterReclaimSignalInsert(signalErr)) {
@@ -683,14 +683,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if ((recentDigest ?? []).length > 0) continue;
 
-    const summary = `📬 ${count} unread fishbowl mention${count === 1 ? "" : "s"} to you`;
+    const summary = `📬 ${count} unread Boardroom mention${count === 1 ? "" : "s"} to you`;
     const { error: digestErr } = await supabase.from("mc_signals").insert({
       api_key_hash: apiKeyHash,
       tool: "fishbowl",
       action: "mention_digest",
       severity: "action_needed",
       summary,
-      deep_link: "/admin/fishbowl",
+      deep_link: "/admin/boardroom",
       payload: { unread_count: count },
     });
     if (digestErr) {
