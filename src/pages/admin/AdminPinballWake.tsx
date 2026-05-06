@@ -292,10 +292,10 @@ export default function AdminPinballWake() {
           </div>
         </div>
         <a
-          href="/admin/fishbowl"
+          href="/admin/boardroom"
           className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm font-medium text-white/65 transition-colors hover:bg-white/[0.06] hover:text-white"
         >
-          Fishbowl
+          Boardroom
           <ExternalLink className="h-3.5 w-3.5" />
         </a>
       </div>

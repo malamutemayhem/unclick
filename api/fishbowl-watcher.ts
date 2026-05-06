@@ -1,11 +1,11 @@
 /**
- * Fishbowl Watcher (B1) - Vercel cron, every 15 minutes.
+ * Boardroom Watcher (B1) - Vercel cron, every 15 minutes.
  *
  * Two responsibilities:
  *   1. Dead-man's-switch: agents whose next_checkin_at has passed without a
  *      fresh pulse get a single mc_signals row per missed window so the human
  *      gets nudged via existing Signals delivery.
- *   2. Unread mention digest: if a tenant has unread fishbowl signals at
+ *   2. Unread mention digest: if a tenant has unread Boardroom signals at
  *      severity action_needed older than 10 minutes, emit a digest signal so
  *      the human gets a second nudge if the original push was dismissed.
  *   3. Stale status cleanup: clear old Now Playing text after 30 minutes so
@@ -254,7 +254,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       action: "checkin_missed",
       severity: "action_needed",
       summary,
-      deep_link: "/admin/fishbowl",
+      deep_link: "/admin/boardroom",
       payload: {
         agent_id: profile.agent_id,
         emoji: profile.emoji,
@@ -303,7 +303,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       action: signal.action,
       severity: signal.action === "handoff_ack_missing" ? "action_needed" : "info",
       summary: signal.summary,
-      deep_link: "/admin/fishbowl",
+      deep_link: "/admin/boardroom",
       payload: signal.payload,
     });
     if (!shouldMarkDispatchStaleAfterReclaimSignalInsert(signalErr)) {
@@ -374,14 +374,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if ((recentDigest ?? []).length > 0) continue;
 
-    const summary = `📬 ${count} unread fishbowl mention${count === 1 ? "" : "s"} to you`;
+    const summary = `📬 ${count} unread Boardroom mention${count === 1 ? "" : "s"} to you`;
     const { error: digestErr } = await supabase.from("mc_signals").insert({
       api_key_hash: apiKeyHash,
       tool: "fishbowl",
       action: "mention_digest",
       severity: "action_needed",
       summary,
-      deep_link: "/admin/fishbowl",
+      deep_link: "/admin/boardroom",
       payload: { unread_count: count },
     });
     if (digestErr) {

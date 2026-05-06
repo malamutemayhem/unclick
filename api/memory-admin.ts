@@ -651,7 +651,7 @@ async function postFishbowlEvent(
     if (!roomId) {
       const { data: newRoom } = await supabase
         .from("mc_fishbowl_rooms")
-        .insert({ api_key_hash: apiKeyHash, slug: "default", name: "Fishbowl" })
+        .insert({ api_key_hash: apiKeyHash, slug: "default", name: "Boardroom" })
         .select("id")
         .single();
       roomId = newRoom?.id;
@@ -7096,7 +7096,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!roomId) {
           const { data: newRoom, error: roomErr } = await supabase
             .from("mc_fishbowl_rooms")
-            .insert({ api_key_hash: apiKeyHash, slug: "default", name: "Fishbowl" })
+            .insert({ api_key_hash: apiKeyHash, slug: "default", name: "Boardroom" })
             .select("id")
             .single();
           if (roomErr) throw roomErr;
@@ -7232,7 +7232,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               action: "message_posted",
               severity,
               summary,
-              deep_link: `/admin/fishbowl#msg-${inserted.id}`,
+              deep_link: `/admin/boardroom#msg-${inserted.id}`,
               payload: {
                 author_emoji: inserted.author_emoji,
                 author_agent_id: inserted.author_agent_id,
@@ -8063,7 +8063,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (!isAdminCaller && netUp < 1) {
             return res.status(403).json({
               error: "idea needs net upvotes >= 1 (or admin caller) to promote",
-              how_to_fix: "Vote it up first, or have the human admin promote it from the Fishbowl admin UI.",
+              how_to_fix: "Vote it up first, or have the human admin promote it from the Boardroom admin UI.",
             });
           }
 
