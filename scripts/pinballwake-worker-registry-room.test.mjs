@@ -16,43 +16,43 @@ function registryFixture(overrides = {}) {
   return createWorkerRegistry({
     workers: [
       {
-        worker_id: "gatekeeper-1",
-        lane: "gatekeeper",
-        seat_id: "lenovo-chatgpt-gatekeeper",
+        worker_id: "safety-checker-1",
+        lane: "safety-checker",
+        seat_id: "lenovo-chatgpt-safety-checker",
         provider: "chatgpt",
         machine: "lenovo",
         status: "available",
         capabilities: ["release_safety"],
-        signing_key_id: "gatekeeper-key-v1",
-        signing_secret: "gatekeeper-secret",
-        ...overrides.gatekeeper,
+        signing_key_id: "safety-checker-key-v1",
+        signing_secret: "safety-checker-secret",
+        ...overrides.safetyChecker,
       },
       {
-        worker_id: "forge-1",
-        lane: "forge",
-        seat_id: "plex-codex-forge",
+        worker_id: "builder-1",
+        lane: "builder",
+        seat_id: "plex-codex-builder",
         provider: "codex",
         machine: "plex",
         status: "available",
         capabilities: ["implementation"],
-        signing_key_id: "forge-key-v1",
-        signing_secret: "forge-secret",
-        ...overrides.forge,
+        signing_key_id: "builder-key-v1",
+        signing_secret: "builder-secret",
+        ...overrides.builder,
       },
     ],
   });
 }
 
-function signGatekeeperAck(registry = registryFixture(), overrides = {}) {
+function signSafetyAck(registry = registryFixture(), overrides = {}) {
   return createSignedAckRecord({
     registry,
-    workerId: "gatekeeper-1",
+    workerId: "safety-checker-1",
     runId: "run-535",
     prNumber: 535,
     headSha: "8ea79d5",
     scope: "event-ledger-room-review",
     verdict: "PASS",
-    evidenceUrl: "https://github.com/example/pr/535#gatekeeper-pass",
+    evidenceUrl: "https://github.com/example/pr/535#safety-checker-pass",
     issuedAt: ISSUED_AT,
     ...overrides,
   });
@@ -64,13 +64,13 @@ describe("PinballWake Worker Registry Room", () => {
 
     assert.equal(registry.version, 1);
     assert.equal(registry.workers.length, 2);
-    assert.equal(registry.workers[0].lane, "gatekeeper");
-    assert.equal(registry.workers[0].seat_id, "lenovo-chatgpt-gatekeeper");
+    assert.equal(registry.workers[0].lane, "safety-checker");
+    assert.equal(registry.workers[0].seat_id, "lenovo-chatgpt-safety-checker");
   });
 
   it("creates and verifies a signed lane ACK", () => {
     const registry = registryFixture();
-    const signed = signGatekeeperAck(registry);
+    const signed = signSafetyAck(registry);
 
     assert.equal(signed.ok, true);
     assert.match(signed.ack.signature, /^[a-f0-9]{64}$/);
@@ -78,7 +78,7 @@ describe("PinballWake Worker Registry Room", () => {
     const verification = verifySignedAckRecord({
       registry,
       ack: signed.ack,
-      expectedLane: "gatekeeper",
+      expectedLane: "safety-checker",
       expectedPrNumber: 535,
       expectedHeadSha: "8ea79d5",
       expectedRunId: "run-535",
@@ -94,8 +94,8 @@ describe("PinballWake Worker Registry Room", () => {
     const registry = registryFixture();
     const fakeAck = {
       ack_id: "ack:fake",
-      lane: "gatekeeper",
-      worker_id: "gatekeeper-1",
+      lane: "safety-checker",
+      worker_id: "safety-checker-1",
       run_id: "run-535",
       pr_number: 535,
       head_sha: "8ea79d5",
@@ -108,7 +108,7 @@ describe("PinballWake Worker Registry Room", () => {
     const verification = verifySignedAckRecord({
       registry,
       ack: fakeAck,
-      expectedLane: "gatekeeper",
+      expectedLane: "safety-checker",
       expectedPrNumber: 535,
       expectedHeadSha: "8ea79d5",
       now: NOW,
@@ -120,12 +120,12 @@ describe("PinballWake Worker Registry Room", () => {
 
   it("rejects ACKs replayed against a different PR", () => {
     const registry = registryFixture();
-    const signed = signGatekeeperAck(registry);
+    const signed = signSafetyAck(registry);
 
     const verification = verifySignedAckRecord({
       registry,
       ack: signed.ack,
-      expectedLane: "gatekeeper",
+      expectedLane: "safety-checker",
       expectedPrNumber: 536,
       expectedHeadSha: "8ea79d5",
       now: NOW,
@@ -137,12 +137,12 @@ describe("PinballWake Worker Registry Room", () => {
 
   it("rejects ACKs replayed against a different head SHA", () => {
     const registry = registryFixture();
-    const signed = signGatekeeperAck(registry);
+    const signed = signSafetyAck(registry);
 
     const verification = verifySignedAckRecord({
       registry,
       ack: signed.ack,
-      expectedLane: "gatekeeper",
+      expectedLane: "safety-checker",
       expectedPrNumber: 535,
       expectedHeadSha: "different",
       now: NOW,
@@ -154,7 +154,7 @@ describe("PinballWake Worker Registry Room", () => {
 
   it("rejects ACKs replayed against a different review scope", () => {
     const registry = registryFixture();
-    const signed = signGatekeeperAck(registry, {
+    const signed = signSafetyAck(registry, {
       prNumber: 536,
       headSha: "4ec3745",
       scope: "event-ledger-room-review",
@@ -163,7 +163,7 @@ describe("PinballWake Worker Registry Room", () => {
     const verification = verifySignedAckRecord({
       registry,
       ack: signed.ack,
-      expectedLane: "gatekeeper",
+      expectedLane: "safety-checker",
       expectedPrNumber: 536,
       expectedHeadSha: "4ec3745",
       expectedScope: "worker-registry-room-review",
@@ -181,14 +181,14 @@ describe("PinballWake Worker Registry Room", () => {
 
   it("rejects stale ACKs outside the configured TTL", () => {
     const registry = registryFixture();
-    const signed = signGatekeeperAck(registry, {
+    const signed = signSafetyAck(registry, {
       issuedAt: "2026-05-05T00:00:00.000Z",
     });
 
     const verification = verifySignedAckRecord({
       registry,
       ack: signed.ack,
-      expectedLane: "gatekeeper",
+      expectedLane: "safety-checker",
       expectedPrNumber: 535,
       expectedHeadSha: "8ea79d5",
       now: NOW,
@@ -201,15 +201,15 @@ describe("PinballWake Worker Registry Room", () => {
 
   it("rejects ACKs from revoked workers", () => {
     const registry = registryFixture();
-    const signed = signGatekeeperAck(registry);
+    const signed = signSafetyAck(registry);
     const revokedRegistry = registryFixture({
-      gatekeeper: { revoked_at: "2026-05-05T01:58:00.000Z" },
+      safetyChecker: { revoked_at: "2026-05-05T01:58:00.000Z" },
     });
 
     const verification = verifySignedAckRecord({
       registry: revokedRegistry,
       ack: signed.ack,
-      expectedLane: "gatekeeper",
+      expectedLane: "safety-checker",
       expectedPrNumber: 535,
       expectedHeadSha: "8ea79d5",
       now: NOW,
@@ -221,15 +221,15 @@ describe("PinballWake Worker Registry Room", () => {
 
   it("rejects ACKs where the worker belongs to a different lane", () => {
     const registry = registryFixture();
-    const signed = signGatekeeperAck(registry);
+    const signed = signSafetyAck(registry);
     const movedRegistry = registryFixture({
-      gatekeeper: { lane: "forge" },
+      safetyChecker: { lane: "builder" },
     });
 
     const verification = verifySignedAckRecord({
       registry: movedRegistry,
       ack: signed.ack,
-      expectedLane: "gatekeeper",
+      expectedLane: "safety-checker",
       expectedPrNumber: 535,
       expectedHeadSha: "8ea79d5",
       now: NOW,
@@ -241,11 +241,11 @@ describe("PinballWake Worker Registry Room", () => {
 
   it("emits a trusted event only after signature verification passes", () => {
     const registry = registryFixture();
-    const signed = signGatekeeperAck(registry);
+    const signed = signSafetyAck(registry);
     const verification = verifySignedAckRecord({
       registry,
       ack: signed.ack,
-      expectedLane: "gatekeeper",
+      expectedLane: "safety-checker",
       expectedPrNumber: 535,
       expectedHeadSha: "8ea79d5",
       now: NOW,
@@ -254,19 +254,19 @@ describe("PinballWake Worker Registry Room", () => {
     const event = createAckDecisionEvent({ ack: signed.ack, verification });
 
     assert.equal(event.authority, "lane");
-    assert.equal(event.actor.role, "gatekeeper");
+    assert.equal(event.actor.role, "safety-checker");
     assert.equal(event.payload.trusted, true);
     assert.equal(event.payload.verdict, "PASS");
   });
 
   it("emits observer-only events for failed verification", () => {
     const registry = registryFixture();
-    const signed = signGatekeeperAck(registry);
+    const signed = signSafetyAck(registry);
     const badAck = { ...signed.ack, signature: "00".repeat(32) };
     const verification = verifySignedAckRecord({
       registry,
       ack: badAck,
-      expectedLane: "gatekeeper",
+      expectedLane: "safety-checker",
       expectedPrNumber: 535,
       expectedHeadSha: "8ea79d5",
       now: NOW,
@@ -281,13 +281,13 @@ describe("PinballWake Worker Registry Room", () => {
 
   it("evaluates registry ACK verification as a room result", () => {
     const registry = registryFixture();
-    const signed = signGatekeeperAck(registry);
+    const signed = signSafetyAck(registry);
 
     const result = evaluateWorkerRegistryRoom({
       registry,
       ack: signed.ack,
       expected: {
-        lane: "gatekeeper",
+        lane: "safety-checker",
         prNumber: 535,
         headSha: "8ea79d5",
         runId: "run-535",

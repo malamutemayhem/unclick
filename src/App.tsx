@@ -193,8 +193,8 @@ const App = () => (
             <Route path="brainmap"       element={<RequireAdmin><BrainMap /></RequireAdmin>} />
             <Route path="signals"          element={<SignalsCatalog />} />
             <Route path="signals/settings" element={<SignalsSettings />} />
-            <Route path="fishbowl"         element={<Fishbowl />} />
-            <Route path="boardroom"        element={<Navigate to="/admin/fishbowl" replace />} />
+            <Route path="boardroom"        element={<Fishbowl />} />
+            <Route path="fishbowl"         element={<Navigate to="/admin/boardroom" replace />} />
           </Route>
           {/* Phase 2 auth surface */}
           <Route path="/login" element={<LoginPage />} />

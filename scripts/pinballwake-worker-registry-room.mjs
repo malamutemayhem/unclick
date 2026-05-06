@@ -8,21 +8,37 @@ const ACK_VERSION = 1;
 const DEFAULT_ACK_TTL_MS = 60 * 60 * 1000;
 
 const VALID_LANES = new Set([
-  "master",
-  "forge",
-  "gatekeeper",
-  "popcorn",
-  "courier",
-  "relay",
-  "navigator",
-  "xpass",
-  "bailey",
-  "plex-builder",
+  "coordinator",
+  "builder",
+  "tester",
+  "reviewer",
+  "safety-checker",
+  "researcher",
+  "planner",
+  "messenger",
+  "watcher",
+  "publisher",
+  "repairer",
+  "improver",
   "loop",
 ]);
 
 const VALID_ACK_VERDICTS = new Set(["PASS", "BLOCKER", "HOLD", "COMMENT"]);
-const TRUSTED_SIGNING_AUTHORITIES = new Set(["lane", "master", "system"]);
+const TRUSTED_SIGNING_AUTHORITIES = new Set(["lane", "coordinator", "system"]);
+const LEGACY_LANE_ALIASES = new Map([
+  ["master", "coordinator"],
+  ["🐺", "coordinator"],
+  ["forge", "builder"],
+  ["gatekeeper", "safety-checker"],
+  ["popcorn", "reviewer"],
+  ["🍿", "reviewer"],
+  ["courier", "messenger"],
+  ["relay", "watcher"],
+  ["navigator", "planner"],
+  ["xpass", "tester"],
+  ["bailey", "builder"],
+  ["plex-builder", "builder"],
+]);
 
 function getArg(name, fallback = "") {
   const prefix = `--${name}=`;
@@ -36,6 +52,11 @@ function safeList(value) {
 
 function normalize(value) {
   return String(value ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function normalizeLane(value) {
+  const lane = normalize(value);
+  return LEGACY_LANE_ALIASES.get(lane) ?? lane;
 }
 
 function compactText(value, max = 500) {
@@ -77,7 +98,7 @@ function uniq(values) {
 }
 
 function normalizeWorker(input = {}) {
-  const lane = normalize(input.lane || input.role || input.worker);
+  const lane = normalizeLane(input.lane || input.role || input.worker);
   const workerId = compactText(input.worker_id || input.workerId || input.id || lane, 120);
   return {
     worker_id: workerId,
@@ -116,7 +137,7 @@ function ackSigningPayload(input = {}) {
   return {
     version: ACK_VERSION,
     ack_id: compactText(input.ack_id || input.ackId || "", 160),
-    lane: normalize(input.lane),
+    lane: normalizeLane(input.lane),
     worker_id: compactText(input.worker_id || input.workerId || "", 120),
     seat_id: compactText(input.seat_id || input.seatId || "", 120),
     run_id: compactText(input.run_id || input.runId || "", 160),
@@ -226,7 +247,7 @@ export function verifySignedAckRecord({
   if (!VALID_ACK_VERDICTS.has(payload.verdict)) {
     return { ok: false, trusted: false, reason: "invalid_verdict" };
   }
-  if (expectedLane && payload.lane !== normalize(expectedLane)) {
+  if (expectedLane && payload.lane !== normalizeLane(expectedLane)) {
     return { ok: false, trusted: false, reason: "lane_mismatch" };
   }
   if (expectedPrNumber !== null && Number(payload.pr_number) !== Number(expectedPrNumber)) {
@@ -292,7 +313,7 @@ export function verifySignedAckRecord({
 
 export function createAckDecisionEvent({ ack, verification, authority = "lane" } = {}) {
   const payload = ackSigningPayload(ack || {});
-  const normalizedAuthority = normalize(authority || "lane");
+  const normalizedAuthority = normalizeLane(authority || "lane");
   const trustedAuthority = TRUSTED_SIGNING_AUTHORITIES.has(normalizedAuthority)
     ? normalizedAuthority
     : "observer";

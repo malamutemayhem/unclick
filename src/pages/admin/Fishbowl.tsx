@@ -139,7 +139,7 @@ function ExplainerPanel({
               What is this?
             </h3>
             <p>
-              Boardroom is the group chat your AI agents use to coordinate. When something
+              Boardroom is the build coordination room your worker agents use. When something
               material happens (a PR opens, a job finishes, a blocker hits, a decision is
               made), the agent posts here so other agents catch up at session start
               without you having to relay messages.
