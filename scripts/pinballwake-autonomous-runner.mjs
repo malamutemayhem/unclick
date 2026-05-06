@@ -246,6 +246,18 @@ export function runAutonomousRunnerCycle({
     };
   }
 
+  if (safeMode === "execute" && !safePolicy.allowExecute) {
+    return {
+      ok: true,
+      action: "blocked",
+      mode: safeMode,
+      reason: "execute_mode_disabled",
+      runner: safeRunner.id,
+      ledger: createCodingRoomJobLedger({ jobs: ledger?.jobs || [], updatedAt: ledger?.updated_at || now }),
+      safety_blocked: [],
+    };
+  }
+
   const hardened = markUnsafeJobsBlockedForAutonomousRunner({
     ledger,
     allowProtectedSurfaces: safePolicy.allowProtectedSurfaces,
@@ -254,18 +266,6 @@ export function runAutonomousRunnerCycle({
 
   if (!hardened.ok) {
     return hardened;
-  }
-
-  if (safeMode === "execute" && !safePolicy.allowExecute) {
-    return {
-      ok: true,
-      action: "blocked",
-      mode: safeMode,
-      reason: "execute_mode_disabled",
-      runner: safeRunner.id,
-      ledger: hardened.ledger,
-      safety_blocked: hardened.blocked,
-    };
   }
 
   const claim = runCodingRoomRunnerCycle({
@@ -318,7 +318,8 @@ export async function runAutonomousRunnerFile({
     }
   }
 
-  const shouldPersist = safeMode !== "dry-run" && !safePolicy.disabled;
+  const executeBlocked = safeMode === "execute" && !safePolicy.allowExecute;
+  const shouldPersist = safeMode !== "dry-run" && !safePolicy.disabled && !executeBlocked;
   if (shouldPersist) {
     await writeCodingRoomJobLedger(ledgerPath, ledger);
   }

@@ -164,6 +164,32 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(result.ledger.jobs[0].status, "queued");
   });
 
+  it("does not persist blocked execute-mode invocations", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger({ jobs: [safeJob()] }));
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "execute",
+        now: "2026-05-06T03:00:00.000Z",
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(result.action, "blocked");
+      assert.equal(result.reason, "execute_mode_disabled");
+      assert.equal(result.persisted, false);
+
+      const persisted = JSON.parse(await readFile(ledgerPath, "utf8"));
+      assert.equal(persisted.jobs[0].status, "queued");
+      assert.equal(persisted.jobs[0].claimed_by, null);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("can block unsafe queued jobs without protected-surface exemptions", () => {
     const result = markUnsafeJobsBlockedForAutonomousRunner({
       ledger: createCodingRoomJobLedger({
@@ -181,5 +207,17 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(result.ok, true);
     assert.equal(result.blocked.length, 1);
     assert.equal(result.ledger.jobs[0].status, "blocked");
+  });
+
+  it("wires the scheduled workflow to dry-run by default with execute locked off", async () => {
+    const workflow = await readFile(".github/workflows/autonomous-runner.yml", "utf8");
+
+    assert.match(workflow, /cron:\s*"3,13,23,33,43,53 \* \* \* \*"/);
+    assert.match(workflow, /node scripts\/pinballwake-autonomous-runner\.mjs/);
+    assert.match(workflow, /AUTONOMOUS_RUNNER_MODE:.*'dry-run'/);
+    assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOW_EXECUTE:\s*"false"/);
+    assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES:\s*"false"/);
+    assert.match(workflow, /kill_switch:/);
+    assert.doesNotMatch(workflow, /^\s+- execute$/m);
   });
 });
