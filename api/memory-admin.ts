@@ -34,7 +34,7 @@
  * Build Desk admin actions (Bearer <api_key>, tenant-scoped by sha256hex):
  *   - admin_build_tasks: method=list|get|create|update_status|soft_delete
  *   - admin_build_workers: method=list|register|update|delete|health_check
- *   - admin_build_dispatch: POST with task_id + worker_id (same tenant)
+ *   - admin_build_dispatch: POST with task_id + worker_id (same tenant) and optional idempotency_key
  *   - reliability_dispatches: method=list|get|upsert|claim|release
  *   - reliability_heartbeats: method=list|publish
  *   - reliability_reclaim_stale: POST with optional { limit, dry_run }
@@ -102,6 +102,11 @@ import {
   decorateThroughputDispatch,
   shouldIncludeThroughputMetrics,
 } from "./lib/throughput-observability.js";
+import {
+  attachBuildDeskIdempotencyKey,
+  findBuildDeskRowByIdempotencyKey,
+  parseBuildDeskIdempotencyKey,
+} from "./lib/build-desk-idempotency.js";
 import {
   buildFishbowlMessageHandoffDispatchRow,
   planFishbowlMessageHandoffs,
@@ -1360,10 +1365,33 @@ function buildAdminChatTools(supabase: SupabaseClient, apiKeyHash: string | null
           .array(z.string())
           .optional()
           .describe("Concrete checklist items defining done"),
+        idempotency_key: z
+          .string()
+          .optional()
+          .describe("Optional retry key. Reusing it returns the existing build task instead of creating a duplicate."),
       }),
-      execute: async ({ title, description, acceptance_criteria }) => {
+      execute: async ({ title, description, acceptance_criteria, idempotency_key }) => {
         const missing = requireKey();
         if (missing) return missing;
+        const parsedIdempotencyKey = parseBuildDeskIdempotencyKey(idempotency_key);
+        if (parsedIdempotencyKey.error) return { success: false, error: parsedIdempotencyKey.error };
+
+        if (parsedIdempotencyKey.value) {
+          const { data: existingTasks, error: existingErr } = await supabase
+            .from("build_tasks")
+            .select("id, title, status, created_at, plan_json")
+            .eq("api_key_hash", apiKeyHash)
+            .order("created_at", { ascending: false })
+            .limit(50);
+          if (existingErr) return { success: false, error: existingErr.message };
+          const existing = findBuildDeskRowByIdempotencyKey(
+            existingTasks ?? [],
+            "plan_json",
+            parsedIdempotencyKey.value,
+          );
+          if (existing) return { success: true, task: existing, was_duplicate: true };
+        }
+
         const { data, error } = await supabase
           .from("build_tasks")
           .insert({
@@ -1371,12 +1399,13 @@ function buildAdminChatTools(supabase: SupabaseClient, apiKeyHash: string | null
             title,
             description,
             acceptance_criteria_json: acceptance_criteria ?? [],
+            plan_json: attachBuildDeskIdempotencyKey(null, parsedIdempotencyKey.value),
             status: "draft",
           })
           .select("id, title, status, created_at")
           .single();
         if (error) return { success: false, error: error.message };
-        return { success: true, task: data };
+        return { success: true, task: data, was_duplicate: false };
       },
     }),
 
@@ -4534,8 +4563,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               acceptance_criteria_json,
               assigned_worker_id,
               parent_task_id,
+              idempotency_key,
             } = req.body ?? {};
             if (!title) return res.status(400).json({ error: "title required" });
+            const parsedIdempotencyKey = parseBuildDeskIdempotencyKey(
+              idempotency_key ?? (isRecord(plan_json) ? plan_json.idempotency_key : undefined),
+            );
+            if (parsedIdempotencyKey.error) {
+              return res.status(400).json({ error: parsedIdempotencyKey.error });
+            }
+
+            if (parsedIdempotencyKey.value) {
+              const { data: existingTasks, error: existingErr } = await supabase
+                .from("build_tasks")
+                .select("*")
+                .eq("api_key_hash", apiKeyHash)
+                .order("created_at", { ascending: false })
+                .limit(50);
+              if (existingErr) throw existingErr;
+              const existing = findBuildDeskRowByIdempotencyKey(
+                existingTasks ?? [],
+                "plan_json",
+                parsedIdempotencyKey.value,
+              );
+              if (existing) return res.status(200).json({ data: existing, was_duplicate: true });
+            }
 
             if (assigned_worker_id) {
               const { data: w, error: wErr } = await supabase
@@ -4565,7 +4617,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 title,
                 description: description ?? null,
                 status: status ?? "draft",
-                plan_json: plan_json ?? null,
+                plan_json: attachBuildDeskIdempotencyKey(plan_json, parsedIdempotencyKey.value),
                 acceptance_criteria_json: acceptance_criteria_json ?? null,
                 assigned_worker_id: assigned_worker_id ?? null,
                 parent_task_id: parent_task_id ?? null,
@@ -4573,7 +4625,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               .select()
               .single();
             if (error) throw error;
-            return res.status(200).json({ data });
+            return res.status(200).json({ data, was_duplicate: false });
           }
           case "update_status": {
             if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
@@ -4720,6 +4772,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!task_id || !worker_id) {
           return res.status(400).json({ error: "task_id and worker_id required" });
         }
+        const parsedIdempotencyKey = parseBuildDeskIdempotencyKey(
+          req.body?.idempotency_key ?? (isRecord(payload_json) ? payload_json.idempotency_key : undefined),
+        );
+        if (parsedIdempotencyKey.error) {
+          return res.status(400).json({ error: parsedIdempotencyKey.error });
+        }
 
         const [taskRes, workerRes] = await Promise.all([
           supabase
@@ -4740,6 +4798,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!taskRes.data) return res.status(404).json({ error: "task_id not found" });
         if (!workerRes.data) return res.status(404).json({ error: "worker_id not found" });
 
+        if (parsedIdempotencyKey.value) {
+          const { data: existingEvents, error: existingErr } = await supabase
+            .from("build_dispatch_events")
+            .select()
+            .eq("api_key_hash", apiKeyHash)
+            .eq("task_id", task_id)
+            .eq("worker_id", worker_id)
+            .eq("event_type", "dispatched")
+            .order("created_at", { ascending: false })
+            .limit(50);
+          if (existingErr) throw existingErr;
+          const existingEvent = findBuildDeskRowByIdempotencyKey(
+            existingEvents ?? [],
+            "payload_json",
+            parsedIdempotencyKey.value,
+          );
+          if (existingEvent) {
+            const { error: updErr } = await supabase
+              .from("build_tasks")
+              .update({
+                status: "dispatched",
+                assigned_worker_id: worker_id,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("api_key_hash", apiKeyHash)
+              .eq("id", task_id);
+            if (updErr) throw updErr;
+            return res.status(200).json({ data: existingEvent, was_duplicate: true });
+          }
+        }
+
         const { data: eventData, error: eventErr } = await supabase
           .from("build_dispatch_events")
           .insert({
@@ -4747,7 +4836,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             task_id,
             worker_id,
             event_type: "dispatched",
-            payload_json: payload_json ?? null,
+            payload_json: attachBuildDeskIdempotencyKey(payload_json, parsedIdempotencyKey.value),
           })
           .select()
           .single();
@@ -4764,7 +4853,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .eq("id", task_id);
         if (updErr) throw updErr;
 
-        return res.status(200).json({ data: eventData });
+        return res.status(200).json({ data: eventData, was_duplicate: false });
       }
 
       case "reliability_dispatches": {
