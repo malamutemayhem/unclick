@@ -10,7 +10,9 @@ import {
   writeCodingRoomJobLedger,
 } from "./pinballwake-coding-room.mjs";
 import {
+  createCodingRoomJobFromBoardroomTodo,
   createAutonomousRunner,
+  fetchUnClickActionableTodos,
   inspectAutonomousRunnerJobSafety,
   markUnsafeJobsBlockedForAutonomousRunner,
   normalizeAutonomousRunnerMode,
@@ -86,6 +88,136 @@ describe("PinballWake autonomous Runner seat", () => {
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  });
+
+  it("imports real UnClick actionable todos before the claim cycle", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const calls = [];
+      const fetchImpl = async (url, init = {}) => {
+        calls.push({ url, init });
+        return {
+          ok: true,
+          async json() {
+            return {
+              jsonrpc: "2.0",
+              id: "test",
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: JSON.stringify({
+                      todos: [
+                        {
+                          id: "b744462e-8e50-4cad-babb-5468adc2a3d9",
+                          title: "Coding Room: live runner with CAS/lock for safe racing",
+                          status: "open",
+                          priority: "urgent",
+                          assigned_to_agent_id: null,
+                          created_at: "2026-05-04T04:41:45.530Z",
+                        },
+                      ],
+                    }),
+                  },
+                ],
+              },
+            };
+          },
+        };
+      };
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "dry-run",
+        queueSource: "unclick",
+        unclickApiKey: "uc_test",
+        unclickMcpUrl: "https://unclick.test/api/mcp",
+        fetchImpl,
+        now: "2026-05-06T03:00:00.000Z",
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(result.action, "claimed");
+      assert.equal(result.persisted, false);
+      assert.equal(result.queue_source.source, "unclick");
+      assert.equal(result.queue_source.seen, 1);
+      assert.equal(result.queue_source.imported, 1);
+      assert.equal(result.job.job_id, "boardroom-todo:b744462e-8e50-4cad-babb-5468adc2a3d9");
+      assert.equal(calls.length, 1);
+      assert.equal(calls[0].url, "https://unclick.test/api/mcp");
+      assert.equal(calls[0].init.headers.authorization, "Bearer uc_test");
+      assert.match(calls[0].init.body, /list_actionable_todos/);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("does not pretend the queue is empty when UnClick queue auth is missing", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "dry-run",
+        queueSource: "unclick",
+        now: "2026-05-06T03:00:00.000Z",
+      });
+
+      assert.equal(result.ok, false);
+      assert.equal(result.action, "blocked");
+      assert.equal(result.reason, "queue_source_unavailable");
+      assert.equal(result.queue_source.reason, "missing_unclick_api_key");
+      assert.equal(result.cycles.length, 0);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("parses UnClick MCP actionable todo responses", async () => {
+    const result = await fetchUnClickActionableTodos({
+      agentId: "runner-test",
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      fetchImpl: async () => ({
+        ok: true,
+        async json() {
+          return {
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({ todos: [{ id: "todo-1", title: "Ship a tiny chip" }] }),
+                },
+              ],
+            },
+          };
+        },
+      }),
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.todos.length, 1);
+    assert.equal(result.todos[0].id, "todo-1");
+  });
+
+  it("marks sensitive Boardroom todos unsafe before autonomous claim", () => {
+    const job = createCodingRoomJobFromBoardroomTodo({
+      id: "security-1",
+      title: "SECURITY: deactivate legacy plaintext api_keys_legacy rows after owner auth",
+      priority: "high",
+      status: "open",
+    });
+
+    const safety = inspectAutonomousRunnerJobSafety(job);
+    assert.equal(safety.ok, false);
+    assert.match(safety.reason, /^protected_surface_(auth|secret)$/);
   });
 
   it("persists claim mode to disk", async () => {
@@ -214,6 +346,8 @@ describe("PinballWake autonomous Runner seat", () => {
 
     assert.match(workflow, /cron:\s*"3,13,23,33,43,53 \* \* \* \*"/);
     assert.match(workflow, /node scripts\/pinballwake-autonomous-runner\.mjs/);
+    assert.match(workflow, /AUTONOMOUS_RUNNER_QUEUE_SOURCE:.*'unclick'/);
+    assert.match(workflow, /UNCLICK_API_KEY:\s*\$\{\{ secrets\.UNCLICK_API_KEY \}\}/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_MODE:.*'dry-run'/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOW_EXECUTE:\s*"false"/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES:\s*"false"/);
