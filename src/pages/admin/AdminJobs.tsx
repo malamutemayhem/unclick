@@ -40,6 +40,10 @@ interface JobTodo {
   completed_at: string | null;
   updated_at: string;
   comment_count?: number;
+  pipeline_stage_count?: number;
+  pipeline_progress?: number;
+  pipeline_source?: string;
+  pipeline_evidence?: string[];
 }
 
 type JobSectionKey = "active" | "next" | "inline" | "done";
@@ -156,6 +160,7 @@ function statusLabel(status: JobTodo["status"]): string {
 }
 
 function progressFor(todo: JobTodo): number {
+  if (Number.isFinite(todo.pipeline_progress)) return Number(todo.pipeline_progress);
   if (todo.status === "done") return 100;
   if (todo.status === "in_progress") return 55;
   if (todo.assigned_to_agent_id) return 25;
@@ -163,6 +168,9 @@ function progressFor(todo: JobTodo): number {
 }
 
 function activeStageCount(todo: JobTodo): number {
+  if (Number.isFinite(todo.pipeline_stage_count)) {
+    return Math.min(Math.max(Number(todo.pipeline_stage_count), 1), STAGES.length);
+  }
   if (todo.status === "done") return STAGES.length;
   if (todo.status === "in_progress") return 2;
   if (todo.assigned_to_agent_id) return 1;
@@ -172,8 +180,9 @@ function activeStageCount(todo: JobTodo): number {
 function StageStrip({ todo }: { todo: JobTodo }) {
   const active = activeStageCount(todo);
   const progress = progressFor(todo);
+  const source = todo.pipeline_source ?? "estimated from todo status";
   return (
-    <div className="flex min-w-[200px] items-center gap-1" aria-label="Assembly line progress">
+    <div className="flex min-w-[200px] items-center gap-1" aria-label="Assembly line progress" title={source}>
       <span className="w-7 shrink-0 text-right text-[10px] font-semibold text-white/55">
         {progress}%
       </span>
