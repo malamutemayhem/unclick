@@ -570,12 +570,16 @@ function JobRow({
             {todo.comment_count ?? 0}
           </span>
           {alert ? (
-            <span
-              className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-red-300/20 bg-red-500/10 text-[10px] font-bold text-red-200"
+            <button
+              type="button"
+              onClick={onToggle}
+              className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-red-300/20 bg-red-500/10 text-[10px] font-bold text-red-200 hover:border-red-300/35 hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-200/60"
+              aria-expanded={expanded}
+              aria-label={expanded ? "Hide job alert" : "Show job alert"}
               title={`${alert.message} Fallback: ${alert.actions.join(", ")}`}
             >
               !
-            </span>
+            </button>
           ) : (
             <span aria-hidden="true" className="hidden md:block" />
           )}
