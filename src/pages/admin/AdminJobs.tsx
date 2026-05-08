@@ -10,7 +10,9 @@ import {
   Loader2,
   MessageCircle,
   MessageSquare,
+  Search,
   Send,
+  X,
 } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import Comments from "./fishbowl/Comments";
@@ -211,6 +213,60 @@ function ownerEmoji(todo: JobTodo): string | null {
 
 function sourceLabel(todo: JobTodo): string {
   return todo.source_idea_id ? "Idea" : "Todo";
+}
+
+function normalizeSearch(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function compactSearch(value: string): string {
+  return normalizeSearch(value).replace(/\s+/g, "");
+}
+
+function isSubsequence(needle: string, haystack: string): boolean {
+  if (!needle) return true;
+  let index = 0;
+  for (const char of haystack) {
+    if (char === needle[index]) index += 1;
+    if (index === needle.length) return true;
+  }
+  return false;
+}
+
+function jobSearchText(todo: JobTodo): string {
+  return [
+    todo.title,
+    todo.description,
+    todo.status,
+    todo.priority,
+    ownerLabel(todo),
+    ownerEmoji(todo),
+    todo.assigned_to_agent_id,
+    todo.created_by_agent_id,
+    sourceLabel(todo),
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function matchesJobSearch(todo: JobTodo, query: string): boolean {
+  const normalizedQuery = normalizeSearch(query);
+  if (!normalizedQuery) return true;
+
+  const text = normalizeSearch(jobSearchText(todo));
+  const compactText = text.replace(/\s+/g, "");
+  const words = text.split(/\s+/).filter(Boolean);
+
+  return normalizedQuery.split(/\s+/).every((token) => {
+    const compactToken = compactSearch(token);
+    if (!compactToken) return true;
+    if (text.includes(token)) return true;
+    if (compactText.includes(compactToken)) return true;
+    return words.some((word) => word.startsWith(token) || word.includes(token) || isSubsequence(compactToken, word));
+  });
 }
 
 function isStaleActive(todo: JobTodo): boolean {
@@ -632,6 +688,7 @@ export default function AdminJobs() {
   const [pollSeq, setPollSeq] = useState(0);
   const [manualOrder, setManualOrder] = useState<ManualOrder>(() => loadManualOrder());
   const [sectionPrefs, setSectionPrefs] = useState<SectionPreferences>(() => loadSectionPreferences());
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (!token) return;
@@ -717,7 +774,11 @@ export default function AdminJobs() {
     window.localStorage.setItem(SECTION_PREF_STORAGE_KEY, JSON.stringify(sectionPrefs));
   }, [sectionPrefs]);
 
-  const grouped = useMemo(() => groupJobs(todos), [todos]);
+  const filteredTodos = useMemo(
+    () => todos.filter((todo) => matchesJobSearch(todo, searchQuery)),
+    [searchQuery, todos],
+  );
+  const grouped = useMemo(() => groupJobs(filteredTodos), [filteredTodos]);
   const orderedGrouped = useMemo(
     () => ({
       active: applyManualOrder(grouped.active, manualOrder.active),
@@ -729,7 +790,7 @@ export default function AdminJobs() {
   );
   const activeCount = grouped.active.length;
   const queueCount = grouped.next.length + grouped.inline.length;
-  const alertCount = todos.filter(needsAttention).length;
+  const alertCount = filteredTodos.filter(needsAttention).length;
 
   const toggleExpanded = (id: string) => {
     setExpanded((prev) => {
@@ -814,8 +875,37 @@ export default function AdminJobs() {
         </div>
       )}
 
+      <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-white/30" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Filter jobs, e.g. eco brain, ec bra, urgent, builder"
+            className="w-full rounded-md border border-white/[0.06] bg-black/20 py-2 pl-8 pr-8 text-sm text-white/80 outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/35"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2 top-2 rounded-[5px] p-1 text-white/35 hover:bg-white/[0.06] hover:text-white/65"
+              aria-label="Clear job filter"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 text-xs text-white/35">
-        <span>{firstLoadDone ? `${todos.length} visible jobs` : "Loading jobs"}</span>
+        <span>
+          {firstLoadDone
+            ? searchQuery.trim()
+              ? `${filteredTodos.length} of ${todos.length} jobs match`
+              : `${todos.length} visible jobs`
+            : "Loading jobs"}
+        </span>
         <span className="inline-flex items-center gap-1.5">
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           Refreshes every 10s
@@ -877,10 +967,12 @@ export default function AdminJobs() {
         />
       </div>
 
-      {firstLoadDone && todos.length === 0 && !error && (
+      {firstLoadDone && filteredTodos.length === 0 && !error && (
         <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-6 text-center">
           <CheckCircle2 className="mx-auto h-5 w-5 text-green-300" />
-          <p className="mt-2 text-sm text-white/50">No visible jobs.</p>
+          <p className="mt-2 text-sm text-white/50">
+            {searchQuery.trim() ? "No jobs match that filter." : "No visible jobs."}
+          </p>
         </div>
       )}
     </div>
