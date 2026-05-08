@@ -7784,24 +7784,123 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const { data, error } = await q;
           if (error) throw error;
 
-          // Decorate with comment_count for the kanban cards.
+          const stageRank = {
+            brief: 1,
+            build: 2,
+            proof: 3,
+            review: 4,
+            ship: 5,
+          } as const;
+          const stageProgress: Record<number, number> = {
+            1: 10,
+            2: 55,
+            3: 70,
+            4: 85,
+            5: 100,
+          };
+          function positiveStageHit(text: string, positive: RegExp, negative?: RegExp): boolean {
+            if (!positive.test(text)) return false;
+            return negative ? !negative.test(text) : true;
+          }
+          function inferJobPipeline(todo: Record<string, unknown>, commentTexts: string[]) {
+            const corpus = [
+              todo.title,
+              todo.description,
+              ...commentTexts,
+            ]
+              .filter((value) => typeof value === "string" && value.trim().length > 0)
+              .join("\n")
+              .toLowerCase();
+            const status = String(todo.status ?? "");
+            let activeCount = status === "done" ? stageRank.ship : status === "in_progress" ? stageRank.build : 1;
+            let source = status === "done" ? "status: done" : status === "in_progress" ? "status: active" : "status: open";
+            const evidence: string[] = [];
+
+            if (
+              positiveStageHit(
+                corpus,
+                /\b(implemented|built|build complete|patch applied|changes applied|pr\s*#?\d+|branch ready|commit(?:ted)?|ready for proof)\b/i,
+              )
+            ) {
+              activeCount = Math.max(activeCount, stageRank.build);
+              evidence.push("build");
+              source = "receipt: build";
+            }
+            if (
+              positiveStageHit(
+                corpus,
+                /\b(build passed|checks? (?:passed|green)|tests? passed|proof (?:passed|complete|attached|submitted|recorded|current|clean)|verification (?:passed|complete)|ci passed|npm run build passed)\b/i,
+                /\b(no|missing|needs?|needed|waiting for|without|incomplete|stale)\s+(?:live\s+)?proof\b|\bproof\s+(?:missing|needed|incomplete|stale|not available)\b/i,
+              )
+            ) {
+              activeCount = Math.max(activeCount, stageRank.proof);
+              evidence.push("proof");
+              source = "receipt: proof";
+            }
+            if (
+              positiveStageHit(
+                corpus,
+                /\b(qc pass|review(?:ed)?|reviewer pass|gatekeeper pass|safety pass|approved|ack:\s*pass|pass on #\d+|ready for review)\b/i,
+                /\b(no|missing|needs?|needed|waiting for|without|incomplete)\s+(?:qc|review|pass)\b|\b(blocker|hold|do not merge|do not lift)\b/i,
+              )
+            ) {
+              activeCount = Math.max(activeCount, stageRank.review);
+              evidence.push("review");
+              source = "receipt: review";
+            }
+            if (
+              positiveStageHit(
+                corpus,
+                /\b(pr\s*#?\d+\s+merged|merged\s+#?\d+|merged into main|deployed|published|shipped|live on production|production live)\b/i,
+                /\b(not merged|unmerged|do not merge|blocked from merge|merge blocked)\b/i,
+              )
+            ) {
+              activeCount = Math.max(activeCount, stageRank.ship);
+              evidence.push("ship");
+              source = "receipt: ship";
+            }
+
+            return {
+              pipeline_stage_count: activeCount,
+              pipeline_progress: stageProgress[activeCount] ?? 10,
+              pipeline_source: source,
+              pipeline_evidence: evidence,
+            };
+          }
+
+          // Decorate with comment_count and stage evidence for the jobs board.
           const todos = data ?? [];
           let countMap: Record<string, number> = {};
+          let textMap: Record<string, string[]> = {};
           if (todos.length > 0) {
             const ids = todos.map((t) => t.id);
             const { data: comments } = await supabase
               .from("mc_fishbowl_comments")
-              .select("target_id")
+              .select("target_id,text")
               .eq("api_key_hash", apiKeyHash)
               .eq("target_kind", "todo")
               .in("target_id", ids);
-            countMap = (comments ?? []).reduce<Record<string, number>>((acc, c) => {
+            const commentRows = comments ?? [];
+            countMap = commentRows.reduce<Record<string, number>>((acc, c) => {
               const k = c.target_id as string;
               acc[k] = (acc[k] ?? 0) + 1;
               return acc;
             }, {});
+            textMap = commentRows.reduce<Record<string, string[]>>((acc, c) => {
+              const k = c.target_id as string;
+              const text = typeof c.text === "string" ? c.text : "";
+              if (text) acc[k] = [...(acc[k] ?? []), text];
+              return acc;
+            }, {});
           }
-          const decorated = todos.map((t) => ({ ...t, comment_count: countMap[t.id as string] ?? 0 }));
+          const decorated = todos.map((t) => {
+            const id = t.id as string;
+            return {
+              ...t,
+              comment_count: countMap[id] ?? 0,
+              ...inferJobPipeline(t, textMap[id] ?? []),
+            };
+          });
           const compactTodos = decorated.map((t) => ({
             id: t.id,
             title: t.title,
@@ -7813,6 +7912,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             updated_at: t.updated_at,
             completed_at: t.completed_at,
             comment_count: t.comment_count,
+            pipeline_stage_count: t.pipeline_stage_count,
+            pipeline_progress: t.pipeline_progress,
+            pipeline_source: t.pipeline_source,
+            pipeline_evidence: t.pipeline_evidence,
           }));
           return res.status(200).json({
             todos: includeDescription ? decorated : compactTodos,
