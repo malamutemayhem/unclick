@@ -5,6 +5,7 @@ import {
   evaluateTier2AutoMergeQueue,
   fetchOpenPullRequests,
   runTier2AutoMergeQueueCheck,
+  scoreTier2PullRequestRisk,
 } from "./tier2-auto-merge-queue-check.mjs";
 
 describe("Tier-2 auto-merge queue check", () => {
@@ -18,6 +19,7 @@ describe("Tier-2 auto-merge queue check", () => {
     assert.equal(result.result, "idle");
     assert.equal(result.reason, "open_pr_queue_empty");
     assert.equal(result.open_pr_count, 0);
+    assert.equal(result.low_risk_count, 0);
     assert.equal(result.execute, false);
   });
 
@@ -30,6 +32,9 @@ describe("Tier-2 auto-merge queue check", () => {
           mergeStateStatus: "CLEAN",
           url: "https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/604",
           headRefName: "codex/example",
+          changedFiles: 2,
+          additions: 80,
+          deletions: 20,
         },
       ],
       now: "2026-05-09T08:45:00.000Z",
@@ -40,6 +45,7 @@ describe("Tier-2 auto-merge queue check", () => {
     assert.equal(result.reason, "scheduled_noop_check_only");
     assert.equal(result.open_pr_count, 1);
     assert.equal(result.safe_to_merge_count, 0);
+    assert.equal(result.low_risk_count, 1);
     assert.equal(result.execute, false);
     assert.deepEqual(result.summaries[0], {
       number: 604,
@@ -47,7 +53,43 @@ describe("Tier-2 auto-merge queue check", () => {
       mergeStateStatus: "CLEAN",
       url: "https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/604",
       headRefName: "codex/example",
+      changedFiles: 2,
+      additions: 80,
+      deletions: 20,
+      risk_score: 0,
+      risk_level: "low",
+      risk_reasons: [],
     });
+  });
+
+  it("adds a conservative PR risk score to queue summaries", () => {
+    const low = scoreTier2PullRequestRisk({
+      isDraft: false,
+      mergeStateStatus: "CLEAN",
+      changedFiles: 2,
+      additions: 80,
+      deletions: 20,
+      headRefName: "codex/docs-chip",
+    });
+    const high = scoreTier2PullRequestRisk({
+      isDraft: true,
+      mergeStateStatus: "DIRTY",
+      changedFiles: 35,
+      additions: 1500,
+      deletions: 750,
+      headRefName: "codex/auth-migration",
+    });
+
+    assert.deepEqual(low, { score: 0, level: "low", reasons: [] });
+    assert.equal(high.level, "high");
+    assert.equal(high.score, 100);
+    assert.deepEqual(high.reasons, [
+      "draft",
+      "merge_state_dirty",
+      "many_files",
+      "large_diff",
+      "sensitive_branch_name",
+    ]);
   });
 
   it("fetches open PRs with gh without printing token-bearing environment values", async () => {
@@ -65,7 +107,7 @@ describe("Tier-2 auto-merge queue check", () => {
     assert.equal(result.prs.length, 1);
     assert.equal(calls[0].command, "gh");
     assert.deepEqual(calls[0].args.slice(0, 6), ["pr", "list", "--repo", "owner/repo", "--state", "open"]);
-    assert.equal(calls[0].args.includes("number,isDraft,mergeStateStatus,url,headRefName"), true);
+    assert.equal(calls[0].args.includes("number,isDraft,mergeStateStatus,url,headRefName,changedFiles,additions,deletions"), true);
     assert.equal(Object.hasOwn(calls[0].options, "env"), false);
   });
 

@@ -17,18 +17,78 @@ function normalizeMergeState(value) {
   return String(value ?? "").trim().toUpperCase() || "UNKNOWN";
 }
 
+function boundedNumber(value, fallback = 0) {
+  const parsed = Number.parseInt(String(value ?? ""), 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(0, parsed);
+}
+
 function prNumber(pr = {}) {
   const parsed = Number.parseInt(String(pr.number ?? pr.pr_number ?? ""), 10);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+export function scoreTier2PullRequestRisk(pr = {}) {
+  const reasons = [];
+  let score = 0;
+  const mergeState = normalizeMergeState(pr.mergeStateStatus ?? pr.merge_state_status);
+  const changedFiles = boundedNumber(pr.changedFiles ?? pr.changed_files);
+  const changedLines = boundedNumber(pr.additions) + boundedNumber(pr.deletions);
+  const headRefName = String(pr.headRefName || pr.head?.ref || "").trim();
+
+  if (Boolean(pr.isDraft ?? pr.draft)) {
+    score += 35;
+    reasons.push("draft");
+  }
+
+  if (mergeState !== "CLEAN") {
+    score += 30;
+    reasons.push(`merge_state_${mergeState.toLowerCase()}`);
+  }
+
+  if (changedFiles > 30) {
+    score += 25;
+    reasons.push("many_files");
+  } else if (changedFiles > 12) {
+    score += 15;
+    reasons.push("several_files");
+  }
+
+  if (changedLines > 2000) {
+    score += 25;
+    reasons.push("large_diff");
+  } else if (changedLines > 500) {
+    score += 15;
+    reasons.push("medium_diff");
+  }
+
+  if (/\b(auth|billing|payment|stripe|secret|credential|migration|schema|rls|tenant)\b/i.test(headRefName)) {
+    score += 25;
+    reasons.push("sensitive_branch_name");
+  }
+
+  const boundedScore = Math.min(100, score);
+  return {
+    score: boundedScore,
+    level: boundedScore >= 60 ? "high" : boundedScore >= 30 ? "medium" : "low",
+    reasons,
+  };
+}
+
 function safePrSummary(pr = {}) {
+  const risk = scoreTier2PullRequestRisk(pr);
   return {
     number: prNumber(pr),
     isDraft: Boolean(pr.isDraft ?? pr.draft),
     mergeStateStatus: normalizeMergeState(pr.mergeStateStatus ?? pr.merge_state_status),
     url: String(pr.url || pr.html_url || "").trim(),
     headRefName: compact(pr.headRefName || pr.head?.ref || "", 120),
+    changedFiles: boundedNumber(pr.changedFiles ?? pr.changed_files),
+    additions: boundedNumber(pr.additions),
+    deletions: boundedNumber(pr.deletions),
+    risk_score: risk.score,
+    risk_level: risk.level,
+    risk_reasons: risk.reasons,
   };
 }
 
@@ -45,9 +105,14 @@ export function evaluateTier2AutoMergeQueue({ prs = [], now = new Date().toISOSt
       open_pr_count: 0,
       safe_to_merge_count: 0,
       execute: false,
+      low_risk_count: 0,
       summaries: [],
     };
   }
+
+  const lowRiskCount = summaries.filter((summary) =>
+    !summary.isDraft && summary.mergeStateStatus === "CLEAN" && summary.risk_level === "low",
+  ).length;
 
   return {
     ok: true,
@@ -58,6 +123,7 @@ export function evaluateTier2AutoMergeQueue({ prs = [], now = new Date().toISOSt
     open_pr_count: openPrs.length,
     safe_to_merge_count: 0,
     execute: false,
+    low_risk_count: lowRiskCount,
     summaries,
   };
 }
@@ -113,7 +179,7 @@ export async function fetchOpenPullRequests({
       "--limit",
       String(limit),
       "--json",
-      "number,isDraft,mergeStateStatus,url,headRefName",
+      "number,isDraft,mergeStateStatus,url,headRefName,changedFiles,additions,deletions",
     ],
     { cwd },
   );
