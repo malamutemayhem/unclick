@@ -84,6 +84,20 @@ function inferLaneFromText(text: string): RoutePacketLane | null {
   if (value.includes("coordinator") || value.includes("master")) {
     return "Coordinator";
   }
+  if (
+    value.includes("📋") ||
+    value.includes("jobs manager") ||
+    value.includes("job manager") ||
+    value.includes("job scoping") ||
+    value.includes("queue manager") ||
+    value.includes("queue management") ||
+    value.includes("scopepack") ||
+    value.includes("scope pack") ||
+    value.includes("stale ownership") ||
+    value.includes("duplicate jobs")
+  ) {
+    return "Jobs Manager";
+  }
   if (value.includes("watcher") || value.includes("relay")) {
     return "Watcher";
   }

@@ -49,6 +49,31 @@ describe("route packet consumer dry run", () => {
     });
   });
 
+  it("assigns Jobs Manager queue packets only to a live Jobs Manager", () => {
+    const result = runRoutePacketConsumerDryRun({
+      packet: {
+        ...basePacket,
+        lane: "Jobs Manager",
+        item: {
+          id: "todo-jobs-manager",
+          title: "Worker Registry: add Jobs Manager",
+        },
+        needed_action: "Advise on queue health and routing.",
+      },
+      visibleWorkers: [
+        { agent_id: "builder-live", lane: "Builder", status: "active" },
+        { agent_id: "jobs-manager-live", lane: "Jobs Manager", status: "active" },
+      ],
+      now: new Date("2026-05-09T00:05:00.000Z"),
+    });
+
+    expect(result.decision).toMatchObject({
+      status: "assigned",
+      target_agent_id: "jobs-manager-live",
+      reason: "live_worker_available",
+    });
+  });
+
   it("holds expired packets instead of assigning stale work", () => {
     const result = runRoutePacketConsumerDryRun({
       packet: basePacket,

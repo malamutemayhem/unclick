@@ -169,6 +169,7 @@ export function AdminWorkers() {
           { title: "🧪 Tester", body: "Runs proof, checks, and repeatable test commands.", icon: ClipboardCheck },
           { title: "🔍 Reviewer", body: "Reviews quality, clarity, and implementation shape.", icon: SearchCheck },
           { title: "🛡️ Safety Checker", body: "Protects releases from overlap, secrets, unsafe paths, and stale proof.", icon: ShieldCheck },
+          { title: "📋 Jobs Manager", body: "Keeps Jobs healthy with missing ScopePacks, stale ownership, duplicate detection, Coordinator escalation, routing advice, and proof-to-done reconciliation.", icon: ListTodo },
           { title: "🔬 Researcher", body: "Explores unknowns before a plan is made.", icon: Microscope },
           { title: "📋 Planner", body: "Creates the exact work packet and ownership boundaries.", icon: FileText },
           { title: "📣 Messenger", body: "Sends worker packets and chases missing ACKs.", icon: MessagesSquare },
