@@ -153,6 +153,8 @@ export interface OrchestratorProfileCard {
   role: "human" | "ai-seat";
   emoji?: string | null;
   device_hint?: string | null;
+  source_app_label: string;
+  connection_label: string;
   last_seen_at?: string | null;
   freshness_label: "Live" | "Recent" | "Missed check-in" | "Quiet";
   checkin_age_minutes: number | null;
@@ -346,12 +348,15 @@ function buildProfileCard(profile: OrchestratorProfileRow, nowMs: number): Orche
   const role = profile.user_agent_hint === "admin-ui" || profile.agent_id.startsWith("human-") ? "human" : "ai-seat";
   const lastSeenAt = profile.last_seen_at ?? profile.created_at ?? null;
   const freshness = getSeatFreshness(lastSeenAt, profile.next_checkin_at, nowMs);
+  const sourceAppLabel = getSourceAppLabel(profile);
   return {
     agent_id: profile.agent_id,
     label,
     role,
     emoji: profile.emoji ?? null,
     device_hint: profile.user_agent_hint ?? null,
+    source_app_label: sourceAppLabel,
+    connection_label: getConnectionLabel(freshness.label, role),
     last_seen_at: lastSeenAt,
     freshness_label: freshness.label,
     checkin_age_minutes: freshness.ageMinutes,
@@ -381,6 +386,30 @@ function getSeatFreshness(
   if (ageMs <= ACTIVE_WINDOW_MS) return { label: "Live", ageMinutes };
   if (ageMs <= 24 * 60 * 60 * 1000) return { label: "Recent", ageMinutes };
   return { label: "Quiet", ageMinutes };
+}
+
+function getSourceAppLabel(profile: OrchestratorProfileRow): string {
+  const hint = `${profile.user_agent_hint ?? ""} ${profile.agent_id}`.toLowerCase();
+  if (hint.includes("admin-ui") || profile.agent_id.startsWith("human-")) return "Admin UI";
+  if (hint.includes("windsurf") || hint.includes("cascade")) return "Windsurf";
+  if (hint.includes("claude")) return "Claude";
+  if (hint.includes("github-action") || hint.includes("github_action")) return "GitHub Action";
+  if (hint.includes("scheduled") || hint.includes("heartbeat")) return "Scheduled";
+  if (hint.includes("codex")) return "Codex";
+  return "AI Seat";
+}
+
+function getConnectionLabel(
+  freshnessLabel: OrchestratorProfileCard["freshness_label"],
+  role: OrchestratorProfileCard["role"],
+): string {
+  if (role === "human") {
+    return freshnessLabel === "Live" || freshnessLabel === "Recent" ? "Admin present" : "Admin quiet";
+  }
+  if (freshnessLabel === "Live") return "Connected";
+  if (freshnessLabel === "Recent") return "Seen recently";
+  if (freshnessLabel === "Missed check-in") return "Check-in overdue";
+  return "No recent check-in";
 }
 
 function messageToEvent(message: OrchestratorMessageRow): OrchestratorContinuityEvent {
