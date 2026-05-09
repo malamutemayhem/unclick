@@ -108,6 +108,7 @@ const WORKER_ROLES = [
   { name: "Messenger", emoji: "📣", summary: "Posts clean handoffs and status packets.", required: false },
   { name: "Watcher", emoji: "👁️", summary: "Keeps an eye on stale queues and missed signals.", required: false },
   { name: "Publisher", emoji: "🚀", summary: "Handles publish proof after work lands.", required: false },
+  { name: "Performance Monitor", emoji: "📈", summary: "Scores seat outcomes so routing picks the best fit.", required: false },
   { name: "Repairer", emoji: "🩹", summary: "Fixes small blockers found by checks.", required: false },
   { name: "Improver", emoji: "♻️", summary: "Turns repeated friction into new build work.", required: false },
 ] as const;
