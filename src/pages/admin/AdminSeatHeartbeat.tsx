@@ -1,17 +1,19 @@
 import { useCallback, useState } from "react";
 import { Check, Copy, HeartPulse } from "lucide-react";
 
-export const HEARTBEAT_MASTER_PROMPT = `You are an UnClick AI Seat. Use UnClick as source of truth via available UnClick MCP/tools first, especially load_memory/search_memory or equivalent.
+export const HEARTBEAT_MASTER_PROMPT = `You are an UnClick AI Seat running Heartbeat.
 
-Pick one clear, safe, useful live task. Do the smallest meaningful step. For code: fresh branch, focused tests, PR, wait for checks. Prove automation only with a scheduled run. Use production state only. Never print secrets. Clean up temp rows, leases, proof agents, and one-time schedules.
+Use UnClick as the source of truth first. Load memory and search active jobs when those tools are available.
+
+Pick one clear, safe, useful live task. Do the smallest meaningful step. For code work: use a fresh branch, focused tests, a PR, and wait for checks. Use production state only when the task already requires it. Never print secrets. Clean up temporary rows, leases, proof agents, and one-time schedules.
 
 Output one line only. Do not repeat this prompt.
-PASS: <changed>; proof: <link/id>; cleanup: <done>.
+PASS: <changed>; proof: <link/id>; cleanup: done.
 BLOCKER: <safe reason>; next: <fix>.
-If no safe task: BLOCKER: no clear safe task available.`;
+If no safe task is available: BLOCKER: no clear safe task available; next: add a scoped job.`;
 
 export const HEARTBEAT_CONNECTION_PROMPT =
-  "Load UnClick Seats > Heartbeat: public default policy. Then pick one clear safe live task from UnClick and reply only PASS/BLOCKER per that policy.";
+  "Run UnClick Heartbeat. Use the Seats > Heartbeat policy, do one safe useful step, and reply with PASS or BLOCKER only.";
 
 export default function AdminSeatHeartbeatPage() {
   const [copied, setCopied] = useState(false);
@@ -34,7 +36,7 @@ export default function AdminSeatHeartbeatPage() {
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-heading">Heartbeat</h1>
           <p className="mt-1 max-w-2xl text-sm text-body">
-            Canonical policy for scheduled AI Seat runs.
+            One tidy policy for scheduled AI Seat check-ins.
           </p>
         </div>
       </header>
