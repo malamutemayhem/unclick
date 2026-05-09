@@ -69,6 +69,9 @@ interface OrchestratorContext {
     label: string;
     role: "human" | "ai-seat";
     emoji?: string | null;
+    device_hint?: string | null;
+    source_app_label?: string | null;
+    connection_label?: string | null;
     last_seen_at?: string | null;
     freshness_label?: SeatFreshnessLabel | null;
     checkin_age_minutes?: number | null;
@@ -331,16 +334,23 @@ function OrchestratorContextCard({
           )}
         </ContextSection>
 
-        <ContextSection title="Profiles" icon={Users}>
+        <ContextSection title="Connected PCs" icon={Terminal}>
           {context.profile_cards.slice(0, 5).map((profile) => (
-            <div key={profile.agent_id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 text-xs">
-              <span className="min-w-0 truncate text-white/70">
-                {profile.emoji ? `${profile.emoji} ` : ""}{profile.label}
-              </span>
-              <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${FRESHNESS_STYLES[profile.freshness_label ?? "Quiet"]}`}>
-                {profile.freshness_label ?? "Quiet"}
-              </span>
-              <span className="shrink-0 text-white/35">{formatRelative(profile.last_seen_at)}</span>
+            <div key={profile.agent_id} className="rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                <span className="min-w-0 truncate text-xs font-medium text-white/75">
+                  {profile.emoji ? `${profile.emoji} ` : ""}{profile.label}
+                </span>
+                <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${FRESHNESS_STYLES[profile.freshness_label ?? "Quiet"]}`}>
+                  {profile.freshness_label ?? "Quiet"}
+                </span>
+              </div>
+              <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-white/35">
+                <span className="font-medium text-white/50">{profile.connection_label ?? "No recent check-in"}</span>
+                <span>{profile.source_app_label ?? "AI Seat"}</span>
+                <span>{formatRelative(profile.last_seen_at)}</span>
+                {profile.device_hint && <span className="max-w-full truncate font-mono">{profile.device_hint}</span>}
+              </div>
             </div>
           ))}
           {context.profile_cards.length === 0 && (

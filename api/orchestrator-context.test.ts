@@ -142,6 +142,9 @@ describe("orchestrator context", () => {
     expect(context.current_state_card.next_actions[0]).toContain("Orchestrator context layer");
     expect(context.profile_cards.find((profile) => profile.agent_id === "human-chris")?.role).toBe("human");
     expect(context.profile_cards.find((profile) => profile.agent_id === "chatgpt-codex-seat")?.freshness_label).toBe("Live");
+    expect(context.profile_cards.find((profile) => profile.agent_id === "chatgpt-codex-seat")?.source_app_label).toBe("Codex");
+    expect(context.profile_cards.find((profile) => profile.agent_id === "chatgpt-codex-seat")?.connection_label).toBe("Connected");
+    expect(context.profile_cards.find((profile) => profile.agent_id === "human-chris")?.source_app_label).toBe("Admin UI");
     expect(context.profile_cards.find((profile) => profile.agent_id === "human-chris")?.freshness_label).toBe("Recent");
     expect(context.continuity_events.some((event) => event.kind === "proof" && event.source_id === "msg-proof")).toBe(true);
     expect(context.continuity_events.some((event) => event.source_kind === "conversation_turn" && event.role === "user")).toBe(true);
@@ -189,6 +192,7 @@ describe("orchestrator context", () => {
     expect(labels.get("recent-seat")).toBe("Recent");
     expect(labels.get("missed-seat")).toBe("Missed check-in");
     expect(labels.get("quiet-seat")).toBe("Quiet");
+    expect(context.profile_cards.find((profile) => profile.agent_id === "missed-seat")?.connection_label).toBe("Check-in overdue");
   });
 
   it("redacts sensitive auth and billing material before summaries leave the layer", () => {
