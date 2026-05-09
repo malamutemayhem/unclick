@@ -171,6 +171,31 @@ export interface OrchestratorLibrarySnapshot extends OrchestratorSourceLink {
   updated_at?: string | null;
 }
 
+export interface OrchestratorRollingSnapshotItem extends OrchestratorSourceLink {
+  kind: "decision" | "blocker" | "active_job" | "continuity";
+  summary: string;
+  actor_agent_id?: string | null;
+  tags?: string[];
+}
+
+export interface OrchestratorRollingSnapshot {
+  mode: "read-plan";
+  summary: string;
+  generated_at: string;
+  newest_source_at: string | null;
+  persistence_plan: {
+    recommended_key: string;
+    retention: string;
+    compaction: string;
+    raw_transcript_policy: string;
+  };
+  promoted_decisions: OrchestratorRollingSnapshotItem[];
+  active_blockers: OrchestratorRollingSnapshotItem[];
+  active_jobs: OrchestratorRollingSnapshotItem[];
+  recent_continuity: OrchestratorRollingSnapshotItem[];
+  source_pointers: OrchestratorSourceLink[];
+}
+
 export interface OrchestratorContext {
   version: "orchestrator-context-v1";
   generated_at: string;
@@ -205,6 +230,7 @@ export interface OrchestratorContext {
   profile_cards: OrchestratorProfileCard[];
   continuity_events: OrchestratorContinuityEvent[];
   library_snapshots: OrchestratorLibrarySnapshot[];
+  rolling_snapshot: OrchestratorRollingSnapshot;
 }
 
 const ACTIVE_WINDOW_MS = 30 * 60 * 1000;
@@ -302,6 +328,13 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     ...input.conversationTurns.map((row) => row.created_at),
   ]);
   const newestCheckinAt = newestIso(input.profiles.map((row) => row.last_seen_at));
+  const rollingSnapshot = buildRollingSnapshot({
+    generatedAt: input.generatedAt,
+    newestActivityAt,
+    activeTodos,
+    continuityEvents,
+    blockers,
+  });
 
   return {
     version: "orchestrator-context-v1",
@@ -340,7 +373,115 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     profile_cards: profiles,
     continuity_events: continuityEvents,
     library_snapshots: librarySnapshots,
+    rolling_snapshot: rollingSnapshot,
   };
+}
+
+function buildRollingSnapshot({
+  generatedAt,
+  newestActivityAt,
+  activeTodos,
+  continuityEvents,
+  blockers,
+}: {
+  generatedAt: string;
+  newestActivityAt: string | null;
+  activeTodos: OrchestratorTodoRow[];
+  continuityEvents: OrchestratorContinuityEvent[];
+  blockers: string[];
+}): OrchestratorRollingSnapshot {
+  const snapshotEvents = continuityEvents.filter((event) => !isSnapshotNoise(event));
+  const promotedDecisions = snapshotEvents
+    .filter((event) => event.kind === "decision")
+    .slice(0, 5)
+    .map((event) => eventToSnapshotItem(event, "decision"));
+  const activeBlockers = snapshotEvents
+    .filter((event) => event.kind === "blocker")
+    .slice(0, 5)
+    .map((event) => eventToSnapshotItem(event, "blocker"));
+  const activeJobs = activeTodos.slice(0, 6).map((todo) => ({
+    source_kind: "todo" as const,
+    source_id: todo.id,
+    deep_link: `/admin/jobs#todo-${todo.id}`,
+    created_at: todo.updated_at ?? todo.created_at,
+    kind: "active_job" as const,
+    actor_agent_id: todo.assigned_to_agent_id ?? todo.created_by_agent_id,
+    summary: compactText(`${todo.priority} ${todo.status}: ${todo.title}. ${todo.description ?? ""}`, 220),
+    tags: ["todo", todo.status, todo.priority],
+  }));
+  const recentContinuity = snapshotEvents
+    .filter((event) => event.kind !== "decision" && event.kind !== "blocker")
+    .slice(0, 8)
+    .map((event) => eventToSnapshotItem(event, "continuity"));
+  const sourcePointers = uniqueSourcePointers([
+    ...promotedDecisions,
+    ...activeBlockers,
+    ...activeJobs,
+    ...recentContinuity,
+  ]);
+
+  return {
+    mode: "read-plan",
+    summary: compactText(
+      [
+        `${activeJobs.length} active job${activeJobs.length === 1 ? "" : "s"}`,
+        `${promotedDecisions.length} promoted decision${promotedDecisions.length === 1 ? "" : "s"}`,
+        `${activeBlockers.length || blockers.length} blocker signal${(activeBlockers.length || blockers.length) === 1 ? "" : "s"}`,
+      ].join(", "),
+      180,
+    ),
+    generated_at: generatedAt,
+    newest_source_at: newestActivityAt,
+    persistence_plan: {
+      recommended_key: "orchestrator:rolling-current-state:v1",
+      retention: "Keep compact rolling snapshots and source pointers; refresh from live sources instead of storing duplicate raw rows.",
+      compaction: "Promote decisions, blockers, active jobs, and recent non-noise continuity only.",
+      raw_transcript_policy: "Do not persist raw transcripts, heartbeat noise, secret-shaped text, or bulk pasted content in the snapshot.",
+    },
+    promoted_decisions: promotedDecisions,
+    active_blockers: activeBlockers,
+    active_jobs: activeJobs,
+    recent_continuity: recentContinuity,
+    source_pointers: sourcePointers,
+  };
+}
+
+function eventToSnapshotItem(
+  event: OrchestratorContinuityEvent,
+  kind: OrchestratorRollingSnapshotItem["kind"],
+): OrchestratorRollingSnapshotItem {
+  return {
+    source_kind: event.source_kind,
+    source_id: event.source_id,
+    deep_link: event.deep_link ?? null,
+    created_at: event.created_at ?? null,
+    kind,
+    actor_agent_id: event.actor_agent_id ?? null,
+    summary: compactText(event.summary, 220),
+    tags: event.tags ?? [],
+  };
+}
+
+function uniqueSourcePointers(items: OrchestratorRollingSnapshotItem[]): OrchestratorSourceLink[] {
+  const seen = new Set<string>();
+  const pointers: OrchestratorSourceLink[] = [];
+  for (const item of items) {
+    const key = `${item.source_kind}:${item.source_id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    pointers.push({
+      source_kind: item.source_kind,
+      source_id: item.source_id,
+      deep_link: item.deep_link ?? null,
+      created_at: item.created_at ?? null,
+    });
+  }
+  return pointers.slice(0, 18);
+}
+
+function isSnapshotNoise(event: OrchestratorContinuityEvent): boolean {
+  const text = `${event.summary} ${(event.tags ?? []).join(" ")}`.toLowerCase();
+  return /heartbeat|quiet-status|dont_notify|don't notify|no user action needed|unchanged ack|raw transcript/.test(text);
 }
 
 function buildProfileCard(profile: OrchestratorProfileRow, nowMs: number): OrchestratorProfileCard {
