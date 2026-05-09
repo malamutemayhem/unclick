@@ -13,6 +13,7 @@ describe("AdminSeatHeartbeatPage", () => {
     expect(screen.getByRole("heading", { name: "Heartbeat" })).toBeInTheDocument();
     expect(screen.getByLabelText("Public default heartbeat policy")).toHaveValue(HEARTBEAT_MASTER_PROMPT);
     expect(screen.getByLabelText("Short schedule message")).toHaveValue(HEARTBEAT_CONNECTION_PROMPT);
+    expect(HEARTBEAT_CONNECTION_PROMPT).toContain("Run UnClick Heartbeat");
     expect(HEARTBEAT_CONNECTION_PROMPT.length).toBeLessThan(HEARTBEAT_MASTER_PROMPT.length / 3);
   });
 });
