@@ -6,6 +6,7 @@ import {
   latestProfileCheckInAt,
   mapProfilesToSeats,
   profileMatchesSeat,
+  unmatchedRecentProfiles,
   type AISeat,
   type FishbowlProfile,
 } from "./AdminAgentsSeatUtils";
@@ -92,5 +93,27 @@ describe("AdminAgents seat check-ins", () => {
         }),
       ),
     ).toBe("2026-05-09T04:00:00.000Z");
+  });
+
+  it("keeps recent unmatched live seats visible beyond manual slots", () => {
+    const windsurf = profile({
+      agent_id: "cascade-windsurf-seat",
+      display_name: "Cascade Windsurf",
+      user_agent_hint: "windsurf/cascade",
+      last_seen_at: "2026-05-09T10:54:57.440Z",
+      current_status_updated_at: "2026-05-09T11:30:20.312Z",
+    });
+    const matched = profile({
+      agent_id: "chatgpt-codex-worker2",
+      last_seen_at: "2026-05-09T15:05:20.120Z",
+    });
+
+    expect(
+      unmatchedRecentProfiles(
+        [matched, windsurf],
+        [matched],
+        Date.parse("2026-05-09T15:10:00.000Z"),
+      ).map((p) => p.agent_id),
+    ).toEqual(["cascade-windsurf-seat"]);
   });
 });

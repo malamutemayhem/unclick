@@ -62,3 +62,19 @@ export function mapProfilesToSeats(seats: AISeat[], profiles: FishbowlProfile[])
 
   return seatProfiles;
 }
+
+export function unmatchedRecentProfiles(
+  profiles: FishbowlProfile[],
+  matchedProfiles: Iterable<FishbowlProfile>,
+  nowMs = Date.now(),
+  windowMs = 24 * 60 * 60 * 1000,
+): FishbowlProfile[] {
+  const matchedIds = new Set(Array.from(matchedProfiles).map((profile) => profile.agent_id));
+  return profiles.filter((profile) => {
+    if (matchedIds.has(profile.agent_id)) return false;
+    const checkedInAt = latestProfileCheckInAt(profile);
+    if (!checkedInAt) return false;
+    const checkedInMs = Date.parse(checkedInAt);
+    return Number.isFinite(checkedInMs) && nowMs - checkedInMs <= windowMs;
+  });
+}
