@@ -151,6 +151,10 @@ describe("orchestrator context", () => {
     expect(context.library_snapshots.map((snapshot) => snapshot.source_kind)).toEqual(
       expect.arrayContaining(["library", "business_context", "session_summary"]),
     );
+    expect(context.rolling_snapshot.mode).toBe("read-plan");
+    expect(context.rolling_snapshot.active_jobs[0].source_id).toBe("todo-1");
+    expect(context.rolling_snapshot.promoted_decisions.some((item) => item.source_id === "msg-user")).toBe(true);
+    expect(context.rolling_snapshot.source_pointers.some((pointer) => pointer.source_id === "todo-1")).toBe(true);
   });
 
   it("labels profile-card check-in freshness for AI seats", () => {
@@ -210,5 +214,44 @@ describe("orchestrator context", () => {
 
     expect(compact.length).toBeLessThanOrEqual(80);
     expect(compact.endsWith("...")).toBe(true);
+  });
+
+  it("builds rolling snapshots without promoting heartbeat noise or secrets", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-09T13:00:00.000Z",
+      profiles: [],
+      messages: [
+        {
+          id: "msg-heartbeat",
+          author_agent_id: "heartbeat-seat",
+          text: "DONT_NOTIFY: quiet-status heartbeat, no user action needed.",
+          tags: ["heartbeat"],
+          created_at: "2026-05-09T12:59:00.000Z",
+        },
+        {
+          id: "msg-decision-secret",
+          author_agent_id: "chatgpt-codex-seat",
+          text: "Chris greenlit rolling snapshots with Authorization: Bearer sk-test-not-real-token in copied debug text.",
+          tags: ["decision"],
+          created_at: "2026-05-09T12:58:00.000Z",
+        },
+      ],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    const snapshotText = JSON.stringify(context.rolling_snapshot);
+
+    expect(snapshotText).not.toContain("sk-test-not-real-token");
+    expect(snapshotText).not.toContain("DONT_NOTIFY");
+    expect(context.rolling_snapshot.promoted_decisions.some((item) => item.source_id === "msg-decision-secret")).toBe(true);
+    expect(context.rolling_snapshot.source_pointers.some((pointer) => pointer.source_id === "msg-heartbeat")).toBe(false);
+    expect(context.rolling_snapshot.persistence_plan.raw_transcript_policy).toContain("Do not persist raw transcripts");
   });
 });
