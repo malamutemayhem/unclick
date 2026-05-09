@@ -265,6 +265,30 @@ export function compactText(input: unknown, maxChars = 220): string {
   return `${clean.slice(0, Math.max(0, maxChars - 3)).trimEnd()}...`;
 }
 
+export function isHeartbeatAutomationText(input: unknown): boolean {
+  const text = redactSensitive(input).replace(/\s+/g, " ").trim();
+  const lower = text.toLowerCase();
+  if (!lower) return false;
+  if (/<heartbeat\b|<\/heartbeat>/.test(lower)) return true;
+  if (lower.includes("automation_id") && lower.includes("unclick-heartbeat")) return true;
+  if (lower.includes("current_time_iso") && lower.includes("instructions") && lower.includes("heartbeat")) return true;
+  if (lower.startsWith("run unclick heartbeat.")) return true;
+  if (lower.startsWith("load unclick seats > heartbeat")) return true;
+  if (/^pass:\s*.+;\s*proof:\s*.+;\s*cleanup:\s*/i.test(text)) return true;
+  if (/^blocker:\s*.+;\s*next:\s*/i.test(text)) return true;
+  if (lower.startsWith("dont_notify:") || lower.startsWith("notify:")) return true;
+  return false;
+}
+
+function compactContinuityText(input: unknown, maxChars = 240): string {
+  const clean = compactText(input, maxChars);
+  if (!isHeartbeatAutomationText(clean)) return clean;
+  if (/^pass:/i.test(clean)) return compactText(`Heartbeat result: ${clean}`, maxChars);
+  if (/^blocker:/i.test(clean)) return compactText(`Heartbeat result: ${clean}`, maxChars);
+  if (/^dont_notify:|^notify:/i.test(clean)) return "Heartbeat notification state: compact status only.";
+  return "Heartbeat schedule request: run the Seats > Heartbeat policy.";
+}
+
 export function buildOrchestratorContext(input: BuildOrchestratorContextInput): OrchestratorContext {
   const nowMs = Date.parse(input.generatedAt);
   const profiles = input.profiles
@@ -481,7 +505,7 @@ function uniqueSourcePointers(items: OrchestratorRollingSnapshotItem[]): Orchest
 
 function isSnapshotNoise(event: OrchestratorContinuityEvent): boolean {
   const text = `${event.summary} ${(event.tags ?? []).join(" ")}`.toLowerCase();
-  return /heartbeat|quiet-status|dont_notify|don't notify|no user action needed|unchanged ack|raw transcript/.test(text);
+  return isHeartbeatAutomationText(text) || /heartbeat|quiet-status|dont_notify|don't notify|no user action needed|unchanged ack|raw transcript/.test(text);
 }
 
 function buildProfileCard(profile: OrchestratorProfileRow, nowMs: number): OrchestratorProfileCard {
@@ -555,6 +579,7 @@ function getConnectionLabel(
 
 function messageToEvent(message: OrchestratorMessageRow): OrchestratorContinuityEvent {
   const tags = normalizeTags(message.tags);
+  const summary = compactContinuityText(message.text, 260);
   return {
     source_kind: "boardroom_message",
     source_id: message.id,
@@ -562,7 +587,7 @@ function messageToEvent(message: OrchestratorMessageRow): OrchestratorContinuity
     created_at: message.created_at,
     kind: classify(tags, message.text),
     actor_agent_id: message.author_agent_id ?? null,
-    summary: compactText(message.text, 260),
+    summary,
     tags,
   };
 }
@@ -588,7 +613,7 @@ function commentToEvent(comment: OrchestratorCommentRow): OrchestratorContinuity
     created_at: comment.created_at,
     kind: classify([], comment.text),
     actor_agent_id: comment.author_agent_id,
-    summary: compactText(comment.text, 240),
+    summary: compactContinuityText(comment.text, 240),
     tags: [comment.target_kind, "comment"],
   };
 }
@@ -640,6 +665,7 @@ function sessionToEvent(session: OrchestratorSessionRow): OrchestratorContinuity
 }
 
 function conversationTurnToEvent(turn: OrchestratorConversationTurnRow): OrchestratorContinuityEvent {
+  const content = compactContinuityText(turn.content, 220);
   return {
     source_kind: "conversation_turn",
     source_id: turn.id,
@@ -647,7 +673,7 @@ function conversationTurnToEvent(turn: OrchestratorConversationTurnRow): Orchest
     created_at: turn.created_at,
     kind: classify([], turn.content),
     role: turn.role,
-    summary: compactText(`${turn.role}: ${turn.content}`, 240),
+    summary: compactText(`${turn.role}: ${content}`, 240),
     tags: ["conversation", turn.role],
   };
 }
