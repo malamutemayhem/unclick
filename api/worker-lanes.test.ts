@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildTodoLaneTokens,
   evaluateLaneClaim,
   normalizeScopeTokens,
   normalizeWorkerLane,
@@ -54,6 +55,16 @@ describe("worker lane helpers", () => {
       reason: "scope_allowlist_match",
       matched_token: "build",
     });
+  });
+
+  it("builds public-safe todo tokens for claim checks", () => {
+    expect(
+      buildTodoLaneTokens({
+        title: "Build F: Standing auto-merge bot + PR risk score",
+        priority: "urgent",
+        status: "open",
+      }),
+    ).toEqual(["urgent", "open", "build", "f:", "standing", "auto-merge", "bot", "pr", "risk", "score"]);
   });
 
   it("warns before enforcing allowlist misses", () => {

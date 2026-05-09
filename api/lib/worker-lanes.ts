@@ -27,6 +27,12 @@ export interface LaneClaimEvaluation {
   matched_token?: string;
 }
 
+export interface TodoLaneTokenInput {
+  title?: unknown;
+  priority?: unknown;
+  status?: unknown;
+}
+
 const MAX_TOKEN_LENGTH = 80;
 
 function compact(value: unknown, max = MAX_TOKEN_LENGTH): string {
@@ -100,5 +106,10 @@ export function evaluateLaneClaim(lane: WorkerLaneRow | null, todoTokens: unknow
     decision: lane.enforce_mode === "enforce" ? "reject" : "warn",
     reason: "scope_allowlist_miss",
   };
+}
+
+export function buildTodoLaneTokens(input: TodoLaneTokenInput): string[] {
+  const titleTokens = typeof input.title === "string" ? input.title.split(/[\s,]+/) : [];
+  return normalizeScopeTokens([input.priority, input.status, ...titleTokens]);
 }
 
