@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildOrchestratorContext,
   compactText,
+  isHeartbeatAutomationText,
   redactSensitive,
 } from "./lib/orchestrator-context";
 
@@ -253,5 +254,54 @@ describe("orchestrator context", () => {
     expect(context.rolling_snapshot.promoted_decisions.some((item) => item.source_id === "msg-decision-secret")).toBe(true);
     expect(context.rolling_snapshot.source_pointers.some((pointer) => pointer.source_id === "msg-heartbeat")).toBe(false);
     expect(context.rolling_snapshot.persistence_plan.raw_transcript_policy).toContain("Do not persist raw transcripts");
+  });
+
+  it("keeps heartbeat prompt bodies out of continuity summaries", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-09T23:45:00.000Z",
+      profiles: [],
+      messages: [
+        {
+          id: "msg-heartbeat-proof",
+          author_agent_id: "chatgpt-codex-seat",
+          text: "PASS: linked Orchestrator heartbeat-noise ScopePack to parent; proof: comment abc123; cleanup: done.",
+          tags: ["heartbeat", "proof"],
+          created_at: "2026-05-09T23:43:00.000Z",
+        },
+      ],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [
+        {
+          id: "turn-heartbeat",
+          session_id: "heartbeat-session",
+          role: "user",
+          content: `<heartbeat><automation_id>unclick-heartbeat</automation_id><current_time_iso>2026-05-09T23:41:18.398Z</current_time_iso><instructions>Run UnClick Heartbeat. Use the Seats > Heartbeat policy, do one safe useful step, and reply with PASS or BLOCKER only.</instructions></heartbeat>`,
+          created_at: "2026-05-09T23:41:00.000Z",
+        },
+        {
+          id: "turn-real",
+          session_id: "normal-session",
+          role: "user",
+          content: "Please keep Orchestrator context readable for new seats.",
+          created_at: "2026-05-09T23:40:00.000Z",
+        },
+      ],
+    });
+
+    const continuityText = JSON.stringify(context.continuity_events);
+
+    expect(isHeartbeatAutomationText("Run UnClick Heartbeat. Use the Seats > Heartbeat policy.")).toBe(true);
+    expect(continuityText).not.toContain("<heartbeat>");
+    expect(continuityText).not.toContain("current_time_iso");
+    expect(continuityText).toContain("Heartbeat schedule request");
+    expect(continuityText).toContain("Heartbeat result: PASS");
+    expect(continuityText).toContain("Please keep Orchestrator context readable");
+    expect(context.rolling_snapshot.source_pointers.some((pointer) => pointer.source_id === "turn-heartbeat")).toBe(false);
   });
 });
