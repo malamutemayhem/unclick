@@ -39,4 +39,17 @@ describe("buildTetherRoutePacket", () => {
     expect(packet.item.title).toBe("UnClick Connect experiment");
     expect(packet.expected_receipt).toEqual(["proof", "HOLD", "BLOCKER"]);
   });
+
+  it("normalizes Jobs queue routing to the Jobs Manager lane", () => {
+    const packet = buildTetherRoutePacket(
+      {
+        item_id: "todo-jobs-manager",
+        item_title: "Worker Registry: add Jobs Manager",
+        lane: "stale ownership",
+      },
+      new Date("2026-05-09T00:10:00.000Z"),
+    );
+
+    expect(packet.lane).toBe("Jobs Manager");
+  });
 });

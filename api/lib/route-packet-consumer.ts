@@ -4,6 +4,7 @@ export type RoutePacketLane =
   | "Reviewer"
   | "Safety"
   | "Coordinator"
+  | "Jobs Manager"
   | "Watcher";
 
 export interface RoutePacket {
@@ -81,6 +82,24 @@ export function normalizeRoutePacketLane(input: unknown): RoutePacketLane {
     case "coordinator":
     case "master":
       return "Coordinator";
+    case "jobs":
+    case "jobs manager":
+    case "jobs-manager":
+    case "job manager":
+    case "job-manager":
+    case "job scoping":
+    case "job-scoping":
+    case "queue manager":
+    case "queue-manager":
+    case "queue management":
+    case "queue-management":
+    case "scopepack":
+    case "scope pack":
+    case "stale ownership":
+    case "stale-ownership":
+    case "duplicate jobs":
+    case "duplicate-jobs":
+      return "Jobs Manager";
     case "watcher":
     case "relay":
       return "Watcher";

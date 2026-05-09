@@ -55,6 +55,30 @@ describe("UnClick Connect worker discovery", () => {
     ]);
   });
 
+  it("maps Jobs Manager profiles into the Jobs Manager lane", () => {
+    const workers = fishbowlProfilesToVisibleWorkers(
+      [
+        {
+          agent_id: "jobs-manager-seat",
+          emoji: "📋",
+          display_name: "Jobs Manager",
+          current_status: "Watching queue management and ScopePack readiness",
+          last_seen_at: "2026-05-09T00:10:00.000Z",
+        },
+      ],
+      new Date("2026-05-09T00:30:00.000Z"),
+    );
+
+    expect(workers).toEqual([
+      {
+        agent_id: "jobs-manager-seat",
+        lane: "Jobs Manager",
+        status: "active",
+        live: true,
+      },
+    ]);
+  });
+
   it("does not treat unknown, stale, or blocked profiles as production workers", () => {
     const workers = fishbowlProfilesToVisibleWorkers(
       [
