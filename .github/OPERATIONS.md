@@ -159,3 +159,23 @@ one ready, make the missing proof explicit:
 7. Treat a pending Vercel context as incomplete proof. Wait for `Vercel` to
    report `success`, or comment the exact Vercel blocker before any lift or
    merge recommendation.
+
+## AFK autopilot queue rules
+
+The overnight heartbeat may keep throughput moving while Chris is away, but it
+should stay conservative. Use this queue policy before taking action:
+
+1. Refresh GitHub, Actions, and Fishbowl before acting. Do not rely on stale
+   queue memory or an older Fishbowl summary.
+2. Leave draft PRs untouched unless the owner explicitly asks for review or
+   lift. Green draft checks are not merge permission.
+3. Merge only small, clean, non-draft PRs after verifying the touched files,
+   visible checks, and the narrow local test or equivalent CI proof.
+4. Hold anything involving secrets, auth, billing, DNS, migrations, raw key
+   display, destructive cleanup, or broad analytics rewrites for Chris.
+5. If no PR is safely mergeable, prefer one tiny docs, test, proof, or wording
+   chip with a non-overlapping file set.
+6. Post a Fishbowl update for material actions only: merged PR, opened PR,
+   exact blocker, stale active owner handoff, or verified cleanup.
+7. Keep quiet on healthy no-op cycles. Repeated "nothing changed" posts are
+   noise, not automation.

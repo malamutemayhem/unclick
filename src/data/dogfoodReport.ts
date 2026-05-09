@@ -8,6 +8,8 @@ export interface DogfoodPassResult {
   evidence: string;
   checkedAt?: string;
   blockedReason?: string;
+  reasonCode?: string;
+  nextProof?: string;
   runId?: string;
   targetUrl?: string;
   proof?: {
@@ -27,6 +29,16 @@ export interface DogfoodTrendPoint {
 
 export type DogfoodStatusLegend = Record<DogfoodStatus, string>;
 
+export interface XPassIndexEntry {
+  id: string;
+  name: string;
+  stage: "live_gate" | "live_dogfood" | "scope_gated" | "planned" | "guidance";
+  label: string;
+  automation: string;
+  mentionProfile: string;
+  nextStep: string;
+}
+
 export const dogfoodReport = {
   generatedAt: "2026-05-01T17:16:13.158Z",
   lastRunAt: "2026-05-01T17:16:13.158Z",
@@ -42,6 +54,71 @@ export const dogfoodReport = {
     pending: "The check is planned or scaffolded, but live proof is not available yet.",
   } satisfies DogfoodStatusLegend,
   proofPolicy: "Public dogfood receipts mark passing only when a live check actually ran. Blocked and pending are honest product states, not failures to hide.",
+  xpassIndex: [
+    {
+      id: "testpass",
+      name: "TestPass",
+      stage: "live_gate",
+      label: "Live trust gate",
+      automation: "PR check, scheduled smoke, dogfood receipt, wake-router watched",
+      mentionProfile: "High mention volume because it protects merges and cron trust.",
+      nextStep: "Keep it as the default proof gate while the rest of XPass catches up.",
+    },
+    {
+      id: "uxpass",
+      name: "UXPass",
+      stage: "live_dogfood",
+      label: "Live dogfood lane",
+      automation: "Dogfood receipt and run endpoint",
+      mentionProfile: "Medium mention volume when the dogfood receipt or runner needs attention.",
+      nextStep: "Promote to scheduled proof once the credential path is consistently healthy.",
+    },
+    {
+      id: "securitypass",
+      name: "SecurityPass",
+      stage: "scope_gated",
+      label: "Scope-gated",
+      automation: "Blocked public receipt until safe recurring proof exists",
+      mentionProfile: "Low mention volume by design because unsafe probes stay disabled.",
+      nextStep: "Add a deny-by-default recurring runner proof before live security checks.",
+    },
+    {
+      id: "seopass",
+      name: "SEOPass",
+      stage: "planned",
+      label: "Planned",
+      automation: "Scaffold-only public receipt",
+      mentionProfile: "Low mention volume until a recurring search and metadata runner lands.",
+      nextStep: "Define the smallest recurring metadata proof.",
+    },
+    {
+      id: "copypass",
+      name: "CopyPass",
+      stage: "planned",
+      label: "Planned",
+      automation: "Scaffold-only public receipt",
+      mentionProfile: "Low mention volume until copy checks become scheduled evidence.",
+      nextStep: "Define the copy quality receipt shape.",
+    },
+    {
+      id: "legalpass",
+      name: "LegalPass",
+      stage: "planned",
+      label: "Planned",
+      automation: "Scaffold-only public receipt",
+      mentionProfile: "Low mention volume until policy and claims checks become scheduled evidence.",
+      nextStep: "Keep guidance-only until legal review boundaries are explicit.",
+    },
+    {
+      id: "enterprisepass",
+      name: "EnterprisePass",
+      stage: "guidance",
+      label: "Guidance report",
+      automation: "Receipt guard and readiness report boundary",
+      mentionProfile: "Low mention volume while it remains a guidance layer, not certification.",
+      nextStep: "Add low-risk readiness checks without claiming compliance certification.",
+    },
+  ] satisfies XPassIndexEntry[],
   results: [
     {
       id: "testpass",
@@ -66,6 +143,8 @@ export const dogfoodReport = {
       evidence: "Set one workflow secret so the nightly dogfood workflow can create a fresh uxpass_runs row.",
       checkedAt: "2026-05-01T17:16:13.158Z",
       blockedReason: "Missing DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
+      reasonCode: "missing_credential",
+      nextProof: "Set one UXPass workflow secret, then rerun the dogfood report workflow.",
     },
     {
       id: "securitypass",
@@ -75,6 +154,8 @@ export const dogfoodReport = {
       evidence: "SecurityPass remains scope-gated; the public dogfood receipt does not run security probes yet.",
       checkedAt: "2026-05-01T17:16:13.158Z",
       blockedReason: "SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
+      reasonCode: "scope_gate",
+      nextProof: "Land a safe recurring SecurityPass runner receipt before marking this passing.",
     },
     {
       id: "seopass",
@@ -83,6 +164,8 @@ export const dogfoodReport = {
       summary: "Queued for recurring search and metadata review.",
       evidence: "SEOPass is still scaffold-only for public dogfood receipts.",
       checkedAt: "2026-05-01T17:16:13.158Z",
+      reasonCode: "planned_runner",
+      nextProof: "Add a recurring SEOPass receipt before moving this out of pending.",
     },
     {
       id: "copypass",
@@ -91,6 +174,8 @@ export const dogfoodReport = {
       summary: "Queued for recurring copy quality review.",
       evidence: "CopyPass recurring public receipts will land after the runner surface is available.",
       checkedAt: "2026-05-01T17:16:13.158Z",
+      reasonCode: "planned_runner",
+      nextProof: "Add a recurring CopyPass receipt before moving this out of pending.",
     },
     {
       id: "legalpass",
@@ -99,6 +184,8 @@ export const dogfoodReport = {
       summary: "Queued for recurring policy and claims review.",
       evidence: "LegalPass recurring public receipts will land after the runner surface is available.",
       checkedAt: "2026-05-01T17:16:13.158Z",
+      reasonCode: "planned_runner",
+      nextProof: "Add a recurring LegalPass receipt before moving this out of pending.",
     },
     {
       id: "enterprisepass",
@@ -108,6 +195,8 @@ export const dogfoodReport = {
       evidence: "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
       checkedAt: "2026-05-02T02:30:00Z",
       proof: { kind: "planned", targetUrl: "/enterprise/latest.json" },
+      reasonCode: "planned_runner",
+      nextProof: "Wire automated evidence checks before moving this beyond readiness guidance.",
     },
   ] satisfies DogfoodPassResult[],
   trend: [

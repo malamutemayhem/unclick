@@ -10,6 +10,8 @@ import {
   buildReliabilityDispatchHandoffSyncRequest,
   buildReliabilityDispatchRequest,
   deriveAckThresholds,
+  deriveWakeStatus,
+  normalizeHandoffMessageId,
   normalizeDispatchOwner,
   shouldFailMissingHandoffMessageId,
   wakeDispatchId,
@@ -83,7 +85,7 @@ describe("event wake router reliability dispatch", () => {
     const request = buildReliabilityDispatchRequest({
       eventId: "wake-workflow_run-workflow-run-123-abc",
       decision: {
-        owner: "🤖",
+        owner: "🧭",
         reason: "PR checks completed green for TestPass PR Check on PR #310",
         urgency: "high",
       },
@@ -100,13 +102,13 @@ describe("event wake router reliability dispatch", () => {
     });
 
     assert.equal(request.source, "wakepass");
-    assert.equal(request.target_agent_id, "🤖");
+    assert.equal(request.target_agent_id, "🧭");
     assert.equal(request.task_ref, "wake-workflow_run-workflow-run-123-abc");
     assert.equal(request.payload.ack_required, true);
     assert.equal(request.payload.handoff_message_id, "msg-123");
     assert.equal(request.payload.route_attempted, "fishbowl");
     assert.equal(request.payload.ack_fail_after_seconds, 600);
-    assert.equal(request.payload.wake_owner, "🤖");
+    assert.equal(request.payload.wake_owner, "🧭");
     assert.equal(request.payload.github_subject, "workflow-run-123");
   });
 
@@ -114,7 +116,7 @@ describe("event wake router reliability dispatch", () => {
     const request = buildReliabilityDispatchRequest({
       eventId: "wake-workflow_run-workflow-run-456-def",
       decision: {
-        owner: "🤖",
+        owner: "🧭",
         reason: "PR checks completed green",
         urgency: "high",
       },
@@ -131,7 +133,7 @@ describe("event wake router reliability dispatch", () => {
     const request = buildReliabilityDispatchRequest({
       eventId: "wake-workflow_run-workflow-run-789-ghi",
       decision: {
-        owner: "🤖",
+        owner: "🧭",
         reason: "PR checks completed green",
         urgency: "high",
       },
@@ -150,7 +152,7 @@ describe("event wake router reliability dispatch", () => {
     const upsert = buildReliabilityDispatchHandoffSyncRequest({
       eventId: "wake-workflow_run-workflow-run-321-jkl",
       decision: {
-        owner: "🤖",
+        owner: "🧪",
         reason: "Scheduled TestPass smoke failure",
         urgency: "urgent",
       },
@@ -166,6 +168,24 @@ describe("event wake router reliability dispatch", () => {
     assert.equal(upsert.payload.ack_fail_after_seconds, 120);
   });
 
+  it("skips dispatch handoff sync when message id is whitespace only", () => {
+    const upsert = buildReliabilityDispatchHandoffSyncRequest({
+      eventId: "wake-workflow_run-workflow-run-321-jkl",
+      decision: {
+        owner: "🧪",
+        reason: "Scheduled TestPass smoke failure",
+        urgency: "urgent",
+      },
+      triage: { used: false },
+      result: { message_id: "   " },
+      event: { workflow_run: { id: 321 } },
+      ackSeconds: 120,
+    });
+
+    assert.equal(upsert, null);
+    assert.equal(normalizeHandoffMessageId("   "), null);
+  });
+
   it("normalizes fanout owner to a concrete ACK owner for reliability dispatch", () => {
     const request = buildReliabilityDispatchRequest({
       eventId: "wake-issue_comment-comment-123-xyz",
@@ -179,9 +199,13 @@ describe("event wake router reliability dispatch", () => {
       event: { comment: { id: 123 }, issue: { number: 99 } },
     });
 
-    assert.equal(normalizeDispatchOwner("all"), "🤖");
-    assert.equal(request.target_agent_id, "🤖");
-    assert.equal(request.payload.wake_owner, "all");
+    assert.equal(normalizeDispatchOwner("all"), "🧭");
+    assert.equal(request.target_agent_id, "🧭");
+    assert.equal(request.payload.wake_owner, "🧭");
+  });
+
+  it("normalizes trimmed case-variant all owner to concrete ACK owner", () => {
+    assert.equal(normalizeDispatchOwner(" ALL "), "🧭");
   });
 
   it("keeps successful PR workflow green echoes silent", () => {
@@ -314,7 +338,7 @@ describe("event wake router reliability dispatch", () => {
 
     assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.match(result.stdout, /Dogfood Report workflow failure/);
-    assert.match(result.stdout, /"wake_owner": "🦾"/);
+    assert.match(result.stdout, /"wake_owner": "🛠️"/);
     assert.match(result.stdout, /"wake_urgency": "urgent"/);
     assert.match(result.stdout, /reliability_dispatch_dry_run/);
     assert.match(result.stdout, /"ack_required": true/);
@@ -410,7 +434,7 @@ describe("event wake router reliability dispatch", () => {
 
     assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.match(result.stdout, /PR #330 is ready for review/);
-    assert.match(result.stdout, /"wake_owner": "🍿"/);
+    assert.match(result.stdout, /"wake_owner": "🔍"/);
     assert.match(result.stdout, /"wake_urgency": "high"/);
     assert.match(result.stdout, /reliability_dispatch_dry_run/);
     assert.match(result.stdout, /"ack_required": true/);
@@ -496,7 +520,7 @@ describe("event wake router reliability dispatch", () => {
 
       assert.equal(result.status, 1, result.stderr || result.stdout);
       assert.match(result.stderr, /required for reliability dispatch/);
-      assert.match(result.stderr, /Reliability dispatch registration failed, skipping Fishbowl wake post/);
+      assert.match(result.stderr, /Reliability dispatch registration failed, skipping Boardroom wake post/);
       assert.doesNotMatch(result.stderr, /required for wake posting/);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -505,6 +529,7 @@ describe("event wake router reliability dispatch", () => {
 
   it("fails closed when Fishbowl post succeeds without a message id", () => {
     assert.equal(shouldFailMissingHandoffMessageId({ posted: true, message_id: null, dry_run: false }), true);
+    assert.equal(shouldFailMissingHandoffMessageId({ posted: true, message_id: "   ", dry_run: false }), true);
     assert.equal(shouldFailMissingHandoffMessageId({ posted: true, message_id: "msg-1", dry_run: false }), false);
     assert.equal(shouldFailMissingHandoffMessageId({ posted: true, message_id: null, dry_run: true }), false);
     assert.equal(shouldFailMissingHandoffMessageId({ posted: false, message_id: null, dry_run: false }), false);
@@ -531,6 +556,56 @@ describe("event wake router reliability dispatch", () => {
 
       assert.equal(result.status, 1, result.stderr || result.stdout);
       assert.match(result.stderr, /Failed to read GitHub event payload:/);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("fails closed when the GitHub event payload is non-object JSON", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "wake-router-"));
+    const eventPath = join(tempDir, "event.json");
+    const ledgerDir = join(tempDir, "ledger");
+    writeFileSync(eventPath, "null");
+
+    try {
+      const result = spawnSync(process.execPath, [scriptPath], {
+        cwd: repoRoot,
+        env: {
+          ...process.env,
+          GITHUB_EVENT_NAME: "workflow_run",
+          GITHUB_EVENT_PATH: eventPath,
+          WAKE_LEDGER_DIR: ledgerDir,
+          WAKE_ROUTER_DRY_RUN: "true",
+        },
+        encoding: "utf8",
+      });
+
+      assert.equal(result.status, 1, result.stderr || result.stdout);
+      assert.match(result.stderr, /Failed to read GitHub event payload: GitHub event payload must be a JSON object/);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("fails closed when a non-manual event is missing GITHUB_EVENT_PATH", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "wake-router-"));
+    const ledgerDir = join(tempDir, "ledger");
+
+    try {
+      const result = spawnSync(process.execPath, [scriptPath], {
+        cwd: repoRoot,
+        env: {
+          ...process.env,
+          GITHUB_EVENT_NAME: "workflow_run",
+          GITHUB_EVENT_PATH: "",
+          WAKE_LEDGER_DIR: ledgerDir,
+          WAKE_ROUTER_DRY_RUN: "true",
+        },
+        encoding: "utf8",
+      });
+
+      assert.equal(result.status, 1, result.stderr || result.stdout);
+      assert.match(result.stderr, /GITHUB_EVENT_PATH is required for non-manual wake router events/);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -773,5 +848,13 @@ describe("event wake router reliability dispatch", () => {
     assert.equal(thresholds.warning_after_seconds, 2);
     assert.ok(thresholds.expected_within_seconds < thresholds.warning_after_seconds);
     assert.ok(thresholds.warning_after_seconds < thresholds.fail_after_seconds);
+  });
+
+  it("marks ledger status failed when handoff sync attempt is unsynced", () => {
+    assert.equal(deriveWakeStatus({ posted: true, dry_run: false }, { attempted: true, synced: false }), "wake_failed");
+  });
+
+  it("keeps ledger status posted when handoff sync succeeds", () => {
+    assert.equal(deriveWakeStatus({ posted: true, dry_run: false }, { attempted: true, synced: true }), "wake_posted");
   });
 });

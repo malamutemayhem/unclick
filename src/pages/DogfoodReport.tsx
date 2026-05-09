@@ -11,6 +11,7 @@ import {
   type DogfoodStatus,
   type DogfoodStatusLegend,
   type DogfoodTrendPoint,
+  type XPassIndexEntry,
 } from "@/data/dogfoodReport";
 
 type DogfoodReportData = Omit<typeof fallbackReport, "results" | "trend"> & {
@@ -18,6 +19,7 @@ type DogfoodReportData = Omit<typeof fallbackReport, "results" | "trend"> & {
   trend: DogfoodTrendPoint[];
   statusLegend: DogfoodStatusLegend;
   proofPolicy: string;
+  xpassIndex?: XPassIndexEntry[];
 };
 
 const STATUS_STYLES: Record<DogfoodStatus, { label: string; badge: string; icon: typeof CheckCircle2 }> = {
@@ -41,6 +43,14 @@ const STATUS_STYLES: Record<DogfoodStatus, { label: string; badge: string; icon:
     badge: "border-sky-400/25 bg-sky-400/10 text-sky-200",
     icon: AlertTriangle,
   },
+};
+
+const XPASS_STAGE_STYLES: Record<XPassIndexEntry["stage"], string> = {
+  live_gate: "border-emerald-400/20 bg-emerald-400/10 text-emerald-200",
+  live_dogfood: "border-cyan-400/20 bg-cyan-400/10 text-cyan-200",
+  scope_gated: "border-sky-400/25 bg-sky-400/10 text-sky-200",
+  planned: "border-amber-400/20 bg-amber-400/10 text-amber-200",
+  guidance: "border-violet-400/20 bg-violet-400/10 text-violet-200",
 };
 
 function countByStatus(results: DogfoodPassResult[], status: DogfoodStatus): number {
@@ -87,6 +97,7 @@ export default function DogfoodReportPage() {
   }), [report.results]);
   const receiptStatus = STATUS_STYLES[(report.status || "pending") as DogfoodStatus] || STATUS_STYLES.pending;
   const ReceiptIcon = receiptStatus.icon;
+  const xpassIndex = report.xpassIndex?.length ? report.xpassIndex : fallbackReport.xpassIndex;
 
   return (
     <div className="min-h-screen bg-background">
@@ -148,6 +159,53 @@ export default function DogfoodReportPage() {
         </section>
 
         <section className="mx-auto mt-10 max-w-5xl">
+          <FadeIn delay={0.09}>
+            <div className="rounded-2xl border border-border/70 bg-card/40 p-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
+                    XPass family index
+                  </p>
+                  <h2 className="mt-2 text-xl font-semibold text-heading">
+                    TestPass is loud because it is the live gate.
+                  </h2>
+                </div>
+                <p className="max-w-md text-xs leading-relaxed text-muted-custom">
+                  This index shows which Pass products are live gates, dogfood lanes, scope-gated,
+                  planned, or guidance-only so the whole family stays visible.
+                </p>
+              </div>
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
+                {xpassIndex.map((entry) => (
+                  <div key={entry.id} className="rounded-xl border border-border/50 bg-background/40 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="text-sm font-semibold text-heading">{entry.name}</h3>
+                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-medium ${XPASS_STAGE_STYLES[entry.stage]}`}>
+                        {entry.label}
+                      </span>
+                    </div>
+                    <dl className="mt-3 space-y-2 text-xs leading-relaxed">
+                      <div>
+                        <dt className="font-medium text-heading">Automation</dt>
+                        <dd className="text-muted-custom">{entry.automation}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-heading">Mention profile</dt>
+                        <dd className="text-muted-custom">{entry.mentionProfile}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-heading">Next step</dt>
+                        <dd className="text-muted-custom">{entry.nextStep}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </FadeIn>
+        </section>
+
+        <section className="mx-auto mt-10 max-w-5xl">
           <FadeIn delay={0.1}>
             <div className="rounded-2xl border border-border/70 bg-card/40 p-5">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
@@ -202,6 +260,20 @@ export default function DogfoodReportPage() {
                       <p className="mt-3 text-xs leading-relaxed text-sky-200">
                         Blocked reason: {result.blockedReason}
                       </p>
+                    ) : null}
+                    {result.reasonCode || result.nextProof ? (
+                      <div className="mt-3 rounded-xl border border-border/50 bg-background/40 p-3 text-xs leading-relaxed text-muted-custom">
+                        {result.reasonCode ? (
+                          <p>
+                            Reason code: <span className="font-mono text-heading">{result.reasonCode}</span>
+                          </p>
+                        ) : null}
+                        {result.nextProof ? (
+                          <p className={result.reasonCode ? "mt-1" : undefined}>
+                            Next proof: {result.nextProof}
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
                     {result.checkedAt ? (
                       <p className="mt-3 text-[11px] text-muted-custom">Checked: {formatDate(result.checkedAt)}</p>
