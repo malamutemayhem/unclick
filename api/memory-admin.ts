@@ -127,6 +127,11 @@ import {
   recordAutopilotEvent,
   recordAutopilotEvents,
 } from "./lib/autopilot-control-ledger.js";
+import {
+  buildTodoLaneTokens,
+  evaluateLaneClaim,
+  type WorkerLaneRow,
+} from "./lib/worker-lanes.js";
 import { runRoutePacketConsumerDryRun, type VisibleWorker } from "./lib/route-packet-consumer.js";
 import { buildUnClickConnectDispatchRow } from "./lib/route-packet-dispatch.js";
 import { buildTetherRoutePacket } from "./lib/tether-route-packet.js";
@@ -7941,6 +7946,73 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             update.assigned_to_agent_id = a.length === 0 ? null : a;
           }
 
+          let laneCheck: {
+            decision: "allow" | "warn" | "reject";
+            reason: string;
+            matched_token?: string;
+          } | null = null;
+          const nextAssignee = typeof update.assigned_to_agent_id === "string" ? update.assigned_to_agent_id : null;
+          if (nextAssignee && beforeTodo) {
+            const { data: laneRow, error: laneErr } = await supabase
+              .from("worker_lanes")
+              .select("api_key_hash, agent_id, role, scope_allowlist, scope_denylist, enforce_mode")
+              .eq("api_key_hash", apiKeyHash)
+              .eq("agent_id", nextAssignee)
+              .maybeSingle();
+            if (laneErr) throw laneErr;
+
+            const lane = laneRow as WorkerLaneRow | null;
+            const tokens = buildTodoLaneTokens({
+              title: update.title ?? beforeTodo.title,
+              priority: update.priority ?? beforeTodo.priority,
+              status: update.status ?? beforeTodo.status,
+            });
+            laneCheck = evaluateLaneClaim(lane, tokens);
+            await recordAutopilotEvents(supabase, apiKeyHash, [
+              {
+                apiKeyHash,
+                eventType: "lane_check",
+                actorAgentId: agentId,
+                refKind: "todo",
+                refId: idRes,
+                payload: {
+                  target_agent_id: nextAssignee,
+                  role: lane?.role ?? "unregistered",
+                  decision: laneCheck.decision,
+                  reason: laneCheck.reason,
+                  matched_token: laneCheck.matched_token ?? null,
+                  tokens,
+                },
+              },
+              ...(laneCheck.decision === "allow"
+                ? []
+                : [
+                    {
+                      apiKeyHash,
+                      eventType: "lane_violation",
+                      actorAgentId: agentId,
+                      refKind: "todo",
+                      refId: idRes,
+                      payload: {
+                        target_agent_id: nextAssignee,
+                        role: lane?.role ?? "unregistered",
+                        decision: laneCheck.decision,
+                        reason: laneCheck.reason,
+                        matched_token: laneCheck.matched_token ?? null,
+                      },
+                    },
+                  ]),
+            ]);
+
+            if (laneCheck.decision === "reject") {
+              return res.status(409).json({
+                error: "claim rejected by worker lane",
+                how_to_fix: "Choose a seat whose lane matches this job, or switch the lane to warn mode while tuning routing.",
+                lane_check: laneCheck,
+              });
+            }
+          }
+
           const { data, error } = await supabase
             .from("mc_fishbowl_todos")
             .update(update)
@@ -7961,7 +8033,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               after: data,
             }),
           );
-          return res.status(200).json({ todo: data });
+          return res.status(200).json({ todo: data, lane_check: laneCheck });
         }
 
         if (action === "fishbowl_complete_todo") {
