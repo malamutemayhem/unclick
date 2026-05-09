@@ -736,19 +736,33 @@ function AISeatsPanel() {
   const [seats, setSeats] = useState<AISeat[]>(() => loadSeatOverrides());
   const [profiles, setProfiles] = useState<FishbowlProfile[]>([]);
   const [profilesLoading, setProfilesLoading] = useState(false);
+  const [profilesError, setProfilesError] = useState<string | null>(null);
   const [editingSeatId, setEditingSeatId] = useState<string | null>(null);
   const issues = seats.filter((seat) => seat.issue);
   const seatProfiles = useMemo(() => mapProfilesToSeats(seats, profiles), [profiles, seats]);
+  const matchedProfileCount = seatProfiles.size;
+  const checkInSummary = profilesError
+    ? profilesError
+    : profilesLoading
+      ? "Checking live seats..."
+      : profiles.length > 0
+        ? `${profiles.length} live check-in${profiles.length === 1 ? "" : "s"} loaded`
+        : "No live seat check-ins loaded yet";
 
   const loadProfiles = useCallback(async () => {
-    if (!getApiKey()) return;
+    if (!getApiKey()) {
+      setProfiles([]);
+      setProfilesError("Add an admin key to load live check-ins.");
+      return;
+    }
     setProfilesLoading(true);
+    setProfilesError(null);
     try {
       const res = await api<{ profiles?: FishbowlProfile[] }>("fishbowl_read", {
         method: "POST",
         body: JSON.stringify({
           agent_id: "admin-agents-page",
-          limit: 1,
+          limit: 20,
         }),
       });
       setProfiles(
@@ -756,8 +770,9 @@ function AISeatsPanel() {
           .filter((profile) => profile.user_agent_hint !== "admin-ui")
           .sort((a, b) => new Date(b.last_seen_at ?? b.created_at).getTime() - new Date(a.last_seen_at ?? a.created_at).getTime()),
       );
-    } catch {
+    } catch (error) {
       setProfiles([]);
+      setProfilesError(error instanceof Error ? error.message : "Could not load live check-ins.");
     } finally {
       setProfilesLoading(false);
     }
@@ -813,10 +828,22 @@ function AISeatsPanel() {
           <div>
             <h2 className="text-sm font-semibold text-heading">AI Seats</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Connected AI capacity with the newest live check-in shown in each row.
+              Connected AI capacity with the newest live check-in shown in each row. Manual load is a planning guide.
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <span
+              className={`hidden rounded-md border px-2 py-1 text-[11px] md:inline-flex ${
+                profilesError
+                  ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                  : profiles.length > 0
+                    ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                    : "border-border/40 bg-card/40 text-muted-foreground"
+              }`}
+              title={matchedProfileCount > 0 ? `${matchedProfileCount} seats matched to live check-ins` : checkInSummary}
+            >
+              {checkInSummary}
+            </span>
             <button
               type="button"
               onClick={() => void loadProfiles()}
@@ -944,7 +971,13 @@ function AISeatsPanel() {
                     <>
                       <p className="text-xs text-muted-foreground">No check-in yet</p>
                       <p className="text-[10px] text-muted-foreground/70">
-                        {profilesLoading ? "Checking..." : "Waiting for live seat"}
+                        {profilesError
+                          ? "Check-in feed unavailable"
+                          : profilesLoading
+                            ? "Checking..."
+                            : profiles.length > 0
+                              ? "No matching live seat"
+                              : "Waiting for live seat"}
                       </p>
                     </>
                   )}
