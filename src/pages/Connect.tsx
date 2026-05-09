@@ -531,7 +531,7 @@ function ConnectShell({
     <main className="min-h-screen bg-[#0A0A0A] flex items-start justify-center pt-16 pb-24 px-4">
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
-        <div className="text-center space-y-3">
+        <header className="text-center space-y-3">
           <Link
             to="/"
             className="inline-flex items-center gap-1.5 text-xs text-[#E8E8E8]/40 hover:text-[#E8E8E8]/70"
@@ -561,7 +561,7 @@ function ConnectShell({
           >
             {authLabel[connector.authType] ?? connector.authType}
           </Badge>
-        </div>
+        </header>
 
         {/* Card */}
         <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6">
