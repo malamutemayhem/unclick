@@ -22,6 +22,7 @@ import {
 import {
   latestProfileCheckInAt,
   mapProfilesToSeats,
+  unmatchedRecentProfiles,
   type AISeat,
   type FishbowlProfile,
 } from "./AdminAgentsSeatUtils";
@@ -253,6 +254,10 @@ function AISeatsPanel() {
   const [editingSeatId, setEditingSeatId] = useState<string | null>(null);
   const issues = seats.filter((seat) => seat.issue);
   const seatProfiles = useMemo(() => mapProfilesToSeats(seats, profiles), [profiles, seats]);
+  const extraProfiles = useMemo(
+    () => unmatchedRecentProfiles(profiles, seatProfiles.values()),
+    [profiles, seatProfiles],
+  );
   const matchedProfileCount = seatProfiles.size;
   const checkInSummary = profilesError
     ? profilesError
@@ -526,6 +531,54 @@ function AISeatsPanel() {
                     <span className="text-[10px] text-muted-foreground">Manual</span>
                   )}
                 </div>
+              </div>
+            );
+          })}
+          {extraProfiles.map((profile) => {
+            const checkedInAt = latestProfileCheckInAt(profile);
+            const checkedInMs = checkedInAt ? Date.parse(checkedInAt) : NaN;
+            const isReady = Number.isFinite(checkedInMs) && Date.now() - checkedInMs < 15 * 60 * 1000;
+            return (
+              <div
+                key={`live-${profile.agent_id}`}
+                className="grid grid-cols-[minmax(210px,1.4fr)_110px_130px_minmax(150px,0.8fr)_minmax(180px,1.2fr)_minmax(190px,1fr)] items-center gap-3 bg-primary/[0.025] px-4 py-3 text-xs"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-heading">
+                    <span className="mr-1.5" aria-hidden="true">{profile.emoji ?? "💻"}</span>
+                    {profileDisplayName(profile)}
+                  </p>
+                  <p className="truncate text-[10px] text-muted-foreground">{profile.agent_id}</p>
+                  <p className="truncate text-[10px] text-muted-foreground">{profile.user_agent_hint ?? "Live seat"}</p>
+                </div>
+                <div>
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-[10px] ${
+                      isReady
+                        ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                        : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                    }`}
+                  >
+                    {isReady ? "Ready" : "Seen"}
+                  </span>
+                  <p className="mt-1 text-[10px] text-muted-foreground">Auto-detected</p>
+                </div>
+                <div>
+                  <div className="h-1.5 w-full rounded-full bg-border/60">
+                    <div className="h-1.5 w-1/4 rounded-full bg-primary" />
+                  </div>
+                  <p className="mt-1 text-[10px] text-muted-foreground">Auto</p>
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-medium text-heading" title={profile.agent_id}>
+                    {relativeTime(checkedInAt)}
+                  </p>
+                  <p className="truncate text-[10px] text-muted-foreground">
+                    {profile.current_status ? "Status updated" : "Checked in"}
+                  </p>
+                </div>
+                <p className="text-body">General capacity</p>
+                <p className="text-[10px] text-primary">Live seat</p>
               </div>
             );
           })}
