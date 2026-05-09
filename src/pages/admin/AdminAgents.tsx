@@ -1,24 +1,14 @@
 /**
- * AdminAgents - manage AI agent profiles.
- *
- * Users can create named agents with a role, system prompt, scoped tool
- * access, and scoped memory layer access. Wires through /api/memory-admin
- * actions admin_agent_*.
+ * AdminAgents manages connected AI seat capacity.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Bot,
-  Plus,
-  Copy,
   Pencil,
   Trash2,
-  Power,
-  Star,
   Search,
   X,
   Check,
-  Cpu,
   AlertTriangle,
   Save,
 } from "lucide-react";
@@ -29,6 +19,13 @@ import {
   type AgentTemplate,
   type MemoryLayerKey,
 } from "./agentTemplates";
+import {
+  latestProfileCheckInAt,
+  mapProfilesToSeats,
+  type AISeat,
+  type FishbowlProfile,
+} from "./AdminAgentsSeatUtils";
+import { useSession } from "@/lib/auth";
 
 interface Agent {
   id: string;
@@ -61,18 +58,6 @@ interface AgentDetail {
   memory_scope: Array<{ memory_layer: string; is_enabled: boolean }>;
 }
 
-interface FishbowlProfile {
-  agent_id: string;
-  emoji: string | null;
-  display_name: string | null;
-  user_agent_hint: string | null;
-  created_at: string;
-  last_seen_at: string | null;
-  current_status: string | null;
-  current_status_updated_at: string | null;
-  next_checkin_at: string | null;
-}
-
 const ROLE_OPTIONS = [
   { value: "researcher", label: "Researcher" },
   { value: "developer", label: "Developer" },
@@ -91,41 +76,6 @@ const ROLE_OPTIONS = [
   { value: "general", label: "General" },
   { value: "custom", label: "Custom" },
 ];
-
-// Role slug -> Lucide icon, used to render an agent's icon when no avatar URL is set.
-const ROLE_ICON_MAP = new Map(
-  AGENT_TEMPLATES.map((t) => [t.role, t.icon] as const),
-);
-
-const WORKER_ROLES = [
-  { name: "Coordinator", emoji: "🧭", summary: "Routes work and keeps the plan moving.", required: true },
-  { name: "Builder", emoji: "🛠️", summary: "Makes scoped changes and opens proof-backed work.", required: true },
-  { name: "Tester", emoji: "🧪", summary: "Runs checks and proves the work behaves.", required: true },
-  { name: "Reviewer", emoji: "🔍", summary: "Checks the finished work before it moves forward.", required: true },
-  { name: "Safety Checker", emoji: "🛡️", summary: "Stops risky work, secret leaks, and unsafe merges.", required: true },
-  { name: "Researcher", emoji: "🔬", summary: "Gathers context before work starts.", required: false },
-  { name: "Planner", emoji: "📋", summary: "Turns goals into small ordered jobs.", required: false },
-  { name: "Messenger", emoji: "📣", summary: "Posts clean handoffs and status packets.", required: false },
-  { name: "Watcher", emoji: "👁️", summary: "Keeps an eye on stale queues and missed signals.", required: false },
-  { name: "Publisher", emoji: "🚀", summary: "Handles publish proof after work lands.", required: false },
-  { name: "Performance Monitor", emoji: "📈", summary: "Scores seat outcomes so routing picks the best fit.", required: false },
-  { name: "Repairer", emoji: "🩹", summary: "Fixes small blockers found by checks.", required: false },
-  { name: "Improver", emoji: "♻️", summary: "Turns repeated friction into new build work.", required: false },
-] as const;
-
-interface AISeat {
-  id: string;
-  name: string;
-  emoji: string;
-  provider: string;
-  device: string;
-  status: "Ready" | "Standby" | "Needs login";
-  state: string;
-  load: number;
-  assigned: string;
-  issue: string;
-  isVirtual?: boolean;
-}
 
 const AI_SEAT_STORAGE_KEY = "unclick_ai_seat_manual_slots_v1";
 
@@ -252,13 +202,12 @@ function relativeTime(iso: string | null | undefined): string {
   return new Date(iso).toLocaleDateString();
 }
 
-async function api<T>(action: string, opts: RequestInit = {}): Promise<T> {
-  const apiKey = getApiKey();
+async function api<T>(action: string, opts: RequestInit = {}, authToken = getApiKey()): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(opts.headers as Record<string, string> | undefined),
   };
-  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+  if (authToken) headers.Authorization = `Bearer ${authToken}`;
   const res = await fetch(`/api/memory-admin?action=${action}`, { ...opts, headers });
   if (!res.ok) {
     const err = (await res.json().catch(() => ({}))) as { error?: string };
@@ -268,425 +217,17 @@ async function api<T>(action: string, opts: RequestInit = {}): Promise<T> {
 }
 
 export default function AdminAgentsPage() {
-  const [agents, setAgents] = useState<Agent[]>([]);
-  const [connectors, setConnectors] = useState<Connector[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [editing, setEditing] = useState<AgentDetail | null>(null);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [hasApiKey, setHasApiKey] = useState(true);
-  const [activeView, setActiveView] = useState<"workers" | "seats">("workers");
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const apiKey = getApiKey();
-      if (!apiKey) {
-        setHasApiKey(false);
-        setLoading(false);
-        return;
-      }
-      setHasApiKey(true);
-      const [agentsRes, connectorsRes] = await Promise.all([
-        api<{ data: Agent[] }>("admin_agents_list"),
-        api<{ data: Connector[] }>("admin_connectors_list"),
-      ]);
-      setAgents(agentsRes.data ?? []);
-      setConnectors(connectorsRes.data ?? []);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) void refresh();
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [refresh]);
-
-  const defaultAgent = useMemo(() => agents.find((a) => a.is_default), [agents]);
-  const noDefaultWarning = agents.length > 0 && !defaultAgent;
-
-  const handleCreate = async (template: AgentTemplate | null) => {
-    setShowTemplates(false);
-    try {
-      const body = template
-        ? {
-            name: template.name,
-            role: template.role,
-            description: template.description,
-            system_prompt: template.system_prompt,
-            is_default: agents.length === 0,
-          }
-        : {
-            name: "New Agent",
-            role: "custom",
-            description: "",
-            system_prompt: "",
-            is_default: agents.length === 0,
-          };
-      const { agent } = await api<{ agent: Agent }>("admin_agent_create", {
-        method: "POST",
-        body: JSON.stringify(body),
-      });
-
-      if (template) {
-        const slugSet = new Set(template.tool_slugs);
-        const matchedConnectorIds = connectors
-          .filter((c) => slugSet.has(c.id))
-          .map((c) => c.id);
-        if (matchedConnectorIds.length > 0) {
-          await api("admin_agent_tools_update", {
-            method: "POST",
-            body: JSON.stringify({
-              agent_id: agent.id,
-              connector_ids: matchedConnectorIds,
-            }),
-          });
-        }
-        const layers = MEMORY_LAYERS.map((l) => ({
-          memory_layer: l.key,
-          is_enabled: template.memory_layers.includes(l.key),
-        }));
-        await api("admin_agent_memory_update", {
-          method: "POST",
-          body: JSON.stringify({ agent_id: agent.id, layers }),
-        });
-      }
-
-      await refresh();
-      void openEditor(agent.id);
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  };
-
-  const openEditor = async (agentId: string) => {
-    try {
-      const detail = await api<AgentDetail>(`admin_agent_get&agent_id=${agentId}`);
-      setEditing(detail);
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  };
-
-  const handleDuplicate = async (agentId: string) => {
-    try {
-      await api("admin_agent_duplicate", {
-        method: "POST",
-        body: JSON.stringify({ agent_id: agentId }),
-      });
-      await refresh();
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  };
-
-  const handleToggleActive = async (agent: Agent) => {
-    try {
-      await api("admin_agent_update", {
-        method: "POST",
-        body: JSON.stringify({ agent_id: agent.id, is_active: !agent.is_active }),
-      });
-      await refresh();
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  };
-
-  const handleSetDefault = async (agentId: string) => {
-    try {
-      await api("admin_agent_update", {
-        method: "POST",
-        body: JSON.stringify({ agent_id: agentId, is_default: true }),
-      });
-      await refresh();
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  };
-
-  const handleDelete = async (agentId: string) => {
-    if (!window.confirm("Delete this agent? This cannot be undone.")) return;
-    try {
-      await api("admin_agent_delete", {
-        method: "POST",
-        body: JSON.stringify({ agent_id: agentId }),
-      });
-      setEditing(null);
-      await refresh();
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight text-heading">Seats</h1>
         <p className="mt-1 text-sm text-body">
-          Seats are the connected AI capacity across UnClick. Workers are the AutoPilot roles those seats can power.
+          Seats are the connected AI capacity across UnClick. Worker roles now live under AutoPilot.
         </p>
       </header>
 
-      <div className="mb-6 rounded-xl border border-border/40 bg-card/20 p-4">
-        <div className="grid gap-3 md:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setActiveView("workers")}
-            className={`rounded-lg border p-4 text-left transition-colors ${
-              activeView === "workers"
-                ? "border-primary/40 bg-primary/10"
-                : "border-border/40 bg-card/30 hover:border-border/70"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Bot className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-heading">UnClick Workers</span>
-            </div>
-            <p className="mt-1 text-xs text-body">
-              The roles UnClick can assign work to, like Coordinator, Builder, Reviewer, and Safety Checker.
-            </p>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveView("seats")}
-            className={`rounded-lg border p-4 text-left transition-colors ${
-              activeView === "seats"
-                ? "border-primary/40 bg-primary/10"
-                : "border-border/40 bg-card/30 hover:border-border/70"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Cpu className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-heading">AI Seats</span>
-            </div>
-            <p className="mt-1 text-xs text-body">
-              The connected AI accounts UnClick can use as capacity. Manual distribution is active for now.
-            </p>
-          </button>
-        </div>
-      </div>
-
-      {activeView === "seats" && <AISeatsPanel />}
-
-      {activeView === "workers" && (
-        <>
-          <WorkerRolesPanel />
-
-      {!hasApiKey && (
-        <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 text-sm text-body">
-          <p className="font-medium text-heading">Sign in to manage workers</p>
-          <p className="mt-1 text-xs">
-            Drop your UnClick API key in localStorage as <code>unclick_api_key</code> to load this
-            page.
-          </p>
-        </div>
-      )}
-
-      {error && (
-        <div className="mb-6 rounded-xl border border-rose-500/30 bg-rose-500/5 p-4 text-sm text-rose-300">
-          {error}
-        </div>
-      )}
-
-      {hasApiKey && agents.length === 0 && !loading && (
-        <div className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-5 text-sm text-body">
-          <p className="font-medium text-heading">You haven't created any custom workers yet.</p>
-          <p className="mt-1 text-xs">
-            UnClick is using default settings. All apps and all memory are available to every AI
-            session. Create a worker to customise what your AI can do.
-          </p>
-        </div>
-      )}
-
-      {noDefaultWarning && (
-        <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 text-sm text-body">
-          <p className="font-medium text-heading">No default worker selected.</p>
-          <p className="mt-1 text-xs">
-            Pick one of your workers as the default so it loads automatically when you start a new
-            AI session.
-          </p>
-        </div>
-      )}
-
-      <div className="mb-6 flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">
-          {agents.length} custom {agents.length === 1 ? "worker" : "workers"}
-        </p>
-        <button
-          type="button"
-          onClick={() => setShowTemplates(true)}
-          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" />
-          New Worker
-        </button>
-      </div>
-
-      {loading && hasApiKey ? (
-        <p className="text-xs text-muted-foreground">Loading workers...</p>
-      ) : (
-        <ul className="space-y-3">
-          {agents.map((agent) => {
-            const RoleIcon = ROLE_ICON_MAP.get(agent.role);
-            return (
-              <li
-                key={agent.id}
-                className="rounded-xl border border-border/40 bg-card/20 p-5 transition-colors hover:border-border/60"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      {agent.avatar_url ? (
-                        <img
-                          src={agent.avatar_url}
-                          alt={agent.name}
-                          className="h-10 w-10 rounded-xl object-cover"
-                        />
-                      ) : RoleIcon ? (
-                        <RoleIcon className="h-5 w-5" />
-                      ) : (
-                        <Bot className="h-5 w-5" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-heading">{agent.name}</h3>
-                        {agent.is_default && (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[10px] text-amber-400">
-                            <Star className="h-3 w-3" /> default
-                          </span>
-                        )}
-                        <span
-                          className={`inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[10px] ${
-                            agent.is_active
-                              ? "border-primary/30 bg-primary/10 text-primary"
-                              : "border-border/50 bg-card/40 text-muted-foreground"
-                          }`}
-                        >
-                          {agent.is_active ? "active" : "inactive"}
-                        </span>
-                      </div>
-                      <p className="mt-0.5 text-xs text-body">
-                        {agent.description ?? "No description"}
-                      </p>
-                      <p className="mt-1 text-[10px] text-muted-foreground">
-                        Tools: {agent.tool_count === 0 ? "all" : agent.tool_count} ·
-                        Memory:{" "}
-                        {agent.memory_layer_count === 0
-                          ? "all layers"
-                          : `${agent.memory_layer_count} of ${MEMORY_LAYERS.length}`}{" "}
-                        · Role: {agent.role}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1">
-                    {!agent.is_default && (
-                      <button
-                        type="button"
-                        onClick={() => handleSetDefault(agent.id)}
-                        title="Make default"
-                        className="rounded-md border border-border/40 bg-card/40 p-1.5 text-muted-foreground transition-colors hover:text-amber-400"
-                      >
-                        <Star className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => openEditor(agent.id)}
-                      title="Edit"
-                      className="rounded-md border border-border/40 bg-card/40 p-1.5 text-muted-foreground transition-colors hover:text-primary"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDuplicate(agent.id)}
-                      title="Duplicate"
-                      className="rounded-md border border-border/40 bg-card/40 p-1.5 text-muted-foreground transition-colors hover:text-primary"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleToggleActive(agent)}
-                      title={agent.is_active ? "Disable" : "Enable"}
-                      className="rounded-md border border-border/40 bg-card/40 p-1.5 text-muted-foreground transition-colors hover:text-primary"
-                    >
-                      <Power className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(agent.id)}
-                      title="Delete"
-                      className="rounded-md border border-border/40 bg-card/40 p-1.5 text-muted-foreground transition-colors hover:text-rose-400"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      {showTemplates && (
-        <TemplatePicker onPick={handleCreate} onClose={() => setShowTemplates(false)} />
-      )}
-
-      {editing && (
-        <AgentEditor
-          detail={editing}
-          connectors={connectors}
-          onClose={() => setEditing(null)}
-          onSaved={async () => {
-            setEditing(null);
-            await refresh();
-          }}
-          onDelete={() => editing && handleDelete(editing.agent.id)}
-        />
-      )}
-        </>
-      )}
+      <AISeatsPanel />
     </div>
-  );
-}
-
-function WorkerRolesPanel() {
-  return (
-    <section className="mb-6 rounded-xl border border-border/40 bg-card/20 p-5">
-      <div className="mb-4">
-        <h2 className="text-sm font-semibold text-heading">Built-in roles</h2>
-        <p className="mt-1 text-xs text-body">
-          These are the jobs inside UnClick. They are separate from the AI accounts that power them.
-        </p>
-      </div>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {WORKER_ROLES.map((role) => (
-          <div key={role.name} className="rounded-lg border border-border/40 bg-card/30 p-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span aria-hidden="true">{role.emoji}</span>
-                <span className="text-xs font-semibold text-heading">{role.name}</span>
-              </div>
-              <span className="rounded-full border border-border/40 bg-card/50 px-2 py-0.5 text-[10px] text-muted-foreground">
-                {role.required ? "Required" : "Optional"}
-              </span>
-            </div>
-            <p className="mt-1 text-[11px] text-body">{role.summary}</p>
-          </div>
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -702,37 +243,9 @@ function profileDisplayName(profile: FishbowlProfile): string {
     .replace(/\bAi\b/g, "AI");
 }
 
-function profileMatchesSeat(profile: FishbowlProfile, seat: AISeat): boolean {
-  const haystack = `${profile.agent_id} ${profile.display_name ?? ""} ${profile.user_agent_hint ?? ""}`.toLowerCase();
-  const needles = [seat.id, seat.name, seat.provider, seat.device]
-    .map((value) => value.toLowerCase().trim())
-    .filter((value) => value.length > 2 && !["unknown ai", "unknown device", "manual slot"].includes(value));
-  return needles.some((needle) => haystack.includes(needle));
-}
-
-function mapProfilesToSeats(seats: AISeat[], profiles: FishbowlProfile[]): Map<string, FishbowlProfile> {
-  const seatProfiles = new Map<string, FishbowlProfile>();
-  const usedProfiles = new Set<string>();
-
-  for (const seat of seats) {
-    const exactMatch = profiles.find((profile) => !usedProfiles.has(profile.agent_id) && profileMatchesSeat(profile, seat));
-    if (!exactMatch) continue;
-    seatProfiles.set(seat.id, exactMatch);
-    usedProfiles.add(exactMatch.agent_id);
-  }
-
-  for (const seat of seats) {
-    if (seat.isVirtual || seatProfiles.has(seat.id)) continue;
-    const fallbackMatch = profiles.find((profile) => !usedProfiles.has(profile.agent_id));
-    if (!fallbackMatch) continue;
-    seatProfiles.set(seat.id, fallbackMatch);
-    usedProfiles.add(fallbackMatch.agent_id);
-  }
-
-  return seatProfiles;
-}
-
 function AISeatsPanel() {
+  const { session, loading: sessionLoading } = useSession();
+  const authToken = session?.access_token ?? getApiKey();
   const [seats, setSeats] = useState<AISeat[]>(() => loadSeatOverrides());
   const [profiles, setProfiles] = useState<FishbowlProfile[]>([]);
   const [profilesLoading, setProfilesLoading] = useState(false);
@@ -743,16 +256,19 @@ function AISeatsPanel() {
   const matchedProfileCount = seatProfiles.size;
   const checkInSummary = profilesError
     ? profilesError
-    : profilesLoading
+    : sessionLoading
+      ? "Checking session..."
+      : profilesLoading
       ? "Checking live seats..."
       : profiles.length > 0
         ? `${profiles.length} live check-in${profiles.length === 1 ? "" : "s"} loaded`
         : "No live seat check-ins loaded yet";
 
   const loadProfiles = useCallback(async () => {
-    if (!getApiKey()) {
+    if (sessionLoading) return;
+    if (!authToken) {
       setProfiles([]);
-      setProfilesError("Add an admin key to load live check-ins.");
+      setProfilesError("Sign in to load live check-ins.");
       return;
     }
     setProfilesLoading(true);
@@ -761,14 +277,17 @@ function AISeatsPanel() {
       const res = await api<{ profiles?: FishbowlProfile[] }>("fishbowl_read", {
         method: "POST",
         body: JSON.stringify({
-          agent_id: "admin-agents-page",
           limit: 20,
         }),
-      });
+      }, authToken);
       setProfiles(
         (res.profiles ?? [])
           .filter((profile) => profile.user_agent_hint !== "admin-ui")
-          .sort((a, b) => new Date(b.last_seen_at ?? b.created_at).getTime() - new Date(a.last_seen_at ?? a.created_at).getTime()),
+          .sort((a, b) => {
+            const aMs = Date.parse(latestProfileCheckInAt(a) ?? a.created_at);
+            const bMs = Date.parse(latestProfileCheckInAt(b) ?? b.created_at);
+            return bMs - aMs;
+          }),
       );
     } catch (error) {
       setProfiles([]);
@@ -776,7 +295,7 @@ function AISeatsPanel() {
     } finally {
       setProfilesLoading(false);
     }
-  }, []);
+  }, [authToken, sessionLoading]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -797,10 +316,11 @@ function AISeatsPanel() {
   }, [seats]);
 
   useEffect(() => {
+    if (sessionLoading) return;
     queueMicrotask(() => void loadProfiles());
     const id = window.setInterval(() => void loadProfiles(), 30_000);
     return () => window.clearInterval(id);
-  }, [loadProfiles]);
+  }, [loadProfiles, sessionLoading]);
 
   const updateSeat = (seatId: string, patch: Partial<AISeat>) => {
     setSeats((current) => current.map((seat) => (seat.id === seatId ? { ...seat, ...patch } : seat)));
@@ -877,6 +397,7 @@ function AISeatsPanel() {
           {seats.map((seat) => {
             const editing = editingSeatId === seat.id;
             const matchedProfile = seatProfiles.get(seat.id);
+            const matchedCheckInAt = matchedProfile ? latestProfileCheckInAt(matchedProfile) : null;
             const emojiOptions = AI_SEAT_EMOJI_OPTIONS.some((option) => option.emoji === seat.emoji)
               ? AI_SEAT_EMOJI_OPTIONS
               : [{ emoji: seat.emoji, label: "Custom" }, ...AI_SEAT_EMOJI_OPTIONS];
@@ -958,10 +479,10 @@ function AISeatsPanel() {
                   <p className="mt-1 text-[10px] text-muted-foreground">{seat.load}%</p>
                 </div>
                 <div className="min-w-0">
-                  {matchedProfile ? (
+                  {matchedProfile && matchedCheckInAt ? (
                     <>
                       <p className="truncate text-xs font-medium text-heading" title={matchedProfile.agent_id}>
-                        {relativeTime(matchedProfile.last_seen_at)}
+                        {relativeTime(matchedCheckInAt)}
                       </p>
                       <p className="truncate text-[10px] text-muted-foreground">
                         {profileDisplayName(matchedProfile)}
