@@ -6,6 +6,15 @@ describe("runtime tool schema validation", () => {
   const probes: Array<{ name: string; args: Record<string, unknown> }> = [
     { name: "load_memory", args: { num_sessions: 1, bogus_field: "should reject" } },
     { name: "search_memory", args: { query: "strict schema probe", bogus_field: "should reject" } },
+    {
+      name: "save_conversation_turn",
+      args: {
+        session_id: "strict-probe-session",
+        role: "user",
+        content: "strict schema probe",
+        bogus_field: "should reject",
+      },
+    },
     { name: "check_signals", args: { agent_id: "strict-probe", bogus_field: "should reject" } },
     { name: "heartbeat_protocol", args: { bogus_field: "should reject" } },
     {
@@ -59,6 +68,11 @@ describe("runtime tool schema validation", () => {
     expect(validateToolArgumentsForRuntime("save_fact", {
       fact: "Issue: Claude tool-result submission fails in Brave. Solution: disable Brave Shields for claude.ai.",
       category: "troubleshooting",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("save_conversation_turn", {
+      session_id: "strict-probe-session",
+      role: "user",
+      content: "strict schema probe",
     })).toBeNull();
     expect(validateToolArgumentsForRuntime("unclick_generate_uuid", { count: 1 })).toBeNull();
     expect(validateToolArgumentsForRuntime("check_signals", {

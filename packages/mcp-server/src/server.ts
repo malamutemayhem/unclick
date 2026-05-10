@@ -396,6 +396,36 @@ const VISIBLE_TOOLS = [
     },
   },
   {
+    name: "save_conversation_turn",
+    title: "Save conversation turn",
+    description:
+      "Saves one human, assistant, system, or tool turn into UnClick conversation history so Orchestrator continuity can show and search it. " +
+      "Use after each accepted subscription chat human turn and after each assistant reply when the client can call tools. " +
+      "Use a stable session_id for the thread. Do not store secrets, API keys, passwords, one-time codes, or private credentials.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        session_id: {
+          type: "string",
+          description: "Stable thread or chat session identifier",
+        },
+        role: {
+          type: "string",
+          enum: ["user", "assistant", "system", "tool"],
+          description: "Who produced this turn",
+        },
+        content: { type: "string", description: "Turn text to save, with secrets removed" },
+        has_code: {
+          type: "boolean",
+          default: false,
+          description: "True when the turn contains code worth preserving for later context",
+        },
+      },
+      required: ["session_id", "role", "content"],
+    },
+  },
+  {
     name: "invalidate_fact",
     title: "Invalidate a fact",
     description:
@@ -885,6 +915,7 @@ const MEMORY_TOOL_ALIASES: Record<string, string> = {
   save_fact: "add_fact",
   save_session: "write_session_summary",
   save_identity: "set_business_context",
+  save_conversation_turn: "log_conversation",
   // search_memory and invalidate_fact keep their names
 };
 
@@ -1464,6 +1495,13 @@ export function createServer(): Server {
         "               resume without re-asking.",
         "",
         "Never ask the user to 'catch you up' -- load first, then act.",
+        "",
+        "ORCHESTRATOR CONTINUITY:",
+        "When acting as a subscription or tethered AI seat and tools are available,",
+        "call `save_conversation_turn` after each accepted human turn and after",
+        "each assistant reply the client exposes. Use a stable session id so",
+        "Orchestrator can show the whole thread. Skip or redact secrets, API keys,",
+        "passwords, one-time codes, and private credentials.",
       ].join("\n"),
     }
   );
