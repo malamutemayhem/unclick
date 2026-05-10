@@ -344,6 +344,66 @@ describe("orchestrator context", () => {
     expect(context.rolling_snapshot.source_pointers.some((pointer) => pointer.source_id === "turn-heartbeat")).toBe(false);
   });
 
+  it("keeps fresh-seat active_decision populated from active work when no decision event is live", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-10T04:16:00.000Z",
+      profiles: [
+        {
+          agent_id: "pinballwake-autonomous-runner",
+          display_name: "PinballWake",
+          user_agent_hint: "github-action scheduled heartbeat",
+          last_seen_at: "2026-05-10T04:14:00.000Z",
+        },
+      ],
+      messages: [
+        {
+          id: "msg-noise",
+          author_agent_id: "heartbeat-seat",
+          text: "DONT_NOTIFY: quiet-status heartbeat, no user action needed.",
+          tags: ["heartbeat"],
+          created_at: "2026-05-10T04:15:00.000Z",
+        },
+      ],
+      todos: [
+        {
+          id: "todo-orchestrator-finish-line",
+          title: "Orchestrator finish line proof",
+          description: "Get a scheduled proof green after the trusted fallback merge.",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "codex",
+          created_at: "2026-05-10T03:40:00.000Z",
+          updated_at: "2026-05-10T04:10:00.000Z",
+        },
+      ],
+      comments: [
+        {
+          id: "comment-trusted-fallback-proof",
+          target_kind: "todo",
+          target_id: "todo-orchestrator-finish-line",
+          author_agent_id: "chatgpt-codex-worker2",
+          text: "PASS: trusted fallback gate shipped; proof: PR #659; cleanup: done.",
+          created_at: "2026-05-10T04:12:00.000Z",
+        },
+      ],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.rolling_snapshot.promoted_decisions).toHaveLength(0);
+    expect(context.seat_handshake.active_decision).toContain("Continue current priority job");
+    expect(context.seat_handshake.active_decision).toContain("Orchestrator finish line proof");
+    expect(context.seat_handshake.active_job).toContain("Orchestrator finish line proof");
+    expect(context.seat_handshake.recent_proof).toContain("trusted fallback gate shipped");
+    expect(context.seat_handshake.source_pointers.map((pointer) => pointer.source_id)).toEqual(
+      expect.arrayContaining(["todo-orchestrator-finish-line", "comment-trusted-fallback-proof"]),
+    );
+  });
+
   it("builds a fresh-seat handshake from compact rolling context only", () => {
     const context = buildOrchestratorContext({
       generatedAt: "2026-05-10T00:20:00.000Z",
