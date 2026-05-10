@@ -1,8 +1,7 @@
 /**
  * Admin Orchestrator - the AI command center.
  *
- * Left: full-height admin chat panel (channel mode preferred, Gemini
- *       fallback when no Claude Code channel is online).
+ * Left: read-only continuity feed for seat/subscription context.
  * Right: status cards showing connection state, quick links, and memory
  *        counts. Stacks vertically on mobile.
  */
@@ -23,8 +22,8 @@ import {
   GitBranch,
   ShieldCheck,
   Users,
+  MessageSquareText,
 } from "lucide-react";
-import AIChatPanel from "@/components/admin/AIChatPanel";
 import {
   aiChatEnvEnabled,
   fetchAiChatTenantSettings,
@@ -232,15 +231,13 @@ export default function AdminOrchestratorPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
-        {/* Main chat pane */}
+        {/* Main continuity pane */}
         <div className="flex min-h-[620px] flex-col">
-          {chatDisabledReason ? (
-            <div className="rounded-2xl border border-white/[0.08] bg-[#111111] p-8 text-sm text-white/60">
-              {chatDisabledReason}
-            </div>
-          ) : (
-            <AIChatPanel authToken={authToken} />
-          )}
+          <OrchestratorContinuityPanel
+            context={orchestratorContext}
+            loading={loading || sessionLoading}
+            chatStatusLabel={chatDisabledReason ? "Chat disabled" : tier === "channel" ? "Claude Code bridge available" : "AI chat available"}
+          />
         </div>
 
         {/* Right rail */}
@@ -262,6 +259,90 @@ export default function AdminOrchestratorPage() {
       </div>
     </>
   );
+}
+
+function OrchestratorContinuityPanel({
+  context,
+  loading,
+  chatStatusLabel,
+}: {
+  context: OrchestratorContext | null;
+  loading: boolean;
+  chatStatusLabel: string;
+}) {
+  const events = context?.continuity_events ?? [];
+
+  return (
+    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-[#0d0d0d]">
+      <header className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <MessageSquareText className="h-4 w-4 text-[#61C1C4]" />
+            <h2 className="text-sm font-semibold text-white">Continuity Feed</h2>
+          </div>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-white/45">
+            Read-only context from UnClick memory, Boardroom, Jobs, signals, heartbeats, and saved chat summaries.
+            Live Claude/ChatGPT subscription transcripts only appear here after those clients send or save them to UnClick.
+          </p>
+        </div>
+        <span className="shrink-0 rounded-md border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#61C1C4]">
+          Read only
+        </span>
+      </header>
+
+      <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-3 text-[11px] text-white/40">
+        <span>{chatStatusLabel}</span>
+        <span>{events.length} loaded event{events.length === 1 ? "" : "s"}</span>
+      </div>
+
+      <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        {loading && (
+          <p className="text-sm text-white/45">Loading Orchestrator continuity...</p>
+        )}
+        {!loading && events.length === 0 && (
+          <div className="rounded-xl border border-white/[0.08] bg-black/20 p-5 text-sm leading-6 text-white/55">
+            No continuity events are available yet. Ask a connected AI seat to save a session, post to Boardroom,
+            or run the UnClick heartbeat so Orchestrator has something to show.
+          </div>
+        )}
+        {!loading && events.slice(0, 24).map((event) => (
+          <ContinuityFeedRow key={`${event.source_kind}:${event.source_id}`} event={event} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ContinuityFeedRow({ event }: { event: OrchestratorContext["continuity_events"][number] }) {
+  const content = (
+    <article className="rounded-xl border border-white/[0.06] bg-[#111111] px-4 py-3">
+      <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wider">
+        <span className="rounded-md border border-[#61C1C4]/20 bg-[#61C1C4]/10 px-1.5 py-0.5 font-semibold text-[#61C1C4]">
+          {event.kind}
+        </span>
+        <span className="text-white/35">{event.source_kind.replace(/_/g, " ")}</span>
+        {event.role && <span className="text-white/30">{event.role}</span>}
+        {event.actor_agent_id && <span className="max-w-[260px] truncate font-mono text-white/30">{event.actor_agent_id}</span>}
+        <span className="ml-auto text-white/30">{formatRelative(event.created_at)}</span>
+      </div>
+      <p className="text-sm leading-6 text-white/70">{event.summary}</p>
+      {event.tags && event.tags.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {event.tags.slice(0, 5).map((tag) => (
+            <span key={tag} className="rounded border border-white/[0.06] px-1.5 py-0.5 text-[10px] text-white/30">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </article>
+  );
+
+  if (event.deep_link?.startsWith("/")) {
+    return <Link to={event.deep_link}>{content}</Link>;
+  }
+
+  return content;
 }
 
 function OrchestratorContextCard({
