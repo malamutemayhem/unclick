@@ -58,6 +58,19 @@ Use worker nudges for:
 
 The nudge shape should be: worker -> target -> painpoint -> expected receipt -> verifier.
 
+## Quality Gates
+
+Quality beats coverage. NudgeOnlyAPI should miss a weak signal rather than create hallucinated work.
+
+Hard gates:
+
+- Do not invent facts, owners, sources, statuses, or proof.
+- Do not alert from model vibes alone; require source text plus a concrete painpoint cue.
+- Prefer false negatives over false positives when evidence is weak.
+- If both `source_id` and `source_url` are missing, treat the result as advisory only.
+- Healthy/completed/info-only controls must stay quiet unless the input explicitly says proof is missing, ACK is stale, ownership is unclear, wake is duplicated, or thread noise is hiding state.
+- Every alert must name a deterministic verifier before action.
+
 Do not use it for:
 
 - PR merges

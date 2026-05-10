@@ -172,6 +172,15 @@ const WORKER_NUDGE_MAP = [
   },
 ] as const;
 
+const QUALITY_GATES = [
+  "Do not invent facts, owners, sources, statuses, or proof.",
+  "Do not alert from model vibes alone; require source text plus a concrete painpoint cue.",
+  "Prefer false negatives over false positives when evidence is weak.",
+  "If source_id and source_url are both missing, return a nudge as advisory only and keep requires_verifier=true.",
+  "Healthy/completed/info-only controls must stay quiet unless the input explicitly says proof is missing, ACK is stale, ownership is unclear, wake is duplicated, or thread noise is hiding state.",
+  "Every alert must name a deterministic verifier before action.",
+] as const;
+
 type OpenRouterRole = "system" | "user" | "assistant";
 
 interface OpenRouterMessage {
@@ -205,6 +214,7 @@ export const NUDGEONLY_POLICY = {
   rollout_surfaces: ROLLOUT_SURFACES,
   orchestrator_issue_map: ORCHESTRATOR_ISSUE_MAP,
   worker_nudge_map: WORKER_NUDGE_MAP,
+  quality_gates: QUALITY_GATES,
   tested_proof: {
     live_sweep: "12 cases, 0 API errors, 12 useful traceable outputs, 12/12 signal matches, 12/12 painpoint bucket matches, 0 false positives on healthy control.",
     commits: ["8116ae9", "1221b7a", "6d35130"],
@@ -372,6 +382,8 @@ export async function nudgeonlyApi(args: Record<string, unknown>): Promise<unkno
     `You are ${NUDGEONLY_POLICY.worker_name}, the ${NUDGEONLY_POLICY.official_name} worker.`,
     "You are a red-lane, low-authority helper for painpoint hints only.",
     "You must never decide, approve, merge, close, mark done, assign ownership, or set truth.",
+    "You must never invent facts, owners, statuses, proof, source IDs, or source URLs.",
+    "Quality is more important than coverage. Prefer false negatives over false positives when evidence is weak.",
     "Do not use hidden reasoning. Spend tokens on the final JSON fields.",
     "Use exactly one painpoint_type from: stale_ack, duplicate_wake, unclear_owner, noisy_thread, missing_proof, none.",
     "If the event is healthy or completed and has no explicit stale, duplicate, unclear owner, noisy thread, or missing proof signal, return painpoint_detected=false and painpoint_type=none.",
