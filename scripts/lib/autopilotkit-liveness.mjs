@@ -5,6 +5,7 @@ const DEFAULT_COORDINATOR_FALLBACK_MS = 2 * 60 * 60 * 1000;
 const DEFAULT_SCHEDULER_GRACE_MS = 15 * 60 * 1000;
 const DEFAULT_SCHEDULER_INTERVAL_MS = 15 * 60 * 1000;
 const DEFAULT_TRUSTED_FALLBACK_FRESH_MS = 10 * 60 * 1000;
+const DEFAULT_REVIEW_WAKE_STALE_MS = 30 * 60 * 1000;
 
 const SENSITIVE_KEY_RE = /(api[_-]?key|secret|token|password|credential|authorization|cookie)/i;
 const SENSITIVE_TEXT_RE =
@@ -43,6 +44,10 @@ function normalize(value) {
 
 function normalizeToken(value) {
   return normalize(value).replace(/[\s-]+/g, "_");
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export function sanitizeAdvisoryText(value, max = 500) {
@@ -176,7 +181,86 @@ export function extractMissedAckSignals(messages = []) {
     }));
 }
 
-export function buildAdvisoryRerouteActions({ workers = [], missedAckReroutes = [] } = {}) {
+function messageBody(message = {}) {
+  return [
+    message.text,
+    message.body,
+    message.message,
+    message.summary,
+    message.comment,
+    safeList(message.tags).join(" "),
+  ].filter(Boolean).join("\n");
+}
+
+function extractWakeId(message = {}, text = "") {
+  const explicit = String(message.wake_id || message.wakeId || "").trim();
+  if (explicit) return explicit;
+  const match = String(text).match(/Wake event id:\s*([^\s]+)/i);
+  if (match) return match[1];
+  const id = String(message.id || message.message_id || message.messageId || "").trim();
+  return /^wake[-_]/i.test(id) ? id : "";
+}
+
+function extractPrNumber(text = "") {
+  const match = String(text).match(/(?:pull_request-pr-|pr[-\s#]*|#)(\d{1,8})/i);
+  return match ? Number.parseInt(match[1], 10) : null;
+}
+
+function hasAckForWake(messages = [], wakeId = "", prNumber = null) {
+  if (!wakeId && !prNumber) return false;
+  const wakePattern = wakeId ? new RegExp(`\\b${escapeRegExp(wakeId)}\\b`, "i") : null;
+  const prPattern = prNumber ? new RegExp(`(?:PR\\s*#?|#)${prNumber}\\b`, "i") : null;
+  return safeList(messages).some((message) => {
+    const text = messageBody(message);
+    if (/ACK requested/i.test(text)) return false;
+    if (wakePattern?.test(text) && /\b(ack|done|pass|blocker|blocked|merged|reviewed)\b/i.test(text)) {
+      return true;
+    }
+    if (prPattern?.test(text) && /\b(ack done|review pass|reviewed|merged)\b/i.test(text)) {
+      return true;
+    }
+    return false;
+  });
+}
+
+export function extractStaleReviewWakeSignals(messages = [], { nowMs, staleMs = DEFAULT_REVIEW_WAKE_STALE_MS } = {}) {
+  if (!Number.isFinite(nowMs)) return [];
+
+  return safeList(messages)
+    .map((message) => {
+      const text = messageBody(message);
+      const createdAt = message.created_at || message.createdAt || message.timestamp || "";
+      const createdMs = parseMs(createdAt);
+      const wakeId = extractWakeId(message, text);
+      const prNumber = extractPrNumber(text);
+      const age = createdMs === null ? null : Math.max(0, nowMs - createdMs);
+      const isReviewWake =
+        /ready for review/i.test(text) ||
+        (/ACK requested/i.test(text) && /\b(route:\s*🔍|review|reviewer)\b/i.test(text));
+
+      if (!isReviewWake || age === null || age < staleMs) return null;
+      if (hasAckForWake(messages, wakeId, prNumber)) return null;
+
+      return {
+        message_id: safeString("message_id", message.id || message.message_id || message.messageId || "", 160),
+        wake_id: safeString("wake_id", wakeId, 180),
+        pr_number: prNumber,
+        created_at: new Date(createdMs).toISOString(),
+        age_minutes: minutes(age),
+        stale_after: isoFromMs(createdMs + staleMs),
+        recipients: safeList(message.recipients).map((recipient) => safeString("recipient", recipient, 80)),
+        source_url: sanitizeAdvisoryText(message.source || message.url || message.html_url || "", 240) || null,
+        excerpt: sanitizeAdvisoryText(text, 400),
+      };
+    })
+    .filter(Boolean);
+}
+
+export function buildAdvisoryRerouteActions({
+  workers = [],
+  missedAckReroutes = [],
+  staleReviewWakeReroutes = [],
+} = {}) {
   const actions = [];
   const coordinatorDormant = workers.some(
     (worker) => worker.lane === "coordinator" && worker.reasons.includes("coordinator_fallback_needed"),
@@ -196,6 +280,17 @@ export function buildAdvisoryRerouteActions({ workers = [], missedAckReroutes = 
       action: "reroute_missed_ack_to_live_worker",
       reason: "missed_ack_reroute_detected",
       proof_message_id: reroute.message_id,
+      target_lane: "reviewer",
+      advisory: true,
+    });
+  }
+  for (const reroute of staleReviewWakeReroutes) {
+    actions.push({
+      action: "reroute_stale_review_wake_to_live_reviewer",
+      reason: "review_wake_ack_stale",
+      proof_message_id: reroute.message_id,
+      wake_id: reroute.wake_id,
+      pr_number: reroute.pr_number,
       target_lane: "reviewer",
       advisory: true,
     });
@@ -252,13 +347,19 @@ export function evaluateAutoPilotKitLiveness(input = {}) {
   }
 
   const thresholds = normalizeLivenessThresholds(input);
+  const reviewWakeStaleMs = Number.isFinite(input.reviewWakeStaleMs)
+    ? input.reviewWakeStaleMs
+    : Number.isFinite(input.reviewWakeStaleMinutes)
+      ? input.reviewWakeStaleMinutes * 60 * 1000
+      : DEFAULT_REVIEW_WAKE_STALE_MS;
   const workers = safeList(input.profiles).map((profile) => normalizeSeatLiveness(profile, { nowMs, thresholds }));
   const counts = workers.reduce((acc, worker) => {
     acc[worker.freshness] = (acc[worker.freshness] ?? 0) + 1;
     return acc;
   }, { active: 0, warm: 0, stale: 0, dormant: 0, unknown: 0 });
   const missedAckReroutes = extractMissedAckSignals(input.messages);
-  const actions = buildAdvisoryRerouteActions({ workers, missedAckReroutes });
+  const staleReviewWakeReroutes = extractStaleReviewWakeSignals(input.messages, { nowMs, staleMs: reviewWakeStaleMs });
+  const actions = buildAdvisoryRerouteActions({ workers, missedAckReroutes, staleReviewWakeReroutes });
 
   const result = {
     generated_at: now,
@@ -267,10 +368,12 @@ export function evaluateAutoPilotKitLiveness(input = {}) {
       warm: minutes(thresholds.warmMs),
       dormant: minutes(thresholds.dormantMs),
       coordinator_fallback: minutes(thresholds.coordinatorFallbackMs),
+      review_wake_stale: minutes(reviewWakeStaleMs),
     },
     counts,
     workers,
     missed_ack_reroutes: missedAckReroutes,
+    stale_review_wake_reroutes: staleReviewWakeReroutes,
     actions,
     safe_mode: {
       read_only: true,
