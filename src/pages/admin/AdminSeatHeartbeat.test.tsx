@@ -15,8 +15,9 @@ describe("AdminSeatHeartbeatPage", () => {
     expect(screen.getByLabelText("Short schedule message")).toHaveValue(HEARTBEAT_CONNECTION_PROMPT);
     expect(HEARTBEAT_CONNECTION_PROMPT).toContain("Run UnClick Heartbeat");
     expect(HEARTBEAT_CONNECTION_PROMPT).toContain("This authorizes writes");
+    expect(HEARTBEAT_CONNECTION_PROMPT).toContain("unclick-heartbeat-seat");
+    expect(HEARTBEAT_CONNECTION_PROMPT).toContain("After check_signals");
     expect(HEARTBEAT_CONNECTION_PROMPT).toContain("admin_conversation_turn_ingest");
-    expect(HEARTBEAT_CONNECTION_PROMPT).toContain("issue #693");
     expect(HEARTBEAT_MASTER_PROMPT).toContain("include a brief progress summary");
     expect(HEARTBEAT_MASTER_PROMPT).toContain("must stay self-contained");
     expect(HEARTBEAT_MASTER_PROMPT).toContain("Do not POST to /admin/orchestrator");

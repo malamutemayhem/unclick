@@ -37,11 +37,14 @@ The first active slice is the heartbeat and tether observability hardening on br
 This slice makes scheduled seats more observable by:
 
 - Making the Seats > Heartbeat prompt self-contained.
-- Explicitly authorizing Orchestrator continuity writes for the wake and final result.
+- Explicitly authorizing an Orchestrator continuity write on every scheduled run.
+- Requiring the stable scheduler session id `unclick-heartbeat-seat` so isolated runs thread together.
+- Requiring `save_conversation_turn` immediately after `check_signals`, with safe alert lines, progress, and proof captured before the terse PASS/BLOCKER reply.
 - Naming the write paths in order: `save_conversation_turn`, `unclick_save_conversation_turn`, then `admin_conversation_turn_ingest` when an UnClick API key is already available.
 - Stating that `/admin/orchestrator` is the read UI, not the write endpoint.
 - Returning explicit PASS and BLOCKER shapes in Orchestrator fresh-seat handoff text.
 - Versioning the MCP `heartbeat_protocol` payload when the policy changes.
+- Keeping live schedule changes and the master prompt/protocol in sync.
 
 ## Obligation Kernel Link
 
