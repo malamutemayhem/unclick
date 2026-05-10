@@ -50,6 +50,11 @@ describe("NudgeOnlyAPI policy", () => {
         expect.objectContaining({ worker: "Heartbeat Seat", bucket: "noisy_thread" }),
         expect.objectContaining({ worker: "Agent Observability", bucket: "missing_proof" }),
       ]),
+      quality_gates: expect.arrayContaining([
+        "Do not invent facts, owners, sources, statuses, or proof.",
+        "Prefer false negatives over false positives when evidence is weak.",
+        "Every alert must name a deterministic verifier before action.",
+      ]),
     });
   });
 
