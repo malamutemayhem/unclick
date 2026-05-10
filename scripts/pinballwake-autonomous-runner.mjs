@@ -34,6 +34,34 @@ export const DEFAULT_AUTONOMOUS_RUNNER_POLICY = {
 };
 
 export const DEFAULT_UNCLICK_MCP_URL = "https://unclick.world/api/mcp";
+export const DEFAULT_ORCHESTRATOR_PROOF_STALE_MINUTES = 30;
+
+const SCHEDULED_ORCHESTRATOR_PROOF_SOURCES = new Set([
+  "schedule",
+  "scheduled",
+  "github-schedule",
+  "fleet-schedule",
+  "fleet-schedule-workflow-run",
+  "workflow-run-schedule",
+]);
+
+const MANUAL_ORCHESTRATOR_PROOF_SOURCES = new Set([
+  "workflow-dispatch",
+  "manual",
+  "manual-dispatch",
+  "github-workflow-dispatch",
+]);
+
+const TRUSTED_UNCLICK_FALLBACK_SOURCES = new Set([
+  "unclick-heartbeat",
+  "unclick-chat",
+  "unclick-chat-seat",
+  "unclick-heartbeat-chain",
+  "codex-heartbeat",
+  "codex-seat",
+  "heartbeat",
+  "chat",
+]);
 
 const HOLD_TITLE_PATTERN = /\b(hold|blocker|blocked|dirty)\b/i;
 const HOLD_BODY_MARKER_PATTERN = /(?:^|\n)\s*(hold|blocker|blocked|dirty)\s*:/i;
@@ -103,6 +131,15 @@ function normalizePath(value) {
 
 function normalizeToken(value) {
   return String(value ?? "").trim().toLowerCase();
+}
+
+function normalizeWakeSource(value) {
+  return normalizeToken(value).replace(/[_\s]+/g, "-");
+}
+
+function parseUtcMs(value) {
+  const parsed = Date.parse(String(value ?? ""));
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
 function compact(value, max = 240) {
@@ -499,12 +536,121 @@ export function evaluateOrchestratorSeatHandshakeProof(context = {}) {
   };
 }
 
+export function evaluateOrchestratorProofTrigger({
+  wakeSource = "unknown",
+  trustedFallback = false,
+  lastProofAt = "",
+  staleAfterMinutes = DEFAULT_ORCHESTRATOR_PROOF_STALE_MINUTES,
+  now = new Date().toISOString(),
+} = {}) {
+  const source = normalizeWakeSource(wakeSource);
+  if (MANUAL_ORCHESTRATOR_PROOF_SOURCES.has(source)) {
+    return {
+      ok: false,
+      reason: "manual_workflow_dispatch_not_proof",
+      source,
+      proof_source: "rejected_manual_dispatch",
+      proof_line: "BLOCKER: manual workflow_dispatch cannot count as Orchestrator proof; next: use schedule or trusted UnClick fallback.",
+    };
+  }
+
+  if (SCHEDULED_ORCHESTRATOR_PROOF_SOURCES.has(source)) {
+    return {
+      ok: true,
+      reason: "scheduled_proof_source",
+      source,
+      proof_source: "github_schedule",
+    };
+  }
+
+  if (!trustedFallback || !TRUSTED_UNCLICK_FALLBACK_SOURCES.has(source)) {
+    return {
+      ok: false,
+      reason: "untrusted_orchestrator_proof_source",
+      source,
+      proof_source: "rejected_untrusted_source",
+      proof_line: `BLOCKER: ${source || "unknown"} is not a trusted Orchestrator proof source; next: use schedule or trusted UnClick fallback.`,
+    };
+  }
+
+  const nowMs = parseUtcMs(now);
+  const lastProofMs = parseUtcMs(lastProofAt);
+  if (!Number.isFinite(nowMs) || !Number.isFinite(lastProofMs)) {
+    return {
+      ok: false,
+      reason: "fallback_timer_missing_utc_receipt",
+      source,
+      proof_source: "trusted_unclick_fallback",
+      proof_line: "BLOCKER: trusted fallback needs valid UTC now and last proof timestamps; next: include last valid Orchestrator proof receipt.",
+    };
+  }
+
+  const staleMinutes = Math.max(1, Number.parseInt(String(staleAfterMinutes ?? ""), 10) || DEFAULT_ORCHESTRATOR_PROOF_STALE_MINUTES);
+  const ageMs = nowMs - lastProofMs;
+  if (ageMs < 0) {
+    return {
+      ok: false,
+      reason: "fallback_timer_future_last_proof",
+      source,
+      proof_source: "trusted_unclick_fallback",
+      age_seconds: Math.floor(ageMs / 1000),
+      proof_line: "BLOCKER: last Orchestrator proof timestamp is in the future; next: use UTC receipts only.",
+    };
+  }
+
+  const staleMs = staleMinutes * 60 * 1000;
+  if (ageMs < staleMs) {
+    return {
+      ok: false,
+      reason: "fallback_not_due",
+      source,
+      proof_source: "trusted_unclick_fallback",
+      age_seconds: Math.floor(ageMs / 1000),
+      stale_after_seconds: staleMinutes * 60,
+      due_at: new Date(lastProofMs + staleMs).toISOString(),
+      proof_line: "BLOCKER: trusted fallback not due yet; next: wait until the UTC stale window expires.",
+    };
+  }
+
+  return {
+    ok: true,
+    reason: "trusted_fallback_due",
+    source,
+    proof_source: "trusted_unclick_fallback",
+    age_seconds: Math.floor(ageMs / 1000),
+    stale_after_seconds: staleMinutes * 60,
+  };
+}
+
 export async function runOrchestratorSeatHandshakeProof({
   mcpUrl = DEFAULT_UNCLICK_MCP_URL,
   apiKey = "",
   limit = 80,
   fetchImpl = globalThis.fetch,
+  wakeSource = "unknown",
+  trustedFallback = false,
+  lastProofAt = "",
+  staleAfterMinutes = DEFAULT_ORCHESTRATOR_PROOF_STALE_MINUTES,
+  now = new Date().toISOString(),
 } = {}) {
+  const trigger = evaluateOrchestratorProofTrigger({
+    wakeSource,
+    trustedFallback,
+    lastProofAt,
+    staleAfterMinutes,
+    now,
+  });
+  if (!trigger.ok) {
+    return {
+      ok: false,
+      action: "blocked",
+      mode: "orchestrator-proof",
+      reason: trigger.reason,
+      proof_line: trigger.proof_line,
+      orchestrator_proof_trigger: trigger,
+    };
+  }
+
   const fetched = await fetchUnClickOrchestratorContext({ mcpUrl, apiKey, limit, fetchImpl });
   if (!fetched.ok) {
     return {
@@ -514,6 +660,7 @@ export async function runOrchestratorSeatHandshakeProof({
       reason: fetched.reason,
       status: fetched.status ?? null,
       proof_line: `BLOCKER: ${fetched.reason}; next: make orchestrator_context_read available to PinballWake.`,
+      orchestrator_proof_trigger: trigger,
       orchestrator_proof: fetched,
     };
   }
@@ -525,6 +672,7 @@ export async function runOrchestratorSeatHandshakeProof({
     mode: "orchestrator-proof",
     reason: proof.reason,
     proof_line: proof.proof_line,
+    orchestrator_proof_trigger: trigger,
     orchestrator_proof: proof,
   };
 }
@@ -1216,6 +1364,9 @@ export async function runAutonomousRunnerFile({
   leaseSeconds,
   wakeSource = "unknown",
   orchestratorProof = false,
+  orchestratorTrustedFallback = false,
+  lastOrchestratorProofAt = "",
+  orchestratorProofStaleMinutes = DEFAULT_ORCHESTRATOR_PROOF_STALE_MINUTES,
 } = {}) {
   if (orchestratorProof) {
     return runOrchestratorSeatHandshakeProof({
@@ -1223,6 +1374,11 @@ export async function runAutonomousRunnerFile({
       apiKey: unclickApiKey,
       limit: todoLimit,
       fetchImpl,
+      wakeSource,
+      trustedFallback: orchestratorTrustedFallback,
+      lastProofAt: lastOrchestratorProofAt,
+      staleAfterMinutes: orchestratorProofStaleMinutes,
+      now,
     });
   }
 
@@ -1400,6 +1556,12 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
     leaseSeconds: parseIntOption(getArg("lease-seconds", process.env.CODING_ROOM_LEASE_SECONDS), undefined),
     wakeSource: getArg("wake-source", process.env.AUTONOMOUS_RUNNER_WAKE_SOURCE || process.env.GITHUB_EVENT_NAME || "unknown"),
     orchestratorProof: parseBoolean(getArg("orchestrator-proof", process.env.AUTONOMOUS_RUNNER_ORCHESTRATOR_PROOF)),
+    orchestratorTrustedFallback: parseBoolean(getArg("trusted-fallback", process.env.AUTONOMOUS_RUNNER_TRUSTED_FALLBACK)),
+    lastOrchestratorProofAt: getArg("last-orchestrator-proof-at", process.env.AUTONOMOUS_RUNNER_LAST_ORCHESTRATOR_PROOF_AT || ""),
+    orchestratorProofStaleMinutes: parseIntOption(
+      getArg("orchestrator-proof-stale-minutes", process.env.AUTONOMOUS_RUNNER_ORCHESTRATOR_PROOF_STALE_MINUTES),
+      DEFAULT_ORCHESTRATOR_PROOF_STALE_MINUTES,
+    ),
     policy: createAutonomousRunnerPolicy({
       disabled: parseBoolean(process.env.AUTONOMOUS_RUNNER_DISABLED),
       allowProtectedSurfaces: parseBoolean(process.env.AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES),

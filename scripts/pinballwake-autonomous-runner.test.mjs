@@ -13,6 +13,7 @@ import {
   createCodingRoomJobFromBoardroomTodo,
   createAutonomousRunner,
   evaluateBoardroomTodoAutoClaimEligibility,
+  evaluateOrchestratorProofTrigger,
   evaluateOrchestratorSeatHandshakeProof,
   extractBoardroomTodoIdFromCodingRoomJob,
   fetchUnClickActionableTodos,
@@ -464,6 +465,7 @@ describe("PinballWake autonomous Runner seat", () => {
     const calls = [];
     const result = await runAutonomousRunnerFile({
       orchestratorProof: true,
+      wakeSource: "schedule",
       unclickApiKey: "uc_test",
       unclickMcpUrl: "https://unclick.test/api/mcp",
       fetchImpl: async (url, init = {}) => {
@@ -496,7 +498,92 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(result.ok, true);
     assert.equal(result.action, "orchestrator_proof_passed");
     assert.match(result.proof_line, /^PASS: Orchestrator seat_handshake readable/);
+    assert.equal(result.orchestrator_proof_trigger.proof_source, "github_schedule");
     assert.equal(result.orchestrator_proof.source_pointer_count, 1);
+  });
+
+  it("rejects manual GitHub dispatch as Orchestrator proof", async () => {
+    let fetched = false;
+    const result = await runAutonomousRunnerFile({
+      orchestratorProof: true,
+      wakeSource: "workflow_dispatch",
+      unclickApiKey: "uc_test",
+      fetchImpl: async () => {
+        fetched = true;
+        throw new Error("manual dispatch must not fetch proof context");
+      },
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "manual_workflow_dispatch_not_proof");
+    assert.equal(result.orchestrator_proof_trigger.proof_source, "rejected_manual_dispatch");
+    assert.equal(fetched, false);
+  });
+
+  it("allows trusted UnClick fallback only after the UTC stale window", async () => {
+    const freshGate = evaluateOrchestratorProofTrigger({
+      wakeSource: "unclick-heartbeat",
+      trustedFallback: true,
+      now: "2026-05-10T03:20:00.000Z",
+      lastProofAt: "2026-05-10T03:00:00.000Z",
+      staleAfterMinutes: 30,
+    });
+    assert.equal(freshGate.ok, false);
+    assert.equal(freshGate.reason, "fallback_not_due");
+    assert.equal(freshGate.due_at, "2026-05-10T03:30:00.000Z");
+
+    const staleGate = evaluateOrchestratorProofTrigger({
+      wakeSource: "unclick-heartbeat",
+      trustedFallback: true,
+      now: "2026-05-10T03:31:00.000Z",
+      lastProofAt: "2026-05-10T03:00:00.000Z",
+      staleAfterMinutes: 30,
+    });
+    assert.equal(staleGate.ok, true);
+    assert.equal(staleGate.reason, "trusted_fallback_due");
+    assert.equal(staleGate.proof_source, "trusted_unclick_fallback");
+  });
+
+  it("runs read-only Orchestrator proof for a due trusted UnClick fallback", async () => {
+    const calls = [];
+    const result = await runAutonomousRunnerFile({
+      orchestratorProof: true,
+      orchestratorTrustedFallback: true,
+      wakeSource: "unclick-chat",
+      now: "2026-05-10T03:31:00.000Z",
+      lastOrchestratorProofAt: "2026-05-10T03:00:00.000Z",
+      orchestratorProofStaleMinutes: 30,
+      unclickApiKey: "uc_test",
+      unclickMcpUrl: "https://unclick.test/api/mcp",
+      fetchImpl: async (url, init = {}) => {
+        calls.push({ url, body: JSON.parse(init.body) });
+        return {
+          ok: true,
+          async json() {
+            return {
+              context: {
+                seat_handshake: {
+                  mode: "fresh-seat-pickup",
+                  active_decision: "Chris greenlit trusted fallback proof.",
+                  active_job: "urgent open: Orchestrator closure proof.",
+                  recent_proof: "PASS: trusted fallback due.",
+                  active_blocker: null,
+                  seat_freshness: ["PinballWake: Live"],
+                  source_pointers: [{ source_kind: "comment", source_id: "fallback-receipt" }],
+                },
+              },
+            };
+          },
+        };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.action, "orchestrator_proof_passed");
+    assert.equal(result.orchestrator_proof_trigger.proof_source, "trusted_unclick_fallback");
+    assert.equal(result.orchestrator_proof_trigger.age_seconds, 1860);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].url, "https://unclick.test/api/memory-admin?action=orchestrator_context_read");
   });
 
   it("blocks empty or noisy Orchestrator seat_handshake proof packets", async () => {
