@@ -110,12 +110,12 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
     return (
       <EmptyState
         icon={BookOpen}
-        heading="Your knowledge library is empty"
-        description="Documents and templates stored by your agent appear here. The knowledge library holds versioned reference docs."
+        heading="No Library Snapshots yet"
+        description="Automatic taxonomy snapshots appear here once durable facts and sessions are compacted into source-linked memory shelves."
         steps={[
-          "Ask your agent to save a document to the library",
-          "It will be versioned - see how it changes over time",
-          "Only titles load at startup; full docs fetched on demand",
+          "Save durable facts, decisions, and project state through Memory",
+          "Snapshots group related facts by taxonomy and keep source pointers",
+          "AI seats read compact shelves first, then open raw sources only when needed",
         ]}
       />
     );
@@ -165,7 +165,7 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
             {isExpanded && (
               <div className="border-t border-white/[0.06] p-4 space-y-3">
                 {docLoading ? (
-                  <p className="text-xs text-white/30">Loading document...</p>
+                  <p className="text-xs text-white/30">Loading snapshot...</p>
                 ) : docContent ? (
                   <pre className="max-h-96 overflow-auto rounded-lg bg-white/[0.02] p-4 text-xs text-white/60 whitespace-pre-wrap font-mono">
                     {docContent}
@@ -179,7 +179,7 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
                   className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.06] px-3 py-1.5 text-xs text-white/50 hover:bg-white/[0.04] hover:text-white transition-colors"
                 >
                   <History className="h-3 w-3" />
-                  {showingHistory ? "Hide History" : "Version History"}
+                  {showingHistory ? "Hide History" : "Snapshot History"}
                 </button>
 
                 {showingHistory && (
