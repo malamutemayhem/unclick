@@ -295,6 +295,46 @@ describe("PinballWake ACK ledger room", () => {
     assert.equal(result.autopilotkit_review_advice.safe_mode.no_merge_or_claim, true);
   });
 
+  it("adds a stale Reviewer wake fallback advisory without executing reroute", () => {
+    const result = evaluateAckLedgerRoom({
+      pr: pr({ number: 689 }),
+      comments: [
+        comment("Gatekeeper PASS on #689.", "2026-05-10T13:20:00.000Z", "gatekeeper"),
+        comment("Forge PASS on #689.", "2026-05-10T13:20:00.000Z", "forge"),
+      ],
+      now: "2026-05-10T14:10:00.000Z",
+      liveness: {
+        now: "2026-05-10T14:10:00.000Z",
+        reviewWakeStaleMinutes: 30,
+        messages: [
+          {
+            id: "wake-pull_request-pr-689-abc123",
+            tags: ["needs-doing", "wake"],
+            recipients: ["🔍"],
+            created_at: "2026-05-10T13:33:49.000Z",
+            text: [
+              "Wake event id: wake-pull_request-pr-689-abc123",
+              "Wake event: PR #689 is ready for review",
+              "Source: https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/689",
+              "Route: 🔍",
+              "ACK requested: reply ACK wake-pull_request-pr-689-abc123 and your next action.",
+            ].join("\n"),
+          },
+        ],
+      },
+    });
+
+    assert.equal(result.result, "missing_ack");
+    assert.equal(result.autopilotkit_review_advice.execute, false);
+    assert(result.autopilotkit_review_advice.reason_codes.includes("review_wake_ack_stale"));
+    assert.equal(
+      result.autopilotkit_review_advice.recommendations[0].action,
+      "reroute_stale_review_wake_to_live_reviewer",
+    );
+    assert.equal(result.autopilotkit_review_advice.recommendations[0].wake_id, "wake-pull_request-pr-689-abc123");
+    assert.equal(result.autopilotkit_review_advice.recommendations[0].pr_number, 689);
+  });
+
   it("accepts explicitly trusted structured lane ACK records", () => {
     const result = evaluateAckLedgerRoom({
       pr: pr(),

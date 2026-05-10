@@ -6,6 +6,7 @@ import {
   evaluateAutoPilotKitLiveness,
   evaluateOrchestratorProofWakeGate,
   extractMissedAckSignals,
+  extractStaleReviewWakeSignals,
   normalizeSeatLiveness,
   parseMs,
 } from "./lib/autopilotkit-liveness.mjs";
@@ -74,6 +75,43 @@ describe("AutoPilotKit liveness helpers", () => {
 
     assert.equal(signals.length, 1);
     assert.equal(signals[0].excerpt, "[redacted-sensitive-text]");
+  });
+
+  it("turns a stale Reviewer wake without ACK into a read-only fallback advisory", () => {
+    const messages = [
+      {
+        id: "wake-pull_request-pr-689-abc123",
+        tags: ["needs-doing", "wake"],
+        recipients: ["🔍"],
+        created_at: "2026-05-10T13:33:49.000Z",
+        text: [
+          "Wake event id: wake-pull_request-pr-689-abc123",
+          "Wake event: PR #689 is ready for review",
+          "Source: https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/689",
+          "Route: 🔍",
+          "ACK requested: reply ACK wake-pull_request-pr-689-abc123 and your next action.",
+        ].join("\n"),
+      },
+    ];
+
+    const signals = extractStaleReviewWakeSignals(messages, {
+      nowMs: parseMs("2026-05-10T14:10:00.000Z"),
+      staleMs: 30 * 60 * 1000,
+    });
+    const result = evaluateAutoPilotKitLiveness({
+      now: "2026-05-10T14:10:00.000Z",
+      reviewWakeStaleMinutes: 30,
+      messages,
+    });
+
+    assert.equal(signals.length, 1);
+    assert.equal(signals[0].wake_id, "wake-pull_request-pr-689-abc123");
+    assert.equal(signals[0].pr_number, 689);
+    assert.equal(result.adapter_examples.review_coordinator.execute, false);
+    assert(result.adapter_examples.review_coordinator.reason_codes.includes("review_wake_ack_stale"));
+    assert.equal(result.actions[0].action, "reroute_stale_review_wake_to_live_reviewer");
+    assert.equal(result.actions[0].pr_number, 689);
+    assert.equal(result.safe_mode.no_merge_or_claim, true);
   });
 
   it("turns stale scheduler evidence plus a fresh UnClick heartbeat into a safe fallback tap", () => {
