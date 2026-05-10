@@ -209,7 +209,7 @@ export default function AIChatPanel({ authToken = "" }: AIChatPanelProps) {
         }
         setMessages((prev) => [...prev, reply]);
       } else {
-        void saveTurn("user", text);
+        await saveTurn("user", text);
         // admin_ai_chat expects UIMessage[] (AI SDK v6). Build the full
         // conversation as `parts`-shaped messages and stream the response.
         const history = [...messages, userMsg].filter(
@@ -308,7 +308,7 @@ export default function AIChatPanel({ authToken = "" }: AIChatPanelProps) {
             ),
           );
         } else {
-          void saveTurn("assistant", acc);
+          await saveTurn("assistant", acc);
         }
       }
     } catch (err) {
