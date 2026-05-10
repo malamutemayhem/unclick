@@ -58,6 +58,9 @@
  *                              Bumps the channel_status.last_seen timestamp.
  *   - admin_ai_chat: POST with Bearer <api_key>, body { session_id, content }
  *                    Gemini fallback used when no Channel plugin is active.
+ *   - admin_conversation_turn_ingest: POST with Bearer <api_key>,
+ *                    body { session_id, role, content, source_app?, client_session_id? }
+ *                    Saves a safe subscription/tether turn for Orchestrator continuity.
  *
  * Admin spotlight + bug visibility:
  *   - admin_search: GET with Bearer <api_key>, ?query=&limit=
@@ -103,6 +106,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
 import {
   buildOrchestratorContext,
+  redactSensitive,
   type OrchestratorBusinessContextRow,
   type OrchestratorCommentRow,
   type OrchestratorConversationTurnRow,
@@ -6036,6 +6040,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { data, error } = await q;
         if (error) throw error;
         return res.status(200).json({ data: data ?? [] });
+      }
+
+      case "admin_conversation_turn_ingest": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+
+        const body = (req.body ?? {}) as {
+          session_id?: string;
+          role?: string;
+          content?: string;
+          source_app?: string;
+          client_session_id?: string;
+        };
+        const sessionId = String(body.session_id ?? "").trim();
+        const role = String(body.role ?? "").trim();
+        const content = String(body.content ?? "");
+        const sourceApp = String(body.source_app ?? "subscription-tether").trim().slice(0, 80);
+        const clientSessionId = String(body.client_session_id ?? "").trim().slice(0, 200);
+
+        if (!sessionId) return res.status(400).json({ error: "session_id required" });
+        if (!["user", "assistant", "system"].includes(role)) {
+          return res.status(400).json({ error: "role must be user, assistant, or system" });
+        }
+        if (!content.trim()) return res.status(400).json({ error: "content required" });
+        if (content.length > 12_000) return res.status(413).json({ error: "content must be 12000 characters or less" });
+
+        const safeContent = redactSensitive(content);
+        const { data, error } = await supabase
+          .from("chat_messages")
+          .insert({
+            api_key_hash: apiKeyHash,
+            session_id: sessionId,
+            role,
+            content: safeContent,
+            status: "completed",
+            metadata: {
+              source_app: sourceApp || "subscription-tether",
+              client_session_id: clientSessionId || null,
+              ingest_source: "subscription_turn",
+              ingested_at: new Date().toISOString(),
+            },
+          })
+          .select("id, session_id, role, created_at")
+          .single();
+        if (error) throw error;
+
+        return res.status(200).json({
+          turn_id: data.id,
+          session_id: data.session_id,
+          role: data.role,
+          created_at: data.created_at,
+          redacted: safeContent !== content,
+        });
       }
 
       case "admin_channel_status": {
