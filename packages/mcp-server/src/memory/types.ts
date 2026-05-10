@@ -67,6 +67,34 @@ export interface LibraryDocInput {
   tags: string[];
 }
 
+export type MemoryTaxonomySourceKind = "fact" | "session";
+
+export interface MemoryTaxonomySnapshotSource {
+  id: string;
+  kind: MemoryTaxonomySourceKind;
+  text: string;
+  category?: string;
+  confidence?: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  valid_from?: string | null;
+}
+
+export interface MemoryTaxonomySnapshot {
+  slug: string;
+  title: string;
+  primary_category: string;
+  secondary_categories: string[];
+  sub_tags: string[];
+  summary: string;
+  content: string;
+  source_ids: string[];
+  sources: Array<{ id: string; kind: MemoryTaxonomySourceKind }>;
+  confidence: number;
+  weight: number;
+  last_confirmed_at: string | null;
+}
+
 export interface MemoryBackend {
   /** Load startup context (business context + recent sessions + hot facts). */
   getStartupContext(numSessions: number): Promise<unknown>;

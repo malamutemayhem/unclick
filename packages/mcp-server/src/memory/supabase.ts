@@ -26,6 +26,8 @@ import type {
   ConversationInput,
   CodeInput,
   LibraryDocInput,
+  MemoryTaxonomySnapshot,
+  MemoryTaxonomySnapshotSource,
 } from "./types.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
 
@@ -168,6 +170,208 @@ export function scoreLocalMemoryContent(input: {
     matchedTokenCount,
     exactPhrase,
   };
+}
+
+interface TaxonomySeed {
+  id: string;
+  name: string;
+  keywords: string[];
+}
+
+export const MEMORY_LIBRARY_TAXONOMY: TaxonomySeed[] = [
+  { id: "01", name: "Identity & Profile", keywords: ["identity", "profile", "role", "name", "bio"] },
+  { id: "02", name: "Goals & Intent", keywords: ["goal", "objective", "intent", "north", "priority"] },
+  { id: "03", name: "Standing Rules & Safety", keywords: ["rule", "safety", "never", "always", "policy"] },
+  { id: "04", name: "Preferences & Taste", keywords: ["preference", "preferred", "favorite", "likes", "taste"] },
+  { id: "05", name: "People & Relationships", keywords: ["person", "people", "team", "relationship", "contact"] },
+  { id: "06", name: "Work & Career", keywords: ["work", "career", "job", "client", "role"] },
+  { id: "07", name: "Projects & Products", keywords: ["project", "product", "feature", "roadmap", "launch"] },
+  { id: "08", name: "Tasks & Commitments", keywords: ["task", "todo", "commitment", "deadline", "followup"] },
+  { id: "09", name: "Decisions & Rationale", keywords: ["decision", "decided", "rationale", "chosen", "direction"] },
+  { id: "10", name: "Troubleshooting & Incidents", keywords: ["issue", "bug", "incident", "fix", "problem"] },
+  { id: "11", name: "Tools & Integrations", keywords: ["tool", "integration", "connector", "mcp", "api"] },
+  { id: "12", name: "Automation & Scheduling", keywords: ["automation", "schedule", "cron", "heartbeat", "timer"] },
+  { id: "13", name: "Agents & Workers", keywords: ["agent", "worker", "seat", "orchestrator", "autopilot"] },
+  { id: "14", name: "Code & Repositories", keywords: ["code", "repo", "github", "branch", "commit"] },
+  { id: "15", name: "Data & Memory", keywords: ["data", "memory", "snapshot", "fact", "session"] },
+  { id: "16", name: "Privacy & Security", keywords: ["privacy", "security", "secret", "credential", "auth"] },
+  { id: "17", name: "Technology & Engineering", keywords: ["technology", "engineering", "technical", "software", "hardware"] },
+  { id: "18", name: "Media & Entertainment", keywords: ["media", "documentary", "documentaries", "movie", "show"] },
+  { id: "19", name: "Research & Learning", keywords: ["research", "learning", "study", "report", "analysis"] },
+  { id: "20", name: "Finance & Billing", keywords: ["finance", "billing", "invoice", "cost", "payment"] },
+  { id: "21", name: "Legal & Compliance", keywords: ["legal", "compliance", "contract", "terms", "privacy"] },
+  { id: "22", name: "Health & Wellbeing", keywords: ["health", "wellbeing", "wellness", "rest", "sleep"] },
+  { id: "23", name: "Travel & Locations", keywords: ["travel", "location", "timezone", "city", "place"] },
+  { id: "24", name: "Home & Devices", keywords: ["home", "device", "pc", "laptop", "phone"] },
+  { id: "25", name: "Marketing & Brand", keywords: ["marketing", "brand", "copy", "campaign", "positioning"] },
+  { id: "26", name: "Sales & Customers", keywords: ["sales", "customer", "lead", "pipeline", "prospect"] },
+  { id: "27", name: "Operations & Process", keywords: ["ops", "process", "workflow", "runbook", "procedure"] },
+  { id: "28", name: "Performance & Metrics", keywords: ["performance", "metric", "latency", "throughput", "monitor"] },
+  { id: "29", name: "Exports & Portability", keywords: ["export", "portable", "backup", "data island", "download"] },
+  { id: "30", name: "Miscellaneous", keywords: ["misc", "general", "note", "other", "uncategorized"] },
+];
+
+const TAXONOMY_STOP_WORDS = new Set([
+  "about",
+  "after",
+  "also",
+  "because",
+  "chris",
+  "from",
+  "into",
+  "only",
+  "should",
+  "that",
+  "their",
+  "there",
+  "this",
+  "with",
+]);
+
+const SENSITIVE_MEMORY_PATTERN =
+  /\b(api[_ -]?key|authorization|bearer\s+[a-z0-9._-]+|billing|card number|credit card|password|secret|service[_ -]?role|stripe|token)\b/i;
+
+function taxonomyLabel(seed: TaxonomySeed): string {
+  return `${seed.id} ${seed.name}`;
+}
+
+function slugPart(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function cleanSnapshotText(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function latestIso(values: Array<string | null | undefined>): string | null {
+  const sorted = values.filter(Boolean).map(String).sort();
+  return sorted.length > 0 ? sorted[sorted.length - 1] : null;
+}
+
+function scoreTaxonomySource(source: MemoryTaxonomySnapshotSource): Array<{ seed: TaxonomySeed; score: number }> {
+  const text = cleanSnapshotText(source.text).toLowerCase();
+  const category = (source.category ?? "").toLowerCase();
+  return MEMORY_LIBRARY_TAXONOMY.map((seed) => {
+    const keywordScore = seed.keywords.reduce((score, keyword) => {
+      return text.includes(keyword.toLowerCase()) ? score + 3 : score;
+    }, 0);
+    const categoryScore =
+      category && seed.keywords.some((keyword) => category.includes(keyword.toLowerCase())) ? 1 : 0;
+    return { seed, score: keywordScore + categoryScore };
+  }).sort((a, b) => {
+    const scoreDiff = b.score - a.score;
+    return scoreDiff !== 0 ? scoreDiff : a.seed.id.localeCompare(b.seed.id);
+  });
+}
+
+export function isSensitiveMemorySnapshotText(text: string): boolean {
+  return SENSITIVE_MEMORY_PATTERN.test(text);
+}
+
+export function buildMemoryTaxonomySnapshots(
+  sources: MemoryTaxonomySnapshotSource[],
+  options: { maxSnapshots?: number; maxSourcesPerSnapshot?: number } = {}
+): MemoryTaxonomySnapshot[] {
+  const maxSnapshots = options.maxSnapshots ?? 12;
+  const maxSourcesPerSnapshot = options.maxSourcesPerSnapshot ?? 8;
+  const deduped = new Map<string, MemoryTaxonomySnapshotSource & { cleanText: string }>();
+
+  for (const source of sources) {
+    const cleanText = cleanSnapshotText(source.text);
+    if (!source.id || !cleanText || isSensitiveMemorySnapshotText(cleanText)) continue;
+    const key = cleanText.toLowerCase();
+    const existing = deduped.get(key);
+    if (!existing || (source.confidence ?? 1) > (existing.confidence ?? 1)) {
+      deduped.set(key, { ...source, cleanText });
+    }
+  }
+
+  const groups = new Map<
+    string,
+    {
+      seed: TaxonomySeed;
+      secondary: Map<string, number>;
+      sources: Array<MemoryTaxonomySnapshotSource & { cleanText: string }>;
+    }
+  >();
+
+  for (const source of deduped.values()) {
+    const ranked = scoreTaxonomySource(source);
+    const primary = ranked.find((entry) => entry.score > 0)?.seed ?? MEMORY_LIBRARY_TAXONOMY[29];
+    const label = taxonomyLabel(primary);
+    const group = groups.get(label) ?? { seed: primary, secondary: new Map<string, number>(), sources: [] };
+    for (const entry of ranked.slice(0, 5)) {
+      if (entry.score <= 0 || entry.seed.id === primary.id) continue;
+      const secondaryLabel = taxonomyLabel(entry.seed);
+      group.secondary.set(secondaryLabel, Math.max(group.secondary.get(secondaryLabel) ?? 0, entry.score));
+    }
+    group.sources.push(source);
+    groups.set(label, group);
+  }
+
+  return Array.from(groups.values())
+    .map((group) => {
+      const sourcesForSnapshot = group.sources
+        .sort((a, b) => {
+          const confidenceDiff = (b.confidence ?? 1) - (a.confidence ?? 1);
+          if (confidenceDiff !== 0) return confidenceDiff;
+          return (b.updated_at ?? b.created_at ?? "").localeCompare(a.updated_at ?? a.created_at ?? "");
+        })
+        .slice(0, maxSourcesPerSnapshot);
+      const sourceIds = sourcesForSnapshot.map((source) => source.id);
+      const avgConfidence =
+        sourcesForSnapshot.reduce((sum, source) => sum + Math.max(0, Math.min(1, source.confidence ?? 1)), 0) /
+        Math.max(1, sourcesForSnapshot.length);
+      const secondaryCategories = Array.from(group.secondary.entries())
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .map(([label]) => label)
+        .slice(0, 4);
+      const subTags = Array.from(
+        new Set(
+          sourcesForSnapshot
+            .flatMap((source) => source.cleanText.toLowerCase().match(/[a-z0-9][a-z0-9_-]{3,}/g) ?? [])
+            .filter((token) => !TAXONOMY_STOP_WORDS.has(token))
+        )
+      ).slice(0, 8);
+      const bullets = sourcesForSnapshot.map((source) => `- ${source.cleanText}`);
+      const primaryLabel = taxonomyLabel(group.seed);
+      const summary = bullets.slice(0, 5).join("\n");
+      const content = [
+        `# ${group.seed.name} Snapshot`,
+        "",
+        summary,
+        "",
+        `Primary category: ${primaryLabel}`,
+        secondaryCategories.length > 0 ? `Secondary categories: ${secondaryCategories.join(", ")}` : null,
+        subTags.length > 0 ? `Tags: ${subTags.join(", ")}` : null,
+        `Sources: ${sourcesForSnapshot.map((source) => `${source.kind}:${source.id}`).join(", ")}`,
+      ].filter(Boolean).join("\n");
+      return {
+        slug: `memory-taxonomy-${group.seed.id}-${slugPart(group.seed.name)}`,
+        title: `${group.seed.name} memory snapshot`,
+        primary_category: primaryLabel,
+        secondary_categories: secondaryCategories,
+        sub_tags: subTags,
+        summary,
+        content,
+        source_ids: sourceIds,
+        sources: sourcesForSnapshot.map((source) => ({ id: source.id, kind: source.kind })),
+        confidence: Number(avgConfidence.toFixed(3)),
+        weight: Number(Math.min(1, avgConfidence * 0.7 + sourcesForSnapshot.length * 0.06).toFixed(3)),
+        last_confirmed_at: latestIso(
+          sourcesForSnapshot.map((source) => source.updated_at ?? source.valid_from ?? source.created_at)
+        ),
+      };
+    })
+    .sort((a, b) => {
+      const weightDiff = b.weight - a.weight;
+      return weightDiff !== 0 ? weightDiff : a.primary_category.localeCompare(b.primary_category);
+    })
+    .slice(0, maxSnapshots);
 }
 
 const BYOD_TABLES: TableNames = {
