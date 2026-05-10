@@ -314,7 +314,7 @@ function compactContinuityText(input: unknown, maxChars = 240, options: { heartb
   if (/^pass:/i.test(clean)) return compactText(`Heartbeat result: ${clean}`, maxChars);
   if (/^blocker:/i.test(clean)) return compactText(`Heartbeat result: ${clean}`, maxChars);
   if (/^dont_notify:|^notify:/i.test(clean)) return "Heartbeat notification state: compact status only.";
-  return "Heartbeat schedule request: run the Seats > Heartbeat policy.";
+  return "Heartbeat schedule request: run embedded UnClick heartbeat instructions.";
 }
 
 export function buildOrchestratorContext(input: BuildOrchestratorContextInput): OrchestratorContext {
@@ -496,8 +496,8 @@ function buildSeatHandshake({
     active_blocker: blocker?.summary ?? null,
     seat_freshness: seatFreshness,
     next_prompt: humanOperatorTime
-      ? `Use this compact handoff. Human operator local time is ${humanOperatorTime.summary}. Inspect source pointers only as needed, do one safe useful step, then reply PASS or BLOCKER.`
-      : "Use this compact handoff, inspect source pointers only as needed, do one safe useful step, then reply PASS or BLOCKER.",
+      ? `Use this compact handoff. Human operator local time is ${humanOperatorTime.summary}. Orchestrator continuity writes are authorized: save the wake and final result with save_conversation_turn, unclick_save_conversation_turn, or admin_conversation_turn_ingest if auth is already available. Inspect source pointers only as needed, do one safe useful step, then reply PASS: <progress>; proof: <link/id>; cleanup: done, or BLOCKER: <missing>; progress: <checked>; next: <fix>.`
+      : "Use this compact handoff. Orchestrator continuity writes are authorized: save the wake and final result with save_conversation_turn, unclick_save_conversation_turn, or admin_conversation_turn_ingest if auth is already available. Inspect source pointers only as needed, do one safe useful step, then reply PASS: <progress>; proof: <link/id>; cleanup: done, or BLOCKER: <missing>; progress: <checked>; next: <fix>.",
     source_pointers: sourcePointers,
   };
 }

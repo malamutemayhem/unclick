@@ -23,7 +23,7 @@ export type HeartbeatProtocol = {
 };
 
 export const HEARTBEAT_PROTOCOL_DATE = "2026-05-07";
-export const HEARTBEAT_PROTOCOL_REVISION = 2;
+export const HEARTBEAT_PROTOCOL_REVISION = 5;
 
 export function formatHeartbeatProtocolVersion(revision: number): string {
   return `${HEARTBEAT_PROTOCOL_DATE}.v${revision}`;
@@ -32,10 +32,17 @@ export function formatHeartbeatProtocolVersion(revision: number): string {
 const HEARTBEAT_PROTOCOL: HeartbeatProtocol = {
   version: formatHeartbeatProtocolVersion(HEARTBEAT_PROTOCOL_REVISION),
   procedure: [
+    'Treat this payload as the full heartbeat policy. Do not ask for a separate "Seats > Heartbeat" document or SKILL.md policy text.',
+    "This heartbeat is explicitly authorized to write Orchestrator continuity receipts for the wake and the final PASS/BLOCKER result.",
+    "Use stable session_id='unclick-heartbeat-seat' for every scheduled heartbeat run so Orchestrator can thread receipts across isolated scheduler sessions.",
     "Call UnClick check_signals first. If unavailable, fall back to list_actionable_todos and read_messages. Cap to the most recent items UnClick returns.",
+    "After check_signals, call save_conversation_turn with session_id='unclick-heartbeat-seat', role='assistant', and content containing the safe alert lines plus a brief progress summary and proof id if available.",
+    "If save_conversation_turn is unavailable, use unclick_save_conversation_turn. If no UnClick connector exists but an UnClick API key is already available, POST the same turn to https://unclick.world/api/memory-admin?action=admin_conversation_turn_ingest. Never print the key. Do not POST to /admin/orchestrator because it is the read UI.",
+    'For admin_conversation_turn_ingest, send Authorization: Bearer <redacted> and body { "session_id": "unclick-heartbeat-seat", "role": "assistant", "content": "<safe redacted heartbeat text>", "source_app": "scheduled-heartbeat", "client_session_id": "<local run id>" }.',
     "Compare against prior tether state from local automation state first, then heartbeat_last_state search_memory only if no transient state is available. The diff is the only thing worth surfacing.",
     'If no change, send nothing or exactly: "UnClick healthy." If UnClick surfaces action_needed, blocker, failed check, stale ACK, or approval-required items, send only the alert format.',
     "Keep healthy heartbeat state transient. Do not save recurring healthy or no-change heartbeats as Memory facts; use save_fact only for actionable diffs, tether errors, or explicit user-relevant state changes.",
+    "If every UnClick write path, tool, and context path is missing, reply with a concise BLOCKER that names the missing capability and the next packaging fix.",
     "Do not retry, escalate, route, build, merge, edit code, or perform actions outside this heartbeat procedure.",
   ],
   alert_format: {
