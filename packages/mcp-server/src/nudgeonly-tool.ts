@@ -4,7 +4,7 @@
 import { createHash } from "node:crypto";
 
 const OPENROUTER_BASE = "https://openrouter.ai/api/v1";
-const DEFAULT_MODEL = "openrouter/free";
+const DEFAULT_MODEL = "liquid/lfm-2.5-1.2b-instruct:free";
 const DEFAULT_MAX_TOKENS = 260;
 const MAX_INPUT_CHARS = 6000;
 
@@ -71,6 +71,20 @@ function asNumber(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function asBoolean(value: unknown): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "yes", "stale_ack", "duplicate_wake", "unclear_owner", "missing_proof"].includes(normalized)) {
+      return true;
+    }
+    if (["false", "no", "none", "unknown", ""].includes(normalized)) {
+      return false;
+    }
+  }
+  return Boolean(value);
+}
+
 function shortHash(value: string): string {
   return createHash("sha256").update(value).digest("hex").slice(0, 16);
 }
@@ -104,7 +118,7 @@ function normaliseNudge(parsed: Record<string, unknown> | null, raw: string): Re
     ecosystem: NUDGEONLY_POLICY.ecosystem,
     lane: NUDGEONLY_POLICY.lane,
     authority: NUDGEONLY_POLICY.authority,
-    painpoint_detected: Boolean(parsed?.painpoint_detected ?? false),
+    painpoint_detected: asBoolean(parsed?.painpoint_detected ?? false),
     painpoint_type: String(parsed?.painpoint_type ?? "unknown"),
     nudge: String(parsed?.nudge ?? raw).slice(0, 1200),
     suggested_check: String(parsed?.suggested_check ?? "Run a deterministic verifier before taking action.").slice(0, 600),
@@ -148,7 +162,7 @@ export async function nudgeonlyApi(args: Record<string, unknown>): Promise<unkno
   const painpointHint = trimInput(args.painpoint_hint);
   const sourceId = trimInput(args.source_id);
   const sourceUrl = trimInput(args.source_url);
-  const model = String(args.model ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
+  const model = String(args.model ?? process.env.NUDGEONLY_OPENROUTER_MODEL ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
   const maxTokens = Math.min(asNumber(args.max_tokens, DEFAULT_MAX_TOKENS), 500);
   const inputDigest = shortHash(JSON.stringify({
     event_text: eventText,
@@ -163,6 +177,7 @@ export async function nudgeonlyApi(args: Record<string, unknown>): Promise<unkno
     `You are ${NUDGEONLY_POLICY.worker_name}, the ${NUDGEONLY_POLICY.official_name} worker.`,
     "You are a red-lane, low-authority helper for painpoint hints only.",
     "You must never decide, approve, merge, close, mark done, assign ownership, or set truth.",
+    "Do not use hidden reasoning. Spend tokens on the final JSON fields.",
     "Use only cautious language: possible, likely, suggest checking, may need.",
     "Return JSON only. Do not include markdown.",
   ].join(" ");
@@ -172,8 +187,8 @@ export async function nudgeonlyApi(args: Record<string, unknown>): Promise<unkno
     required_output: {
       painpoint_detected: "boolean",
       painpoint_type: "short string such as stale_ack, duplicate_wake, unclear_owner, noisy_thread, missing_proof, none",
-      nudge: "one or two plain-English sentences",
-      suggested_check: "one deterministic check a trusted lane should run",
+      nudge: "one or two specific plain-English sentences naming the possible painpoint",
+      suggested_check: "one specific deterministic check a trusted lane should run",
       confidence: "low | medium | high",
     },
     hard_limits: NUDGEONLY_POLICY.prohibited_actions,
