@@ -9568,7 +9568,7 @@ export const ADDITIONAL_TOOLS = [
         painpoint_hint: { type: "string", description: "Optional hint such as stale_ack, duplicate_wake, unclear_owner, noisy_thread, or missing_proof." },
         source_id: { type: "string", description: "Optional upstream event, dispatch, PR, issue, or wake identifier for trace evidence." },
         source_url: { type: "string", description: "Optional upstream URL for trace evidence." },
-        model: { type: "string", description: "OpenRouter model ID. Default: openrouter/free for free model routing." },
+        model: { type: "string", description: "OpenRouter model ID. Default: liquid/lfm-2.5-1.2b-instruct:free. Use openrouter/free only when auto-rotation is desired." },
         max_tokens: { type: "number", description: "Maximum output tokens. Hard capped at 500. Default: 260." },
       },
       required: ["event_text"],

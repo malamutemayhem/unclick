@@ -15,7 +15,7 @@ describe("NudgeOnlyAPI policy", () => {
       ecosystem: "PinballWake",
       lane: "red_nudge",
       authority: "nudge_only_no_write_no_truth",
-      default_model: "openrouter/free",
+      default_model: "liquid/lfm-2.5-1.2b-instruct:free",
     });
   });
 
@@ -52,7 +52,7 @@ describe("NudgeOnlyAPI policy", () => {
       ok: true,
       json: async () => ({
         id: "or-nudge-test",
-        model: "openrouter/free",
+        model: "liquid/lfm-2.5-1.2b-instruct:free",
         choices: [{
           finish_reason: "stop",
           message: {
@@ -80,15 +80,15 @@ describe("NudgeOnlyAPI policy", () => {
       code_name: "NudgeOnly",
       ecosystem: "PinballWake",
       authority: "nudge_only_no_write_no_truth",
-      model: "openrouter/free",
+        model: "liquid/lfm-2.5-1.2b-instruct:free",
       source_id: "wake-pull_request-pr-705",
       source_url: "https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/705",
       painpoint_detected: true,
       requires_verifier: true,
       evidence: {
         router: "OpenRouter",
-        requested_model: "openrouter/free",
-        resolved_model: "openrouter/free",
+        requested_model: "liquid/lfm-2.5-1.2b-instruct:free",
+        resolved_model: "liquid/lfm-2.5-1.2b-instruct:free",
         openrouter_id: "or-nudge-test",
         verifier_required: true,
         authority: "nudge_only_no_write_no_truth",
@@ -103,7 +103,7 @@ describe("NudgeOnlyAPI policy", () => {
     });
     const body = JSON.parse(String(init?.body));
     expect(body).toMatchObject({
-      model: "openrouter/free",
+      model: "liquid/lfm-2.5-1.2b-instruct:free",
       max_tokens: 260,
       response_format: { type: "json_object" },
     });

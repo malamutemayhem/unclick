@@ -31,7 +31,7 @@ Do not use it for:
 
 Deterministic checks own truth. Trusted lanes own decisions. `👉Nudge` only points at pain.
 
-Default model routing is `openrouter/free`, which lets OpenRouter select an available free model for the request. The tool still returns `authority: nudge_only_no_write_no_truth` so UI and agents can keep the output visually and operationally separate from trusted state.
+Default model routing is `liquid/lfm-2.5-1.2b-instruct:free`, a small free instruct model that is better suited to short nudge JSON than reasoning-heavy free models. `openrouter/free` can still be passed as an override when auto-rotation is desired. The tool always returns `authority: nudge_only_no_write_no_truth` so UI and agents can keep the output visually and operationally separate from trusted state.
 
 ## Evidence Trail
 
