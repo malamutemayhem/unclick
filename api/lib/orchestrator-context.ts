@@ -454,6 +454,15 @@ function buildSeatHandshake({
   const decision = rollingSnapshot.promoted_decisions[0] ?? null;
   const job = rollingSnapshot.active_jobs[0] ?? null;
   const blocker = rollingSnapshot.active_blockers[0] ?? null;
+  const activeDecision =
+    decision?.summary ??
+    (job
+      ? `Continue current priority job: ${job.summary}`
+      : recentProof
+        ? `Continue from latest proof: ${recentProof.summary}`
+        : blocker
+          ? `Resolve current blocker: ${blocker.summary}`
+          : null);
   const seatFreshness = profiles
     .slice(0, 6)
     .map((profile) => `${profile.label}: ${profile.freshness_label}`)
@@ -472,7 +481,7 @@ function buildSeatHandshake({
     mode: "fresh-seat-pickup",
     summary: compactText(
       [
-        decision ? `Decision: ${decision.summary}` : "",
+        activeDecision ? `Decision: ${activeDecision}` : "",
         job ? `Job: ${job.summary}` : "",
         recentProof ? `Proof: ${recentProof.summary}` : "",
         blocker ? `Blocker: ${blocker.summary}` : "",
@@ -481,7 +490,7 @@ function buildSeatHandshake({
         .join(" "),
       320,
     ),
-    active_decision: decision?.summary ?? null,
+    active_decision: activeDecision,
     active_job: job?.summary ?? null,
     recent_proof: recentProof?.summary ?? null,
     active_blocker: blocker?.summary ?? null,
