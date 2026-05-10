@@ -2,10 +2,10 @@
   "kind": "uxpass_site_sweep_receipt",
   "check": "uxpass",
   "name": "UXPass",
-  "generated_at": "2026-05-09T20:50:42.979Z",
-  "run_id": "uxpass-site-sweep-3d7a9c6519a0fe59",
+  "generated_at": "2026-05-10T17:15:06.359Z",
+  "run_id": "uxpass-site-sweep-b13891250371f4df",
   "status": "blocked",
-  "target_sha": "6aadc437a0aafbd0a24c9aedfc496b766e05d745",
+  "target_sha": "eb77532bd965f7a42022715585c07238adb7c0a5",
   "min_score": 80,
   "allowed_origins": [
     "https://unclick.world",
@@ -39,7 +39,7 @@
         "kind": "safe_fallback_receipt",
         "reason": "missing_credential",
         "targetUrl": "https://unclick.world/",
-        "target_sha": "6aadc437a0aafbd0a24c9aedfc496b766e05d745"
+        "target_sha": "eb77532bd965f7a42022715585c07238adb7c0a5"
       },
       "evidence": {
         "viewports": [
@@ -81,7 +81,7 @@
         "kind": "safe_fallback_receipt",
         "reason": "missing_credential",
         "targetUrl": "https://unclick.world/dashboard",
-        "target_sha": "6aadc437a0aafbd0a24c9aedfc496b766e05d745"
+        "target_sha": "eb77532bd965f7a42022715585c07238adb7c0a5"
       },
       "evidence": {
         "viewports": [
@@ -123,7 +123,7 @@
         "kind": "safe_fallback_receipt",
         "reason": "missing_credential",
         "targetUrl": "https://unclick.world/admin/you",
-        "target_sha": "6aadc437a0aafbd0a24c9aedfc496b766e05d745"
+        "target_sha": "eb77532bd965f7a42022715585c07238adb7c0a5"
       },
       "evidence": {
         "viewports": [
@@ -161,10 +161,10 @@
     "check": "uxpass",
     "name": "UXPass",
     "status": "blocked",
-    "run_id": "uxpass-site-sweep-3d7a9c6519a0fe59",
-    "target_sha": "6aadc437a0aafbd0a24c9aedfc496b766e05d745",
+    "run_id": "uxpass-site-sweep-b13891250371f4df",
+    "target_sha": "eb77532bd965f7a42022715585c07238adb7c0a5",
     "url": "https://unclick.world",
     "summary": "UXPass site sweep could not run because no token was available.",
-    "generated_at": "2026-05-09T20:50:42.979Z"
+    "generated_at": "2026-05-10T17:15:06.359Z"
   }
 }
