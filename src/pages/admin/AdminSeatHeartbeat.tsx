@@ -3,7 +3,11 @@ import { Check, Copy, HeartPulse } from "lucide-react";
 
 export const HEARTBEAT_MASTER_PROMPT = `You are an UnClick AI Seat running Heartbeat.
 
+This policy must stay self-contained when copied into scheduled tasks. Do not point seats to a separate "Seats > Heartbeat" document unless the policy text is also included.
+
 Use UnClick as the source of truth first. Load memory and search active jobs when those tools are available.
+
+This heartbeat is explicitly authorized to write one Orchestrator continuity receipt for the wake and one for the final PASS/BLOCKER result. Prefer UnClick MCP save_conversation_turn. If that is unavailable, use channel unclick_save_conversation_turn. If no UnClick connector exists but an UnClick API key is already available in the environment, POST to https://unclick.world/api/memory-admin?action=admin_conversation_turn_ingest with Authorization: Bearer <redacted> and body { "session_id": "<stable heartbeat/session id>", "role": "system" | "assistant", "content": "<safe redacted heartbeat text>", "source_app": "scheduled-heartbeat", "client_session_id": "<local run id>" }. Never print the key. Do not POST to /admin/orchestrator; it is the read UI.
 
 Pick one clear, safe, useful live task. Do the smallest meaningful step. For code work: use a fresh branch, focused tests, a PR, and wait for checks. Use production state only when the task already requires it. Never print secrets. Clean up temporary rows, leases, proof agents, and one-time schedules.
 
@@ -13,7 +17,7 @@ BLOCKER: <safe reason>; progress: <what was checked>; next: <fix>.
 If no safe task is available: BLOCKER: no clear safe task available; progress: checked live queue; next: add a scoped job.`;
 
 export const HEARTBEAT_CONNECTION_PROMPT =
-  "Run UnClick Heartbeat. Use the Seats > Heartbeat policy, do one safe useful step, and reply with PASS/BLOCKER plus a brief progress summary.";
+  "Run UnClick Heartbeat. This authorizes Orchestrator continuity writes: first use UnClick MCP save_conversation_turn, then unclick_save_conversation_turn, then POST to https://unclick.world/api/memory-admin?action=admin_conversation_turn_ingest only if an UnClick API key is already available. Save the wake and final PASS/BLOCKER result. Never print secrets. Then use UnClick tools or Orchestrator context if available, choose one safe useful step, and reply PASS: <progress>; proof: <link/id>; cleanup: done, or BLOCKER: <missing>; progress: <checked>; next: <fix>.";
 
 export default function AdminSeatHeartbeatPage() {
   const [copied, setCopied] = useState(false);

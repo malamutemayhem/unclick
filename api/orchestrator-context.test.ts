@@ -339,6 +339,7 @@ describe("orchestrator context", () => {
     expect(continuityText).not.toContain("<heartbeat>");
     expect(continuityText).not.toContain("current_time_iso");
     expect(continuityText).toContain("Heartbeat schedule request");
+    expect(continuityText).toContain("embedded UnClick heartbeat instructions");
     expect(continuityText).toContain("Heartbeat result: PASS");
     expect(continuityText).toContain("Please keep Orchestrator context readable");
     expect(context.rolling_snapshot.source_pointers.some((pointer) => pointer.source_id === "turn-heartbeat")).toBe(false);
@@ -494,6 +495,8 @@ describe("orchestrator context", () => {
     );
     expect(JSON.stringify(context.seat_handshake)).not.toContain("DONT_NOTIFY");
     expect(JSON.stringify(context.seat_handshake)).not.toContain("Run UnClick Heartbeat");
+    expect(context.seat_handshake.next_prompt).not.toContain("Seats > Heartbeat policy");
+    expect(context.seat_handshake.next_prompt).toContain("BLOCKER: <missing>");
     expect(context.seat_handshake.source_pointers.map((pointer) => pointer.source_id)).toEqual(
       expect.arrayContaining(["msg-decision", "todo-orchestrator-proof", "msg-proof", "signal-blocker"]),
     );

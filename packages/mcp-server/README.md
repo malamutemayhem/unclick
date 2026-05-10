@@ -58,9 +58,11 @@ Memory tools exposed at session level: `load_memory`, `save_session`, `save_fact
 
 ## AI Seat Heartbeats
 
-Scheduled AI Seats can call `heartbeat_protocol` with no arguments to fetch the canonical UnClick heartbeat playbook. The response is versioned and includes the current procedure, alert format, throttle rules, and `watch_state_key`, so seat prompts can shrink to: "Call heartbeat_protocol on UnClick. Follow what it returns."
+Scheduled AI Seats can call `heartbeat_protocol` with no arguments to fetch the canonical UnClick heartbeat playbook. The response is versioned and includes the current procedure, explicit Orchestrator continuity write authorization, alert format, throttle rules, and `watch_state_key`, so seat prompts can shrink to: "Call heartbeat_protocol on UnClick. Follow what it returns."
 
 Tethered AI Seats should also treat `save_conversation_turn` as the receipt-first path for Orchestrator continuity: save the accepted turn, keep the returned receipt id, and fail loud with `UNTETHERED` plus any partial receipts when the save path is missing.
+
+If no UnClick MCP or channel connector exists but an UnClick API key is already available in the environment, the authorized fallback write path is `POST https://unclick.world/api/memory-admin?action=admin_conversation_turn_ingest` with a bearer token and body `{ session_id, role, content, source_app, client_session_id }`. Do not post to `/admin/orchestrator`; that is the read UI.
 
 After saving an accepted external turn, tethered seats should call `read_orchestrator_context` before deciding what the user meant. The safe order is Log -> Read -> Decide -> Reply -> Log reply, so a test cue or proof phrase is not mistaken for a real operator request.
 

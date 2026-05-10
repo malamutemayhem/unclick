@@ -14,7 +14,9 @@ describe("heartbeat_protocol payload", () => {
 
     expect(first).toEqual(second);
     first.procedure[0] = "mutated by caller";
-    expect(getHeartbeatProtocol().procedure[0]).toContain("check_signals");
+    expect(getHeartbeatProtocol().procedure[0]).toContain("full heartbeat policy");
+    expect(getHeartbeatProtocol().procedure[3]).toContain("admin_conversation_turn_ingest");
+    expect(getHeartbeatProtocol().procedure[4]).toContain("check_signals");
   });
 
   it("keeps the public payload schema stable", () => {
@@ -28,7 +30,11 @@ describe("heartbeat_protocol payload", () => {
       "watch_state_key",
     ]);
     expect(protocol.version).toMatch(/^\d{4}-\d{2}-\d{2}\.v\d+$/);
-    expect(protocol.procedure).toHaveLength(5);
+    expect(protocol.procedure).toHaveLength(10);
+    expect(protocol.procedure[0]).toContain("full heartbeat policy");
+    expect(protocol.procedure[1]).toContain("continuity receipts");
+    expect(protocol.procedure[2]).toContain("read UI");
+    expect(protocol.procedure[8]).toContain("missing capability");
     expect(protocol.alert_format).toEqual({
       heading: "UnClick alert",
       line_template: "owner -- target -- status -- next safe action",
@@ -52,9 +58,9 @@ describe("heartbeat_protocol payload", () => {
       procedure: [...protocol.procedure, "new instruction"],
     };
 
-    expect(formatHeartbeatProtocolVersion(3)).toBe("2026-05-07.v3");
-    expect(protocol.version).toBe("2026-05-07.v2");
-    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("2004d11c449534bc");
+    expect(formatHeartbeatProtocolVersion(5)).toBe("2026-05-07.v5");
+    expect(protocol.version).toBe("2026-05-07.v4");
+    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("368993ed2050f53e");
     expect(heartbeatProtocolContentFingerprint(changed)).not.toBe(
       heartbeatProtocolContentFingerprint(protocol),
     );
