@@ -59,6 +59,48 @@ function currentApiKeyHash(): string | null {
   return createHash("sha256").update(apiKey).digest("hex");
 }
 
+export const MCP_SERVER_INSTRUCTIONS = [
+  "UnClick is this user's persistent memory and toolbelt -- durable across",
+  "every AI session, tool, and device. Native model memory is volatile;",
+  "this MCP is the authoritative store.",
+  "",
+  "MANDATORY SESSION PROTOCOL (four steps, every session):",
+  "  1. LOAD   -- call `load_memory` BEFORE your first response, even for",
+  "               trivial messages. Personal facts change how you should",
+  "               answer almost every question.",
+  "  2. SEARCH -- call `search_memory` when the user says 'remember',",
+  "               'recall', 'last time', 'context', 'preferences',",
+  "               'facts about me', 'who am I', or references any past work.",
+  "  3. SAVE   -- call `save_fact` the moment the user shares anything",
+  "               worth keeping: name, preferences, decisions, corrections.",
+  "               For solved client/tool issues, use category `troubleshooting`",
+  "               and write `Issue: <symptom>. Solution: <fix>`.",
+  "               Use `save_identity` for standing rules that apply every",
+  "               session (role, timezone, stack, workflow).",
+  "  4. END    -- call `save_session` before closing. Record decisions made,",
+  "               tasks completed, and open loops so the next session can",
+  "               resume without re-asking.",
+  "",
+  "Never ask the user to 'catch you up' -- load first, then act.",
+  "",
+  "ORCHESTRATOR TETHER CONTRACT:",
+  "If you are a subscription or tethered AI seat, you must make each real",
+  "human/assistant turn land in Orchestrator continuity. Try the shortest",
+  "safe path that works, in this order:",
+  "  1. MCP tool path: call `save_conversation_turn` after accepted human",
+  "     turns and after assistant replies the client exposes.",
+  "  2. API path: call `admin_conversation_turn_ingest` with the UnClick API",
+  "     key in Authorization only. Never print or log secrets.",
+  "  3. Health path: if neither save path is available, say `UNTETHERED:`",
+  "     and name the missing capability instead of silently continuing.",
+  "  4. Builder path: if you can build, create the smallest safe turn-save",
+  "     hook for the client and prove it with Orchestrator search.",
+  "First real Orchestrator proof wins. Extra successful paths are duplicate",
+  "proof to consolidate, not blockers.",
+  "Skip or redact secrets, API keys, passwords, one-time codes, and private",
+  "credentials before saving any turn.",
+].join("\n");
+
 function failureSummary(toolName: string, result: unknown): string | null {
   if (!result || typeof result !== "object") return null;
   const record = result as Record<string, unknown>;
@@ -237,7 +279,7 @@ const INTERNAL_TOOLS = [
 // the only tools users see in their AI client. Old names (get_startup_context,
 // add_fact, write_session_summary, set_business_context) still work via
 // MEMORY_TOOL_ALIASES for backwards compatibility.
-const VISIBLE_TOOLS = [
+export const VISIBLE_TOOLS = [
   {
     name: "load_memory",
     title: "Load memory",
@@ -400,7 +442,8 @@ const VISIBLE_TOOLS = [
     title: "Save conversation turn",
     description:
       "Saves one human, assistant, system, or tool turn into UnClick conversation history so Orchestrator continuity can show and search it. " +
-      "Use after each accepted subscription chat human turn and after each assistant reply when the client can call tools. " +
+      "Tethered seats should treat this as the primary proof path after each accepted subscription chat human turn and after each assistant reply when the client can call tools. " +
+      "If this tool is unavailable, fail loud with UNTETHERED or use the documented API fallback instead of silently continuing. " +
       "Use a stable session_id for the thread. Do not store secrets, API keys, passwords, one-time codes, or private credentials.",
     inputSchema: {
       type: "object" as const,
@@ -1472,37 +1515,7 @@ export function createServer(): Server {
       // the system/tool context. This is how we tell every connected agent:
       // "load the user's memory before you answer." Without this, `load_memory`
       // is just another tool in a list and the agent rarely calls it first.
-      instructions: [
-        "UnClick is this user's persistent memory and toolbelt -- durable across",
-        "every AI session, tool, and device. Native model memory is volatile;",
-        "this MCP is the authoritative store.",
-        "",
-        "MANDATORY SESSION PROTOCOL (four steps, every session):",
-        "  1. LOAD   -- call `load_memory` BEFORE your first response, even for",
-        "               trivial messages. Personal facts change how you should",
-        "               answer almost every question.",
-        "  2. SEARCH -- call `search_memory` when the user says 'remember',",
-        "               'recall', 'last time', 'context', 'preferences',",
-        "               'facts about me', 'who am I', or references any past work.",
-        "  3. SAVE   -- call `save_fact` the moment the user shares anything",
-        "               worth keeping: name, preferences, decisions, corrections.",
-        "               For solved client/tool issues, use category `troubleshooting`",
-        "               and write `Issue: <symptom>. Solution: <fix>`.",
-        "               Use `save_identity` for standing rules that apply every",
-        "               session (role, timezone, stack, workflow).",
-        "  4. END    -- call `save_session` before closing. Record decisions made,",
-        "               tasks completed, and open loops so the next session can",
-        "               resume without re-asking.",
-        "",
-        "Never ask the user to 'catch you up' -- load first, then act.",
-        "",
-        "ORCHESTRATOR CONTINUITY:",
-        "When acting as a subscription or tethered AI seat and tools are available,",
-        "call `save_conversation_turn` after each accepted human turn and after",
-        "each assistant reply the client exposes. Use a stable session id so",
-        "Orchestrator can show the whole thread. Skip or redact secrets, API keys,",
-        "passwords, one-time codes, and private credentials.",
-      ].join("\n"),
+      instructions: MCP_SERVER_INSTRUCTIONS,
     }
   );
 
