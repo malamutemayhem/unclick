@@ -181,6 +181,47 @@ const QUALITY_GATES = [
   "Every alert must name a deterministic verifier before action.",
 ] as const;
 
+const RECEIPT_BRIDGE_RULES = [
+  "NudgeOnly can suggest a receipt request, but it cannot write it, assign ownership, or mark the target done.",
+  "A bridge request requires a concrete painpoint plus source evidence.",
+  "If the source has no owner, route only to Job Manager for owner resolution.",
+  "If proof or ACK is overdue past the TTL, emit an escalation request instead of pretending the work moved.",
+  "WakePass or another deterministic verifier must confirm ACK/proof before any trusted state changes.",
+] as const;
+
+const RECEIPT_ROUTES = [
+  {
+    painpoint_type: "stale_ack",
+    default_worker: "Reviewer",
+    expected_receipt: "ACK received, review started, or blocker receipt with reason.",
+    verifier: "Run the WakePass ACK verifier against the source dispatch or PR.",
+  },
+  {
+    painpoint_type: "duplicate_wake",
+    default_worker: "Job Manager",
+    expected_receipt: "Duplicate wake consolidated or separate targets justified.",
+    verifier: "Compare source IDs, target URLs, owners, and timestamps before consolidation.",
+  },
+  {
+    painpoint_type: "unclear_owner",
+    default_worker: "Job Manager",
+    expected_receipt: "Owning job, next safe action, and expected proof receipt.",
+    verifier: "Run the owner resolver against the latest promoted handoff and active jobs.",
+  },
+  {
+    painpoint_type: "missing_proof",
+    default_worker: "Builder",
+    expected_receipt: "Commit, PR, run ID, receipt ID, or blocker receipt.",
+    verifier: "Check linked commit, PR, run ID, receipt ID, or source pointer.",
+  },
+  {
+    painpoint_type: "noisy_thread",
+    default_worker: "Heartbeat Seat",
+    expected_receipt: "Latest material diff or compact PASS/BLOCKER receipt.",
+    verifier: "Compare latest heartbeat content against prior state and count material changes.",
+  },
+] as const;
+
 type OpenRouterRole = "system" | "user" | "assistant";
 
 interface OpenRouterMessage {
@@ -215,6 +256,13 @@ export const NUDGEONLY_POLICY = {
   orchestrator_issue_map: ORCHESTRATOR_ISSUE_MAP,
   worker_nudge_map: WORKER_NUDGE_MAP,
   quality_gates: QUALITY_GATES,
+  receipt_bridge: {
+    status: "official",
+    route_shape: "worker -> target -> painpoint -> expected receipt -> verifier",
+    escalation_rule: "If ACK/proof is still missing after the configured TTL, emit an escalation request for the owning lane.",
+    rules: RECEIPT_BRIDGE_RULES,
+    routes: RECEIPT_ROUTES,
+  },
   tested_proof: {
     live_sweep: "12 cases, 0 API errors, 12 useful traceable outputs, 12/12 signal matches, 12/12 painpoint bucket matches, 0 false positives on healthy control.",
     commits: ["8116ae9", "1221b7a", "6d35130"],
@@ -272,6 +320,27 @@ function asBoolean(value: unknown): boolean {
 function normalisePainpointType(value: unknown): string {
   const raw = String(value ?? "none").trim().toLowerCase();
   return PAINPOINT_TYPES.find((type) => raw.includes(type)) ?? "none";
+}
+
+function asOptionalString(value: unknown): string | null {
+  const trimmed = String(value ?? "").trim();
+  return trimmed ? trimmed : null;
+}
+
+function asStatus(value: unknown): string {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function parseTime(value: unknown): number | null {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function minutesBetween(start: number | null, end: number | null): number | null {
+  if (start === null || end === null || end < start) return null;
+  return Math.floor((end - start) / 60000);
 }
 
 function shortHash(value: string): string {
@@ -334,6 +403,79 @@ function normaliseNudge(
   };
 }
 
+function recordFrom(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function evidenceText(args: Record<string, unknown>, nudge: Record<string, unknown>): string {
+  return [
+    args.event_text,
+    args.context,
+    args.source_id,
+    args.source_url,
+    args.target,
+    args.owner,
+    args.worker,
+    args.ack_status,
+    args.proof_status,
+    nudge.nudge,
+    nudge.suggested_check,
+    nudge.source_id,
+    nudge.source_url,
+  ].map((part) => String(part ?? "").toLowerCase()).join(" ");
+}
+
+function hasConcreteCue(painpointType: string, text: string): boolean {
+  if (painpointType === "none") return false;
+  if (painpointType === "stale_ack") return /\b(stale|overdue|missing|absent|no)\b.*\b(ack|receipt|review)\b|\b(ack|receipt|review)\b.*\b(stale|overdue|missing|absent)\b/.test(text);
+  if (painpointType === "duplicate_wake") return /\bduplicate|duplicated|same target|same owner|same wake\b/.test(text);
+  if (painpointType === "unclear_owner") return /\bunclear owner|no owner|without active job|no active job|orphaned|owner missing|owning job\b/.test(text);
+  if (painpointType === "missing_proof") return /\bmissing proof|no proof|proof missing|without proof|no commit|no pr|no run id|no receipt\b/.test(text);
+  if (painpointType === "noisy_thread") return /\bnoise|noisy|repeated|heartbeat|near-duplicate|hides state|collapse\b/.test(text);
+  return false;
+}
+
+function routeForPainpoint(painpointType: string) {
+  return RECEIPT_ROUTES.find((route) => route.painpoint_type === painpointType);
+}
+
+function targetFrom(args: Record<string, unknown>, nudge: Record<string, unknown>): string | null {
+  return asOptionalString(args.target)
+    ?? asOptionalString(args.source_url)
+    ?? asOptionalString(nudge.source_url)
+    ?? asOptionalString(args.source_id)
+    ?? asOptionalString(nudge.source_id);
+}
+
+function workerFrom(args: Record<string, unknown>, painpointType: string, routeWorker: string): string {
+  const explicitWorker = asOptionalString(args.worker);
+  const owner = asOptionalString(args.owner);
+  if (painpointType === "unclear_owner" || !owner) return "Job Manager";
+  return explicitWorker ?? routeWorker;
+}
+
+function proofOrAckMissing(args: Record<string, unknown>, painpointType: string): boolean {
+  const ackStatus = asStatus(args.ack_status);
+  const proofStatus = asStatus(args.proof_status);
+  const ackMissing = !ackStatus || ["missing", "absent", "stale", "overdue", "failed", "none"].includes(ackStatus);
+  const proofMissing = !proofStatus || ["missing", "absent", "stale", "overdue", "failed", "none"].includes(proofStatus);
+  if (painpointType === "stale_ack") return ackMissing;
+  if (painpointType === "missing_proof") return proofMissing;
+  return ackMissing || proofMissing;
+}
+
+function bridgeStatus(args: Record<string, unknown>, painpointType: string): string {
+  const ttlMinutes = asNumber(args.ttl_minutes, 60);
+  const createdAt = parseTime(args.created_at);
+  const now = parseTime(args.now) ?? Date.now();
+  const ageMinutes = minutesBetween(createdAt, now);
+  const missing = proofOrAckMissing(args, painpointType);
+  const shouldEscalate = missing && ageMinutes !== null && ageMinutes >= ttlMinutes;
+  return shouldEscalate ? "escalation_request" : "receipt_request";
+}
+
 async function openRouterPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
   const res = await fetch(`${OPENROUTER_BASE}${path}`, {
     method: "POST",
@@ -356,6 +498,104 @@ async function openRouterPost<T>(apiKey: string, path: string, body: unknown): P
 
 export async function nudgeonlyPolicy(_args: Record<string, unknown>): Promise<unknown> {
   return NUDGEONLY_POLICY;
+}
+
+export async function nudgeonlyReceiptBridge(args: Record<string, unknown>): Promise<unknown> {
+  const nudge = recordFrom(args.nudge_result);
+  const painpointType = normalisePainpointType(args.painpoint_type ?? nudge.painpoint_type ?? args.painpoint_hint);
+  const detected = asBoolean(args.painpoint_detected ?? nudge.painpoint_detected ?? painpointType);
+  const sourceId = asOptionalString(args.source_id) ?? asOptionalString(nudge.source_id);
+  const sourceUrl = asOptionalString(args.source_url) ?? asOptionalString(nudge.source_url);
+  const target = targetFrom(args, nudge);
+  const route = routeForPainpoint(painpointType);
+  const text = evidenceText(args, nudge);
+  const hasSourceEvidence = Boolean(sourceId || sourceUrl || target);
+  const hasCue = hasConcreteCue(painpointType, text);
+  const traceInput = JSON.stringify({
+    painpoint_type: painpointType,
+    source_id: sourceId,
+    source_url: sourceUrl,
+    target,
+    owner: asOptionalString(args.owner),
+    worker: asOptionalString(args.worker),
+    nudge_trace_id: asOptionalString(args.nudge_trace_id) ?? asOptionalString(nudge.trace_id),
+  });
+  const bridgeId = `nudgebridge_${shortHash(traceInput)}`;
+
+  if (!detected || painpointType === "none") {
+    return {
+      bridge_id: bridgeId,
+      bridge_status: "quiet",
+      painpoint_detected: false,
+      painpoint_type: "none",
+      reason: "No painpoint was detected, so no worker receipt request was created.",
+      quality_gate: "healthy controls stay quiet",
+      requires_verifier: true,
+    };
+  }
+
+  if (!route || !hasSourceEvidence || !hasCue) {
+    return {
+      bridge_id: bridgeId,
+      bridge_status: "advisory_only",
+      painpoint_detected: detected,
+      painpoint_type: painpointType,
+      reason: "The bridge did not find enough deterministic evidence to route a worker receipt request.",
+      missing: {
+        source_evidence: !hasSourceEvidence,
+        concrete_cue: !hasCue,
+      },
+      quality_gate: "prefer false negatives over false positives",
+      requires_verifier: true,
+    };
+  }
+
+  const owner = asOptionalString(args.owner);
+  const worker = workerFrom(args, painpointType, route.default_worker);
+  const status = bridgeStatus(args, painpointType);
+  const nudgeTraceId = asOptionalString(args.nudge_trace_id) ?? asOptionalString(nudge.trace_id);
+  const request = {
+    worker,
+    owner: owner ?? null,
+    target,
+    painpoint_type: painpointType,
+    expected_receipt: route.expected_receipt,
+    verifier: route.verifier,
+    receipt_line: `${worker} -> ${target} -> ${painpointType} -> ${route.expected_receipt} -> ${route.verifier}`,
+  };
+
+  return {
+    bridge_id: bridgeId,
+    bridge_status: status,
+    worker: NUDGEONLY_POLICY.worker_name,
+    official_name: NUDGEONLY_POLICY.official_name,
+    code_name: NUDGEONLY_POLICY.code_name,
+    ecosystem: NUDGEONLY_POLICY.ecosystem,
+    authority: NUDGEONLY_POLICY.authority,
+    painpoint_detected: true,
+    painpoint_type: painpointType,
+    request,
+    escalation: status === "escalation_request"
+      ? {
+          escalate_to: "WakePass",
+          reason: "ACK or proof is still missing after the configured TTL.",
+          verifier: route.verifier,
+        }
+      : null,
+    evidence: {
+      bridge_id: bridgeId,
+      nudge_trace_id: nudgeTraceId,
+      source_id: sourceId,
+      source_url: sourceUrl,
+      target,
+      verifier_required: true,
+      verifier_rule: NUDGEONLY_POLICY.verifier_rule,
+      quality_gates: RECEIPT_BRIDGE_RULES,
+    },
+    requires_verifier: true,
+    allowed_actions: ["emit worker receipt request", "emit escalation request", "run deterministic verifier"],
+    prohibited_actions: NUDGEONLY_POLICY.prohibited_actions,
+  };
 }
 
 export async function nudgeonlyApi(args: Record<string, unknown>): Promise<unknown> {
