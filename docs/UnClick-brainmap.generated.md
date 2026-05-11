@@ -11,6 +11,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/unclick-context-boot-packet.md | 513173ecd757 | 4910 |
 | docs/agent-observability.md | 4614ea97481d | 3114 |
 | docs/pinballwake-nudgeonly-api.md | f414abc72f91 | 7056 |
+| docs/pinballwake-igniteonly-api.md | ba632ad8bce3 | 4292 |
 | docs/fleet-worker-roles.md | 46758e20b953 | 3757 |
 | docs/adr/0005-two-layer-admin-gating.md | 928a93930df6 | 2213 |
 | docs/adr/0006-orchestrator-is-user-chat.md | f9b527b76e69 | 2195 |
@@ -254,6 +255,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | higgsfield | higgsfield MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/higgsfield-tool.ts |
 | hunter | hunter MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/hunter-tool.ts |
 | igdb | igdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/igdb-tool.ts |
+| IgniteOnly | IgniteOnly verified worker wake packet bridge. | packages/mcp-server/src/igniteonly-tool.ts |
 | instapaper | instapaper MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/instapaper-tool.ts |
 | ipapi | ipapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ipapi-tool.ts |
 | ipaustralia | ipaustralia MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ipaustralia-tool.ts |
@@ -381,6 +383,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | To-Do List | Jobs | Task queue language maps to the current admin Jobs surface. |
 | Heartbeat | Heartbeat Master | The copy policy that teaches scheduled seats how to pulse. |
 | NudgeOnlyAPI | NudgeOnly | Low-risk receipt nudges, never source-of-truth mutation. |
+| IgniteOnlyAPI | IgniteOnly | Verified worker wake packets, never build, merge, or completion state. |
 
 ## Rooms List
 
@@ -426,6 +429,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 - Admin-only surfaces use `RequireAdmin` and must also be hidden from non-admin sidebar navigation.
 - NudgeOnly can request receipt or escalation only. Trusted lanes verify before action.
+- IgniteOnly can request worker wake packets only. Trusted lanes still build, review, merge, and record proof.
 - Heartbeats must never print keys or credentials.
 - Generated Brainmap changes must come from source updates plus a regenerated artifact, not hand editing the generated file.
 - Proof should include TestPass, Reviewer, Safety Checker, and Ledger-style evidence where applicable.
