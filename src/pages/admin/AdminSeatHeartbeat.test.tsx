@@ -10,7 +10,7 @@ describe("AdminSeatHeartbeatPage", () => {
   it("shows the canonical policy and short schedule message", () => {
     render(React.createElement(AdminSeatHeartbeatPage));
 
-    expect(screen.getByRole("heading", { name: "Heartbeat" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Heartbeat Master" })).toBeInTheDocument();
     expect(screen.getByLabelText("Public default heartbeat policy")).toHaveValue(HEARTBEAT_MASTER_PROMPT);
     expect(screen.getByLabelText("Short schedule message")).toHaveValue(HEARTBEAT_CONNECTION_PROMPT);
     expect(HEARTBEAT_CONNECTION_PROMPT).toContain("Run UnClick Heartbeat");
@@ -18,6 +18,7 @@ describe("AdminSeatHeartbeatPage", () => {
     expect(HEARTBEAT_CONNECTION_PROMPT).toContain("nudgeonly_receipt_bridge");
     expect(HEARTBEAT_CONNECTION_PROMPT).toContain("compact public fields");
     expect(HEARTBEAT_MASTER_PROMPT).toContain("public policy must stay self-contained");
+    expect(HEARTBEAT_MASTER_PROMPT).toContain("master heartbeat");
     expect(HEARTBEAT_MASTER_PROMPT).toContain("token-light");
     expect(HEARTBEAT_MASTER_PROMPT).toContain("nudgeonly_receipt_bridge");
     expect(HEARTBEAT_MASTER_PROMPT).toContain("bridge_id and receipt_line");

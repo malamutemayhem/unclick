@@ -3,6 +3,8 @@ import { Check, Copy, HeartPulse } from "lucide-react";
 
 export const HEARTBEAT_MASTER_PROMPT = `You are an UnClick AI Seat running Heartbeat.
 
+This /admin/agents/heartbeat copy area is the master heartbeat policy. When UnClick docs, jobs, or seats refer to "master heartbeat", they mean this public policy text.
+
 This public policy must stay self-contained when copied into scheduled tasks. Keep every step token-light, source-backed, and safe to show in an admin UI.
 
 Use UnClick as the source of truth first. Load memory and search active jobs when those tools are available.
@@ -42,9 +44,9 @@ export default function AdminSeatHeartbeatPage() {
             <HeartPulse className="h-3.5 w-3.5" />
             Seats
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-heading">Heartbeat</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-heading">Heartbeat Master</h1>
           <p className="mt-1 max-w-2xl text-sm text-body">
-            One tidy policy for scheduled AI Seat check-ins.
+            The public copy source for scheduled AI Seat check-ins.
           </p>
         </div>
       </header>
@@ -52,6 +54,9 @@ export default function AdminSeatHeartbeatPage() {
       <section className="space-y-3 rounded-xl border border-border/40 bg-card/20 p-4">
         <label htmlFor="heartbeat-master-prompt" className="block text-sm font-semibold text-heading">
           Public default heartbeat policy
+          <span className="ml-2 text-xs font-normal text-muted-foreground">
+            Master source for copy/paste
+          </span>
         </label>
         <textarea
           id="heartbeat-master-prompt"
