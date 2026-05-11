@@ -363,6 +363,25 @@ describe("NudgeOnlyAPI policy", () => {
     });
   });
 
+  it("routes queue hydration failures to the existing PinballWake Jobs Worker", async () => {
+    await expect(nudgeonlyReceiptBridge({
+      painpoint_detected: true,
+      painpoint_type: "queue_hydration_failure",
+      event_text: "Orchestrator shows 0 active jobs but backlog has 4 actionable todos and 2 open dispatches.",
+      source_id: "orchestrator-current-state",
+      target: "Boardroom backlog",
+      worker: "Builder",
+    })).resolves.toMatchObject({
+      bridge_status: "receipt_request",
+      request: {
+        worker: "pinballwake-jobs-worker",
+        target: "Boardroom backlog",
+        painpoint_type: "queue_hydration_failure",
+        expected_receipt: "Backlog counted, scoped, mirrored, or routed to the existing Job Worker with next safe action.",
+      },
+    });
+  });
+
   it("stays quiet for healthy controls and advisory-only for weak evidence", async () => {
     await expect(nudgeonlyReceiptBridge({
       painpoint_detected: false,

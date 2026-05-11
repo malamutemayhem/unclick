@@ -124,6 +124,7 @@ export interface OrchestratorOperatorTimeContext {
 
 export interface BuildOrchestratorContextInput {
   generatedAt: string;
+  continuityLimit?: number;
   profiles: OrchestratorProfileRow[];
   messages: OrchestratorMessageRow[];
   todos: OrchestratorTodoRow[];
@@ -319,6 +320,7 @@ function compactContinuityText(input: unknown, maxChars = 240, options: { heartb
 
 export function buildOrchestratorContext(input: BuildOrchestratorContextInput): OrchestratorContext {
   const nowMs = Date.parse(input.generatedAt);
+  const continuityLimit = Math.min(Math.max(Number(input.continuityLimit ?? 36) || 36, 20), 200);
   const profiles = input.profiles
     .map((profile) => buildProfileCard(profile, nowMs))
     .sort((a, b) => compareIsoDesc(a.last_seen_at, b.last_seen_at));
@@ -349,7 +351,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   ]
     .filter((event) => event.summary.length > 0)
     .sort((a, b) => compareIsoDesc(a.created_at, b.created_at))
-    .slice(0, 36);
+    .slice(0, continuityLimit);
 
   const blockers = continuityEvents
     .filter((event) => isActiveBlockerEvent(event, activeTodos, nowMs))

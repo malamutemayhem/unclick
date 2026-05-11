@@ -23,7 +23,7 @@ export type HeartbeatProtocol = {
 };
 
 export const HEARTBEAT_PROTOCOL_DATE = "2026-05-07";
-export const HEARTBEAT_PROTOCOL_REVISION = 7;
+export const HEARTBEAT_PROTOCOL_REVISION = 8;
 
 export function formatHeartbeatProtocolVersion(revision: number): string {
   return `${HEARTBEAT_PROTOCOL_DATE}.v${revision}`;
@@ -35,9 +35,11 @@ const HEARTBEAT_PROTOCOL: HeartbeatProtocol = {
     'Treat this payload as the full heartbeat policy. Do not ask for a separate "Seats > Heartbeat" document or SKILL.md policy text.',
     "This heartbeat is explicitly authorized to write Orchestrator continuity receipts for the wake and the final PASS/BLOCKER result.",
     "Use stable session_id='unclick-heartbeat-seat' for every scheduled heartbeat run so Orchestrator can thread receipts across isolated scheduler sessions.",
-    "Call UnClick check_signals first. If unavailable, fall back to list_actionable_todos and read_messages. Cap to the most recent items UnClick returns.",
+    "Call UnClick check_signals first, then always do a compact job hunt before declaring health: read_orchestrator_context if available, list_actionable_todos, list_todos for open or in_progress work, recent dispatches, and recent Boardroom messages. Cap to the most recent items UnClick returns.",
+    "Treat '0 active jobs' as PASS only when the job hunt also finds 0 actionable todos, 0 open or in_progress todos, and 0 unhandled dispatch or Boardroom work. If any backlog exists while active jobs are 0, this is BLOCKER: queue hydration failure.",
+    "Use PinballWake JobHunt Mirror as the fallback path for that failure: mirror compact backlog counts and source pointers into NudgeOnly first, then IgniteOnly only after verifier-backed receipt_bridge output requests a worker wake. Target the existing Job Worker as executor when it is registered; free API classifiers may only classify or nudge. The mirror may request a wake, but must not create duplicate jobs, assign ownership, mark done, merge, close, or edit source state.",
     "After check_signals, call save_conversation_turn with session_id='unclick-heartbeat-seat', role='assistant', and content containing the safe alert lines plus a brief progress summary and proof id if available.",
-    "When UnClick returns action_needed, blocker, stale ACK, missing proof, duplicate wake, or unclear owner items, call nudgeonly_receipt_bridge if available using compact public fields only: source_id, source_url, target, owner, painpoint_type, status, created_at, and ttl_minutes.",
+    "When UnClick returns action_needed, blocker, stale ACK, missing proof, duplicate wake, unclear owner, or queue hydration failure items, call nudgeonly_receipt_bridge if available using compact public fields only: source_id, source_url, target, owner, painpoint_type, status, created_at, and ttl_minutes.",
     "Prefer deterministic painpoint labels from UnClick. Call nudgeonly_api only when no deterministic bucket exists, and only for the smallest safe source text needed to classify the painpoint.",
     "If nudgeonly_receipt_bridge returns receipt_request or escalation_request, save its bridge_id and receipt_line in the continuity receipt and alert line. If it returns quiet or advisory_only, do not notify.",
     "If a verified bridge request needs a dormant worker, call igniteonly_receipt_consumer if available using the bridge result and compact public fields only. Save ignite_id and wake_packet.receipt_line when it returns wake_request or escalation_wake_request.",

@@ -7935,8 +7935,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               ...(searchUuid ? [`id.eq.${searchUuid}`] : []),
             ].join(",")
           : "";
-        const limit = Math.min(Math.max(Number(body.limit ?? req.query.limit ?? 80) || 80, 20), searchQuery ? 200 : 120);
-        const smallerLimit = searchQuery ? limit : Math.min(limit, 40);
+        const limit = Math.min(Math.max(Number(body.limit ?? req.query.limit ?? 80) || 80, 20), 200);
+        const smallerLimit = searchQuery ? limit : Math.min(limit, 120);
 
         let messagesQuery = supabase
           .from("mc_fishbowl_messages")
@@ -8087,6 +8087,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({
           context: buildOrchestratorContext({
             generatedAt: new Date().toISOString(),
+            continuityLimit: limit,
             profiles: (profilesResult.data ?? []) as OrchestratorProfileRow[],
             messages: (messagesResult.data ?? []) as OrchestratorMessageRow[],
             todos: (todosResult.data ?? []) as OrchestratorTodoRow[],
