@@ -153,7 +153,7 @@ async function walk(root, start, predicate) {
 
 async function readText(root, rel) {
   try {
-    return await readFile(path.join(root, rel), "utf8");
+    return (await readFile(path.join(root, rel), "utf8")).replace(/\r\n/g, "\n");
   } catch {
     return "";
   }
