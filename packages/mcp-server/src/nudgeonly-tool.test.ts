@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { nudgeonlyApi, nudgeonlyPolicy, NUDGEONLY_POLICY } from "./nudgeonly-tool.js";
+import { nudgeonlyApi, nudgeonlyPolicy, nudgeonlyReceiptBridge, NUDGEONLY_POLICY } from "./nudgeonly-tool.js";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -55,6 +55,10 @@ describe("NudgeOnlyAPI policy", () => {
         "Prefer false negatives over false positives when evidence is weak.",
         "Every alert must name a deterministic verifier before action.",
       ]),
+      receipt_bridge: expect.objectContaining({
+        status: "official",
+        route_shape: "worker -> target -> painpoint -> expected receipt -> verifier",
+      }),
     });
   });
 
@@ -277,6 +281,111 @@ describe("NudgeOnlyAPI policy", () => {
       trace_id: expect.stringMatching(/^nudgeonly_[0-9a-f]{16}$/),
       source_id: "wake-pull_request-pr-705",
       source_url: "https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/705",
+    });
+  });
+
+  it("routes a verified stale ACK nudge into a reviewer receipt request", async () => {
+    await expect(nudgeonlyReceiptBridge({
+      painpoint_detected: true,
+      painpoint_type: "stale_ack",
+      event_text: "WakePass stale ACK for PR #705, review receipt is missing.",
+      source_id: "wake-pull_request-pr-705",
+      source_url: "https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/705",
+      owner: "🔍",
+      nudge_trace_id: "nudgeonly_abc123",
+      created_at: "2026-05-11T00:00:00.000Z",
+      now: "2026-05-11T00:20:00.000Z",
+      ttl_minutes: 60,
+    })).resolves.toMatchObject({
+      bridge_status: "receipt_request",
+      authority: "nudge_only_no_write_no_truth",
+      painpoint_detected: true,
+      painpoint_type: "stale_ack",
+      request: {
+        worker: "Reviewer",
+        owner: "🔍",
+        target: "https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/705",
+        expected_receipt: "ACK received, review started, or blocker receipt with reason.",
+        verifier: "Run the WakePass ACK verifier against the source dispatch or PR.",
+        receipt_line: expect.stringContaining("Reviewer -> https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/705 -> stale_ack"),
+      },
+      evidence: {
+        nudge_trace_id: "nudgeonly_abc123",
+        source_id: "wake-pull_request-pr-705",
+        verifier_required: true,
+      },
+      requires_verifier: true,
+    });
+  });
+
+  it("escalates when ACK or proof is still missing after the TTL", async () => {
+    await expect(nudgeonlyReceiptBridge({
+      painpoint_detected: true,
+      painpoint_type: "stale_ack",
+      event_text: "WakePass stale ACK for PR #705, no ACK receipt yet.",
+      source_id: "wake-pull_request-pr-705",
+      source_url: "https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/705",
+      owner: "🔍",
+      ack_status: "missing",
+      created_at: "2026-05-11T00:00:00.000Z",
+      now: "2026-05-11T02:00:00.000Z",
+      ttl_minutes: 60,
+    })).resolves.toMatchObject({
+      bridge_status: "escalation_request",
+      escalation: {
+        escalate_to: "WakePass",
+        reason: "ACK or proof is still missing after the configured TTL.",
+      },
+      request: {
+        worker: "Reviewer",
+        verifier: "Run the WakePass ACK verifier against the source dispatch or PR.",
+      },
+    });
+  });
+
+  it("routes unclear ownership only to Job Manager for resolution", async () => {
+    await expect(nudgeonlyReceiptBridge({
+      painpoint_detected: true,
+      painpoint_type: "unclear_owner",
+      event_text: "Blocker is visible but there is no active job and owner is missing.",
+      source_id: "dispatch_blocker_705",
+      target: "PR #705",
+      worker: "Reviewer",
+    })).resolves.toMatchObject({
+      bridge_status: "receipt_request",
+      request: {
+        worker: "Job Manager",
+        owner: null,
+        target: "PR #705",
+        painpoint_type: "unclear_owner",
+        expected_receipt: "Owning job, next safe action, and expected proof receipt.",
+      },
+    });
+  });
+
+  it("stays quiet for healthy controls and advisory-only for weak evidence", async () => {
+    await expect(nudgeonlyReceiptBridge({
+      painpoint_detected: false,
+      painpoint_type: "none",
+      event_text: "WakePass completed with proof.",
+      source_id: "wake-pull_request-pr-699",
+    })).resolves.toMatchObject({
+      bridge_status: "quiet",
+      painpoint_detected: false,
+      painpoint_type: "none",
+    });
+
+    await expect(nudgeonlyReceiptBridge({
+      painpoint_detected: true,
+      painpoint_type: "stale_ack",
+      event_text: "Something feels odd.",
+    })).resolves.toMatchObject({
+      bridge_status: "advisory_only",
+      reason: "The bridge did not find enough deterministic evidence to route a worker receipt request.",
+      missing: {
+        source_evidence: true,
+        concrete_cue: true,
+      },
     });
   });
 });

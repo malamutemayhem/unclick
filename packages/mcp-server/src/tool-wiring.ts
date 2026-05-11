@@ -643,7 +643,7 @@ import {
 } from "./groq-tool.js";
 
 import {
-  nudgeonlyApi, nudgeonlyPolicy,
+  nudgeonlyApi, nudgeonlyPolicy, nudgeonlyReceiptBridge,
 } from "./nudgeonly-tool.js";
 
 // ─── Developer / Productivity ─────────────────────────────────────────────────
@@ -9562,6 +9562,32 @@ export const ADDITIONAL_TOOLS = [
       required: ["event_text"],
     },
   },
+  {
+    name: "nudgeonly_receipt_bridge",
+    description: "Turn a verified NudgeOnly painpoint into a tiny worker receipt request or WakePass escalation candidate. Deterministic bridge only: no writes, no ownership decision, no completion state.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        nudge_result: { type: "object", description: "Optional output from nudgeonly_api." },
+        painpoint_detected: { type: "boolean", description: "Whether a painpoint was detected by trusted evidence or nudgeonly_api." },
+        painpoint_type: { type: "string", description: "stale_ack, duplicate_wake, unclear_owner, noisy_thread, missing_proof, or none." },
+        event_text: { type: "string", description: "Source event, blocker, handoff, or state-card text. Keep it small and non-secret." },
+        context: { type: "string", description: "Optional local context. Keep it small and non-secret." },
+        source_id: { type: "string", description: "Optional upstream event, dispatch, PR, issue, or wake identifier." },
+        source_url: { type: "string", description: "Optional upstream source URL." },
+        target: { type: "string", description: "Optional human target label such as PR #705 or a dispatch ID." },
+        owner: { type: "string", description: "Optional existing owner evidence. The bridge does not invent or decide owners." },
+        worker: { type: "string", description: "Optional worker override when a trusted lane already named one." },
+        ack_status: { type: "string", description: "Optional ACK status such as missing, stale, received, or blocked." },
+        proof_status: { type: "string", description: "Optional proof status such as missing, present, stale, or blocked." },
+        created_at: { type: "string", description: "Optional ISO timestamp for the source handoff or request." },
+        now: { type: "string", description: "Optional ISO timestamp used for deterministic TTL checks." },
+        ttl_minutes: { type: "number", description: "Minutes before missing ACK/proof becomes an escalation request. Default: 60." },
+        nudge_trace_id: { type: "string", description: "Optional trace_id from nudgeonly_api." },
+      },
+    },
+  },
 
   // ── kling-tool.ts ─────────────────────────────────────────────────────────────
   {
@@ -13142,6 +13168,7 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // nudgeonly-tool.ts
   nudgeonly_policy:        (args) => nudgeonlyPolicy(args),
   nudgeonly_api:           (args) => nudgeonlyApi(args),
+  nudgeonly_receipt_bridge:(args) => nudgeonlyReceiptBridge(args),
 
   // neon-tool.ts
   neon_list_projects:      (args) => neonListProjects(args),
