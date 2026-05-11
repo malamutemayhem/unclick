@@ -142,6 +142,15 @@ describe("AdminOrchestratorPage", () => {
                     tags: ["done"],
                     deep_link: "/admin/jobs#todo-1",
                   },
+                  ...Array.from({ length: 28 }, (_, index) => ({
+                    source_kind: "conversation_turn",
+                    source_id: `turn-archive-${index + 1}`,
+                    created_at: `2026-05-10T05:${String(40 - index).padStart(2, "0")}:00.000Z`,
+                    kind: "context",
+                    role: "assistant",
+                    summary: `Archive event ${index + 1}: older Orchestrator conversation detail.`,
+                    tags: ["conversation", "archive"],
+                  })),
                 ],
                 library_snapshots: [],
               },
@@ -214,9 +223,24 @@ describe("AdminOrchestratorPage", () => {
     const filter = await screen.findByPlaceholderText("Filter Orchestrator feed");
     fireEvent.change(filter, { target: { value: "proof" } });
 
-    expect(await screen.findByText("1 of 2 events match")).toBeInTheDocument();
+    expect(await screen.findByText("1 of 1 matching events shown")).toBeInTheDocument();
     expect(screen.getAllByText(/Orchestrator continuity proof landed/i).length).toBeGreaterThan(0);
     expect(document.querySelector("mark")?.textContent?.toLowerCase()).toContain("proof");
+  });
+
+  it("lets humans view more loaded Orchestrator history", async () => {
+    render(
+      <MemoryRouter>
+        <AdminOrchestratorPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("View more history")).toBeInTheDocument();
+    expect(screen.queryByText(/Archive event 24/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("View more history"));
+
+    expect((await screen.findAllByText(/Archive event 24/i)).length).toBeGreaterThan(0);
   });
 
   it("asks the server for deeper Orchestrator keyword matches", async () => {

@@ -144,6 +144,9 @@ const DRIPFEED_EDUCATION_STORAGE_KEY = "unclick_orchestrator_dripfeed_education_
 const ANALOGY_STORAGE_KEY = "unclick_orchestrator_analogy_v1";
 const EVENT_PREVIEW_CHARS = 520;
 const NATURAL_CONTEXT_PREVIEW_CHARS = 360;
+const INITIAL_CONTEXT_LIMIT = 80;
+const MAX_CONTEXT_LIMIT = 200;
+const CONTINUITY_VISIBLE_STEP = 24;
 
 function formatRelative(iso: string | null | undefined): string {
   if (!iso) return "never";
@@ -436,6 +439,7 @@ export default function AdminOrchestratorPage() {
   const [connection, setConnection] = useState<ConnectionCheck | null>(null);
   const [tenant, setTenant] = useState<AiChatTenantSettings | null>(null);
   const [orchestratorContext, setOrchestratorContext] = useState<OrchestratorContext | null>(null);
+  const [contextLimit, setContextLimit] = useState(INITIAL_CONTEXT_LIMIT);
   const [loading, setLoading] = useState(true);
 
   const envEnabled = aiChatEnvEnabled();
@@ -447,6 +451,7 @@ export default function AdminOrchestratorPage() {
       return;
     }
     let cancelled = false;
+    setLoading(true);
     (async () => {
       try {
         const [channelRes, statusRes, connRes, contextRes, tenantRes] = await Promise.all([
@@ -459,7 +464,7 @@ export default function AdminOrchestratorPage() {
           fetch(
             `/api/memory-admin?action=admin_check_connection&api_key=${encodeURIComponent(storedApiKey)}`,
           ),
-          fetch("/api/memory-admin?action=orchestrator_context_read&limit=80", {
+          fetch(`/api/memory-admin?action=orchestrator_context_read&limit=${contextLimit}`, {
             headers: { Authorization: `Bearer ${authToken}` },
           }),
           fetchAiChatTenantSettings(authToken),
@@ -483,7 +488,7 @@ export default function AdminOrchestratorPage() {
     return () => {
       cancelled = true;
     };
-  }, [authToken, sessionLoading, storedApiKey]);
+  }, [authToken, contextLimit, sessionLoading, storedApiKey]);
 
   const tier: ConnectionTier = useMemo(() => {
     if (channel?.channel_active) return "channel";
@@ -526,6 +531,9 @@ export default function AdminOrchestratorPage() {
             loading={loading || sessionLoading}
             chatStatusLabel={chatDisabledReason ? "Chat disabled" : tier === "channel" ? "Claude Code bridge available" : "AI chat available"}
             authToken={authToken}
+            contextLimit={contextLimit}
+            maxContextLimit={MAX_CONTEXT_LIMIT}
+            onLoadDeeperHistory={() => setContextLimit((value) => Math.min(MAX_CONTEXT_LIMIT, value + INITIAL_CONTEXT_LIMIT))}
           />
         </div>
 
@@ -555,15 +563,22 @@ function OrchestratorContinuityPanel({
   loading,
   chatStatusLabel,
   authToken,
+  contextLimit,
+  maxContextLimit,
+  onLoadDeeperHistory,
 }: {
   context: OrchestratorContext | null;
   loading: boolean;
   chatStatusLabel: string;
   authToken: string;
+  contextLimit: number;
+  maxContextLimit: number;
+  onLoadDeeperHistory: () => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [serverSearchContext, setServerSearchContext] = useState<OrchestratorContext | null>(null);
   const [serverSearchLoading, setServerSearchLoading] = useState(false);
+  const [visibleEventCount, setVisibleEventCount] = useState(CONTINUITY_VISIBLE_STEP);
   const trimmedSearchQuery = searchQuery.trim();
   useEffect(() => {
     if (!authToken || trimmedSearchQuery.length === 0) {
@@ -634,6 +649,18 @@ function OrchestratorContinuityPanel({
       eventViews.filter(({ event, actor }) => matchesEventSearch(event, actor, searchQuery)),
     [eventViews, searchQuery],
   );
+  const visibleEventViews = filteredEventViews.slice(0, visibleEventCount);
+  const canRevealLoadedHistory = filteredEventViews.length > visibleEventCount;
+  const canLoadDeeperHistory =
+    !trimmedSearchQuery &&
+    !loading &&
+    !serverSearchLoading &&
+    contextLimit < maxContextLimit &&
+    events.length >= contextLimit;
+
+  useEffect(() => {
+    setVisibleEventCount(CONTINUITY_VISIBLE_STEP);
+  }, [events.length, trimmedSearchQuery]);
 
   function toggleEasyRead(nextValue: boolean) {
     setEasyRead(nextValue);
@@ -674,8 +701,8 @@ function OrchestratorContinuityPanel({
           {serverSearchLoading
             ? "Searching all continuity..."
             : searchQuery.trim()
-            ? `${filteredEventViews.length} of ${events.length} events match`
-            : `${events.length} loaded event${events.length === 1 ? "" : "s"}`}
+            ? `${Math.min(visibleEventCount, filteredEventViews.length)} of ${filteredEventViews.length} matching events shown`
+            : `${Math.min(visibleEventCount, filteredEventViews.length)} of ${events.length} loaded events shown`}
         </span>
       </div>
 
@@ -762,7 +789,7 @@ function OrchestratorContinuityPanel({
             No Orchestrator events match that filter.
           </div>
         )}
-        {!loading && filteredEventViews.slice(0, 24).map(({ event, actor, index, absoluteDate, easySummary }) => (
+        {!loading && visibleEventViews.map(({ event, actor, index, absoluteDate, easySummary }) => (
           <ContinuityFeedRow
             key={`${event.source_kind}:${event.source_id}`}
             event={event}
@@ -776,6 +803,34 @@ function OrchestratorContinuityPanel({
             searchQuery={searchQuery}
           />
         ))}
+        {!loading && filteredEventViews.length > 0 && (
+          <div className="flex flex-col items-center gap-2 border-t border-white/[0.06] pt-4">
+            {(canRevealLoadedHistory || canLoadDeeperHistory) ? (
+              <button
+                type="button"
+                onClick={() => {
+                  if (canRevealLoadedHistory) {
+                    setVisibleEventCount((value) => value + CONTINUITY_VISIBLE_STEP);
+                    return;
+                  }
+                  onLoadDeeperHistory();
+                }}
+                className="rounded-md border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-3 py-2 text-xs font-semibold text-[#A9EEF0] hover:border-[#61C1C4]/40 hover:bg-[#61C1C4]/15"
+              >
+                {canRevealLoadedHistory ? "View more history" : "Load deeper history"}
+              </button>
+            ) : (
+              <span className="text-[11px] text-white/30">
+                End of loaded Orchestrator history.
+              </span>
+            )}
+            {!trimmedSearchQuery && (
+              <span className="text-[10px] text-white/25">
+                Loaded depth: {events.length} events from a {contextLimit}-row source window.
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

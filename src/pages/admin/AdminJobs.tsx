@@ -209,6 +209,10 @@ function displayCopyFor(todo: JobTodo): JobDisplayCopy {
   };
 }
 
+function hasHiddenJobCopy(copy: JobDisplayCopy): boolean {
+  return copy.title.endsWith("...") || copy.summary.endsWith("...");
+}
+
 function relativeTime(iso: string | null | undefined): string {
   if (!iso) return "never";
   const then = new Date(iso).getTime();
@@ -615,6 +619,7 @@ function JobRow({
   const alert = attention ? attentionCopy(todo) : null;
   const emoji = ownerEmoji(todo);
   const displayCopy = displayCopyFor(todo);
+  const hiddenCopy = hasHiddenJobCopy(displayCopy);
   const syncSignal = buildJobGithubSyncSignal(todo);
 
   return (
@@ -684,6 +689,11 @@ function JobRow({
           <p className="truncate text-[10px] leading-4 text-white/35">
             {highlightSearchText(displayCopy.summary, searchQuery)}
           </p>
+          {hiddenCopy && !expanded && (
+            <span className="mt-0.5 inline-flex text-[10px] font-medium text-[#61C1C4]/80">
+              View more
+            </span>
+          )}
         </div>
 
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 md:contents">
@@ -783,7 +793,7 @@ function JobRow({
                 onClick={() => setShowDetails((value) => !value)}
                 className="text-[11px] text-[#61C1C4]/80 hover:text-[#61C1C4]"
               >
-                {showDetails ? "Hide original" : "Show original"}
+                {showDetails ? "Hide original" : "View full original"}
               </button>
             </div>
             <div className="mt-2 space-y-1.5">
@@ -923,7 +933,7 @@ function JobSection({
         </button>
         <span className="rounded-[4px] border border-white/[0.08] bg-black/20 px-2 py-0.5 text-[11px] font-semibold text-white/50">
           {showLoading
-            ? "..."
+            ? "Loading"
             : open
               ? `${visibleJobs.length}/${sectionKey === "done" ? Math.min(jobs.length, COMPLETED_MAX_VISIBLE) : jobs.length}`
               : jobs.length}

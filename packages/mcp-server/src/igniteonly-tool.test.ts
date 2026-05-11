@@ -111,6 +111,30 @@ describe("IgniteOnlyAPI policy", () => {
     });
   });
 
+  it("routes verified queue hydration failures to the existing Jobs Worker", async () => {
+    await expect(igniteonlyReceiptConsumer({
+      bridge_id: "nudgebridge_queue",
+      bridge_status: "receipt_request",
+      painpoint_detected: true,
+      painpoint_type: "queue_hydration_failure",
+      source_id: "orchestrator-current-state",
+      target: "Boardroom backlog",
+      verified: true,
+      request: {
+        worker: "pinballwake-jobs-worker",
+        expected_receipt: "Backlog counted, scoped, mirrored, or routed to the existing Job Worker with next safe action.",
+        verifier: "Compare active jobs against actionable todos and open dispatches.",
+      },
+    })).resolves.toMatchObject({
+      ignite_status: "wake_request",
+      wake_packet: {
+        worker: "pinballwake-jobs-worker",
+        target: "Boardroom backlog",
+        painpoint_type: "queue_hydration_failure",
+      },
+    });
+  });
+
   it("escalates when the bridge is an escalation request", async () => {
     await expect(igniteonlyReceiptConsumer({
       bridge_id: "nudgebridge_stale",

@@ -11,6 +11,7 @@ const PAINPOINT_TYPES = [
   "stale_ack",
   "duplicate_wake",
   "unclear_owner",
+  "queue_hydration_failure",
   "noisy_thread",
   "missing_proof",
   "none",
@@ -44,6 +45,13 @@ const PAINPOINT_CATALOG = [
     watch: ["completed WakePass", "done messages", "PR closure", "session summaries"],
     cue: "A task claims done/completed, but the compact state lacks a proof pointer.",
     verifier: "Check for a linked PR, commit, receipt ID, run ID, or source pointer.",
+  },
+  {
+    type: "queue_hydration_failure",
+    label: "Queue Hydration Failure",
+    watch: ["active jobs", "actionable todos", "open todos", "dispatches", "Boardroom"],
+    cue: "The system reports zero active jobs while actionable backlog still exists.",
+    verifier: "Compare Orchestrator active job count against list_actionable_todos, open/in_progress todos, and recent dispatches.",
   },
   {
     type: "noisy_thread",
@@ -106,6 +114,12 @@ const ORCHESTRATOR_ISSUE_MAP = [
     bucket: "unclear_owner",
     nudge: "Surface the next owner and next expected receipt beside the blocker.",
     verifier: "Compare active blocker count against active job and owner fields.",
+  },
+  {
+    issue: "Backlog exists but Orchestrator shows zero active jobs",
+    bucket: "queue_hydration_failure",
+    nudge: "Mirror the backlog counts into PinballWake JobHunt Mirror and wake the existing Jobs Worker after verifier-backed receipt_bridge output.",
+    verifier: "Compare active jobs against actionable todos, open/in_progress todos, and recent dispatch or Boardroom work.",
   },
   {
     issue: "Repeated heartbeat noise hides useful work",
@@ -215,6 +229,12 @@ const RECEIPT_ROUTES = [
     verifier: "Check linked commit, PR, run ID, receipt ID, or source pointer.",
   },
   {
+    painpoint_type: "queue_hydration_failure",
+    default_worker: "pinballwake-jobs-worker",
+    expected_receipt: "Backlog counted, scoped, mirrored, or routed to the existing Job Worker with next safe action.",
+    verifier: "Compare active jobs against actionable todos, open/in_progress todos, and recent dispatch or Boardroom work.",
+  },
+  {
     painpoint_type: "noisy_thread",
     default_worker: "Heartbeat Seat",
     expected_receipt: "Latest material diff or compact PASS/BLOCKER receipt.",
@@ -307,7 +327,7 @@ function asBoolean(value: unknown): boolean {
   if (typeof value === "boolean") return value;
   if (typeof value === "string") {
     const normalized = value.trim().toLowerCase();
-    if (["true", "yes", "stale_ack", "duplicate_wake", "unclear_owner", "missing_proof"].includes(normalized)) {
+    if (["true", "yes", "stale_ack", "duplicate_wake", "unclear_owner", "queue_hydration_failure", "missing_proof"].includes(normalized)) {
       return true;
     }
     if (["false", "no", "none", "unknown", ""].includes(normalized)) {
@@ -432,6 +452,7 @@ function hasConcreteCue(painpointType: string, text: string): boolean {
   if (painpointType === "stale_ack") return /\b(stale|overdue|missing|absent|no)\b.*\b(ack|receipt|review)\b|\b(ack|receipt|review)\b.*\b(stale|overdue|missing|absent)\b/.test(text);
   if (painpointType === "duplicate_wake") return /\bduplicate|duplicated|same target|same owner|same wake\b/.test(text);
   if (painpointType === "unclear_owner") return /\bunclear owner|no owner|without active job|no active job|orphaned|owner missing|owning job\b/.test(text);
+  if (painpointType === "queue_hydration_failure") return /\b(queue hydration failure|0 active jobs|zero active jobs|no active jobs)\b.*\b(backlog|actionable|open|todo|dispatch|boardroom|job)\b|\b(backlog|actionable|open|todo|dispatch|boardroom|job)\b.*\b(0 active jobs|zero active jobs|no active jobs)\b/.test(text);
   if (painpointType === "missing_proof") return /\bmissing proof|no proof|proof missing|without proof|no commit|no pr|no run id|no receipt\b/.test(text);
   if (painpointType === "noisy_thread") return /\bnoise|noisy|repeated|heartbeat|near-duplicate|hides state|collapse\b/.test(text);
   return false;
@@ -452,6 +473,7 @@ function targetFrom(args: Record<string, unknown>, nudge: Record<string, unknown
 function workerFrom(args: Record<string, unknown>, painpointType: string, routeWorker: string): string {
   const explicitWorker = asOptionalString(args.worker);
   const owner = asOptionalString(args.owner);
+  if (painpointType === "queue_hydration_failure") return "pinballwake-jobs-worker";
   if (painpointType === "unclear_owner" || !owner) return "Job Manager";
   return explicitWorker ?? routeWorker;
 }
@@ -625,8 +647,8 @@ export async function nudgeonlyApi(args: Record<string, unknown>): Promise<unkno
     "You must never invent facts, owners, statuses, proof, source IDs, or source URLs.",
     "Quality is more important than coverage. Prefer false negatives over false positives when evidence is weak.",
     "Do not use hidden reasoning. Spend tokens on the final JSON fields.",
-    "Use exactly one painpoint_type from: stale_ack, duplicate_wake, unclear_owner, noisy_thread, missing_proof, none.",
-    "If the event is healthy or completed and has no explicit stale, duplicate, unclear owner, noisy thread, or missing proof signal, return painpoint_detected=false and painpoint_type=none.",
+    "Use exactly one painpoint_type from: stale_ack, duplicate_wake, unclear_owner, queue_hydration_failure, noisy_thread, missing_proof, none.",
+    "If the event is healthy or completed and has no explicit stale, duplicate, unclear owner, queue hydration failure, noisy thread, or missing proof signal, return painpoint_detected=false and painpoint_type=none.",
     "The suggested_check must be concrete and name the source type, such as WakePass, dispatch, PR, issue, proof pointer, or heartbeat count.",
     "Use only cautious language: possible, likely, suggest checking, may need.",
     "Return JSON only. Do not include markdown.",
@@ -636,7 +658,7 @@ export async function nudgeonlyApi(args: Record<string, unknown>): Promise<unkno
     task: "Classify this event as a painpoint nudge only.",
     required_output: {
       painpoint_detected: "boolean",
-      painpoint_type: "short string such as stale_ack, duplicate_wake, unclear_owner, noisy_thread, missing_proof, none",
+      painpoint_type: "short string such as stale_ack, duplicate_wake, unclear_owner, queue_hydration_failure, noisy_thread, missing_proof, none",
       nudge: "one or two specific plain-English sentences naming the possible painpoint",
       suggested_check: "one specific deterministic check a trusted lane should run",
       confidence: "low | medium | high",

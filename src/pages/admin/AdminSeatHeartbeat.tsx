@@ -7,11 +7,15 @@ This /admin/agents/heartbeat copy area is the master heartbeat policy. When UnCl
 
 This public policy must stay self-contained when copied into scheduled tasks. Keep every step token-light, source-backed, and safe to show in an admin UI.
 
-Use UnClick as the source of truth first. Load memory and search active jobs when those tools are available.
+Use UnClick as the source of truth first. Load memory, check_signals, read Orchestrator context, and hunt for jobs when those tools are available. Always check list_actionable_todos, open/in_progress todos, recent dispatches, and recent Boardroom messages before declaring the system healthy.
+
+"0 active jobs" is not healthy by itself. It is PASS only when the job hunt also finds no actionable todos, no open/in_progress todos, and no unhandled dispatch or Boardroom work. If any backlog exists while active jobs are 0, treat it as BLOCKER: queue hydration failure. Include the safe counts checked and the next fix.
+
+Use PinballWake JobHunt Mirror as the fallback path for that failure. Mirror compact backlog counts and source pointers into NudgeOnly first. Call IgniteOnly only after verifier-backed receipt_bridge output requests a worker wake. Target the existing Job Worker as executor when it is registered; free API classifiers may only classify or nudge. The mirror may request a wake, but must not create duplicate jobs, assign ownership, mark done, merge, close, or edit source state.
 
 This heartbeat is explicitly authorized to write one Orchestrator continuity receipt on every run. Use stable session_id="unclick-heartbeat-seat" across scheduler sessions. After check_signals, call save_conversation_turn with role="assistant" and content containing safe alert lines, progress, and proof id if available. If that is unavailable, use channel unclick_save_conversation_turn. If no connector exists but an UnClick API key is already available, POST to https://unclick.world/api/memory-admin?action=admin_conversation_turn_ingest with Authorization: Bearer <redacted>. Never print keys. Do not POST to /admin/orchestrator; it is the read UI.
 
-When UnClick shows action_needed, blocker, stale ACK, missing proof, duplicate wake, or unclear owner, call nudgeonly_receipt_bridge if available. Pass compact public fields only: source_id, source_url, target, owner, painpoint_type, status, created_at, ttl_minutes. Prefer deterministic UnClick labels. Call nudgeonly_api only if no bucket exists, and only with the smallest non-secret source text needed.
+When UnClick shows action_needed, blocker, stale ACK, missing proof, duplicate wake, unclear owner, or queue hydration failure, call nudgeonly_receipt_bridge if available. Pass compact public fields only: source_id, source_url, target, owner, painpoint_type, status, created_at, ttl_minutes. Prefer deterministic UnClick labels. Call nudgeonly_api only if no bucket exists, and only with the smallest non-secret source text needed.
 
 If the bridge returns receipt_request or escalation_request, save bridge_id and receipt_line in the receipt and alert. If it returns quiet or advisory_only, do not notify. NudgeOnly never assigns ownership, marks done, merges, closes, or mutates source-of-truth state.
 
@@ -23,7 +27,7 @@ BLOCKER: <safe reason>; progress: <what was checked>; next: <fix>.
 If no safe task is available: BLOCKER: no clear safe task available; progress: checked live queue; next: add a scoped job.`;
 
 export const HEARTBEAT_CONNECTION_PROMPT =
-  "Run UnClick Heartbeat. Use heartbeat_protocol, then check_signals. Save one receipt to session_id='unclick-heartbeat-seat'. For blockers/stale ACK/missing proof/unclear owner, call nudgeonly_receipt_bridge with compact public fields only and include bridge_id/receipt_line when it requests action. Never print secrets. Reply PASS/BLOCKER with brief progress.";
+  "Run UnClick Heartbeat. Use heartbeat_protocol, then check_signals and hunt jobs with list_actionable_todos/open todos/recent dispatches. 0 active jobs is PASS only if backlog is also 0. For queue hydration failure, call nudgeonly_receipt_bridge with compact public fields, then IgniteOnly only after verified wake request. Target existing Job Worker first; free API only classifies/nudges. Save one receipt to session_id='unclick-heartbeat-seat'. Never print secrets. Reply PASS/BLOCKER with brief progress.";
 
 export default function AdminSeatHeartbeatPage() {
   const [copied, setCopied] = useState(false);

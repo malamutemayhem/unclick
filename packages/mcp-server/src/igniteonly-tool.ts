@@ -7,6 +7,7 @@ const PAINPOINT_TYPES = [
   "stale_ack",
   "duplicate_wake",
   "unclear_owner",
+  "queue_hydration_failure",
   "noisy_thread",
   "missing_proof",
   "dormant_worker",
@@ -39,6 +40,11 @@ const WORKER_ROUTES = [
     painpoint_type: "unclear_owner",
     worker: "Job Manager",
     wake_reason: "A visible blocker needs an owning job and next expected receipt.",
+  },
+  {
+    painpoint_type: "queue_hydration_failure",
+    worker: "pinballwake-jobs-worker",
+    wake_reason: "Backlog exists while active jobs are zero, so the existing Jobs Worker needs to hydrate, scope, or route the queue.",
   },
   {
     painpoint_type: "missing_proof",
