@@ -1,3 +1,8 @@
+import {
+  inspectOrchestratorActiveState,
+} from "./commonsensepass-bridge.js";
+import type { CommonSensePassResult } from "../../packages/commonsensepass/src/index.js";
+
 export interface OrchestratorProfileRow {
   agent_id: string;
   emoji?: string | null;
@@ -258,6 +263,14 @@ export interface OrchestratorContext {
     };
     next_actions: string[];
     blockers: string[];
+    // health_verdict (added 2026-05-12 by PR #746): CommonSensePass R1
+    // verdict computed from the same todos+profiles input used to derive
+    // active_jobs. Any seat reading the state card can use this as the
+    // authoritative answer to "is the orchestrator's implicit healthy
+    // claim supported by the evidence?" without having to recompute the
+    // rule themselves. Verdict-only - this field does not gate any
+    // downstream behavior in the builder; consumers act on it.
+    health_verdict: CommonSensePassResult;
   };
   profile_cards: OrchestratorProfileCard[];
   human_operator_time: OrchestratorOperatorTimeContext | null;
@@ -355,6 +368,20 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   // input. Computed over the full input.todos array, NOT the sliced
   // activeTodos, so the count is deterministic regardless of UI cap.
   const activeJobsCount = computeActiveJobsCount(input.todos, input.profiles, nowMs);
+
+  // CommonSensePass R1 verdict (added by PR #746). The orchestrator
+  // context publishes an implicit "healthy" / "quiet" claim whenever
+  // active_jobs and queue depth both look quiet. Run the verdict-only
+  // gate against the same data so consumers (heartbeat seat, watcher,
+  // reviewer) have an authoritative PASS / BLOCKER / HOLD signal to
+  // act on without recomputing R1 themselves. Verdict-only - this does
+  // not change any other field on the state card.
+  const healthVerdict = inspectOrchestratorActiveState({
+    todos: input.todos,
+    profiles: input.profiles,
+    active_jobs: activeJobsCount,
+    now_ms: nowMs,
+  });
 
   const messageEvents = input.messages.map(messageToEvent);
   const todoEvents = activeTodos.map(todoToEvent);
@@ -456,6 +483,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
       },
       next_actions: nextActions,
       blockers,
+      health_verdict: healthVerdict,
     },
     profile_cards: profiles,
     human_operator_time: humanOperatorTime,
