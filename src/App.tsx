@@ -186,6 +186,8 @@ const App = () => (
             <Route path="crews/settings"      element={<CrewsSettings />} />
             {/* End-user visible read-only continuity surface */}
             <Route path="orchestrator"   element={<AdminOrchestratorPage />} />
+            <Route path="orchestrator/story" element={<Navigate to="/admin/orchestrator" replace />} />
+            <Route path="orchestrator/timeline" element={<AdminOrchestratorPage />} />
             {/* Admin-only surfaces (wrapped in RequireAdmin; also hidden from non-admin sidebar) */}
             <Route path="analytics"      element={<RequireAdmin><AdminAnalytics /></RequireAdmin>} />
             <Route path="codebase"       element={<RequireAdmin><AdminCodebase /></RequireAdmin>} />
