@@ -679,6 +679,84 @@ describe("QueuePush routing and packets", () => {
     assert.deepEqual(remaining, []);
   });
 
+  it("suppresses review packets after same-head Reviewer/Safety PASS appears", () => {
+    const packet = buildQueuePacket({
+      pr: pr({
+        number: 714,
+        title: "fix(runner): tolerate heartbeat log summaries",
+        head: { sha: "abcdef1234567890" },
+      }),
+      state: "missing_review_safety_ack",
+      reason: "Draft PR is green and clean with proof; Reviewer/Safety PASS is missing.",
+      files: [{ filename: "scripts/pinballwake-autonomous-runner.mjs" }],
+    });
+    const messages = [
+      {
+        text: "PASS: Reviewer/Safety gate check on PR #714 head abcdef1. Safe to merge.",
+        created_at: "2026-05-05T06:00:00Z",
+      },
+    ];
+
+    const remaining = filterDuplicatePackets([packet], messages, {
+      now: Date.parse("2026-05-05T06:30:00Z"),
+      retryAfterMinutes: 180,
+    });
+    assert.deepEqual(remaining, []);
+  });
+
+  it("does not suppress review packets for PASS on a different head", () => {
+    const packet = buildQueuePacket({
+      pr: pr({
+        number: 714,
+        title: "fix(runner): tolerate heartbeat log summaries",
+        head: { sha: "abcdef1234567890" },
+      }),
+      state: "missing_review_safety_ack",
+      reason: "Draft PR is green and clean with proof; Reviewer/Safety PASS is missing.",
+      files: [{ filename: "scripts/pinballwake-autonomous-runner.mjs" }],
+    });
+    const messages = [
+      {
+        text: "PASS: Reviewer/Safety gate check on PR #714 head fedcba9. Safe to merge.",
+        created_at: "2026-05-05T06:00:00Z",
+      },
+    ];
+
+    const remaining = filterDuplicatePackets([packet], messages, {
+      now: Date.parse("2026-05-05T06:30:00Z"),
+      retryAfterMinutes: 180,
+    });
+    assert.deepEqual(
+      remaining.map((candidate) => candidate.packetId),
+      [packet.packetId],
+    );
+  });
+
+  it("suppresses owner-lift packets after Boardroom reports the PR merged", () => {
+    const packet = buildQueuePacket({
+      pr: pr({
+        number: 724,
+        title: "feat(orchestrator): add story view",
+        head: { sha: "e6389f6156c2538f7c8044a7e0cf95704fbaea2a" },
+      }),
+      state: "draft_green_needs_owner_lift",
+      reason: "Draft PR is green and clean.",
+      files: [{ filename: "src/pages/admin/AdminOrchestrator.tsx" }],
+    });
+    const messages = [
+      {
+        text: "PASS: PR #724 merged cleanly and #723 closed.",
+        created_at: "2026-05-12T04:15:00Z",
+      },
+    ];
+
+    const remaining = filterDuplicatePackets([packet], messages, {
+      now: Date.parse("2026-05-12T04:20:00Z"),
+      retryAfterMinutes: 180,
+    });
+    assert.deepEqual(remaining, []);
+  });
+
   it("prioritizes missing final QC before routine owner lift", async () => {
     const packets = await buildPacketsFromInputs([
       {

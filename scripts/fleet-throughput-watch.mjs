@@ -654,6 +654,8 @@ export function buildQueuePacket(input) {
   if (!STATES.has(state)) throw new Error(`Unknown QueuePush state: ${state}`);
   const worker = routeWorkerForPr(pr, files, state);
   const packetId = queuepushPacketId(pr, state);
+  const headSha = pr.head?.sha || pr.headRefOid || "";
+  const head = shortSha(headSha || "unknown");
   const jobKind = jobKindForState(state);
   const chip = `PR #${pr.number} ${state}`;
   const filePreview = files
@@ -675,6 +677,7 @@ export function buildQueuePacket(input) {
     `job kind: ${jobKind}`,
     `requires code: ${stateRequiresCode(state) ? "yes" : "no"}`,
     `chip: ${chip}`,
+    `head: ${head}`,
     `context: ${context}`,
     `allowed files: ${allowedFilesText(files)}`,
     `do: ${directAction}`,
@@ -693,6 +696,8 @@ export function buildQueuePacket(input) {
     recipient: agentMap[worker] || worker,
     state,
     pr: pr.number,
+    head,
+    headSha,
     text,
     sourceUrl: sourceUrl(pr),
   };
@@ -710,6 +715,34 @@ function messageCreatedAt(message) {
   return Number.isFinite(time) ? time : null;
 }
 
+function queuePushResolutionSignal(packet, message) {
+  const text = normalizeText(message?.text || message?.body || "");
+  if (!text) return false;
+  const prMention = new RegExp(`(?:pr|pull request|#)\\s*#?${packet.pr}\\b`, "i");
+  if (!prMention.test(text)) return false;
+
+  const head = normalizeText(packet.head || "");
+  const hasSameHead = !head || head === "unknown" || text.includes(head) || text.includes(packet.packetId);
+  const passLike = /\b(pass|merge-ok|qc pass|safe to merge|safe next action)\b/.test(text);
+  const mergedLike = /\b(merged|closed|auto-closed|ready for review|draft lifted|lifted draft)\b/.test(text);
+
+  if (mergedLike) return true;
+  if (!hasSameHead || !passLike) return false;
+
+  if (packet.state === "missing_review_safety_ack") {
+    return /\b(reviewer\/safety|reviewer and safety|reviewer|qc)\b/.test(text) &&
+      /\b(safety|gatekeeper|release safety)\b/.test(text);
+  }
+  if (packet.state === "missing_final_qc_ack" || packet.state === "ready_for_qc") {
+    return /\b(reviewer|qc|tester|second-read)\b/.test(text);
+  }
+  if (packet.state === "draft_green_needs_owner_lift") {
+    return /\b(coordinator|owner|ready for review|draft lifted|lifted draft|merged)\b/.test(text);
+  }
+
+  return false;
+}
+
 export function filterDuplicatePackets(
   packets,
   fishbowlMessages = [],
@@ -717,6 +750,9 @@ export function filterDuplicatePackets(
 ) {
   const retryMs = retryAfterMinutes * 60 * 1000;
   return packets.filter((packet) => {
+    if (fishbowlMessages.some((message) => queuePushResolutionSignal(packet, message))) {
+      return false;
+    }
     const matches = fishbowlMessages.filter((message) => String(message.text || "").includes(packet.packetId));
     if (matches.length === 0) return true;
     const newest = Math.max(...matches.map((message) => messageCreatedAt(message) ?? now));
