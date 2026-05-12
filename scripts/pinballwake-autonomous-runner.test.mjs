@@ -369,6 +369,83 @@ describe("PinballWake autonomous Runner seat", () => {
     );
   });
 
+  it("allows unassigned orchestrator ScopePacks with builder-compatible owner hints", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      const todo = {
+        id: "e9e308cd-7711-4f30-8ebd-d5402fefd205",
+        title: "Orchestrator continuity wiring: plug missing source-kinds into Orchestrator",
+        status: "open",
+        priority: "urgent",
+        assigned_to_agent_id: null,
+        actionability_reason: "unassigned_open",
+        created_at: "2026-05-11T01:38:48.701Z",
+        scope_pack: {
+          lane: "orchestrator",
+          owner_hint: "live_builder_or_orchestrator_seat",
+          owned_files: ["api/lib/orchestrator-context.ts"],
+          patch:
+            "diff --git a/api/lib/orchestrator-context.ts b/api/lib/orchestrator-context.ts\n--- a/api/lib/orchestrator-context.ts\n+++ b/api/lib/orchestrator-context.ts\n@@ -1 +1 @@\n-old\n+new\n",
+          tests: ["node --test api/orchestrator-context.test.ts"],
+        },
+      };
+
+      assert.equal(evaluateBoardroomTodoAutoClaimEligibility(todo).ok, true);
+      assert.equal(
+        evaluateBoardroomTodoAutoClaimEligibility({
+          ...todo,
+          scope_pack: {
+            ...todo.scope_pack,
+            owner_hint: "",
+          },
+        }).reason,
+        "boardroom_todo_role_not_allowed",
+      );
+
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+      const fetchImpl = async () => ({
+        ok: true,
+        async json() {
+          return {
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({ todos: [todo] }),
+                },
+              ],
+            },
+          };
+        },
+      });
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "dry-run",
+        queueSource: "unclick",
+        unclickApiKey: "uc_test",
+        unclickMcpUrl: "https://unclick.test/api/mcp",
+        fetchImpl,
+        now: "2026-05-12T01:00:00.000Z",
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(result.action, "claimed");
+      assert.equal(result.queue_source.imported, 1);
+      assert.equal(result.queue_source.skipped.length, 0);
+      assert.equal(result.queue_source.todos[0].scope_pack_seen, true);
+      assert.equal(result.queue_source.todos[0].lane, "orchestrator");
+      assert.equal(result.queue_source.todos[0].owner_hint, "live_builder_or_orchestrator_seat");
+      assert.equal(result.ledger.jobs[0].job_id, "boardroom-todo:e9e308cd-7711-4f30-8ebd-d5402fefd205");
+      assert.equal(result.ledger.jobs[0].worker, "builder");
+      assert.deepEqual(result.ledger.jobs[0].owned_files, ["api/lib/orchestrator-context.ts"]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("does not pretend the queue is empty when UnClick queue auth is missing", async () => {
     const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
     const ledgerPath = join(dir, "ledger.json");

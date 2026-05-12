@@ -152,12 +152,28 @@ function listTodoRoleTokens(todo = {}, scopePack = {}) {
     scopePack.worker,
     scopePack.worker_role,
     scopePack.role,
+    scopePack.lane,
   ];
 
   return raw
     .flatMap((value) => parseList(value, []))
     .map(normalizeToken)
     .filter(Boolean);
+}
+
+function ownerHintAllowsBuilderCompatibleOrchestrator(todo = {}, scopePack = {}) {
+  const hint = [
+    todo.owner_hint,
+    todo.ownerHint,
+    scopePack.owner_hint,
+    scopePack.ownerHint,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ");
+
+  return hint.includes("builder") && hint.includes("orchestrator");
 }
 
 function recentTodoCommentText(todo = {}) {
@@ -311,6 +327,8 @@ function extractBoardroomTodoScopePack(todo = {}) {
     worker: String(scope.worker || "").trim(),
     worker_role: String(scope.worker_role || scope.workerRole || "").trim(),
     role: String(scope.role || "").trim(),
+    lane: String(scope.lane || scope.worker_lane || scope.workerLane || "").trim(),
+    owner_hint: String(scope.owner_hint || scope.ownerHint || "").trim(),
   };
 }
 
@@ -954,7 +972,12 @@ export function evaluateBoardroomTodoAutoClaimEligibility(
 
   const safeRoles = tokenSet(allowedTodoRoles, DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedTodoRoles);
   const roleTokens = listTodoRoleTokens(todo, scopePack);
-  const hasAllowedRole = roleTokens.length === 0 || roleTokens.some((role) => safeRoles.has(role));
+  const hasBuilderCompatibleOrchestratorHint =
+    roleTokens.includes("orchestrator") && ownerHintAllowsBuilderCompatibleOrchestrator(todo, scopePack);
+  const hasAllowedRole =
+    roleTokens.length === 0 ||
+    roleTokens.some((role) => safeRoles.has(role)) ||
+    hasBuilderCompatibleOrchestratorHint;
   if (!hasAllowedRole) {
     return { ok: false, reason: "boardroom_todo_role_not_allowed", role: roleTokens[0] || null };
   }
@@ -1029,6 +1052,11 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
         status: todo.status || null,
         assigned_to_agent_id: todo.assigned_to_agent_id || null,
         actionability_reason: todo.actionability_reason || null,
+        scope_pack_seen: Boolean(scopePack.hasScopePack),
+        lane: todo.lane || scopePack.lane || null,
+        owner_hint: todo.owner_hint || todo.ownerHint || scopePack.owner_hint || null,
+        claim_allowed: false,
+        skip_reason: eligibility.reason,
         reason: eligibility.reason,
         file: eligibility.file || null,
       });
@@ -1059,14 +1087,20 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
     imported,
     seen: ordered.length,
     skipped,
-    todos: ordered.map((todo) => ({
-      id: todo.id,
-      title: compact(todo.title, 140),
-      priority: todo.priority || null,
-      status: todo.status || null,
-      assigned_to_agent_id: todo.assigned_to_agent_id || null,
-      actionability_reason: todo.actionability_reason || null,
-    })),
+    todos: ordered.map((todo) => {
+      const scopePack = extractBoardroomTodoScopePack(todo);
+      return {
+        id: todo.id,
+        title: compact(todo.title, 140),
+        priority: todo.priority || null,
+        status: todo.status || null,
+        assigned_to_agent_id: todo.assigned_to_agent_id || null,
+        actionability_reason: todo.actionability_reason || null,
+        scope_pack_seen: Boolean(scopePack.hasScopePack),
+        lane: todo.lane || scopePack.lane || null,
+        owner_hint: todo.owner_hint || todo.ownerHint || scopePack.owner_hint || null,
+      };
+    }),
   };
 }
 
