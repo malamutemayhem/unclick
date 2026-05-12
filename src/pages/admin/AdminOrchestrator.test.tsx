@@ -11,6 +11,14 @@ vi.mock("@/lib/auth", () => ({
   }),
 }));
 
+function renderOrchestrator(route = "/admin/orchestrator") {
+  return render(
+    <MemoryRouter initialEntries={[route]}>
+      <AdminOrchestratorPage />
+    </MemoryRouter>,
+  );
+}
+
 describe("AdminOrchestratorPage", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -190,12 +198,21 @@ describe("AdminOrchestratorPage", () => {
     );
   });
 
-  it("shows read-only continuity instead of a new assistant input", async () => {
-    render(
-      <MemoryRouter>
-        <AdminOrchestratorPage />
-      </MemoryRouter>,
-    );
+  it("shows Story as the friendly default Orchestrator view", async () => {
+    renderOrchestrator();
+
+    expect(await screen.findByRole("heading", { name: "Story" })).toBeInTheDocument();
+    expect(screen.getByText("Timeline")).toBeInTheDocument();
+    expect(screen.getByLabelText("Native notes")).not.toBeChecked();
+    expect(screen.getByText(/Good news/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Orchestrator continuity proof landed/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Latest first/i)).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("Message the AI assistant...")).not.toBeInTheDocument();
+    expect(screen.queryByText("Using AI Assistant")).not.toBeInTheDocument();
+  });
+
+  it("shows read-only continuity on the Timeline subpage", async () => {
+    renderOrchestrator("/admin/orchestrator/timeline");
 
     expect(await screen.findByText("Continuity Feed")).toBeInTheDocument();
     expect(screen.getByLabelText("Easy reading for humans")).toBeChecked();
@@ -214,11 +231,7 @@ describe("AdminOrchestratorPage", () => {
   });
 
   it("filters the Orchestrator feed as the user types", async () => {
-    render(
-      <MemoryRouter>
-        <AdminOrchestratorPage />
-      </MemoryRouter>,
-    );
+    renderOrchestrator("/admin/orchestrator/timeline");
 
     const filter = await screen.findByPlaceholderText("Filter Orchestrator feed");
     fireEvent.change(filter, { target: { value: "proof" } });
@@ -229,11 +242,7 @@ describe("AdminOrchestratorPage", () => {
   });
 
   it("lets humans view more loaded Orchestrator history", async () => {
-    render(
-      <MemoryRouter>
-        <AdminOrchestratorPage />
-      </MemoryRouter>,
-    );
+    renderOrchestrator("/admin/orchestrator/timeline");
 
     expect(await screen.findByText("View more history")).toBeInTheDocument();
     expect(screen.queryByText(/Archive event 24/i)).not.toBeInTheDocument();
@@ -244,11 +253,7 @@ describe("AdminOrchestratorPage", () => {
   });
 
   it("asks the server for deeper Orchestrator keyword matches", async () => {
-    render(
-      <MemoryRouter>
-        <AdminOrchestratorPage />
-      </MemoryRouter>,
-    );
+    renderOrchestrator("/admin/orchestrator/timeline");
 
     const filter = await screen.findByPlaceholderText("Filter Orchestrator feed");
     fireEvent.change(filter, { target: { value: "dog20" } });
@@ -265,11 +270,7 @@ describe("AdminOrchestratorPage", () => {
   });
 
   it("uses explicit controls for long continuity rows", async () => {
-    render(
-      <MemoryRouter>
-        <AdminOrchestratorPage />
-      </MemoryRouter>,
-    );
+    renderOrchestrator("/admin/orchestrator/timeline");
 
     expect(await screen.findByText("Show more")).toBeInTheDocument();
     expect(screen.getByText("Open source")).toBeInTheDocument();

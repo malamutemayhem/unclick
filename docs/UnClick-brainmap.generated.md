@@ -15,8 +15,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | de6d70d0d55a | 3662 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 5a1598baa2a8 | 12717 |
-| src/pages/admin/AdminShell.tsx | 9cb148b69bc1 | 17456 |
+| src/App.tsx | 9860164eafa6 | 12908 |
+| src/pages/admin/AdminShell.tsx | 09f113d1ff4c | 19020 |
 | .github/workflows/ci.yml | 79e43dd8e26c | 1608 |
 | .github/workflows/brainmap-auto-update.yml | 7e8b08eb16aa | 1137 |
 | package.json | 9b0180a6b2f9 | 4175 |

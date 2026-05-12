@@ -290,6 +290,49 @@ function SeatsNavItem({ onClick }: { onClick?: () => void }) {
   );
 }
 
+function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
+  const location = useLocation();
+  const isOrchestrator = location.pathname === "/admin/orchestrator" ||
+    location.pathname.startsWith("/admin/orchestrator/");
+  const storyActive = location.pathname === "/admin/orchestrator" ||
+    location.pathname === "/admin/orchestrator/story";
+  const timelineActive = location.pathname === "/admin/orchestrator/timeline";
+
+  return (
+    <div>
+      <SurfaceLink path="/admin/orchestrator" label="Orchestrator" icon={Terminal} onClick={onClick} />
+      {isOrchestrator && (
+        <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
+          <Link
+            to="/admin/orchestrator"
+            onClick={onClick}
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              storyActive
+                ? "bg-[#61C1C4]/10 text-[#61C1C4]"
+                : "text-[#666] hover:bg-white/[0.04] hover:text-[#aaa]"
+            }`}
+          >
+            <BookOpen className="h-3 w-3 shrink-0" />
+            Story
+          </Link>
+          <Link
+            to="/admin/orchestrator/timeline"
+            onClick={onClick}
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              timelineActive
+                ? "bg-[#61C1C4]/10 text-[#61C1C4]"
+                : "text-[#666] hover:bg-white/[0.04] hover:text-[#aaa]"
+            }`}
+          >
+            <Clock className="h-3 w-3 shrink-0" />
+            Timeline
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SidebarNav({
   isAdmin,
   signalsUnread,
@@ -304,7 +347,7 @@ function SidebarNav({
       <SurfaceLink path="/admin/dashboard" label="Dashboard"               icon={LayoutDashboard} onClick={onLinkClick} />
       <SurfaceLink path="/admin/you"      label="You"                      icon={User}    onClick={onLinkClick} />
       <MemoryNavItem onClick={onLinkClick} />
-      <SurfaceLink path="/admin/orchestrator" label="Orchestrator"          icon={Terminal} onClick={onLinkClick} />
+      <OrchestratorNavItem onClick={onLinkClick} />
       <SurfaceLink path="/admin/tools"    label="Apps"                     icon={AppWindow} onClick={onLinkClick} />
       <SurfaceLink path="/admin/keychain" label="Passport"                 icon={KeyRound} onClick={onLinkClick} />
       <SeatsNavItem onClick={onLinkClick} />

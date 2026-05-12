@@ -7,10 +7,11 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Sparkles,
   Terminal,
+  BookOpen,
   Plug,
   Hammer,
   Settings as SettingsIcon,
@@ -147,6 +148,10 @@ const NATURAL_CONTEXT_PREVIEW_CHARS = 360;
 const INITIAL_CONTEXT_LIMIT = 80;
 const MAX_CONTEXT_LIMIT = 200;
 const CONTINUITY_VISIBLE_STEP = 24;
+const STORY_VISIBLE_STEP = 8;
+const STORY_PREVIEW_CHARS = 880;
+const STORY_NATIVE_PREVIEW_CHARS = 560;
+const STORY_NATIVE_STORAGE_KEY = "unclick_orchestrator_story_native_v1";
 
 function formatRelative(iso: string | null | undefined): string {
   if (!iso) return "never";
@@ -424,7 +429,26 @@ function truncateText(value: string, maxChars: number): { text: string; truncate
   };
 }
 
+function storyTextForEvent(event: OrchestratorContinuityEvent, actor: ActorIdentity): string {
+  const easy = easyReadForEvent(event, actor);
+  if (/^PASS:/i.test(event.summary)) return `Good news. ${easy}`;
+  if (/^BLOCKER:/i.test(event.summary)) return easy;
+  if (event.kind === "proof") return `${easy} The receipt is kept close so another seat can trust it later.`;
+  if (event.kind === "decision" || event.tags?.includes("decision")) {
+    return `${easy} This becomes part of the shared story until Chris changes direction.`;
+  }
+  return easy;
+}
+
+function nativeNoteForEvent(event: OrchestratorContinuityEvent, actor: ActorIdentity): string {
+  const source = `${sourceLabel(event.source_kind)}${event.source_id ? ` ${event.source_id}` : ""}`;
+  const who = actor.label;
+  const summary = event.summary.trim();
+  return `${who} from ${source}: ${summary}`;
+}
+
 export default function AdminOrchestratorPage() {
+  const location = useLocation();
   const [storedApiKey] = useState<string>(() => {
     try {
       return localStorage.getItem("unclick_api_key") ?? "";
@@ -509,32 +533,73 @@ export default function AdminOrchestratorPage() {
     return null;
   }, [envEnabled, authToken, tenant]);
 
+  const timelineActive = location.pathname.endsWith("/timeline");
+  const storyActive = !timelineActive;
+
   return (
     <>
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#61C1C4]/10 text-[#61C1C4]">
-          <Sparkles className="h-5 w-5" />
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#61C1C4]/10 text-[#61C1C4]">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-white">Orchestrator</h1>
+            <p className="text-sm text-white/50">
+              {storyActive
+                ? "The running story of UnClick, told in friendly plain English."
+                : "The detailed timeline for seats, receipts, proof, and source links."}
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white">Orchestrator</h1>
-          <p className="text-sm text-white/50">
-            Your AI command center. Chat, sync context, connect seats, and hand off work.
-          </p>
+        <div className="inline-flex w-full rounded-xl border border-white/[0.08] bg-black/20 p-1 md:w-auto">
+          <Link
+            to="/admin/orchestrator"
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:flex-none ${
+              storyActive
+                ? "bg-[#61C1C4]/15 text-[#61C1C4]"
+                : "text-white/45 hover:bg-white/[0.04] hover:text-white/75"
+            }`}
+          >
+            <BookOpen className="h-4 w-4" />
+            Story
+          </Link>
+          <Link
+            to="/admin/orchestrator/timeline"
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:flex-none ${
+              timelineActive
+                ? "bg-[#61C1C4]/15 text-[#61C1C4]"
+                : "text-white/45 hover:bg-white/[0.04] hover:text-white/75"
+            }`}
+          >
+            <Clock className="h-4 w-4" />
+            Timeline
+          </Link>
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
         {/* Main continuity pane */}
         <div className="flex min-h-[620px] flex-col">
-          <OrchestratorContinuityPanel
-            context={orchestratorContext}
-            loading={loading || sessionLoading}
-            chatStatusLabel={chatDisabledReason ? "Chat disabled" : tier === "channel" ? "Claude Code bridge available" : "AI chat available"}
-            authToken={authToken}
-            contextLimit={contextLimit}
-            maxContextLimit={MAX_CONTEXT_LIMIT}
-            onLoadDeeperHistory={() => setContextLimit((value) => Math.min(MAX_CONTEXT_LIMIT, value + INITIAL_CONTEXT_LIMIT))}
-          />
+          {storyActive ? (
+            <OrchestratorStoryPanel
+              context={orchestratorContext}
+              loading={loading || sessionLoading}
+              contextLimit={contextLimit}
+              maxContextLimit={MAX_CONTEXT_LIMIT}
+              onLoadDeeperHistory={() => setContextLimit((value) => Math.min(MAX_CONTEXT_LIMIT, value + INITIAL_CONTEXT_LIMIT))}
+            />
+          ) : (
+            <OrchestratorContinuityPanel
+              context={orchestratorContext}
+              loading={loading || sessionLoading}
+              chatStatusLabel={chatDisabledReason ? "Chat disabled" : tier === "channel" ? "Claude Code bridge available" : "AI chat available"}
+              authToken={authToken}
+              contextLimit={contextLimit}
+              maxContextLimit={MAX_CONTEXT_LIMIT}
+              onLoadDeeperHistory={() => setContextLimit((value) => Math.min(MAX_CONTEXT_LIMIT, value + INITIAL_CONTEXT_LIMIT))}
+            />
+          )}
         </div>
 
         {/* Right rail */}
@@ -555,6 +620,163 @@ export default function AdminOrchestratorPage() {
         </aside>
       </div>
     </>
+  );
+}
+
+function OrchestratorStoryPanel({
+  context,
+  loading,
+  contextLimit,
+  maxContextLimit,
+  onLoadDeeperHistory,
+}: {
+  context: OrchestratorContext | null;
+  loading: boolean;
+  contextLimit: number;
+  maxContextLimit: number;
+  onLoadDeeperHistory: () => void;
+}) {
+  const [visibleEventCount, setVisibleEventCount] = useState(STORY_VISIBLE_STEP);
+  const [nativeNotes, setNativeNotes] = useState(() => readStoredBoolean(STORY_NATIVE_STORAGE_KEY, false));
+  const [expandedEvents, setExpandedEvents] = useState<Set<string>>(() => new Set());
+  const profileByAgentId = useMemo(
+    () => buildProfileLookup(context?.profile_cards),
+    [context?.profile_cards],
+  );
+  const events = useMemo(
+    () =>
+      [...(context?.continuity_events ?? [])].sort((a, b) => {
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        return bTime - aTime;
+      }),
+    [context?.continuity_events],
+  );
+  const visibleEvents = events.slice(0, visibleEventCount);
+  const hasMoreLoaded = visibleEventCount < events.length;
+  const canLoadFromServer = contextLimit < maxContextLimit;
+
+  const toggleNativeNotes = (value: boolean) => {
+    setNativeNotes(value);
+    writeStoredBoolean(STORY_NATIVE_STORAGE_KEY, value);
+  };
+
+  const toggleEvent = (eventKey: string) => {
+    setExpandedEvents((current) => {
+      const next = new Set(current);
+      if (next.has(eventKey)) next.delete(eventKey);
+      else next.add(eventKey);
+      return next;
+    });
+  };
+
+  return (
+    <section className="flex min-h-[620px] flex-col rounded-2xl border border-white/[0.08] bg-[#101010] shadow-2xl shadow-black/30">
+      <div className="border-b border-white/[0.06] px-5 py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-[#61C1C4]">
+              <BookOpen className="h-4 w-4" />
+              <h2 className="text-lg font-semibold text-white">Story</h2>
+            </div>
+            <p className="mt-1 text-sm text-white/45">
+              Latest first, written like the calm running story of what UnClick is doing.
+            </p>
+          </div>
+          <label className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-black/20 px-3 py-2 text-xs text-white/55">
+            <input
+              type="checkbox"
+              checked={nativeNotes}
+              onChange={(event) => toggleNativeNotes(event.target.checked)}
+              className="h-3.5 w-3.5 accent-[#61C1C4]"
+            />
+            Native notes
+          </label>
+        </div>
+      </div>
+
+      <div className="flex-1 px-5 py-5">
+        {loading ? (
+          <div className="flex h-full min-h-[420px] items-center justify-center text-sm text-white/45">
+            Writing the latest story...
+          </div>
+        ) : events.length === 0 ? (
+          <div className="flex h-full min-h-[420px] items-center justify-center text-center text-sm text-white/45">
+            No story lines yet. When seats leave receipts, they will appear here as a simple read.
+          </div>
+        ) : (
+          <article className="mx-auto max-w-3xl space-y-7">
+            {visibleEvents.map((event, index) => {
+              const actor = actorIdentityForEvent(event, profileByAgentId);
+              const eventKey = `${event.source_kind}:${event.source_id}:${event.created_at ?? index}`;
+              const expanded = expandedEvents.has(eventKey);
+              const story = storyTextForEvent(event, actor);
+              const storyPreview = truncateText(story, STORY_PREVIEW_CHARS);
+              const nativeNote = nativeNoteForEvent(event, actor);
+              const nativePreview = truncateText(nativeNote, STORY_NATIVE_PREVIEW_CHARS);
+              const showFullStory = expanded || !storyPreview.truncated;
+              const shownStory = showFullStory ? story : storyPreview.text;
+              const shownNative = showFullStory ? nativeNote : nativePreview.text;
+
+              return (
+                <div key={eventKey} className="group">
+                  <time
+                    dateTime={event.created_at ?? undefined}
+                    className="mb-2 block text-[10px] font-medium uppercase tracking-[0.18em] text-white/30"
+                  >
+                    {formatRelative(event.created_at)} · {formatAbsolute(event.created_at)}
+                  </time>
+                  <p className="text-base leading-8 text-white/82 sm:text-[17px]">
+                    {shownStory}
+                  </p>
+                  {nativeNotes && (
+                    <p className="mt-3 rounded-xl border border-white/[0.06] bg-black/20 px-4 py-3 text-xs leading-6 text-white/42">
+                      Native note: {shownNative}
+                    </p>
+                  )}
+                  {(storyPreview.truncated || (nativeNotes && nativePreview.truncated)) && (
+                    <button
+                      type="button"
+                      onClick={() => toggleEvent(eventKey)}
+                      className="mt-2 text-xs font-medium text-[#61C1C4] transition-colors hover:text-[#8ee3e6]"
+                    >
+                      {expanded ? "Read less" : "Read more"}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </article>
+        )}
+      </div>
+
+      {!loading && events.length > 0 && (
+        <div className="border-t border-white/[0.06] px-5 py-4">
+          <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-white/35">
+              Showing {Math.min(visibleEventCount, events.length)} of {events.length} loaded story lines.
+            </p>
+            {(hasMoreLoaded || canLoadFromServer) && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (hasMoreLoaded) {
+                    setVisibleEventCount((value) => Math.min(events.length, value + STORY_VISIBLE_STEP));
+                  } else {
+                    onLoadDeeperHistory();
+                    setVisibleEventCount((value) => value + STORY_VISIBLE_STEP);
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-3 py-2 text-sm font-medium text-[#61C1C4] transition-colors hover:bg-[#61C1C4]/15"
+              >
+                Read more
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 
