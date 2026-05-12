@@ -309,7 +309,7 @@ export function isHeartbeatAutomationText(input: unknown): boolean {
   const text = redactSensitive(input).replace(/\s+/g, " ").trim();
   const lower = text.toLowerCase();
   if (!lower) return false;
-  if (lower.startsWith("heartbeat proof")) return true;
+  if (/^heartbeat\b.*\bproof\b/.test(lower)) return true;
   if (/<heartbeat\b|<\/heartbeat>/.test(lower)) return true;
   if (lower.includes("automation_id") && lower.includes("unclick-heartbeat")) return true;
   if (lower.includes("current_time_iso") && lower.includes("instructions") && lower.includes("heartbeat")) return true;
@@ -854,7 +854,7 @@ function signalToEvent(signal: OrchestratorSignalRow): OrchestratorContinuityEve
     source_id: signal.id,
     deep_link: signal.deep_link ?? null,
     created_at: signal.created_at,
-    kind: signal.severity === "critical" || signal.severity === "action_needed" ? "blocker" : classify([signal.action], signal.summary),
+    kind: signal.severity === "critical" || signal.severity === "action_needed" ? "blocker" : classify([signal.action, signal.severity], signal.summary),
     summary: compactText(`${signal.tool} ${signal.action}: ${signal.summary}`, 240),
     tags: ["signal", signal.tool, signal.action, signal.severity],
   };
@@ -960,9 +960,11 @@ function sessionToSnapshot(row: OrchestratorSessionRow): OrchestratorLibrarySnap
 function classify(tags: string[], text: string): OrchestratorContinuityEvent["kind"] {
   const tagSet = new Set(tags.map((tag) => tag.toLowerCase()));
   const lower = text.toLowerCase();
-  if (lower.startsWith("heartbeat proof")) return "proof";
+  if (/^heartbeat\b.*\bproof\b/.test(lower)) return "proof";
   if (lower.startsWith("pass: heartbeat")) return "proof";
   if (lower.startsWith("blocker: heartbeat")) return "status";
+  if (tagSet.has("info")) return "status";
+  if ((tagSet.has("done") || tagSet.has("fyi")) && !lower.startsWith("blocker:")) return "status";
   if (tagSet.has("blocker") || lower.startsWith("blocker:") || lower.includes(" blocked") || lower.includes(" blocker")) return "blocker";
   if (tagSet.has("proof") || lower.startsWith("pass:") || lower.includes("proof:") || lower.includes(" pr #")) return "proof";
   if (tagSet.has("handoff") || lower.includes("handoff") || lower.includes("assigned to")) return "handoff";

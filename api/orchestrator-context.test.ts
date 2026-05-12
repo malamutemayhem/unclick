@@ -447,6 +447,55 @@ describe("orchestrator context", () => {
     expect(context.continuity_events.find((event) => event.source_id === "turn-heartbeat-blocker")?.kind).toBe("status");
   });
 
+  it("does not promote done/fyi and info status chatter that mentions blocker cleanup", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-12T12:10:00.000Z",
+      profiles: [],
+      messages: [
+        {
+          id: "msg-pr-merged",
+          author_agent_id: "chatgpt-codex-heartbeat-seat",
+          text: "PR #736 is merged. It fixes Orchestrator heartbeat self-noise so heartbeat PASS/BLOCKER/proof text should stop inflating live blocker counts.",
+          tags: ["done", "fyi"],
+          created_at: "2026-05-12T12:02:00.000Z",
+        },
+      ],
+      todos: [],
+      comments: [
+        {
+          id: "comment-heartbeat-post-merge-proof",
+          target_kind: "todo",
+          target_id: "todo-dead-seat",
+          author_agent_id: "chatgpt-codex-heartbeat-seat",
+          text: "Heartbeat post-merge proof 2026-05-12T12:06Z: PR #736 is merged. Live Orchestrator still reports blocker_count=5.",
+          created_at: "2026-05-12T12:06:00.000Z",
+        },
+      ],
+      dispatches: [],
+      signals: [
+        {
+          id: "signal-message-posted",
+          tool: "fishbowl",
+          action: "message_posted",
+          severity: "info",
+          summary: "PR #736 opened for the Orchestrator heartbeat blocker self-noise fix.",
+          deep_link: "/admin/boardroom#msg-736",
+          created_at: "2026-05-12T11:56:00.000Z",
+        },
+      ],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.current_state_card.blocker_count).toBe(0);
+    expect(context.rolling_snapshot.active_blockers).toHaveLength(0);
+    expect(context.continuity_events.find((event) => event.source_id === "msg-pr-merged")?.kind).toBe("status");
+    expect(context.continuity_events.find((event) => event.source_id === "comment-heartbeat-post-merge-proof")?.kind).toBe("proof");
+    expect(context.continuity_events.find((event) => event.source_id === "signal-message-posted")?.kind).toBe("status");
+  });
+
   it("keeps fresh-seat active_decision populated from active work when no decision event is live", () => {
     const context = buildOrchestratorContext({
       generatedAt: "2026-05-10T04:16:00.000Z",
