@@ -148,14 +148,20 @@ const NATURAL_CONTEXT_PREVIEW_CHARS = 360;
 const INITIAL_CONTEXT_LIMIT = 80;
 const MAX_CONTEXT_LIMIT = 200;
 const CONTINUITY_VISIBLE_STEP = 24;
-const STORY_CHAPTER_VISIBLE_STEP = 5;
-const STORY_CHAPTER_WINDOW_MS = 18 * 60_000;
-const STORY_CHAPTER_MAX_EVENTS = 14;
+const STORY_CHAPTER_VISIBLE_STEP = 6;
 const STORY_CHAPTER_PREVIEW_CHARS = 1_450;
 const STORY_NATIVE_PREVIEW_COUNT = 5;
 const STORY_NATIVE_STORAGE_KEY = "unclick_orchestrator_story_native_v1";
 
 type StoryTheme = "question" | "orchestrator" | "autopilot" | "blocker" | "shipping" | "signals" | "general";
+type StoryBeat =
+  | "big-question"
+  | "session-direction"
+  | "orchestrator-story"
+  | "queuepush"
+  | "worker2"
+  | "shipping"
+  | "where-we-are";
 
 interface StoryChapter {
   key: string;
@@ -583,119 +589,153 @@ function hasQueuePush(text: string): boolean {
   return /queuepush|direct decision|direct qc packet|owner lift|reviewer\/safety/.test(text);
 }
 
-function storySignatureForEvents(events: OrchestratorContinuityEvent[]): string {
-  const text = chapterSourceText(events);
-  if (hasRunnerFreshness(text)) return "runner-freshness";
-  if (hasSessionDecision(text)) return "session-decision";
-  if (hasQueuePush(text) && hasStaleAck(text)) return "queuepush-stale-ack";
-  if (hasStaleAck(text)) return "stale-ack";
-  return chapterTheme(events);
+function extractPrNumbers(events: OrchestratorContinuityEvent[], limit = 4): string {
+  const seen = new Set<string>();
+  for (const event of events) {
+    for (const match of event.summary.match(/#\d+/g) ?? []) {
+      seen.add(match);
+      if (seen.size >= limit) break;
+    }
+    if (seen.size >= limit) break;
+  }
+  return Array.from(seen).join(", ");
 }
 
-function chapterNarrative(theme: StoryTheme, events: OrchestratorContinuityEvent[]): string {
+function storyBeatForEvent(event: OrchestratorContinuityEvent): StoryBeat | null {
+  const text = chapterSourceText([event]);
+  if (
+    event.role === "user" ||
+    /story mode.*fixed|is story.*fixed|translator patch|too zoomed|reviewing this story|achievable|big question|greenlight|green light/.test(
+      text,
+    )
+  ) {
+    return "big-question";
+  }
+  if (hasSessionDecision(text)) return "session-direction";
+  if (/orchestrator story|story view|story page|adminorchestrator|#728|#727|subscription chat messages.*orchestrator/.test(text)) {
+    return "orchestrator-story";
+  }
+  if (/worker2|chatgpt-codex-worker2|stale_in_progress|runner-freshness|autonomous-runner|next schedule|canary/.test(text)) {
+    return "worker2";
+  }
+  if (hasQueuePush(text) || /#715|#725|#726|stale_ack|wakepass stale|reviewer\/safety|direct decision/.test(text)) {
+    return "queuepush";
+  }
+  if (/merged|checks passed|proof landed|shipped a change|pass:|vercel|testpass|publish/.test(text) || event.kind === "proof") {
+    return "shipping";
+  }
+  if (/signal to notice|wakepass|dispatch|alert/.test(text)) return null;
+  return null;
+}
+
+function storyBeatTitle(beat: StoryBeat): { emoji: string; title: string; theme: StoryTheme } {
+  const titles: Record<StoryBeat, { emoji: string; title: string; theme: StoryTheme }> = {
+    "big-question": { emoji: "🌅", title: "The big question", theme: "question" },
+    "session-direction": { emoji: "🧠", title: "Session sets the direction", theme: "general" },
+    "orchestrator-story": { emoji: "🟢", title: "Orchestrator Story, tucked into place", theme: "orchestrator" },
+    queuepush: { emoji: "📬", title: "QueuePush gets less noisy", theme: "autopilot" },
+    worker2: { emoji: "⚠️", title: "The worker2 situation", theme: "blocker" },
+    shipping: { emoji: "✅", title: "Small ships, clean proof", theme: "shipping" },
+    "where-we-are": { emoji: "🐾", title: "Where we are", theme: "general" },
+  };
+  return titles[beat];
+}
+
+function storyBeatNarrative(
+  beat: StoryBeat,
+  events: OrchestratorContinuityEvent[],
+  allEvents: OrchestratorContinuityEvent[],
+): string {
   const text = chapterSourceText(events);
   const ask = latestUserAsk(events);
   const passCount = events.filter((event) => /^pass:/i.test(event.summary) || event.kind === "proof").length;
   const blockerCount = events.filter((event) => /^blocker:/i.test(event.summary) || event.kind === "blocker").length;
-  const prMatches = Array.from(new Set((text.match(/#\d+/g) ?? []).slice(0, 4))).join(", ");
+  const prMatches = extractPrNumbers(events);
   const focus = buildFocus(events);
 
-  if (hasRunnerFreshness(text)) {
-    return [
-      "One of the AI helpers raised a concern about the scheduled runner.",
-      "That runner is meant to wake up on a timer and pick up jobs, a bit like an oven timer that should click on at set times, and it has been quiet for too long.",
-      "The next move is simple: watch for its next scheduled wake-up, then hand it one small test job.",
-      "If that goes through cleanly, the jobs waiting behind it can start moving again. 👀",
-    ].join(" ");
-  }
-
-  if (hasSessionDecision(text)) {
-    return [
-      "Session handed down a fresh decision, the kind that sets the tone for what everyone works on next.",
-      "A few signals lit up around it asking to be noticed, and proof landed close by so the change is properly on the record.",
-      focus
-        ? `The next small step is ${focus}. That thread has been running through the day, so it is good to see it inch forward. ✅`
-        : "The useful bit is that the direction is now part of the shared story until Chris points things somewhere else. ✅",
-    ].join(" ");
-  }
-
-  if (hasQueuePush(text) && hasStaleAck(text)) {
-    return [
-      "QueuePush is trying to move a job to the right people, but the handoff has not been clearly acknowledged yet.",
-      "That usually means the message reached the room, but the next seat has not left a clean yes, no, or blocker receipt.",
-      "The useful fix is not to shout louder. It is to either get the Reviewer or Safety seat to answer, or stop the repeat packet once the proof already exists. 📬",
-    ].join(" ");
-  }
-
-  if (hasStaleAck(text)) {
-    return [
-      "A handoff is waiting for a clear acknowledgement.",
-      "That means UnClick can see the work, but it does not yet have a trustworthy receipt saying who picked it up or why it should wait.",
-      "The safe move is to keep the alert visible until a seat replies with proof, a blocker, or a clean handoff. 👀",
-    ].join(" ");
-  }
-
-  if (theme === "question") {
+  if (beat === "big-question") {
+    if (/story mode.*fixed|translator patch|#728/.test(text)) {
+      return [
+        "Chris pulled the thread back to the real one today: is Story mode actually fixed after the translator patch in PR #728?",
+        "That was not just a status check. It was a push to turn vague reassurance into something Chris could read and judge on the page.",
+        "The useful move from here is simple: make the Story surface prove itself in plain English, with the receipts still available underneath. ✅",
+      ].join(" ");
+    }
     return [
       ask ? `Chris pulled the thread back to the real question: ${ask}.` : "Chris pulled the thread back to the real question.",
-      "The useful move was to turn that into a small practical push for the seats, with todos and proof expected instead of more vague status.",
-      "That keeps the room pointed at the next action, not just another round of describing the problem. ✅",
+      "That set the tone for the next push: fewer vague updates, more useful todos, cleaner proof, and a page that tells the actual story instead of repeating the machinery.",
+      "The room stayed pointed at the next action rather than another round of describing the same problem. ✅",
     ].join(" ");
   }
 
-  if (theme === "orchestrator") {
+  if (beat === "session-direction") {
     return [
-      "The Orchestrator work moved forward as a product surface, not just a hidden log.",
-      "Story is becoming the friendly front door, while Timeline keeps the exact receipts for anyone who needs to inspect the raw trail.",
-      passCount > 0
-        ? "Proof notes landed around it, so another seat can come back later and understand why the change was trusted. ✅"
-        : "The shape is clear: make the running story easy for Chris first, then keep the machine notes tucked underneath.",
+      "Session set the direction for the room.",
+      focus
+        ? `The thread to pull was ${focus}, with proof kept nearby so the next seat can trust the decision.`
+        : "The important part was not another alert. It was a clear steer that stays in place until Chris changes course.",
+      "That gave the pack something steadier to follow than a pile of minute-by-minute signals. ✅",
     ].join(" ");
   }
 
-  if (theme === "blocker") {
+  if (beat === "orchestrator-story") {
     return [
-      "This is the sticky part.",
-      /worker2/.test(text)
-        ? "Worker2 is still showing up as the pressure point, with work visible but not moving cleanly through the lane."
-        : "Something in the handoff chain still needs a clear owner, proof, or next safe step before it can be called healthy.",
-      blockerCount > 0
-        ? "The system is right to call that a blocker until it either gets claimed or explains exactly why it cannot be claimed. ⚠️"
-        : "It is not a panic moment, but it is not a clean finish either.",
+      prMatches ? `The Orchestrator Story work moved forward around ${prMatches}.` : "The Orchestrator Story work moved forward.",
+      "Story is becoming the friendly front door, with Timeline holding the raw receipts underneath for anyone who needs the exact trail.",
+      "The shape is clearer now: Chris should be able to read the day like a running account, while the machine notes stay tucked away for proof. ✅",
     ].join(" ");
   }
 
-  if (theme === "autopilot") {
+  if (beat === "queuepush") {
     return [
       prMatches ? `The autopilot work kept tightening around ${prMatches}.` : "The autopilot work kept tightening.",
-      "The important idea is less noise and more closure: see the job, decide the lane, wake the right worker, then leave proof.",
-      "That is the difference between a clever traffic light and a system that actually gets work over the line. 🚀",
+      "QueuePush had been repeating itself without always getting a clean answer back, so the fix is less noise and more closure.",
+      "See the job, pick the lane, wake the right worker, leave proof. That is the difference between a clever traffic light and a system that gets work over the line. 🚀",
     ].join(" ");
   }
 
-  if (theme === "shipping") {
+  if (beat === "worker2") {
     return [
-      "A run of useful proof landed here.",
+      "Worker2 is still the pressure point.",
+      "Work is visible against it, but it is not moving cleanly through the lane yet, and the scheduled runner behind it has been quiet longer than it should be.",
+      blockerCount > 0
+        ? "The calm plan is to keep the blocker visible, watch for the next scheduled wake-up, and hand it one small test job once it shows signs of life. ⚠️"
+        : "The plan is calm rather than panicked: prove one small job can move, then let the waiting stack start to clear. ⚠️",
+    ].join(" ");
+  }
+
+  if (beat === "shipping") {
+    return [
+      "A run of useful proof landed around the work.",
       passCount > 1
         ? "Several seats left receipts close together, which means the work was not just talked about, it was checked and recorded."
-        : "A seat left a receipt, which is the important little mark that says the work can be trusted later.",
+        : "A seat left the little mark that matters: this can be trusted later.",
       "Good, steady movement. ✅",
     ].join(" ");
   }
 
-  if (theme === "signals") {
-    return [
-      "A few background signals moved through the system.",
-      "They are kept here as part of the story, but the detailed Timeline is the right place to inspect every wake, reroute, and receipt.",
-      "For Story, the main thing is simple: the system noticed something and kept the trail alive. 📡",
-    ].join(" ");
-  }
-
+  const allText = chapterSourceText(allEvents);
+  const activeThreads = [
+    /story mode|orchestrator story|#728/.test(allText) ? "Story is becoming the friendly front door" : null,
+    /queuepush|#715|#725|#726/.test(allText) ? "QueuePush is being taught to close its own loops" : null,
+    /worker2|stale_in_progress|autonomous-runner/.test(allText)
+      ? "worker2 is still the pressure point to clear"
+      : null,
+  ].filter(Boolean);
   return [
-    "This was a small connecting stretch in the day.",
-    "A few notes landed, the shared context stayed warm, and the next useful piece of work stayed visible.",
-    "Nothing needs to be split into tiny log lines here. The Timeline can hold that detail. 🐾",
+    "Steady movement by this point in the day.",
+    activeThreads.length > 0
+      ? `${activeThreads.join(", ")}, and the receipts are still landing where the next seat can find them.`
+      : "The shared context stayed warm, the next useful piece of work stayed visible, and nothing important fell out of view.",
+    "Nothing dramatic, nothing lost.",
   ].join(" ");
+}
+
+function chapterNarrative(theme: StoryTheme, events: OrchestratorContinuityEvent[]): string {
+  const text = chapterSourceText(events);
+  if (hasRunnerFreshness(text)) return storyBeatNarrative("worker2", events, events);
+  const beat = storyBeatForEvent(events[0]) ?? (theme === "shipping" ? "shipping" : "where-we-are");
+  return storyBeatNarrative(beat, events, events);
 }
 
 function nativeNoteForChapter(
@@ -716,47 +756,53 @@ function buildStoryChapters(
     const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
     return bTime - aTime;
   });
-  const chunks: OrchestratorContinuityEvent[][] = [];
 
+  const groups = new Map<StoryBeat, OrchestratorContinuityEvent[]>();
   for (const event of sorted) {
-    const latestChunk = chunks[chunks.length - 1];
-    const latestTime = latestChunk?.[0]?.created_at ? new Date(latestChunk[0].created_at).getTime() : 0;
-    const eventTime = event.created_at ? new Date(event.created_at).getTime() : 0;
-    const sameWindow = latestChunk && latestTime - eventTime <= STORY_CHAPTER_WINDOW_MS;
-    const sameStory = latestChunk && storySignatureForEvents(latestChunk) === storySignatureForEvents([event]);
-    if (latestChunk && sameWindow && sameStory && latestChunk.length < STORY_CHAPTER_MAX_EVENTS) {
-      latestChunk.push(event);
-    } else {
-      chunks.push([event]);
-    }
+    const beat = storyBeatForEvent(event);
+    if (!beat) continue;
+    const group = groups.get(beat) ?? [];
+    if (group.length < 40) group.push(event);
+    groups.set(beat, group);
   }
 
-  const mergedChunks: OrchestratorContinuityEvent[][] = [];
-  for (const chunk of chunks) {
-    const previous = mergedChunks[mergedChunks.length - 1];
-    if (
-      previous &&
-      storySignatureForEvents(previous) === storySignatureForEvents(chunk) &&
-      previous.length + chunk.length <= STORY_CHAPTER_MAX_EVENTS * 3
-    ) {
-      previous.push(...chunk);
-    } else {
-      mergedChunks.push([...chunk]);
-    }
+  if (groups.size > 1 && groups.has("shipping")) {
+    const shipping = groups.get("shipping") ?? [];
+    const usefulProof = shipping.filter((event) => !/signal to notice|alert/.test(chapterSourceText([event])));
+    if (usefulProof.length < 2) groups.delete("shipping");
+    else groups.set("shipping", usefulProof);
   }
 
-  return mergedChunks.map((chapterEvents, index) => {
-    const theme = chapterTheme(chapterEvents);
-    const title = chapterTitle(theme, chapterEvents);
+  if (groups.size === 0 && sorted.length > 0) {
+    groups.set("where-we-are", sorted.slice(0, 10));
+  } else if (groups.size > 0) {
+    groups.set("where-we-are", sorted.slice(0, 18));
+  }
+
+  const order: StoryBeat[] = [
+    "big-question",
+    "session-direction",
+    "orchestrator-story",
+    "queuepush",
+    "worker2",
+    "shipping",
+    "where-we-are",
+  ];
+
+  return order.flatMap((beat) => {
+    const chapterEvents = groups.get(beat);
+    if (!chapterEvents?.length) return [];
+    const title = storyBeatTitle(beat);
+    const newest = chapterEvents[0]?.created_at ?? null;
     return {
-      key: `${chapterEvents[0]?.source_kind ?? "chapter"}:${chapterEvents[0]?.source_id ?? index}:${chapterEvents[0]?.created_at ?? index}`,
-      theme,
+      key: `story:${beat}:${newest ?? "unknown"}`,
+      theme: title.theme,
       title: title.title,
       emoji: title.emoji,
       events: chapterEvents,
       startedAt: chapterEvents[chapterEvents.length - 1]?.created_at ?? null,
-      endedAt: chapterEvents[0]?.created_at ?? null,
-      narrative: chapterNarrative(theme, chapterEvents),
+      endedAt: newest,
+      narrative: storyBeatNarrative(beat, chapterEvents, sorted),
       nativeNotes: chapterEvents
         .slice(0, STORY_NATIVE_PREVIEW_COUNT)
         .map((event) => nativeNoteForChapter(event, profileByAgentId)),
