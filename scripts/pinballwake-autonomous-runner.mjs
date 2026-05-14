@@ -1245,6 +1245,73 @@ function buildQuietWindowAutonomyResult({
   };
 }
 
+function numberOption(value, fallback = 0) {
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function createQuietWindowAutonomyProofReceipt({
+  now = new Date().toISOString(),
+  wakeSource = "unknown",
+  queueSourceResult = {},
+  results = [],
+  finalAction = "",
+  finalReason = "",
+  commonsensepass = {},
+} = {}) {
+  const triggerSource = normalizeQuietWindowToken(wakeSource || "unknown");
+  const imported = numberOption(queueSourceResult.imported, 0);
+  const claimedResult = results.find((result) => result?.action === "claimed" && result.job);
+  const blockedResult = results.find((result) => Array.isArray(result?.safety_blocked) && result.safety_blocked.length > 0);
+  const events = [];
+
+  if (triggerSource) {
+    events.push({
+      rung: "heartbeat_tick",
+      at: now,
+      trigger_source: triggerSource,
+      source: triggerSource,
+    });
+  }
+
+  if (imported > 0) {
+    events.push({
+      rung: "job_crumb",
+      at: now,
+      source: queueSourceResult.source || "queue",
+      result: `imported=${imported}`,
+    });
+  }
+
+  if (claimedResult) {
+    events.push({
+      rung: "lease_claimed",
+      at: now,
+      job_id: claimedResult.job.job_id || null,
+      claim_id: claimedResult.job.lease_token || claimedResult.job.claimed_by || null,
+    });
+  }
+
+  if (blockedResult || commonsensepass.verdict !== "PASS") {
+    events.push({
+      rung: "commonsensepass_blocker",
+      at: now,
+      reason: blockedResult?.reason || commonsensepass.reason_code || finalReason || "runner_blocked",
+    });
+  }
+
+  return evaluateQuietWindowAutonomyProofLadder({
+    window_start: now,
+    window_end: now,
+    trigger_source: triggerSource || "unknown",
+    job_id: claimedResult?.job?.job_id || null,
+    claim_id: claimedResult?.job?.lease_token || claimedResult?.job?.claimed_by || null,
+    run_id: `autonomous-runner:${now}`,
+    events,
+    final_action: finalAction || null,
+    final_reason: finalReason || null,
+  });
+}
+
 export function evaluateQuietWindowAutonomyProofLadder(input = {}) {
   const events = Array.isArray(input.events) ? input.events : [];
   const windowStart = input.window_start || input.windowStart || input.window?.start || input.window?.window_start || "";
@@ -2183,6 +2250,22 @@ export async function runAutonomousRunnerFile({
     };
   }
 
+  const quietWindowAutonomyProof = createQuietWindowAutonomyProofReceipt({
+    now,
+    wakeSource,
+    queueSourceResult,
+    results,
+    finalAction,
+    finalReason,
+    commonsensepass,
+  });
+  claimabilityScorecard = {
+    ...claimabilityScorecard,
+    quiet_window_autonomy_verdict: quietWindowAutonomyProof.verdict,
+    quiet_window_first_missing_rung: quietWindowAutonomyProof.first_missing_rung,
+    quiet_window_reason_code: quietWindowAutonomyProof.reason_code,
+  };
+
   if (shouldPersist) {
     await writeCodingRoomJobLedger(ledgerPath, ledger);
   }
@@ -2201,6 +2284,7 @@ export async function runAutonomousRunnerFile({
     queue_source: queueSourceResult,
     claimability_scorecard: claimabilityScorecard,
     commonsensepass,
+    quiet_window_autonomy_proof: quietWindowAutonomyProof,
     todo_claim_sync: todoClaimSync,
     todo_scoping_sync: todoScopingSync,
     main_freshness_canary: mainFreshnessCanary,
