@@ -105,9 +105,58 @@ describe("AdminJobsmith", () => {
       target: { value: "Bring portfolio proof to the call." },
     });
 
-    const plan = screen.getByText((content, element) => element?.tagName.toLowerCase() === "pre" && content.includes("Dogfood outcome"));
+    const plan = screen.getByTestId("jobsmith-manual-plan");
     expect(plan).toHaveTextContent("- Status: Interview");
     expect(plan).toHaveTextContent("- Outcome notes: First interview booked with design lead.");
     expect(plan).toHaveTextContent("- Next action: Bring portfolio proof to the call.");
+  });
+
+  it("shows a blocked application packet when copy is not source-backed", () => {
+    render(React.createElement(AdminJobsmith));
+
+    fireEvent.change(screen.getByLabelText("CV bullet"), {
+      target: { value: "Led a redesign that improved conversion." },
+    });
+
+    const packet = screen.getByRole("region", { name: "Application packet" });
+    expect(packet).toHaveTextContent("Blocked until packet is ready");
+    expect(packet).toHaveTextContent("Unsupported claim: CV bullet");
+    expect(within(packet).getByTestId("jobsmith-application-packet-copy")).toHaveTextContent(
+      "- Unsupported claims: CV bullet",
+    );
+    expect(within(packet).getByRole("button", { name: "Copy packet" })).toBeInTheDocument();
+  });
+
+  it("builds a ready local application packet with copyable text and structured preview", () => {
+    render(React.createElement(AdminJobsmith));
+
+    fireEvent.change(screen.getByLabelText("Job URL"), { target: { value: "https://example.com/job" } });
+    fireEvent.change(screen.getByLabelText("Company"), { target: { value: "Example Studio" } });
+    fireEvent.change(screen.getByLabelText("Role"), { target: { value: "Senior Designer" } });
+    fireEvent.change(screen.getByLabelText("Location"), { target: { value: "Melbourne" } });
+    fireEvent.change(screen.getByLabelText("Level"), { target: { value: "Senior" } });
+    fireEvent.change(screen.getByLabelText("Source"), { target: { value: "Referral" } });
+    fireEvent.change(screen.getByLabelText("Likely ATS vendor"), { target: { value: "Greenhouse" } });
+    fireEvent.click(screen.getByLabelText("Master CV"));
+    fireEvent.change(screen.getByRole("textbox", { name: "Achievement proof" }), {
+      target: { value: "Portfolio case study shows a shipped redesign with measurable product impact." },
+    });
+    fireEvent.change(screen.getByLabelText("Portal summary"), {
+      target: { value: "Senior designer with shipped product redesign proof and portfolio evidence." },
+    });
+    fireEvent.click(screen.getByLabelText("Portal summary cites Achievement proof"));
+    fireEvent.change(screen.getByLabelText("Outcome status"), { target: { value: "sent" } });
+    fireEvent.change(screen.getByLabelText("Sent date"), { target: { value: "2026-05-15" } });
+
+    const packet = screen.getByRole("region", { name: "Application packet" });
+    const packetText = within(packet).getByTestId("jobsmith-application-packet-copy");
+    const packetJson = within(packet).getByTestId("jobsmith-application-packet-json");
+
+    expect(packet).toHaveTextContent("Ready application packet");
+    expect(packetText).toHaveTextContent("Application packet: Senior Designer at Example Studio");
+    expect(packetText).toHaveTextContent("- Portal status: Workday: Ready");
+    expect(packetText).toHaveTextContent("Senior designer with shipped product redesign proof and portfolio evidence.");
+    expect(packetJson).toHaveTextContent('"company": "Example Studio"');
+    expect(packetJson).toHaveTextContent('"trust_mode": "browser-local current page state"');
   });
 });

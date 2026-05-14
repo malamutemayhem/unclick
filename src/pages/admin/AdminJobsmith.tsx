@@ -286,6 +286,15 @@ interface AtsFormatPreview {
   portalLabels: PortalReadinessLabel[];
 }
 
+interface ApplicationPacket {
+  level: RiskLevel;
+  headline: string;
+  summary: Array<{ label: string; value: string }>;
+  blockers: string[];
+  text: string;
+  json: string;
+}
+
 function buildTruthLedger(draft: JobsmithDraft): TruthLedgerEntry[] {
   return (Object.keys(CLAIM_LABELS) as ClaimKey[]).map((key) => {
     const claim = draft.applicationClaims[key].trim();
@@ -530,6 +539,149 @@ function buildManualPlan(draft: JobsmithDraft): string {
   ].join("\n");
 }
 
+function buildApplicationPacket(
+  draft: JobsmithDraft,
+  ledger: TruthLedgerEntry[],
+  atsPreview: AtsFormatPreview,
+  outcomeSummary: OutcomeSummary,
+  plan: string,
+): ApplicationPacket {
+  const draftedClaims = ledger.filter((entry) => entry.status !== "empty");
+  const readyClaims = ledger.filter((entry) => entry.status === "ready");
+  const blockedClaims = ledger.filter((entry) => entry.status === "blocked");
+  const readinessBlockers = atsPreview.checks.filter((check) => check.level === "blocked");
+  const blockers = [
+    ...blockedClaims.map((entry) => `Unsupported claim: ${entry.label}`),
+    ...readinessBlockers.map((check) => `Readiness: ${check.label}`),
+  ];
+  const level: RiskLevel = blockers.length > 0 ? "blocked" : atsPreview.level === "risky" ? "risky" : "ready";
+  const headline =
+    level === "ready"
+      ? "Ready application packet"
+      : level === "risky"
+        ? "Review risk before sending"
+        : "Blocked until packet is ready";
+  const sourceValue =
+    draft.sourceMode === "url"
+      ? textValue(draft.sourceUrl)
+      : draft.sourceMode === "paste"
+        ? draft.pastedDescription.trim().length > 0
+          ? "Pasted description captured"
+          : "Not captured"
+        : draft.manualNotes.trim().length > 0
+          ? "Manual notes captured"
+          : "Not captured";
+  const portalStatus = atsPreview.portalLabels.map((label) => `${label.portal}: ${RiskBadgeText[label.level]}`).join("; ");
+  const claimLines = draftedClaims.length
+    ? draftedClaims.map((entry) => {
+        const sourceSuffix = entry.sources.length > 0 ? `, sources: ${entry.sources.join(", ")}` : "";
+        return `- ${entry.label}: ${entry.reason}${sourceSuffix}\n  ${textValue(entry.claim, "No draft copy")}`;
+      })
+    : ["- No drafted claims yet"];
+  const structured = {
+    generated_by: "Jobsmith",
+    trust_mode: "browser-local current page state",
+    status: {
+      level,
+      headline,
+      blockers,
+      ready_claims: readyClaims.length,
+      drafted_claims: draftedClaims.length,
+      portal_status: atsPreview.portalLabels.map((label) => ({
+        portal: label.portal,
+        level: label.level,
+        reason: label.reason,
+      })),
+    },
+    role: {
+      company: textValue(draft.company),
+      role: textValue(draft.role),
+      location: textValue(draft.location),
+      salary: textValue(draft.salary),
+      level: textValue(draft.level),
+      closing_date: textValue(draft.closingDate),
+      recruiter: textValue(draft.recruiter),
+      source: textValue(draft.source),
+      ats_vendor: textValue(draft.atsVendor),
+    },
+    source: {
+      mode: draft.sourceMode,
+      value: sourceValue,
+    },
+    claims: ledger.map((entry) => ({
+      label: entry.label,
+      status: entry.status,
+      reason: entry.reason,
+      sources: entry.sources,
+      claim: entry.claim,
+    })),
+    outcome: {
+      status: outcomeSummary.label,
+      next_action: outcomeSummary.nextAction,
+      sent_date: textValue(draft.outcome.sentDate),
+      follow_up_date: textValue(draft.outcome.followUpDate),
+      recruiter_response: textValue(draft.outcome.recruiterResponse),
+      notes: textValue(draft.outcome.outcomeNotes),
+    },
+    manual_plan: plan,
+  };
+  const text = [
+    "Jobsmith application packet",
+    `Application packet: ${textValue(draft.role, "Role")} at ${textValue(draft.company, "Company")}`,
+    "",
+    "Review status",
+    `- Packet status: ${headline}`,
+    `- Ready claims: ${readyClaims.length}/${draftedClaims.length}`,
+    `- Unsupported claims: ${blockedClaims.length > 0 ? blockedClaims.map((entry) => entry.label).join(", ") : "None"}`,
+    `- ATS and format: ${atsPreview.headline}`,
+    `- Portal status: ${portalStatus}`,
+    "",
+    "Role and source",
+    `- Company: ${textValue(draft.company)}`,
+    `- Role: ${textValue(draft.role)}`,
+    `- Location: ${textValue(draft.location)}`,
+    `- Salary: ${textValue(draft.salary)}`,
+    `- Level: ${textValue(draft.level)}`,
+    `- Closing date: ${textValue(draft.closingDate)}`,
+    `- Recruiter: ${textValue(draft.recruiter)}`,
+    `- Source: ${textValue(draft.source)}`,
+    `- ATS vendor: ${textValue(draft.atsVendor)}`,
+    `- Captured source: ${SOURCE_MODE_LABELS[draft.sourceMode]}: ${sourceValue}`,
+    "",
+    "Cited claims",
+    ...claimLines,
+    "",
+    "Dogfood outcome",
+    `- Status: ${outcomeSummary.label}`,
+    `- Next action: ${outcomeSummary.nextAction}`,
+    `- Sent date: ${textValue(draft.outcome.sentDate)}`,
+    `- Follow-up date: ${textValue(draft.outcome.followUpDate)}`,
+    "",
+    "Manual plan",
+    plan,
+  ].join("\n");
+
+  return {
+    level,
+    headline,
+    blockers,
+    summary: [
+      { label: "Packet", value: headline },
+      { label: "Ready claims", value: `${readyClaims.length}/${draftedClaims.length}` },
+      { label: "Blockers", value: blockers.length > 0 ? `${blockers.length}` : "None" },
+      { label: "Outcome", value: outcomeSummary.label },
+    ],
+    text,
+    json: JSON.stringify(structured, null, 2),
+  };
+}
+
+const RiskBadgeText: Record<RiskLevel, string> = {
+  blocked: "Blocked",
+  risky: "Risk",
+  ready: "Ready",
+};
+
 function Field({
   id,
   label,
@@ -595,6 +747,7 @@ function RiskBadge({ level }: { level: RiskLevel }) {
 export default function AdminJobsmith() {
   const [draft, setDraft] = useState<JobsmithDraft>(() => loadDraft());
   const [copied, setCopied] = useState(false);
+  const [packetCopied, setPacketCopied] = useState(false);
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
@@ -615,6 +768,10 @@ export default function AdminJobsmith() {
   const plan = useMemo(() => buildManualPlan(draft), [draft]);
   const atsPreview = useMemo(() => buildAtsFormatPreview(draft, ledger), [draft, ledger]);
   const outcomeSummary = useMemo(() => buildOutcomeSummary(draft), [draft]);
+  const applicationPacket = useMemo(
+    () => buildApplicationPacket(draft, ledger, atsPreview, outcomeSummary, plan),
+    [draft, ledger, atsPreview, outcomeSummary, plan],
+  );
 
   function updateField<K extends keyof JobsmithDraft>(field: K, value: JobsmithDraft[K]) {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -644,6 +801,13 @@ export default function AdminJobsmith() {
     await navigator.clipboard.writeText(plan);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
+  }
+
+  async function copyApplicationPacket() {
+    if (!navigator.clipboard) return;
+    await navigator.clipboard.writeText(applicationPacket.text);
+    setPacketCopied(true);
+    window.setTimeout(() => setPacketCopied(false), 1800);
   }
 
   return (
@@ -1019,6 +1183,62 @@ export default function AdminJobsmith() {
             </div>
           </section>
 
+          <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5" aria-label="Application packet">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-fuchsia-300" />
+                <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">Application Packet</h2>
+              </div>
+              <RiskBadge level={applicationPacket.level} />
+            </div>
+            <div className="mb-4 grid gap-2 sm:grid-cols-2">
+              {applicationPacket.summary.map((item) => (
+                <div key={item.label} className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+                  <p className="text-xs font-medium text-white/45">{item.label}</p>
+                  <p className="mt-1 text-sm font-semibold text-white">{item.value}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mb-4 rounded-lg border border-[#61C1C4]/15 bg-[#61C1C4]/[0.06] p-3 text-xs leading-5 text-[#9EE4E6]">
+              Local packet assembled from the current page only. No send, sync, file export, or external check runs here.
+            </div>
+            {applicationPacket.blockers.length > 0 && (
+              <div className="mb-4 rounded-lg border border-rose-300/20 bg-rose-300/10 p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-200">Packet blockers</p>
+                <ul className="mt-2 space-y-1 text-xs leading-5 text-rose-100/80">
+                  {applicationPacket.blockers.map((blocker) => (
+                    <li key={blocker}>{blocker}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <pre
+              data-testid="jobsmith-application-packet-copy"
+              className="max-h-[360px] overflow-auto whitespace-pre-wrap rounded-lg border border-white/[0.06] bg-black/30 p-4 text-xs leading-5 text-white/70"
+            >
+              {applicationPacket.text}
+            </pre>
+            <details className="mt-3 rounded-lg border border-white/[0.06] bg-black/20 p-3">
+              <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
+                Structured Preview
+              </summary>
+              <pre
+                data-testid="jobsmith-application-packet-json"
+                className="mt-3 max-h-[260px] overflow-auto whitespace-pre-wrap rounded-lg border border-white/[0.06] bg-black/30 p-3 text-xs leading-5 text-white/60"
+              >
+                {applicationPacket.json}
+              </pre>
+            </details>
+            <button
+              type="button"
+              onClick={() => void copyApplicationPacket()}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-fuchsia-300/30 bg-fuchsia-300/10 px-4 py-2.5 text-sm font-semibold text-fuchsia-200 transition-colors hover:bg-fuchsia-300/20"
+            >
+              {packetCopied ? <CheckCircle2 className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+              {packetCopied ? "Copied" : "Copy packet"}
+            </button>
+          </section>
+
           <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
             <div className="mb-4 flex items-center gap-2">
               <Clipboard className="h-4 w-4 text-[#61C1C4]" />
@@ -1040,7 +1260,10 @@ export default function AdminJobsmith() {
                 </div>
               </div>
             </div>
-            <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap rounded-lg border border-white/[0.06] bg-black/30 p-4 text-xs leading-5 text-white/70">
+            <pre
+              data-testid="jobsmith-manual-plan"
+              className="max-h-[520px] overflow-auto whitespace-pre-wrap rounded-lg border border-white/[0.06] bg-black/30 p-4 text-xs leading-5 text-white/70"
+            >
               {plan}
             </pre>
             <button
