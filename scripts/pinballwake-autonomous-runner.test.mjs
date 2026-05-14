@@ -16,6 +16,7 @@ import {
   evaluateAutonomousRunnerCommonSensePass,
   evaluateBoardroomTodoAutoClaimEligibility,
   evaluateOrchestratorSeatHandshakeProof,
+  evaluateQuietWindowAutonomyProofLadder,
   extractBoardroomTodoIdFromCodingRoomJob,
   fetchUnClickActionableTodos,
   fetchUnClickOrchestratorContext,
@@ -1538,6 +1539,95 @@ describe("PinballWake autonomous Runner seat", () => {
     });
     assert.equal(blocked.verdict, "BLOCKER");
     assert.equal(blocked.reason_code, "commonsensepass_no_work_blocked_by_visible_queue");
+  });
+
+  it("classifies quiet-window autonomy proof without treating manual triggers as clean proof", () => {
+    const clean = evaluateQuietWindowAutonomyProofLadder({
+      windowStart: "2026-05-14T12:00:00.000Z",
+      windowEnd: "2026-05-14T12:07:00.000Z",
+      triggerSource: "scheduled_heartbeat",
+      jobId: "0068a201",
+      claimId: "lease-1",
+      runId: "run-1",
+      events: [
+        { rung: "heartbeat_tick", at: "2026-05-14T12:00:00.000Z" },
+        { rung: "buildbait_crumb", at: "2026-05-14T12:00:20.000Z" },
+        { rung: "lease_claimed", at: "2026-05-14T12:00:30.000Z" },
+        { rung: "execution_packet", at: "2026-05-14T12:01:00.000Z" },
+        { rung: "build_attempt", at: "2026-05-14T12:02:00.000Z" },
+        { rung: "proof_packet", at: "2026-05-14T12:03:00.000Z" },
+        { rung: "terminal_receipt", at: "2026-05-14T12:04:00.000Z" },
+      ],
+    });
+
+    assert.equal(clean.verdict, "PASS");
+    assert.equal(clean.ok, true);
+    assert.equal(clean.evidence.job_id, "0068a201");
+    assert.equal(clean.evidence.claim_id, "lease-1");
+    assert.equal(clean.evidence.run_id, "run-1");
+
+    const manualDispatch = evaluateQuietWindowAutonomyProofLadder({
+      windowStart: "2026-05-14T12:00:00.000Z",
+      windowEnd: "2026-05-14T12:07:00.000Z",
+      triggerSource: "workflow_dispatch",
+      events: clean.evidence.observed_rungs,
+    });
+
+    assert.equal(manualDispatch.verdict, "HOLD");
+    assert.equal(manualDispatch.reason_code, "not_clean_autonomy_proof");
+    assert.equal(manualDispatch.first_missing_rung, "scheduled_trigger");
+
+    const humanChatInsideWindow = evaluateQuietWindowAutonomyProofLadder({
+      windowStart: "2026-05-14T12:00:00.000Z",
+      windowEnd: "2026-05-14T12:07:00.000Z",
+      triggerSource: "scheduled_heartbeat",
+      events: [
+        ...clean.evidence.observed_rungs,
+        { kind: "operator_chat", at: "2026-05-14T12:03:30.000Z" },
+      ],
+    });
+
+    assert.equal(humanChatInsideWindow.verdict, "HOLD");
+    assert.equal(humanChatInsideWindow.reason_code, "not_clean_autonomy_proof");
+    assert.equal(humanChatInsideWindow.first_missing_rung, "no_human_operator_chat_trigger");
+  });
+
+  it("fails quiet-window proof closed with first_missing_rung for claim-only and incomplete proof ladders", () => {
+    const base = {
+      windowStart: "2026-05-14T12:00:00.000Z",
+      windowEnd: "2026-05-14T12:07:00.000Z",
+      triggerSource: "scheduled_heartbeat",
+    };
+
+    const claimOnly = evaluateQuietWindowAutonomyProofLadder({
+      ...base,
+      events: ["heartbeat_tick", "buildbait_crumb", "lease_claimed"],
+    });
+
+    assert.equal(claimOnly.verdict, "HOLD");
+    assert.equal(claimOnly.first_missing_rung, "execution_packet");
+
+    const missingBuildAttempt = evaluateQuietWindowAutonomyProofLadder({
+      ...base,
+      events: ["heartbeat_tick", "buildbait_crumb", "lease_claimed", "execution_packet"],
+    });
+
+    assert.equal(missingBuildAttempt.verdict, "BLOCKER");
+    assert.equal(missingBuildAttempt.first_missing_rung, "build_attempt_or_commonsense_blocker");
+
+    const missingProofPacket = evaluateQuietWindowAutonomyProofLadder({
+      ...base,
+      events: [
+        "heartbeat_tick",
+        "buildbait_crumb",
+        "lease_claimed",
+        "execution_packet",
+        "commonsensepass_blocker",
+      ],
+    });
+
+    assert.equal(missingProofPacket.verdict, "BLOCKER");
+    assert.equal(missingProofPacket.first_missing_rung, "proof_packet");
   });
 
   it("blocks stale UnClick todo lease tokens before syncing ownership", async () => {

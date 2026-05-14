@@ -1109,6 +1109,234 @@ function claimabilityEvidence(scorecard = {}) {
   ];
 }
 
+const QUIET_WINDOW_AUTONOMY_RUNGS = [
+  {
+    id: "tick",
+    aliases: ["tick", "heartbeat_tick", "scheduled_tick", "scheduled_heartbeat_tick"],
+  },
+  {
+    id: "buildbait_crumb",
+    aliases: ["buildbait", "buildbait_crumb", "crumb", "job_crumb"],
+  },
+  {
+    id: "claim_or_lease",
+    aliases: ["claim", "claimed", "lease", "lease_claimed", "claim_or_lease"],
+  },
+  {
+    id: "execution_packet",
+    aliases: ["execution", "execution_packet", "execute_packet"],
+  },
+  {
+    id: "build_attempt_or_commonsense_blocker",
+    aliases: [
+      "build_attempt_or_commonsense_blocker",
+      "build_attempt",
+      "build_result",
+      "commonsensepass_blocker",
+      "explicit_commonsensepass_blocker",
+      "commonsense_blocker",
+    ],
+  },
+  {
+    id: "proof_packet",
+    aliases: ["proof", "proof_packet", "proof_submitted"],
+  },
+  {
+    id: "terminal_receipt",
+    aliases: ["terminal", "terminal_receipt", "terminal_state", "done", "blocked", "hold"],
+  },
+];
+
+const QUIET_WINDOW_BLOCKER_RUNGS = new Set([
+  "build_attempt_or_commonsense_blocker",
+  "proof_packet",
+  "terminal_receipt",
+]);
+
+const NOT_CLEAN_AUTONOMY_SOURCES = new Set([
+  "manual",
+  "manual_chat",
+  "operator_chat",
+  "user_chat",
+  "human_chat",
+  "chat",
+  "workflow_dispatch",
+]);
+
+function normalizeQuietWindowToken(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function quietWindowEventTokens(event = {}) {
+  const values = typeof event === "string"
+    ? [event]
+    : [
+        event.rung,
+        event.kind,
+        event.type,
+        event.name,
+        event.event,
+        event.action,
+        event.status,
+        event.result,
+        event.reason,
+        event.receipt_kind,
+        event.source,
+        event.source_type,
+        event.trigger_source,
+      ];
+
+  return new Set(values.map(normalizeQuietWindowToken).filter(Boolean));
+}
+
+function quietWindowEventTimeMs(event = {}) {
+  if (typeof event === "string") return null;
+  const raw = event.at || event.time || event.timestamp || event.created_at || event.createdAt;
+  const ms = Date.parse(String(raw || ""));
+  return Number.isFinite(ms) ? ms : null;
+}
+
+function eventFallsInsideWindow(event, windowStartMs, windowEndMs) {
+  const eventMs = quietWindowEventTimeMs(event);
+  if (!Number.isFinite(eventMs)) return true;
+  if (Number.isFinite(windowStartMs) && eventMs < windowStartMs) return false;
+  if (Number.isFinite(windowEndMs) && eventMs > windowEndMs) return false;
+  return true;
+}
+
+function hasNotCleanAutonomyToken(tokens) {
+  return [...tokens].some((token) =>
+    NOT_CLEAN_AUTONOMY_SOURCES.has(token) ||
+    token.includes("manual") ||
+    token.includes("operator_chat") ||
+    token.includes("human_chat") ||
+    token.includes("user_chat")
+  );
+}
+
+function hasQuietWindowRung(events, aliases) {
+  const normalizedAliases = new Set(aliases.map(normalizeQuietWindowToken));
+  return events.some((event) => {
+    const tokens = quietWindowEventTokens(event);
+    return [...normalizedAliases].some((alias) => tokens.has(alias));
+  });
+}
+
+function buildQuietWindowAutonomyResult({
+  verdict,
+  reason,
+  reasonCode,
+  firstMissingRung = null,
+  evidence,
+  nextAction,
+}) {
+  return {
+    ok: verdict === "PASS",
+    verdict,
+    reason,
+    reason_code: reasonCode,
+    first_missing_rung: firstMissingRung,
+    evidence,
+    next_action: nextAction,
+  };
+}
+
+export function evaluateQuietWindowAutonomyProofLadder(input = {}) {
+  const events = Array.isArray(input.events) ? input.events : [];
+  const windowStart = input.window_start || input.windowStart || input.window?.start || input.window?.window_start || "";
+  const windowEnd = input.window_end || input.windowEnd || input.window?.end || input.window?.window_end || "";
+  const windowStartMs = Date.parse(String(windowStart || ""));
+  const windowEndMs = Date.parse(String(windowEnd || ""));
+  const triggerSource = normalizeQuietWindowToken(
+    input.trigger_source || input.triggerSource || input.source || input.event_source || "",
+  );
+  const observedRungs = QUIET_WINDOW_AUTONOMY_RUNGS
+    .filter((rung) => hasQuietWindowRung(events, rung.aliases))
+    .map((rung) => rung.id);
+  const evidence = {
+    window_start: windowStart || null,
+    window_end: windowEnd || null,
+    trigger_source: triggerSource || null,
+    job_id: input.job_id || input.jobId || null,
+    claim_id: input.claim_id || input.claimId || null,
+    run_id: input.run_id || input.runId || null,
+    observed_rungs: observedRungs,
+  };
+
+  if (!windowStart || !Number.isFinite(windowStartMs)) {
+    return buildQuietWindowAutonomyResult({
+      verdict: "HOLD",
+      reason: "quiet_window_missing_start",
+      reasonCode: "quiet_window_missing_start",
+      firstMissingRung: "window_start",
+      evidence,
+      nextAction: "record_window_start",
+    });
+  }
+
+  if (!windowEnd || !Number.isFinite(windowEndMs)) {
+    return buildQuietWindowAutonomyResult({
+      verdict: "HOLD",
+      reason: "quiet_window_missing_end",
+      reasonCode: "quiet_window_missing_end",
+      firstMissingRung: "window_end",
+      evidence,
+      nextAction: "record_window_end",
+    });
+  }
+
+  if (hasNotCleanAutonomyToken(new Set([triggerSource]))) {
+    return buildQuietWindowAutonomyResult({
+      verdict: "HOLD",
+      reason: "not_clean_autonomy_proof",
+      reasonCode: "not_clean_autonomy_proof",
+      firstMissingRung: "scheduled_trigger",
+      evidence,
+      nextAction: "wait_for_scheduled_unclick_heartbeat_window",
+    });
+  }
+
+  const notCleanEvent = events.find((event) =>
+    eventFallsInsideWindow(event, windowStartMs, windowEndMs) &&
+    hasNotCleanAutonomyToken(quietWindowEventTokens(event))
+  );
+  if (notCleanEvent) {
+    return buildQuietWindowAutonomyResult({
+      verdict: "HOLD",
+      reason: "not_clean_autonomy_proof",
+      reasonCode: "not_clean_autonomy_proof",
+      firstMissingRung: "no_human_operator_chat_trigger",
+      evidence,
+      nextAction: "restart_window_after_human_or_operator_activity",
+    });
+  }
+
+  for (const rung of QUIET_WINDOW_AUTONOMY_RUNGS) {
+    if (observedRungs.includes(rung.id)) continue;
+    const verdict = QUIET_WINDOW_BLOCKER_RUNGS.has(rung.id) ? "BLOCKER" : "HOLD";
+    return buildQuietWindowAutonomyResult({
+      verdict,
+      reason: `quiet_window_missing_${rung.id}`,
+      reasonCode: `quiet_window_missing_${rung.id}`,
+      firstMissingRung: rung.id,
+      evidence,
+      nextAction: `record_${rung.id}`,
+    });
+  }
+
+  return buildQuietWindowAutonomyResult({
+    verdict: "PASS",
+    reason: "quiet_window_autonomy_proof_complete",
+    reasonCode: "quiet_window_autonomy_proof_complete",
+    evidence,
+    nextAction: "submit_terminal_proof_receipt",
+  });
+}
+
 export function evaluateAutonomousRunnerCommonSensePass({
   queueSourceResult = {},
   claimabilityScorecard = {},
