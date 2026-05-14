@@ -93,6 +93,13 @@ function firstList(...values) {
   return [];
 }
 
+const DEFAULT_PROOF_REQUIRED =
+  "Boardroom receipt with PASS/BLOCKER, verification results, changed files or exact no-code blocker, and next action.";
+
+const DEFAULT_NON_GOALS = [
+  "No secrets, billing, DNS, destructive data changes, force pushes, production writes, or extra schedules unless explicitly scoped.",
+];
+
 function recentTodoText(todo = {}) {
   const comments = Array.isArray(todo.recent_comments)
     ? todo.recent_comments
@@ -152,8 +159,11 @@ function normalizeHydrationScope(todo = {}, scope = {}, options = {}) {
     scope.testProofPlan?.allowlistTests,
   );
   const stopConditions = firstList(scope.stop_conditions, scope.stopConditions);
-  const nonGoals = firstList(scope.non_goals, scope.nonGoals, scope.out_of_scope, scope.outOfScope);
-  const proofRequired = firstText(scope.proof_required, scope.proofRequired, scope.expected_proof, scope.expectedProof);
+  const explicitNonGoals = firstList(scope.non_goals, scope.nonGoals, scope.out_of_scope, scope.outOfScope);
+  const nonGoals = explicitNonGoals.length > 0 ? explicitNonGoals : DEFAULT_NON_GOALS;
+  const proofRequired =
+    firstText(scope.proof_required, scope.proofRequired, scope.expected_proof, scope.expectedProof) ||
+    DEFAULT_PROOF_REQUIRED;
   const laneHint = firstText(
     scope.owner_hint,
     scope.ownerHint,

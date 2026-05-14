@@ -125,6 +125,22 @@ describe("PinballWake Coding Room skeleton", () => {
     assert.equal(result.job.lease_expires_at, "2026-05-04T00:01:00.000Z");
   });
 
+  it("lets builders claim Boardroom jobs that have owned files before a patch exists", () => {
+    const job = createCodingRoomJob({
+      source: "unclick-boardroom-actionable-todo",
+      worker: "forge",
+      chip: "fix active-state mismatch",
+      files: ["api/lib/orchestrator-context.ts"],
+      expectedProof: { tests: ["node --test api/orchestrator-context.test.ts"] },
+    });
+
+    const decision = runnerCanClaimCodingRoomJob({ runner: forgeRunner, job });
+
+    assert.equal(decision.ok, true);
+    assert.equal(decision.reason, "claimable");
+    assert.equal(job.build.patch, "");
+  });
+
   it("upserts jobs into a ledger without duplicating the same job id", () => {
     const first = createCodingRoomJob({
       jobId: "coding-room:test:one",

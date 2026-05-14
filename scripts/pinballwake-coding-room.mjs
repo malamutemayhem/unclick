@@ -72,15 +72,11 @@ function normalizeWorkerToken(value) {
   return String(value ?? "").trim().toLowerCase();
 }
 
-function hasExecutableBuildPatch(job = {}) {
-  return String(job?.build?.patch ?? "").trim().length > 0;
-}
-
 function isUnscopedBoardroomTodoJob(job = {}) {
   return (
     String(job?.source || "").trim() === "unclick-boardroom-actionable-todo" &&
     job?.job_type !== "review" &&
-    ((job?.owned_files || []).length === 0 || !hasExecutableBuildPatch(job))
+    (job?.owned_files || []).length === 0
   );
 }
 

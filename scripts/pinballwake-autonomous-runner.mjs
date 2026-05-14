@@ -999,7 +999,7 @@ export function createCodingRoomJobFromBoardroomTodo(todo = {}, { now = new Date
     },
     worker: assignee || "builder",
     chip: title,
-    context: `${contextParts.join("; ")}. Imported for autonomous claim/routing; claim only when a ScopePack names owned files and an executable patch.`,
+    context: `${contextParts.join("; ")}. Imported for autonomous claim/routing; claim only when a ScopePack names owned files, verification, and stop conditions.`,
     jobType: scopePack.jobType,
     files: scopePack.files,
     expectedProof: {
