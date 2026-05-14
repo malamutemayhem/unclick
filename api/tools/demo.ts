@@ -191,8 +191,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const ipHash = hashIp(rawIp);
   const callDate = todayDate();
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   let currentCount = 0;
 
@@ -227,7 +227,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (error) console.error("Rate limit upsert error:", error.message);
       });
   } else {
-    console.warn("Supabase env vars missing - demo rate limiting disabled");
+    console.warn("Supabase service env vars missing - demo rate limiting disabled");
   }
 
   const remaining = Math.max(0, DEMO_LIMIT - (currentCount + 1));

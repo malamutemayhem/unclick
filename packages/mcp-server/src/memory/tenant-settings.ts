@@ -53,8 +53,7 @@ export async function getTenantSettings(): Promise<TenantSettings> {
 
   const apiKey = process.env.UNCLICK_API_KEY;
   const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   // Local mode or missing key: just use defaults.
   if (!apiKey || !supabaseUrl || !serviceKey) {
