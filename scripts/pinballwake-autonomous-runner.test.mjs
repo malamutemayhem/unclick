@@ -1028,10 +1028,43 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.match(calls[2].body.params.arguments.text, /wake_source=queuepush/);
       assert.equal(result.todo_claim_sync.ok, true);
       assert.equal(result.todo_claim_sync.todo_id, "todo-claim-1");
+      assert.equal(result.quiet_window_autonomy_proof.verdict, "HOLD");
+      assert.equal(result.quiet_window_autonomy_proof.first_missing_rung, "execution_packet");
+      assert.deepEqual(result.quiet_window_autonomy_proof.evidence.observed_rungs, [
+        "tick",
+        "buildbait_crumb",
+        "claim_or_lease",
+      ]);
+      assert.equal(result.claimability_scorecard.quiet_window_autonomy_verdict, "HOLD");
+      assert.equal(result.claimability_scorecard.quiet_window_first_missing_rung, "execution_packet");
 
       const persisted = JSON.parse(await readFile(ledgerPath, "utf8"));
       assert.equal(persisted.jobs[0].status, "claimed");
       assert.equal(persisted.jobs[0].claimed_by, "runner-plex-1");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("emits a quiet-window proof receipt that rejects manual runner triggers", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "dry-run",
+        now: "2026-05-14T12:00:00.000Z",
+        wakeSource: "workflow_dispatch",
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(result.quiet_window_autonomy_proof.verdict, "HOLD");
+      assert.equal(result.quiet_window_autonomy_proof.reason_code, "not_clean_autonomy_proof");
+      assert.equal(result.quiet_window_autonomy_proof.first_missing_rung, "scheduled_trigger");
+      assert.equal(result.claimability_scorecard.quiet_window_reason_code, "not_clean_autonomy_proof");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
