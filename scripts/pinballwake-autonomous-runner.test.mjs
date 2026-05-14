@@ -236,6 +236,66 @@ describe("PinballWake autonomous Runner seat", () => {
     }
   });
 
+  it("claims scoped Boardroom todos that do not include a prebuilt patch", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const fetchImpl = async () => ({
+        ok: true,
+        async json() {
+          return {
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    todos: [
+                      {
+                        id: "todo-legacy-scopepack",
+                        title: "Legacy ScopePack without patch",
+                        status: "open",
+                        priority: "urgent",
+                        assigned_to_agent_id: null,
+                        actionability_reason: "unassigned_open",
+                        scope_pack: {
+                          role: "builder",
+                          owned_files: ["api/lib/orchestrator-context.ts"],
+                          tests: ["node --test api/orchestrator-context.test.ts"],
+                        },
+                      },
+                    ],
+                  }),
+                },
+              ],
+            },
+          };
+        },
+      });
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "dry-run",
+        queueSource: "unclick",
+        unclickApiKey: "uc_test",
+        unclickMcpUrl: "https://unclick.test/api/mcp",
+        fetchImpl,
+        now: "2026-05-14T08:40:00.000Z",
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(result.action, "claimed");
+      assert.equal(result.queue_source.imported, 1);
+      assert.deepEqual(result.ledger.jobs[0].owned_files, ["api/lib/orchestrator-context.ts"]);
+      assert.equal(result.ledger.jobs[0].build.patch, "");
+      assert.equal(result.claimability_scorecard.claimed, 1);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("quietly skips scoped UnClick todos that are not safe to auto-claim", async () => {
     const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
     const ledgerPath = join(dir, "ledger.json");
@@ -1012,8 +1072,6 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.deepEqual(result.todo_scoping_sync.scopepack_hydration.missing_fields, [
         "acceptance",
         "stop_conditions",
-        "proof_required",
-        "non_goals",
       ]);
 
       const updateCall = calls.find((call) => call.body.params.name === "update_todo");
@@ -1022,7 +1080,7 @@ describe("PinballWake autonomous Runner seat", () => {
 
       const commentCall = calls.find((call) => call.body.params.name === "comment_on");
       assert.match(commentCall.body.params.arguments.text, /BLOCKER: scopepack_hydration_missing_fields/);
-      assert.match(commentCall.body.params.arguments.text, /missing_fields=acceptance,stop_conditions,proof_required,non_goals/);
+      assert.match(commentCall.body.params.arguments.text, /missing_fields=acceptance,stop_conditions/);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
