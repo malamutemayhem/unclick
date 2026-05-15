@@ -534,6 +534,81 @@ describe("PinballWake autonomous Runner seat", () => {
     );
   });
 
+  it("allows dirty-branch hygiene titles when a builder owner hint names a safe ScopePack", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const todo = {
+        id: "todo-dirty-hygiene",
+        title: "Chip-firer dirty-branch hygiene: prevent unrelated PR drift",
+        status: "open",
+        priority: "high",
+        assigned_to_agent_id: null,
+        actionability_reason: "unassigned_open",
+        created_at: "2026-05-15T22:00:00.000Z",
+        scope_pack: {
+          lane: "reliability",
+          owner_hint: "builder",
+          owned_files: [
+            "packages/testpass/src/checks/anti-stomp.ts",
+            "scripts/pinballwake-autonomous-runner.mjs",
+          ],
+          tests: [
+            "npm run test -- packages/testpass/src/checks/anti-stomp.test.ts scripts/pinballwake-autonomous-runner.test.mjs",
+          ],
+        },
+      };
+
+      assert.equal(evaluateBoardroomTodoAutoClaimEligibility(todo).ok, true);
+      assert.equal(
+        evaluateBoardroomTodoAutoClaimEligibility({
+          ...todo,
+          title: "DIRTY: unrelated worktree drift needs owner routing",
+        }).reason,
+        "boardroom_todo_hold_or_blocker_marker",
+      );
+
+      const fetchImpl = async () => ({
+        ok: true,
+        async json() {
+          return {
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({ todos: [todo] }),
+                },
+              ],
+            },
+          };
+        },
+      });
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "dry-run",
+        queueSource: "unclick",
+        unclickApiKey: "uc_test",
+        unclickMcpUrl: "https://unclick.test/api/mcp",
+        fetchImpl,
+        now: "2026-05-15T22:05:00.000Z",
+        wakeSource: "schedule",
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(result.action, "claimed");
+      assert.equal(result.queue_source.imported, 1);
+      assert.equal(result.queue_source.skipped.length, 0);
+      assert.equal(result.ledger.jobs[0].job_id, "boardroom-todo:todo-dirty-hygiene");
+      assert.equal(result.ledger.jobs[0].worker, "builder");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("allows unassigned orchestrator ScopePacks with builder-compatible owner hints", async () => {
     const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
     const ledgerPath = join(dir, "ledger.json");
@@ -1530,6 +1605,12 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.equal(result.claimability_scorecard.last_reason, "no_claimable_jobs");
       assert.equal(result.claimability_scorecard.final_action, "blocked");
       assert.equal(result.claimability_scorecard.final_reason, "commonsensepass_no_work_blocked_by_visible_queue");
+      assert.equal(result.quiet_window_autonomy_proof.first_missing_rung, "claim_or_lease");
+      assert.deepEqual(result.quiet_window_autonomy_proof.evidence.observed_rungs, [
+        "tick",
+        "buildbait_crumb",
+        "build_attempt_or_commonsense_blocker",
+      ]);
       assert.equal(result.queue_source.skipped[0].id, "todo-stale-scoped-1");
       assert.equal(result.queue_source.skipped[0].reason, "boardroom_todo_not_open");
       assert.deepEqual(calls.map((call) => call.body.params.name), ["list_actionable_todos"]);
