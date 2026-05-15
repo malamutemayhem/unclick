@@ -15,10 +15,41 @@ interface UmamiWindow {
   };
 }
 
+function currentPath(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+}
+
+function sendNativeAnalytics(event: string, data?: EventData, path?: string): void {
+  if (typeof window === "undefined" || typeof fetch !== "function") return;
+  try {
+    void fetch("/api/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({
+        event,
+        path: path ?? currentPath(),
+        title: document.title || undefined,
+        referrer: document.referrer || undefined,
+        properties: data ?? {},
+      }),
+    }).catch(() => undefined);
+  } catch {
+    // Never let analytics break the app.
+  }
+}
+
 export function track(event: string, data?: EventData): void {
   if (typeof window === "undefined") return;
+  sendNativeAnalytics(event, data);
   try {
     posthog.capture(event, data);
+  } catch {
+    // Never let analytics break the app.
+  }
+
+  try {
     const umami = (window as unknown as UmamiWindow).umami;
     if (umami && typeof umami.track === "function") {
       umami.track(event, data);
@@ -30,14 +61,21 @@ export function track(event: string, data?: EventData): void {
 
 export function trackPageView(path: string): void {
   if (typeof window === "undefined") return;
+  const properties = {
+    path,
+    title: document.title || undefined,
+    $current_url: window.location.href,
+    $pathname: path,
+  };
+  sendNativeAnalytics("$pageview", properties, path);
+
   try {
-    const properties = {
-      path,
-      title: document.title || undefined,
-      $current_url: window.location.href,
-      $pathname: path,
-    };
     posthog.capture("$pageview", properties);
+  } catch {
+    // Never let analytics break the app.
+  }
+
+  try {
     const umami = (window as unknown as UmamiWindow).umami;
     if (umami && typeof umami.track === "function") {
       umami.track("pageview", properties);
