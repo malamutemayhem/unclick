@@ -99,6 +99,36 @@ export interface WakepassReroutePlan {
   };
 }
 
+export interface WorkerSelfHealingTodoState {
+  id: string;
+  status: string;
+  assigned_to_agent_id?: string | null;
+  lease_token?: string | null;
+  lease_expires_at?: string | null;
+  reclaim_count?: number | null;
+}
+
+export type WorkerSelfHealingAction =
+  | "active_lease_preserved"
+  | "expired_lease_reclaimable"
+  | "stale_worker_action_needed"
+  | "no_action";
+
+export interface WorkerSelfHealingDecision {
+  action: WorkerSelfHealingAction;
+  todo_id: string;
+  assigned_to_agent_id: string | null;
+  lease_token: string | null;
+  lease_expires_at: string | null;
+  reclaim_count: number;
+  next_reclaim_count: number;
+  latest_handoff_receipt_id: string | null;
+  reason: string;
+  profile_agent_id?: string | null;
+  next_checkin_at?: string | null;
+  last_seen_at?: string | null;
+}
+
 export function isMissedCheckinCandidate(profile: ProfileRow, nowMs: number): boolean {
   if (!profile.next_checkin_at) return false;
   const dueMs = new Date(profile.next_checkin_at).getTime();
@@ -150,6 +180,77 @@ export function buildMissedCheckinDispatch(
     status: "leased",
     leaseOwner: profile.agent_id,
     leaseExpiresAt: new Date(nowMs + CHECKIN_ACK_LEASE_SECONDS * 1000).toISOString(),
+  };
+}
+
+export function planWorkerSelfHealingDecision(params: {
+  todo: WorkerSelfHealingTodoState;
+  profile?: ProfileRow | null;
+  latestHandoffReceiptId?: string | null;
+  nowMs: number;
+}): WorkerSelfHealingDecision {
+  const todo = params.todo;
+  const assignedToAgentId = nonEmptyString(todo.assigned_to_agent_id);
+  const leaseToken = nonEmptyString(todo.lease_token);
+  const leaseExpiresAt = nonEmptyString(todo.lease_expires_at);
+  const reclaimCountValue = Number(todo.reclaim_count ?? 0);
+  const reclaimCount = Number.isFinite(reclaimCountValue)
+    ? Math.max(0, reclaimCountValue)
+    : 0;
+  const latestHandoffReceiptId = nonEmptyString(params.latestHandoffReceiptId);
+  const base = {
+    todo_id: todo.id,
+    assigned_to_agent_id: assignedToAgentId,
+    lease_token: leaseToken,
+    lease_expires_at: leaseExpiresAt,
+    reclaim_count: reclaimCount,
+    latest_handoff_receipt_id: latestHandoffReceiptId,
+  };
+
+  if (leaseToken && leaseExpiresAt) {
+    const staleDecision = decideStaleLease(
+      {
+        status: "leased",
+        leaseExpiresAt,
+        lastRealActionAt: null,
+      },
+      new Date(params.nowMs),
+    );
+
+    if (!staleDecision.isStale) {
+      return {
+        ...base,
+        action: "active_lease_preserved",
+        next_reclaim_count: reclaimCount,
+        reason: "active_lease_not_expired",
+      };
+    }
+
+    return {
+      ...base,
+      action: "expired_lease_reclaimable",
+      next_reclaim_count: reclaimCount + 1,
+      reason: "lease_expired",
+    };
+  }
+
+  if (params.profile && isMissedCheckinCandidate(params.profile, params.nowMs)) {
+    return {
+      ...base,
+      action: "stale_worker_action_needed",
+      next_reclaim_count: reclaimCount,
+      profile_agent_id: params.profile.agent_id,
+      next_checkin_at: params.profile.next_checkin_at,
+      last_seen_at: params.profile.last_seen_at,
+      reason: "missed_next_checkin_without_active_lease",
+    };
+  }
+
+  return {
+    ...base,
+    action: "no_action",
+    next_reclaim_count: reclaimCount,
+    reason: "no_stale_worker_or_reclaimable_lease",
   };
 }
 
