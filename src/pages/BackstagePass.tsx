@@ -169,13 +169,13 @@ const STEPS = [
   {
     number: "03",
     title: "Your AI just works",
-    desc: "From now on, your AI handles everything. Platform connections stay active, credentials are encrypted, and every tool works without you lifting a finger.",
+    desc: "From now on, your AI handles everything. Platform connections stay active, Passport access is encrypted, and every tool works without you lifting a finger.",
   },
 ];
 
 const SECURITY_BULLETS = [
-  "Your credentials are encrypted with AES-256-GCM before they touch our database.",
-  "We validate every key works before storing it - no dead credentials.",
+  "Your Passport access is encrypted with AES-256-GCM before it touches our database.",
+  "We validate every key works before storing it - no dead Passport entries.",
   "Zero-knowledge design: we encrypt with your UnClick API key, not ours.",
   "Every connection attempt is logged for your audit trail.",
 ];
@@ -222,15 +222,15 @@ const PRICING = [
   },
 ];
 
-export default function BackstagePassPage() {
+export default function PassportPage() {
   useMetaTags({
-    title: "BackstagePass - Your AI's Backstage Pass | UnClick",
+    title: "Passport - Secure platform access | UnClick",
     description:
-      `Connect your platforms once. Your AI agent handles the rest. BackstagePass is UnClick's encrypted credential vault for AI agents - supporting ${SITE_STATS.PLATFORMS_DISPLAY} platforms.`,
-    ogTitle: "BackstagePass - Your AI's Backstage Pass | UnClick",
+      `Connect your platforms once. Your AI agent handles the rest. Passport is UnClick's secure access layer for AI agents, supporting ${SITE_STATS.PLATFORMS_DISPLAY} platforms.`,
+    ogTitle: "Passport - Secure platform access | UnClick",
     ogDescription:
       `Connect once. Your agent handles the rest. No more hunting for API keys. ${SITE_STATS.PLATFORMS_DISPLAY} platforms, AES-256-GCM encryption.`,
-    ogUrl: "https://unclick.world/backstagepass",
+    ogUrl: "https://unclick.world/admin/keychain",
   });
 
   const groupedPlatforms = CATEGORY_ORDER.map((cat) => ({
@@ -247,12 +247,12 @@ export default function BackstagePassPage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            name: "BackstagePass by UnClick",
+            name: "Passport by UnClick",
             description:
-              "Credential vault and platform connection system for AI agents. Connect once, your agent handles the rest.",
+              "Secure platform access for AI agents. Connect once, your agent handles the rest.",
             applicationCategory: "DeveloperApplication",
             operatingSystem: "Any",
-            url: "https://unclick.world/backstagepass",
+            url: "https://unclick.world/admin/keychain",
             offers: [
               { "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free" },
               { "@type": "Offer", price: "19", priceCurrency: "USD", name: "Pro" },
@@ -268,12 +268,12 @@ export default function BackstagePassPage() {
         <FadeIn>
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
             <Key className="h-3 w-3" />
-            BackstagePass
+            Passport
           </span>
         </FadeIn>
         <FadeIn delay={0.05}>
           <h1 className="mt-6 text-5xl font-semibold tracking-tight text-heading sm:text-6xl">
-            Your AI's backstage pass<br className="hidden sm:block" /> to every platform
+            Your AI's Passport<br className="hidden sm:block" /> to every platform
           </h1>
         </FadeIn>
         <FadeIn delay={0.1}>
@@ -311,7 +311,7 @@ export default function BackstagePassPage() {
             How it works
           </span>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-heading">
-            Three steps, then forget about credentials
+            Three steps, then Passport handles access
           </h2>
         </FadeIn>
         <div className="mt-10 grid gap-6 sm:grid-cols-3">
@@ -373,8 +373,8 @@ export default function BackstagePassPage() {
             <span className="font-mono text-xs font-medium uppercase tracking-widest text-primary">
               Security
             </span>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-heading">
-              Built to hold real credentials
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-heading">
+              Built to hold real Passport access
             </h2>
             <ul className="mt-6 space-y-3">
               {SECURITY_BULLETS.map((bullet, i) => (
@@ -395,14 +395,14 @@ export default function BackstagePassPage() {
             For developers
           </span>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-heading">
-            Build tools that use BackstagePass
+            Build tools that use Passport
           </h2>
           <p className="mt-3 max-w-2xl text-body leading-relaxed">
             Your tools can call{" "}
             <code className="rounded bg-card/40 px-1.5 py-0.5 font-mono text-xs text-primary">
-              keychainGetCredential(platform)
+              passportGetAccess(platform)
             </code>{" "}
-            to access stored credentials. Users connect once - your tool just works for them automatically.
+            to request approved Passport access. Users connect once - your tool just works for them automatically.
           </p>
         </FadeIn>
         <FadeIn delay={0.06}>
@@ -410,7 +410,7 @@ export default function BackstagePassPage() {
             <div className="flex items-center justify-between border-b border-border/30 px-4 py-2">
               <span className="font-mono text-xs text-muted-foreground">my-github-tool.ts</span>
               <CopyButton
-                code={`import { keychainGetCredential } from "@unclick/sdk";
+                code={`import { passportGetAccess } from "@unclick/sdk";
 
 export const githubTools = [
   {
@@ -418,7 +418,7 @@ export const githubTools = [
     description: "Lists the authenticated user's GitHub repositories.",
     inputSchema: { type: "object", properties: {}, required: [] },
     handler: async (_args: any) => {
-      const token = await keychainGetCredential("github");
+      const token = await passportGetAccess("github");
       const res = await fetch("https://api.github.com/user/repos", {
         headers: { Authorization: \`Bearer \${token}\` }
       });
@@ -430,7 +430,7 @@ export const githubTools = [
               />
             </div>
             <pre className="overflow-x-auto p-5">
-              <code className="font-mono text-xs leading-relaxed text-body">{`import { keychainGetCredential } from "@unclick/sdk";
+              <code className="font-mono text-xs leading-relaxed text-body">{`import { passportGetAccess } from "@unclick/sdk";
 
 export const githubTools = [
   {
@@ -438,7 +438,7 @@ export const githubTools = [
     description: "Lists the authenticated user's GitHub repositories.",
     inputSchema: { type: "object", properties: {}, required: [] },
     handler: async (_args: any) => {
-      const token = await keychainGetCredential("github");
+      const token = await passportGetAccess("github");
       const res = await fetch("https://api.github.com/user/repos", {
         headers: { Authorization: \`Bearer \${token}\` }
       });
@@ -537,10 +537,10 @@ export const githubTools = [
           <div className="rounded-2xl border border-border/40 bg-card/20 px-8 py-12 text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
               <Key className="h-3 w-3" />
-              BackstagePass
+              Passport
             </span>
             <h2 className="mt-5 text-3xl font-semibold tracking-tight text-heading">
-              Ready to give your AI backstage access?
+              Ready to give your AI Passport access?
             </h2>
             <p className="mx-auto mt-3 max-w-lg text-body">
               Install UnClick, then tell your agent to connect your platforms. Takes under 2 minutes.

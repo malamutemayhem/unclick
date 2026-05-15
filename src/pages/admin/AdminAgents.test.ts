@@ -3,8 +3,12 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import AdminAgentsPage from "./AdminAgents";
 import {
+  AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY,
+  buildSeatOverrideStoragePayload,
   latestProfileCheckInAt,
+  loadSeatOverridesFromStorage,
   mapProfilesToSeats,
+  rankSeatsForRouting,
   profileMatchesSeat,
   unmatchedRecentProfiles,
   type AISeat,
@@ -27,6 +31,7 @@ function seat(patch: Partial<AISeat>): AISeat {
     load: 25,
     assigned: "General capacity",
     issue: "",
+    routingPolicy: "auto",
     ...patch,
   };
 }
@@ -119,5 +124,51 @@ describe("AdminAgents seat check-ins", () => {
         Date.parse("2026-05-09T15:10:00.000Z"),
       ).map((p) => p.agent_id),
     ).toEqual(["cascade-windsurf-seat"]);
+  });
+
+  it("persists load overrides and routing policy under the v1 storage key", () => {
+    const payload = buildSeatOverrideStoragePayload([
+      seat({ id: "seat-1", load: 77, routingPolicy: "prefer", assigned: "Build lane" }),
+    ]);
+
+    expect(Object.keys(payload)).toEqual(["seat-1"]);
+    expect(payload["seat-1"].load).toBe(77);
+    expect(payload["seat-1"].routingPolicy).toBe("prefer");
+    expect(AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY).toContain("load_overrides_v1");
+  });
+
+  it("loads sanitized v1 seat overrides before legacy manual slot data", () => {
+    const storage = new Map<string, string>();
+    const fakeStorage = {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+    };
+    fakeStorage.setItem(
+      AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY,
+      JSON.stringify({
+        "seat-1": { load: 150, routingPolicy: "blocked", emoji: "🤖" },
+      }),
+    );
+
+    const [loaded] = loadSeatOverridesFromStorage([seat({ emoji: "💻" })], fakeStorage);
+
+    expect(loaded.load).toBe(100);
+    expect(loaded.routingPolicy).toBe("blocked");
+    expect(loaded.emoji).toBe("💻");
+  });
+
+  it("ranks routed seats by policy, live check-in, and load", () => {
+    const now = Date.parse("2026-05-09T04:10:00.000Z");
+    const ranked = rankSeatsForRouting(
+      [
+        seat({ id: "busy", name: "Busy", load: 90, routingPolicy: "auto" }),
+        seat({ id: "preferred", name: "Preferred", load: 80, routingPolicy: "prefer" }),
+        seat({ id: "blocked", name: "Blocked", load: 0, routingPolicy: "blocked" }),
+      ],
+      [profile({ agent_id: "preferred", display_name: "Preferred", last_seen_at: "2026-05-09T04:05:00.000Z" })],
+      now,
+    );
+
+    expect(ranked.map((item) => item.id)).toEqual(["preferred", "busy"]);
   });
 });

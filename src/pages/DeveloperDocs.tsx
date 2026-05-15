@@ -54,8 +54,8 @@ const TOOL_TEMPLATE = `export const weatherTools = [
   }
 ];`;
 
-// Template for tools that need an API key via vault-bridge
-const KEYED_TEMPLATE = `import { resolveCredential } from './vault-bridge';
+// Template for tools that need an API key via Passport
+const KEYED_TEMPLATE = `import { resolveCredential } from '@unclick/tool-sdk/passport';
 
 export const myApiTools = [
   {
@@ -168,7 +168,7 @@ function QuickStartSection() {
       <SectionCard>
         <h3 className="text-sm font-semibold text-heading">Step 1: Install the SDK (2 min)</h3>
         <CodeBlock code={`npm install @unclick/tool-sdk`} />
-        <P>This gives you the vault-bridge helper and the local test runner.</P>
+        <P>This gives you the Passport helper and the local test runner.</P>
       </SectionCard>
 
       <SectionCard>
@@ -216,7 +216,7 @@ function ToolTemplateSection() {
       <SectionCard>
         <H2>Tool File Template</H2>
         <P>
-          Two patterns: one for tools that need no API key, and one for tools that need credentials.
+          Two patterns: one for tools that need no API key, and one for tools that need Passport access.
           Both follow the same structure.
         </P>
       </SectionCard>
@@ -231,21 +231,21 @@ function ToolTemplateSection() {
       </div>
 
       <div className="rounded-xl border border-border/40 bg-card/20 p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-heading">Pattern 2: API key via vault-bridge</h3>
+        <h3 className="text-sm font-semibold text-heading">Pattern 2: API key via Passport</h3>
         <P>
           Use this when the API requires authentication. The{" "}
           <InlineCode>resolveCredential</InlineCode> helper tries the user's arg first, then their
-          saved vault, then a server environment variable. Never hardcode a key.
+          saved Passport entry, then a server environment variable. Never hardcode a key.
         </P>
         <CodeBlock code={KEYED_TEMPLATE} filename="my-api-tools.ts" />
       </div>
 
       <SectionCard>
-        <h3 className="text-sm font-semibold text-heading">vault-bridge lookup order</h3>
+        <h3 className="text-sm font-semibold text-heading">Passport lookup order</h3>
         <ol className="space-y-2 list-none">
           {[
-            "The value the user passed in args (fastest, no vault needed)",
-            "The credential saved in the user's UnClick vault under the given key",
+            "The value the user passed in args (fastest, no Passport entry needed)",
+            "The access saved in the user's Passport under the given key",
             "A server environment variable matching the key name",
           ].map((item, i) => (
             <li key={i} className="flex items-start gap-3 text-sm text-body">
@@ -267,7 +267,7 @@ function ToolTemplateSection() {
         <BulletList items={[
           "Keep field descriptions short and specific. AI agents read them to decide what to pass.",
           "Only mark fields as required if the tool genuinely cannot run without them.",
-          "The api_key field should always be optional. vault-bridge handles the fallback.",
+          "The api_key field should always be optional. Passport handles the fallback.",
           "Avoid deeply nested schemas. Flat is easier for agents to reason about.",
         ]} />
       </SectionCard>
@@ -304,8 +304,8 @@ function SubmissionGuideSection() {
         <h3 className="text-sm font-semibold text-heading">Review criteria</h3>
         <BulletList items={[
           "Tool works as described and returns valid JSON",
-          "Uses vault-bridge for all credential handling",
-          "No hardcoded secrets or credentials anywhere in the file",
+          "Uses Passport for all access handling",
+          "No hardcoded secrets or access values anywhere in the file",
           "Tool and field descriptions follow the writing standards",
           "Error handling is in place for failed API calls",
           "API usage is within the upstream provider's terms of service",
@@ -412,11 +412,11 @@ if (!res.ok) return null;`} />
       </SectionCard>
 
       <SectionCard>
-        <h3 className="text-sm font-semibold text-heading">Credential pattern</h3>
+        <h3 className="text-sm font-semibold text-heading">Passport access pattern</h3>
         <P>
           Always accept an optional <InlineCode>api_key</InlineCode> argument and pass it as the first
           argument to <InlineCode>resolveCredential</InlineCode>. This lets users provide keys at call
-          time without pre-configuring a vault entry.
+          time without pre-configuring a Passport entry.
         </P>
         <CodeBlock code={`const key = await resolveCredential(args.api_key, 'MYAPI_KEY');`} />
       </SectionCard>
@@ -436,7 +436,7 @@ if (!res.ok) return null;`} />
 const REJECTION_REASONS = [
   {
     reason: "Hardcoded API key or secret in the tool file",
-    fix: "Move all credentials to resolveCredential. Even for testing, never commit a real key.",
+    fix: "Move all access handling to resolveCredential. Even for testing, never commit a real key.",
   },
   {
     reason: "Tool description contains jargon or marketing language",
@@ -523,7 +523,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "What if my tool wraps a paid API?",
-    a: "That is fine. Make the api_key field optional and use vault-bridge. Users with their own API keys can use the tool without any extra setup.",
+    a: "That is fine. Make the api_key field optional and use Passport. Users with their own API keys can use the tool without any extra setup.",
   },
   {
     q: "Do I need to create an account to submit?",

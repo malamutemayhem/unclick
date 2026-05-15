@@ -161,11 +161,11 @@ describe("AdminOrchestratorPage", () => {
                     boardroom_messages: 1,
                     todos: 1,
                     comments: 0,
-                    dispatches: 0,
+                    dispatches: 1,
                     signals: 0,
                     sessions: 1,
                     library: 0,
-                    business_context: 0,
+                    business_context: 1,
                     conversation_turns: 1,
                   },
                 },
@@ -210,6 +210,22 @@ describe("AdminOrchestratorPage", () => {
                     kind: "signal",
                     summary: "Signal to notice: something needs attention.",
                     tags: ["signal"],
+                  },
+                  {
+                    source_kind: "dispatch",
+                    source_id: "dispatch-1",
+                    created_at: "2026-05-10T06:03:30.000Z",
+                    kind: "dispatch",
+                    summary: "Dispatch routed the heartbeat packet to the build lane.",
+                    tags: ["dispatch", "heartbeat"],
+                  },
+                  {
+                    source_kind: "business_context",
+                    source_id: "context-passport",
+                    created_at: "2026-05-10T06:03:15.000Z",
+                    kind: "context",
+                    summary: "Passport is the single public name for the access surface.",
+                    tags: ["business_context", "passport"],
                   },
                   {
                     source_kind: "todo_comment",
@@ -442,6 +458,16 @@ describe("AdminOrchestratorPage", () => {
 
     expect(screen.getAllByText(/Orchestrator context should show subscription messages/i).length).toBeGreaterThan(0);
     expect(screen.queryAllByText(/Orchestrator continuity proof landed/i)).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole("button", { name: "Signals sources" }));
+
+    expect(screen.getAllByText(/Dispatch routed the heartbeat packet/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Signal to notice: something needs attention/i).length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole("button", { name: "Memory sources" }));
+
+    expect(screen.getAllByText(/Passport is the single public name/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Dispatch routed the heartbeat packet/i)).not.toBeInTheDocument();
   });
 
   it("lets humans view more loaded Orchestrator history", async () => {

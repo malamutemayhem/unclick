@@ -22,8 +22,8 @@ const DISPATCH_FEATURES = [
     icon: CheckCircle2,
   },
   {
-    title: "Credentials",
-    desc: "BackstagePass manages API keys and tokens securely",
+    title: "Passport",
+    desc: "Passport manages approved API access securely",
     icon: Lock,
   },
   {

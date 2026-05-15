@@ -1014,32 +1014,18 @@ const tools: Tool[] = [
   },
   // ── Platform Connectors (additional) ──────────────────────────────────────
   {
-    name: "Vault",
-    description: "Store and retrieve encrypted credentials, API keys, and secrets for use across your AI agent workflows. Vault provides a secure, API-accessible credential store so agents can share secrets between sessions and tools without exposing them in plaintext. Connect once. Every workflow that needs those credentials just works.",
-    endpoint: "/v1/vault",
-    category: "Security",
-    Icon: KeyRound,
-    capabilities: [
-      "Store encrypted credentials, API keys, and secrets with scoped access",
-      "Retrieve stored secrets from any workflow step using named keys",
-      "Rotate credentials without updating every tool that depends on them",
-      "Audit access logs: who retrieved what secret and when",
-    ],
-    examplePrompt: "Ask your AI to store a production database URL in Vault and retrieve it across any workflow",
-  },
-  {
-    name: "Keychain",
-    description: "Connect your platform accounts once and let any agent use them automatically. Keychain is an encrypted credential vault for GitHub, Supabase, Vercel, Stripe, Cloudflare, and more. Credentials are AES-256-GCM encrypted using your UnClick API key - only you can decrypt them. Test-before-save validates every credential against the live platform API before storing.",
-    endpoint: "/v1/keychain",
+    name: "Passport",
+    description: "Connect your platform accounts once and let any agent use them automatically. Passport protects GitHub, Supabase, Vercel, Stripe, Cloudflare, and more. Access entries are AES-256-GCM encrypted using your UnClick API key - only you can decrypt them. Test-before-save validates every entry against the live platform API before storing.",
+    endpoint: "/v1/passport",
     category: "Security",
     Icon: KeyRound,
     capabilities: [
       "Connect GitHub, Supabase, Vercel, Stripe, and Cloudflare with a single command",
-      "AES-256-GCM encryption: credentials are encrypted with your API key and never stored in plaintext",
-      "Test-before-save: every credential is validated against the live platform before storage",
-      "Per-tenant isolation: key hashing ensures no credential is accessible by another user",
+      "AES-256-GCM encryption: access entries are encrypted with your API key and never stored in plaintext",
+      "Test-before-save: every entry is validated against the live platform before storage",
+      "Per-tenant isolation: key hashing ensures no Passport entry is accessible by another user",
     ],
-    examplePrompt: "Ask your AI to connect your GitHub token to Keychain so all workflows can use it automatically",
+    examplePrompt: "Ask your AI to connect GitHub to Passport so all approved workflows can use it automatically",
   },
   {
     name: "C-Suite Analyze",
@@ -2734,7 +2720,7 @@ const PLATFORM_CONNECTOR_SLUGS: Record<string, string> = {
   "QuickBooks":     "quickbooks",
   "Plaid":          "plaid",
   "WooCommerce":    "woocommerce",
-  "Vault":          "vault",
+  "Passport":       "keychain",
   "C-Suite Analyze":"csuite",
   "Notion":         "notion",
   "Vercel":         "vercel",
@@ -3087,7 +3073,7 @@ const Tools = ({ searchQuery = "" }: ToolsProps) => {
                     </span>
                   </div>
                   <p className="text-sm text-body max-w-2xl">
-                    Connect your accounts one time. Your AI agent handles the rest, with no credentials needed on every call.
+                    Connect your accounts one time. Your AI agent handles the rest, with no Passport setup needed on every call.
                   </p>
                 </div>
               </FadeIn>
@@ -3095,6 +3081,7 @@ const Tools = ({ searchQuery = "" }: ToolsProps) => {
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
                   {visiblePlatform.map((tool, i) => {
                     const slug = PLATFORM_CONNECTOR_SLUGS[tool.name] ?? tool.name.toLowerCase();
+                    const connectHref = tool.name === "Passport" ? "/admin/keychain" : `/connect/${slug}`;
                     const isConnected = connectorStatus[slug] === "connected";
                     return (
                       <FadeIn key={tool.name} delay={Math.min(i * 0.03, 0.3)}>
@@ -3138,10 +3125,10 @@ const Tools = ({ searchQuery = "" }: ToolsProps) => {
                               <TestPassBadge score={testPassScores[testPassKeyForTool(tool)]} />
                             </div>
                             <a
-                              href={`/connect/${slug}`}
+                              href={connectHref}
                               className="rounded-lg bg-primary/10 border border-primary/20 px-3 py-1 text-[11px] font-semibold text-primary hover:bg-primary/20 transition-colors"
                             >
-                              {isConnected ? "Manage" : "Connect"}
+                              {tool.name === "Passport" ? "Open" : isConnected ? "Manage" : "Connect"}
                             </a>
                           </div>
                         </motion.div>
@@ -3159,6 +3146,7 @@ const Tools = ({ searchQuery = "" }: ToolsProps) => {
           {visible.map((tool, i) => {
             const isPlatform = PLATFORM_CONNECTOR_NAMES.has(tool.name);
             const slug = isPlatform ? (PLATFORM_CONNECTOR_SLUGS[tool.name] ?? tool.name.toLowerCase()) : null;
+            const connectHref = tool.name === "Passport" ? "/admin/keychain" : `/connect/${slug}`;
             const isConnected = slug ? connectorStatus[slug] === "connected" : false;
 
             return (
@@ -3196,10 +3184,10 @@ const Tools = ({ searchQuery = "" }: ToolsProps) => {
                         <TestPassBadge score={testPassScores[testPassKeyForTool(tool)]} />
                       </div>
                       <a
-                        href={`/connect/${slug}`}
+                        href={connectHref}
                         className="rounded-lg bg-primary/10 border border-primary/20 px-3 py-1 text-[11px] font-semibold text-primary hover:bg-primary/20 transition-colors"
                       >
-                        {isConnected ? "Manage" : "Connect"}
+                        {tool.name === "Passport" ? "Open" : isConnected ? "Manage" : "Connect"}
                       </a>
                     </div>
                   </motion.div>
@@ -3243,6 +3231,7 @@ const Tools = ({ searchQuery = "" }: ToolsProps) => {
         {selectedTool && (() => {
           const isPlatform = PLATFORM_CONNECTOR_NAMES.has(selectedTool.name);
           const slug = isPlatform ? (PLATFORM_CONNECTOR_SLUGS[selectedTool.name] ?? selectedTool.name.toLowerCase()) : null;
+          const connectHref = selectedTool.name === "Passport" ? "/admin/keychain" : `/connect/${slug}`;
           const isConnected = slug ? connectorStatus[slug] === "connected" : false;
 
           return (
@@ -3338,14 +3327,14 @@ const Tools = ({ searchQuery = "" }: ToolsProps) => {
                   {isPlatform ? (
                     <>
                       <a
-                        href={`/connect/${slug}`}
+                        href={connectHref}
                         className={`flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition-colors ${
                           isConnected
                             ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20"
                             : "bg-primary text-primary-foreground hover:opacity-90"
                         }`}
                       >
-                        {isConnected ? "Manage connection" : "Connect account"}
+                        {selectedTool.name === "Passport" ? "Open Passport" : isConnected ? "Manage connection" : "Connect account"}
                       </a>
                       <a
                         href="/docs"

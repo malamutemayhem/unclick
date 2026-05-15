@@ -71,7 +71,7 @@ const categories = [
 
 const approvalChecklist = [
   "My tool file is TypeScript and exports a named array (e.g. weatherTools).",
-  "All API credentials go through resolveCredential, never hardcoded.",
+  "All API access goes through Passport, never hardcoded.",
   "Every fetch call checks res.ok and throws a descriptive error if false.",
   "Tool names are snake_case (e.g. get_current_weather).",
   "Descriptions start with a verb and are under 120 characters.",

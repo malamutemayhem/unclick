@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import {
   buildMemoryTaxonomySnapshots,
   isSensitiveMemorySnapshotText,
+  memoryTaxonomySnapshotToLibraryDoc,
+  writeMemoryTaxonomySnapshotsToLibrary,
 } from "../supabase.js";
 
 describe("memory taxonomy snapshots", () => {
@@ -75,5 +77,62 @@ describe("memory taxonomy snapshots", () => {
     assert.deepEqual(snapshot.source_ids, ["fact-high"]);
     assert.equal(snapshot.confidence, 0.9);
     assert.equal(snapshot.last_confirmed_at, "2026-05-10T10:00:00.000Z");
+  });
+
+  test("formats snapshots as source-linked library docs", () => {
+    const [snapshot] = buildMemoryTaxonomySnapshots([
+      {
+        id: "fact-memory",
+        kind: "fact",
+        text: "Memory snapshots should keep source pointers for audit",
+        category: "memory",
+        confidence: 0.88,
+      },
+    ]);
+    const doc = memoryTaxonomySnapshotToLibraryDoc(snapshot);
+
+    assert.equal(doc.category, "memory_snapshot");
+    assert.equal(doc.slug, "memory-taxonomy-15-data-and-memory");
+    assert.ok(doc.tags.includes("memory-taxonomy-snapshot"));
+    assert.ok(doc.content.includes("Source pointers: fact:fact-memory"));
+  });
+
+  test("writer supports dry runs and live upserts", async () => {
+    const sources = [
+      {
+        id: "fact-ops",
+        kind: "fact" as const,
+        text: "Worker routing performance monitor should track repeated failures",
+        category: "worker",
+        confidence: 0.9,
+      },
+    ];
+
+    const dryRun = await writeMemoryTaxonomySnapshotsToLibrary({
+      sources,
+      options: { dry_run: true },
+      upsertLibraryDoc: async () => {
+        throw new Error("dry run should not write");
+      },
+      generatedAt: "2026-05-10T12:00:00.000Z",
+    });
+
+    assert.equal(dryRun.dry_run, true);
+    assert.equal(dryRun.snapshot_count, 1);
+    assert.equal(dryRun.written_count, 0);
+
+    const writtenDocs: string[] = [];
+    const live = await writeMemoryTaxonomySnapshotsToLibrary({
+      sources,
+      upsertLibraryDoc: async (doc) => {
+        writtenDocs.push(doc.slug);
+        return `Library doc created: "${doc.title}" (v1)`;
+      },
+      generatedAt: "2026-05-10T12:00:00.000Z",
+    });
+
+    assert.equal(live.dry_run, false);
+    assert.equal(live.written_count, 1);
+    assert.deepEqual(writtenDocs, [live.written[0].slug]);
   });
 });

@@ -21,10 +21,15 @@ import {
 } from "./agentTemplates";
 import {
   latestProfileCheckInAt,
+  AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY,
+  buildSeatOverrideStoragePayload,
+  loadSeatOverridesFromStorage,
+  normalizeSeatRoutingPolicy,
   mapProfilesToSeats,
   unmatchedRecentProfiles,
   type AISeat,
   type FishbowlProfile,
+  type SeatRoutingPolicy,
 } from "./AdminAgentsSeatUtils";
 import { useSession } from "@/lib/auth";
 
@@ -78,8 +83,6 @@ const ROLE_OPTIONS = [
   { value: "custom", label: "Custom" },
 ];
 
-const AI_SEAT_STORAGE_KEY = "unclick_ai_seat_manual_slots_v1";
-
 const AI_SEAT_EMOJI_OPTIONS = [
   { emoji: "💻", label: "Laptop / default" },
   { emoji: "🖥️", label: "Desktop" },
@@ -117,6 +120,7 @@ const AI_SEATS: AISeat[] = [
     load: 25,
     assigned: "General capacity",
     issue: "",
+    routingPolicy: "auto",
   },
   {
     id: "seat-2",
@@ -129,6 +133,7 @@ const AI_SEATS: AISeat[] = [
     load: 25,
     assigned: "General capacity",
     issue: "",
+    routingPolicy: "auto",
   },
   {
     id: "seat-3",
@@ -141,6 +146,7 @@ const AI_SEATS: AISeat[] = [
     load: 25,
     assigned: "General capacity",
     issue: "",
+    routingPolicy: "auto",
   },
   {
     id: "seat-4",
@@ -153,6 +159,7 @@ const AI_SEATS: AISeat[] = [
     load: 25,
     assigned: "General capacity",
     issue: "",
+    routingPolicy: "auto",
   },
   {
     id: "virtual-review",
@@ -166,21 +173,12 @@ const AI_SEATS: AISeat[] = [
     assigned: "Review / fallback",
     issue: "",
     isVirtual: true,
+    routingPolicy: "avoid",
   },
 ];
 
 function loadSeatOverrides(): AISeat[] {
-  if (typeof window === "undefined") return AI_SEATS;
-  try {
-    const overrides = JSON.parse(window.localStorage.getItem(AI_SEAT_STORAGE_KEY) ?? "{}") as Record<string, Partial<AISeat>>;
-    return AI_SEATS.map((seat) => {
-      const override = overrides[seat.id] ?? {};
-      const wasOldDefaultEmoji = (!seat.isVirtual && override.emoji === "🤖") || (seat.isVirtual && override.emoji === "🧪");
-      return { ...seat, ...override, emoji: wasOldDefaultEmoji ? seat.emoji : override.emoji ?? seat.emoji };
-    });
-  } catch {
-    return AI_SEATS;
-  }
+  return loadSeatOverridesFromStorage(AI_SEATS);
 }
 
 function getApiKey(): string {
@@ -304,20 +302,7 @@ function AISeatsPanel() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const overrides = Object.fromEntries(
-      seats.map((seat) => [
-        seat.id,
-        {
-          name: seat.name,
-          emoji: seat.emoji,
-          provider: seat.provider,
-          device: seat.device,
-          load: seat.load,
-          assigned: seat.assigned,
-        },
-      ]),
-    );
-    window.localStorage.setItem(AI_SEAT_STORAGE_KEY, JSON.stringify(overrides));
+    window.localStorage.setItem(AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY, JSON.stringify(buildSeatOverrideStoragePayload(seats)));
   }, [seats]);
 
   useEffect(() => {
@@ -329,6 +314,10 @@ function AISeatsPanel() {
 
   const updateSeat = (seatId: string, patch: Partial<AISeat>) => {
     setSeats((current) => current.map((seat) => (seat.id === seatId ? { ...seat, ...patch } : seat)));
+  };
+
+  const updateRoutingPolicy = (seatId: string, routingPolicy: SeatRoutingPolicy) => {
+    updateSeat(seatId, { routingPolicy: normalizeSeatRoutingPolicy(routingPolicy) });
   };
 
   const spreadEvenly = () => {
@@ -406,6 +395,7 @@ function AISeatsPanel() {
             const emojiOptions = AI_SEAT_EMOJI_OPTIONS.some((option) => option.emoji === seat.emoji)
               ? AI_SEAT_EMOJI_OPTIONS
               : [{ emoji: seat.emoji, label: "Custom" }, ...AI_SEAT_EMOJI_OPTIONS];
+            const routingPolicy = normalizeSeatRoutingPolicy(seat.routingPolicy);
             return (
               <div
                 key={seat.id}
@@ -523,6 +513,17 @@ function AISeatsPanel() {
                   >
                     {editing ? <Save className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
                   </button>
+                  <select
+                    value={routingPolicy}
+                    onChange={(event) => updateRoutingPolicy(seat.id, event.target.value as SeatRoutingPolicy)}
+                    className="rounded-md border border-border/40 bg-card/40 px-2 py-1 text-[10px] text-muted-foreground outline-none transition-colors hover:border-primary/40 focus:border-primary/40"
+                    aria-label={`${seat.name} routing policy`}
+                  >
+                    <option value="auto">Auto</option>
+                    <option value="prefer">Prefer</option>
+                    <option value="avoid">Avoid</option>
+                    <option value="blocked">Blocked</option>
+                  </select>
                   {seat.issue ? (
                     <span className="text-[10px] text-amber-300">{seat.issue}</span>
                   ) : seat.isVirtual ? (

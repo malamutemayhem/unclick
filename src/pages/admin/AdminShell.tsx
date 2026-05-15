@@ -102,15 +102,15 @@ function SeatsCascadeIcon(props: SVGProps<SVGSVGElement>) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <rect x="7" y="4" width="13" height="10" rx="2" />
-      <path d="M11 14v2" />
-      <path d="M9 16h6" />
-      <rect x="3" y="8" width="13" height="10" rx="2" />
-      <path d="M7.5 12.5h.01" />
-      <path d="M11.5 12.5h.01" />
-      <path d="M8 15h3" />
-      <path d="M8 18v2" />
-      <path d="M6 20h6" />
+      <rect x="3" y="4" width="18" height="13" rx="2" />
+      <path d="M12 17v3" />
+      <path d="M8 20h8" />
+      <path d="M12 7V5.5" />
+      <path d="M10.5 7h3" />
+      <rect x="8" y="8" width="8" height="6" rx="2" />
+      <path d="M10.5 11h.01" />
+      <path d="M13.5 11h.01" />
+      <path d="M11 13h2" />
     </svg>
   );
 }

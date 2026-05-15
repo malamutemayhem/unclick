@@ -428,6 +428,21 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return { message: msg };
   },
 
+  async refresh_taxonomy_snapshots(args) {
+    const db = await getBackend();
+    return db.refreshTaxonomySnapshots({
+      dry_run: bool(args.dry_run, false),
+      max_sources: num(args.max_sources, 80),
+      max_snapshots: num(args.max_snapshots, 12),
+      max_sources_per_snapshot: num(args.max_sources_per_snapshot, 8),
+    });
+  },
+
+  async embedding_state() {
+    const { getEmbeddingState } = await import("./embeddings.js");
+    return getEmbeddingState();
+  },
+
   async manage_decay() {
     const db = await getBackend();
     return db.manageDecay();

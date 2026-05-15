@@ -317,7 +317,7 @@ export const SYSTEM_CREDENTIAL_INVENTORY: readonly SystemCredentialInventoryEntr
     workload: "payments",
     risk: "critical",
     expected: false,
-    docsHint: "Payments credentials require explicit human approval before any rotation work.",
+    docsHint: "Payments Passport access requires explicit human approval before any rotation work.",
   },
   {
     provider: "vercel",

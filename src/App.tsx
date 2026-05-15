@@ -23,7 +23,6 @@ import DeveloperSubmitPage from "./pages/DeveloperSubmit.tsx";
 import VibeCodingPage from "./pages/VibeCoding.tsx";
 import TermsPage from "./pages/Terms.tsx";
 import PrivacyPage from "./pages/Privacy.tsx";
-import BackstagePassPage from "./pages/BackstagePass.tsx";
 import MemoryPage from "./pages/Memory.tsx";
 import MemorySetupPage from "./pages/MemorySetup.tsx";
 import MemoryConnectPage from "./pages/MemoryConnect.tsx";

@@ -8,7 +8,7 @@ export const SITE_STATS = {
   TOOL_FILES: 178,           // Number of tool files in the repo
   CALLABLE_ENDPOINTS: 450,   // Total callable endpoints across all tools
 
-  // BackstagePass
+  // Passport
   BACKSTAGEPASS_PLATFORMS: 20, // Number of supported platform connectors
 
   // Categories

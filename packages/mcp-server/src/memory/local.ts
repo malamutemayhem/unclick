@@ -20,7 +20,11 @@ import type {
   ConversationInput,
   CodeInput,
   LibraryDocInput,
+  MemoryTaxonomySnapshotSource,
+  MemoryTaxonomySnapshotWriteOptions,
+  MemoryTaxonomySnapshotWriteResult,
 } from "./types.js";
+import { writeMemoryTaxonomySnapshotsToLibrary } from "./supabase.js";
 
 const DATA_DIR = path.join(os.homedir(), ".unclick", "memory");
 
@@ -450,6 +454,43 @@ export class LocalBackend implements MemoryBackend {
       writeTable("knowledge_library", docs);
       return `Library doc created: "${data.title}" (v1)`;
     }
+  }
+
+  async refreshTaxonomySnapshots(
+    options: MemoryTaxonomySnapshotWriteOptions = {}
+  ): Promise<MemoryTaxonomySnapshotWriteResult> {
+    const maxSources = Math.max(1, Math.min(250, options.max_sources ?? 80));
+    const facts: MemoryTaxonomySnapshotSource[] = readTable<FactRow>("extracted_facts")
+      .filter((fact) => fact.status === "active")
+      .sort((a, b) => b.confidence - a.confidence || new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      .slice(0, maxSources)
+      .map((fact) => ({
+        id: fact.id,
+        kind: "fact" as const,
+        text: fact.fact,
+        category: fact.category,
+        confidence: fact.confidence,
+        created_at: fact.created_at,
+        updated_at: fact.updated_at,
+      }));
+    const sessions: MemoryTaxonomySnapshotSource[] = readTable<SessionRow>("session_summaries")
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, Math.max(1, Math.floor(maxSources / 2)))
+      .map((session) => ({
+        id: session.id,
+        kind: "session" as const,
+        text: session.summary,
+        category: session.topics.join(" ") || "session",
+        confidence: 0.75,
+        created_at: session.created_at,
+        updated_at: session.created_at,
+      }));
+
+    return writeMemoryTaxonomySnapshotsToLibrary({
+      sources: [...facts, ...sessions],
+      options,
+      upsertLibraryDoc: (doc) => this.upsertLibraryDoc(doc),
+    });
   }
 
   async manageDecay(): Promise<unknown> {

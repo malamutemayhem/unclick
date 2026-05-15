@@ -194,7 +194,7 @@ export function AdminTodoList() {
       <TileGrid
         items={[
           { title: "Open tasks", body: "Jobs waiting for a worker, owner, proof, or decision.", icon: ListTodo },
-          { title: "Blocked tasks", body: "Items that need user input, missing credentials, or a safety decision.", icon: ShieldCheck },
+          { title: "Blocked tasks", body: "Items that need user input, missing Passport access, or a safety decision.", icon: ShieldCheck },
           { title: "Done", body: "Completed tasks with receipts linked in the Ledger.", icon: CheckCircle2 },
         ]}
       />
@@ -219,7 +219,7 @@ export function AdminChecks() {
           { title: "SEOPass", body: "Search visibility and metadata checks.", icon: SearchCheck },
           { title: "QualityPass", body: "Public name for SlopPass-style quality checking.", icon: BadgeCheck },
           { title: "CompliancePass", body: "Public name for EnterprisePass.", icon: ShieldCheck },
-          { title: "RotatePass", body: "Credential rotation checks, likely folding into SecurityPass later.", icon: KeyRound },
+          { title: "RotatePass", body: "Passport rotation checks, likely folding into SecurityPass later.", icon: KeyRound },
         ]}
       />
     </PageShell>

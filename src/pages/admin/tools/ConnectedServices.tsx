@@ -78,7 +78,7 @@ export function deriveConnectorStatus(
       dot: "bg-sky-400",
       pillClass: "bg-sky-400/10 text-sky-200",
       pill: "Check unknown",
-      note: `Credential metadata is present, but test time is unknown. Last test timestamp: ${formatLastTested(credential.last_tested_at)}.`,
+      note: `Passport metadata is present, but test time is unknown. Last test timestamp: ${formatLastTested(credential.last_tested_at)}.`,
     };
   }
 
@@ -87,7 +87,7 @@ export function deriveConnectorStatus(
       dot: "bg-yellow-400",
       pillClass: "bg-yellow-400/10 text-yellow-200",
       pill: "Check stale",
-      note: `Credential exists, but test evidence is stale. Last test timestamp: ${formatLastTested(credential.last_tested_at)}.`,
+      note: `Passport entry exists, but test evidence is stale. Last test timestamp: ${formatLastTested(credential.last_tested_at)}.`,
     };
   }
 

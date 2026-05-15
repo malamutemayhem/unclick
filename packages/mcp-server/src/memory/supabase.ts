@@ -27,6 +27,8 @@ import type {
   CodeInput,
   LibraryDocInput,
   MemoryTaxonomySnapshot,
+  MemoryTaxonomySnapshotWriteOptions,
+  MemoryTaxonomySnapshotWriteResult,
   MemoryTaxonomySnapshotSource,
 } from "./types.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
@@ -372,6 +374,85 @@ export function buildMemoryTaxonomySnapshots(
       return weightDiff !== 0 ? weightDiff : a.primary_category.localeCompare(b.primary_category);
     })
     .slice(0, maxSnapshots);
+}
+
+export function memoryTaxonomySnapshotToLibraryDoc(snapshot: MemoryTaxonomySnapshot): LibraryDocInput {
+  const categoryTag = slugPart(snapshot.primary_category);
+  return {
+    slug: snapshot.slug,
+    title: snapshot.title,
+    category: "memory_snapshot",
+    content: [
+      snapshot.content,
+      "",
+      "Snapshot metadata:",
+      `- Primary: ${snapshot.primary_category}`,
+      snapshot.secondary_categories.length > 0
+        ? `- Secondary: ${snapshot.secondary_categories.join(", ")}`
+        : "- Secondary: none",
+      `- Source pointers: ${snapshot.sources.map((source) => `${source.kind}:${source.id}`).join(", ")}`,
+      snapshot.last_confirmed_at ? `- Last confirmed: ${snapshot.last_confirmed_at}` : "- Last confirmed: unknown",
+    ].join("\n"),
+    tags: [
+      "memory-taxonomy-snapshot",
+      "source-linked",
+      categoryTag,
+      ...snapshot.secondary_categories.map(slugPart),
+      ...snapshot.sub_tags,
+    ].filter(Boolean).slice(0, 20),
+  };
+}
+
+export async function writeMemoryTaxonomySnapshotsToLibrary({
+  sources,
+  options = {},
+  upsertLibraryDoc,
+  generatedAt = new Date().toISOString(),
+}: {
+  sources: MemoryTaxonomySnapshotSource[];
+  options?: MemoryTaxonomySnapshotWriteOptions;
+  upsertLibraryDoc: (data: LibraryDocInput) => Promise<string>;
+  generatedAt?: string;
+}): Promise<MemoryTaxonomySnapshotWriteResult> {
+  const snapshots = buildMemoryTaxonomySnapshots(sources, {
+    maxSnapshots: options.max_snapshots,
+    maxSourcesPerSnapshot: options.max_sources_per_snapshot,
+  });
+  const snapshotSummary = snapshots.map((snapshot) => ({
+    slug: snapshot.slug,
+    title: snapshot.title,
+    primary_category: snapshot.primary_category,
+    source_ids: snapshot.source_ids,
+  }));
+
+  if (options.dry_run) {
+    return {
+      dry_run: true,
+      generated_at: generatedAt,
+      source_count: sources.length,
+      snapshot_count: snapshots.length,
+      written_count: 0,
+      snapshots: snapshotSummary,
+      written: [],
+    };
+  }
+
+  const written: MemoryTaxonomySnapshotWriteResult["written"] = [];
+  for (const snapshot of snapshots) {
+    const doc = memoryTaxonomySnapshotToLibraryDoc(snapshot);
+    const message = await upsertLibraryDoc(doc);
+    written.push({ slug: doc.slug, title: doc.title, message });
+  }
+
+  return {
+    dry_run: false,
+    generated_at: generatedAt,
+    source_count: sources.length,
+    snapshot_count: snapshots.length,
+    written_count: written.length,
+    snapshots: snapshotSummary,
+    written,
+  };
 }
 
 const BYOD_TABLES: TableNames = {
@@ -804,14 +885,15 @@ export class SupabaseBackend implements MemoryBackend {
   }
 
   private async embedAndStore(table: string, id: string, text: string): Promise<void> {
-    const { embedText, EMBEDDING_MODEL } = await import("./embeddings.js");
+    const { embedText, getEmbeddingState } = await import("./embeddings.js");
+    const state = getEmbeddingState();
     const vec = await embedText(text);
     if (!vec) return;
     await this.client
       .from(table)
       .update({
         embedding: JSON.stringify(vec),
-        embedding_model: EMBEDDING_MODEL,
+        embedding_model: state.model,
         embedding_created_at: now(),
       })
       .eq("id", id);
@@ -1090,6 +1172,82 @@ export class SupabaseBackend implements MemoryBackend {
       if (error) throw pgError("upsertLibraryDoc insert", error);
       return `Library doc created: "${data.title}" (v1)`;
     }
+  }
+
+  private async readTaxonomySnapshotSources(maxSources: number): Promise<MemoryTaxonomySnapshotSource[]> {
+    let factQuery = this.client
+      .from(this.tables.extracted_facts)
+      .select("id, fact, category, confidence, created_at, updated_at, valid_from")
+      .eq("status", "active")
+      .is("invalidated_at", null)
+      .order("confidence", { ascending: false })
+      .order("updated_at", { ascending: false })
+      .limit(maxSources);
+    let sessionQuery = this.client
+      .from(this.tables.session_summaries)
+      .select("id, summary, topics, created_at")
+      .order("created_at", { ascending: false })
+      .limit(Math.max(1, Math.floor(maxSources / 2)));
+
+    if (this.tenancy.mode === "managed") {
+      factQuery = factQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+      sessionQuery = sessionQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+
+    const [factsRes, sessionsRes] = await Promise.all([factQuery, sessionQuery]);
+    if (factsRes.error) throw pgError("readTaxonomySnapshotSources facts", factsRes.error);
+    if (sessionsRes.error) throw pgError("readTaxonomySnapshotSources sessions", sessionsRes.error);
+
+    type FactRow = {
+      id: string;
+      fact: string;
+      category?: string | null;
+      confidence?: number | null;
+      created_at?: string | null;
+      updated_at?: string | null;
+      valid_from?: string | null;
+    };
+    type SessionRow = {
+      id: string;
+      summary: string;
+      topics?: string[] | null;
+      created_at?: string | null;
+    };
+
+    const facts = ((factsRes.data ?? []) as FactRow[]).map((row) => ({
+      id: row.id,
+      kind: "fact" as const,
+      text: row.fact,
+      category: row.category ?? undefined,
+      confidence: row.confidence ?? null,
+      created_at: row.created_at ?? null,
+      updated_at: row.updated_at ?? null,
+      valid_from: row.valid_from ?? null,
+    }));
+    const sessions = ((sessionsRes.data ?? []) as SessionRow[]).map((row) => ({
+      id: row.id,
+      kind: "session" as const,
+      text: row.summary,
+      category: Array.isArray(row.topics) && row.topics.length > 0 ? row.topics.join(" ") : "session",
+      confidence: 0.75,
+      created_at: row.created_at ?? null,
+      updated_at: row.created_at ?? null,
+      valid_from: row.created_at ?? null,
+    }));
+
+    return [...facts, ...sessions];
+  }
+
+  async refreshTaxonomySnapshots(
+    options: MemoryTaxonomySnapshotWriteOptions = {}
+  ): Promise<MemoryTaxonomySnapshotWriteResult> {
+    const maxSources = Math.max(1, Math.min(250, options.max_sources ?? 80));
+    const sources = await this.readTaxonomySnapshotSources(maxSources);
+    return writeMemoryTaxonomySnapshotsToLibrary({
+      sources,
+      options,
+      upsertLibraryDoc: (doc) => this.upsertLibraryDoc(doc),
+    });
   }
 
   async manageDecay(): Promise<unknown> {

@@ -45,7 +45,7 @@ const PrivacyPage = () => {
                 <strong className="text-heading">Account information</strong> - your email address and any profile details you provide when signing up.
               </li>
               <li>
-                <strong className="text-heading">API keys and credentials</strong> - keys you store in your UnClick vault so your agents can call connected
+                <strong className="text-heading">Passport access</strong> - keys you store in Passport so your agents can call connected
                 services. These are encrypted at rest using AES-256-GCM. We do not store them in plaintext anywhere.
               </li>
               <li>
@@ -68,7 +68,7 @@ const PrivacyPage = () => {
           <Section title="2. How we use your data">
             <p>We use your data to:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
-              <li>Provide the UnClick service - route API calls, manage your credentials, and keep your account running</li>
+              <li>Provide the UnClick service - route API calls, manage Passport access, and keep your account running</li>
               <li>Monitor for abuse and enforce our acceptable use policy</li>
               <li>Send transactional emails (account confirmations, key expiry notices, billing receipts)</li>
               <li>Understand aggregate usage patterns so we can improve the platform</li>
@@ -82,7 +82,7 @@ const PrivacyPage = () => {
             <p>To be direct about it:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>We do not sell your data to anyone</li>
-              <li>We do not share your API credentials or secrets with third parties (other than routing them to the intended API endpoint)</li>
+              <li>We do not share your Passport access or secrets with third parties (other than routing them to the intended API endpoint)</li>
               <li>We do not use your data to train AI models</li>
               <li>We do not use your data for advertising or tracking across other websites</li>
               <li>We do not read the contents of API calls your agents make beyond what is needed to route and log them</li>
@@ -95,7 +95,7 @@ const PrivacyPage = () => {
             <p>UnClick is built on top of several third-party services. Here is what each one handles:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>
-                <strong className="text-heading">Supabase</strong> - database and authentication backend. Your account data and encrypted credentials
+                <strong className="text-heading">Supabase</strong> - database and authentication backend. Your account data and encrypted Passport access
                 are stored here, protected by row-level security policies.
               </li>
               <li>
@@ -117,7 +117,7 @@ const PrivacyPage = () => {
         <FadeIn delay={0.16}>
           <Section title="5. Security">
             <p>
-              Credentials stored in your UnClick vault are encrypted with AES-256-GCM before being written to the database. The encryption keys are
+              Passport access stored in UnClick is encrypted with AES-256-GCM before being written to the database. The encryption keys are
               separate from the database itself.
             </p>
             <p>
@@ -137,7 +137,7 @@ const PrivacyPage = () => {
             <p>We retain data as follows:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>
-                <strong className="text-heading">Credentials and API keys</strong> - stored until you delete them or close your account
+                <strong className="text-heading">Passport access</strong> - stored until you delete it or close your account
               </li>
               <li>
                 <strong className="text-heading">Usage logs</strong> - retained for 90 days, then deleted

@@ -293,12 +293,12 @@ const INVENTORY_STATUS_BADGES: Record<SystemCredentialDisplayStatus, {
 }> = {
   untested: {
     label: "Untested",
-    description: "Name-only inventory; no safe health probe has confirmed this credential yet.",
+    description: "Name-only inventory; no safe health probe has confirmed this Passport entry yet.",
     className: "border-sky-500/20 bg-sky-500/10 text-sky-300",
   },
   manual_check_required: {
     label: "Manual check",
-    description: "Human review is needed before this credential can claim health.",
+    description: "Human review is needed before this Passport entry can claim health.",
     className: "border-amber-500/20 bg-amber-500/10 text-amber-300",
   },
 };
@@ -395,7 +395,7 @@ export default function AdminKeychain() {
       const body = await res.json();
       setCredentials(body.data ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load credentials");
+      setError(err instanceof Error ? err.message : "Failed to load Passport");
     } finally {
       setLoading(false);
     }
@@ -435,7 +435,7 @@ export default function AdminKeychain() {
         body: JSON.stringify({ platform: slug, label: manualLabel.trim() || null, api_key: apiKey, values }),
       });
       const body = await res.json() as { error?: string };
-      if (!res.ok) { setAddError(body.error ?? "Failed to add credential."); return; }
+      if (!res.ok) { setAddError(body.error ?? "Failed to add Passport access."); return; }
       setStarterOpen(false);
       resetAddModal();
       await fetchList();
@@ -1082,7 +1082,7 @@ export default function AdminKeychain() {
           </span>
         </summary>
         <p className="mt-2 text-xs leading-5 text-[#888]">
-          Name-only map of the GitHub and Vercel runtime credentials that power workflows. This is for debugging and rotation planning, not day-to-day Passport setup.
+          Name-only map of the GitHub and Vercel runtime Passport entries that power workflows. This is for debugging and rotation planning, not day-to-day Passport setup.
         </p>
         <div className="mt-4 grid gap-3 xl:grid-cols-2">
           {(Object.keys(inventoryByProvider) as SystemCredentialProvider[]).map((provider) => (
