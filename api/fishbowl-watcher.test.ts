@@ -14,6 +14,7 @@ import {
   isReclaimableDispatchCandidate,
   isWakepassAutoRerouteEligible,
   messageAcknowledgesDispatch,
+  planWorkerSelfHealingDecision,
   resolveWakepassRerouteTarget,
   shouldMarkDispatchStaleAfterReclaimSignalInsert,
   type DispatchRow,
@@ -396,6 +397,123 @@ describe("fishbowl watcher PinballWake ACK coverage", () => {
       recipient: "🧭",
       role: "coordinator",
       reason: "default_coordinator",
+    });
+  });
+});
+
+describe("worker self-healing decision plan", () => {
+  it("preserves an active todo lease even when the worker missed check-in", () => {
+    const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
+
+    const decision = planWorkerSelfHealingDecision({
+      todo: {
+        id: "todo-active-lease",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: "lease-fresh",
+        lease_expires_at: "2026-05-01T01:25:00.000Z",
+        reclaim_count: 1,
+      },
+      profile: baseProfile,
+      latestHandoffReceiptId: "handoff-latest-1",
+      nowMs,
+    });
+
+    expect(decision).toMatchObject({
+      action: "active_lease_preserved",
+      todo_id: "todo-active-lease",
+      assigned_to_agent_id: "worker-1",
+      lease_token: "lease-fresh",
+      lease_expires_at: "2026-05-01T01:25:00.000Z",
+      reclaim_count: 1,
+      next_reclaim_count: 1,
+      latest_handoff_receipt_id: "handoff-latest-1",
+      reason: "active_lease_not_expired",
+    });
+  });
+
+  it("marks an expired todo lease reclaimable with the next reclaim count", () => {
+    const decision = planWorkerSelfHealingDecision({
+      todo: {
+        id: "todo-expired-lease",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: "lease-old",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      profile: null,
+      latestHandoffReceiptId: "handoff-latest-2",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+
+    expect(decision).toMatchObject({
+      action: "expired_lease_reclaimable",
+      todo_id: "todo-expired-lease",
+      assigned_to_agent_id: "worker-1",
+      lease_token: "lease-old",
+      reclaim_count: 2,
+      next_reclaim_count: 3,
+      latest_handoff_receipt_id: "handoff-latest-2",
+      reason: "lease_expired",
+    });
+  });
+
+  it("flags a stale worker for action when no active todo lease exists", () => {
+    const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
+
+    const decision = planWorkerSelfHealingDecision({
+      todo: {
+        id: "todo-stale-worker",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: null,
+        lease_expires_at: null,
+        reclaim_count: 0,
+      },
+      profile: baseProfile,
+      latestHandoffReceiptId: "handoff-latest-3",
+      nowMs,
+    });
+
+    expect(decision).toMatchObject({
+      action: "stale_worker_action_needed",
+      todo_id: "todo-stale-worker",
+      assigned_to_agent_id: "worker-1",
+      profile_agent_id: "worker-1",
+      next_checkin_at: "2026-05-01T01:10:00.000Z",
+      last_seen_at: "2026-05-01T00:30:00.000Z",
+      latest_handoff_receipt_id: "handoff-latest-3",
+      reason: "missed_next_checkin_without_active_lease",
+    });
+  });
+
+  it("carries the latest handoff receipt through resume-safe no-action decisions", () => {
+    const decision = planWorkerSelfHealingDecision({
+      todo: {
+        id: "todo-current-worker",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: null,
+        lease_expires_at: null,
+        reclaim_count: null,
+      },
+      profile: {
+        ...baseProfile,
+        last_seen_at: "2026-05-01T01:21:00.000Z",
+        next_checkin_at: "2026-05-01T01:30:00.000Z",
+      },
+      latestHandoffReceiptId: "handoff-latest-4",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+
+    expect(decision).toMatchObject({
+      action: "no_action",
+      todo_id: "todo-current-worker",
+      reclaim_count: 0,
+      next_reclaim_count: 0,
+      latest_handoff_receipt_id: "handoff-latest-4",
+      reason: "no_stale_worker_or_reclaimable_lease",
     });
   });
 });
