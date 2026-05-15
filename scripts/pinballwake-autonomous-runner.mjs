@@ -37,7 +37,8 @@ export const DEFAULT_AUTONOMOUS_RUNNER_POLICY = {
 
 export const DEFAULT_UNCLICK_MCP_URL = "https://unclick.world/api/mcp";
 
-const HOLD_TITLE_PATTERN = /\b(hold|blocker|blocked|dirty)\b/i;
+const HOLD_TITLE_PATTERN = /\b(hold|blocker|blocked)\b/i;
+const HOLD_TITLE_MARKER_PATTERN = /^\s*(hold|blocker|blocked|dirty)\s*:/i;
 const HOLD_BODY_MARKER_PATTERN = /(?:^|\n)\s*(hold|blocker|blocked|dirty)\s*:/i;
 
 const PROTECTED_SURFACE_PATTERNS = [
@@ -162,8 +163,8 @@ function listTodoRoleTokens(todo = {}, scopePack = {}) {
     .filter(Boolean);
 }
 
-function ownerHintAllowsBuilderCompatibleOrchestrator(todo = {}, scopePack = {}) {
-  const hint = [
+function listOwnerHintTokens(todo = {}, scopePack = {}) {
+  return [
     todo.owner_hint,
     todo.ownerHint,
     scopePack.owner_hint,
@@ -172,9 +173,19 @@ function ownerHintAllowsBuilderCompatibleOrchestrator(todo = {}, scopePack = {})
     .filter(Boolean)
     .join(" ")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ");
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
 
-  return hint.includes("builder") && hint.includes("orchestrator");
+function ownerHintAllowsBuilderCompatibleRunner(todo = {}, scopePack = {}) {
+  return listOwnerHintTokens(todo, scopePack).includes("builder");
+}
+
+function ownerHintAllowsBuilderCompatibleOrchestrator(todo = {}, scopePack = {}) {
+  const tokens = listOwnerHintTokens(todo, scopePack);
+  return tokens.includes("builder") && tokens.includes("orchestrator");
 }
 
 function recentTodoCommentText(todo = {}) {
@@ -1260,6 +1271,10 @@ function createQuietWindowAutonomyProofReceipt({
 } = {}) {
   const triggerSource = normalizeQuietWindowToken(wakeSource || "unknown");
   const imported = numberOption(queueSourceResult.imported, 0);
+  const seen = numberOption(
+    queueSourceResult.seen,
+    numberOption(queueSourceResult.claimability_scorecard?.seen, 0),
+  );
   const claimedResult = results.find((result) => result?.action === "claimed" && result.job);
   const blockedResult = results.find((result) => Array.isArray(result?.safety_blocked) && result.safety_blocked.length > 0);
   const events = [];
@@ -1273,12 +1288,12 @@ function createQuietWindowAutonomyProofReceipt({
     });
   }
 
-  if (imported > 0) {
+  if (imported > 0 || seen > 0) {
     events.push({
       rung: "job_crumb",
       at: now,
       source: queueSourceResult.source || "queue",
-      result: `imported=${imported}`,
+      result: imported > 0 ? `imported=${imported}` : `visible=${seen}`,
     });
   }
 
@@ -1644,7 +1659,11 @@ export function evaluateBoardroomTodoAutoClaimEligibility(
 
   const title = String(todo.title || "");
   const description = String(todo.description || todo.body || todo.notes || "");
-  if (HOLD_TITLE_PATTERN.test(title) || HOLD_BODY_MARKER_PATTERN.test(description)) {
+  if (
+    HOLD_TITLE_PATTERN.test(title) ||
+    HOLD_TITLE_MARKER_PATTERN.test(title) ||
+    HOLD_BODY_MARKER_PATTERN.test(description)
+  ) {
     return { ok: false, reason: "boardroom_todo_hold_or_blocker_marker" };
   }
 
@@ -1654,11 +1673,13 @@ export function evaluateBoardroomTodoAutoClaimEligibility(
 
   const safeRoles = tokenSet(allowedTodoRoles, DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedTodoRoles);
   const roleTokens = listTodoRoleTokens(todo, scopePack);
+  const hasBuilderCompatibleOwnerHint = ownerHintAllowsBuilderCompatibleRunner(todo, scopePack);
   const hasBuilderCompatibleOrchestratorHint =
     roleTokens.includes("orchestrator") && ownerHintAllowsBuilderCompatibleOrchestrator(todo, scopePack);
   const hasAllowedRole =
     roleTokens.length === 0 ||
     roleTokens.some((role) => safeRoles.has(role)) ||
+    hasBuilderCompatibleOwnerHint ||
     hasBuilderCompatibleOrchestratorHint;
   if (!hasAllowedRole) {
     return { ok: false, reason: "boardroom_todo_role_not_allowed", role: roleTokens[0] || null };
