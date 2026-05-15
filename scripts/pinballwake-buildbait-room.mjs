@@ -1,7 +1,28 @@
+// scripts/pinballwake-buildbait-room.mjs
+//
+// BuildBait room contract.
+//
+// A "room" is the persistence layer where BuildBait crumbs live and are picked up
+// by other seats. Conceptually mirrors the existing "code room" pattern: a
+// well-known location for a class of work item, accessed through a small contract.
+//
+// This module exposes:
+//   - createBuildbaitRoom({ unclickClient, logger }) -> room instance
+//   - room.postCrumb({ todoId, step, body, seatId, parserTag })  -> Promise<{ commentId }>
+//   - room.listCrumbs({ todoId, limit }) -> Promise<Crumb[]>
+//   - room.latestStep({ todoId })   -> Promise<number | null>
+//   - room.nextStep({ todoId })     -> Promise<number | null>   // null if Step 12 already landed
+//
+// The crumb ladder runs from Step 1 (Observe) through Step 12 (Real change), per the
+// BuildBait spec posted on todo 11957893. Steps 1-8 are open-lane (any seat); steps
+// 9-12 require Autopilot Executor Lane authority + CommonSensePass.
+//
+// The `parserTag` is a stable canonical string the autonomous runner can grep for to
+// detect crumb presence. We use `BUILDBAIT/STEP={n}` as the canonical tag.
+
 const PARSER_TAG_PREFIX = "BUILDBAIT/STEP=";
 const MIN_STEP = 1;
 const MAX_STEP = 12;
-const OPEN_LANE_MAX = 8;
 
 const STEP_LABELS = {
   1: "Observe",
@@ -18,36 +39,7 @@ const STEP_LABELS = {
   12: "Real change",
 };
 
-function assertStep(step, name = "step") {
-  if (!Number.isInteger(step) || step < MIN_STEP || step > MAX_STEP) {
-    throw new RangeError(`${name} must be ${MIN_STEP}..${MAX_STEP}`);
-  }
-}
-
-function commentBody(record = {}) {
-  return String(record.body ?? record.text ?? record.message ?? "");
-}
-
-function getCommentId(record = {}) {
-  return record.id ?? record.commentId ?? record.comment_id ?? record.comment?.id ?? null;
-}
-
-function getAuthorId(record = {}) {
-  return record.authorId ?? record.author_id ?? record.agentId ?? record.agent_id ?? record.author_agent_id ?? null;
-}
-
-function getCreatedAt(record = {}) {
-  return record.createdAt ?? record.created_at ?? record.timestamp ?? null;
-}
-
-function getResultCommentId(result = {}) {
-  return result.commentId ?? result.comment_id ?? result.id ?? result.comment?.id ?? null;
-}
-
-function resolveClientMethod(client, camelName, snakeName) {
-  const method = client?.[camelName] ?? client?.[snakeName];
-  return typeof method === "function" ? method.bind(client) : null;
-}
+const OPEN_LANE_MAX = 8; // steps 1-8 do not require executor authority
 
 export function stepLabel(step) {
   return STEP_LABELS[step] ?? null;
@@ -62,112 +54,84 @@ export function isExecutorLaneStep(step) {
 }
 
 export function parserTagFor(step) {
-  assertStep(step, "BuildBait step");
+  if (!Number.isInteger(step) || step < MIN_STEP || step > MAX_STEP) {
+    throw new RangeError(`BuildBait step must be ${MIN_STEP}..${MAX_STEP}, got ${step}`);
+  }
   return `${PARSER_TAG_PREFIX}${step}`;
 }
 
 export function parseStepFromBody(body) {
-  const match = String(body ?? "").match(/BUILDBAIT\/STEP=(\d{1,2})/);
+  if (typeof body !== "string") return null;
+  const match = body.match(/BUILDBAIT\/STEP=(\d{1,2})/);
   if (!match) return null;
   const step = Number.parseInt(match[1], 10);
-  return Number.isInteger(step) && step >= MIN_STEP && step <= MAX_STEP ? step : null;
-}
-
-export function normalizeBuildbaitCrumb(record = {}) {
-  const body = commentBody(record);
-  const step = parseStepFromBody(body);
-  if (step === null) return null;
-  return {
-    commentId: getCommentId(record),
-    todoId: record.todoId ?? record.todo_id ?? record.target_id ?? null,
-    step,
-    label: stepLabel(step),
-    parserTag: parserTagFor(step),
-    authorId: getAuthorId(record),
-    createdAt: getCreatedAt(record),
-    body,
-  };
+  if (!Number.isInteger(step) || step < MIN_STEP || step > MAX_STEP) return null;
+  return step;
 }
 
 export function createBuildbaitRoom({ unclickClient, logger = console } = {}) {
-  const commentOn = resolveClientMethod(unclickClient, "commentOn", "comment_on");
-  const listComments = resolveClientMethod(unclickClient, "listComments", "list_comments");
-
-  if (!commentOn || !listComments) {
-    throw new TypeError("createBuildbaitRoom requires commentOn/comment_on and listComments/list_comments");
+  if (!unclickClient || typeof unclickClient.commentOn !== "function" || typeof unclickClient.listComments !== "function") {
+    throw new TypeError("createBuildbaitRoom requires unclickClient with commentOn + listComments");
   }
 
-  async function postCrumb({
-    todoId,
-    step,
-    body,
-    seatId = "buildbait-room",
-    parserTag = parserTagFor(step),
-  } = {}) {
+  async function postCrumb({ todoId, step, body, seatId, parserTag }) {
     if (!todoId) throw new TypeError("postCrumb requires todoId");
-    assertStep(step, "postCrumb step");
+    if (!Number.isInteger(step) || step < MIN_STEP || step > MAX_STEP) {
+      throw new RangeError(`postCrumb step must be ${MIN_STEP}..${MAX_STEP}`);
+    }
+    const tag = parserTag ?? parserTagFor(step);
     const label = stepLabel(step);
-    const text = `[${parserTag}] Step ${step} ${label}: ${String(body ?? "").trim()}`;
-    const result = await commentOn({
-      agent_id: seatId,
-      agentId: seatId,
-      target_kind: "todo",
-      target_id: todoId,
+    const composed = `[${tag}] Step ${step} ${label}: ${body}`;
+    const result = await unclickClient.commentOn({
       todoId,
-      body: text,
-      text,
+      body: composed,
+      agentId: seatId ?? "buildbait-room",
     });
-    const commentId = getResultCommentId(result);
-    logger.info?.(`buildbait-room posted ${parserTag} on ${todoId}`);
-    return { commentId, todoId, step, label, parserTag, body: text };
+    logger.info?.(`buildbait-room: posted Step ${step} (${label}) on ${todoId} as ${result?.commentId ?? "(no id)"}`);
+    return { commentId: result?.commentId ?? null, step, label, parserTag: tag };
   }
 
   async function listCrumbs({ todoId, limit = 100 } = {}) {
     if (!todoId) throw new TypeError("listCrumbs requires todoId");
-    const result = await listComments({
-      target_kind: "todo",
-      target_id: todoId,
-      todoId,
-      limit,
-    });
-    const comments = Array.isArray(result) ? result : result?.comments ?? result?.items ?? [];
-    return comments
-      .map((record) => normalizeBuildbaitCrumb({ ...record, todoId: record.todoId ?? record.todo_id ?? todoId }))
-      .filter(Boolean);
+    const comments = await unclickClient.listComments({ todoId, limit });
+    const crumbs = [];
+    for (const c of comments ?? []) {
+      const step = parseStepFromBody(c.body ?? "");
+      if (step !== null) {
+        crumbs.push({
+          commentId: c.id ?? c.commentId ?? null,
+          step,
+          label: stepLabel(step),
+          parserTag: `${PARSER_TAG_PREFIX}${step}`,
+          createdAt: c.createdAt ?? null,
+          authorId: c.authorId ?? c.agentId ?? null,
+          body: c.body ?? "",
+        });
+      }
+    }
+    return crumbs;
   }
 
   async function latestStep({ todoId } = {}) {
     const crumbs = await listCrumbs({ todoId });
     if (crumbs.length === 0) return null;
-    return Math.max(...crumbs.map((crumb) => crumb.step));
+    return crumbs.reduce((max, c) => (c.step > max ? c.step : max), 0);
   }
 
   async function nextStep({ todoId } = {}) {
-    const latest = await latestStep({ todoId });
-    if (latest === null) return MIN_STEP;
-    if (latest >= MAX_STEP) return null;
-    return latest + 1;
+    const last = await latestStep({ todoId });
+    if (last === null) return MIN_STEP;
+    if (last >= MAX_STEP) return null;
+    return last + 1;
   }
 
-  async function stageState({ todoId } = {}) {
-    const crumbs = await listCrumbs({ todoId });
-    const latest = crumbs.length === 0 ? null : Math.max(...crumbs.map((crumb) => crumb.step));
-    return {
-      todoId,
-      crumbs,
-      latestStep: latest,
-      nextStep: latest === null ? MIN_STEP : latest >= MAX_STEP ? null : latest + 1,
-      complete: latest >= MAX_STEP,
-    };
-  }
-
-  return { postCrumb, listCrumbs, latestStep, nextStep, stageState };
+  return { postCrumb, listCrumbs, latestStep, nextStep };
 }
 
 export const __testing__ = {
-  MAX_STEP,
-  MIN_STEP,
-  OPEN_LANE_MAX,
   PARSER_TAG_PREFIX,
+  MIN_STEP,
+  MAX_STEP,
+  OPEN_LANE_MAX,
   STEP_LABELS,
 };
