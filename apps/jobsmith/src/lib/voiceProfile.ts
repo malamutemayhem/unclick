@@ -56,6 +56,7 @@ const TONAL_ADJECTIVES = [
 const OPENING_RES: RegExp[] = [
   /^I am (pleased|excited|writing|thrilled|reaching out|applying|interested|drawn) /i,
   /^I would like to express /i,
+  /^Dear (Hiring Manager|Recruiter)/i,
 ];
 
 const CLOSING_RES: RegExp[] = [
