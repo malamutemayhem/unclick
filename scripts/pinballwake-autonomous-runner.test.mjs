@@ -326,6 +326,76 @@ describe("PinballWake autonomous Runner seat", () => {
     }
   });
 
+  it("imports a ScopePack attached in an UnClick todo comment", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const scopePack = {
+        owner_hint: "builder_or_pinballwake_build_executor",
+        owned_files: ["scripts/pinballwake-executor-packet.mjs"],
+        verification: ["node --test scripts/pinballwake-executor-packet.test.mjs"],
+      };
+
+      const fetchImpl = async () => ({
+        ok: true,
+        async json() {
+          return {
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    todos: [
+                      {
+                        id: "todo-comment-scopepack",
+                        title: "Autopilot executor packet bridge",
+                        status: "open",
+                        priority: "high",
+                        assigned_to_agent_id: null,
+                        actionability_reason: "unassigned_open",
+                        latest_comment_text: [
+                          "ScopePack:",
+                          "```json",
+                          JSON.stringify(scopePack, null, 2),
+                          "```",
+                        ].join("\n"),
+                      },
+                    ],
+                  }),
+                },
+              ],
+            },
+          };
+        },
+      });
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "dry-run",
+        queueSource: "unclick",
+        unclickApiKey: "uc_test",
+        unclickMcpUrl: "https://unclick.test/api/mcp",
+        fetchImpl,
+        now: "2026-05-16T14:45:00.000Z",
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(result.action, "claimed");
+      assert.equal(result.queue_source.imported, 1);
+      assert.equal(result.queue_source.todos[0].scope_pack_seen, true);
+      assert.deepEqual(result.ledger.jobs[0].owned_files, ["scripts/pinballwake-executor-packet.mjs"]);
+      assert.deepEqual(result.ledger.jobs[0].expected_proof.tests, [
+        "node --test scripts/pinballwake-executor-packet.test.mjs",
+      ]);
+      assert.match(result.ledger.jobs[0].context, /scopepack=present/);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("claims scoped Boardroom todos that do not include a prebuilt patch", async () => {
     const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
     const ledgerPath = join(dir, "ledger.json");
@@ -1586,6 +1656,132 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.match(commentCall.body.params.arguments.text, /PASS: scopepack_hydrated/);
       assert.match(commentCall.body.params.arguments.text, /owned_modules=PinballWake Runner scope hydration/);
       assert.match(commentCall.body.params.arguments.text, /No new schedules/);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("hydrates a vague Boardroom todo from a ScopePack comment", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const scopePack = {
+        lane: "autopilot_executor",
+        owner_hint: "builder_or_pinballwake_build_executor",
+        owned_modules: ["PinballWake Executor Lane comment ScopePack parsing"],
+        acceptance: ["Runner reads ScopePacks from todo comments"],
+        verification: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+        stop_conditions: ["Stop if comments are unavailable from the API response"],
+        proof_required: "Boardroom receipt with scopepack_hydrated or BLOCKER",
+        out_of_scope: ["No new schedules", "No production writes"],
+      };
+
+      const calls = [];
+      const fetchImpl = async (_url, init = {}) => {
+        calls.push({ body: JSON.parse(init.body) });
+        const toolName = calls.at(-1).body.params.name;
+        if (toolName === "list_actionable_todos") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({
+                        todos: [
+                          {
+                            id: "todo-comment-hydrate",
+                            title: "Hydrate ScopePack comment into safe runner packet",
+                            status: "open",
+                            priority: "urgent",
+                            assigned_to_agent_id: null,
+                            actionability_reason: "unassigned_open",
+                            latest_comment_text: [
+                              "ScopePack:",
+                              "```json",
+                              JSON.stringify(scopePack, null, 2),
+                              "```",
+                            ].join("\n"),
+                          },
+                        ],
+                      }),
+                    },
+                  ],
+                },
+              };
+            },
+          };
+        }
+
+        if (toolName === "update_todo") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({
+                        todo: {
+                          id: "todo-comment-hydrate",
+                          status: "open",
+                          assigned_to_agent_id: null,
+                        },
+                      }),
+                    },
+                  ],
+                },
+              };
+            },
+          };
+        }
+
+        if (toolName === "comment_on") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({ comment: { id: "comment-hydrate-from-comment" } }),
+                    },
+                  ],
+                },
+              };
+            },
+          };
+        }
+
+        throw new Error(`unexpected tool ${toolName}`);
+      };
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "claim",
+        queueSource: "unclick",
+        unclickApiKey: "uc_test",
+        unclickMcpUrl: "https://unclick.test/api/mcp",
+        fetchImpl,
+        now: "2026-05-16T14:45:00.000Z",
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(result.action, "scopepack_hydrated");
+      assert.equal(result.reason, "boardroom_todo_scopepack_hydrated");
+      assert.equal(result.todo_scoping_sync.scopepack_hydration.action, "scopepack_hydrated");
+
+      const commentCall = calls.find((call) => call.body.params.name === "comment_on");
+      assert.match(commentCall.body.params.arguments.text, /PASS: scopepack_hydrated/);
+      assert.match(commentCall.body.params.arguments.text, /PinballWake Executor Lane comment ScopePack parsing/);
+      assert.match(commentCall.body.params.arguments.text, /No production writes/);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
