@@ -94,7 +94,7 @@ const faqData = [
       },
       {
         q: "What's the difference between UnClick and other MCP servers?",
-        a: `Most MCP servers focus on one integration, like one database or one API. UnClick is the shared layer behind your agent: ${SITE_STATS.TOOLS_DISPLAY} tools, persistent memory, secure connections, crews, and Pass family checks in one managed setup. No infrastructure to run, no credentials to hand-roll, no integrations to maintain.`,
+        a: `Most MCP servers focus on one integration, like one database or one API. UnClick is the shared layer behind your agent: ${SITE_STATS.TOOLS_DISPLAY} tools, persistent memory, Passport, crews, and Pass family checks in one managed setup. No infrastructure to run, no access setup to hand-roll, no integrations to maintain.`,
       },
     ],
   },

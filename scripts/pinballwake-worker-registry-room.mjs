@@ -26,6 +26,7 @@ const VALID_LANES = new Set([
 const VALID_ACK_VERDICTS = new Set(["PASS", "BLOCKER", "HOLD", "COMMENT"]);
 const TRUSTED_SIGNING_AUTHORITIES = new Set(["lane", "coordinator", "system"]);
 const VALID_ACTIVATION_MODES = new Set(["active", "bench", "fallback"]);
+const PERFORMANCE_MONITOR_ROUTE = "performance-monitor";
 const LEGACY_LANE_ALIASES = new Map([
   ["master", "coordinator"],
   ["🐺", "coordinator"],
@@ -107,11 +108,14 @@ function normalizeActivationMode(input = {}) {
 }
 
 function normalizePromotionSignals(input = {}) {
+  const flags = safeList(input.performance_flags || input.performanceFlags).map(normalize);
   return {
     success_count: Number(input.success_count ?? input.successCount ?? 0),
     failure_count: Number(input.failure_count ?? input.failureCount ?? 0),
     last_promoted_at: input.last_promoted_at || input.lastPromotedAt || null,
     promotion_threshold: Number(input.promotion_threshold ?? input.promotionThreshold ?? 3),
+    performance_flags: flags,
+    last_performance_review_at: input.last_performance_review_at || input.lastPerformanceReviewAt || null,
   };
 }
 
@@ -151,6 +155,103 @@ function workerMatchesCapability(worker = {}, capability = "") {
   return !wanted || safeList(worker.capabilities).includes(wanted);
 }
 
+function workerPerformanceScore(worker = {}) {
+  const signals = worker.promotion_signals || {};
+  const successes = Math.max(0, Number(signals.success_count ?? 0));
+  const failures = Math.max(0, Number(signals.failure_count ?? 0));
+  const attempts = successes + failures;
+  const successRate = attempts > 0 ? successes / attempts : 0;
+  return {
+    successes,
+    failures,
+    attempts,
+    success_rate: Number(successRate.toFixed(3)),
+    score: Number((successes * 12 - failures * 20 + successRate * 30).toFixed(3)),
+  };
+}
+
+export function evaluateWorkerPromotion(worker = {}, options = {}) {
+  const threshold = Math.max(1, Number(options.promotion_threshold ?? worker.promotion_signals?.promotion_threshold ?? 3));
+  const minSuccessRate = Math.max(0, Math.min(1, Number(options.min_success_rate ?? 0.75)));
+  const reviewFailureThreshold = Math.max(1, Number(options.review_failure_threshold ?? 2));
+  const performance = workerPerformanceScore(worker);
+  const flags = safeList(worker.promotion_signals?.performance_flags);
+  const needsPerformanceMonitor =
+    performance.failures >= reviewFailureThreshold ||
+    flags.length > 0 ||
+    (performance.attempts >= threshold && performance.success_rate < minSuccessRate);
+
+  if (needsPerformanceMonitor) {
+    return {
+      worker_id: worker.worker_id || null,
+      action: "route_performance_monitor",
+      recommended_activation_mode: worker.activation_mode || "active",
+      route_to: PERFORMANCE_MONITOR_ROUTE,
+      reason: flags.length > 0 ? "performance_flags_present" : "performance_threshold_missed",
+      performance,
+    };
+  }
+
+  if (
+    worker.activation_mode === "bench" &&
+    performance.successes >= threshold &&
+    performance.success_rate >= minSuccessRate
+  ) {
+    return {
+      worker_id: worker.worker_id || null,
+      action: "promote_to_fallback",
+      recommended_activation_mode: "fallback",
+      route_to: null,
+      reason: "bench_promotion_threshold_met",
+      performance,
+    };
+  }
+
+  if (
+    worker.activation_mode === "fallback" &&
+    performance.successes >= threshold + 2 &&
+    performance.success_rate >= minSuccessRate
+  ) {
+    return {
+      worker_id: worker.worker_id || null,
+      action: "promote_to_active",
+      recommended_activation_mode: "active",
+      route_to: null,
+      reason: "fallback_activation_threshold_met",
+      performance,
+    };
+  }
+
+  return {
+    worker_id: worker.worker_id || null,
+    action: "keep_current_mode",
+    recommended_activation_mode: worker.activation_mode || "active",
+    route_to: null,
+    reason: "promotion_threshold_not_met",
+    performance,
+  };
+}
+
+export function routePerformanceMonitor(registry = {}, options = {}) {
+  return safeList(registry.workers)
+    .map((worker) => ({ worker, promotion: evaluateWorkerPromotion(worker, options) }))
+    .filter((entry) => entry.promotion.action === "route_performance_monitor")
+    .map((entry) => ({
+      route: PERFORMANCE_MONITOR_ROUTE,
+      worker_id: entry.worker.worker_id,
+      lane: entry.worker.lane,
+      reason: entry.promotion.reason,
+      performance: entry.promotion.performance,
+    }));
+}
+
+function scoreWorkerForSelection(worker = {}) {
+  const performance = workerPerformanceScore(worker);
+  const activationBonus = worker.activation_mode === "active" ? 40 : worker.activation_mode === "fallback" ? 20 : 0;
+  const statusBonus = ["available", "online", "ready"].includes(worker.status) ? 20 : 0;
+  return activationBonus + statusBonus + performance.score;
+}
+
 export function createWorkerRegistry(input = {}) {
   return {
     version: WORKER_REGISTRY_VERSION,
@@ -180,11 +281,13 @@ export function findSpecialistBenchWorkers(registry = {}, { capability = "", lan
 
 export function selectWorkerForCapability(registry = {}, { capability = "", lane = "" } = {}) {
   const wantedLane = normalizeLane(lane);
-  const activeWorker = safeList(registry.workers).find((worker) =>
-    isCallableWorker(worker) &&
-    (!wantedLane || worker.lane === wantedLane) &&
-    workerMatchesCapability(worker, capability)
-  );
+  const activeWorker = safeList(registry.workers)
+    .filter((worker) =>
+      isCallableWorker(worker) &&
+      (!wantedLane || worker.lane === wantedLane) &&
+      workerMatchesCapability(worker, capability)
+    )
+    .sort((a, b) => scoreWorkerForSelection(b) - scoreWorkerForSelection(a))[0];
 
   if (activeWorker) {
     return {
@@ -197,15 +300,18 @@ export function selectWorkerForCapability(registry = {}, { capability = "", lane
     };
   }
 
-  const benchWorker = findSpecialistBenchWorkers(registry, { capability, lane })[0] || null;
+  const benchWorker = findSpecialistBenchWorkers(registry, { capability, lane })
+    .sort((a, b) => scoreWorkerForSelection(b) - scoreWorkerForSelection(a))[0] || null;
   if (benchWorker) {
+    const promotion = evaluateWorkerPromotion(benchWorker);
     return {
       ok: true,
       worker: benchWorker,
       activation: "bench",
-      confidence: "medium",
-      reason: "bench_specialist_match",
+      confidence: promotion.action === "promote_to_fallback" ? "high" : "medium",
+      reason: promotion.action === "promote_to_fallback" ? "bench_ready_for_promotion" : "bench_specialist_match",
       fallback_reason: "no_active_worker_match",
+      promotion,
     };
   }
 
@@ -216,6 +322,7 @@ export function selectWorkerForCapability(registry = {}, { capability = "", lane
     confidence: "low",
     reason: "no_worker_match",
     fallback_reason: "use_fungible_capacity",
+    promotion: null,
   };
 }
 
@@ -460,6 +567,8 @@ export function evaluateWorkerRegistryRoom({
     worker_count: safeList(safeRegistry.workers).length,
     active_worker_count: safeList(safeRegistry.workers).filter(isCallableWorker).length,
     bench_worker_count: safeList(safeRegistry.workers).filter(isBenchWorker).length,
+    promotion_review: safeList(safeRegistry.workers).map((worker) => evaluateWorkerPromotion(worker, expected.promotionPolicy || {})),
+    performance_monitor_routes: routePerformanceMonitor(safeRegistry, expected.promotionPolicy || {}),
     selection: expected.capability
       ? selectWorkerForCapability(safeRegistry, { capability: expected.capability, lane: expected.lane })
       : null,

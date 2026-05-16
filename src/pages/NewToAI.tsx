@@ -41,11 +41,11 @@ const FEATURES = [
     analogy: "Your AI can see your calendar across Google, Outlook, and Apple. It can schedule meetings, create to-do lists, and give you a morning briefing - all from one place.",
   },
   {
-    id: "backstagepass",
-    title: "BackstagePass",
+    id: "passport",
+    title: "Passport",
     subtitle: "The keys to the office",
     icon: Key,
-    analogy: "Some tools need passwords and API keys. BackstagePass keeps those credentials safe and hands them to your AI only when needed - like a secure key card system.",
+    analogy: "Some tools need passwords and API keys. Passport keeps that access safe and hands it to your AI only when needed - like a secure key card system.",
   },
 ];
 
@@ -77,7 +77,7 @@ const FAQ = [
   },
   {
     q: "Is it safe?",
-    a: "Yes. Your data is processed in real-time and not stored. Credentials are encrypted. You control what your AI can access.",
+    a: "Yes. Your data is processed in real-time and not stored. Passport access is encrypted. You control what your AI can access.",
   },
 ];
 
@@ -122,9 +122,9 @@ const PRODUCTS = [
     icon: Calendar,
   },
   {
-    name: "BackstagePass",
-    desc: "Secure credential management for authenticated services.",
-    link: "/backstagepass",
+    name: "Passport",
+    desc: "Secure access management for authenticated services.",
+    link: "/admin/keychain",
     icon: Key,
   },
   {

@@ -5,8 +5,10 @@ import {
   createAckDecisionEvent,
   createSignedAckRecord,
   createWorkerRegistry,
+  evaluateWorkerPromotion,
   evaluateWorkerRegistryRoom,
   findSpecialistBenchWorkers,
+  routePerformanceMonitor,
   selectWorkerForCapability,
   verifySignedAckRecord,
 } from "./pinballwake-worker-registry-room.mjs";
@@ -117,6 +119,38 @@ describe("PinballWake Worker Registry Room", () => {
     assert.equal(selection.activation, "active");
     assert.equal(selection.worker.worker_id, "builder-1");
     assert.equal(selection.reason, "active_worker_match");
+  });
+
+  it("marks bench specialists as ready for adaptive fallback promotion", () => {
+    const registry = registryFixture({
+      seoBench: { success_count: 5, failure_count: 0, promotion_threshold: 5 },
+    });
+
+    const selection = selectWorkerForCapability(registry, { capability: "seo" });
+    const promotion = evaluateWorkerPromotion(selection.worker);
+
+    assert.equal(selection.ok, true);
+    assert.equal(selection.reason, "bench_ready_for_promotion");
+    assert.equal(promotion.action, "promote_to_fallback");
+    assert.equal(promotion.recommended_activation_mode, "fallback");
+  });
+
+  it("routes low-performing workers to Performance Monitor", () => {
+    const registry = registryFixture({
+      builder: {
+        success_count: 1,
+        failure_count: 3,
+        performance_flags: ["stale_proof"],
+      },
+    });
+
+    const routes = routePerformanceMonitor(registry);
+    const result = evaluateWorkerRegistryRoom({ registry, now: NOW });
+
+    assert.equal(routes.length, 1);
+    assert.equal(routes[0].route, "performance-monitor");
+    assert.equal(routes[0].worker_id, "builder-1");
+    assert.equal(result.performance_monitor_routes[0].reason, "performance_flags_present");
   });
 
   it("creates and verifies a signed lane ACK", () => {

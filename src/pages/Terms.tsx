@@ -149,7 +149,7 @@ const TermsPage = () => {
         <FadeIn delay={0.22}>
           <Section title="8. Termination">
             <p>
-              You can stop using UnClick and delete your account at any time from your settings page. When you do, your credentials and stored data will
+              You can stop using UnClick and delete your account at any time from your settings page. When you do, your Passport access and stored data will
               be deleted in accordance with our Privacy Policy.
             </p>
             <p>

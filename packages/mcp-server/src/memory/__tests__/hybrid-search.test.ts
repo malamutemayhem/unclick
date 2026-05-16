@@ -93,8 +93,12 @@ describe("embedText", () => {
   test("returns null unless OpenAI embeddings are explicitly enabled", async () => {
     const savedKey = process.env.OPENAI_API_KEY;
     const savedFlag = process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED;
+    const savedProvider = process.env.MEMORY_EMBEDDINGS_PROVIDER;
+    const savedLocal = process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED;
     process.env.OPENAI_API_KEY = "sk-test-no-fetch";
     delete process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED;
+    delete process.env.MEMORY_EMBEDDINGS_PROVIDER;
+    delete process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED;
     try {
       const { embedText } = await import("../embeddings.js");
       const result = await embedText("a searchable memory query that is long enough");
@@ -104,13 +108,23 @@ describe("embedText", () => {
       else process.env.OPENAI_API_KEY = savedKey;
       if (savedFlag === undefined) delete process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED;
       else process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED = savedFlag;
+      if (savedProvider === undefined) delete process.env.MEMORY_EMBEDDINGS_PROVIDER;
+      else process.env.MEMORY_EMBEDDINGS_PROVIDER = savedProvider;
+      if (savedLocal === undefined) delete process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED;
+      else process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED = savedLocal;
     }
   });
 
   test("returns null when OPENAI_API_KEY is not set", async () => {
     // Ensure the env var is absent for this test
     const saved = process.env.OPENAI_API_KEY;
+    const savedProvider = process.env.MEMORY_EMBEDDINGS_PROVIDER;
+    const savedLocal = process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED;
+    const savedFlag = process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED;
     delete process.env.OPENAI_API_KEY;
+    process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED = "true";
+    delete process.env.MEMORY_EMBEDDINGS_PROVIDER;
+    delete process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED;
     try {
       // Dynamic import so it picks up the (now absent) env var at call time
       const { embedText } = await import("../embeddings.js");
@@ -118,6 +132,46 @@ describe("embedText", () => {
       assert.equal(result, null);
     } finally {
       if (saved !== undefined) process.env.OPENAI_API_KEY = saved;
+      else delete process.env.OPENAI_API_KEY;
+      if (savedProvider === undefined) delete process.env.MEMORY_EMBEDDINGS_PROVIDER;
+      else process.env.MEMORY_EMBEDDINGS_PROVIDER = savedProvider;
+      if (savedLocal === undefined) delete process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED;
+      else process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED = savedLocal;
+      if (savedFlag === undefined) delete process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED;
+      else process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED = savedFlag;
+    }
+  });
+
+  test("returns deterministic local embeddings when open-source provider is enabled", async () => {
+    const savedProvider = process.env.MEMORY_EMBEDDINGS_PROVIDER;
+    const savedLocal = process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED;
+    const savedOpenAI = process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED;
+    const savedKey = process.env.OPENAI_API_KEY;
+    process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED = "true";
+    delete process.env.MEMORY_EMBEDDINGS_PROVIDER;
+    delete process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED;
+    delete process.env.OPENAI_API_KEY;
+    try {
+      const { embedText, getEmbeddingState, LOCAL_EMBEDDING_MODEL, EMBEDDING_DIMS } = await import("../embeddings.js");
+      const state = getEmbeddingState();
+      const first = await embedText("Open source semantic memory search lane");
+      const second = await embedText("Open source semantic memory search lane");
+
+      assert.equal(state.provider, "local");
+      assert.equal(state.model, LOCAL_EMBEDDING_MODEL);
+      assert.equal(state.admin_state, "ready");
+      assert.equal(first?.length, EMBEDDING_DIMS);
+      assert.deepEqual(first, second);
+      assert.ok((first ?? []).some((value) => value !== 0));
+    } finally {
+      if (savedProvider === undefined) delete process.env.MEMORY_EMBEDDINGS_PROVIDER;
+      else process.env.MEMORY_EMBEDDINGS_PROVIDER = savedProvider;
+      if (savedLocal === undefined) delete process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED;
+      else process.env.MEMORY_OPEN_SOURCE_EMBEDDINGS_ENABLED = savedLocal;
+      if (savedOpenAI === undefined) delete process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED;
+      else process.env.MEMORY_OPENAI_EMBEDDINGS_ENABLED = savedOpenAI;
+      if (savedKey === undefined) delete process.env.OPENAI_API_KEY;
+      else process.env.OPENAI_API_KEY = savedKey;
     }
   });
 });

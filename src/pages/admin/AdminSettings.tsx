@@ -795,7 +795,7 @@ export default function AdminSettings() {
           <div className="mt-6 border-t border-[#E2B93B]/10 pt-5">
             <p className="text-xs font-medium text-white/80">Delete account</p>
             <p className="mt-1 text-xs text-white/50">
-              Permanently removes your memory, credentials, API keys, and profile. Cannot be undone.
+              Permanently removes your memory, Passport access, API keys, and profile. Cannot be undone.
             </p>
             <button
               onClick={() => { setDeleteTyped(""); setDeleteError(null); setDeleteOpen(true); }}
@@ -850,7 +850,7 @@ export default function AdminSettings() {
             <p className="mt-3 text-xs text-[#BBB] leading-relaxed">
               This removes your auth identity plus every row keyed to your account: memory (facts,
               sessions, business context, conversation log, knowledge library, code dumps), stored
-              credentials, API keys, crews, agents, devices, and profile data. It is permanent.
+              Passport access, API keys, crews, agents, devices, and profile data. It is permanent.
             </p>
 
             {deleting && (
@@ -858,7 +858,7 @@ export default function AdminSettings() {
                 {[
                   { label: "Deleting memory data..." },
                   { label: "Deleting crews and agents..." },
-                  { label: "Deleting credentials and config..." },
+                  { label: "Deleting Passport access and config..." },
                   { label: "Removing your account..." },
                 ].map((s, i) => (
                   <div key={i} className="flex items-center gap-2 text-xs text-white/60">

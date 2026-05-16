@@ -265,11 +265,17 @@ function sourceFallbackIdentity(event: OrchestratorContinuityEvent): ActorIdenti
   if (event.source_kind === "signal") {
     return { emoji: "⚠️", label: "Signal", detail: event.kind, tone: "work" };
   }
+  if (event.source_kind === "dispatch") {
+    return { emoji: "📣", label: "Dispatch", detail: event.kind, tone: "work" };
+  }
   if (event.source_kind === "session_summary") {
     return { emoji: "🧠", label: "Session", detail: event.kind, tone: "system" };
   }
   if (event.source_kind === "library") {
     return { emoji: "📚", label: "Library", detail: event.kind, tone: "system" };
+  }
+  if (event.source_kind === "business_context") {
+    return { emoji: "📌", label: "Context", detail: event.kind, tone: "system" };
   }
   return { emoji: "•", label: source, detail: event.kind, tone: "system" };
 }
@@ -366,6 +372,18 @@ function educationHintForEvent(event: OrchestratorContinuityEvent): string {
   if (event.source_kind === "conversation_turn") {
     return "Hint: chat turns are context breadcrumbs from the human or AI conversation.";
   }
+  if (event.source_kind === "dispatch") {
+    return "Hint: dispatches are routed notices from workers, automation, or admin systems.";
+  }
+  if (event.source_kind === "session_summary") {
+    return "Hint: sessions are compact handoff notes that help seats resume old work.";
+  }
+  if (event.source_kind === "library") {
+    return "Hint: library entries are saved reference material Orchestrator can reuse.";
+  }
+  if (event.source_kind === "business_context") {
+    return "Hint: context cards are standing rules and product facts seats should keep in mind.";
+  }
   return "Hint: keywords like proof, blocker, decision, and signal tell Orchestrator what kind of update this is.";
 }
 
@@ -384,6 +402,12 @@ function analogyForEvent(event: OrchestratorContinuityEvent): string {
   }
   if (event.source_kind === "conversation_turn") {
     return "Analogy: like adding a fresh line to the shared notebook everyone reads from.";
+  }
+  if (event.source_kind === "dispatch") {
+    return "Analogy: like a routed notice arriving at the right desk.";
+  }
+  if (event.source_kind === "session_summary" || event.source_kind === "library" || event.source_kind === "business_context") {
+    return "Analogy: like opening the shared reference binder before deciding what to do next.";
   }
   return "Analogy: like one more breadcrumb in the trail Orchestrator follows.";
 }

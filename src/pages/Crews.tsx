@@ -82,7 +82,7 @@ const COMPARISON = [
     langgraph: <AlertCircle className="h-4 w-4 text-muted-foreground" />,
   },
   {
-    feature: "Credential management",
+    feature: "Passport access",
     unclick: <Check className="h-4 w-4 text-primary" />,
     crewai: <AlertCircle className="h-4 w-4 text-muted-foreground" />,
     autogen: <AlertCircle className="h-4 w-4 text-muted-foreground" />,
@@ -271,10 +271,10 @@ const Crews = () => {
               <div className="rounded-xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
                 <div className="flex items-center gap-3 mb-3">
                   <AlertCircle className="h-5 w-5 text-primary" />
-                  <h3 className="text-sm font-semibold text-heading">BackstagePass</h3>
+                  <h3 className="text-sm font-semibold text-heading">Passport</h3>
                 </div>
                 <p className="text-xs text-body leading-relaxed">
-                  Credentials scoped per agent. Developer gets GitHub token. Writer gets CMS key. Organiser gets calendar API. No broad API key exposure.
+                  Passport access is scoped per agent. Developer gets GitHub access. Writer gets CMS access. Organiser gets calendar access. No broad API key exposure.
                 </p>
               </div>
             </FadeIn>

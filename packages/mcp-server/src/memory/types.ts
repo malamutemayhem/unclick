@@ -95,6 +95,32 @@ export interface MemoryTaxonomySnapshot {
   last_confirmed_at: string | null;
 }
 
+export interface MemoryTaxonomySnapshotWriteOptions {
+  dry_run?: boolean;
+  max_sources?: number;
+  max_snapshots?: number;
+  max_sources_per_snapshot?: number;
+}
+
+export interface MemoryTaxonomySnapshotWriteResult {
+  dry_run: boolean;
+  generated_at: string;
+  source_count: number;
+  snapshot_count: number;
+  written_count: number;
+  snapshots: Array<{
+    slug: string;
+    title: string;
+    primary_category: string;
+    source_ids: string[];
+  }>;
+  written: Array<{
+    slug: string;
+    title: string;
+    message: string;
+  }>;
+}
+
 export interface MemoryBackend {
   /** Load startup context (business context + recent sessions + hot facts). */
   getStartupContext(numSessions: number): Promise<unknown>;
@@ -140,6 +166,9 @@ export interface MemoryBackend {
 
   /** Create or update a knowledge library doc. */
   upsertLibraryDoc(data: LibraryDocInput): Promise<string>;
+
+  /** Build and store source-linked taxonomy snapshots in the Library. */
+  refreshTaxonomySnapshots(options?: MemoryTaxonomySnapshotWriteOptions): Promise<MemoryTaxonomySnapshotWriteResult>;
 
   /** Run memory decay management. */
   manageDecay(): Promise<unknown>;

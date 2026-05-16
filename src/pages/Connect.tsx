@@ -293,9 +293,6 @@ export default function ConnectPage() {
 
   // -- Success state --------------------------------------------------------
   if (pageState.kind === "success") {
-    const vaultCommands = connector.credentialFields.map(
-      (f) => `vault_store key="${connector.slug}/${f.key}" value="..."`
-    );
     return (
       <ConnectShell connector={connector}>
         <div className="space-y-6 text-center">
@@ -309,19 +306,8 @@ export default function ConnectPage() {
               {connector.name} connected
             </h2>
             <p className="text-sm text-[#E8E8E8]/60 mt-1">
-              Credentials stored securely. MCP tool calls will auto-use them.
+              Passport access saved securely. MCP tool calls will auto-use it.
             </p>
-          </div>
-
-          <div className="bg-white/5 border border-white/10 rounded-lg p-4 text-left space-y-2">
-            <p className="text-xs font-mono text-[#E8E8E8]/50 uppercase tracking-wide">
-              Optional: also store in local vault for offline use
-            </p>
-            {vaultCommands.map((cmd) => (
-              <code key={cmd} className="block text-xs font-mono text-[#E2B93B] bg-black/30 px-3 py-1.5 rounded">
-                {cmd}
-              </code>
-            ))}
           </div>
 
           <Link to="/admin/keychain" className="inline-block text-sm text-[#E8E8E8]/60 hover:text-[#E8E8E8]">
@@ -410,7 +396,7 @@ export default function ConnectPage() {
         localStorage.setItem("unclick_api_key", currentApiKey);
         setPageState({ kind: "success" });
       } else {
-        setPageState({ kind: "error", message: data.error ?? "Failed to save credentials." });
+        setPageState({ kind: "error", message: data.error ?? "Failed to save Passport access." });
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Network error.";
@@ -475,7 +461,7 @@ export default function ConnectPage() {
             <p className="text-xs text-[#E8E8E8]/60 leading-relaxed">
               Your Passport key lives in your browser, not on our servers.
               We only store a one-way fingerprint, so even we cannot read
-              your saved credentials. Only you can.
+              your saved Passport access. Only you can.
             </p>
 
             {alreadyProvisioned ? (
@@ -645,7 +631,7 @@ export default function ConnectPage() {
               <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
                 <p className="text-sm text-primary/80">
                   Login setup is pending for {connector.name}. Use the manual fallback below,
-                  or enter credentials directly in your MCP config.
+                  or enter access details directly in your MCP config.
                 </p>
               </div>
             ) : (
@@ -714,7 +700,7 @@ export default function ConnectPage() {
               className="w-full bg-[#E2B93B] hover:bg-[#E2B93B]/90 text-black font-semibold"
               disabled={!apiKey.trim() || !allFieldsFilled}
             >
-              Save credentials
+              Save Passport access
             </Button>
           </form>
         )}
@@ -793,7 +779,7 @@ function ConnectShell({
         </div>
 
         <p className="text-center text-xs text-[#E8E8E8]/30">
-          Credentials are encrypted with AES-256-GCM using your API key before storage.
+          Passport access is encrypted with AES-256-GCM using your API key before storage.
         </p>
       </div>
     </main>

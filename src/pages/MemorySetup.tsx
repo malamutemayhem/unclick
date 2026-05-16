@@ -451,7 +451,7 @@ export default function MemorySetupPage() {
               <div className="mt-6">
                 <h3 className="text-sm font-semibold text-heading">Drop this into your MCP config</h3>
                 <p className="mt-1 text-xs text-body">
-                  The server will fetch your Supabase credentials securely using your API key.
+                  The server will fetch your Supabase access securely using your API key.
                 </p>
                 <div className="mt-3 rounded-md border border-border/40 bg-card/60">
                   <pre className="overflow-x-auto p-3 font-mono text-[11px] text-heading">
