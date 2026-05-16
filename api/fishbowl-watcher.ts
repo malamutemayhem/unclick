@@ -141,6 +141,21 @@ export interface WorkerSelfHealingSignal {
   payload: Record<string, unknown>;
 }
 
+export interface WorkerSelfHealingSignalInsertRow {
+  api_key_hash: string;
+  tool: "fishbowl";
+  action: WorkerSelfHealingSignalAction;
+  severity: WorkerSelfHealingSignal["severity"];
+  summary: string;
+  deep_link: string;
+  payload: Record<string, unknown>;
+}
+
+export interface WorkerSelfHealingTodoSignalPlan {
+  signal: WorkerSelfHealingSignal;
+  insert: WorkerSelfHealingSignalInsertRow;
+}
+
 export function isMissedCheckinCandidate(profile: ProfileRow, nowMs: number): boolean {
   if (!profile.next_checkin_at) return false;
   const dueMs = new Date(profile.next_checkin_at).getTime();
@@ -326,6 +341,36 @@ export function buildWorkerSelfHealingSignal(
   }
 
   return null;
+}
+
+export function planWorkerSelfHealingTodoSignal(params: {
+  apiKeyHash: string;
+  decision: WorkerSelfHealingDecision;
+  emittedAt: string;
+  deepLink?: string;
+}): WorkerSelfHealingTodoSignalPlan | null {
+  const apiKeyHash = nonEmptyString(params.apiKeyHash);
+  const emittedAt = nonEmptyString(params.emittedAt);
+  if (!apiKeyHash || !emittedAt) return null;
+
+  const signal = buildWorkerSelfHealingSignal(params.decision);
+  if (!signal) return null;
+
+  return {
+    signal,
+    insert: {
+      api_key_hash: apiKeyHash,
+      tool: "fishbowl",
+      action: signal.action,
+      severity: signal.severity,
+      summary: signal.summary,
+      deep_link: params.deepLink ?? `/admin/jobs#todo-${params.decision.todo_id}`,
+      payload: {
+        ...signal.payload,
+        emitted_at: emittedAt,
+      },
+    },
+  };
 }
 
 function dispatchToDbRow(dispatch: AgentDispatch) {
