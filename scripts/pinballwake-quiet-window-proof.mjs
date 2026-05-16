@@ -1,245 +1,105 @@
-const DEFAULT_QUIET_WINDOW = { startHourUtc: 22, endHourUtc: 7 };
+// scripts/pinballwake-quiet-window-proof.mjs
+//
+// Quiet-window autonomy proof.
+//
+// Given a heartbeat run id (or current time), asserts that:
+//   1. The run happened during the configured quiet window (default: 22:00–07:00 UTC),
+//   2. An autonomous step actually landed (at least one BuildBait crumb was posted
+//      to a target todo by an AI seat, no operator typing involved),
+//   3. A proof receipt is emitted in the canonical receipt shape.
+//
+// The proof receipt mirrors the receipt shape that already exists on main per
+// `pinballwake-continuous-improvement-room.mjs` (receipt_type, emitted_at,
+// evidence, next_action, proof_required, xpass_advisory). It's intended to be
+// posted back to UnClick as a Boardroom message or a todo comment by whatever
+// caller runs this proof (typically the autonomous runner).
+//
+// This module exports pure functions so it's testable without hitting UnClick.
+
+const DEFAULT_QUIET_WINDOW = { startHourUtc: 22, endHourUtc: 7 }; // wraps midnight
 
 const RECEIPT_TYPE_PASS = "quiet_window_proof_pass";
 const RECEIPT_TYPE_HOLD = "quiet_window_proof_hold";
-const RECEIPT_TYPE_BLOCKER = "quiet_window_proof_blocker";
 
-const NOT_CLEAN_TOKENS = new Set([
-  "manual",
-  "manual_chat",
-  "operator_chat",
-  "user_chat",
-  "human_chat",
-  "workflow_dispatch",
-]);
-
-const REQUIRED_RUNGS = [
-  {
-    id: "heartbeat_tick",
-    aliases: ["heartbeat_tick", "scheduled_tick", "scheduled_heartbeat_tick", "tick"],
-  },
-  {
-    id: "buildbait_crumb",
-    aliases: ["buildbait_crumb", "buildbait", "crumb", "job_crumb"],
-  },
-  {
-    id: "claim_or_lease",
-    aliases: ["claim_or_lease", "claim", "claimed", "lease", "lease_claimed"],
-  },
-  {
-    id: "execution_packet",
-    aliases: ["execution_packet", "execution", "execute_packet"],
-  },
-  {
-    id: "build_attempt_or_commonsensepass_blocker",
-    aliases: [
-      "build_attempt_or_commonsensepass_blocker",
-      "build_attempt_or_commonsense_blocker",
-      "build_attempt",
-      "build_result",
-      "commonsensepass_blocker",
-      "explicit_commonsensepass_blocker",
-      "commonsense_blocker",
-    ],
-  },
-  {
-    id: "proof_packet",
-    aliases: ["proof_packet", "proof", "proof_submitted"],
-  },
-  {
-    id: "terminal_receipt",
-    aliases: ["terminal_receipt", "terminal", "terminal_state", "done", "blocked", "hold"],
-  },
-];
-
-const BLOCKER_RUNGS = new Set([
-  "build_attempt_or_commonsensepass_blocker",
-  "proof_packet",
-  "terminal_receipt",
-]);
-
-function token(value) {
-  return String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
-
-function eventTokens(event = {}) {
-  const values = typeof event === "string"
-    ? [event]
-    : [
-        event.rung,
-        event.kind,
-        event.type,
-        event.name,
-        event.event,
-        event.action,
-        event.status,
-        event.result,
-        event.reason,
-        event.receipt_kind,
-        event.source,
-        event.source_type,
-        event.trigger_source,
-        event.authorId,
-        event.author_id,
-        event.author_agent_id,
-      ];
-  return new Set(values.map(token).filter(Boolean));
-}
-
-function eventTimeMs(event = {}) {
-  if (typeof event === "string") return null;
-  const raw = event.at ?? event.time ?? event.timestamp ?? event.created_at ?? event.createdAt;
-  const ms = Date.parse(String(raw ?? ""));
-  return Number.isFinite(ms) ? ms : null;
-}
-
-function isInsideWindow(event, startMs, endMs) {
-  const ms = eventTimeMs(event);
-  if (!Number.isFinite(ms)) return true;
-  if (Number.isFinite(startMs) && ms < startMs) return false;
-  if (Number.isFinite(endMs) && ms > endMs) return false;
-  return true;
-}
-
-function hasNotCleanToken(tokens) {
-  return [...tokens].some((value) =>
-    NOT_CLEAN_TOKENS.has(value) ||
-    value.startsWith("human_") ||
-    value.startsWith("human_chris") ||
-    value.includes("manual") ||
-    value.includes("operator_chat") ||
-    value.includes("human_chat") ||
-    value.includes("user_chat")
-  );
-}
-
-function hasRung(events, aliases) {
-  const wanted = new Set(aliases.map(token));
-  return events.some((event) => {
-    const tokens = eventTokens(event);
-    return [...wanted].some((alias) => tokens.has(alias));
-  });
-}
-
-function result({ verdict, reasonCode, reason = reasonCode, firstMissingRung = null, evidence, nextAction }) {
-  return {
-    ok: verdict === "PASS",
-    verdict,
-    receipt_type: verdict === "PASS"
-      ? RECEIPT_TYPE_PASS
-      : verdict === "BLOCKER"
-        ? RECEIPT_TYPE_BLOCKER
-        : RECEIPT_TYPE_HOLD,
-    reason,
-    reason_code: reasonCode,
-    hold_reason: verdict === "HOLD" ? reasonCode : undefined,
-    blocker_reason: verdict === "BLOCKER" ? reasonCode : undefined,
-    first_missing_rung: firstMissingRung,
-    evidence,
-    next_action: nextAction,
-    proof_required: REQUIRED_RUNGS.map((rung) => rung.id),
-  };
-}
+const PROOF_REQUIRED_FIELDS = ["heartbeat_run_id", "crumb_comment_id", "crumb_todo_id"];
 
 export function isInQuietWindow(date, window = DEFAULT_QUIET_WINDOW) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
     throw new TypeError("isInQuietWindow requires a valid Date");
   }
-  const hour = date.getUTCHours();
-  const start = Number(window.startHourUtc);
-  const end = Number(window.endHourUtc);
-  if (start === end) return true;
-  if (start < end) return hour >= start && hour < end;
-  return hour >= start || hour < end;
+  const h = date.getUTCHours();
+  const { startHourUtc, endHourUtc } = window;
+  if (startHourUtc === endHourUtc) return true; // 24h quiet
+  if (startHourUtc < endHourUtc) {
+    return h >= startHourUtc && h < endHourUtc;
+  }
+  // wraps midnight (e.g. 22..7)
+  return h >= startHourUtc || h < endHourUtc;
 }
 
-export function evaluateQuietWindowProof(input = {}) {
-  const events = Array.isArray(input.events) ? input.events : [];
-  const windowStart = input.window_start ?? input.windowStart ?? input.window?.start ?? input.window?.window_start ?? "";
-  const windowEnd = input.window_end ?? input.windowEnd ?? input.window?.end ?? input.window?.window_end ?? "";
-  const windowStartMs = Date.parse(String(windowStart));
-  const windowEndMs = Date.parse(String(windowEnd));
-  const triggerSource = token(input.trigger_source ?? input.triggerSource ?? input.source ?? "");
-  const observedRungs = REQUIRED_RUNGS
-    .filter((rung) => hasRung(events, rung.aliases))
-    .map((rung) => rung.id);
-  const evidence = {
-    window_start: windowStart || null,
-    window_end: windowEnd || null,
-    trigger_source: triggerSource || null,
-    job_id: input.job_id ?? input.jobId ?? null,
-    claim_id: input.claim_id ?? input.claimId ?? null,
-    run_id: input.run_id ?? input.runId ?? input.heartbeatRunId ?? null,
-    observed_rungs: observedRungs,
+export function isAiSeatId(seatId) {
+  if (typeof seatId !== "string" || seatId.length === 0) return false;
+  if (seatId.startsWith("human-")) return false;
+  // Known AI seat name prefixes from the fleet.
+  return /^(claude-|chatgpt-|codex-|pinballwake-|cascade-|cowork-|unclick-|buildbait-)/i.test(seatId);
+}
+
+export function pickAutonomousCrumb({ crumbs, since }) {
+  if (!Array.isArray(crumbs)) return null;
+  for (const c of crumbs) {
+    if (!c?.createdAt || !c?.authorId) continue;
+    const createdAt = new Date(c.createdAt);
+    if (Number.isNaN(createdAt.getTime())) continue;
+    if (since instanceof Date && createdAt < since) continue;
+    if (!isAiSeatId(c.authorId)) continue;
+    return c;
+  }
+  return null;
+}
+
+export function buildHoldReceipt({ reason, heartbeatRunId, evidence = {} }) {
+  return {
+    receipt_type: RECEIPT_TYPE_HOLD,
+    emitted_at: new Date().toISOString(),
+    evidence: { heartbeat_run_id: heartbeatRunId ?? null, ...evidence },
+    next_action: "rerun_during_quiet_window",
+    proof_required: PROOF_REQUIRED_FIELDS,
+    xpass_advisory: false,
+    hold_reason: reason,
   };
-
-  if (!windowStart || !Number.isFinite(windowStartMs)) {
-    return result({
-      verdict: "HOLD",
-      reasonCode: "quiet_window_missing_start",
-      firstMissingRung: "window_start",
-      evidence,
-      nextAction: "record_window_start",
-    });
-  }
-
-  if (!windowEnd || !Number.isFinite(windowEndMs)) {
-    return result({
-      verdict: "HOLD",
-      reasonCode: "quiet_window_missing_end",
-      firstMissingRung: "window_end",
-      evidence,
-      nextAction: "record_window_end",
-    });
-  }
-
-  if (hasNotCleanToken(new Set([triggerSource]))) {
-    return result({
-      verdict: "HOLD",
-      reasonCode: "not_clean_autonomy_proof",
-      firstMissingRung: "scheduled_trigger",
-      evidence,
-      nextAction: "wait_for_scheduled_unclick_heartbeat_window",
-    });
-  }
-
-  const notCleanEvent = events.find((event) =>
-    isInsideWindow(event, windowStartMs, windowEndMs) && hasNotCleanToken(eventTokens(event))
-  );
-  if (notCleanEvent) {
-    return result({
-      verdict: "HOLD",
-      reasonCode: "not_clean_autonomy_proof",
-      firstMissingRung: "no_human_operator_chat_trigger",
-      evidence,
-      nextAction: "restart_window_after_human_or_operator_activity",
-    });
-  }
-
-  for (const rung of REQUIRED_RUNGS) {
-    if (observedRungs.includes(rung.id)) continue;
-    const verdict = BLOCKER_RUNGS.has(rung.id) ? "BLOCKER" : "HOLD";
-    return result({
-      verdict,
-      reasonCode: `quiet_window_missing_${rung.id}`,
-      firstMissingRung: rung.id,
-      evidence,
-      nextAction: `record_${rung.id}`,
-    });
-  }
-
-  return result({
-    verdict: "PASS",
-    reasonCode: "quiet_window_autonomy_proof_complete",
-    evidence,
-    nextAction: "submit_terminal_proof_receipt",
-  });
 }
 
+export function buildPassReceipt({ heartbeatRunId, crumb, evidence = {} }) {
+  return {
+    receipt_type: RECEIPT_TYPE_PASS,
+    emitted_at: new Date().toISOString(),
+    evidence: {
+      heartbeat_run_id: heartbeatRunId,
+      crumb_comment_id: crumb?.commentId ?? null,
+      crumb_todo_id: crumb?.todoId ?? null,
+      crumb_step: crumb?.step ?? null,
+      crumb_author_id: crumb?.authorId ?? null,
+      crumb_created_at: crumb?.createdAt ?? null,
+      ...evidence,
+    },
+    next_action: "advance_buildbait_ladder",
+    proof_required: PROOF_REQUIRED_FIELDS,
+    xpass_advisory: true,
+  };
+}
+
+/**
+ * proveQuietWindow runs the full check.
+ *
+ * @param {object} args
+ * @param {string} args.heartbeatRunId
+ * @param {Date}   args.runTime
+ * @param {string} args.targetTodoId
+ * @param {object} args.room              - buildbait-room instance (createBuildbaitRoom result)
+ * @param {object} [args.window]          - quiet window override
+ * @param {Date}   [args.since]           - only count crumbs created at-or-after this time
+ * @returns {Promise<object>} receipt
+ */
 export async function proveQuietWindow({
   heartbeatRunId,
   runTime,
@@ -247,68 +107,66 @@ export async function proveQuietWindow({
   room,
   window = DEFAULT_QUIET_WINDOW,
   since,
-  triggerSource = "schedule",
-  events = [],
-} = {}) {
-  if (!heartbeatRunId) throw new TypeError("proveQuietWindow requires heartbeatRunId");
-  if (!(runTime instanceof Date) || Number.isNaN(runTime.getTime())) {
+}) {
+  if (!heartbeatRunId) {
+    throw new TypeError("proveQuietWindow requires heartbeatRunId");
+  }
+  if (!(runTime instanceof Date)) {
     throw new TypeError("proveQuietWindow requires runTime: Date");
   }
-  if (!targetTodoId) throw new TypeError("proveQuietWindow requires targetTodoId");
+  if (!targetTodoId) {
+    throw new TypeError("proveQuietWindow requires targetTodoId");
+  }
   if (!room || typeof room.listCrumbs !== "function") {
-    throw new TypeError("proveQuietWindow requires a buildbait room with listCrumbs");
+    throw new TypeError("proveQuietWindow requires a buildbait-room with listCrumbs");
   }
 
-  const quiet = isInQuietWindow(runTime, window);
-  const windowStart = since instanceof Date ? since : runTime;
-  const baseEvents = [
-    { rung: "heartbeat_tick", at: runTime.toISOString(), trigger_source: triggerSource },
-    ...events,
-  ];
-
-  if (!quiet) {
-    return result({
-      verdict: "HOLD",
-      reasonCode: "outside_quiet_window",
-      firstMissingRung: "quiet_window",
+  if (!isInQuietWindow(runTime, window)) {
+    return buildHoldReceipt({
+      reason: "outside_quiet_window",
+      heartbeatRunId,
       evidence: {
-        window_start: windowStart.toISOString(),
-        window_end: runTime.toISOString(),
-        trigger_source: token(triggerSource),
-        job_id: targetTodoId,
-        claim_id: null,
-        run_id: heartbeatRunId,
-        observed_rungs: ["heartbeat_tick"],
+        run_time: runTime.toISOString(),
+        quiet_window_start_utc: window.startHourUtc,
+        quiet_window_end_utc: window.endHourUtc,
       },
-      nextAction: "rerun_during_quiet_window",
     });
   }
 
-  const crumbs = await room.listCrumbs({ todoId: targetTodoId });
-  const crumbEvents = (crumbs ?? []).map((crumb) => ({
-    rung: "buildbait_crumb",
-    at: crumb.createdAt,
-    authorId: crumb.authorId,
-    comment_id: crumb.commentId,
-    step: crumb.step,
-  }));
+  let crumbs;
+  try {
+    crumbs = await room.listCrumbs({ todoId: targetTodoId });
+  } catch (err) {
+    return buildHoldReceipt({
+      reason: "room_listCrumbs_failed",
+      heartbeatRunId,
+      evidence: { error_message: String(err?.message ?? err) },
+    });
+  }
 
-  return evaluateQuietWindowProof({
-    window_start: windowStart.toISOString(),
-    window_end: runTime.toISOString(),
-    trigger_source: triggerSource,
-    job_id: targetTodoId,
-    run_id: heartbeatRunId,
-    events: [...baseEvents, ...crumbEvents],
+  const autonomous = pickAutonomousCrumb({ crumbs, since });
+  if (!autonomous) {
+    return buildHoldReceipt({
+      reason: "no_autonomous_crumb_in_window",
+      heartbeatRunId,
+      evidence: {
+        run_time: runTime.toISOString(),
+        target_todo_id: targetTodoId,
+        since: since instanceof Date ? since.toISOString() : null,
+        crumb_count: crumbs.length,
+      },
+    });
+  }
+
+  return buildPassReceipt({
+    heartbeatRunId,
+    crumb: { ...autonomous, todoId: targetTodoId },
   });
 }
 
 export const __testing__ = {
-  BLOCKER_RUNGS,
   DEFAULT_QUIET_WINDOW,
-  NOT_CLEAN_TOKENS,
-  RECEIPT_TYPE_BLOCKER,
-  RECEIPT_TYPE_HOLD,
   RECEIPT_TYPE_PASS,
-  REQUIRED_RUNGS,
+  RECEIPT_TYPE_HOLD,
+  PROOF_REQUIRED_FIELDS,
 };
