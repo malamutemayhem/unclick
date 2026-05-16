@@ -124,9 +124,20 @@ test("saveConversationTurn calls the existing admin ingest endpoint", async () =
 test("buildOrchestratorContextReadQuery normalizes search and clamps limits", () => {
   assert.deepEqual(
     buildOrchestratorContextReadQuery({ q: "  proof   check  ", limit: 500 }),
-    { limit: 200, q: "proof check" }
+    { limit: 200, compact: true, max_summaries: 20, include_raw: false, q: "proof check" }
   );
-  assert.deepEqual(buildOrchestratorContextReadQuery({ limit: 1 }), { limit: 20 });
+  assert.deepEqual(buildOrchestratorContextReadQuery({ limit: 1 }), {
+    limit: 20,
+    compact: true,
+    max_summaries: 20,
+    include_raw: false,
+  });
+  assert.deepEqual(buildOrchestratorContextReadQuery({ max_summaries: 5 }), {
+    limit: 20,
+    compact: true,
+    max_summaries: 5,
+    include_raw: false,
+  });
 });
 
 test("readOrchestratorContext calls the read-only context endpoint", async () => {
@@ -147,6 +158,9 @@ test("readOrchestratorContext calls the read-only context endpoint", async () =>
         method: "GET",
         query: {
           limit: 40,
+          compact: true,
+          max_summaries: 20,
+          include_raw: false,
           q: "status",
         },
       },
