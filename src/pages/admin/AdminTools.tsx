@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Wrench, Rocket, PenSquare } from "lucide-react";
+import { Eye, GitFork, PenSquare, Rocket, ShieldCheck, Wrench } from "lucide-react";
 import { useSession } from "@/lib/auth";
+import {
+  CURATED_SKILL_PREVIEWS,
+  SKILL_LIBRARY_CATEGORIES,
+  type SkillRiskState,
+} from "@/lib/communityTools";
 import { InfoCard } from "./memory/InfoCard";
 import UnClickTools from "./tools/UnClickTools";
 import ConnectedServices from "./tools/ConnectedServices";
@@ -17,6 +22,121 @@ interface Connector {
   setup_url?: string | null;
   test_endpoint?: string | null;
   credential: { is_valid: boolean; last_tested_at: string | null } | null;
+}
+
+const RISK_STATE_STYLES: Record<SkillRiskState, string> = {
+  quarantined: "bg-amber-400/10 text-amber-200",
+  reviewed: "bg-sky-400/10 text-sky-200",
+  "native-ready": "bg-emerald-400/10 text-emerald-200",
+};
+
+const RISK_STATE_LABELS: Record<SkillRiskState, string> = {
+  quarantined: "Quarantined",
+  reviewed: "Reviewed",
+  "native-ready": "Native ready",
+};
+
+function SkillsLibraryPreview() {
+  return (
+    <div className="md:col-span-2">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-[#61C1C4]" />
+            <h3 className="text-sm font-semibold text-white">Skills Library</h3>
+            <span className="rounded bg-[#61C1C4]/15 px-1.5 py-0.5 text-[10px] font-medium text-[#61C1C4]">
+              Curated
+            </span>
+          </div>
+          <p className="mt-2 max-w-2xl text-xs leading-5 text-white/50">
+            AgentSkills-compatible packages can be previewed, quarantined, and rebuilt as native UnClick skills. OpenClaw and similar ecosystems are discovery inputs, not trust authorities.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {SKILL_LIBRARY_CATEGORIES.map((category) => (
+            <span key={category} className="rounded bg-white/[0.04] px-2 py-1 text-[10px] font-medium text-white/50">
+              {category}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-3">
+        {CURATED_SKILL_PREVIEWS.map((skill) => (
+          <article key={skill.id} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-white">{skill.name}</p>
+                <p className="mt-1 text-[11px] font-medium text-[#61C1C4]">{skill.source}</p>
+              </div>
+              <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${RISK_STATE_STYLES[skill.riskState]}`}>
+                {RISK_STATE_LABELS[skill.riskState]}
+              </span>
+            </div>
+
+            <p className="mt-3 text-xs leading-5 text-white/45">{skill.description}</p>
+
+            <dl className="mt-4 space-y-2 text-[11px] text-white/40">
+              <div>
+                <dt className="font-medium text-white/60">Provenance</dt>
+                <dd>{skill.provenance}</dd>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <dt className="font-medium text-white/60">License</dt>
+                  <dd>{skill.license}</dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-white/60">Version</dt>
+                  <dd>{skill.version}</dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-white/60">Hash</dt>
+                  <dd>{skill.contentHash}</dd>
+                </div>
+              </div>
+              <div>
+                <dt className="font-medium text-white/60">Permissions</dt>
+                <dd>{skill.permissions.join(", ")}</dd>
+              </div>
+            </dl>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled
+                aria-label={`Preview ${skill.name}`}
+                className="inline-flex items-center gap-1 rounded border border-white/[0.08] px-2 py-1 text-[11px] font-medium text-white/50"
+              >
+                <Eye className="h-3 w-3" />
+                Preview
+              </button>
+              <button
+                type="button"
+                disabled
+                aria-label={`Install ${skill.name}`}
+                className="inline-flex items-center gap-1 rounded border border-white/[0.08] px-2 py-1 text-[11px] font-medium text-white/50"
+              >
+                <Rocket className="h-3 w-3" />
+                Install
+              </button>
+              <button
+                type="button"
+                disabled
+                aria-label={`Fork ${skill.name}`}
+                className="inline-flex items-center gap-1 rounded border border-white/[0.08] px-2 py-1 text-[11px] font-medium text-white/50"
+              >
+                <GitFork className="h-3 w-3" />
+                Fork
+              </button>
+            </div>
+
+            <p className="mt-3 text-[11px] font-medium text-white/35">{skill.installState}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function AdminToolsPage() {
@@ -98,6 +218,8 @@ export default function AdminToolsPage() {
         <section>
           <h2 className="mb-4 text-lg font-semibold text-white">Marketplace</h2>
           <div className="grid gap-4 md:grid-cols-2">
+            <SkillsLibraryPreview />
+
             <Link
               to="/admin/copypass"
               className="rounded-xl border border-white/[0.06] bg-[#111] p-5 transition-colors hover:border-fuchsia-400/30 hover:bg-white/[0.04]"
