@@ -107,6 +107,18 @@ The next proof-only slice adds `planWorkerMovementWorkflowPilotProofSignal`, whi
 - Lease tokens remain redacted, only `has_lease_token` is exposed.
 - The helper returns null if tenant hash or emitted time is missing.
 
+## API Entrypoint Slice
+
+The next slice adds `/api/worker-movement-pilot` as a protected dry-run entrypoint:
+
+- Auth uses the same `Bearer ${CRON_SECRET}` pattern as the existing watcher jobs.
+- Each run fetches at most one expired Boardroom todo lease candidate.
+- The route reuses `planWorkerMovementWorkflowPilot` and `planWorkerMovementWorkflowPilotProofSignal`.
+- It inserts PASS or BLOCKER proof into `mc_signals` only.
+- It dedupes proof for the same candidate and signal action for 30 minutes.
+- It does not reclaim, release, reassign, complete, or mutate the todo lease.
+- A later Workflow wrapper can call this route once the proof-only behavior is stable.
+
 ## Proof Trail
 
 - Greenlight receipt: `876f228a-38fa-45a3-8373-d24a319a0670`
