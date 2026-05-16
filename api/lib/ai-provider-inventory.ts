@@ -94,6 +94,17 @@ export const AI_PROVIDER_INVENTORY: AiProviderInventoryEntry[] = [
     notes: "Memory MCP embeddings already require an explicit true/1 opt-in before calling OpenAI.",
   },
   {
+    id: "memory.mcp.openai.fact-extraction",
+    provider: "OpenAI",
+    surface: "packages/mcp-server/src/memory/supabase.ts",
+    call_kind: "chat_completion",
+    model: "gpt-4o-mini",
+    cost_tier: "paid",
+    default_allowed: false,
+    allow_paid_flag: "MEMORY_OPENAI_FACT_EXTRACTION_ENABLED or MEMORY_AI_FACT_EXTRACTION_ENABLED",
+    notes: "Memory MCP atomic fact extraction is paid and stays disabled unless a true/1 extraction flag and OPENAI_API_KEY are both present.",
+  },
+  {
     id: "memory.package.openai.embeddings",
     provider: "OpenAI",
     surface: "packages/memory-mcp/src/embeddings.ts",
