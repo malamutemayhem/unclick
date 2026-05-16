@@ -15,8 +15,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | de6d70d0d55a | 3662 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 7a3c1848a432 | 13148 |
-| src/pages/admin/AdminShell.tsx | fa1b64904f84 | 19137 |
+| src/App.tsx | b02c3916f083 | 13089 |
+| src/pages/admin/AdminShell.tsx | ae5e4a8dae80 | 19137 |
 | .github/workflows/ci.yml | 79e43dd8e26c | 1608 |
 | .github/workflows/brainmap-auto-update.yml | 7e8b08eb16aa | 1137 |
 | package.json | 37074f6e60a5 | 4175 |
@@ -41,7 +41,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-research-room.mjs | 8307356c93c4 | 7651 |
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
-| scripts/pinballwake-worker-registry-room.mjs | 5911ee03a039 | 16190 |
+| scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
 | scripts/pinballwake-xpass-gate-room.mjs | 44b7d10cddc2 | 14430 |
 | packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
