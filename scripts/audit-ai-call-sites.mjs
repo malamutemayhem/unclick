@@ -5,7 +5,7 @@
 // for AI provider call sites (OpenAI, Anthropic, Cohere, Groq, etc.) so each
 // can be wrapped with withSpendGuard from src/lib/aiSpendGuard.ts.
 //
-// Informational only — always exits 0.
+// Informational only, always exits 0.
 
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
@@ -147,7 +147,7 @@ function renderText(report) {
   lines.push("");
 
   if (report.callSites.length === 0) {
-    lines.push("✔ No AI call sites detected.");
+    lines.push("[ok] No AI call sites detected.");
     return lines.join("\n");
   }
 
@@ -162,7 +162,7 @@ function renderText(report) {
       }
     }
   } else {
-    lines.push("✔ All AI call sites are already wrapped with withSpendGuard.");
+    lines.push("[ok] All AI call sites are already wrapped with withSpendGuard.");
   }
   return lines.join("\n");
 }

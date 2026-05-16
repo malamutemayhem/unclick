@@ -42,30 +42,30 @@ describe("registry helpers", () => {
 });
 
 describe("evaluateGuard", () => {
-  test("free + default_enabled → allowed", () => {
+  test("free + default_enabled -> allowed", () => {
     const d = evaluateGuard({ label: "local/ollama" }, { registry: TEST_REGISTRY, env: {} });
     expect(d.allowed).toBe(true);
     expect(d.reason).toBe("default_enabled");
   });
 
-  test("metered + no env opt-in → blocked", () => {
+  test("metered + no env opt-in -> blocked", () => {
     const d = evaluateGuard({ label: "openai/chat" }, { registry: TEST_REGISTRY, env: {} });
     expect(d.allowed).toBe(false);
     expect(d.reason).toMatch(/^requires_env_TEST_OPENAI_ON/);
   });
 
-  test("metered + env=1 → allowed", () => {
+  test("metered + env=1 -> allowed", () => {
     const d = evaluateGuard({ label: "openai/chat" }, { registry: TEST_REGISTRY, env: { TEST_OPENAI_ON: "1" } });
     expect(d.allowed).toBe(true);
     expect(d.reason).toBe("env_opt_in");
   });
 
-  test("metered + env=0 → blocked", () => {
+  test("metered + env=0 -> blocked", () => {
     const d = evaluateGuard({ label: "openai/chat" }, { registry: TEST_REGISTRY, env: { TEST_OPENAI_ON: "0" } });
     expect(d.allowed).toBe(false);
   });
 
-  test("unknown call site → blocked (default-deny)", () => {
+  test("unknown call site -> blocked (default-deny)", () => {
     const d = evaluateGuard({ label: "made-up-provider" }, { registry: TEST_REGISTRY, env: {} });
     expect(d.allowed).toBe(false);
     expect(d.reason).toBe("no_registry_entry");
@@ -126,7 +126,7 @@ describe("withSpendGuard", () => {
     expect(state.events[0].allowed).toBe(true);
   });
 
-  test("unknown call site → blocked, fn not invoked", async () => {
+  test("unknown call site -> blocked, fn not invoked", async () => {
     let invoked = false;
     try {
       await withSpendGuard(

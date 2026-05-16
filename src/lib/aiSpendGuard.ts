@@ -1,19 +1,19 @@
 // src/lib/aiSpendGuard.ts
 //
-// AI spend guardrails — provider inventory, cost labels, default-off paid calls.
+// AI spend guardrails: provider inventory, cost labels, default-off paid calls.
 //
 // Closes UnClick todo "AI spend guardrails: provider inventory, cost labels,
 // and default-off paid calls".
 //
 // What it does:
-//   1. Defines a Provider registry — every external paid call site declares its
+//   1. Defines a Provider registry. Every external paid call site declares its
 //      provider, cost class, and whether it's enabled.
 //   2. Wraps actual call sites with `withSpendGuard` which checks the registry,
 //      enforces default-off for paid endpoints unless explicit env opt-in,
 //      and records spend events for downstream telemetry.
 //   3. Provides `summariseSpend` for surfacing in admin UI.
 //
-// Stateless module — call sites are responsible for passing in `state` if
+// Stateless module. Call sites are responsible for passing in `state` if
 // they want spend tracked across requests. Tests use an in-memory state.
 
 export type Provider =
@@ -36,7 +36,7 @@ export type CostClass =
   | "free"        // genuinely zero cost (e.g., local model, free tier under quota)
   | "metered"     // paid per-token / per-request
   | "subscription" // covered under a flat subscription
-  | "unknown";    // not yet classified — treat as paid for safety
+  | "unknown";    // not yet classified, treat as paid for safety
 
 export interface ProviderEntry {
   provider: Provider;
@@ -183,7 +183,7 @@ export interface GuardOptions {
   env?: Record<string, string | undefined>;
   /** State to record spend events into. If omitted, no recording. */
   state?: SpendState;
-  /** Forced override — caller asserts the call is allowed (e.g., explicit user-greenlit one-shot). */
+  /** Forced override. Caller asserts the call is allowed, such as an explicit user-greenlit one-shot. */
   force_allow?: boolean;
 }
 
@@ -206,7 +206,7 @@ export function evaluateGuard(
   }
 
   if (!entry) {
-    // Default-deny unknown call sites — safer to fail loud.
+    // Default-deny unknown call sites, safer to fail loud.
     return {
       allowed: false,
       reason: "no_registry_entry",
@@ -218,7 +218,7 @@ export function evaluateGuard(
     return { allowed: entry.default_enabled, reason: entry.default_enabled ? "default_enabled" : "explicit_disabled", entry };
   }
 
-  // Metered / unknown — require env opt-in.
+  // Metered / unknown, require env opt-in.
   if (entry.default_enabled) {
     return { allowed: true, reason: "registry_default_enabled", entry };
   }

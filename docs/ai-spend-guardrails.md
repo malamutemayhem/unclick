@@ -10,13 +10,13 @@ A guard wrapper for every call site that hits an external AI provider, plus an i
 |---|---|
 | `src/lib/aiSpendGuard.ts` | `withSpendGuard()` wrapper + provider registry + spend-event recording + `summariseSpend()` reporter. |
 | `src/lib/aiSpendGuard.test.ts` | Full vitest coverage. |
-| `scripts/audit-ai-call-sites.mjs` | Lists every file using OpenAI / Anthropic / Cohere / Groq / etc — grouped by provider, with a `guarded` flag per file. |
+| `scripts/audit-ai-call-sites.mjs` | Lists every file using OpenAI / Anthropic / Cohere / Groq / etc, grouped by provider, with a `guarded` flag per file. |
 
 ## Default behaviour
 
-- **Free / local** call sites (e.g., self-hosted Ollama) → allowed by default.
-- **Metered** call sites (OpenAI, Anthropic, Cohere, Groq, Replicate, Stability, ElevenLabs, AssemblyAI, etc.) → **blocked by default**. Requires an explicit env opt-in (`UNCLICK_AISPEND_<PROVIDER>_<SHORT>=1`).
-- **Unknown** call sites (not in the registry) → blocked. Fail loud is safer than silently spending.
+- **Free / local** call sites (e.g., self-hosted Ollama) -> allowed by default.
+- **Metered** call sites (OpenAI, Anthropic, Cohere, Groq, Replicate, Stability, ElevenLabs, AssemblyAI, etc.) -> **blocked by default**. Requires an explicit env opt-in (`UNCLICK_AISPEND_<PROVIDER>_<SHORT>=1`).
+- **Unknown** call sites (not in the registry) -> blocked. Fail loud is safer than silently spending.
 
 `withSpendGuard({ label, provider }, async () => provider.call(...))` throws `SpendGuardError` when blocked. The caller decides whether to fall back to a free provider, surface to the user, or fail the request.
 
@@ -74,11 +74,11 @@ The admin UI can call `summariseSpend(globalState)` per request to render a "tod
 ## What's NOT in scope
 
 - No actual cost-in-dollars calculation. The guard only knows cost class. Per-token / per-request dollar math is a follow-up todo against the same parent ScopePack.
-- No automatic call-site swapping. The audit script lists; humans wrap.
-- No HSM / KMS-style key vault — that's separate work.
+- No automatic call-site swapping. The audit script lists; workers wrap.
+- No HSM / KMS-style key vault, that's separate work.
 - No quota enforcement (e.g., "no more than N calls/hour"). Out of scope for v0.
 
-## Acceptance (ScopePack 85% → this drop brings it to ready-for-merge)
+## Acceptance (ScopePack 85% -> this drop brings it to ready-for-merge)
 
 - [x] `aiSpendGuard.ts` exports `withSpendGuard`, `evaluateGuard`, `summariseSpend`, `createSpendState`, `SpendGuardError`.
 - [x] Default registry covers Anthropic, OpenAI (chat + embed), Cohere, Groq, Replicate, Stability, ElevenLabs, AssemblyAI + local Ollama as the free baseline.
