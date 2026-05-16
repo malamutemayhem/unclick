@@ -1323,4 +1323,78 @@ describe("computeActiveJobsCount (v9 definition)", () => {
       "Active job from canonical in_progress slice",
     );
   });
+
+  it("defaults Orchestrator reads to compact capped summaries", () => {
+    const messages = Array.from({ length: 25 }, (_, index) => ({
+      id: `msg-${index}`,
+      author_agent_id: "builder",
+      text: `PASS: message ${index} ${"long proof text ".repeat(20)}`,
+      tags: ["proof"],
+      created_at: new Date(Date.parse("2026-05-14T00:00:00.000Z") + index * 1000).toISOString(),
+    }));
+    const profiles = Array.from({ length: 25 }, (_, index) => ({
+      agent_id: `seat-${index}`,
+      last_seen_at: new Date(Date.parse("2026-05-14T00:00:00.000Z") + index * 1000).toISOString(),
+    }));
+    const businessContext = Array.from({ length: 25 }, (_, index) => ({
+      id: `context-${index}`,
+      category: "preference",
+      key: `pref-${index}`,
+      value: "source detail ".repeat(20),
+      priority: index,
+      updated_at: new Date(Date.parse("2026-05-14T00:00:00.000Z") + index * 1000).toISOString(),
+    }));
+
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-14T01:00:00.000Z",
+      profiles,
+      messages,
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext,
+      conversationTurns: [],
+    });
+
+    expect(context.response_bounds.compact).toBe(true);
+    expect(context.response_bounds.max_summaries).toBe(20);
+    expect(context.continuity_events).toHaveLength(20);
+    expect(context.profile_cards).toHaveLength(20);
+    expect(context.library_snapshots).toHaveLength(20);
+    expect(context.response_bounds.continuity_events_truncated).toBe(true);
+    expect(context.continuity_events.every((event) => event.summary.length <= 120)).toBe(true);
+    expect(JSON.stringify(context)).not.toContain("raw_payload");
+  });
+
+  it("honors smaller compact max summaries while preserving source pointers", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-14T01:00:00.000Z",
+      maxSummaries: 5,
+      profiles: [],
+      messages: Array.from({ length: 8 }, (_, index) => ({
+        id: `msg-${index}`,
+        author_agent_id: "builder",
+        text: `Status ${index}`,
+        tags: ["fyi"],
+        created_at: new Date(Date.parse("2026-05-14T00:00:00.000Z") + index * 1000).toISOString(),
+      })),
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.continuity_events).toHaveLength(5);
+    expect(context.response_bounds.max_summaries).toBe(5);
+    expect(context.response_bounds.continuity_events_available).toBe(8);
+    expect(context.response_bounds.continuity_events_truncated).toBe(true);
+    expect(context.rolling_snapshot.source_pointers.every((pointer) => pointer.source_id)).toBe(true);
+  });
 });

@@ -145,6 +145,9 @@ export interface OrchestratorOperatorTimeContext {
 export interface BuildOrchestratorContextInput {
   generatedAt: string;
   continuityLimit?: number;
+  compact?: boolean;
+  maxSummaries?: number;
+  includeRaw?: boolean;
   profiles: OrchestratorProfileRow[];
   messages: OrchestratorMessageRow[];
   todos: OrchestratorTodoRow[];
@@ -293,6 +296,20 @@ export interface OrchestratorContext {
   library_snapshots: OrchestratorLibrarySnapshot[];
   rolling_snapshot: OrchestratorRollingSnapshot;
   seat_handshake: OrchestratorSeatHandshake;
+  response_bounds: {
+    compact: boolean;
+    max_summaries: number;
+    include_raw: boolean;
+    continuity_events_returned: number;
+    continuity_events_available: number;
+    continuity_events_truncated: boolean;
+    profile_cards_returned: number;
+    profile_cards_available: number;
+    profile_cards_truncated: boolean;
+    library_snapshots_returned: number;
+    library_snapshots_available: number;
+    library_snapshots_truncated: boolean;
+  };
 }
 
 const ACTIVE_WINDOW_MS = 30 * 60 * 1000;
@@ -367,11 +384,14 @@ function compactContinuityText(input: unknown, maxChars = 240, options: { heartb
 
 export function buildOrchestratorContext(input: BuildOrchestratorContextInput): OrchestratorContext {
   const nowMs = Date.parse(input.generatedAt);
-  const continuityLimit = Math.min(Math.max(Number(input.continuityLimit ?? 36) || 36, 20), 500);
-  const profiles = input.profiles
+  const compact = input.compact !== false;
+  const maxSummaries = normalizeSummaryLimit(input.maxSummaries ?? input.continuityLimit ?? (compact ? 20 : 36));
+  const continuityLimit = compact ? maxSummaries : Math.min(Math.max(Number(input.continuityLimit ?? 36) || 36, 20), 500);
+  const allProfiles = input.profiles
     .map((profile) => buildProfileCard(profile, nowMs))
     .sort((a, b) => compareIsoDesc(a.last_seen_at, b.last_seen_at));
-  const activeSeatCount = profiles.filter((profile) => isFresh(profile.last_seen_at, nowMs)).length;
+  const profiles = compact ? allProfiles.slice(0, maxSummaries) : allProfiles;
+  const activeSeatCount = allProfiles.filter((profile) => isFresh(profile.last_seen_at, nowMs)).length;
   const humanOperatorTime = buildOperatorTimeContext(input.businessContext, input.generatedAt);
 
   const activeTodos = input.todos
@@ -410,7 +430,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   const conversationEvents = input.conversationTurns.map(conversationTurnToEvent);
   const sessionEvents = input.sessions.map(sessionToEvent);
 
-  const continuityEvents = [
+  const allContinuityEvents = [
     ...messageEvents,
     ...todoEvents,
     ...commentEvents,
@@ -420,8 +440,10 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     ...sessionEvents,
   ]
     .filter((event) => event.summary.length > 0)
-    .sort((a, b) => compareIsoDesc(a.created_at, b.created_at))
-    .slice(0, continuityLimit);
+    .sort((a, b) => compareIsoDesc(a.created_at, b.created_at));
+  const continuityEvents = allContinuityEvents
+    .slice(0, continuityLimit)
+    .map((event) => (compact ? compactContinuityEvent(event) : event));
 
   const blockers = continuityEvents
     .filter((event) => isActiveBlockerEvent(event, activeTodos, nowMs))
@@ -435,13 +457,19 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     })
     .slice(0, 6);
 
-  const librarySnapshots = [
+  const allLibrarySnapshots = [
     ...input.library.map(libraryToSnapshot),
     ...input.businessContext.map(businessContextToSnapshot),
     ...input.sessions.map(sessionToSnapshot),
   ]
-    .sort((a, b) => compareIsoDesc(a.updated_at ?? a.created_at, b.updated_at ?? b.created_at))
-    .slice(0, 24);
+    .sort((a, b) => compareIsoDesc(a.updated_at ?? a.created_at, b.updated_at ?? b.created_at));
+  const librarySnapshots = allLibrarySnapshots
+    .slice(0, compact ? maxSummaries : 24)
+    .map((snapshot) =>
+      compact && snapshot.summary
+        ? { ...snapshot, summary: compactText(snapshot.summary, 120) }
+        : snapshot,
+    );
 
   const newestActivityAt = newestIso([
     ...input.messages.map((row) => row.created_at),
@@ -510,6 +538,33 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     library_snapshots: librarySnapshots,
     rolling_snapshot: rollingSnapshot,
     seat_handshake: seatHandshake,
+    response_bounds: {
+      compact,
+      max_summaries: maxSummaries,
+      include_raw: input.includeRaw === true,
+      continuity_events_returned: continuityEvents.length,
+      continuity_events_available: allContinuityEvents.length,
+      continuity_events_truncated: allContinuityEvents.length > continuityEvents.length,
+      profile_cards_returned: profiles.length,
+      profile_cards_available: allProfiles.length,
+      profile_cards_truncated: allProfiles.length > profiles.length,
+      library_snapshots_returned: librarySnapshots.length,
+      library_snapshots_available: allLibrarySnapshots.length,
+      library_snapshots_truncated: allLibrarySnapshots.length > librarySnapshots.length,
+    },
+  };
+}
+
+function normalizeSummaryLimit(value: unknown): number {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 20;
+  return Math.min(Math.max(Math.floor(numeric), 1), 500);
+}
+
+function compactContinuityEvent(event: OrchestratorContinuityEvent): OrchestratorContinuityEvent {
+  return {
+    ...event,
+    summary: compactText(event.summary, 120),
   };
 }
 

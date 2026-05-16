@@ -494,8 +494,25 @@ export const VISIBLE_TOOLS = [
           type: "number",
           minimum: 20,
           maximum: 200,
-          default: 80,
+          default: 20,
           description: "Maximum events to read.",
+        },
+        compact: {
+          type: "boolean",
+          default: true,
+          description: "Return compact source summaries by default.",
+        },
+        max_summaries: {
+          type: "number",
+          minimum: 1,
+          maximum: 200,
+          default: 20,
+          description: "Maximum compact summaries to return when compact mode is on.",
+        },
+        include_raw: {
+          type: "boolean",
+          default: false,
+          description: "Include raw fields when explicitly needed.",
         },
       },
     },
@@ -1613,14 +1630,24 @@ export function createServer(): Server {
           typeof args.q === "string"
             ? args.q.replace(/\s+/g, " ").trim().slice(0, 100)
             : "";
-        const requestedLimit = Number(args.limit ?? 80);
+        const compact = args.compact !== false;
+        const includeRaw = args.include_raw === true;
+        const requestedMaxSummaries = Number(args.max_summaries ?? 20);
+        const maxSummaries = Math.min(
+          Math.max(Number.isFinite(requestedMaxSummaries) ? Math.floor(requestedMaxSummaries) : 20, 1),
+          200
+        );
+        const requestedLimit = Number(args.limit ?? Math.max(maxSummaries, 20));
         const limit = Math.min(
-          Math.max(Number.isFinite(requestedLimit) ? requestedLimit : 80, 20),
+          Math.max(Number.isFinite(requestedLimit) ? requestedLimit : Math.max(maxSummaries, 20), 20),
           q ? 200 : 120
         );
         const url = new URL(`${base.replace(/\/$/, "")}/api/memory-admin`);
         url.searchParams.set("action", "orchestrator_context_read");
         url.searchParams.set("limit", String(limit));
+        url.searchParams.set("compact", String(compact));
+        url.searchParams.set("max_summaries", String(maxSummaries));
+        url.searchParams.set("include_raw", String(includeRaw));
         if (q) url.searchParams.set("q", q);
         const resp = await fetch(url, {
           method: "GET",

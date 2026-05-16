@@ -8039,7 +8039,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
 
-        const body = (req.body ?? {}) as { limit?: number; q?: string };
+        const body = (req.body ?? {}) as {
+          compact?: boolean | string;
+          include_raw?: boolean | string;
+          includeRaw?: boolean | string;
+          limit?: number;
+          max_summaries?: number;
+          maxSummaries?: number;
+          q?: string;
+        };
+        const parseBooleanParam = (value: unknown, fallback: boolean): boolean => {
+          if (typeof value === "boolean") return value;
+          if (typeof value === "string") {
+            const clean = value.trim().toLowerCase();
+            if (clean === "true") return true;
+            if (clean === "false") return false;
+          }
+          return fallback;
+        };
         const rawSearch =
           typeof body.q === "string"
             ? body.q
@@ -8047,6 +8064,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               ? req.query.q
               : "";
         const searchQuery = rawSearch.replace(/\s+/g, " ").trim().slice(0, 100);
+        const compact = parseBooleanParam(body.compact ?? req.query.compact, true);
+        const includeRaw = parseBooleanParam(body.include_raw ?? body.includeRaw ?? req.query.include_raw ?? req.query.includeRaw, false);
+        const rawMaxSummaries = body.max_summaries ?? body.maxSummaries ?? req.query.max_summaries ?? req.query.maxSummaries;
+        const requestedMaxSummaries = Number(rawMaxSummaries ?? (compact ? 20 : 36));
+        const maxSummaries = Math.min(
+          Math.max(Number.isFinite(requestedMaxSummaries) ? Math.floor(requestedMaxSummaries) : compact ? 20 : 36, 1),
+          500,
+        );
         const searchPattern = searchQuery ? `%${searchQuery.replace(/[%_\\]/g, "\\$&")}%` : "";
         const searchUuid = searchQuery.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] ?? null;
         const turnSearchFilter = searchPattern
@@ -8056,7 +8081,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               ...(searchUuid ? [`id.eq.${searchUuid}`] : []),
             ].join(",")
           : "";
-        const limit = Math.min(Math.max(Number(body.limit ?? req.query.limit ?? 80) || 80, 20), 500);
+        const defaultLimit = compact ? Math.max(maxSummaries, 20) : 80;
+        const limit = Math.min(Math.max(Number(body.limit ?? req.query.limit ?? defaultLimit) || defaultLimit, 20), 500);
         const smallerLimit = searchQuery ? limit : Math.min(limit, 300);
         const todoSelect =
           "id, title, description, status, priority, created_by_agent_id, assigned_to_agent_id, source_idea_id, created_at, updated_at, completed_at";
@@ -8225,6 +8251,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           context: buildOrchestratorContext({
             generatedAt: new Date().toISOString(),
             continuityLimit: limit,
+            compact,
+            maxSummaries,
+            includeRaw,
             profiles: (profilesResult.data ?? []) as OrchestratorProfileRow[],
             messages: (messagesResult.data ?? []) as OrchestratorMessageRow[],
             todos,
