@@ -340,6 +340,23 @@ function recentTodoCommentText(todo = {}) {
   ].join("\n");
 }
 
+function hasRecentTodoBlockerMarker(todo = {}) {
+  const comments = Array.isArray(todo.recent_comments)
+    ? todo.recent_comments
+    : Array.isArray(todo.comments)
+      ? todo.comments
+      : [];
+  const structuredText = [
+    todo.latest_comment_result,
+    todo.latest_comment_status,
+    todo.recent_blocker_comment,
+    ...comments.map((comment) => `${comment?.result || ""} ${comment?.status || ""}`),
+  ].join("\n");
+  if (/\b(blocker|blocked)\b/i.test(structuredText)) return true;
+
+  return /(?:^|\n)\s*(blocker|blocked)\s*:/i.test(recentTodoCommentText(todo));
+}
+
 function extractMcpTextJson(payload) {
   const content = payload?.result?.content;
   if (Array.isArray(content)) {
@@ -418,6 +435,23 @@ function listFromUnknown(value) {
   return [];
 }
 
+function boardroomTodoScopeTextSources(todo = {}) {
+  const comments = Array.isArray(todo.recent_comments)
+    ? todo.recent_comments
+    : Array.isArray(todo.comments)
+      ? todo.comments
+      : [];
+
+  return [
+    todo.description,
+    todo.body,
+    todo.notes,
+    todo.latest_comment_text,
+    todo.last_comment_text,
+    ...comments.map((comment) => `${comment?.body || ""}\n${comment?.text || ""}`),
+  ];
+}
+
 function extractBoardroomTodoScopePack(todo = {}) {
   const scope = extractBoardroomTodoScopePackObject(todo);
 
@@ -447,6 +481,9 @@ function extractBoardroomTodoScopePack(todo = {}) {
   );
   const tests = listFromUnknown(
     scope.tests ??
+      scope.verification ??
+      scope.verification_commands ??
+      scope.verificationCommands ??
       expectedProof.tests,
   );
 
@@ -474,9 +511,7 @@ function extractBoardroomTodoScopePackObject(todo = {}) {
     todo.autonomousScope,
     todo.coding_room_scope,
     todo.codingRoomScope,
-    parseLabeledJsonObjectFromText(todo.description),
-    parseLabeledJsonObjectFromText(todo.body),
-    parseLabeledJsonObjectFromText(todo.notes),
+    ...boardroomTodoScopeTextSources(todo).map(parseLabeledJsonObjectFromText),
   );
 }
 
@@ -1834,7 +1869,7 @@ export function evaluateBoardroomTodoAutoClaimEligibility(
     return { ok: false, reason: "boardroom_todo_hold_or_blocker_marker" };
   }
 
-  if (/\b(blocker|blocked)\b/i.test(recentTodoCommentText(todo))) {
+  if (hasRecentTodoBlockerMarker(todo)) {
     return { ok: false, reason: "boardroom_todo_recent_blocker_comment" };
   }
 
@@ -1992,6 +2027,8 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
         runner_scope: todo.runner_scope ?? todo.runnerScope ?? null,
         recent_comments: Array.isArray(todo.recent_comments) ? todo.recent_comments : undefined,
         comments: Array.isArray(todo.comments) ? todo.comments : undefined,
+        latest_comment_text: todo.latest_comment_text || null,
+        last_comment_text: todo.last_comment_text || null,
         description: todo.description || null,
         body: todo.body || null,
         notes: todo.notes || null,

@@ -125,6 +125,7 @@ export function extractHydratableScopePack(todo = {}) {
     parseLabeledJsonObjectFromText(todo.description),
     parseLabeledJsonObjectFromText(todo.body),
     parseLabeledJsonObjectFromText(todo.notes),
+    parseLabeledJsonObjectFromText(recentTodoText(todo)),
   );
 }
 
