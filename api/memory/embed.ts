@@ -15,6 +15,10 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
+import {
+  decideAiProviderCall,
+  type AiProviderCallDecision,
+} from "../lib/ai-provider-inventory";
 
 const ALLOWED_TABLES = new Set([
   "mc_extracted_facts",
@@ -25,9 +29,18 @@ const ALLOWED_TABLES = new Set([
 
 const EMBEDDING_MODEL = "text-embedding-3-small";
 const MAX_INPUT_CHARS = 32_000;
+const MEMORY_EMBED_PROVIDER_PATH_ID = "memory.api.openai.embed-endpoint";
 
 interface OpenAIEmbeddingResponse {
   data: Array<{ embedding: number[] }>;
+}
+
+export function decideMemoryEmbedProviderCall(allowPaid: boolean): AiProviderCallDecision {
+  return decideAiProviderCall({
+    path_id: MEMORY_EMBED_PROVIDER_PATH_ID,
+    model: EMBEDDING_MODEL,
+    allow_paid: allowPaid,
+  });
 }
 
 function shouldSkipMemoryEmbedding(text: string): boolean {
@@ -86,6 +99,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const provided = req.headers["x-embed-secret"] ?? req.headers["authorization"]?.replace("Bearer ", "");
   if (provided !== secret) {
     return res.status(401).json({ error: "unauthorized" });
+  }
+
+  const providerDecision = decideMemoryEmbedProviderCall(provided === secret);
+  if (!providerDecision.allowed) {
+    return res.status(503).json({
+      error: "AI provider call blocked by spend guardrail",
+      provider: providerDecision.provider,
+      model: providerDecision.model,
+      cost_tier: providerDecision.cost_tier,
+      reason: providerDecision.reason,
+      allow_paid_flag: providerDecision.allow_paid_flag,
+    });
   }
 
   const openaiKey = process.env.OPENAI_API_KEY;
