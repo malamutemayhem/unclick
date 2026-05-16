@@ -13,6 +13,7 @@
  *   PAGE_SIZE           - rows per page (default: 50)
  *   MAX_BACKFILL_ROWS   - max rows per table per run (default: 100, 0 disables cap)
  *   DRY_RUN=1           - count eligible rows without calling OpenAI or writing embeddings
+ *   DRY_RUN=0           - explicit paid direct OpenAI launch when ADMIN_EMBED_SECRET is not set
  *   MC_API_KEY_HASH     - if set, only backfill rows for this tenant (managed mode)
  *   BACKFILL_UNPREFIXED_TABLES=1
  *                       - explicitly target BYOD unprefixed tables
@@ -20,7 +21,13 @@
  * The script is safely re-runnable: it skips rows that already have an embedding.
  */
 
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
+import {
+  decideAiProviderCall,
+  type AiProviderCallDecision,
+} from "../api/lib/ai-provider-inventory";
 
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "";
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
@@ -30,30 +37,76 @@ const ADMIN_EMBED_SECRET = process.env.ADMIN_EMBED_SECRET ?? "";
 const PAGE_SIZE = parseInt(process.env.PAGE_SIZE ?? "50", 10);
 const MAX_BACKFILL_ROWS = parseInt(process.env.MAX_BACKFILL_ROWS ?? "100", 10);
 const DRY_RUN = process.env.DRY_RUN === "1";
+const DIRECT_BACKFILL_PAID_ENABLED = process.env.DRY_RUN === "0";
 const MC_API_KEY_HASH = process.env.MC_API_KEY_HASH ?? "";
 const BACKFILL_UNPREFIXED_TABLES = process.env.BACKFILL_UNPREFIXED_TABLES === "1";
 
 const EMBEDDING_MODEL = "text-embedding-3-small";
 const MAX_INPUT_CHARS = 32_000;
+const DIRECT_BACKFILL_PROVIDER_PATH_ID = "memory.script.openai.backfill";
 
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
-  process.exit(1);
-}
-if (!OPENAI_API_KEY && !DRY_RUN) {
-  console.error("OPENAI_API_KEY is required");
-  process.exit(1);
-}
-if (!MC_API_KEY_HASH && !BACKFILL_UNPREFIXED_TABLES) {
-  console.error(
-    "MC_API_KEY_HASH is required for managed backfills. Set BACKFILL_UNPREFIXED_TABLES=1 only when intentionally backfilling BYOD legacy tables."
-  );
-  process.exit(1);
+let supabase: ReturnType<typeof createClient> | null = null;
+
+function validateBackfillEnvironment(): void {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
+    process.exit(1);
+  }
+  if (!OPENAI_API_KEY && !DRY_RUN && !ADMIN_EMBED_SECRET) {
+    console.error("OPENAI_API_KEY is required for direct OpenAI backfills");
+    process.exit(1);
+  }
+  if (!DRY_RUN && !ADMIN_EMBED_SECRET && !DIRECT_BACKFILL_PAID_ENABLED) {
+    console.error(
+      "Direct OpenAI backfill is blocked by the spend guardrail. Set DRY_RUN=0 only for an explicit paid direct launch, or set ADMIN_EMBED_SECRET to route through /api/memory/embed."
+    );
+    process.exit(1);
+  }
+  if (!MC_API_KEY_HASH && !BACKFILL_UNPREFIXED_TABLES) {
+    console.error(
+      "MC_API_KEY_HASH is required for managed backfills. Set BACKFILL_UNPREFIXED_TABLES=1 only when intentionally backfilling BYOD legacy tables."
+    );
+    process.exit(1);
+  }
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
+function getSupabase() {
+  supabase ??= createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  return supabase;
+}
+
+export interface BackfillEmbeddingProviderDecisionInput {
+  dry_run: boolean;
+  admin_embed_secret_configured: boolean;
+  direct_paid_enabled: boolean;
+}
+
+export function decideBackfillEmbeddingProviderCall(
+  input: BackfillEmbeddingProviderDecisionInput
+): AiProviderCallDecision {
+  return decideAiProviderCall({
+    path_id: DIRECT_BACKFILL_PROVIDER_PATH_ID,
+    model: EMBEDDING_MODEL,
+    allow_paid:
+      !input.dry_run && !input.admin_embed_secret_configured && input.direct_paid_enabled,
+  });
+}
+
+function assertDirectBackfillProviderAllowed(): void {
+  const decision = decideBackfillEmbeddingProviderCall({
+    dry_run: DRY_RUN,
+    admin_embed_secret_configured: Boolean(ADMIN_EMBED_SECRET),
+    direct_paid_enabled: DIRECT_BACKFILL_PAID_ENABLED,
+  });
+
+  if (!decision.allowed) {
+    throw new Error(
+      `AI provider call blocked by spend guardrail: ${decision.path_id} ${decision.reason} (${decision.allow_paid_flag ?? "no allow flag"})`
+    );
+  }
+}
 
 interface Row {
   id: string;
@@ -131,6 +184,7 @@ async function embedViaApi(id: string, table: string, text: string): Promise<voi
 
 async function backfillTable(config: TableConfig): Promise<void> {
   const { table, textCol } = config;
+  const supabase = getSupabase();
   console.log(`\n[${table}] scanning for rows without embeddings...`);
 
   let page = 0;
@@ -184,6 +238,7 @@ async function backfillTable(config: TableConfig): Promise<void> {
           await embedViaApi(row.id, table, text);
         } else {
           // Direct DB write when no API server is running
+          assertDirectBackfillProviderAllowed();
           const embedding = await embedDirect(text);
           const { error: writeErr } = await supabase
             .from(table)
@@ -219,6 +274,8 @@ async function backfillTable(config: TableConfig): Promise<void> {
 }
 
 async function main() {
+  validateBackfillEnvironment();
+
   console.log("UnClick memory embedding backfill");
   console.log(
     `  mode: ${MC_API_KEY_HASH ? `managed (hash: ${MC_API_KEY_HASH.slice(0, 8)}...)` : "BYOD legacy tables"}`
@@ -235,7 +292,14 @@ async function main() {
   console.log("\nBackfill complete.");
 }
 
-main().catch((err) => {
-  console.error("Fatal:", err);
-  process.exit(1);
-});
+function isCliEntryPoint(): boolean {
+  const entryPoint = process.argv[1];
+  return Boolean(entryPoint) && import.meta.url === pathToFileURL(path.resolve(entryPoint)).href;
+}
+
+if (isCliEntryPoint()) {
+  main().catch((err) => {
+    console.error("Fatal:", err);
+    process.exit(1);
+  });
+}
