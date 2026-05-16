@@ -3854,6 +3854,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .order("updated_at", { ascending: false })
           .limit(20);
 
+        const topFactsLimit = getClampedLimit(req.query.top_facts_limit, 10, 110);
+
         // Most accessed facts
         const { data: topFacts } = await supabase
           .from("mc_extracted_facts")
@@ -3861,7 +3863,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .eq("api_key_hash", apiKeyHash)
           .eq("status", "active")
           .order("access_count", { ascending: false })
-          .limit(10);
+          .limit(topFactsLimit);
 
         return res.status(200).json({
           facts_by_day: factsByDay,
@@ -3875,6 +3877,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             total: (bc.count ?? 0) + (lib.count ?? 0) + (sessions.count ?? 0) +
                    (facts.count ?? 0) + (convos.count ?? 0) + (code.count ?? 0),
           },
+          top_facts_limit: topFactsLimit,
           recent_decay: recentDecay ?? [],
           top_facts: topFacts ?? [],
         });

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Activity, TrendingUp, Zap } from "lucide-react";
+import { Activity, ChevronsDown, TrendingUp, Zap } from "lucide-react";
 import EmptyState from "./EmptyState";
 
 interface ActivityData {
@@ -35,6 +35,9 @@ const DECAY_COLORS: Record<string, string> = {
   cold: "bg-blue-400",
 };
 
+const INITIAL_TOP_FACTS_LIMIT = 10;
+const EXTENDED_TOP_FACTS_LIMIT = 110;
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
@@ -42,10 +45,16 @@ function formatDate(iso: string): string {
 export default function MemoryActivityTab({ apiKey }: { apiKey: string }) {
   const [data, setData] = useState<ActivityData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [topFactsLimit, setTopFactsLimit] = useState(INITIAL_TOP_FACTS_LIMIT);
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/memory-admin?action=admin_memory_activity", {
+      const params = new URLSearchParams({
+        action: "admin_memory_activity",
+        top_facts_limit: String(topFactsLimit),
+      });
+      const res = await fetch(`/api/memory-admin?${params.toString()}`, {
         headers: { Authorization: `Bearer ${apiKey}` },
       });
       if (res.ok) {
@@ -53,8 +62,9 @@ export default function MemoryActivityTab({ apiKey }: { apiKey: string }) {
       }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [apiKey]);
+  }, [apiKey, topFactsLimit]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -127,6 +137,20 @@ export default function MemoryActivityTab({ apiKey }: { apiKey: string }) {
               </div>
             ))}
           </div>
+          {topFactsLimit < EXTENDED_TOP_FACTS_LIMIT && data.top_facts.length >= INITIAL_TOP_FACTS_LIMIT && (
+            <button
+              type="button"
+              onClick={() => {
+                setLoadingMore(true);
+                setTopFactsLimit(EXTENDED_TOP_FACTS_LIMIT);
+              }}
+              disabled={loadingMore}
+              className="mt-3 inline-flex items-center gap-2 rounded-md border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-white/50 transition-colors hover:border-[#61C1C4]/40 hover:text-[#61C1C4] disabled:cursor-wait disabled:opacity-60"
+            >
+              <ChevronsDown className="h-3.5 w-3.5" />
+              {loadingMore ? "Loading..." : "Show 100 more"}
+            </button>
+          )}
         </div>
       )}
 
