@@ -14,6 +14,7 @@ describe("ai provider inventory", () => {
     expect(inventory.some((entry) => entry.id === "nudgeonly.openrouter.free-default")).toBe(true);
     expect(inventory.some((entry) => entry.id === "nudgeonly.openrouter.custom-model")).toBe(true);
     expect(inventory.some((entry) => entry.id === "memory.mcp.openai.embeddings")).toBe(true);
+    expect(inventory.some((entry) => entry.id === "memory.mcp.openai.fact-extraction")).toBe(true);
     expect(inventory.every((entry) => ["free", "paid", "paid_or_unknown"].includes(entry.cost_tier))).toBe(true);
     expect(inventory.filter((entry) => entry.default_allowed).map((entry) => entry.cost_tier)).toEqual(["free"]);
   });
@@ -64,6 +65,14 @@ describe("ai provider inventory", () => {
       cost_tier: "paid",
       reason: "paid_or_unknown_blocked",
       allow_paid_flag: "MEMORY_OPENAI_EMBEDDINGS_ENABLED",
+    });
+    expect(decideAiProviderCall({ path_id: "memory.mcp.openai.fact-extraction" })).toMatchObject({
+      allowed: false,
+      provider: "OpenAI",
+      model: "gpt-4o-mini",
+      cost_tier: "paid",
+      reason: "paid_or_unknown_blocked",
+      allow_paid_flag: "MEMORY_OPENAI_FACT_EXTRACTION_ENABLED or MEMORY_AI_FACT_EXTRACTION_ENABLED",
     });
   });
 
@@ -201,6 +210,14 @@ describe("ai provider inventory", () => {
   it("allows paid paths only when an explicit allow-paid decision is present", () => {
     expect(decideAiProviderCall({
       path_id: "memory.mcp.openai.embeddings",
+      allow_paid: true,
+    })).toMatchObject({
+      allowed: true,
+      cost_tier: "paid",
+      reason: "explicit_paid_allowed",
+    });
+    expect(decideAiProviderCall({
+      path_id: "memory.mcp.openai.fact-extraction",
       allow_paid: true,
     })).toMatchObject({
       allowed: true,
