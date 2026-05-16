@@ -72,7 +72,8 @@ function getArg(name, fallback = undefined) {
 }
 
 function isExpectedReference(relPath) {
-  return EXPECTED_REFERENCE_GLOBS.some((re) => re.test(relPath));
+  const normalized = relPath.replace(/\\/g, "/");
+  return EXPECTED_REFERENCE_GLOBS.some((re) => re.test(normalized));
 }
 
 function shouldScanFile(filePath) {
