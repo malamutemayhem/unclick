@@ -84,6 +84,23 @@ describe("ai provider inventory", () => {
       "mcp.cohere.tool.rerank",
       "mcp.cohere.tool.classify",
       "mcp.cohere.tool.model-listing",
+      "mcp.togetherai.tool.chat",
+      "mcp.togetherai.tool.completion",
+      "mcp.togetherai.tool.embedding",
+      "mcp.togetherai.tool.model-listing",
+      "mcp.elevenlabs.tool.text-to-speech",
+      "mcp.elevenlabs.tool.voice-listing",
+      "mcp.elevenlabs.tool.voice-metadata",
+      "mcp.elevenlabs.tool.model-listing",
+      "mcp.elevenlabs.tool.history",
+      "mcp.stability.tool.text-to-image",
+      "mcp.stability.tool.image-to-image",
+      "mcp.stability.tool.upscale",
+      "mcp.stability.tool.engine-listing",
+      "mcp.mistral.tool.chat",
+      "mcp.mistral.tool.embedding",
+      "mcp.mistral.tool.model-listing",
+      "mcp.perplexity.tool.chat",
     ];
 
     for (const pathId of expected) {
@@ -98,6 +115,36 @@ describe("ai provider inventory", () => {
         allow_paid_flag: "api_key argument",
       });
     }
+  });
+
+  it("labels token-gated Replicate provider operations separately", () => {
+    const expected = [
+      "mcp.replicate.tool.prediction",
+      "mcp.replicate.tool.model-listing",
+      "mcp.replicate.tool.model-metadata",
+      "mcp.replicate.tool.prediction-status",
+      "mcp.replicate.tool.prediction-listing",
+      "mcp.replicate.tool.prediction-cancel",
+    ];
+
+    for (const pathId of expected) {
+      const entry = getAiProviderInventoryEntry(pathId);
+      expect(entry).toMatchObject({
+        provider: "Replicate",
+        default_allowed: false,
+        allow_paid_flag: "api_token argument",
+      });
+      expect(decideAiProviderCall({ path_id: pathId })).toMatchObject({
+        allowed: false,
+        reason: "paid_or_unknown_blocked",
+        allow_paid_flag: "api_token argument",
+      });
+    }
+
+    expect(getAiProviderInventoryEntry("mcp.replicate.tool.prediction")).toMatchObject({
+      call_kind: "prediction",
+      cost_tier: "paid",
+    });
   });
 
   it("labels Memory Admin AI chat provider paths with tenant-key spend gates", () => {
