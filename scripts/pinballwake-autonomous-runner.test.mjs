@@ -2732,7 +2732,7 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.match(workflow, /uses:\s*astral-sh\/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b/);
     assert.match(workflow, /vars\.OPENHANDS_COMMAND == ''/);
     assert.match(workflow, /OPENHANDS_COMMAND:.*vars\.OPENHANDS_COMMAND.*uvx/);
-    assert.match(workflow, /OPENHANDS_ARGS:.*vars\.OPENHANDS_ARGS.*--python 3\.12 --from openhands-ai openhands --headless --json --task \{prompt\}/);
+    assert.match(workflow, /OPENHANDS_ARGS:.*vars\.OPENHANDS_ARGS.*--python 3\.12 openhands --headless --json --task \{prompt\}/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES:\s*"false"/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES:.*urgent,high/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS:.*unassigned_open/);
