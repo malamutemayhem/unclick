@@ -195,6 +195,7 @@ export function evaluateAutopilotMasterLoop({
   reviewsByPr = {},
   proofJobsByPr = {},
   signals = [],
+  pushPackets = [],
   requiredReviewers = ["gatekeeper", "popcorn", "forge"],
   now = new Date().toISOString(),
 } = {}) {
@@ -239,7 +240,7 @@ export function evaluateAutopilotMasterLoop({
     if (mergeAction) return mergeAction;
   }
 
-  const jobsRoom = evaluateJobsRoom({ ledger, jobs, runner, now });
+  const jobsRoom = evaluateJobsRoom({ ledger, jobs, runner, pushPackets, now });
   const jobsAction = nextJobsAction(jobsRoom);
   if (jobsAction) {
     return jobsAction;
