@@ -1415,6 +1415,129 @@ describe("PinballWake autonomous Runner seat", () => {
     }
   });
 
+  it("routes explicitly enabled execute claims through the OpenHands bridge without closing the todo", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const calls = [];
+      const fetchImpl = async (url, init = {}) => {
+        calls.push({ url, init, body: JSON.parse(init.body) });
+        const toolName = calls.at(-1).body.params.name;
+        if (toolName === "list_actionable_todos") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({
+                        todos: [
+                          {
+                            id: "todo-execute-1",
+                            title: "OpenHands execute bridge proof",
+                            status: "open",
+                            priority: "high",
+                            assigned_to_agent_id: null,
+                            created_at: "2026-05-08T05:00:00.000Z",
+                            scope_pack: {
+                              owned_files: ["docs/runner-scope.md"],
+                              acceptance: ["Execute bridge records OpenHands proof only"],
+                              verification: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+                              tests: [],
+                            },
+                          },
+                        ],
+                      }),
+                    },
+                  ],
+                },
+              };
+            },
+          };
+        }
+
+        if (toolName === "comment_on") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({ comment: { id: "comment-execute-1" } }),
+                    },
+                  ],
+                },
+              };
+            },
+          };
+        }
+
+        throw new Error(`unexpected tool ${toolName}`);
+      };
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "execute",
+        policy: { allowExecute: true },
+        queueSource: "unclick",
+        unclickApiKey: "uc_test",
+        unclickMcpUrl: "https://unclick.test/api/mcp",
+        fetchImpl,
+        now: "2026-05-08T05:30:00.000Z",
+        wakeSource: "queuepush",
+        openHandsExecutor: {
+          enabled: true,
+          env: { OPENHANDS_TEST_MODE: "1" },
+          testMode: true,
+          openHands: async () => ({
+            ok: true,
+            patch:
+              "diff --git a/docs/runner-scope.md b/docs/runner-scope.md\n--- a/docs/runner-scope.md\n+++ b/docs/runner-scope.md\n@@ -1 +1 @@\n-old\n+new\n",
+            changed_files: ["docs/runner-scope.md"],
+            summary: "OpenHands execute bridge proof.",
+            test_run_id: "openhands-execute-unit",
+          }),
+          coderoom: async ({ changedFiles }) => ({
+            ok: true,
+            pr_url: "https://github.com/malamutemayhem/unclick/pull/920",
+            head_sha_after: "abc123",
+            test_run_id: "openhands-execute-unit",
+            test_exit_code: 0,
+            status: "draft_pr_created",
+            job: { status: "testing" },
+            changed_files: changedFiles,
+          }),
+        },
+      });
+
+      assert.equal(result.ok, true);
+      assert.deepEqual(calls.map((call) => call.body.params.name), [
+        "list_actionable_todos",
+        "comment_on",
+      ]);
+      assert.equal(calls[1].body.params.arguments.target_id, "todo-execute-1");
+      assert.match(calls[1].body.params.arguments.text, /OpenHands build attempt PASS/);
+      assert.match(calls[1].body.params.arguments.text, /No Boardroom DONE, status, or assignee change/);
+      assert.match(calls[1].body.params.arguments.text, /openhands_attempt=openhands_worker_pass/);
+      assert.match(calls[1].body.params.arguments.text, /openhands_build_attempt=true/);
+      assert.match(calls[1].body.params.arguments.text, /changed_files=docs\/runner-scope\.md/);
+      assert.match(calls[1].body.params.arguments.text, /test_run_id=openhands-execute-unit/);
+      assert.match(calls[1].body.params.arguments.text, /pr=https:\/\/github\.com\/malamutemayhem\/unclick\/pull\/920/);
+      assert.equal(result.todo_claim_sync.reason, "openhands_build_attempt_recorded");
+      assert.equal(result.todo_claim_sync.openhands_execute.receipt.receipt_type, "openhands_worker_pass");
+      assert.equal(result.todo_claim_sync.openhands_execute.receipt.evidence.pr_url, "https://github.com/malamutemayhem/unclick/pull/920");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("emits a quiet-window proof receipt that rejects manual runner triggers", async () => {
     const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
     const ledgerPath = join(dir, "ledger.json");
