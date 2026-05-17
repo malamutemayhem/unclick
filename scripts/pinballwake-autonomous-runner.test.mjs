@@ -2728,8 +2728,11 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOW_EXECUTE:.*inputs\.mode == 'execute'.*inputs\.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE'.*'true'.*'false'/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE:.*inputs\.mode == 'execute'.*inputs\.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE'.*'true'.*'false'/);
     assert.match(workflow, /OPENHANDS_TEST_MODE:.*inputs\.mode == 'execute'.*inputs\.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE'.*'1'/);
-    assert.match(workflow, /OPENHANDS_COMMAND:.*vars\.OPENHANDS_COMMAND.*openhands/);
-    assert.match(workflow, /OPENHANDS_ARGS:.*vars\.OPENHANDS_ARGS.*--headless --json --task \{prompt\}/);
+    assert.match(workflow, /Set up uv for OpenHands execute/);
+    assert.match(workflow, /uses:\s*astral-sh\/setup-uv@v8/);
+    assert.match(workflow, /vars\.OPENHANDS_COMMAND == ''/);
+    assert.match(workflow, /OPENHANDS_COMMAND:.*vars\.OPENHANDS_COMMAND.*uvx/);
+    assert.match(workflow, /OPENHANDS_ARGS:.*vars\.OPENHANDS_ARGS.*--python 3\.12 --from openhands-ai openhands --headless --json --task \{prompt\}/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES:\s*"false"/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES:.*urgent,high/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS:.*unassigned_open/);
