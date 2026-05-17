@@ -1377,7 +1377,10 @@ describe("PinballWake autonomous Runner seat", () => {
       ]);
       assert.equal(calls[0].body.params.arguments.include_description, true);
       assert.equal(calls[1].body.params.arguments.target_id, "todo-claim-1");
-      assert.match(calls[1].body.params.arguments.text, /without taking an active job claim/);
+      assert.match(calls[1].body.params.arguments.text, /claim-to-execute HOLD/);
+      assert.match(calls[1].body.params.arguments.text, /not build progress/);
+      assert.match(calls[1].body.params.arguments.text, /build_attempt=false/);
+      assert.match(calls[1].body.params.arguments.text, /claim_to_execute=blocked/);
       assert.match(calls[1].body.params.arguments.text, /execute_enabled=false/);
       assert.match(calls[1].body.params.arguments.text, /dispatch=coding-room-claim:/);
       assert.doesNotMatch(calls[1].body.params.arguments.text, /lease_token=coding-room-claim:/);

@@ -1173,13 +1173,16 @@ export async function syncClaimedBoardroomTodoToUnClick({
         target_id: todoId,
         text: compact(
           [
-            "Autonomous Runner test-only packet checked without taking an active job claim.",
-            "No status or assignee change was made because execute_enabled=false.",
+            "Autonomous Runner claim-to-execute HOLD.",
+            "ScopePack was claimable, but no build attempt ran because execute_enabled=false.",
+            "No status or assignee change was made.",
+            "This is not build progress.",
             `dispatch=${job?.claim_id || "none"}.`,
             `source=${job?.source || "unknown"}.`,
             `wake_source=${job?.source_state?.wake_source || "unknown"}.`,
             `job=${job?.job_id || "unknown"}.`,
             formatTestOnlyExecutorPacketReceipt(testOnlyExecutorPacketResult),
+            "next=wire OpenHands or CodeRoom executor, or emit explicit blocker receipt.",
           ].filter(Boolean).join(" "),
           1000,
         ),
@@ -1890,6 +1893,8 @@ function formatTestOnlyExecutorPacketReceipt(result) {
     `packet_id=${packet.packet_id || receipt.packet_id || "none"}.`,
   ];
   if (receipt.hold_reason) parts.push(`hold_reason=${receipt.hold_reason}.`);
+  parts.push("claim_to_execute=blocked.");
+  parts.push("build_attempt=false.");
   parts.push("execute_enabled=false.");
   return compact(parts.join(" "), 700);
 }
