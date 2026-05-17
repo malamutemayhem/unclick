@@ -1382,6 +1382,9 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.match(calls[1].body.params.arguments.text, /build_attempt=false/);
       assert.match(calls[1].body.params.arguments.text, /claim_to_execute=blocked/);
       assert.match(calls[1].body.params.arguments.text, /execute_enabled=false/);
+      assert.match(calls[1].body.params.arguments.text, /openhands_probe=openhands_worker_hold/);
+      assert.match(calls[1].body.params.arguments.text, /openhands_hold_reason=openhands_runner_not_provided/);
+      assert.match(calls[1].body.params.arguments.text, /openhands_build_attempt=false/);
       assert.match(calls[1].body.params.arguments.text, /dispatch=coding-room-claim:/);
       assert.doesNotMatch(calls[1].body.params.arguments.text, /lease_token=coding-room-claim:/);
       assert.match(calls[1].body.params.arguments.text, /wake_source=queuepush/);
@@ -1391,6 +1394,8 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.equal(result.todo_claim_sync.reason, "test_only_executor_packet_not_active_claim");
       assert.equal(result.todo_claim_sync.todo_id, "todo-claim-1");
       assert.equal(result.todo_claim_sync.test_only_executor_packet.receipt.receipt_type, "executor_packet_pass");
+      assert.equal(result.todo_claim_sync.openhands_claim_probe.receipt.receipt_type, "openhands_worker_hold");
+      assert.equal(result.todo_claim_sync.openhands_claim_probe.receipt.hold_reason, "openhands_runner_not_provided");
       assert.equal(result.quiet_window_autonomy_proof.verdict, "BLOCKER");
       assert.equal(result.quiet_window_autonomy_proof.first_missing_rung, "build_attempt_or_commonsense_blocker");
       assert.deepEqual(result.quiet_window_autonomy_proof.evidence.observed_rungs, [

@@ -17,6 +17,7 @@ import {
 } from "./pinballwake-coding-room-runner.mjs";
 import { evaluateOrchestratorProofWakeGate } from "./lib/autopilotkit-liveness.mjs";
 import { processScopePackTestOnlyExecutorPacket } from "./pinballwake-executor-lane.mjs";
+import { runOpenHandsWorker } from "./pinballwake-openhands-worker.mjs";
 import { buildScopePackHydrationReceipt } from "./pinballwake-scopepack-hydrator.mjs";
 
 export const AUTONOMOUS_RUNNER_MODES = new Set(["dry-run", "claim", "execute"]);
@@ -538,6 +539,27 @@ export async function createAutonomousRunnerTestOnlyExecutorReceipt({
     fileExists,
     executorSeatId,
     now,
+  });
+}
+
+export async function createAutonomousRunnerOpenHandsClaimProbeReceipt({
+  todo = {},
+  scopePack = null,
+  executorSeatId = "pinballwake-openhands-worker",
+  now = new Date(),
+} = {}) {
+  const normalizedNow = now instanceof Date ? now : new Date(now || Date.now());
+  const extractedScopePack = scopePack || extractBoardroomTodoScopePackObject(todo) || {};
+  const job = createCodingRoomJobFromBoardroomTodo(todo, { now: normalizedNow.toISOString() });
+
+  return runOpenHandsWorker({
+    job,
+    scopePack: extractedScopePack,
+    openHands: null,
+    testMode: true,
+    env: { OPENHANDS_TEST_MODE: "1" },
+    executorSeatId,
+    now: normalizedNow,
   });
 }
 
@@ -1161,6 +1183,15 @@ export async function syncClaimedBoardroomTodoToUnClick({
     });
   }
 
+  let openHandsClaimProbeResult = null;
+  if (todo && testOnlyExecutorPacketResult) {
+    openHandsClaimProbeResult = await createAutonomousRunnerOpenHandsClaimProbeReceipt({
+      todo,
+      scopePack: extractBoardroomTodoScopePackObject(todo),
+      now: testOnlyExecutorPacket.now,
+    });
+  }
+
   if (testOnlyExecutorPacketResult) {
     const comment = await callUnClickMcpTool({
       mcpUrl,
@@ -1182,6 +1213,7 @@ export async function syncClaimedBoardroomTodoToUnClick({
             `wake_source=${job?.source_state?.wake_source || "unknown"}.`,
             `job=${job?.job_id || "unknown"}.`,
             formatTestOnlyExecutorPacketReceipt(testOnlyExecutorPacketResult),
+            formatOpenHandsClaimProbeReceipt(openHandsClaimProbeResult),
             "next=wire OpenHands or CodeRoom executor, or emit explicit blocker receipt.",
           ].filter(Boolean).join(" "),
           1000,
@@ -1197,6 +1229,7 @@ export async function syncClaimedBoardroomTodoToUnClick({
         detail: comment.reason || comment.error || null,
         status: comment.status ?? null,
         test_only_executor_packet: testOnlyExecutorPacketResult,
+        openhands_claim_probe: openHandsClaimProbeResult,
       };
     }
 
@@ -1212,6 +1245,7 @@ export async function syncClaimedBoardroomTodoToUnClick({
       comment_detail: null,
       comment_status: null,
       test_only_executor_packet: testOnlyExecutorPacketResult,
+      openhands_claim_probe: openHandsClaimProbeResult,
     };
   }
 
@@ -1897,6 +1931,20 @@ function formatTestOnlyExecutorPacketReceipt(result) {
   parts.push("build_attempt=false.");
   parts.push("execute_enabled=false.");
   return compact(parts.join(" "), 700);
+}
+
+function formatOpenHandsClaimProbeReceipt(result) {
+  if (!result) return "";
+  const receipt = result.receipt || {};
+  const parts = [
+    `openhands_probe=${receipt.receipt_type || "openhands_worker_hold"}.`,
+    `openhands_ok=${result.ok ? "true" : "false"}.`,
+  ];
+  const holdReason = receipt.hold_reason || result.reason || "";
+  if (holdReason) parts.push(`openhands_hold_reason=${holdReason}.`);
+  if (receipt.next_action) parts.push(`openhands_next=${receipt.next_action}.`);
+  parts.push("openhands_build_attempt=false.");
+  return compact(parts.join(" "), 400);
 }
 
 export function createCodingRoomJobFromBoardroomTodo(todo = {}, { now = new Date().toISOString() } = {}) {
