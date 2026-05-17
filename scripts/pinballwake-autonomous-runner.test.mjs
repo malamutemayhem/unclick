@@ -1265,7 +1265,7 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(extractBoardroomTodoIdFromCodingRoomJob(safeJob()), "");
   });
 
-  it("syncs claimed UnClick todos back to in_progress in claim mode", async () => {
+  it("does not mark UnClick todos in_progress for test-only executor packets", async () => {
     const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
     const ledgerPath = join(dir, "ledger.json");
     try {
@@ -1373,22 +1373,19 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.equal(result.persisted, true);
       assert.deepEqual(calls.map((call) => call.body.params.name), [
         "list_actionable_todos",
-        "update_todo",
         "comment_on",
       ]);
       assert.equal(calls[0].body.params.arguments.include_description, true);
-      assert.deepEqual(calls[1].body.params.arguments, {
-        agent_id: "runner-plex-1",
-        todo_id: "todo-claim-1",
-        status: "in_progress",
-        assigned_to_agent_id: "runner-plex-1",
-      });
-      assert.equal(calls[2].body.params.arguments.target_id, "todo-claim-1");
-      assert.match(calls[2].body.params.arguments.text, /dispatch=coding-room-claim:/);
-      assert.match(calls[2].body.params.arguments.text, /lease_token=coding-room-claim:/);
-      assert.match(calls[2].body.params.arguments.text, /wake_source=queuepush/);
-      assert.match(calls[2].body.params.arguments.text, /executor_packet=executor_packet_pass/);
+      assert.equal(calls[1].body.params.arguments.target_id, "todo-claim-1");
+      assert.match(calls[1].body.params.arguments.text, /without taking an active job claim/);
+      assert.match(calls[1].body.params.arguments.text, /execute_enabled=false/);
+      assert.match(calls[1].body.params.arguments.text, /dispatch=coding-room-claim:/);
+      assert.doesNotMatch(calls[1].body.params.arguments.text, /lease_token=coding-room-claim:/);
+      assert.match(calls[1].body.params.arguments.text, /wake_source=queuepush/);
+      assert.match(calls[1].body.params.arguments.text, /executor_packet=executor_packet_pass/);
       assert.equal(result.todo_claim_sync.ok, true);
+      assert.equal(result.todo_claim_sync.skipped, true);
+      assert.equal(result.todo_claim_sync.reason, "test_only_executor_packet_not_active_claim");
       assert.equal(result.todo_claim_sync.todo_id, "todo-claim-1");
       assert.equal(result.todo_claim_sync.test_only_executor_packet.receipt.receipt_type, "executor_packet_pass");
       assert.equal(result.quiet_window_autonomy_proof.verdict, "BLOCKER");
@@ -2423,7 +2420,7 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.equal(result.action, "blocked");
       assert.equal(result.reason, "todo_claim_sync_failed");
       assert.equal(result.persisted, false);
-      assert.equal(result.todo_claim_sync.reason, "update_todo_failed");
+      assert.equal(result.todo_claim_sync.reason, "test_only_claim_comment_failed");
 
       const persisted = JSON.parse(await readFile(ledgerPath, "utf8"));
       assert.equal(persisted.jobs.length, 0);
