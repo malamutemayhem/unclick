@@ -121,7 +121,7 @@ jobs:
           inputs.mode == 'execute' &&
           inputs.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE' &&
           vars.OPENHANDS_COMMAND == ''
-        uses: astral-sh/setup-uv@v8
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
 
       - name: Run autonomous Runner
         env:
