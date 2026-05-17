@@ -18,6 +18,7 @@ import {
 import { evaluateOrchestratorProofWakeGate } from "./lib/autopilotkit-liveness.mjs";
 import { processScopePackTestOnlyExecutorPacket } from "./pinballwake-executor-lane.mjs";
 import { runOpenHandsWorker } from "./pinballwake-openhands-worker.mjs";
+import { createOpenHandsCliRunner } from "./pinballwake-openhands-proof-runner.mjs";
 import { buildScopePackHydrationReceipt } from "./pinballwake-scopepack-hydrator.mjs";
 
 export const AUTONOMOUS_RUNNER_MODES = new Set(["dry-run", "claim", "execute"]);
@@ -558,6 +559,44 @@ export async function createAutonomousRunnerOpenHandsClaimProbeReceipt({
     openHands: null,
     testMode: true,
     env: { OPENHANDS_TEST_MODE: "1" },
+    executorSeatId,
+    now: normalizedNow,
+  });
+}
+
+export function createAutonomousRunnerOpenHandsExecutorFromEnv(env = process.env) {
+  const safeEnv = env || {};
+  const enabled = parseBoolean(safeEnv.AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE);
+  return {
+    enabled,
+    openHands: enabled ? createOpenHandsCliRunner({ env: safeEnv }) : null,
+    env: safeEnv,
+    testMode: parseBoolean(safeEnv.OPENHANDS_TEST_MODE),
+    executorSeatId: safeEnv.OPENHANDS_EXECUTOR_SEAT_ID || "pinballwake-openhands-worker",
+  };
+}
+
+export async function createAutonomousRunnerOpenHandsExecuteReceipt({
+  todo = {},
+  scopePack = null,
+  openHands = null,
+  coderoom = null,
+  env = process.env,
+  testMode = false,
+  executorSeatId = "pinballwake-openhands-worker",
+  now = new Date(),
+} = {}) {
+  const normalizedNow = now instanceof Date ? now : new Date(now || Date.now());
+  const extractedScopePack = scopePack || extractBoardroomTodoScopePackObject(todo) || {};
+  const job = createCodingRoomJobFromBoardroomTodo(todo, { now: normalizedNow.toISOString() });
+
+  return runOpenHandsWorker({
+    job,
+    scopePack: extractedScopePack,
+    openHands,
+    coderoom,
+    env,
+    testMode,
     executorSeatId,
     now: normalizedNow,
   });
@@ -1148,6 +1187,7 @@ export async function syncClaimedBoardroomTodoToUnClick({
   apiKey = "",
   fetchImpl = globalThis.fetch,
   testOnlyExecutorPacket = null,
+  openHandsExecutor = null,
 } = {}) {
   const todoId = extractBoardroomTodoIdFromCodingRoomJob(job);
   if (!todoId) {
@@ -1181,6 +1221,75 @@ export async function syncClaimedBoardroomTodoToUnClick({
       executorSeatId: testOnlyExecutorPacket.executorSeatId,
       now: testOnlyExecutorPacket.now,
     });
+  }
+
+  let openHandsExecuteResult = null;
+  if (todo && openHandsExecutor?.enabled) {
+    openHandsExecuteResult = await createAutonomousRunnerOpenHandsExecuteReceipt({
+      todo,
+      scopePack: extractBoardroomTodoScopePackObject(todo),
+      openHands: openHandsExecutor.openHands,
+      coderoom: openHandsExecutor.coderoom,
+      env: openHandsExecutor.env,
+      testMode: openHandsExecutor.testMode,
+      executorSeatId: openHandsExecutor.executorSeatId,
+      now: openHandsExecutor.now || testOnlyExecutorPacket?.now,
+    });
+  }
+
+  if (openHandsExecuteResult) {
+    const comment = await callUnClickMcpTool({
+      mcpUrl,
+      apiKey,
+      fetchImpl,
+      toolName: "comment_on",
+      arguments: {
+        agent_id: agentId,
+        target_kind: "todo",
+        target_id: todoId,
+        text: compact(
+          [
+            `Autonomous Runner OpenHands build attempt ${openHandsExecuteResult.ok ? "PASS" : "HOLD"}.`,
+            "ScopePack was claimable and execute mode was explicitly enabled.",
+            "No Boardroom DONE, status, or assignee change was made by this receipt.",
+            `dispatch=${job?.claim_id || "none"}.`,
+            `source=${job?.source || "unknown"}.`,
+            `wake_source=${job?.source_state?.wake_source || "unknown"}.`,
+            `job=${job?.job_id || "unknown"}.`,
+            formatOpenHandsBuildAttemptReceipt(openHandsExecuteResult),
+            openHandsExecuteResult.ok
+              ? "next=attach PR or review proof before any close."
+              : "next=fix openhands_hold_reason, then retry execute bridge.",
+          ].filter(Boolean).join(" "),
+          1200,
+        ),
+      },
+    });
+
+    if (!comment.ok) {
+      return {
+        ok: false,
+        reason: "openhands_execute_comment_failed",
+        todo_id: todoId,
+        detail: comment.reason || comment.error || null,
+        status: comment.status ?? null,
+        openhands_execute: openHandsExecuteResult,
+      };
+    }
+
+    return {
+      ok: true,
+      skipped: true,
+      reason: openHandsExecuteResult.ok ? "openhands_build_attempt_recorded" : "openhands_build_hold_recorded",
+      todo_id: todoId,
+      assigned_to_agent_id: job?.source_state?.assigned_to_agent_id || null,
+      status: job?.source_state?.status || null,
+      comment_ok: true,
+      comment_id: comment.data?.comment?.id || null,
+      comment_detail: null,
+      comment_status: null,
+      openhands_execute: openHandsExecuteResult,
+    };
   }
 
   let openHandsClaimProbeResult = null;
@@ -1947,6 +2056,27 @@ function formatOpenHandsClaimProbeReceipt(result) {
   return compact(parts.join(" "), 400);
 }
 
+function formatOpenHandsBuildAttemptReceipt(result) {
+  if (!result) return "";
+  const receipt = result.receipt || {};
+  const evidence = receipt.evidence || {};
+  const parts = [
+    `openhands_attempt=${receipt.receipt_type || (result.ok ? "openhands_worker_pass" : "openhands_worker_hold")}.`,
+    `openhands_ok=${result.ok ? "true" : "false"}.`,
+    `openhands_build_attempt=${result.ok ? "true" : "false"}.`,
+  ];
+  const holdReason = receipt.hold_reason || result.reason || "";
+  if (holdReason) parts.push(`openhands_hold_reason=${holdReason}.`);
+  if (Array.isArray(evidence.changed_files) && evidence.changed_files.length > 0) {
+    parts.push(`changed_files=${evidence.changed_files.join(",")}.`);
+  }
+  if (evidence.test_run_id) parts.push(`test_run_id=${evidence.test_run_id}.`);
+  if (evidence.pr_url) parts.push(`pr=${evidence.pr_url}.`);
+  if (evidence.head_sha_after) parts.push(`head_sha=${evidence.head_sha_after}.`);
+  if (receipt.next_action) parts.push(`openhands_next=${receipt.next_action}.`);
+  return compact(parts.join(" "), 600);
+}
+
 export function createCodingRoomJobFromBoardroomTodo(todo = {}, { now = new Date().toISOString() } = {}) {
   const id = String(todo.id || todo.todo_id || "").trim();
   const title = compact(todo.title || "Untitled Boardroom todo", 180);
@@ -2438,6 +2568,7 @@ export async function runAutonomousRunnerFile({
   gitStatusImpl = readAutonomousRunnerGitStatus,
   worktreeCwd = process.cwd(),
   gitHygieneIgnoredPaths = [],
+  openHandsExecutor = null,
 } = {}) {
   if (orchestratorProof) {
     return runOrchestratorSeatHandshakeProof({
@@ -2611,8 +2742,16 @@ export async function runAutonomousRunnerFile({
       apiKey: unclickApiKey,
       mcpUrl: unclickMcpUrl,
       fetchImpl,
+      openHandsExecutor:
+        safeMode === "execute" && safePolicy.allowExecute
+          ? {
+              ...(openHandsExecutor || {}),
+              enabled: Boolean(openHandsExecutor?.enabled),
+              now,
+            }
+          : null,
       testOnlyExecutorPacket: {
-        enabled: Boolean(claimedTodo),
+        enabled: Boolean(claimedTodo) && !(safeMode === "execute" && safePolicy.allowExecute),
         heartbeat: { tickId: executorHeartbeatTickId, emittedAt: now },
         heartbeatTickId: executorHeartbeatTickId,
         headShaAtRequest: executorHeadSha,
@@ -2819,6 +2958,7 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
     gitHygienePreflight: !parseBoolean(
       getArg("skip-git-hygiene-preflight", process.env.AUTONOMOUS_RUNNER_SKIP_GIT_HYGIENE_PREFLIGHT),
     ),
+    openHandsExecutor: createAutonomousRunnerOpenHandsExecutorFromEnv(process.env),
     policy: createAutonomousRunnerPolicy({
       disabled: parseBoolean(process.env.AUTONOMOUS_RUNNER_DISABLED),
       allowProtectedSurfaces: parseBoolean(process.env.AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES),
