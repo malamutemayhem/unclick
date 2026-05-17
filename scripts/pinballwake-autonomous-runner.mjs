@@ -1145,6 +1145,73 @@ export async function syncClaimedBoardroomTodoToUnClick({
     };
   }
 
+  let testOnlyExecutorPacketResult = null;
+  if (todo && testOnlyExecutorPacket?.enabled) {
+    testOnlyExecutorPacketResult = await createAutonomousRunnerTestOnlyExecutorReceipt({
+      todo,
+      scopePack: extractBoardroomTodoScopePackObject(todo),
+      heartbeat: testOnlyExecutorPacket.heartbeat,
+      heartbeatTickId: testOnlyExecutorPacket.heartbeatTickId,
+      headShaAtRequest: testOnlyExecutorPacket.headShaAtRequest,
+      requestingSeatId: testOnlyExecutorPacket.requestingSeatId,
+      scopePackCommentId: testOnlyExecutorPacket.scopePackCommentId,
+      fileExists: testOnlyExecutorPacket.fileExists,
+      executorSeatId: testOnlyExecutorPacket.executorSeatId,
+      now: testOnlyExecutorPacket.now,
+    });
+  }
+
+  if (testOnlyExecutorPacketResult) {
+    const comment = await callUnClickMcpTool({
+      mcpUrl,
+      apiKey,
+      fetchImpl,
+      toolName: "comment_on",
+      arguments: {
+        agent_id: agentId,
+        target_kind: "todo",
+        target_id: todoId,
+        text: compact(
+          [
+            "Autonomous Runner test-only packet checked without taking an active job claim.",
+            "No status or assignee change was made because execute_enabled=false.",
+            `dispatch=${job?.claim_id || "none"}.`,
+            `source=${job?.source || "unknown"}.`,
+            `wake_source=${job?.source_state?.wake_source || "unknown"}.`,
+            `job=${job?.job_id || "unknown"}.`,
+            formatTestOnlyExecutorPacketReceipt(testOnlyExecutorPacketResult),
+          ].filter(Boolean).join(" "),
+          1000,
+        ),
+      },
+    });
+
+    if (!comment.ok) {
+      return {
+        ok: false,
+        reason: "test_only_claim_comment_failed",
+        todo_id: todoId,
+        detail: comment.reason || comment.error || null,
+        status: comment.status ?? null,
+        test_only_executor_packet: testOnlyExecutorPacketResult,
+      };
+    }
+
+    return {
+      ok: true,
+      skipped: true,
+      reason: "test_only_executor_packet_not_active_claim",
+      todo_id: todoId,
+      assigned_to_agent_id: job?.source_state?.assigned_to_agent_id || null,
+      status: job?.source_state?.status || null,
+      comment_ok: true,
+      comment_id: comment.data?.comment?.id || null,
+      comment_detail: null,
+      comment_status: null,
+      test_only_executor_packet: testOnlyExecutorPacketResult,
+    };
+  }
+
   const update = await callUnClickMcpTool({
     mcpUrl,
     apiKey,
@@ -1166,22 +1233,6 @@ export async function syncClaimedBoardroomTodoToUnClick({
       detail: update.reason || update.error || null,
       status: update.status ?? null,
     };
-  }
-
-  let testOnlyExecutorPacketResult = null;
-  if (todo && testOnlyExecutorPacket?.enabled) {
-    testOnlyExecutorPacketResult = await createAutonomousRunnerTestOnlyExecutorReceipt({
-      todo,
-      scopePack: extractBoardroomTodoScopePackObject(todo),
-      heartbeat: testOnlyExecutorPacket.heartbeat,
-      heartbeatTickId: testOnlyExecutorPacket.heartbeatTickId,
-      headShaAtRequest: testOnlyExecutorPacket.headShaAtRequest,
-      requestingSeatId: testOnlyExecutorPacket.requestingSeatId,
-      scopePackCommentId: testOnlyExecutorPacket.scopePackCommentId,
-      fileExists: testOnlyExecutorPacket.fileExists,
-      executorSeatId: testOnlyExecutorPacket.executorSeatId,
-      now: testOnlyExecutorPacket.now,
-    });
   }
 
   const comment = await callUnClickMcpTool({
