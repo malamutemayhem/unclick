@@ -230,6 +230,33 @@ describe("PinballWake Autopilot Master Loop", () => {
     assert.equal(result.packet.worker, "forge");
   });
 
+  it("feeds PushOnly queue hydration packets into Jobs Room", () => {
+    const result = evaluateAutopilotMasterLoop({
+      launchpad: readyLaunchpad(),
+      ledger: readyLedger(),
+      prs: [],
+      pushPackets: [
+        {
+          push_id: "pushonly_queue",
+          ignite_id: "igniteonly_queue",
+          worker: "pinballwake-jobs-worker",
+          target: "Boardroom backlog",
+          painpoint_type: "queue_hydration_failure",
+          expected_receipt: "Backlog counted, scoped, mirrored, or routed.",
+          verifier: "Compare active jobs against actionable todos.",
+          source_id: "orchestrator-current-state",
+          public_fields_only: true,
+        },
+      ],
+      now: "2026-05-05T01:05:00.000Z",
+    });
+
+    assert.equal(result.result, "dispatch_worker_packet");
+    assert.equal(result.reason, "pushonly_wake_packet");
+    assert.equal(result.job_decision.next_action, "hydrate_queue_from_push");
+    assert.equal(result.packet.worker, "pinballwake-jobs-worker");
+  });
+
   it("stays idle when Launchpad is ready and there is no safe action", () => {
     const result = evaluateAutopilotMasterLoop({
       launchpad: readyLaunchpad(),
