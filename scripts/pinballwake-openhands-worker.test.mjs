@@ -147,6 +147,22 @@ describe("runOpenHandsWorker", () => {
     assert.match(result.receipt.evidence.output, /tests failed/);
   });
 
+  test("keeps the tail of long OpenHands failure output", async () => {
+    const output = `${"installing dependency\n".repeat(400)}FINAL ERROR: missing model config`;
+    const result = await runOpenHandsWorker({
+      job: job(),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async () => ({ ok: false, exit_code: 1, output }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.match(result.receipt.evidence.output, /installing dependency/);
+    assert.match(result.receipt.evidence.output, /omitted \d+ chars/);
+    assert.match(result.receipt.evidence.output, /FINAL ERROR: missing model config/);
+  });
+
   test("returns HOLD when coderoom rejects the patch", async () => {
     const result = await runOpenHandsWorker({
       job: job(),
