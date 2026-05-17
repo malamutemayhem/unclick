@@ -103,7 +103,7 @@ export async function runOpenHandsWorker({
       reason: "openhands_reported_failure",
       evidence: {
         exit_code: result?.exit_code ?? null,
-        output: clip(result?.output, 2000),
+        output: clipOutput(result?.output, 2000),
       },
     });
   }
@@ -115,7 +115,7 @@ export async function runOpenHandsWorker({
       executorSeatId,
       now: safeNow,
       reason: "patch_required",
-      evidence: { output: clip(result.output, 1000) },
+      evidence: { output: clipOutput(result.output, 1000) },
     });
   }
 
@@ -374,6 +374,17 @@ function clip(value, max) {
   return text.length > max ? `${text.slice(0, max - 3)}...` : text;
 }
 
+function clipOutput(value, max) {
+  if (value === undefined || value === null) return null;
+  const text = String(value);
+  if (text.length <= max) return text;
+  const marker = `\n... omitted ${text.length - max} chars ...\n`;
+  const budget = Math.max(0, max - marker.length);
+  const head = Math.ceil(budget * 0.35);
+  const tail = Math.max(0, budget - head);
+  return `${text.slice(0, head)}${marker}${text.slice(text.length - tail)}`;
+}
+
 function toDate(value) {
   return value instanceof Date ? value : new Date(value || Date.now());
 }
@@ -415,4 +426,5 @@ export const __testing__ = {
   PROOF_REQUIRED,
   MAX_PATCH_BYTES,
   extractChangedFilesFromPatch,
+  clipOutput,
 };

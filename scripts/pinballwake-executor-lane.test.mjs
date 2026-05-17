@@ -145,6 +145,21 @@ describe("processExecutorPacket modify intent", () => {
     assert.match(r.evidence.output, /tests failed/);
   });
 
+  test("HOLD keeps the tail of long executor failure output", async () => {
+    const output = `${"installing dependency\n".repeat(400)}FINAL ERROR: runner crashed`;
+    const r = await processExecutorPacket({
+      packet: freshPacket(),
+      heartbeat: FRESH_HEARTBEAT,
+      fileExists: async () => true,
+      executor: async () => ({ ok: false, exit_code: 1, output }),
+    });
+
+    assert.equal(r.receipt_type, __testing__.RECEIPT_TYPE_HOLD);
+    assert.match(r.evidence.output, /installing dependency/);
+    assert.match(r.evidence.output, /omitted \d+ chars/);
+    assert.match(r.evidence.output, /FINAL ERROR: runner crashed/);
+  });
+
   test("PASS when executor returns ok:true with PR + sha + run id", async () => {
     const r = await processExecutorPacket({
       packet: freshPacket(),

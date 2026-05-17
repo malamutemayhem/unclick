@@ -4,6 +4,7 @@ import { describe, test } from "node:test";
 import {
   buildDocsOnlyFixturePatch,
   buildOpenHandsCliArgs,
+  compactOutput,
   createDraftPrCoderoom,
   createFixtureOpenHandsRunner,
   runOpenHandsProof,
@@ -33,6 +34,16 @@ describe("OpenHands proof runner helpers", () => {
 
     assert.match(patch, /diff --git a\/docs\/openhands-proof-fixture\.md b\/docs\/openhands-proof-fixture\.md/);
     assert.match(patch, /\+[-] proof run: unit-test/);
+  });
+
+  test("compacts long CLI output without hiding the final error", () => {
+    const output = `${"downloading package\n".repeat(400)}FINAL ERROR: OpenHands could not start`;
+    const compacted = compactOutput(output, 600);
+
+    assert.match(compacted, /downloading package/);
+    assert.match(compacted, /omitted \d+ chars/);
+    assert.match(compacted, /FINAL ERROR: OpenHands could not start/);
+    assert.ok(compacted.length <= 650);
   });
 
   test("runs fixture OpenHands through the worker and coderoom", async () => {

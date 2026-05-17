@@ -112,7 +112,7 @@ export async function processExecutorPacket({
       reason: "executor_reported_failure",
       evidence: {
         exit_code: result?.exit_code ?? null,
-        output: clip(result?.output, 2000),
+        output: clipOutput(result?.output, 2000),
       },
     });
   }
@@ -238,6 +238,17 @@ function clip(value, max) {
   return s.length > max ? `${s.slice(0, max - 3)}...` : s;
 }
 
+function clipOutput(value, max) {
+  if (value === undefined || value === null) return null;
+  const text = String(value);
+  if (text.length <= max) return text;
+  const marker = `\n... omitted ${text.length - max} chars ...\n`;
+  const budget = Math.max(0, max - marker.length);
+  const head = Math.ceil(budget * 0.35);
+  const tail = Math.max(0, budget - head);
+  return `${text.slice(0, head)}${marker}${text.slice(text.length - tail)}`;
+}
+
 function toDate(value) {
   return value instanceof Date ? value : new Date(value || Date.now());
 }
@@ -271,4 +282,5 @@ export const __testing__ = {
   RECEIPT_TYPE_PASS,
   RECEIPT_TYPE_HOLD,
   PROOF_REQUIRED,
+  clipOutput,
 };

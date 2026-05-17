@@ -23,9 +23,14 @@ function getArg(name, fallback = "") {
   return found ? found.slice(prefix.length) : fallback;
 }
 
-function compactOutput(value, max = 2000) {
+export function compactOutput(value, max = 2000) {
   const text = String(value ?? "").trim();
-  return text.length > max ? `${text.slice(0, max - 3)}...` : text;
+  if (text.length <= max) return text;
+  const marker = `\n... omitted ${text.length - max} chars ...\n`;
+  const budget = Math.max(0, max - marker.length);
+  const head = Math.ceil(budget * 0.35);
+  const tail = Math.max(0, budget - head);
+  return `${text.slice(0, head)}${marker}${text.slice(text.length - tail)}`;
 }
 
 function normalizePath(value) {
