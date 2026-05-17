@@ -2708,6 +2708,8 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.match(workflow, /trusted_fallback_source:/);
     assert.match(workflow, /trusted_fallback_at:/);
     assert.match(workflow, /trusted_fallback_id:/);
+    assert.match(workflow, /execute_confirm:/);
+    assert.match(workflow, /ENABLE_OPENHANDS_EXECUTE/);
     assert.match(workflow, /github\.event_name == 'schedule'/);
     assert.match(workflow, /github\.event_name == 'workflow_run' && github\.event\.workflow_run\.event == 'schedule'/);
     assert.match(workflow, /github\.event_name == 'workflow_dispatch' && inputs\.wake_source == 'trusted_unclick_fallback'/);
@@ -2723,11 +2725,15 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.match(workflow, /AUTONOMOUS_RUNNER_WAKE_SOURCE:.*inputs\.wake_source.*queuepush/);
     assert.match(workflow, /UNCLICK_API_KEY:.*secrets\.UNCLICK_API_KEY.*secrets\.FISHBOWL_AUTOCLOSE_TOKEN.*secrets\.FISHBOWL_WAKE_TOKEN/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_MODE:.*'claim'/);
-    assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOW_EXECUTE:\s*"false"/);
+    assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOW_EXECUTE:.*inputs\.mode == 'execute'.*inputs\.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE'.*'true'.*'false'/);
+    assert.match(workflow, /AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE:.*inputs\.mode == 'execute'.*inputs\.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE'.*'true'.*'false'/);
+    assert.match(workflow, /OPENHANDS_TEST_MODE:.*inputs\.mode == 'execute'.*inputs\.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE'.*'1'/);
+    assert.match(workflow, /OPENHANDS_COMMAND:.*vars\.OPENHANDS_COMMAND.*openhands/);
+    assert.match(workflow, /OPENHANDS_ARGS:.*vars\.OPENHANDS_ARGS.*--headless --json --task \{prompt\}/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES:\s*"false"/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES:.*urgent,high/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS:.*unassigned_open/);
     assert.match(workflow, /kill_switch:/);
-    assert.doesNotMatch(workflow, /^\s+- execute$/m);
+    assert.match(workflow, /^\s+- execute$/m);
   });
 });
