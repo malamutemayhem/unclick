@@ -38,7 +38,7 @@ For real OpenHands use, the worker that provides the `openHands` function should
 
 - `OPENHANDS_TEST_MODE=1`
 - optional `OPENHANDS_COMMAND`, defaulting to `openhands`
-- optional `OPENHANDS_ARGS`, defaulting to `--headless --json --task {prompt}`
+- optional `OPENHANDS_ARGS`, defaulting to `--python 3.12 openhands --headless --json --task {prompt}`
 - optional `OPENHANDS_PATCH_FILE` when the runner writes a patch file instead of printing a unified diff
 - model provider key, stored only in CI or worker secret storage
 - repo-scoped token for draft PR creation, stored only in CI or worker secret storage

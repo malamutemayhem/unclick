@@ -136,7 +136,7 @@ jobs:
           AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'execute' && inputs.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE' && 'true' || 'false' }}
           OPENHANDS_TEST_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'execute' && inputs.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE' && '1' || '' }}
           OPENHANDS_COMMAND: ${{ vars.OPENHANDS_COMMAND || 'uvx' }}
-          OPENHANDS_ARGS: ${{ vars.OPENHANDS_ARGS || '--python 3.12 --from openhands-ai openhands --headless --json --task {prompt}' }}
+          OPENHANDS_ARGS: ${{ vars.OPENHANDS_ARGS || '--python 3.12 openhands --headless --json --task {prompt}' }}
           AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES: "false"
           AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES: ${{ vars.AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES || 'urgent,high' }}
           AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS: ${{ vars.AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS || 'unassigned_open' }}
