@@ -12,6 +12,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ingestCvCorpus, type Corpus } from "../lib/ingestCvCorpus";
 import { buildVoiceProfile, type VoiceProfile } from "../lib/voiceProfile";
 import { renderCoverLetterDraft, type DraftResult } from "../lib/renderDraft";
+import { JOBSMITH_RULE_PACK_V1, summarizeRulePack } from "../lib/checkEngine";
 
 type LoadState =
   | { kind: "loading" }
@@ -22,6 +23,7 @@ export default function JobsmithDraft() {
   const [state, setState] = useState<LoadState>({ kind: "loading" });
   const [jobText, setJobText] = useState("");
   const [draft, setDraft] = useState<DraftResult | null>(null);
+  const ruleSummary = useMemo(() => summarizeRulePack(JOBSMITH_RULE_PACK_V1), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,6 +67,8 @@ export default function JobsmithDraft() {
         </p>
       </header>
 
+      <RulePackStatus summary={ruleSummary} />
+
       {state.kind === "loading" && <p>Loading corpus…</p>}
 
       {state.kind === "error" && (
@@ -100,6 +104,47 @@ export default function JobsmithDraft() {
 
       {draft && <DraftView draft={draft} />}
     </div>
+  );
+}
+
+function RulePackStatus({ summary }: { summary: ReturnType<typeof summarizeRulePack> }) {
+  const badgeStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    borderRadius: 4,
+    border: "1px solid #ddd",
+    padding: "2px 6px",
+    fontSize: 12,
+    marginRight: 8,
+  } as const;
+
+  return (
+    <section
+      aria-label="JobSmith rule pack"
+      style={{
+        border: "1px solid #eee",
+        borderRadius: 6,
+        padding: 12,
+        background: "#fff",
+        fontSize: 13,
+      }}
+    >
+      <strong>Universal Rules v{summary.version}</strong>
+      <div style={{ marginTop: 6, color: "#555" }}>
+        <span style={badgeStyle}>{summary.totalRules} rules</span>
+        <span style={badgeStyle}>{summary.categories.length} categories</span>
+        <span style={badgeStyle}>{summary.bySeverity.ERROR} blockers</span>
+        <span
+          style={{
+            ...badgeStyle,
+            borderColor: summary.needsRefresh > 0 ? "#d99" : "#ddd",
+            color: summary.needsRefresh > 0 ? "#8a1f1f" : "#555",
+          }}
+        >
+          {summary.needsRefresh} needs refresh
+        </span>
+      </div>
+    </section>
   );
 }
 
