@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   BriefcaseBusiness,
   CheckCircle2,
   Clipboard,
   FileText,
+  ScrollText,
   ShieldCheck,
   Sparkles,
   Upload,
@@ -23,6 +24,17 @@ import {
   renderCoverLetterDraft,
   type DraftResult,
 } from "@jobsmith/lib/renderDraft";
+import {
+  renderCvDraft,
+  type CvDraftResult,
+} from "@jobsmith/lib/renderCvDraft";
+import {
+  CV_FACTS_TEMPLATE,
+  parseMasterCvFacts,
+  type MasterCvFacts,
+} from "@jobsmith/lib/cvFacts";
+
+const CV_FACTS_STORAGE_KEY = "jobsmith.cvFacts.v1";
 
 type ReadinessLevel = "blocked" | "review" | "ready";
 
@@ -163,8 +175,35 @@ export default function JobsmithPage() {
   const [jobText, setJobText] = useState("");
   const [letterDraft, setLetterDraft] = useState<DraftResult | null>(null);
   const [letterText, setLetterText] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [cvDraft, setCvDraft] = useState<CvDraftResult | null>(null);
+  const [cvText, setCvText] = useState("");
+  const [copied, setCopied] = useState<"letter" | "cv" | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [cvFactsRaw, setCvFactsRaw] = useState<string>(() =>
+    typeof window === "undefined"
+      ? ""
+      : (window.localStorage.getItem(CV_FACTS_STORAGE_KEY) ?? ""),
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (cvFactsRaw.trim()) {
+      window.localStorage.setItem(CV_FACTS_STORAGE_KEY, cvFactsRaw);
+    } else {
+      window.localStorage.removeItem(CV_FACTS_STORAGE_KEY);
+    }
+  }, [cvFactsRaw]);
+
+  const cvFactsParse = useMemo(
+    () => (cvFactsRaw.trim() ? parseMasterCvFacts(cvFactsRaw) : null),
+    [cvFactsRaw],
+  );
+  const cvFacts: MasterCvFacts | null =
+    cvFactsParse && cvFactsParse.ok ? cvFactsParse.facts : null;
+  let cvFactsError = "";
+  if (cvFactsParse && !cvFactsParse.ok) {
+    cvFactsError = cvFactsParse.error;
+  }
 
   useCanonical("/jobsmith");
   useMetaTags({
@@ -204,19 +243,25 @@ export default function JobsmithPage() {
   }
 
   function handleGenerate() {
-    if (!profile) return;
-    const result = renderCoverLetterDraft({ rawText: jobText }, profile, {
-      brandSuffix: SIGNOFF_SUFFIX,
-    });
-    setLetterDraft(result);
-    setLetterText(result.draft);
-    setCopied(false);
+    if (profile) {
+      const letter = renderCoverLetterDraft({ rawText: jobText }, profile, {
+        brandSuffix: SIGNOFF_SUFFIX,
+      });
+      setLetterDraft(letter);
+      setLetterText(letter.draft);
+    }
+    if (cvFacts) {
+      const cv = renderCvDraft(cvFacts, { rawText: jobText });
+      setCvDraft(cv);
+      setCvText(cv.draft);
+    }
+    setCopied(null);
   }
 
-  async function copyLetter() {
-    if (!letterText) return;
-    await navigator.clipboard?.writeText(letterText);
-    setCopied(true);
+  async function copyText(which: "letter" | "cv", text: string) {
+    if (!text) return;
+    await navigator.clipboard?.writeText(text);
+    setCopied(which);
   }
 
   const canGenerate = profile !== null && jobText.trim().length > 0;
@@ -287,10 +332,64 @@ export default function JobsmithPage() {
               </section>
 
               <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <ScrollText className="h-4 w-4 text-[#61C1C4]" />
+                    <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
+                      Step 2 - Master CV facts
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCvFactsRaw(JSON.stringify(CV_FACTS_TEMPLATE, null, 2))
+                    }
+                    className="rounded-lg border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-3 py-1.5 text-xs font-semibold text-[#9EE4E6] transition-colors hover:bg-[#61C1C4]/20"
+                  >
+                    Load template
+                  </button>
+                </div>
+                <p className="mb-3 text-xs leading-5 text-white/50">
+                  Optional but recommended. Paste your CV as structured JSON
+                  facts, each with an id. The CV draft can only select and
+                  reorder these facts, never invent a line. Saved in this
+                  browser so you enter it once.
+                </p>
+                <textarea
+                  aria-label="Master CV facts JSON"
+                  value={cvFactsRaw}
+                  onChange={(e) => setCvFactsRaw(e.target.value)}
+                  rows={10}
+                  spellCheck={false}
+                  placeholder='{ "name": "...", "contact": "...", "experience": [], "education": [], "skills": [] }'
+                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 font-mono text-xs leading-5 text-white outline-none transition-colors focus:border-[#61C1C4]/45"
+                />
+                {cvFactsParse === null && (
+                  <p className="mt-2 text-xs text-white/40">
+                    No CV facts yet. The cover letter still works without them.
+                  </p>
+                )}
+                {cvFactsParse && cvFactsParse.ok && (
+                  <p className="mt-2 text-xs text-emerald-200">
+                    Valid: {cvFactsParse.facts.experience.length} experience
+                    {cvFactsParse.facts.experience.length === 1
+                      ? " entry"
+                      : " entries"}
+                    , {cvFactsParse.facts.skills.length} skills.
+                  </p>
+                )}
+                {cvFactsError && (
+                  <p className="mt-2 text-xs text-rose-200">
+                    CV facts not usable: {cvFactsError}
+                  </p>
+                )}
+              </section>
+
+              <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
                 <div className="mb-4 flex items-center gap-2">
                   <BriefcaseBusiness className="h-4 w-4 text-[#61C1C4]" />
                   <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
-                    Step 2 - Job description
+                    Step 3 - Job description
                   </h2>
                 </div>
                 <label htmlFor="jobsmith-jd" className="block">
@@ -336,15 +435,15 @@ export default function JobsmithPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => void copyLetter()}
+                      onClick={() => void copyText("letter", letterText)}
                       className="flex items-center gap-1.5 rounded-lg border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-semibold text-fuchsia-100 transition-colors hover:bg-fuchsia-300/20"
                     >
-                      {copied ? (
+                      {copied === "letter" ? (
                         <CheckCircle2 className="h-3.5 w-3.5" />
                       ) : (
                         <Clipboard className="h-3.5 w-3.5" />
                       )}
-                      {copied ? "Copied" : "Copy letter"}
+                      {copied === "letter" ? "Copied" : "Copy letter"}
                     </button>
                   </div>
 
@@ -361,7 +460,7 @@ export default function JobsmithPage() {
                     value={letterText}
                     onChange={(e) => {
                       setLetterText(e.target.value);
-                      setCopied(false);
+                      setCopied(null);
                     }}
                     rows={20}
                     className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm leading-6 text-white outline-none transition-colors focus:border-[#61C1C4]/45"
@@ -370,6 +469,61 @@ export default function JobsmithPage() {
                     Detected role: {letterDraft.detectedRole ?? "not detected"} -
                     company: {letterDraft.detectedCompany ?? "not detected"}.
                     This is a starter draft: edit it before sending.
+                  </p>
+                </section>
+              )}
+
+              {cvDraft && (
+                <section
+                  aria-label="CV draft"
+                  className="rounded-lg border border-white/[0.06] bg-[#111] p-5"
+                >
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-fuchsia-300" />
+                      <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
+                        Tailored CV draft
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void copyText("cv", cvText)}
+                      className="flex items-center gap-1.5 rounded-lg border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-semibold text-fuchsia-100 transition-colors hover:bg-fuchsia-300/20"
+                    >
+                      {copied === "cv" ? (
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      ) : (
+                        <Clipboard className="h-3.5 w-3.5" />
+                      )}
+                      {copied === "cv" ? "Copied" : "Copy CV"}
+                    </button>
+                  </div>
+
+                  {cvDraft.warnings.length > 0 && (
+                    <ul className="mb-3 space-y-1 rounded-lg border border-[#E2B93B]/20 bg-[#E2B93B]/10 p-3 text-xs leading-5 text-[#F4D36B]">
+                      {cvDraft.warnings.map((w) => (
+                        <li key={w}>{w}</li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <textarea
+                    aria-label="Editable CV draft"
+                    value={cvText}
+                    onChange={(e) => {
+                      setCvText(e.target.value);
+                      setCopied(null);
+                    }}
+                    rows={22}
+                    className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm leading-6 text-white outline-none transition-colors focus:border-[#61C1C4]/45"
+                  />
+                  <p className="mt-2 text-xs text-white/45">
+                    Single column, standard ATS headings. Every bullet is one of
+                    your master CV facts:{" "}
+                    {cvDraft.citations.length} fact
+                    {cvDraft.citations.length === 1 ? "" : "s"} used,{" "}
+                    {cvDraft.omittedBullets.length} left out for not matching the
+                    job. Nothing here is invented.
                   </p>
                 </section>
               )}
