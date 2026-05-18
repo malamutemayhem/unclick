@@ -44,8 +44,8 @@ const uiTodoPattern =
 const codingTodoPattern =
   /\b(api|backend|bug|build|code|coding|commit|component|deploy|endpoint|fix|front-end|frontend|function|implement|migration|mcp|package|patch|pr|route|runner|schema|script|storage|tsx?|tool|ui|ux|uxpass|wire|writer)\b/i;
 
-const gitProofPattern =
-  /\b(pr\s*#?\d+|pull request\s*#?\d+|commit\s+[a-f0-9]{7,40}|sha\s+[a-f0-9]{7,40}|branch\s+[\w./-]+|git\s+diff|github\.com\/\S+\/(?:pull|commit)\/\S+|actions\/runs\/\d+|deployed|deployment|live on production|production live|vercel\.app)\b/i;
+const prOrCommitProofPattern =
+  /\b(pr\s*#?\d+|pull request\s*#?\d+|commit\s+[a-f0-9]{7,40}|sha\s+[a-f0-9]{7,40}|github\.com\/\S+\/pull\/\d+|github\.com\/\S+\/commit\/[a-f0-9]{7,40})\b/i;
 
 const noCodeNeededPattern =
   /\b(no[_\s-]?code[_\s-]?needed|no code needed|non-code|no code change|policy only|comment only|routing only|docs only)\b/i;
@@ -102,16 +102,16 @@ export function evaluateFishbowlCompletionPolicy(input: FishbowlCompletionPolicy
   }
 
   if (codingTodoPattern.test(corpus)) {
-    const hasGitOrDeployProof = positiveProofComments.some((comment) =>
-      gitProofPattern.test(comment.text ?? "") || noCodeNeededPattern.test(comment.text ?? ""),
+    const hasPrOrCommitProof = positiveProofComments.some((comment) =>
+      prOrCommitProofPattern.test(comment.text ?? "") || noCodeNeededPattern.test(comment.text ?? ""),
     );
-    if (!hasGitOrDeployProof) {
+    if (!hasPrOrCommitProof) {
       return {
         allowed: false,
         code: "git_proof_required",
-        reason: "Coding jobs need Git, deploy, or no-code proof before they can be marked done.",
+        reason: "Coding jobs need PR or commit proof before they can be marked done.",
         how_to_fix:
-          "Add proof with a PR, commit SHA, branch diff, deployed URL, or explicit NO_CODE_NEEDED reason, then close the job.",
+          "Add proof with a PR or commit SHA or URL, or include an explicit NO_CODE_NEEDED reason, then close the job.",
       };
     }
   }

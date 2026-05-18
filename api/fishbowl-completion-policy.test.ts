@@ -72,6 +72,25 @@ describe("evaluateFishbowlCompletionPolicy", () => {
     expect(result).toMatchObject({ allowed: false, code: "git_proof_required" });
   });
 
+  it("blocks coding work with deploy proof but no PR or commit proof", () => {
+    const result = evaluateFishbowlCompletionPolicy({
+      todo: {
+        ...baseTodo,
+        title: "Queue truth API guardrail update",
+        description: "Patch orchestrator completion policy behavior.",
+      },
+      comments: [
+        {
+          author_agent_id: "reviewer-seat",
+          text: "PASS: deployed to https://unclick-preview.vercel.app and tests passed.",
+        },
+      ],
+      closerAgentId: "builder-seat",
+    });
+
+    expect(result).toMatchObject({ allowed: false, code: "git_proof_required" });
+  });
+
   it("allows explicit no-code proof for non-code closure work", () => {
     const result = evaluateFishbowlCompletionPolicy({
       todo: {
