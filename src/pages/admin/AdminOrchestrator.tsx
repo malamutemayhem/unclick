@@ -1375,7 +1375,7 @@ function OrchestratorStoryPanel({
             No story lines yet. When seats leave receipts, they will appear here as a simple read.
           </div>
         ) : (
-          <article className="mx-auto max-w-3xl space-y-9">
+          <ol aria-label="Story moments" className="mx-auto max-w-3xl border-l border-[#61C1C4]/20 pl-6">
             {visibleChapters.map((chapter) => {
               const expanded = expandedChapters.has(chapter.key);
               const preview = truncateText(chapter.narrative, STORY_CHAPTER_PREVIEW_CHARS);
@@ -1383,7 +1383,7 @@ function OrchestratorStoryPanel({
               const shownStory = showFullStory ? chapter.narrative : preview.text;
 
               return (
-                <section key={chapter.key} className="group">
+                <li key={chapter.key} className="group relative pb-9 last:pb-0">
                   <div className="flex items-start justify-between gap-4">
                     <h3 className="text-xl font-semibold leading-7 text-white sm:text-2xl">
                       <span className="mr-2">{chapter.emoji}</span>
@@ -1419,10 +1419,10 @@ function OrchestratorStoryPanel({
                       {expanded ? "Read less" : "Read more"}
                     </button>
                   )}
-                </section>
+                </li>
               );
             })}
-          </article>
+          </ol>
         )}
       </div>
 

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminOrchestratorPage from "./AdminOrchestrator";
@@ -315,6 +315,8 @@ describe("AdminOrchestratorPage", () => {
     expect(screen.getAllByText(/A handoff stalled around/i).length).toBeGreaterThan(0);
     expect(screen.getByText("A Decision Sets Direction")).toBeInTheDocument();
     expect(screen.getAllByText(/Direction was set/i).length).toBeGreaterThan(0);
+    const storyList = screen.getByRole("list", { name: "Story moments" });
+    expect(within(storyList).getAllByRole("listitem").length).toBeGreaterThan(8);
     expect(screen.getAllByRole("heading", { level: 3 }).length).toBeGreaterThan(8);
     expect(screen.queryByText("Watching the scheduled runner")).not.toBeInTheDocument();
     expect(screen.queryByText("Signals in the background")).not.toBeInTheDocument();
