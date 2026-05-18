@@ -77,4 +77,35 @@ describe("LibraryTab", () => {
     });
     expect(screen.getByText("Data memory snapshot")).toBeInTheDocument();
   });
+
+  it("shows taxonomy storage proof status when library is empty", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.includes("method=list")) return jsonResponse({ data: [] });
+        if (url.includes("method=taxonomy_status")) {
+          return jsonResponse({
+            data: {
+              snapshot_count: 0,
+              proof_ready: false,
+              blocker:
+                "No memory snapshot rows found yet. Run taxonomy snapshot refresh in commit mode to write source-linked snapshots.",
+            },
+          });
+        }
+        return jsonResponse({});
+      }),
+    );
+
+    render(React.createElement(LibraryTab, { apiKey: "test-key" }));
+
+    await screen.findByText("No Library Snapshots yet");
+    expect(
+      screen.getByText(
+        "No memory snapshot rows found yet. Run taxonomy snapshot refresh in commit mode to write source-linked snapshots.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Storage proof check: 0 snapshot rows currently detected.")).toBeInTheDocument();
+  });
 });

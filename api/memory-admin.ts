@@ -3835,6 +3835,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(200).json({ data: data ?? [] });
         }
 
+        if (method === "taxonomy_status") {
+          const { count, error: countError } = await supabase
+            .from("mc_knowledge_library")
+            .select("id", { count: "exact", head: true })
+            .eq("api_key_hash", apiKeyHash)
+            .eq("category", "memory_snapshot")
+            .like("slug", "memory-taxonomy-%");
+          if (countError) throw countError;
+
+          const { data: latest, error: latestError } = await supabase
+            .from("mc_knowledge_library")
+            .select("id, slug, title, updated_at, version, category, tags")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("category", "memory_snapshot")
+            .like("slug", "memory-taxonomy-%")
+            .order("updated_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (latestError) throw latestError;
+
+          const snapshotCount = count ?? 0;
+          const proofReady = snapshotCount > 0;
+          return res.status(200).json({
+            data: {
+              snapshot_count: snapshotCount,
+              proof_ready: proofReady,
+              latest_snapshot: latest ?? null,
+              blocker: proofReady
+                ? null
+                : "No memory snapshot rows found yet. Run taxonomy snapshot refresh in commit mode to write source-linked snapshots.",
+            },
+          });
+        }
+
         // list
         const { data, error } = await supabase
           .from("mc_knowledge_library")

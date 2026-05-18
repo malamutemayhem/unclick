@@ -24,6 +24,12 @@ interface HistoryEntry {
   created_at: string;
 }
 
+interface LibraryTaxonomyStatus {
+  snapshot_count: number;
+  proof_ready: boolean;
+  blocker?: string | null;
+}
+
 const DECAY_COLORS: Record<string, string> = {
   hot: "bg-red-500",
   warm: "bg-amber-500",
@@ -36,6 +42,7 @@ function formatDate(iso: string): string {
 
 export default function LibraryTab({ apiKey }: { apiKey: string }) {
   const [docs, setDocs] = useState<LibraryDoc[]>([]);
+  const [taxonomyStatus, setTaxonomyStatus] = useState<LibraryTaxonomyStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [docContent, setDocContent] = useState<string | null>(null);
@@ -53,7 +60,19 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
       });
       if (res.ok) {
         const body = await res.json();
-        setDocs(body.data ?? []);
+        const nextDocs: LibraryDoc[] = body.data ?? [];
+        setDocs(nextDocs);
+        if (nextDocs.length === 0) {
+          const statusRes = await fetch("/api/memory-admin?action=admin_library&method=taxonomy_status", {
+            headers: { Authorization: `Bearer ${apiKey}` },
+          });
+          if (statusRes.ok) {
+            const statusBody = await statusRes.json();
+            setTaxonomyStatus(statusBody.data ?? null);
+          }
+        } else {
+          setTaxonomyStatus(null);
+        }
       }
     } finally {
       setLoading(false);
@@ -119,16 +138,24 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
   }
 
   if (docs.length === 0) {
+    const emptyDescription =
+      taxonomyStatus?.proof_ready === false && taxonomyStatus.blocker
+        ? taxonomyStatus.blocker
+        : "Automatic taxonomy snapshots appear here once durable facts and sessions are compacted into source-linked memory shelves.";
+    const emptySteps = [
+      "Save durable facts, decisions, and project state through Memory",
+      "Snapshots group related facts by taxonomy and keep source pointers",
+      "AI seats read compact shelves first, then open raw sources only when needed",
+      taxonomyStatus
+        ? `Storage proof check: ${taxonomyStatus.snapshot_count} snapshot rows currently detected.`
+        : "Storage proof check runs automatically when this tab loads.",
+    ];
     return (
       <EmptyState
         icon={BookOpen}
         heading="No Library Snapshots yet"
-        description="Automatic taxonomy snapshots appear here once durable facts and sessions are compacted into source-linked memory shelves."
-        steps={[
-          "Save durable facts, decisions, and project state through Memory",
-          "Snapshots group related facts by taxonomy and keep source pointers",
-          "AI seats read compact shelves first, then open raw sources only when needed",
-        ]}
+        description={emptyDescription}
+        steps={emptySteps}
       />
     );
   }
