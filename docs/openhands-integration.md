@@ -22,6 +22,8 @@ This file does not enable production code-writing. The adapter is opt-in and req
 
 `scripts/pinballwake-openhands-proof-runner.mjs` is the v1 binding for proof runs. It can use a real OpenHands CLI command supplied through `OPENHANDS_COMMAND`, or a docs-only fixture runner when `OPENHANDS_PROOF_FIXTURE_PATCH=1` is set for local and workflow tests. OpenHands CLI docs describe `--task`, `--headless`, and `--json` at https://docs.openhands.dev/openhands/usage/cli/command-reference. The OpenHands environment reference is https://docs.openhands.dev/openhands/usage/environment-variables.
 
+For GitHub manual execute runs, the default OpenHands command uses `--override-with-envs` so CI can provide settings without persisting credentials. If those settings are missing, the runner stops before launching OpenHands and returns `openhands_headless_settings_required` instead of burning a full install cycle.
+
 ## Guardrails
 
 - Test mode is required by default.
@@ -38,9 +40,11 @@ For real OpenHands use, the worker that provides the `openHands` function should
 
 - `OPENHANDS_TEST_MODE=1`
 - optional `OPENHANDS_COMMAND`, defaulting to `openhands`
-- optional `OPENHANDS_ARGS`, defaulting to `--python 3.12 openhands --headless --json --task {prompt}`
+- optional `OPENHANDS_ARGS`, defaulting to `--python 3.12 openhands --headless --json --override-with-envs --task {prompt}`
 - optional `OPENHANDS_PATCH_FILE` when the runner writes a patch file instead of printing a unified diff
-- model provider key, stored only in CI or worker secret storage
+- `LLM_API_KEY`, from CI or worker secret storage only
+- `LLM_MODEL`, from CI or worker variable storage
+- optional `LLM_BASE_URL`, from CI or worker variable storage
 - repo-scoped token for draft PR creation, stored only in CI or worker secret storage
 - an external cost or spend limit guard
 

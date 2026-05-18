@@ -136,7 +136,11 @@ jobs:
           AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'execute' && inputs.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE' && 'true' || 'false' }}
           OPENHANDS_TEST_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'execute' && inputs.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE' && '1' || '' }}
           OPENHANDS_COMMAND: ${{ vars.OPENHANDS_COMMAND || 'uvx' }}
-          OPENHANDS_ARGS: ${{ vars.OPENHANDS_ARGS || '--python 3.12 openhands --headless --json --task {prompt}' }}
+          OPENHANDS_ARGS: ${{ vars.OPENHANDS_ARGS || '--python 3.12 openhands --headless --json --override-with-envs --task {prompt}' }}
+          LLM_API_KEY: ${{ secrets.OPENHANDS_LLM_API_KEY || secrets.LLM_API_KEY || '' }}
+          LLM_MODEL: ${{ vars.OPENHANDS_LLM_MODEL || vars.LLM_MODEL || '' }}
+          LLM_BASE_URL: ${{ vars.OPENHANDS_LLM_BASE_URL || vars.LLM_BASE_URL || '' }}
+          OPENHANDS_SUPPRESS_BANNER: "1"
           AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES: "false"
           AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES: ${{ vars.AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES || 'urgent,high' }}
           AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS: ${{ vars.AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS || 'unassigned_open' }}

@@ -4,9 +4,11 @@ import { describe, test } from "node:test";
 import {
   buildDocsOnlyFixturePatch,
   buildOpenHandsCliArgs,
+  checkOpenHandsHeadlessSettings,
   compactOutput,
   createDraftPrCoderoom,
   createFixtureOpenHandsRunner,
+  createOpenHandsCliRunner,
   runOpenHandsProof,
   splitArgs,
 } from "./pinballwake-openhands-proof-runner.mjs";
@@ -44,6 +46,69 @@ describe("OpenHands proof runner helpers", () => {
     assert.match(compacted, /omitted \d+ chars/);
     assert.match(compacted, /FINAL ERROR: OpenHands could not start/);
     assert.ok(compacted.length <= 650);
+  });
+
+  test("requires explicit settings for headless env override", () => {
+    const missing = checkOpenHandsHeadlessSettings({
+      args: ["--headless", "--json", "--override-with-envs", "--task", "do work"],
+      env: {},
+    });
+
+    assert.equal(missing.ok, false);
+    assert.equal(missing.reason, "openhands_headless_settings_required");
+    assert.doesNotMatch(missing.output, /real-token-value/);
+
+    const ready = checkOpenHandsHeadlessSettings({
+      args: ["--headless", "--json", "--override-with-envs", "--task", "do work"],
+      env: { LLM_API_KEY: "secret", LLM_MODEL: "openai/gpt-5" },
+    });
+
+    assert.equal(ready.ok, true);
+  });
+
+  test("fails fast before invoking OpenHands when headless settings are absent", async () => {
+    let calls = 0;
+    const runner = createOpenHandsCliRunner({
+      env: { OPENHANDS_ARGS: "--headless --json --override-with-envs --task {prompt}" },
+      runProcess: async () => {
+        calls += 1;
+        return { ok: true, output: "" };
+      },
+    });
+
+    const result = await runner({
+      prompt: "Patch a docs file",
+      scopePack: { owned_files: [FIXTURE] },
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "openhands_headless_settings_required");
+    assert.equal(calls, 0);
+  });
+
+  test("invokes OpenHands when headless env settings are present", async () => {
+    const calls = [];
+    const runner = createOpenHandsCliRunner({
+      env: {
+        OPENHANDS_ARGS: "--headless --json --override-with-envs --task {prompt}",
+        LLM_API_KEY: "secret",
+        LLM_MODEL: "openai/gpt-5",
+      },
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        return { ok: true, exit_code: 0, output: buildDocsOnlyFixturePatch({ filePath: FIXTURE }) };
+      },
+    });
+
+    const result = await runner({
+      prompt: "Patch a docs file",
+      scopePack: { owned_files: [FIXTURE] },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0][0], "openhands");
+    assert.deepEqual(calls[0][1], ["--headless", "--json", "--override-with-envs", "--task", "Patch a docs file"]);
   });
 
   test("runs fixture OpenHands through the worker and coderoom", async () => {
