@@ -95,6 +95,37 @@ export function buildOpenHandsCliArgs({ prompt, argsTemplate = "" } = {}) {
   return replaced.includes(String(prompt ?? "")) ? replaced : [...replaced, "--task", String(prompt ?? "")];
 }
 
+function hasValue(value) {
+  return String(value ?? "").trim().length > 0;
+}
+
+export function checkOpenHandsHeadlessSettings({ args = [], env = process.env } = {}) {
+  const safeArgs = Array.isArray(args) ? args : [];
+  if (!safeArgs.includes("--headless")) {
+    return { ok: true };
+  }
+
+  if (parseBoolean(env.OPENHANDS_ALLOW_STORED_SETTINGS) || parseBoolean(env.OPENHANDS_SETTINGS_PRESENT)) {
+    return { ok: true };
+  }
+
+  const usesEnvOverride = safeArgs.includes("--override-with-envs");
+  const hasRequiredEnv = hasValue(env.LLM_API_KEY) && hasValue(env.LLM_MODEL);
+  if (usesEnvOverride && hasRequiredEnv) {
+    return { ok: true };
+  }
+
+  return {
+    ok: false,
+    reason: "openhands_headless_settings_required",
+    output: [
+      "OpenHands headless settings are missing.",
+      "Set saved OpenHands settings, or run with --override-with-envs plus LLM_API_KEY and LLM_MODEL.",
+      "No secret values were read or printed.",
+    ].join(" "),
+  };
+}
+
 export function buildDocsOnlyFixturePatch({
   filePath = DEFAULT_PROOF_FILE,
   proofLine = `- proof run: ${safeStamp(new Date())}`,
@@ -145,6 +176,16 @@ export function createOpenHandsCliRunner({
       prompt,
       argsTemplate: argsTemplate || env.OPENHANDS_ARGS || "",
     });
+    const settingsCheck = checkOpenHandsHeadlessSettings({ args, env });
+    if (!settingsCheck.ok) {
+      return {
+        ok: false,
+        reason: settingsCheck.reason,
+        exit_code: null,
+        output: settingsCheck.output,
+      };
+    }
+
     const result = await runProcess(safeCommand, args, {
       cwd,
       env: {
