@@ -13,6 +13,7 @@ CopyRoom rule: workers must copy these files from source and cite this receipt b
 | `cv-checklists_1b.md` | `C:/Temp/unclick temp/cv-checklists_1b.md` | `2616ec5a4858f63b35ce8b0b0cab1ad86b72e4e88e51430bb046a245ebb8b22f` | 43176 | 916 |
 | `cv-checklists_2.md` | `C:/Temp/unclick temp/cv-checklists_2.md` | `bffd24c5663d120c3c86957819bf6c0bdc4e5a46fee7ee0fb89bc1aba2c7577c` | 24907 | 313 |
 | `cv-checklists_3.md` | `C:/Temp/unclick temp/cv-checklists_3.md` | `9f651dec06874771523d41f4fe7d296998ee9beeba09051fcbeb2a1c457bf3d5` | 24500 | 266 |
+| `cv-checklists_consolidated.md` | `C:/Users/Malamutemayhem/Documents/Codex/2026-05-18/files-mentioned-by-the-user-cv-2/cv-checklists_consolidated.md` | `b09deb85f80d41cc00341f504b2894096b62b75f47d966632eb8c562380db7f2` | 34723 | 219 |
 
 ## Receipts
 

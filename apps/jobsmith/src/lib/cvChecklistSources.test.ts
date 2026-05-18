@@ -15,13 +15,14 @@ import {
 const jobsmithRoot = process.cwd();
 
 describe("JobSmith CV checklist CopyRoom manifest", () => {
-  test("declares the five exact source files Chris supplied", () => {
+  test("declares the exact source files and consolidated checklist Chris supplied", () => {
     expect(getExpectedCvChecklistFileNames()).toEqual([
       "cv-checklists_1.md",
       "cv-checklists_1a.md",
       "cv-checklists_1b.md",
       "cv-checklists_2.md",
       "cv-checklists_3.md",
+      "cv-checklists_consolidated.md",
     ]);
   });
 

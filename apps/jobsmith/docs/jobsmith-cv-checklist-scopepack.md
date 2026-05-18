@@ -10,7 +10,7 @@ Status: build-ready source handoff, not DONE
 
 ## Goal
 
-Wire the five copied CV checklist sources and the FYI JobSmith rule-pack handoff into `apps/jobsmith` so builders can implement a deterministic, evolving CV rule/checklist engine with proof.
+Wire the five copied CV checklist sources, Chris's consolidated checklist, and the FYI JobSmith rule-pack handoff into `apps/jobsmith` so builders can implement a deterministic, evolving CV rule/checklist engine with proof.
 
 This slice preserves source truth and build shape. It does not claim that all rules are implemented.
 
@@ -35,9 +35,10 @@ Proof test:
 3. `cv-checklists_1b.md`
 4. `cv-checklists_2.md`
 5. `cv-checklists_3.md`
-6. FYI JobSmith handoff comment `0bad9e59-03cf-44e9-83e2-33f4473a9209`
-7. Expanded rule-pack feed comment `4438301e-bdd7-4573-98f6-289ffe40941b`
-8. Chris-specified ScopePack addendum comment `b1b49c8f-c3af-44bb-a2d4-363148b4d763`
+6. `cv-checklists_consolidated.md`
+7. FYI JobSmith handoff comment `0bad9e59-03cf-44e9-83e2-33f4473a9209`
+8. Expanded rule-pack feed comment `4438301e-bdd7-4573-98f6-289ffe40941b`
+9. Chris-specified ScopePack addendum comment `b1b49c8f-c3af-44bb-a2d4-363148b4d763`
 
 ## Deduped Rule Categories
 
@@ -97,7 +98,7 @@ Each rule should keep:
 
 ## Acceptance Criteria
 
-- Five checklist files are present and hash-verified by test.
+- Five original checklist files plus Chris's consolidated checklist are present and hash-verified by test.
 - Builders can trace each rule back to source file or Boardroom comment.
 - The 40-rule handoff mismatch is reconciled before full encoding is claimed.
 - At least one deterministic check per category is covered by tests before marking implementation complete.

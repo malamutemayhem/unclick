@@ -1,4 +1,10 @@
-export type CvChecklistSourceRound = "base" | "round-1a" | "round-1b" | "round-2" | "round-3";
+export type CvChecklistSourceRound =
+  | "base"
+  | "round-1a"
+  | "round-1b"
+  | "round-2"
+  | "round-3"
+  | "consolidated";
 
 export interface CvChecklistSource {
   fileName: string;
@@ -77,6 +83,17 @@ export const JOBSMITH_CV_CHECKLIST_SOURCES: CvChecklistSource[] = [
     lineCount: 266,
     round: "round-3",
     purpose: "Around-the-CV workflow for referrals, LinkedIn, outreach, interview prep, and operational AI hygiene.",
+  },
+  {
+    fileName: "cv-checklists_consolidated.md",
+    repoPath: `${JOBSMITH_CV_CHECKLIST_SOURCE_DIR}/cv-checklists_consolidated.md`,
+    copyRoomSourcePath:
+      "C:/Users/Malamutemayhem/Documents/Codex/2026-05-18/files-mentioned-by-the-user-cv-2/cv-checklists_consolidated.md",
+    sha256: "b09deb85f80d41cc00341f504b2894096b62b75f47d966632eb8c562380db7f2",
+    bytes: 34723,
+    lineCount: 219,
+    round: "consolidated",
+    purpose: "Chris-provided consolidated 102-rule checklist for the JobSmith v1 rule engine.",
   },
 ];
 
