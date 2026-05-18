@@ -177,3 +177,28 @@ If your platform is not listed, use 🛠 Worker and ask Chris to assign you a pe
 ### 10. When in doubt, ask in chat
 
 If the task is ambiguous, the scope is unclear, or the proof-of-delivery requirements conflict with platform constraints, STOP and ask Chris in chat. Do not guess. Do not "do your best". Stop and ask.
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+| Service | Start command | Port | Notes |
+|---------|--------------|------|-------|
+| React website (Vite) | `npm run dev` | 8080 | Main marketing/dashboard site |
+| MCP server (stdio) | `cd packages/mcp-server && npm run dev` | stdio | Use `UNCLICK_STORAGE=local` for zero-config local-JSON mode |
+| Hono API (`apps/api`) | `npm run dev:api` | 3001 | Uses embedded PGlite - no external DB needed |
+
+### Running tests
+
+- **Root tests** (website + api/ + some packages): `npm run test` from repo root
+- **MCP server tests** (node:test + vitest): `npm run test --workspace=@unclick/mcp-server`
+- **Single MCP test file**: `cd packages/mcp-server && npx vitest run src/__tests__/<file>.ts`
+- **apps/api tests**: `npm run test:api` (currently broken due to pre-existing backtick parse error in `apps/api/src/db/index.ts` seed data)
+- **Lint**: `npm run lint` (pre-existing warnings/errors exist; do not attempt to fix them unless assigned)
+
+### Gotchas
+
+- The root `vitest.config.ts` only covers `src/**` and `api/**`. MCP server tests must be run via the workspace script or from within `packages/mcp-server/`.
+- The `apps/api` dev server and tests fail due to a pre-existing syntax issue in `apps/api/src/db/index.ts` (backtick characters in SQL seed strings confuse esbuild/oxc). This is not an environment issue.
+- No `.env.local` is required for the Vite dev server to start and serve pages (it runs without Supabase credentials, but auth/data features will not work without them).
+- The MCP server runs in local-JSON storage mode by default when no Supabase env vars are set. Set `UNCLICK_STORAGE=local` explicitly to suppress warnings.
