@@ -96,8 +96,10 @@ function composeOpener({
 }): string {
   const template =
     profile.openingFormulas[0] ?? "I am pleased to express my interest in the role.";
-  // Try to incorporate role + company in a natural way.
-  const customised = template.replace(/the [^.]+(role|position)\.?$/i, "");
+  // Strip a trailing "the role." / "the position." so it is not duplicated
+  // when the concrete role and company are appended. [^.]* (not +) so the
+  // bare "the role." case with no words between also matches.
+  const customised = template.replace(/the [^.]*(role|position)\.?$/i, "");
   return `${customised.trim()} the ${role} position at ${company}.`;
 }
 

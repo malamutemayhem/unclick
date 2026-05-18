@@ -95,4 +95,15 @@ describe("renderCoverLetterDraft", () => {
     const result = renderCoverLetterDraft({ rawText: AMPERSAND_JOB }, profile);
     expect(result.draft.length).toBeGreaterThan(0);
   });
+
+  test("does not duplicate 'the role' when the opener ends with it", () => {
+    const profile = makeProfile({
+      openingFormulas: ["I am writing to express my interest in the role."],
+    });
+    const result = renderCoverLetterDraft({ rawText: AMPERSAND_JOB }, profile);
+    expect(result.draft).not.toMatch(/role\.\s+the /i);
+    expect(result.draft).toContain(
+      "interest in the Digital Media Designer position at Ampersand International.",
+    );
+  });
 });
