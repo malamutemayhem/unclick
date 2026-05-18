@@ -292,6 +292,15 @@ export interface OrchestratorContext {
     // rule themselves. Verdict-only - this field does not gate any
     // downstream behavior in the builder; consumers act on it.
     health_verdict: CommonSensePassResult;
+    harness_card: {
+      source_of_truth: "Boardroom Jobs";
+      queue_state: "active_work" | "needs_claim" | "quiet";
+      queue_truth: string;
+      allowed_actions: string[];
+      required_proof: string[];
+      cleanup_rule: string;
+      recovery_path: string;
+    };
   };
   profile_cards: OrchestratorProfileCard[];
   human_operator_time: OrchestratorOperatorTimeContext | null;
@@ -538,6 +547,11 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
       next_actions: nextActions,
       blockers,
       health_verdict: healthVerdict,
+      harness_card: buildHarnessCard({
+        activeJobsCount,
+        queuedTodoCount,
+        healthVerdict,
+      }),
     },
     profile_cards: profiles,
     human_operator_time: humanOperatorTime,
@@ -559,6 +573,41 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
       library_snapshots_available: allLibrarySnapshots.length,
       library_snapshots_truncated: allLibrarySnapshots.length > librarySnapshots.length,
     },
+  };
+}
+
+function buildHarnessCard({
+  activeJobsCount,
+  queuedTodoCount,
+  healthVerdict,
+}: {
+  activeJobsCount: number;
+  queuedTodoCount: number;
+  healthVerdict: CommonSensePassResult;
+}): OrchestratorContext["current_state_card"]["harness_card"] {
+  const queueState =
+    activeJobsCount > 0 ? "active_work" : queuedTodoCount > 0 ? "needs_claim" : "quiet";
+
+  return {
+    source_of_truth: "Boardroom Jobs",
+    queue_state: queueState,
+    queue_truth:
+      "active_jobs counts in_progress work with a fresh owner; queued_todo_count is open backlog. Open backlog with active_jobs=0 needs claim/proof work and must not be treated as healthy.",
+    allowed_actions: [
+      "claim one unowned scoped job",
+      "verify proof on a completed-looking job",
+      "patch a narrow owned file slice",
+      "post BLOCKER with exact missing proof",
+    ],
+    required_proof: [
+      "coding jobs need PR, commit, deploy, or explicit NO_CODE_NEEDED proof",
+      "tests or CI must be named when code changed",
+      "UI/UX jobs need screenshot proof",
+      `health verdict is ${healthVerdict.verdict}`,
+    ],
+    cleanup_rule: "Do not mark DONE from green chips or stale receipts; close only after required proof is observable.",
+    recovery_path:
+      "If the queue is blocked or scope is unclear, add a narrow ScopePack or proof comment instead of posting a status-only wake.",
   };
 }
 

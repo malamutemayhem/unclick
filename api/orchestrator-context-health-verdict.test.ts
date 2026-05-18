@@ -22,6 +22,10 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
     });
     expect(context.current_state_card.health_verdict.verdict).toBe("PASS");
     expect(context.current_state_card.health_verdict.rule_id).toBe("R1");
+    expect(context.current_state_card.harness_card).toMatchObject({
+      source_of_truth: "Boardroom Jobs",
+      queue_state: "quiet",
+    });
   });
 
   it("emits a BLOCKER verdict when open todos sit in the queue", () => {
@@ -52,6 +56,16 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
     expect(context.current_state_card.health_verdict.rule_id).toBe("R1");
     expect(context.current_state_card.health_verdict.next_action).toBe(
       "hydrate_queue_and_claim_one",
+    );
+    expect(context.current_state_card.harness_card).toMatchObject({
+      source_of_truth: "Boardroom Jobs",
+      queue_state: "needs_claim",
+    });
+    expect(context.current_state_card.harness_card.queue_truth).toContain(
+      "Open backlog with active_jobs=0 needs claim/proof work",
+    );
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "UI/UX jobs need screenshot proof",
     );
     // active_jobs should also be 0 (no in_progress todos), so the BLOCKER is
     // entirely driven by the actionable queue depth.
@@ -159,6 +173,7 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
     expect(context.current_state_card.active_jobs).toBe(1);
     expect(context.current_state_card.health_verdict.verdict).toBe("PASS");
     expect(context.current_state_card.health_verdict.rule_id).toBe("R1");
+    expect(context.current_state_card.harness_card.queue_state).toBe("active_work");
   });
 
   it("verdict and active_jobs are computed from the same source so they cannot disagree", () => {
