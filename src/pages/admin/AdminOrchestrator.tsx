@@ -111,6 +111,12 @@ interface OrchestratorContext {
     tags?: string[];
     updated_at?: string | null;
   }>;
+  response_bounds?: {
+    max_summaries?: number;
+    continuity_events_returned?: number;
+    continuity_events_available?: number;
+    continuity_events_truncated?: boolean;
+  };
 }
 
 type ConnectionTier = "channel" | "gemini" | "unconfigured";
@@ -157,6 +163,17 @@ const STORY_CHAPTER_MAX_EVENTS = 4;
 const STORY_CHAPTER_PREVIEW_CHARS = 1_450;
 const STORY_NATIVE_PREVIEW_COUNT = 5;
 const STORY_NATIVE_STORAGE_KEY = "unclick_orchestrator_story_native_v1";
+
+function orchestratorContextReadUrl(limit: number, options: { q?: string } = {}): string {
+  const params = new URLSearchParams({
+    action: "orchestrator_context_read",
+    limit: String(limit),
+    max_summaries: String(limit),
+  });
+  if (options.q) params.set("q", options.q);
+  return `/api/memory-admin?${params.toString()}`;
+}
+
 const SOURCE_VISIBILITY_FILTERS: Array<{ value: SourceVisibilityFilter; label: string }> = [
   { value: "all", label: "All" },
   { value: "work", label: "Work" },
@@ -1161,7 +1178,7 @@ export default function AdminOrchestratorPage() {
           fetch(
             `/api/memory-admin?action=admin_check_connection&api_key=${encodeURIComponent(storedApiKey)}`,
           ),
-          fetch(`/api/memory-admin?action=orchestrator_context_read&limit=${contextLimit}`, {
+          fetch(orchestratorContextReadUrl(contextLimit), {
             headers: { Authorization: `Bearer ${authToken}` },
           }),
           fetchAiChatTenantSettings(authToken),
@@ -1323,7 +1340,12 @@ function OrchestratorStoryPanel({
   );
   const visibleChapters = chapters.slice(0, visibleChapterCount);
   const hasMoreLoaded = visibleChapterCount < chapters.length;
-  const canLoadFromServer = contextLimit < maxContextLimit;
+  const hasResponseBounds = Boolean(context?.response_bounds);
+  const eventWindowIsTruncated = context?.response_bounds?.continuity_events_truncated === true;
+  const loadedEventCount = context?.continuity_events.length ?? 0;
+  const canLoadFromServer =
+    contextLimit < maxContextLimit &&
+    (!hasResponseBounds || eventWindowIsTruncated || loadedEventCount >= contextLimit);
   const { anchorRef: readMoreRef, holdPagePosition } = usePagePositionHold();
 
   const toggleNativeNotes = (value: boolean) => {
@@ -1494,7 +1516,7 @@ function OrchestratorContinuityPanel({
       void (async () => {
         try {
           const res = await fetch(
-            `/api/memory-admin?action=orchestrator_context_read&limit=120&q=${encodeURIComponent(trimmedSearchQuery)}`,
+            orchestratorContextReadUrl(120, { q: trimmedSearchQuery }),
             { headers: { Authorization: `Bearer ${authToken}` } },
           );
           if (cancelled) return;
@@ -1558,17 +1580,18 @@ function OrchestratorContinuityPanel({
   );
   const visibleEventViews = filteredEventViews.slice(0, visibleEventCount);
   const canRevealLoadedHistory = filteredEventViews.length > visibleEventCount;
+  const eventWindowIsTruncated = feedContext?.response_bounds?.continuity_events_truncated === true;
   const canLoadDeeperHistory =
     !trimmedSearchQuery &&
     !loading &&
     !serverSearchLoading &&
     contextLimit < maxContextLimit &&
-    events.length >= contextLimit;
+    (eventWindowIsTruncated || events.length >= contextLimit);
   const { anchorRef: viewMoreRef, holdPagePosition } = usePagePositionHold();
 
   useEffect(() => {
     setVisibleEventCount(CONTINUITY_VISIBLE_STEP);
-  }, [events.length, trimmedSearchQuery]);
+  }, [trimmedSearchQuery]);
 
   function toggleEasyRead(nextValue: boolean) {
     setEasyRead(nextValue);
@@ -1643,14 +1666,14 @@ function OrchestratorContinuityPanel({
 
         <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2">
           <span>
-            <span className="block text-xs font-medium text-white/75">Easy reading for humans</span>
+            <span className="block text-xs font-medium text-white/75">Plain-language view</span>
             <span className="block text-[10px] text-white/35">
               {easyRead ? "Friendly layer on" : "Natural context view"}
             </span>
           </span>
           <input
             type="checkbox"
-            aria-label="Easy reading for humans"
+            aria-label="Plain-language view"
             checked={easyRead}
             onChange={(event) => toggleEasyRead(event.target.checked)}
             className="sr-only"
@@ -1711,7 +1734,7 @@ function OrchestratorContinuityPanel({
           <span>Analogies</span>
         </label>
         <span className="text-[11px] text-white/30">
-          These only add friendly hints in Easy reading mode.
+          These only add friendly hints in Plain-language view.
         </span>
       </div>
 
@@ -1757,6 +1780,7 @@ function OrchestratorContinuityPanel({
                       return;
                     }
                     onLoadDeeperHistory();
+                    setVisibleEventCount((value) => value + CONTINUITY_VISIBLE_STEP);
                   });
                 }}
                 className="rounded-md border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-3 py-2 text-xs font-semibold text-[#A9EEF0] hover:border-[#61C1C4]/40 hover:bg-[#61C1C4]/15"

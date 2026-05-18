@@ -26,7 +26,7 @@ function jsonResponse(value: unknown): Response {
   } as Response;
 }
 
-function contextWithEvents(events: Array<Record<string, unknown>>) {
+function contextWithEvents(events: Array<Record<string, unknown>>, responseBounds?: Record<string, unknown>) {
   return {
     context: {
       version: "orchestrator-context-v1",
@@ -68,6 +68,7 @@ function contextWithEvents(events: Array<Record<string, unknown>>) {
       human_operator_time: null,
       continuity_events: events,
       library_snapshots: [],
+      ...(responseBounds ? { response_bounds: responseBounds } : {}),
     },
   };
 }
@@ -253,7 +254,7 @@ describe("AdminOrchestratorPage", () => {
                     kind: "proof",
                     actor_agent_id: "codex-orchestrator-seat",
                     summary:
-                      "PASS: Orchestrator continuity proof landed. This deliberately long proof explains that the feed should be readable without hiding the source text forever, and it keeps going so the Show more button appears for humans who want the full detail instead of a clipped preview. The change should make the first sentence friendly, keep the AI natural context available, and avoid making the whole row a surprise hyperlink when someone is only trying to select or read text.",
+                      "PASS: Orchestrator continuity proof landed. This deliberately long proof explains that the feed should be readable without hiding the source text forever, and it keeps going so the Show more button appears for readers who want the full detail instead of a clipped preview. The change should make the first sentence friendly, keep the AI natural context available, and avoid making the whole row a surprise hyperlink when someone is only trying to select or read text.",
                     tags: ["done"],
                     deep_link: "/admin/jobs#todo-1",
                   },
@@ -340,6 +341,12 @@ describe("AdminOrchestratorPage", () => {
         }),
       ),
     );
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("max_summaries=240"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer session-token" }),
+      }),
+    );
   });
 
   it("keeps Story content visible while deeper history loads", async () => {
@@ -369,7 +376,7 @@ describe("AdminOrchestratorPage", () => {
     ];
     const fetchMock = vi.fn(async (url: RequestInfo | URL) => {
       const textUrl = String(url);
-      if (textUrl.includes("orchestrator_context_read") && textUrl.includes("limit=200")) {
+      if (textUrl.includes("orchestrator_context_read") && textUrl.includes("limit=480")) {
         return deepHistoryPromise;
       }
       if (textUrl.includes("orchestrator_context_read")) {
@@ -408,6 +415,12 @@ describe("AdminOrchestratorPage", () => {
         }),
       ),
     );
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("max_summaries=480"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer session-token" }),
+      }),
+    );
     expect(screen.queryByText("Writing the latest story...")).not.toBeInTheDocument();
     expect(screen.getAllByText(/Chris asked: Can Story hold more conversation by default/i).length).toBeGreaterThan(0);
 
@@ -418,7 +431,7 @@ describe("AdminOrchestratorPage", () => {
     renderOrchestrator("/admin/orchestrator/timeline");
 
     expect(await screen.findByText("Continuity Feed")).toBeInTheDocument();
-    expect(screen.getByLabelText("Easy reading for humans")).toBeChecked();
+    expect(screen.getByLabelText("Plain-language view")).toBeChecked();
     expect(screen.getByLabelText("Dripfeed Education")).toBeChecked();
     expect(screen.getByLabelText("Analogies")).toBeChecked();
     expect(screen.getByPlaceholderText("Filter Orchestrator feed")).toBeInTheDocument();
@@ -472,7 +485,7 @@ describe("AdminOrchestratorPage", () => {
     expect(screen.queryByText(/Dispatch routed the heartbeat packet/i)).not.toBeInTheDocument();
   });
 
-  it("lets humans view more loaded Orchestrator history", async () => {
+  it("lets readers view more loaded Orchestrator history", async () => {
     renderOrchestrator("/admin/orchestrator/timeline");
 
     expect(await screen.findByText("View more history")).toBeInTheDocument();
@@ -481,6 +494,78 @@ describe("AdminOrchestratorPage", () => {
     fireEvent.click(screen.getByText("View more history"));
 
     expect((await screen.findAllByText(/Archive event 24/i)).length).toBeGreaterThan(0);
+  });
+
+  it("loads deeper Timeline history when the compact response is truncated", async () => {
+    const compactEvents = Array.from({ length: 24 }, (_, index) => ({
+      source_kind: "conversation_turn",
+      source_id: `compact-${index}`,
+      created_at: `2026-05-10T05:${String(59 - index).padStart(2, "0")}:00.000Z`,
+      kind: "context",
+      role: "assistant",
+      summary: `Compact event ${index}: timeline detail.`,
+      tags: ["conversation"],
+    }));
+    const deeperEvents = [
+      ...compactEvents,
+      {
+        source_kind: "conversation_turn",
+        source_id: "compact-deeper-proof",
+        created_at: "2026-05-10T04:30:00.000Z",
+        kind: "context",
+        role: "assistant",
+        summary: "Deeper history arrived from the next source window.",
+        tags: ["conversation"],
+      },
+    ];
+    const fetchMock = vi.fn(async (url: RequestInfo | URL) => {
+      const textUrl = String(url);
+      if (textUrl.includes("orchestrator_context_read") && textUrl.includes("limit=480")) {
+        return jsonResponse(contextWithEvents(deeperEvents, { continuity_events_truncated: false }));
+      }
+      if (textUrl.includes("orchestrator_context_read")) {
+        return jsonResponse(contextWithEvents(compactEvents, { continuity_events_truncated: true }));
+      }
+      if (textUrl.includes("tenant_settings")) {
+        return jsonResponse({
+          env_enabled: true,
+          settings: {
+            ai_chat_enabled: true,
+            ai_chat_provider: "google",
+            ai_chat_model: "gemini-2.5-flash-lite",
+            ai_chat_system_prompt: null,
+            ai_chat_max_turns: 20,
+            has_api_key: true,
+          },
+        });
+      }
+      if (textUrl.includes("admin_channel_status")) {
+        return jsonResponse({ channel_active: false, last_seen: null, client_info: null });
+      }
+      return jsonResponse({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderOrchestrator("/admin/orchestrator/timeline");
+
+    expect(await screen.findByText("Load deeper history")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Load deeper history"));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining("orchestrator_context_read&limit=480"),
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: "Bearer session-token" }),
+        }),
+      ),
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("max_summaries=480"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer session-token" }),
+      }),
+    );
+    expect((await screen.findAllByText(/Deeper history arrived/i)).length).toBeGreaterThan(0);
   });
 
   it("asks the server for deeper Orchestrator keyword matches", async () => {
