@@ -39,59 +39,6 @@ export const DEFAULT_TYPED_LINK_REPLAY_FIXTURES = [
   },
 ];
 
-export const DEFAULT_TYPED_LINK_REPLAY_RESULTS = new Map([
-  [
-    "Which pull request shipped typed-link extraction?",
-    {
-      latency_ms: 8,
-      results: [
-        { ref: "pr:888", relation: "ships", score: 0.99 },
-        { ref: "pr:889", relation: "extends", score: 0.82 },
-      ],
-    },
-  ],
-  [
-    "Find the gbrain parent todo for typed-link graph work.",
-    {
-      latency_ms: 9,
-      results: [
-        { ref: "todo:6e125b76-3238-4425-940f-28a287d85f51", relation: "parent", score: 0.98 },
-        { ref: "todo:b7023911-cc1d-4535-bcdc-b258cc432b7b", relation: "child", score: 0.7 },
-      ],
-    },
-  ],
-  [
-    "Find proof for Memory typed-link direct tool.",
-    {
-      latency_ms: 7,
-      results: [
-        { ref: "receipt:pr-891", relation: "proof", score: 0.97 },
-        { ref: "pr:891", relation: "ships", score: 0.93 },
-      ],
-    },
-  ],
-  [
-    "Which Memory tool searches typed links?",
-    {
-      latency_ms: 6,
-      results: [
-        { ref: "tool:search_typed_links", relation: "exposes", score: 0.99 },
-        { ref: "file:packages/mcp-server/src/server.ts", relation: "registers", score: 0.78 },
-      ],
-    },
-  ],
-  [
-    "Where is typed-link extraction implemented?",
-    {
-      latency_ms: 10,
-      results: [
-        { ref: "file:packages/mcp-server/src/memory/typed-links.ts", relation: "implements", score: 0.99 },
-        { ref: "file:packages/mcp-server/src/memory/handlers.ts", relation: "uses", score: 0.77 },
-      ],
-    },
-  ],
-]);
-
 function normalizeRef(value) {
   return String(value ?? "")
     .trim()
@@ -192,15 +139,14 @@ export function scoreRetrievalFixture({ fixture, results, k = DEFAULT_TOP_K, lat
 
 export async function runMemoryRetrievalEval({
   fixtures = DEFAULT_TYPED_LINK_REPLAY_FIXTURES,
-  resultSets = DEFAULT_TYPED_LINK_REPLAY_RESULTS,
+  resultSets,
   runner,
   k = DEFAULT_TOP_K,
-  allowSeededResults = false,
   clock = () => performance.now(),
 } = {}) {
-  if (!runner && resultSets === DEFAULT_TYPED_LINK_REPLAY_RESULTS && !allowSeededResults) {
+  if (!runner && !resultSets) {
     throw new Error(
-      "seeded_replay_results_not_live_proof: pass a runner or --results from a real retrieval run",
+      "live_retrieval_results_required: pass a runner or --results from a real retrieval run",
     );
   }
 
@@ -251,7 +197,6 @@ function parseArgs(argv) {
     if (arg === "--fixtures") args.fixturesPath = argv[++index];
     else if (arg === "--results") args.resultsPath = argv[++index];
     else if (arg === "--k") args.k = Number.parseInt(argv[++index], 10);
-    else if (arg === "--allow-seeded-results") args.allowSeededResults = true;
     else if (arg === "--help") args.help = true;
     else throw new Error(`unknown_arg:${arg}`);
   }
@@ -261,17 +206,16 @@ function parseArgs(argv) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
-    console.log("Usage: node scripts/memory-retrieval-eval.mjs [--fixtures path.jsonl] [--results path.json] [--k 5] [--allow-seeded-results]");
+    console.log("Usage: node scripts/memory-retrieval-eval.mjs [--fixtures path.jsonl] --results path.json [--k 5]");
     return;
   }
 
   const fixtures = args.fixturesPath ? await loadJsonlFile(args.fixturesPath) : DEFAULT_TYPED_LINK_REPLAY_FIXTURES;
-  const resultSets = args.resultsPath ? await loadResultsFile(args.resultsPath) : DEFAULT_TYPED_LINK_REPLAY_RESULTS;
+  const resultSets = args.resultsPath ? await loadResultsFile(args.resultsPath) : undefined;
   const report = await runMemoryRetrievalEval({
     fixtures,
     resultSets,
     k: args.k,
-    allowSeededResults: args.allowSeededResults,
   });
   console.log(JSON.stringify(report, null, 2));
   if (!report.aggregate.passed) process.exitCode = 1;

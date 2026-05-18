@@ -62,15 +62,30 @@ describe("memory retrieval eval", () => {
     assert.equal(report.ok, false);
   });
 
-  test("rejects seeded replay results as live proof by default", async () => {
+  test("requires a live runner or supplied retrieval results", async () => {
     await assert.rejects(
       () => runMemoryRetrievalEval(),
-      /seeded_replay_results_not_live_proof/,
+      /live_retrieval_results_required/,
     );
   });
 
-  test("can run seeded typed-link replay fixtures when explicitly allowed", async () => {
-    const report = await runMemoryRetrievalEval({ allowSeededResults: true });
+  test("can run supplied typed-link replay result sets", async () => {
+    const resultSets = new Map(
+      DEFAULT_TYPED_LINK_REPLAY_FIXTURES.map((fixture) => [
+        fixture.query,
+        {
+          latency_ms: 5,
+          results: [
+            {
+              ref: fixture.expected_refs[0],
+              relation: fixture.expected_relation,
+              score: 1,
+            },
+          ],
+        },
+      ]),
+    );
+    const report = await runMemoryRetrievalEval({ resultSets });
 
     assert.equal(report.aggregate.passed, true);
     assert.equal(report.aggregate.query_count, 5);
