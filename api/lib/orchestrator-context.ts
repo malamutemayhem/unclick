@@ -292,9 +292,10 @@ export interface OrchestratorContext {
     // rule themselves. Verdict-only - this field does not gate any
     // downstream behavior in the builder; consumers act on it.
     health_verdict: CommonSensePassResult;
+    stale_in_progress_count: number;
     harness_card: {
       source_of_truth: "Boardroom Jobs";
-      queue_state: "active_work" | "needs_claim" | "quiet";
+      queue_state: "active_work" | "needs_claim" | "owner_check" | "quiet";
       queue_truth: string;
       allowed_actions: string[];
       required_proof: string[];
@@ -418,6 +419,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   // input. Computed over the full input.todos array, NOT the sliced
   // activeTodos, so the count is deterministic regardless of UI cap.
   const activeJobsCount = computeActiveJobsCount(input.todos, input.profiles, nowMs);
+  const staleInProgressCount = Math.max(0, inProgressTodoCount - activeJobsCount);
 
   // CommonSensePass R1 verdict (added by PR #746). The orchestrator
   // context publishes an implicit "healthy" / "quiet" claim whenever
@@ -530,6 +532,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
       queued_todo_count: queuedTodoCount,
       in_progress_todo_count: inProgressTodoCount,
       active_jobs: activeJobsCount,
+      stale_in_progress_count: staleInProgressCount,
       blocker_count: blockers.length,
       active_seat_count: activeSeatCount,
       live_sources: {
@@ -550,6 +553,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
       harness_card: buildHarnessCard({
         activeJobsCount,
         queuedTodoCount,
+        staleInProgressCount,
         healthVerdict,
       }),
     },
@@ -579,35 +583,47 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
 function buildHarnessCard({
   activeJobsCount,
   queuedTodoCount,
+  staleInProgressCount,
   healthVerdict,
 }: {
   activeJobsCount: number;
   queuedTodoCount: number;
+  staleInProgressCount: number;
   healthVerdict: CommonSensePassResult;
 }): OrchestratorContext["current_state_card"]["harness_card"] {
   const queueState =
-    activeJobsCount > 0 ? "active_work" : queuedTodoCount > 0 ? "needs_claim" : "quiet";
+    activeJobsCount > 0
+      ? "active_work"
+      : queuedTodoCount > 0
+        ? "needs_claim"
+        : staleInProgressCount > 0
+          ? "owner_check"
+          : "quiet";
 
   return {
     source_of_truth: "Boardroom Jobs",
     queue_state: queueState,
     queue_truth:
-      "active_jobs counts in_progress work with a fresh owner; queued_todo_count is open backlog. Open backlog with active_jobs=0 needs claim/proof work and must not be treated as healthy.",
+      "active_jobs counts in_progress work with a fresh owner; queued_todo_count is open backlog. Open backlog with active_jobs=0 needs claim/proof work, and stale in-progress work needs owner ACK or reclaim proof before the queue is quiet.",
     allowed_actions: [
       "claim one unowned scoped job",
       "verify proof on a completed-looking job",
       "patch a narrow owned file slice",
+      "check stale in-progress owner ACK before reclaiming work",
       "post BLOCKER with exact missing proof",
     ],
     required_proof: [
       "coding jobs need PR, commit, deploy, or explicit NO_CODE_NEEDED proof",
       "tests or CI must be named when code changed",
       "UI/UX jobs need screenshot proof",
+      ...(staleInProgressCount > 0
+        ? ["stale in-progress work needs owner ACK, reclaim proof, or blocker"]
+        : []),
       `health verdict is ${healthVerdict.verdict}`,
     ],
     cleanup_rule: "Do not mark DONE from green chips or stale receipts; close only after required proof is observable.",
     recovery_path:
-      "If the queue is blocked or scope is unclear, add a narrow ScopePack or proof comment instead of posting a status-only wake.",
+      "If the queue is blocked, stale-owned, or scope is unclear, add a narrow ScopePack, ACK/reclaim proof, or proof comment instead of posting a status-only wake.",
   };
 }
 

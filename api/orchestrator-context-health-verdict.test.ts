@@ -22,6 +22,7 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
     });
     expect(context.current_state_card.health_verdict.verdict).toBe("PASS");
     expect(context.current_state_card.health_verdict.rule_id).toBe("R1");
+    expect(context.current_state_card.stale_in_progress_count).toBe(0);
     expect(context.current_state_card.harness_card).toMatchObject({
       source_of_truth: "Boardroom Jobs",
       queue_state: "quiet",
@@ -70,6 +71,7 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
     // active_jobs should also be 0 (no in_progress todos), so the BLOCKER is
     // entirely driven by the actionable queue depth.
     expect(context.current_state_card.active_jobs).toBe(0);
+    expect(context.current_state_card.stale_in_progress_count).toBe(0);
   });
 
   it("keeps live queue rows in the health verdict when the visible context is search-filtered", () => {
@@ -179,8 +181,8 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
   it("verdict and active_jobs are computed from the same source so they cannot disagree", () => {
     // A dormant-owner in_progress todo: active_jobs sees it as 0 (owner stale),
     // and R1 sees no actionable queue AND no fresh-owner in_progress. The
-    // verdict must therefore be PASS, never BLOCKER. This is the contract
-    // pinned by PR #735: state_card and the gate read the same input.
+    // verdict remains PASS for the pinned active_jobs formula, but the
+    // Harness card must not call the queue quiet. It needs an owner check.
     const context = buildOrchestratorContext({
       generatedAt: NOW,
       profiles: [
@@ -210,6 +212,12 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
       conversationTurns: [],
     });
     expect(context.current_state_card.active_jobs).toBe(0);
+    expect(context.current_state_card.in_progress_todo_count).toBe(1);
+    expect(context.current_state_card.stale_in_progress_count).toBe(1);
     expect(context.current_state_card.health_verdict.verdict).toBe("PASS");
+    expect(context.current_state_card.harness_card.queue_state).toBe("owner_check");
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "stale in-progress work needs owner ACK, reclaim proof, or blocker",
+    );
   });
 });
