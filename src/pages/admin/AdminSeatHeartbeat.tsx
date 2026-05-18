@@ -4,8 +4,9 @@ import { Check, Copy, HeartPulse } from "lucide-react";
 export const HEARTBEAT_CADENCE_OPTIONS = [
   { value: "1", label: "1 min", note: "High signal" },
   { value: "5", label: "5 min", note: "Fast loop" },
+  { value: "7", label: "7 min", note: "Current" },
   { value: "10", label: "10 min", note: "Tight loop" },
-  { value: "15", label: "15 min", note: "Recommended" },
+  { value: "15", label: "15 min", note: "Balanced" },
   { value: "30", label: "30 min", note: "Balanced" },
   { value: "60", label: "1 hour", note: "Light" },
   { value: "120", label: "2 hours", note: "Quiet" },
@@ -18,38 +19,32 @@ export const HEARTBEAT_CADENCE_OPTIONS = [
 
 export type HeartbeatCadenceValue = (typeof HEARTBEAT_CADENCE_OPTIONS)[number]["value"];
 
-export const DEFAULT_HEARTBEAT_CADENCE: HeartbeatCadenceValue = "15";
-
-export const HEARTBEAT_MASTER_PROMPT = `You are an UnClick AI Seat running Heartbeat.
-
-This /admin/agents/heartbeat copy area is the master heartbeat policy. When UnClick docs, jobs, or seats refer to "master heartbeat", they mean this public policy text.
-
-This public policy must stay self-contained when copied into scheduled tasks. Keep every step token-light, source-backed, and safe to show in an admin UI.
-
-Use UnClick as the source of truth first. Load memory, check_signals, read Orchestrator context, and hunt for jobs when those tools are available. Always check list_actionable_todos, open/in_progress todos, recent dispatches, and recent Boardroom messages before declaring the system healthy.
-
-"0 active jobs" is not healthy by itself. It is PASS only when the job hunt also finds no actionable todos, no open/in_progress todos, and no unhandled dispatch or Boardroom work. If any backlog exists while active jobs are 0, treat it as BLOCKER: queue hydration failure. Include the safe counts checked and the next fix.
-
-Use PinballWake JobHunt Mirror as the fallback path for that failure. Mirror compact backlog counts and source pointers into NudgeOnly first. Call IgniteOnly only after verifier-backed receipt_bridge output requests a worker wake. Call PushOnly only after IgniteOnly emits a verified public wake packet. Target the existing Job Worker as executor when it is registered; free API classifiers may only classify or nudge. The mirror may request a wake and PushOnly may emit a worker push envelope, but both must not create duplicate jobs, assign ownership, mark done, merge, close, or edit source state.
-
-This heartbeat is explicitly authorized to write one Orchestrator continuity receipt on every run. Use stable session_id="unclick-heartbeat-seat" across scheduler sessions. After check_signals, call save_conversation_turn with role="assistant" and content containing safe alert lines, progress, and proof id if available. If that is unavailable, use channel unclick_save_conversation_turn. If no connector exists but an UnClick API key is already available, POST to https://unclick.world/api/memory-admin?action=admin_conversation_turn_ingest with Authorization: Bearer <redacted>. Never print keys. Do not POST to /admin/orchestrator; it is the read UI.
-
-When UnClick shows action_needed, blocker, stale ACK, missing proof, duplicate wake, unclear owner, or queue hydration failure, call nudgeonly_receipt_bridge if available. Pass compact public fields only: source_id, source_url, target, owner, painpoint_type, status, created_at, ttl_minutes. Prefer deterministic UnClick labels. Call nudgeonly_api only if no bucket exists, and only with the smallest non-secret source text needed.
-
-If the bridge returns receipt_request or escalation_request, save bridge_id and receipt_line in the receipt and alert. If IgniteOnly returns wake_request or escalation_wake_request, call pushonly_wake_pusher with the public wake_packet when available and save push_id plus the push_packet receipt line. If it returns quiet or advisory_only, do not notify. NudgeOnly never assigns ownership, marks done, merges, closes, or mutates source-of-truth state. IgniteOnly only wakes. PushOnly only emits worker push envelopes.
-
-Pick one clear, safe, useful live task. Do the smallest meaningful step. Use production state only when the task requires it. Never print secrets. Clean up temporary rows, leases, proof agents, and one-time schedules.
-
-Output one short line only. Do not repeat this prompt. Do not reply with only "tick", "PASS", or "BLOCKER"; include a brief progress summary.
-PASS: <changed>; proof: <link/id>; cleanup: done.
-BLOCKER: <safe reason>; progress: <what was checked>; next: <fix>.
-If no safe task is available: BLOCKER: no clear safe task available; progress: checked live queue; next: add a scoped job.`;
+export const DEFAULT_HEARTBEAT_CADENCE: HeartbeatCadenceValue = "7";
 
 export const HEARTBEAT_CONNECTION_PROMPT =
-  "Run UnClick Heartbeat. Call heartbeat_protocol first, then commonsensepass_protocol before any healthy, no_work, done, merge_ready, or PASS claim. Follow both returned playbooks. Check live jobs, dispatches, Boardroom, and Orchestrator before saying healthy. Save one receipt to session_id='unclick-heartbeat-seat'. Never print secrets. Reply PASS/BLOCKER with brief progress.";
+  "Run UnClick Heartbeat as the scheduled heartbeat seat. Call heartbeat_protocol first. If commonsensepass_protocol is available, call it before any healthy, no_work, done, merge_ready, or PASS claim. Use session_id='unclick-heartbeat-seat'. Read Orchestrator, Boardroom, Jobs, dispatches, and signals before deciding. Do one safe useful heartbeat step only. Do not build, merge, edit code, assign ownership, or mark done outside the heartbeat policy. Use simple control-tower language. Reply only with PASS/BLOCKER when Chris needs to know; stay quiet for routine healthy checks.";
+
+export const HEARTBEAT_SOURCE_OF_TRUTH = [
+  {
+    title: "1. Scheduler copy",
+    body: "Copy the schedule text above into Codex or another AI platform. The cadence belongs in the scheduler.",
+  },
+  {
+    title: "2. Live policy",
+    body: "The full heartbeat playbook lives inside UnClick. The seat must fetch heartbeat_protocol every run.",
+  },
+  {
+    title: "3. Green-claim guard",
+    body: "CommonSensePass is the check before any healthy, no_work, done, merge_ready, quiet, or PASS claim.",
+  },
+  {
+    title: "Keep only one local schedule",
+    body: "Use the current 7 minute UnClick Heartbeat schedule. Old computer prompts should be replaced with the scheduler copy above.",
+  },
+] as const;
 
 export function getHeartbeatCadenceLabel(value: HeartbeatCadenceValue): string {
-  return HEARTBEAT_CADENCE_OPTIONS.find((option) => option.value === value)?.label ?? "15 min";
+  return HEARTBEAT_CADENCE_OPTIONS.find((option) => option.value === value)?.label ?? "7 min";
 }
 
 export function buildHeartbeatSchedulePrompt(cadence: HeartbeatCadenceValue): string {
@@ -80,7 +75,7 @@ export default function AdminSeatHeartbeatPage() {
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-heading">Heartbeat Master</h1>
           <p className="mt-1 max-w-2xl text-sm text-body">
-            The public copy source for scheduled AI Seat check-ins.
+            The clean copy source for the one scheduled UnClick Heartbeat.
           </p>
         </div>
       </header>
@@ -94,7 +89,7 @@ export default function AdminSeatHeartbeatPage() {
             </div>
             <h2 className="mt-3 text-lg font-semibold text-heading">Schedule copy</h2>
             <p className="mt-1 max-w-2xl text-sm text-body">
-              Paste this into the AI platform scheduler for the selected cadence.
+              Paste this into the scheduler. It is only a launcher; UnClick provides the full policy at runtime.
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-[minmax(160px,220px)_auto] sm:items-end">
@@ -153,37 +148,23 @@ export default function AdminSeatHeartbeatPage() {
         </div>
       </section>
 
-      <section className="space-y-3 rounded-xl border border-border/40 bg-card/20 p-4">
-        <label htmlFor="heartbeat-master-prompt" className="block text-sm font-semibold text-heading">
-          Public default heartbeat policy
-          <span className="ml-2 text-xs font-normal text-muted-foreground">
-            Master source for copy/paste
-          </span>
-        </label>
-        <textarea
-          id="heartbeat-master-prompt"
-          aria-label="Public default heartbeat policy"
-          readOnly
-          value={HEARTBEAT_MASTER_PROMPT}
-          rows={13}
-          className="min-h-[320px] w-full resize-y rounded-md border border-border/40 bg-black/20 px-3 py-3 font-mono text-xs leading-5 text-body outline-none focus:border-primary/40"
-        />
-      </section>
-
-      <section className="space-y-3 rounded-xl border border-border/40 bg-card/20 p-4">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <label htmlFor="heartbeat-connection-prompt" className="text-sm font-semibold text-heading">
-            Base schedule message
-          </label>
+      <section className="space-y-3 rounded-md border border-border/30 bg-card/10 p-3">
+        <div>
+          <h2 className="text-sm font-semibold text-heading">Policy transparency</h2>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
+            This is not copy-paste text. It explains why the small scheduler copy above is enough.
+          </p>
         </div>
-        <textarea
-          id="heartbeat-connection-prompt"
-          aria-label="Base schedule message"
-          readOnly
-          value={HEARTBEAT_CONNECTION_PROMPT}
-          rows={3}
-          className="w-full resize-none rounded-md border border-border/40 bg-black/20 px-3 py-2 font-mono text-xs leading-5 text-body outline-none focus:border-primary/40"
-        />
+        <div className="grid gap-3 md:grid-cols-2">
+          {HEARTBEAT_SOURCE_OF_TRUTH.map((item) => (
+            <div key={item.title} className="rounded-md border border-border/30 bg-background/30 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {item.title}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-body">{item.body}</p>
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   );

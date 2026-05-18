@@ -4,39 +4,30 @@ import { describe, expect, it } from "vitest";
 import AdminSeatHeartbeatPage, {
   buildHeartbeatSchedulePrompt,
   HEARTBEAT_CONNECTION_PROMPT,
-  HEARTBEAT_MASTER_PROMPT,
+  HEARTBEAT_SOURCE_OF_TRUTH,
 } from "./AdminSeatHeartbeat";
 
 describe("AdminSeatHeartbeatPage", () => {
-  it("shows the canonical policy and short schedule message", () => {
+  it("shows one scheduler copy area and a discreet policy transparency area", () => {
     render(React.createElement(AdminSeatHeartbeatPage));
 
     expect(screen.getByRole("heading", { name: "Heartbeat Master" })).toBeInTheDocument();
     expect(screen.getByText("❤️ UnClick Heartbeat")).toBeInTheDocument();
-    expect(screen.getByLabelText("Public default heartbeat policy")).toHaveValue(HEARTBEAT_MASTER_PROMPT);
-    expect(screen.getByLabelText("Base schedule message")).toHaveValue(HEARTBEAT_CONNECTION_PROMPT);
-    expect(screen.getByLabelText("Heartbeat cadence")).toHaveValue("15");
+    expect(screen.getByText("Policy transparency")).toBeInTheDocument();
+    expect(screen.getByText("This is not copy-paste text. It explains why the small scheduler copy above is enough.")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Public default heartbeat policy")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Base schedule message")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Heartbeat cadence")).toHaveValue("7");
     expect(screen.getByLabelText("Heartbeat schedule message preview")).toHaveValue(
-      buildHeartbeatSchedulePrompt("15"),
+      buildHeartbeatSchedulePrompt("7"),
     );
-    expect(HEARTBEAT_CONNECTION_PROMPT).toContain("Run UnClick Heartbeat");
+    expect(HEARTBEAT_SOURCE_OF_TRUTH).toHaveLength(4);
+    expect(HEARTBEAT_CONNECTION_PROMPT).toContain("scheduled heartbeat seat");
     expect(HEARTBEAT_CONNECTION_PROMPT).toContain("heartbeat_protocol first");
     expect(HEARTBEAT_CONNECTION_PROMPT).toContain("commonsensepass_protocol");
-    expect(HEARTBEAT_CONNECTION_PROMPT).toContain("Follow both returned playbooks");
     expect(HEARTBEAT_CONNECTION_PROMPT).toContain("unclick-heartbeat-seat");
-    expect(HEARTBEAT_CONNECTION_PROMPT).toContain("Check live jobs");
-    expect(HEARTBEAT_MASTER_PROMPT).toContain("public policy must stay self-contained");
-    expect(HEARTBEAT_MASTER_PROMPT).toContain("master heartbeat");
-    expect(HEARTBEAT_MASTER_PROMPT).toContain("token-light");
-    expect(HEARTBEAT_MASTER_PROMPT).toContain("queue hydration failure");
-    expect(HEARTBEAT_MASTER_PROMPT).toContain("PinballWake JobHunt Mirror");
-    expect(HEARTBEAT_MASTER_PROMPT).toContain("Target the existing Job Worker");
-    expect(HEARTBEAT_MASTER_PROMPT).toContain("nudgeonly_receipt_bridge");
-    expect(HEARTBEAT_MASTER_PROMPT).toContain("pushonly_wake_pusher");
-    expect(HEARTBEAT_MASTER_PROMPT).toContain("bridge_id and receipt_line");
-    expect(HEARTBEAT_MASTER_PROMPT).toContain("Do not POST to /admin/orchestrator");
-    expect(HEARTBEAT_CONNECTION_PROMPT.length).toBeLessThan(HEARTBEAT_MASTER_PROMPT.length / 2);
-    expect(HEARTBEAT_CONNECTION_PROMPT.length).toBeLessThan(400);
+    expect(HEARTBEAT_CONNECTION_PROMPT).toContain("stay quiet for routine healthy checks");
+    expect(HEARTBEAT_CONNECTION_PROMPT.length).toBeLessThan(700);
   });
 
   it("updates the schedule message when cadence changes", () => {
@@ -52,9 +43,9 @@ describe("AdminSeatHeartbeatPage", () => {
   });
 
   it("keeps copied schedule text free of secret-shaped values and role override phrasing", () => {
-    const prompt = buildHeartbeatSchedulePrompt("15");
+    const prompt = buildHeartbeatSchedulePrompt("7");
 
-    expect(prompt).toContain("Schedule ❤️ UnClick Heartbeat every 15 min");
+    expect(prompt).toContain("Schedule ❤️ UnClick Heartbeat every 7 min");
     expect(prompt).not.toMatch(/Bearer\s+[A-Za-z0-9._-]+/i);
     expect(prompt).not.toMatch(/sk-[A-Za-z0-9]{20,}/i);
     expect(prompt).not.toMatch(/[A-Za-z0-9+/]{32,}={0,2}/);
