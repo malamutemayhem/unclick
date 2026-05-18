@@ -43,8 +43,22 @@ import {
   type ApplicationStatus,
 } from "@jobsmith/lib/appLog";
 import { loadAppLog, saveAppLog } from "@/lib/jobsmith/appLogStore";
+import {
+  extractQuantifiedClaims,
+  scanAgeSignals,
+  scanTone,
+} from "@jobsmith/lib/riskAudit";
 
 const CV_FACTS_STORAGE_KEY = "jobsmith.cvFacts.v1";
+
+type ClaimVerdict = "unmarked" | "verified" | "needs-verification" | "invented";
+
+const CLAIM_VERDICT_OPTIONS: { value: ClaimVerdict; label: string }[] = [
+  { value: "unmarked", label: "Not reviewed" },
+  { value: "verified", label: "Verified" },
+  { value: "needs-verification", label: "Needs verification" },
+  { value: "invented", label: "Invented - remove" },
+];
 
 function safeFilePart(value: string | null | undefined, fallback: string): string {
   const cleaned = (value ?? "").replace(/[^\w\s-]/g, "").replace(/\s+/g, " ").trim();
@@ -119,17 +133,25 @@ function longestParagraphWords(value: string): number {
 function buildReadinessChecks(
   draft: DraftResult | null,
   letterText: string,
+  cvText: string,
   profile: VoiceProfile | null,
   jobText: string,
 ): ReadinessCheck[] {
   if (!draft) {
+    const pending = "Generate a draft to run readiness checks";
     return [
-      { label: "Role basics", level: "blocked", reason: "Generate a draft to run readiness checks" },
-      { label: "Source-backed claim", level: "blocked", reason: "Generate a draft to run readiness checks" },
-      { label: "Portal paste length", level: "blocked", reason: "Generate a draft to run readiness checks" },
-      { label: "Format risk", level: "blocked", reason: "Generate a draft to run readiness checks" },
+      { label: "Role basics", level: "blocked", reason: pending },
+      { label: "Source-backed claim", level: "blocked", reason: pending },
+      { label: "Portal paste length", level: "blocked", reason: pending },
+      { label: "Format risk", level: "blocked", reason: pending },
+      { label: "Tone", level: "blocked", reason: pending },
+      { label: "Age signals", level: "blocked", reason: pending },
     ];
   }
+
+  const combined = `${letterText}\n${cvText}`;
+  const toneFindings = scanTone(combined);
+  const ageFindings = scanAgeSignals(combined);
 
   const roleBasics: ReadinessLevel =
     draft.detectedRole && draft.detectedCompany
@@ -182,6 +204,22 @@ function buildReadinessChecks(
         ? "Review table, column, image, hidden text, or keyword-stuffing wording"
         : "No brittle ATS formatting language detected",
     },
+    {
+      label: "Tone",
+      level: toneFindings.length > 0 ? "review" : "ready",
+      reason:
+        toneFindings.length > 0
+          ? toneFindings.map((f) => f.label).join("; ")
+          : "No em-dashes, curly quotes, or AI-era tell words detected",
+    },
+    {
+      label: "Age signals",
+      level: ageFindings.length > 0 ? "review" : "ready",
+      reason:
+        ageFindings.length > 0
+          ? ageFindings.map((f) => f.label).join("; ")
+          : "No visible years or long experience spans detected",
+    },
   ];
 }
 
@@ -219,6 +257,9 @@ export default function JobsmithPage() {
       : (window.localStorage.getItem(CV_FACTS_STORAGE_KEY) ?? ""),
   );
   const [appLog, setAppLog] = useState<ApplicationRecord[]>(() => loadAppLog());
+  const [claimVerdicts, setClaimVerdicts] = useState<
+    Record<string, ClaimVerdict>
+  >({});
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -252,10 +293,15 @@ export default function JobsmithPage() {
   });
 
   const checks = useMemo(
-    () => buildReadinessChecks(letterDraft, letterText, profile, jobText),
-    [letterDraft, letterText, profile, jobText],
+    () =>
+      buildReadinessChecks(letterDraft, letterText, cvText, profile, jobText),
+    [letterDraft, letterText, cvText, profile, jobText],
   );
   const level = useMemo(() => overallLevel(checks), [checks]);
+  const quantifiedClaims = useMemo(
+    () => (letterText ? extractQuantifiedClaims(letterText) : []),
+    [letterText],
+  );
 
   async function handleCorpusFiles(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) return;
@@ -290,6 +336,7 @@ export default function JobsmithPage() {
       setCvDraft(cv);
       setCvText(cv.draft);
     }
+    setClaimVerdicts({});
     setCopied(null);
   }
 
@@ -630,6 +677,74 @@ export default function JobsmithPage() {
                     {cvDraft.omittedBullets.length} left out for not matching the
                     job. Nothing here is invented.
                   </p>
+                </section>
+              )}
+
+              {letterDraft && (
+                <section
+                  aria-label="Truthfulness audit"
+                  className="rounded-lg border border-white/[0.06] bg-[#111] p-5"
+                >
+                  <div className="mb-4 flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-emerald-300" />
+                    <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
+                      Truthfulness audit
+                    </h2>
+                  </div>
+                  {quantifiedClaims.length === 0 ? (
+                    <p className="text-xs leading-5 text-white/45">
+                      No quantified claims detected in the cover letter draft.
+                      Numbers are the easiest thing to overstate, so this list
+                      stays empty until a draft contains one.
+                    </p>
+                  ) : (
+                    <>
+                      <p className="mb-3 text-xs leading-5 text-white/50">
+                        Mark every quantified claim. Anything you cannot trace
+                        to a real source fact should be removed before sending.
+                      </p>
+                      <ul className="space-y-2">
+                        {quantifiedClaims.map((claim, index) => {
+                          const verdict = claimVerdicts[claim] ?? "unmarked";
+                          return (
+                            <li
+                              key={index}
+                              className="rounded-lg border border-white/[0.06] bg-black/20 p-3"
+                            >
+                              <p className="text-xs leading-5 text-white/80">
+                                {claim}
+                              </p>
+                              <select
+                                aria-label={`Verdict for quantified claim ${index + 1}`}
+                                value={verdict}
+                                onChange={(e) =>
+                                  setClaimVerdicts((prev) => ({
+                                    ...prev,
+                                    [claim]: e.target.value as ClaimVerdict,
+                                  }))
+                                }
+                                className={`mt-2 rounded-md border px-2 py-1 text-xs outline-none ${
+                                  verdict === "invented"
+                                    ? "border-rose-300/40 bg-rose-300/10 text-rose-100"
+                                    : verdict === "verified"
+                                      ? "border-emerald-300/40 bg-emerald-300/10 text-emerald-100"
+                                      : verdict === "needs-verification"
+                                        ? "border-[#E2B93B]/40 bg-[#E2B93B]/10 text-[#F4D36B]"
+                                        : "border-white/[0.12] bg-black/40 text-white/70"
+                                }`}
+                              >
+                                {CLAIM_VERDICT_OPTIONS.map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
+                  )}
                 </section>
               )}
             </div>
