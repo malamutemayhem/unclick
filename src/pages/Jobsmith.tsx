@@ -4,6 +4,7 @@ import {
   BriefcaseBusiness,
   CheckCircle2,
   Clipboard,
+  Download,
   FileText,
   ScrollText,
   ShieldCheck,
@@ -33,8 +34,33 @@ import {
   parseMasterCvFacts,
   type MasterCvFacts,
 } from "@jobsmith/lib/cvFacts";
+import { toDocxBlob, type DocxKind } from "@jobsmith/lib/exportDocx";
 
 const CV_FACTS_STORAGE_KEY = "jobsmith.cvFacts.v1";
+
+function safeFilePart(value: string | null | undefined, fallback: string): string {
+  const cleaned = (value ?? "").replace(/[^\w\s-]/g, "").replace(/\s+/g, " ").trim();
+  return cleaned.length > 0 ? cleaned : fallback;
+}
+
+async function downloadDocx(
+  kind: DocxKind,
+  text: string,
+  company: string | null,
+  role: string | null,
+): Promise<void> {
+  const blob = await toDocxBlob(text, { kind });
+  const prefix = kind === "cv" ? "CV" : "Cover Letter";
+  const filename = `${prefix} - ${safeFilePart(company, "Company")} - ${safeFilePart(role, "Role")}.docx`;
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
 
 type ReadinessLevel = "blocked" | "review" | "ready";
 
@@ -433,18 +459,35 @@ export default function JobsmithPage() {
                         Cover letter draft
                       </h2>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => void copyText("letter", letterText)}
-                      className="flex items-center gap-1.5 rounded-lg border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-semibold text-fuchsia-100 transition-colors hover:bg-fuchsia-300/20"
-                    >
-                      {copied === "letter" ? (
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                      ) : (
-                        <Clipboard className="h-3.5 w-3.5" />
-                      )}
-                      {copied === "letter" ? "Copied" : "Copy letter"}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void copyText("letter", letterText)}
+                        className="flex items-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/80 transition-colors hover:bg-white/[0.08]"
+                      >
+                        {copied === "letter" ? (
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        ) : (
+                          <Clipboard className="h-3.5 w-3.5" />
+                        )}
+                        {copied === "letter" ? "Copied" : "Copy letter"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void downloadDocx(
+                            "letter",
+                            letterText,
+                            letterDraft.detectedCompany,
+                            letterDraft.detectedRole,
+                          )
+                        }
+                        className="flex items-center gap-1.5 rounded-lg border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-semibold text-fuchsia-100 transition-colors hover:bg-fuchsia-300/20"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Download .docx
+                      </button>
+                    </div>
                   </div>
 
                   {letterDraft.warnings.length > 0 && (
@@ -485,18 +528,35 @@ export default function JobsmithPage() {
                         Tailored CV draft
                       </h2>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => void copyText("cv", cvText)}
-                      className="flex items-center gap-1.5 rounded-lg border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-semibold text-fuchsia-100 transition-colors hover:bg-fuchsia-300/20"
-                    >
-                      {copied === "cv" ? (
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                      ) : (
-                        <Clipboard className="h-3.5 w-3.5" />
-                      )}
-                      {copied === "cv" ? "Copied" : "Copy CV"}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void copyText("cv", cvText)}
+                        className="flex items-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/80 transition-colors hover:bg-white/[0.08]"
+                      >
+                        {copied === "cv" ? (
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        ) : (
+                          <Clipboard className="h-3.5 w-3.5" />
+                        )}
+                        {copied === "cv" ? "Copied" : "Copy CV"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void downloadDocx(
+                            "cv",
+                            cvText,
+                            letterDraft?.detectedCompany ?? null,
+                            letterDraft?.detectedRole ?? null,
+                          )
+                        }
+                        className="flex items-center gap-1.5 rounded-lg border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-semibold text-fuchsia-100 transition-colors hover:bg-fuchsia-300/20"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Download .docx
+                      </button>
+                    </div>
                   </div>
 
                   {cvDraft.warnings.length > 0 && (
