@@ -17,6 +17,9 @@ export default defineConfig({
     ],
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@jobsmith": path.resolve(__dirname, "./apps/jobsmith/src"),
+    },
   },
 });
