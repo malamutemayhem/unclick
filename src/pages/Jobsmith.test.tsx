@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import JobsmithPage from "./Jobsmith";
 
 vi.mock("@/lib/auth", () => ({
@@ -52,7 +52,22 @@ async function loadCorpus() {
   await screen.findByText(/parsed into your voice profile/);
 }
 
+async function generateDraft() {
+  await loadCorpus();
+  fireEvent.change(screen.getByLabelText(/Paste the full job description/), {
+    target: { value: SAMPLE_JD },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: /Generate tailored draft/ }),
+  );
+  await screen.findByRole("region", { name: "Cover letter draft" });
+}
+
 describe("JobsmithPage", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   it("renders the Jobsmith draft builder without the dead ApplyPass name", () => {
     renderJobsmith();
     expect(
@@ -106,5 +121,27 @@ describe("JobsmithPage", () => {
     expect(readiness).toHaveTextContent(
       "No brittle ATS formatting language detected",
     );
+  });
+
+  it("logs an application and persists it across a remount", async () => {
+    const view = renderJobsmith();
+    await generateDraft();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Log this application/ }),
+    );
+
+    const log = screen.getByRole("region", { name: "Application log" });
+    expect(within(log).getByText("Ampersand International")).toBeInTheDocument();
+
+    // Remount from scratch: the log is restored from localStorage.
+    view.unmount();
+    renderJobsmith();
+    const reloadedLog = screen.getByRole("region", {
+      name: "Application log",
+    });
+    expect(
+      within(reloadedLog).getByText("Ampersand International"),
+    ).toBeInTheDocument();
   });
 });

@@ -35,6 +35,14 @@ import {
   type MasterCvFacts,
 } from "@jobsmith/lib/cvFacts";
 import { toDocxBlob, type DocxKind } from "@jobsmith/lib/exportDocx";
+import {
+  APPLICATION_STATUSES,
+  STATUS_LABELS,
+  createApplicationRecord,
+  type ApplicationRecord,
+  type ApplicationStatus,
+} from "@jobsmith/lib/appLog";
+import { loadAppLog, saveAppLog } from "@/lib/jobsmith/appLogStore";
 
 const CV_FACTS_STORAGE_KEY = "jobsmith.cvFacts.v1";
 
@@ -210,6 +218,7 @@ export default function JobsmithPage() {
       ? ""
       : (window.localStorage.getItem(CV_FACTS_STORAGE_KEY) ?? ""),
   );
+  const [appLog, setAppLog] = useState<ApplicationRecord[]>(() => loadAppLog());
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -290,7 +299,31 @@ export default function JobsmithPage() {
     setCopied(which);
   }
 
+  function logCurrentApplication() {
+    const record = createApplicationRecord({
+      company: letterDraft?.detectedCompany ?? "",
+      role: letterDraft?.detectedRole ?? "",
+      jobText,
+      cvText,
+      letterText,
+    });
+    setAppLog((prev) => {
+      const next = [record, ...prev];
+      saveAppLog(next);
+      return next;
+    });
+  }
+
+  function updateStatus(id: string, status: ApplicationStatus) {
+    setAppLog((prev) => {
+      const next = prev.map((r) => (r.id === id ? { ...r, status } : r));
+      saveAppLog(next);
+      return next;
+    });
+  }
+
   const canGenerate = profile !== null && jobText.trim().length > 0;
+  const hasDraft = letterDraft !== null || cvDraft !== null;
 
   return (
     <div className="min-h-screen bg-[#090909] text-white">
@@ -431,15 +464,27 @@ export default function JobsmithPage() {
                     className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
                   />
                 </label>
-                <button
-                  type="button"
-                  onClick={handleGenerate}
-                  disabled={!canGenerate}
-                  className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-4 py-2.5 text-sm font-semibold text-[#9EE4E6] transition-colors hover:bg-[#61C1C4]/20 disabled:cursor-not-allowed disabled:border-white/[0.08] disabled:bg-white/[0.04] disabled:text-white/30"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  Generate tailored draft
-                </button>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleGenerate}
+                    disabled={!canGenerate}
+                    className="flex items-center justify-center gap-2 rounded-lg border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-4 py-2.5 text-sm font-semibold text-[#9EE4E6] transition-colors hover:bg-[#61C1C4]/20 disabled:cursor-not-allowed disabled:border-white/[0.08] disabled:bg-white/[0.04] disabled:text-white/30"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Generate tailored draft
+                  </button>
+                  {hasDraft && (
+                    <button
+                      type="button"
+                      onClick={logCurrentApplication}
+                      className="flex items-center justify-center gap-2 rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-4 py-2.5 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-300/20"
+                    >
+                      <BriefcaseBusiness className="h-4 w-4" />
+                      Log this application
+                    </button>
+                  )}
+                </div>
                 {!profile && (
                   <p className="mt-2 text-xs text-white/40">
                     Load a cover letter corpus first to enable drafting.
@@ -628,6 +673,81 @@ export default function JobsmithPage() {
                 </div>
               </section>
             </aside>
+          </section>
+        </FadeIn>
+
+        <FadeIn delay={0.1}>
+          <section
+            aria-label="Application log"
+            className="mt-4 rounded-lg border border-white/[0.06] bg-[#111] p-5"
+          >
+            <div className="mb-4 flex items-center gap-2">
+              <BriefcaseBusiness className="h-4 w-4 text-[#61C1C4]" />
+              <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
+                Application log
+              </h2>
+            </div>
+            {appLog.length === 0 ? (
+              <p className="text-xs leading-5 text-white/45">
+                No applications logged yet. Generate a draft, then choose "Log
+                this application". The log is saved in this browser and survives
+                reloads.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="text-white/45">
+                    <tr>
+                      <th className="pb-2 pr-3 font-medium">Company</th>
+                      <th className="pb-2 pr-3 font-medium">Role</th>
+                      <th className="pb-2 pr-3 font-medium">Logged</th>
+                      <th className="pb-2 pr-3 font-medium">Versions</th>
+                      <th className="pb-2 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {appLog.map((record) => (
+                      <tr
+                        key={record.id}
+                        className="border-t border-white/[0.06]"
+                      >
+                        <td className="py-2 pr-3 text-white/80">
+                          {record.company}
+                        </td>
+                        <td className="py-2 pr-3 text-white/80">
+                          {record.role}
+                        </td>
+                        <td className="py-2 pr-3 text-white/55">
+                          {new Date(record.sentAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-2 pr-3 font-mono text-white/40">
+                          CV {record.cvVersionId} / CL {record.letterVersionId}
+                        </td>
+                        <td className="py-2">
+                          <select
+                            aria-label={`Status for ${record.company} ${record.role}`}
+                            value={record.status}
+                            onChange={(e) =>
+                              updateStatus(
+                                record.id,
+                                e.target.value as ApplicationStatus,
+                              )
+                            }
+                            className="rounded-md border border-white/[0.12] bg-black/40 px-2 py-1 text-xs text-white outline-none focus:border-[#61C1C4]/45"
+                          >
+                            {APPLICATION_STATUSES.map((s) => (
+                              <option key={s} value={s}>
+                                {STATUS_LABELS[s]}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
         </FadeIn>
       </main>
