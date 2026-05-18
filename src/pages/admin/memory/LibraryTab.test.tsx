@@ -77,4 +77,69 @@ describe("LibraryTab", () => {
     });
     expect(screen.getByText("Data memory snapshot")).toBeInTheDocument();
   });
+
+  it("previews a snapshot refresh as a dry-run, then commits writes only after explicit Apply", async () => {
+    const requests: Array<{ url: string; init?: RequestInit }> = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        requests.push({ url, init });
+        if (url.includes("method=list")) return jsonResponse({ data: docs });
+        if (url.includes("method=refresh")) {
+          const body = JSON.parse((init?.body as string) ?? "{}");
+          if (body.commit === true) {
+            return jsonResponse({
+              data: {
+                dry_run: false,
+                commit: true,
+                source_count: 4,
+                snapshot_count: 3,
+                written_count: 3,
+                fact_count: 3,
+                session_count: 1,
+              },
+            });
+          }
+          return jsonResponse({
+            data: {
+              dry_run: true,
+              commit: false,
+              source_count: 4,
+              snapshot_count: 3,
+              written_count: 0,
+              fact_count: 3,
+              session_count: 1,
+            },
+          });
+        }
+        return jsonResponse({});
+      }),
+    );
+
+    render(React.createElement(LibraryTab, { apiKey: "test-key" }));
+    await screen.findByText("07 Projects & Products");
+
+    fireEvent.click(screen.getByRole("button", { name: /Preview snapshot refresh/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Plan: 3 snapshots from 3 facts, 1 sessions \(dry run\)/i)
+      ).toBeInTheDocument();
+    });
+
+    const refreshCallsBeforeApply = requests.filter((r) => r.url.includes("method=refresh"));
+    expect(refreshCallsBeforeApply).toHaveLength(1);
+    const previewBody = JSON.parse((refreshCallsBeforeApply[0].init?.body as string) ?? "{}");
+    expect(previewBody.commit).toBe(false);
+
+    fireEvent.click(screen.getByRole("button", { name: /Apply refresh to Library/i }));
+
+    await waitFor(() => {
+      const commitCalls = requests.filter(
+        (r) => r.url.includes("method=refresh") && JSON.parse((r.init?.body as string) ?? "{}").commit === true,
+      );
+      expect(commitCalls).toHaveLength(1);
+    });
+  });
 });

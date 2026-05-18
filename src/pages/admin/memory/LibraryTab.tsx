@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { ChevronDown, ChevronRight, BookOpen, History } from "lucide-react";
+import { ChevronDown, ChevronRight, BookOpen, History, RefreshCw } from "lucide-react";
 import { groupMemoryTaxonomyShelves } from "@/lib/memoryTaxonomy";
 import EmptyState from "./EmptyState";
 
@@ -13,6 +13,16 @@ interface LibraryDoc {
   updated_at: string;
   decay_tier?: string;
   content?: string;
+}
+
+interface RefreshPlanSummary {
+  dry_run: boolean;
+  commit: boolean;
+  source_count: number;
+  snapshot_count: number;
+  written_count: number;
+  fact_count: number;
+  session_count: number;
 }
 
 interface HistoryEntry {
@@ -44,6 +54,9 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [collapsedShelfIds, setCollapsedShelfIds] = useState<Set<string>>(() => new Set());
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshPlan, setRefreshPlan] = useState<RefreshPlanSummary | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
   const shelves = useMemo(() => groupMemoryTaxonomyShelves(docs), [docs]);
 
   const load = useCallback(async () => {
@@ -61,6 +74,41 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
   }, [apiKey]);
 
   useEffect(() => { load(); }, [load]);
+
+  const runRefresh = useCallback(async (commit: boolean) => {
+    setRefreshing(true);
+    setRefreshError(null);
+    try {
+      const res = await fetch("/api/memory-admin?action=admin_library&method=refresh", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ commit }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setRefreshError(typeof body?.detail === "string" ? body.detail : "Refresh failed");
+        return;
+      }
+      const body = await res.json();
+      const plan = body?.data as RefreshPlanSummary | undefined;
+      if (plan) setRefreshPlan(plan);
+      if (commit) await load();
+    } catch (err) {
+      setRefreshError(err instanceof Error ? err.message : "Refresh failed");
+    } finally {
+      setRefreshing(false);
+    }
+  }, [apiKey, load]);
+
+  const planRefresh = useCallback(() => runRefresh(false), [runRefresh]);
+  const commitRefresh = useCallback(() => runRefresh(true), [runRefresh]);
+  const dismissRefreshPlan = useCallback(() => {
+    setRefreshPlan(null);
+    setRefreshError(null);
+  }, []);
 
   const viewDoc = async (doc: LibraryDoc) => {
     if (expandedId === doc.id) {
@@ -118,23 +166,71 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
     return <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 animate-pulse rounded-lg bg-white/[0.03] border border-white/[0.06]" />)}</div>;
   }
 
+  const refreshBar = (
+    <div className="space-y-3" data-testid="library-refresh-bar">
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={planRefresh}
+          disabled={refreshing}
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.06] px-3 py-1.5 text-xs text-white/60 hover:bg-white/[0.04] hover:text-white transition-colors disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3 w-3 ${refreshing ? "animate-spin" : ""}`} />
+          {refreshing ? "Refreshing..." : "Preview snapshot refresh"}
+        </button>
+        {refreshPlan && (
+          <span className="text-[11px] text-white/50">
+            Plan: {refreshPlan.snapshot_count} snapshots from {refreshPlan.fact_count} facts, {refreshPlan.session_count} sessions
+            {refreshPlan.commit ? ` (wrote ${refreshPlan.written_count})` : " (dry run)"}
+          </span>
+        )}
+      </div>
+      {refreshPlan && !refreshPlan.commit && refreshPlan.snapshot_count > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={commitRefresh}
+            disabled={refreshing}
+            className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/[0.08] px-3 py-1.5 text-xs text-emerald-200 hover:bg-emerald-500/[0.15] transition-colors disabled:opacity-50"
+          >
+            Apply refresh to Library
+          </button>
+          <button
+            type="button"
+            onClick={dismissRefreshPlan}
+            className="text-[11px] text-white/40 hover:text-white/70"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+      {refreshError && (
+        <p className="text-[11px] text-rose-300">Refresh error: {refreshError}</p>
+      )}
+    </div>
+  );
+
   if (docs.length === 0) {
     return (
-      <EmptyState
-        icon={BookOpen}
-        heading="No Library Snapshots yet"
-        description="Automatic taxonomy snapshots appear here once durable facts and sessions are compacted into source-linked memory shelves."
-        steps={[
-          "Save durable facts, decisions, and project state through Memory",
-          "Snapshots group related facts by taxonomy and keep source pointers",
-          "AI seats read compact shelves first, then open raw sources only when needed",
-        ]}
-      />
+      <div className="space-y-5">
+        {refreshBar}
+        <EmptyState
+          icon={BookOpen}
+          heading="No Library Snapshots yet"
+          description="Automatic taxonomy snapshots appear here once durable facts and sessions are compacted into source-linked memory shelves."
+          steps={[
+            "Save durable facts, decisions, and project state through Memory",
+            "Snapshots group related facts by taxonomy and keep source pointers",
+            "AI seats read compact shelves first, then open raw sources only when needed",
+          ]}
+        />
+      </div>
     );
   }
 
   return (
     <div className="space-y-5">
+      {refreshBar}
       {shelves.map((shelf) => {
         const isCollapsed = collapsedShelfIds.has(shelf.id);
         return (

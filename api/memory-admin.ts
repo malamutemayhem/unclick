@@ -170,6 +170,10 @@ import {
 } from "./lib/unclick-connect-worker-discovery.js";
 import { buildCard, type ConversationalCard } from "../packages/mcp-server/src/cards/card.js";
 import {
+  parseMemoryLibraryRefreshOptions,
+  runMemoryLibraryRefresh,
+} from "./lib/memory-library-refresh.js";
+import {
   createDispatchId,
   createHeartbeat,
   parseHeartbeatEtaMinutes,
@@ -3833,6 +3837,103 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .order("version", { ascending: false });
           if (error) throw error;
           return res.status(200).json({ data: data ?? [] });
+        }
+
+        if (method === "refresh") {
+          // Owner-auth taxonomy refresh. dry_run defaults to true unless
+          // commit=true is sent explicitly. Reuses the MCP-side snapshot
+          // planner/writer (buildMemoryTaxonomySnapshots) and writes via
+          // an idempotent slug-keyed upsert that mirrors the MCP backend.
+          const options = parseMemoryLibraryRefreshOptions(
+            (req.body ?? req.query) as Record<string, unknown>,
+          );
+          const [factsRes, sessionsRes] = await Promise.all([
+            supabase
+              .from("mc_extracted_facts")
+              .select("id, fact, category, confidence, created_at, updated_at, valid_from")
+              .eq("api_key_hash", apiKeyHash)
+              .eq("status", "active")
+              .is("invalidated_at", null)
+              .order("confidence", { ascending: false })
+              .order("updated_at", { ascending: false })
+              .limit(options.max_sources ?? 80),
+            supabase
+              .from("mc_session_summaries")
+              .select("id, summary, topics, created_at")
+              .eq("api_key_hash", apiKeyHash)
+              .order("created_at", { ascending: false })
+              .limit(Math.max(1, Math.floor((options.max_sources ?? 80) / 2))),
+          ]);
+          if (factsRes.error) {
+            return res.status(500).json({
+              error: "memory_library_refresh_sources_facts_failed",
+              detail: factsRes.error.message,
+            });
+          }
+          if (sessionsRes.error) {
+            return res.status(500).json({
+              error: "memory_library_refresh_sources_sessions_failed",
+              detail: sessionsRes.error.message,
+            });
+          }
+
+          try {
+            const result = await runMemoryLibraryRefresh({
+              facts: (factsRes.data ?? []) as Parameters<typeof runMemoryLibraryRefresh>[0]["facts"],
+              sessions: (sessionsRes.data ?? []) as Parameters<typeof runMemoryLibraryRefresh>[0]["sessions"],
+              options,
+              upsertLibraryDoc: async (doc) => {
+                // Idempotent slug-keyed upsert: update existing row in-place
+                // (the mc_knowledge_library history trigger archives the old
+                // content and bumps version), otherwise insert v1.
+                const { data: existing, error: lookupError } = await supabase
+                  .from("mc_knowledge_library")
+                  .select("id, version")
+                  .eq("api_key_hash", apiKeyHash)
+                  .eq("slug", doc.slug)
+                  .maybeSingle();
+                if (lookupError) throw lookupError;
+                const nowIso = new Date().toISOString();
+                if (existing) {
+                  const { error: updateError } = await supabase
+                    .from("mc_knowledge_library")
+                    .update({
+                      title: doc.title,
+                      category: doc.category,
+                      content: doc.content,
+                      tags: doc.tags,
+                      last_accessed: nowIso,
+                      decay_tier: "hot",
+                    })
+                    .eq("id", existing.id);
+                  if (updateError) throw updateError;
+                  return `Library doc updated: "${doc.title}" (v${(existing.version ?? 0) + 1})`;
+                }
+                const { error: insertError } = await supabase
+                  .from("mc_knowledge_library")
+                  .insert({
+                    api_key_hash: apiKeyHash,
+                    slug: doc.slug,
+                    title: doc.title,
+                    category: doc.category,
+                    content: doc.content,
+                    tags: doc.tags,
+                    version: 1,
+                    decay_tier: "hot",
+                    last_accessed: nowIso,
+                  });
+                if (insertError) throw insertError;
+                return `Library doc created: "${doc.title}" (v1)`;
+              },
+            });
+            return res.status(200).json({ data: result });
+          } catch (err) {
+            const detail = err instanceof Error ? err.message : String(err);
+            return res.status(500).json({
+              error: "memory_library_refresh_failed",
+              detail,
+            });
+          }
         }
 
         // list
