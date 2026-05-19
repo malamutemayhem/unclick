@@ -1,4 +1,4 @@
-import type { RulePackSummary } from "./checkEngine";
+import type { ReviewNeededRule, RuleFinding, RulePackSummary, RuleSeverity } from "./checkEngine";
 
 export type WelcomePacketStatus = "loading_inputs" | "needs_job_ad" | "ready_to_generate" | "draft_ready";
 
@@ -32,6 +32,29 @@ export interface WelcomePacket {
   safestNextMove: string;
   proofExpectations: string[];
   stopConditions: string[];
+}
+
+export type DecisionCardOwner = "human" | "jobsmith" | "reviewer";
+export type DecisionCardStatus = "needs_decision" | "blocked" | "ready_for_review";
+
+export interface DecisionCard {
+  id: string;
+  ruleId: string;
+  title: string;
+  category: string;
+  severity: RuleSeverity;
+  owner: DecisionCardOwner;
+  status: DecisionCardStatus;
+  reason: string;
+  proofNeeded: string;
+  suggestedAction: string;
+}
+
+export interface DecisionCardInput {
+  reviewNeeded: ReviewNeededRule[];
+  findings: RuleFinding[];
+  missingInputs: string[];
+  artifactsReady: boolean;
 }
 
 export function buildWelcomePacket(input: ApplicationManagerInput): WelcomePacket {
@@ -112,6 +135,73 @@ export function buildWelcomePacket(input: ApplicationManagerInput): WelcomePacke
   };
 }
 
+export function buildDecisionCards(input: DecisionCardInput): DecisionCard[] {
+  const cards = new Map<string, DecisionCard>();
+
+  for (const rule of input.reviewNeeded) {
+    cards.set(rule.ruleId, {
+      id: decisionCardId(rule.ruleId),
+      ruleId: rule.ruleId,
+      title: rule.name,
+      category: rule.category,
+      severity: rule.severity,
+      owner: "human",
+      status: rule.severity === "ERROR" ? "blocked" : "needs_decision",
+      reason: reviewReason(rule),
+      proofNeeded: proofNeededForRule(rule),
+      suggestedAction: suggestedActionForRule(rule.severity),
+    });
+  }
+
+  if (input.missingInputs.length > 0) {
+    cards.set("jobsmith-missing-inputs", {
+      id: "decision-card-jobsmith-missing-inputs",
+      ruleId: "jobsmith-missing-inputs",
+      title: "Missing application inputs",
+      category: "INTAKE",
+      severity: "ERROR",
+      owner: "human",
+      status: "blocked",
+      reason: `JobSmith cannot claim submit-ready while missing: ${input.missingInputs.join(", ")}.`,
+      proofNeeded: "Provide the missing inputs or attach a no-code reason for each one.",
+      suggestedAction: "Fill the missing fields before generating or submitting the application pack.",
+    });
+  }
+
+  if (!input.artifactsReady) {
+    cards.set("jobsmith-artifacts", {
+      id: "decision-card-jobsmith-artifacts",
+      ruleId: "jobsmith-artifacts",
+      title: "Application artifacts not ready",
+      category: "ARTIFACTS",
+      severity: "ERROR",
+      owner: "jobsmith",
+      status: "blocked",
+      reason: "The CV, cover letter, or application pack artifact has not been generated yet.",
+      proofNeeded: "Attach artifact paths or an engine receipt proving the pack was generated.",
+      suggestedAction: "Generate the application pack, then rerun the rule checks.",
+    });
+  }
+
+  for (const finding of input.findings) {
+    if (finding.severity !== "ERROR") continue;
+    cards.set(finding.ruleId, {
+      id: decisionCardId(finding.ruleId),
+      ruleId: finding.ruleId,
+      title: finding.name,
+      category: finding.category,
+      severity: finding.severity,
+      owner: "jobsmith",
+      status: "blocked",
+      reason: finding.message,
+      proofNeeded: `Resolve or justify the matched text: "${finding.match}".`,
+      suggestedAction: "Fix the blocker, rerun checks, and keep the before/after receipt.",
+    });
+  }
+
+  return Array.from(cards.values()).sort(decisionCardSort);
+}
+
 function packetStatus(
   corpusReady: boolean,
   jobText: string,
@@ -163,4 +253,47 @@ function wordCount(text: string): number {
 
 function hasText(value: string): boolean {
   return value.trim().length > 0;
+}
+
+function decisionCardId(ruleId: string): string {
+  return `decision-card-${ruleId.toLowerCase()}`;
+}
+
+function reviewReason(rule: ReviewNeededRule): string {
+  if (rule.needsRefresh) {
+    return `${rule.name} needs a current human check because the rule source is stale or volatile.`;
+  }
+  if (rule.checkType === "human_review") {
+    return `${rule.name} needs judgement that the deterministic engine cannot safely automate.`;
+  }
+  if (rule.checkType === "semantic_check") {
+    return `${rule.name} needs semantic comparison against the job ad, CV, portfolio, or application intent.`;
+  }
+  return `${rule.name} needs document, format, or threshold review before submit-ready status.`;
+}
+
+function proofNeededForRule(rule: ReviewNeededRule): string {
+  if (rule.severity === "ERROR") {
+    return "A human PASS/BLOCKER decision with source evidence is required before submit-ready.";
+  }
+  if (rule.checkType === "format_check") {
+    return "DOCX/PDF render proof or metadata proof showing the format check was inspected.";
+  }
+  if (rule.checkType === "semantic_check") {
+    return "A source-linked note showing the claim matches the job ad, CV, or portfolio proof.";
+  }
+  return "A reviewer note explaining pass, accept risk, or revise.";
+}
+
+function suggestedActionForRule(severity: RuleSeverity): string {
+  if (severity === "ERROR") return "Block submit-ready until this is resolved or explicitly accepted.";
+  if (severity === "WARN") return "Review and either revise the draft or record an accepted risk.";
+  return "Review when time allows and keep the note with the final report.";
+}
+
+function decisionCardSort(a: DecisionCard, b: DecisionCard): number {
+  const severityRank: Record<RuleSeverity, number> = { ERROR: 0, WARN: 1, INFO: 2 };
+  const severityDiff = severityRank[a.severity] - severityRank[b.severity];
+  if (severityDiff !== 0) return severityDiff;
+  return a.ruleId.localeCompare(b.ruleId);
 }
