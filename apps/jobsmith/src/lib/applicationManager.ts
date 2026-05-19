@@ -1,4 +1,4 @@
-import type { ReviewNeededRule, RuleFinding, RulePackSummary, RuleSeverity } from "./checkEngine";
+import type { JobsmithCheckResult, ReviewNeededRule, RuleFinding, RulePackSummary, RuleSeverity } from "./checkEngine";
 
 export type WelcomePacketStatus = "loading_inputs" | "needs_job_ad" | "ready_to_generate" | "draft_ready";
 
@@ -55,6 +55,61 @@ export interface DecisionCardInput {
   findings: RuleFinding[];
   missingInputs: string[];
   artifactsReady: boolean;
+}
+
+export type ManagedApplicationRunStatus = "blocked" | "review_needed" | "proof_needed" | "submit_ready";
+export type ManagedApplicationRunStepStatus = "blocked" | "ready" | "review_needed";
+export type ManagedApplicationRunArtifactKind = "cv" | "cover_letter" | "starter_packet" | "proof_json" | "other";
+export type ManagedApplicationRunProofKind = "api" | "screenshot" | "test" | "receipt";
+
+export interface ManagedApplicationRunArtifact {
+  id: string;
+  label: string;
+  kind: ManagedApplicationRunArtifactKind;
+  ready: boolean;
+  proof: string;
+}
+
+export interface ManagedApplicationRunProof {
+  id: string;
+  label: string;
+  kind: ManagedApplicationRunProofKind;
+  uri: string;
+}
+
+export interface ManagedApplicationRunInput {
+  runId: string;
+  company: string;
+  role: string;
+  jobSource: string;
+  sourceBackedClaim: string;
+  proofNote: string;
+  ruleResult: Pick<JobsmithCheckResult, "totalRules" | "findings" | "reviewNeeded" | "blocked">;
+  decisionCards: DecisionCard[];
+  artifacts: ManagedApplicationRunArtifact[];
+  proof: ManagedApplicationRunProof[];
+}
+
+export interface ManagedApplicationRunStep {
+  id: string;
+  label: string;
+  status: ManagedApplicationRunStepStatus;
+  reason: string;
+  proofNeeded: string;
+}
+
+export interface ManagedApplicationRunReport {
+  runId: string;
+  status: ManagedApplicationRunStatus;
+  submitReady: boolean;
+  rulesPassed: number;
+  blockers: string[];
+  deterministicFindings: Array<Pick<RuleFinding, "ruleId" | "name" | "severity" | "message">>;
+  reviewNeededCount: number;
+  artifacts: ManagedApplicationRunArtifact[];
+  proof: ManagedApplicationRunProof[];
+  steps: ManagedApplicationRunStep[];
+  nextSafeAction: string;
 }
 
 export function buildWelcomePacket(input: ApplicationManagerInput): WelcomePacket {
@@ -202,6 +257,45 @@ export function buildDecisionCards(input: DecisionCardInput): DecisionCard[] {
   return Array.from(cards.values()).sort(decisionCardSort);
 }
 
+export function buildManagedApplicationRun(input: ManagedApplicationRunInput): ManagedApplicationRunReport {
+  const missingInputs = managedRunMissingInputs(input);
+  const blockedCards = input.decisionCards.filter((card) => card.status === "blocked");
+  const reviewCards = input.decisionCards.filter((card) => card.status === "needs_decision");
+  const missingArtifacts = input.artifacts.filter((artifact) => !artifact.ready);
+  const deterministicFindings = input.ruleResult.findings.map(({ ruleId, name, severity, message }) => ({
+    ruleId,
+    name,
+    severity,
+    message,
+  }));
+  const blockers = [
+    ...missingInputs.map((missing) => `Missing input: ${missing}`),
+    ...missingArtifacts.map((artifact) => `Artifact blocked: ${artifact.label}`),
+    ...blockedCards.map((card) => `Decision card blocked: ${card.title}`),
+    ...input.ruleResult.findings
+      .filter((finding) => finding.severity === "ERROR")
+      .map((finding) => `Deterministic blocker: ${finding.name}`),
+  ];
+  const rulesPassed = Math.max(0, input.ruleResult.totalRules - input.ruleResult.findings.length - input.ruleResult.reviewNeeded.length);
+  const hasProof = input.proof.length > 0;
+  const submitReady = blockers.length === 0 && reviewCards.length === 0 && hasProof;
+  const status = managedRunStatus(blockers.length, reviewCards.length, hasProof);
+
+  return {
+    runId: input.runId,
+    status,
+    submitReady,
+    rulesPassed,
+    blockers,
+    deterministicFindings,
+    reviewNeededCount: input.ruleResult.reviewNeeded.length,
+    artifacts: input.artifacts,
+    proof: input.proof,
+    steps: buildManagedRunSteps(input, missingInputs, missingArtifacts, blockedCards, reviewCards, hasProof),
+    nextSafeAction: managedRunNextSafeAction(status),
+  };
+}
+
 function packetStatus(
   corpusReady: boolean,
   jobText: string,
@@ -296,4 +390,89 @@ function decisionCardSort(a: DecisionCard, b: DecisionCard): number {
   const severityDiff = severityRank[a.severity] - severityRank[b.severity];
   if (severityDiff !== 0) return severityDiff;
   return a.ruleId.localeCompare(b.ruleId);
+}
+
+function managedRunMissingInputs(input: ManagedApplicationRunInput): string[] {
+  const missing: string[] = [];
+  if (!hasText(input.company)) missing.push("Company");
+  if (!hasText(input.role)) missing.push("Role");
+  if (!hasText(input.jobSource)) missing.push("Job source");
+  if (!hasText(input.sourceBackedClaim)) missing.push("Source-backed claim");
+  if (!hasText(input.proofNote)) missing.push("Proof note");
+  return missing;
+}
+
+function managedRunStatus(
+  blockerCount: number,
+  reviewCardCount: number,
+  hasProof: boolean,
+): ManagedApplicationRunStatus {
+  if (blockerCount > 0) return "blocked";
+  if (reviewCardCount > 0) return "review_needed";
+  if (!hasProof) return "proof_needed";
+  return "submit_ready";
+}
+
+function buildManagedRunSteps(
+  input: ManagedApplicationRunInput,
+  missingInputs: string[],
+  missingArtifacts: ManagedApplicationRunArtifact[],
+  blockedCards: DecisionCard[],
+  reviewCards: DecisionCard[],
+  hasProof: boolean,
+): ManagedApplicationRunStep[] {
+  return [
+    {
+      id: "intake",
+      label: "Job ad and role intake",
+      status: missingInputs.length > 0 ? "blocked" : "ready",
+      reason: missingInputs.length > 0 ? `Missing ${missingInputs.join(", ")}.` : "Role basics and proof note are captured.",
+      proofNeeded: "Company, role, job source, source-backed claim, and proof note.",
+    },
+    {
+      id: "artifacts",
+      label: "Application artifacts",
+      status: missingArtifacts.length > 0 ? "blocked" : "ready",
+      reason:
+        missingArtifacts.length > 0
+          ? `${missingArtifacts.length} artifact(s) still need generation proof.`
+          : "All tracked artifacts have ready proof.",
+      proofNeeded: "CV, cover letter, starter packet, or proof JSON artifact receipt.",
+    },
+    {
+      id: "rules",
+      label: "Deterministic rule run",
+      status: input.ruleResult.blocked ? "blocked" : "ready",
+      reason: input.ruleResult.blocked
+        ? `${input.ruleResult.findings.filter((finding) => finding.severity === "ERROR").length} deterministic blocker(s) found.`
+        : "No deterministic rule blocker found.",
+      proofNeeded: "Rule engine result with findings and review-needed counts.",
+    },
+    {
+      id: "review",
+      label: "Review-needed decisions",
+      status: blockedCards.length > 0 ? "blocked" : reviewCards.length > 0 ? "review_needed" : "ready",
+      reason:
+        blockedCards.length > 0
+          ? `${blockedCards.length} decision card(s) block submit-ready.`
+          : reviewCards.length > 0
+            ? `${reviewCards.length} decision card(s) need owner review.`
+            : "No owner decisions remain.",
+      proofNeeded: "Decision cards with owner, reason, and proof needed.",
+    },
+    {
+      id: "proof",
+      label: "Run proof",
+      status: hasProof ? "ready" : "blocked",
+      reason: hasProof ? `${input.proof.length} proof receipt(s) attached.` : "Attach API, test, screenshot, or receipt proof before submit-ready.",
+      proofNeeded: "Screenshot or API/test receipt for the managed run.",
+    },
+  ];
+}
+
+function managedRunNextSafeAction(status: ManagedApplicationRunStatus): string {
+  if (status === "blocked") return "Clear blockers, then rerun the managed checklist.";
+  if (status === "review_needed") return "Resolve the decision cards or record owner review proof.";
+  if (status === "proof_needed") return "Attach screenshot, API, or test proof for the managed run.";
+  return "Review the final report before any human-controlled submission step.";
 }
