@@ -165,6 +165,45 @@ describe("orchestrator context", () => {
     expect(context.rolling_snapshot.source_pointers.some((pointer) => pointer.source_id === "todo-1")).toBe(true);
   });
 
+  it("makes the harness card red when open Boardroom work has no fresh owner", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-19T15:45:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [
+        {
+          id: "todo-open",
+          title: "HarnessKit queue truth",
+          description: "Build proof gates and queue truth.",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "orchestrator",
+          assigned_to_agent_id: null,
+          created_at: "2026-05-19T15:00:00.000Z",
+          updated_at: "2026-05-19T15:00:00.000Z",
+        },
+      ],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.current_state_card.active_jobs).toBe(0);
+    expect(context.current_state_card.queued_todo_count).toBe(1);
+    expect(context.current_state_card.harness_card.queue_state).toBe("needs_claim");
+    expect(context.current_state_card.harness_card.gate_status).toBe("red");
+    expect(context.current_state_card.harness_card.gate_reason).toContain("no fresh active owner");
+    expect(context.current_state_card.harness_card.queue_truth).toContain("red, not healthy");
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
+    );
+    expect(context.current_state_card.harness_card.test_runner_rule).toContain("Test-only runner packets");
+  });
+
   it("adds human operator timezone context to compact handoffs", () => {
     const context = buildOrchestratorContext({
       generatedAt: "2026-05-10T01:00:00.000Z",
