@@ -14,6 +14,7 @@ import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import { JOBSMITH_RULE_PACK_V1, runJobsmithChecks, summarizeRulePack } from "../../apps/jobsmith/src/lib/checkEngine";
+import { buildWelcomePacket, type WelcomePacket } from "../../apps/jobsmith/src/lib/applicationManager";
 
 type ReadinessLevel = "blocked" | "review" | "ready";
 
@@ -62,6 +63,20 @@ const LEVEL_STYLES: Record<ReadinessLevel, string> = {
   blocked: "border-rose-300/25 bg-rose-300/10 text-rose-100",
   review: "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#F4D36B]",
   ready: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100",
+};
+
+const WELCOME_STATUS_LABELS: Record<WelcomePacket["status"], string> = {
+  loading_inputs: "Loading inputs",
+  needs_job_ad: "Needs intake",
+  ready_to_generate: "Ready to generate",
+  draft_ready: "Draft ready for review",
+};
+
+const WELCOME_STATUS_STYLES: Record<WelcomePacket["status"], string> = {
+  loading_inputs: "border-white/[0.08] bg-white/[0.05] text-white/70",
+  needs_job_ad: "border-rose-300/25 bg-rose-300/10 text-rose-100",
+  ready_to_generate: "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#F4D36B]",
+  draft_ready: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100",
 };
 
 function hasText(value: string): boolean {
@@ -167,8 +182,83 @@ function LevelBadge({ level }: { level: ReadinessLevel }) {
   );
 }
 
-function RulePackStatus() {
-  const summary = useMemo(() => summarizeRulePack(JOBSMITH_RULE_PACK_V1), []);
+function WelcomePacketPanel({ packet }: { packet: WelcomePacket }) {
+  return (
+    <section
+      aria-label="Jobsmith AI welcome packet"
+      data-testid="jobsmith-ai-welcome-packet"
+      className="mb-4 rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.07] p-5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">AI Welcome Packet</p>
+          <h2 className="mt-1 text-xl font-semibold text-white">{packet.title}</h2>
+          <p className="mt-2 text-sm leading-6 text-white/65">{packet.purpose}</p>
+        </div>
+        <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${WELCOME_STATUS_STYLES[packet.status]}`}>
+          {WELCOME_STATUS_LABELS[packet.status]}
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Inputs visible now</h3>
+          <ul className="mt-3 space-y-2 text-sm leading-6 text-white/70">
+            {packet.availableInputs.map((input) => (
+              <li key={input}>{input}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Missing before submit-ready</h3>
+          {packet.missingInputs.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-white/70">
+              {packet.missingInputs.map((input) => (
+                <li key={input}>{input}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm leading-6 text-emerald-100">No missing inputs in this slice.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-5 md:grid-cols-3">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Can do</h3>
+          <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+            {packet.capabilities.map((capability) => (
+              <li key={capability}>{capability}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Proof expected</h3>
+          <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+            {packet.proofExpectations.map((proof) => (
+              <li key={proof}>{proof}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Stop conditions</h3>
+          <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+            {packet.stopConditions.map((condition) => (
+              <li key={condition}>{condition}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-5 border-t border-white/[0.08] pt-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9EE4E6]">Safest next move</p>
+        <p className="mt-2 text-sm leading-6 text-white/75">{packet.safestNextMove}</p>
+      </div>
+    </section>
+  );
+}
+
+function RulePackStatus({ summary }: { summary: ReturnType<typeof summarizeRulePack> }) {
   const sampleResult = useMemo(() => runJobsmithChecks(STANDARD_HEADING_SAMPLE, JOBSMITH_RULE_PACK_V1), []);
   const sampleClean = sampleResult.findings.length === 0;
   const standardHeadingsSafe = sampleResult.findings.every((finding) => finding.ruleId !== "JS-ATS-03");
@@ -284,7 +374,25 @@ export default function JobsmithPage() {
 
   const checks = useMemo(() => buildReadinessChecks(draft), [draft]);
   const level = useMemo(() => overallLevel(checks), [checks]);
+  const ruleSummary = useMemo(() => summarizeRulePack(JOBSMITH_RULE_PACK_V1), []);
   const packetText = useMemo(() => buildPacketText(draft, checks, level), [checks, draft, level]);
+  const welcomePacket = useMemo(
+    () =>
+      buildWelcomePacket({
+        corpusReady: true,
+        applicationRun: {
+          company: draft.company,
+          role: draft.role,
+          jobSource: draft.jobSource,
+          sourceBackedClaim: draft.claim,
+          proofNote: draft.proofNote,
+        },
+        jobText: "",
+        draftReady: level !== "blocked",
+        ruleSummary,
+      }),
+    [draft, level, ruleSummary],
+  );
   const blockers = checks.filter((check) => check.level === "blocked");
 
   function updateField<Key extends keyof JobsmithPublicDraft>(key: Key, value: JobsmithPublicDraft[Key]) {
@@ -315,10 +423,14 @@ export default function JobsmithPage() {
         </FadeIn>
 
         <FadeIn delay={0.05}>
-          <RulePackStatus />
+          <WelcomePacketPanel packet={welcomePacket} />
         </FadeIn>
 
         <FadeIn delay={0.1}>
+          <RulePackStatus summary={ruleSummary} />
+        </FadeIn>
+
+        <FadeIn delay={0.15}>
           <section
             aria-label="Jobsmith starter packet builder"
             className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]"
