@@ -73,6 +73,17 @@ Automation, product strategy, AI operations
     expect(result.reviewNeeded.some((rule) => rule.ruleId === "JS-ATS-03")).toBe(true);
   });
 
+  it("does not flag requirement keyword specs as banned keywords", () => {
+    const result = runJobsmithChecks(
+      "Sales quota attainment was 122% with 240k deal size and a 45 day cycle.",
+      JOBSMITH_RULE_PACK_V1,
+      new Date("2026-05-19T00:00:00.000Z"),
+    );
+
+    expect(result.findings.filter((finding) => finding.ruleId === "JS-ROLE_SPECIFIC-05")).toEqual([]);
+    expect(result.reviewNeeded.some((rule) => rule.ruleId === "JS-ROLE_SPECIFIC-05")).toBe(true);
+  });
+
   it("uses rule decay windows to surface needs-refresh badges", () => {
     const volatileRule = JOBSMITH_RULE_PACK_V1.rules.find((rule) => rule.decay_period_days === 90);
     expect(volatileRule).toBeTruthy();

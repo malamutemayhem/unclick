@@ -321,10 +321,17 @@ function patternFromRegexSpec(spec: string): RegExp | null {
 function isAutomatedKeywordBlocklistSpec(spec: string): boolean {
   const normalized = spec.trim().toLowerCase();
   if (/\ballow(?:list|-list)\b|\ballowed\s+(?:headings?|sections?|labels?|terms?)\b/.test(normalized)) return false;
-  if (spec.includes("|")) return true;
-  return /\b(?:flag|block|ban|avoid|detect|reject|replace|scan|require|compare|extract|blocklist|token list|phrase list)\b/.test(
-    normalized,
-  );
+  const explicitBlocklistIntent =
+    /\b(?:flag|block|ban|avoid|detect|reject|replace|blocklist|token list|phrase list|filler list)\b/.test(
+      normalized,
+    );
+  const requirementOrAnalysisIntent =
+    /^(?:require|scan|extract|compare|verify|map|align|maintain)\b|\b(?:must include|required|requires|verify|compare|extract)\b/.test(
+      normalized,
+    );
+  if (requirementOrAnalysisIntent && !explicitBlocklistIntent) return false;
+  if (explicitBlocklistIntent) return true;
+  return spec.includes("|");
 }
 
 function keywordsFromSpec(spec: string): string[] {
