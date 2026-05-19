@@ -128,6 +128,9 @@ describe("AdminJobs", () => {
     render(React.createElement(AdminJobs));
 
     expect(await screen.findByText("No jobs are being worked while backlog is waiting.")).toBeInTheDocument();
+    expect(screen.getByText("Traffic light")).toBeInTheDocument();
+    expect(screen.getByText("No active owner")).toBeInTheDocument();
+    expect(screen.getByText("Claim one waiting job")).toBeInTheDocument();
     expect(screen.getByText("Open backlog")).toBeInTheDocument();
     const alertsCard = screen.getByText("Alerts").closest("div");
     expect(alertsCard).not.toBeNull();
@@ -220,5 +223,6 @@ describe("AdminJobs", () => {
     await screen.findByText("Alpha ready job");
     expect(intervalSpy).toHaveBeenCalledWith(expect.any(Function), JOBS_REFRESH_INTERVAL_MS);
     expect(JOBS_REFRESH_INTERVAL_MS).toBe(60_000);
+    expect(screen.getByText("Refreshes every 60s")).toBeInTheDocument();
   });
 });
