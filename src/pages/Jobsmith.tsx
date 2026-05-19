@@ -13,6 +13,7 @@ import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
+import { JOBSMITH_RULE_PACK_V1, runJobsmithChecks, summarizeRulePack } from "../../apps/jobsmith/src/lib/checkEngine";
 
 type ReadinessLevel = "blocked" | "review" | "ready";
 
@@ -37,6 +38,19 @@ const EMPTY_DRAFT: JobsmithPublicDraft = {
   claim: "",
   proofNote: "",
 };
+
+const STANDARD_HEADING_SAMPLE = `
+Profile
+Summary
+Experience
+Built proof-backed UnClick workflows.
+
+Education
+University Degree Equivalent
+
+Skills
+Automation, product strategy, operations
+`;
 
 const LEVEL_LABELS: Record<ReadinessLevel, string> = {
   blocked: "Blocked",
@@ -153,6 +167,51 @@ function LevelBadge({ level }: { level: ReadinessLevel }) {
   );
 }
 
+function RulePackStatus() {
+  const summary = useMemo(() => summarizeRulePack(JOBSMITH_RULE_PACK_V1), []);
+  const sampleResult = useMemo(() => runJobsmithChecks(STANDARD_HEADING_SAMPLE, JOBSMITH_RULE_PACK_V1), []);
+  const sampleClean = sampleResult.findings.length === 0;
+  const standardHeadingsSafe = sampleResult.findings.every((finding) => finding.ruleId !== "JS-ATS-03");
+
+  return (
+    <section
+      aria-label="Jobsmith universal rules"
+      className="rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.06] p-5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">Universal Rules v{summary.version}</p>
+          <h2 className="mt-1 text-xl font-semibold text-white">Rule-pack check status</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
+            Source-backed rules are loaded as data. Allowlist and requirement specs stay out of banned-keyword findings unless a rule explicitly says to flag or block the terms.
+          </p>
+        </div>
+        <LevelBadge level={sampleClean && standardHeadingsSafe ? "ready" : "review"} />
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-4">
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Rules</p>
+          <p className="mt-1 text-lg font-semibold text-white">{summary.totalRules}</p>
+        </div>
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Categories</p>
+          <p className="mt-1 text-lg font-semibold text-white">{summary.categories.length}</p>
+        </div>
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Blockers</p>
+          <p className="mt-1 text-lg font-semibold text-white">{summary.bySeverity.ERROR}</p>
+        </div>
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Sample check</p>
+          <p className="mt-1 text-sm font-semibold text-emerald-100">
+            {sampleClean && standardHeadingsSafe ? "Standard headings pass" : "Review standard headings"}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Field({
   id,
   label,
@@ -256,6 +315,10 @@ export default function JobsmithPage() {
         </FadeIn>
 
         <FadeIn delay={0.05}>
+          <RulePackStatus />
+        </FadeIn>
+
+        <FadeIn delay={0.1}>
           <section
             aria-label="Jobsmith starter packet builder"
             className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]"

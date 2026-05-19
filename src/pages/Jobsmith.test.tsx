@@ -26,6 +26,9 @@ describe("JobsmithPage", () => {
 
     expect(screen.getByRole("heading", { name: "Application packet builder" })).toBeInTheDocument();
     expect(screen.getByText("Jobsmith")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Jobsmith universal rules" })).toHaveTextContent("Universal Rules v1");
+    expect(screen.getByRole("region", { name: "Jobsmith universal rules" })).toHaveTextContent("229");
+    expect(screen.getByRole("region", { name: "Jobsmith universal rules" })).toHaveTextContent("Standard headings pass");
 
     fireEvent.change(screen.getByLabelText("Source-backed claim"), {
       target: { value: "Led a redesign that improved checkout completion." },
