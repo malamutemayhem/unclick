@@ -44,7 +44,10 @@ describe("JobsmithPage", () => {
     expect(managedRunReport).toHaveTextContent("Blockers");
     expect(managedRunReport).toHaveTextContent("No run proof attached yet.");
     expect(managedRunReport).toHaveTextContent("Decision cards");
+    expect(managedRunReport).toHaveTextContent("Resolved");
+    expect(managedRunReport).toHaveTextContent("Unresolved");
     expect(managedRunReport).toHaveTextContent("Not submit-ready");
+    expect(managedRunReport).toHaveTextContent("Graduation-year review is still unresolved");
     expect(managedRunReport).toHaveTextContent("Missing application inputs");
 
     fireEvent.change(screen.getByLabelText("Source-backed claim"), {
@@ -91,8 +94,10 @@ describe("JobsmithPage", () => {
     expect(managedRunReport).toHaveTextContent("Browser-local starter packet: Ready");
     expect(managedRunReport).toHaveTextContent("Managed run report UI");
     expect(managedRunReport).toHaveTextContent("Run proof");
+    expect(managedRunReport).toHaveTextContent("1 resolved");
     expect(managedRunReport).toHaveTextContent("Not submit-ready");
     expect(managedRunReport).toHaveTextContent("Proof needed:");
+    expect(managedRunReport).toHaveTextContent("Evidence: Graduation-year review is still unresolved");
 
     const packet = screen.getByRole("region", { name: "Starter packet" });
     const packetText = within(packet).getByTestId("jobsmith-public-packet-copy");

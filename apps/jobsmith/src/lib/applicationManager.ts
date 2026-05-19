@@ -36,6 +36,7 @@ export interface WelcomePacket {
 
 export type DecisionCardOwner = "human" | "jobsmith" | "reviewer";
 export type DecisionCardStatus = "needs_decision" | "blocked" | "ready_for_review";
+export type DecisionCardResolution = "pass" | "blocker" | "not_applicable";
 
 export interface DecisionCard {
   id: string;
@@ -48,6 +49,24 @@ export interface DecisionCard {
   reason: string;
   proofNeeded: string;
   suggestedAction: string;
+  resolution?: DecisionCardResolution;
+  resolutionEvidence?: string;
+}
+
+export interface DecisionCardReview {
+  ruleId: string;
+  resolution: DecisionCardResolution;
+  evidence: string;
+}
+
+export interface DecisionCardSummary {
+  total: number;
+  blocked: number;
+  needsDecision: number;
+  readyForReview: number;
+  resolved: number;
+  unresolved: number;
+  submitReady: boolean;
 }
 
 export interface DecisionCardInput {
@@ -55,6 +74,7 @@ export interface DecisionCardInput {
   findings: RuleFinding[];
   missingInputs: string[];
   artifactsReady: boolean;
+  reviews?: DecisionCardReview[];
 }
 
 export type ManagedApplicationRunStatus = "blocked" | "review_needed" | "proof_needed" | "submit_ready";
@@ -254,7 +274,31 @@ export function buildDecisionCards(input: DecisionCardInput): DecisionCard[] {
     });
   }
 
+  for (const review of input.reviews ?? []) {
+    const card = cards.get(review.ruleId);
+    if (!card || !hasText(review.evidence)) continue;
+    cards.set(review.ruleId, applyDecisionCardReview(card, review));
+  }
+
   return Array.from(cards.values()).sort(decisionCardSort);
+}
+
+export function summarizeDecisionCards(cards: DecisionCard[], artifactsReady: boolean): DecisionCardSummary {
+  const blocked = cards.filter((card) => card.status === "blocked").length;
+  const needsDecision = cards.filter((card) => card.status === "needs_decision").length;
+  const readyForReview = cards.filter((card) => card.status === "ready_for_review").length;
+  const resolved = cards.filter((card) => Boolean(card.resolution && card.resolutionEvidence)).length;
+  const unresolved = Math.max(0, cards.length - resolved);
+
+  return {
+    total: cards.length,
+    blocked,
+    needsDecision,
+    readyForReview,
+    resolved,
+    unresolved,
+    submitReady: artifactsReady && blocked === 0 && needsDecision === 0 && unresolved === 0,
+  };
 }
 
 export function buildManagedApplicationRun(input: ManagedApplicationRunInput): ManagedApplicationRunReport {
@@ -383,6 +427,35 @@ function suggestedActionForRule(severity: RuleSeverity): string {
   if (severity === "ERROR") return "Block submit-ready until this is resolved or explicitly accepted.";
   if (severity === "WARN") return "Review and either revise the draft or record an accepted risk.";
   return "Review when time allows and keep the note with the final report.";
+}
+
+function applyDecisionCardReview(card: DecisionCard, review: DecisionCardReview): DecisionCard {
+  const evidence = review.evidence.trim();
+
+  if (review.resolution === "blocker") {
+    return {
+      ...card,
+      owner: "reviewer",
+      status: "blocked",
+      reason: `Reviewer marked BLOCKER: ${evidence}`,
+      proofNeeded: "Fix the blocker, then rerun checks and update the card evidence.",
+      suggestedAction: "Revise the application pack before submit-ready.",
+      resolution: review.resolution,
+      resolutionEvidence: evidence,
+    };
+  }
+
+  const label = review.resolution === "pass" ? "PASS" : "N/A";
+  return {
+    ...card,
+    owner: "reviewer",
+    status: "ready_for_review",
+    reason: `Reviewer marked ${label}: ${evidence}`,
+    proofNeeded: "Keep this evidence with the final report.",
+    suggestedAction: "Carry this decision into the final managed run report.",
+    resolution: review.resolution,
+    resolutionEvidence: evidence,
+  };
 }
 
 function decisionCardSort(a: DecisionCard, b: DecisionCard): number {
