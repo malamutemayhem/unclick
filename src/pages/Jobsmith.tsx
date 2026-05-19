@@ -18,7 +18,9 @@ import {
   buildDecisionCards,
   buildManagedApplicationRun,
   buildWelcomePacket,
+  summarizeDecisionCards,
   type DecisionCard,
+  type DecisionCardReview,
   type ManagedApplicationRunReport,
   type WelcomePacket,
 } from "../../apps/jobsmith/src/lib/applicationManager";
@@ -104,6 +106,14 @@ const MANAGED_RUN_STATUS_LABELS: Record<ManagedApplicationRunReport["status"], s
   review_needed: "Review needed",
   submit_ready: "Submit-ready",
 };
+
+const SAMPLE_DECISION_REVIEWS: DecisionCardReview[] = [
+  {
+    ruleId: "JS-AGE-02",
+    resolution: "blocker",
+    evidence: "Graduation-year review is still unresolved in this browser-local starter run.",
+  },
+];
 
 function hasText(value: string): boolean {
   return value.trim().length > 0;
@@ -291,8 +301,10 @@ function ManagedRunReport({
   report: ManagedApplicationRunReport;
   decisionCards: DecisionCard[];
 }) {
-  const blockedCards = decisionCards.filter((card) => card.status === "blocked");
-  const needsDecisionCards = decisionCards.filter((card) => card.status === "needs_decision");
+  const decisionSummary = summarizeDecisionCards(
+    decisionCards,
+    report.artifacts.every((artifact) => artifact.ready),
+  );
   const visibleBlockers = report.blockers.slice(0, 4);
   const visibleFindings = report.deterministicFindings.slice(0, 3);
 
@@ -326,6 +338,8 @@ function ManagedRunReport({
         <RunMetric label="Review needed" value={report.reviewNeededCount} />
         <RunMetric label="Artifacts" value={report.artifacts.length} />
         <RunMetric label="Proof" value={report.proof.length} />
+        <RunMetric label="Resolved" value={decisionSummary.resolved} />
+        <RunMetric label="Unresolved" value={decisionSummary.unresolved} />
       </div>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
@@ -418,7 +432,7 @@ function ManagedRunReport({
           ) : (
             <p className="mt-3 text-xs leading-5 text-emerald-100">No deterministic findings in the current run.</p>
           )}
-      </div>
+        </div>
       </div>
 
       <div className="mt-5 rounded-lg border border-white/[0.06] bg-black/20 p-4">
@@ -430,7 +444,7 @@ function ManagedRunReport({
             </p>
           </div>
           <p className="text-xs font-semibold text-[#9EE4E6]">
-            {blockedCards.length} blocked, {needsDecisionCards.length} need decision
+            {decisionSummary.blocked} blocked, {decisionSummary.needsDecision} need decision, {decisionSummary.resolved} resolved
           </p>
         </div>
 
@@ -450,6 +464,9 @@ function ManagedRunReport({
               </div>
               <p className="mt-2 text-xs leading-5 text-white/55">{card.reason}</p>
               <p className="mt-2 text-xs leading-5 text-[#9EE4E6]">Proof needed: {card.proofNeeded}</p>
+              {card.resolutionEvidence ? (
+                <p className="mt-2 text-xs leading-5 text-emerald-100">Evidence: {card.resolutionEvidence}</p>
+              ) : null}
             </article>
           ))}
         </div>
@@ -610,6 +627,7 @@ export default function JobsmithPage() {
         findings: checkResult.findings,
         missingInputs: welcomePacket.missingInputs,
         artifactsReady: level !== "blocked",
+        reviews: SAMPLE_DECISION_REVIEWS,
       }),
     [checkResult.findings, checkResult.reviewNeeded, level, welcomePacket.missingInputs],
   );
