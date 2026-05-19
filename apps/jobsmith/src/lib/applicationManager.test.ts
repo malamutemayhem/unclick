@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildDecisionCards, buildWelcomePacket } from "./applicationManager";
+import { buildDecisionCards, buildManagedApplicationRun, buildWelcomePacket } from "./applicationManager";
 
 const ruleSummary = {
   totalRules: 229,
@@ -226,6 +226,122 @@ describe("JobSmith application manager decision cards", () => {
       status: "blocked",
       reason: "Do not use em dashes in final documents.",
       proofNeeded: 'Resolve or justify the matched text: "\u2014".',
+    });
+  });
+});
+
+describe("JobSmith managed application run", () => {
+  it("keeps the Sportsbet replay out of submit-ready while owner review is open", () => {
+    const reviewNeeded = [
+      {
+        ruleId: "JS-TRUTH-05",
+        name: "Verify employment dates",
+        category: "TRUTH",
+        severity: "WARN" as const,
+        action: "flags" as const,
+        checkType: "semantic_check" as const,
+        needsRefresh: false,
+      },
+    ];
+    const decisionCards = buildDecisionCards({
+      reviewNeeded,
+      findings: [],
+      missingInputs: [],
+      artifactsReady: true,
+    });
+
+    const report = buildManagedApplicationRun({
+      runId: "sportsbet-replay-2026-05-19",
+      company: "Sportsbet",
+      role: "Product Design Lead",
+      jobSource: "https://example.com/sportsbet-role",
+      sourceBackedClaim: "Led a wagering-safe product workflow with documented stakeholder proof.",
+      proofNote: "Portfolio case study backs the claim.",
+      ruleResult: {
+        totalRules: 229,
+        findings: [],
+        reviewNeeded,
+        blocked: false,
+      },
+      decisionCards,
+      artifacts: [
+        {
+          id: "sportsbet-starter-pack",
+          label: "Sportsbet starter packet",
+          kind: "starter_packet",
+          ready: true,
+          proof: "browser-local packet generated in replay",
+        },
+      ],
+      proof: [
+        {
+          id: "sportsbet-replay-vitest",
+          label: "Sportsbet managed-run replay",
+          kind: "test",
+          uri: "vitest://apps/jobsmith/src/lib/applicationManager.test.ts",
+        },
+      ],
+    });
+
+    expect(report.runId).toBe("sportsbet-replay-2026-05-19");
+    expect(report.status).toBe("review_needed");
+    expect(report.submitReady).toBe(false);
+    expect(report.rulesPassed).toBe(228);
+    expect(report.reviewNeededCount).toBe(1);
+    expect(report.artifacts).toHaveLength(1);
+    expect(report.proof[0]).toMatchObject({ id: "sportsbet-replay-vitest", kind: "test" });
+    expect(report.steps.map((step) => [step.id, step.status])).toEqual([
+      ["intake", "ready"],
+      ["artifacts", "ready"],
+      ["rules", "ready"],
+      ["review", "review_needed"],
+      ["proof", "ready"],
+    ]);
+    expect(report.nextSafeAction).toContain("decision cards");
+  });
+
+  it("requires run proof before a clean application report can be submit-ready", () => {
+    const baseRun = {
+      runId: "clean-run",
+      company: "Example Studio",
+      role: "Senior Product Designer",
+      jobSource: "https://example.com/jobs/designer",
+      sourceBackedClaim: "Shipped a source-backed product redesign.",
+      proofNote: "Portfolio case study and CV notes show the redesign proof.",
+      ruleResult: {
+        totalRules: 229,
+        findings: [],
+        reviewNeeded: [],
+        blocked: false,
+      },
+      decisionCards: [],
+      artifacts: [
+        {
+          id: "starter-pack",
+          label: "Starter packet",
+          kind: "starter_packet" as const,
+          ready: true,
+          proof: "starter packet rendered",
+        },
+      ],
+    };
+
+    expect(buildManagedApplicationRun({ ...baseRun, proof: [] })).toMatchObject({
+      status: "proof_needed",
+      submitReady: false,
+      nextSafeAction: "Attach screenshot, API, or test proof for the managed run.",
+    });
+
+    expect(
+      buildManagedApplicationRun({
+        ...baseRun,
+        proof: [{ id: "api-proof", label: "API replay proof", kind: "api", uri: "api://jobsmith/runs/clean-run" }],
+      }),
+    ).toMatchObject({
+      status: "submit_ready",
+      submitReady: true,
+      rulesPassed: 229,
+      blockers: [],
     });
   });
 });
