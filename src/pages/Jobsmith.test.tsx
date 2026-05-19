@@ -36,6 +36,12 @@ describe("JobsmithPage", () => {
     expect(screen.getByRole("region", { name: "Jobsmith universal rules" })).toHaveTextContent("Universal Rules v1");
     expect(screen.getByRole("region", { name: "Jobsmith universal rules" })).toHaveTextContent("229");
     expect(screen.getByRole("region", { name: "Jobsmith universal rules" })).toHaveTextContent("Standard headings pass");
+    const managedRunReport = screen.getByRole("region", { name: "Jobsmith managed run report" });
+    expect(managedRunReport).toHaveTextContent("Managed Run Report");
+    expect(managedRunReport).toHaveTextContent("Rules checked");
+    expect(managedRunReport).toHaveTextContent("Decision cards");
+    expect(managedRunReport).toHaveTextContent("Not submit-ready");
+    expect(managedRunReport).toHaveTextContent("Missing application inputs");
 
     fireEvent.change(screen.getByLabelText("Source-backed claim"), {
       target: { value: "Led a redesign that improved checkout completion." },
@@ -71,6 +77,14 @@ describe("JobsmithPage", () => {
     expect(welcomePacket).toHaveTextContent("Source-backed claim captured");
     expect(welcomePacket).toHaveTextContent("No missing inputs in this slice.");
     expect(welcomePacket).toHaveTextContent("Review the generated draft");
+    const managedRunReport = screen.getByRole("region", { name: "Jobsmith managed run report" });
+    expect(managedRunReport).toHaveTextContent("Checklist to submit-ready gate");
+    expect(managedRunReport).toHaveTextContent("Rules checked");
+    expect(managedRunReport).toHaveTextContent("Deterministic pass");
+    expect(managedRunReport).toHaveTextContent("Review needed");
+    expect(managedRunReport).toHaveTextContent("Decision cards");
+    expect(managedRunReport).toHaveTextContent("Not submit-ready");
+    expect(managedRunReport).toHaveTextContent("Proof needed:");
 
     const packet = screen.getByRole("region", { name: "Starter packet" });
     const packetText = within(packet).getByTestId("jobsmith-public-packet-copy");
