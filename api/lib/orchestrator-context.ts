@@ -295,9 +295,12 @@ export interface OrchestratorContext {
     harness_card: {
       source_of_truth: "Boardroom Jobs";
       queue_state: "active_work" | "needs_claim" | "quiet";
+      gate_status: "green" | "amber" | "red";
+      gate_reason: string;
       queue_truth: string;
       allowed_actions: string[];
       required_proof: string[];
+      test_runner_rule: string;
       cleanup_rule: string;
       recovery_path: string;
     };
@@ -587,24 +590,42 @@ function buildHarnessCard({
 }): OrchestratorContext["current_state_card"]["harness_card"] {
   const queueState =
     activeJobsCount > 0 ? "active_work" : queuedTodoCount > 0 ? "needs_claim" : "quiet";
+  const gateStatus =
+    healthVerdict.verdict === "BLOCKER" || queueState === "needs_claim"
+      ? "red"
+      : queueState === "active_work"
+        ? "amber"
+        : "green";
+  const gateReason =
+    queueState === "needs_claim"
+      ? "Open Boardroom work has no fresh active owner. Claim one scoped job or post the exact blocker."
+      : queueState === "active_work"
+        ? "Fresh active work exists. Support with proof, review, tests, or a non-overlapping scoped patch."
+        : "No open Boardroom work is visible in this snapshot.";
 
   return {
     source_of_truth: "Boardroom Jobs",
     queue_state: queueState,
+    gate_status: gateStatus,
+    gate_reason: gateReason,
     queue_truth:
-      "active_jobs counts in_progress work with a fresh owner; queued_todo_count is open backlog. Open backlog with active_jobs=0 needs claim/proof work and must not be treated as healthy.",
+      "active_jobs counts in_progress work with a fresh owner; queued_todo_count is open backlog. Open backlog with active_jobs=0 is red, not healthy.",
     allowed_actions: [
       "claim one unowned scoped job",
       "verify proof on a completed-looking job",
       "patch a narrow owned file slice",
+      "open a draft PR for one ScopePack slice",
       "post BLOCKER with exact missing proof",
     ],
     required_proof: [
       "coding jobs need PR, commit, deploy, or explicit NO_CODE_NEEDED proof",
       "tests or CI must be named when code changed",
       "UI/UX jobs need screenshot proof",
+      "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
       `health verdict is ${healthVerdict.verdict}`,
     ],
+    test_runner_rule:
+      "Test-only runner packets do not create active work claims unless they include build proof and a Boardroom receipt.",
     cleanup_rule: "Do not mark DONE from green chips or stale receipts; close only after required proof is observable.",
     recovery_path:
       "If the queue is blocked or scope is unclear, add a narrow ScopePack or proof comment instead of posting a status-only wake.",
