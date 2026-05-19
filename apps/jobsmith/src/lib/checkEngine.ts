@@ -238,6 +238,7 @@ function buildTextChecker(rule: JobsmithRule, now: Date): TextChecker | null {
     return pattern ? regexChecker(rule, pattern, now) : null;
   }
   if (rule.check_method.type === "keyword_list") {
+    if (!isAutomatedKeywordBlocklistSpec(rule.check_method.spec)) return null;
     const keywords = keywordsFromSpec(rule.check_method.spec);
     return keywords.length > 0 ? keywordChecker(rule, keywords, now) : null;
   }
@@ -315,6 +316,15 @@ function patternFromRegexSpec(spec: string): RegExp | null {
   }
 
   return null;
+}
+
+function isAutomatedKeywordBlocklistSpec(spec: string): boolean {
+  const normalized = spec.trim().toLowerCase();
+  if (/\ballow(?:list|-list)\b|\ballowed\s+(?:headings?|sections?|labels?|terms?)\b/.test(normalized)) return false;
+  if (spec.includes("|")) return true;
+  return /\b(?:flag|block|ban|avoid|detect|reject|replace|scan|require|compare|extract|blocklist|token list|phrase list)\b/.test(
+    normalized,
+  );
 }
 
 function keywordsFromSpec(spec: string): string[] {
