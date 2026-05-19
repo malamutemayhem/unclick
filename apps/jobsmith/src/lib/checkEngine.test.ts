@@ -51,14 +51,25 @@ rules: []
     expect(result.findings.some((finding) => finding.match.toLowerCase() === "vibrant")).toBe(true);
   });
 
-  it("does not flag allowed ATS headings as banned keywords", () => {
+  it("does not flag JS-ATS-03 allowlist headings as banned keywords", () => {
     const result = runJobsmithChecks(
-      "Profile\nExperience\nEducation\nSkills\nProjects",
+      `
+Profile
+Summary
+Experience
+Built proof-backed UnClick workflows.
+
+Education
+University Degree Equivalent
+
+Skills
+Automation, product strategy, AI operations
+`,
       JOBSMITH_RULE_PACK_V1,
       new Date("2026-05-19T00:00:00.000Z"),
     );
 
-    expect(result.findings.some((finding) => finding.ruleId === "JS-ATS-03")).toBe(false);
+    expect(result.findings.filter((finding) => finding.ruleId === "JS-ATS-03")).toEqual([]);
     expect(result.reviewNeeded.some((rule) => rule.ruleId === "JS-ATS-03")).toBe(true);
   });
 
