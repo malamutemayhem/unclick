@@ -38,7 +38,11 @@ describe("JobsmithPage", () => {
     expect(screen.getByRole("region", { name: "Jobsmith universal rules" })).toHaveTextContent("Standard headings pass");
     const managedRunReport = screen.getByRole("region", { name: "Jobsmith managed run report" });
     expect(managedRunReport).toHaveTextContent("Managed Run Report");
-    expect(managedRunReport).toHaveTextContent("Rules checked");
+    expect(managedRunReport).toHaveTextContent("Rules passed");
+    expect(managedRunReport).toHaveTextContent("Run steps");
+    expect(managedRunReport).toHaveTextContent("Final report");
+    expect(managedRunReport).toHaveTextContent("Blockers");
+    expect(managedRunReport).toHaveTextContent("No run proof attached yet.");
     expect(managedRunReport).toHaveTextContent("Decision cards");
     expect(managedRunReport).toHaveTextContent("Not submit-ready");
     expect(managedRunReport).toHaveTextContent("Missing application inputs");
@@ -79,10 +83,14 @@ describe("JobsmithPage", () => {
     expect(welcomePacket).toHaveTextContent("Review the generated draft");
     const managedRunReport = screen.getByRole("region", { name: "Jobsmith managed run report" });
     expect(managedRunReport).toHaveTextContent("Checklist to submit-ready gate");
-    expect(managedRunReport).toHaveTextContent("Rules checked");
-    expect(managedRunReport).toHaveTextContent("Deterministic pass");
+    expect(managedRunReport).toHaveTextContent("Rules passed");
+    expect(managedRunReport).toHaveTextContent("Blockers");
+    expect(managedRunReport).toHaveTextContent("Deterministic findings");
     expect(managedRunReport).toHaveTextContent("Review needed");
     expect(managedRunReport).toHaveTextContent("Decision cards");
+    expect(managedRunReport).toHaveTextContent("Browser-local starter packet: Ready");
+    expect(managedRunReport).toHaveTextContent("Managed run report UI");
+    expect(managedRunReport).toHaveTextContent("Run proof");
     expect(managedRunReport).toHaveTextContent("Not submit-ready");
     expect(managedRunReport).toHaveTextContent("Proof needed:");
 

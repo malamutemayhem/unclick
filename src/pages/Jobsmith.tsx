@@ -14,7 +14,14 @@ import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import { JOBSMITH_RULE_PACK_V1, runJobsmithChecks, summarizeRulePack } from "../../apps/jobsmith/src/lib/checkEngine";
-import { buildDecisionCards, buildWelcomePacket, type DecisionCard, type WelcomePacket } from "../../apps/jobsmith/src/lib/applicationManager";
+import {
+  buildDecisionCards,
+  buildManagedApplicationRun,
+  buildWelcomePacket,
+  type DecisionCard,
+  type ManagedApplicationRunReport,
+  type WelcomePacket,
+} from "../../apps/jobsmith/src/lib/applicationManager";
 
 type ReadinessLevel = "blocked" | "review" | "ready";
 
@@ -89,6 +96,13 @@ const DECISION_OWNER_LABELS: Record<DecisionCard["owner"], string> = {
   human: "Human",
   jobsmith: "JobSmith",
   reviewer: "Reviewer",
+};
+
+const MANAGED_RUN_STATUS_LABELS: Record<ManagedApplicationRunReport["status"], string> = {
+  blocked: "Blocked",
+  proof_needed: "Proof needed",
+  review_needed: "Review needed",
+  submit_ready: "Submit-ready",
 };
 
 function hasText(value: string): boolean {
@@ -271,22 +285,16 @@ function WelcomePacketPanel({ packet }: { packet: WelcomePacket }) {
 }
 
 function ManagedRunReport({
-  totalRules,
-  findingsCount,
-  reviewNeededCount,
+  report,
   decisionCards,
-  artifactsReady,
 }: {
-  totalRules: number;
-  findingsCount: number;
-  reviewNeededCount: number;
+  report: ManagedApplicationRunReport;
   decisionCards: DecisionCard[];
-  artifactsReady: boolean;
 }) {
   const blockedCards = decisionCards.filter((card) => card.status === "blocked");
   const needsDecisionCards = decisionCards.filter((card) => card.status === "needs_decision");
-  const deterministicPasses = Math.max(0, totalRules - findingsCount - reviewNeededCount);
-  const submitReady = artifactsReady && blockedCards.length === 0 && needsDecisionCards.length === 0;
+  const visibleBlockers = report.blockers.slice(0, 4);
+  const visibleFindings = report.deterministicFindings.slice(0, 3);
 
   return (
     <section
@@ -304,20 +312,113 @@ function ManagedRunReport({
         </div>
         <span
           className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-            submitReady ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" : "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#F4D36B]"
+            report.submitReady ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" : "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#F4D36B]"
           }`}
         >
-          {submitReady ? "Submit-ready" : "Not submit-ready"}
+          {report.submitReady ? "Submit-ready" : "Not submit-ready"}
         </span>
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <RunMetric label="Rules checked" value={totalRules} />
-        <RunMetric label="Deterministic pass" value={deterministicPasses} />
-        <RunMetric label="Findings" value={findingsCount} />
-        <RunMetric label="Review needed" value={reviewNeededCount} />
-        <RunMetric label="Decision cards" value={decisionCards.length} />
-        <RunMetric label="Artifacts" value={artifactsReady ? "Ready" : "Blocked"} />
+        <RunMetric label="Rules passed" value={report.rulesPassed} />
+        <RunMetric label="Blockers" value={report.blockers.length} />
+        <RunMetric label="Findings" value={report.deterministicFindings.length} />
+        <RunMetric label="Review needed" value={report.reviewNeededCount} />
+        <RunMetric label="Artifacts" value={report.artifacts.length} />
+        <RunMetric label="Proof" value={report.proof.length} />
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Run steps</h3>
+            <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-xs font-semibold text-white/65">
+              {MANAGED_RUN_STATUS_LABELS[report.status]}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-2">
+            {report.steps.map((step) => (
+              <div key={step.id} className="rounded-lg border border-white/[0.06] bg-[#111] p-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <p className="text-sm font-semibold text-white">{step.label}</p>
+                  <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-xs font-semibold text-white/65">
+                    {step.status === "review_needed" ? "Review" : step.status === "blocked" ? "Blocked" : "Ready"}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs leading-5 text-white/55">{step.reason}</p>
+                <p className="mt-1 text-xs leading-5 text-[#9EE4E6]">Proof needed: {step.proofNeeded}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Final report</h3>
+          <dl className="mt-4 grid gap-3 text-xs leading-5 text-white/60">
+            <div>
+              <dt className="font-semibold text-white/45">Run id</dt>
+              <dd className="mt-1 text-white/70">{report.runId}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-white/45">Next safe action</dt>
+              <dd className="mt-1 text-white/70">{report.nextSafeAction}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-white/45">Artifacts</dt>
+              <dd className="mt-1 space-y-1 text-white/70">
+                {report.artifacts.map((artifact) => (
+                  <span key={artifact.id} className="block">
+                    {artifact.label}: {artifact.ready ? "Ready" : "Blocked"} ({artifact.proof})
+                  </span>
+                ))}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-white/45">Proof</dt>
+              <dd className="mt-1 space-y-1 text-white/70">
+                {report.proof.length > 0 ? (
+                  report.proof.map((proof) => (
+                    <span key={proof.id} className="block">
+                      {proof.label}: {proof.uri}
+                    </span>
+                  ))
+                ) : (
+                  <span>No run proof attached yet.</span>
+                )}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Blockers</h3>
+          {visibleBlockers.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+              {visibleBlockers.map((blocker) => (
+                <li key={blocker}>{blocker}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-xs leading-5 text-emerald-100">No blockers in the managed report.</p>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Deterministic findings</h3>
+          {visibleFindings.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+              {visibleFindings.map((finding) => (
+                <li key={finding.ruleId}>
+                  {finding.ruleId}: {finding.message}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-xs leading-5 text-emerald-100">No deterministic findings in the current run.</p>
+          )}
+      </div>
       </div>
 
       <div className="mt-5 rounded-lg border border-white/[0.06] bg-black/20 p-4">
@@ -512,6 +613,45 @@ export default function JobsmithPage() {
       }),
     [checkResult.findings, checkResult.reviewNeeded, level, welcomePacket.missingInputs],
   );
+  const managedRunReport = useMemo(
+    () =>
+      buildManagedApplicationRun({
+        runId: "browser-local-jobsmith-run",
+        company: draft.company,
+        role: draft.role,
+        jobSource: draft.jobSource,
+        sourceBackedClaim: draft.claim,
+        proofNote: draft.proofNote,
+        ruleResult: {
+          totalRules: checkResult.totalRules,
+          findings: checkResult.findings,
+          reviewNeeded: checkResult.reviewNeeded,
+          blocked: checkResult.blocked,
+        },
+        decisionCards,
+        artifacts: [
+          {
+            id: "starter-packet",
+            label: "Browser-local starter packet",
+            kind: "starter_packet",
+            ready: level !== "blocked",
+            proof: level === "blocked" ? "Role basics and proof note required" : "Starter packet preview rendered",
+          },
+        ],
+        proof:
+          level === "blocked"
+            ? []
+            : [
+                {
+                  id: "managed-run-report-ui",
+                  label: "Managed run report UI",
+                  kind: "receipt",
+                  uri: "ui://jobsmith/managed-run-report",
+                },
+              ],
+      }),
+    [checkResult.blocked, checkResult.findings, checkResult.reviewNeeded, checkResult.totalRules, decisionCards, draft, level],
+  );
   const blockers = checks.filter((check) => check.level === "blocked");
 
   function updateField<Key extends keyof JobsmithPublicDraft>(key: Key, value: JobsmithPublicDraft[Key]) {
@@ -550,13 +690,7 @@ export default function JobsmithPage() {
         </FadeIn>
 
         <FadeIn delay={0.15}>
-          <ManagedRunReport
-            totalRules={checkResult.totalRules}
-            findingsCount={checkResult.findings.length}
-            reviewNeededCount={checkResult.reviewNeeded.length}
-            decisionCards={decisionCards}
-            artifactsReady={level !== "blocked"}
-          />
+          <ManagedRunReport report={managedRunReport} decisionCards={decisionCards} />
         </FadeIn>
 
         <FadeIn delay={0.2}>
