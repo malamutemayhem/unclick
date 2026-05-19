@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildWelcomePacket } from "./applicationManager";
+import { buildDecisionCards, buildWelcomePacket } from "./applicationManager";
 
 const ruleSummary = {
   totalRules: 229,
@@ -128,5 +128,104 @@ describe("JobSmith application manager welcome packet", () => {
     expect(readyPacket.availableInputs).toContain("Source-backed claim captured");
     expect(readyPacket.availableInputs).toContain("Proof note captured");
     expect(readyPacket.missingInputs).toEqual([]);
+  });
+});
+
+describe("JobSmith application manager decision cards", () => {
+  it("turns review-needed rules into owned decision cards with proof needs", () => {
+    const cards = buildDecisionCards({
+      reviewNeeded: [
+        {
+          ruleId: "JS-COVER-08",
+          name: "Cover letter structure",
+          category: "COVER",
+          severity: "WARN",
+          action: "flags",
+          checkType: "human_review",
+          needsRefresh: false,
+        },
+        {
+          ruleId: "JS-TRUTH-05",
+          name: "Verify employment dates",
+          category: "TRUTH",
+          severity: "ERROR",
+          action: "blocks",
+          checkType: "semantic_check",
+          needsRefresh: false,
+        },
+      ],
+      findings: [],
+      missingInputs: [],
+      artifactsReady: true,
+    });
+
+    expect(cards).toHaveLength(2);
+    expect(cards[0]).toMatchObject({
+      id: "decision-card-js-truth-05",
+      owner: "human",
+      status: "blocked",
+      proofNeeded: "A human PASS/BLOCKER decision with source evidence is required before submit-ready.",
+    });
+    expect(cards[1]).toMatchObject({
+      id: "decision-card-js-cover-08",
+      owner: "human",
+      status: "needs_decision",
+      suggestedAction: "Review and either revise the draft or record an accepted risk.",
+    });
+  });
+
+  it("adds product blockers when inputs or artifacts are missing", () => {
+    const cards = buildDecisionCards({
+      reviewNeeded: [],
+      findings: [],
+      missingInputs: ["Full job ad", "Proof note"],
+      artifactsReady: false,
+    });
+
+    expect(cards.map((card) => card.ruleId)).toEqual(["jobsmith-artifacts", "jobsmith-missing-inputs"]);
+    expect(cards.every((card) => card.status === "blocked")).toBe(true);
+    expect(cards[1].reason).toContain("Full job ad");
+    expect(cards[1].reason).toContain("Proof note");
+  });
+
+  it("keeps deterministic error findings as submit-ready blockers", () => {
+    const cards = buildDecisionCards({
+      reviewNeeded: [
+        {
+          ruleId: "JS-AIDETECT-04",
+          name: "No em dash",
+          category: "AIDETECT",
+          severity: "ERROR",
+          action: "blocks",
+          checkType: "regex",
+          needsRefresh: false,
+        },
+      ],
+      findings: [
+        {
+          ruleId: "JS-AIDETECT-04",
+          name: "No em dash",
+          category: "AIDETECT",
+          severity: "ERROR",
+          action: "blocks",
+          message: "Do not use em dashes in final documents.",
+          match: "\u2014",
+          start: 16,
+          end: 17,
+          checkType: "regex",
+          needsRefresh: false,
+        },
+      ],
+      missingInputs: [],
+      artifactsReady: true,
+    });
+
+    expect(cards).toHaveLength(1);
+    expect(cards[0]).toMatchObject({
+      owner: "jobsmith",
+      status: "blocked",
+      reason: "Do not use em dashes in final documents.",
+      proofNeeded: 'Resolve or justify the matched text: "\u2014".',
+    });
   });
 });
