@@ -307,6 +307,16 @@ function ManagedRunReport({
   );
   const visibleBlockers = report.blockers.slice(0, 4);
   const visibleFindings = report.deterministicFindings.slice(0, 3);
+  const finalReportLines = [
+    `Submit-ready status: ${report.submitReady ? "ready" : "not ready"}`,
+    `Rules passed: ${report.rulesPassed}`,
+    `Blockers: ${report.blockers.length}`,
+    `Deterministic findings: ${report.deterministicFindings.length}`,
+    `Review-needed rules: ${report.reviewNeededCount}`,
+    `Decision cards: ${decisionSummary.resolved} resolved, ${decisionSummary.unresolved} unresolved`,
+    `Artifacts: ${report.artifacts.filter((artifact) => artifact.ready).length}/${report.artifacts.length} ready`,
+    `Proof receipts: ${report.proof.length}`,
+  ];
 
   return (
     <section
@@ -376,6 +386,16 @@ function ManagedRunReport({
             <div>
               <dt className="font-semibold text-white/45">Next safe action</dt>
               <dd className="mt-1 text-white/70">{report.nextSafeAction}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-white/45">Submit-ready proof summary</dt>
+              <dd className="mt-1 space-y-1 text-white/70" data-testid="jobsmith-final-report-proof-summary">
+                {finalReportLines.map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))}
+              </dd>
             </div>
             <div>
               <dt className="font-semibold text-white/45">Artifacts</dt>

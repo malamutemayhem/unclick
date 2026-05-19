@@ -96,6 +96,12 @@ describe("JobsmithPage", () => {
     expect(managedRunReport).toHaveTextContent("Run proof");
     expect(managedRunReport).toHaveTextContent("1 resolved");
     expect(managedRunReport).toHaveTextContent("Not submit-ready");
+    const proofSummary = within(managedRunReport).getByTestId("jobsmith-final-report-proof-summary");
+    expect(proofSummary).toHaveTextContent("Submit-ready status: not ready");
+    expect(proofSummary).toHaveTextContent("Rules passed:");
+    expect(proofSummary).toHaveTextContent("Decision cards: 1 resolved");
+    expect(proofSummary).toHaveTextContent("Artifacts: 1/1 ready");
+    expect(proofSummary).toHaveTextContent("Proof receipts: 1");
     expect(managedRunReport).toHaveTextContent("Proof needed:");
     expect(managedRunReport).toHaveTextContent("Evidence: Graduation-year review is still unresolved");
 
