@@ -1,0 +1,1068 @@
+# Anti-AI Detection, Anti-AI Slop, and Humanizer Prompt Megalist
+
+Generated: 2026-05-19
+
+Scope: CVs, cover letters, LinkedIn, outreach, professional bios, work samples, web copy, reports, essays, and general written content.
+
+Important boundary: this is not a bypass-cheating playbook. AI detectors are probabilistic and can be wrong. The durable fix is genuine authorship, source grounding, human review, specific evidence, and a voice the author can explain. Prompts below are written for legitimate editing, quality control, and provenance, not for misrepresenting authorship or violating an employer, school, client, or platform policy.
+
+## Current Research Signals
+
+- Turnitin's 2026 guidance says its AI report may misidentify human, AI-generated, and AI-paraphrased text, and should not be the sole basis for adverse action.
+- Turnitin now distinguishes likely AI-generated text from likely AI-generated text that has been AI-paraphrased, but this is only in its English detector at the time of the guide checked.
+- Turnitin suppresses or marks low scores under 20 percent because low-score results are less reliable and more prone to false positives.
+- Turnitin requires long-form prose and at least 300 words, so bullets, tables, code, scripts, annotated bibliographies, and unconventional formats are weak detector targets.
+- OpenAI discontinued its original AI text classifier in July 2023 because of low accuracy, which remains an important cautionary precedent.
+- Stanford HAI found major bias risk for non-native English writers, with many TOEFL essays misclassified as AI by detectors tested in that study.
+- NBER 2025 research is more nuanced: some commercial detectors performed far better than open-source baselines in their tests, but the study still frames detector use around false positives, false negatives, thresholds, and policy tolerance.
+- ACL 2025 DAMAGE research treats AI humanizers as adversarial modification tools and studies how they change AI-generated text.
+- Recent detector research increasingly treats paraphrasing and "humanizing" as a cat-and-mouse attack surface, not a stable solution.
+- Google Search guidance does not ban AI-assisted content just because AI was used.
+- Google Search guidance does target scaled, low-value, unoriginal content created mainly to manipulate search rankings.
+- Google's helpful-content guidance repeatedly asks whether content has original information, analysis, sourcing, expertise, trust, and value beyond obvious summaries.
+- Wikipedia's "Signs of AI writing" is a community field guide, not a policy or universal detector.
+- Wikipedia's guide is useful because it catalogs surface tells: inflated significance, vague analysis, AI vocabulary clusters, rule-of-three phrasing, over-formatted lists, markup leftovers, broken citations, and false source confidence.
+- Merriam-Webster made "slop" its 2025 word of the year, reflecting the cultural shift from "AI detection" to "quality and trust detection."
+- AI slop is increasingly discussed as low-effort, generic, mass-producible content with superficial competence but weak substance.
+- Reddit and forum humanizer advice is noisy, often promotional, and often aimed at bypassing detectors. Treat it as market signal, not evidence that a method is safe, ethical, or reliable.
+- Humanizer websites commonly market "perplexity" and "burstiness" because many detector explanations mention predictability and sentence-variation patterns.
+- Chasing perplexity and burstiness can make writing worse: weird synonyms, forced sentence variety, awkward tone shifts, and meaning drift are themselves humanizer-tool residue.
+- Human reviewers increasingly look for proof, lived detail, factual consistency, and whether the writer can explain choices, not only for surface style.
+
+## Detector-Risk Rules That Are Ethical
+
+- Do not optimise for a detector score as the primary target.
+- Optimise for evidence, specificity, reader trust, and policy compliance.
+- Keep a master source file of facts, metrics, dates, role titles, projects, links, and proof.
+- Keep version history where possible.
+- Keep notes showing which parts were drafted by the author, which parts were edited with tools, and which facts came from source material.
+- Follow the target organisation's AI-use policy.
+- If disclosure is requested, disclose AI assistance accurately.
+- If AI assistance is forbidden, do not use it.
+- If AI is allowed for editing only, use it only for editing and keep the original authorial work.
+- Never submit generated claims that the author cannot explain in an interview.
+- Never submit a CV bullet that the candidate cannot defend with a two-minute story.
+- Never submit a cover letter paragraph that could be sent to fifty employers unchanged.
+- Do not upload private CVs, names, addresses, phone numbers, salary notes, client names, internal projects, or confidential metrics to random detector or humanizer sites.
+- If testing a detector is unavoidable, use a redacted copy.
+- Do not assume "0 percent AI" means safe.
+- Do not assume "AI detected" means misconduct.
+- Treat detector output as one weak signal, not truth.
+- Use human review from someone who knows the author or the subject.
+- Use a read-aloud pass to catch robotic rhythm.
+- Use a source-trace pass to catch unsupported claims.
+- Use a policy pass to catch prohibited assistance.
+- Use a privacy pass before uploading anything externally.
+- Keep all drafts and prompts for high-stakes documents.
+- Preserve comments and tracked changes until final export if process evidence may matter.
+- Use Google Docs, Word version history, Git commits, or dated local versions for provenance.
+- Keep handwritten notes, research notes, outline versions, and source links where relevant.
+- In education settings, keep assignment instructions, allowed-tool policy, outline, drafts, feedback, and revision history.
+- In hiring settings, keep job ad, tailoring notes, proof map, CV version, cover letter version, and submission date.
+- In publishing settings, keep source interviews, transcripts, original analysis, data files, and editorial notes.
+- If accused, respond with process evidence, not detector counter-scores.
+- Do not use hidden text, white text, zero-width characters, Unicode homoglyphs, deliberate OCR corruption, invisible prompt injections, metadata tricks, or random misspellings.
+- Do not translate text through multiple languages to launder style.
+- Do not use synonym spinners as a final pass.
+- Do not use a humanizer without manually checking meaning, tone, and policy.
+
+## Core Anti-Slop Principle
+
+- Every sentence should earn its place.
+- Every major claim should be source-traceable.
+- Every paragraph should add something non-obvious.
+- Every bullet should contain a real action, object, context, and result where possible.
+- Every adjective should either be proved or removed.
+- Every metric should be defensible.
+- Every rewrite should preserve meaning.
+- Every final document should sound like a real person with real constraints wrote it.
+
+## Evidence and Provenance Fixes
+
+- Add the source of each claim in private notes.
+- Map every CV claim to a role, project, artefact, metric, or witness.
+- Add role context: company type, team size, user group, budget, region, customer segment, system, or workflow.
+- Add time context: month, quarter, release cycle, campaign period, audit period, sprint, or deadline.
+- Add scale: users, volume, revenue, cost, tickets, cases, leads, accounts, locations, staff, assets, integrations, pages, datasets, incidents, or calls.
+- Add constraint: deadline, legacy system, compliance rule, budget limit, staffing shortage, migration risk, stakeholder conflict, data quality issue, or customer pressure.
+- Add method: tool, process, framework, analysis method, test method, governance method, design method, or communication method.
+- Add result: time saved, cost avoided, revenue influenced, error reduced, quality improved, adoption, retention, approval, incident avoided, audit passed, launch completed, or decision enabled.
+- Add proof route: portfolio link, GitHub link, public case study, talk, certificate, publication, screenshot, shipped product, testimonial, or reference.
+- Add claim boundary: led, co-led, owned, supported, contributed, assisted, exposed to, trained on, or observed.
+- Add who used the work.
+- Add who benefited from the work.
+- Add what changed after the work.
+- Add what would have happened if the work was not done.
+- Add what the author personally did.
+- Add what the team did.
+- Add what was inherited.
+- Add what was improved.
+- Add what was shipped.
+- Add what was measured.
+- Add what was learned.
+- Add what was deliberately not done.
+- Add what tradeoff was made.
+- Add what failure or setback was recovered from.
+- Add what decision was influenced.
+- Add what risk was reduced.
+- Add what manual work disappeared.
+- Add what customer or stakeholder friction improved.
+- Add what compliance or audit requirement was met.
+
+## Specificity Fixes
+
+- Replace "projects" with named or described projects.
+- Replace "stakeholders" with actual stakeholder groups.
+- Replace "systems" with system names or system types.
+- Replace "data" with source, field, dataset, dashboard, report, pipeline, or metric.
+- Replace "processes" with workflow names and before-after states.
+- Replace "content" with content type, audience, channel, cadence, and result.
+- Replace "campaigns" with channel, audience, spend, objective, and outcome.
+- Replace "customers" with segment, volume, region, or account type.
+- Replace "teams" with team size, function, seniority mix, or cross-functional partners.
+- Replace "tools" with exact tools and what they were used for.
+- Replace "automation" with trigger, input, output, control, and result.
+- Replace "AI" with model, feature, workflow, task, human review process, and risk control.
+- Replace "prompt engineering" with "prompt composition" if that is the preferred brand wording.
+- Replace "improved performance" with the metric that moved.
+- Replace "streamlined" with the bottleneck removed.
+- Replace "enhanced" with what became easier, faster, safer, cheaper, clearer, or more reliable.
+- Replace "optimised" with the method and result.
+- Replace "transformed" with before and after.
+- Replace "supported" with the task performed.
+- Replace "collaborated" with the contribution and handoff.
+- Replace "responsible for" with owned, ran, scheduled, reviewed, reconciled, configured, migrated, resolved, trained, wrote, tested, or reported.
+- Replace "leveraged" with used, analysed, built, negotiated, queried, configured, implemented, trained, audited, or reconciled.
+- Replace "utilised" with used.
+- Replace "facilitated" with ran, coordinated, hosted, scheduled, mediated, or documented.
+- Replace "spearheaded" only when the author truly initiated and led the work.
+- Replace "played a key role" with the exact role.
+- Replace "various" with the actual number or category.
+- Replace "multiple" with the number if known.
+- Replace "several" with the number if known.
+- Replace "significant" with measured size.
+- Replace "robust" with the failure mode handled.
+- Replace "scalable" with the scale tested.
+- Replace "seamless" with the friction removed.
+- Replace "innovative" with what was new, compared with what, and why it mattered.
+- Replace "cutting-edge" with the actual technology or method.
+- Replace "world-class" with evidence or delete it.
+
+## Voice and Human Specificity Fixes
+
+- Compare the final piece with three real writing samples from the author.
+- Preserve the author's natural level of formality.
+- Preserve the author's usual directness.
+- Preserve the author's usual punctuation habits unless the target format requires otherwise.
+- Preserve regional spelling: Australian, UK, US, or Canadian as appropriate.
+- Preserve the author's real domain language.
+- Preserve the author's real confidence level.
+- Preserve the author's real vocabulary level.
+- Preserve a few natural asymmetries in paragraph length.
+- Preserve occasional plain sentences.
+- Preserve honest uncertainty where the facts are uncertain.
+- Preserve opinion where opinion is expected.
+- Preserve humility without self-erasure.
+- Preserve specificity even when compressing.
+- Avoid making every sentence smooth.
+- Avoid making every paragraph the same size.
+- Avoid making every point equally important.
+- Avoid making every claim positive.
+- Avoid making the writer sound like a brand account.
+- Avoid overwriting a practical person into a corporate motivational poster.
+- Avoid turning technical writing into a TED Talk.
+- Avoid turning a CV into a sales page.
+- Avoid turning a cover letter into a love letter to the company.
+- Avoid fake casualness.
+- Avoid fake vulnerability.
+- Avoid forced contractions.
+- Avoid slang unless the author uses it naturally.
+- Avoid adding jokes to serious documents.
+- Avoid adding typos as a humanizer trick.
+- Avoid "messy" edits that reduce clarity.
+- Avoid adopting a Reddit voice outside Reddit.
+- Avoid copying another person's style so closely it becomes mimicry or misrepresentation.
+
+## Structure Fixes
+
+- Break the default intro-body-conclusion shape when it does not serve the content.
+- Start with the strongest evidence, not throat-clearing.
+- Use a summary only when the reader needs orientation.
+- Put the main answer in the first screen.
+- Avoid "In today's fast-paced world" openings.
+- Avoid "In an ever-evolving landscape" openings.
+- Avoid "Have you ever wondered" openings unless the author actually writes that way.
+- Avoid "This article explores" openings.
+- Avoid "In this guide, we will delve" openings.
+- Avoid ending with a generic recap.
+- End on the actual implication, next step, decision, or strongest detail.
+- Do not add "Overall" just to close.
+- Do not add "In conclusion" unless the genre expects it.
+- Do not use a list when a short paragraph is clearer.
+- Do not use a paragraph when bullets are more scannable.
+- Avoid exact three-part structures unless the content really has three parts.
+- Avoid exactly five or seven takeaways by default.
+- Avoid "not only X, but also Y" unless the contrast matters.
+- Avoid "not X, but Y" as a reflex.
+- Avoid "from X to Y" false-range phrasing.
+- Avoid over-balanced paragraphs where every sentence mirrors the previous one.
+- Vary bullet openings.
+- Vary paragraph length naturally.
+- Keep dense professional content scannable.
+- Keep one idea per CV bullet where possible.
+- Keep cover-letter paragraphs short.
+- Keep LinkedIn About sections tighter than a blog bio.
+- Keep outreach messages short enough to read on mobile.
+
+## Sentence-Level Fixes
+
+- Search for sentences over 35 words.
+- Split long sentences that carry two claims.
+- Cut opening prepositional padding.
+- Cut duplicate transitions.
+- Cut throat-clearing phrases.
+- Move the verb earlier.
+- Use concrete nouns.
+- Use active verbs when they clarify ownership.
+- Use passive voice only when the actor is unknown, irrelevant, or tactically omitted.
+- Use one strong verb instead of verb plus adverb.
+- Turn nominalisations back into verbs where possible.
+- Replace "the implementation of" with "implemented" or the exact action.
+- Replace "the creation of" with "created", "built", "wrote", "launched", or "designed".
+- Replace "the utilisation of" with "used".
+- Replace "was able to" with the action.
+- Replace "helped to" with helped plus exact object, or delete helped if the author owned it.
+- Delete "that" where it adds no clarity.
+- Delete "very", "really", "highly", "extremely", and "incredibly" unless needed.
+- Delete "various", "numerous", and "many" when specifics are possible.
+- Delete "clearly" if the sentence is clear.
+- Delete "simply" if the task was not simple.
+- Delete "effectively" unless the effectiveness is measured.
+- Delete "successfully" unless failure was likely and success matters.
+- Delete "comprehensive" unless scope is listed.
+- Delete "strategic" unless a strategy is visible.
+- Delete "impactful" unless impact is visible.
+- Delete "meaningful" unless meaning is visible.
+- Delete "valuable" unless value is visible.
+- Delete "key" unless the item is genuinely key.
+- Delete "crucial" unless stakes justify it.
+- Delete "pivotal" almost always.
+- Delete "testament to" almost always.
+- Delete "underscores" unless it is natural in the author voice.
+- Delete "showcases" unless it describes an actual showcase.
+- Delete "fosters" unless there is a real fostered behaviour.
+- Delete "cultivates" unless there is a real cultivation process.
+- Delete "navigates" unless the navigation metaphor helps.
+- Delete "realm" unless discussing an actual realm in a relevant genre.
+- Delete "landscape" unless the landscape is literal or industry-analysis standard.
+- Delete "tapestry" almost always.
+- Delete "delve" unless the author truly uses it.
+- Delete "meticulous" unless evidence supports it.
+- Delete "holistic" unless the scope is genuinely whole-system.
+- Delete "multifaceted" unless the facets are named.
+- Delete "robust" unless the failure modes are named.
+- Delete "seamless" unless the handoff or user flow is demonstrably seamless.
+- Delete "unlock" unless there is an actual lock, blocker, or capability.
+- Delete "elevate" unless the thing is literally raised or a brand voice expects it.
+- Delete "drive" when "increase", "reduce", "ship", "sell", "launch", or "resolve" is clearer.
+- Delete "empower" unless the audience gained a real capability.
+- Delete "harness" unless the source of power matters.
+- Delete "leverage" unless it is finance or physics.
+
+## AI Vocabulary Watchlist
+
+- actionable insights
+- at scale
+- at the forefront
+- battle-tested
+- best-in-class
+- bolster
+- comprehensive
+- craft
+- crucial
+- curated
+- cutting-edge
+- deep dive
+- delve
+- digital age
+- dynamic
+- elevate
+- empower
+- end-to-end
+- enduring
+- enhance
+- enterprise-grade
+- ever-evolving
+- facilitate
+- force multiplier
+- foster
+- game-changing
+- holistic
+- in today's world
+- innovative
+- intentional
+- intricate
+- journey
+- key
+- landscape
+- leverage
+- meticulous
+- multifaceted
+- navigate
+- nuanced
+- orchestration
+- paradigm
+- pivotal
+- production-grade
+- proven track record
+- purpose-built
+- realm
+- reimagine
+- robust
+- seamless
+- showcase
+- single source of truth
+- spearhead
+- state-of-the-art
+- streamline
+- synergy
+- tapestry
+- testament
+- thoughtful
+- transformative
+- unlock
+- underscore
+- unique blend
+- valuable insights
+- vibrant
+- white-glove
+- world-class
+- worth noting
+
+## Newer 2025-2026 AI Tells
+
+- Too many "quiet" adjectives: quiet confidence, quiet clarity, quiet power, quiet luxury, quiet discipline.
+- Too many "small but meaningful" phrasings.
+- Too many "the real unlock" phrasings.
+- Too many "the signal is" phrasings.
+- Too many "what matters is" phrasings.
+- Too many "the shape of" phrasings.
+- Too many "the throughline" phrasings.
+- Too many "the loop" phrasings.
+- Too many "this is where" transitions.
+- Too many "it is less about X and more about Y" structures.
+- Too many "not because X, but because Y" structures.
+- Too many "the answer is not X. It is Y" structures.
+- Too many "in practice, this means" pivots.
+- Too many "the catch is" pivots.
+- Too many "to be clear" hedges.
+- Too many "worth noting" hedges.
+- Too many "one useful way to think about it" prefaces.
+- Too many "there are two things going on" prefaces.
+- Too many "small, focused, and defensible" tricolons.
+- Too many "fast, practical, and reliable" tricolons.
+- Too many "clean, simple, and effective" tricolons.
+- Too many "this gives you X without Y" patterns.
+- Too many "strong opinions, loosely held" derivatives.
+- Too many "it depends, but" openings.
+- Too many "the durable fix" phrases.
+- Too many tidy mini-frameworks.
+- Too many headline-style labels inside bullets.
+- Too many confident category names invented for the moment.
+- Too many polished disclaimers.
+- Too many helpful caveats in low-stakes contexts.
+- Too many "calm" or "clean" style adjectives.
+- Too many motivational closing lines.
+- Too much perfect fairness to all sides.
+- Too much assistant-like helpfulness in a human document.
+
+## Punctuation and Formatting Fixes
+
+- Remove em dashes if the author does not naturally use them or the brand bans them.
+- Replace em dashes with commas, colons, parentheses, or sentence breaks where cleaner.
+- Do not overuse semicolons as sophistication theatre.
+- Do not overuse colons after bold list labels.
+- Do not mix smart quotes and straight quotes.
+- Do not mix hyphen, en dash, and em dash styles.
+- Do not leave Markdown headings in a final business document unless Markdown is the format.
+- Do not leave bold syntax like **this** in a Word or email document.
+- Do not leave code fences around prose.
+- Do not leave blockquote markers in non-quoted content.
+- Do not leave "Here is a revised version" in the document.
+- Do not leave "Certainly" or "Absolutely" from the AI response.
+- Do not leave prompt text, refusal text, or assistant notes.
+- Do not leave source markers like turn0search0, oai_citation, contentReference, attributionIndex, or citation-card fragments.
+- Do not leave placeholder tags like [insert example].
+- Do not leave template notes.
+- Do not leave "as of my last update" disclaimers.
+- Do not leave AI tool metadata in PDF properties.
+- Remove tracked changes before submission unless requested.
+- Remove private comments before submission.
+- Remove hidden text.
+- Remove unused styles.
+- Remove old file titles.
+- Check PDF author, title, subject, keywords, creator, and producer fields.
+- Check links after export.
+- Check copy-paste output into plain text.
+- Check mobile preview for emails and LinkedIn.
+- Check black-and-white readability for PDFs.
+- Check ATS-safe selectable text for CVs.
+
+## Citation and Source Fixes
+
+- Verify every URL.
+- Verify every DOI.
+- Verify every ISBN.
+- Verify every author name.
+- Verify every publication date.
+- Verify every statistic.
+- Verify every quote.
+- Verify that the cited source actually supports the sentence.
+- Replace vague "studies show" with a named study or delete it.
+- Replace "experts agree" with named experts or delete it.
+- Replace "research suggests" with source, method, and scope.
+- Do not cite a source you have not opened.
+- Do not cite search result snippets as if they were articles.
+- Do not cite AI-generated summaries as primary evidence.
+- Do not cite another article's citation without checking the original when accuracy matters.
+- Do not use broken links.
+- Do not use irrelevant citations to launder a claim.
+- Do not over-cite obvious facts in a promotional way.
+- Do not under-cite surprising claims.
+- Add dates for unstable facts.
+- Add jurisdiction for legal, education, hiring, medical, and financial guidance.
+- Add sample size for studies when it matters.
+- Add uncertainty when evidence is preliminary.
+- Separate evidence from inference.
+- Label your own inference.
+
+## CV Anti-Slop Fixes
+
+- Treat the CV as an evidence packet.
+- Put the strongest role-fit proof in the top third.
+- Replace generic summaries with proof-led summaries.
+- Remove "highly motivated", "results-driven", "passionate", "detail-oriented", and "team player" unless backed immediately by evidence.
+- Avoid an objective section unless the market expects it.
+- Use a factual headline, not a personality slogan.
+- Keep role titles, dates, employers, education, and LinkedIn consistent.
+- Use standard headings.
+- Use clean one-column structure for ATS versions.
+- Use real selectable text.
+- Avoid sidebars, text boxes, icons, tables, graphics, and progress bars in ATS versions.
+- Use canonical skill names.
+- Put critical skills in work context, not only in a skill cloud.
+- Expand acronyms once where useful.
+- Do not stuff synonyms.
+- Do not add tools not used.
+- Do not mirror the job ad so perfectly it smells copied.
+- Tailor by reordering proof, not inventing fit.
+- Build a proof map before editing.
+- Mark each claim as strong, medium, weak, assisted, exposure, training, or aspiration.
+- Label shared achievements honestly.
+- Do not borrow team results as solo wins.
+- Avoid fake-looking exact metrics.
+- Avoid clusters of round numbers if unsupported.
+- Use sensible precision.
+- Use ranges where exact numbers are confidential.
+- Use "approx." only when the estimate method is defensible.
+- Add scope when a metric is unavailable.
+- Add before-and-after when possible.
+- Add customer or stakeholder impact.
+- Add tools only where they matter.
+- Avoid "owned end-to-end" unless true.
+- Avoid "led" unless the author led people, workstream, decision, or delivery.
+- Avoid "architected" unless architecture decisions were actually made.
+- Avoid "strategic" unless strategy is visible.
+- Avoid "senior" language with junior evidence.
+- Avoid "hands-on" language with no hands-on evidence.
+- Avoid "AI product" claims when the work was prompting only.
+- Separate prototype from production.
+- Separate internal tool from customer-facing product.
+- Separate automation from autonomous agent.
+- Separate model integration from model training.
+- Separate evaluation from vibe checks.
+- Separate prompt use from product ownership.
+- Prepare interview stories for every major bullet.
+- Ask: what happened before, what did I do, what did others do, what changed, how do I know, what would I do differently?
+- Remove bullets that cannot survive interview probing.
+- Use a final "AI residue" search before sending.
+
+## CV Bullet Surgery
+
+- Weak: "Responsible for improving reporting processes."
+- Fix direction: name report, user, tool, cadence, before-after, and decision enabled.
+- Weak: "Worked with stakeholders to deliver projects."
+- Fix direction: name stakeholder groups, project type, delivery constraint, and result.
+- Weak: "Used data to generate insights."
+- Fix direction: name data source, analysis, output, decision, and measured effect.
+- Weak: "Streamlined operations."
+- Fix direction: name bottleneck, old process, new process, volume, and time saved.
+- Weak: "Supported marketing campaigns."
+- Fix direction: name channel, audience, asset, spend or reach, and outcome.
+- Weak: "Improved customer experience."
+- Fix direction: name friction, customer group, fix, metric, and feedback.
+- Weak: "Managed social media."
+- Fix direction: name channels, cadence, content type, audience, growth, engagement, or conversion.
+- Weak: "Implemented new system."
+- Fix direction: name system, migration scope, users, training, risk, and adoption.
+- Weak: "Helped with compliance."
+- Fix direction: name standard, audit, control, evidence, finding, and outcome.
+- Weak: "Built dashboards."
+- Fix direction: name audience, source systems, metrics, refresh cadence, and decisions.
+- Weak: "Automated tasks."
+- Fix direction: name trigger, input, output, error handling, human review, and hours saved.
+- Weak: "Provided leadership."
+- Fix direction: name team, decision, conflict, coaching, delivery, or outcome.
+- Weak: "Solved complex problems."
+- Fix direction: name the problem and why it was hard.
+- Weak: "Created content."
+- Fix direction: name content type, brief, audience, distribution, and performance.
+
+## Cover Letter Anti-Slop Fixes
+
+- Remove "I am writing to express my interest."
+- Remove "I was excited to see."
+- Remove "I believe my skills make me an ideal candidate."
+- Remove "I would be a valuable asset."
+- Remove generic company praise from the homepage.
+- Remove "your commitment to excellence" unless evidenced.
+- Start with the role and a concrete fit hook.
+- Use one proof story, not a CV summary.
+- Connect one company-specific reason to one candidate-specific proof point.
+- Keep the tone calm.
+- Avoid over-eagerness.
+- Avoid begging language.
+- Avoid repeating every requirement.
+- Avoid pretending deep personal connection to a company just discovered.
+- Use the employer's language only where true.
+- Mention AI assistance only if policy asks or if transparency is strategically appropriate.
+- Do not over-polish the letter into generic warmth.
+- Make the closing specific and brief.
+- Keep it under one page unless a formal selection-criteria response is required.
+
+## LinkedIn and Outreach Anti-Slop Fixes
+
+- Use first person in LinkedIn About unless the market expects third person.
+- Keep LinkedIn About shorter than a biography.
+- Make the first two lines useful before "see more."
+- Remove generic "passionate about innovation" lines.
+- Put proof in Featured.
+- Pin current, relevant work.
+- Remove stale or contradictory skills.
+- Keep role dates aligned with the CV.
+- Keep titles aligned with the CV.
+- Use recommendations that support the target role.
+- Avoid AI-generated comments that flatter without substance.
+- Avoid "Great insights!" comments.
+- Avoid "This really resonated" without a specific reason.
+- In cold outreach, mention the role, one relevant proof point, and one specific reason for contact.
+- Do not send a six-paragraph AI email to a busy hiring manager.
+- Do not over-personalise from scraped details.
+- Do not use fake familiarity.
+- Do not use "hope this finds you well" if the author never says it.
+- Do not use "circling back" unless it matches the relationship.
+
+## Web and SEO Anti-Slop Fixes
+
+- Add original research.
+- Add first-hand experience.
+- Add named examples.
+- Add screenshots where useful and allowed.
+- Add test methodology.
+- Add dates to tests.
+- Add what changed since the old advice.
+- Add what the author tried and what failed.
+- Add limitations.
+- Add tradeoffs.
+- Add comparison tables only where they help.
+- Add expert review when claims are specialised.
+- Add author expertise.
+- Add source transparency.
+- Add internal links only where useful.
+- Avoid scaled pages with thin variable swaps.
+- Avoid city-page boilerplate.
+- Avoid "best X" pages with no testing.
+- Avoid fake review data.
+- Avoid affiliate-driven praise with no method.
+- Avoid scraping and paraphrasing top results.
+- Avoid keyword-stuffed FAQ blocks.
+- Avoid "ultimate guide" unless it is actually deep.
+- Avoid "comprehensive" unless it is comprehensive.
+- Avoid content that says what every competitor says.
+- Ask: what is here that was not obvious before?
+- Ask: would anyone bookmark this?
+- Ask: would a practitioner trust this?
+- Ask: is the page useful without search traffic?
+
+## Academic and Report Anti-Slop Fixes
+
+- Follow the institution's AI policy exactly.
+- Use AI only in permitted ways.
+- Keep original notes and drafts.
+- Keep source PDFs and annotations.
+- Keep your thesis, argument, and analysis your own.
+- Do not outsource interpretation.
+- Do not submit generated paragraphs as your own where prohibited.
+- Avoid summary without argument.
+- Avoid sources that are not read.
+- Avoid fake citations.
+- Avoid vague "scholars argue" wording.
+- Define terms precisely.
+- Use discipline-specific conventions.
+- Include counterarguments where relevant, not as an automatic balance ritual.
+- Use evidence to support claims.
+- Distinguish paraphrase from analysis.
+- Distinguish common knowledge from cited claims.
+- Keep quotations accurate and brief.
+- Use citation style consistently.
+- Make the reasoning visible.
+- Make limitations visible.
+- Do not add "moreover" every second paragraph.
+- Do not add "furthermore" as a transition crutch.
+- Do not add elevated vocabulary to sound academic.
+- Do not make non-native English writing artificially "native" if it erases the author's real voice.
+- Use writing support ethically: grammar, clarity, structure, source management, and feedback.
+
+## Humanizer-Tool Residue to Remove
+
+- Weird synonyms that technically fit but feel wrong.
+- Randomly casual phrases inside formal prose.
+- Meaning drift.
+- Tone drift.
+- Mixed register.
+- Inconsistent author voice.
+- Inconsistent regional spelling.
+- Sudden contractions.
+- Sudden slang.
+- Unnatural idioms.
+- Choppy sentence variety inserted for detector metrics.
+- Run-on sentences inserted for detector metrics.
+- Over-correction into awkwardness.
+- Extra examples that were not in the source.
+- Added opinions the author does not hold.
+- Added anecdotes that did not happen.
+- Generic "personal" lines.
+- Fake sensory detail.
+- Artificial imperfections.
+- Broken transitions.
+- Lost technical precision.
+- Lost legal precision.
+- Lost metric precision.
+- Lost source support.
+- Rewritten quotes.
+- Changed names, dates, or numbers.
+- Changed modality: "may" becoming "will."
+- Changed ownership: "team" becoming "I."
+- Changed certainty: "estimated" becoming "proved."
+- Changed scope: "pilot" becoming "rollout."
+- Changed status: "prototype" becoming "production."
+- Detector-passing but reader-failing prose.
+
+## AI Trends I Commonly See In My Own Output
+
+- I over-structure answers into neat sections.
+- I default to short title-case headings.
+- I create tidy frameworks too quickly.
+- I make lists too balanced.
+- I make every bullet grammatically parallel.
+- I use "specific, practical, and..." style tricolons.
+- I use "the main thing is" or similar pivots.
+- I use "the durable fix" phrasing.
+- I overuse "signal" as a noun.
+- I overuse "shape" as a metaphor.
+- I overuse "loop" as a process metaphor.
+- I overuse "spine" as a structure metaphor.
+- I overuse "surface" as a product metaphor.
+- I sometimes say "not X, but Y" because it feels clarifying.
+- I sometimes make a caveat sound too polished.
+- I can be too even-handed when a stronger stance would be more human.
+- I can use warm, polished reassurance that sounds assistant-like.
+- I can produce "clean" prose that lacks a scar from real experience.
+- I can over-explain obvious context.
+- I can add final summary lines the reader does not need.
+- I can default to "Here is" openings.
+- I can write in a calm editorial voice that is too smooth for some authors.
+- I can unconsciously compress disagreement or frustration out of a person's voice.
+- I can replace rough but authentic phrasing with generic professional phrasing.
+- I can make a messy, true story sound like a case study.
+- I can overuse "clear" and "useful."
+- I can invent labels for patterns rather than just naming the plain issue.
+- I can sound more confident than the evidence deserves if not forced to cite sources.
+- I can flatten a user's idiosyncratic voice if told only to "polish."
+
+## Popular Humanizer Prompt Families Seen Online
+
+- "Make this sound more human."
+- "Humanize this text."
+- "Rewrite this in a natural voice."
+- "Rewrite this so it sounds like me."
+- "Make this less robotic."
+- "Make this less AI-sounding."
+- "Remove AI tone."
+- "Remove ChatGPT tone."
+- "Avoid AI words."
+- "Avoid em dashes."
+- "Avoid corporate jargon."
+- "Avoid fluff."
+- "Use simple language."
+- "Use short, direct sentences."
+- "Use active voice."
+- "Vary sentence length."
+- "Increase burstiness."
+- "Increase perplexity."
+- "Make word choices less predictable."
+- "Write with more personality."
+- "Add personal voice."
+- "Add opinion."
+- "Add warmth."
+- "Make it conversational."
+- "Make it casual professional."
+- "Make it sound like a Reddit comment."
+- "Make it sound like a human blog post."
+- "Make it sound like a student."
+- "Make it sound like a senior professional."
+- "Make it sound like a founder."
+- "Make it sound like a subject-matter expert."
+- "Write at an eighth-grade reading level."
+- "Write in plain English."
+- "Use contractions."
+- "Do not use contractions."
+- "Add small imperfections."
+- "Keep meaning unchanged."
+- "Preserve my tone."
+- "Use my writing sample as the style guide."
+- "Rewrite with my vocabulary."
+- "Make it less polished."
+- "Make it less formal."
+- "Make it more direct."
+- "Make it more specific."
+- "Add concrete examples."
+- "Add lived experience."
+- "Add current references."
+- "Add human anecdotes."
+- "Do not sound like marketing copy."
+- "Do not sound like an essay bot."
+- "Do not sound like a press release."
+- "No listicle structure."
+- "No rule of three."
+- "No 'not only, but also.'"
+- "No 'in conclusion.'"
+- "No 'overall.'"
+- "No 'delve'."
+- "No 'tapestry'."
+- "No 'ever-evolving landscape'."
+- "No 'testament'."
+- "No 'underscore'."
+- "No 'pivotal'."
+- "No 'foster'."
+- "No 'meticulous'."
+- "No "as an AI" disclaimers."
+- "Remove generic transitions."
+- "Use natural paragraph breaks."
+- "Rewrite with higher rhythm variation."
+- "Rewrite for readability, not detection."
+- "Line edit only."
+- "Do not invent facts."
+- "Ask questions before rewriting."
+- "Show what changed."
+- "Flag unsupported claims."
+- "Do a human editor pass."
+- "Do a voice-preservation pass."
+- "Do an anti-slop pass."
+- "Do a source-grounding pass."
+- "Do a final proofread."
+
+## Safer Humanizer Prompts You Can Actually Use
+
+- "Line edit this for clarity and natural rhythm. Do not change facts, add facts, or make it more impressive."
+- "Rewrite this in my voice using the sample below. Preserve my level of formality, punctuation habits, and vocabulary."
+- "Make this more specific by asking me for missing facts before you rewrite it."
+- "Highlight every vague phrase and suggest the exact type of detail needed to fix it."
+- "Find sentences that sound generic enough to belong to another person. Explain why and propose a more specific version."
+- "Replace inflated adjectives with evidence. If no evidence exists, delete the adjective."
+- "Turn this from polished generic writing into direct professional writing. Keep it credible and plain."
+- "Remove corporate jargon and replace it with concrete actions."
+- "Remove AI-cliche wording. Do not add slang, typos, or fake casualness."
+- "Make this sound like a real person wrote it, but do that by improving specificity and flow, not by adding errors."
+- "Vary sentence length only where it improves readability."
+- "Break up repetitive sentence structures, but preserve the meaning exactly."
+- "Find where the logic feels too tidy or over-balanced. Suggest a more natural structure."
+- "Cut any sentence that repeats a previous point."
+- "Cut any sentence that only announces importance without proving it."
+- "Rewrite the opening so it starts with the concrete point, not a broad setup."
+- "Rewrite the ending so it lands on the implication, not a recap."
+- "Flag all unsupported claims in this draft."
+- "For each claim, tell me what source or evidence I need."
+- "Create a private proof map from this CV bullet list."
+- "For each CV bullet, ask what changed, who used it, how often, and how we know."
+- "Rewrite these CV bullets using only the facts I provide. If a metric is missing, use scope instead of inventing one."
+- "Find all places where the author sounds more senior than the evidence supports."
+- "Find all places where the author sounds less senior than the evidence supports."
+- "Find every verb that overclaims ownership."
+- "Replace weak verbs with accurate verbs, not inflated verbs."
+- "Mark each claim as led, co-led, owned, supported, assisted, trained, exposed, or aspirational."
+- "Compress this without losing the evidence."
+- "Make this more scannable for a recruiter without adding hype."
+- "Make this cover letter less template-like. Keep one proof story and one company-specific reason."
+- "Remove all praise that could fit any company."
+- "Make this outreach message shorter, more specific, and less salesy."
+- "Rewrite this LinkedIn About section in first person with proof, not personality slogans."
+- "Remove all text that sounds like a motivational poster."
+- "Read this as a skeptical hiring manager and flag distrust triggers."
+- "Read this as a busy recruiter and flag what is unclear in six seconds."
+- "Read this as an interviewer and list the claims you would probe."
+- "Read this as a privacy reviewer and flag what should not be uploaded or shared."
+- "Read this as an ATS parser risk reviewer and flag formatting issues."
+- "Audit this for AI residue: vocabulary, structure, punctuation, template leftovers, and unsupported claims."
+- "Search this draft for repeated words, repeated sentence shapes, and repeated transitions."
+- "Suggest replacements for 'leverage', 'streamline', 'enhance', and 'impactful' based on the actual action."
+- "Replace 'worked with stakeholders' with clearer wording. Ask me which stakeholders if needed."
+- "Replace 'improved processes' with clearer wording. Ask me what process changed if needed."
+- "Replace 'used data' with clearer wording. Ask me what data and decision if needed."
+- "Rewrite in Australian English and keep spelling consistent."
+- "Proofread for punctuation consistency without changing voice."
+- "Check whether this sounds like my writing sample. List mismatches before editing."
+- "Edit for one target audience: [audience]. Remove anything that audience does not need."
+- "Edit for one outcome: [outcome]. Remove anything that does not support it."
+- "Give me three rewrite options: plainer, warmer, and more technical. Do not invent facts."
+- "Give me a minimal edit, a medium edit, and a strong edit so I can choose."
+- "Do not rewrite yet. Diagnose the top ten slop problems first."
+- "Do not rewrite yet. Ask me the five missing questions that would make this specific."
+- "Do not rewrite yet. Build a checklist for improving this draft."
+- "After editing, show a change log of any meaning changes."
+- "After editing, list every claim that still needs verification."
+
+## Prompts To Avoid Or Rewrite
+
+- Avoid: "Make this undetectable by AI detectors."
+- Safer: "Make this clearer, more specific, and closer to my real voice without changing facts."
+- Avoid: "Bypass Turnitin."
+- Safer: "Help me comply with my institution's AI policy and preserve process evidence."
+- Avoid: "Add human mistakes."
+- Safer: "Preserve natural rhythm without reducing correctness."
+- Avoid: "Increase perplexity as much as possible."
+- Safer: "Vary wording only where it improves readability and preserves meaning."
+- Avoid: "Make this sound like a native speaker."
+- Safer: "Improve clarity while preserving the author's voice and not erasing non-native style."
+- Avoid: "Rewrite my essay so it passes."
+- Safer: "Give feedback on my draft and ask questions that help me revise it myself."
+- Avoid: "Write my CV from this job ad."
+- Safer: "Compare my existing evidence to this job ad and suggest truthful tailoring."
+- Avoid: "Make me sound senior."
+- Safer: "Identify seniority signals I can support with evidence."
+- Avoid: "Make it impressive."
+- Safer: "Make the evidence easier to see."
+- Avoid: "Make it professional."
+- Safer: "Make it direct, specific, and appropriate for [audience]."
+- Avoid: "Polish this."
+- Safer: "Line edit for clarity and remove generic phrasing."
+- Avoid: "Use fancy vocabulary."
+- Safer: "Use precise vocabulary."
+- Avoid: "Rewrite the whole thing."
+- Safer: "Diagnose first, then edit the smallest amount needed."
+
+## Human Review Checklist
+
+- Can the author explain every sentence?
+- Can the author defend every metric?
+- Can the author name the source of every claim?
+- Can the author tell the story behind every CV bullet?
+- Can the author identify what they personally contributed?
+- Does the text include details only this author would know?
+- Does the text preserve the author's real voice?
+- Does the text avoid generic AI vocabulary clusters?
+- Does the text avoid detector-chasing weirdness?
+- Does the text avoid false polish?
+- Does the text avoid fake casualness?
+- Does the text avoid invented examples?
+- Does the text avoid unsupported certainty?
+- Does the text avoid generic praise?
+- Does the text avoid mass-application smell?
+- Does the text avoid hidden or unethical tricks?
+- Does the text comply with the relevant AI policy?
+- Does the text protect private and confidential information?
+- Does the document metadata need cleaning?
+- Does the final exported file match the draft?
+
+## Do-Not-Use Fixes
+
+- Do not hide keywords in white text.
+- Do not add invisible Unicode characters.
+- Do not use homoglyph substitutions.
+- Do not insert random spaces inside words.
+- Do not use OCR degradation.
+- Do not screenshot text to avoid parsing.
+- Do not submit rasterised CVs.
+- Do not add fake citations.
+- Do not add fake links.
+- Do not add fake interview stories.
+- Do not add fake metrics.
+- Do not invent employers.
+- Do not invent credentials.
+- Do not invent work rights.
+- Do not invent security clearance.
+- Do not invent publications.
+- Do not use a paid humanizer as ethical cover.
+- Do not use detector scores as proof of authorship.
+- Do not claim "written entirely by me" if that is false under the policy.
+- Do not disclose private client material to a tool.
+- Do not use one-click rewriting for high-stakes work without line-by-line review.
+
+## Humanizer Websites And Tools Mentioned In Current Web/Forum Chatter
+
+Not endorsed. Many are explicitly marketed for detector evasion, and many lists are promotional or affiliate-driven.
+
+- Undetectable.ai
+- WriteHuman
+- StealthWriter
+- StealthGPT
+- HIX Bypass
+- Humbot
+- BypassGPT
+- HumanizeAI
+- Humanize AI Text
+- Humanizer Pro
+- HumanizeThisAI
+- Clever AI Humanizer
+- Rephrasy
+- Walter Writes AI
+- GPTHuman AI
+- AuraWrite AI
+- UnAIMyText
+- Ryne AI
+- RealTouch AI
+- TwainGPT
+- ProseShift
+- HumanLike
+- MaxAI Human Style Rewriter
+- Phrasly
+- Netus AI
+- QuillBot
+- Smodin
+- WordAI
+- SpinRewriter
+- Grubby.ai
+- Originality.ai humanizer-adjacent workflows
+- Copyleaks humanizer-adjacent workflows
+- AIDetectPlus
+- Miniloop AI humanizer lists
+- AIHumanizer.tools directories
+
+## Forums And Communities Sampled For Patterns
+
+- r/ChatGPTPromptGenius
+- r/PromptEngineering
+- r/ChatGPT
+- r/humanizeAIwriting
+- r/BypassAiDetect
+- r/bestaihumanizers
+- r/BestAIHumanizer_
+- r/PassOrFlagged
+- r/AIDetectorHelp
+- r/WritingWithAI
+- r/SEO
+- r/content_marketing
+- r/college and adjacent student-writing discussions surfaced in search
+- Hacker News and developer discourse reflected indirectly in local SlopPass research
+- Wikipedia editor discussions reflected through the "Signs of AI writing" guide
+
+## Fast Anti-Slop Search Terms
+
+- delve
+- tapestry
+- landscape
+- realm
+- testament
+- underscore
+- pivotal
+- crucial
+- foster
+- cultivate
+- meticulous
+- nuanced
+- robust
+- seamless
+- leverage
+- streamline
+- enhance
+- elevate
+- empower
+- unlock
+- journey
+- navigate
+- ever-evolving
+- in today's world
+- it is worth noting
+- moreover
+- furthermore
+- in conclusion
+- overall
+- not only
+- but also
+- not X, but Y
+- as of my last
+- based on available information
+- provided sources
+- valuable insights
+- actionable insights
+- deep dive
+- best-in-class
+- cutting-edge
+- game-changing
+- dynamic
+- strategic
+- comprehensive
+- passionate
+- results-driven
+- proven track record
+- detail-oriented
+- team player
+- self-starter
+- fast-paced
+- hit the ground running
+- wear many hats
+- unique blend
+
+## Fast Anti-Slop Workflow
+
+- Step 1: Identify the document purpose.
+- Step 2: Identify the target reader.
+- Step 3: Identify the policy constraints.
+- Step 4: Build a source/proof map.
+- Step 5: Search for AI vocabulary and generic phrases.
+- Step 6: Search for unsupported claims.
+- Step 7: Replace vague nouns with specific nouns.
+- Step 8: Replace inflated verbs with accurate verbs.
+- Step 9: Add scale, method, constraint, and result where true.
+- Step 10: Remove fake polish.
+- Step 11: Compare to the author's real writing.
+- Step 12: Check privacy and metadata.
+- Step 13: Export and inspect the final format.
+- Step 14: Keep the submitted version and proof notes.
+
+## Key Sources Checked
+
+- Local source: `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\cv-checklist-consolidated-v1.md`
+- Local source: `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\SlopPass.md`
+- Local source: `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\SlopPass0.md`
+- Local source: `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\Skills_1_2.md`
+- Local source: `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\Skills_2_2.md`
+- Turnitin AI Writing Report guide: https://guides.turnitin.com/hc/en-us/articles/22774058814093-Using-the-AI-Writing-Report
+- Turnitin AI writing detection model updates: https://guides.turnitin.com/hc/en-us/articles/28294949544717-AI-writing-detection-model
+- Turnitin product updates: https://guides.turnitin.com/hc/en-us/articles/29645383597965-Turnitin-product-updates
+- Stanford HAI on detector bias: https://hai.stanford.edu/news/ai-detectors-biased-against-non-native-english-writers
+- Stanford SCALE paper page: https://scale.stanford.edu/publications/gpt-detectors-are-biased-against-non-native-english-writers
+- NBER 2025 detector benchmark: https://www.nber.org/papers/w34223
+- OpenAI classifier retirement coverage: https://arstechnica.com/gadgets/2023/07/openai-discontinues-its-ai-writing-detector-due-to-low-rate-of-accuracy/
+- ACL DAMAGE paper page: https://aclanthology.org/2025.genaidetect-1.9/
+- Google helpful content guidance: https://developers.google.com/search/docs/fundamentals/creating-helpful-content
+- Google generative AI content guidance: https://developers.google.com/search/docs/fundamentals/using-gen-ai-content
+- Google spam/scaled content policy: https://developers.google.com/search/docs/advanced/guidelines/auto-gen-content
+- Wikipedia Signs of AI writing: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+- Wikipedia AI slop: https://en.wikipedia.org/wiki/AI_slop
+- Merriam-Webster 2025 word of the year announcement: https://www.globenewswire.com/news-release/2025/12/15/3205236/0/en/Merriam-Webster-Announces-Slop-as-the-2025-Word-of-the-Year.html
+- Tech & Learning on AI humanizers: https://www.techlearning.com/how-to/ai-humanizers-everything-teachers-need-to-know
+- How-To Geek on humanizing ChatGPT text: https://www.howtogeek.com/how-to-humanize-chatgpt-text/
+- AiTwo humanizer prompt list, used only for pattern categories, not copied: https://www.aitwo.co/blog/prompts-to-humanize-ai-content
+- Tom's Guide AI writing signs: https://www.tomsguide.com/ai/how-to-spot-ai-writing-5-telltale-signs-to-look-for
+- Reddit/forum examples surfaced through web search for current humanizer-prompt and tool discourse, treated as noisy anecdotal market signal rather than reliable evidence.
