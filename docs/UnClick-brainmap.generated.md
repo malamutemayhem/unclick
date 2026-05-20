@@ -10,7 +10,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | FLEET_SYNC.md | 41ebcbca94b0 | 13200 |
 | docs/unclick-context-boot-packet.md | 7cf131cf22e0 | 4785 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
-| docs/pinballwake-nudgeonly-api.md | 901e39017aa9 | 6910 |
+| docs/pinballwake-nudgeonly-api.md | 05c3d0e6f842 | 7262 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
 | docs/fleet-worker-roles.md | ed620f347d4f | 4873 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |

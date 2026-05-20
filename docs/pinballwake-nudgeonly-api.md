@@ -70,6 +70,10 @@ Flow:
 4. WakePass or another deterministic verifier checks the ACK/proof.
 5. If ACK/proof is still missing after the TTL, the bridge emits an escalation request.
 
+Execution rule:
+
+NudgeOnly does not execute by itself. A `receipt_request` or `escalation_request` must be consumed by IgniteOnly, then PushOnly, then the Action Heartbeat or builder tether must either do one safe runnable step or post the exact executor blocker. A NudgeOnly bridge ID alone is evidence of a stuck handoff, not proof that work moved.
+
 Receipt line shape:
 
 `worker -> target -> painpoint -> expected receipt -> verifier`

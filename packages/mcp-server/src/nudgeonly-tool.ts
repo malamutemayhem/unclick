@@ -541,7 +541,7 @@ function workerFrom(args: Record<string, unknown>, painpointType: string, routeW
   const explicitWorker = asOptionalString(args.worker);
   const owner = asOptionalString(args.owner);
   if (painpointType === "queue_hydration_failure") return "pinballwake-jobs-worker";
-  if (painpointType === "unclear_owner" || !owner) return "Job Manager";
+  if (painpointType === "unclear_owner") return "Job Manager";
   return explicitWorker ?? routeWorker;
 }
 

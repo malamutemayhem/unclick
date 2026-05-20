@@ -30,6 +30,8 @@ describe("AdminSeatHeartbeatPage", () => {
     expect(HEARTBEAT_SHORTCUT_PROMPT.length).toBeLessThan(220);
     expect(HEARTBEAT_MASTER_PROMPT).toContain("builder-capable tether");
     expect(HEARTBEAT_MASTER_PROMPT).toContain("Boardroom Jobs are the work source");
+    expect(HEARTBEAT_MASTER_PROMPT).toContain("NudgeOnly is not the executor");
+    expect(HEARTBEAT_MASTER_PROMPT).toContain("do not stop there");
     expect(HEARTBEAT_MASTER_PROMPT).toContain("JobSmith is a separate CV and cover-letter tool");
   });
 

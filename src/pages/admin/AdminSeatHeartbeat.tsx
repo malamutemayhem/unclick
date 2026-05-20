@@ -37,6 +37,9 @@ You are entering the UnClick Bubble. Fresh state beats pasted chat. Save or conf
 One safe step:
 Pick one bounded step only. Allowed step types include build, patch, test, proof refresh, route, narrow ScopePack, CI fix, false-DONE repair, or blocker proof. Check the last 30 minutes for a fresh ACK, claim, HOLD, blocker, or proof on the exact slice before editing or waking anyone.
 
+Nudge handoff:
+NudgeOnly is not the executor. If nudgeonly_receipt_bridge returns receipt_request or escalation_request, do not stop there. Continue through IgniteOnly for a verified wake packet, PushOnly for the worker envelope, then let the Action Heartbeat or builder tether do one safe runnable step, or post BLOCKER with the exact missing executor gate.
+
 Proof:
 Do not claim DONE, healthy, no_work, merge_ready, or PASS without current proof. Code work needs PR, commit, test, or explicit NO_CODE_NEEDED proof. UI work needs screenshot proof. Final receipts must say what moved, proof id/link/test/screenshot, and the next step.
 
