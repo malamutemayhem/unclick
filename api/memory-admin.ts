@@ -140,6 +140,10 @@ import {
   planFishbowlIdeaCouncilHandoffs,
 } from "./lib/fishbowl-idea-council.js";
 import {
+  findExpressRoomDraftsByMirror,
+  type ExpressRoomDraftQuery,
+} from "./lib/expressroom-draft-search.js";
+import {
   buildFishbowlTodoHandoffDispatchRow,
   planFishbowlTodoHandoff,
 } from "./lib/fishbowl-todo-handoff.js";
@@ -7568,35 +7572,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (officialTodoId && typeof officialTodoId === "object") return res.status(400).json(officialTodoId);
           const officialJobMirror = textField("official_job_mirror", 500, false);
           if (typeof officialJobMirror !== "string") return res.status(400).json(officialJobMirror);
-          let query = supabase
+          const publicLimit = Math.max(1, Math.min(Number(body.limit ?? 100), 200));
+          const expressStatus = statusRaw ? validExpressStatus(statusRaw) : null;
+          if (expressStatus && typeof expressStatus !== "string") return res.status(400).json(expressStatus);
+          const createDraftQuery = (): ExpressRoomDraftQuery => supabase
             .from("mc_expressroom_drafts")
             .select("*")
             .eq("api_key_hash", apiKeyHash)
-            .order("updated_at", { ascending: false })
-            .limit(Math.max(1, Math.min(Number(body.limit ?? 100), 200)));
-          if (statusRaw) {
-            const status = validExpressStatus(statusRaw);
-            if (typeof status !== "string") return res.status(400).json(status);
-            query = query.eq("express_status", status);
+            as unknown as ExpressRoomDraftQuery;
+          if (officialJobMirror.trim()) {
+            const drafts = await findExpressRoomDraftsByMirror({
+              createQuery: createDraftQuery,
+              expressStatus,
+              officialJobMirror,
+              officialTodoId,
+              limit: publicLimit,
+            });
+            return res.status(200).json({ drafts });
           }
+          let query = createDraftQuery()
+            .order("updated_at", { ascending: false });
+          if (expressStatus) query = query.eq("express_status", expressStatus);
           if (officialTodoId) {
             query = query.eq("official_todo_id", officialTodoId);
           }
-          const { data, error } = await query;
+          const { data, error } = await query.limit(publicLimit);
           if (error) throw error;
-          const mirrorNeedle = officialJobMirror.toLowerCase();
-          const drafts = mirrorNeedle
-            ? (data ?? []).filter((draft: Record<string, unknown>) =>
-                [
-                  draft.official_todo_id,
-                  draft.job_name_mirror,
-                  draft.short_description,
-                  draft.brief_markdown,
-                  draft.source_chat_session_id,
-                ].some((value) => String(value ?? "").toLowerCase().includes(mirrorNeedle)),
-              )
-            : (data ?? []);
-          return res.status(200).json({ drafts });
+          return res.status(200).json({ drafts: data ?? [] });
         }
 
         if (action === "expressroom_create_draft") {
