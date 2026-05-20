@@ -7575,11 +7575,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const publicLimit = Math.max(1, Math.min(Number(body.limit ?? 100), 200));
           const expressStatus = statusRaw ? validExpressStatus(statusRaw) : null;
           if (expressStatus && typeof expressStatus !== "string") return res.status(400).json(expressStatus);
-          const createDraftQuery = (): ExpressRoomDraftQuery => supabase
-            .from("mc_expressroom_drafts")
-            .select("*")
-            .eq("api_key_hash", apiKeyHash)
-            as unknown as ExpressRoomDraftQuery;
+          const createDraftQuery = (): ExpressRoomDraftQuery => (
+            supabase
+              .from("mc_expressroom_drafts")
+              .select("*")
+              .eq("api_key_hash", apiKeyHash) as unknown as ExpressRoomDraftQuery
+          );
           if (officialJobMirror.trim()) {
             const drafts = await findExpressRoomDraftsByMirror({
               createQuery: createDraftQuery,
