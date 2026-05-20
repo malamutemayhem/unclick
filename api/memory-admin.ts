@@ -7436,6 +7436,327 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // ─── Fishbowl Phase 1: agent group chat ───────────────────────────────
 
+      case "expressroom_create_draft":
+      case "expressroom_list_drafts":
+      case "expressroom_update_draft":
+      case "expressroom_promote_to_todo": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) {
+          return res.status(401).json({
+            error: "Authorization header required",
+            how_to_fix: "Sign in to the admin UI or pass your UnClick API key as 'Authorization: Bearer <api_key>'.",
+          });
+        }
+
+        const body = (req.body ?? {}) as Record<string, unknown>;
+        const sessionUser = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        const actorAgentId = (() => {
+          const raw = String(body.agent_id ?? "").trim();
+          if (raw) return raw;
+          if (sessionUser?.id) return `human-${sessionUser.id}`;
+          return "";
+        })();
+        if (!actorAgentId) return res.status(400).json({ error: "agent_id required" });
+        if (actorAgentId.length > 128) return res.status(400).json({ error: "agent_id must be at most 128 characters" });
+        if (actorAgentId.startsWith("human-") && !sessionUser) {
+          return res.status(403).json({ error: "human-* agent_id is reserved for the admin UI" });
+        }
+
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const textField = (field: string, max: number, required = true): string | { error: string } => {
+          const value = typeof body[field] === "string" ? String(body[field]).trim() : "";
+          if (required && !value) return { error: `${field} required` };
+          if (value.length > max) return { error: `${field} must be at most ${max} characters` };
+          return value;
+        };
+        const optionalUuid = (field: string): string | null | { error: string } => {
+          const value = typeof body[field] === "string" ? String(body[field]).trim() : "";
+          if (!value) return null;
+          if (!UUID_RE.test(value)) return { error: `${field} must be a uuid` };
+          return value;
+        };
+        const draftId = (): string | { error: string } => {
+          const id = typeof body.draft_id === "string" ? body.draft_id.trim() : "";
+          if (!id) return { error: "draft_id required" };
+          if (!UUID_RE.test(id)) return { error: "draft_id must be a uuid" };
+          return id;
+        };
+        const validCodeStatus = (value: unknown): "not_supplied" | "partial" | "complete" | "unknown" | { error: string } => {
+          const status = String(value ?? "not_supplied");
+          if (!["not_supplied", "partial", "complete", "unknown"].includes(status)) {
+            return { error: "supplied_code_status must be not_supplied|partial|complete|unknown" };
+          }
+          return status as "not_supplied" | "partial" | "complete" | "unknown";
+        };
+        const validExpressStatus = (value: unknown): "draft" | "inserted" | "archived" | { error: string } => {
+          const status = String(value ?? "draft");
+          if (!["draft", "inserted", "archived"].includes(status)) {
+            return { error: "express_status must be draft|inserted|archived" };
+          }
+          return status as "draft" | "inserted" | "archived";
+        };
+        const codeStatusLabel = (status: string) => ({
+          not_supplied: "Not supplied",
+          partial: "Partial",
+          complete: "Complete",
+          unknown: "Unknown",
+        }[status] ?? "Unknown");
+        const draftStatusLabel = (status: string) => ({
+          draft: "Manual draft",
+          inserted: "Inserted into Jobs",
+          archived: "Archived",
+        }[status] ?? "Manual draft");
+        const buildOfficialDescription = (draft: Record<string, unknown>): string => {
+          const suppliedCode = String(draft.supplied_code ?? "").trim();
+          const codePreview = suppliedCode ? suppliedCode.slice(0, 1600) : "No code supplied yet.";
+          return [
+            "Manual ExpressBuild import from ExpressRoom.",
+            "",
+            `ExpressRoom draft: ${draft.id}`,
+            `Draft status: ${draftStatusLabel(String(draft.express_status ?? "draft"))}`,
+            `Supplied code status: ${codeStatusLabel(String(draft.supplied_code_status ?? "unknown"))}`,
+            "",
+            "Short description:",
+            String(draft.short_description ?? "").trim(),
+            "",
+            "Detailed brief MD:",
+            String(draft.brief_markdown ?? "").trim(),
+            "",
+            "Supplied code preview:",
+            codePreview,
+            "",
+            "Insertion rule:",
+            "This is a Manual draft, not finished work. Fit it into the repo, run checks, create PR or commit proof, then use the normal UnClick review and proof gates before any DONE claim.",
+            "",
+            "Alarm bells:",
+            "- Manual ExpressRoom code is untrusted until fitted into the repo.",
+            "- Do not mark this official job done from the draft alone.",
+            "- Require normal tests, PR or commit proof, review, and product proof where relevant.",
+          ].join("\n");
+        };
+        const verifyTodoMirror = async (todoId: string): Promise<boolean> => {
+          const { data } = await supabase
+            .from("mc_fishbowl_todos")
+            .select("id")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", todoId)
+            .maybeSingle();
+          return Boolean(data);
+        };
+        const postTodoMirrorComment = async (todoId: string, draft: Record<string, unknown>): Promise<void> => {
+          const text = [
+            "Manual ExpressRoom mirror attached.",
+            "",
+            `ExpressRoom draft: ${draft.id}`,
+            `Code state: ${codeStatusLabel(String(draft.supplied_code_status ?? "unknown"))}`,
+            "",
+            "Alarm bell: this is Manual draft material only. Do not mark the official job done from this draft. Fit it into the repo, test it, review it, and record proof first.",
+          ].join("\n");
+          await supabase.from("mc_fishbowl_comments").insert({
+            api_key_hash: apiKeyHash,
+            target_kind: "todo",
+            target_id: todoId,
+            author_agent_id: actorAgentId,
+            text,
+          });
+        };
+
+        if (action === "expressroom_list_drafts") {
+          const statusRaw = typeof body.express_status === "string" ? body.express_status : "";
+          let query = supabase
+            .from("mc_expressroom_drafts")
+            .select("*")
+            .eq("api_key_hash", apiKeyHash)
+            .order("updated_at", { ascending: false })
+            .limit(Math.max(1, Math.min(Number(body.limit ?? 100), 200)));
+          if (statusRaw) {
+            const status = validExpressStatus(statusRaw);
+            if (typeof status !== "string") return res.status(400).json(status);
+            query = query.eq("express_status", status);
+          }
+          const { data, error } = await query;
+          if (error) throw error;
+          return res.status(200).json({ drafts: data ?? [] });
+        }
+
+        if (action === "expressroom_create_draft") {
+          const jobName = textField("job_name_mirror", 200);
+          if (typeof jobName !== "string") return res.status(400).json(jobName);
+          const shortDescription = textField("short_description", 1000);
+          if (typeof shortDescription !== "string") return res.status(400).json(shortDescription);
+          const briefMarkdown = textField("brief_markdown", 30000);
+          if (typeof briefMarkdown !== "string") return res.status(400).json(briefMarkdown);
+          const suppliedCode = textField("supplied_code", 100000, false);
+          if (typeof suppliedCode !== "string") return res.status(400).json(suppliedCode);
+          const suppliedCodeStatus = validCodeStatus(body.supplied_code_status);
+          if (typeof suppliedCodeStatus !== "string") return res.status(400).json(suppliedCodeStatus);
+          const officialTodoId = optionalUuid("official_todo_id");
+          if (officialTodoId && typeof officialTodoId === "object") return res.status(400).json(officialTodoId);
+          if (officialTodoId && !(await verifyTodoMirror(officialTodoId))) {
+            return res.status(404).json({ error: "official_todo_id not found" });
+          }
+          const sourceChatSessionId = textField("source_chat_session_id", 200, false);
+          if (typeof sourceChatSessionId !== "string") return res.status(400).json(sourceChatSessionId);
+
+          const { data, error } = await supabase
+            .from("mc_expressroom_drafts")
+            .insert({
+              api_key_hash: apiKeyHash,
+              job_name_mirror: jobName,
+              official_todo_id: officialTodoId,
+              short_description: shortDescription,
+              brief_markdown: briefMarkdown,
+              supplied_code: suppliedCode,
+              supplied_code_status: suppliedCodeStatus,
+              express_status: "draft",
+              created_by_agent_id: actorAgentId,
+              source_chat_session_id: sourceChatSessionId || null,
+            })
+            .select("*")
+            .single();
+          if (error) throw error;
+
+          if (officialTodoId) {
+            await postTodoMirrorComment(officialTodoId, data);
+          }
+
+          void postFishbowlEvent(
+            supabase,
+            apiKeyHash,
+            actorAgentId,
+            "expressroom-created",
+            `Manual ExpressRoom draft created: ${jobName}`,
+          );
+
+          return res.status(200).json({ draft: data });
+        }
+
+        if (action === "expressroom_update_draft") {
+          const id = draftId();
+          if (typeof id !== "string") return res.status(400).json(id);
+          const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+          const fieldSpecs: Array<[string, number, boolean]> = [
+            ["job_name_mirror", 200, true],
+            ["short_description", 1000, true],
+            ["brief_markdown", 30000, true],
+            ["supplied_code", 100000, false],
+            ["source_chat_session_id", 200, false],
+          ];
+          for (const [field, max, required] of fieldSpecs) {
+            if (body[field] !== undefined) {
+              const value = textField(field, max, required);
+              if (typeof value !== "string") return res.status(400).json(value);
+              update[field] = field === "source_chat_session_id" && !value ? null : value;
+            }
+          }
+          if (body.official_todo_id !== undefined) {
+            const officialTodoId = optionalUuid("official_todo_id");
+            if (officialTodoId && typeof officialTodoId === "object") return res.status(400).json(officialTodoId);
+            if (officialTodoId && !(await verifyTodoMirror(officialTodoId))) {
+              return res.status(404).json({ error: "official_todo_id not found" });
+            }
+            update.official_todo_id = officialTodoId;
+          }
+          if (body.supplied_code_status !== undefined) {
+            const status = validCodeStatus(body.supplied_code_status);
+            if (typeof status !== "string") return res.status(400).json(status);
+            update.supplied_code_status = status;
+          }
+          if (body.express_status !== undefined) {
+            const status = validExpressStatus(body.express_status);
+            if (typeof status !== "string") return res.status(400).json(status);
+            update.express_status = status;
+          }
+
+          const { data, error } = await supabase
+            .from("mc_expressroom_drafts")
+            .update(update)
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", id)
+            .select("*")
+            .single();
+          if (error) throw error;
+          return res.status(200).json({ draft: data });
+        }
+
+        if (action === "expressroom_promote_to_todo") {
+          const id = draftId();
+          if (typeof id !== "string") return res.status(400).json(id);
+          const priority = String(body.priority ?? "normal");
+          if (!["low", "normal", "high", "urgent"].includes(priority)) {
+            return res.status(400).json({ error: "priority must be low|normal|high|urgent" });
+          }
+          const { data: draft, error: draftErr } = await supabase
+            .from("mc_expressroom_drafts")
+            .select("*")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", id)
+            .maybeSingle();
+          if (draftErr) throw draftErr;
+          if (!draft) return res.status(404).json({ error: "ExpressRoom draft not found" });
+          if (draft.official_todo_id && body.force_new !== true) {
+            await postTodoMirrorComment(String(draft.official_todo_id), draft);
+            return res.status(200).json({ draft, todo: null, reused: true });
+          }
+
+          const title = `Manual ExpressBuild integration: ${String(draft.job_name_mirror).trim()}`.slice(0, 200);
+          const description = buildOfficialDescription(draft);
+          const { data: todo, error: todoErr } = await supabase
+            .from("mc_fishbowl_todos")
+            .insert({
+              api_key_hash: apiKeyHash,
+              title,
+              description,
+              priority,
+              status: "open",
+              created_by_agent_id: actorAgentId,
+              assigned_to_agent_id: null,
+            })
+            .select("*")
+            .single();
+          if (todoErr) throw todoErr;
+
+          await recordAutopilotEvents(
+            supabase,
+            apiKeyHash,
+            planTodoLedgerEvents({
+              todoId: todo.id,
+              actorAgentId,
+              before: null,
+              after: todo,
+            }),
+          );
+
+          const { data: updatedDraft, error: updateErr } = await supabase
+            .from("mc_expressroom_drafts")
+            .update({
+              official_todo_id: todo.id,
+              express_status: "inserted",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", id)
+            .select("*")
+            .single();
+          if (updateErr) throw updateErr;
+
+          await postTodoMirrorComment(todo.id, updatedDraft);
+
+          void postFishbowlEvent(
+            supabase,
+            apiKeyHash,
+            actorAgentId,
+            "expressroom-inserted",
+            `Manual ExpressRoom draft inserted into official Jobs: ${title}`,
+          );
+
+          return res.status(200).json({ draft: updatedDraft, todo, reused: false });
+        }
+
+        return res.status(400).json({ error: `Unhandled ExpressRoom action: ${action}` });
+      }
+
       case "fishbowl_admin_claim": {
         // Web-UI-only action. Auto-creates (or refreshes) a profile for the
         // signed-in human admin so they can post into the Fishbowl as
