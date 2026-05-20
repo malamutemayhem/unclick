@@ -7511,9 +7511,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const suppliedCode = String(draft.supplied_code ?? "").trim();
           const codePreview = suppliedCode ? suppliedCode.slice(0, 1600) : "No code supplied yet.";
           return [
-            "Manual ExpressBuild import from ExpressRoom.",
+            "Manual DraftRoom import.",
             "",
-            `ExpressRoom draft: ${draft.id}`,
+            `DraftRoom draft: ${draft.id}`,
             `Draft status: ${draftStatusLabel(String(draft.express_status ?? "draft"))}`,
             `Supplied code status: ${codeStatusLabel(String(draft.supplied_code_status ?? "unknown"))}`,
             "",
@@ -7530,7 +7530,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             "This is a Manual draft, not finished work. Fit it into the repo, run checks, create PR or commit proof, then use the normal UnClick review and proof gates before any DONE claim.",
             "",
             "Alarm bells:",
-            "- Manual ExpressRoom code is untrusted until fitted into the repo.",
+            "- Manual DraftRoom code is untrusted until fitted into the repo.",
             "- Do not mark this official job done from the draft alone.",
             "- Require normal tests, PR or commit proof, review, and product proof where relevant.",
           ].join("\n");
@@ -7546,9 +7546,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
         const postTodoMirrorComment = async (todoId: string, draft: Record<string, unknown>): Promise<void> => {
           const text = [
-            "Manual ExpressRoom mirror attached.",
+            "Manual DraftRoom mirror attached.",
             "",
-            `ExpressRoom draft: ${draft.id}`,
+            `DraftRoom draft: ${draft.id}`,
             `Code state: ${codeStatusLabel(String(draft.supplied_code_status ?? "unknown"))}`,
             "",
             "Alarm bell: this is Manual draft material only. Do not mark the official job done from this draft. Fit it into the repo, test it, review it, and record proof first.",
@@ -7645,7 +7645,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             apiKeyHash,
             actorAgentId,
             "expressroom-created",
-            `Manual ExpressRoom draft created: ${jobName}`,
+            `Manual DraftRoom draft created: ${jobName}`,
           );
 
           return res.status(200).json({ draft: data });
@@ -7713,13 +7713,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .eq("id", id)
             .maybeSingle();
           if (draftErr) throw draftErr;
-          if (!draft) return res.status(404).json({ error: "ExpressRoom draft not found" });
+          if (!draft) return res.status(404).json({ error: "DraftRoom draft not found" });
           if (draft.official_todo_id && body.force_new !== true) {
             await postTodoMirrorComment(String(draft.official_todo_id), draft);
             return res.status(200).json({ draft, todo: null, reused: true });
           }
 
-          const title = `Manual ExpressBuild integration: ${String(draft.job_name_mirror).trim()}`.slice(0, 200);
+          const title = `Manual DraftRoom integration: ${String(draft.job_name_mirror).trim()}`.slice(0, 200);
           const description = buildOfficialDescription(draft);
           const { data: todo, error: todoErr } = await supabase
             .from("mc_fishbowl_todos")
@@ -7767,13 +7767,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             apiKeyHash,
             actorAgentId,
             "expressroom-inserted",
-            `Manual ExpressRoom draft inserted into official Jobs: ${title}`,
+            `Manual DraftRoom draft inserted into official Jobs: ${title}`,
           );
 
           return res.status(200).json({ draft: updatedDraft, todo, reused: false });
         }
 
-        return res.status(400).json({ error: `Unhandled ExpressRoom action: ${action}` });
+        return res.status(400).json({ error: `Unhandled DraftRoom action: ${action}` });
       }
 
       case "fishbowl_admin_claim": {

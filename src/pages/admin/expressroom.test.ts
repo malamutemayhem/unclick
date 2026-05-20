@@ -7,13 +7,14 @@ import {
   type ExpressRoomDraft,
 } from "./expressroom";
 
-describe("ExpressRoom model", () => {
+describe("DraftRoom model", () => {
   it("keeps the Manual draft lane clearly separated from official done work", () => {
-    expect(EXPRESSROOM_INDUCTION_TEXT).toContain("Manual ExpressBuild");
-    expect(EXPRESSROOM_INDUCTION_TEXT).toContain("draft-only");
+    expect(EXPRESSROOM_INDUCTION_TEXT).toContain("DraftRoom");
+    expect(EXPRESSROOM_INDUCTION_TEXT).toContain("visible first draft");
     expect(EXPRESSROOM_INDUCTION_TEXT).toContain("official Jobs Board");
-    expect(EXPRESSROOM_INDUCTION_TEXT).toContain("Do not claim DONE from ExpressRoom");
+    expect(EXPRESSROOM_INDUCTION_TEXT).toContain("Do not claim DONE from DraftRoom");
     expect(EXPRESSROOM_GUARDRAILS.join(" ")).toContain("untrusted");
+    expect(EXPRESSROOM_GUARDRAILS.join(" ")).toContain("Build while context is fresh");
   });
 
   it("counts the required fields for a direct chat capture", () => {
@@ -46,7 +47,7 @@ describe("ExpressRoom model", () => {
 
     const description = buildExpressRoomOfficialJobDescription(draft);
 
-    expect(description).toContain("Manual ExpressBuild import from ExpressRoom.");
+    expect(description).toContain("Manual DraftRoom import.");
     expect(description).toContain("This is a Manual draft, not finished work.");
     expect(description).toContain("export const draft = true;");
     expect(description).toContain("normal UnClick review and proof gates");

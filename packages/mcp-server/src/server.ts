@@ -822,10 +822,10 @@ export const VISIBLE_TOOLS = [
   },
   {
     name: "create_expressroom_draft",
-    title: "Create an ExpressRoom Manual draft",
+    title: "Create a DraftRoom Manual draft",
     description:
-      "Creates a Manual ExpressBuild draft in ExpressRoom. Use this when a chat seat has a detailed brief, a job name mirror, a short description, and supplied draft code. " +
-      "Alarm bell: this does not mark official work done. It stores untrusted draft material so it can later be inserted into the official Jobs Board, then tested, reviewed, and proved.",
+      "Creates a Manual DraftRoom draft. Use this when a chat seat has built a visible first draft while context is fresh and needs to store the brief, job mirror, short description, and supplied draft code. " +
+      "Alarm bell: this does not mark official work done. It stores untrusted draft material so it can later enter the official Jobs Board conveyor belt, then be integrated, tested, reviewed, and proved.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -835,7 +835,7 @@ export const VISIBLE_TOOLS = [
         official_todo_id: { type: "string", description: "Optional existing Jobs Board todo id to mirror." },
         short_description: { type: "string", description: "Quick read of the draft job." },
         brief_markdown: { type: "string", description: "Detailed intake brief from the chat." },
-        supplied_code: { type: "string", description: "Draft code, patch notes, or file contents supplied by the express builder." },
+        supplied_code: { type: "string", description: "Draft code, patch notes, file contents, pseudocode, or test outline supplied by the chat-first builder." },
         supplied_code_status: { type: "string", enum: ["not_supplied", "partial", "complete", "unknown"], default: "not_supplied" },
         source_chat_session_id: { type: "string", description: "Optional source chat/session id." },
       },
@@ -844,9 +844,9 @@ export const VISIBLE_TOOLS = [
   },
   {
     name: "list_expressroom_drafts",
-    title: "List ExpressRoom Manual drafts",
+    title: "List DraftRoom Manual drafts",
     description:
-      "Lists Manual ExpressBuild drafts stored in ExpressRoom. These are draft-only records until promoted into official Jobs. " +
+      "Lists Manual DraftRoom drafts. These are draft-only records until promoted into official Jobs. " +
       "Use official_todo_id or official_job_mirror to find drafts linked to a Jobs Board card, PR number, PR URL, or mirrored job name.",
     inputSchema: {
       type: "object" as const,
@@ -866,15 +866,15 @@ export const VISIBLE_TOOLS = [
   },
   {
     name: "promote_expressroom_draft",
-    title: "Insert ExpressRoom draft into Jobs",
+    title: "Insert DraftRoom draft into Jobs",
     description:
-      "Creates an official Boardroom job from a Manual ExpressRoom draft and links the two records. The new job still needs normal UnClick integration, tests, PR or commit proof, and review.",
+      "Creates an official Boardroom job from a Manual DraftRoom draft and links the two records. The new job still needs normal UnClick integration, tests, PR or commit proof, and review.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
         agent_id: { type: "string", description: "Stable identifier for the calling agent." },
-        draft_id: { type: "string", description: "ExpressRoom draft id." },
+        draft_id: { type: "string", description: "DraftRoom draft id." },
         priority: { type: "string", enum: ["low", "normal", "high", "urgent"], default: "normal" },
         force_new: { type: "boolean", description: "Create a new job even if this draft already has a linked official job." },
       },
@@ -1548,7 +1548,7 @@ export const EXPRESSROOM_VISIBLE_TOOL_NAMES = [
   "promote_expressroom_draft",
 ] as const;
 
-// ExpressRoom needs friendly connected-agent tools, while the rest of the
+// DraftRoom needs friendly connected-agent tools, while the rest of the
 // internal meta layer stays hidden from tools/list.
 const EXPRESSROOM_VISIBLE_TOOLS = INTERNAL_TOOLS.filter((tool) =>
   (EXPRESSROOM_VISIBLE_TOOL_NAMES as readonly string[]).includes(tool.name),
@@ -1717,7 +1717,7 @@ export function createServer(): Server {
     }
   );
 
-  // LIST TOOLS: advertise the core memory tools, the friendly ExpressRoom
+  // LIST TOOLS: advertise the core memory tools, the friendly DraftRoom
   // bridge tools, plus every product + marketplace tool registered in
   // ADDITIONAL_TOOLS (TestPass, Crews, and third-party integrations from
   // tool-wiring.ts). Internal meta tools (unclick_search, unclick_browse,
