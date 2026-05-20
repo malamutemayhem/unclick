@@ -7564,6 +7564,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (action === "expressroom_list_drafts") {
           const statusRaw = typeof body.express_status === "string" ? body.express_status : "";
+          const officialTodoId = optionalUuid("official_todo_id");
+          if (officialTodoId && typeof officialTodoId === "object") return res.status(400).json(officialTodoId);
+          const officialJobMirror = textField("official_job_mirror", 500, false);
+          if (typeof officialJobMirror !== "string") return res.status(400).json(officialJobMirror);
           let query = supabase
             .from("mc_expressroom_drafts")
             .select("*")
@@ -7575,9 +7579,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             if (typeof status !== "string") return res.status(400).json(status);
             query = query.eq("express_status", status);
           }
+          if (officialTodoId) {
+            query = query.eq("official_todo_id", officialTodoId);
+          }
           const { data, error } = await query;
           if (error) throw error;
-          return res.status(200).json({ drafts: data ?? [] });
+          const mirrorNeedle = officialJobMirror.toLowerCase();
+          const drafts = mirrorNeedle
+            ? (data ?? []).filter((draft: Record<string, unknown>) =>
+                [
+                  draft.official_todo_id,
+                  draft.job_name_mirror,
+                  draft.short_description,
+                  draft.brief_markdown,
+                  draft.source_chat_session_id,
+                ].some((value) => String(value ?? "").toLowerCase().includes(mirrorNeedle)),
+              )
+            : (data ?? []);
+          return res.status(200).json({ drafts });
         }
 
         if (action === "expressroom_create_draft") {

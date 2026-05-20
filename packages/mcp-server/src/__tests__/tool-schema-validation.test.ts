@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { ENDPOINT_MAP } from "../catalog.js";
-import { validateToolArgumentsForRuntime } from "../server.js";
+import {
+  ADVERTISED_TOOLS,
+  EXPRESSROOM_VISIBLE_TOOL_NAMES,
+  validateToolArgumentsForRuntime,
+} from "../server.js";
 
 describe("runtime tool schema validation", () => {
   const probes: Array<{ name: string; args: Record<string, unknown> }> = [
@@ -22,6 +26,7 @@ describe("runtime tool schema validation", () => {
     { name: "read_orchestrator_context", args: { q: "strict schema probe", bogus_field: "should reject" } },
     { name: "heartbeat_protocol", args: { bogus_field: "should reject" } },
     { name: "commonsensepass_protocol", args: { bogus_field: "should reject" } },
+    { name: "list_expressroom_drafts", args: { agent_id: "strict-probe", bogus_field: "should reject" } },
     {
       name: "ack_handoff",
       args: {
@@ -89,6 +94,13 @@ describe("runtime tool schema validation", () => {
     })).toBeNull();
     expect(validateToolArgumentsForRuntime("heartbeat_protocol", {})).toBeNull();
     expect(validateToolArgumentsForRuntime("commonsensepass_protocol", {})).toBeNull();
+    expect(validateToolArgumentsForRuntime("list_expressroom_drafts", {
+      agent_id: "strict-probe",
+      official_todo_id: "11111111-1111-4111-8111-111111111111",
+      official_job_mirror: "PR #970",
+      express_status: "draft",
+      limit: 10,
+    })).toBeNull();
     expect(validateToolArgumentsForRuntime("ack_handoff", {
       agent_id: "strict-probe",
       thread_id: "11111111-1111-4111-8111-111111111111",
@@ -127,5 +139,13 @@ describe("runtime tool schema validation", () => {
         max_sources_per_snapshot: { type: "number", minimum: 1, maximum: 12, default: 8 },
       },
     });
+  });
+
+  it("advertises ExpressRoom Manual draft bridge tools to connected agents", () => {
+    const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
+
+    for (const toolName of EXPRESSROOM_VISIBLE_TOOL_NAMES) {
+      expect(advertisedNames.has(toolName), toolName).toBe(true);
+    }
   });
 });
