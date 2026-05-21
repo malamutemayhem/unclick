@@ -194,6 +194,8 @@ describe("orchestrator context", () => {
 
     expect(context.current_state_card.active_jobs).toBe(0);
     expect(context.current_state_card.queued_todo_count).toBe(1);
+    expect(context.current_state_card.health_verdict.verdict).toBe("BLOCKER");
+    expect(context.current_state_card.health_verdict.reason).toContain("queued");
     expect(context.current_state_card.harness_card.queue_state).toBe("needs_claim");
     expect(context.current_state_card.harness_card.gate_status).toBe("red");
     expect(context.current_state_card.harness_card.gate_reason).toContain("no fresh active owner");
