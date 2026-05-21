@@ -5,12 +5,14 @@ import {
   CHECKIN_ACTIVE_GRACE_MS,
   CHECKIN_DORMANT_SUPPRESS_MS,
   CHECKIN_OVERDUE_SUPPRESS_MS,
+  WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT,
   WAKEPASS_REROUTE_LEASE_SECONDS,
   buildDispatchReclaimSignal,
   buildMissedCheckinDispatch,
   buildWorkerMovementWorkflowPilotProofText,
   buildWakepassAutoReroutePlan,
   buildWorkerSelfHealingSignal,
+  hasRecentWorkerSelfHealingReleaseSignal,
   hasRecentWorkerSelfHealingTodoSignal,
   isMissedCheckinDispatch,
   isMissedCheckinCandidate,
@@ -20,6 +22,7 @@ import {
   planWorkerMovementWorkflowPilot,
   planWorkerMovementWorkflowPilotProofSignal,
   planWorkerSelfHealingDecision,
+  planWorkerSelfHealingTodoRelease,
   planWorkerSelfHealingTodoSignal,
   resolveWakepassRerouteTarget,
   shouldMarkDispatchStaleAfterReclaimSignalInsert,
@@ -745,9 +748,228 @@ describe("worker self-healing decision plan", () => {
         profile_agent_id: "worker-1",
         next_checkin_at: "2026-05-01T01:10:00.000Z",
         last_seen_at: "2026-05-01T00:30:00.000Z",
+        next_reclaim_count: 1,
         reason: "missed_next_checkin_without_active_lease",
       },
     });
+  });
+
+  it("plans a proof-backed release for an expired in-progress lease", () => {
+    const decision = planWorkerSelfHealingDecision({
+      todo: {
+        id: "todo-expired-lease",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      profile: null,
+      latestHandoffReceiptId: "handoff-latest-8",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+
+    const release = planWorkerSelfHealingTodoRelease({
+      apiKeyHash: "hash_123",
+      todo: {
+        id: "todo-expired-lease",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      decision,
+      releasedAt: "2026-05-01T01:22:01.000Z",
+    });
+
+    expect(release).toMatchObject({
+      signal: {
+        action: "worker_self_healing_stale_owner_released",
+        severity: "info",
+      },
+      insert: {
+        api_key_hash: "hash_123",
+        tool: "fishbowl",
+        action: "worker_self_healing_stale_owner_released",
+        severity: "info",
+        deep_link: "/admin/jobs#todo-todo-expired-lease",
+        payload: {
+          todo_id: "todo-expired-lease",
+          previous_assigned_to_agent_id: "worker-1",
+          next_status: "open",
+          released_stale_owner: true,
+          bonded_handoff_required: true,
+          reassignment_attempts_capped_at: WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT,
+        },
+      },
+      update: {
+        status: "open",
+        assigned_to_agent_id: null,
+        lease_token: null,
+        lease_expires_at: null,
+        reclaim_count: 3,
+        updated_at: "2026-05-01T01:22:01.000Z",
+      },
+    });
+    expect(JSON.stringify(release)).not.toContain("lease-secret");
+  });
+
+  it("plans a release for a stale in-progress owner without an active lease", () => {
+    const todo = {
+      id: "todo-stale-worker",
+      status: "in_progress",
+      assigned_to_agent_id: "worker-1",
+      lease_token: null,
+      lease_expires_at: null,
+      reclaim_count: 0,
+    };
+    const decision = planWorkerSelfHealingDecision({
+      todo,
+      profile: baseProfile,
+      latestHandoffReceiptId: "handoff-latest-9",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+
+    const release = planWorkerSelfHealingTodoRelease({
+      apiKeyHash: "hash_123",
+      todo,
+      decision,
+      releasedAt: "2026-05-01T01:22:01.000Z",
+    });
+
+    expect(decision).toMatchObject({
+      action: "stale_worker_action_needed",
+      next_reclaim_count: 1,
+      reason: "missed_next_checkin_without_active_lease",
+    });
+    expect(release).toMatchObject({
+      update: {
+        status: "open",
+        assigned_to_agent_id: null,
+        reclaim_count: 1,
+      },
+      insert: {
+        payload: {
+          bonded_handoff_required: true,
+          profile_agent_id: "worker-1",
+          released_stale_owner: true,
+        },
+      },
+    });
+  });
+
+  it("does not release protected, open, or capped stale-owner candidates", () => {
+    const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
+    const releaseCases = [
+      {
+        todo: {
+          id: "todo-human",
+          status: "in_progress",
+          assigned_to_agent_id: "human-chris",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: 0,
+        },
+      },
+      {
+        todo: {
+          id: "todo-open",
+          status: "open",
+          assigned_to_agent_id: "worker-1",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: 0,
+        },
+      },
+      {
+        todo: {
+          id: "todo-capped",
+          status: "in_progress",
+          assigned_to_agent_id: "worker-1",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT,
+        },
+      },
+    ];
+
+    for (const { todo } of releaseCases) {
+      const decision = planWorkerSelfHealingDecision({
+        todo,
+        profile: null,
+        latestHandoffReceiptId: null,
+        nowMs,
+      });
+
+      expect(
+        planWorkerSelfHealingTodoRelease({
+          apiKeyHash: "hash_123",
+          todo,
+          decision,
+          releasedAt: "2026-05-01T01:22:01.000Z",
+        }),
+      ).toBeNull();
+    }
+  });
+
+  it("dedupes release proof by todo id and release flag", () => {
+    const decision = planWorkerSelfHealingDecision({
+      todo: {
+        id: "todo-expired-lease",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      profile: null,
+      latestHandoffReceiptId: null,
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+    const release = planWorkerSelfHealingTodoRelease({
+      apiKeyHash: "hash_123",
+      todo: {
+        id: "todo-expired-lease",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      decision,
+      releasedAt: "2026-05-01T01:22:01.000Z",
+    });
+
+    expect(release).not.toBeNull();
+    expect(
+      hasRecentWorkerSelfHealingReleaseSignal(
+        [
+          {
+            action: "worker_self_healing_stale_owner_released",
+            payload: {
+              todo_id: "todo-expired-lease",
+              released_stale_owner: true,
+            },
+          },
+        ],
+        release!,
+      ),
+    ).toBe(true);
+    expect(
+      hasRecentWorkerSelfHealingReleaseSignal(
+        [
+          {
+            action: "worker_self_healing_stale_owner_released",
+            payload: {
+              todo_id: "todo-expired-lease",
+              released_stale_owner: false,
+            },
+          },
+        ],
+        release!,
+      ),
+    ).toBe(false);
   });
 
   it("keeps no-action decisions quiet", () => {

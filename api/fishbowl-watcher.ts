@@ -10,8 +10,8 @@
  *      the human gets a second nudge if the original push was dismissed.
  *   3. Stale status cleanup: clear old Now Playing text after 30 minutes so
  *      stale workers do not look like they are still actively holding a lane.
- *   4. Worker self-healing todo lease sweep: expired Boardroom todo leases
- *      emit a deduped action_needed signal without exposing lease tokens.
+ *   4. Worker self-healing todo sweep: stale Boardroom todo ownership emits
+ *      proof, then releases clearly expired non-protected work back to queue.
  *
  * Dedup: each emission checks for a recent identical-action signal so we
  * never spam (30 min for missed check-ins and worker self-healing, 60 min
@@ -83,6 +83,7 @@ export const CHECKIN_DORMANT_SUPPRESS_MS = 7 * 24 * 60 * 60 * 1000;
 export const CHECKIN_ACK_LEASE_SECONDS = 600;
 const STALE_DISPATCH_RECLAIM_LIMIT = 50;
 const WORKER_SELF_HEALING_TODO_SWEEP_LIMIT = 50;
+export const WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT = 3;
 export const WAKEPASS_REROUTE_LEASE_SECONDS = 600;
 
 interface WakepassRerouteTarget {
@@ -145,7 +146,8 @@ export interface WorkerSelfHealingDecision {
 export type WorkerSelfHealingSignalAction =
   | "worker_self_healing_active_lease"
   | "worker_self_healing_reclaimable_lease"
-  | "worker_self_healing_stale_worker";
+  | "worker_self_healing_stale_worker"
+  | "worker_self_healing_stale_owner_released";
 
 export interface WorkerSelfHealingSignal {
   action: WorkerSelfHealingSignalAction;
@@ -167,6 +169,19 @@ export interface WorkerSelfHealingSignalInsertRow {
 export interface WorkerSelfHealingTodoSignalPlan {
   signal: WorkerSelfHealingSignal;
   insert: WorkerSelfHealingSignalInsertRow;
+}
+
+export interface WorkerSelfHealingTodoReleasePlan {
+  signal: WorkerSelfHealingSignal;
+  insert: WorkerSelfHealingSignalInsertRow;
+  update: {
+    status: "open";
+    assigned_to_agent_id: null;
+    lease_token: null;
+    lease_expires_at: null;
+    reclaim_count: number;
+    updated_at: string;
+  };
 }
 
 export type WorkerMovementWorkflowPilotProofAction =
@@ -342,7 +357,7 @@ export function planWorkerSelfHealingDecision(params: {
     return {
       ...base,
       action: "stale_worker_action_needed",
-      next_reclaim_count: reclaimCount,
+      next_reclaim_count: reclaimCount + 1,
       profile_agent_id: params.profile.agent_id,
       next_checkin_at: params.profile.next_checkin_at,
       last_seen_at: params.profile.last_seen_at,
@@ -450,6 +465,71 @@ export function planWorkerSelfHealingTodoSignal(params: {
   };
 }
 
+export function planWorkerSelfHealingTodoRelease(params: {
+  apiKeyHash: string;
+  todo: WorkerSelfHealingTodoState;
+  decision: WorkerSelfHealingDecision;
+  releasedAt: string;
+  deepLink?: string;
+}): WorkerSelfHealingTodoReleasePlan | null {
+  const apiKeyHash = nonEmptyString(params.apiKeyHash);
+  const releasedAt = nonEmptyString(params.releasedAt);
+  if (!apiKeyHash || !releasedAt) return null;
+
+  const status = normalizeToken(params.todo.status);
+  if (status !== "in_progress") return null;
+  if (!params.decision.assigned_to_agent_id) return null;
+  if (
+    params.decision.action !== "expired_lease_reclaimable" &&
+    params.decision.action !== "stale_worker_action_needed"
+  ) {
+    return null;
+  }
+  if (params.decision.reclaim_count >= WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT) {
+    return null;
+  }
+
+  const payload = {
+    ...workerSelfHealingSignalPayload(params.decision),
+    previous_status: params.todo.status,
+    previous_assigned_to_agent_id: params.decision.assigned_to_agent_id,
+    next_status: "open",
+    released_stale_owner: true,
+    released_at: releasedAt,
+    bonded_handoff_required: true,
+    bonded_handoff_rule:
+      "Next worker must make a fresh claim and leave proof before moving the job.",
+    reassignment_attempts_capped_at: WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT,
+  };
+  const signal: WorkerSelfHealingSignal = {
+    action: "worker_self_healing_stale_owner_released",
+    severity: "info",
+    summary: `SeatRelay released stale owner ${params.decision.assigned_to_agent_id} from todo ${params.decision.todo_id}.`,
+    payload,
+  };
+
+  return {
+    signal,
+    insert: {
+      api_key_hash: apiKeyHash,
+      tool: "fishbowl",
+      action: signal.action,
+      severity: signal.severity,
+      summary: signal.summary,
+      deep_link: params.deepLink ?? `/admin/jobs#todo-${params.decision.todo_id}`,
+      payload,
+    },
+    update: {
+      status: "open",
+      assigned_to_agent_id: null,
+      lease_token: null,
+      lease_expires_at: null,
+      reclaim_count: params.decision.next_reclaim_count,
+      updated_at: releasedAt,
+    },
+  };
+}
+
 export function hasRecentWorkerSelfHealingTodoSignal(
   signals: Array<{ action: string; payload: Record<string, unknown> | null }>,
   plan: WorkerSelfHealingTodoSignalPlan,
@@ -458,6 +538,18 @@ export function hasRecentWorkerSelfHealingTodoSignal(
   return signals.some((signal) => (
     signal.action === plan.insert.action &&
     signal.payload?.todo_id === todoId
+  ));
+}
+
+export function hasRecentWorkerSelfHealingReleaseSignal(
+  signals: Array<{ action: string; payload: Record<string, unknown> | null }>,
+  plan: WorkerSelfHealingTodoReleasePlan,
+): boolean {
+  const todoId = plan.insert.payload.todo_id;
+  return signals.some((signal) => (
+    signal.action === plan.insert.action &&
+    signal.payload?.todo_id === todoId &&
+    signal.payload?.released_stale_owner === true
   ));
 }
 
@@ -988,6 +1080,54 @@ async function listProfilesForTenant(
   return (data ?? []) as ProfileRow[];
 }
 
+function findWorkerSelfHealingProfileForTodo(
+  profiles: ProfileRow[],
+  todo: WorkerSelfHealingTodoState,
+): ProfileRow | null {
+  const owner = nonEmptyString(todo.assigned_to_agent_id);
+  if (!owner) return null;
+  return profiles.find((profile) => profile.agent_id === owner) ?? null;
+}
+
+async function releaseWorkerSelfHealingTodoOwnership(
+  supabase: ReturnType<typeof createClient>,
+  todo: WorkerSelfHealingTodoSweepRow,
+  plan: WorkerSelfHealingTodoReleasePlan,
+): Promise<boolean> {
+  let releaseQuery = supabase
+    .from("mc_fishbowl_todos")
+    .update(plan.update)
+    .eq("api_key_hash", todo.api_key_hash)
+    .eq("id", todo.id)
+    .eq("status", todo.status);
+
+  const assignedToAgentId = nonEmptyString(todo.assigned_to_agent_id);
+  releaseQuery = assignedToAgentId
+    ? releaseQuery.eq("assigned_to_agent_id", assignedToAgentId)
+    : releaseQuery.is("assigned_to_agent_id", null);
+
+  const leaseToken = nonEmptyString(todo.lease_token);
+  releaseQuery = leaseToken
+    ? releaseQuery.eq("lease_token", leaseToken)
+    : releaseQuery.is("lease_token", null);
+
+  const leaseExpiresAt = nonEmptyString(todo.lease_expires_at);
+  releaseQuery = leaseExpiresAt
+    ? releaseQuery.eq("lease_expires_at", leaseExpiresAt)
+    : releaseQuery.is("lease_expires_at", null);
+
+  releaseQuery = todo.reclaim_count == null
+    ? releaseQuery.is("reclaim_count", null)
+    : releaseQuery.eq("reclaim_count", todo.reclaim_count);
+
+  const { data, error } = await releaseQuery.select("id").maybeSingle();
+  if (error) {
+    console.error("[fishbowl-watcher] worker self-healing release error:", error.message);
+    return false;
+  }
+  return Boolean(data);
+}
+
 async function findDispatchAckMessage(
   supabase: ReturnType<typeof createClient>,
   row: DispatchRow,
@@ -1139,6 +1279,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let staleDispatchRerouteFailures = 0;
   let workerSelfHealingSignalsEmitted = 0;
   let workerSelfHealingSignalsDeduped = 0;
+  let workerSelfHealingTodosReleased = 0;
   let digestSignalsEmitted = 0;
   let staleStatusesCleared = 0;
 
@@ -1362,7 +1503,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     staleDispatchesReclaimed++;
   }
 
-  // 3. Worker self-healing todo lease signal sweep.
+  // 3. Worker self-healing todo signal/release sweep.
   const { data: staleTodoLeaseRows, error: staleTodoLeaseErr } = await supabase
     .from("mc_fishbowl_todos")
     .select("id, api_key_hash, title, description, status, priority, created_by_agent_id, assigned_to_agent_id, lease_token, lease_expires_at, reclaim_count")
@@ -1380,13 +1521,75 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: staleTodoLeaseErr.message });
   }
 
+  const { data: staleTodoOwnerRows, error: staleTodoOwnerErr } = await supabase
+    .from("mc_fishbowl_todos")
+    .select("id, api_key_hash, title, description, status, priority, created_by_agent_id, assigned_to_agent_id, lease_token, lease_expires_at, reclaim_count")
+    .eq("status", "in_progress")
+    .not("assigned_to_agent_id", "is", null)
+    .is("lease_expires_at", null)
+    .order("updated_at", { ascending: true })
+    .limit(WORKER_SELF_HEALING_TODO_SWEEP_LIMIT);
+
+  if (staleTodoOwnerErr) {
+    console.error(
+      "[fishbowl-watcher] worker self-healing stale owner fetch error:",
+      staleTodoOwnerErr.message,
+    );
+    return res.status(500).json({ error: staleTodoOwnerErr.message });
+  }
+
+  const workerSelfHealingTodosById = new Map<string, WorkerSelfHealingTodoSweepRow>();
   for (const todo of (staleTodoLeaseRows ?? []) as WorkerSelfHealingTodoSweepRow[]) {
+    workerSelfHealingTodosById.set(todo.id, todo);
+  }
+  for (const todo of (staleTodoOwnerRows ?? []) as WorkerSelfHealingTodoSweepRow[]) {
+    if (!workerSelfHealingTodosById.has(todo.id)) {
+      workerSelfHealingTodosById.set(todo.id, todo);
+    }
+  }
+
+  for (const todo of workerSelfHealingTodosById.values()) {
+    let profiles = profileCache.get(todo.api_key_hash);
+    if (!profiles) {
+      profiles = await listProfilesForTenant(supabase, todo.api_key_hash);
+      profileCache.set(todo.api_key_hash, profiles);
+    }
+    const profile = findWorkerSelfHealingProfileForTodo(profiles, todo);
     const decision = planWorkerSelfHealingDecision({
       todo,
-      profile: null,
+      profile,
       latestHandoffReceiptId: null,
       nowMs,
     });
+    const releasePlan = planWorkerSelfHealingTodoRelease({
+      apiKeyHash: todo.api_key_hash,
+      todo,
+      decision,
+      releasedAt: nowIso,
+    });
+    if (releasePlan) {
+      const released = await releaseWorkerSelfHealingTodoOwnership(
+        supabase,
+        todo,
+        releasePlan,
+      );
+      if (!released) continue;
+      workerSelfHealingTodosReleased++;
+
+      const { error: releaseSignalErr } = await supabase
+        .from("mc_signals")
+        .insert(releasePlan.insert);
+      if (releaseSignalErr) {
+        console.error(
+          "[fishbowl-watcher] worker self-healing release signal insert error:",
+          releaseSignalErr.message,
+        );
+      } else {
+        workerSelfHealingSignalsEmitted++;
+      }
+      continue;
+    }
+
     const plan = planWorkerSelfHealingTodoSignal({
       apiKeyHash: todo.api_key_hash,
       decision,
@@ -1534,10 +1737,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     stale_dispatch_reroute_failures: staleDispatchRerouteFailures,
     worker_self_healing_signals_emitted: workerSelfHealingSignalsEmitted,
     worker_self_healing_signals_deduped: workerSelfHealingSignalsDeduped,
+    worker_self_healing_todos_released: workerSelfHealingTodosReleased,
     digest_signals_emitted: digestSignalsEmitted,
     stale_statuses_cleared: staleStatusesCleared,
     overdue_candidates: candidates.length,
-    worker_self_healing_candidates: (staleTodoLeaseRows ?? []).length,
+    worker_self_healing_candidates: workerSelfHealingTodosById.size,
+    worker_self_healing_stale_owner_candidates: (staleTodoOwnerRows ?? []).length,
     tenants_with_unread_mentions: unreadCounts.size,
     stale_status_candidates: staleStatusCandidates.length,
   });
