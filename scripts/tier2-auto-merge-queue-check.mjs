@@ -118,6 +118,26 @@ function hasReviewApproval(pr = {}) {
   return normalizeReviewDecision(pr.reviewDecision ?? pr.review_decision) === "APPROVED" || latestApprovalCount(pr) > 0;
 }
 
+function reviewProofComments(pr = {}) {
+  const comments = Array.isArray(pr.comments) ? pr.comments : [];
+  return comments.filter((comment) => {
+    const body = String(comment?.body || "");
+    if (!/\b(review pass|reviewed pass|approve|approved|approval|safety review passed)\b/i.test(body)) return false;
+    if (!/\b(reviewer|reviewer hat|safety review|verified|review passed)\b/i.test(body)) return false;
+    if (!/\b(proof|verified|test|tests|checks|ci|local proof|github checks)\b/i.test(body)) return false;
+    if (/\b(blocker|hold|do not merge|not safe|failing|failed|red|dirty|unresolved)\b/i.test(body)) return false;
+    return true;
+  });
+}
+
+function reviewProofCommentCount(pr = {}) {
+  return reviewProofComments(pr).length;
+}
+
+function hasReviewProofComment(pr = {}) {
+  return reviewProofCommentCount(pr) > 0;
+}
+
 function summarizeChecks(pr = {}, { optionalPendingChecks = [] } = {}) {
   const rollup = Array.isArray(pr.statusCheckRollup ?? pr.status_check_rollup)
     ? pr.statusCheckRollup ?? pr.status_check_rollup
@@ -171,6 +191,9 @@ function summarizeChecks(pr = {}, { optionalPendingChecks = [] } = {}) {
 function safePrSummary(pr = {}, options = {}) {
   const risk = scoreTier2PullRequestRisk(pr);
   const checks = summarizeChecks(pr, options);
+  const reviewProofCount = reviewProofCommentCount(pr);
+  const approvedReviewCount = latestApprovalCount(pr);
+  const reviewApproved = hasReviewApproval(pr);
   return {
     number: prNumber(pr),
     isDraft: Boolean(pr.isDraft ?? pr.draft),
@@ -181,8 +204,11 @@ function safePrSummary(pr = {}, options = {}) {
     additions: boundedNumber(pr.additions),
     deletions: boundedNumber(pr.deletions),
     reviewDecision: normalizeReviewDecision(pr.reviewDecision ?? pr.review_decision),
-    approvedReviewCount: latestApprovalCount(pr),
-    hasReviewApproval: hasReviewApproval(pr),
+    approvedReviewCount,
+    hasReviewApproval: reviewApproved,
+    reviewProofCommentCount: reviewProofCount,
+    hasReviewProofComment: reviewProofCount > 0,
+    hasReviewEvidence: reviewApproved || reviewProofCount > 0,
     check_state: checks.state,
     checks_green: checks.green,
     check_count: checks.total,
@@ -210,8 +236,17 @@ function auditReasons(summary = {}) {
   return reasons;
 }
 
-function mergeGateReasons(summary = {}, { allowUnreviewedLowRisk = false } = {}) {
-  const reasons = [...auditReasons(summary)];
+function reviewProofCanClearReviewableRisk(summary = {}) {
+  if (!summary.hasReviewProofComment) return false;
+  const riskReasons = Array.isArray(summary.risk_reasons) ? summary.risk_reasons : [];
+  return riskReasons.length > 0 && riskReasons.every((reason) => ["medium_diff", "several_files"].includes(reason));
+}
+
+function mergeGateReasons(summary = {}, { allowUnreviewedLowRisk = false, allowReviewProofComments = false } = {}) {
+  let reasons = [...auditReasons(summary)];
+  if (allowReviewProofComments && reviewProofCanClearReviewableRisk(summary)) {
+    reasons = reasons.filter((reason) => !["risk_medium", "medium_diff", "several_files"].includes(reason));
+  }
 
   if (!summary.checks_green) {
     if (summary.check_state === "missing") reasons.push("checks_missing");
@@ -219,7 +254,11 @@ function mergeGateReasons(summary = {}, { allowUnreviewedLowRisk = false } = {})
     else reasons.push("checks_not_green");
   }
 
-  if (!summary.hasReviewApproval && !allowUnreviewedLowRisk) {
+  const reviewSatisfied =
+    summary.hasReviewApproval ||
+    (allowUnreviewedLowRisk && summary.risk_level === "low") ||
+    (allowReviewProofComments && summary.hasReviewProofComment);
+  if (!reviewSatisfied) {
     reasons.push("missing_review_approval");
   }
 
@@ -235,6 +274,7 @@ export function evaluateTier2AutoMergeQueue({
   now = new Date().toISOString(),
   execute = false,
   allowUnreviewedLowRisk = false,
+  allowReviewProofComments = false,
   optionalPendingChecks = [],
 } = {}) {
   const openPrs = Array.isArray(prs) ? prs : [];
@@ -252,6 +292,7 @@ export function evaluateTier2AutoMergeQueue({
       execute: false,
       execution_requested: Boolean(execute),
       allow_unreviewed_low_risk: Boolean(allowUnreviewedLowRisk),
+      allow_review_proof_comments: Boolean(allowReviewProofComments),
       optional_pending_checks: optionalPendingChecks,
       no_execute_reason: "open_pr_queue_empty",
       low_risk_count: 0,
@@ -274,7 +315,7 @@ export function evaluateTier2AutoMergeQueue({
       candidates.push(summary);
     }
 
-    const gateReasons = mergeGateReasons(summary, { allowUnreviewedLowRisk });
+    const gateReasons = mergeGateReasons(summary, { allowUnreviewedLowRisk, allowReviewProofComments });
     if (gateReasons.length === 0) {
       safeToMerge.push(summary);
     } else {
@@ -297,6 +338,7 @@ export function evaluateTier2AutoMergeQueue({
     execute: shouldExecute,
     execution_requested: Boolean(execute),
     allow_unreviewed_low_risk: Boolean(allowUnreviewedLowRisk),
+    allow_review_proof_comments: Boolean(allowReviewProofComments),
     optional_pending_checks: optionalPendingChecks,
     no_execute_reason: shouldExecute ? "" : Boolean(execute) ? "no_safe_candidates" : "execution_disabled",
     low_risk_count: candidates.length,
@@ -360,7 +402,7 @@ export async function fetchOpenPullRequests({
       "--limit",
       String(limit),
       "--json",
-      "number,isDraft,mergeStateStatus,url,headRefName,changedFiles,additions,deletions,reviewDecision,latestReviews,statusCheckRollup",
+      "number,isDraft,mergeStateStatus,url,headRefName,changedFiles,additions,deletions,reviewDecision,latestReviews,statusCheckRollup,comments",
     ],
     { cwd },
   );
@@ -391,7 +433,7 @@ function shouldHydratePullRequestDetail(pr = {}) {
   const changedLines = boundedNumber(pr.additions) + boundedNumber(pr.deletions);
   const headRefName = String(pr.headRefName || pr.head?.ref || "").trim();
 
-  if (changedFiles > 12 || changedLines > 500) return false;
+  if (changedFiles > 30 || changedLines > 2000) return false;
   if (isSensitiveHeadRefName(headRefName) || isDependencyHeadRefName(headRefName)) return false;
   return Number.isFinite(prNumber(pr));
 }
@@ -415,7 +457,7 @@ export async function fetchPullRequestDetail({
       "--repo",
       repo,
       "--json",
-      "number,isDraft,mergeStateStatus,url,headRefName,changedFiles,additions,deletions,reviewDecision,latestReviews,statusCheckRollup",
+      "number,isDraft,mergeStateStatus,url,headRefName,changedFiles,additions,deletions,reviewDecision,latestReviews,statusCheckRollup,comments",
     ],
     { cwd },
   );
@@ -500,6 +542,10 @@ export async function runTier2AutoMergeQueueCheck(options = {}) {
     typeof options.allowUnreviewedLowRisk === "boolean"
       ? options.allowUnreviewedLowRisk
       : parseBoolean(process.env.TIER2_AUTOMERGE_ALLOW_UNREVIEWED_LOW_RISK, false);
+  const allowReviewProofComments =
+    typeof options.allowReviewProofComments === "boolean"
+      ? options.allowReviewProofComments
+      : parseBoolean(process.env.TIER2_AUTOMERGE_ALLOW_REVIEW_PROOF_COMMENTS, false);
   const maxMerges =
     typeof options.maxMerges === "number"
       ? Math.max(0, Math.min(10, Math.trunc(options.maxMerges)))
@@ -513,6 +559,7 @@ export async function runTier2AutoMergeQueueCheck(options = {}) {
     now: options.now || new Date().toISOString(),
     execute,
     allowUnreviewedLowRisk,
+    allowReviewProofComments,
     optionalPendingChecks,
   });
 
