@@ -73,6 +73,20 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
     expect(context.current_state_card.harness_card.required_proof).toContain(
       "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
     );
+    expect(context.current_state_card.harness_card.readiness_audit.status).toBe("blocked");
+    expect(context.current_state_card.harness_card.readiness_audit.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: "scoped_task", status: "pass" }),
+        expect.objectContaining({ key: "source_of_truth", status: "pass" }),
+        expect.objectContaining({ key: "allowed_actions", status: "pass" }),
+        expect.objectContaining({ key: "forbidden_surfaces", status: "pass" }),
+        expect.objectContaining({ key: "proof_required", status: "pass" }),
+        expect.objectContaining({ key: "cleanup_rule", status: "pass" }),
+        expect.objectContaining({ key: "recovery_path", status: "pass" }),
+        expect.objectContaining({ key: "owner", status: "fail" }),
+        expect.objectContaining({ key: "next_checkin", status: "fail" }),
+      ]),
+    );
     expect(context.current_state_card.harness_card.copyroom_rule).toContain("CopyRoom/source packets");
     // active_jobs should also be 0 (no in_progress todos), so the BLOCKER is
     // entirely driven by the actionable queue depth.
