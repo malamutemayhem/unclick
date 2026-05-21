@@ -33,6 +33,8 @@ describe("AdminSeatHeartbeatPage", () => {
     expect(HEARTBEAT_MASTER_PROMPT).toContain("NudgeOnly is not the executor");
     expect(HEARTBEAT_MASTER_PROMPT).toContain("do not stop there");
     expect(HEARTBEAT_MASTER_PROMPT).toContain("JobSmith is a separate CV and cover-letter tool");
+    expect(HEARTBEAT_MASTER_PROMPT).toContain("Chat output budget");
+    expect(HEARTBEAT_MASTER_PROMPT).toContain("Keep the thread tiny");
   });
 
   it("updates the schedule message when cadence changes", () => {
