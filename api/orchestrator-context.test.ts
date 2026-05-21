@@ -201,6 +201,10 @@ describe("orchestrator context", () => {
     expect(context.current_state_card.harness_card.required_proof).toContain(
       "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
     );
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
+    );
+    expect(context.current_state_card.harness_card.copyroom_rule).toContain("copy receipt");
     expect(context.current_state_card.harness_card.test_runner_rule).toContain("Test-only runner packets");
   });
 

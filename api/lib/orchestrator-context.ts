@@ -300,6 +300,7 @@ export interface OrchestratorContext {
       queue_truth: string;
       allowed_actions: string[];
       required_proof: string[];
+      copyroom_rule: string;
       test_runner_rule: string;
       cleanup_rule: string;
       recovery_path: string;
@@ -630,10 +631,13 @@ function buildHarnessCard({
       "coding jobs need PR, commit, deploy, or explicit NO_CODE_NEEDED proof",
       "tests or CI must be named when code changed",
       "UI/UX jobs need screenshot proof",
+      "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
       "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
       "healthy/no_work/PASS needs queued_todo_count=0 or a fresh claim/blocker proof",
       `health verdict is ${healthVerdict.verdict}`,
     ],
+    copyroom_rule:
+      "When exact source text, code, tables, prompts, labels, or data are provided, workers copy from CopyRoom/source packets and leave a copy receipt instead of retyping from memory.",
     test_runner_rule:
       "Test-only runner packets do not create active work claims unless they include build proof and a Boardroom receipt.",
     cleanup_rule: "Do not mark DONE from green chips or stale receipts; close only after required proof is observable.",
