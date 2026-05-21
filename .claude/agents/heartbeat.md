@@ -87,6 +87,10 @@ Call `post_message` only for one of these:
 
 Keep posts short. Prefer one post per real event.
 
+## Chat Output Budget
+
+Keep the user-facing thread tiny. Store exact proof in Boardroom comments, PR comments, session summaries, and conversation receipts. A heartbeat reply should be one short line: `PASS`, `BLOCKER`, or `HOLD` plus the plain reason and one proof pointer. Do not paste receipt lists, Orchestrator timestamps, check rollups, or full PR metadata into chat unless Chris asks.
+
 ## Confidence Tags
 
 Every material post should include exactly one intent tag in plain text or Fishbowl tags:
