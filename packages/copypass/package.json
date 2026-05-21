@@ -8,6 +8,7 @@
     ".": "./dist/index.js",
     "./copy-library": "./dist/copy-library.js",
     "./schema": "./dist/schema.js",
+    "./source-copy": "./dist/source-copy.js",
     "./verdict-pack": "./dist/verdict-pack.js"
   },
   "scripts": {
