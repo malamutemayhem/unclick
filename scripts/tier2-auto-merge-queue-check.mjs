@@ -18,6 +18,13 @@ function compact(value, max = 160) {
   return text.length > max ? `${text.slice(0, max - 3)}...` : text;
 }
 
+function parseCsv(value) {
+  return String(value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function normalizeMergeState(value) {
   return String(value ?? "").trim().toUpperCase() || "UNKNOWN";
 }
@@ -102,7 +109,7 @@ function hasReviewApproval(pr = {}) {
   return normalizeReviewDecision(pr.reviewDecision ?? pr.review_decision) === "APPROVED" || latestApprovalCount(pr) > 0;
 }
 
-function summarizeChecks(pr = {}) {
+function summarizeChecks(pr = {}, { optionalPendingChecks = [] } = {}) {
   const rollup = Array.isArray(pr.statusCheckRollup ?? pr.status_check_rollup)
     ? pr.statusCheckRollup ?? pr.status_check_rollup
     : [];
@@ -113,12 +120,15 @@ function summarizeChecks(pr = {}) {
       total: 0,
       failed: [],
       pending: [],
+      optionalPending: [],
     };
   }
 
   const failed = [];
   const pending = [];
+  const optionalPending = [];
   const acceptableConclusions = new Set(["SUCCESS", "NEUTRAL", "SKIPPED"]);
+  const optionalPendingNames = new Set(optionalPendingChecks.map((name) => name.toLowerCase()));
 
   for (const check of rollup) {
     const name = compact(check?.name || check?.context || check?.workflowName || "unnamed-check", 120);
@@ -126,6 +136,10 @@ function summarizeChecks(pr = {}) {
     const conclusion = normalizeConclusion(check?.conclusion || check?.state);
 
     if (status && status !== "COMPLETED" && status !== "SUCCESS") {
+      if (optionalPendingNames.has(name.toLowerCase())) {
+        optionalPending.push(name);
+        continue;
+      }
       pending.push(name);
       continue;
     }
@@ -141,12 +155,13 @@ function summarizeChecks(pr = {}) {
     total: rollup.length,
     failed,
     pending,
+    optionalPending,
   };
 }
 
-function safePrSummary(pr = {}) {
+function safePrSummary(pr = {}, options = {}) {
   const risk = scoreTier2PullRequestRisk(pr);
-  const checks = summarizeChecks(pr);
+  const checks = summarizeChecks(pr, options);
   return {
     number: prNumber(pr),
     isDraft: Boolean(pr.isDraft ?? pr.draft),
@@ -164,6 +179,7 @@ function safePrSummary(pr = {}) {
     check_count: checks.total,
     failed_checks: checks.failed,
     pending_checks: checks.pending,
+    optional_pending_checks: checks.optionalPending,
     risk_score: risk.score,
     risk_level: risk.level,
     risk_reasons: risk.reasons,
@@ -210,9 +226,10 @@ export function evaluateTier2AutoMergeQueue({
   now = new Date().toISOString(),
   execute = false,
   allowUnreviewedLowRisk = false,
+  optionalPendingChecks = [],
 } = {}) {
   const openPrs = Array.isArray(prs) ? prs : [];
-  const summaries = openPrs.map(safePrSummary);
+  const summaries = openPrs.map((pr) => safePrSummary(pr, { optionalPendingChecks }));
   if (openPrs.length === 0) {
     return {
       ok: true,
@@ -226,6 +243,7 @@ export function evaluateTier2AutoMergeQueue({
       execute: false,
       execution_requested: Boolean(execute),
       allow_unreviewed_low_risk: Boolean(allowUnreviewedLowRisk),
+      optional_pending_checks: optionalPendingChecks,
       no_execute_reason: "open_pr_queue_empty",
       low_risk_count: 0,
       candidate_count: 0,
@@ -270,6 +288,7 @@ export function evaluateTier2AutoMergeQueue({
     execute: shouldExecute,
     execution_requested: Boolean(execute),
     allow_unreviewed_low_risk: Boolean(allowUnreviewedLowRisk),
+    optional_pending_checks: optionalPendingChecks,
     no_execute_reason: shouldExecute ? "" : Boolean(execute) ? "no_safe_candidates" : "execution_disabled",
     low_risk_count: candidates.length,
     candidate_count: candidates.length,
@@ -420,12 +439,16 @@ export async function runTier2AutoMergeQueueCheck(options = {}) {
     typeof options.maxMerges === "number"
       ? Math.max(0, Math.min(10, Math.trunc(options.maxMerges)))
       : parseBoundedInt(process.env.TIER2_AUTOMERGE_MAX_MERGES, 1, 0, 10);
+  const optionalPendingChecks = Array.isArray(options.optionalPendingChecks)
+    ? options.optionalPendingChecks
+    : parseCsv(process.env.TIER2_AUTOMERGE_OPTIONAL_PENDING_CHECKS || "Cursor Bugbot");
 
   const evaluated = evaluateTier2AutoMergeQueue({
     prs: fetched.prs,
     now: options.now || new Date().toISOString(),
     execute,
     allowUnreviewedLowRisk,
+    optionalPendingChecks,
   });
 
   if (!evaluated.execute) return evaluated;

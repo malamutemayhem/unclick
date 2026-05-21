@@ -26,4 +26,5 @@ jobs:
           TIER2_AUTOMERGE_EXECUTE: "true"
           TIER2_AUTOMERGE_ALLOW_UNREVIEWED_LOW_RISK: "true"
           TIER2_AUTOMERGE_MAX_MERGES: "1"
+          TIER2_AUTOMERGE_OPTIONAL_PENDING_CHECKS: "Cursor Bugbot"
         run: node scripts/tier2-auto-merge-queue-check.mjs

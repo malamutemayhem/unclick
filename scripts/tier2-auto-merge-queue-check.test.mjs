@@ -74,6 +74,7 @@ describe("Tier-2 auto-merge queue check", () => {
       check_count: 1,
       failed_checks: [],
       pending_checks: [],
+      optional_pending_checks: [],
       risk_score: 0,
       risk_level: "low",
       risk_reasons: [],
@@ -94,10 +95,14 @@ describe("Tier-2 auto-merge queue check", () => {
           deletions: 5,
           reviewDecision: "APPROVED",
           latestReviews: [{ state: "APPROVED" }],
-          statusCheckRollup: [{ __typename: "StatusContext", context: "Vercel", state: "SUCCESS" }],
+          statusCheckRollup: [
+            { __typename: "StatusContext", context: "Vercel", state: "SUCCESS" },
+            { __typename: "CheckRun", name: "Cursor Bugbot", status: "IN_PROGRESS", conclusion: "" },
+          ],
         },
       ],
       now: "2026-05-09T08:45:00.000Z",
+      optionalPendingChecks: ["Cursor Bugbot"],
     });
 
     assert.equal(result.execute, false);
@@ -105,6 +110,7 @@ describe("Tier-2 auto-merge queue check", () => {
     assert.deepEqual(result.safe_to_merge_pr_numbers, [640]);
     assert.equal(result.no_execute_reason, "execution_disabled");
     assert.deepEqual(result.blocked_prs, []);
+    assert.deepEqual(result.summaries[0].optional_pending_checks, ["Cursor Bugbot"]);
   });
 
   it("audits candidates and blocked PRs before granting merge execution", () => {
