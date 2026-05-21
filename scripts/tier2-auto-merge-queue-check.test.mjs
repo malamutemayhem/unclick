@@ -152,46 +152,6 @@ describe("Tier-2 auto-merge queue check", () => {
     assert.deepEqual(result.summaries[0].risk_reasons, ["medium_diff"]);
   });
 
-  it("allows optional pending checks to clear GitHub unstable merge state", () => {
-    const result = evaluateTier2AutoMergeQueue({
-      prs: [
-        {
-          number: 982,
-          isDraft: false,
-          mergeStateStatus: "UNSTABLE",
-          url: "https://github.com/malamutemayhem/unclick/pull/982",
-          headRefName: "codex/autopilot-non-ui-completion-gate",
-          changedFiles: 2,
-          additions: 33,
-          deletions: 1,
-          reviewDecision: "",
-          latestReviews: [],
-          comments: [
-            {
-              body: "REVIEW PASS (Codex reviewer hat): safety review passed. Verified policy and tests. Local proof: npm test = 9 passed. Required CI/Vercel/TestPass checks are green; Cursor Bugbot is optional/pending.",
-            },
-          ],
-          statusCheckRollup: [
-            { __typename: "CheckRun", name: "Website", status: "COMPLETED", conclusion: "SUCCESS" },
-            { __typename: "StatusContext", context: "Vercel", state: "SUCCESS" },
-            { __typename: "CheckRun", name: "Cursor Bugbot", status: "IN_PROGRESS", conclusion: "" },
-          ],
-        },
-      ],
-      now: "2026-05-21T12:05:00.000Z",
-      execute: true,
-      allowReviewProofComments: true,
-      optionalPendingChecks: ["Cursor Bugbot"],
-    });
-
-    assert.equal(result.execute, true);
-    assert.equal(result.safe_to_merge_count, 1);
-    assert.deepEqual(result.safe_to_merge_pr_numbers, [982]);
-    assert.deepEqual(result.blocked_prs, []);
-    assert.deepEqual(result.summaries[0].risk_reasons, []);
-    assert.deepEqual(result.summaries[0].optional_pending_checks, ["Cursor Bugbot"]);
-  });
-
   it("does not treat HOLD or blocker comments as reviewer proof", () => {
     const result = evaluateTier2AutoMergeQueue({
       prs: [

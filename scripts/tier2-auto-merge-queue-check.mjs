@@ -57,7 +57,7 @@ function isDependencyHeadRefName(value) {
   return /^dependabot\//i.test(String(value || "").trim());
 }
 
-export function scoreTier2PullRequestRisk(pr = {}, { ignoreUnstableMergeState = false } = {}) {
+export function scoreTier2PullRequestRisk(pr = {}) {
   const reasons = [];
   let score = 0;
   const mergeState = normalizeMergeState(pr.mergeStateStatus ?? pr.merge_state_status);
@@ -70,7 +70,7 @@ export function scoreTier2PullRequestRisk(pr = {}, { ignoreUnstableMergeState = 
     reasons.push("draft");
   }
 
-  if (mergeState !== "CLEAN" && !(mergeState === "UNSTABLE" && ignoreUnstableMergeState)) {
+  if (mergeState !== "CLEAN") {
     score += 30;
     reasons.push(`merge_state_${mergeState.toLowerCase()}`);
   }
@@ -189,11 +189,8 @@ function summarizeChecks(pr = {}, { optionalPendingChecks = [] } = {}) {
 }
 
 function safePrSummary(pr = {}, options = {}) {
+  const risk = scoreTier2PullRequestRisk(pr);
   const checks = summarizeChecks(pr, options);
-  const mergeState = normalizeMergeState(pr.mergeStateStatus ?? pr.merge_state_status);
-  const risk = scoreTier2PullRequestRisk(pr, {
-    ignoreUnstableMergeState: mergeState === "UNSTABLE" && checks.green,
-  });
   const reviewProofCount = reviewProofCommentCount(pr);
   const approvedReviewCount = latestApprovalCount(pr);
   const reviewApproved = hasReviewApproval(pr);
@@ -228,10 +225,7 @@ function auditReasons(summary = {}) {
   const reasons = [];
   if (summary.isDraft) reasons.push("draft");
   if (summary.mergeStateStatus !== "CLEAN") {
-    const mergeReason = `merge_state_${String(summary.mergeStateStatus || "UNKNOWN").toLowerCase()}`;
-    if ((summary.risk_reasons || []).includes(mergeReason)) {
-      reasons.push(mergeReason);
-    }
+    reasons.push(`merge_state_${String(summary.mergeStateStatus || "UNKNOWN").toLowerCase()}`);
   }
   if (summary.risk_level !== "low") {
     reasons.push(`risk_${summary.risk_level || "unknown"}`);
