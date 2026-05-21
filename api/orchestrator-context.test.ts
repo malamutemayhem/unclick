@@ -499,6 +499,61 @@ describe("orchestrator context", () => {
     expect(JSON.stringify(context.current_state_card.blockers)).not.toContain("superseded_status_comment");
   });
 
+  it("does not count missed-checkin dispatches after the same seat checked in again", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-21T12:50:00.000Z",
+      profiles: [
+        {
+          agent_id: "unclick-builder-tether-seat",
+          display_name: "Builder Tether",
+          last_seen_at: "2026-05-21T12:49:08.568Z",
+        },
+      ],
+      messages: [],
+      todos: [
+        {
+          id: "todo-open-backlog",
+          title: "Keep backlog visible",
+          description: "Open work still needs a claim.",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "codex",
+          created_at: "2026-05-21T06:00:00.000Z",
+          updated_at: "2026-05-21T06:00:00.000Z",
+        },
+      ],
+      comments: [],
+      dispatches: [
+        {
+          dispatch_id: "dispatch-old-checkin",
+          source: "wakepass",
+          target_agent_id: "unclick-builder-tether-seat",
+          task_ref: "fishbowl-checkin:unclick-builder-tether-seat:2026-05-21T06:32:08.227Z",
+          status: "stale",
+          payload: {
+            wake_reason: "missed_next_checkin",
+            agent_id: "unclick-builder-tether-seat",
+          },
+          created_at: "2026-05-21T07:15:31.265Z",
+          updated_at: "2026-05-21T07:15:31.265Z",
+        },
+      ],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.continuity_events.find((event) => event.source_id === "dispatch-old-checkin")?.kind).toBe(
+      "blocker",
+    );
+    expect(context.current_state_card.active_todo_count).toBe(1);
+    expect(context.current_state_card.blocker_count).toBe(0);
+    expect(context.current_state_card.blockers).toHaveLength(0);
+    expect(context.rolling_snapshot.active_blockers).toHaveLength(0);
+  });
+
   it("hides merged PR WakePass leased dispatches after ACK proof exists", () => {
     const context = buildOrchestratorContext({
       generatedAt: "2026-05-16T14:20:00.000Z",

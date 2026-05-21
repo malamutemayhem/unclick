@@ -415,6 +415,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   const queuedTodoCount = input.todos.filter((todo) => todo.status === "open").length;
   const inProgressTodoCount = input.todos.filter((todo) => todo.status === "in_progress").length;
   const activeTodos = activeTodoRows.slice(0, 8);
+  const profileLastSeenByAgent = buildProfileLastSeenByAgent(input.profiles);
   // active_jobs (v9 definition pinned by todo a4cd5229): strict
   // in_progress + owner_last_seen <= 24h. Heartbeat step 5 uses the same
   // formula so state_card and PASS/BLOCKER never disagree on identical
@@ -463,7 +464,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     .map((event) => (compact ? compactContinuityEvent(event) : event));
 
   const blockers = continuityEvents
-    .filter((event) => isActiveBlockerEvent(event, activeTodos, nowMs))
+    .filter((event) => isActiveBlockerEvent(event, activeTodos, nowMs, profileLastSeenByAgent))
     .map((event) => event.summary)
     .slice(0, 5);
 
@@ -505,6 +506,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     activeTodos,
     continuityEvents,
     blockers,
+    profileLastSeenByAgent,
   });
   const seatHandshake = buildSeatHandshake({
     profiles,
@@ -764,6 +766,7 @@ function buildRollingSnapshot({
   activeTodos,
   continuityEvents,
   blockers,
+  profileLastSeenByAgent,
 }: {
   generatedAt: string;
   nowMs: number;
@@ -771,6 +774,7 @@ function buildRollingSnapshot({
   activeTodos: OrchestratorTodoRow[];
   continuityEvents: OrchestratorContinuityEvent[];
   blockers: string[];
+  profileLastSeenByAgent: Map<string, string | null>;
 }): OrchestratorRollingSnapshot {
   const snapshotEvents = continuityEvents.filter((event) => !isSnapshotNoise(event));
   const promotedDecisions = snapshotEvents
@@ -778,7 +782,7 @@ function buildRollingSnapshot({
     .slice(0, 5)
     .map((event) => eventToSnapshotItem(event, "decision"));
   const activeBlockers = snapshotEvents
-    .filter((event) => isActiveBlockerEvent(event, activeTodos, nowMs))
+    .filter((event) => isActiveBlockerEvent(event, activeTodos, nowMs, profileLastSeenByAgent))
     .slice(0, 5)
     .map((event) => eventToSnapshotItem(event, "blocker"));
   const activeJobs = activeTodos.slice(0, 6).map((todo) => ({
@@ -832,12 +836,47 @@ function isActiveBlockerEvent(
   event: OrchestratorContinuityEvent,
   activeTodos: OrchestratorTodoRow[],
   nowMs: number,
+  profileLastSeenByAgent: Map<string, string | null>,
 ): boolean {
   if (event.kind !== "blocker") return false;
   if (isWakeIssueCommentStale(event, activeTodos)) return false;
   if (isSuppressedWakePassStatusDispatch(event)) return false;
+  if (isSupersededMissedCheckinDispatch(event, profileLastSeenByAgent, nowMs)) return false;
   if (!isHistoricalWakeOrFishbowlStale(event, activeTodos, nowMs)) return true;
   return false;
+}
+
+function isSupersededMissedCheckinDispatch(
+  event: OrchestratorContinuityEvent,
+  profileLastSeenByAgent: Map<string, string | null>,
+  nowMs: number,
+): boolean {
+  if (event.source_kind !== "dispatch") return false;
+
+  const tags = (event.tags ?? []).map((tag) => tag.toLowerCase());
+  const summary = event.summary.toLowerCase();
+  const text = `${summary} ${tags.join(" ")}`;
+  const isStale = tags.includes("stale") || /\bstale\b/.test(text);
+  if (!isStale || !text.includes("fishbowl-checkin:")) return false;
+
+  const agentId = extractMissedCheckinAgentId(event);
+  if (!agentId) return false;
+
+  const lastSeenMs = Date.parse(profileLastSeenByAgent.get(agentId) ?? "");
+  const eventMs = Date.parse(event.created_at ?? "");
+  if (!Number.isFinite(lastSeenMs) || !Number.isFinite(eventMs) || !Number.isFinite(nowMs)) {
+    return false;
+  }
+
+  return lastSeenMs > eventMs && lastSeenMs <= nowMs + 60_000;
+}
+
+function extractMissedCheckinAgentId(event: OrchestratorContinuityEvent): string | null {
+  const match = event.summary.match(/\bfishbowl-checkin:([^:\s{]+):/i);
+  if (match?.[1]) return match[1];
+  return event.actor_agent_id && !/^\p{Emoji_Presentation}$/u.test(event.actor_agent_id)
+    ? event.actor_agent_id
+    : null;
 }
 
 function isWakeIssueCommentStale(
@@ -1407,6 +1446,15 @@ function isFresh(iso: string | null | undefined, nowMs: number): boolean {
   if (!iso) return false;
   const seenMs = Date.parse(iso);
   return Number.isFinite(seenMs) && Number.isFinite(nowMs) && nowMs - seenMs <= ACTIVE_WINDOW_MS;
+}
+
+function buildProfileLastSeenByAgent(profiles: OrchestratorProfileRow[]): Map<string, string | null> {
+  const lastSeen = new Map<string, string | null>();
+  for (const profile of profiles) {
+    if (!profile.agent_id) continue;
+    lastSeen.set(profile.agent_id, profile.last_seen_at ?? profile.created_at ?? null);
+  }
+  return lastSeen;
 }
 
 // Owner-freshness gate for current_state_card.active_jobs. Mirrors the
