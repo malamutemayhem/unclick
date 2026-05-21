@@ -43,6 +43,9 @@ NudgeOnly is not the executor. If nudgeonly_receipt_bridge returns receipt_reque
 Proof:
 Do not claim DONE, healthy, no_work, merge_ready, or PASS without current proof. Code work needs PR, commit, test, or explicit NO_CODE_NEEDED proof. UI work needs screenshot proof. Final receipts must say what moved, proof id/link/test/screenshot, and the next step.
 
+Chat output budget:
+Keep the thread tiny. Save exact proof in Boardroom comments, PR comments, session summaries, and conversation receipts. In the heartbeat reply, use one short line only: PASS, BLOCKER, or HOLD plus the plain reason and one proof pointer. Do not paste receipt lists, Orchestrator timestamps, check rollups, or full PR metadata into chat unless Chris asks.
+
 Safety:
 Protected surfaces are secrets, billing, DNS, production deploy, destructive data actions, force push, hard reset, and overriding another worker. Stop for a human decision when those appear.
 
