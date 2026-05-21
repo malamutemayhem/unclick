@@ -597,19 +597,26 @@ function buildHarnessCard({
         ? "amber"
         : "green";
   const gateReason =
-    queueState === "needs_claim"
+    queuedTodoCount > 0 && activeJobsCount > 0
+      ? "Fresh active work exists, but open backlog is still waiting. Do not call the queue healthy; claim a non-overlapping queued slice or post the exact blocker."
+      : queueState === "needs_claim"
       ? "Open Boardroom work has no fresh active owner. Claim one scoped job or post the exact blocker."
       : queueState === "active_work"
         ? "Fresh active work exists. Support with proof, review, tests, or a non-overlapping scoped patch."
         : "No open Boardroom work is visible in this snapshot.";
+  const queueTruth =
+    queuedTodoCount > 0
+      ? `active_jobs=${activeJobsCount}; queued_todo_count=${queuedTodoCount}. Open backlog with active_jobs=${activeJobsCount} needs claim/proof work and is red, not healthy.`
+      : activeJobsCount > 0
+        ? `active_jobs=${activeJobsCount}; queued_todo_count=0. Fresh active work exists; support it with proof, review, tests, or a non-overlapping scoped patch.`
+        : "active_jobs=0; queued_todo_count=0. No open Boardroom work is visible in this snapshot.";
 
   return {
     source_of_truth: "Boardroom Jobs",
     queue_state: queueState,
     gate_status: gateStatus,
     gate_reason: gateReason,
-    queue_truth:
-      "active_jobs counts in_progress work with a fresh owner; queued_todo_count is open backlog. Open backlog with active_jobs=0 is red, not healthy.",
+    queue_truth: queueTruth,
     allowed_actions: [
       "claim one unowned scoped job",
       "verify proof on a completed-looking job",
@@ -622,6 +629,7 @@ function buildHarnessCard({
       "tests or CI must be named when code changed",
       "UI/UX jobs need screenshot proof",
       "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
+      "healthy/no_work/PASS needs queued_todo_count=0 or a fresh claim/blocker proof",
       `health verdict is ${healthVerdict.verdict}`,
     ],
     test_runner_rule:
