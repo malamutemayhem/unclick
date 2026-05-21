@@ -846,13 +846,19 @@ export const VISIBLE_TOOLS = [
     name: "list_expressroom_drafts",
     title: "List ExpressRoom Manual drafts",
     description:
-      "Lists Manual ExpressBuild drafts stored in ExpressRoom. These are draft-only records until promoted into official Jobs.",
+      "Lists Manual ExpressBuild drafts stored in ExpressRoom. These are draft-only records until promoted into official Jobs. " +
+      "Use official_todo_id or official_job_mirror to find drafts linked to a Jobs Board card, PR number, PR URL, or mirrored job name.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
         agent_id: { type: "string", description: "Stable identifier for the calling agent." },
         express_status: { type: "string", enum: ["draft", "inserted", "archived"], description: "Optional status filter." },
+        official_todo_id: { type: "string", description: "Optional exact Jobs Board todo UUID mirror." },
+        official_job_mirror: {
+          type: "string",
+          description: "Optional fuzzy mirror search text, such as job name, PR number, PR URL, or todo id.",
+        },
         limit: { type: "number", minimum: 1, maximum: 200, default: 100 },
       },
       required: ["agent_id"],
@@ -1536,6 +1542,24 @@ for (const tool of [...INTERNAL_TOOLS, ...VISIBLE_TOOLS, ...DIRECT_TOOLS, ...ADD
   registerToolInputSchema(tool);
 }
 
+export const EXPRESSROOM_VISIBLE_TOOL_NAMES = [
+  "create_expressroom_draft",
+  "list_expressroom_drafts",
+  "promote_expressroom_draft",
+] as const;
+
+// ExpressRoom needs friendly connected-agent tools, while the rest of the
+// internal meta layer stays hidden from tools/list.
+const EXPRESSROOM_VISIBLE_TOOLS = INTERNAL_TOOLS.filter((tool) =>
+  (EXPRESSROOM_VISIBLE_TOOL_NAMES as readonly string[]).includes(tool.name),
+);
+
+export const ADVERTISED_TOOLS = [
+  ...VISIBLE_TOOLS,
+  ...EXPRESSROOM_VISIBLE_TOOLS,
+  ...ADDITIONAL_TOOLS,
+];
+
 // Backwards-compatible memory tool names still dispatch directly, so they need
 // the same runtime guard as the newer visible names.
 for (const [alias, canonical] of Object.entries(MEMORY_TOOL_ALIASES)) {
@@ -1693,15 +1717,14 @@ export function createServer(): Server {
     }
   );
 
-  // LIST TOOLS: advertise the core memory tools PLUS every product + marketplace
-  // tool registered in ADDITIONAL_TOOLS (TestPass, Crews, and all third-party
-  // integrations from tool-wiring.ts). Internal meta tools (unclick_search,
-  // unclick_browse, unclick_tool_info, unclick_call) and the small DIRECT_TOOLS
-  // utility set remain callable for backwards compatibility but stay hidden
-  // from tools/list to avoid duplicating what native chat clients already
-  // discover.
+  // LIST TOOLS: advertise the core memory tools, the friendly ExpressRoom
+  // bridge tools, plus every product + marketplace tool registered in
+  // ADDITIONAL_TOOLS (TestPass, Crews, and third-party integrations from
+  // tool-wiring.ts). Internal meta tools (unclick_search, unclick_browse,
+  // unclick_tool_info, unclick_call) and the small DIRECT_TOOLS utility set
+  // remain callable for backwards compatibility but stay hidden from tools/list.
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: [...VISIBLE_TOOLS, ...ADDITIONAL_TOOLS] };
+    return { tools: ADVERTISED_TOOLS };
   });
 
   // CALL TOOL
