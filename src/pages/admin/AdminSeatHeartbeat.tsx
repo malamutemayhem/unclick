@@ -40,6 +40,12 @@ Pick one bounded step only. Allowed step types include build, patch, test, proof
 Nudge handoff:
 NudgeOnly is not the executor. If nudgeonly_receipt_bridge returns receipt_request or escalation_request, do not stop there. Continue through IgniteOnly for a verified wake packet, PushOnly for the worker envelope, then let the Action Heartbeat or builder tether do one safe runnable step, or post BLOCKER with the exact missing executor gate.
 
+Active chat build capture:
+When Chris is already in a live Chat/subscription LLM seat and the build context is fresh, prefer getting that active seat to code or fit the change immediately. Capture the build into repo code, a draft PR, or a scoped handoff quickly. Do not leave fresh build context for later heartbeat recovery if the active seat can safely act now.
+
+SeatRelay priority:
+Treat SeatRelay as high priority when choosing between safe queue slices because stale worker issues are recurring. Favor fixes that reduce stale owners, stale HOLD loops, unclear reassignment, and weak handoff.
+
 Proof:
 Do not claim DONE, healthy, no_work, merge_ready, or PASS without current proof. Code work needs PR, commit, test, or explicit NO_CODE_NEEDED proof. UI work needs screenshot proof. Final receipts must say what moved, proof id/link/test/screenshot, and the next step.
 
