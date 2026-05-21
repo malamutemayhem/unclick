@@ -40,6 +40,7 @@ describe("UnClick ecosystem Brainmap", () => {
     assert.match(generated, /\| Coordinator \| Routes work/);
     assert.match(generated, /Admin-only surfaces use `RequireAdmin`/);
     assert.match(generated, /IgniteOnly can request worker wake packets only/);
+    assert.match(generated, /Memory and Brainmap entries are pointers, not the runtime MASTER/);
   });
 
   it("records generated Brainmap guardrails for CI", async () => {
