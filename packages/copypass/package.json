@@ -7,6 +7,7 @@
   "exports": {
     ".": "./dist/index.js",
     "./copy-library": "./dist/copy-library.js",
+    "./copyroom": "./dist/copyroom.js",
     "./schema": "./dist/schema.js",
     "./verdict-pack": "./dist/verdict-pack.js"
   },
