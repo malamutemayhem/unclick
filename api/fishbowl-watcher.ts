@@ -107,6 +107,7 @@ export interface WakepassReroutePlan {
 export interface WorkerSelfHealingTodoState {
   id: string;
   status: string;
+  title?: string | null;
   assigned_to_agent_id?: string | null;
   lease_token?: string | null;
   lease_expires_at?: string | null;
@@ -297,6 +298,15 @@ export function planWorkerSelfHealingDecision(params: {
     reclaim_count: reclaimCount,
     latest_handoff_receipt_id: latestHandoffReceiptId,
   };
+
+  if (isProtectedWorkerSelfHealingTodo(todo, assignedToAgentId)) {
+    return {
+      ...base,
+      action: "no_action",
+      next_reclaim_count: reclaimCount,
+      reason: "protected_manual_or_human_owned",
+    };
+  }
 
   if (leaseToken && leaseExpiresAt) {
     const staleDecision = decideStaleLease(
@@ -624,6 +634,31 @@ function nonEmptyString(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
+}
+
+const PROTECTED_WORKER_SELF_HEALING_MARKERS = [
+  "human_blocker",
+  "manual_only",
+  "blocked_chris_only",
+  "chris_only",
+  "human decision",
+  "manual only",
+];
+
+function isProtectedWorkerSelfHealingTodo(
+  todo: WorkerSelfHealingTodoState,
+  assignedToAgentId: string | null,
+) {
+  if (assignedToAgentId?.startsWith("human-")) return true;
+
+  const searchable = [todo.status, todo.title, assignedToAgentId]
+    .map((value) => nonEmptyString(value)?.toLowerCase())
+    .filter((value): value is string => Boolean(value))
+    .join(" ");
+
+  return PROTECTED_WORKER_SELF_HEALING_MARKERS.some((marker) =>
+    searchable.includes(marker),
+  );
 }
 
 function workerMovementBlockedReason(title: unknown): string | null {
@@ -1312,7 +1347,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 3. Worker self-healing todo lease signal sweep.
   const { data: staleTodoLeaseRows, error: staleTodoLeaseErr } = await supabase
     .from("mc_fishbowl_todos")
-    .select("id, api_key_hash, status, assigned_to_agent_id, lease_token, lease_expires_at, reclaim_count")
+    .select("id, api_key_hash, title, status, assigned_to_agent_id, lease_token, lease_expires_at, reclaim_count")
     .in("status", ["open", "in_progress"])
     .not("lease_expires_at", "is", null)
     .lt("lease_expires_at", nowIso)

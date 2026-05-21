@@ -465,6 +465,61 @@ describe("worker self-healing decision plan", () => {
     });
   });
 
+  it("does not reclaim protected manual or human-owned todo leases", () => {
+    const manualDecision = planWorkerSelfHealingDecision({
+      todo: {
+        id: "todo-manual-only",
+        title: "Manual only customer decision",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: "lease-old",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      profile: null,
+      latestHandoffReceiptId: "handoff-latest-manual",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+
+    expect(manualDecision).toMatchObject({
+      action: "no_action",
+      todo_id: "todo-manual-only",
+      assigned_to_agent_id: "worker-1",
+      lease_token: "lease-old",
+      reclaim_count: 2,
+      next_reclaim_count: 2,
+      latest_handoff_receipt_id: "handoff-latest-manual",
+      reason: "protected_manual_or_human_owned",
+    });
+    expect(buildWorkerSelfHealingSignal(manualDecision)).toBeNull();
+
+    const humanDecision = planWorkerSelfHealingDecision({
+      todo: {
+        id: "todo-human-owned",
+        status: "in_progress",
+        assigned_to_agent_id: "human-123",
+        lease_token: "lease-old",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 1,
+      },
+      profile: null,
+      latestHandoffReceiptId: "handoff-latest-human",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+
+    expect(humanDecision).toMatchObject({
+      action: "no_action",
+      todo_id: "todo-human-owned",
+      assigned_to_agent_id: "human-123",
+      lease_token: "lease-old",
+      reclaim_count: 1,
+      next_reclaim_count: 1,
+      latest_handoff_receipt_id: "handoff-latest-human",
+      reason: "protected_manual_or_human_owned",
+    });
+    expect(buildWorkerSelfHealingSignal(humanDecision)).toBeNull();
+  });
+
   it("flags a stale worker for action when no active todo lease exists", () => {
     const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
 
