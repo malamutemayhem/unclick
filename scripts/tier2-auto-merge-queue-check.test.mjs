@@ -242,6 +242,51 @@ describe("Tier-2 auto-merge queue check", () => {
     assert.equal(Object.hasOwn(calls[0].options, "env"), false);
   });
 
+  it("hydrates likely-safe PRs when list merge state is stale or unknown", async () => {
+    const calls = [];
+    const result = await fetchOpenPullRequests({
+      repo: "owner/repo",
+      limit: 5,
+      runJson: async (command, args, options) => {
+        calls.push({ command, args, options });
+        if (args[1] === "list") {
+          return {
+            ok: true,
+            value: [
+              {
+                number: 42,
+                isDraft: false,
+                mergeStateStatus: "UNKNOWN",
+                headRefName: "codex/small-safe-change",
+                changedFiles: 2,
+                additions: 10,
+                deletions: 3,
+              },
+            ],
+          };
+        }
+        return {
+          ok: true,
+          value: {
+            number: 42,
+            isDraft: false,
+            mergeStateStatus: "CLEAN",
+            headRefName: "codex/small-safe-change",
+            changedFiles: 2,
+            additions: 10,
+            deletions: 3,
+          },
+        };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.prs[0].mergeStateStatus, "CLEAN");
+    assert.equal(calls.length, 2);
+    assert.deepEqual(calls[1].args.slice(0, 5), ["pr", "view", "42", "--repo", "owner/repo"]);
+    assert.equal(Object.hasOwn(calls[1].options, "env"), false);
+  });
+
   it("executes a capped merge when the queue has approved safe candidates", async () => {
     const merged = [];
     const result = await runTier2AutoMergeQueueCheck({

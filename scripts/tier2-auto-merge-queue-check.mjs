@@ -48,6 +48,15 @@ function prNumber(pr = {}) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function isSensitiveHeadRefName(value) {
+  const headRefName = String(value || "").trim();
+  return /\b(auth|billing|payment|stripe|secret|credential|migration|schema|rls|tenant)\b/i.test(headRefName);
+}
+
+function isDependencyHeadRefName(value) {
+  return /^dependabot\//i.test(String(value || "").trim());
+}
+
 export function scoreTier2PullRequestRisk(pr = {}) {
   const reasons = [];
   let score = 0;
@@ -82,12 +91,12 @@ export function scoreTier2PullRequestRisk(pr = {}) {
     reasons.push("medium_diff");
   }
 
-  if (/\b(auth|billing|payment|stripe|secret|credential|migration|schema|rls|tenant)\b/i.test(headRefName)) {
+  if (isSensitiveHeadRefName(headRefName)) {
     score += 25;
     reasons.push("sensitive_branch_name");
   }
 
-  if (/^dependabot\//i.test(headRefName)) {
+  if (isDependencyHeadRefName(headRefName)) {
     score += 25;
     reasons.push("dependency_update_requires_review");
   }
@@ -337,6 +346,7 @@ export async function fetchOpenPullRequests({
   limit = parseBoundedInt(process.env.TIER2_AUTOMERGE_PR_LIMIT, 30, 1, 100),
   cwd = process.cwd(),
   runJson = runCommandJson,
+  hydratePotentialCandidates = parseBoolean(process.env.TIER2_AUTOMERGE_HYDRATE_POTENTIAL_CANDIDATES, true),
 } = {}) {
   const result = await runJson(
     "gh",
@@ -355,7 +365,62 @@ export async function fetchOpenPullRequests({
     { cwd },
   );
   if (!result.ok) return result;
-  return { ok: true, prs: Array.isArray(result.value) ? result.value : [] };
+  const listedPrs = Array.isArray(result.value) ? result.value : [];
+  if (!hydratePotentialCandidates) return { ok: true, prs: listedPrs };
+
+  const prs = [];
+  for (const pr of listedPrs) {
+    if (!shouldHydratePullRequestDetail(pr)) {
+      prs.push(pr);
+      continue;
+    }
+
+    const number = prNumber(pr);
+    const detail = await fetchPullRequestDetail({ repo, number, cwd, runJson });
+    prs.push(detail.ok ? detail.pr : pr);
+  }
+
+  return { ok: true, prs };
+}
+
+function shouldHydratePullRequestDetail(pr = {}) {
+  if (Boolean(pr.isDraft ?? pr.draft)) return false;
+  if (normalizeMergeState(pr.mergeStateStatus ?? pr.merge_state_status) === "CLEAN") return false;
+
+  const changedFiles = boundedNumber(pr.changedFiles ?? pr.changed_files);
+  const changedLines = boundedNumber(pr.additions) + boundedNumber(pr.deletions);
+  const headRefName = String(pr.headRefName || pr.head?.ref || "").trim();
+
+  if (changedFiles > 12 || changedLines > 500) return false;
+  if (isSensitiveHeadRefName(headRefName) || isDependencyHeadRefName(headRefName)) return false;
+  return Number.isFinite(prNumber(pr));
+}
+
+export async function fetchPullRequestDetail({
+  repo = process.env.GITHUB_REPOSITORY || "malamutemayhem/unclick",
+  number,
+  cwd = process.cwd(),
+  runJson = runCommandJson,
+} = {}) {
+  if (!Number.isFinite(number)) {
+    return { ok: false, reason: "missing_pr_number" };
+  }
+
+  const result = await runJson(
+    "gh",
+    [
+      "pr",
+      "view",
+      String(number),
+      "--repo",
+      repo,
+      "--json",
+      "number,isDraft,mergeStateStatus,url,headRefName,changedFiles,additions,deletions,reviewDecision,latestReviews,statusCheckRollup",
+    ],
+    { cwd },
+  );
+  if (!result.ok) return result;
+  return { ok: true, pr: result.value && typeof result.value === "object" ? result.value : {} };
 }
 
 export async function runCommandText(command, args, { cwd = process.cwd(), env = process.env } = {}) {
