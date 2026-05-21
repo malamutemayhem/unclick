@@ -300,6 +300,7 @@ export interface OrchestratorContext {
       queue_truth: string;
       allowed_actions: string[];
       required_proof: string[];
+      readiness_audit: HarnessReadinessAudit;
       copyroom_rule: string;
       test_runner_rule: string;
       cleanup_rule: string;
@@ -326,6 +327,28 @@ export interface OrchestratorContext {
     library_snapshots_available: number;
     library_snapshots_truncated: boolean;
   };
+}
+
+export interface HarnessReadinessAuditItem {
+  key:
+    | "scoped_task"
+    | "source_of_truth"
+    | "allowed_actions"
+    | "forbidden_surfaces"
+    | "proof_required"
+    | "cleanup_rule"
+    | "recovery_path"
+    | "owner"
+    | "next_checkin";
+  status: "pass" | "warn" | "fail";
+  proof: string;
+  action: string;
+}
+
+export interface HarnessReadinessAudit {
+  status: "ready" | "watch" | "blocked";
+  score: number;
+  items: HarnessReadinessAuditItem[];
 }
 
 const ACTIVE_WINDOW_MS = 30 * 60 * 1000;
@@ -615,6 +638,7 @@ function buildHarnessCard({
       : activeJobsCount > 0
         ? `active_jobs=${activeJobsCount}; queued_todo_count=0. Fresh active work exists; support it with proof, review, tests, or a non-overlapping scoped patch.`
         : "active_jobs=0; queued_todo_count=0. No open Boardroom work is visible in this snapshot.";
+  const proofRules = [...requiredProofRules, `health verdict is ${healthVerdict.verdict}`];
 
   return {
     source_of_truth: "Boardroom Jobs",
@@ -622,30 +646,161 @@ function buildHarnessCard({
     gate_status: gateStatus,
     gate_reason: gateReason,
     queue_truth: queueTruth,
-    allowed_actions: [
-      "claim one unowned scoped job",
-      "verify proof on a completed-looking job",
-      "patch a narrow owned file slice",
-      "open a draft PR for one ScopePack slice",
-      "post BLOCKER with exact missing proof",
-    ],
-    required_proof: [
-      "coding jobs need PR, commit, deploy, or explicit NO_CODE_NEEDED proof",
-      "tests or CI must be named when code changed",
-      "UI/UX jobs need screenshot proof",
-      "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
-      "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
-      "healthy/no_work/PASS needs queued_todo_count=0 or a fresh claim/blocker proof",
-      `health verdict is ${healthVerdict.verdict}`,
-    ],
+    allowed_actions: allowedActions,
+    required_proof: proofRules,
+    readiness_audit: buildHarnessReadinessAudit({
+      activeJobsCount,
+      queuedTodoCount,
+      queueState,
+      gateStatus,
+      allowedActions,
+      requiredProof: proofRules,
+      cleanupRule,
+      recoveryPath,
+    }),
     copyroom_rule:
       "When exact source text, code, tables, prompts, labels, or data are provided, workers copy from CopyRoom/source packets and leave a copy receipt instead of retyping from memory.",
     test_runner_rule:
       "Test-only runner packets do not create active work claims unless they include build proof and a Boardroom receipt.",
-    cleanup_rule: "Do not mark DONE from green chips or stale receipts; close only after required proof is observable.",
-    recovery_path:
-      "If the queue is blocked or scope is unclear, add a narrow ScopePack or proof comment instead of posting a status-only wake.",
+    cleanup_rule: cleanupRule,
+    recovery_path: recoveryPath,
   };
+}
+
+const allowedActions = [
+  "claim one unowned scoped job",
+  "verify proof on a completed-looking job",
+  "patch a narrow owned file slice",
+  "open a draft PR for one ScopePack slice",
+  "post BLOCKER with exact missing proof",
+];
+
+const requiredProofRules = [
+  "coding jobs need PR, commit, deploy, or explicit NO_CODE_NEEDED proof",
+  "tests or CI must be named when code changed",
+  "UI/UX jobs need screenshot proof",
+  "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
+  "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
+  "healthy/no_work/PASS needs queued_todo_count=0 or a fresh claim/blocker proof",
+];
+
+const cleanupRule =
+  "Do not mark DONE from green chips or stale receipts; close only after required proof is observable.";
+
+const recoveryPath =
+  "If the queue is blocked or scope is unclear, add a narrow ScopePack or proof comment instead of posting a status-only wake.";
+
+function buildHarnessReadinessAudit({
+  activeJobsCount,
+  queuedTodoCount,
+  queueState,
+  gateStatus,
+  allowedActions,
+  requiredProof,
+  cleanupRule,
+  recoveryPath,
+}: {
+  activeJobsCount: number;
+  queuedTodoCount: number;
+  queueState: "active_work" | "needs_claim" | "quiet";
+  gateStatus: "green" | "amber" | "red";
+  allowedActions: string[];
+  requiredProof: string[];
+  cleanupRule: string;
+  recoveryPath: string;
+}): HarnessReadinessAudit {
+  const items: HarnessReadinessAuditItem[] = [
+    {
+      key: "scoped_task",
+      status: "pass",
+      proof:
+        queueState === "quiet"
+          ? "No visible Boardroom job needs a ScopePack in this snapshot."
+          : "Current state publishes Boardroom queue counts and next_actions.",
+      action: queueState === "quiet" ? "Stay quiet unless new work arrives." : "Use one next_action or a Boardroom ScopePack.",
+    },
+    {
+      key: "source_of_truth",
+      status: "pass",
+      proof: "source_of_truth=Boardroom Jobs",
+      action: "Read Boardroom Jobs before acting.",
+    },
+    {
+      key: "allowed_actions",
+      status: allowedActions.length > 0 ? "pass" : "fail",
+      proof: `${allowedActions.length} allowed action(s) are declared.`,
+      action: "Stay within the declared action list.",
+    },
+    {
+      key: "forbidden_surfaces",
+      status: "pass",
+      proof: "Allowed actions exclude secrets, billing, DNS, production data, force push, and hard reset.",
+      action: "Post BLOCKER before touching a forbidden surface.",
+    },
+    {
+      key: "proof_required",
+      status: requiredProof.length > 0 ? "pass" : "fail",
+      proof: `${requiredProof.length} proof rule(s) are declared.`,
+      action: "Do not close without observable proof.",
+    },
+    {
+      key: "cleanup_rule",
+      status: cleanupRule ? "pass" : "fail",
+      proof: cleanupRule,
+      action: "Treat stale receipts and green chips as hints only.",
+    },
+    {
+      key: "recovery_path",
+      status: recoveryPath ? "pass" : "fail",
+      proof: recoveryPath,
+      action: "If blocked, add the smallest missing ScopePack or proof comment.",
+    },
+    {
+      key: "owner",
+      status: queuedTodoCount > 0 && activeJobsCount === 0 ? "fail" : queuedTodoCount > 0 ? "warn" : "pass",
+      proof:
+        queuedTodoCount > 0 && activeJobsCount === 0
+          ? "Open Boardroom work has no fresh active owner."
+          : queuedTodoCount > 0
+            ? "Fresh active work exists, but queued backlog still needs owners."
+            : "No queued Boardroom work is waiting for an owner.",
+      action:
+        queuedTodoCount > 0 && activeJobsCount === 0
+          ? "Claim one scoped job or post the exact blocker."
+          : queuedTodoCount > 0
+            ? "Support active work or claim a non-overlapping queued slice."
+            : "No owner action needed.",
+    },
+    {
+      key: "next_checkin",
+      status: queuedTodoCount > 0 && activeJobsCount === 0 ? "fail" : activeJobsCount > 0 ? "warn" : "pass",
+      proof:
+        queuedTodoCount > 0 && activeJobsCount === 0
+          ? "No fresh owner means no reliable next check-in for queued work."
+          : activeJobsCount > 0
+            ? "Fresh active work should keep a proof/check-in trail."
+            : "Quiet snapshot has no active check-in requirement.",
+      action:
+        queuedTodoCount > 0 && activeJobsCount === 0
+          ? "Claim with ETA before starting."
+          : activeJobsCount > 0
+            ? "Keep proof/check-ins current."
+            : "Stay quiet until work appears.",
+    },
+  ];
+  const rawScore = items.reduce((total, item) => {
+    if (item.status === "pass") return total + 1;
+    if (item.status === "warn") return total + 0.5;
+    return total;
+  }, 0);
+  const score = Math.round((rawScore / items.length) * 100);
+  const status =
+    gateStatus === "red" || items.some((item) => item.status === "fail")
+      ? "blocked"
+      : gateStatus === "amber" || items.some((item) => item.status === "warn")
+        ? "watch"
+        : "ready";
+  return { status, score, items };
 }
 
 function normalizeSummaryLimit(value: unknown): number {

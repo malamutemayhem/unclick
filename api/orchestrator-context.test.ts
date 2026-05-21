@@ -210,6 +210,29 @@ describe("orchestrator context", () => {
     expect(context.current_state_card.harness_card.required_proof).toContain(
       "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
     );
+    expect(context.current_state_card.harness_card.readiness_audit).toMatchObject({
+      status: "blocked",
+      score: 78,
+    });
+    expect(context.current_state_card.harness_card.readiness_audit.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "source_of_truth",
+          status: "pass",
+          proof: "source_of_truth=Boardroom Jobs",
+        }),
+        expect.objectContaining({
+          key: "owner",
+          status: "fail",
+          action: "Claim one scoped job or post the exact blocker.",
+        }),
+        expect.objectContaining({
+          key: "next_checkin",
+          status: "fail",
+          action: "Claim with ETA before starting.",
+        }),
+      ]),
+    );
     expect(context.current_state_card.harness_card.copyroom_rule).toContain("copy receipt");
     expect(context.current_state_card.harness_card.test_runner_rule).toContain("Test-only runner packets");
   });
