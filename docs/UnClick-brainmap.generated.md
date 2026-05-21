@@ -17,13 +17,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | FLEET_SYNC.md | 41ebcbca94b0 | 13200 |
 | docs/unclick-context-boot-packet.md | 7cf131cf22e0 | 4785 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
-| docs/pinballwake-nudgeonly-api.md | 901e39017aa9 | 6910 |
+| docs/pinballwake-nudgeonly-api.md | 05c3d0e6f842 | 7262 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
 | docs/fleet-worker-roles.md | ed620f347d4f | 4873 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | b02c3916f083 | 13089 |
-| src/pages/admin/AdminShell.tsx | fcbb1fa44f40 | 19018 |
+| src/App.tsx | fd2479b601d8 | 13242 |
+| src/pages/admin/AdminShell.tsx | 7cfbba7277d3 | 19113 |
 | .github/workflows/ci.yml | 79e43dd8e26c | 1608 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | package.json | 9f761ff407b1 | 4232 |
@@ -77,7 +77,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/coinmarketcap-tool.ts | b1c5fd280acb | 6892 |
 | packages/mcp-server/src/color-tool.ts | f9aa9c0fec6e | 13643 |
 | packages/mcp-server/src/convertkit-tool.ts | 2f77303a3441 | 8498 |
-| packages/mcp-server/src/copypass-tool.ts | 58487357de03 | 5744 |
+| packages/mcp-server/src/copypass-tool.ts | 0a26dc5c960d | 13895 |
 | packages/mcp-server/src/crews-tool.ts | 18a489d3ab94 | 5750 |
 | packages/mcp-server/src/csuite-tool.ts | 0ab5af89bb49 | 70236 |
 | packages/mcp-server/src/datadog-tool.ts | 802b808614cd | 5556 |
@@ -105,13 +105,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
 | .github/workflows/testpass-pr-check.yml | 398a44d83549 | 9548 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
-| .github/workflows/tier2-auto-merge-queue-check.yml | 4d7ed61de742 | 541 |
+| .github/workflows/tier2-auto-merge-queue-check.yml | f26a538f2ee9 | 896 |
 
 ## Division Index
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 52 |
+| Admin surfaces | Private operator views and internal control panels. | 53 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 41 |
 | Tools | MCP and gateway capabilities available to seats. | 182 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
@@ -130,6 +130,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 - Launchpad is the control hub for Autopilot work.
 - Rooms are the operational stages that route work through research, planning, build, proof, review, safety, merge, publish, repair, and improvement.
 - Heartbeat Master at `/admin/agents/heartbeat` teaches scheduled AI seats how to pulse safely.
+- Heartbeat policy changes must update the `/admin/agents/heartbeat` source and verify the MASTER induction text. Memory and Brainmap entries are pointers, not the runtime MASTER.
 - Ecosystem Brainmap at `/admin/brainmap` teaches seats what the system is and what each surface means.
 
 ## Pages and Meaning
@@ -144,6 +145,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | /admin/codebase | Admin Codebase | Internal source and architecture orientation surface. | src/pages/admin/AdminCodebase.tsx |
 | /admin/dashboard | Admin Dashboard | Front door for current operator state. | src/pages/admin/AdminDashboard.tsx |
 | /admin/ecosystem-pages | Admin Ecosystem Pages | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
+| /admin/express-build | Admin Express Build | Admin surface for Admin Express Build. | src/pages/admin/AdminExpressBuild.tsx |
 | /admin/jobs | Admin Jobs | Operational job and task queue. | src/pages/admin/AdminJobs.tsx |
 | /admin/jobsmith | Admin Jobsmith | Admin surface for Admin Jobsmith. | src/pages/admin/AdminJobsmith.tsx |
 | /admin/keychain | Admin Keychain | Passport and credential connection health. | src/pages/admin/AdminKeychain.tsx |
@@ -429,6 +431,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Admin surfaces | admin page | Admin Codebase | Internal source and architecture orientation surface. | /admin/codebase | src/pages/admin/AdminCodebase.tsx |
 | Admin surfaces | admin page | Admin Dashboard | Front door for current operator state. | /admin/dashboard | src/pages/admin/AdminDashboard.tsx |
 | Admin surfaces | admin page | Admin Ecosystem Pages | Admin surface for Admin Ecosystem Pages. | /admin/ecosystem-pages | src/pages/admin/AdminEcosystemPages.tsx |
+| Admin surfaces | admin page | Admin Express Build | Admin surface for Admin Express Build. | /admin/express-build | src/pages/admin/AdminExpressBuild.tsx |
 | Admin surfaces | admin page | Admin Jobs | Operational job and task queue. | /admin/jobs | src/pages/admin/AdminJobs.tsx |
 | Admin surfaces | admin page | Admin Jobsmith | Admin surface for Admin Jobsmith. | /admin/jobsmith | src/pages/admin/AdminJobsmith.tsx |
 | Admin surfaces | admin page | Admin Keychain | Passport and credential connection health. | /admin/keychain | src/pages/admin/AdminKeychain.tsx |

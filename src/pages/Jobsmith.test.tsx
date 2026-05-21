@@ -26,6 +26,29 @@ describe("JobsmithPage", () => {
 
     expect(screen.getByRole("heading", { name: "Application packet builder" })).toBeInTheDocument();
     expect(screen.getByText("Jobsmith")).toBeInTheDocument();
+    const welcomePacket = screen.getByRole("region", { name: "Jobsmith AI welcome packet" });
+    expect(welcomePacket).toHaveTextContent("AI Welcome Packet");
+    expect(welcomePacket).toHaveTextContent("JobSmith manages a job application run");
+    expect(welcomePacket).toHaveTextContent("Needs intake");
+    expect(welcomePacket).toHaveTextContent("Company");
+    expect(welcomePacket).toHaveTextContent("Source-backed claim");
+    expect(welcomePacket).toHaveTextContent("Safest next move");
+    expect(screen.getByRole("region", { name: "Jobsmith universal rules" })).toHaveTextContent("Universal Rules v1");
+    expect(screen.getByRole("region", { name: "Jobsmith universal rules" })).toHaveTextContent("229");
+    expect(screen.getByRole("region", { name: "Jobsmith universal rules" })).toHaveTextContent("Standard headings pass");
+    const managedRunReport = screen.getByRole("region", { name: "Jobsmith managed run report" });
+    expect(managedRunReport).toHaveTextContent("Managed Run Report");
+    expect(managedRunReport).toHaveTextContent("Rules passed");
+    expect(managedRunReport).toHaveTextContent("Run steps");
+    expect(managedRunReport).toHaveTextContent("Final report");
+    expect(managedRunReport).toHaveTextContent("Blockers");
+    expect(managedRunReport).toHaveTextContent("No run proof attached yet.");
+    expect(managedRunReport).toHaveTextContent("Decision cards");
+    expect(managedRunReport).toHaveTextContent("Resolved");
+    expect(managedRunReport).toHaveTextContent("Unresolved");
+    expect(managedRunReport).toHaveTextContent("Not submit-ready");
+    expect(managedRunReport).toHaveTextContent("Graduation-year review is still unresolved");
+    expect(managedRunReport).toHaveTextContent("Missing application inputs");
 
     fireEvent.change(screen.getByLabelText("Source-backed claim"), {
       target: { value: "Led a redesign that improved checkout completion." },
@@ -54,6 +77,27 @@ describe("JobsmithPage", () => {
     const readiness = screen.getByRole("region", { name: "ATS and paste readiness" });
     expect(readiness).toHaveTextContent("Ready");
     expect(readiness).toHaveTextContent("No brittle ATS formatting language detected");
+
+    const welcomePacket = screen.getByRole("region", { name: "Jobsmith AI welcome packet" });
+    expect(welcomePacket).toHaveTextContent("Draft ready for review");
+    expect(welcomePacket).toHaveTextContent("Company: Example Studio");
+    expect(welcomePacket).toHaveTextContent("Source-backed claim captured");
+    expect(welcomePacket).toHaveTextContent("No missing inputs in this slice.");
+    expect(welcomePacket).toHaveTextContent("Review the generated draft");
+    const managedRunReport = screen.getByRole("region", { name: "Jobsmith managed run report" });
+    expect(managedRunReport).toHaveTextContent("Checklist to submit-ready gate");
+    expect(managedRunReport).toHaveTextContent("Rules passed");
+    expect(managedRunReport).toHaveTextContent("Blockers");
+    expect(managedRunReport).toHaveTextContent("Deterministic findings");
+    expect(managedRunReport).toHaveTextContent("Review needed");
+    expect(managedRunReport).toHaveTextContent("Decision cards");
+    expect(managedRunReport).toHaveTextContent("Browser-local starter packet: Ready");
+    expect(managedRunReport).toHaveTextContent("Managed run report UI");
+    expect(managedRunReport).toHaveTextContent("Run proof");
+    expect(managedRunReport).toHaveTextContent("1 resolved");
+    expect(managedRunReport).toHaveTextContent("Not submit-ready");
+    expect(managedRunReport).toHaveTextContent("Proof needed:");
+    expect(managedRunReport).toHaveTextContent("Evidence: Graduation-year review is still unresolved");
 
     const packet = screen.getByRole("region", { name: "Starter packet" });
     const packetText = within(packet).getByTestId("jobsmith-public-packet-copy");

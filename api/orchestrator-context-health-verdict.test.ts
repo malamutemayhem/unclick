@@ -67,9 +67,70 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
     expect(context.current_state_card.harness_card.required_proof).toContain(
       "UI/UX jobs need screenshot proof",
     );
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "healthy/no_work/PASS needs queued_todo_count=0 or a fresh claim/blocker proof",
+    );
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
+    );
+    expect(context.current_state_card.harness_card.copyroom_rule).toContain("CopyRoom/source packets");
     // active_jobs should also be 0 (no in_progress todos), so the BLOCKER is
     // entirely driven by the actionable queue depth.
     expect(context.current_state_card.active_jobs).toBe(0);
+  });
+
+  it("keeps the harness gate red when fresh active work still has open backlog beside it", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: NOW,
+      profiles: [
+        {
+          agent_id: "builder-fresh",
+          last_seen_at: new Date(NOW_MS - 2 * HOUR_MS).toISOString(),
+        },
+      ],
+      messages: [],
+      todos: [
+        {
+          id: "todo-active",
+          title: "Active build",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "watcher",
+          assigned_to_agent_id: "builder-fresh",
+          created_at: NOW,
+        },
+        {
+          id: "todo-queued",
+          title: "Queued follow-up",
+          status: "open",
+          priority: "high",
+          created_by_agent_id: "watcher",
+          assigned_to_agent_id: null,
+          created_at: NOW,
+        },
+      ],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.current_state_card.active_jobs).toBe(1);
+    expect(context.current_state_card.queued_todo_count).toBe(1);
+    expect(context.current_state_card.health_verdict.verdict).toBe("BLOCKER");
+    expect(context.current_state_card.harness_card).toMatchObject({
+      queue_state: "active_work",
+      gate_status: "red",
+    });
+    expect(context.current_state_card.harness_card.gate_reason).toContain(
+      "open backlog is still waiting",
+    );
+    expect(context.current_state_card.harness_card.queue_truth).toContain(
+      "Open backlog with active_jobs=1 needs claim/proof work and is red, not healthy",
+    );
   });
 
   it("keeps live queue rows in the health verdict when the visible context is search-filtered", () => {

@@ -39,6 +39,14 @@ describe("AdminBrainmap", () => {
 
     expect(screen.getByRole("heading", { name: "Ecosystem Brainmap" })).toBeInTheDocument();
     expect(screen.getByText("Private Yellow Admin")).toBeInTheDocument();
+    expect(screen.getByText("Internal admin only")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Human orientation" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Core admin surfaces" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Worker tree" })).toBeInTheDocument();
+    expect(screen.getByText("AI seat packet")).toBeInTheDocument();
+    expect(screen.getAllByText("/admin/jobs").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Operational job and task queue.").length).toBeGreaterThan(0);
+    expect(screen.getByText("Raw generated Brainmap")).toBeInTheDocument();
     expect(screen.getByText("Tool and worker tree")).toBeInTheDocument();
     expect(screen.getByText("SeatRelay")).toBeInTheDocument();
     expect(screen.getByText("CopyRoom")).toBeInTheDocument();

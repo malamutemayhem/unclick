@@ -821,6 +821,67 @@ export const VISIBLE_TOOLS = [
     },
   },
   {
+    name: "create_expressroom_draft",
+    title: "Create a DraftRoom Manual draft",
+    description:
+      "Creates a Manual DraftRoom draft. Use this when a chat seat has built a visible first draft while context is fresh and needs to store the brief, job mirror, short description, and supplied draft code. " +
+      "Alarm bell: this does not mark official work done. It stores untrusted draft material so it can later enter the official Jobs Board conveyor belt, then be integrated, tested, reviewed, and proved.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        agent_id: { type: "string", description: "Stable identifier for the calling agent." },
+        job_name_mirror: { type: "string", description: "The official job name or intended official job name." },
+        official_todo_id: { type: "string", description: "Optional existing Jobs Board todo id to mirror." },
+        short_description: { type: "string", description: "Quick read of the draft job." },
+        brief_markdown: { type: "string", description: "Detailed intake brief from the chat." },
+        supplied_code: { type: "string", description: "Draft code, patch notes, file contents, pseudocode, or test outline supplied by the chat-first builder." },
+        supplied_code_status: { type: "string", enum: ["not_supplied", "partial", "complete", "unknown"], default: "not_supplied" },
+        source_chat_session_id: { type: "string", description: "Optional source chat/session id." },
+      },
+      required: ["agent_id", "job_name_mirror", "short_description", "brief_markdown", "supplied_code", "supplied_code_status"],
+    },
+  },
+  {
+    name: "list_expressroom_drafts",
+    title: "List DraftRoom Manual drafts",
+    description:
+      "Lists Manual DraftRoom drafts. These are draft-only records until promoted into official Jobs. " +
+      "Use official_todo_id or official_job_mirror to find drafts linked to a Jobs Board card, PR number, PR URL, or mirrored job name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        agent_id: { type: "string", description: "Stable identifier for the calling agent." },
+        express_status: { type: "string", enum: ["draft", "inserted", "archived"], description: "Optional status filter." },
+        official_todo_id: { type: "string", description: "Optional exact Jobs Board todo UUID mirror." },
+        official_job_mirror: {
+          type: "string",
+          description: "Optional fuzzy mirror search text, such as job name, PR number, PR URL, or todo id.",
+        },
+        limit: { type: "number", minimum: 1, maximum: 200, default: 100 },
+      },
+      required: ["agent_id"],
+    },
+  },
+  {
+    name: "promote_expressroom_draft",
+    title: "Insert DraftRoom draft into Jobs",
+    description:
+      "Creates an official Boardroom job from a Manual DraftRoom draft and links the two records. The new job still needs normal UnClick integration, tests, PR or commit proof, and review.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        agent_id: { type: "string", description: "Stable identifier for the calling agent." },
+        draft_id: { type: "string", description: "DraftRoom draft id." },
+        priority: { type: "string", enum: ["low", "normal", "high", "urgent"], default: "normal" },
+        force_new: { type: "boolean", description: "Create a new job even if this draft already has a linked official job." },
+      },
+      required: ["agent_id", "draft_id"],
+    },
+  },
+  {
     name: "update_todo",
     title: "Update a Boardroom todo",
     description:
@@ -1481,6 +1542,24 @@ for (const tool of [...INTERNAL_TOOLS, ...VISIBLE_TOOLS, ...DIRECT_TOOLS, ...ADD
   registerToolInputSchema(tool);
 }
 
+export const EXPRESSROOM_VISIBLE_TOOL_NAMES = [
+  "create_expressroom_draft",
+  "list_expressroom_drafts",
+  "promote_expressroom_draft",
+] as const;
+
+// DraftRoom needs friendly connected-agent tools, while the rest of the
+// internal meta layer stays hidden from tools/list.
+const EXPRESSROOM_VISIBLE_TOOLS = INTERNAL_TOOLS.filter((tool) =>
+  (EXPRESSROOM_VISIBLE_TOOL_NAMES as readonly string[]).includes(tool.name),
+);
+
+export const ADVERTISED_TOOLS = [
+  ...VISIBLE_TOOLS,
+  ...EXPRESSROOM_VISIBLE_TOOLS,
+  ...ADDITIONAL_TOOLS,
+];
+
 // Backwards-compatible memory tool names still dispatch directly, so they need
 // the same runtime guard as the newer visible names.
 for (const [alias, canonical] of Object.entries(MEMORY_TOOL_ALIASES)) {
@@ -1638,15 +1717,14 @@ export function createServer(): Server {
     }
   );
 
-  // LIST TOOLS: advertise the core memory tools PLUS every product + marketplace
-  // tool registered in ADDITIONAL_TOOLS (TestPass, Crews, and all third-party
-  // integrations from tool-wiring.ts). Internal meta tools (unclick_search,
-  // unclick_browse, unclick_tool_info, unclick_call) and the small DIRECT_TOOLS
-  // utility set remain callable for backwards compatibility but stay hidden
-  // from tools/list to avoid duplicating what native chat clients already
-  // discover.
+  // LIST TOOLS: advertise the core memory tools, the friendly DraftRoom
+  // bridge tools, plus every product + marketplace tool registered in
+  // ADDITIONAL_TOOLS (TestPass, Crews, and third-party integrations from
+  // tool-wiring.ts). Internal meta tools (unclick_search, unclick_browse,
+  // unclick_tool_info, unclick_call) and the small DIRECT_TOOLS utility set
+  // remain callable for backwards compatibility but stay hidden from tools/list.
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: [...VISIBLE_TOOLS, ...ADDITIONAL_TOOLS] };
+    return { tools: ADVERTISED_TOOLS };
   });
 
   // CALL TOOL
@@ -1860,6 +1938,9 @@ export function createServer(): Server {
         post_message: "fishbowl_post",
         read_messages: "fishbowl_read",
         set_my_status: "fishbowl_set_status",
+        create_expressroom_draft: "expressroom_create_draft",
+        list_expressroom_drafts: "expressroom_list_drafts",
+        promote_expressroom_draft: "expressroom_promote_to_todo",
         create_todo: "fishbowl_create_todo",
         update_todo: "fishbowl_update_todo",
         complete_todo: "fishbowl_complete_todo",

@@ -41,6 +41,12 @@ const screenshotPattern =
 const uiTodoPattern =
   /\b(ui|ux|uxpass|visual|polish|screenshot|screen\s?shot|frontend|front-end|page|screen|layout|design)\b/i;
 
+const uiDeliveryPattern =
+  /\b(uxpass|visual\s+polish|ui\s+overhaul|frontend|front-end|front\s+end|page|screen|layout|design|component|tsx?|admin\s+ui|dashboard|browser)\b/i;
+
+const nonVisualCompletionGatePattern =
+  /\b(non-?ui|backend|automation|autopilot|completion[-\s]?gate|completion[-\s]?policy|proof[-\s]?gate|close\s+gate|screenshot[-\s]?required|seatrelay|stale\s+claims?|reassign(?:ment)?|handoff|worker|boardroom|todo\s+close|mcp|api|script|runner)\b/i;
+
 const codingTodoPattern =
   /\b(api|backend|bug|build|code|coding|commit|component|deploy|endpoint|fix|front-end|frontend|function|implement|migration|mcp|package|patch|pr|route|runner|schema|script|storage|tsx?|tool|ui|ux|uxpass|wire|writer)\b/i;
 
@@ -49,6 +55,12 @@ const gitProofPattern =
 
 const noCodeNeededPattern =
   /\b(no[_\s-]?code[_\s-]?needed|no code needed|non-code|no code change|policy only|comment only|routing only|docs only)\b/i;
+
+function isUiCompletionTodo(corpus: string): boolean {
+  if (!uiTodoPattern.test(corpus)) return false;
+  if (nonVisualCompletionGatePattern.test(corpus) && !uiDeliveryPattern.test(corpus)) return false;
+  return true;
+}
 
 export function evaluateFishbowlCompletionPolicy(input: FishbowlCompletionPolicyInput): FishbowlCompletionPolicyResult {
   const closer = input.closerAgentId.trim();
@@ -89,7 +101,7 @@ export function evaluateFishbowlCompletionPolicy(input: FishbowlCompletionPolicy
     };
   }
 
-  if (uiTodoPattern.test(corpus)) {
+  if (isUiCompletionTodo(corpus)) {
     const hasScreenshotProof = positiveProofComments.some((comment) => screenshotPattern.test(comment.text ?? ""));
     if (!hasScreenshotProof) {
       return {

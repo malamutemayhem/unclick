@@ -476,6 +476,7 @@ export async function generateBrainmap({ root = process.cwd() } = {}) {
     "- Launchpad is the control hub for Autopilot work.",
     "- Rooms are the operational stages that route work through research, planning, build, proof, review, safety, merge, publish, repair, and improvement.",
     "- Heartbeat Master at `/admin/agents/heartbeat` teaches scheduled AI seats how to pulse safely.",
+    "- Heartbeat policy changes must update the `/admin/agents/heartbeat` source and verify the MASTER induction text. Memory and Brainmap entries are pointers, not the runtime MASTER.",
     "- Ecosystem Brainmap at `/admin/brainmap` teaches seats what the system is and what each surface means.",
     "",
     "## Pages and Meaning",

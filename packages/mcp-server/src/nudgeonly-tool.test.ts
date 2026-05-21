@@ -436,6 +436,28 @@ describe("NudgeOnlyAPI policy", () => {
     });
   });
 
+  it("keeps ownerless stale ACK requests on the Reviewer route so IgniteOnly can consume them", async () => {
+    await expect(nudgeonlyReceiptBridge({
+      painpoint_detected: true,
+      painpoint_type: "stale_ack",
+      event_text: "WakePass stale ACK for issue #766, no ACK receipt yet.",
+      source_id: "todo:8b4af32b-1c1c-4f56-bac2-a87aafb64a64",
+      target: "WakePass ACK miss repair issues #766 and #767",
+      ack_status: "stale",
+      created_at: "2026-05-19T11:55:02.558Z",
+      now: "2026-05-20T04:17:30.000Z",
+      ttl_minutes: 60,
+    })).resolves.toMatchObject({
+      bridge_status: "escalation_request",
+      request: {
+        worker: "Reviewer",
+        owner: null,
+        target: "WakePass ACK miss repair issues #766 and #767",
+        painpoint_type: "stale_ack",
+      },
+    });
+  });
+
   it("suppresses ACK-only WakePass comments instead of creating duplicate stale wakes", async () => {
     await expect(nudgeonlyReceiptBridge({
       painpoint_detected: true,

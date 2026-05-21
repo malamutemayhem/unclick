@@ -39,6 +39,26 @@ describe("evaluateFishbowlCompletionPolicy", () => {
     expect(result).toMatchObject({ allowed: true, code: "allowed" });
   });
 
+  it("allows backend automation completion-gate work without screenshot proof", () => {
+    const result = evaluateFishbowlCompletionPolicy({
+      todo: {
+        ...baseTodo,
+        title: "AutoPilot completion gate: do not require screenshots for non-UI jobs",
+        description:
+          "SeatRelay backend/automation cleanup has PR/test/comment proof but Boardroom close hit ui_screenshot_required. Screenshot proof should be required only for UI/UX/live visual jobs.",
+      },
+      comments: [
+        {
+          author_agent_id: "reviewer-seat",
+          text: "PASS: PR #977 merged and tests passed; proof: commit d32673c.",
+        },
+      ],
+      closerAgentId: "builder-seat",
+    });
+
+    expect(result).toMatchObject({ allowed: true, code: "allowed" });
+  });
+
   it("blocks coding work when proof only cites tests", () => {
     const result = evaluateFishbowlCompletionPolicy({
       todo: {

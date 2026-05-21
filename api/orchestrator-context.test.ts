@@ -165,6 +165,55 @@ describe("orchestrator context", () => {
     expect(context.rolling_snapshot.source_pointers.some((pointer) => pointer.source_id === "todo-1")).toBe(true);
   });
 
+  it("makes the harness card red when open Boardroom work has no fresh owner", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-19T15:45:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [
+        {
+          id: "todo-open",
+          title: "HarnessKit queue truth",
+          description: "Build proof gates and queue truth.",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "orchestrator",
+          assigned_to_agent_id: null,
+          created_at: "2026-05-19T15:00:00.000Z",
+          updated_at: "2026-05-19T15:00:00.000Z",
+        },
+      ],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.current_state_card.active_jobs).toBe(0);
+    expect(context.current_state_card.queued_todo_count).toBe(1);
+    expect(context.current_state_card.health_verdict.verdict).toBe("BLOCKER");
+    expect(context.current_state_card.health_verdict.reason).toContain("queued");
+    expect(context.current_state_card.harness_card.queue_state).toBe("needs_claim");
+    expect(context.current_state_card.harness_card.gate_status).toBe("red");
+    expect(context.current_state_card.harness_card.gate_reason).toContain("no fresh active owner");
+    expect(context.current_state_card.harness_card.queue_truth).toContain("red, not healthy");
+    expect(context.rolling_snapshot.summary).toContain("0 fresh active jobs, 1 queued job needing claim");
+    expect(context.rolling_snapshot.summary).not.toContain("1 active job");
+    expect(context.seat_handshake.active_decision).toContain("Claim current priority queued job");
+    expect(context.seat_handshake.active_job).toContain("Queued job needs claim");
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
+    );
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
+    );
+    expect(context.current_state_card.harness_card.copyroom_rule).toContain("copy receipt");
+    expect(context.current_state_card.harness_card.test_runner_rule).toContain("Test-only runner packets");
+  });
+
   it("adds human operator timezone context to compact handoffs", () => {
     const context = buildOrchestratorContext({
       generatedAt: "2026-05-10T01:00:00.000Z",
@@ -458,6 +507,61 @@ describe("orchestrator context", () => {
     expect(activeBlockerIds).toEqual(["dispatch-real-wakepass"]);
     expect(JSON.stringify(context.current_state_card.blockers)).toContain("current blocker");
     expect(JSON.stringify(context.current_state_card.blockers)).not.toContain("superseded_status_comment");
+  });
+
+  it("does not count missed-checkin dispatches after the same seat checked in again", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-21T12:50:00.000Z",
+      profiles: [
+        {
+          agent_id: "unclick-builder-tether-seat",
+          display_name: "Builder Tether",
+          last_seen_at: "2026-05-21T12:49:08.568Z",
+        },
+      ],
+      messages: [],
+      todos: [
+        {
+          id: "todo-open-backlog",
+          title: "Keep backlog visible",
+          description: "Open work still needs a claim.",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "codex",
+          created_at: "2026-05-21T06:00:00.000Z",
+          updated_at: "2026-05-21T06:00:00.000Z",
+        },
+      ],
+      comments: [],
+      dispatches: [
+        {
+          dispatch_id: "dispatch-old-checkin",
+          source: "wakepass",
+          target_agent_id: "unclick-builder-tether-seat",
+          task_ref: "fishbowl-checkin:unclick-builder-tether-seat:2026-05-21T06:32:08.227Z",
+          status: "stale",
+          payload: {
+            wake_reason: "missed_next_checkin",
+            agent_id: "unclick-builder-tether-seat",
+          },
+          created_at: "2026-05-21T07:15:31.265Z",
+          updated_at: "2026-05-21T07:15:31.265Z",
+        },
+      ],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.continuity_events.find((event) => event.source_id === "dispatch-old-checkin")?.kind).toBe(
+      "blocker",
+    );
+    expect(context.current_state_card.active_todo_count).toBe(1);
+    expect(context.current_state_card.blocker_count).toBe(0);
+    expect(context.current_state_card.blockers).toHaveLength(0);
+    expect(context.rolling_snapshot.active_blockers).toHaveLength(0);
   });
 
   it("hides merged PR WakePass leased dispatches after ACK proof exists", () => {
@@ -890,8 +994,9 @@ describe("orchestrator context", () => {
     });
 
     expect(context.rolling_snapshot.promoted_decisions).toHaveLength(0);
-    expect(context.seat_handshake.active_decision).toContain("Continue current priority job");
+    expect(context.seat_handshake.active_decision).toContain("Claim current priority queued job");
     expect(context.seat_handshake.active_decision).toContain("Orchestrator finish line proof");
+    expect(context.seat_handshake.active_job).toContain("Queued job needs claim");
     expect(context.seat_handshake.active_job).toContain("Orchestrator finish line proof");
     expect(context.seat_handshake.recent_proof).toContain("trusted fallback gate shipped");
     expect(context.seat_handshake.source_pointers.map((pointer) => pointer.source_id)).toEqual(

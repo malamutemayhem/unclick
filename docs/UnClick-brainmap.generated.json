@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 470,
+    "inventory": 471,
     "source_manifest": 93,
-    "pages": 93,
+    "pages": 94,
     "tools": 182,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 52
+      "count": 53
     },
     {
       "id": "public-surfaces",
@@ -169,6 +169,16 @@
       "meaning": "Admin surface for Admin Ecosystem Pages.",
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
       "route": "/admin/ecosystem-pages",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-express-build-src-pages-admin-adminexpressbuild-tsx",
+      "division": "Admin surfaces",
+      "name": "Admin Express Build",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Express Build.",
+      "source": "src/pages/admin/AdminExpressBuild.tsx",
+      "route": "/admin/express-build",
       "tags": []
     },
     {
@@ -4842,6 +4852,12 @@
       "src/pages/admin/AdminEcosystemPages.tsx"
     ],
     [
+      "/admin/express-build",
+      "Admin Express Build",
+      "Admin surface for Admin Express Build.",
+      "src/pages/admin/AdminExpressBuild.tsx"
+    ],
+    [
       "/admin/jobs",
       "Admin Jobs",
       "Operational job and task queue.",
@@ -6521,8 +6537,8 @@
     },
     {
       "source": "docs/pinballwake-nudgeonly-api.md",
-      "hash": "901e39017aa9",
-      "bytes": 6910
+      "hash": "05c3d0e6f842",
+      "bytes": 7262
     },
     {
       "source": "docs/pinballwake-igniteonly-api.md",
@@ -6546,13 +6562,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "b02c3916f083",
-      "bytes": 13089
+      "hash": "fd2479b601d8",
+      "bytes": 13242
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "fcbb1fa44f40",
-      "bytes": 19018
+      "hash": "7cfbba7277d3",
+      "bytes": 19113
     },
     {
       "source": ".github/workflows/ci.yml",
@@ -6821,8 +6837,8 @@
     },
     {
       "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "58487357de03",
-      "bytes": 5744
+      "hash": "0a26dc5c960d",
+      "bytes": 13895
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",
@@ -6961,8 +6977,8 @@
     },
     {
       "source": ".github/workflows/tier2-auto-merge-queue-check.yml",
-      "hash": "4d7ed61de742",
-      "bytes": 541
+      "hash": "f26a538f2ee9",
+      "bytes": 896
     }
   ]
 }

@@ -13,6 +13,17 @@ import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
+import { JOBSMITH_RULE_PACK_V1, runJobsmithChecks, summarizeRulePack } from "../../apps/jobsmith/src/lib/checkEngine";
+import {
+  buildDecisionCards,
+  buildManagedApplicationRun,
+  buildWelcomePacket,
+  summarizeDecisionCards,
+  type DecisionCard,
+  type DecisionCardReview,
+  type ManagedApplicationRunReport,
+  type WelcomePacket,
+} from "../../apps/jobsmith/src/lib/applicationManager";
 
 type ReadinessLevel = "blocked" | "review" | "ready";
 
@@ -38,6 +49,19 @@ const EMPTY_DRAFT: JobsmithPublicDraft = {
   proofNote: "",
 };
 
+const STANDARD_HEADING_SAMPLE = `
+Profile
+Summary
+Experience
+Built proof-backed UnClick workflows.
+
+Education
+University Degree Equivalent
+
+Skills
+Automation, product strategy, operations
+`;
+
 const LEVEL_LABELS: Record<ReadinessLevel, string> = {
   blocked: "Blocked",
   review: "Review",
@@ -49,6 +73,47 @@ const LEVEL_STYLES: Record<ReadinessLevel, string> = {
   review: "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#F4D36B]",
   ready: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100",
 };
+
+const WELCOME_STATUS_LABELS: Record<WelcomePacket["status"], string> = {
+  loading_inputs: "Loading inputs",
+  needs_job_ad: "Needs intake",
+  ready_to_generate: "Ready to generate",
+  draft_ready: "Draft ready for review",
+};
+
+const WELCOME_STATUS_STYLES: Record<WelcomePacket["status"], string> = {
+  loading_inputs: "border-white/[0.08] bg-white/[0.05] text-white/70",
+  needs_job_ad: "border-rose-300/25 bg-rose-300/10 text-rose-100",
+  ready_to_generate: "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#F4D36B]",
+  draft_ready: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100",
+};
+
+const DECISION_STATUS_LABELS: Record<DecisionCard["status"], string> = {
+  blocked: "Blocked",
+  needs_decision: "Needs decision",
+  ready_for_review: "Ready for review",
+};
+
+const DECISION_OWNER_LABELS: Record<DecisionCard["owner"], string> = {
+  human: "Human",
+  jobsmith: "JobSmith",
+  reviewer: "Reviewer",
+};
+
+const MANAGED_RUN_STATUS_LABELS: Record<ManagedApplicationRunReport["status"], string> = {
+  blocked: "Blocked",
+  proof_needed: "Proof needed",
+  review_needed: "Review needed",
+  submit_ready: "Submit-ready",
+};
+
+const SAMPLE_DECISION_REVIEWS: DecisionCardReview[] = [
+  {
+    ruleId: "JS-AGE-02",
+    resolution: "blocker",
+    evidence: "Graduation-year review is still unresolved in this browser-local starter run.",
+  },
+];
 
 function hasText(value: string): boolean {
   return value.trim().length > 0;
@@ -153,6 +218,316 @@ function LevelBadge({ level }: { level: ReadinessLevel }) {
   );
 }
 
+function WelcomePacketPanel({ packet }: { packet: WelcomePacket }) {
+  return (
+    <section
+      aria-label="Jobsmith AI welcome packet"
+      data-testid="jobsmith-ai-welcome-packet"
+      className="mb-4 rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.07] p-5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">AI Welcome Packet</p>
+          <h2 className="mt-1 text-xl font-semibold text-white">{packet.title}</h2>
+          <p className="mt-2 text-sm leading-6 text-white/65">{packet.purpose}</p>
+        </div>
+        <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${WELCOME_STATUS_STYLES[packet.status]}`}>
+          {WELCOME_STATUS_LABELS[packet.status]}
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Inputs visible now</h3>
+          <ul className="mt-3 space-y-2 text-sm leading-6 text-white/70">
+            {packet.availableInputs.map((input) => (
+              <li key={input}>{input}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Missing before submit-ready</h3>
+          {packet.missingInputs.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-white/70">
+              {packet.missingInputs.map((input) => (
+                <li key={input}>{input}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm leading-6 text-emerald-100">No missing inputs in this slice.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-5 md:grid-cols-3">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Can do</h3>
+          <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+            {packet.capabilities.map((capability) => (
+              <li key={capability}>{capability}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Proof expected</h3>
+          <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+            {packet.proofExpectations.map((proof) => (
+              <li key={proof}>{proof}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Stop conditions</h3>
+          <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+            {packet.stopConditions.map((condition) => (
+              <li key={condition}>{condition}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-5 border-t border-white/[0.08] pt-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9EE4E6]">Safest next move</p>
+        <p className="mt-2 text-sm leading-6 text-white/75">{packet.safestNextMove}</p>
+      </div>
+    </section>
+  );
+}
+
+function ManagedRunReport({
+  report,
+  decisionCards,
+}: {
+  report: ManagedApplicationRunReport;
+  decisionCards: DecisionCard[];
+}) {
+  const decisionSummary = summarizeDecisionCards(
+    decisionCards,
+    report.artifacts.every((artifact) => artifact.ready),
+  );
+  const visibleBlockers = report.blockers.slice(0, 4);
+  const visibleFindings = report.deterministicFindings.slice(0, 3);
+
+  return (
+    <section
+      aria-label="Jobsmith managed run report"
+      data-testid="jobsmith-managed-run-report"
+      className="rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.06] p-5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">Managed Run Report</p>
+          <h2 className="mt-1 text-xl font-semibold text-white">Checklist to submit-ready gate</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
+            JobSmith keeps the rule run, decision cards, artifacts, and submit-ready status visible instead of hiding review work in chat.
+          </p>
+        </div>
+        <span
+          className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+            report.submitReady ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" : "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#F4D36B]"
+          }`}
+        >
+          {report.submitReady ? "Submit-ready" : "Not submit-ready"}
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <RunMetric label="Rules passed" value={report.rulesPassed} />
+        <RunMetric label="Blockers" value={report.blockers.length} />
+        <RunMetric label="Findings" value={report.deterministicFindings.length} />
+        <RunMetric label="Review needed" value={report.reviewNeededCount} />
+        <RunMetric label="Artifacts" value={report.artifacts.length} />
+        <RunMetric label="Proof" value={report.proof.length} />
+        <RunMetric label="Resolved" value={decisionSummary.resolved} />
+        <RunMetric label="Unresolved" value={decisionSummary.unresolved} />
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Run steps</h3>
+            <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-xs font-semibold text-white/65">
+              {MANAGED_RUN_STATUS_LABELS[report.status]}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-2">
+            {report.steps.map((step) => (
+              <div key={step.id} className="rounded-lg border border-white/[0.06] bg-[#111] p-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <p className="text-sm font-semibold text-white">{step.label}</p>
+                  <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-xs font-semibold text-white/65">
+                    {step.status === "review_needed" ? "Review" : step.status === "blocked" ? "Blocked" : "Ready"}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs leading-5 text-white/55">{step.reason}</p>
+                <p className="mt-1 text-xs leading-5 text-[#9EE4E6]">Proof needed: {step.proofNeeded}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Final report</h3>
+          <dl className="mt-4 grid gap-3 text-xs leading-5 text-white/60">
+            <div>
+              <dt className="font-semibold text-white/45">Run id</dt>
+              <dd className="mt-1 text-white/70">{report.runId}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-white/45">Next safe action</dt>
+              <dd className="mt-1 text-white/70">{report.nextSafeAction}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-white/45">Artifacts</dt>
+              <dd className="mt-1 space-y-1 text-white/70">
+                {report.artifacts.map((artifact) => (
+                  <span key={artifact.id} className="block">
+                    {artifact.label}: {artifact.ready ? "Ready" : "Blocked"} ({artifact.proof})
+                  </span>
+                ))}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-white/45">Proof</dt>
+              <dd className="mt-1 space-y-1 text-white/70">
+                {report.proof.length > 0 ? (
+                  report.proof.map((proof) => (
+                    <span key={proof.id} className="block">
+                      {proof.label}: {proof.uri}
+                    </span>
+                  ))
+                ) : (
+                  <span>No run proof attached yet.</span>
+                )}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Blockers</h3>
+          {visibleBlockers.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+              {visibleBlockers.map((blocker) => (
+                <li key={blocker}>{blocker}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-xs leading-5 text-emerald-100">No blockers in the managed report.</p>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Deterministic findings</h3>
+          {visibleFindings.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+              {visibleFindings.map((finding) => (
+                <li key={finding.ruleId}>
+                  {finding.ruleId}: {finding.message}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-xs leading-5 text-emerald-100">No deterministic findings in the current run.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-lg border border-white/[0.06] bg-black/20 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Decision cards</h3>
+            <p className="mt-1 text-xs leading-5 text-white/50">
+              Showing the first {Math.min(5, decisionCards.length)} of {decisionCards.length}. The full count stays in the run report.
+            </p>
+          </div>
+          <p className="text-xs font-semibold text-[#9EE4E6]">
+            {decisionSummary.blocked} blocked, {decisionSummary.needsDecision} need decision, {decisionSummary.resolved} resolved
+          </p>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {decisionCards.slice(0, 5).map((card) => (
+            <article key={card.id} className="rounded-lg border border-white/[0.06] bg-[#111] p-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-white">{card.title}</p>
+                  <p className="mt-1 text-xs text-white/45">
+                    {card.ruleId} | {card.category} | Owner: {DECISION_OWNER_LABELS[card.owner]}
+                  </p>
+                </div>
+                <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-xs font-semibold text-white/65">
+                  {DECISION_STATUS_LABELS[card.status]}
+                </span>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-white/55">{card.reason}</p>
+              <p className="mt-2 text-xs leading-5 text-[#9EE4E6]">Proof needed: {card.proofNeeded}</p>
+              {card.resolutionEvidence ? (
+                <p className="mt-2 text-xs leading-5 text-emerald-100">Evidence: {card.resolutionEvidence}</p>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RunMetric({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+      <p className="text-xs text-white/45">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function RulePackStatus({ summary }: { summary: ReturnType<typeof summarizeRulePack> }) {
+  const sampleResult = useMemo(() => runJobsmithChecks(STANDARD_HEADING_SAMPLE, JOBSMITH_RULE_PACK_V1), []);
+  const sampleClean = sampleResult.findings.length === 0;
+  const standardHeadingsSafe = sampleResult.findings.every((finding) => finding.ruleId !== "JS-ATS-03");
+
+  return (
+    <section
+      aria-label="Jobsmith universal rules"
+      className="rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.06] p-5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">Universal Rules v{summary.version}</p>
+          <h2 className="mt-1 text-xl font-semibold text-white">Rule-pack check status</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
+            Source-backed rules are loaded as data. Allowlist and requirement specs stay out of banned-keyword findings unless a rule explicitly says to flag or block the terms.
+          </p>
+        </div>
+        <LevelBadge level={sampleClean && standardHeadingsSafe ? "ready" : "review"} />
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-4">
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Rules</p>
+          <p className="mt-1 text-lg font-semibold text-white">{summary.totalRules}</p>
+        </div>
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Categories</p>
+          <p className="mt-1 text-lg font-semibold text-white">{summary.categories.length}</p>
+        </div>
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Blockers</p>
+          <p className="mt-1 text-lg font-semibold text-white">{summary.bySeverity.ERROR}</p>
+        </div>
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Sample check</p>
+          <p className="mt-1 text-sm font-semibold text-emerald-100">
+            {sampleClean && standardHeadingsSafe ? "Standard headings pass" : "Review standard headings"}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Field({
   id,
   label,
@@ -225,7 +600,76 @@ export default function JobsmithPage() {
 
   const checks = useMemo(() => buildReadinessChecks(draft), [draft]);
   const level = useMemo(() => overallLevel(checks), [checks]);
+  const ruleSummary = useMemo(() => summarizeRulePack(JOBSMITH_RULE_PACK_V1), []);
   const packetText = useMemo(() => buildPacketText(draft, checks, level), [checks, draft, level]);
+  const checkResult = useMemo(() => runJobsmithChecks(packetText, JOBSMITH_RULE_PACK_V1), [packetText]);
+  const welcomePacket = useMemo(
+    () =>
+      buildWelcomePacket({
+        corpusReady: true,
+        applicationRun: {
+          company: draft.company,
+          role: draft.role,
+          jobSource: draft.jobSource,
+          sourceBackedClaim: draft.claim,
+          proofNote: draft.proofNote,
+        },
+        jobText: "",
+        draftReady: level !== "blocked",
+        ruleSummary,
+      }),
+    [draft, level, ruleSummary],
+  );
+  const decisionCards = useMemo(
+    () =>
+      buildDecisionCards({
+        reviewNeeded: checkResult.reviewNeeded,
+        findings: checkResult.findings,
+        missingInputs: welcomePacket.missingInputs,
+        artifactsReady: level !== "blocked",
+        reviews: SAMPLE_DECISION_REVIEWS,
+      }),
+    [checkResult.findings, checkResult.reviewNeeded, level, welcomePacket.missingInputs],
+  );
+  const managedRunReport = useMemo(
+    () =>
+      buildManagedApplicationRun({
+        runId: "browser-local-jobsmith-run",
+        company: draft.company,
+        role: draft.role,
+        jobSource: draft.jobSource,
+        sourceBackedClaim: draft.claim,
+        proofNote: draft.proofNote,
+        ruleResult: {
+          totalRules: checkResult.totalRules,
+          findings: checkResult.findings,
+          reviewNeeded: checkResult.reviewNeeded,
+          blocked: checkResult.blocked,
+        },
+        decisionCards,
+        artifacts: [
+          {
+            id: "starter-packet",
+            label: "Browser-local starter packet",
+            kind: "starter_packet",
+            ready: level !== "blocked",
+            proof: level === "blocked" ? "Role basics and proof note required" : "Starter packet preview rendered",
+          },
+        ],
+        proof:
+          level === "blocked"
+            ? []
+            : [
+                {
+                  id: "managed-run-report-ui",
+                  label: "Managed run report UI",
+                  kind: "receipt",
+                  uri: "ui://jobsmith/managed-run-report",
+                },
+              ],
+      }),
+    [checkResult.blocked, checkResult.findings, checkResult.reviewNeeded, checkResult.totalRules, decisionCards, draft, level],
+  );
   const blockers = checks.filter((check) => check.level === "blocked");
 
   function updateField<Key extends keyof JobsmithPublicDraft>(key: Key, value: JobsmithPublicDraft[Key]) {
@@ -256,6 +700,18 @@ export default function JobsmithPage() {
         </FadeIn>
 
         <FadeIn delay={0.05}>
+          <WelcomePacketPanel packet={welcomePacket} />
+        </FadeIn>
+
+        <FadeIn delay={0.1}>
+          <RulePackStatus summary={ruleSummary} />
+        </FadeIn>
+
+        <FadeIn delay={0.15}>
+          <ManagedRunReport report={managedRunReport} decisionCards={decisionCards} />
+        </FadeIn>
+
+        <FadeIn delay={0.2}>
           <section
             aria-label="Jobsmith starter packet builder"
             className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]"
