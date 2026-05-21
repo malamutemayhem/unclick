@@ -69,6 +69,9 @@ describe("Tier-2 auto-merge queue check", () => {
       reviewDecision: "",
       approvedReviewCount: 0,
       hasReviewApproval: false,
+      reviewProofCommentCount: 0,
+      hasReviewProofComment: false,
+      hasReviewEvidence: false,
       check_state: "green",
       checks_green: true,
       check_count: 1,
@@ -111,6 +114,75 @@ describe("Tier-2 auto-merge queue check", () => {
     assert.equal(result.no_execute_reason, "execution_disabled");
     assert.deepEqual(result.blocked_prs, []);
     assert.deepEqual(result.summaries[0].optional_pending_checks, ["Cursor Bugbot"]);
+  });
+
+  it("allows reviewer-hat proof comments to clear reviewable diff risk", () => {
+    const result = evaluateTier2AutoMergeQueue({
+      prs: [
+        {
+          number: 977,
+          isDraft: false,
+          mergeStateStatus: "CLEAN",
+          url: "https://github.com/malamutemayhem/unclick/pull/977",
+          headRefName: "cursor/seatrelay-v1-aabc",
+          changedFiles: 2,
+          additions: 772,
+          deletions: 0,
+          reviewDecision: "",
+          latestReviews: [],
+          comments: [
+            {
+              body: "REVIEW PASS (Codex reviewer hat): safety review passed. Verified guards and proof trail. Local proof: npm test = 49 passed. GitHub checks green.",
+            },
+          ],
+          statusCheckRollup: [{ __typename: "CheckRun", name: "Website", status: "COMPLETED", conclusion: "SUCCESS" }],
+        },
+      ],
+      now: "2026-05-21T11:20:00.000Z",
+      execute: true,
+      allowReviewProofComments: true,
+      allowUnreviewedLowRisk: true,
+    });
+
+    assert.equal(result.execute, true);
+    assert.equal(result.safe_to_merge_count, 1);
+    assert.deepEqual(result.safe_to_merge_pr_numbers, [977]);
+    assert.deepEqual(result.blocked_prs, []);
+    assert.equal(result.summaries[0].hasReviewProofComment, true);
+    assert.deepEqual(result.summaries[0].risk_reasons, ["medium_diff"]);
+  });
+
+  it("does not treat HOLD or blocker comments as reviewer proof", () => {
+    const result = evaluateTier2AutoMergeQueue({
+      prs: [
+        {
+          number: 978,
+          isDraft: false,
+          mergeStateStatus: "CLEAN",
+          url: "https://github.com/malamutemayhem/unclick/pull/978",
+          headRefName: "cursor/seatrelay-v1-aabc",
+          changedFiles: 2,
+          additions: 772,
+          deletions: 0,
+          reviewDecision: "",
+          latestReviews: [],
+          comments: [
+            {
+              body: "REVIEW PASS? HOLD: blocker remains. Local proof exists but do not merge.",
+            },
+          ],
+          statusCheckRollup: [{ __typename: "CheckRun", name: "Website", status: "COMPLETED", conclusion: "SUCCESS" }],
+        },
+      ],
+      now: "2026-05-21T11:20:00.000Z",
+      execute: true,
+      allowReviewProofComments: true,
+      allowUnreviewedLowRisk: true,
+    });
+
+    assert.equal(result.execute, false);
+    assert.deepEqual(result.blocked_reasons_by_pr["#978"], ["medium_diff"]);
+    assert.equal(result.summaries[0].hasReviewProofComment, false);
   });
 
   it("audits candidates and blocked PRs before granting merge execution", () => {
@@ -235,7 +307,7 @@ describe("Tier-2 auto-merge queue check", () => {
     assert.deepEqual(calls[0].args.slice(0, 6), ["pr", "list", "--repo", "owner/repo", "--state", "open"]);
     assert.equal(
       calls[0].args.includes(
-        "number,isDraft,mergeStateStatus,url,headRefName,changedFiles,additions,deletions,reviewDecision,latestReviews,statusCheckRollup",
+        "number,isDraft,mergeStateStatus,url,headRefName,changedFiles,additions,deletions,reviewDecision,latestReviews,statusCheckRollup,comments",
       ),
       true,
     );
@@ -284,6 +356,7 @@ describe("Tier-2 auto-merge queue check", () => {
     assert.equal(result.prs[0].mergeStateStatus, "CLEAN");
     assert.equal(calls.length, 2);
     assert.deepEqual(calls[1].args.slice(0, 5), ["pr", "view", "42", "--repo", "owner/repo"]);
+    assert.equal(calls[1].args.includes("number,isDraft,mergeStateStatus,url,headRefName,changedFiles,additions,deletions,reviewDecision,latestReviews,statusCheckRollup,comments"), true);
     assert.equal(Object.hasOwn(calls[1].options, "env"), false);
   });
 
