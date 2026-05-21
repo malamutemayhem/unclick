@@ -4115,6 +4115,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .limit(20);
 
         const topFactsLimit = getClampedLimit(req.query.top_facts_limit, 10, 110);
+        const topOfMindCandidateLimit = Math.max(topFactsLimit, 110);
 
         // Most accessed facts
         const { data: topFacts } = await supabase
@@ -4123,12 +4124,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .eq("api_key_hash", apiKeyHash)
           .eq("status", "active")
           .order("access_count", { ascending: false })
-          .limit(topFactsLimit);
-        const annotatedTopFacts = (topFacts ?? []).map(annotateRecallFact);
-        const topOfMindFacts = annotatedTopFacts
+          .limit(topOfMindCandidateLimit);
+        const annotatedRecallCandidates = (topFacts ?? []).map(annotateRecallFact);
+        const topFactsForDisplay = annotatedRecallCandidates.slice(0, topFactsLimit);
+        const topOfMindFacts = annotatedRecallCandidates
           .filter((fact) => fact.recall_signal === "top-of-mind")
           .slice(0, 10);
-        const backgroundHeavyCount = annotatedTopFacts.filter((fact) => fact.recall_signal === "background-heavy").length;
+        const backgroundHeavyCount = topFactsForDisplay.filter((fact) => fact.recall_signal === "background-heavy").length;
 
         return res.status(200).json({
           facts_by_day: factsByDay,
@@ -4144,12 +4146,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           },
           top_facts_limit: topFactsLimit,
           recall_diagnostics: {
-            inspected_top_facts: annotatedTopFacts.length,
+            inspected_top_facts: topFactsForDisplay.length,
             background_heavy_count: backgroundHeavyCount,
           },
           recent_decay: recentDecay ?? [],
           top_of_mind_facts: topOfMindFacts,
-          top_facts: annotatedTopFacts,
+          top_facts: topFactsForDisplay,
         });
       }
 

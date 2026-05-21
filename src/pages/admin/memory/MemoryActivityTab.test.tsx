@@ -104,11 +104,11 @@ describe("MemoryActivityTab", () => {
       return {
         ...makeActivity(2),
         recall_diagnostics: {
-          inspected_top_facts: 2,
+          inspected_top_facts: 1,
           background_heavy_count: 1,
         },
         top_of_mind_facts: [activeFact],
-        top_facts: [backgroundFact, activeFact],
+        top_facts: [backgroundFact],
       };
     };
 
