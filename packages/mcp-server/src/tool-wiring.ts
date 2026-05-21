@@ -12311,21 +12311,35 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
-  // ── copypass-tool.ts (copy quality QC, scaffold-only for Chunk 1) ────────
+  // ── copypass-tool.ts (copy quality QC with CopyRoom receipt support) ─────
   {
     name: "copypass_run",
-    description: "Start a scaffold CopyPass run for AI-generated copy. Chunk 1 stores an in-session run record and echoes operator context so later evidence-led copy checks can plug into a stable shape.",
+    description: "Start a CopyPass run for AI-generated copy. When exact fidelity matters, pass copyroom_source_packet so the run attaches a CopyRoom receipt instead of relying on retyped source text.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        copy_text: { type: "string", description: "The AI-generated copy to review." },
+        copy_text: { type: "string", description: "The AI-generated copy to review. Optional when copyroom_source_packet is provided; exact-copy verification compares this text byte-for-byte against the packet." },
+        copyroom_source_packet: {
+          type: "object",
+          additionalProperties: false,
+          description: "Exact source packet for CopyRoom fidelity work. Use this instead of retyping source text when code, prompts, labels, tables, documents, or user-provided text must stay exact.",
+          properties: {
+            source_id: { type: "string", description: "Stable source identifier." },
+            source_pointer: { type: "string", description: "Pointer to the CopyRoom/source location." },
+            text: { type: "string", description: "Exact source text to copy or verify." },
+            encoding: { type: "string", enum: ["utf8"], description: "CopyRoom v1 encoding. Defaults to utf8." },
+            newline_policy: { type: "string", enum: ["preserve"], description: "CopyRoom v1 newline policy. Defaults to preserve." },
+          },
+          required: ["source_id", "source_pointer", "text"],
+        },
+        copyroom_output_pointer: { type: "string", description: "Pointer to the intended output artifact for the CopyRoom receipt." },
         channel: { type: "string", description: "Optional surface label such as homepage_hero, pricing_section, or onboarding_email." },
         audience: { type: "string", description: "Optional intended audience for the copy." },
         goal: { type: "string", description: "Optional goal for the copy, such as clarity, conversion, or trust." },
         profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Reserved for later evaluator depth. Defaults to smoke." },
       },
-      required: ["copy_text"],
+      required: [],
     },
   },
   {
