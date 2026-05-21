@@ -211,7 +211,7 @@ export async function copypassRun(args: Record<string, unknown>): Promise<unknow
   if (prepared.error) {
     return {
       error: prepared.error,
-      copyroom_receipt: prepared.copyroomReceipt,
+      copyroom_receipt: prepared.copyroomReceipt ?? null,
     };
   }
   const copyText = prepared.copyText;
@@ -268,6 +268,7 @@ export async function copypassStatus(args: Record<string, unknown>): Promise<unk
 
 function prepareCopyText(args: Record<string, unknown>): CopyRoomPreparedCopy {
   const rawSourcePacket = args.copyroom_source_packet;
+  const copyroomRequired = requiresCopyRoomReceipt(args.copyroom_required);
   if (rawSourcePacket !== undefined && rawSourcePacket !== null) {
     const packetInput = parseCopyRoomSourcePacketInput(rawSourcePacket);
     if (!packetInput) {
@@ -293,9 +294,20 @@ function prepareCopyText(args: Record<string, unknown>): CopyRoomPreparedCopy {
     return { copyText: outputText, copyroomReceipt: receipt };
   }
 
+  if (copyroomRequired) {
+    return {
+      copyText: "",
+      error: "COPYROOM_MISSING: copyroom_source_packet is required when copyroom_required is true.",
+    };
+  }
+
   return {
     copyText: typeof args.copy_text === "string" ? args.copy_text.trim() : "",
   };
+}
+
+function requiresCopyRoomReceipt(value: unknown): boolean {
+  return value === true || value === "true";
 }
 
 function parseCopyRoomSourcePacketInput(value: unknown): CopyRoomSourcePacketInput | null {
