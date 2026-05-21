@@ -481,8 +481,7 @@ export function planWorkerMovementWorkflowPilot(params: {
     params.todo.title,
     params.todo.description,
     params.todo.priority,
-    rawDecision.reason,
-  ].join("\n"));
+  ].join("\n")) ?? workerMovementProtectedDecisionReason(rawDecision.reason);
   const hasActionableSignal = plannedSignal?.severity === "action_needed";
   const action: WorkerMovementWorkflowPilotAction = blockedReason
     ? "post_refusal_proof"
@@ -662,6 +661,18 @@ function workerSelfHealingProtectedReason(todo: WorkerSelfHealingTodoState): str
   if (/\bmanual[_ -]?only\b/.test(text)) return "manual_only_protected";
   if (/\bhuman[_ -]?owned\b/.test(text)) return "human_owned_work_protected";
 
+  return null;
+}
+
+function workerMovementProtectedDecisionReason(reason: unknown): string | null {
+  const normalized = normalizeToken(reason);
+  if (
+    normalized === "human_blocker_protected" ||
+    normalized === "manual_only_protected" ||
+    normalized === "human_owned_work_protected"
+  ) {
+    return normalized;
+  }
   return null;
 }
 

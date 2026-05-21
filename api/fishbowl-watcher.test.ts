@@ -910,6 +910,61 @@ describe("Vercel worker movement workflow pilot plan", () => {
     expect(JSON.stringify(plan)).not.toContain("lease-secret");
   });
 
+  it("posts refusal proof for pure human-owned protected work", () => {
+    const plan = planWorkerMovementWorkflowPilot({
+      title: "ordinary stale lease",
+      todo: {
+        id: "todo-human-owned-only",
+        status: "in_progress",
+        assigned_to_agent_id: "human-chris",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 1,
+      },
+      profile: null,
+      latestHandoffReceiptId: "handoff-human-owned",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+    const proof = planWorkerMovementWorkflowPilotProofSignal({
+      apiKeyHash: "hash_123",
+      plan,
+      emittedAt: "2026-05-01T01:22:00.000Z",
+    });
+
+    expect(plan).toMatchObject({
+      mode: "dry_run",
+      action: "post_refusal_proof",
+      candidate_id: "todo-human-owned-only",
+      safety: {
+        allowed: false,
+        reason: "human_owned_work_protected",
+      },
+      signal: null,
+      decision: {
+        action: "no_action",
+        has_lease_token: true,
+        reason: "human_owned_work_protected",
+      },
+      proof: {
+        next_safe_step:
+          "post refusal proof and leave the job with its owner (human_owned_work_protected)",
+        payload: {
+          action: "post_refusal_proof",
+          planned_signal_action: null,
+        },
+      },
+    });
+    expect(proof?.signal).toMatchObject({
+      action: "worker_movement_workflow_pilot_blocker",
+      severity: "action_needed",
+      payload: {
+        proof_status: "BLOCKER",
+        safety_reason: "human_owned_work_protected",
+      },
+    });
+    expect(JSON.stringify({ plan, proof })).not.toContain("lease-secret");
+  });
+
   it("skips workflow start when existing planner finds no movement needed", () => {
     const plan = planWorkerMovementWorkflowPilot({
       title: "Worker self-healing: heartbeat timeout, reclaim, and resume-safe queue behavior",
