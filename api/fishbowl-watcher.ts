@@ -106,7 +106,11 @@ export interface WakepassReroutePlan {
 
 export interface WorkerSelfHealingTodoState {
   id: string;
+  title?: string | null;
+  description?: string | null;
   status: string;
+  priority?: string | null;
+  created_by_agent_id?: string | null;
   assigned_to_agent_id?: string | null;
   lease_token?: string | null;
   lease_expires_at?: string | null;
@@ -297,6 +301,15 @@ export function planWorkerSelfHealingDecision(params: {
     reclaim_count: reclaimCount,
     latest_handoff_receipt_id: latestHandoffReceiptId,
   };
+  const protectedReason = workerSelfHealingProtectedReason(todo);
+  if (protectedReason) {
+    return {
+      ...base,
+      action: "no_action",
+      next_reclaim_count: reclaimCount,
+      reason: protectedReason,
+    };
+  }
 
   if (leaseToken && leaseExpiresAt) {
     const staleDecision = decideStaleLease(
@@ -463,7 +476,12 @@ export function planWorkerMovementWorkflowPilot(params: {
   });
   const decision = sanitizeWorkerMovementDecision(rawDecision);
   const plannedSignal = buildWorkerSelfHealingSignal(rawDecision);
-  const blockedReason = workerMovementBlockedReason(params.title);
+  const blockedReason = workerMovementBlockedReason([
+    params.title,
+    params.todo.title,
+    params.todo.description,
+    params.todo.priority,
+  ].join("\n")) ?? workerMovementProtectedDecisionReason(rawDecision.reason);
   const hasActionableSignal = plannedSignal?.severity === "action_needed";
   const action: WorkerMovementWorkflowPilotAction = blockedReason
     ? "post_refusal_proof"
@@ -626,9 +644,44 @@ function nonEmptyString(value: unknown): string | null {
   return trimmed ? trimmed : null;
 }
 
+function workerSelfHealingProtectedReason(todo: WorkerSelfHealingTodoState): string | null {
+  const status = normalizeToken(todo.status);
+  if (status === "human_blocker") return "human_blocker_protected";
+  if (status === "manual_only") return "manual_only_protected";
+
+  const owner = nonEmptyString(todo.assigned_to_agent_id) ?? nonEmptyString(todo.created_by_agent_id);
+  if (owner?.startsWith("human-")) return "human_owned_work_protected";
+
+  const text = [
+    todo.title,
+    todo.description,
+    todo.priority,
+  ].map((value) => String(value ?? "").toLowerCase()).join("\n");
+  if (/\bhuman[_ -]?blocker\b/.test(text)) return "human_blocker_protected";
+  if (/\bmanual[_ -]?only\b/.test(text)) return "manual_only_protected";
+  if (/\bhuman[_ -]?owned\b/.test(text)) return "human_owned_work_protected";
+
+  return null;
+}
+
+function workerMovementProtectedDecisionReason(reason: unknown): string | null {
+  const normalized = normalizeToken(reason);
+  if (
+    normalized === "human_blocker_protected" ||
+    normalized === "manual_only_protected" ||
+    normalized === "human_owned_work_protected"
+  ) {
+    return normalized;
+  }
+  return null;
+}
+
 function workerMovementBlockedReason(title: unknown): string | null {
   const text = String(title ?? "").toLowerCase();
   if (!text) return null;
+  if (/\bhuman[_ -]?blocker\b/.test(text)) return "human_blocker_protected";
+  if (/\bmanual[_ -]?only\b/.test(text)) return "manual_only_protected";
+  if (/\bhuman[_ -]?owned\b/.test(text)) return "human_owned_work_protected";
   if (/\bsecurity\b|owner auth|owner-auth/.test(text)) {
     return "owner_or_security_gated_job";
   }
@@ -1312,7 +1365,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 3. Worker self-healing todo lease signal sweep.
   const { data: staleTodoLeaseRows, error: staleTodoLeaseErr } = await supabase
     .from("mc_fishbowl_todos")
-    .select("id, api_key_hash, status, assigned_to_agent_id, lease_token, lease_expires_at, reclaim_count")
+    .select("id, api_key_hash, title, description, status, priority, created_by_agent_id, assigned_to_agent_id, lease_token, lease_expires_at, reclaim_count")
     .in("status", ["open", "in_progress"])
     .not("lease_expires_at", "is", null)
     .lt("lease_expires_at", nowIso)
