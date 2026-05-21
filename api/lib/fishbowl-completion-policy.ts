@@ -38,8 +38,11 @@ const proofNegativePattern =
 const screenshotPattern =
   /\b(screenshot|screen\s?shot|before\/after|before and after|playwright|visual proof)\b|https?:\/\/\S+\.(?:png|jpe?g|webp)\b|[A-Za-z]:\\[^\n]+\.(?:png|jpe?g|webp)\b/i;
 
+const conditionalUiInstructionPattern =
+  /(?:^|[\n.])[^.\n]*(?:if\s+(?:ui|ux|visual|frontend|front-end|page|screen|layout|design)s?\s+changes?|ui\s+proof\s+only\s+if\s+behavior\s+becomes\s+visible|if\s+behavior\s+becomes\s+visible)[^.\n]*/gi;
+
 const uiTodoPattern =
-  /\b(ui|ux|uxpass|visual|polish|screenshot|screen\s?shot|frontend|front-end|page|screen|layout|design)\b/i;
+  /\b(ui|ux|uxpass|visual|polish|frontend|front-end|page|screen|layout|design)\b/i;
 
 const codingTodoPattern =
   /\b(api|backend|bug|build|code|coding|commit|component|deploy|endpoint|fix|front-end|frontend|function|implement|migration|mcp|package|patch|pr|route|runner|schema|script|storage|tsx?|tool|ui|ux|uxpass|wire|writer)\b/i;
@@ -53,6 +56,7 @@ const noCodeNeededPattern =
 export function evaluateFishbowlCompletionPolicy(input: FishbowlCompletionPolicyInput): FishbowlCompletionPolicyResult {
   const closer = input.closerAgentId.trim();
   const corpus = [input.todo.title, input.todo.description].filter(Boolean).join("\n");
+  const uiClassifierCorpus = corpus.replace(conditionalUiInstructionPattern, "\n");
   const positiveProofComments = input.comments.filter((comment) => {
     const text = comment.text ?? "";
     return proofPositivePattern.test(text) && !proofNegativePattern.test(text);
@@ -89,7 +93,7 @@ export function evaluateFishbowlCompletionPolicy(input: FishbowlCompletionPolicy
     };
   }
 
-  if (uiTodoPattern.test(corpus)) {
+  if (uiTodoPattern.test(uiClassifierCorpus)) {
     const hasScreenshotProof = positiveProofComments.some((comment) => screenshotPattern.test(comment.text ?? ""));
     if (!hasScreenshotProof) {
       return {

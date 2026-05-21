@@ -39,6 +39,26 @@ describe("evaluateFishbowlCompletionPolicy", () => {
     expect(result).toMatchObject({ allowed: true, code: "allowed" });
   });
 
+  it("does not require screenshots for non-UI automation jobs with conditional UI-proof notes", () => {
+    const result = evaluateFishbowlCompletionPolicy({
+      todo: {
+        ...baseTodo,
+        title: "SeatRelay: stale release, smart reassignment, bonded handoff",
+        description:
+          "Worker automation cleanup. Proof required: PR/commit and focused tests. If UI changes, attach before/after screenshot proof.",
+      },
+      comments: [
+        {
+          author_agent_id: "reviewer-seat",
+          text: "PASS: SeatRelay code merged; proof: PR #977, commit d32673c61c20483c79cbd62a4506a800a4ed5ed3, 49 tests passed.",
+        },
+      ],
+      closerAgentId: "builder-seat",
+    });
+
+    expect(result).toMatchObject({ allowed: true, code: "allowed" });
+  });
+
   it("blocks coding work when proof only cites tests", () => {
     const result = evaluateFishbowlCompletionPolicy({
       todo: {
