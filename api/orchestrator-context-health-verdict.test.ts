@@ -70,6 +70,10 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
     expect(context.current_state_card.harness_card.required_proof).toContain(
       "healthy/no_work/PASS needs queued_todo_count=0 or a fresh claim/blocker proof",
     );
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
+    );
+    expect(context.current_state_card.harness_card.copyroom_rule).toContain("CopyRoom/source packets");
     // active_jobs should also be 0 (no in_progress todos), so the BLOCKER is
     // entirely driven by the actionable queue depth.
     expect(context.current_state_card.active_jobs).toBe(0);
