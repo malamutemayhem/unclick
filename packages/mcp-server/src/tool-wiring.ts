@@ -12314,12 +12314,16 @@ export const ADDITIONAL_TOOLS = [
   // ── copypass-tool.ts (copy quality QC with CopyRoom receipt support) ─────
   {
     name: "copypass_run",
-    description: "Start a CopyPass run for AI-generated copy. When exact fidelity matters, pass copyroom_source_packet so the run attaches a CopyRoom receipt instead of relying on retyped source text.",
+    description: "Start a CopyPass run for AI-generated copy. When exact fidelity matters, set copyroom_required=true and pass copyroom_source_packet so the run attaches a CopyRoom receipt instead of relying on retyped source text.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
         copy_text: { type: "string", description: "The AI-generated copy to review. Optional when copyroom_source_packet is provided; exact-copy verification compares this text byte-for-byte against the packet." },
+        copyroom_required: {
+          type: "boolean",
+          description: "Set true when exact fidelity matters. Missing copyroom_source_packet returns COPYROOM_MISSING instead of a run with a null receipt.",
+        },
         copyroom_source_packet: {
           type: "object",
           additionalProperties: false,

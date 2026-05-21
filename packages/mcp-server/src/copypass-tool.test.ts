@@ -41,6 +41,7 @@ describe("copypass-tool", () => {
   it("attaches a CopyRoom exact-copy receipt from a source packet", async () => {
     const sourceText = "Line 1\r\nLine 2 with symbols: GBP, EUR, emoji ok";
     const run = (await copypassRun({
+      copyroom_required: true,
       copyroom_source_packet: {
         source_id: "jobsmith-checklist-source",
         source_pointer: "apps/jobsmith/docs/copyroom/cv-checklists/cv-checklists_1.md",
@@ -87,6 +88,28 @@ describe("copypass-tool", () => {
 
     expect(status.copyroom_receipt?.status).toBe("pass");
     expect(status.copyroom_receipt?.source_sha256).toBe(status.copyroom_receipt?.output_sha256);
+  });
+
+  it("blocks required CopyRoom receipt runs when the source packet is missing", async () => {
+    const result = (await copypassRun({
+      copy_text: "Exact source text needs a real CopyRoom packet.",
+      copyroom_required: true,
+      copyroom_output_pointer: "mcp://copypass/runs/missing-source",
+    })) as { error?: string; run_id?: string; copyroom_receipt?: unknown };
+
+    expect(result.run_id).toBeUndefined();
+    expect(result.error).toContain("COPYROOM_MISSING");
+    expect(result.copyroom_receipt).toBeNull();
+  });
+
+  it("still allows non-fidelity CopyPass runs without a CopyRoom packet", async () => {
+    const result = (await copypassRun({
+      copy_text: "A normal copy review can run without exact-copy proof.",
+      profile: "smoke",
+    })) as { status?: string; copyroom_receipt?: unknown };
+
+    expect(result.status).toBe("complete");
+    expect(result.copyroom_receipt).toBeNull();
   });
 
   it("blocks CopyRoom source-copy drift before creating a run", async () => {
