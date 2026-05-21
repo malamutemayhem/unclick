@@ -1,4 +1,4 @@
--- ExpressRoom Manual ExpressBuild drafts.
+-- DraftRoom Manual draft records, stored under the original ExpressRoom table name for compatibility.
 --
 -- This is a draft-only lane. Rows here are not official Jobs Board work until
 -- they are promoted into mc_fishbowl_todos by the admin API.

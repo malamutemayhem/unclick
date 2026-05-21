@@ -123,7 +123,7 @@ export function AdminAutopilot() {
         items={[
           { title: "Boardroom", body: "Shared room for decisions, handoffs, and short updates from people and AI workers.", icon: MessagesSquare, href: "/admin/boardroom" },
           { title: "Orchestrator", body: "Compact cross-seat context with profile cards, continuity, and memory snapshots.", icon: Brain, href: "/admin/orchestrator" },
-          { title: "ExpressBuild", body: "Manual draft room for fast outside builds before they are inserted into official Jobs.", icon: Code2, href: "/admin/autopilot/expressbuild" },
+          { title: "DraftRoom", body: "Manual front-of-line room for visible chat-first drafts before official Jobs integration.", icon: Code2, href: "/admin/autopilot/expressbuild" },
           { title: "Jobs", body: "The live work queue. Pick, assign, complete, and prove the next safe step.", icon: ListTodo, href: "/admin/jobs" },
           { title: "XPass", body: "Proof and quality checks for work before it ships.", icon: ClipboardCheck, href: "/admin/checks" },
           { title: "Projects", body: "Containers for company, team, client, or personal work areas.", icon: FolderKanban, href: "/admin/projects" },

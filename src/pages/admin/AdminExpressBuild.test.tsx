@@ -60,7 +60,7 @@ describe("AdminExpressBuild", () => {
             json: () =>
               Promise.resolve({
                 draft: { ...draft, official_todo_id: "22222222-2222-4222-8222-222222222222", express_status: "inserted" },
-                todo: { id: "22222222-2222-4222-8222-222222222222", title: "Manual ExpressBuild integration: Proof Ledger v2" },
+                todo: { id: "22222222-2222-4222-8222-222222222222", title: "Manual DraftRoom integration: Proof Ledger v2" },
                 request: body,
               }),
           });
@@ -75,13 +75,14 @@ describe("AdminExpressBuild", () => {
     vi.restoreAllMocks();
   });
 
-  it("explains that ExpressRoom is a Manual draft lane under AutoPilot", async () => {
+  it("explains that DraftRoom is a Manual front-of-line draft lane under AutoPilot", async () => {
     renderPage();
 
-    expect(screen.getByRole("heading", { name: "ExpressBuild" })).toBeInTheDocument();
-    expect(screen.getByText("Manual ExpressBuild")).toBeInTheDocument();
-    expect(screen.getByText(/disconnected from the usual assembly line/i)).toBeInTheDocument();
-    expect(screen.getByText(/Do not claim DONE from ExpressRoom/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "DraftRoom" })).toBeInTheDocument();
+    expect(screen.getByText("Manual DraftRoom")).toBeInTheDocument();
+    expect(screen.getByText(/first station in the UnClick build line/i)).toBeInTheDocument();
+    expect(screen.getByText(/Do not claim DONE from DraftRoom/i)).toBeInTheDocument();
+    expect(screen.getByText(/Build while context is fresh/i)).toBeInTheDocument();
     expect(screen.getByText("Manual draft alarm bells")).toBeInTheDocument();
     expect(screen.getAllByText(/Supplied code is untrusted/i).length).toBeGreaterThan(0);
     expect(await screen.findByText("Proof Ledger v2")).toBeInTheDocument();

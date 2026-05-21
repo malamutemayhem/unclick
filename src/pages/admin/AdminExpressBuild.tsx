@@ -63,7 +63,7 @@ function clip(value: string, max = 180): string {
 
 function makeMarkdownBrief(input: ExpressRoomDraftInput): string {
   return [
-    `# ${input.job_name_mirror.trim() || "Manual ExpressBuild draft"}`,
+    `# ${input.job_name_mirror.trim() || "Manual DraftRoom draft"}`,
     "",
     "## What Chris told the chat agent",
     input.brief_markdown.trim() || "- Not captured yet.",
@@ -119,10 +119,10 @@ export default function AdminExpressBuild() {
         body: JSON.stringify({ limit: 100 }),
       });
       const body = (await res.json().catch(() => ({}))) as DraftListResponse;
-      if (!res.ok) throw new Error(body.error ?? "Failed to load ExpressRoom");
+      if (!res.ok) throw new Error(body.error ?? "Failed to load DraftRoom");
       setDrafts(body.drafts ?? []);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load ExpressRoom");
+      setError(e instanceof Error ? e.message : "Failed to load DraftRoom");
     } finally {
       setLoading(false);
     }
@@ -152,7 +152,7 @@ export default function AdminExpressBuild() {
       const body = (await res.json().catch(() => ({}))) as DraftCreateResponse;
       if (!res.ok) throw new Error(body.error ?? "Failed to create Manual draft");
       setForm(DEFAULT_EXPRESSROOM_DRAFT_INPUT);
-      setNotice("Manual ExpressRoom draft saved.");
+      setNotice("Manual DraftRoom draft saved.");
       await fetchDrafts();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to create Manual draft");
@@ -194,25 +194,26 @@ export default function AdminExpressBuild() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <ManualPill>Manual ExpressBuild</ManualPill>
+              <ManualPill>Manual DraftRoom</ManualPill>
               <span className="rounded-full border border-white/[0.08] px-2.5 py-1 text-xs text-white/45">
-                ExpressRoom
+                Front of line
               </span>
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight text-white">ExpressBuild</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-white">DraftRoom</h1>
             <p className="mt-2 text-sm leading-6 text-white/60">
-              ExpressRoom stores Manual draft builds from outside chat seats. It is disconnected
-              from the usual assembly line until you insert a draft into the official Jobs Board.
+              DraftRoom is the first station in the UnClick build line. It captures visible
+              chat-first drafts while context is fresh, then sends them into the official Jobs
+              Board conveyor belt for integration, tests, review, and proof.
             </p>
           </div>
           <div className="grid gap-2 text-sm sm:grid-cols-3 lg:min-w-[420px]">
             <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
               <p className="text-xs uppercase tracking-wide text-white/35">Room</p>
-              <p className="mt-1 font-semibold text-white">Drafts only</p>
+              <p className="mt-1 font-semibold text-white">Front-line drafts</p>
             </div>
             <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
               <p className="text-xs uppercase tracking-wide text-white/35">Insert path</p>
-              <p className="mt-1 font-semibold text-white">Jobs Board</p>
+              <p className="mt-1 font-semibold text-white">Jobs conveyor</p>
             </div>
             <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
               <p className="text-xs uppercase tracking-wide text-white/35">Done claims</p>
@@ -242,10 +243,11 @@ export default function AdminExpressBuild() {
         <div className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
           <div className="mb-4 flex items-center gap-2">
             <Rocket className="h-4 w-4 text-[#E2B93B]" />
-            <h2 className="text-sm font-semibold text-white">Clean insertion path</h2>
+            <h2 className="text-sm font-semibold text-white">Normal conveyor belt</h2>
           </div>
           <ol className="list-decimal space-y-2 pl-5 text-sm leading-6 text-white/60">
-            <li>Capture the Manual brief and supplied code in ExpressRoom.</li>
+            <li>Build a visible first draft while the user context is fresh.</li>
+            <li>Capture the Manual brief and supplied code in DraftRoom.</li>
             <li>Mirror or create the official job name so both places make sense.</li>
             <li>Insert into the Jobs Board when the draft needs real UnClick integration.</li>
             <li>Use normal repo fit, tests, PR, review, and proof before any DONE claim.</li>
@@ -270,9 +272,9 @@ export default function AdminExpressBuild() {
       <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-white">Add Manual ExpressRoom job</h2>
+            <h2 className="text-sm font-semibold text-white">Add Manual DraftRoom job</h2>
             <p className="mt-1 text-sm text-white/50">
-              Use this when a chat seat or you want to dump the intake, draft code, and mirror name directly.
+              Use this when a chat seat or you want to capture the fresh intake, visible draft, code, and mirror name directly.
             </p>
           </div>
           <ManualPill>{readyFields}/{EXPRESSROOM_REQUIRED_FIELDS.length} ready</ManualPill>
@@ -314,7 +316,7 @@ export default function AdminExpressBuild() {
               value={form.brief_markdown}
               onChange={(event) => updateForm("brief_markdown", event.target.value)}
               rows={10}
-              placeholder="Paste the full chat intake here. This becomes the Brief MD."
+              placeholder="Paste the full chat intake here. Include what was visibly drafted while the context was fresh."
               className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/25 px-3 py-2 font-mono text-xs text-white outline-none focus:border-[#61C1C4]/50"
             />
           </label>
@@ -324,7 +326,7 @@ export default function AdminExpressBuild() {
               value={form.supplied_code ?? ""}
               onChange={(event) => updateForm("supplied_code", event.target.value)}
               rows={10}
-              placeholder="Paste draft code, patch notes, file contents, or say what was not supplied."
+              placeholder="Paste draft code, patch notes, file contents, pseudocode, test outline, or say what was not supplied."
               className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/25 px-3 py-2 font-mono text-xs text-white outline-none focus:border-[#61C1C4]/50"
             />
           </label>
@@ -391,7 +393,7 @@ export default function AdminExpressBuild() {
       <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-white">ExpressRoom table</h2>
+            <h2 className="text-sm font-semibold text-white">DraftRoom table</h2>
             <p className="mt-1 text-sm text-white/50">
               Manual drafts live here until they are inserted into official Jobs.
             </p>
@@ -409,9 +411,9 @@ export default function AdminExpressBuild() {
         {drafts.length === 0 ? (
           <div className="rounded-xl border border-dashed border-white/[0.12] p-8 text-center">
             <FileCode2 className="mx-auto h-8 w-8 text-white/35" />
-            <p className="mt-3 text-sm font-semibold text-white">No Manual ExpressRoom drafts yet</p>
+            <p className="mt-3 text-sm font-semibold text-white">No Manual DraftRoom drafts yet</p>
             <p className="mt-1 text-sm text-white/45">
-              Add the first brief and supplied code above, or let a connected chat seat create one directly.
+              Add the first visible draft above, or let a connected chat seat create one directly.
             </p>
           </div>
         ) : (

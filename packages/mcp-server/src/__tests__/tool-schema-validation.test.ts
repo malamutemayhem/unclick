@@ -141,7 +141,7 @@ describe("runtime tool schema validation", () => {
     });
   });
 
-  it("advertises ExpressRoom Manual draft bridge tools to connected agents", () => {
+  it("advertises DraftRoom Manual draft bridge tools to connected agents", () => {
     const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
 
     for (const toolName of EXPRESSROOM_VISIBLE_TOOL_NAMES) {

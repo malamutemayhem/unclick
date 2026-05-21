@@ -27,24 +27,25 @@ export interface ExpressRoomDraftInput {
 }
 
 export const EXPRESSROOM_INDUCTION_TEXT = [
-  "ExpressRoom is the Manual ExpressBuild room.",
-  "It is for fast draft builds from chat seats, not official completion.",
+  "DraftRoom is the Manual front-of-line drafting room.",
+  "When a user is actively explaining a feature, create a visible first draft while the context is fresh: code sketch, patch, UI fragment, test outline, ScopePack, or implementation notes.",
   "Store the detailed brief, the job name mirror, the short description, and any supplied code here.",
-  "Treat every item as draft-only until it is inserted into the official Jobs Board and checked through the normal UnClick line.",
-  "Do not claim DONE from ExpressRoom. Use it to move fast, then hand the draft to the proper integration, test, review, and proof path.",
+  "Treat every item as Manual draft input until it is inserted into the official Jobs Board and checked through the normal UnClick conveyor belt.",
+  "Do not claim DONE from DraftRoom. Use it to build early momentum, then hand the draft to the proper integration, test, review, and proof path.",
   "Alarm bell: supplied code is untrusted draft material until a normal UnClick worker fits it, tests it, reviews it, and records proof.",
 ].join(" ");
 
 export const EXPRESSROOM_GUARDRAILS = [
-  "Manual draft only. Never treat ExpressRoom as source-of-truth completion.",
+  "Manual draft only. Never treat DraftRoom as source-of-truth completion.",
+  "Build while context is fresh, but safe jobs may get code drafts while risky jobs get pseudocode, tests, ScopePacks, or risk maps first.",
   "Supplied code is untrusted until integrated through repo tests and review.",
-  "Inserted Jobs Board cards must say Manual ExpressBuild import and must not be marked done from draft code alone.",
+  "Inserted Jobs Board cards must say Manual DraftRoom import and must not be marked done from draft code alone.",
   "Official completion still requires PR, commit, test, deploy, screenshot, or explicit no-code proof.",
   "If the mirror job name is unclear, stop and ask for a smaller official job before promotion.",
 ] as const;
 
 export const EXPRESSROOM_REQUIRED_FIELDS = [
-  "Brief MD",
+  "Visible draft or Brief MD",
   "Job name mirror",
   "Short description",
   "Supplied code field and code state",
@@ -97,9 +98,9 @@ export function buildExpressRoomOfficialJobDescription(draft: ExpressRoomDraft):
     : "No code supplied yet.";
 
   return [
-    "Manual ExpressBuild import from ExpressRoom.",
+    "Manual DraftRoom import.",
     "",
-    `ExpressRoom draft: ${draft.id}`,
+    `DraftRoom draft: ${draft.id}`,
     `Draft status: ${EXPRESSROOM_DRAFT_STATUS_LABELS[draft.express_status]}`,
     `Supplied code status: ${EXPRESSROOM_CODE_STATUS_LABELS[draft.supplied_code_status]}`,
     "",
@@ -116,7 +117,7 @@ export function buildExpressRoomOfficialJobDescription(draft: ExpressRoomDraft):
     "This is a Manual draft, not finished work. Fit it into the repo, run checks, create PR or commit proof, then use the normal UnClick review and proof gates before any DONE claim.",
     "",
     "Alarm bells:",
-    "- Manual ExpressRoom code is untrusted until fitted into the repo.",
+    "- Manual DraftRoom code is untrusted until fitted into the repo.",
     "- Do not mark this official job done from the draft alone.",
     "- Require normal tests, PR or commit proof, review, and product proof where relevant.",
   ].join("\n");
