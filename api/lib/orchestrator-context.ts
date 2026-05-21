@@ -505,6 +505,8 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     nowMs,
     newestActivityAt,
     activeTodos,
+    activeJobsCount,
+    queuedTodoCount,
     continuityEvents,
     blockers,
     profileLastSeenByAgent,
@@ -674,11 +676,12 @@ function buildSeatHandshake({
   const recentProof = usefulEvents.find((event) => event.kind === "proof") ?? null;
   const decision = rollingSnapshot.promoted_decisions[0] ?? null;
   const job = rollingSnapshot.active_jobs[0] ?? null;
+  const jobIsQueued = job?.tags?.includes("open") ?? false;
   const blocker = rollingSnapshot.active_blockers[0] ?? null;
   const activeDecision =
     decision?.summary ??
     (job
-      ? `Continue current priority job: ${job.summary}`
+      ? `${jobIsQueued ? "Claim current priority queued job" : "Continue current active job"}: ${job.summary}`
       : recentProof
         ? `Continue from latest proof: ${recentProof.summary}`
         : blocker
@@ -712,7 +715,7 @@ function buildSeatHandshake({
       320,
     ),
     active_decision: activeDecision,
-    active_job: job?.summary ?? null,
+    active_job: job ? `${jobIsQueued ? "Queued job needs claim: " : ""}${job.summary}` : null,
     recent_proof: recentProof?.summary ?? null,
     active_blocker: blocker?.summary ?? null,
     seat_freshness: seatFreshness,
@@ -768,6 +771,8 @@ function buildRollingSnapshot({
   nowMs,
   newestActivityAt,
   activeTodos,
+  activeJobsCount,
+  queuedTodoCount,
   continuityEvents,
   blockers,
   profileLastSeenByAgent,
@@ -776,6 +781,8 @@ function buildRollingSnapshot({
   nowMs: number;
   newestActivityAt: string | null;
   activeTodos: OrchestratorTodoRow[];
+  activeJobsCount: number;
+  queuedTodoCount: number;
   continuityEvents: OrchestratorContinuityEvent[];
   blockers: string[];
   profileLastSeenByAgent: Map<string, string | null>;
@@ -814,7 +821,11 @@ function buildRollingSnapshot({
     mode: "read-plan",
     summary: compactText(
       [
-        `${activeJobs.length} active job${activeJobs.length === 1 ? "" : "s"}`,
+        activeJobsCount > 0
+          ? `${activeJobsCount} fresh active job${activeJobsCount === 1 ? "" : "s"}`
+          : queuedTodoCount > 0
+            ? `0 fresh active jobs, ${queuedTodoCount} queued job${queuedTodoCount === 1 ? "" : "s"} needing claim`
+            : "0 fresh active jobs, 0 queued jobs",
         `${promotedDecisions.length} promoted decision${promotedDecisions.length === 1 ? "" : "s"}`,
         `${activeBlockers.length || blockers.length} blocker signal${(activeBlockers.length || blockers.length) === 1 ? "" : "s"}`,
       ].join(", "),
@@ -825,7 +836,7 @@ function buildRollingSnapshot({
     persistence_plan: {
       recommended_key: "orchestrator:rolling-current-state:v1",
       retention: "Keep compact rolling snapshots and source pointers; refresh from live sources instead of storing duplicate raw rows.",
-      compaction: "Promote decisions, blockers, active jobs, and recent non-noise continuity only.",
+      compaction: "Promote decisions, blockers, queued or active job pointers, and recent non-noise continuity only.",
       raw_transcript_policy: "Do not persist raw transcripts, heartbeat noise, secret-shaped text, or bulk pasted content in the snapshot.",
     },
     promoted_decisions: promotedDecisions,

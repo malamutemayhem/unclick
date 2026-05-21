@@ -194,10 +194,16 @@ describe("orchestrator context", () => {
 
     expect(context.current_state_card.active_jobs).toBe(0);
     expect(context.current_state_card.queued_todo_count).toBe(1);
+    expect(context.current_state_card.health_verdict.verdict).toBe("BLOCKER");
+    expect(context.current_state_card.health_verdict.reason).toContain("queued");
     expect(context.current_state_card.harness_card.queue_state).toBe("needs_claim");
     expect(context.current_state_card.harness_card.gate_status).toBe("red");
     expect(context.current_state_card.harness_card.gate_reason).toContain("no fresh active owner");
     expect(context.current_state_card.harness_card.queue_truth).toContain("red, not healthy");
+    expect(context.rolling_snapshot.summary).toContain("0 fresh active jobs, 1 queued job needing claim");
+    expect(context.rolling_snapshot.summary).not.toContain("1 active job");
+    expect(context.seat_handshake.active_decision).toContain("Claim current priority queued job");
+    expect(context.seat_handshake.active_job).toContain("Queued job needs claim");
     expect(context.current_state_card.harness_card.required_proof).toContain(
       "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
     );
@@ -988,8 +994,9 @@ describe("orchestrator context", () => {
     });
 
     expect(context.rolling_snapshot.promoted_decisions).toHaveLength(0);
-    expect(context.seat_handshake.active_decision).toContain("Continue current priority job");
+    expect(context.seat_handshake.active_decision).toContain("Claim current priority queued job");
     expect(context.seat_handshake.active_decision).toContain("Orchestrator finish line proof");
+    expect(context.seat_handshake.active_job).toContain("Queued job needs claim");
     expect(context.seat_handshake.active_job).toContain("Orchestrator finish line proof");
     expect(context.seat_handshake.recent_proof).toContain("trusted fallback gate shipped");
     expect(context.seat_handshake.source_pointers.map((pointer) => pointer.source_id)).toEqual(
