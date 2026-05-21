@@ -465,6 +465,65 @@ describe("worker self-healing decision plan", () => {
     });
   });
 
+  it("protects human and manual-only work from stale lease reclaim", () => {
+    const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
+    const protectedCases = [
+      {
+        todo: {
+          id: "todo-human-owned",
+          status: "in_progress",
+          assigned_to_agent_id: "human-chris",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: 2,
+        },
+        reason: "human_owned_work_protected",
+      },
+      {
+        todo: {
+          id: "todo-manual-only",
+          title: "manual_only operator handoff",
+          status: "in_progress",
+          assigned_to_agent_id: "worker-1",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: 1,
+        },
+        reason: "manual_only_protected",
+      },
+      {
+        todo: {
+          id: "todo-human-blocker",
+          description: "human blocker: needs operator merge approval",
+          status: "in_progress",
+          assigned_to_agent_id: "worker-1",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: 0,
+        },
+        reason: "human_blocker_protected",
+      },
+    ];
+
+    for (const testCase of protectedCases) {
+      const decision = planWorkerSelfHealingDecision({
+        todo: testCase.todo,
+        profile: null,
+        latestHandoffReceiptId: "handoff-protected",
+        nowMs,
+      });
+
+      expect(decision).toMatchObject({
+        action: "no_action",
+        todo_id: testCase.todo.id,
+        next_reclaim_count: testCase.todo.reclaim_count,
+        latest_handoff_receipt_id: "handoff-protected",
+        reason: testCase.reason,
+      });
+      expect(buildWorkerSelfHealingSignal(decision)).toBeNull();
+    }
+  });
+
   it("flags a stale worker for action when no active todo lease exists", () => {
     const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
 
@@ -802,6 +861,49 @@ describe("Vercel worker movement workflow pilot plan", () => {
         payload: {
           action: "post_refusal_proof",
           planned_signal_action: "worker_self_healing_reclaimable_lease",
+        },
+      },
+    });
+    expect(JSON.stringify(plan)).not.toContain("lease-secret");
+  });
+
+  it("posts refusal proof instead of starting workflow for protected human/manual work", () => {
+    const plan = planWorkerMovementWorkflowPilot({
+      title: "SeatRelay manual-only operator blocker",
+      todo: {
+        id: "todo-manual-only",
+        title: "manual_only operator handoff",
+        status: "in_progress",
+        assigned_to_agent_id: "human-chris",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      profile: null,
+      latestHandoffReceiptId: "handoff-latest-protected",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+
+    expect(plan).toMatchObject({
+      mode: "dry_run",
+      action: "post_refusal_proof",
+      candidate_id: "todo-manual-only",
+      safety: {
+        allowed: false,
+        reason: "manual_only_protected",
+      },
+      signal: null,
+      decision: {
+        action: "no_action",
+        has_lease_token: true,
+        reason: "human_owned_work_protected",
+      },
+      proof: {
+        next_safe_step:
+          "post refusal proof and leave the job with its owner (manual_only_protected)",
+        payload: {
+          action: "post_refusal_proof",
+          planned_signal_action: null,
         },
       },
     });

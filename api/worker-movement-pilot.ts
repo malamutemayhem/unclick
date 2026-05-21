@@ -71,7 +71,7 @@ export function createWorkerMovementPilotStore(
     async fetchCandidate(nowIso) {
       const { data, error } = await supabase
         .from("mc_fishbowl_todos")
-        .select("id, api_key_hash, title, status, assigned_to_agent_id, lease_token, lease_expires_at, reclaim_count")
+        .select("id, api_key_hash, title, description, status, priority, created_by_agent_id, assigned_to_agent_id, lease_token, lease_expires_at, reclaim_count")
         .in("status", ["open", "in_progress"])
         .not("lease_expires_at", "is", null)
         .lt("lease_expires_at", nowIso)
