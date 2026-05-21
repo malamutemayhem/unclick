@@ -77,4 +77,58 @@ describe("LibraryTab", () => {
     });
     expect(screen.getByText("Data memory snapshot")).toBeInTheDocument();
   });
+
+  it("previews and commits taxonomy refresh with an explicit write request", async () => {
+    const refreshBodies: Array<Record<string, unknown>> = [];
+    let listCalls = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.includes("method=list")) {
+          listCalls += 1;
+          return jsonResponse({ data: listCalls === 1 ? [] : docs });
+        }
+        if (url.includes("action=admin_library") && init?.method === "POST") {
+          const body = JSON.parse(String(init.body ?? "{}"));
+          refreshBodies.push(body);
+          return jsonResponse({
+            data: {
+              dry_run: body.dry_run,
+              source_count: 7,
+              snapshot_count: 2,
+              planned_snapshot_count: 2,
+              written_count: body.commit ? 2 : 0,
+              skipped_secret_count: 1,
+            },
+          });
+        }
+        return jsonResponse({});
+      }),
+    );
+
+    render(React.createElement(LibraryTab, { apiKey: "test-key" }));
+
+    await screen.findByText("No Library Snapshots yet");
+
+    fireEvent.click(screen.getByRole("button", { name: /Preview Refresh/i }));
+    await waitFor(() => {
+      expect(refreshBodies[0]).toMatchObject({
+        method: "refresh_taxonomy_snapshots",
+        commit: false,
+        dry_run: true,
+      });
+    });
+    expect(screen.getByText(/Preview: 2 planned, 0 written, 7 sources, 1 skipped/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Write Snapshots/i }));
+    await waitFor(() => {
+      expect(refreshBodies[1]).toMatchObject({
+        method: "refresh_taxonomy_snapshots",
+        commit: true,
+        dry_run: false,
+      });
+    });
+    await screen.findByText("Projects memory snapshot");
+  });
 });
