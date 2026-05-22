@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildJobGithubSyncSignal,
   extractJobGithubReferences,
+  jobHasCurrentProofWarning,
   jobHasDeploymentFailure,
   jobHasProofReset,
   type JobGithubSyncInput,
@@ -97,6 +98,75 @@ describe("Jobs and GitHub sync helpers", () => {
       detail: "This job was reopened or blocked because proof is stale or missing.",
       tone: "alert",
     });
+  });
+
+  it("lets current proof_state warnings override stale shipped-looking proof", () => {
+    const warningJob = {
+      ...baseJob,
+      description: "Proof: https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/943",
+      pipeline_evidence: ["build", "proof", "ship"],
+      proof_state: "MISSING_UI_PROOF",
+      proof_state_label: "Missing UI proof",
+      proof_state_detail: "Needs authenticated /admin/jobs screenshot proof.",
+      proof_state_closable: false,
+    };
+
+    expect(jobHasCurrentProofWarning(warningJob)).toBe(true);
+    expect(buildJobGithubSyncSignal(warningJob)).toEqual({
+      label: "Missing UI proof",
+      detail: "Needs authenticated /admin/jobs screenshot proof.",
+      tone: "alert",
+      href: "https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/943",
+    });
+  });
+
+  it("does not warn when proof_state is close eligible", () => {
+    expect(
+      jobHasCurrentProofWarning({
+        ...baseJob,
+        proof_state: "CLOSE_ELIGIBLE",
+        proof_state_closable: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("does not turn ordinary open missing proof state into a proof warning", () => {
+    expect(
+      jobHasCurrentProofWarning({
+        ...baseJob,
+        pipeline_progress: 10,
+        pipeline_source: "status: open",
+        proof_state: "MISSING",
+        proof_state_closable: false,
+      }),
+    ).toBe(false);
+
+    expect(
+      buildJobGithubSyncSignal({
+        ...baseJob,
+        pipeline_progress: 10,
+        pipeline_source: "status: open",
+        proof_state: "MISSING",
+        proof_state_closable: false,
+      }),
+    ).toEqual({
+      label: "Job first",
+      detail: "Work starts here. Add a PR, run, or deployment link when code ships.",
+      tone: "quiet",
+    });
+  });
+
+  it("does flag missing proof state on shipped-looking rows", () => {
+    expect(
+      jobHasCurrentProofWarning({
+        ...baseJob,
+        pipeline_progress: 100,
+        pipeline_source: "receipt: ship",
+        pipeline_evidence: ["build", "proof", "ship"],
+        proof_state: "MISSING",
+        proof_state_closable: false,
+      }),
+    ).toBe(true);
   });
 
   it("lets current pipeline proof clear old reopened wording", () => {

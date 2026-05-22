@@ -51,6 +51,10 @@ interface JobTodo {
   pipeline_progress?: number;
   pipeline_source?: string;
   pipeline_evidence?: string[];
+  proof_state?: string | null;
+  proof_state_label?: string | null;
+  proof_state_detail?: string | null;
+  proof_state_closable?: boolean | null;
 }
 
 type JobSectionKey = "active" | "next" | "inline" | "done";

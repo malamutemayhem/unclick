@@ -133,4 +133,34 @@ describe("AdminJobs", () => {
     expect(alertsCard).not.toBeNull();
     expect(within(alertsCard as HTMLElement).getByText("1")).toBeInTheDocument();
   });
+
+  it("surfaces current proof_state warnings on shipped-looking rows", async () => {
+    currentJobs = [
+      {
+        id: "visual-proof-job",
+        title: "Brainmap v2 visual admin proof",
+        description: "PR merged, but screenshot proof is missing.",
+        status: "open",
+        priority: "high",
+        created_by_agent_id: "tester",
+        assigned_to_agent_id: null,
+        created_at: "2026-05-14T12:00:00.000Z",
+        completed_at: null,
+        updated_at: "2026-05-14T12:00:00.000Z",
+        comment_count: 4,
+        pipeline_stage_count: 5,
+        pipeline_progress: 100,
+        pipeline_source: "receipt: ship",
+        pipeline_evidence: ["build", "proof", "ship"],
+        proof_state: "MISSING_UI_PROOF",
+        proof_state_label: "Missing UI proof",
+        proof_state_detail: "Needs authenticated /admin/jobs screenshot proof.",
+        proof_state_closable: false,
+      },
+    ];
+
+    render(React.createElement(AdminJobs));
+
+    expect(await screen.findByText("Missing UI proof")).toBeInTheDocument();
+  });
 });

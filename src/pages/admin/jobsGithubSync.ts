@@ -5,7 +5,13 @@ export interface JobGithubSyncInput {
   title: string;
   description?: string | null;
   status: JobSyncStatus;
+  pipeline_progress?: number | null;
+  pipeline_source?: string | null;
   pipeline_evidence?: string[];
+  proof_state?: string | null;
+  proof_state_label?: string | null;
+  proof_state_detail?: string | null;
+  proof_state_closable?: boolean | null;
 }
 
 export interface JobGithubReference {
@@ -102,6 +108,25 @@ export function jobHasProofReset(job: JobGithubSyncInput): boolean {
   return PROOF_RESET_RE.test(text) || PROOF_MISSING_RE.test(text);
 }
 
+export function jobHasCurrentProofWarning(job: JobGithubSyncInput): boolean {
+  const state = String(job.proof_state ?? "").trim().toUpperCase();
+  if (!state) return false;
+  if (job.proof_state_closable === true) return false;
+  if (["LIVE", "CLOSE_ELIGIBLE"].includes(state)) return false;
+  if (state !== "MISSING") return true;
+
+  const evidence = job.pipeline_evidence ?? [];
+  const source = String(job.pipeline_source ?? "");
+  const progress = typeof job.pipeline_progress === "number" ? job.pipeline_progress : 0;
+
+  return (
+    job.status === "done" ||
+    progress >= 100 ||
+    /\b(receipt:\s*(ship|proof|review)|status:\s*done|reopened|proof:\s*missing)\b/i.test(source) ||
+    evidence.some((item) => /\b(proof_missing|reopened|ship)\b/i.test(item))
+  );
+}
+
 export function buildJobGithubSyncSignal(job: JobGithubSyncInput): JobGithubSyncSignal {
   const refs = extractJobGithubReferences(job);
   const firstPr = refs.find((ref) => ref.kind === "pull_request");
@@ -113,6 +138,15 @@ export function buildJobGithubSyncSignal(job: JobGithubSyncInput): JobGithubSync
     return {
       label: "Deploy issue",
       detail: "A linked deployment needs attention.",
+      tone: "alert",
+      href: firstLink?.url,
+    };
+  }
+
+  if (jobHasCurrentProofWarning(job)) {
+    return {
+      label: job.proof_state_label?.trim() || "Proof warning",
+      detail: job.proof_state_detail?.trim() || "Current proof state is not close-ready.",
       tone: "alert",
       href: firstLink?.url,
     };
