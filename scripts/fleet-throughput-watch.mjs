@@ -135,6 +135,32 @@ function normalizeText(value) {
     .toLowerCase();
 }
 
+const OPERATOR_ONLY_PATTERNS = [
+  /\boperator[_ -]?only\b/,
+  /\bchris[- ]?only\b/,
+  /\bhuman (?:decision|approval|policy)\b/,
+  /\b(secrets?|secret[-_ ]?store|token|api[-_ ]?key|raw key|credential\w*|systemcredential\w*|keychain|auth)\b/,
+  /\b(billing|invoice|payment|stripe|subscription)\b/,
+  /\b(dns|domain|nameserver|cloudflare zone)\b/,
+  /\b(production[-_ ]data|prod[-_ ]data|customer[-_ ]data|live[-_ ]data)\b/,
+  /\b(novel product call|new product call|product call)\b/,
+];
+
+export function queuepushRoutingLabel(pr, files = [], state = "") {
+  if (state === "blocked_chris_only") return "operator_only";
+  if (state !== "draft_green_needs_owner_lift") return null;
+  const haystack = normalizeText(
+    [
+      state,
+      pr.title,
+      pr.body,
+      ...files.map((file) => file.filename || file.path || ""),
+    ].join(" "),
+  );
+  if (OPERATOR_ONLY_PATTERNS.some((pattern) => pattern.test(haystack))) return "operator_only";
+  return "walkin_eligible";
+}
+
 function isMissingFinalQcText(text) {
   return (
     /\b(final qc|qc ack|qc pass|reviewer|tester)\b|🔍|🧪/.test(text) &&
@@ -498,6 +524,8 @@ export function buildQueuePacket(input) {
   const worker = routeWorkerForPr(pr, files, state);
   const packetId = queuepushPacketId(pr, state);
   const jobKind = jobKindForState(state);
+  const routingLabel = queuepushRoutingLabel(pr, files, state);
+  const tags = ["needs-doing", "queuepush", routingLabel].filter(Boolean);
   const chip = `PR #${pr.number} ${state}`;
   const filePreview = files
     .slice(0, 4)
@@ -516,6 +544,7 @@ export function buildQueuePacket(input) {
     packetInstructionForJobKind(jobKind),
     `worker: ${worker}`,
     `job kind: ${jobKind}`,
+    ...(routingLabel ? [`routing label: ${routingLabel}`] : []),
     `requires code: ${stateRequiresCode(state) ? "yes" : "no"}`,
     `chip: ${chip}`,
     `context: ${context}`,
@@ -534,6 +563,8 @@ export function buildQueuePacket(input) {
     jobKind,
     requiresCode: stateRequiresCode(state),
     recipient: agentMap[worker] || worker,
+    routingLabel,
+    tags,
     state,
     pr: pr.number,
     text,
@@ -650,7 +681,7 @@ async function postQueuePacket(packet) {
   return postMemoryAdmin("fishbowl_post", {
     agent_id: agentId,
     recipients: [packet.recipient],
-    tags: ["needs-doing", "queuepush"],
+    tags: packet.tags || ["needs-doing", "queuepush"],
     text: packet.text,
   });
 }
