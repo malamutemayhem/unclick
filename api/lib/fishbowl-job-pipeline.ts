@@ -15,6 +15,8 @@ export type FishbowlJobProofState =
   | "stale"
   | "wrong_scope";
 
+export type FishbowlJobEffectiveStatus = "open" | "in_progress" | "done" | "dropped" | "needs_proof";
+
 export interface FishbowlJobPipelineState {
   pipeline_stage_count: number;
   pipeline_progress: number;
@@ -22,6 +24,9 @@ export interface FishbowlJobPipelineState {
   pipeline_evidence: string[];
   proof_state: FishbowlJobProofState;
   proof_state_reason: string;
+  effective_status: FishbowlJobEffectiveStatus;
+  release_blocked: boolean;
+  release_block_reason: string | null;
 }
 
 export type FishbowlJobPipelineComment =
@@ -79,6 +84,26 @@ function buildSegments(todo: FishbowlJobPipelineTodo, comments: FishbowlJobPipel
   return [todo.title, todo.description, ...commentSegments.map(commentText)]
     .filter((value) => typeof value === "string" && value.trim().length > 0)
     .map((value) => value.toLowerCase());
+}
+
+function canonicalStatus(status: unknown): Exclude<FishbowlJobEffectiveStatus, "needs_proof"> {
+  return status === "in_progress" || status === "done" || status === "dropped" ? status : "open";
+}
+
+function withEffectiveStatus(
+  status: unknown,
+  state: Omit<FishbowlJobPipelineState, "effective_status" | "release_blocked" | "release_block_reason">,
+): FishbowlJobPipelineState {
+  const baseStatus = canonicalStatus(status);
+  const effectiveStatus =
+    baseStatus === "done" && state.proof_state !== "close_eligible" ? "needs_proof" : baseStatus;
+  const releaseBlocked = effectiveStatus === "needs_proof";
+  return {
+    ...state,
+    effective_status: effectiveStatus,
+    release_blocked: releaseBlocked,
+    release_block_reason: releaseBlocked ? state.proof_state_reason : null,
+  };
 }
 
 function proofWarningForText(text: string): Pick<FishbowlJobPipelineState, "proof_state" | "proof_state_reason"> | null {
@@ -173,13 +198,13 @@ export function inferFishbowlJobPipeline(
       proof_state: resetHit ? "stale" : "missing",
       proof_state_reason: resetHit ? "The latest receipt is stale or reset." : "Proof is recorded as missing.",
     };
-    return {
+    return withEffectiveStatus(status, {
       pipeline_stage_count: stageRank.brief,
       pipeline_progress: stageProgress[stageRank.brief],
       pipeline_source: resetHit ? "reopened: proof reset" : "proof: missing",
       pipeline_evidence: resetHit ? ["reopened", "proof_missing"] : ["proof_missing"],
       ...warning,
-    };
+    });
   }
 
   const activeSegments = latestResetIndex >= 0 ? segments.slice(latestResetIndex + 1) : segments;
@@ -244,7 +269,7 @@ export function inferFishbowlJobPipeline(
     source = "receipt: ship";
   }
 
-  return {
+  return withEffectiveStatus(status, {
     pipeline_stage_count: activeCount,
     pipeline_progress: stageProgress[activeCount] ?? stageProgress[stageRank.brief],
     pipeline_source: source,
@@ -259,5 +284,5 @@ export function inferFishbowlJobPipeline(
             ? "Completed job needs observable proof."
           : "No newer proof warning is recorded.",
     }),
-  };
+  });
 }

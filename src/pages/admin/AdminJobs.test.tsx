@@ -141,6 +141,7 @@ describe("AdminJobs", () => {
         title: "False green proof job",
         description: "Old PR merged, but missing authenticated screenshot proof.",
         status: "done",
+        effective_status: "needs_proof",
         priority: "urgent",
         created_by_agent_id: "tester",
         assigned_to_agent_id: "chatgpt-codex-desktop",
@@ -153,13 +154,24 @@ describe("AdminJobs", () => {
         pipeline_evidence: ["build", "proof", "ship"],
         proof_state: "missing_ui_proof",
         proof_state_reason: "UI or browser proof is still missing.",
+        release_blocked: true,
+        release_block_reason: "UI or browser proof is still missing.",
       },
     ];
 
     render(React.createElement(AdminJobs));
 
     expect(await screen.findByText("False green proof job")).toBeInTheDocument();
+    expect(screen.getByText("needs proof")).toBeInTheDocument();
     expect(screen.getByText("UI proof")).toBeInTheDocument();
     expect(screen.getByTitle("UI or browser proof is still missing.")).toBeInTheDocument();
+    expect(screen.getByTestId("job-row-title")).not.toHaveClass("line-through");
+
+    const activeSection = screen.getByRole("button", { name: /Active/i }).closest("section");
+    const completedSection = screen.getByRole("button", { name: /Completed/i }).closest("section");
+    expect(activeSection).not.toBeNull();
+    expect(completedSection).not.toBeNull();
+    expect(within(activeSection as HTMLElement).getByText("False green proof job")).toBeInTheDocument();
+    expect(within(completedSection as HTMLElement).queryByText("False green proof job")).not.toBeInTheDocument();
   });
 });
