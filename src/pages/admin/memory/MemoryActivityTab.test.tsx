@@ -120,4 +120,46 @@ describe("MemoryActivityTab", () => {
     expect(screen.getByText("Background-heavy")).toBeInTheDocument();
     expect(screen.getByText("Startup or heartbeat reads")).toBeInTheDocument();
   });
+
+  it("keeps Top of Mind useful when raw Most Accessed is all background-heavy", async () => {
+    activityFactory = () => {
+      const backgroundFacts = Array.from({ length: 10 }, (_, index) => ({
+        id: `static-profile-${index + 1}`,
+        fact: `Chris profile preference ${index + 1}`,
+        category: "preference",
+        access_count: 2080 - index,
+        decay_tier: "hot",
+        recall_signal: "background-heavy" as const,
+        recall_note: "Startup or heartbeat reads",
+      }));
+      const activeFact = {
+        id: "active-project",
+        fact: "PR #997 made FidelityCopy receipts green",
+        category: "technical",
+        access_count: 42,
+        decay_tier: "hot",
+        recall_signal: "top-of-mind" as const,
+        recall_note: "Human-facing recall",
+      };
+
+      return {
+        ...makeActivity(10),
+        recall_diagnostics: {
+          inspected_top_facts: 10,
+          inspected_top_of_mind_candidates: 11,
+          background_heavy_count: 10,
+          background_heavy_candidate_count: 10,
+        },
+        top_of_mind_facts: [activeFact],
+        top_facts: backgroundFacts,
+      };
+    };
+
+    render(<MemoryActivityTab apiKey="test-token" />);
+
+    await screen.findByText("Top of Mind");
+
+    expect(screen.getByText("PR #997 made FidelityCopy receipts green")).toBeInTheDocument();
+    expect(screen.getAllByText("Background-heavy")).toHaveLength(10);
+  });
 });

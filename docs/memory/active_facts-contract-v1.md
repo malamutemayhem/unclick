@@ -1,7 +1,7 @@
 # Active Facts Contract V1
 
 **Status**: Draft  
-**Last updated**: 2026-04-29  
+**Last updated**: 2026-05-22
 **Owner**: `🦾`  
 **Purpose**: Pre-work contract draft for Cluster A before Chris's design call
 
@@ -291,6 +291,25 @@ If any local path cannot bump metrics yet, it MUST still:
 - return the same surfaced set it would have returned under parity
 - avoid bumping hidden facts
 - document the temporary gap as an implementation limitation rather than a different contract
+
+## Recall Check presentation contract
+
+Recall Check has two separate jobs:
+
+1. preserve a raw, inspectable Most Accessed list
+2. present a human-facing Top of Mind list that remains useful when raw access counts are dominated by startup or heartbeat reads
+
+The Top of Mind list MUST NOT be derived only from the first visible page of raw Most Accessed rows. It should inspect a broader candidate pool, label or demote background-heavy static profile facts, and then choose the top user-facing facts from the remaining candidates.
+
+Raw Most Accessed may still show background-heavy facts for debugging and inspection, but those rows should carry a signal such as `background-heavy` so the UI and API response make the separation observable.
+
+The Recall Check response SHOULD include diagnostics that distinguish:
+
+- how many raw Most Accessed rows were returned
+- how many Top of Mind candidates were inspected
+- how many background-heavy rows were found in each set
+
+This preserves the debugging value of access counts without letting background loads become the main human-facing recall answer.
 
 ## Recommended V1 rule summary
 
