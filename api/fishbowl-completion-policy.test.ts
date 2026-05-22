@@ -39,6 +39,27 @@ describe("evaluateFishbowlCompletionPolicy", () => {
     expect(result).toMatchObject({ allowed: true, code: "allowed" });
   });
 
+  it("blocks completion when a newer blocker invalidates older proof", () => {
+    const result = evaluateFishbowlCompletionPolicy({
+      todo: baseTodo,
+      comments: [
+        {
+          author_agent_id: "reviewer-seat",
+          text: "PASS: PR #997 merged and checks passed.",
+          created_at: "2026-05-22T06:40:00Z",
+        },
+        {
+          author_agent_id: "reviewer-seat",
+          text: "BLOCKED: release/live proof is missing after publish failed.",
+          created_at: "2026-05-22T06:43:00Z",
+        },
+      ],
+      closerAgentId: "builder-seat",
+    });
+
+    expect(result).toMatchObject({ allowed: false, code: "missing_proof" });
+  });
+
   it("allows backend automation completion-gate work without screenshot proof", () => {
     const result = evaluateFishbowlCompletionPolicy({
       todo: {
@@ -51,6 +72,47 @@ describe("evaluateFishbowlCompletionPolicy", () => {
         {
           author_agent_id: "reviewer-seat",
           text: "PASS: PR #977 merged and tests passed; proof: commit d32673c.",
+        },
+      ],
+      closerAgentId: "builder-seat",
+    });
+
+    expect(result).toMatchObject({ allowed: true, code: "allowed" });
+  });
+
+  it("blocks runtime tool work when PR proof lacks release or live availability proof", () => {
+    const result = evaluateFishbowlCompletionPolicy({
+      todo: {
+        ...baseTodo,
+        title: "FidelityCopy: deterministic non-AI copy engine for FidelityPass",
+        description:
+          "Build the official non-AI Copy Machine under FidelityPass. AI workers may request exact copy/import/export/restore operations.",
+      },
+      comments: [
+        {
+          author_agent_id: "reviewer-seat",
+          text: "PASS: PR #997 merged and CI passed; proof: actions/runs/26272653066.",
+        },
+      ],
+      closerAgentId: "builder-seat",
+    });
+
+    expect(result).toMatchObject({ allowed: false, code: "release_or_live_proof_required" });
+  });
+
+  it("allows runtime tool work with registry and discovery proof", () => {
+    const result = evaluateFishbowlCompletionPolicy({
+      todo: {
+        ...baseTodo,
+        title: "FidelityCopy: deterministic non-AI copy engine for FidelityPass",
+        description:
+          "Build the official non-AI Copy Machine under FidelityPass. AI workers may request exact copy/import/export/restore operations.",
+      },
+      comments: [
+        {
+          author_agent_id: "reviewer-seat",
+          text:
+            "PASS: PR #997 merged, npm view confirms registry latest 0.3.107, and fidelitycopy_copy tool discovery is available.",
         },
       ],
       closerAgentId: "builder-seat",

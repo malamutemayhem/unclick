@@ -8,6 +8,7 @@ export interface FishbowlCompletionTodo {
 export interface FishbowlCompletionComment {
   author_agent_id: string | null;
   text: string | null;
+  created_at?: string | null;
 }
 
 export interface FishbowlCompletionPolicyInput {
@@ -23,6 +24,7 @@ export interface FishbowlCompletionPolicyResult {
     | "allowed"
     | "missing_proof"
     | "git_proof_required"
+    | "release_or_live_proof_required"
     | "ui_screenshot_required"
     | "independent_verifier_required";
   reason: string;
@@ -33,7 +35,7 @@ const proofPositivePattern =
   /\b(pr\s*#?\d+|pull request\s*#?\d+|commit\s+[a-f0-9]{7,40}|sha\s+[a-f0-9]{7,40}|branch\s+[\w./-]+|git\s+diff|tests?\s+passed|build\s+passed|checks?\s+(?:passed|green)|ci\s+(?:passed|green)|playwright|screenshot|screen\s?shot|actions\/runs\/\d+|deployed|deployment|live on production|production live|no[_\s-]?code[_\s-]?needed|no code needed|proof:\s*\S+|receipt\s+[0-9a-f-]{8,})\b/i;
 
 const proofNegativePattern =
-  /\b(blocker|hold|no\s+(?:proof|screenshot|test|pr|commit)|missing\s+(?:proof|screenshot|test|pr|commit)|proof\s+(?:missing|needed|incomplete|stale|not available)|without\s+(?:proof|screenshot|test|pr|commit)|needs?\s+(?:proof|screenshot|test|pr|commit))\b/i;
+  /\b(blocker|blocked|hold|no\s+(?:proof|screenshot|test|pr|commit)|missing\s+(?:proof|screenshot|test|pr|commit)|proof\s+(?:is\s+)?(?:missing|needed|incomplete|stale|not available)|without\s+(?:proof|screenshot|test|pr|commit)|needs?\s+(?:proof|screenshot|test|pr|commit)|publish\s+failed|release\/live\s+proof)\b/i;
 
 const screenshotPattern =
   /\b(screenshot|screen\s?shot|before\/after|before and after|playwright|visual proof)\b|https?:\/\/\S+\.(?:png|jpe?g|webp)\b|[A-Za-z]:\\[^\n]+\.(?:png|jpe?g|webp)\b/i;
@@ -56,15 +58,28 @@ const gitProofPattern =
 const noCodeNeededPattern =
   /\b(no[_\s-]?code[_\s-]?needed|no code needed|non-code|no code change|policy only|comment only|routing only|docs only)\b/i;
 
+const runtimeDeliveryTodoPattern =
+  /\b(mcp\s+(?:server|tool)|publish(?:ed|ing)?|registry|npm|release|deploy(?:ed|ment)?|production|live\s+(?:tool|receipt|api|proof)|expos(?:e|ed|ing)|workers?\s+may\s+request|worker(?:s)?\s+tool)\b/i;
+
+const runtimeDeliveryProofPattern =
+  /\b(published|npm\s+(?:view|latest|dist-tag)|registry\s+(?:confirms|shows|latest)|deployed|deployment|live\s+on\s+production|production\s+live|vercel\.app|tool(?:s)?\s+(?:discoverable|available|exposed)|(?:mcp|tool)\s+discovery|live\s+(?:receipt|api|tool)|fidelitycopy_(?:copy|verify)|fidelitypass_verify_copy)\b/i;
+
 function isUiCompletionTodo(corpus: string): boolean {
   if (!uiTodoPattern.test(corpus)) return false;
   if (nonVisualCompletionGatePattern.test(corpus) && !uiDeliveryPattern.test(corpus)) return false;
   return true;
 }
 
+function commentTime(comment: FishbowlCompletionComment): number {
+  if (!comment.created_at) return 0;
+  const parsed = Date.parse(comment.created_at);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
 export function evaluateFishbowlCompletionPolicy(input: FishbowlCompletionPolicyInput): FishbowlCompletionPolicyResult {
   const closer = input.closerAgentId.trim();
   const corpus = [input.todo.title, input.todo.description].filter(Boolean).join("\n");
+  const negativeProofComments = input.comments.filter((comment) => proofNegativePattern.test(comment.text ?? ""));
   const positiveProofComments = input.comments.filter((comment) => {
     const text = comment.text ?? "";
     return proofPositivePattern.test(text) && !proofNegativePattern.test(text);
@@ -76,6 +91,17 @@ export function evaluateFishbowlCompletionPolicy(input: FishbowlCompletionPolicy
       code: "missing_proof",
       reason: "Done is blocked until the job has a real proof comment.",
       how_to_fix: "Add a proof comment with a PR, commit, test/build result, run link, receipt, or screenshot, then close the job.",
+    };
+  }
+
+  const latestPositiveProofAt = Math.max(...positiveProofComments.map(commentTime));
+  const latestNegativeProofAt = Math.max(0, ...negativeProofComments.map(commentTime));
+  if (latestNegativeProofAt > latestPositiveProofAt) {
+    return {
+      allowed: false,
+      code: "missing_proof",
+      reason: "Done is blocked because a newer blocker or missing-proof comment exists after the latest proof.",
+      how_to_fix: "Resolve the blocker with newer observable PASS proof, then close the job.",
     };
   }
 
@@ -124,6 +150,21 @@ export function evaluateFishbowlCompletionPolicy(input: FishbowlCompletionPolicy
         reason: "Coding jobs need Git, deploy, or no-code proof before they can be marked done.",
         how_to_fix:
           "Add proof with a PR, commit SHA, branch diff, deployed URL, or explicit NO_CODE_NEEDED reason, then close the job.",
+      };
+    }
+  }
+
+  if (runtimeDeliveryTodoPattern.test(corpus)) {
+    const hasRuntimeDeliveryProof = positiveProofComments.some((comment) =>
+      runtimeDeliveryProofPattern.test(comment.text ?? ""),
+    );
+    if (!hasRuntimeDeliveryProof) {
+      return {
+        allowed: false,
+        code: "release_or_live_proof_required",
+        reason: "Runtime, package, or tool jobs need release/live availability proof before they can be marked done.",
+        how_to_fix:
+          "Add proof that the package, deployment, live API, or tool discovery is available, then close the job.",
       };
     }
   }
