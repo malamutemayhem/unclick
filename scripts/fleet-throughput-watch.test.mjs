@@ -565,6 +565,17 @@ describe("QueuePush routing and packets", () => {
     );
   });
 
+  it("routes routine owner-lift decisions to Navigator", () => {
+    assert.equal(
+      routeWorkerForPr(
+        pr({ title: "fix(memory): widen Top-of-Mind recall candidates" }),
+        [{ filename: "api/lib/memory-recall-sections.ts" }],
+        "draft_green_needs_owner_lift",
+      ),
+      "🧭",
+    );
+  });
+
   it("routes code-required RotatePass repair work to a proven builder", () => {
     assert.equal(
       routeWorkerForPr(
@@ -587,14 +598,14 @@ describe("QueuePush routing and packets", () => {
     );
   });
 
-  it("keeps PinballWake owner decisions with Builder even when the PR mentions other lanes", () => {
+  it("routes routine owner-lift decisions away from Builder even when the PR mentions builder lanes", () => {
     assert.equal(
       routeWorkerForPr(
-        pr({ title: "PinballWake job runner registry", body: "Also mentions XPass context." }),
+        pr({ title: "PinballWake job runner registry", body: "Also mentions WakePass context." }),
         [{ filename: "src/pages/admin/pinballwakeJobRunners.ts" }],
         "draft_green_needs_owner_lift",
       ),
-      "🛠️",
+      "🧭",
     );
   });
 
@@ -732,11 +743,13 @@ describe("QueuePush routing and packets", () => {
     assert.equal(packet.requiresCode, false);
     assert.match(packet.packetId, /^queuepush:v3:pr-506:draft_green_needs_owner_lift:abcdef1:[a-f0-9]{10}$/);
     assert.match(packet.text, /DIRECT DECISION PACKET/);
-    assert.match(packet.text, /Decide, ACK, or reply blocker/);
+    assert.match(packet.text, /routine lift now/);
+    assert.match(packet.text, /non-author lift hat/);
     assert.match(packet.text, /worker: 🧪/);
     assert.match(packet.text, /job kind: owner_decision/);
     assert.match(packet.text, /requires code: no/);
-    assert.match(packet.text, /do: Claim it/);
+    assert.match(packet.text, /do: Claim with non-author lift hat/);
+    assert.match(packet.text, /expected proof: Non-author lift proof/);
     assert.match(packet.text, /fallback: if not ACKed after two pulses/);
     assert.match(packet.text, /ack: done\/blocker/);
     assert.ok(packet.text.length < 1200);
