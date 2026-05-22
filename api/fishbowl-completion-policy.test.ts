@@ -60,6 +60,27 @@ describe("evaluateFishbowlCompletionPolicy", () => {
     expect(result).toMatchObject({ allowed: false, code: "missing_proof" });
   });
 
+  it("blocks completion when a newer proof reset invalidates older proof", () => {
+    const result = evaluateFishbowlCompletionPolicy({
+      todo: baseTodo,
+      comments: [
+        {
+          author_agent_id: "reviewer-seat",
+          text: "PASS: PR #997 merged and checks passed.",
+          created_at: "2026-05-22T06:40:00Z",
+        },
+        {
+          author_agent_id: "reviewer-seat",
+          text: "Proof reset after live package publish failed.",
+          created_at: "2026-05-22T06:43:00Z",
+        },
+      ],
+      closerAgentId: "builder-seat",
+    });
+
+    expect(result).toMatchObject({ allowed: false, code: "missing_proof" });
+  });
+
   it("allows backend automation completion-gate work without screenshot proof", () => {
     const result = evaluateFishbowlCompletionPolicy({
       todo: {
