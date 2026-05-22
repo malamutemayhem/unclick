@@ -38,6 +38,7 @@ describe("heartbeat_protocol payload", () => {
     expect(protocol.procedure[1]).toContain("continuity receipts");
     expect(protocol.procedure[2]).toContain("unclick-builder-tether-seat");
     expect(protocol.procedure[3]).toContain("job hunt");
+    expect(protocol.procedure[3]).toContain("First call save_conversation_turn");
     expect(protocol.procedure[4]).toContain("0 active jobs");
     expect(protocol.procedure[4]).toContain("queue hydration failure");
     // active_jobs definition is pinned in step 5 (procedure[4]) so the
@@ -52,7 +53,7 @@ describe("heartbeat_protocol payload", () => {
     expect(protocol.procedure[5]).toContain("free API classifiers may only classify or nudge");
     expect(protocol.procedure[5]).toContain("PushOnly");
     expect(protocol.procedure[5]).toContain("must not create duplicate jobs");
-    expect(protocol.procedure[6]).toContain("After check_signals");
+    expect(protocol.procedure[6]).toContain("After the action step");
     expect(protocol.procedure[7]).toContain("compact public fields");
     expect(protocol.procedure[8]).toContain("smallest safe source text");
     expect(protocol.procedure[9]).toContain("receipt_line");
@@ -84,9 +85,9 @@ describe("heartbeat_protocol payload", () => {
       procedure: [...protocol.procedure, "new instruction"],
     };
 
-    expect(formatHeartbeatProtocolVersion(11)).toBe("2026-05-12.v11");
-    expect(protocol.version).toBe("2026-05-12.v11");
-    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("bde9cae82e8d455c");
+    expect(formatHeartbeatProtocolVersion(12)).toBe("2026-05-12.v12");
+    expect(protocol.version).toBe("2026-05-12.v12");
+    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("40e6cc443687b548");
     expect(heartbeatProtocolContentFingerprint(changed)).not.toBe(
       heartbeatProtocolContentFingerprint(protocol),
     );

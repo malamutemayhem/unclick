@@ -15,6 +15,18 @@ export type AutoloadMethod =
   | "manual"
   | "none";
 
+export const LOG_READ_DECIDE_RECEIPT_WINDOW_MS = 30 * 60 * 1000;
+
+export interface OrchestratorSavedTurn {
+  sessionId: string;
+  receiptId: string | null;
+  savedAt: Date;
+}
+
+export type OrchestratorReadGateResult =
+  | { ok: true; savedTurn: OrchestratorSavedTurn }
+  | { ok: false; status: "CONTEXT_UNREAD"; missing: string; guidance: string };
+
 export interface SessionState {
   sessionId: string;
   clientInfo: { name: string; version: string } | null;
@@ -27,6 +39,7 @@ export interface SessionState {
   toolsCalledBeforeContext: number;
   sessionStart: Date;
   logged: boolean;
+  orchestratorSavedTurns: OrchestratorSavedTurn[];
 }
 
 function randomSessionId(): string {
@@ -45,7 +58,16 @@ export const sessionState: SessionState = {
   toolsCalledBeforeContext: 0,
   sessionStart: new Date(),
   logged: false,
+  orchestratorSavedTurns: [],
 };
+
+function normalizeSessionId(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeReceiptId(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
 
 export function setClientInfo(info: { name?: string; version?: string } | undefined): void {
   if (!info) return;
@@ -104,6 +126,64 @@ export function recordToolCall(name: string): void {
   }
 }
 
+export function evaluateOrchestratorContextReadGate(
+  savedTurns: OrchestratorSavedTurn[],
+  args: Record<string, unknown> = {},
+  now = new Date(),
+  windowMs = LOG_READ_DECIDE_RECEIPT_WINDOW_MS,
+): OrchestratorReadGateResult {
+  const requestedSessionId = normalizeSessionId(args.session_id);
+  const nowMs = now.getTime();
+  const savedTurn = savedTurns.find((turn) => {
+    if (requestedSessionId && turn.sessionId !== requestedSessionId) return false;
+    return nowMs - turn.savedAt.getTime() <= windowMs;
+  });
+
+  if (savedTurn) return { ok: true, savedTurn };
+
+  const missing = requestedSessionId
+    ? `No prior save_conversation_turn receipt for session_id='${requestedSessionId}' in this MCP server session.`
+    : "No prior save_conversation_turn receipt in this MCP server session.";
+
+  return {
+    ok: false,
+    status: "CONTEXT_UNREAD",
+    missing,
+    guidance:
+      "Save the accepted wake or turn first with save_conversation_turn, keep the receipt id, then call read_orchestrator_context before deciding or acting.",
+  };
+}
+
+export function markConversationTurnSaved(
+  args: Record<string, unknown>,
+  result: unknown,
+  savedAt = new Date(),
+): void {
+  const sessionId = normalizeSessionId(args.session_id);
+  if (!sessionId) return;
+  const record = result && typeof result === "object" ? result as Record<string, unknown> : {};
+  const receiptId =
+    normalizeReceiptId(record.receipt_id) ??
+    normalizeReceiptId(record.turn_id) ??
+    normalizeReceiptId(record.id);
+  const cutoffMs = savedAt.getTime() - LOG_READ_DECIDE_RECEIPT_WINDOW_MS;
+
+  sessionState.orchestratorSavedTurns = [
+    { sessionId, receiptId, savedAt },
+    ...sessionState.orchestratorSavedTurns.filter((turn) =>
+      turn.sessionId !== sessionId && turn.savedAt.getTime() >= cutoffMs
+    ),
+  ];
+}
+
+export function requireConversationTurnBeforeOrchestratorRead(args: Record<string, unknown>): OrchestratorReadGateResult {
+  return evaluateOrchestratorContextReadGate(sessionState.orchestratorSavedTurns, args);
+}
+
 export function snapshotSessionState(): SessionState {
-  return { ...sessionState, resourcesRead: [...sessionState.resourcesRead] };
+  return {
+    ...sessionState,
+    resourcesRead: [...sessionState.resourcesRead],
+    orchestratorSavedTurns: sessionState.orchestratorSavedTurns.map((turn) => ({ ...turn })),
+  };
 }

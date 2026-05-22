@@ -89,6 +89,7 @@ describe("runtime tool schema validation", () => {
       agent_id: "strict-probe",
     })).toBeNull();
     expect(validateToolArgumentsForRuntime("read_orchestrator_context", {
+      session_id: "strict-probe-session",
       q: "strict schema probe",
       limit: 40,
     })).toBeNull();

@@ -11,7 +11,12 @@ import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
-import { markContextLoaded, recordToolCall } from "./memory/session-state.js";
+import {
+  markContextLoaded,
+  markConversationTurnSaved,
+  recordToolCall,
+  requireConversationTurnBeforeOrchestratorRead,
+} from "./memory/session-state.js";
 import { emitSignal } from "./signals/emit.js";
 import { getHeartbeatProtocol } from "./heartbeat-protocol.js";
 import { getCommonSensePassProtocol } from "./commonsensepass-protocol.js";
@@ -538,12 +543,16 @@ export const VISIBLE_TOOLS = [
     title: "Read Orchestrator context",
     description:
       "Reads current UnClick Orchestrator continuity so a seat can interpret a freshly saved turn before acting. " +
-      "Use immediately after save_conversation_turn in the required Log -> Read -> Decide -> Reply -> Log reply gate. " +
+      "Use immediately after save_conversation_turn in the required Log -> Read -> Decide -> Reply -> Log reply gate. This tool blocks until a prior save_conversation_turn receipt exists in this MCP server session. " +
       "If this read fails, say CONTEXT_UNREAD or UNTETHERED instead of guessing whether a phrase is a test cue, real request, blocker, proof, or status.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
+        session_id: {
+          type: "string",
+          description: "Optional stable session id. When provided, the saved turn receipt must be for this same session.",
+        },
         q: {
           type: "string",
           description: "Optional search text from the saved turn. Do not include secrets.",
@@ -1759,6 +1768,23 @@ export function createServer(): Server {
 
       // ── Orchestrator context: mandatory read step after turn capture ──
       if (name === "read_orchestrator_context") {
+        const gate = requireConversationTurnBeforeOrchestratorRead(args);
+        if (!gate.ok) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify({
+                  ok: false,
+                  status: gate.status,
+                  missing: gate.missing,
+                  guidance: gate.guidance,
+                }, null, 2),
+              },
+            ],
+            isError: true,
+          };
+        }
         const apiKey = process.env.UNCLICK_API_KEY;
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
@@ -2035,6 +2061,9 @@ export function createServer(): Server {
       if (MEMORY_HANDLERS[memoryKey]) {
         recordToolCall(memoryKey);
         const result = await MEMORY_HANDLERS[memoryKey](args);
+        if (memoryKey === "log_conversation") {
+          markConversationTurnSaved(args, result);
+        }
         return {
           content: [{ type: "text", text: memoryToolText(memoryKey, result) }],
         };

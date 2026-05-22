@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   buildOrchestratorContextReadQuery,
   buildTetherSelfCheckPayload,
+  createLogReadDecideGate,
   getReceiptFirstTetherLadder,
   orchestratorContextContainsReceipt,
   orchestratorContextReadTool,
@@ -119,6 +120,71 @@ test("saveConversationTurn calls the existing admin ingest endpoint", async () =
       },
     },
   ]);
+});
+
+test("Log-Read-Decide gate blocks reads before a same-session save", async () => {
+  const gate = createLogReadDecideGate();
+
+  await assert.rejects(
+    () => readOrchestratorContext(async () => ({ context: {} }), {
+      session_id: "thread-1",
+      q: "proof",
+    }, { gate }),
+    /prior save_conversation_turn receipt for session_id=thread-1/
+  );
+});
+
+test("Log-Read-Decide gate allows read after a saved turn in the same session", async () => {
+  const gate = createLogReadDecideGate();
+  const calls = [];
+
+  await saveConversationTurn(async (action, options) => {
+    calls.push({ action, options });
+    return {
+      turn_id: "turn-1",
+      session_id: options.body.session_id,
+      role: options.body.role,
+    };
+  }, {
+    session_id: "thread-1",
+    role: "user",
+    content: "fresh wake",
+  }, { gate });
+
+  const result = await readOrchestratorContext(async (action, options) => {
+    calls.push({ action, options });
+    return { context: { continuity_events: [{ source_id: "turn-1" }] } };
+  }, {
+    session_id: "thread-1",
+    q: "fresh wake",
+  }, { gate });
+
+  assert.deepEqual(result, { context: { continuity_events: [{ source_id: "turn-1" }] } });
+  assert.deepEqual(calls.map((call) => call.action), [
+    "admin_conversation_turn_ingest",
+    "orchestrator_context_read",
+  ]);
+});
+
+test("Log-Read-Decide gate rejects a mismatched saved session", async () => {
+  const gate = createLogReadDecideGate();
+
+  await saveConversationTurn(async (_action, options) => ({
+    turn_id: "turn-1",
+    session_id: options.body.session_id,
+  }), {
+    session_id: "thread-1",
+    role: "user",
+    content: "fresh wake",
+  }, { gate });
+
+  await assert.rejects(
+    () => readOrchestratorContext(async () => ({ context: {} }), {
+      session_id: "thread-2",
+      q: "fresh wake",
+    }, { gate }),
+    /prior save_conversation_turn receipt for session_id=thread-2/
+  );
 });
 
 test("buildOrchestratorContextReadQuery normalizes search and clamps limits", () => {

@@ -36,6 +36,7 @@ import { apiFetchJson } from "./http.js";
 import { createHeartbeatGate } from "./heartbeat-gate.js";
 import { readTimingConfig } from "./config.js";
 import {
+  createLogReadDecideGate,
   getReceiptFirstTetherLadder,
   orchestratorContextReadTool,
   readOrchestratorContext,
@@ -55,6 +56,7 @@ const timingConfig = readTimingConfig();
 const POLL_INTERVAL = timingConfig.pollIntervalMs;
 const API_TIMEOUT_MS = timingConfig.apiTimeoutMs;
 const heartbeatGate = createHeartbeatGate();
+const logReadDecideGate = createLogReadDecideGate();
 
 function log(...args) {
   // Channel hosts use stdio for JSON-RPC, so keep human logs on stderr.
@@ -178,7 +180,7 @@ async function handleRpcLine(line) {
     }
     if (name === "unclick_save_conversation_turn") {
       try {
-        const result = await saveConversationTurn(apiFetch, args);
+        const result = await saveConversationTurn(apiFetch, args, { gate: logReadDecideGate });
         writeRpc({
           jsonrpc: "2.0",
           id: msg.id,
@@ -221,7 +223,7 @@ async function handleRpcLine(line) {
     }
     if (name === "unclick_orchestrator_context_read") {
       try {
-        const result = await readOrchestratorContext(apiFetch, args);
+        const result = await readOrchestratorContext(apiFetch, args, { gate: logReadDecideGate });
         writeRpc({
           jsonrpc: "2.0",
           id: msg.id,
