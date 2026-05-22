@@ -133,4 +133,33 @@ describe("AdminJobs", () => {
     expect(alertsCard).not.toBeNull();
     expect(within(alertsCard as HTMLElement).getByText("1")).toBeInTheDocument();
   });
+
+  it("shows a proof-state warning even when progress says shipped", async () => {
+    currentJobs = [
+      {
+        id: "false-green-job",
+        title: "False green proof job",
+        description: "Old PR merged, but missing authenticated screenshot proof.",
+        status: "done",
+        priority: "urgent",
+        created_by_agent_id: "tester",
+        assigned_to_agent_id: "chatgpt-codex-desktop",
+        created_at: "2026-05-14T12:00:00.000Z",
+        completed_at: "2026-05-14T12:30:00.000Z",
+        updated_at: "2026-05-14T12:55:00.000Z",
+        comment_count: 3,
+        pipeline_stage_count: 5,
+        pipeline_progress: 100,
+        pipeline_evidence: ["build", "proof", "ship"],
+        proof_state: "missing_ui_proof",
+        proof_state_reason: "UI or browser proof is still missing.",
+      },
+    ];
+
+    render(React.createElement(AdminJobs));
+
+    expect(await screen.findByText("False green proof job")).toBeInTheDocument();
+    expect(screen.getByText("UI proof")).toBeInTheDocument();
+    expect(screen.getByTitle("UI or browser proof is still missing.")).toBeInTheDocument();
+  });
 });

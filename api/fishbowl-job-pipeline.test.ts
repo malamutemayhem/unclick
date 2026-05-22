@@ -16,6 +16,23 @@ describe("Fishbowl job pipeline inference", () => {
       pipeline_progress: 100,
       pipeline_source: "receipt: ship",
       pipeline_evidence: ["build", "proof", "ship"],
+      proof_state: "close_eligible",
+    });
+  });
+
+  it("labels completed jobs without receipts as missing proof", () => {
+    expect(
+      inferFishbowlJobPipeline({
+        title: "Completed without linked proof",
+        status: "done",
+      }),
+    ).toMatchObject({
+      pipeline_stage_count: 5,
+      pipeline_progress: 100,
+      pipeline_source: "status: done",
+      pipeline_evidence: [],
+      proof_state: "missing",
+      proof_state_reason: "Completed job needs observable proof.",
     });
   });
 
@@ -33,6 +50,8 @@ describe("Fishbowl job pipeline inference", () => {
       pipeline_progress: 10,
       pipeline_source: "reopened: proof reset",
       pipeline_evidence: ["reopened", "proof_missing"],
+      proof_state: "stale",
+      proof_state_reason: "The latest receipt is stale or reset.",
     });
   });
 
@@ -50,6 +69,8 @@ describe("Fishbowl job pipeline inference", () => {
       pipeline_progress: 10,
       pipeline_source: "proof: missing",
       pipeline_evidence: ["proof_missing"],
+      proof_state: "missing",
+      proof_state_reason: "Proof is recorded as missing.",
     });
   });
 
@@ -80,6 +101,64 @@ describe("Fishbowl job pipeline inference", () => {
       pipeline_progress: 85,
       pipeline_source: "receipt: review",
       pipeline_evidence: ["build", "proof", "review"],
+      proof_state: "live",
+    });
+  });
+
+  it("surfaces missing UI proof as a structured proof state", () => {
+    expect(
+      inferFishbowlJobPipeline(
+        {
+          title: "Memory Recall Check proof",
+          status: "done",
+        },
+        ["PR #999 checks green.", "BLOCKER: missing authenticated screenshot proof for /admin/memory?tab=recall-check."],
+      ),
+    ).toMatchObject({
+      pipeline_stage_count: 5,
+      pipeline_progress: 100,
+      pipeline_source: "receipt: proof",
+      pipeline_evidence: ["build", "proof"],
+      proof_state: "missing_ui_proof",
+      proof_state_reason: "UI or browser proof is still missing.",
+    });
+  });
+
+  it("keeps a blocker warning newer than old ship receipts", () => {
+    expect(
+      inferFishbowlJobPipeline(
+        {
+          title: "Proof Ledger v2",
+          status: "done",
+        },
+        ["Old receipt: PR #700 merged into main. Tests passed.", "BLOCKER: proof ledger hold, do not lift without real proof."],
+      ),
+    ).toMatchObject({
+      pipeline_stage_count: 5,
+      pipeline_progress: 100,
+      pipeline_source: "receipt: ship",
+      pipeline_evidence: ["build", "proof", "ship"],
+      proof_state: "blocked",
+      proof_state_reason: "A blocker or hold is recorded after the latest proof.",
+    });
+  });
+
+  it("labels parked jobs without treating them as done", () => {
+    expect(
+      inferFishbowlJobPipeline(
+        {
+          title: "StepBack cleanup",
+          status: "open",
+        },
+        ["PARKED: missing ScopePack before any build work."],
+      ),
+    ).toMatchObject({
+      pipeline_stage_count: 1,
+      pipeline_progress: 10,
+      pipeline_source: "status: open",
+      pipeline_evidence: [],
+      proof_state: "parked",
+      proof_state_reason: "The job is parked or waiting for scope.",
     });
   });
 });
