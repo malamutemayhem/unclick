@@ -6962,13 +6962,13 @@
     },
     {
       "source": ".github/workflows/publish-channel-package.yml",
-      "hash": "1483fedb8bd8",
-      "bytes": 6845
+      "hash": "5c9197848ca9",
+      "bytes": 8046
     },
     {
       "source": ".github/workflows/publish-mcp-package.yml",
-      "hash": "feaa16faf6f8",
-      "bytes": 7239
+      "hash": "868a5bc10985",
+      "bytes": 8443
     },
     {
       "source": ".github/workflows/review-enforcement-warning.yml",
