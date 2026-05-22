@@ -3,9 +3,9 @@ name: Publish Channel package
 on:
   pull_request:
     paths:
-      - '.github/workflows/publish-channel-package.yml'
-      - 'packages/channel-plugin/**'
-      - 'package-lock.json'
+      - ".github/workflows/publish-channel-package.yml"
+      - "packages/channel-plugin/**"
+      - "package-lock.json"
   push:
     branches:
       - main
@@ -170,3 +170,28 @@ jobs:
           fi
           echo "::error::GitHub release ${tag} is missing unclick-channel.tgz"
           exit 1
+
+      - name: Update rolling latest package release
+        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rolling_tag="unclick-packages-latest"
+          rolling_title="UnClick package downloads"
+          rolling_notes="Rolling GitHub-only package release for stable latest/download package URLs."
+          asset="${{ steps.pack.outputs.asset }}"
+
+          if ! gh release view "$rolling_tag" >/dev/null 2>&1; then
+            gh release create "$rolling_tag" "$asset" \
+              --target "$(git rev-parse HEAD)" \
+              --title "$rolling_title" \
+              --notes "$rolling_notes" || true
+          fi
+
+          gh release upload "$rolling_tag" "$asset" --clobber
+          gh release edit "$rolling_tag" --latest --title "$rolling_title" --notes "$rolling_notes"
+
+      - name: Verify stable latest download
+        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
+        run: |
+          curl --fail --location --head "https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/unclick-channel.tgz"
