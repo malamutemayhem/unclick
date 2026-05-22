@@ -153,7 +153,7 @@ function PlatformCard({ platform }: { platform: (typeof PLATFORMS)[0] }) {
 
 // ---- Main page ----
 
-const INSTALL_CMD = "npx @unclick/mcp-server";
+const INSTALL_CMD = "npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz";
 
 const STEPS = [
   {
