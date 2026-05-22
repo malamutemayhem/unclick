@@ -99,8 +99,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/event-wake-router.yml | bfd53e324bb4 | 1453 |
 | .github/workflows/fleet-throughput-watch.yml | c5a08f4edf9b | 930 |
 | .github/workflows/openhands-test-mode.yml | 3bd5d5f48573 | 1137 |
-| .github/workflows/publish-channel-package.yml | 25c5e6a54858 | 6832 |
-| .github/workflows/publish-mcp-package.yml | a2412e1ef536 | 8962 |
+| .github/workflows/publish-channel-package.yml | 1483fedb8bd8 | 6845 |
+| .github/workflows/publish-mcp-package.yml | feaa16faf6f8 | 7239 |
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
 | .github/workflows/testpass-pr-check.yml | 398a44d83549 | 9548 |
