@@ -218,8 +218,10 @@ export function inferFishbowlJobPipeline(
       ? index
       : latest;
   }, -1);
-  let activeCount = status === "done" ? stageRank.ship : status === "in_progress" ? stageRank.build : stageRank.brief;
-  let source = status === "done" ? "status: done" : status === "in_progress" ? "status: active" : "status: open";
+  const baseStatus = canonicalStatus(status);
+  let activeCount = baseStatus === "in_progress" ? stageRank.build : stageRank.brief;
+  let source =
+    baseStatus === "done" ? "proof: missing" : baseStatus === "in_progress" ? "status: active" : "status: open";
   const evidence: string[] = [];
 
   if (

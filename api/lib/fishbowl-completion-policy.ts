@@ -35,7 +35,7 @@ const proofPositivePattern =
   /\b(pr\s*#?\d+|pull request\s*#?\d+|commit\s+[a-f0-9]{7,40}|sha\s+[a-f0-9]{7,40}|branch\s+[\w./-]+|git\s+diff|tests?\s+passed|build\s+passed|checks?\s+(?:passed|green)|ci\s+(?:passed|green)|playwright|screenshot|screen\s?shot|actions\/runs\/\d+|deployed|deployment|live on production|production live|no[_\s-]?code[_\s-]?needed|no code needed|proof:\s*\S+|receipt\s+[0-9a-f-]{8,})\b/i;
 
 const proofNegativePattern =
-  /\b(blocker|blocked|hold|no\s+(?:proof|screenshot|test|pr|commit)|missing\s+(?:proof|screenshot|test|pr|commit)|proof\s+(?:is\s+)?(?:missing|needed|incomplete|stale|not available)|without\s+(?:proof|screenshot|test|pr|commit)|needs?\s+(?:proof|screenshot|test|pr|commit)|publish\s+failed|release\/live\s+proof)\b/i;
+  /\b(blocker|blocked|hold|no\s+(?:proof|screenshot|test|pr|commit)|missing\s+(?:proof|screenshot|test|pr|commit)|proof\s+(?:is\s+)?(?:missing|needed|incomplete|stale|not available|reset)|proof\s+reset|reopened|re-opened|false\s+completion|false[- ]done|false\s+green|stale\s+(?:proof|receipt|green chip|claim)|wrong\s+(?:scope|surface|job|proof)|scope\s+mismatch|without\s+(?:proof|screenshot|test|pr|commit)|needs?\s+(?:proof|screenshot|test|pr|commit)|publish\s+failed|release\/live\s+proof)\b/i;
 
 const screenshotPattern =
   /\b(screenshot|screen\s?shot|before\/after|before and after|playwright|visual proof)\b|https?:\/\/\S+\.(?:png|jpe?g|webp)\b|[A-Za-z]:\\[^\n]+\.(?:png|jpe?g|webp)\b/i;

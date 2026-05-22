@@ -30,9 +30,9 @@ describe("Fishbowl job pipeline inference", () => {
         status: "done",
       }),
     ).toMatchObject({
-      pipeline_stage_count: 5,
-      pipeline_progress: 100,
-      pipeline_source: "status: done",
+      pipeline_stage_count: 1,
+      pipeline_progress: 10,
+      pipeline_source: "proof: missing",
       pipeline_evidence: [],
       proof_state: "missing",
       proof_state_reason: "Completed job needs observable proof.",
@@ -130,8 +130,8 @@ describe("Fishbowl job pipeline inference", () => {
         ["PR #999 checks green.", "BLOCKER: missing authenticated screenshot proof for /admin/memory?tab=recall-check."],
       ),
     ).toMatchObject({
-      pipeline_stage_count: 5,
-      pipeline_progress: 100,
+      pipeline_stage_count: 3,
+      pipeline_progress: 70,
       pipeline_source: "receipt: proof",
       pipeline_evidence: ["build", "proof"],
       proof_state: "missing_ui_proof",
@@ -139,6 +139,29 @@ describe("Fishbowl job pipeline inference", () => {
       effective_status: "needs_proof",
       release_blocked: true,
       release_block_reason: "UI or browser proof is still missing.",
+    });
+  });
+
+  it("does not let a raw done chip advance the rail after proof is reset", () => {
+    expect(
+      inferFishbowlJobPipeline(
+        {
+          title: "CopyRoom exact-copy engine",
+          status: "done",
+        },
+        [
+          "Old receipt: PR #997 merged into main. Tests passed.",
+          "BLOCKER: proof reset after npm publish failed.",
+        ],
+      ),
+    ).toMatchObject({
+      pipeline_stage_count: 1,
+      pipeline_progress: 10,
+      pipeline_source: "reopened: proof reset",
+      pipeline_evidence: ["reopened", "proof_missing"],
+      proof_state: "stale",
+      effective_status: "needs_proof",
+      release_blocked: true,
     });
   });
 
