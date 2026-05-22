@@ -74,6 +74,51 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Preflight npm publish access
+        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
+        working-directory: packages/mcp-server
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          pkg_name=$(node -p "require('./package.json').name")
+          scope="${pkg_name%%/*}"
+
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::NPM_TOKEN is not configured; cannot publish ${pkg_name}."
+            exit 1
+          fi
+
+          if ! npm_user=$(npm whoami --registry=https://registry.npmjs.org/ 2>/dev/null); then
+            echo "::error::NPM_TOKEN is invalid or expired; npm whoami failed."
+            exit 1
+          fi
+          echo "NPM token authenticated as ${npm_user}."
+
+          if ! npm view "${pkg_name}" version --registry=https://registry.npmjs.org/ >/tmp/npm-current-version.txt 2>/dev/null; then
+            echo "::error::Unable to read ${pkg_name} from npm registry; check package name and scope."
+            exit 1
+          fi
+          echo "Current published ${pkg_name}@$(cat /tmp/npm-current-version.txt)."
+
+          if ! npm access ls-packages "${scope}" --json --registry=https://registry.npmjs.org/ >/tmp/npm-access.json 2>/dev/null; then
+            echo "::error::NPM_TOKEN cannot inspect ${scope} package access; grant publish/write access to ${pkg_name} or replace NPM_TOKEN."
+            exit 1
+          fi
+
+          node - "${pkg_name}" /tmp/npm-access.json <<'NODE'
+          const fs = require("fs");
+          const pkgName = process.argv[2];
+          const accessPath = process.argv[3];
+          const access = JSON.parse(fs.readFileSync(accessPath, "utf8"));
+          const permission = String(access[pkgName] ?? "");
+          if (!/(write|read-write|owner|admin)/i.test(permission)) {
+            console.error(`::error::NPM_TOKEN lacks write access for ${pkgName}; npm access shows '${permission || "none"}'.`);
+            process.exit(1);
+          }
+          console.log(`NPM publish access confirmed for ${pkgName}.`);
+          NODE
+
       - name: Install (workspace aware)
         if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
         run: npm ci --no-audit --no-fund
