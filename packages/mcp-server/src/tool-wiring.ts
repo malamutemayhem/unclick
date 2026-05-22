@@ -800,6 +800,12 @@ import {
   copypassStatus,
 } from "./copypass-tool.js";
 
+// --- FidelityCopy / FidelityPass (deterministic preserve-lane receipts) ------
+import {
+  fidelitycopyCopy,
+  fidelitypassVerifyCopy,
+} from "./fidelitycopy-tool.js";
+
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
 
@@ -12359,6 +12365,68 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // -- fidelitycopy-tool.ts (deterministic exact-copy receipts) ---------------
+  {
+    name: "fidelitycopy_copy",
+    description:
+      "Create a deterministic FidelityCopy receipt for exact copy work. AI may request the copy, but this tool computes source/output hashes and returns PASS only when the selected mode proves exact or approved fidelity.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        source_text: { type: "string", description: "Exact source text to copy. Mutually exclusive with source_base64." },
+        source_base64: { type: "string", description: "Exact source bytes as base64. Mutually exclusive with source_text." },
+        source_ref: { type: "string", description: "Source pointer used in the receipt." },
+        destination_label: { type: "string", description: "Human label for the output destination when output_ref is not supplied." },
+        output_ref: { type: "string", description: "Output pointer used in the receipt." },
+        output_text: { type: "string", description: "Output text for approved_transform mode." },
+        output_base64: { type: "string", description: "Output bytes for approved_transform mode as base64." },
+        mode: {
+          type: "string",
+          enum: ["raw_bytes", "text_exact", "json_canonical", "approved_transform"],
+          description: "Verification mode. Defaults to raw_bytes.",
+        },
+        allowed_changes: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "Required for approved_transform PASS.",
+        },
+        provenance_ref: { type: "string", description: "Optional Boardroom, issue, PR, or CopyRoom pointer for audit trail." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "fidelitypass_verify_copy",
+    description:
+      "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes. Missing bytes, stale metadata, or prose-only AI proof cannot PASS.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        source_text: { type: "string", description: "Exact source text to verify. Mutually exclusive with source_base64." },
+        source_base64: { type: "string", description: "Exact source bytes as base64. Mutually exclusive with source_text." },
+        output_text: { type: "string", description: "Exact output text to verify. Mutually exclusive with output_base64." },
+        output_base64: { type: "string", description: "Exact output bytes as base64. Mutually exclusive with output_text." },
+        source_ref: { type: "string", description: "Source pointer used in the recomputed receipt." },
+        output_ref: { type: "string", description: "Output pointer used in the recomputed receipt." },
+        mode: {
+          type: "string",
+          enum: ["raw_bytes", "text_exact", "json_canonical", "approved_transform"],
+          description: "Verification mode. Defaults to raw_bytes or the provided receipt mode.",
+        },
+        receipt: { type: "object", description: "Optional previous FidelityCopy receipt to compare against recomputed hashes." },
+        receipt_payload: { type: "object", description: "Alias for receipt." },
+        proof_text: { type: "string", description: "Optional prose proof. Prose alone is suppressed, not accepted as PASS." },
+        allowed_changes: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "Required for approved_transform PASS.",
+        },
+        provenance_ref: { type: "string", description: "Optional Boardroom, issue, PR, or CopyRoom pointer for audit trail." },
+      },
+      required: [],
+    },
+  },
+
   // ── crews-tool.ts (Orchestrator Wizard) ──────────────────────────────────────
   {
     name: "start_crew_run",
@@ -13556,6 +13624,10 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // copypass-tool.ts
   copypass_run:            (args) => copypassRun(args),
   copypass_status:         (args) => copypassStatus(args),
+
+  // fidelitycopy-tool.ts
+  fidelitycopy_copy:       (args) => fidelitycopyCopy(args),
+  fidelitypass_verify_copy:(args) => fidelitypassVerifyCopy(args),
 
   // crews-tool.ts
   start_crew_run: (args) => crewsStartRun(args),
