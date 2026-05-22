@@ -153,6 +153,14 @@ function normalizeText(value) {
 }
 
 const PROTECTED_OWNER_LIFT_LANE_TERMS = [
+  "operator_only",
+  "operator-only",
+  "operator only",
+  "chris-only",
+  "chris only",
+  "human decision",
+  "human approval",
+  "human policy",
   "rotatepass",
   "xpass",
   "system credential",
@@ -167,6 +175,10 @@ const PROTECTED_OWNER_LIFT_LANE_TERMS = [
   "dns",
   "production data",
   "prod data",
+  "customer data",
+  "live data",
+  "novel product call",
+  "new product call",
   "keychain",
 ];
 
@@ -177,6 +189,20 @@ function isDraftGreenOwnerLiftState(state) {
 function isProtectedOwnerLiftLane(lane) {
   const text = normalizeText(lane);
   return PROTECTED_OWNER_LIFT_LANE_TERMS.some((term) => text.includes(term));
+}
+
+export function queuepushRoutingLabel(pr, files = [], state = "") {
+  if (state === "blocked_chris_only") return "operator_only";
+  if (!isDraftGreenOwnerLiftState(state)) return null;
+  const haystack = normalizeText(
+    [
+      state,
+      pr.title,
+      pr.body,
+      ...files.map((file) => file.filename || file.path || ""),
+    ].join(" "),
+  );
+  return isProtectedOwnerLiftLane(haystack) ? "operator_only" : "walkin_eligible";
 }
 
 function isMissingFinalQcText(text) {
@@ -878,6 +904,8 @@ export function buildQueuePacket(input) {
   const worker = routeWorkerForPr(pr, files, state);
   const packetId = queuepushPacketId(pr, state);
   const jobKind = jobKindForState(state);
+  const routingLabel = queuepushRoutingLabel(pr, files, state);
+  const tags = ["needs-doing", "queuepush", routingLabel].filter(Boolean);
   const chip = `PR #${pr.number} ${state}`;
   const filePreview = files
     .slice(0, 4)
@@ -896,6 +924,7 @@ export function buildQueuePacket(input) {
     packetInstructionForJobKind(jobKind, state),
     `worker: ${worker}`,
     `job kind: ${jobKind}`,
+    ...(routingLabel ? [`routing label: ${routingLabel}`] : []),
     `requires code: ${stateRequiresCode(state) ? "yes" : "no"}`,
     `chip: ${chip}`,
     `context: ${context}`,
@@ -914,6 +943,8 @@ export function buildQueuePacket(input) {
     jobKind,
     requiresCode: stateRequiresCode(state),
     recipient: agentMap[worker] || worker,
+    routingLabel,
+    tags,
     state,
     pr: pr.number,
     text,
@@ -1197,7 +1228,7 @@ async function postQueuePacket(packet) {
   return postMemoryAdmin("fishbowl_post", {
     agent_id: agentId,
     recipients: [packet.recipient],
-    tags: ["needs-doing", "queuepush"],
+    tags: packet.tags || ["needs-doing", "queuepush"],
     text: packet.text,
   });
 }
