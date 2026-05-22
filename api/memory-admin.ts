@@ -9480,6 +9480,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             pipeline_progress: t.pipeline_progress,
             pipeline_source: t.pipeline_source,
             pipeline_evidence: t.pipeline_evidence,
+            proof_state: t.proof_state,
+            proof_state_reason: t.proof_state_reason,
           }));
           return res.status(200).json({
             todos: includeDescription ? decorated : compactTodos,

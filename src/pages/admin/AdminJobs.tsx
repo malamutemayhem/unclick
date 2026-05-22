@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import Comments from "./fishbowl/Comments";
-import { buildJobGithubSyncSignal, type JobGithubSyncSignal } from "./jobsGithubSync";
+import { buildJobGithubSyncSignal, type JobGithubSyncSignal, type JobProofState } from "./jobsGithubSync";
 import { highlightSearchText } from "./searchHighlight";
 
 interface FishbowlProfile {
@@ -51,6 +51,8 @@ interface JobTodo {
   pipeline_progress?: number;
   pipeline_source?: string;
   pipeline_evidence?: string[];
+  proof_state?: JobProofState;
+  proof_state_reason?: string;
 }
 
 type JobSectionKey = "active" | "next" | "inline" | "done";
@@ -322,7 +324,7 @@ function SyncSignalPill({ signal }: { signal: JobGithubSyncSignal }) {
       {signal.href && <ExternalLink className="h-2.5 w-2.5 shrink-0 opacity-70" aria-hidden="true" />}
     </>
   );
-  const className = `inline-flex max-w-[78px] items-center gap-1 rounded-[4px] border px-1 py-px text-[9px] font-semibold ${SYNC_SIGNAL_STYLE[signal.tone]}`;
+  const className = `inline-flex max-w-[78px] shrink-0 items-center gap-1 whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold ${SYNC_SIGNAL_STYLE[signal.tone]}`;
 
   if (signal.href) {
     return (
