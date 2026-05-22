@@ -237,6 +237,60 @@ describe("orchestrator context", () => {
     expect(context.current_state_card.harness_card.test_runner_rule).toContain("Test-only runner packets");
   });
 
+  it("keeps open backlog out of rolling snapshot active jobs", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-22T03:55:00.000Z",
+      profiles: [
+        {
+          agent_id: "fresh-builder",
+          display_name: "Fresh Builder",
+          user_agent_hint: "codex-desktop",
+          last_seen_at: "2026-05-22T03:54:00.000Z",
+        },
+      ],
+      messages: [],
+      todos: [
+        {
+          id: "todo-open",
+          title: "JobSmith application manager",
+          description: "Open urgent backlog that should stay in next actions, not active work.",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "stale-seat",
+          assigned_to_agent_id: null,
+          created_at: "2026-05-19T10:44:00.000Z",
+          updated_at: "2026-05-19T10:44:00.000Z",
+        },
+        {
+          id: "todo-active",
+          title: "Proof Ledger v2",
+          description: "Fresh in-progress active work.",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: "fresh-builder",
+          created_at: "2026-05-18T09:41:00.000Z",
+          updated_at: "2026-05-22T03:15:00.000Z",
+        },
+      ],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.current_state_card.active_jobs).toBe(1);
+    expect(context.current_state_card.queued_todo_count).toBe(1);
+    expect(context.current_state_card.next_actions.join(" ")).toContain("JobSmith application manager");
+    expect(context.rolling_snapshot.active_jobs.map((job) => job.source_id)).toEqual(["todo-active"]);
+    expect(context.rolling_snapshot.active_jobs.map((job) => job.source_id)).not.toContain("todo-open");
+    expect(context.seat_handshake.active_job).toContain("Proof Ledger v2");
+    expect(context.seat_handshake.active_job).not.toContain("Queued job needs claim");
+  });
+
   it("adds human operator timezone context to compact handoffs", () => {
     const context = buildOrchestratorContext({
       generatedAt: "2026-05-10T01:00:00.000Z",
