@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 471,
+    "inventory": 472,
     "source_manifest": 93,
     "pages": 94,
-    "tools": 182,
+    "tools": 183,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 182
+      "count": 183
     },
     {
       "id": "rooms",
@@ -3302,6 +3302,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-fidelitycopy-packages-mcp-server-src-fidelitycopy-tool-ts",
+      "division": "Tools",
+      "name": "fidelitycopy",
+      "kind": "MCP tool",
+      "meaning": "fidelitycopy MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/fidelitycopy-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-figma-packages-mcp-server-src-figma-tool-ts",
       "division": "Tools",
       "name": "figma",
@@ -5598,6 +5608,11 @@
       "feedly",
       "feedly MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/feedly-tool.ts"
+    ],
+    [
+      "fidelitycopy",
+      "fidelitycopy MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/fidelitycopy-tool.ts"
     ],
     [
       "figma",
