@@ -1,4 +1,4 @@
-# @unclick/mcp-server
+# UnClick MCP server
 
 **The app store for AI agents.** [unclick.world](https://unclick.world)
 
@@ -7,13 +7,13 @@
 
 ## Install
 
-**Using `npx` (no installation required):**
+**Using the latest GitHub release (no npm account required):**
 ```json
 {
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["@unclick/mcp-server"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz"]
     }
   }
 }
@@ -21,9 +21,9 @@
 
 Add this to your `claude_desktop_config.json` (or equivalent for Cursor, Windsurf, etc).
 
-**Or install globally:**
+**Or install globally from GitHub:**
 ```bash
-npm install -g @unclick/mcp-server
+npm install -g https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz
 ```
 
 ## Operational Notes
@@ -67,7 +67,7 @@ Or pass it via the MCP config:
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["@unclick/mcp-server"],
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz"],
       "env": {
         "UNCLICK_API_KEY": "your_key_here"
       }

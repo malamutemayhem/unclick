@@ -1,4 +1,4 @@
-# @unclick/mcp-server
+# UnClick MCP server
 
 **MCP server for the [UnClick](https://unclick.world) tool marketplace.**
 
@@ -17,7 +17,7 @@ Add to your MCP config (Claude Desktop: `~/Library/Application Support/Claude/cl
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["-y", "@unclick/mcp-server"],
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz"],
       "env": {
         "UNCLICK_API_KEY": "your_api_key_here"
       }
@@ -37,7 +37,7 @@ Same config snippet as above — Cursor uses the same MCP format.
 ### Local / Development
 
 ```bash
-UNCLICK_API_KEY=unck_... npx @unclick/mcp-server
+UNCLICK_API_KEY=unck_... npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz
 ```
 
 ## Memory (built in, zero config)
@@ -167,7 +167,7 @@ npm start
 
 ## MCP Registry
 
-This server is published to npm as `@unclick/mcp-server` and can be added to any MCP registry that supports npx-based servers.
+This server is published as a GitHub Release tarball and can be added to MCP clients that support npx-based servers.
 
 ## License
 

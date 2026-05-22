@@ -12,7 +12,7 @@ What's automated, what secrets are required, and what to do when something goes 
 | `dogfood-report.yml` | Nightly schedule + manual dispatch | Rebuilds `public/dogfood/latest.json` with honest passing / blocked / pending proof status |
 | `event-wake-router.yml` | `issue_comment` + workflow fan-in | Routes ready-work wake events without waking healthy quiet cycles |
 | `auto-close-fishbowl-todo.yml` | PR merge hooks | Closes linked Fishbowl todos when a merged PR satisfies them |
-| `publish-mcp-package.yml` | Push to main touching `packages/mcp-server/**` | Bumps patch version, publishes `@unclick/mcp-server` to npm, tags the commit |
+| `publish-mcp-package.yml` | Push to main touching `packages/mcp-server/**` | Bumps patch version and publishes the MCP server GitHub Release tarball |
 | `apply-migrations.yml` | Push to main touching `supabase/migrations/**` | Runs `supabase db push` against production |
 | `dependabot.yml` | Weekly schedule | Opens PRs for npm + GH Actions updates, grouped sensibly |
 
@@ -28,7 +28,6 @@ Set these at **Settings → Secrets and variables → Actions → Repository sec
 | `TESTPASS_CRON_SECRET` | `testpass-scheduled-smoke.yml` first-choice token | Optional dedicated scheduled-smoke bearer for `/api/testpass-run` |
 | `UXPASS_TOKEN` | `dogfood-report.yml` UXPass proof | Active UXPass bearer for `/api/uxpass-run` |
 | `CRON_SECRET` | `testpass-scheduled-smoke.yml` fallback, `dogfood-report.yml` UXPass fallback | Shared cron bearer when a dedicated pass token is not set |
-| `NPM_TOKEN` | `publish-mcp-package.yml` | npm → Account → Access Tokens → Create Automation token (Bypass 2FA) |
 | `SUPABASE_ACCESS_TOKEN` | `apply-migrations.yml` | https://supabase.com/dashboard/account/tokens |
 | `SUPABASE_PROJECT_REF` | `apply-migrations.yml` | The subdomain from `xxxxx.supabase.co` |
 | `SUPABASE_DB_PASSWORD` | `apply-migrations.yml` | Supabase dashboard → Settings → Database |
@@ -105,13 +104,19 @@ workflow:
 2. Runs `npm pack --dry-run` so `files:` errors surface before publish.
 3. Bumps patch (`0.3.0 → 0.3.1`), pushes the bump commit + tag with
    `[skip ci]` so it doesn't loop.
-4. `npm publish --access public`.
-5. Polls `npm view` to confirm propagation.
+4. Packs `unclick-mcp-server.tgz`.
+5. Creates a GitHub Release tagged `mcp-server-v<version>` and uploads the tarball.
+6. Confirms the release asset exists.
 
 To cut a minor or major release, bump manually in `packages/mcp-server/package.json`
-and push, the workflow will still publish (its `npm version patch` becomes a
-no-op if the working tree is dirty, but simpler: just skip the workflow by
-including `[skip ci]` in your message and running `npm publish` locally).
+and push. The workflow still produces the GitHub Release tarball. No npm
+registry account or `NPM_TOKEN` is required.
+
+Latest install URL:
+
+```bash
+npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz
+```
 
 ## When CI goes red
 
@@ -124,8 +129,9 @@ including `[skip ci]` in your message and running `npm publish` locally).
    - Dogfood TestPass uses `TESTPASS_TOKEN`.
    - Dogfood UXPass uses `UXPASS_TOKEN` first, then `CRON_SECRET`.
    - If `public/dogfood/latest.json` flips to `blocked`, treat that as honest evidence and refresh the missing secret instead of forcing a green status.
-3. **`publish-mcp-package.yml` 401/403** - `NPM_TOKEN` expired or wrong type.
-   Generate a new **Automation** token (not Classic) and update the secret.
+3. **`publish-mcp-package.yml` release failure** - open the run logs and check
+   whether the version bump pushed, the tag already exists, or the release
+   asset upload failed. The workflow uses only `GITHUB_TOKEN`.
 4. **`apply-migrations.yml` link failure** - the access token may have been
    rotated. Regenerate at https://supabase.com/dashboard/account/tokens.
 5. **`apply-migrations.yml` migration error** - open the run logs. If it's a
