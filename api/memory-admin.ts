@@ -9129,7 +9129,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (update.status === "done" && beforeTodo) {
             const { data: proofComments, error: proofErr } = await supabase
               .from("mc_fishbowl_comments")
-              .select("author_agent_id,text")
+              .select("author_agent_id,text,created_at")
               .eq("api_key_hash", apiKeyHash)
               .eq("target_kind", "todo")
               .eq("target_id", idRes);
@@ -9152,6 +9152,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 author_agent_id:
                   typeof comment.author_agent_id === "string" ? comment.author_agent_id : null,
                 text: typeof comment.text === "string" ? comment.text : null,
+                created_at: typeof comment.created_at === "string" ? comment.created_at : null,
               })),
               closerAgentId: agentId,
             });
@@ -9267,7 +9268,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (beforeTodo) {
             const { data: proofComments, error: proofErr } = await supabase
               .from("mc_fishbowl_comments")
-              .select("author_agent_id,text")
+              .select("author_agent_id,text,created_at")
               .eq("api_key_hash", apiKeyHash)
               .eq("target_kind", "todo")
               .eq("target_id", idRes);
@@ -9285,6 +9286,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 author_agent_id:
                   typeof comment.author_agent_id === "string" ? comment.author_agent_id : null,
                 text: typeof comment.text === "string" ? comment.text : null,
+                created_at: typeof comment.created_at === "string" ? comment.created_at : null,
               })),
               closerAgentId: agentId,
             });
