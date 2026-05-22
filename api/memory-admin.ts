@@ -9465,10 +9465,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               ...inferFishbowlJobPipeline(t, textMap[id] ?? []),
             };
           });
+          const effectiveMetrics = decorated.reduce(
+            (acc, t) => {
+              const effective = String(t.effective_status ?? t.status);
+              if (effective === "needs_proof") acc.needs_proof += 1;
+              if (effective === "done") acc.done_clean += 1;
+              if (effective === "in_progress" || effective === "needs_proof") acc.active_effective += 1;
+              return acc;
+            },
+            { active_effective: 0, done_clean: 0, needs_proof: 0 },
+          );
           const compactTodos = decorated.map((t) => ({
             id: t.id,
             title: t.title,
             status: t.status,
+            effective_status: t.effective_status,
             priority: t.priority,
             assigned_to_agent_id: t.assigned_to_agent_id,
             created_by_agent_id: t.created_by_agent_id,
@@ -9482,16 +9493,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             pipeline_evidence: t.pipeline_evidence,
             proof_state: t.proof_state,
             proof_state_reason: t.proof_state_reason,
+            release_blocked: t.release_blocked,
+            release_block_reason: t.release_block_reason,
           }));
           return res.status(200).json({
             todos: includeDescription ? decorated : compactTodos,
             queue_metrics: {
               active: activeCount,
+              active_effective_returned: effectiveMetrics.active_effective,
               open_backlog: openBacklogCount,
               done: doneCount,
+              done_clean_returned: effectiveMetrics.done_clean,
+              needs_proof_returned: effectiveMetrics.needs_proof,
               dropped: droppedCount,
               legacy_queued_equals: "open_backlog",
-              note: "Open backlog is not the runnable queue; active is in_progress work.",
+              note: "Open backlog is not the runnable queue; active is in_progress work. active_effective_returned also includes returned done rows blocked by proof.",
             },
             response_bounds: {
               compact: !includeDescription,

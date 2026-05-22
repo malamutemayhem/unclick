@@ -19,7 +19,11 @@ import {
 } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import Comments from "./fishbowl/Comments";
-import { buildJobGithubSyncSignal, type JobGithubSyncSignal, type JobProofState } from "./jobsGithubSync";
+import {
+  buildJobGithubSyncSignal,
+  type JobGithubSyncSignal,
+  type JobProofState,
+} from "./jobsGithubSync";
 import { highlightSearchText } from "./searchHighlight";
 
 interface FishbowlProfile {
@@ -39,6 +43,7 @@ interface JobTodo {
   title: string;
   description?: string | null;
   status: "open" | "in_progress" | "done" | "dropped";
+  effective_status?: DisplayStatus;
   priority: "low" | "normal" | "high" | "urgent";
   created_by_agent_id: string;
   assigned_to_agent_id: string | null;
@@ -53,11 +58,14 @@ interface JobTodo {
   pipeline_evidence?: string[];
   proof_state?: JobProofState;
   proof_state_reason?: string;
+  release_blocked?: boolean;
+  release_block_reason?: string | null;
 }
 
 type JobSectionKey = "active" | "next" | "inline" | "done";
 type SortKey = "queue" | "title" | "status" | "priority" | "worker" | "live" | "progress" | "notes" | "updated";
 type SortDirection = "asc" | "desc";
+type DisplayStatus = JobTodo["status"] | "needs_proof";
 
 const SECTION_LABELS: Record<JobSectionKey, string> = {
   active: "Active",
@@ -105,11 +113,12 @@ const PRIORITY_STYLE: Record<JobTodo["priority"], string> = {
   low: "border-white/[0.06] bg-white/[0.02] text-white/40",
 };
 
-const STATUS_STYLE: Record<JobTodo["status"], string> = {
+const STATUS_STYLE: Record<DisplayStatus, string> = {
   open: "border-white/10 bg-white/[0.035] text-white/60",
   in_progress: "border-[#E2B93B]/35 bg-[#E2B93B]/10 text-[#E2B93B]",
   done: "border-green-400/25 bg-green-400/10 text-green-300",
   dropped: "border-white/[0.06] bg-white/[0.02] text-white/35",
+  needs_proof: "border-red-300/35 bg-red-500/10 text-red-200",
 };
 
 const ACTION_BUTTONS = {
@@ -256,9 +265,35 @@ function ownerLabel(todo: JobTodo): string {
     .replace(/\bAi\b/g, "AI");
 }
 
-function statusLabel(status: JobTodo["status"]): string {
+function statusLabel(status: DisplayStatus): string {
+  if (status === "needs_proof") return "needs proof";
   if (status === "in_progress") return "active";
   return status.replace("_", " ");
+}
+
+function syncSignalFor(todo: JobTodo): JobGithubSyncSignal {
+  return buildJobGithubSyncSignal(todo);
+}
+
+function backendDisplayStatusFor(todo: JobTodo): DisplayStatus | null {
+  const status = todo.effective_status;
+  return status === "open" ||
+    status === "in_progress" ||
+    status === "done" ||
+    status === "dropped" ||
+    status === "needs_proof"
+    ? status
+    : null;
+}
+
+function needsProofAfterDone(todo: JobTodo): boolean {
+  const backendStatus = backendDisplayStatusFor(todo);
+  if (backendStatus) return backendStatus === "needs_proof";
+  return todo.status === "done" && syncSignalFor(todo).tone === "alert";
+}
+
+function displayStatusFor(todo: JobTodo): DisplayStatus {
+  return backendDisplayStatusFor(todo) ?? (needsProofAfterDone(todo) ? "needs_proof" : todo.status);
 }
 
 function progressFor(todo: JobTodo): number {
@@ -283,6 +318,7 @@ function StageStrip({ todo }: { todo: JobTodo }) {
   const active = activeStageCount(todo);
   const progress = progressFor(todo);
   const source = todo.pipeline_source ?? "estimated from todo status";
+  const displayStatus = displayStatusFor(todo);
   return (
     <div className="flex min-w-[200px] items-center gap-1" aria-label="Assembly line progress" title={source}>
       <span className="w-7 shrink-0 text-right text-[10px] font-semibold text-white/55">
@@ -295,7 +331,9 @@ function StageStrip({ todo }: { todo: JobTodo }) {
             title={stage}
             className={`flex h-4 min-w-0 items-center justify-center text-[7px] font-semibold uppercase ${
               index < active
-                ? todo.status === "done"
+                ? displayStatus === "needs_proof"
+                  ? "bg-red-300/85 text-black/70"
+                  : todo.status === "done"
                   ? "bg-green-400/85 text-black/70"
                   : "bg-[#61C1C4]/90 text-black/70"
                 : "bg-white/[0.08] text-white/30"
@@ -481,7 +519,7 @@ function compareSortedJobs(
       result = compareText(a.title, b.title);
       break;
     case "status":
-      result = compareText(statusLabel(a.status), statusLabel(b.status));
+      result = compareText(statusLabel(displayStatusFor(a)), statusLabel(displayStatusFor(b)));
       break;
     case "priority":
       result = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
@@ -538,12 +576,12 @@ function SortHeader({
 }
 
 function groupJobs(todos: JobTodo[]): Record<JobSectionKey, JobTodo[]> {
-  const active = todos.filter((todo) => todo.status === "in_progress").sort(sortJobs);
+  const active = todos.filter((todo) => todo.status === "in_progress" || needsProofAfterDone(todo)).sort(sortJobs);
   const open = todos.filter((todo) => todo.status === "open").sort(sortJobs);
   const next = open.filter((todo) => todo.priority === "urgent" || todo.priority === "high");
   const inline = open.filter((todo) => todo.priority === "normal" || todo.priority === "low");
   const done = todos
-    .filter((todo) => todo.status === "done")
+    .filter((todo) => todo.status === "done" && !needsProofAfterDone(todo))
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
   return { active, next, inline, done };
 }
@@ -629,7 +667,8 @@ function JobRow({
   const alert = attention ? attentionCopy(todo) : null;
   const emoji = ownerEmoji(todo);
   const displayCopy = displayCopyFor(todo);
-  const syncSignal = buildJobGithubSyncSignal(todo);
+  const syncSignal = syncSignalFor(todo);
+  const displayStatus = displayStatusFor(todo);
 
   return (
     <li
@@ -693,7 +732,9 @@ function JobRow({
           title={todo.title}
         >
           <p
-            className={`truncate text-[11px] font-semibold leading-4 hover:text-white ${todo.status === "done" ? "text-white/35 line-through" : "text-white/85"}`}
+            className={`truncate text-[11px] font-semibold leading-4 hover:text-white ${
+              todo.status === "done" && displayStatus !== "needs_proof" ? "text-white/35 line-through" : "text-white/85"
+            }`}
             data-testid="job-row-title"
           >
             {highlightSearchText(displayCopy.title, searchQuery)}
@@ -705,9 +746,9 @@ function JobRow({
 
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 md:contents">
           <span
-            className={`inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold uppercase ${STATUS_STYLE[todo.status]}`}
+            className={`inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold uppercase ${STATUS_STYLE[displayStatus]}`}
           >
-            {statusLabel(todo.status)}
+            {statusLabel(displayStatus)}
           </span>
           <span
             className={`inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold uppercase ${PRIORITY_STYLE[todo.priority]}`}
@@ -724,9 +765,11 @@ function JobRow({
           </span>
           <span className="flex items-center gap-1 text-[11px] text-white/45">
             <span
-              className={`h-1.5 w-1.5 rounded-full ${isStaleActive(todo) ? "bg-red-300" : todo.status === "done" ? "bg-green-300" : "bg-green-400"}`}
+              className={`h-1.5 w-1.5 rounded-full ${
+                displayStatus === "needs_proof" || isStaleActive(todo) ? "bg-red-300" : todo.status === "done" ? "bg-green-300" : "bg-green-400"
+              }`}
             />
-            {todo.status === "done" ? "ship" : isStaleActive(todo) ? "stale" : "live"}
+            {displayStatus === "needs_proof" ? "proof" : todo.status === "done" ? "ship" : isStaleActive(todo) ? "stale" : "live"}
           </span>
           <span className="text-[11px] font-medium text-white/55">
             <StageStrip todo={todo} />

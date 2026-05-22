@@ -17,6 +17,9 @@ describe("Fishbowl job pipeline inference", () => {
       pipeline_source: "receipt: ship",
       pipeline_evidence: ["build", "proof", "ship"],
       proof_state: "close_eligible",
+      effective_status: "done",
+      release_blocked: false,
+      release_block_reason: null,
     });
   });
 
@@ -33,6 +36,9 @@ describe("Fishbowl job pipeline inference", () => {
       pipeline_evidence: [],
       proof_state: "missing",
       proof_state_reason: "Completed job needs observable proof.",
+      effective_status: "needs_proof",
+      release_blocked: true,
+      release_block_reason: "Completed job needs observable proof.",
     });
   });
 
@@ -52,6 +58,9 @@ describe("Fishbowl job pipeline inference", () => {
       pipeline_evidence: ["reopened", "proof_missing"],
       proof_state: "stale",
       proof_state_reason: "The latest receipt is stale or reset.",
+      effective_status: "open",
+      release_blocked: false,
+      release_block_reason: null,
     });
   });
 
@@ -71,6 +80,9 @@ describe("Fishbowl job pipeline inference", () => {
       pipeline_evidence: ["proof_missing"],
       proof_state: "missing",
       proof_state_reason: "Proof is recorded as missing.",
+      effective_status: "needs_proof",
+      release_blocked: true,
+      release_block_reason: "Proof is recorded as missing.",
     });
   });
 
@@ -102,6 +114,9 @@ describe("Fishbowl job pipeline inference", () => {
       pipeline_source: "receipt: review",
       pipeline_evidence: ["build", "proof", "review"],
       proof_state: "live",
+      effective_status: "open",
+      release_blocked: false,
+      release_block_reason: null,
     });
   });
 
@@ -121,6 +136,9 @@ describe("Fishbowl job pipeline inference", () => {
       pipeline_evidence: ["build", "proof"],
       proof_state: "missing_ui_proof",
       proof_state_reason: "UI or browser proof is still missing.",
+      effective_status: "needs_proof",
+      release_blocked: true,
+      release_block_reason: "UI or browser proof is still missing.",
     });
   });
 
