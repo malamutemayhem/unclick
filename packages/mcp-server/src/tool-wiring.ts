@@ -776,6 +776,12 @@ import {
   legalpassVerdict,
 } from "./legalpass-tool.js";
 
+// FidelityCopy deterministic copy and verifier tools
+import {
+  fidelitycopyCopy,
+  fidelitypassVerifyCopy,
+} from "./fidelitycopy-tool.js";
+
 // ─── UXPass (sister to TestPass, UI/UX QC) ───────────────────────────────────
 import {
   uxpassRun,
@@ -12176,6 +12182,70 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // fidelitycopy-tool.ts
+  {
+    name: "fidelitycopy_copy",
+    description: "Create a deterministic FidelityCopy receipt for exact source-copy work. Use this for raw bytes, exact text, canonical JSON, or approved transforms instead of AI retyping.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        source_ref: { type: "string", description: "Stable source pointer, CopyRoom packet id, path, or provenance ref." },
+        destination_ref: { type: "string", description: "Destination pointer for the copied output. output_ref is accepted by the verifier path." },
+        mode: {
+          type: "string",
+          enum: ["raw_bytes", "text_exact", "json_canonical", "approved_transform"],
+          description: "Copy mode. Defaults to raw_bytes.",
+        },
+        source_text: { type: "string", description: "Exact UTF-8 source text. Use source_base64 for binary or byte-focused fixtures." },
+        source_base64: { type: "string", description: "Exact source bytes encoded as base64." },
+        output_text: { type: "string", description: "Optional output text to verify. If omitted, FidelityCopy outputs a deterministic copy of source." },
+        output_base64: { type: "string", description: "Optional output bytes encoded as base64." },
+        approved_transform_ref: { type: "string", description: "Required for approved_transform mode." },
+        allowed_changes: { type: "array", items: { type: "string" }, description: "Required allowed changes for approved_transform mode." },
+        output_provenance: {
+          type: "string",
+          enum: ["deterministic_copy", "tool", "manual", "ai_retype"],
+          description: "Marks how output was produced. ai_retype is suppressed for fidelity work.",
+        },
+        provenance_pointer: { type: "string", description: "Optional upstream proof pointer." },
+        include_output: { type: "boolean", description: "When true, include copied output_text and output_base64 in the response." },
+      },
+      required: ["source_ref", "destination_ref"],
+    },
+  },
+  {
+    name: "fidelitypass_verify_copy",
+    description: "Verify a FidelityCopy receipt, or verify source and output bytes directly, returning PASS or BLOCKER proof for FidelityPass.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        receipt_id: { type: "string", description: "Receipt id returned by fidelitycopy_copy." },
+        source_ref: { type: "string", description: "Stable source pointer when verifying source/output directly." },
+        output_ref: { type: "string", description: "Output pointer when verifying source/output directly." },
+        destination_ref: { type: "string", description: "Alias for output_ref." },
+        mode: {
+          type: "string",
+          enum: ["raw_bytes", "text_exact", "json_canonical", "approved_transform"],
+          description: "Verification mode. Defaults to raw_bytes.",
+        },
+        source_text: { type: "string", description: "Exact UTF-8 source text." },
+        source_base64: { type: "string", description: "Exact source bytes encoded as base64." },
+        output_text: { type: "string", description: "Exact output text to verify." },
+        output_base64: { type: "string", description: "Exact output bytes encoded as base64." },
+        approved_transform_ref: { type: "string", description: "Required for approved_transform mode." },
+        allowed_changes: { type: "array", items: { type: "string" }, description: "Required allowed changes for approved_transform mode." },
+        output_provenance: {
+          type: "string",
+          enum: ["deterministic_copy", "tool", "manual", "ai_retype"],
+          description: "Marks how output was produced. ai_retype is suppressed for fidelity work.",
+        },
+        provenance_pointer: { type: "string", description: "Optional upstream proof pointer." },
+      },
+    },
+  },
+
   // ── uxpass-tool.ts (UI/UX QC, sister to TestPass) ──────────────────────────
   {
     name: "uxpass_run",
@@ -13538,6 +13608,10 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // legalpass-tool.ts
   legalpass_run:     (args) => legalpassRun(args),
   legalpass_verdict: (args) => legalpassVerdict(args),
+
+  // fidelitycopy-tool.ts
+  fidelitycopy_copy:        (args) => fidelitycopyCopy(args),
+  fidelitypass_verify_copy: (args) => fidelitypassVerifyCopy(args),
 
   // uxpass-tool.ts
   uxpass_run:           (args) => uxpassRun(args),
