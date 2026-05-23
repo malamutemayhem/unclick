@@ -1548,6 +1548,103 @@ export const EXPRESSROOM_VISIBLE_TOOL_NAMES = [
   "promote_expressroom_draft",
 ] as const;
 
+export const AUTOPILOT_VISIBLE_TOOLS = [
+  {
+    name: "autopilot_record_event",
+    title: "Record AutoPilot ledger event",
+    description:
+      "Writes one sanitized AutoPilot proof event to the tenant ledger. Use this for claim, check, merge, close, proof, and blocker receipts before claiming zero-touch proof.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        event_type: {
+          type: "string",
+          enum: [
+            "claim",
+            "lease_grant",
+            "lease_refresh",
+            "lease_expired",
+            "lane_check",
+            "lane_violation",
+            "release",
+            "build_start",
+            "build_end",
+            "proof_request",
+            "proof_result",
+            "ack",
+            "blocker",
+            "merge_decision",
+            "watch_start",
+            "watch_end",
+            "dispatch",
+            "pick",
+            "todo_state_change",
+          ],
+          description: "Typed ledger event. Use proof_result for check results and todo_state_change for close.",
+        },
+        actor_agent_id: {
+          type: "string",
+          minLength: 1,
+          maxLength: 128,
+          description: "Automation seat or App identity that performed the action.",
+        },
+        ref_kind: {
+          type: "string",
+          enum: ["todo", "pr", "dispatch", "agent", "run"],
+          description: "Stable object type this event proves.",
+        },
+        ref_id: {
+          type: "string",
+          minLength: 1,
+          maxLength: 160,
+          description: "Stable object id, such as a PR number, todo UUID, dispatch id, or run id.",
+        },
+        payload: {
+          type: "object",
+          description: "Non-secret proof details. Secret-looking keys or values are rejected by the API.",
+          default: {},
+        },
+      },
+      required: ["event_type", "actor_agent_id", "ref_kind", "ref_id"],
+    },
+  },
+  {
+    name: "autopilot_zero_touch_metrics",
+    title: "Read AutoPilot zero-touch metrics",
+    description:
+      "Reads AutoPilot ledger rows and returns zero-touch scoring. Use before closing a canary or claiming human_touch_count=0.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: {
+          type: "number",
+          minimum: 1,
+          maximum: 1000,
+          default: 250,
+          description: "Maximum recent ledger rows to scan.",
+        },
+        ref_kind: {
+          type: "string",
+          enum: ["todo", "pr", "dispatch", "agent", "run"],
+          description: "Optional object type filter.",
+        },
+        ref_id: {
+          type: "string",
+          minLength: 1,
+          maxLength: 160,
+          description: "Optional object id filter.",
+        },
+      },
+    },
+  },
+] as const;
+
+for (const tool of AUTOPILOT_VISIBLE_TOOLS) {
+  registerToolInputSchema(tool);
+}
+
 // DraftRoom needs friendly connected-agent tools, while the rest of the
 // internal meta layer stays hidden from tools/list.
 const EXPRESSROOM_VISIBLE_TOOLS = INTERNAL_TOOLS.filter((tool) =>
@@ -1557,6 +1654,7 @@ const EXPRESSROOM_VISIBLE_TOOLS = INTERNAL_TOOLS.filter((tool) =>
 export const ADVERTISED_TOOLS = [
   ...VISIBLE_TOOLS,
   ...EXPRESSROOM_VISIBLE_TOOLS,
+  ...AUTOPILOT_VISIBLE_TOOLS,
   ...ADDITIONAL_TOOLS,
 ];
 
@@ -1956,6 +2054,42 @@ export function createServer(): Server {
         comment_on: "fishbowl_comment_on",
         list_comments: "fishbowl_list_comments",
       };
+
+      const AUTOPILOT_TOOL_ACTIONS: Record<string, string> = {
+        autopilot_record_event: "autopilot_record_event",
+        autopilot_zero_touch_metrics: "autopilot_zero_touch_metrics",
+      };
+
+      if (AUTOPILOT_TOOL_ACTIONS[name]) {
+        const apiKey = process.env.UNCLICK_API_KEY;
+        const base =
+          process.env.UNCLICK_MEMORY_BASE_URL ||
+          process.env.UNCLICK_SITE_URL ||
+          "https://unclick.world";
+        if (!apiKey) {
+          return {
+            content: [
+              { type: "text", text: "AutoPilot ledger unavailable: no UNCLICK_API_KEY configured. Run the UnClick setup wizard." },
+            ],
+            isError: true,
+          };
+        }
+        const action = AUTOPILOT_TOOL_ACTIONS[name];
+        const resp = await fetch(`${base}/api/memory-admin?action=${action}`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(args),
+        });
+        const respBody = await resp.json().catch(() => ({}));
+        return {
+          content: [{ type: "text", text: JSON.stringify(respBody, null, 2) }],
+          isError: !resp.ok,
+        };
+      }
+
       if (FISHBOWL_TOOL_ACTIONS[name]) {
         const apiKey = process.env.UNCLICK_API_KEY;
         const base =
