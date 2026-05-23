@@ -45,3 +45,5 @@ The response returns:
 The factory is not proven by activity. It is proven by a safe job entering the rail and leaving with `human_touch_count=0`.
 
 This metric makes that visible without asking an LLM to judge it.
+
+Canary note: fallback rail checks should prove this path with a tiny docs-only PR before broader AutoPilot traffic uses it.
