@@ -446,6 +446,9 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   // input. Computed over the full input.todos array, NOT the sliced
   // activeTodos, so the count is deterministic regardless of UI cap.
   const activeJobsCount = computeActiveJobsCount(input.todos, input.profiles, nowMs);
+  const activeJobTodos = input.todos
+    .filter((todo) => isFreshlyOwnedInProgressTodo(todo, profileLastSeenByAgent, nowMs))
+    .sort(compareTodoPriorityThenUpdated);
 
   // CommonSensePass R1 verdict (added by PR #746). The orchestrator
   // context publishes an implicit "healthy" / "quiet" claim whenever
@@ -528,6 +531,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     nowMs,
     newestActivityAt,
     activeTodos,
+    activeJobTodos,
     activeJobsCount,
     queuedTodoCount,
     continuityEvents,
@@ -830,8 +834,14 @@ function buildSeatHandshake({
   const usefulEvents = continuityEvents.filter((event) => !isSnapshotNoise(event));
   const recentProof = usefulEvents.find((event) => event.kind === "proof") ?? null;
   const decision = rollingSnapshot.promoted_decisions[0] ?? null;
-  const job = rollingSnapshot.active_jobs[0] ?? null;
-  const jobIsQueued = job?.tags?.includes("open") ?? false;
+  const activeJob = rollingSnapshot.active_jobs[0] ?? null;
+  const queuedJob = activeJob
+    ? null
+    : rollingSnapshot.recent_continuity.find(
+        (item) => item.source_kind === "todo" && (item.tags ?? []).includes("open"),
+      ) ?? null;
+  const job = activeJob ?? queuedJob;
+  const jobIsQueued = !activeJob && !!queuedJob;
   const blocker = rollingSnapshot.active_blockers[0] ?? null;
   const activeDecision =
     decision?.summary ??
@@ -926,6 +936,7 @@ function buildRollingSnapshot({
   nowMs,
   newestActivityAt,
   activeTodos,
+  activeJobTodos,
   activeJobsCount,
   queuedTodoCount,
   continuityEvents,
@@ -936,6 +947,7 @@ function buildRollingSnapshot({
   nowMs: number;
   newestActivityAt: string | null;
   activeTodos: OrchestratorTodoRow[];
+  activeJobTodos: OrchestratorTodoRow[];
   activeJobsCount: number;
   queuedTodoCount: number;
   continuityEvents: OrchestratorContinuityEvent[];
@@ -951,7 +963,7 @@ function buildRollingSnapshot({
     .filter((event) => isActiveBlockerEvent(event, activeTodos, nowMs, profileLastSeenByAgent))
     .slice(0, 5)
     .map((event) => eventToSnapshotItem(event, "blocker"));
-  const activeJobs = activeTodos.slice(0, 6).map((todo) => ({
+  const activeJobs = activeJobTodos.slice(0, 6).map((todo) => ({
     source_kind: "todo" as const,
     source_id: todo.id,
     deep_link: `/admin/jobs#todo-${todo.id}`,
@@ -1637,6 +1649,17 @@ function isOwnerFresh(iso: string | null | undefined, nowMs: number): boolean {
   return Number.isFinite(seenMs) && Number.isFinite(nowMs) && nowMs - seenMs <= OWNER_FRESH_WINDOW_MS;
 }
 
+function isFreshlyOwnedInProgressTodo(
+  todo: OrchestratorTodoRow,
+  ownerLastSeen: Map<string, string | null>,
+  nowMs: number,
+): boolean {
+  if (todo.status !== "in_progress") return false;
+  const owner = todo.assigned_to_agent_id;
+  if (!owner) return false;
+  return isOwnerFresh(ownerLastSeen.get(owner), nowMs);
+}
+
 export function computeActiveJobsCount(
   todos: OrchestratorTodoRow[],
   profiles: OrchestratorProfileRow[],
@@ -1649,10 +1672,7 @@ export function computeActiveJobsCount(
     }
   }
   return todos.filter((todo) => {
-    if (todo.status !== "in_progress") return false;
-    const owner = todo.assigned_to_agent_id;
-    if (!owner) return false;
-    return isOwnerFresh(ownerLastSeen.get(owner), nowMs);
+    return isFreshlyOwnedInProgressTodo(todo, ownerLastSeen, nowMs);
   }).length;
 }
 
