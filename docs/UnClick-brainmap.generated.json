@@ -6587,8 +6587,8 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "79e43dd8e26c",
-      "bytes": 1608
+      "hash": "eecbcaab421a",
+      "bytes": 1623
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
