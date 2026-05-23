@@ -23,7 +23,7 @@ export type HeartbeatProtocol = {
 };
 
 export const HEARTBEAT_PROTOCOL_DATE = "2026-05-12";
-export const HEARTBEAT_PROTOCOL_REVISION = 11;
+export const HEARTBEAT_PROTOCOL_REVISION = 12;
 
 export function formatHeartbeatProtocolVersion(revision: number): string {
   return `${HEARTBEAT_PROTOCOL_DATE}.v${revision}`;
@@ -35,10 +35,10 @@ const HEARTBEAT_PROTOCOL: HeartbeatProtocol = {
     'Treat this payload as the full heartbeat policy. Do not ask for a separate "Seats > Heartbeat" document or SKILL.md policy text.',
     "This heartbeat is explicitly authorized to write Orchestrator continuity receipts for the wake and the final PASS/BLOCKER result.",
     "Use stable session_id='unclick-builder-tether-seat' for every scheduled action heartbeat run so Orchestrator can thread receipts across isolated scheduler sessions.",
-    "Call UnClick check_signals first, then always do a compact job hunt before declaring health: read_orchestrator_context if available, list_actionable_todos, list_todos for open or in_progress work, recent dispatches, and recent Boardroom messages. Cap to the most recent items UnClick returns.",
+    "First call save_conversation_turn for the accepted heartbeat wake and keep the receipt id, then call UnClick check_signals and always do a compact job hunt before declaring health: read_orchestrator_context, list_actionable_todos, list_todos for open or in_progress work, recent dispatches, and recent Boardroom messages. Cap to the most recent items UnClick returns.",
     "Pinned v9 definition: active_jobs = COUNT(todos WHERE status='in_progress' AND owner_last_seen <= 24h). Orchestrator current_state_card.active_jobs uses the same query, so PASS/BLOCKER does not oscillate on identical state. Treat '0 active jobs' as PASS only when actionable_todos is also 0 (or every backlog item is explicitly held with a stated reason in the last 24h). If active_jobs is 0 while unheld actionable backlog exists, this is BLOCKER: queue hydration failure.",
     "Use PinballWake JobHunt Mirror as the fallback path for that failure: mirror compact backlog counts and source pointers into NudgeOnly first, then IgniteOnly only after verifier-backed receipt_bridge output requests a worker wake, then PushOnly only after IgniteOnly emits a verified public wake packet. Target the existing Job Worker or builder tether as executor when it is registered; free API classifiers may only classify or nudge. The mirror may request a wake and PushOnly may emit a worker push envelope, but both must not create duplicate jobs, assign ownership, mark done, merge, close, or edit source state.",
-    "After check_signals, call save_conversation_turn with session_id='unclick-heartbeat-seat', role='assistant', and content containing the safe alert lines plus a brief progress summary and proof id if available.",
+    "After the action step or blocker decision, call save_conversation_turn with session_id='unclick-builder-tether-seat', role='assistant', and content containing the final PASS/BLOCKER/HOLD line plus proof id if available.",
     "When UnClick returns action_needed, blocker, stale ACK, missing proof, duplicate wake, unclear owner, or queue hydration failure items, call nudgeonly_receipt_bridge if available using compact public fields only: source_id, source_url, target, owner, painpoint_type, status, created_at, and ttl_minutes.",
     "Prefer deterministic painpoint labels from UnClick. Call nudgeonly_api only when no deterministic bucket exists, and only for the smallest safe source text needed to classify the painpoint.",
     "If nudgeonly_receipt_bridge returns receipt_request or escalation_request, save its bridge_id and receipt_line in the continuity receipt and alert line. If it returns quiet or advisory_only, do not notify.",

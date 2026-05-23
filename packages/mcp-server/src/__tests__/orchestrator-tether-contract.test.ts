@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { evaluateOrchestratorContextReadGate } from "../memory/session-state.js";
 import { MCP_SERVER_INSTRUCTIONS, VISIBLE_TOOLS } from "../server.js";
 
 describe("Orchestrator tether contract", () => {
@@ -29,6 +30,47 @@ describe("Orchestrator tether contract", () => {
     const readContextTool = VISIBLE_TOOLS.find((tool) => tool.name === "read_orchestrator_context");
 
     expect(readContextTool?.description).toContain("Log -> Read -> Decide");
+    expect(readContextTool?.description).toContain("blocks until a prior save_conversation_turn receipt");
     expect(readContextTool?.description).toContain("CONTEXT_UNREAD");
+  });
+
+  it("blocks context reads before a saved turn receipt exists", () => {
+    const result = evaluateOrchestratorContextReadGate([], {
+      session_id: "strict-session",
+      q: "fresh wake",
+    }, new Date("2026-05-22T01:00:00.000Z"));
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe("CONTEXT_UNREAD");
+      expect(result.missing).toContain("session_id='strict-session'");
+      expect(result.guidance).toContain("save_conversation_turn");
+    }
+  });
+
+  it("allows context reads only after a fresh same-session receipt", () => {
+    const savedAt = new Date("2026-05-22T01:00:00.000Z");
+
+    const allowed = evaluateOrchestratorContextReadGate([
+      { sessionId: "strict-session", receiptId: "receipt-1", savedAt },
+    ], {
+      session_id: "strict-session",
+    }, new Date("2026-05-22T01:05:00.000Z"));
+
+    const mismatched = evaluateOrchestratorContextReadGate([
+      { sessionId: "other-session", receiptId: "receipt-1", savedAt },
+    ], {
+      session_id: "strict-session",
+    }, new Date("2026-05-22T01:05:00.000Z"));
+
+    const stale = evaluateOrchestratorContextReadGate([
+      { sessionId: "strict-session", receiptId: "receipt-1", savedAt },
+    ], {
+      session_id: "strict-session",
+    }, new Date("2026-05-22T01:45:00.000Z"));
+
+    expect(allowed.ok).toBe(true);
+    expect(mismatched.ok).toBe(false);
+    expect(stale.ok).toBe(false);
   });
 });

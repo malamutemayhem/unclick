@@ -2,6 +2,7 @@ const ALLOWED_ROLES = new Set(["user", "assistant", "system"]);
 const DEFAULT_SOURCE_APP = "claude-code-channel";
 const MAX_CONTENT_LENGTH = 12_000;
 const DEFAULT_SELF_CHECK_SESSION = "orchestrator-tether-self-check";
+const LOG_READ_DECIDE_RECEIPT_WINDOW_MS = 30 * 60 * 1000;
 
 export const RECEIPT_FIRST_TETHER_LADDER = [
   "1. Live chat wake: save the accepted human turn immediately and keep the receipt id.",
@@ -57,13 +58,17 @@ export const orchestratorContextReadTool = {
   name: "unclick_orchestrator_context_read",
   description:
     "Read UnClick Orchestrator continuity after saving an accepted human turn and before interpreting or acting. " +
-    "This is the mandatory Log -> Read -> Decide gate: save the turn, read nearby context, then decide whether the text is a test cue, real request, blocker, proof, or status. " +
+    "This is the mandatory Log -> Read -> Decide gate: save the turn in this same process/session, read nearby context, then decide whether the text is a test cue, real request, blocker, proof, or status. " +
     "Use q to narrow around words from the saved turn, or omit q for recent context. " +
     "If context cannot be read, say CONTEXT_UNREAD or UNTETHERED instead of guessing what the user meant.",
   inputSchema: {
     type: "object",
     additionalProperties: false,
     properties: {
+      session_id: {
+        type: "string",
+        description: "Optional stable session id. When provided, a recent saved turn for the same session is required before this read.",
+      },
       q: {
         type: "string",
         description: "Optional search text from the saved turn. Do not use secrets.",
@@ -149,12 +154,58 @@ export function buildConversationTurnPayload(args, options = {}) {
   };
 }
 
-export async function saveConversationTurn(apiFetch, args) {
+function normalizeSessionId(value) {
+  return String(value ?? "").trim();
+}
+
+function findFreshSavedTurn(savedTurnsBySession, sessionId, nowMs, windowMs) {
+  if (sessionId) {
+    const record = savedTurnsBySession.get(sessionId);
+    if (record && nowMs - record.savedAtMs <= windowMs) return record;
+    return null;
+  }
+
+  for (const record of savedTurnsBySession.values()) {
+    if (nowMs - record.savedAtMs <= windowMs) return record;
+  }
+  return null;
+}
+
+export function createLogReadDecideGate({ now = () => Date.now(), windowMs = LOG_READ_DECIDE_RECEIPT_WINDOW_MS } = {}) {
+  const savedTurnsBySession = new Map();
+
+  return {
+    recordSavedTurn(args = {}, receipt = {}) {
+      const sessionId = normalizeSessionId(receipt?.session_id) || normalizeSessionId(args?.session_id);
+      if (!sessionId) return;
+      const turnId = String(receipt?.turn_id ?? receipt?.receipt_id ?? "").trim() || null;
+      savedTurnsBySession.set(sessionId, {
+        sessionId,
+        turnId,
+        savedAtMs: now(),
+      });
+    },
+    requireSavedTurn(args = {}) {
+      const sessionId = normalizeSessionId(args?.session_id);
+      const record = findFreshSavedTurn(savedTurnsBySession, sessionId, now(), windowMs);
+      if (record) return record;
+
+      const scope = sessionId ? ` for session_id=${sessionId}` : " in this process";
+      throw new Error(
+        `Log-Read-Decide gate requires a prior save_conversation_turn receipt${scope} before reading Orchestrator context`
+      );
+    },
+  };
+}
+
+export async function saveConversationTurn(apiFetch, args, options = {}) {
   const payload = buildConversationTurnPayload(args);
-  return apiFetch("admin_conversation_turn_ingest", {
+  const receipt = await apiFetch("admin_conversation_turn_ingest", {
     method: "POST",
     body: payload,
   });
+  options?.gate?.recordSavedTurn?.(payload, receipt);
+  return receipt;
 }
 
 export function buildOrchestratorContextReadQuery(args = {}) {
@@ -182,7 +233,8 @@ export function buildOrchestratorContextReadQuery(args = {}) {
   return query;
 }
 
-export async function readOrchestratorContext(apiFetch, args = {}) {
+export async function readOrchestratorContext(apiFetch, args = {}, options = {}) {
+  options?.gate?.requireSavedTurn?.(args);
   return apiFetch("orchestrator_context_read", {
     method: "GET",
     query: buildOrchestratorContextReadQuery(args),
@@ -222,16 +274,18 @@ export function orchestratorContextContainsReceipt(contextReadResult, { marker, 
 
 export async function runTetherSelfCheck(apiFetch, args = {}) {
   const payload = buildTetherSelfCheckPayload(args);
-  const receipt = await saveConversationTurn(apiFetch, payload.turn);
+  const gate = createLogReadDecideGate();
+  const receipt = await saveConversationTurn(apiFetch, payload.turn, { gate });
   const turnId = receipt?.turn_id ? String(receipt.turn_id) : "";
   if (!turnId) {
     throw new Error("admin_conversation_turn_ingest returned no receipt turn_id");
   }
 
   const contextRead = await readOrchestratorContext(apiFetch, {
+    session_id: payload.turn.session_id,
     q: payload.marker,
     limit: 20,
-  });
+  }, { gate });
 
   if (!orchestratorContextContainsReceipt(contextRead, { marker: payload.marker, turnId })) {
     throw new Error("saved self-check turn was not found by Orchestrator search");
