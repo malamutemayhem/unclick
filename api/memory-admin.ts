@@ -82,6 +82,8 @@
  *                      memory row scoped to the user's api_key_hash.
  *   - orchestrator_context_read: GET/POST read-only compact cross-seat state
  *                                from Memory, Boardroom, dispatches, signals.
+ *   - autopilot_zero_touch_metrics: GET/POST grouped human-touch metrics from
+ *                                  the AutoPilot control ledger.
  *
  * Conflict detection actions (competing memory tools):
  *   - conflict_detect: POST with Bearer + { tool, platform? } -- log detection,
@@ -150,6 +152,7 @@ import {
 import {
   planFishbowlPostLedgerEvent,
   planTodoLedgerEvents,
+  createAutopilotZeroTouchMetrics,
   recordAutopilotEvent,
   recordAutopilotEvents,
 } from "./lib/autopilot-control-ledger.js";
@@ -8271,6 +8274,54 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
         if (!result.ok) return res.status(400).json({ error: result.error });
         return res.status(200).json({ ok: true });
+      }
+
+      case "autopilot_zero_touch_metrics": {
+        if (req.method !== "GET" && req.method !== "POST") {
+          return res.status(405).json({ error: "GET or POST required" });
+        }
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) {
+          return res.status(401).json({
+            error: "Authorization header required",
+            how_to_fix: "Pass your UnClick API key as 'Authorization: Bearer <api_key>'.",
+          });
+        }
+        const body = (req.body ?? {}) as {
+          limit?: unknown;
+          ref_kind?: unknown;
+          ref_id?: unknown;
+        };
+        const limit = getClampedLimit(req.query.limit ?? body.limit, 250, 1000);
+        const refKindFilter = parseOptionalFilterToken(req.query.ref_kind ?? body.ref_kind, "ref_kind", 64);
+        if (refKindFilter.error) return res.status(400).json({ error: refKindFilter.error });
+        const refIdFilter = parseOptionalFilterToken(req.query.ref_id ?? body.ref_id, "ref_id", 160);
+        if (refIdFilter.error) return res.status(400).json({ error: refIdFilter.error });
+
+        let query = supabase
+          .from("mc_autopilot_events")
+          .select("event_type, actor_agent_id, ref_kind, ref_id, payload, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+
+        if (refKindFilter.value) query = query.eq("ref_kind", refKindFilter.value);
+        if (refIdFilter.value) query = query.eq("ref_id", refIdFilter.value);
+
+        const { data, error } = await query;
+        if (error) throw error;
+        const rows = (data ?? []) as Array<{
+          event_type: string;
+          actor_agent_id: string;
+          ref_kind: string;
+          ref_id: string;
+          payload: Record<string, unknown> | null;
+          created_at: string;
+        }>;
+        return res.status(200).json({
+          events_scanned: rows.length,
+          metrics: createAutopilotZeroTouchMetrics(rows),
+        });
       }
 
       case "fishbowl_post": {

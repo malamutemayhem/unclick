@@ -49,6 +49,37 @@ export interface AutopilotEventRow {
   created_at: string;
 }
 
+export interface AutopilotTouchMetricsRow {
+  event_type: string;
+  actor_agent_id: string;
+  ref_kind: string;
+  ref_id: string;
+  payload: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface AutopilotZeroTouchRefMetric {
+  ref_kind: string;
+  ref_id: string;
+  event_count: number;
+  automation_event_count: number;
+  human_touch_count: number;
+  zero_touch: boolean;
+  first_human_touch_at: string | null;
+  last_event_at: string | null;
+  human_touch_reasons: Record<string, number>;
+}
+
+export interface AutopilotZeroTouchMetrics {
+  total_refs: number;
+  zero_touch_refs: number;
+  human_touched_refs: number;
+  human_touch_count: number;
+  automation_event_count: number;
+  touch_reason_counts: Record<string, number>;
+  refs: AutopilotZeroTouchRefMetric[];
+}
+
 export interface TodoLedgerPlanInput {
   todoId: string;
   actorAgentId: string;
@@ -87,6 +118,10 @@ function compact(value: unknown, max = 500): string {
   return text.length > max ? `${text.slice(0, max - 3)}...` : text;
 }
 
+function lowerText(value: unknown): string {
+  return compact(value, 240).toLowerCase();
+}
+
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (value && typeof value === "object") {
@@ -114,6 +149,49 @@ function normalizeEventType(value: string): AutopilotEventType {
 function normalizeRefKind(value: string): AutopilotRefKind {
   if (!REF_KIND_SET.has(value)) throw new Error(`Unsupported autopilot ref_kind: ${value}`);
   return value as AutopilotRefKind;
+}
+
+function incrementCount(map: Record<string, number>, key: string): void {
+  map[key] = (map[key] ?? 0) + 1;
+}
+
+const HUMAN_ACTOR_RE = /(^human[-_:]|^operator[-_:]|^chris$|^malamutemayhem$|\boperator\b|\bhuman\b)/i;
+const HUMAN_TOUCH_RE =
+  /\b(human|operator|chris|manual|operator_chat|human_operator_chat|live_chat|user_chat|walk[-_ ]?in)\b/i;
+const HUMAN_TOUCH_BOOLEAN_KEYS = new Set([
+  "human_touch",
+  "operator_touch",
+  "manual_touch",
+  "requires_operator",
+]);
+const HUMAN_TOUCH_TEXT_KEYS = new Set([
+  "actor_kind",
+  "decision_source",
+  "input_source",
+  "origin",
+  "route_source",
+  "source",
+  "trigger",
+  "trigger_source",
+  "wake_source",
+]);
+
+function humanTouchReasons(row: AutopilotTouchMetricsRow): string[] {
+  const reasons = new Set<string>();
+  if (HUMAN_ACTOR_RE.test(row.actor_agent_id)) reasons.add("human_actor");
+
+  const payload = row.payload ?? {};
+  for (const [key, value] of Object.entries(payload)) {
+    const normalizedKey = key.toLowerCase();
+    if (HUMAN_TOUCH_BOOLEAN_KEYS.has(normalizedKey) && value === true) {
+      reasons.add(normalizedKey);
+    }
+    if (HUMAN_TOUCH_TEXT_KEYS.has(normalizedKey) && HUMAN_TOUCH_RE.test(lowerText(value))) {
+      reasons.add(`${normalizedKey}:${lowerText(value).slice(0, 40)}`);
+    }
+  }
+
+  return [...reasons].sort();
 }
 
 function sanitizeUnknown(key: string, value: unknown): unknown {
@@ -188,6 +266,72 @@ export function buildAutopilotEventRow(input: AutopilotEventInput): AutopilotEve
     payload,
     idempotency_key: idempotencyKey,
     created_at: now.toISOString(),
+  };
+}
+
+export function createAutopilotZeroTouchMetrics(
+  rows: AutopilotTouchMetricsRow[],
+): AutopilotZeroTouchMetrics {
+  const refs = new Map<string, AutopilotZeroTouchRefMetric>();
+  const touchReasonCounts: Record<string, number> = {};
+  let humanTouchCount = 0;
+  let automationEventCount = 0;
+
+  for (const row of rows) {
+    const refKind = compact(row.ref_kind, 64) || "unknown";
+    const refId = compact(row.ref_id, 160) || "unknown";
+    const key = `${refKind}:${refId}`;
+    const metric =
+      refs.get(key) ??
+      {
+        ref_kind: refKind,
+        ref_id: refId,
+        event_count: 0,
+        automation_event_count: 0,
+        human_touch_count: 0,
+        zero_touch: true,
+        first_human_touch_at: null,
+        last_event_at: null,
+        human_touch_reasons: {},
+      };
+
+    metric.event_count++;
+    if (!metric.last_event_at || row.created_at > metric.last_event_at) {
+      metric.last_event_at = row.created_at;
+    }
+
+    const reasons = humanTouchReasons(row);
+    if (reasons.length > 0) {
+      metric.zero_touch = false;
+      metric.human_touch_count++;
+      humanTouchCount++;
+      if (!metric.first_human_touch_at || row.created_at < metric.first_human_touch_at) {
+        metric.first_human_touch_at = row.created_at;
+      }
+      for (const reason of reasons) {
+        incrementCount(metric.human_touch_reasons, reason);
+        incrementCount(touchReasonCounts, reason);
+      }
+    } else {
+      metric.automation_event_count++;
+      automationEventCount++;
+    }
+
+    refs.set(key, metric);
+  }
+
+  const refMetrics = [...refs.values()].sort((left, right) =>
+    String(right.last_event_at ?? "").localeCompare(String(left.last_event_at ?? "")),
+  );
+
+  return {
+    total_refs: refMetrics.length,
+    zero_touch_refs: refMetrics.filter((metric) => metric.zero_touch).length,
+    human_touched_refs: refMetrics.filter((metric) => !metric.zero_touch).length,
+    human_touch_count: humanTouchCount,
+    automation_event_count: automationEventCount,
+    touch_reason_counts: touchReasonCounts,
+    refs: refMetrics,
   };
 }
 
