@@ -136,6 +136,24 @@ describe("orchestrator context", () => {
           created_at: "2026-05-09T10:46:00.000Z",
         },
       ],
+      autopilotEvents: [
+        {
+          event_type: "claim",
+          actor_agent_id: "github-action-queuepush",
+          ref_kind: "todo",
+          ref_id: "todo-1",
+          payload: { source: "wakepass" },
+          created_at: "2026-05-09T10:33:00.000Z",
+        },
+        {
+          event_type: "merge_decision",
+          actor_agent_id: "chatgpt-codex-seat",
+          ref_kind: "pr",
+          ref_id: "700",
+          payload: { trigger_source: "operator_chat" },
+          created_at: "2026-05-09T10:52:00.000Z",
+        },
+      ],
     });
 
     expect(context.version).toBe("orchestrator-context-v1");
@@ -147,6 +165,16 @@ describe("orchestrator context", () => {
     expect(context.current_state_card.active_jobs).toBe(1);
     expect(context.current_state_card.active_seat_count).toBe(1);
     expect(context.current_state_card.blocker_count).toBe(1);
+    expect(context.current_state_card.live_sources.autopilot_events).toBe(2);
+    expect(context.current_state_card.zero_touch_scoreboard).toMatchObject({
+      events_scanned: 2,
+      total_refs: 2,
+      zero_touch_refs: 1,
+      human_touched_refs: 1,
+      human_touch_count: 1,
+      top_human_touch_reason: "trigger_source:operator_chat",
+    });
+    expect(context.current_state_card.zero_touch_scoreboard.summary).toContain("zero-touch refs");
     expect(context.current_state_card.next_actions[0]).toContain("Orchestrator context layer");
     expect(context.profile_cards.find((profile) => profile.agent_id === "human-chris")?.role).toBe("human");
     expect(context.profile_cards.find((profile) => profile.agent_id === "chatgpt-codex-seat")?.freshness_label).toBe("Live");
