@@ -103,11 +103,24 @@ describe("Dormant owner requeue detector", () => {
     assert.equal(packet?.scopepack_present, false);
   });
 
-  it("stays quiet while the owner is still inside the 48 hour window", () => {
+  it("stays quiet while the owner is still inside the 60 minute lease", () => {
     const todo = {
       id: "todo-fresh",
       assigned_to_agent_id: "builder-seat",
-      owner_last_seen_at: "2026-05-15T18:30:00Z",
+      owner_last_seen_at: "2026-05-16T17:30:00Z",
+      scope_pack: { owned_files: ["scripts/fleet-throughput-watch.mjs"] },
+    };
+
+    assert.equal(detectDormantOwner(todo, now), null);
+    assert.equal(buildDormantOwnerPacket(todo, now), null);
+  });
+
+  it("stays quiet for human owners even when they are old", () => {
+    const todo = {
+      id: "todo-human",
+      assigned_to_agent_id: "human-616d4beb-4960-451d-bbd3-4d4347a7f9f5",
+      owner_type: "human",
+      owner_last_seen_at: "2026-05-14T17:00:00Z",
       scope_pack: { owned_files: ["scripts/fleet-throughput-watch.mjs"] },
     };
 

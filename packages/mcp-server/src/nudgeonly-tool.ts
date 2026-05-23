@@ -200,6 +200,7 @@ const RECEIPT_BRIDGE_RULES = [
   "NudgeOnly can suggest a receipt request, but it cannot write it, assign ownership, or mark the target done.",
   "A bridge request requires a concrete painpoint plus source evidence.",
   "If the source has no owner, route only to Job Manager for owner resolution.",
+  "If owner silence is past the TTL, treat it as an expired ownership lease, not as a model judgment or optional nudge.",
   "If proof or ACK is overdue past the TTL, emit an escalation request instead of pretending the work moved.",
   "WakePass or another deterministic verifier must confirm ACK/proof before any trusted state changes.",
 ] as const;
@@ -430,6 +431,109 @@ function minutesBetween(start: number | null, end: number | null): number | null
   return Math.floor((end - start) / 60000);
 }
 
+function asOptionalNumber(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function parseDurationMinutes(amount: number, unit: string): number {
+  const normalized = unit.toLowerCase();
+  if (normalized.startsWith("d")) return amount * 24 * 60;
+  if (normalized.startsWith("h")) return amount * 60;
+  return amount;
+}
+
+function ownerSilenceEvidence(
+  args: Record<string, unknown>,
+  nowMs: number,
+  ttlMinutes: number,
+  text: string,
+): {
+  detected: boolean;
+  expired: boolean;
+  age_minutes: number | null;
+  ttl_minutes: number;
+  source: string | null;
+  reason: "owner_lease_expired" | "owner_lease_active" | "owner_silence_unknown";
+} {
+  const explicitMinutes = asOptionalNumber(
+    args.owner_silent_minutes
+      ?? args.silent_minutes
+      ?? args.checkin_age_minutes
+      ?? args.check_in_age_minutes,
+  );
+  if (explicitMinutes !== null) {
+    const ageMinutes = Math.floor(explicitMinutes);
+    return {
+      detected: true,
+      expired: ageMinutes >= ttlMinutes,
+      age_minutes: ageMinutes,
+      ttl_minutes: ttlMinutes,
+      source: "owner_silent_minutes",
+      reason: ageMinutes >= ttlMinutes ? "owner_lease_expired" : "owner_lease_active",
+    };
+  }
+
+  const timestampFields = [
+    ["owner_last_seen_at", args.owner_last_seen_at],
+    ["owner_last_seen", args.owner_last_seen],
+    ["last_seen_at", args.last_seen_at],
+    ["last_seen", args.last_seen],
+  ] as const;
+
+  for (const [field, value] of timestampFields) {
+    const seenAt = parseTime(value);
+    const ageMinutes = minutesBetween(seenAt, nowMs);
+    if (ageMinutes !== null) {
+      return {
+        detected: true,
+        expired: ageMinutes >= ttlMinutes,
+        age_minutes: ageMinutes,
+        ttl_minutes: ttlMinutes,
+        source: field,
+        reason: ageMinutes >= ttlMinutes ? "owner_lease_expired" : "owner_lease_active",
+      };
+    }
+  }
+
+  const durationMatch = text.match(
+    /\b(?:owner|seat|worker|reviewer|builder|claim|lease)?\s*(?:silent|quiet|missing|last seen|last_seen|no check-?in|check-?in age|checkin age)\b.{0,60}\b(\d+(?:\.\d+)?)\s*(m|min|mins|minute|minutes|h|hr|hrs|hour|hours|d|day|days)\b/i,
+  );
+  if (durationMatch) {
+    const ageMinutes = Math.floor(parseDurationMinutes(Number(durationMatch[1]), durationMatch[2]));
+    return {
+      detected: true,
+      expired: ageMinutes >= ttlMinutes,
+      age_minutes: ageMinutes,
+      ttl_minutes: ttlMinutes,
+      source: "event_text_duration",
+      reason: ageMinutes >= ttlMinutes ? "owner_lease_expired" : "owner_lease_active",
+    };
+  }
+
+  const explicitLeaseExpired = /\b(owner|seat|worker|claim|lease)\b.{0,80}\b(expired|lapsed|timed out|timeout|stale)\b|\b(expired|lapsed|timed out|timeout|stale)\b.{0,80}\b(owner|seat|worker|claim|lease)\b/i.test(text);
+  if (explicitLeaseExpired) {
+    return {
+      detected: true,
+      expired: true,
+      age_minutes: null,
+      ttl_minutes: ttlMinutes,
+      source: "event_text_lease_expired",
+      reason: "owner_lease_expired",
+    };
+  }
+
+  return {
+    detected: false,
+    expired: false,
+    age_minutes: null,
+    ttl_minutes: ttlMinutes,
+    source: null,
+    reason: "owner_silence_unknown",
+  };
+}
+
 function shortHash(value: string): string {
   return createHash("sha256").update(value).digest("hex").slice(0, 16);
 }
@@ -518,7 +622,7 @@ function hasConcreteCue(painpointType: string, text: string): boolean {
   if (painpointType === "none") return false;
   if (painpointType === "stale_ack") return /\b(stale|overdue|missing|absent|no)\b.*\b(ack|receipt|review)\b|\b(ack|receipt|review)\b.*\b(stale|overdue|missing|absent)\b/.test(text);
   if (painpointType === "duplicate_wake") return /\bduplicate|duplicated|same target|same owner|same wake\b/.test(text);
-  if (painpointType === "unclear_owner") return /\bunclear owner|no owner|without active job|no active job|orphaned|owner missing|owning job\b/.test(text);
+  if (painpointType === "unclear_owner") return /\bunclear owner|no owner|without active job|no active job|orphaned|owner missing|owning job|owner silent|owner quiet|seat silent|worker silent|last seen|last_seen|check-?in age|no check-?in|lease expired|claim expired|ownership lease|owner lease\b/.test(text);
   if (painpointType === "queue_hydration_failure") return /\b(queue hydration failure|0 active jobs|zero active jobs|no active jobs)\b.*\b(backlog|actionable|open|todo|dispatch|boardroom|job)\b|\b(backlog|actionable|open|todo|dispatch|boardroom|job)\b.*\b(0 active jobs|zero active jobs|no active jobs)\b/.test(text);
   if (painpointType === "missing_proof") return /\bmissing proof|no proof|proof missing|without proof|no commit|no pr|no run id|no receipt\b/.test(text);
   if (painpointType === "noisy_thread") return /\bnoise|noisy|repeated|heartbeat|near-duplicate|hides state|collapse\b/.test(text);
@@ -555,7 +659,12 @@ function proofOrAckMissing(args: Record<string, unknown>, painpointType: string)
   return ackMissing || proofMissing;
 }
 
-function bridgeStatus(args: Record<string, unknown>, painpointType: string): string {
+function bridgeStatus(
+  args: Record<string, unknown>,
+  painpointType: string,
+  options: { forceEscalation?: boolean } = {},
+): string {
+  if (options.forceEscalation) return "escalation_request";
   const ttlMinutes = asNumber(args.ttl_minutes, 60);
   const createdAt = parseTime(args.created_at);
   const now = parseTime(args.now) ?? Date.now();
@@ -598,8 +707,12 @@ export async function nudgeonlyReceiptBridge(args: Record<string, unknown>): Pro
   const target = targetFrom(args, nudge);
   const route = routeForPainpoint(painpointType);
   const text = evidenceText(args, nudge);
+  const ttlMinutes = asNumber(args.ttl_minutes, 60);
+  const now = parseTime(args.now) ?? Date.now();
+  const ownerLease = ownerSilenceEvidence(args, now, ttlMinutes, text);
+  const ownerLeaseExpired = painpointType === "unclear_owner" && ownerLease.expired;
   const hasSourceEvidence = Boolean(sourceId || sourceUrl || target);
-  const hasCue = hasConcreteCue(painpointType, text);
+  const hasCue = ownerLeaseExpired || hasConcreteCue(painpointType, text);
   const ackOnlyProof = ackOnlyWakeProof(args.event_text ?? args.context ?? nudge.nudge);
   const supersededProof = supersededStatusProof(text);
   const traceInput = JSON.stringify({
@@ -695,7 +808,7 @@ export async function nudgeonlyReceiptBridge(args: Record<string, unknown>): Pro
 
   const owner = asOptionalString(args.owner);
   const worker = workerFrom(args, painpointType, route.default_worker);
-  const status = bridgeStatus(args, painpointType);
+  const status = bridgeStatus(args, painpointType, { forceEscalation: ownerLeaseExpired });
   const nudgeTraceId = asOptionalString(args.nudge_trace_id) ?? asOptionalString(nudge.trace_id);
   const request = {
     worker,
@@ -731,6 +844,7 @@ export async function nudgeonlyReceiptBridge(args: Record<string, unknown>): Pro
       source_id: sourceId,
       source_url: sourceUrl,
       target,
+      owner_lease: ownerLease.detected ? ownerLease : null,
       verifier_required: true,
       verifier_rule: NUDGEONLY_POLICY.verifier_rule,
       quality_gates: RECEIPT_BRIDGE_RULES,

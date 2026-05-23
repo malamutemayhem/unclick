@@ -9611,6 +9611,8 @@ export const ADDITIONAL_TOOLS = [
         created_at: { type: "string", description: "Optional ISO timestamp for the source handoff or request." },
         now: { type: "string", description: "Optional ISO timestamp used for deterministic TTL checks." },
         ttl_minutes: { type: "number", description: "Minutes before missing ACK/proof becomes an escalation request. Default: 60." },
+        owner_last_seen_at: { type: "string", description: "Optional ISO timestamp for the current owner's last real check-in. Past TTL is treated as an expired ownership lease." },
+        owner_silent_minutes: { type: "number", description: "Optional owner silence age in minutes. Past TTL is treated as an expired ownership lease." },
         nudge_trace_id: { type: "string", description: "Optional trace_id from nudgeonly_api." },
       },
     },
