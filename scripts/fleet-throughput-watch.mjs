@@ -25,7 +25,13 @@ const runnerFreshnessGraceMinutes = parseBoundedInt(
 );
 const runnerFreshnessRunLimit = parseBoundedInt(process.env.QUEUEPUSH_RUNNER_RUN_LIMIT, 20, 5, 100);
 export const QUEUEPUSH_DUPLICATE_WAKE_WINDOW_MS = 10 * 60 * 1000;
-export const DORMANT_OWNER_REQUEUE_THRESHOLD_MS = 48 * 60 * 60 * 1000;
+const dormantOwnerRequeueMinutes = parseBoundedInt(
+  process.env.QUEUEPUSH_DORMANT_OWNER_REQUEUE_MINUTES,
+  60,
+  15,
+  48 * 60,
+);
+export const DORMANT_OWNER_REQUEUE_THRESHOLD_MS = dormantOwnerRequeueMinutes * 60 * 1000;
 const dormantOwnerTodoLimit = parseBoundedInt(process.env.QUEUEPUSH_DORMANT_OWNER_TODO_LIMIT, 50, 1, 100);
 const dormantOwnerPacketLimit = parseBoundedInt(process.env.QUEUEPUSH_DORMANT_OWNER_PACKET_LIMIT, 10, 1, 10);
 const agentId = "github-action-queuepush";
@@ -344,10 +350,22 @@ function isSystemBotOwner(todo) {
   );
 }
 
+function isHumanOwner(todo) {
+  const owner = normalizeText(todoOwner(todo));
+  const kind = normalizeText(todo?.owner_kind || todo?.ownerKind || todo?.owner_type || todo?.ownerType);
+  return (
+    kind === "human" ||
+    kind === "person" ||
+    owner.startsWith("human-") ||
+    owner.startsWith("chris") ||
+    owner === "creativelead"
+  );
+}
+
 export function detectDormantOwner(todo, now = Date.now(), thresholdMs = DORMANT_OWNER_REQUEUE_THRESHOLD_MS) {
   const id = todoId(todo);
   const owner = todoOwner(todo);
-  if (!id || !owner || isSystemBotOwner(todo)) return null;
+  if (!id || !owner || isSystemBotOwner(todo) || isHumanOwner(todo)) return null;
 
   const lastSeenMs = parseTime(todoOwnerLastSeenAt(todo));
   if (!Number.isFinite(lastSeenMs)) return null;

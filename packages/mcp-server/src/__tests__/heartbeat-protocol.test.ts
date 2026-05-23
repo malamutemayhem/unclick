@@ -54,8 +54,12 @@ describe("heartbeat_protocol payload", () => {
     expect(protocol.procedure[5]).toContain("must not create duplicate jobs");
     expect(protocol.procedure[6]).toContain("After check_signals");
     expect(protocol.procedure[7]).toContain("compact public fields");
+    expect(protocol.procedure[7]).toContain("owner_silent_minutes");
+    expect(protocol.procedure[7]).toContain("expired ownership lease");
     expect(protocol.procedure[8]).toContain("smallest safe source text");
     expect(protocol.procedure[9]).toContain("receipt_line");
+    expect(protocol.procedure[9]).toContain("bridge gap");
+    expect(protocol.procedure[9]).toContain("owner lease expiry");
     expect(protocol.procedure[10]).toContain("ignite_id");
     expect(protocol.procedure[10]).toContain("push_id");
     expect(protocol.procedure[10]).toContain("Do not stop at NudgeOnly alone");
@@ -84,9 +88,9 @@ describe("heartbeat_protocol payload", () => {
       procedure: [...protocol.procedure, "new instruction"],
     };
 
-    expect(formatHeartbeatProtocolVersion(11)).toBe("2026-05-12.v11");
-    expect(protocol.version).toBe("2026-05-12.v11");
-    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("bde9cae82e8d455c");
+    expect(formatHeartbeatProtocolVersion(12)).toBe("2026-05-12.v12");
+    expect(protocol.version).toBe("2026-05-12.v12");
+    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("001d189e68fad33b");
     expect(heartbeatProtocolContentFingerprint(changed)).not.toBe(
       heartbeatProtocolContentFingerprint(protocol),
     );
