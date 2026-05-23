@@ -8816,6 +8816,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .limit(smallerLimit);
         if (turnSearchFilter) chatMessagesQuery = chatMessagesQuery.or(turnSearchFilter);
 
+        let autopilotEventsQuery = supabase
+          .from("mc_autopilot_events")
+          .select("event_type, actor_agent_id, ref_kind, ref_id, payload, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(Math.min(smallerLimit, 500));
+        if (searchPattern) {
+          autopilotEventsQuery = autopilotEventsQuery.or(
+            `event_type.ilike.${searchPattern},actor_agent_id.ilike.${searchPattern},ref_kind.ilike.${searchPattern},ref_id.ilike.${searchPattern}`,
+          );
+        }
+
         const [
           profilesResult,
           messagesResult,
@@ -8829,6 +8841,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           businessContextResult,
           conversationTurnsResult,
           chatMessagesResult,
+          autopilotEventsResult,
         ] = await Promise.all([
           supabase
             .from("mc_fishbowl_profiles")
@@ -8862,6 +8875,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .limit(16),
           conversationTurnsQuery,
           chatMessagesQuery,
+          autopilotEventsQuery,
         ]);
 
         const errors = [
@@ -8877,6 +8891,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           businessContextResult.error,
           conversationTurnsResult.error,
           chatMessagesResult.error,
+          autopilotEventsResult.error,
         ].filter(Boolean);
         if (errors.length > 0) throw errors[0];
 
@@ -8927,6 +8942,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             library: (libraryResult.data ?? []) as OrchestratorLibraryRow[],
             businessContext: (businessContextResult.data ?? []) as OrchestratorBusinessContextRow[],
             conversationTurns,
+            autopilotEvents: (autopilotEventsResult.data ?? []) as Array<{
+              event_type: string;
+              actor_agent_id: string;
+              ref_kind: string;
+              ref_id: string;
+              payload: Record<string, unknown> | null;
+              created_at: string;
+            }>,
           }),
         });
       }

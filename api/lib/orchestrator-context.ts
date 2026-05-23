@@ -1,6 +1,10 @@
 import {
   inspectOrchestratorActiveState,
 } from "./commonsensepass-bridge.js";
+import {
+  createAutopilotZeroTouchMetrics,
+  type AutopilotTouchMetricsRow,
+} from "./autopilot-control-ledger.js";
 import type { CommonSensePassResult } from "../../packages/commonsensepass/src/index.js";
 
 export interface OrchestratorProfileRow {
@@ -158,6 +162,7 @@ export interface BuildOrchestratorContextInput {
   library: OrchestratorLibraryRow[];
   businessContext: OrchestratorBusinessContextRow[];
   conversationTurns: OrchestratorConversationTurnRow[];
+  autopilotEvents?: AutopilotTouchMetricsRow[];
 }
 
 export interface OrchestratorSourceLink {
@@ -233,6 +238,19 @@ export interface OrchestratorRollingSnapshot {
   source_pointers: OrchestratorSourceLink[];
 }
 
+export interface OrchestratorZeroTouchScoreboard {
+  events_scanned: number;
+  total_refs: number;
+  zero_touch_refs: number;
+  human_touched_refs: number;
+  human_touch_count: number;
+  automation_event_count: number;
+  top_human_touch_reason: string | null;
+  top_human_touch_count: number;
+  touch_reason_counts: Record<string, number>;
+  summary: string;
+}
+
 export interface OrchestratorSeatHandshake {
   mode: "fresh-seat-pickup";
   summary: string;
@@ -281,9 +299,11 @@ export interface OrchestratorContext {
       library: number;
       business_context: number;
       conversation_turns: number;
+      autopilot_events: number;
     };
     next_actions: string[];
     blockers: string[];
+    zero_touch_scoreboard: OrchestratorZeroTouchScoreboard;
     // health_verdict (added 2026-05-12 by PR #746): CommonSensePass R1
     // verdict computed from the same todos+profiles input used to derive
     // active_jobs. Any seat reading the state card can use this as the
@@ -432,6 +452,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   const profiles = compact ? allProfiles.slice(0, maxSummaries) : allProfiles;
   const activeSeatCount = allProfiles.filter((profile) => isFresh(profile.last_seen_at, nowMs)).length;
   const humanOperatorTime = buildOperatorTimeContext(input.businessContext, input.generatedAt);
+  const zeroTouchScoreboard = buildZeroTouchScoreboard(input.autopilotEvents ?? []);
 
   const activeTodoRows = input.todos
     .filter((todo) => todo.status === "open" || todo.status === "in_progress")
@@ -578,9 +599,11 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
         library: input.library.length,
         business_context: input.businessContext.length,
         conversation_turns: input.conversationTurns.length,
+        autopilot_events: input.autopilotEvents?.length ?? 0,
       },
       next_actions: nextActions,
       blockers,
+      zero_touch_scoreboard: zeroTouchScoreboard,
       health_verdict: healthVerdict,
       harness_card: buildHarnessCard({
         activeJobsCount,
@@ -608,6 +631,36 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
       library_snapshots_available: allLibrarySnapshots.length,
       library_snapshots_truncated: allLibrarySnapshots.length > librarySnapshots.length,
     },
+  };
+}
+
+function buildZeroTouchScoreboard(rows: AutopilotTouchMetricsRow[]): OrchestratorZeroTouchScoreboard {
+  const metrics = createAutopilotZeroTouchMetrics(rows);
+  const topHumanTouch = Object.entries(metrics.touch_reason_counts).sort(
+    ([leftReason, leftCount], [rightReason, rightCount]) =>
+      rightCount - leftCount || leftReason.localeCompare(rightReason),
+  )[0];
+  const topReason = topHumanTouch?.[0] ?? null;
+  const topCount = topHumanTouch?.[1] ?? 0;
+  const summary =
+    metrics.total_refs === 0
+      ? "No AutoPilot ledger refs scanned yet."
+      : compactText(
+          `${metrics.zero_touch_refs} zero-touch refs, ${metrics.human_touched_refs} human-touched refs, ${metrics.human_touch_count} human touch${metrics.human_touch_count === 1 ? "" : "es"}. Top leak: ${topReason ?? "none"}.`,
+          180,
+        );
+
+  return {
+    events_scanned: rows.length,
+    total_refs: metrics.total_refs,
+    zero_touch_refs: metrics.zero_touch_refs,
+    human_touched_refs: metrics.human_touched_refs,
+    human_touch_count: metrics.human_touch_count,
+    automation_event_count: metrics.automation_event_count,
+    top_human_touch_reason: topReason,
+    top_human_touch_count: topCount,
+    touch_reason_counts: metrics.touch_reason_counts,
+    summary,
   };
 }
 
