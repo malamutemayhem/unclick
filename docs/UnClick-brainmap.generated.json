@@ -6922,8 +6922,8 @@
     },
     {
       "source": ".github/workflows/auto-close-fishbowl-todo.yml",
-      "hash": "07564f004cb2",
-      "bytes": 11830
+      "hash": "d11ec31e1d22",
+      "bytes": 11599
     },
     {
       "source": ".github/workflows/autonomous-runner.yml",
