@@ -22,11 +22,13 @@ import {
   extractBoardroomTodoIdFromCodingRoomJob,
   fetchUnClickActionableTodos,
   fetchUnClickOrchestratorContext,
+  hydrateAutonomousRunnerLedgerFromUnClick,
   inspectAutonomousRunnerJobSafety,
   markUnsafeJobsBlockedForAutonomousRunner,
   normalizeAutonomousRunnerMode,
   parseAutonomousRunnerGitStatusPorcelain,
   parseMcpEventStreamPayload,
+  resolveAutonomousRunnerQueueGuard,
   evaluateAutonomousRunnerGitHygiene,
   runAutonomousRunnerMainFreshnessCanary,
   runAutonomousRunnerCycle,
@@ -61,6 +63,36 @@ describe("PinballWake autonomous Runner seat", () => {
   it("defaults unknown modes back to dry-run", () => {
     assert.equal(normalizeAutonomousRunnerMode("claim"), "claim");
     assert.equal(normalizeAutonomousRunnerMode("ship-it"), "dry-run");
+  });
+
+  it("tightens queue intake for the scheduled execute canary", () => {
+    const guard = resolveAutonomousRunnerQueueGuard({
+      mode: "execute",
+      wakeSource: "schedule",
+      todoLimit: 1,
+      policy: {
+        allowExecute: true,
+        allowedTodoRoles: "docs_update,test_fix",
+      },
+    });
+
+    assert.equal(guard.scheduled_execute_canary, true);
+    assert.equal(guard.require_scope_pack, true);
+    assert.equal(guard.queue_fetch_limit, 100);
+
+    const normal = resolveAutonomousRunnerQueueGuard({
+      mode: "claim",
+      wakeSource: "schedule",
+      todoLimit: 1,
+      policy: {
+        allowExecute: false,
+        allowedTodoRoles: "docs_update,test_fix",
+      },
+    });
+
+    assert.equal(normal.scheduled_execute_canary, false);
+    assert.equal(normal.require_scope_pack, false);
+    assert.equal(normal.queue_fetch_limit, 1);
   });
 
   it("treats the checked-out SHA as fresh when it matches current main", () => {
@@ -630,6 +662,97 @@ describe("PinballWake autonomous Runner seat", () => {
       }).reason,
       "boardroom_todo_role_not_allowed",
     );
+  });
+
+  it("requires ScopePack when the canary guard is active", () => {
+    const todo = {
+      id: "todo-unscoped",
+      title: "Old urgent backlog item",
+      status: "open",
+      priority: "urgent",
+      assigned_to_agent_id: null,
+      actionability_reason: "unassigned_open",
+    };
+
+    assert.equal(evaluateBoardroomTodoAutoClaimEligibility(todo).ok, true);
+    assert.equal(
+      evaluateBoardroomTodoAutoClaimEligibility(todo, { requireScopePack: true }).reason,
+      "boardroom_todo_missing_scopepack",
+    );
+  });
+
+  it("prefers an assigned scoped canary seed over older unscoped backlog", async () => {
+    const canaryRunner = createAutonomousRunner({
+      id: "pinballwake-autonomous-runner",
+      agentId: "pinballwake-autonomous-runner",
+      capabilities: ["docs_update", "test_fix"],
+    });
+    const calls = [];
+    const fetchImpl = async (url, init = {}) => {
+      calls.push({ url, init });
+      return {
+        ok: true,
+        async json() {
+          return {
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    todos: [
+                      {
+                        id: "todo-old-unscoped",
+                        title: "Old urgent unscoped backlog",
+                        status: "open",
+                        priority: "urgent",
+                        assigned_to_agent_id: null,
+                        actionability_reason: "unassigned_open",
+                        created_at: "2026-05-01T00:00:00.000Z",
+                      },
+                      {
+                        id: "todo-canary-seed",
+                        title: "AFK canary seed: docs-only OpenHands proof fixture",
+                        status: "open",
+                        priority: "urgent",
+                        assigned_to_agent_id: "pinballwake-autonomous-runner",
+                        actionability_reason: "role_assigned_open",
+                        created_at: "2026-05-24T15:00:00.000Z",
+                        scope_pack: {
+                          owned_files: ["docs/openhands-proof-fixture.md"],
+                          tests: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+                          role: "docs_update",
+                        },
+                      },
+                    ],
+                  }),
+                },
+              ],
+            },
+          };
+        },
+      };
+    };
+
+    const result = await hydrateAutonomousRunnerLedgerFromUnClick({
+      ledger: createCodingRoomJobLedger(),
+      runner: canaryRunner,
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      limit: 100,
+      fetchImpl,
+      wakeSource: "schedule",
+      allowedTodoRoles: ["docs_update", "test_fix"],
+      requireScopePack: true,
+      now: "2026-05-24T15:01:00.000Z",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(calls.length, 1);
+    assert.match(calls[0].init.body, /"limit":100/);
+    assert.equal(result.skipped[0].id, "todo-old-unscoped");
+    assert.equal(result.skipped[0].reason, "boardroom_todo_missing_scopepack");
+    assert.equal(result.imported, 1);
+    assert.equal(result.ledger.jobs[0].job_id, "boardroom-todo:todo-canary-seed");
   });
 
   it("keeps watcher and tether runners off unassigned builder ScopePacks unless exactly assigned", async () => {
