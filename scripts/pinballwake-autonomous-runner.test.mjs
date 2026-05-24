@@ -12,6 +12,7 @@ import {
 import {
   createCodingRoomJobFromBoardroomTodo,
   createAutonomousRunner,
+  createAutonomousRunnerOpenHandsExecutorFromEnv,
   createAutonomousRunnerTestOnlyExecutorReceipt,
   assertRunnerOnFreshMain,
   evaluateAutonomousRunnerCommonSensePass,
@@ -1536,6 +1537,19 @@ describe("PinballWake autonomous Runner seat", () => {
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  });
+
+  it("wires explicitly enabled OpenHands execute to the safe CodeRoom submitter", () => {
+    const executor = createAutonomousRunnerOpenHandsExecutorFromEnv({
+      AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: "true",
+      OPENHANDS_TEST_MODE: "1",
+      AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES: "false",
+    });
+
+    assert.equal(executor.enabled, true);
+    assert.equal(typeof executor.openHands, "function");
+    assert.equal(typeof executor.coderoom, "function");
+    assert.equal(executor.testMode, true);
   });
 
   it("emits a quiet-window proof receipt that rejects manual runner triggers", async () => {
