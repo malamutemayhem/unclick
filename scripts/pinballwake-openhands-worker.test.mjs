@@ -166,6 +166,26 @@ describe("runOpenHandsWorker", () => {
     assert.match(result.receipt.evidence.output, /tests failed/);
   });
 
+  test("preserves a specific OpenHands runner failure reason", async () => {
+    const result = await runOpenHandsWorker({
+      job: job(),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async () => ({
+        ok: false,
+        reason: "openhands_cli_failed",
+        exit_code: 1,
+        output: "OpenHands exited before producing a patch.",
+      }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "openhands_cli_failed");
+    assert.equal(result.receipt.hold_reason, "openhands_cli_failed");
+    assert.match(result.receipt.evidence.output, /before producing a patch/);
+  });
+
   test("keeps the tail of long OpenHands failure output", async () => {
     const output = `${"installing dependency\n".repeat(400)}FINAL ERROR: missing model config`;
     const result = await runOpenHandsWorker({

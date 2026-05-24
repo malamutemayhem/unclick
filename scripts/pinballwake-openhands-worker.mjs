@@ -100,7 +100,7 @@ export async function runOpenHandsWorker({
       job: normalizedJob,
       executorSeatId,
       now: safeNow,
-      reason: "openhands_reported_failure",
+      reason: result?.reason || "openhands_reported_failure",
       evidence: {
         exit_code: result?.exit_code ?? null,
         output: clipOutput(result?.output, 2000),
