@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import {
   buildAdminLibraryRefreshPayload,
   parseAdminLibraryRefreshOptions,
@@ -84,5 +85,14 @@ describe("admin library taxonomy refresh safety", () => {
     expect(payload.planned_snapshot_count).toBe(2);
     expect(payload.skipped_secret_count).toBe(1);
     expect(JSON.stringify(payload)).not.toContain("content");
+  });
+
+  it("keeps Orchestrator AutoPilot scoreboard reads unfiltered by search q", () => {
+    const source = readFileSync("api/memory-admin.ts", "utf8");
+    const ledgerQueryBlock = source.match(/let autopilotEventsQuery[\s\S]*?const \[/)?.[0] ?? "";
+
+    expect(ledgerQueryBlock).toContain('.from("mc_autopilot_events")');
+    expect(ledgerQueryBlock).toContain("The zero-touch scoreboard is a safety surface");
+    expect(ledgerQueryBlock).not.toMatch(/autopilotEventsQuery\s*=\s*autopilotEventsQuery\.or/);
   });
 });
