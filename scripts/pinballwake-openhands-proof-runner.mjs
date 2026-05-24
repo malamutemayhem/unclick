@@ -248,8 +248,23 @@ export function createOpenHandsCliRunner({
 
     const patchFile = String(env.OPENHANDS_PATCH_FILE || "").trim();
     const patch = patchFile ? await readPatchFile(patchFile, "utf8") : extractUnifiedDiff(result.output);
+    if (!String(patch || "").trim()) {
+      return {
+        ok: false,
+        reason: "openhands_missing_unified_diff",
+        exit_code: result.exit_code,
+        output: compactOutput(
+          [
+            "OpenHands CLI completed without a trusted unified diff.",
+            "Expected output must include a diff --git patch for the owned docs fixture.",
+            result.output,
+          ].join("\n"),
+        ),
+      };
+    }
+
     return {
-      ok: Boolean(String(patch || "").trim()),
+      ok: true,
       patch,
       changed_files: scopePack?.owned_files || [],
       summary: "OpenHands CLI produced a test-mode patch.",
