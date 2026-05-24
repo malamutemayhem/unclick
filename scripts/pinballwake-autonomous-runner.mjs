@@ -33,6 +33,7 @@ export const DEFAULT_AUTONOMOUS_RUNNER_POLICY = {
   disabled: false,
   allowProtectedSurfaces: false,
   allowExecute: false,
+  requireScopePack: false,
   maxCycles: 1,
   allowedPriorities: ["urgent", "high"],
   allowedActionReasons: ["unassigned_open"],
@@ -2133,11 +2134,15 @@ export function evaluateBoardroomTodoAutoClaimEligibility(
     allowedActionReasons = DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedActionReasons,
     allowedTodoRoles = DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedTodoRoles,
     allowProtectedSurfaces = false,
+    requireScopePack = false,
     runner = DEFAULT_AUTONOMOUS_RUNNER,
     now = new Date().toISOString(),
   } = {},
 ) {
   if (!scopePack.hasScopePack) {
+    if (requireScopePack) {
+      return { ok: false, reason: "boardroom_todo_missing_scopepack" };
+    }
     return { ok: true, reason: "missing_scopepack_kept_for_scoping" };
   }
 
@@ -2225,6 +2230,7 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
   allowedActionReasons = DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedActionReasons,
   allowedTodoRoles = DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedTodoRoles,
   allowProtectedSurfaces = false,
+  requireScopePack = false,
 } = {}) {
   const fetched = await fetchUnClickActionableTodos({
     agentId: runner.agent_id || runner.id || DEFAULT_AUTONOMOUS_RUNNER.id,
@@ -2251,7 +2257,11 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
     };
   }
 
+  const runnerAgentId = autonomousRunnerAgentId(runner);
+  const assignedToRunnerWeight = (todo = {}) =>
+    runnerAgentId && String(todo.assigned_to_agent_id || "").trim() === runnerAgentId ? 1 : 0;
   const ordered = [...fetched.todos].sort((a, b) =>
+    assignedToRunnerWeight(b) - assignedToRunnerWeight(a) ||
     priorityWeight(b.priority) - priorityWeight(a.priority) ||
     String(a.created_at || "").localeCompare(String(b.created_at || "")),
   );
@@ -2268,6 +2278,7 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
       allowedActionReasons,
       allowedTodoRoles,
       allowProtectedSurfaces,
+      requireScopePack,
       runner,
       now,
     });
@@ -2379,6 +2390,7 @@ export function createAutonomousRunnerPolicy(input = {}) {
     disabled: Boolean(input.disabled),
     allowProtectedSurfaces: Boolean(input.allowProtectedSurfaces),
     allowExecute: Boolean(input.allowExecute),
+    requireScopePack: Boolean(input.requireScopePack),
     maxCycles: Math.max(1, Number.isFinite(input.maxCycles) ? input.maxCycles : DEFAULT_AUTONOMOUS_RUNNER_POLICY.maxCycles),
     allowedPriorities: parseList(input.allowedPriorities, DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedPriorities),
     allowedActionReasons: parseList(input.allowedActionReasons, DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedActionReasons),
@@ -2389,6 +2401,46 @@ export function createAutonomousRunnerPolicy(input = {}) {
 export function normalizeAutonomousRunnerMode(value) {
   const mode = String(value || "dry-run").trim().toLowerCase();
   return AUTONOMOUS_RUNNER_MODES.has(mode) ? mode : "dry-run";
+}
+
+export function isScheduledExecuteCanaryPolicy({
+  mode = "dry-run",
+  policy = DEFAULT_AUTONOMOUS_RUNNER_POLICY,
+  wakeSource = "unknown",
+  todoLimit = 10,
+} = {}) {
+  const safeMode = normalizeAutonomousRunnerMode(mode);
+  const safePolicy = createAutonomousRunnerPolicy(policy);
+  const roles = new Set(safePolicy.allowedTodoRoles.map(normalizeToken).filter(Boolean));
+
+  return (
+    safeMode === "execute" &&
+    safePolicy.allowExecute &&
+    normalizeToken(wakeSource) === "schedule" &&
+    Number(todoLimit) === 1 &&
+    roles.size === 2 &&
+    roles.has("docs_update") &&
+    roles.has("test_fix")
+  );
+}
+
+export function resolveAutonomousRunnerQueueGuard({
+  mode = "dry-run",
+  policy = DEFAULT_AUTONOMOUS_RUNNER_POLICY,
+  wakeSource = "unknown",
+  todoLimit = 10,
+  queueFetchLimit = null,
+} = {}) {
+  const canary = isScheduledExecuteCanaryPolicy({ mode, policy, wakeSource, todoLimit });
+  const parsedQueueFetchLimit = Number.parseInt(String(queueFetchLimit ?? ""), 10);
+  const fallbackFetchLimit = canary ? 100 : todoLimit;
+  const effectiveFetchLimit = Number.isFinite(parsedQueueFetchLimit) ? parsedQueueFetchLimit : fallbackFetchLimit;
+
+  return {
+    scheduled_execute_canary: canary,
+    queue_fetch_limit: Math.max(Number(todoLimit) || 1, effectiveFetchLimit || 1),
+    require_scope_pack: canary || Boolean(policy?.requireScopePack),
+  };
 }
 
 export function inspectAutonomousRunnerJobSafety(job) {
@@ -2547,6 +2599,7 @@ export async function runAutonomousRunnerFile({
   unclickApiKey = "",
   unclickMcpUrl = DEFAULT_UNCLICK_MCP_URL,
   todoLimit = 10,
+  queueFetchLimit = null,
   fetchImpl = globalThis.fetch,
   now = new Date().toISOString(),
   leaseSeconds,
@@ -2607,8 +2660,19 @@ export async function runAutonomousRunnerFile({
     return { ok: false, reason: "missing_ledger_path", main_freshness_canary: mainFreshnessCanary };
   }
 
-  const safePolicy = createAutonomousRunnerPolicy(policy);
   const safeMode = normalizeAutonomousRunnerMode(mode);
+  const safePolicy = createAutonomousRunnerPolicy(policy);
+  const queueGuard = resolveAutonomousRunnerQueueGuard({
+    mode: safeMode,
+    policy: safePolicy,
+    wakeSource,
+    todoLimit,
+    queueFetchLimit,
+  });
+  const guardedPolicy = createAutonomousRunnerPolicy({
+    ...safePolicy,
+    requireScopePack: queueGuard.require_scope_pack,
+  });
   let ledger = await readCodingRoomJobLedger(ledgerPath);
   let queueSourceResult = {
     ok: true,
@@ -2640,6 +2704,7 @@ export async function runAutonomousRunnerFile({
         ledger,
         ledger_path: ledgerPath,
         queue_source: queueSourceResult,
+        queue_guard: queueGuard,
         git_hygiene: gitHygiene,
         main_freshness_canary: mainFreshnessCanary,
       };
@@ -2655,14 +2720,16 @@ export async function runAutonomousRunnerFile({
         now,
         apiKey: unclickApiKey,
         mcpUrl: unclickMcpUrl,
-        limit: todoLimit,
+        limit: queueGuard.queue_fetch_limit,
         fetchImpl,
         wakeSource,
-        allowedPriorities: safePolicy.allowedPriorities,
-        allowedActionReasons: safePolicy.allowedActionReasons,
-        allowedTodoRoles: safePolicy.allowedTodoRoles,
-        allowProtectedSurfaces: safePolicy.allowProtectedSurfaces,
+        allowedPriorities: guardedPolicy.allowedPriorities,
+        allowedActionReasons: guardedPolicy.allowedActionReasons,
+        allowedTodoRoles: guardedPolicy.allowedTodoRoles,
+        allowProtectedSurfaces: guardedPolicy.allowProtectedSurfaces,
+        requireScopePack: guardedPolicy.requireScopePack,
       })),
+      queue_guard: queueGuard,
     };
     ledger = queueSourceResult.ledger || ledger;
 
@@ -2678,6 +2745,7 @@ export async function runAutonomousRunnerFile({
         ledger,
         ledger_path: ledgerPath,
         queue_source: queueSourceResult,
+        queue_guard: queueGuard,
         claimability_scorecard: queueSourceResult.claimability_scorecard,
         main_freshness_canary: mainFreshnessCanary,
       };
@@ -2691,7 +2759,7 @@ export async function runAutonomousRunnerFile({
       ledger,
       runner,
       mode: safeMode,
-      policy: safePolicy,
+      policy: guardedPolicy,
       now,
       leaseSeconds,
     });
@@ -2773,6 +2841,7 @@ export async function runAutonomousRunnerFile({
         ledger,
         ledger_path: ledgerPath,
         queue_source: queueSourceResult,
+        queue_guard: queueGuard,
         claimability_scorecard: claimabilityScorecard,
         todo_claim_sync: todoClaimSync,
         main_freshness_canary: mainFreshnessCanary,
@@ -2809,6 +2878,7 @@ export async function runAutonomousRunnerFile({
         ledger,
         ledger_path: ledgerPath,
         queue_source: queueSourceResult,
+        queue_guard: queueGuard,
         claimability_scorecard: claimabilityScorecard,
         todo_claim_sync: todoClaimSync,
         todo_scoping_sync: todoScopingSync,
@@ -2890,6 +2960,7 @@ export async function runAutonomousRunnerFile({
     ledger,
     ledger_path: ledgerPath,
     queue_source: queueSourceResult,
+    queue_guard: queueGuard,
     claimability_scorecard: claimabilityScorecard,
     commonsensepass,
     quiet_window_autonomy_proof: quietWindowAutonomyProof,
@@ -2913,6 +2984,7 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
     unclickApiKey: getArg("unclick-api-key", process.env.UNCLICK_API_KEY || ""),
     unclickMcpUrl: getArg("unclick-mcp-url", process.env.UNCLICK_MCP_URL || DEFAULT_UNCLICK_MCP_URL),
     todoLimit: parseIntOption(getArg("todo-limit", process.env.AUTONOMOUS_RUNNER_TODO_LIMIT), 10),
+    queueFetchLimit: getArg("queue-fetch-limit", process.env.AUTONOMOUS_RUNNER_QUEUE_FETCH_LIMIT || ""),
     leaseSeconds: parseIntOption(getArg("lease-seconds", process.env.CODING_ROOM_LEASE_SECONDS), undefined),
     wakeSource: getArg("wake-source", process.env.AUTONOMOUS_RUNNER_WAKE_SOURCE || process.env.GITHUB_EVENT_NAME || "unknown"),
     orchestratorProof: parseBoolean(getArg("orchestrator-proof", process.env.AUTONOMOUS_RUNNER_ORCHESTRATOR_PROOF)),
@@ -2964,6 +3036,7 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
       disabled: parseBoolean(process.env.AUTONOMOUS_RUNNER_DISABLED),
       allowProtectedSurfaces: parseBoolean(process.env.AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES),
       allowExecute: parseBoolean(process.env.AUTONOMOUS_RUNNER_ALLOW_EXECUTE),
+      requireScopePack: parseBoolean(process.env.AUTONOMOUS_RUNNER_REQUIRE_SCOPEPACK),
       maxCycles: parseIntOption(getArg("max-cycles", process.env.AUTONOMOUS_RUNNER_MAX_CYCLES), 1),
       allowedPriorities: process.env.AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES,
       allowedActionReasons: process.env.AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS,
