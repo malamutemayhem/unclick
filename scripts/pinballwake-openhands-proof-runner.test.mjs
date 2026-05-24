@@ -10,6 +10,7 @@ import {
   createFixtureOpenHandsRunner,
   createOpenHandsCliRunner,
   createSafeCodeRoomSubmitter,
+  resolveCodeRoomSubmitterAuthEnv,
   runOpenHandsProof,
   splitArgs,
 } from "./pinballwake-openhands-proof-runner.mjs";
@@ -206,9 +207,42 @@ describe("draft PR coderoom binding", () => {
 });
 
 describe("safe CodeRoom submitter", () => {
+  test("refuses default GITHUB_TOKEN-only auth before git or gh calls", async () => {
+    const calls = [];
+    const submitter = createSafeCodeRoomSubmitter({
+      env: { GITHUB_TOKEN: "default-actions-token" },
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await submitter({
+      job: { todo_id: "todo-token", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: token refusal" }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "missing_scoped_app_token");
+    assert.deepEqual(calls, []);
+  });
+
+  test("rejects an app token that matches the default GITHUB_TOKEN", () => {
+    const result = resolveCodeRoomSubmitterAuthEnv({
+      GITHUB_TOKEN: "same-token",
+      CODEROOM_GITHUB_APP_TOKEN: "same-token",
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "app_token_matches_default_github_token");
+    assert.equal(result.token_source, "CODEROOM_GITHUB_APP_TOKEN");
+  });
+
   test("rejects protected paths before git or gh writes", async () => {
     const calls = [];
     const submitter = createSafeCodeRoomSubmitter({
+      env: { CODEROOM_GITHUB_APP_TOKEN: "app-token" },
       runProcess: async (command, args) => {
         calls.push([command, args]);
         return { ok: true, stdout: "", stderr: "", output: "" };
@@ -230,6 +264,7 @@ describe("safe CodeRoom submitter", () => {
   test("returns existing PR before creating a duplicate branch", async () => {
     const calls = [];
     const submitter = createSafeCodeRoomSubmitter({
+      env: { CODEROOM_GITHUB_APP_TOKEN: "app-token" },
       branchName: "codex/openhands-submit-todo-1",
       runProcess: async (command, args) => {
         calls.push([command, args]);
@@ -265,10 +300,11 @@ describe("safe CodeRoom submitter", () => {
   test("creates a PR and enables auto-merge only after validation", async () => {
     const calls = [];
     const submitter = createSafeCodeRoomSubmitter({
+      env: { CODEROOM_GITHUB_APP_TOKEN: "app-token" },
       branchName: "codex/openhands-submit-todo-2",
       title: "docs: submit OpenHands patch",
       runProcess: async (command, args, options = {}) => {
-        calls.push([command, args, Boolean(options.stdin)]);
+        calls.push([command, args, Boolean(options.stdin), options.env?.GH_TOKEN, options.env?.GITHUB_TOKEN]);
         if (command === "gh" && args[1] === "list") {
           return { ok: true, stdout: "", stderr: "", output: "" };
         }
@@ -304,6 +340,7 @@ describe("safe CodeRoom submitter", () => {
         "git diff --check",
         "git add docs/openhands-proof-fixture.md",
         "git commit -m docs: submit OpenHands patch",
+        "gh auth setup-git",
         "git push -u origin",
         "gh pr create --title",
         "git rev-parse HEAD",
@@ -312,11 +349,13 @@ describe("safe CodeRoom submitter", () => {
     );
     assert.equal(calls[3][2], true);
     assert.equal(calls[4][2], true);
+    assert.ok(calls.every((call) => call[3] === "app-token" && call[4] === "app-token"));
   });
 
   test("fails closed when git apply check fails", async () => {
     const calls = [];
     const submitter = createSafeCodeRoomSubmitter({
+      env: { CODEROOM_GITHUB_APP_TOKEN: "app-token" },
       branchName: "codex/openhands-submit-todo-3",
       runProcess: async (command, args) => {
         calls.push([command, args]);

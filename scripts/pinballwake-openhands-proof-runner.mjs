@@ -12,6 +12,7 @@ const DEFAULT_BRANCH_PREFIX = "codex/openhands-proof";
 const DEFAULT_SUBMITTER_BRANCH_PREFIX = "codex/openhands-submit";
 const DEFAULT_TITLE = "test(autopilot): prove OpenHands docs patch path";
 const DEFAULT_TIMEOUT_MS = 20 * 60 * 1000;
+const CODEROOM_APP_TOKEN_ENV_KEYS = ["CODEROOM_GITHUB_APP_TOKEN", "AUTONOMOUS_RUNNER_GITHUB_APP_TOKEN"];
 
 export const DEFAULT_CODEROOM_PROTECTED_PATH_PATTERNS = [
   { reason: "protected_workflow_path", pattern: /^\.github\/workflows\//i },
@@ -104,6 +105,29 @@ export function splitArgs(value) {
   }
 
   return parts;
+}
+
+export function resolveCodeRoomSubmitterAuthEnv(env = process.env) {
+  const source = CODEROOM_APP_TOKEN_ENV_KEYS.find((key) => String(env[key] || "").trim());
+  if (!source) {
+    return { ok: false, reason: "missing_scoped_app_token" };
+  }
+
+  const token = String(env[source] || "").trim();
+  const defaultToken = String(env.GITHUB_TOKEN || "").trim();
+  if (defaultToken && token === defaultToken) {
+    return { ok: false, reason: "app_token_matches_default_github_token", token_source: source };
+  }
+
+  return {
+    ok: true,
+    token_source: source,
+    env: {
+      ...env,
+      GH_TOKEN: token,
+      GITHUB_TOKEN: token,
+    },
+  };
 }
 
 export function buildOpenHandsCliArgs({ prompt, argsTemplate = "" } = {}) {
@@ -415,7 +439,17 @@ export function createSafeCodeRoomSubmitter({
     });
     if (!safety.ok) return safety;
 
-    const status = await runProcess("git", ["status", "--porcelain"], { cwd, env });
+    const auth = resolveCodeRoomSubmitterAuthEnv(env);
+    if (!auth.ok) {
+      return {
+        ok: false,
+        reason: auth.reason,
+        token_source: auth.token_source || null,
+      };
+    }
+    const submitterEnv = auth.env;
+
+    const status = await runProcess("git", ["status", "--porcelain"], { cwd, env: submitterEnv });
     if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
     if (status.stdout.trim()) return { ok: false, reason: "dirty_worktree" };
 
@@ -424,7 +458,7 @@ export function createSafeCodeRoomSubmitter({
     const existing = await runProcess(
       "gh",
       ["pr", "list", "--head", branch, "--state", "open", "--json", "url", "--jq", ".[0].url // \"\""],
-      { cwd, env },
+      { cwd, env: submitterEnv },
     );
     if (!existing.ok) return { ok: false, reason: "gh_pr_list_failed", output: existing.output };
     const existingUrl = existing.stdout.trim();
@@ -460,23 +494,27 @@ export function createSafeCodeRoomSubmitter({
       ["git", ["diff", "--check"]],
       ["git", ["add", ...normalizedChanged]],
       ["git", ["commit", "-m", prTitle]],
+      ["gh", ["auth", "setup-git"]],
       ["git", ["push", "-u", "origin", branch]],
       ["gh", ["pr", "create", ...(draft ? ["--draft"] : []), "--title", prTitle, "--body", bodyText]],
     ];
 
     let prUrl = "";
     for (const [command, args, options = {}] of commands) {
-      const result = await runProcess(command, args, { cwd, env, ...options });
+      const result = await runProcess(command, args, { cwd, env: submitterEnv, ...options });
       if (!result.ok) return { ok: false, reason: `${command}_failed`, output: result.output };
       if (command === "gh" && args[1] === "create") prUrl = result.stdout.trim();
     }
 
-    const sha = await runProcess("git", ["rev-parse", "HEAD"], { cwd, env });
+    const sha = await runProcess("git", ["rev-parse", "HEAD"], { cwd, env: submitterEnv });
     if (!sha.ok) return { ok: false, reason: "git_rev_parse_failed", output: sha.output };
 
     let autoMergeResult = { ok: true, skipped: true, reason: draft ? "draft_pr" : "auto_merge_disabled" };
     if (autoMerge && !draft) {
-      autoMergeResult = await runProcess("gh", ["pr", "merge", "--auto", "--squash", prUrl], { cwd, env });
+      autoMergeResult = await runProcess("gh", ["pr", "merge", "--auto", "--squash", prUrl], {
+        cwd,
+        env: submitterEnv,
+      });
       if (!autoMergeResult.ok) {
         return { ok: false, reason: "gh_auto_merge_failed", output: autoMergeResult.output, pr_url: prUrl };
       }
