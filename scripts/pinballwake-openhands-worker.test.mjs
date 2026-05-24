@@ -49,6 +49,25 @@ describe("buildOpenHandsTaskPrompt", () => {
     assert.match(prompt, /docs\/openhands-integration\.md/);
     assert.match(prompt, /node --test scripts\/pinballwake-openhands-worker\.test\.mjs/);
   });
+
+  test("includes an exact docs fixture diff shape for the AFK canary seed", () => {
+    const prompt = buildOpenHandsTaskPrompt({
+      job: job({
+        todo_id: "8719dc4f-1650-4ea9-bca8-e92a9819f0ba",
+        claim_id: "coding-room-claim:unit-test",
+        title: "AFK canary seed: docs-only OpenHands proof fixture",
+        owned_files: ["docs/openhands-proof-fixture.md"],
+      }),
+      scopePack: scopePack({
+        owned_files: ["docs/openhands-proof-fixture.md"],
+        verification: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+      }),
+    });
+
+    assert.match(prompt, /Canary fixture diff:/);
+    assert.match(prompt, /diff --git a\/docs\/openhands-proof-fixture\.md b\/docs\/openhands-proof-fixture\.md/);
+    assert.match(prompt, /\+- proof run: coding-room-claim:unit-test/);
+  });
 });
 
 describe("runOpenHandsWorker", () => {

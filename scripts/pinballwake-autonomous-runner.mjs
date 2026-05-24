@@ -1790,6 +1790,7 @@ function createQuietWindowAutonomyProofReceipt({
   finalReason = "",
   commonsensepass = {},
   testOnlyExecutorPacket = null,
+  openHandsExecute = null,
 } = {}) {
   const triggerSource = normalizeQuietWindowToken(wakeSource || "unknown");
   const imported = numberOption(queueSourceResult.imported, 0);
@@ -1834,6 +1835,22 @@ function createQuietWindowAutonomyProofReceipt({
       at: now,
       packet_id: testOnlyExecutorPacket.packet.packet_id || null,
       receipt_type: testOnlyExecutorPacket.receipt?.receipt_type || null,
+    });
+  }
+
+  if (openHandsExecute?.receipt) {
+    events.push({
+      rung: "execution_packet",
+      at: now,
+      packet_id: openHandsExecute.receipt.job_id || claimedResult?.job?.job_id || null,
+      receipt_type: openHandsExecute.receipt.receipt_type || null,
+    });
+    events.push({
+      rung: "build_attempt",
+      at: now,
+      reason: openHandsExecute.reason || openHandsExecute.receipt.hold_reason || null,
+      receipt_type: openHandsExecute.receipt.receipt_type || null,
+      ok: Boolean(openHandsExecute.ok),
     });
   }
 
@@ -3110,6 +3127,7 @@ export async function runAutonomousRunnerFile({
     finalReason,
     commonsensepass,
     testOnlyExecutorPacket: todoClaimSync.test_only_executor_packet || todoScopingSync.test_only_executor_packet,
+    openHandsExecute: todoClaimSync.openhands_execute,
   });
   claimabilityScorecard = {
     ...claimabilityScorecard,

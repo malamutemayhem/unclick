@@ -196,6 +196,7 @@ export function buildOpenHandsTaskPrompt({ job = {}, scopePack = {} } = {}) {
   const ownedFiles = normalizeChangedFiles(scopePack.owned_files || job.owned_files || []);
   const acceptance = normalizeList(scopePack.acceptance || job.acceptance || job.expected_proof?.tests);
   const verification = normalizeList(scopePack.verification || scopePack.tests || []);
+  const fixtureDiffHint = buildFixtureDiffHint({ job, ownedFiles });
   const lines = [
     "You are OpenHands running in UnClick test mode.",
     "Return a unified diff patch only. Do not commit, push, merge, deploy, or touch secrets.",
@@ -218,7 +219,39 @@ export function buildOpenHandsTaskPrompt({ job = {}, scopePack = {} } = {}) {
     lines.push(compact(scopePack.body || scopePack.description, 4000));
   }
 
+  if (fixtureDiffHint) {
+    lines.push("Canary fixture diff:");
+    lines.push("For this fixture task, return this unified diff shape and nothing else:");
+    lines.push(fixtureDiffHint);
+  }
+
   return lines.join("\n");
+}
+
+function buildFixtureDiffHint({ job = {}, ownedFiles = [] } = {}) {
+  const fixtureFile = ownedFiles.find((file) => file === "docs/openhands-proof-fixture.md");
+  if (!fixtureFile) return "";
+
+  const proofId = compact(
+    job.claim_id ||
+      job.claimId ||
+      job.todo_id ||
+      job.id ||
+      job.job_id ||
+      "openhands-afk-canary",
+    160,
+  );
+  return [
+    `diff --git a/${fixtureFile} b/${fixtureFile}`,
+    `--- a/${fixtureFile}`,
+    `+++ b/${fixtureFile}`,
+    "@@ -3,4 +3,5 @@",
+    " This fixture exists so the autopilot can prove a docs-only patch path without",
+    " touching product code, production data, secrets, billing, DNS, or deploys.",
+    "",
+    " <!-- openhands-proof-lines -->",
+    `+- proof run: ${proofId}`,
+  ].join("\n");
 }
 
 export function isOpenHandsTestMode({ env = process.env, testMode = false } = {}) {
