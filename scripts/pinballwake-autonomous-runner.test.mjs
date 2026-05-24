@@ -78,7 +78,7 @@ describe("PinballWake autonomous Runner seat", () => {
 
     assert.equal(guard.scheduled_execute_canary, true);
     assert.equal(guard.require_scope_pack, true);
-    assert.equal(guard.queue_fetch_limit, 100);
+    assert.equal(guard.queue_fetch_limit, 50);
 
     const normal = resolveAutonomousRunnerQueueGuard({
       mode: "claim",
@@ -689,7 +689,9 @@ describe("PinballWake autonomous Runner seat", () => {
     });
     const calls = [];
     const fetchImpl = async (url, init = {}) => {
-      calls.push({ url, init });
+      const body = JSON.parse(init.body || "{}");
+      calls.push({ url, init, tool: body?.params?.name, args: body?.params?.arguments || {} });
+      const isAssigned = body?.params?.name === "list_todos";
       return {
         ok: true,
         async json() {
@@ -699,31 +701,34 @@ describe("PinballWake autonomous Runner seat", () => {
                 {
                   type: "text",
                   text: JSON.stringify({
-                    todos: [
-                      {
-                        id: "todo-old-unscoped",
-                        title: "Old urgent unscoped backlog",
-                        status: "open",
-                        priority: "urgent",
-                        assigned_to_agent_id: null,
-                        actionability_reason: "unassigned_open",
-                        created_at: "2026-05-01T00:00:00.000Z",
-                      },
-                      {
-                        id: "todo-canary-seed",
-                        title: "AFK canary seed: docs-only OpenHands proof fixture",
-                        status: "open",
-                        priority: "urgent",
-                        assigned_to_agent_id: "pinballwake-autonomous-runner",
-                        actionability_reason: "role_assigned_open",
-                        created_at: "2026-05-24T15:00:00.000Z",
-                        scope_pack: {
-                          owned_files: ["docs/openhands-proof-fixture.md"],
-                          tests: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
-                          role: "docs_update",
+                    todos: isAssigned
+                      ? [
+                        {
+                          id: "todo-canary-seed",
+                          title: "AFK canary seed: docs-only OpenHands proof fixture",
+                          status: "open",
+                          priority: "urgent",
+                          assigned_to_agent_id: "pinballwake-autonomous-runner",
+                          actionability_reason: "role_assigned_open",
+                          created_at: "2026-05-24T15:00:00.000Z",
+                          scope_pack: {
+                            owned_files: ["docs/openhands-proof-fixture.md"],
+                            tests: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+                            role: "docs_update",
+                          },
                         },
-                      },
-                    ],
+                      ]
+                      : [
+                        {
+                          id: "todo-old-unscoped",
+                          title: "Old urgent unscoped backlog",
+                          status: "open",
+                          priority: "urgent",
+                          assigned_to_agent_id: null,
+                          actionability_reason: "unassigned_open",
+                          created_at: "2026-05-01T00:00:00.000Z",
+                        },
+                      ],
                   }),
                 },
               ],
@@ -738,17 +743,23 @@ describe("PinballWake autonomous Runner seat", () => {
       runner: canaryRunner,
       apiKey: "uc_test",
       mcpUrl: "https://unclick.test/api/mcp",
-      limit: 100,
+      limit: 50,
       fetchImpl,
       wakeSource: "schedule",
       allowedTodoRoles: ["docs_update", "test_fix"],
       requireScopePack: true,
+      includeAssignedTodos: true,
       now: "2026-05-24T15:01:00.000Z",
     });
 
     assert.equal(result.ok, true);
-    assert.equal(calls.length, 1);
-    assert.match(calls[0].init.body, /"limit":100/);
+    assert.equal(calls.length, 2);
+    assert.equal(calls[0].tool, "list_todos");
+    assert.equal(calls[0].args.assigned_to_agent_id, "pinballwake-autonomous-runner");
+    assert.equal(calls[0].args.limit, 50);
+    assert.equal(calls[1].tool, "list_actionable_todos");
+    assert.equal(calls[1].args.limit, 50);
+    assert.equal(result.assigned_queue_source.seen, 1);
     assert.equal(result.skipped[0].id, "todo-old-unscoped");
     assert.equal(result.skipped[0].reason, "boardroom_todo_missing_scopepack");
     assert.equal(result.imported, 1);
