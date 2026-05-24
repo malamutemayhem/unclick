@@ -113,6 +113,31 @@ describe("OpenHands proof runner helpers", () => {
     assert.deepEqual(calls[0][1], ["--headless", "--json", "--override-with-envs", "--task", "Patch a docs file"]);
   });
 
+  test("returns a specific reason when the OpenHands CLI exits before a patch", async () => {
+    const runner = createOpenHandsCliRunner({
+      env: {
+        OPENHANDS_ARGS: "--headless --json --override-with-envs --task {prompt}",
+        LLM_API_KEY: "secret",
+        LLM_MODEL: "openai/gpt-5",
+      },
+      runProcess: async () => ({
+        ok: false,
+        exit_code: 1,
+        output: "OpenHands exited before producing a trusted unified diff.",
+      }),
+    });
+
+    const result = await runner({
+      prompt: "Patch a docs file",
+      scopePack: { owned_files: [FIXTURE] },
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "openhands_cli_failed");
+    assert.equal(result.exit_code, 1);
+    assert.match(result.output, /trusted unified diff/);
+  });
+
   test("runs fixture OpenHands through the worker and coderoom", async () => {
     let coderoomCalls = 0;
     const result = await runOpenHandsProof({

@@ -1823,6 +1823,16 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.equal(result.todo_claim_sync.reason, "openhands_build_attempt_recorded");
       assert.equal(result.todo_claim_sync.openhands_execute.receipt.receipt_type, "openhands_worker_pass");
       assert.equal(result.todo_claim_sync.openhands_execute.receipt.evidence.pr_url, "https://github.com/malamutemayhem/unclick/pull/920");
+      assert.equal(result.quiet_window_autonomy_proof.verdict, "PASS");
+      assert.deepEqual(result.quiet_window_autonomy_proof.evidence.observed_rungs, [
+        "tick",
+        "buildbait_crumb",
+        "claim_or_lease",
+        "execution_packet",
+        "build_attempt_or_commonsense_blocker",
+        "proof_packet",
+        "terminal_receipt",
+      ]);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

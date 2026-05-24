@@ -240,6 +240,7 @@ export function createOpenHandsCliRunner({
     if (!result.ok) {
       return {
         ok: false,
+        reason: "openhands_cli_failed",
         exit_code: result.exit_code,
         output: result.output,
       };

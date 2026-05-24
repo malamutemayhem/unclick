@@ -1839,6 +1839,7 @@ function createQuietWindowAutonomyProofReceipt({
   }
 
   if (openHandsExecute?.receipt) {
+    const evidence = openHandsExecute.receipt.evidence || {};
     events.push({
       rung: "execution_packet",
       at: now,
@@ -1852,6 +1853,22 @@ function createQuietWindowAutonomyProofReceipt({
       receipt_type: openHandsExecute.receipt.receipt_type || null,
       ok: Boolean(openHandsExecute.ok),
     });
+    if (openHandsExecute.ok && (evidence.pr_url || evidence.head_sha_after || evidence.changed_files?.length)) {
+      events.push({
+        rung: "proof_packet",
+        at: now,
+        pr_url: evidence.pr_url || null,
+        head_sha_after: evidence.head_sha_after || null,
+        changed_files: evidence.changed_files || [],
+        receipt_type: openHandsExecute.receipt.receipt_type || null,
+      });
+      events.push({
+        rung: "terminal_receipt",
+        at: now,
+        status: evidence.coderoom_status || "openhands_build_attempt_recorded",
+        receipt_type: openHandsExecute.receipt.receipt_type || null,
+      });
+    }
   }
 
   if (blockedResult || commonsensepass.verdict !== "PASS") {
