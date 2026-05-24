@@ -940,9 +940,69 @@ export async function fetchUnClickAssignedTodos({
   if (!result.ok) return result;
 
   const todos = Array.isArray(result.data?.todos) ? result.data.todos : [];
+  const enrichedTodos = [];
+  for (const todo of todos) {
+    const comments = await fetchUnClickTodoComments({
+      agentId,
+      todoId: todo.id,
+      mcpUrl,
+      apiKey,
+      fetchImpl,
+      limit: 10,
+    });
+    if (!comments.ok) {
+      return {
+        ok: false,
+        reason: "assigned_todo_comments_unavailable",
+        status: comments.status ?? null,
+        error: comments.error ?? comments.reason ?? null,
+        todo_id: todo.id || null,
+      };
+    }
+    const latestComment = comments.comments.at(-1);
+    enrichedTodos.push({
+      ...todo,
+      recent_comments: comments.comments,
+      latest_comment_text: todo.latest_comment_text || latestComment?.text || latestComment?.body || null,
+    });
+  }
   return {
     ok: true,
-    todos,
+    todos: enrichedTodos,
+    response_bounds: result.data?.response_bounds || null,
+  };
+}
+
+export async function fetchUnClickTodoComments({
+  agentId = DEFAULT_AUTONOMOUS_RUNNER.id,
+  todoId = "",
+  limit = 10,
+  mcpUrl = DEFAULT_UNCLICK_MCP_URL,
+  apiKey = "",
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  if (!todoId) {
+    return { ok: true, comments: [], response_bounds: null, skipped: true, reason: "missing_todo_id" };
+  }
+
+  const result = await callUnClickMcpTool({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    toolName: "list_comments",
+    arguments: {
+      agent_id: agentId,
+      target_kind: "todo",
+      target_id: todoId,
+      limit,
+    },
+  });
+
+  if (!result.ok) return result;
+
+  return {
+    ok: true,
+    comments: Array.isArray(result.data?.comments) ? result.data.comments : [],
     response_bounds: result.data?.response_bounds || null,
   };
 }

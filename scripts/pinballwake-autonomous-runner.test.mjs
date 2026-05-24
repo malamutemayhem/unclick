@@ -691,6 +691,18 @@ describe("PinballWake autonomous Runner seat", () => {
     const fetchImpl = async (url, init = {}) => {
       const body = JSON.parse(init.body || "{}");
       calls.push({ url, init, tool: body?.params?.name, args: body?.params?.arguments || {} });
+      if (body?.params?.name === "list_comments") {
+        return {
+          ok: true,
+          async json() {
+            return {
+              result: {
+                content: [{ type: "text", text: JSON.stringify({ comments: [] }) }],
+              },
+            };
+          },
+        };
+      }
       const isAssigned = body?.params?.name === "list_todos";
       return {
         ok: true,
@@ -753,12 +765,14 @@ describe("PinballWake autonomous Runner seat", () => {
     });
 
     assert.equal(result.ok, true);
-    assert.equal(calls.length, 2);
+    assert.equal(calls.length, 3);
     assert.equal(calls[0].tool, "list_todos");
     assert.equal(calls[0].args.assigned_to_agent_id, "pinballwake-autonomous-runner");
     assert.equal(calls[0].args.limit, 50);
-    assert.equal(calls[1].tool, "list_actionable_todos");
-    assert.equal(calls[1].args.limit, 50);
+    assert.equal(calls[1].tool, "list_comments");
+    assert.equal(calls[1].args.target_id, "todo-canary-seed");
+    assert.equal(calls[2].tool, "list_actionable_todos");
+    assert.equal(calls[2].args.limit, 50);
     assert.equal(result.assigned_queue_source.seen, 1);
     assert.equal(result.skipped[0].id, "todo-old-unscoped");
     assert.equal(result.skipped[0].reason, "boardroom_todo_missing_scopepack");
@@ -776,6 +790,39 @@ describe("PinballWake autonomous Runner seat", () => {
     const fetchImpl = async (_url, init = {}) => {
       const body = JSON.parse(init.body || "{}");
       calls.push({ tool: body?.params?.name, args: body?.params?.arguments || {} });
+      if (body?.params?.name === "list_comments") {
+        return {
+          ok: true,
+          async json() {
+            return {
+              result: {
+                content: [
+                  {
+                    type: "text",
+                    text: JSON.stringify({
+                      comments: [
+                        {
+                          id: "comment-canary-scopepack",
+                          text: [
+                            "ScopePack:",
+                            "```json",
+                            JSON.stringify({
+                              owned_files: ["docs/openhands-proof-fixture.md"],
+                              tests: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+                              role: "docs_update",
+                            }),
+                            "```",
+                          ].join("\n"),
+                        },
+                      ],
+                    }),
+                  },
+                ],
+              },
+            };
+          },
+        };
+      }
       assert.equal(body?.params?.name, "list_todos");
       return {
         ok: true,
@@ -795,11 +842,6 @@ describe("PinballWake autonomous Runner seat", () => {
                         assigned_to_agent_id: "pinballwake-autonomous-runner",
                         actionability_reason: "role_assigned_open",
                         created_at: "2026-05-24T15:00:00.000Z",
-                        scope_pack: {
-                          owned_files: ["docs/openhands-proof-fixture.md"],
-                          tests: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
-                          role: "docs_update",
-                        },
                       },
                     ],
                   }),
@@ -827,8 +869,10 @@ describe("PinballWake autonomous Runner seat", () => {
     });
 
     assert.equal(result.ok, true);
-    assert.equal(calls.length, 1);
+    assert.equal(calls.length, 2);
     assert.equal(calls[0].args.assigned_to_agent_id, "pinballwake-autonomous-runner");
+    assert.equal(calls[1].tool, "list_comments");
+    assert.equal(calls[1].args.target_id, "todo-canary-seed");
     assert.equal(result.imported, 1);
     assert.equal(result.ledger.jobs[0].job_id, "boardroom-todo:todo-canary-seed");
   });
