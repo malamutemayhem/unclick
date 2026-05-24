@@ -174,4 +174,41 @@ describe("AdminJobs", () => {
     expect(within(activeSection as HTMLElement).getByText("False green proof job")).toBeInTheDocument();
     expect(within(completedSection as HTMLElement).queryByText("False green proof job")).not.toBeInTheDocument();
   });
+
+  it("treats reopened jobs as open even when stale completion fields remain", async () => {
+    currentJobs = [
+      {
+        id: "reopened-job",
+        title: "Reopened truth job",
+        description: "Old closeout data should not make this look shipped.",
+        status: "done",
+        effective_status: "open",
+        priority: "urgent",
+        created_by_agent_id: "tester",
+        assigned_to_agent_id: null,
+        created_at: "2026-05-14T12:00:00.000Z",
+        completed_at: "2026-05-14T12:30:00.000Z",
+        updated_at: "2026-05-14T12:55:00.000Z",
+        comment_count: 3,
+        pipeline_stage_count: 5,
+        pipeline_progress: 100,
+        pipeline_evidence: ["build", "proof", "ship"],
+      },
+    ];
+
+    render(React.createElement(AdminJobs));
+
+    expect(await screen.findByText("Reopened truth job")).toBeInTheDocument();
+    expect(screen.getByText("open")).toBeInTheDocument();
+    expect(screen.getByText("live")).toBeInTheDocument();
+    expect(screen.getByText("10%")).toBeInTheDocument();
+    expect(screen.getByTestId("job-row-title")).not.toHaveClass("line-through");
+
+    const nextSection = screen.getByRole("button", { name: /Next up/i }).closest("section");
+    const completedSection = screen.getByRole("button", { name: /Completed/i }).closest("section");
+    expect(nextSection).not.toBeNull();
+    expect(completedSection).not.toBeNull();
+    expect(within(nextSection as HTMLElement).getByText("Reopened truth job")).toBeInTheDocument();
+    expect(within(completedSection as HTMLElement).queryByText("Reopened truth job")).not.toBeInTheDocument();
+  });
 });
