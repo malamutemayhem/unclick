@@ -24,7 +24,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | fd2479b601d8 | 13242 |
 | src/pages/admin/AdminShell.tsx | 7cfbba7277d3 | 19113 |
-| .github/workflows/ci.yml | eecbcaab421a | 1623 |
+| .github/workflows/ci.yml | b0a209c9c627 | 1559 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | package.json | 9f761ff407b1 | 4232 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
