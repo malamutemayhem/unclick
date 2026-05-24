@@ -229,6 +229,16 @@ function stableTodoJobId(todo = {}) {
   return `boardroom-todo:${String(todo.id || todo.todo_id || "unknown").trim()}`;
 }
 
+function mergeBoardroomTodosById(...todoLists) {
+  const merged = new Map();
+  for (const todo of todoLists.flat()) {
+    const id = String(todo?.id || todo?.todo_id || "").trim();
+    if (!id || merged.has(id)) continue;
+    merged.set(id, todo);
+  }
+  return [...merged.values()];
+}
+
 function priorityWeight(priority) {
   const raw = String(priority || "").trim().toLowerCase();
   if (raw === "urgent") return 100;
@@ -894,6 +904,36 @@ export async function fetchUnClickActionableTodos({
       agent_id: agentId,
       limit,
       include_description: true,
+    },
+  });
+
+  if (!result.ok) return result;
+
+  const todos = Array.isArray(result.data?.todos) ? result.data.todos : [];
+  return {
+    ok: true,
+    todos,
+    response_bounds: result.data?.response_bounds || null,
+  };
+}
+
+export async function fetchUnClickAssignedTodos({
+  agentId = DEFAULT_AUTONOMOUS_RUNNER.id,
+  limit = 10,
+  mcpUrl = DEFAULT_UNCLICK_MCP_URL,
+  apiKey = "",
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  const result = await callUnClickMcpTool({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    toolName: "list_todos",
+    arguments: {
+      agent_id: agentId,
+      assigned_to_agent_id: agentId,
+      status: "open",
+      limit,
     },
   });
 
@@ -2231,9 +2271,20 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
   allowedTodoRoles = DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedTodoRoles,
   allowProtectedSurfaces = false,
   requireScopePack = false,
+  includeAssignedTodos = false,
 } = {}) {
+  const agentId = runner.agent_id || runner.id || DEFAULT_AUTONOMOUS_RUNNER.id;
+  const assignedFetched = includeAssignedTodos
+    ? await fetchUnClickAssignedTodos({
+        agentId,
+        apiKey,
+        mcpUrl,
+        limit: Math.min(Math.max(limit, 1), 50),
+        fetchImpl,
+      })
+    : { ok: true, todos: [], response_bounds: null, skipped: true, reason: "assigned_queue_source_disabled" };
   const fetched = await fetchUnClickActionableTodos({
-    agentId: runner.agent_id || runner.id || DEFAULT_AUTONOMOUS_RUNNER.id,
+    agentId,
     apiKey,
     mcpUrl,
     limit,
@@ -2246,6 +2297,9 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
       reason: fetched.reason,
       status: fetched.status ?? null,
       error: fetched.error ?? null,
+      assigned_queue_source: assignedFetched.ok
+        ? { ok: true, seen: assignedFetched.todos.length, response_bounds: assignedFetched.response_bounds }
+        : assignedFetched,
       ledger: createCodingRoomJobLedger({ jobs: ledger?.jobs || [], updatedAt: ledger?.updated_at || now }),
       imported: 0,
       seen: 0,
@@ -2257,10 +2311,14 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
     };
   }
 
+  const combinedTodos = mergeBoardroomTodosById(
+    assignedFetched.ok ? assignedFetched.todos : [],
+    fetched.todos,
+  );
   const runnerAgentId = autonomousRunnerAgentId(runner);
   const assignedToRunnerWeight = (todo = {}) =>
     runnerAgentId && String(todo.assigned_to_agent_id || "").trim() === runnerAgentId ? 1 : 0;
-  const ordered = [...fetched.todos].sort((a, b) =>
+  const ordered = combinedTodos.sort((a, b) =>
     assignedToRunnerWeight(b) - assignedToRunnerWeight(a) ||
     priorityWeight(b.priority) - priorityWeight(a.priority) ||
     String(a.created_at || "").localeCompare(String(b.created_at || "")),
@@ -2325,6 +2383,9 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
     ledger: next,
     imported,
     seen: ordered.length,
+    assigned_queue_source: assignedFetched.ok
+      ? { ok: true, seen: assignedFetched.todos.length, response_bounds: assignedFetched.response_bounds }
+      : assignedFetched,
     skipped,
     claimability_scorecard: buildClaimabilityScorecard({
       seen: ordered.length,
@@ -2433,7 +2494,7 @@ export function resolveAutonomousRunnerQueueGuard({
 } = {}) {
   const canary = isScheduledExecuteCanaryPolicy({ mode, policy, wakeSource, todoLimit });
   const parsedQueueFetchLimit = Number.parseInt(String(queueFetchLimit ?? ""), 10);
-  const fallbackFetchLimit = canary ? 100 : todoLimit;
+  const fallbackFetchLimit = canary ? 50 : todoLimit;
   const effectiveFetchLimit = Number.isFinite(parsedQueueFetchLimit) ? parsedQueueFetchLimit : fallbackFetchLimit;
 
   return {
@@ -2728,6 +2789,7 @@ export async function runAutonomousRunnerFile({
         allowedTodoRoles: guardedPolicy.allowedTodoRoles,
         allowProtectedSurfaces: guardedPolicy.allowProtectedSurfaces,
         requireScopePack: guardedPolicy.requireScopePack,
+        includeAssignedTodos: queueGuard.scheduled_execute_canary,
       })),
       queue_guard: queueGuard,
     };
