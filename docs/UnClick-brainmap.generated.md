@@ -92,7 +92,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/elevenlabs-tool.ts | efcaeeff39d6 | 10833 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
-| .github/workflows/autonomous-runner.yml | 5aead42a5ec9 | 8340 |
+| .github/workflows/autonomous-runner.yml | f0d32d805710 | 14751 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
 | .github/workflows/dirty-branch-hygiene.yml | 9d192a7da041 | 2190 |
 | .github/workflows/dogfood-report.yml | d485b8d37111 | 3987 |
