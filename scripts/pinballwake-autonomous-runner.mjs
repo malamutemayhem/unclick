@@ -41,6 +41,7 @@ export const DEFAULT_AUTONOMOUS_RUNNER_POLICY = {
 };
 
 export const DEFAULT_UNCLICK_MCP_URL = "https://unclick.world/api/mcp";
+export const UNCLICK_TODO_COMMENT_HYDRATION_LIMIT = 50;
 
 const HOLD_TITLE_PATTERN = /\b(hold|blocker|blocked)\b/i;
 const HOLD_TITLE_MARKER_PATTERN = /^\s*(hold|blocker|blocked|dirty)\s*:/i;
@@ -948,7 +949,7 @@ export async function fetchUnClickAssignedTodos({
       mcpUrl,
       apiKey,
       fetchImpl,
-      limit: 10,
+      limit: UNCLICK_TODO_COMMENT_HYDRATION_LIMIT,
     });
     if (!comments.ok) {
       return {
@@ -959,7 +960,10 @@ export async function fetchUnClickAssignedTodos({
         todo_id: todo.id || null,
       };
     }
-    const latestComment = comments.comments.at(-1);
+    const latestComment = comments.comments
+      .filter(Boolean)
+      .sort((a, b) => String(a.created_at || "").localeCompare(String(b.created_at || "")))
+      .at(-1);
     enrichedTodos.push({
       ...todo,
       recent_comments: comments.comments,

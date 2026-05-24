@@ -791,6 +791,26 @@ describe("PinballWake autonomous Runner seat", () => {
       const body = JSON.parse(init.body || "{}");
       calls.push({ tool: body?.params?.name, args: body?.params?.arguments || {} });
       if (body?.params?.name === "list_comments") {
+        const comments = Array.from({ length: 11 }, (_, index) => ({
+          id: `old-comment-${index}`,
+          created_at: `2026-05-24T15:${String(index).padStart(2, "0")}:00.000Z`,
+          text: "Earlier non-ScopePack comment.",
+        }));
+        comments.push({
+          id: "comment-canary-scopepack",
+          created_at: "2026-05-24T18:20:07.608Z",
+          text: [
+            "ScopePack:",
+            "```json",
+            JSON.stringify({
+              owned_files: ["docs/openhands-proof-fixture.md"],
+              tests: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+              role: "docs_update",
+            }),
+            "```",
+          ].join("\n"),
+        });
+        const requestedLimit = Number(body?.params?.arguments?.limit || 10);
         return {
           ok: true,
           async json() {
@@ -800,21 +820,7 @@ describe("PinballWake autonomous Runner seat", () => {
                   {
                     type: "text",
                     text: JSON.stringify({
-                      comments: [
-                        {
-                          id: "comment-canary-scopepack",
-                          text: [
-                            "ScopePack:",
-                            "```json",
-                            JSON.stringify({
-                              owned_files: ["docs/openhands-proof-fixture.md"],
-                              tests: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
-                              role: "docs_update",
-                            }),
-                            "```",
-                          ].join("\n"),
-                        },
-                      ],
+                      comments: comments.slice(0, requestedLimit),
                     }),
                   },
                 ],
@@ -873,6 +879,7 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(calls[0].args.assigned_to_agent_id, "pinballwake-autonomous-runner");
     assert.equal(calls[1].tool, "list_comments");
     assert.equal(calls[1].args.target_id, "todo-canary-seed");
+    assert.equal(calls[1].args.limit, 50);
     assert.equal(result.imported, 1);
     assert.equal(result.ledger.jobs[0].job_id, "boardroom-todo:todo-canary-seed");
   });
