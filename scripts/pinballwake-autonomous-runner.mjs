@@ -1250,7 +1250,7 @@ function boardroomClaimAgentId(runner = {}) {
   return safeRunner.agent_id || safeRunner.id || DEFAULT_AUTONOMOUS_RUNNER.id;
 }
 
-function validateBoardroomClaimSourceState(job = {}) {
+function validateBoardroomClaimSourceState(job = {}, { agentId = "" } = {}) {
   const state = job?.source_state || {};
   if (!state || typeof state !== "object") {
     return { ok: false, reason: "missing_boardroom_claim_source_state" };
@@ -1262,7 +1262,8 @@ function validateBoardroomClaimSourceState(job = {}) {
   }
 
   const sourceAssignee = String(state.assigned_to_agent_id || "").trim();
-  if (sourceAssignee) {
+  const runnerAgentId = String(agentId || "").trim();
+  if (sourceAssignee && sourceAssignee !== runnerAgentId) {
     return {
       ok: false,
       reason: "boardroom_todo_already_assigned",
@@ -1301,7 +1302,7 @@ export async function syncClaimedBoardroomTodoToUnClick({
   }
 
   const agentId = boardroomClaimAgentId(runner);
-  const sourceState = validateBoardroomClaimSourceState(job);
+  const sourceState = validateBoardroomClaimSourceState(job, { agentId });
   if (!sourceState.ok) {
     return {
       ok: false,

@@ -1731,7 +1731,7 @@ describe("PinballWake autonomous Runner seat", () => {
                             title: "OpenHands execute bridge proof",
                             status: "open",
                             priority: "high",
-                            assigned_to_agent_id: null,
+                            assigned_to_agent_id: "runner-plex-1",
                             created_at: "2026-05-08T05:00:00.000Z",
                             scope_pack: {
                               owned_files: ["docs/runner-scope.md"],
