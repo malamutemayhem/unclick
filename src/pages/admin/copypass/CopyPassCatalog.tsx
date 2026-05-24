@@ -96,7 +96,8 @@ export default function CopyPassCatalog() {
               <h2 className="text-sm font-semibold text-white">Available now through MCP scaffold</h2>
               <p className="mt-1 text-sm text-[#888]">
                 `copypass_run` accepts `copy_text` plus optional `channel`, `audience`, and `goal` fields today.
-                `copypass_status` polls the in-session scaffold run record.
+                For exact-copy work, send `copyroom_required: true` with `copyroom_source_packet` so missing source proof blocks instead of returning a null receipt.
+                `copypass_status` polls the in-session scaffold run record and attached CopyRoom receipt.
               </p>
             </div>
           </div>

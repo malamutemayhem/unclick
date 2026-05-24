@@ -117,8 +117,11 @@ Use these lanes in sequence:
 1. NudgeOnly spots a painpoint or asks for a receipt.
 2. IgniteOnly turns verified evidence into a worker wake packet.
 3. PushOnly emits the worker-facing push envelope.
+4. The Action Heartbeat or builder tether does one safe runnable step, or posts the exact executor blocker.
 
 None of these lanes can build, merge, close, approve, assign ownership, mark done, or overwrite source-of-truth state.
+
+Important: a repeated NudgeOnly bridge without IgniteOnly, PushOnly, or executor proof is not progress. Treat it as a handoff gap and keep moving the chain.
 
 ### GitHub Actions
 

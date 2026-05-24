@@ -18,7 +18,7 @@ import {
 import { evaluateOrchestratorProofWakeGate } from "./lib/autopilotkit-liveness.mjs";
 import { processScopePackTestOnlyExecutorPacket } from "./pinballwake-executor-lane.mjs";
 import { runOpenHandsWorker } from "./pinballwake-openhands-worker.mjs";
-import { createOpenHandsCliRunner } from "./pinballwake-openhands-proof-runner.mjs";
+import { createOpenHandsCliRunner, createSafeCodeRoomSubmitter } from "./pinballwake-openhands-proof-runner.mjs";
 import { buildScopePackHydrationReceipt } from "./pinballwake-scopepack-hydrator.mjs";
 
 export const AUTONOMOUS_RUNNER_MODES = new Set(["dry-run", "claim", "execute"]);
@@ -33,6 +33,7 @@ export const DEFAULT_AUTONOMOUS_RUNNER_POLICY = {
   disabled: false,
   allowProtectedSurfaces: false,
   allowExecute: false,
+  requireScopePack: false,
   maxCycles: 1,
   allowedPriorities: ["urgent", "high"],
   allowedActionReasons: ["unassigned_open"],
@@ -40,6 +41,7 @@ export const DEFAULT_AUTONOMOUS_RUNNER_POLICY = {
 };
 
 export const DEFAULT_UNCLICK_MCP_URL = "https://unclick.world/api/mcp";
+export const UNCLICK_TODO_COMMENT_HYDRATION_LIMIT = 50;
 
 const HOLD_TITLE_PATTERN = /\b(hold|blocker|blocked)\b/i;
 const HOLD_TITLE_MARKER_PATTERN = /^\s*(hold|blocker|blocked|dirty)\s*:/i;
@@ -226,6 +228,16 @@ function memoryAdminActionUrlFromMcpUrl(mcpUrl = DEFAULT_UNCLICK_MCP_URL, action
 
 function stableTodoJobId(todo = {}) {
   return `boardroom-todo:${String(todo.id || todo.todo_id || "unknown").trim()}`;
+}
+
+function mergeBoardroomTodosById(...todoLists) {
+  const merged = new Map();
+  for (const todo of todoLists.flat()) {
+    const id = String(todo?.id || todo?.todo_id || "").trim();
+    if (!id || merged.has(id)) continue;
+    merged.set(id, todo);
+  }
+  return [...merged.values()];
 }
 
 function priorityWeight(priority) {
@@ -570,6 +582,7 @@ export function createAutonomousRunnerOpenHandsExecutorFromEnv(env = process.env
   return {
     enabled,
     openHands: enabled ? createOpenHandsCliRunner({ env: safeEnv }) : null,
+    coderoom: enabled ? createSafeCodeRoomSubmitter({ env: safeEnv }) : null,
     env: safeEnv,
     testMode: parseBoolean(safeEnv.OPENHANDS_TEST_MODE),
     executorSeatId: safeEnv.OPENHANDS_EXECUTOR_SEAT_ID || "pinballwake-openhands-worker",
@@ -901,6 +914,99 @@ export async function fetchUnClickActionableTodos({
   return {
     ok: true,
     todos,
+    response_bounds: result.data?.response_bounds || null,
+  };
+}
+
+export async function fetchUnClickAssignedTodos({
+  agentId = DEFAULT_AUTONOMOUS_RUNNER.id,
+  limit = 10,
+  mcpUrl = DEFAULT_UNCLICK_MCP_URL,
+  apiKey = "",
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  const result = await callUnClickMcpTool({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    toolName: "list_todos",
+    arguments: {
+      agent_id: agentId,
+      assigned_to_agent_id: agentId,
+      status: "open",
+      limit,
+    },
+  });
+
+  if (!result.ok) return result;
+
+  const todos = Array.isArray(result.data?.todos) ? result.data.todos : [];
+  const enrichedTodos = [];
+  for (const todo of todos) {
+    const comments = await fetchUnClickTodoComments({
+      agentId,
+      todoId: todo.id,
+      mcpUrl,
+      apiKey,
+      fetchImpl,
+      limit: UNCLICK_TODO_COMMENT_HYDRATION_LIMIT,
+    });
+    if (!comments.ok) {
+      return {
+        ok: false,
+        reason: "assigned_todo_comments_unavailable",
+        status: comments.status ?? null,
+        error: comments.error ?? comments.reason ?? null,
+        todo_id: todo.id || null,
+      };
+    }
+    const latestComment = comments.comments
+      .filter(Boolean)
+      .sort((a, b) => String(a.created_at || "").localeCompare(String(b.created_at || "")))
+      .at(-1);
+    enrichedTodos.push({
+      ...todo,
+      recent_comments: comments.comments,
+      latest_comment_text: todo.latest_comment_text || latestComment?.text || latestComment?.body || null,
+    });
+  }
+  return {
+    ok: true,
+    todos: enrichedTodos,
+    response_bounds: result.data?.response_bounds || null,
+  };
+}
+
+export async function fetchUnClickTodoComments({
+  agentId = DEFAULT_AUTONOMOUS_RUNNER.id,
+  todoId = "",
+  limit = 10,
+  mcpUrl = DEFAULT_UNCLICK_MCP_URL,
+  apiKey = "",
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  if (!todoId) {
+    return { ok: true, comments: [], response_bounds: null, skipped: true, reason: "missing_todo_id" };
+  }
+
+  const result = await callUnClickMcpTool({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    toolName: "list_comments",
+    arguments: {
+      agent_id: agentId,
+      target_kind: "todo",
+      target_id: todoId,
+      limit,
+    },
+  });
+
+  if (!result.ok) return result;
+
+  return {
+    ok: true,
+    comments: Array.isArray(result.data?.comments) ? result.data.comments : [],
     response_bounds: result.data?.response_bounds || null,
   };
 }
@@ -2132,11 +2238,15 @@ export function evaluateBoardroomTodoAutoClaimEligibility(
     allowedActionReasons = DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedActionReasons,
     allowedTodoRoles = DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedTodoRoles,
     allowProtectedSurfaces = false,
+    requireScopePack = false,
     runner = DEFAULT_AUTONOMOUS_RUNNER,
     now = new Date().toISOString(),
   } = {},
 ) {
   if (!scopePack.hasScopePack) {
+    if (requireScopePack) {
+      return { ok: false, reason: "boardroom_todo_missing_scopepack" };
+    }
     return { ok: true, reason: "missing_scopepack_kept_for_scoping" };
   }
 
@@ -2224,14 +2334,61 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
   allowedActionReasons = DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedActionReasons,
   allowedTodoRoles = DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedTodoRoles,
   allowProtectedSurfaces = false,
+  requireScopePack = false,
+  includeAssignedTodos = false,
+  requireAssignedQueue = false,
 } = {}) {
-  const fetched = await fetchUnClickActionableTodos({
-    agentId: runner.agent_id || runner.id || DEFAULT_AUTONOMOUS_RUNNER.id,
-    apiKey,
-    mcpUrl,
-    limit,
-    fetchImpl,
-  });
+  const agentId = runner.agent_id || runner.id || DEFAULT_AUTONOMOUS_RUNNER.id;
+  const assignedFetched = includeAssignedTodos
+    ? await fetchUnClickAssignedTodos({
+        agentId,
+        apiKey,
+        mcpUrl,
+        limit: Math.min(Math.max(limit, 1), 50),
+        fetchImpl,
+      })
+    : { ok: true, todos: [], response_bounds: null, skipped: true, reason: "assigned_queue_source_disabled" };
+  if (includeAssignedTodos && requireAssignedQueue && !assignedFetched.ok) {
+    return {
+      ok: false,
+      reason: "assigned_queue_source_unavailable",
+      status: assignedFetched.status ?? null,
+      error: assignedFetched.error ?? null,
+      assigned_queue_source: assignedFetched,
+      ledger: createCodingRoomJobLedger({ jobs: ledger?.jobs || [], updatedAt: ledger?.updated_at || now }),
+      imported: 0,
+      seen: 0,
+      claimability_scorecard: {
+        ...buildClaimabilityScorecard(),
+        state: "queue_unavailable",
+        healthy: false,
+      },
+    };
+  }
+  if (includeAssignedTodos && requireAssignedQueue && assignedFetched.todos.length === 0) {
+    return {
+      ok: false,
+      reason: "assigned_canary_seed_missing",
+      assigned_queue_source: { ok: true, seen: 0, response_bounds: assignedFetched.response_bounds },
+      ledger: createCodingRoomJobLedger({ jobs: ledger?.jobs || [], updatedAt: ledger?.updated_at || now }),
+      imported: 0,
+      seen: 0,
+      claimability_scorecard: {
+        ...buildClaimabilityScorecard(),
+        state: "blocked_no_claimable",
+        healthy: false,
+      },
+    };
+  }
+  const fetched = includeAssignedTodos && requireAssignedQueue
+    ? { ok: true, todos: [], response_bounds: null, skipped: true, reason: "assigned_queue_required" }
+    : await fetchUnClickActionableTodos({
+        agentId,
+        apiKey,
+        mcpUrl,
+        limit,
+        fetchImpl,
+      });
 
   if (!fetched.ok) {
     return {
@@ -2239,6 +2396,9 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
       reason: fetched.reason,
       status: fetched.status ?? null,
       error: fetched.error ?? null,
+      assigned_queue_source: assignedFetched.ok
+        ? { ok: true, seen: assignedFetched.todos.length, response_bounds: assignedFetched.response_bounds }
+        : assignedFetched,
       ledger: createCodingRoomJobLedger({ jobs: ledger?.jobs || [], updatedAt: ledger?.updated_at || now }),
       imported: 0,
       seen: 0,
@@ -2250,7 +2410,15 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
     };
   }
 
-  const ordered = [...fetched.todos].sort((a, b) =>
+  const combinedTodos = mergeBoardroomTodosById(
+    assignedFetched.ok ? assignedFetched.todos : [],
+    fetched.todos,
+  );
+  const runnerAgentId = autonomousRunnerAgentId(runner);
+  const assignedToRunnerWeight = (todo = {}) =>
+    runnerAgentId && String(todo.assigned_to_agent_id || "").trim() === runnerAgentId ? 1 : 0;
+  const ordered = combinedTodos.sort((a, b) =>
+    assignedToRunnerWeight(b) - assignedToRunnerWeight(a) ||
     priorityWeight(b.priority) - priorityWeight(a.priority) ||
     String(a.created_at || "").localeCompare(String(b.created_at || "")),
   );
@@ -2267,6 +2435,7 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
       allowedActionReasons,
       allowedTodoRoles,
       allowProtectedSurfaces,
+      requireScopePack,
       runner,
       now,
     });
@@ -2313,6 +2482,9 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
     ledger: next,
     imported,
     seen: ordered.length,
+    assigned_queue_source: assignedFetched.ok
+      ? { ok: true, seen: assignedFetched.todos.length, response_bounds: assignedFetched.response_bounds }
+      : assignedFetched,
     skipped,
     claimability_scorecard: buildClaimabilityScorecard({
       seen: ordered.length,
@@ -2378,6 +2550,7 @@ export function createAutonomousRunnerPolicy(input = {}) {
     disabled: Boolean(input.disabled),
     allowProtectedSurfaces: Boolean(input.allowProtectedSurfaces),
     allowExecute: Boolean(input.allowExecute),
+    requireScopePack: Boolean(input.requireScopePack),
     maxCycles: Math.max(1, Number.isFinite(input.maxCycles) ? input.maxCycles : DEFAULT_AUTONOMOUS_RUNNER_POLICY.maxCycles),
     allowedPriorities: parseList(input.allowedPriorities, DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedPriorities),
     allowedActionReasons: parseList(input.allowedActionReasons, DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedActionReasons),
@@ -2388,6 +2561,46 @@ export function createAutonomousRunnerPolicy(input = {}) {
 export function normalizeAutonomousRunnerMode(value) {
   const mode = String(value || "dry-run").trim().toLowerCase();
   return AUTONOMOUS_RUNNER_MODES.has(mode) ? mode : "dry-run";
+}
+
+export function isScheduledExecuteCanaryPolicy({
+  mode = "dry-run",
+  policy = DEFAULT_AUTONOMOUS_RUNNER_POLICY,
+  wakeSource = "unknown",
+  todoLimit = 10,
+} = {}) {
+  const safeMode = normalizeAutonomousRunnerMode(mode);
+  const safePolicy = createAutonomousRunnerPolicy(policy);
+  const roles = new Set(safePolicy.allowedTodoRoles.map(normalizeToken).filter(Boolean));
+
+  return (
+    safeMode === "execute" &&
+    safePolicy.allowExecute &&
+    normalizeToken(wakeSource) === "schedule" &&
+    Number(todoLimit) === 1 &&
+    roles.size === 2 &&
+    roles.has("docs_update") &&
+    roles.has("test_fix")
+  );
+}
+
+export function resolveAutonomousRunnerQueueGuard({
+  mode = "dry-run",
+  policy = DEFAULT_AUTONOMOUS_RUNNER_POLICY,
+  wakeSource = "unknown",
+  todoLimit = 10,
+  queueFetchLimit = null,
+} = {}) {
+  const canary = isScheduledExecuteCanaryPolicy({ mode, policy, wakeSource, todoLimit });
+  const parsedQueueFetchLimit = Number.parseInt(String(queueFetchLimit ?? ""), 10);
+  const fallbackFetchLimit = canary ? 50 : todoLimit;
+  const effectiveFetchLimit = Number.isFinite(parsedQueueFetchLimit) ? parsedQueueFetchLimit : fallbackFetchLimit;
+
+  return {
+    scheduled_execute_canary: canary,
+    queue_fetch_limit: Math.max(Number(todoLimit) || 1, effectiveFetchLimit || 1),
+    require_scope_pack: canary || Boolean(policy?.requireScopePack),
+  };
 }
 
 export function inspectAutonomousRunnerJobSafety(job) {
@@ -2546,6 +2759,7 @@ export async function runAutonomousRunnerFile({
   unclickApiKey = "",
   unclickMcpUrl = DEFAULT_UNCLICK_MCP_URL,
   todoLimit = 10,
+  queueFetchLimit = null,
   fetchImpl = globalThis.fetch,
   now = new Date().toISOString(),
   leaseSeconds,
@@ -2569,6 +2783,7 @@ export async function runAutonomousRunnerFile({
   worktreeCwd = process.cwd(),
   gitHygieneIgnoredPaths = [],
   openHandsExecutor = null,
+  requireAssignedQueue = false,
 } = {}) {
   if (orchestratorProof) {
     return runOrchestratorSeatHandshakeProof({
@@ -2606,8 +2821,19 @@ export async function runAutonomousRunnerFile({
     return { ok: false, reason: "missing_ledger_path", main_freshness_canary: mainFreshnessCanary };
   }
 
-  const safePolicy = createAutonomousRunnerPolicy(policy);
   const safeMode = normalizeAutonomousRunnerMode(mode);
+  const safePolicy = createAutonomousRunnerPolicy(policy);
+  const queueGuard = resolveAutonomousRunnerQueueGuard({
+    mode: safeMode,
+    policy: safePolicy,
+    wakeSource,
+    todoLimit,
+    queueFetchLimit,
+  });
+  const guardedPolicy = createAutonomousRunnerPolicy({
+    ...safePolicy,
+    requireScopePack: queueGuard.require_scope_pack,
+  });
   let ledger = await readCodingRoomJobLedger(ledgerPath);
   let queueSourceResult = {
     ok: true,
@@ -2639,6 +2865,7 @@ export async function runAutonomousRunnerFile({
         ledger,
         ledger_path: ledgerPath,
         queue_source: queueSourceResult,
+        queue_guard: queueGuard,
         git_hygiene: gitHygiene,
         main_freshness_canary: mainFreshnessCanary,
       };
@@ -2654,14 +2881,18 @@ export async function runAutonomousRunnerFile({
         now,
         apiKey: unclickApiKey,
         mcpUrl: unclickMcpUrl,
-        limit: todoLimit,
+        limit: queueGuard.queue_fetch_limit,
         fetchImpl,
         wakeSource,
-        allowedPriorities: safePolicy.allowedPriorities,
-        allowedActionReasons: safePolicy.allowedActionReasons,
-        allowedTodoRoles: safePolicy.allowedTodoRoles,
-        allowProtectedSurfaces: safePolicy.allowProtectedSurfaces,
+        allowedPriorities: guardedPolicy.allowedPriorities,
+        allowedActionReasons: guardedPolicy.allowedActionReasons,
+        allowedTodoRoles: guardedPolicy.allowedTodoRoles,
+        allowProtectedSurfaces: guardedPolicy.allowProtectedSurfaces,
+        requireScopePack: guardedPolicy.requireScopePack,
+        includeAssignedTodos: queueGuard.scheduled_execute_canary,
+        requireAssignedQueue: queueGuard.scheduled_execute_canary && requireAssignedQueue,
       })),
+      queue_guard: queueGuard,
     };
     ledger = queueSourceResult.ledger || ledger;
 
@@ -2677,6 +2908,7 @@ export async function runAutonomousRunnerFile({
         ledger,
         ledger_path: ledgerPath,
         queue_source: queueSourceResult,
+        queue_guard: queueGuard,
         claimability_scorecard: queueSourceResult.claimability_scorecard,
         main_freshness_canary: mainFreshnessCanary,
       };
@@ -2690,7 +2922,7 @@ export async function runAutonomousRunnerFile({
       ledger,
       runner,
       mode: safeMode,
-      policy: safePolicy,
+      policy: guardedPolicy,
       now,
       leaseSeconds,
     });
@@ -2772,11 +3004,22 @@ export async function runAutonomousRunnerFile({
         ledger,
         ledger_path: ledgerPath,
         queue_source: queueSourceResult,
+        queue_guard: queueGuard,
         claimability_scorecard: claimabilityScorecard,
         todo_claim_sync: todoClaimSync,
         main_freshness_canary: mainFreshnessCanary,
       };
     }
+  }
+
+  const openHandsExecuteHold =
+    safeMode === "execute" &&
+    safePolicy.allowExecute &&
+    todoClaimSync?.openhands_execute &&
+    !todoClaimSync.openhands_execute.ok;
+  if (openHandsExecuteHold) {
+    finalAction = "blocked";
+    finalReason = todoClaimSync.openhands_execute.reason || "openhands_execute_failed";
   }
 
   if (shouldPersist && todoForScoping) {
@@ -2808,6 +3051,7 @@ export async function runAutonomousRunnerFile({
         ledger,
         ledger_path: ledgerPath,
         queue_source: queueSourceResult,
+        queue_guard: queueGuard,
         claimability_scorecard: claimabilityScorecard,
         todo_claim_sync: todoClaimSync,
         todo_scoping_sync: todoScopingSync,
@@ -2879,7 +3123,12 @@ export async function runAutonomousRunnerFile({
 
   return {
     ...last,
-    ok: commonsensepass.verdict === "PASS" && results.every((result) => result.ok) && todoClaimSync.ok && todoScopingSync.ok,
+    ok:
+      commonsensepass.verdict === "PASS" &&
+      results.every((result) => result.ok) &&
+      todoClaimSync.ok &&
+      todoScopingSync.ok &&
+      !openHandsExecuteHold,
     action: finalAction,
     reason: finalReason,
     mode: safeMode,
@@ -2889,6 +3138,7 @@ export async function runAutonomousRunnerFile({
     ledger,
     ledger_path: ledgerPath,
     queue_source: queueSourceResult,
+    queue_guard: queueGuard,
     claimability_scorecard: claimabilityScorecard,
     commonsensepass,
     quiet_window_autonomy_proof: quietWindowAutonomyProof,
@@ -2912,6 +3162,7 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
     unclickApiKey: getArg("unclick-api-key", process.env.UNCLICK_API_KEY || ""),
     unclickMcpUrl: getArg("unclick-mcp-url", process.env.UNCLICK_MCP_URL || DEFAULT_UNCLICK_MCP_URL),
     todoLimit: parseIntOption(getArg("todo-limit", process.env.AUTONOMOUS_RUNNER_TODO_LIMIT), 10),
+    queueFetchLimit: getArg("queue-fetch-limit", process.env.AUTONOMOUS_RUNNER_QUEUE_FETCH_LIMIT || ""),
     leaseSeconds: parseIntOption(getArg("lease-seconds", process.env.CODING_ROOM_LEASE_SECONDS), undefined),
     wakeSource: getArg("wake-source", process.env.AUTONOMOUS_RUNNER_WAKE_SOURCE || process.env.GITHUB_EVENT_NAME || "unknown"),
     orchestratorProof: parseBoolean(getArg("orchestrator-proof", process.env.AUTONOMOUS_RUNNER_ORCHESTRATOR_PROOF)),
@@ -2959,10 +3210,14 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
       getArg("skip-git-hygiene-preflight", process.env.AUTONOMOUS_RUNNER_SKIP_GIT_HYGIENE_PREFLIGHT),
     ),
     openHandsExecutor: createAutonomousRunnerOpenHandsExecutorFromEnv(process.env),
+    requireAssignedQueue: parseBoolean(
+      getArg("require-assigned-queue", process.env.AUTONOMOUS_RUNNER_REQUIRE_ASSIGNED_QUEUE),
+    ),
     policy: createAutonomousRunnerPolicy({
       disabled: parseBoolean(process.env.AUTONOMOUS_RUNNER_DISABLED),
       allowProtectedSurfaces: parseBoolean(process.env.AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES),
       allowExecute: parseBoolean(process.env.AUTONOMOUS_RUNNER_ALLOW_EXECUTE),
+      requireScopePack: parseBoolean(process.env.AUTONOMOUS_RUNNER_REQUIRE_SCOPEPACK),
       maxCycles: parseIntOption(getArg("max-cycles", process.env.AUTONOMOUS_RUNNER_MAX_CYCLES), 1),
       allowedPriorities: process.env.AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES,
       allowedActionReasons: process.env.AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS,

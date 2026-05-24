@@ -800,6 +800,12 @@ import {
   copypassStatus,
 } from "./copypass-tool.js";
 
+// --- FidelityCopy / FidelityPass (deterministic preserve-lane receipts) ------
+import {
+  fidelitycopyCopy,
+  fidelitypassVerifyCopy,
+} from "./fidelitycopy-tool.js";
+
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
 
@@ -9605,6 +9611,8 @@ export const ADDITIONAL_TOOLS = [
         created_at: { type: "string", description: "Optional ISO timestamp for the source handoff or request." },
         now: { type: "string", description: "Optional ISO timestamp used for deterministic TTL checks." },
         ttl_minutes: { type: "number", description: "Minutes before missing ACK/proof becomes an escalation request. Default: 60." },
+        owner_last_seen_at: { type: "string", description: "Optional ISO timestamp for the current owner's last real check-in. Past TTL is treated as an expired ownership lease." },
+        owner_silent_minutes: { type: "number", description: "Optional owner silence age in minutes. Past TTL is treated as an expired ownership lease." },
         nudge_trace_id: { type: "string", description: "Optional trace_id from nudgeonly_api." },
       },
     },
@@ -12311,21 +12319,39 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
-  // ── copypass-tool.ts (copy quality QC, scaffold-only for Chunk 1) ────────
+  // ── copypass-tool.ts (copy quality QC with CopyRoom receipt support) ─────
   {
     name: "copypass_run",
-    description: "Start a scaffold CopyPass run for AI-generated copy. Chunk 1 stores an in-session run record and echoes operator context so later evidence-led copy checks can plug into a stable shape.",
+    description: "Start a CopyPass run for AI-generated copy. When exact fidelity matters, set copyroom_required=true and pass copyroom_source_packet so the run attaches a CopyRoom receipt instead of relying on retyped source text.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        copy_text: { type: "string", description: "The AI-generated copy to review." },
+        copy_text: { type: "string", description: "The AI-generated copy to review. Optional when copyroom_source_packet is provided; exact-copy verification compares this text byte-for-byte against the packet." },
+        copyroom_required: {
+          type: "boolean",
+          description: "Set true when exact fidelity matters. Missing copyroom_source_packet returns COPYROOM_MISSING instead of a run with a null receipt.",
+        },
+        copyroom_source_packet: {
+          type: "object",
+          additionalProperties: false,
+          description: "Exact source packet for CopyRoom fidelity work. Use this instead of retyping source text when code, prompts, labels, tables, documents, or user-provided text must stay exact.",
+          properties: {
+            source_id: { type: "string", description: "Stable source identifier." },
+            source_pointer: { type: "string", description: "Pointer to the CopyRoom/source location." },
+            text: { type: "string", description: "Exact source text to copy or verify." },
+            encoding: { type: "string", enum: ["utf8"], description: "CopyRoom v1 encoding. Defaults to utf8." },
+            newline_policy: { type: "string", enum: ["preserve"], description: "CopyRoom v1 newline policy. Defaults to preserve." },
+          },
+          required: ["source_id", "source_pointer", "text"],
+        },
+        copyroom_output_pointer: { type: "string", description: "Pointer to the intended output artifact for the CopyRoom receipt." },
         channel: { type: "string", description: "Optional surface label such as homepage_hero, pricing_section, or onboarding_email." },
         audience: { type: "string", description: "Optional intended audience for the copy." },
         goal: { type: "string", description: "Optional goal for the copy, such as clarity, conversion, or trust." },
         profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Reserved for later evaluator depth. Defaults to smoke." },
       },
-      required: ["copy_text"],
+      required: [],
     },
   },
   {
@@ -12338,6 +12364,68 @@ export const ADDITIONAL_TOOLS = [
         run_id: { type: "string", description: "The run id returned by copypass_run" },
       },
       required: ["run_id"],
+    },
+  },
+
+  // -- fidelitycopy-tool.ts (deterministic exact-copy receipts) ---------------
+  {
+    name: "fidelitycopy_copy",
+    description:
+      "Create a deterministic FidelityCopy receipt for exact copy work. AI may request the copy, but this tool computes source/output hashes and returns PASS only when the selected mode proves exact or approved fidelity.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        source_text: { type: "string", description: "Exact source text to copy. Mutually exclusive with source_base64." },
+        source_base64: { type: "string", description: "Exact source bytes as base64. Mutually exclusive with source_text." },
+        source_ref: { type: "string", description: "Source pointer used in the receipt." },
+        destination_label: { type: "string", description: "Human label for the output destination when output_ref is not supplied." },
+        output_ref: { type: "string", description: "Output pointer used in the receipt." },
+        output_text: { type: "string", description: "Output text for approved_transform mode." },
+        output_base64: { type: "string", description: "Output bytes for approved_transform mode as base64." },
+        mode: {
+          type: "string",
+          enum: ["raw_bytes", "text_exact", "json_canonical", "approved_transform"],
+          description: "Verification mode. Defaults to raw_bytes.",
+        },
+        allowed_changes: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "Required for approved_transform PASS.",
+        },
+        provenance_ref: { type: "string", description: "Optional Boardroom, issue, PR, or CopyRoom pointer for audit trail." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "fidelitypass_verify_copy",
+    description:
+      "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes. Missing bytes, stale metadata, or prose-only AI proof cannot PASS.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        source_text: { type: "string", description: "Exact source text to verify. Mutually exclusive with source_base64." },
+        source_base64: { type: "string", description: "Exact source bytes as base64. Mutually exclusive with source_text." },
+        output_text: { type: "string", description: "Exact output text to verify. Mutually exclusive with output_base64." },
+        output_base64: { type: "string", description: "Exact output bytes as base64. Mutually exclusive with output_text." },
+        source_ref: { type: "string", description: "Source pointer used in the recomputed receipt." },
+        output_ref: { type: "string", description: "Output pointer used in the recomputed receipt." },
+        mode: {
+          type: "string",
+          enum: ["raw_bytes", "text_exact", "json_canonical", "approved_transform"],
+          description: "Verification mode. Defaults to raw_bytes or the provided receipt mode.",
+        },
+        receipt: { type: "object", description: "Optional previous FidelityCopy receipt to compare against recomputed hashes." },
+        receipt_payload: { type: "object", description: "Alias for receipt." },
+        proof_text: { type: "string", description: "Optional prose proof. Prose alone is suppressed, not accepted as PASS." },
+        allowed_changes: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "Required for approved_transform PASS.",
+        },
+        provenance_ref: { type: "string", description: "Optional Boardroom, issue, PR, or CopyRoom pointer for audit trail." },
+      },
+      required: [],
     },
   },
 
@@ -13538,6 +13626,10 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // copypass-tool.ts
   copypass_run:            (args) => copypassRun(args),
   copypass_status:         (args) => copypassStatus(args),
+
+  // fidelitycopy-tool.ts
+  fidelitycopy_copy:       (args) => fidelitycopyCopy(args),
+  fidelitypass_verify_copy:(args) => fidelitypassVerifyCopy(args),
 
   // crews-tool.ts
   start_crew_run: (args) => crewsStartRun(args),

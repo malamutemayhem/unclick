@@ -23,7 +23,7 @@ function makeJsonConfig(installCode: string) {
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["-y", "@unclick/mcp-server"],
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz"],
       "env": { "UNCLICK_API_KEY": "${installCode}" }
     }
   }

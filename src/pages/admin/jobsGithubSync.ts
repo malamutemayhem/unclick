@@ -1,4 +1,14 @@
 export type JobSyncStatus = "open" | "in_progress" | "done" | "dropped";
+export type JobProofState =
+  | "live"
+  | "close_eligible"
+  | "partial"
+  | "blocked"
+  | "missing"
+  | "missing_ui_proof"
+  | "parked"
+  | "stale"
+  | "wrong_scope";
 
 export interface JobGithubSyncInput {
   id: string;
@@ -6,6 +16,8 @@ export interface JobGithubSyncInput {
   description?: string | null;
   status: JobSyncStatus;
   pipeline_evidence?: string[];
+  proof_state?: JobProofState;
+  proof_state_reason?: string;
 }
 
 export interface JobGithubReference {
@@ -29,6 +41,43 @@ const FAILED_DEPLOY_RE = /\b(failed preview deployment|deployment failed|failed 
 const PROOF_RESET_RE = /\b(reopened|re-opened|proof\s+reset|false\s+completion|partial\s+completion|proof_missing)\b/i;
 const PROOF_MISSING_RE =
   /\b(no|missing|needs?|needed|waiting for|without|incomplete|stale)\s+(?:live\s+)?proof\b|\bproof\s+(?:missing|needed|incomplete|stale|not available)\b/i;
+const PROOF_WARNING_SIGNAL: Partial<Record<JobProofState, Omit<JobGithubSyncSignal, "href">>> = {
+  partial: {
+    label: "Partial proof",
+    detail: "This job has only partial proof recorded.",
+    tone: "alert",
+  },
+  blocked: {
+    label: "Proof blocked",
+    detail: "This job has a proof blocker or hold.",
+    tone: "alert",
+  },
+  missing: {
+    label: "Proof missing",
+    detail: "This job still needs observable proof.",
+    tone: "alert",
+  },
+  missing_ui_proof: {
+    label: "UI proof",
+    detail: "This job still needs UI, browser, or screenshot proof.",
+    tone: "alert",
+  },
+  parked: {
+    label: "Parked",
+    detail: "This job is parked or waiting for scope.",
+    tone: "quiet",
+  },
+  stale: {
+    label: "Proof stale",
+    detail: "This job has stale or reset proof.",
+    tone: "alert",
+  },
+  wrong_scope: {
+    label: "Wrong proof",
+    detail: "This job has proof attached to the wrong scope.",
+    tone: "alert",
+  },
+};
 
 function uniqueByLabel(refs: JobGithubReference[]): JobGithubReference[] {
   const seen = new Set<string>();
@@ -92,6 +141,7 @@ export function jobHasDeploymentFailure(job: JobGithubSyncInput): boolean {
 }
 
 export function jobHasProofReset(job: JobGithubSyncInput): boolean {
+  if (job.proof_state && PROOF_WARNING_SIGNAL[job.proof_state]?.tone === "alert") return true;
   const evidence = job.pipeline_evidence ?? [];
   const hasCurrentProgressEvidence = evidence.some((item) => /\b(build|proof|review|ship)\b/i.test(item));
   const hasResetEvidence = evidence.some((item) => PROOF_RESET_RE.test(item) || PROOF_MISSING_RE.test(item));
@@ -100,6 +150,16 @@ export function jobHasProofReset(job: JobGithubSyncInput): boolean {
 
   const text = jobSyncText(job);
   return PROOF_RESET_RE.test(text) || PROOF_MISSING_RE.test(text);
+}
+
+function buildProofStateSignal(job: JobGithubSyncInput): JobGithubSyncSignal | null {
+  if (!job.proof_state) return null;
+  const signal = PROOF_WARNING_SIGNAL[job.proof_state];
+  if (!signal) return null;
+  return {
+    ...signal,
+    detail: job.proof_state_reason?.trim() || signal.detail,
+  };
 }
 
 export function buildJobGithubSyncSignal(job: JobGithubSyncInput): JobGithubSyncSignal {
@@ -117,6 +177,9 @@ export function buildJobGithubSyncSignal(job: JobGithubSyncInput): JobGithubSync
       href: firstLink?.url,
     };
   }
+
+  const proofStateSignal = buildProofStateSignal(job);
+  if (proofStateSignal) return proofStateSignal;
 
   if (jobHasProofReset(job)) {
     return {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { ChevronDown, ChevronRight, BookOpen, History } from "lucide-react";
+import { ChevronDown, ChevronRight, BookOpen, History, RefreshCw } from "lucide-react";
 import { groupMemoryTaxonomyShelves } from "@/lib/memoryTaxonomy";
 import EmptyState from "./EmptyState";
 
@@ -24,6 +24,14 @@ interface HistoryEntry {
   created_at: string;
 }
 
+interface RefreshResult {
+  dry_run: boolean;
+  source_count: number;
+  planned_snapshot_count: number;
+  written_count: number;
+  skipped_secret_count?: number;
+}
+
 const DECAY_COLORS: Record<string, string> = {
   hot: "bg-red-500",
   warm: "bg-amber-500",
@@ -44,6 +52,9 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [collapsedShelfIds, setCollapsedShelfIds] = useState<Set<string>>(() => new Set());
+  const [refreshing, setRefreshing] = useState<"preview" | "commit" | null>(null);
+  const [refreshResult, setRefreshResult] = useState<RefreshResult | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
   const shelves = useMemo(() => groupMemoryTaxonomyShelves(docs), [docs]);
 
   const load = useCallback(async () => {
@@ -61,6 +72,36 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
   }, [apiKey]);
 
   useEffect(() => { load(); }, [load]);
+
+  const refreshTaxonomy = async (commit: boolean) => {
+    setRefreshing(commit ? "commit" : "preview");
+    setRefreshError(null);
+    try {
+      const res = await fetch("/api/memory-admin?action=admin_library", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          method: "refresh_taxonomy_snapshots",
+          commit,
+          dry_run: !commit,
+          max_sources: 80,
+          max_snapshots: 12,
+          max_sources_per_snapshot: 8,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? "Refresh failed");
+      setRefreshResult(body.data ?? null);
+      if (commit) await load();
+    } catch (error) {
+      setRefreshError(error instanceof Error ? error.message : "Refresh failed");
+    } finally {
+      setRefreshing(null);
+    }
+  };
 
   const viewDoc = async (doc: LibraryDoc) => {
     if (expandedId === doc.id) {
@@ -114,27 +155,69 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
     });
   };
 
+  const refreshControls = (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+      <div className="min-h-5 text-xs text-white/40">
+        {refreshResult && (
+          <span>
+            {refreshResult.dry_run ? "Preview" : "Write"}: {refreshResult.planned_snapshot_count} planned,
+            {" "}{refreshResult.written_count} written,
+            {" "}{refreshResult.source_count} sources
+            {typeof refreshResult.skipped_secret_count === "number"
+              ? `, ${refreshResult.skipped_secret_count} skipped`
+              : ""}
+          </span>
+        )}
+        {refreshError && <span className="text-red-300">{refreshError}</span>}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => refreshTaxonomy(false)}
+          disabled={refreshing !== null}
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-white/60 transition-colors hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${refreshing === "preview" ? "animate-spin" : ""}`} />
+          Preview Refresh
+        </button>
+        <button
+          type="button"
+          onClick={() => refreshTaxonomy(true)}
+          disabled={refreshing !== null}
+          className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <BookOpen className="h-3.5 w-3.5" />
+          Write Snapshots
+        </button>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 animate-pulse rounded-lg bg-white/[0.03] border border-white/[0.06]" />)}</div>;
   }
 
   if (docs.length === 0) {
     return (
-      <EmptyState
-        icon={BookOpen}
-        heading="No Library Snapshots yet"
-        description="Automatic taxonomy snapshots appear here once durable facts and sessions are compacted into source-linked memory shelves."
-        steps={[
-          "Save durable facts, decisions, and project state through Memory",
-          "Snapshots group related facts by taxonomy and keep source pointers",
-          "AI seats read compact shelves first, then open raw sources only when needed",
-        ]}
-      />
+      <div className="space-y-3">
+        {refreshControls}
+        <EmptyState
+          icon={BookOpen}
+          heading="No Library Snapshots yet"
+          description="Automatic taxonomy snapshots appear here once durable facts and sessions are compacted into source-linked memory shelves."
+          steps={[
+            "Save durable facts, decisions, and project state through Memory",
+            "Snapshots group related facts by taxonomy and keep source pointers",
+            "AI seats read compact shelves first, then open raw sources only when needed",
+          ]}
+        />
+      </div>
     );
   }
 
   return (
     <div className="space-y-5">
+      {refreshControls}
       {shelves.map((shelf) => {
         const isCollapsed = collapsedShelfIds.has(shelf.id);
         return (
