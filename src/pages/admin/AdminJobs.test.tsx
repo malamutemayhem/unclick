@@ -174,4 +174,32 @@ describe("AdminJobs", () => {
     expect(within(activeSection as HTMLElement).getByText("False green proof job")).toBeInTheDocument();
     expect(within(completedSection as HTMLElement).queryByText("False green proof job")).not.toBeInTheDocument();
   });
+
+  it("caps open jobs below shipped when stale pipeline data says complete", async () => {
+    currentJobs = [
+      {
+        id: "open-false-green-job",
+        title: "Open false green job",
+        description: "Old merged PR comment exists, but this job is still open.",
+        status: "open",
+        priority: "urgent",
+        created_by_agent_id: "tester",
+        assigned_to_agent_id: null,
+        created_at: "2026-05-14T12:00:00.000Z",
+        completed_at: null,
+        updated_at: "2026-05-14T12:55:00.000Z",
+        comment_count: 4,
+        pipeline_stage_count: 5,
+        pipeline_progress: 100,
+        pipeline_source: "receipt: ship",
+        pipeline_evidence: ["build", "proof", "ship"],
+      },
+    ];
+
+    render(React.createElement(AdminJobs));
+
+    expect(await screen.findByText("Open false green job")).toBeInTheDocument();
+    expect(screen.getByText("85%")).toBeInTheDocument();
+    expect(screen.getByTestId("job-row-title")).not.toHaveClass("line-through");
+  });
 });

@@ -120,6 +120,26 @@ describe("Fishbowl job pipeline inference", () => {
     });
   });
 
+  it("does not let open jobs look shipped from old merge receipts", () => {
+    expect(
+      inferFishbowlJobPipeline(
+        {
+          title: "Agentic AI",
+          status: "open",
+        },
+        ["Old receipt: PR #928 merged into main. Tests passed."],
+      ),
+    ).toMatchObject({
+      pipeline_stage_count: 3,
+      pipeline_progress: 70,
+      pipeline_source: "receipt: proof",
+      pipeline_evidence: ["build", "proof"],
+      proof_state: "stale",
+      effective_status: "open",
+      release_blocked: false,
+    });
+  });
+
   it("surfaces missing UI proof as a structured proof state", () => {
     expect(
       inferFishbowlJobPipeline(

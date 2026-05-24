@@ -297,7 +297,10 @@ function displayStatusFor(todo: JobTodo): DisplayStatus {
 }
 
 function progressFor(todo: JobTodo): number {
-  if (Number.isFinite(todo.pipeline_progress)) return Number(todo.pipeline_progress);
+  if (Number.isFinite(todo.pipeline_progress)) {
+    const progress = Math.min(Math.max(Number(todo.pipeline_progress), 0), 100);
+    return todo.status === "done" ? progress : Math.min(progress, 85);
+  }
   if (todo.status === "done") return 100;
   if (todo.status === "in_progress") return 55;
   if (todo.assigned_to_agent_id) return 25;
@@ -306,7 +309,8 @@ function progressFor(todo: JobTodo): number {
 
 function activeStageCount(todo: JobTodo): number {
   if (Number.isFinite(todo.pipeline_stage_count)) {
-    return Math.min(Math.max(Number(todo.pipeline_stage_count), 1), STAGES.length);
+    const maxStage = todo.status === "done" ? STAGES.length : STAGES.length - 1;
+    return Math.min(Math.max(Number(todo.pipeline_stage_count), 1), maxStage);
   }
   if (todo.status === "done") return STAGES.length;
   if (todo.status === "in_progress") return 2;

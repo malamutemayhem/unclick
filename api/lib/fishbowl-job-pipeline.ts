@@ -260,6 +260,7 @@ export function inferFishbowlJobPipeline(
   }
 
   if (
+    baseStatus === "done" &&
     positiveStageHit(
       corpus,
       /\b(pr\s*#?\d+\s+merged|merged\s+#?\d+|merged into main|deployed|published|shipped|live on production|production live)\b/i,
