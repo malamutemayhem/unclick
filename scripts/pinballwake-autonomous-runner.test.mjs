@@ -1828,6 +1828,112 @@ describe("PinballWake autonomous Runner seat", () => {
     }
   });
 
+  it("records OpenHands execute holds as execution packets in quiet-window proof", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const calls = [];
+      const fetchImpl = async (_url, init = {}) => {
+        calls.push({ body: JSON.parse(init.body) });
+        const toolName = calls.at(-1).body.params.name;
+        if (toolName === "list_actionable_todos") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({
+                        todos: [
+                          {
+                            id: "todo-execute-hold-1",
+                            title: "OpenHands execute packet proof",
+                            status: "open",
+                            priority: "high",
+                            assigned_to_agent_id: "runner-plex-1",
+                            created_at: "2026-05-08T05:00:00.000Z",
+                            scope_pack: {
+                              owned_files: ["docs/runner-scope.md"],
+                              acceptance: ["Execute bridge records OpenHands packet proof"],
+                              verification: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+                            },
+                          },
+                        ],
+                      }),
+                    },
+                  ],
+                },
+              };
+            },
+          };
+        }
+
+        if (toolName === "comment_on") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({ comment: { id: "comment-execute-hold-1" } }),
+                    },
+                  ],
+                },
+              };
+            },
+          };
+        }
+
+        throw new Error(`unexpected tool ${toolName}`);
+      };
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "execute",
+        policy: { allowExecute: true },
+        queueSource: "unclick",
+        unclickApiKey: "uc_test",
+        unclickMcpUrl: "https://unclick.test/api/mcp",
+        fetchImpl,
+        now: "2026-05-08T05:30:00.000Z",
+        wakeSource: "schedule",
+        openHandsExecutor: {
+          enabled: true,
+          env: { OPENHANDS_TEST_MODE: "1" },
+          testMode: true,
+          openHands: async () => ({
+            ok: false,
+            exit_code: 0,
+            output: "OpenHands completed without a unified diff.",
+          }),
+        },
+      });
+
+      assert.equal(result.ok, false);
+      assert.equal(result.action, "blocked");
+      assert.equal(result.reason, "openhands_reported_failure");
+      assert.equal(result.todo_claim_sync.reason, "openhands_build_hold_recorded");
+      assert.match(calls[1].body.params.arguments.text, /OpenHands build attempt HOLD/);
+      assert.equal(result.quiet_window_autonomy_proof.first_missing_rung, "proof_packet");
+      assert.deepEqual(result.quiet_window_autonomy_proof.evidence.observed_rungs, [
+        "tick",
+        "buildbait_crumb",
+        "claim_or_lease",
+        "execution_packet",
+        "build_attempt_or_commonsense_blocker",
+      ]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("wires explicitly enabled OpenHands execute to the safe CodeRoom submitter", () => {
     const executor = createAutonomousRunnerOpenHandsExecutorFromEnv({
       AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: "true",
