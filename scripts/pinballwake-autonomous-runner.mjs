@@ -18,7 +18,7 @@ import {
 import { evaluateOrchestratorProofWakeGate } from "./lib/autopilotkit-liveness.mjs";
 import { processScopePackTestOnlyExecutorPacket } from "./pinballwake-executor-lane.mjs";
 import { runOpenHandsWorker } from "./pinballwake-openhands-worker.mjs";
-import { createOpenHandsCliRunner } from "./pinballwake-openhands-proof-runner.mjs";
+import { createOpenHandsCliRunner, createSafeCodeRoomSubmitter } from "./pinballwake-openhands-proof-runner.mjs";
 import { buildScopePackHydrationReceipt } from "./pinballwake-scopepack-hydrator.mjs";
 
 export const AUTONOMOUS_RUNNER_MODES = new Set(["dry-run", "claim", "execute"]);
@@ -570,6 +570,7 @@ export function createAutonomousRunnerOpenHandsExecutorFromEnv(env = process.env
   return {
     enabled,
     openHands: enabled ? createOpenHandsCliRunner({ env: safeEnv }) : null,
+    coderoom: enabled ? createSafeCodeRoomSubmitter({ env: safeEnv }) : null,
     env: safeEnv,
     testMode: parseBoolean(safeEnv.OPENHANDS_TEST_MODE),
     executorSeatId: safeEnv.OPENHANDS_EXECUTOR_SEAT_ID || "pinballwake-openhands-worker",

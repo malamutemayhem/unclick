@@ -9,6 +9,7 @@ import {
   createDraftPrCoderoom,
   createFixtureOpenHandsRunner,
   createOpenHandsCliRunner,
+  createSafeCodeRoomSubmitter,
   runOpenHandsProof,
   splitArgs,
 } from "./pinballwake-openhands-proof-runner.mjs";
@@ -201,5 +202,146 @@ describe("draft PR coderoom binding", () => {
       ],
     );
     assert.equal(calls[2][2], true);
+  });
+});
+
+describe("safe CodeRoom submitter", () => {
+  test("rejects protected paths before git or gh writes", async () => {
+    const calls = [];
+    const submitter = createSafeCodeRoomSubmitter({
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await submitter({
+      job: { todo_id: "todo-protected", owned_files: [".github/workflows/ci.yml"] },
+      changedFiles: [".github/workflows/ci.yml"],
+      patch:
+        "diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml\n--- a/.github/workflows/ci.yml\n+++ b/.github/workflows/ci.yml\n@@ -1 +1 @@\n-old\n+new\n",
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "protected_workflow_path");
+    assert.deepEqual(calls, []);
+  });
+
+  test("returns existing PR before creating a duplicate branch", async () => {
+    const calls = [];
+    const submitter = createSafeCodeRoomSubmitter({
+      branchName: "codex/openhands-submit-todo-1",
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        if (command === "gh" && args[1] === "list") {
+          return {
+            ok: true,
+            stdout: "https://github.com/malamutemayhem/unclick/pull/930\n",
+            stderr: "",
+            output: "",
+          };
+        }
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await submitter({
+      job: { todo_id: "todo-1", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: idempotent" }),
+      testRunId: "unit-test",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.status, "existing_pr");
+    assert.equal(result.idempotent, true);
+    assert.equal(result.pr_url, "https://github.com/malamutemayhem/unclick/pull/930");
+    assert.deepEqual(
+      calls.map(([command, args]) => `${command} ${args.slice(0, 2).join(" ")}`),
+      ["git status --porcelain", "gh pr list"],
+    );
+  });
+
+  test("creates a PR and enables auto-merge only after validation", async () => {
+    const calls = [];
+    const submitter = createSafeCodeRoomSubmitter({
+      branchName: "codex/openhands-submit-todo-2",
+      title: "docs: submit OpenHands patch",
+      runProcess: async (command, args, options = {}) => {
+        calls.push([command, args, Boolean(options.stdin)]);
+        if (command === "gh" && args[1] === "list") {
+          return { ok: true, stdout: "", stderr: "", output: "" };
+        }
+        if (command === "gh" && args[1] === "create") {
+          return { ok: true, stdout: "https://github.com/malamutemayhem/unclick/pull/931\n", stderr: "", output: "" };
+        }
+        if (command === "git" && args[0] === "rev-parse") {
+          return { ok: true, stdout: "abc123\n", stderr: "", output: "" };
+        }
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await submitter({
+      job: { todo_id: "todo-2", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: auto-merge" }),
+      summary: "Docs-only submitter proof.",
+      testRunId: "unit-test",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.status, "pr_created_auto_merge_enabled");
+    assert.equal(result.auto_merge_enabled, true);
+    assert.deepEqual(
+      calls.map(([command, args]) => `${command} ${args.slice(0, 3).join(" ")}`),
+      [
+        "git status --porcelain",
+        "gh pr list --head",
+        "git checkout -b codex/openhands-submit-todo-2",
+        "git apply --check --whitespace=error",
+        "git apply --whitespace=nowarn -",
+        "git diff --check",
+        "git add docs/openhands-proof-fixture.md",
+        "git commit -m docs: submit OpenHands patch",
+        "git push -u origin",
+        "gh pr create --title",
+        "git rev-parse HEAD",
+        "gh pr merge --auto",
+      ],
+    );
+    assert.equal(calls[3][2], true);
+    assert.equal(calls[4][2], true);
+  });
+
+  test("fails closed when git apply check fails", async () => {
+    const calls = [];
+    const submitter = createSafeCodeRoomSubmitter({
+      branchName: "codex/openhands-submit-todo-3",
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        if (command === "gh" && args[1] === "list") {
+          return { ok: true, stdout: "", stderr: "", output: "" };
+        }
+        if (command === "git" && args[0] === "apply" && args[1] === "--check") {
+          return { ok: false, stdout: "", stderr: "patch does not apply", output: "patch does not apply" };
+        }
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await submitter({
+      job: { todo_id: "todo-3", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: fail closed" }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "git_failed");
+    assert.match(result.output, /patch does not apply/);
+    assert.deepEqual(
+      calls.map(([command, args]) => `${command} ${args.slice(0, 2).join(" ")}`),
+      ["git status --porcelain", "gh pr list", "git checkout -b", "git apply --check"],
+    );
   });
 });
