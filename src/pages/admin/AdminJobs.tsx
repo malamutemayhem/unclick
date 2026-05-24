@@ -296,20 +296,34 @@ function displayStatusFor(todo: JobTodo): DisplayStatus {
   return backendDisplayStatusFor(todo) ?? (needsProofAfterDone(todo) ? "needs_proof" : todo.status);
 }
 
-function progressFor(todo: JobTodo): number {
-  if (Number.isFinite(todo.pipeline_progress)) return Number(todo.pipeline_progress);
-  if (todo.status === "done") return 100;
-  if (todo.status === "in_progress") return 55;
+function hasReopenedCompletionState(todo: JobTodo): boolean {
+  const displayStatus = displayStatusFor(todo);
+  return todo.status === "done" && displayStatus !== "done" && displayStatus !== "needs_proof";
+}
+
+function defaultProgressForStatus(todo: JobTodo, displayStatus = displayStatusFor(todo)): number {
+  if (displayStatus === "done") return 100;
+  if (displayStatus === "in_progress") return 55;
   if (todo.assigned_to_agent_id) return 25;
   return 10;
 }
 
+function progressFor(todo: JobTodo): number {
+  if (hasReopenedCompletionState(todo)) return defaultProgressForStatus(todo);
+  if (Number.isFinite(todo.pipeline_progress)) return Number(todo.pipeline_progress);
+  return defaultProgressForStatus(todo);
+}
+
 function activeStageCount(todo: JobTodo): number {
+  if (hasReopenedCompletionState(todo)) {
+    return displayStatusFor(todo) === "in_progress" ? 2 : 1;
+  }
   if (Number.isFinite(todo.pipeline_stage_count)) {
     return Math.min(Math.max(Number(todo.pipeline_stage_count), 1), STAGES.length);
   }
-  if (todo.status === "done") return STAGES.length;
-  if (todo.status === "in_progress") return 2;
+  const displayStatus = displayStatusFor(todo);
+  if (displayStatus === "done") return STAGES.length;
+  if (displayStatus === "in_progress") return 2;
   if (todo.assigned_to_agent_id) return 1;
   return 1;
 }
@@ -333,7 +347,7 @@ function StageStrip({ todo }: { todo: JobTodo }) {
               index < active
                 ? displayStatus === "needs_proof"
                   ? "bg-red-300/85 text-black/70"
-                  : todo.status === "done"
+                  : displayStatus === "done"
                   ? "bg-green-400/85 text-black/70"
                   : "bg-[#61C1C4]/90 text-black/70"
                 : "bg-white/[0.08] text-white/30"
@@ -467,7 +481,7 @@ function matchesJobSearch(todo: JobTodo, query: string): boolean {
 }
 
 function isStaleActive(todo: JobTodo): boolean {
-  if (todo.status !== "in_progress") return false;
+  if (displayStatusFor(todo) !== "in_progress") return false;
   const updated = new Date(todo.updated_at).getTime();
   if (!Number.isFinite(updated)) return false;
   return Date.now() - updated > 12 * 60 * 60 * 1000;
@@ -576,12 +590,15 @@ function SortHeader({
 }
 
 function groupJobs(todos: JobTodo[]): Record<JobSectionKey, JobTodo[]> {
-  const active = todos.filter((todo) => todo.status === "in_progress" || needsProofAfterDone(todo)).sort(sortJobs);
-  const open = todos.filter((todo) => todo.status === "open").sort(sortJobs);
+  const active = todos.filter((todo) => {
+    const displayStatus = displayStatusFor(todo);
+    return displayStatus === "in_progress" || displayStatus === "needs_proof";
+  }).sort(sortJobs);
+  const open = todos.filter((todo) => displayStatusFor(todo) === "open").sort(sortJobs);
   const next = open.filter((todo) => todo.priority === "urgent" || todo.priority === "high");
   const inline = open.filter((todo) => todo.priority === "normal" || todo.priority === "low");
   const done = todos
-    .filter((todo) => todo.status === "done" && !needsProofAfterDone(todo))
+    .filter((todo) => displayStatusFor(todo) === "done")
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
   return { active, next, inline, done };
 }
@@ -733,7 +750,7 @@ function JobRow({
         >
           <p
             className={`truncate text-[11px] font-semibold leading-4 hover:text-white ${
-              todo.status === "done" && displayStatus !== "needs_proof" ? "text-white/35 line-through" : "text-white/85"
+              displayStatus === "done" ? "text-white/35 line-through" : "text-white/85"
             }`}
             data-testid="job-row-title"
           >
@@ -766,10 +783,10 @@ function JobRow({
           <span className="flex items-center gap-1 text-[11px] text-white/45">
             <span
               className={`h-1.5 w-1.5 rounded-full ${
-                displayStatus === "needs_proof" || isStaleActive(todo) ? "bg-red-300" : todo.status === "done" ? "bg-green-300" : "bg-green-400"
+                displayStatus === "needs_proof" || isStaleActive(todo) ? "bg-red-300" : displayStatus === "done" ? "bg-green-300" : "bg-green-400"
               }`}
             />
-            {displayStatus === "needs_proof" ? "proof" : todo.status === "done" ? "ship" : isStaleActive(todo) ? "stale" : "live"}
+            {displayStatus === "needs_proof" ? "proof" : displayStatus === "done" ? "ship" : isStaleActive(todo) ? "stale" : "live"}
           </span>
           <span className="text-[11px] font-medium text-white/55">
             <StageStrip todo={todo} />
