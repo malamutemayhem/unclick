@@ -2272,6 +2272,7 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
   allowProtectedSurfaces = false,
   requireScopePack = false,
   includeAssignedTodos = false,
+  requireAssignedQueue = false,
 } = {}) {
   const agentId = runner.agent_id || runner.id || DEFAULT_AUTONOMOUS_RUNNER.id;
   const assignedFetched = includeAssignedTodos
@@ -2283,13 +2284,47 @@ export async function hydrateAutonomousRunnerLedgerFromUnClick({
         fetchImpl,
       })
     : { ok: true, todos: [], response_bounds: null, skipped: true, reason: "assigned_queue_source_disabled" };
-  const fetched = await fetchUnClickActionableTodos({
-    agentId,
-    apiKey,
-    mcpUrl,
-    limit,
-    fetchImpl,
-  });
+  if (includeAssignedTodos && requireAssignedQueue && !assignedFetched.ok) {
+    return {
+      ok: false,
+      reason: "assigned_queue_source_unavailable",
+      status: assignedFetched.status ?? null,
+      error: assignedFetched.error ?? null,
+      assigned_queue_source: assignedFetched,
+      ledger: createCodingRoomJobLedger({ jobs: ledger?.jobs || [], updatedAt: ledger?.updated_at || now }),
+      imported: 0,
+      seen: 0,
+      claimability_scorecard: {
+        ...buildClaimabilityScorecard(),
+        state: "queue_unavailable",
+        healthy: false,
+      },
+    };
+  }
+  if (includeAssignedTodos && requireAssignedQueue && assignedFetched.todos.length === 0) {
+    return {
+      ok: false,
+      reason: "assigned_canary_seed_missing",
+      assigned_queue_source: { ok: true, seen: 0, response_bounds: assignedFetched.response_bounds },
+      ledger: createCodingRoomJobLedger({ jobs: ledger?.jobs || [], updatedAt: ledger?.updated_at || now }),
+      imported: 0,
+      seen: 0,
+      claimability_scorecard: {
+        ...buildClaimabilityScorecard(),
+        state: "blocked_no_claimable",
+        healthy: false,
+      },
+    };
+  }
+  const fetched = includeAssignedTodos && requireAssignedQueue
+    ? { ok: true, todos: [], response_bounds: null, skipped: true, reason: "assigned_queue_required" }
+    : await fetchUnClickActionableTodos({
+        agentId,
+        apiKey,
+        mcpUrl,
+        limit,
+        fetchImpl,
+      });
 
   if (!fetched.ok) {
     return {
@@ -2684,6 +2719,7 @@ export async function runAutonomousRunnerFile({
   worktreeCwd = process.cwd(),
   gitHygieneIgnoredPaths = [],
   openHandsExecutor = null,
+  requireAssignedQueue = false,
 } = {}) {
   if (orchestratorProof) {
     return runOrchestratorSeatHandshakeProof({
@@ -2790,6 +2826,7 @@ export async function runAutonomousRunnerFile({
         allowProtectedSurfaces: guardedPolicy.allowProtectedSurfaces,
         requireScopePack: guardedPolicy.requireScopePack,
         includeAssignedTodos: queueGuard.scheduled_execute_canary,
+        requireAssignedQueue: queueGuard.scheduled_execute_canary && requireAssignedQueue,
       })),
       queue_guard: queueGuard,
     };
@@ -2911,6 +2948,16 @@ export async function runAutonomousRunnerFile({
     }
   }
 
+  const openHandsExecuteHold =
+    safeMode === "execute" &&
+    safePolicy.allowExecute &&
+    todoClaimSync?.openhands_execute &&
+    !todoClaimSync.openhands_execute.ok;
+  if (openHandsExecuteHold) {
+    finalAction = "blocked";
+    finalReason = todoClaimSync.openhands_execute.reason || "openhands_execute_failed";
+  }
+
   if (shouldPersist && todoForScoping) {
     todoScopingSync = await syncBoardroomTodoScopingRequestToUnClick({
       todo: todoForScoping,
@@ -3012,7 +3059,12 @@ export async function runAutonomousRunnerFile({
 
   return {
     ...last,
-    ok: commonsensepass.verdict === "PASS" && results.every((result) => result.ok) && todoClaimSync.ok && todoScopingSync.ok,
+    ok:
+      commonsensepass.verdict === "PASS" &&
+      results.every((result) => result.ok) &&
+      todoClaimSync.ok &&
+      todoScopingSync.ok &&
+      !openHandsExecuteHold,
     action: finalAction,
     reason: finalReason,
     mode: safeMode,
@@ -3094,6 +3146,9 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
       getArg("skip-git-hygiene-preflight", process.env.AUTONOMOUS_RUNNER_SKIP_GIT_HYGIENE_PREFLIGHT),
     ),
     openHandsExecutor: createAutonomousRunnerOpenHandsExecutorFromEnv(process.env),
+    requireAssignedQueue: parseBoolean(
+      getArg("require-assigned-queue", process.env.AUTONOMOUS_RUNNER_REQUIRE_ASSIGNED_QUEUE),
+    ),
     policy: createAutonomousRunnerPolicy({
       disabled: parseBoolean(process.env.AUTONOMOUS_RUNNER_DISABLED),
       allowProtectedSurfaces: parseBoolean(process.env.AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES),

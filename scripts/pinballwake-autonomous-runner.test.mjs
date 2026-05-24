@@ -766,6 +766,110 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(result.ledger.jobs[0].job_id, "boardroom-todo:todo-canary-seed");
   });
 
+  it("keeps the execute canary on the assigned seed queue when required", async () => {
+    const canaryRunner = createAutonomousRunner({
+      id: "pinballwake-autonomous-runner",
+      agentId: "pinballwake-autonomous-runner",
+      capabilities: ["docs_update", "test_fix"],
+    });
+    const calls = [];
+    const fetchImpl = async (_url, init = {}) => {
+      const body = JSON.parse(init.body || "{}");
+      calls.push({ tool: body?.params?.name, args: body?.params?.arguments || {} });
+      assert.equal(body?.params?.name, "list_todos");
+      return {
+        ok: true,
+        async json() {
+          return {
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    todos: [
+                      {
+                        id: "todo-canary-seed",
+                        title: "AFK canary seed: docs-only OpenHands proof fixture",
+                        status: "open",
+                        priority: "urgent",
+                        assigned_to_agent_id: "pinballwake-autonomous-runner",
+                        actionability_reason: "role_assigned_open",
+                        created_at: "2026-05-24T15:00:00.000Z",
+                        scope_pack: {
+                          owned_files: ["docs/openhands-proof-fixture.md"],
+                          tests: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+                          role: "docs_update",
+                        },
+                      },
+                    ],
+                  }),
+                },
+              ],
+            },
+          };
+        },
+      };
+    };
+
+    const result = await hydrateAutonomousRunnerLedgerFromUnClick({
+      ledger: createCodingRoomJobLedger(),
+      runner: canaryRunner,
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      limit: 50,
+      fetchImpl,
+      wakeSource: "schedule",
+      allowedTodoRoles: ["docs_update", "test_fix"],
+      requireScopePack: true,
+      includeAssignedTodos: true,
+      requireAssignedQueue: true,
+      now: "2026-05-24T15:01:00.000Z",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].args.assigned_to_agent_id, "pinballwake-autonomous-runner");
+    assert.equal(result.imported, 1);
+    assert.equal(result.ledger.jobs[0].job_id, "boardroom-todo:todo-canary-seed");
+  });
+
+  it("blocks the execute canary when the assigned seed queue is empty", async () => {
+    const canaryRunner = createAutonomousRunner({
+      id: "pinballwake-autonomous-runner",
+      agentId: "pinballwake-autonomous-runner",
+      capabilities: ["docs_update", "test_fix"],
+    });
+    const fetchImpl = async () => ({
+      ok: true,
+      async json() {
+        return {
+          result: {
+            content: [{ type: "text", text: JSON.stringify({ todos: [] }) }],
+          },
+        };
+      },
+    });
+
+    const result = await hydrateAutonomousRunnerLedgerFromUnClick({
+      ledger: createCodingRoomJobLedger(),
+      runner: canaryRunner,
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      limit: 50,
+      fetchImpl,
+      wakeSource: "schedule",
+      allowedTodoRoles: ["docs_update", "test_fix"],
+      requireScopePack: true,
+      includeAssignedTodos: true,
+      requireAssignedQueue: true,
+      now: "2026-05-24T15:01:00.000Z",
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "assigned_canary_seed_missing");
+    assert.equal(result.imported, 0);
+  });
+
   it("keeps watcher and tether runners off unassigned builder ScopePacks unless exactly assigned", async () => {
     const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
     const ledgerPath = join(dir, "ledger.json");
@@ -2880,8 +2984,11 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.match(workflow, /todo_limit="1"/);
     assert.match(workflow, /roles="docs_update,test_fix"/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_MODE:.*steps\.runner-plan\.outputs\.mode/);
+    assert.match(workflow, /AUTONOMOUS_RUNNER_ID:.*canary_execute.*pinballwake-autonomous-runner/);
+    assert.match(workflow, /CODING_ROOM_RUNNER_AGENT_ID:.*canary_execute.*pinballwake-autonomous-runner/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_ALLOW_EXECUTE:.*steps\.runner-plan\.outputs\.execute/);
     assert.match(workflow, /AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE:.*steps\.runner-plan\.outputs\.execute/);
+    assert.match(workflow, /AUTONOMOUS_RUNNER_REQUIRE_ASSIGNED_QUEUE:.*canary_execute.*true/);
     assert.match(workflow, /OPENHANDS_TEST_MODE:.*steps\.runner-plan\.outputs\.execute == 'true'.*'1'/);
     assert.match(workflow, /Set up uv for OpenHands execute/);
     assert.match(workflow, /uses:\s*astral-sh\/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b/);

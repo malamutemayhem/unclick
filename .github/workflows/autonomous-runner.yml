@@ -244,6 +244,8 @@ jobs:
         env:
           CODING_ROOM_LEDGER_PATH: ${{ vars.CODING_ROOM_LEDGER_PATH || '.pinballwake/coding-room-ledger.json' }}
           CODING_ROOM_LEASE_SECONDS: ${{ vars.CODING_ROOM_LEASE_SECONDS || '1800' }}
+          AUTONOMOUS_RUNNER_ID: ${{ steps.runner-plan.outputs.canary_execute == 'true' && 'pinballwake-autonomous-runner' || vars.AUTONOMOUS_RUNNER_ID || '' }}
+          CODING_ROOM_RUNNER_AGENT_ID: ${{ steps.runner-plan.outputs.canary_execute == 'true' && 'pinballwake-autonomous-runner' || vars.CODING_ROOM_RUNNER_AGENT_ID || '' }}
           AUTONOMOUS_RUNNER_QUEUE_SOURCE: ${{ vars.AUTONOMOUS_RUNNER_QUEUE_SOURCE || 'unclick' }}
           AUTONOMOUS_RUNNER_WAKE_SOURCE: ${{ github.event_name == 'workflow_dispatch' && inputs.wake_source || github.event_name == 'workflow_run' && 'queuepush' || github.event_name }}
           AUTONOMOUS_RUNNER_TODO_LIMIT: ${{ steps.runner-plan.outputs.todo_limit }}
@@ -251,6 +253,7 @@ jobs:
           AUTONOMOUS_RUNNER_DISABLED: ${{ steps.runner-plan.outputs.disabled }}
           AUTONOMOUS_RUNNER_ALLOW_EXECUTE: ${{ steps.runner-plan.outputs.execute }}
           AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: ${{ steps.runner-plan.outputs.execute }}
+          AUTONOMOUS_RUNNER_REQUIRE_ASSIGNED_QUEUE: ${{ steps.runner-plan.outputs.canary_execute == 'true' && 'true' || vars.AUTONOMOUS_RUNNER_REQUIRE_ASSIGNED_QUEUE || 'false' }}
           OPENHANDS_TEST_MODE: ${{ steps.runner-plan.outputs.execute == 'true' && '1' || '' }}
           OPENHANDS_COMMAND: ${{ vars.OPENHANDS_COMMAND || 'uvx' }}
           OPENHANDS_ARGS: ${{ vars.OPENHANDS_ARGS || '--python 3.12 openhands --headless --json --override-with-envs --task {prompt}' }}
