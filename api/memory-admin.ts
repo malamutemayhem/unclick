@@ -8822,11 +8822,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .eq("api_key_hash", apiKeyHash)
           .order("created_at", { ascending: false })
           .limit(Math.min(smallerLimit, 500));
-        if (searchPattern) {
-          autopilotEventsQuery = autopilotEventsQuery.or(
-            `event_type.ilike.${searchPattern},actor_agent_id.ilike.${searchPattern},ref_kind.ilike.${searchPattern},ref_id.ilike.${searchPattern}`,
-          );
-        }
+        // The zero-touch scoreboard is a safety surface, not a search result.
+        // Keep recent ledger rows visible even when callers pass q=... for
+        // narrowing messages, todos, comments, or turns.
 
         const [
           profilesResult,
