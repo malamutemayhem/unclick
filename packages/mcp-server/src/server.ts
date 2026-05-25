@@ -824,7 +824,8 @@ export const VISIBLE_TOOLS = [
     name: "create_expressroom_draft",
     title: "Create a DraftRoom Manual draft",
     description:
-      "Creates a Manual DraftRoom draft. Use this when a chat seat has built a visible first draft while context is fresh and needs to store the brief, job mirror, short description, and supplied draft code. " +
+      "Creates a Manual DraftRoom draft. DraftRoom is the first station when a capable subscription chat seat has fresh build context. Build or fit the smallest safe draft immediately, then store the brief, job mirror, short description, and supplied draft code. " +
+      "Do not park fresh context for a low-capacity unattended runner unless the chat seat records the exact blocker and next build step. " +
       "Alarm bell: this does not mark official work done. It stores untrusted draft material so it can later enter the official Jobs Board conveyor belt, then be integrated, tested, reviewed, and proved.",
     inputSchema: {
       type: "object" as const,
@@ -835,7 +836,11 @@ export const VISIBLE_TOOLS = [
         official_todo_id: { type: "string", description: "Optional existing Jobs Board todo id to mirror." },
         short_description: { type: "string", description: "Quick read of the draft job." },
         brief_markdown: { type: "string", description: "Detailed intake brief from the chat." },
-        supplied_code: { type: "string", description: "Draft code, patch notes, file contents, pseudocode, or test outline supplied by the chat-first builder." },
+        supplied_code: {
+          type: "string",
+          description:
+            "Required capture field for concrete code, patch notes, file contents, pseudocode, ScopePack, or test outline supplied by the chat-first builder. If no code is supplied, record the exact blocker and next build step.",
+        },
         supplied_code_status: { type: "string", enum: ["not_supplied", "partial", "complete", "unknown"], default: "not_supplied" },
         source_chat_session_id: { type: "string", description: "Optional source chat/session id." },
       },
@@ -868,7 +873,7 @@ export const VISIBLE_TOOLS = [
     name: "promote_expressroom_draft",
     title: "Insert DraftRoom draft into Jobs",
     description:
-      "Creates an official Boardroom job from a Manual DraftRoom draft and links the two records. The new job still needs normal UnClick integration, tests, PR or commit proof, and review.",
+      "Creates an official Boardroom job from a Manual DraftRoom draft and links the two records. If the warm chat seat did not supply code, keep the exact blocker and next build step visible. The new job still needs normal UnClick integration, tests, PR or commit proof, and review.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,

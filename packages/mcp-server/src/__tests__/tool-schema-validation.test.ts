@@ -174,6 +174,11 @@ describe("runtime tool schema validation", () => {
     for (const toolName of EXPRESSROOM_VISIBLE_TOOL_NAMES) {
       expect(advertisedNames.has(toolName), toolName).toBe(true);
     }
+
+    const createDraft = ADVERTISED_TOOLS.find((tool) => tool.name === "create_expressroom_draft");
+    expect(createDraft?.description).toContain("DraftRoom is the first station");
+    expect(createDraft?.description).toContain("fresh build context");
+    expect(JSON.stringify(createDraft?.inputSchema)).toContain("exact blocker and next build step");
   });
 
   it("advertises AutoPilot ledger tools to connected agents", () => {

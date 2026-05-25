@@ -39,7 +39,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-merge-room.mjs | 3645da5c0c93 | 8431 |
 | scripts/pinballwake-overlap-resolver-room.mjs | 14d03ef6acd3 | 6787 |
 | scripts/pinballwake-personality-room.mjs | c1ca769346f1 | 9644 |
-| scripts/pinballwake-planning-room.mjs | 080c2946a794 | 9714 |
+| scripts/pinballwake-planning-room.mjs | 5465541d24a6 | 9784 |
 | scripts/pinballwake-post-merge-watch-room.mjs | 144227650844 | 5462 |
 | scripts/pinballwake-publish-room.mjs | ec1dbd36ed22 | 7526 |
 | scripts/pinballwake-queue-health-room.mjs | ddefab91d886 | 2842 |
