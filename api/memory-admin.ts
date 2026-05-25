@@ -149,6 +149,7 @@ import {
   buildFishbowlTodoHandoffDispatchRow,
   planFishbowlTodoHandoff,
 } from "./lib/fishbowl-todo-handoff.js";
+import { classifyTodoActionability } from "./lib/fishbowl-todo-actionability.js";
 import {
   planFishbowlPostLedgerEvent,
   planTodoLedgerEvents,
@@ -9597,34 +9598,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const limit = Math.min(Math.max(Number(body.limit ?? 10) || 10, 1), 50);
           const includeDescription = body.include_description === true || body.includeDescription === true;
           const nowMs = Date.now();
-          const staleOpenAssignedMs = 6 * 60 * 60 * 1000;
-          const staleInProgressMs = 6 * 60 * 60 * 1000;
-          const liveOwnerMs = 60 * 60 * 1000;
-          const roleAssignees = new Set([
-            "master",
-            "coordinator",
-            "builder",
-            "reviewer",
-            "watcher",
-            "planner",
-            "tester",
-            "safety",
-            "messenger",
-            "pinballwake-job-runner",
-          ]);
-          const isRoleAssignee = (raw: unknown): boolean => {
-            const value = String(raw ?? "").trim().toLowerCase();
-            return (
-              roleAssignees.has(value) ||
-              value.startsWith("codex-forge-") ||
-              value.startsWith("claude-pc-tether-") ||
-              value.startsWith("claude-code-pc-tether-")
-            );
-          };
-          const ageMs = (raw: unknown): number => {
-            const ms = Date.parse(String(raw ?? ""));
-            return Number.isFinite(ms) ? Math.max(0, nowMs - ms) : Number.POSITIVE_INFINITY;
-          };
 
           const { data, error } = await supabase
             .from("mc_fishbowl_todos")
@@ -9665,19 +9638,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
 
           const actionabilityFor = (todo: Record<string, unknown>): string | null => {
-            const status = String(todo.status ?? "");
             const assignee = String(todo.assigned_to_agent_id ?? "").trim();
-            const todoAge = ageMs(todo.updated_at ?? todo.created_at);
             const ownerLastSeen = assignee ? lastSeenByAgent.get(assignee) ?? null : null;
-            const ownerAge = ownerLastSeen ? ageMs(ownerLastSeen) : Number.POSITIVE_INFINITY;
-            const ownerLooksDormant = !assignee || isRoleAssignee(assignee) || ownerAge > liveOwnerMs;
-
-            if (status === "open" && !assignee) return "unassigned_open";
-            if (status === "open" && isRoleAssignee(assignee)) return "role_assigned_open";
-            if (status === "open" && todoAge > staleOpenAssignedMs && ownerLooksDormant) return "stale_assigned_open";
-            if (status === "in_progress" && todoAge > staleInProgressMs && ownerLooksDormant) return "stale_in_progress";
-
-            return null;
+            const reason = classifyTodoActionability({
+              status: todo.status,
+              assignedToAgentId: todo.assigned_to_agent_id,
+              updatedAt: todo.updated_at,
+              createdAt: todo.created_at,
+              ownerLastSeenAt: ownerLastSeen,
+              nowMs,
+            });
+            return reason === "fresh_owner_do_not_touch" ? null : reason;
           };
 
           const actionable = (data ?? [])
