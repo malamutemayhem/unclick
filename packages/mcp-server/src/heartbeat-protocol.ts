@@ -23,7 +23,7 @@ export type HeartbeatProtocol = {
 };
 
 export const HEARTBEAT_PROTOCOL_DATE = "2026-05-12";
-export const HEARTBEAT_PROTOCOL_REVISION = 13;
+export const HEARTBEAT_PROTOCOL_REVISION = 14;
 
 export function formatHeartbeatProtocolVersion(revision: number): string {
   return `${HEARTBEAT_PROTOCOL_DATE}.v${revision}`;
@@ -38,6 +38,7 @@ const HEARTBEAT_PROTOCOL: HeartbeatProtocol = {
     "Call UnClick check_signals first, then always do a compact job hunt before declaring health: read_orchestrator_context if available, list_actionable_todos, list_todos for open or in_progress work, recent dispatches, and recent Boardroom messages. Cap to the most recent items UnClick returns.",
     "Pinned v9 definition: active_jobs = COUNT(todos WHERE status='in_progress' AND owner_last_seen <= 24h). Orchestrator current_state_card.active_jobs uses the same query, so PASS/BLOCKER does not oscillate on identical state. Before saying healthy, quiet, or no_work, run commonsensepass_check with the live todos and active_jobs packet. Treat '0 active jobs' as PASS only when actionable_todos is also 0 (or every backlog item is explicitly held with a stated reason in the last 24h). If active_jobs is 0 while unheld actionable backlog exists, this is BLOCKER: queue hydration failure.",
     "Use PinballWake JobHunt Mirror as the fallback path for that failure: mirror compact backlog counts and source pointers into NudgeOnly first, then IgniteOnly only after verifier-backed receipt_bridge output requests a worker wake, then PushOnly only after IgniteOnly emits a verified public wake packet. Target the existing Job Worker or builder tether as executor when it is registered; free API classifiers may only classify or nudge. The mirror may request a wake and PushOnly may emit a worker push envelope, but both must not create duplicate jobs, assign ownership, mark done, merge, close, or edit source state.",
+    "Warm chat build rule: when a capable subscription chat seat is already holding fresh build context, DraftRoom is the first station and the default move is to build or fit the smallest safe draft immediately. Capture code, patch notes, tests, or a ScopePack in DraftRoom; defer to a low-capacity unattended runner only when the chat seat records an exact blocker.",
     "After check_signals, call save_conversation_turn with session_id='unclick-heartbeat-seat', role='assistant', and content containing the safe alert lines plus a brief progress summary and proof id if available.",
     "When UnClick returns action_needed, blocker, stale ACK, missing proof, duplicate wake, unclear owner, owner silence past TTL, or queue hydration failure items, call nudgeonly_receipt_bridge if available using compact public fields only: source_id, source_url, target, owner, painpoint_type, status, created_at, owner_last_seen_at or owner_silent_minutes, and ttl_minutes. Owner silence past TTL is an expired ownership lease, not a model-judgment nudge.",
     "Prefer deterministic painpoint labels from UnClick. Call nudgeonly_api only when no deterministic bucket exists, and only for the smallest safe source text needed to classify the painpoint.",

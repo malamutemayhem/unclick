@@ -80,9 +80,11 @@ describe("AdminExpressBuild", () => {
 
     expect(screen.getByRole("heading", { name: "DraftRoom" })).toBeInTheDocument();
     expect(screen.getByText("Manual DraftRoom")).toBeInTheDocument();
-    expect(screen.getByText(/first station in the UnClick build line/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/first station in the UnClick build line/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/warm smart chat seat should build or fit/i)).toBeInTheDocument();
     expect(screen.getByText(/Do not claim DONE from DraftRoom/i)).toBeInTheDocument();
-    expect(screen.getByText(/Build while context is fresh/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/build or fit the smallest safe draft/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/exact blocker and next build step/i).length).toBeGreaterThan(0);
     expect(screen.getByText("Manual draft alarm bells")).toBeInTheDocument();
     expect(screen.getAllByText(/Supplied code is untrusted/i).length).toBeGreaterThan(0);
     expect(await screen.findByText("Proof Ledger v2")).toBeInTheDocument();
