@@ -50,6 +50,12 @@ function normalizePath(value) {
     .trim();
 }
 
+function normalizeList(values) {
+  if (Array.isArray(values)) return values.map((value) => String(value ?? "").trim()).filter(Boolean);
+  if (values === undefined || values === null || values === "") return [];
+  return [String(values).trim()].filter(Boolean);
+}
+
 function safeStamp(value = new Date()) {
   return String(value instanceof Date ? value.toISOString() : value)
     .replace(/[^0-9A-Za-z._:-]/g, "-")
@@ -247,7 +253,29 @@ export function createOpenHandsCliRunner({
     }
 
     const patchFile = String(env.OPENHANDS_PATCH_FILE || "").trim();
-    const patch = patchFile ? await readPatchFile(patchFile, "utf8") : extractUnifiedDiff(result.output);
+    const outputPatch = patchFile ? await readPatchFile(patchFile, "utf8") : extractUnifiedDiff(result.output);
+    const worktreeCapture = await captureOwnedWorktreeDiff({
+      cwd,
+      env,
+      ownedFiles: scopePack?.owned_files || [],
+      runProcess,
+    });
+    if (!worktreeCapture.ok) {
+      return {
+        ok: false,
+        reason: worktreeCapture.reason,
+        exit_code: result.exit_code,
+        output: compactOutput(
+          [
+            "OpenHands left an unsafe or unrestorable worktree diff.",
+            worktreeCapture.output || "",
+            result.output || "",
+          ].join("\n"),
+        ),
+      };
+    }
+
+    const patch = outputPatch || worktreeCapture.patch;
     if (!String(patch || "").trim()) {
       return {
         ok: false,
@@ -266,8 +294,10 @@ export function createOpenHandsCliRunner({
     return {
       ok: true,
       patch,
-      changed_files: scopePack?.owned_files || [],
-      summary: "OpenHands CLI produced a test-mode patch.",
+      changed_files: worktreeCapture.changed_files?.length ? worktreeCapture.changed_files : scopePack?.owned_files || [],
+      summary: outputPatch
+        ? "OpenHands CLI produced a test-mode patch."
+        : "OpenHands CLI applied an owned-file patch captured from git diff.",
       test_run_id: result.run_id || "openhands-cli",
       test_exit_code: result.exit_code,
       output: result.output,
@@ -643,6 +673,61 @@ export async function runProcessCommand(command, args = [], options = {}) {
     }
     child.stdin.end();
   });
+}
+
+export async function captureOwnedWorktreeDiff({
+  cwd = process.cwd(),
+  env = process.env,
+  ownedFiles = [],
+  runProcess = runProcessCommand,
+} = {}) {
+  const owned = [...new Set((ownedFiles || []).map(normalizePath).filter(Boolean))];
+  if (owned.length === 0) return { ok: true, patch: "", changed_files: [] };
+
+  const changed = await runProcess("git", ["diff", "--name-only", "--"], { cwd, env });
+  if (!changed.ok) {
+    return { ok: false, reason: "git_diff_name_only_failed", output: changed.output };
+  }
+
+  const changedFiles = normalizeList(changed.stdout)
+    .flatMap((text) => text.split(/\r?\n/))
+    .map(normalizePath)
+    .filter(Boolean);
+  if (changedFiles.length === 0) return { ok: true, patch: "", changed_files: [] };
+
+  const ownedSet = new Set(owned);
+  const outside = changedFiles.filter((file) => !ownedSet.has(file));
+  if (outside.length) {
+    return {
+      ok: false,
+      reason: "openhands_unowned_worktree_diff",
+      output: `Changed files outside ownership: ${outside.join(", ")}`,
+      changed_files: changedFiles,
+      outside_files: outside,
+    };
+  }
+
+  const diff = await runProcess("git", ["diff", "--", ...changedFiles], { cwd, env });
+  if (!diff.ok) {
+    return { ok: false, reason: "git_diff_capture_failed", output: diff.output, changed_files: changedFiles };
+  }
+
+  const restore = await runProcess("git", ["restore", "--worktree", "--", ...changedFiles], { cwd, env });
+  if (!restore.ok) {
+    return { ok: false, reason: "git_restore_owned_diff_failed", output: restore.output, changed_files: changedFiles };
+  }
+
+  const verify = await runProcess("git", ["diff", "--quiet", "--", ...changedFiles], { cwd, env });
+  if (!verify.ok) {
+    return {
+      ok: false,
+      reason: "git_restore_owned_diff_unclean",
+      output: verify.output,
+      changed_files: changedFiles,
+    };
+  }
+
+  return { ok: true, patch: diff.stdout || diff.output || "", changed_files: changedFiles };
 }
 
 function extractUnifiedDiff(output) {
