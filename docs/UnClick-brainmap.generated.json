@@ -9,8 +9,8 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 472,
-    "source_manifest": 93,
+    "inventory": 473,
+    "source_manifest": 94,
     "pages": 94,
     "tools": 183,
     "rooms": 23,
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 108
+      "count": 109
     },
     {
       "id": "ledgers-and-proof",
@@ -1658,6 +1658,16 @@
       "kind": "workflow",
       "meaning": "review enforcement warning GitHub automation workflow.",
       "source": ".github/workflows/review-enforcement-warning.yml",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-workflow-scheduled-build-self-test-yml-github-workflows-scheduled-build-self-test-yml",
+      "division": "Automations",
+      "name": "scheduled build self test.yml",
+      "kind": "workflow",
+      "meaning": "scheduled build self test GitHub automation workflow.",
+      "source": ".github/workflows/scheduled-build-self-test.yml",
       "route": "",
       "tags": []
     },
@@ -6974,6 +6984,11 @@
       "source": ".github/workflows/review-enforcement-warning.yml",
       "hash": "64b27fdddfe8",
       "bytes": 548
+    },
+    {
+      "source": ".github/workflows/scheduled-build-self-test.yml",
+      "hash": "1362b535ff33",
+      "bytes": 1024
     },
     {
       "source": ".github/workflows/seed-vault.yml",
