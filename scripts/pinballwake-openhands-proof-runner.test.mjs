@@ -4,6 +4,7 @@ import { describe, test } from "node:test";
 import {
   buildDocsOnlyFixturePatch,
   buildOpenHandsCliArgs,
+  captureOwnedWorktreeDiff,
   checkOpenHandsHeadlessSettings,
   compactOutput,
   createDraftPrCoderoom,
@@ -108,9 +109,11 @@ describe("OpenHands proof runner helpers", () => {
     });
 
     assert.equal(result.ok, true);
-    assert.equal(calls.length, 1);
+    assert.equal(calls.length, 2);
     assert.equal(calls[0][0], "openhands");
     assert.deepEqual(calls[0][1], ["--headless", "--json", "--override-with-envs", "--task", "Patch a docs file"]);
+    assert.equal(calls[1][0], "git");
+    assert.deepEqual(calls[1][1], ["diff", "--name-only", "--"]);
   });
 
   test("returns a specific reason when the OpenHands CLI exits before a patch", async () => {
@@ -162,6 +165,85 @@ describe("OpenHands proof runner helpers", () => {
     assert.equal(result.exit_code, 0);
     assert.match(result.output, /completed without a trusted unified diff/);
     assert.match(result.output, /diff --git patch/);
+  });
+
+  test("captures an owned-file worktree diff when OpenHands edits instead of printing a patch", async () => {
+    const calls = [];
+    const patch = buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: worktree-capture" });
+    const runner = createOpenHandsCliRunner({
+      env: {
+        OPENHANDS_ARGS: "--headless --json --override-with-envs --task {prompt}",
+        LLM_API_KEY: "secret",
+        LLM_MODEL: "openai/gpt-5",
+      },
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        if (command !== "git") {
+          return { ok: true, exit_code: 0, output: "OpenHands edited the fixture file directly." };
+        }
+        if (args[0] === "diff" && args[1] === "--name-only") {
+          return { ok: true, stdout: `${FIXTURE}\n`, stderr: "", output: `${FIXTURE}\n` };
+        }
+        if (args[0] === "diff" && args[1] === "--") {
+          return { ok: true, stdout: patch, stderr: "", output: patch };
+        }
+        if (args[0] === "restore") {
+          return { ok: true, stdout: "", stderr: "", output: "" };
+        }
+        if (args[0] === "diff" && args[1] === "--quiet") {
+          return { ok: true, stdout: "", stderr: "", output: "" };
+        }
+        throw new Error(`unexpected git command ${args.join(" ")}`);
+      },
+    });
+
+    const result = await runner({
+      prompt: "Patch a docs file",
+      scopePack: { owned_files: [FIXTURE] },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.patch, patch);
+    assert.deepEqual(result.changed_files, [FIXTURE]);
+    assert.match(result.summary, /captured from git diff/);
+    assert.deepEqual(
+      calls.map(([command, args]) => `${command} ${args.slice(0, 3).join(" ")}`),
+      [
+        "openhands --headless --json --override-with-envs",
+        "git diff --name-only --",
+        "git diff -- docs/openhands-proof-fixture.md",
+        "git restore --worktree --",
+        "git diff --quiet --",
+      ],
+    );
+  });
+
+  test("fails closed when OpenHands edits outside owned files", async () => {
+    const runner = createOpenHandsCliRunner({
+      env: {
+        OPENHANDS_ARGS: "--headless --json --override-with-envs --task {prompt}",
+        LLM_API_KEY: "secret",
+        LLM_MODEL: "openai/gpt-5",
+      },
+      runProcess: async (command, args) => {
+        if (command !== "git") {
+          return { ok: true, exit_code: 0, output: "OpenHands edited files directly." };
+        }
+        if (args[0] === "diff" && args[1] === "--name-only") {
+          return { ok: true, stdout: "src/not-owned.ts\n", stderr: "", output: "src/not-owned.ts\n" };
+        }
+        throw new Error(`unexpected git command ${args.join(" ")}`);
+      },
+    });
+
+    const result = await runner({
+      prompt: "Patch a docs file",
+      scopePack: { owned_files: [FIXTURE] },
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "openhands_unowned_worktree_diff");
+    assert.match(result.output, /outside ownership/);
   });
 
   test("runs fixture OpenHands through the worker and coderoom", async () => {
@@ -258,6 +340,43 @@ describe("draft PR coderoom binding", () => {
 });
 
 describe("safe CodeRoom submitter", () => {
+  test("captures and restores owned worktree diffs", async () => {
+    const calls = [];
+    const patch = buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: helper" });
+    const result = await captureOwnedWorktreeDiff({
+      ownedFiles: [FIXTURE],
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        if (args[0] === "diff" && args[1] === "--name-only") {
+          return { ok: true, stdout: `${FIXTURE}\n`, stderr: "", output: `${FIXTURE}\n` };
+        }
+        if (args[0] === "diff" && args[1] === "--") {
+          return { ok: true, stdout: patch, stderr: "", output: patch };
+        }
+        if (args[0] === "restore") {
+          return { ok: true, stdout: "", stderr: "", output: "" };
+        }
+        if (args[0] === "diff" && args[1] === "--quiet") {
+          return { ok: true, stdout: "", stderr: "", output: "" };
+        }
+        throw new Error(`unexpected command ${command} ${args.join(" ")}`);
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.patch, patch);
+    assert.deepEqual(result.changed_files, [FIXTURE]);
+    assert.deepEqual(
+      calls.map(([command, args]) => `${command} ${args.slice(0, 3).join(" ")}`),
+      [
+        "git diff --name-only --",
+        "git diff -- docs/openhands-proof-fixture.md",
+        "git restore --worktree --",
+        "git diff --quiet --",
+      ],
+    );
+  });
+
   test("refuses default GITHUB_TOKEN-only auth before git or gh calls", async () => {
     const calls = [];
     const submitter = createSafeCodeRoomSubmitter({
