@@ -1682,6 +1682,14 @@ describe("PinballWake autonomous Runner seat", () => {
       assert.equal(result.todo_claim_sync.ok, true);
       assert.equal(result.todo_claim_sync.skipped, true);
       assert.equal(result.todo_claim_sync.reason, "test_only_executor_packet_not_active_claim");
+      // Honesty slice: a claim-only / execute-disabled run must read as a HOLD in its data,
+      // so a ledger/proof consumer cannot mistake it for a real claim (anti-false-DONE).
+      assert.equal(result.todo_claim_sync.action, "hold");
+      assert.equal(result.todo_claim_sync.hold, true);
+      assert.equal(result.todo_claim_sync.execute_disabled, true);
+      assert.equal(result.todo_claim_sync.hold_reason, "claim_only_execute_disabled");
+      assert.notEqual(result.todo_claim_sync.status, "in_progress");
+      assert.notEqual(result.todo_claim_sync.assigned_to_agent_id, "runner-plex-1");
       assert.equal(result.todo_claim_sync.todo_id, "todo-claim-1");
       assert.equal(result.todo_claim_sync.test_only_executor_packet.receipt.receipt_type, "executor_packet_pass");
       assert.equal(result.todo_claim_sync.openhands_claim_probe.receipt.receipt_type, "openhands_worker_hold");

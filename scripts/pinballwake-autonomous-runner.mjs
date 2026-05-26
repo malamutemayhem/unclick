@@ -1452,6 +1452,10 @@ export async function syncClaimedBoardroomTodoToUnClick({
     return {
       ok: true,
       skipped: true,
+      action: "hold",
+      hold: true,
+      execute_disabled: true,
+      hold_reason: "claim_only_execute_disabled",
       reason: "test_only_executor_packet_not_active_claim",
       todo_id: todoId,
       assigned_to_agent_id: job?.source_state?.assigned_to_agent_id || null,
