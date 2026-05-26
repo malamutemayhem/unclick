@@ -11,7 +11,7 @@
 import {
   classifyTodoActionability,
   type TodoActionability,
-} from "./fishbowl-todo-actionability";
+} from "./fishbowl-todo-actionability.js";
 
 // Mirrors WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT (= 3) in
 // api/fishbowl-watcher.ts. Duplicated here so this helper stays pure and free of
