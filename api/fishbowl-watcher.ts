@@ -99,11 +99,11 @@ export const WAKEPASS_REROUTE_LEASE_SECONDS = 600;
 // paths (workerSelfHealingProtectedReason); the runner's claim/build/complete
 // flow is a separate code path and is unaffected.
 //
-// - 8719dc4f-1650-4ea9-bca8-e92a9819f0ba: AFK canary seed (docs-only OpenHands
-//   proof fixture), assigned to pinballwake-autonomous-runner, linked Boardroom
-//   coding-room job bf58d19d. The seed must stay assigned/open during a runner
-//   outage so AFK detection keeps working; releasing it would trip the runner's
-//   assigned_canary_seed_missing check.
+// - 8719dc4f-1650-4ea9-bca8-e92a9819f0ba: AFK canary proof-fixture seed
+//   (docs-only OpenHands proof fixture), assigned to pinballwake-autonomous-runner.
+//   The seed must stay assigned/open during a runner outage so AFK detection
+//   keeps working; releasing it would trip the runner's assigned_canary_seed_missing
+//   check.
 export const WORKER_SELF_HEALING_PROTECTED_TODO_IDS = new Set<string>([
   "8719dc4f-1650-4ea9-bca8-e92a9819f0ba",
 ]);
