@@ -9,6 +9,7 @@ import {
   WAKEPASS_REROUTE_LEASE_SECONDS,
   buildDispatchReclaimSignal,
   buildMissedCheckinDispatch,
+  buildOpenStaleTodoReleasePlan,
   buildWorkerMovementWorkflowPilotProofText,
   buildWakepassAutoReroutePlan,
   buildWorkerSelfHealingSignal,
@@ -26,6 +27,7 @@ import {
   planWorkerSelfHealingTodoSignal,
   resolveWakepassRerouteTarget,
   shouldMarkDispatchStaleAfterReclaimSignalInsert,
+  workerSelfHealingProtectedReason,
   type DispatchRow,
   type FishbowlMessageAckRow,
   type ProfileRow,
@@ -997,6 +999,249 @@ describe("worker self-healing decision plan", () => {
         apiKeyHash: "hash_123",
         decision,
         emittedAt: "2026-05-01T01:22:01.000Z",
+      }),
+    ).toBeNull();
+  });
+});
+
+describe("WriterLane Slice 2b open-stale todo release wiring", () => {
+  // Fixed reference clock. Thresholds (from fishbowl-todo-actionability): an
+  // open assigned todo is "stale" only after 6h of age AND a dormant owner
+  // (last seen > 1h ago, or no profile, or a role assignee).
+  const NOW = "2026-05-26T12:00:00.000Z";
+  const nowMs = Date.parse(NOW);
+  const HOUR = 60 * 60 * 1000;
+  const agedUpdatedAt = new Date(nowMs - 8 * HOUR).toISOString(); // > 6h: aged
+  const freshUpdatedAt = new Date(nowMs - 3 * HOUR).toISOString(); // < 6h: not aged
+  const dormantSeenAt = new Date(nowMs - 2 * HOUR).toISOString(); // > 1h: dormant
+  const liveSeenAt = new Date(nowMs - 7 * 60 * 1000).toISOString(); // < 1h: live
+
+  const openStaleTodo = (overrides: Record<string, unknown> = {}) => ({
+    id: "todo-open-stale",
+    status: "open",
+    assigned_to_agent_id: "worker-7",
+    lease_token: null,
+    lease_expires_at: null,
+    reclaim_count: 0,
+    updated_at: agedUpdatedAt,
+    created_at: agedUpdatedAt,
+    ...overrides,
+  });
+
+  const buildPlan = (
+    overrides: Record<string, unknown> = {},
+    extra: { ownerLastSeenAt?: string | null; isProtected?: boolean } = {},
+  ) =>
+    buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: openStaleTodo(overrides) as never,
+      ownerLastSeenAt:
+        "ownerLastSeenAt" in extra ? extra.ownerLastSeenAt ?? null : dormantSeenAt,
+      isProtected: extra.isProtected ?? false,
+      releasedAt: NOW,
+      nowMs,
+    });
+
+  it("releases a genuinely stale open todo with a dormant non-role owner", () => {
+    const plan = buildPlan();
+    expect(plan).toMatchObject({
+      signal: {
+        action: "worker_self_healing_stale_owner_released",
+        severity: "info",
+      },
+      insert: {
+        api_key_hash: "hash_123",
+        tool: "fishbowl",
+        action: "worker_self_healing_stale_owner_released",
+        deep_link: "/admin/jobs#todo-todo-open-stale",
+        payload: {
+          todo_id: "todo-open-stale",
+          classification: "stale_assigned_open",
+          previous_status: "open",
+          previous_assigned_to_agent_id: "worker-7",
+          next_status: "open",
+          released_stale_owner: true,
+          bonded_handoff_required: true,
+          reclaim_count: 0,
+          next_reclaim_count: 1,
+        },
+      },
+      update: {
+        status: "open",
+        assigned_to_agent_id: null,
+        lease_token: null,
+        lease_expires_at: null,
+        reclaim_count: 1,
+        updated_at: NOW,
+      },
+    });
+  });
+
+  it("releases when the owner has no profile (treated as dormant)", () => {
+    const plan = buildPlan({}, { ownerLastSeenAt: null });
+    expect(plan).not.toBeNull();
+    expect(plan!.update.assigned_to_agent_id).toBeNull();
+    expect(plan!.update.reclaim_count).toBe(1);
+  });
+
+  it("leaves a fresh-owner open todo untouched (live within 1h)", () => {
+    expect(buildPlan({}, { ownerLastSeenAt: liveSeenAt })).toBeNull();
+  });
+
+  it("leaves a not-yet-aged open todo untouched even with a dormant owner", () => {
+    expect(buildPlan({ updated_at: freshUpdatedAt, created_at: freshUpdatedAt })).toBeNull();
+  });
+
+  it("leaves role-assigned open todos untouched", () => {
+    for (const role of ["master", "coordinator", "pinballwake-job-runner"]) {
+      expect(buildPlan({ assigned_to_agent_id: role })).toBeNull();
+    }
+  });
+
+  it("never touches in_progress todos via this path", () => {
+    // status=in_progress classifies as stale_in_progress, not stale_assigned_open,
+    // so the open-stale helper declines and the existing in_progress planner owns it.
+    expect(buildPlan({ status: "in_progress" })).toBeNull();
+  });
+
+  it("never releases when the caller marks the todo protected", () => {
+    // The watcher computes isProtected via workerSelfHealingProtectedReason and
+    // passes it in; the helper trusts that flag and refuses to plan a release.
+    expect(buildPlan({}, { isProtected: true })).toBeNull();
+    expect(
+      buildPlan(
+        { title: "human_blocker: owner must approve before any move" },
+        { isProtected: true },
+      ),
+    ).toBeNull();
+    expect(
+      buildPlan({ assigned_to_agent_id: "human-chris" }, { isProtected: true }),
+    ).toBeNull();
+  });
+
+  it("protection gate (watcher input) flags human/manual todos and clears normal ones", () => {
+    // This is the gate the watcher runs before planning a release. It must flag
+    // human/manual work so isProtected=true reaches the helper.
+    expect(
+      workerSelfHealingProtectedReason({
+        id: "t",
+        status: "open",
+        assigned_to_agent_id: "worker-7",
+        title: "human_blocker: needs owner approval",
+      } as never),
+    ).toBe("human_blocker_protected");
+    expect(
+      workerSelfHealingProtectedReason({
+        id: "t",
+        status: "open",
+        assigned_to_agent_id: "worker-7",
+        title: "manual-only deploy step",
+      } as never),
+    ).toBe("manual_only_protected");
+    expect(
+      workerSelfHealingProtectedReason({
+        id: "t",
+        status: "open",
+        assigned_to_agent_id: "human-chris",
+        title: "ordinary task",
+      } as never),
+    ).toBe("human_owned_work_protected");
+    // A plain worker-owned open todo is NOT protected -> relies on age/liveness.
+    expect(
+      workerSelfHealingProtectedReason({
+        id: "t",
+        status: "open",
+        assigned_to_agent_id: "worker-7",
+        title: "ordinary task",
+      } as never),
+    ).toBeNull();
+  });
+
+  it("respects the reclaim cap (< 3) and bumps reclaim_count", () => {
+    expect(buildPlan({ reclaim_count: 3 })).toBeNull();
+    const plan = buildPlan({ reclaim_count: 2 });
+    expect(plan).not.toBeNull();
+    expect(plan!.update.reclaim_count).toBe(3);
+    expect(plan!.insert.payload.reclaim_count).toBe(2);
+    expect(plan!.insert.payload.next_reclaim_count).toBe(3);
+  });
+
+  // ── Canary safety (AFK canary seed 8719dc4f-1650-4ea9-bca8-e92a9819f0ba) ──
+  // The canary is an open todo assigned to the autonomous runner. In a healthy
+  // system it is continuously exercised (re-opened with a fresh updated_at) and
+  // its owner is active, so it is protected by BOTH the age gate and the
+  // owner-liveness gate. These tests assert the canary is left untouched while
+  // fresh and/or protected.
+  const canaryTodo = (overrides: Record<string, unknown> = {}) =>
+    openStaleTodo({
+      id: "8719dc4f-1650-4ea9-bca8-e92a9819f0ba",
+      title: "AFK canary seed: docs-only OpenHands proof fixture",
+      assigned_to_agent_id: "pinballwake-autonomous-runner",
+      priority: "urgent",
+      ...overrides,
+    });
+
+  it("documents that the canary is NOT keyword-protected (safety rests on age/liveness)", () => {
+    expect(workerSelfHealingProtectedReason(canaryTodo() as never)).toBeNull();
+  });
+
+  it("leaves the canary untouched when its owner is live (< 1h)", () => {
+    const plan = buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: canaryTodo() as never,
+      ownerLastSeenAt: liveSeenAt,
+      isProtected: false,
+      releasedAt: NOW,
+      nowMs,
+    });
+    expect(plan).toBeNull();
+  });
+
+  it("leaves the canary untouched via the age gate even if its owner is dormant", () => {
+    // Primary protection in a healthy system: the canary is re-exercised
+    // regularly so updated_at stays < 6h and it is never even classified stale.
+    const plan = buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: canaryTodo({ updated_at: freshUpdatedAt, created_at: freshUpdatedAt }) as never,
+      ownerLastSeenAt: dormantSeenAt,
+      isProtected: false,
+      releasedAt: NOW,
+      nowMs,
+    });
+    expect(plan).toBeNull();
+  });
+
+  it("leaves the canary untouched when explicitly protected", () => {
+    const plan = buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: canaryTodo() as never,
+      ownerLastSeenAt: dormantSeenAt,
+      isProtected: true,
+      releasedAt: NOW,
+      nowMs,
+    });
+    expect(plan).toBeNull();
+  });
+
+  it("returns null for blank apiKeyHash or releasedAt (no-op guard)", () => {
+    expect(
+      buildOpenStaleTodoReleasePlan({
+        apiKeyHash: "  ",
+        todo: openStaleTodo() as never,
+        ownerLastSeenAt: dormantSeenAt,
+        isProtected: false,
+        releasedAt: NOW,
+        nowMs,
+      }),
+    ).toBeNull();
+    expect(
+      buildOpenStaleTodoReleasePlan({
+        apiKeyHash: "hash_123",
+        todo: openStaleTodo() as never,
+        ownerLastSeenAt: dormantSeenAt,
+        isProtected: false,
+        releasedAt: "   ",
+        nowMs,
       }),
     ).toBeNull();
   });
