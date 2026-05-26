@@ -91,6 +91,23 @@ const WORKER_SELF_HEALING_TODO_SWEEP_LIMIT = 50;
 export const WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT = 3;
 export const WAKEPASS_REROUTE_LEASE_SECONDS = 600;
 
+// Specific Boardroom todo ids that the self-healing watcher must NEVER release,
+// regardless of age or owner liveness. This is a precise, per-seed allowlist:
+// it protects ONLY these exact todo rows from the release/reclaim paths and does
+// NOT protect their owner agents in general (legitimate stale runner-owned jobs
+// must still be releasable). It only gates the watcher's release/decision/proof
+// paths (workerSelfHealingProtectedReason); the runner's claim/build/complete
+// flow is a separate code path and is unaffected.
+//
+// - 8719dc4f-1650-4ea9-bca8-e92a9819f0ba: AFK canary seed (docs-only OpenHands
+//   proof fixture), assigned to pinballwake-autonomous-runner, linked Boardroom
+//   coding-room job bf58d19d. The seed must stay assigned/open during a runner
+//   outage so AFK detection keeps working; releasing it would trip the runner's
+//   assigned_canary_seed_missing check.
+export const WORKER_SELF_HEALING_PROTECTED_TODO_IDS = new Set<string>([
+  "8719dc4f-1650-4ea9-bca8-e92a9819f0ba",
+]);
+
 interface WakepassRerouteTarget {
   agentId: string;
   recipient: string;
@@ -821,6 +838,11 @@ function nonEmptyString(value: unknown): string | null {
 }
 
 export function workerSelfHealingProtectedReason(todo: WorkerSelfHealingTodoState): string | null {
+  const todoId = nonEmptyString(todo.id)?.toLowerCase();
+  if (todoId && WORKER_SELF_HEALING_PROTECTED_TODO_IDS.has(todoId)) {
+    return "canary_seed_protected";
+  }
+
   const status = normalizeToken(todo.status);
   if (status === "human_blocker") return "human_blocker_protected";
   if (status === "manual_only") return "manual_only_protected";

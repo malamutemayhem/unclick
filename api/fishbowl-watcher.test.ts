@@ -1167,11 +1167,12 @@ describe("WriterLane Slice 2b open-stale todo release wiring", () => {
   });
 
   // ── Canary safety (AFK canary seed 8719dc4f-1650-4ea9-bca8-e92a9819f0ba) ──
-  // The canary is an open todo assigned to the autonomous runner. In a healthy
-  // system it is continuously exercised (re-opened with a fresh updated_at) and
-  // its owner is active, so it is protected by BOTH the age gate and the
-  // owner-liveness gate. These tests assert the canary is left untouched while
-  // fresh and/or protected.
+  // The canary is an open todo assigned to the autonomous runner. It is now
+  // protected-by-id: workerSelfHealingProtectedReason returns a protected reason
+  // for its exact todo id, so the watcher never releases it regardless of age or
+  // owner liveness. Defense-in-depth still holds via the age + owner-liveness
+  // gates in a healthy system. The protection is scoped to this seed id only and
+  // does NOT protect the runner agent globally.
   const canaryTodo = (overrides: Record<string, unknown> = {}) =>
     openStaleTodo({
       id: "8719dc4f-1650-4ea9-bca8-e92a9819f0ba",
@@ -1181,8 +1182,54 @@ describe("WriterLane Slice 2b open-stale todo release wiring", () => {
       ...overrides,
     });
 
-  it("documents that the canary is NOT keyword-protected (safety rests on age/liveness)", () => {
-    expect(workerSelfHealingProtectedReason(canaryTodo() as never)).toBeNull();
+  it("protects the canary seed by id (returns canary_seed_protected)", () => {
+    expect(workerSelfHealingProtectedReason(canaryTodo() as never)).toBe(
+      "canary_seed_protected",
+    );
+    // Case-insensitive id match (UUIDs may arrive upper-cased).
+    expect(
+      workerSelfHealingProtectedReason(
+        canaryTodo({ id: "8719DC4F-1650-4EA9-BCA8-E92A9819F0BA" }) as never,
+      ),
+    ).toBe("canary_seed_protected");
+  });
+
+  it("does NOT release the canary even when aged AND owner dormant (protected-by-id)", () => {
+    // Worst case for the canary: aged > 6h with a dormant owner — exactly the
+    // sustained-outage edge. The watcher computes isProtected via the gate, so
+    // the open-stale sweep must refuse to plan a release.
+    const todo = canaryTodo({ updated_at: agedUpdatedAt, created_at: agedUpdatedAt });
+    const isProtected = workerSelfHealingProtectedReason(todo as never) !== null;
+    expect(isProtected).toBe(true);
+    const plan = buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: todo as never,
+      ownerLastSeenAt: dormantSeenAt,
+      isProtected,
+      releasedAt: NOW,
+      nowMs,
+    });
+    expect(plan).toBeNull();
+  });
+
+  it("does NOT protect a different runner-owned open todo (scoped to seed id only)", () => {
+    // A legitimate stale runner-owned job (NOT the canary id) must stay
+    // releasable; per-seed protection must not become global runner protection.
+    const todo = openStaleTodo({
+      id: "11111111-2222-3333-4444-555555555555",
+      assigned_to_agent_id: "pinballwake-autonomous-runner",
+    });
+    expect(workerSelfHealingProtectedReason(todo as never)).toBeNull();
+    const plan = buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: todo as never,
+      ownerLastSeenAt: dormantSeenAt,
+      isProtected: false,
+      releasedAt: NOW,
+      nowMs,
+    });
+    expect(plan).not.toBeNull();
+    expect(plan!.update.assigned_to_agent_id).toBeNull();
   });
 
   it("leaves the canary untouched when its owner is live (< 1h)", () => {
