@@ -80,9 +80,10 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          VERCEL_STATUS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           for i in {1..24}; do
-            state="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/status" --jq '.statuses[]? | select(.context == "Vercel") | .state' 2>/dev/null | head -n 1 || true)"
+            state="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${VERCEL_STATUS_SHA}/status" --jq '.statuses[]? | select(.context == "Vercel") | .state' 2>/dev/null | head -n 1 || true)"
             if [ "$state" = "success" ]; then
               echo "Vercel preview is ready."
               exit 0
@@ -144,6 +145,9 @@ jobs:
               typeof responseJson.auth_reason === 'string' ? responseJson.auth_reason : '';
             const howToFix =
               typeof responseJson.how_to_fix === 'string' ? responseJson.how_to_fix : '';
+            const isVercelAuth =
+              authReason.startsWith('vercel_') ||
+              howToFix.includes('VERCEL_AUTOMATION_BYPASS_SECRET');
 
             const isInfra = failureKind && failureKind.startsWith('infra_');
 
@@ -159,11 +163,17 @@ jobs:
               const authReasonSuffix = authReason ? ` (${authReason})` : '';
               const explanations = {
                 infra_auth:
-                  `The TestPass API rejected the provided bearer token${authReasonSuffix} ` +
-                  `(HTTP ${httpCode}). ` +
-                  (howToFix ||
-                    `Use a valid Supabase JWT or uc_ UnClick API key in ` +
-                    `\`TESTPASS_TOKEN\`, then re-run the workflow.`),
+                  isVercelAuth
+                    ? `The Vercel preview blocked the automation request${authReasonSuffix} ` +
+                      `(HTTP ${httpCode}). ` +
+                      (howToFix ||
+                        `Confirm \`VERCEL_AUTOMATION_BYPASS_SECRET\` is available to GitHub Actions ` +
+                        `and matches the Vercel Protection Bypass for Automation secret, then re-run the workflow.`)
+                    : `The TestPass API rejected the provided bearer token${authReasonSuffix} ` +
+                      `(HTTP ${httpCode}). ` +
+                      (howToFix ||
+                        `Use a valid Supabase JWT or uc_ UnClick API key in ` +
+                        `\`TESTPASS_TOKEN\`, then re-run the workflow.`),
                 infra_http:
                   `The TestPass API returned HTTP ${httpCode}. This is a ` +
                   `service-side issue, **not** a problem with this PR. ` +

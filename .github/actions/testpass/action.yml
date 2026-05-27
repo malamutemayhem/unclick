@@ -81,6 +81,27 @@ runs:
           --arg source "$SOURCE" \
           '{pack_id: $pack_id, profile: $profile, source: $source} + (if $server_url == "" then {} else {server_url: $server_url} end)')
 
+        if [[ "$API_URL" == https://*.vercel.app/* || "$SERVER_URL" == https://*.vercel.app/* ]] && [ -z "${VERCEL_BYPASS:-}" ]; then
+          response=$(jq -cn \
+            --arg auth_reason "vercel_bypass_missing" \
+            --arg how_to_fix "Add the GitHub Actions secret VERCEL_AUTOMATION_BYPASS_SECRET with the Vercel Protection Bypass for Automation secret, then re-run the workflow." \
+            '{auth_reason: $auth_reason, how_to_fix: $how_to_fix}')
+          echo "::warning::Protected Vercel preview selected, but VERCEL_AUTOMATION_BYPASS_SECRET was not provided." >&2
+          {
+            echo "run_id="
+            echo "status=infra_vercel_bypass_missing"
+            echo "pass_rate=0"
+            echo "fail_count=0"
+            echo "total=0"
+            echo "failure_kind=infra_auth"
+            echo "http_code=000"
+            echo "response<<TESTPASS_EOF"
+            echo "$response"
+            echo "TESTPASS_EOF"
+          } >> "$GITHUB_OUTPUT"
+          exit 1
+        fi
+
         headers=(
           -H "Authorization: Bearer $TESTPASS_TOKEN"
           -H "Content-Type: application/json"
@@ -120,10 +141,17 @@ runs:
         elif [ "$http_code" = "401" ] || [ "$http_code" = "403" ]; then
           auth_reason=$(jq -r '.auth_reason // "unknown"' response.json 2>/dev/null || echo "unknown")
           how_to_fix=$(jq -r '.how_to_fix // "Refresh TESTPASS_TOKEN and retry."' response.json 2>/dev/null || echo "Refresh TESTPASS_TOKEN and retry.")
+          if [[ "$API_URL" == https://*.vercel.app/* ]] && { [ "$auth_reason" = "unknown" ] || [ -z "$auth_reason" ]; }; then
+            auth_reason="vercel_deployment_protection"
+            how_to_fix="The Vercel preview rejected the automation request. Confirm the GitHub Actions secret VERCEL_AUTOMATION_BYPASS_SECRET matches the project's Vercel Protection Bypass for Automation secret, then re-run the workflow."
+          fi
           echo "::warning::TestPass auth failure (HTTP $http_code, $auth_reason) - $how_to_fix" >&2
           status="infra_auth_error"
           failure_kind="infra_auth"
-          response=$(jq -c '.' response.json 2>/dev/null || echo "{}")
+          response=$(jq -c '.' response.json 2>/dev/null || jq -cn \
+            --arg auth_reason "$auth_reason" \
+            --arg how_to_fix "$how_to_fix" \
+            '{auth_reason: $auth_reason, how_to_fix: $how_to_fix}')
         elif [ "$http_code" -ge 400 ]; then
           echo "::warning::TestPass API error (HTTP $http_code) - service-side issue, not a product regression." >&2
           status="infra_http_error"
