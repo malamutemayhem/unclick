@@ -1237,7 +1237,7 @@ function isRobotAllowed(groups: RobotsRule[], userAgent: string, path: string): 
   const rules = matchingRobotsRules(groups, userAgent);
   if (rules.length === 0) return true;
   const matchedRules = rules
-    .filter((rule) => rule.path && path.startsWith(rule.path.replace(/\*.*$/, "")))
+    .filter((rule) => robotsPathMatches(rule.path, path))
     .sort((a, b) => b.path.length - a.path.length);
   const strongest = matchedRules[0];
   if (!strongest) return true;
@@ -1253,7 +1253,7 @@ function matchingRobotsRules(
   const normalizedAgent = userAgent.toLowerCase();
   const matches = groups.flatMap((group) => {
     const matchingAgents = group.agents.filter((agent) =>
-      agent === "*" || normalizedAgent.includes(agent) || agent.includes(normalizedAgent),
+      robotAgentMatches(agent, normalizedAgent),
     );
     if (matchingAgents.length === 0) return [];
     const specificity = Math.max(...matchingAgents.map((agent) => (agent === "*" ? 0 : agent.length)));
@@ -1264,6 +1264,21 @@ function matchingRobotsRules(
   return matches
     .filter((match) => match.specificity === strongestSpecificity)
     .flatMap((match) => match.group.rules);
+}
+
+function robotAgentMatches(agent: string, normalizedAgent: string): boolean {
+  return agent === "*" || normalizedAgent === agent || normalizedAgent.startsWith(agent);
+}
+
+function robotsPathMatches(rulePath: string, path: string): boolean {
+  if (!rulePath) return false;
+  const endAnchored = rulePath.endsWith("$");
+  const rawPattern = endAnchored ? rulePath.slice(0, -1) : rulePath;
+  const escaped = rawPattern
+    .split("*")
+    .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+    .join(".*");
+  return new RegExp(`^${escaped}${endAnchored ? "$" : ""}`).test(path);
 }
 
 function extractSitemapUrls(body: string): string[] {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { seopassRun, seopassStatus } from "./seopass-tool.js";
+import { seopassLighthousePlan, seopassRegisterPack, seopassRun, seopassStatus } from "./seopass-tool.js";
 
 function installFetch(fixtures: Record<string, string | { status: number; body: string; headers?: Record<string, string> }>): void {
   vi.stubGlobal("fetch", vi.fn(async (url: string) => {
@@ -48,6 +48,40 @@ describe("seopass-tool", () => {
 
   it("rejects non-http target URLs", async () => {
     const result = (await seopassRun({ url: "ftp://unclick.world" })) as { error?: string };
+    expect(result.error).toMatch(/http\(s\)/);
+  });
+
+  it("rejects invalid pack URLs and unsupported check ids before storing", async () => {
+    const badUrl = (await seopassRegisterPack({
+      pack_yaml: [
+        "name: Bad",
+        "url: ftp://unclick.world",
+        "checks:",
+        "  - metadata",
+        "lighthouse: {}",
+        "crawl: {}",
+        "budgets: {}",
+      ].join("\n"),
+    })) as { error?: string };
+    expect(badUrl.error).toMatch(/public http\(s\)/);
+
+    const badCheck = (await seopassRegisterPack({
+      pack_yaml: [
+        "name: Bad",
+        "url: https://unclick.world",
+        "checks:",
+        "  - made-up-check",
+        "lighthouse: {}",
+        "crawl: {}",
+        "budgets: {}",
+      ].join("\n"),
+    })) as { error?: string; details?: unknown[] };
+    expect(badCheck.error).toMatch(/unsupported SEOPass check/);
+    expect(badCheck.details).toEqual(["made-up-check"]);
+  });
+
+  it("rejects non-http Lighthouse plan targets", async () => {
+    const result = (await seopassLighthousePlan({ url: "file:///tmp/page.html" })) as { error?: string };
     expect(result.error).toMatch(/http\(s\)/);
   });
 

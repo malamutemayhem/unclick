@@ -171,4 +171,49 @@ describe("runSeoPass", () => {
     expect(crawlability?.findings.some((finding) => finding.id === "crawlability-search-bot-blocked")).toBe(false);
     expect(crawlability?.findings.some((finding) => finding.id === "crawlability-ai-bot-limited")).toBe(true);
   });
+
+  it("does not let a specific media crawler rule block general Googlebot", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["crawlability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/": { body: healthyHtml, headers: { "content-type": "text/html" } },
+        "https://example.com/robots.txt": {
+          body: [
+            "User-agent: Googlebot-Image",
+            "Disallow: /",
+            "",
+            "User-agent: *",
+            "Allow: /",
+            "",
+          ].join("\n"),
+        },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    const crawlability = report.checks.find((check) => check.check_id === "crawlability");
+    expect(crawlability?.findings.some((finding) => finding.id === "crawlability-search-bot-blocked")).toBe(false);
+  });
+
+  it("handles robots wildcard path rules for blocked private paths", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com/private/page",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["crawlability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/private/page": { body: healthyHtml, headers: { "content-type": "text/html" } },
+        "https://example.com/robots.txt": {
+          body: "User-agent: *\nAllow: /private/public$\nDisallow: /private/*\n",
+        },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/private/page</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    const crawlability = report.checks.find((check) => check.check_id === "crawlability");
+    expect(crawlability?.findings.some((finding) => finding.id === "crawlability-search-bot-blocked")).toBe(true);
+  });
 });

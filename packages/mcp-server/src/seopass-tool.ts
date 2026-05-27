@@ -62,6 +62,8 @@ const DEFAULT_CHECKS = [
   "core-web-vitals",
   "ai-overview-readiness",
 ] as const;
+const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
+const DEFAULT_MAX_BODY_CHARS = 1_500_000;
 
 function ensurePacksDir(): void {
   fs.mkdirSync(PACKS_DIR, { recursive: true });
@@ -145,6 +147,8 @@ export async function seopassRegisterPack(args: Record<string, unknown>): Promis
 
   const name = typeof pack.name === "string" ? pack.name : "";
   if (!name) return { error: "pack name must be a non-empty string" };
+  const validation = validatePack(pack);
+  if (validation) return validation;
 
   ensurePacksDir();
   const packId = `${safeFilename(name)}-${crypto.randomBytes(4).toString("hex")}`;
@@ -156,8 +160,10 @@ export async function seopassRegisterPack(args: Record<string, unknown>): Promis
 export async function seopassLighthousePlan(args: Record<string, unknown>): Promise<unknown> {
   const url = typeof args.url === "string" ? args.url : "";
   if (!url) return { error: "url is required" };
+  const targetUrl = normalizeUrl(url);
+  if (!targetUrl) return { error: "SEOPass target URL must be a valid public http(s) URL" };
   return lighthousePlan({
-    url,
+    url: targetUrl,
     lighthouse: {
       strategy: args.strategy === "desktop" ? "desktop" : "mobile",
       categories: Array.isArray(args.categories) ? args.categories : ["performance", "accessibility", "best-practices", "seo"],
@@ -337,29 +343,45 @@ function buildCheck(
 
 async function fetchText(url: string): Promise<FetchTextResult> {
   const started = Date.now();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DEFAULT_REQUEST_TIMEOUT_MS);
   try {
     const res = await fetch(url, {
       headers: {
         "user-agent": "UnClick-SEOPass/0.1 (+https://unclick.world)",
         accept: "text/html,application/xhtml+xml,application/xml,text/plain;q=0.9,*/*;q=0.8",
       },
+      signal: controller.signal,
     });
+    const text = await res.text();
+    const truncated = text.length > DEFAULT_MAX_BODY_CHARS;
     return {
       url: res.url || url,
       status: res.status,
-      headers: res.headers ? Object.fromEntries(res.headers.entries()) : {},
-      body: await res.text(),
+      headers: {
+        ...(res.headers ? Object.fromEntries(res.headers.entries()) : {}),
+        ...(truncated ? { "x-seopass-body-truncated": "true" } : {}),
+      },
+      body: truncated ? text.slice(0, DEFAULT_MAX_BODY_CHARS) : text,
       elapsed_ms: Date.now() - started,
     };
   } catch (err) {
+    const message =
+      err instanceof Error && err.name === "AbortError"
+        ? `Request timed out after ${DEFAULT_REQUEST_TIMEOUT_MS}ms`
+        : err instanceof Error
+          ? err.message
+          : String(err);
     return {
       url,
       status: 0,
       headers: {},
       body: "",
       elapsed_ms: Date.now() - started,
-      error: err instanceof Error ? err.message : String(err),
+      error: message,
     };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -436,6 +458,17 @@ function selectChecks(input: unknown): { checks: string[]; ignored: string[] } {
   const valid = requested.filter((check) => DEFAULT_CHECKS.includes(check as (typeof DEFAULT_CHECKS)[number]));
   const ignored = requested.filter((check) => !DEFAULT_CHECKS.includes(check as (typeof DEFAULT_CHECKS)[number]));
   return { checks: valid.length > 0 ? valid : [...DEFAULT_CHECKS], ignored };
+}
+
+function validatePack(pack: Record<string, unknown>): { error: string; details?: unknown } | null {
+  const url = typeof pack.url === "string" ? pack.url : "";
+  if (!normalizeUrl(url)) return { error: "pack url must be a valid public http(s) URL" };
+  if (!Array.isArray(pack.checks)) return { error: "pack checks must be an array" };
+  const invalidChecks = pack.checks.filter((check) => typeof check !== "string" || !DEFAULT_CHECKS.includes(check as (typeof DEFAULT_CHECKS)[number]));
+  if (invalidChecks.length > 0) {
+    return { error: "pack contains unsupported SEOPass check id(s)", details: invalidChecks };
+  }
+  return null;
 }
 
 function robotsBlocksAll(body: string): boolean {
