@@ -96,4 +96,28 @@ describe("CopyPass verdict pack", () => {
     expect(report.findings).toEqual([]);
     expect(report.summary.posture).toContain("no deterministic copy-quality issues");
   });
+
+  it("does not allow an empty deterministic review to pass", () => {
+    expect(() =>
+      createDeterministicCopyPassReport({
+        target: {
+          kind: "artifact",
+          label: "Empty fixture",
+        },
+        blocks: [],
+      }),
+    ).toThrow(/at least one copy block/);
+  });
+
+  it("does not allow a report with no checks attempted", () => {
+    expect(() =>
+      createCopyPassVerdictPack({
+        target: {
+          kind: "page",
+          label: "No checks",
+        },
+        checks: [],
+      }),
+    ).toThrow(/at least one check/);
+  });
 });

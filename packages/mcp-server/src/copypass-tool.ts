@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 type Verdict = "check" | "na" | "fail" | "other" | "pending";
-type Severity = "critical" | "high" | "medium" | "low";
+type Severity = "critical" | "high" | "medium" | "low" | "info";
 type CopyPassRunVerdict = "pass" | "warn" | "fail";
 type CopyPassCheckId =
   | "value-prop-clarity"
@@ -323,7 +323,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if ((channel.includes("hero") || channel.includes("cta")) && !containsAny(normalized, CTA_TERMS)) {
+  if (containsAny(channel, ["hero", "cta"]) && !containsAny(normalized, CTA_TERMS)) {
     findings.push(
       createCopyFinding(
         "cta-presence",
@@ -336,7 +336,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if ((channel.includes("hero") || channel.includes("pricing")) && !containsAny(normalized, PROOF_TERMS)) {
+  if (containsAny(channel, ["hero", "pricing"]) && !containsAny(normalized, PROOF_TERMS)) {
     findings.push(
       createCopyFinding(
         "proof-trust-gap",
@@ -510,6 +510,8 @@ function scoreCopyPassFindings(findings: CopyFinding[]): number {
         return total + 12;
       case "low":
         return total + 6;
+      case "info":
+        return total + 2;
     }
   }, 0);
 
@@ -522,6 +524,7 @@ function summarizeCopyPass(findings: CopyFinding[]): CopyPassSummary {
     high: 0,
     medium: 0,
     low: 0,
+    info: 0,
   };
   for (const finding of findings) counts_by_severity[finding.severity] += 1;
 
@@ -595,6 +598,12 @@ export async function copypassRun(args: Record<string, unknown>): Promise<unknow
   }
   const copyText = prepared.copyText;
   if (!copyText) return { error: "copy_text or copyroom_source_packet is required" };
+  if (!copyText.trim()) {
+    return {
+      error: "COPY_TEXT_EMPTY: CopyPass requires non-whitespace copy_text to review.",
+      copyroom_receipt: prepared.copyroomReceipt ?? null,
+    };
+  }
   const profile = parseProfile(args.profile);
   if (!profile) return { error: "profile must be one of: smoke, standard, deep" };
 
@@ -695,7 +704,7 @@ function prepareCopyText(args: Record<string, unknown>): CopyRoomPreparedCopy {
   }
 
   return {
-    copyText: typeof args.copy_text === "string" ? args.copy_text.trim() : "",
+    copyText: typeof args.copy_text === "string" ? args.copy_text : "",
   };
 }
 

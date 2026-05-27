@@ -7,6 +7,16 @@ describe("copypass-tool", () => {
     expect(result.error).toMatch(/copy_text or copyroom_source_packet is required/);
   });
 
+  it("rejects whitespace-only copy_text", async () => {
+    const result = (await copypassRun({
+      copy_text: "   \n\t",
+      profile: "smoke",
+    })) as { error?: string; run_id?: string };
+
+    expect(result.run_id).toBeUndefined();
+    expect(result.error).toContain("COPY_TEXT_EMPTY");
+  });
+
   it("rejects invalid profiles", async () => {
     const result = (await copypassRun({
       copy_text: "Try the new operator stack.",
@@ -29,7 +39,7 @@ describe("copypass-tool", () => {
       copypass_verdict?: string;
       checks_attempted?: string[];
       overall_score?: number;
-      summary?: { counts_by_severity?: { high?: number }; coverage_note?: string };
+      summary?: { counts_by_severity?: { high?: number; info?: number }; coverage_note?: string };
       verdict_summary?: { fail?: number };
       findings?: Array<{ check_id?: string }>;
     };
@@ -41,6 +51,7 @@ describe("copypass-tool", () => {
     expect(run.checks_attempted).toContain("internal-consistency");
     expect(run.summary?.coverage_note).toContain("caller-provided");
     expect(run.summary?.counts_by_severity?.high).toBeGreaterThan(0);
+    expect(run.summary?.counts_by_severity?.info).toBe(0);
     expect(run.verdict_summary?.fail).toBeGreaterThan(0);
     expect(run.findings?.map((finding) => finding.check_id)).toContain("unsupported-superiority");
     expect(run.run_id).toBeTruthy();
@@ -207,6 +218,28 @@ describe("copypass-tool", () => {
     expect(result.copyroom_receipt?.status).toBe("blocked");
     expect(result.copyroom_receipt?.exact_diff).toBe("fail");
     expect(result.copyroom_receipt?.action_needed?.[0]).toContain("FIDELITY_DRIFT_RISK");
+  });
+
+  it("returns the CopyRoom receipt when exact source text is whitespace-only but not reviewable", async () => {
+    const result = (await copypassRun({
+      copyroom_required: true,
+      copyroom_source_packet: {
+        source_id: "blank-source",
+        source_pointer: "copyroom://blank-source",
+        text: "   ",
+      },
+      copyroom_output_pointer: "mcp://copypass/runs/blank-source",
+      profile: "smoke",
+    })) as {
+      error?: string;
+      run_id?: string;
+      copyroom_receipt?: { status?: string; exact_diff?: string };
+    };
+
+    expect(result.run_id).toBeUndefined();
+    expect(result.error).toContain("COPY_TEXT_EMPTY");
+    expect(result.copyroom_receipt?.status).toBe("pass");
+    expect(result.copyroom_receipt?.exact_diff).toBe("pass");
   });
 
   it("returns a clear error for missing run ids", async () => {

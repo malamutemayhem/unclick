@@ -48,7 +48,9 @@ export const CopyPassCopyBlockSchema = z.object({
   id: z.string().min(1),
   kind: CopyPassBlockKindSchema,
   label: z.string().min(1).optional(),
-  text: z.string().min(1),
+  text: z.string().min(1).refine((value) => value.trim().length > 0, {
+    message: "CopyPass copy block text must contain non-whitespace copy.",
+  }),
   source_path: z.string().min(1).optional(),
   source_url: z.string().url().optional(),
   public_only: z.boolean().default(true),
@@ -86,7 +88,7 @@ export const CopyPassScannerSourceSchema = z.object({
   kind: z.enum(["fixture", "manual", "local-detector", "shared-scanner-plan"]),
   mode: z.enum(["plan-only", "fixture", "deterministic"]),
   target_url: z.string().url().optional(),
-  shared_check_ids: z.array(z.string().min(1)).default([]),
+  shared_check_ids: z.array(CopyPassCheckIdSchema).default([]),
 });
 
 export const CopyPassSummarySchema = z.object({

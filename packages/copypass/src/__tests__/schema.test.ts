@@ -63,4 +63,14 @@ describe("CopyPass schemas", () => {
       }),
     ).toThrow();
   });
+
+  it("rejects whitespace-only copy block text", () => {
+    expect(() =>
+      CopyPassCopyBlockSchema.parse({
+        id: "blank",
+        kind: "hero",
+        text: "   \n\t",
+      }),
+    ).toThrow(/non-whitespace copy/);
+  });
 });

@@ -66,7 +66,7 @@ export interface CreateDeterministicCopyPassReportInput
 export function createCopyPassVerdictPack(
   input: CreateCopyPassVerdictPackInput,
 ): CopyPassReport {
-  const checks = input.checks ?? DEFAULT_COPYPASS_CHECKS;
+  const checks = resolveCopyPassChecks(input.checks);
   const report = {
     target: input.target,
     generated_at: input.generated_at ?? new Date().toISOString(),
@@ -110,7 +110,11 @@ function createCopyPassReport(
   input: CreateFixtureCopyPassReportInput,
   mode: "deterministic" | "fixture",
 ): CopyPassReport {
-  const checks = input.checks ?? DEFAULT_COPYPASS_CHECKS;
+  const checks = resolveCopyPassChecks(input.checks);
+  if (input.blocks.length === 0) {
+    throw new Error("CopyPass requires at least one copy block to create a report.");
+  }
+
   const blocks = input.blocks.map((block) => CopyPassCopyBlockSchema.parse(block));
   const findings = detectCopyPassFindings(blocks, checks);
   const overall_score = scoreCopyPassFindings(findings);
@@ -141,6 +145,16 @@ function createCopyPassReport(
   };
 
   return CopyPassReportSchema.parse(report);
+}
+
+function resolveCopyPassChecks(
+  checks: CopyPassCheckDefinition[] | undefined,
+): CopyPassCheckDefinition[] {
+  const resolved = checks ?? DEFAULT_COPYPASS_CHECKS;
+  if (resolved.length === 0) {
+    throw new Error("CopyPass requires at least one check to create a report.");
+  }
+  return resolved;
 }
 
 function createCopyPassSummary(
