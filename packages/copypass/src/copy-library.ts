@@ -145,11 +145,15 @@ const PROOF_TERMS = [
   "audit",
   "case study",
   "check",
+  "checked",
+  "checks",
   "customer",
   "evidence",
   "privacy",
   "proof",
   "receipt",
+  "receipts",
+  "safety",
   "security",
   "trusted",
   "verified",
@@ -224,6 +228,7 @@ const URGENCY_TERMS = [
 const UI_AUTOMATION_TERMS = [
   "autopilot",
   "automatic",
+  "automatically",
   "automated",
   "done for you",
   "fully built",
@@ -429,7 +434,20 @@ function isActive(activeCheckIds: Set<CopyPassCheckId>, checkId: CopyPassCheckId
 }
 
 function containsAny(value: string, terms: string[]): boolean {
-  return terms.some((term) => value.includes(term));
+  return terms.some((term) => containsTerm(value, term));
+}
+
+function containsTerm(value: string, term: string): boolean {
+  const escaped = escapeRegExp(term);
+  const startsWithWord = /^[a-z0-9]/i.test(term);
+  const endsWithWord = /[a-z0-9]$/i.test(term);
+  const prefix = startsWithWord ? "(?:^|[^a-z0-9])" : "";
+  const suffix = endsWithWord ? "(?=$|[^a-z0-9])" : "";
+  return new RegExp(`${prefix}${escaped}${suffix}`, "i").test(value);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function hasEmDash(value: string): boolean {
@@ -449,7 +467,10 @@ function hasPlaceholderLanguage(value: string): boolean {
 
 function hasRiskyGuarantee(value: string): boolean {
   const neutralized = value
-    .replace(/\bnot (?:a )?guarantee(?:d)?\b/g, "")
+    .replace(
+      /\b(?:not|no|never|without|cannot|can't|does not|doesn't|do not|don't|is not|isn't|are not|aren't)\s+(?:a\s+)?guarantee(?:d|s)?\b/g,
+      "",
+    )
     .replace(/\bdoes not guarantee\b/g, "")
     .replace(/\bno guarantee(?:s|d)?\b/g, "");
 

@@ -110,7 +110,7 @@ export default function CopyPassCatalog() {
               <h2 className="text-sm font-semibold text-white">Current review coverage</h2>
               <p className="mt-1 text-sm text-[#888]">
                 CopyPass checks clarity, CTA presence, proof and trust gaps, unsupported superiority claims, risky guarantees,
-                placeholder text, AI-slop language, urgency, and product-surface honesty.
+                placeholder text, internal consistency, audience/tone fit, AI-slop language, urgency, and product-surface honesty.
               </p>
             </div>
           </div>

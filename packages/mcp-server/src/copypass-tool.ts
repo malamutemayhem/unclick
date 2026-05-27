@@ -3,6 +3,18 @@ import { createHash, randomUUID } from "node:crypto";
 type Verdict = "check" | "na" | "fail" | "other" | "pending";
 type Severity = "critical" | "high" | "medium" | "low";
 type CopyPassRunVerdict = "pass" | "warn" | "fail";
+type CopyPassCheckId =
+  | "value-prop-clarity"
+  | "cta-presence"
+  | "proof-trust-gap"
+  | "unsupported-superiority"
+  | "placeholder-copy"
+  | "risky-guarantee-language"
+  | "internal-consistency"
+  | "audience-tone-fit"
+  | "ai-slop-language"
+  | "misleading-urgency"
+  | "ui-honesty-gap";
 type RunStatus = "queued" | "running" | "complete" | "failed";
 type RunProfile = "smoke" | "standard" | "deep";
 type CopyRoomEncoding = "utf8";
@@ -68,6 +80,12 @@ interface VerdictSummary {
   pass_rate: number;
 }
 
+interface CopyPassSummary {
+  posture: string;
+  counts_by_severity: Record<Severity, number>;
+  coverage_note: string;
+}
+
 interface CopyFinding {
   id: string;
   check_id: string;
@@ -94,10 +112,13 @@ interface CopyRunRecord {
   };
   verdict_summary: VerdictSummary;
   copypass_verdict: CopyPassRunVerdict;
+  overall_score: number;
+  checks_attempted: CopyPassCheckId[];
   created_at: string;
   completed_at: string | null;
   findings: CopyFinding[];
   notes: string[];
+  summary: CopyPassSummary;
   disclaimer: {
     headline: string;
     body: string;
@@ -139,6 +160,20 @@ const COPYPASS_NOT_CHECKED = [
   },
 ];
 
+const COPYPASS_CHECK_IDS: CopyPassCheckId[] = [
+  "value-prop-clarity",
+  "cta-presence",
+  "proof-trust-gap",
+  "unsupported-superiority",
+  "placeholder-copy",
+  "risky-guarantee-language",
+  "internal-consistency",
+  "audience-tone-fit",
+  "ai-slop-language",
+  "misleading-urgency",
+  "ui-honesty-gap",
+];
+
 const VALUE_TERMS = [
   "helps",
   "ship",
@@ -171,13 +206,24 @@ const VAGUE_TERMS = [
 ];
 
 const CTA_TERMS = ["book", "connect", "create", "get", "join", "open", "run", "scan", "start", "try"];
-const PROOF_TERMS = ["audit", "case study", "check", "customer", "evidence", "privacy", "proof", "receipt", "security", "trusted", "verified"];
+const PROOF_TERMS = ["audit", "case study", "check", "checked", "checks", "customer", "evidence", "privacy", "proof", "receipt", "receipts", "safety", "security", "trusted", "verified"];
 const SUPERIORITY_TERMS = ["#1", "best", "industry leading", "leading", "most advanced", "number one", "revolutionary", "ultimate"];
 const PLACEHOLDER_TERMS = ["coming soon", "copy goes here", "insert copy", "lorem ipsum"];
 const GUARANTEE_TERMS = ["100%", "always", "compliance guaranteed", "guaranteed", "instant revenue", "never fail", "rank #1", "risk-free"];
 const AI_SLOP_TERMS = ["delve", "elevate", "game changing", "game-changing", "in today's digital landscape", "leverage", "not just", "revolutionize", "seamless", "tapestry", "transform your", "unlock", "whether you're"];
 const URGENCY_TERMS = ["act now", "before it's gone", "don't miss out", "last chance", "limited time", "only today"];
-const UI_AUTOMATION_TERMS = ["autopilot", "automatic", "automated", "done for you", "fully built", "hands-off", "zero touch"];
+const UI_AUTOMATION_TERMS = ["autopilot", "automatic", "automatically", "automated", "done for you", "fully built", "hands-off", "zero touch"];
+const INFORMAL_TONE_TERMS = ["bro", "crush it", "heck yeah", "insane", "lol", "no-brainer", "skyrocket"];
+const FORMAL_CHANNEL_TERMS = ["pricing", "legal", "proof", "billing", "compliance", "privacy", "security"];
+const FORMAL_COPY_TERMS = ["annual contract", "approval", "billing", "compliance", "evidence", "legal", "privacy", "proof", "receipt", "security", "terms"];
+const CONSISTENCY_PAIRS = [
+  ["free forever", "paid only"],
+  ["no credit card", "credit card required"],
+  ["cancel anytime", "annual contract"],
+  ["zero setup", "setup fee"],
+  ["no setup", "setup fee"],
+  ["private by default", "public by default"],
+] as const;
 
 function emptySummary(): VerdictSummary {
   return { total: 0, check: 0, na: 0, fail: 0, other: 0, pending: 0, pass_rate: 1 };
@@ -226,10 +272,13 @@ function createRunRecord(
     },
     verdict_summary: emptySummary(),
     copypass_verdict: "pass",
+    overall_score: 100,
+    checks_attempted: COPYPASS_CHECK_IDS,
     created_at: new Date().toISOString(),
     completed_at: null,
     findings: [],
     notes: [],
+    summary: summarizeCopyPass([]),
     disclaimer: COPYPASS_DISCLAIMER,
     not_checked: COPYPASS_NOT_CHECKED,
     copyroom_receipt: copyroomReceipt,
@@ -243,7 +292,9 @@ function appendDeterministicFindings(runId: string, copyText: string): void {
   if (!current) return;
   current.findings.push(...detectCopyPassFindings(copyText, current));
   current.verdict_summary = summarize(current.findings);
+  current.overall_score = scoreCopyPassFindings(current.findings);
   current.copypass_verdict = toCopyPassRunVerdict(current.findings);
+  current.summary = summarizeCopyPass(current.findings);
   RUNS.set(runId, current);
 }
 
@@ -337,6 +388,38 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
+  const matchedPair = CONSISTENCY_PAIRS.find(([left, right]) =>
+    containsAny(normalized, [left]) && containsAny(normalized, [right])
+  );
+  if (matchedPair) {
+    findings.push(
+      createCopyFinding(
+        "internal-consistency",
+        "Copy contains conflicting offer language",
+        "high",
+        `The inspected copy contains both "${matchedPair[0]}" and "${matchedPair[1]}".`,
+        "Reconcile the conflicting claims or add context that makes the difference explicit.",
+        copyText,
+      ),
+    );
+  }
+
+  if (
+    (containsAny(channel, FORMAL_CHANNEL_TERMS) || containsAny(normalized, FORMAL_COPY_TERMS)) &&
+    containsAny(normalized, INFORMAL_TONE_TERMS)
+  ) {
+    findings.push(
+      createCopyFinding(
+        "audience-tone-fit",
+        "Tone does not fit the surface",
+        "medium",
+        "A formal surface uses casual hype or slang that may reduce trust.",
+        "Rewrite in the audience's language and remove tone swings that do not fit the surface.",
+        copyText,
+      ),
+    );
+  }
+
   if (containsAny(normalized, AI_SLOP_TERMS) || /[\u2013\u2014]/u.test(copyText)) {
     findings.push(
       createCopyFinding(
@@ -384,7 +467,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
 }
 
 function createCopyFinding(
-  checkId: string,
+  checkId: CopyPassCheckId,
   title: string,
   severity: Severity,
   description: string,
@@ -416,12 +499,67 @@ function toCopyPassRunVerdict(findings: CopyFinding[]): CopyPassRunVerdict {
   return "warn";
 }
 
+function scoreCopyPassFindings(findings: CopyFinding[]): number {
+  const penalty = findings.reduce((total, finding) => {
+    switch (finding.severity) {
+      case "critical":
+        return total + 30;
+      case "high":
+        return total + 20;
+      case "medium":
+        return total + 12;
+      case "low":
+        return total + 6;
+    }
+  }, 0);
+
+  return Math.max(0, 100 - penalty);
+}
+
+function summarizeCopyPass(findings: CopyFinding[]): CopyPassSummary {
+  const counts_by_severity: Record<Severity, number> = {
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0,
+  };
+  for (const finding of findings) counts_by_severity[finding.severity] += 1;
+
+  const hasSerious = findings.some(
+    (finding) => finding.severity === "critical" || finding.severity === "high",
+  );
+  return {
+    posture:
+      findings.length === 0
+        ? "CopyPass found no deterministic copy-quality issues in the inspected scope."
+        : hasSerious
+          ? "CopyPass found evidence-backed copy risks that should be fixed before publishing."
+          : "CopyPass found copy improvements worth reviewing before publishing.",
+    counts_by_severity,
+    coverage_note:
+      "This result only covers caller-provided copy_text or CopyRoom packet text. Unknown legal, factual, brand, localization, and performance questions stay unknown.",
+  };
+}
+
 function normalizeCopy(value: string): string {
   return value.toLocaleLowerCase("en-US").replace(/\s+/g, " ").trim();
 }
 
 function containsAny(value: string, terms: string[]): boolean {
-  return terms.some((term) => value.includes(term));
+  return terms.some((term) => containsTerm(value, term));
+}
+
+function containsTerm(value: string, term: string): boolean {
+  const escaped = escapeRegExp(term);
+  const startsWithWord = /^[a-z0-9]/i.test(term);
+  const endsWithWord = /[a-z0-9]$/i.test(term);
+  const prefix = startsWithWord ? "(?:^|[^a-z0-9])" : "";
+  const suffix = endsWithWord ? "(?=$|[^a-z0-9])" : "";
+  return new RegExp(`${prefix}${escaped}${suffix}`, "i").test(value);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function hasUrgencySupport(value: string): boolean {
@@ -437,7 +575,10 @@ function hasPlaceholderLanguage(value: string): boolean {
 
 function hasRiskyGuarantee(value: string): boolean {
   const neutralized = value
-    .replace(/\bnot (?:a )?guarantee(?:d)?\b/g, "")
+    .replace(
+      /\b(?:not|no|never|without|cannot|can't|does not|doesn't|do not|don't|is not|isn't|are not|aren't)\s+(?:a\s+)?guarantee(?:d|s)?\b/g,
+      "",
+    )
     .replace(/\bdoes not guarantee\b/g, "")
     .replace(/\bno guarantee(?:s|d)?\b/g, "");
 
@@ -480,7 +621,10 @@ export async function copypassRun(args: Record<string, unknown>): Promise<unknow
     status: completed.status,
     finding_count: completed.findings.length,
     copypass_verdict: completed.copypass_verdict,
+    overall_score: completed.overall_score,
+    checks_attempted: completed.checks_attempted,
     verdict_summary: completed.verdict_summary,
+    summary: completed.summary,
     findings: completed.findings,
     disclaimer: completed.disclaimer,
     not_checked: completed.not_checked,
@@ -501,7 +645,10 @@ export async function copypassStatus(args: Record<string, unknown>): Promise<unk
     profile: run.profile,
     finding_count: run.findings.length,
     copypass_verdict: run.copypass_verdict,
+    overall_score: run.overall_score,
+    checks_attempted: run.checks_attempted,
     verdict_summary: run.verdict_summary,
+    summary: run.summary,
     target: run.target,
     findings: run.findings,
     disclaimer: run.disclaimer,

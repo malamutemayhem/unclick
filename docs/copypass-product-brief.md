@@ -1,11 +1,11 @@
 # CopyPass Product Brief
 
-CopyPass is a deterministic product-copy review pass for UnClick. It flags copy that is unclear, overconfident, stale, unsupported, urgency-heavy, AI-sloppy, or missing a direct next action before the wording reaches a public surface.
+CopyPass is a deterministic product-copy review pass for UnClick. It flags copy that is unclear, overconfident, stale, unsupported, urgency-heavy, tone-mismatched, internally inconsistent, AI-sloppy, or missing a direct next action before the wording reaches a public surface.
 
 ## First Slice
 
 - Run only on caller-provided copy text or CopyRoom source packets.
-- Detect vague hero language, missing CTAs, missing trust signals, unsupported superiority claims, placeholder copy, risky guarantee language, AI-slop language, misleading urgency, and product-surface honesty gaps.
+- Detect vague hero language, missing CTAs, missing trust signals, unsupported superiority claims, placeholder copy, risky guarantee language, internal contradictions, audience/tone mismatch, AI-slop language, misleading urgency, and product-surface honesty gaps.
 - Return a structured advisory verdict pack with findings, evidence, not-checked boundaries, and disclaimers.
 - Avoid paid model calls, production crawls, private customer copy, live analytics writes, migrations, scheduled jobs, and production test rows.
 

@@ -62,4 +62,32 @@ describe("CopyPass copy library", () => {
     expect(checkIds).toContain("audience-tone-fit");
     expect(checkIds).toContain("internal-consistency");
   });
+
+  it("uses whole-term matching to avoid substring false positives", () => {
+    const blocks: CopyPassCopyBlock[] = [
+      {
+        id: "hero",
+        kind: "hero",
+        text:
+          "Smartly written operator notes help reviewers lead with evidence and proof. Start a review.",
+        public_only: true,
+      },
+    ];
+
+    expect(detectCopyPassFindings(blocks)).toEqual([]);
+  });
+
+  it("does not flag neutralized guarantee language", () => {
+    const blocks: CopyPassCopyBlock[] = [
+      {
+        id: "legal",
+        kind: "legal",
+        text:
+          "This review does not guarantee legal approval, revenue, rankings, or conversion performance.",
+        public_only: true,
+      },
+    ];
+
+    expect(detectCopyPassFindings(blocks)).toEqual([]);
+  });
 });

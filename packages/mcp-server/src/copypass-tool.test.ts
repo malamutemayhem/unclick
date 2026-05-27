@@ -27,6 +27,9 @@ describe("copypass-tool", () => {
       status?: string;
       finding_count?: number;
       copypass_verdict?: string;
+      checks_attempted?: string[];
+      overall_score?: number;
+      summary?: { counts_by_severity?: { high?: number }; coverage_note?: string };
       verdict_summary?: { fail?: number };
       findings?: Array<{ check_id?: string }>;
     };
@@ -34,6 +37,10 @@ describe("copypass-tool", () => {
     expect(run.status).toBe("complete");
     expect(run.finding_count).toBeGreaterThan(0);
     expect(run.copypass_verdict).toBe("fail");
+    expect(run.overall_score).toBeLessThan(100);
+    expect(run.checks_attempted).toContain("internal-consistency");
+    expect(run.summary?.coverage_note).toContain("caller-provided");
+    expect(run.summary?.counts_by_severity?.high).toBeGreaterThan(0);
     expect(run.verdict_summary?.fail).toBeGreaterThan(0);
     expect(run.findings?.map((finding) => finding.check_id)).toContain("unsupported-superiority");
     expect(run.run_id).toBeTruthy();
@@ -44,6 +51,8 @@ describe("copypass-tool", () => {
       run_id?: string;
       status?: string;
       copypass_verdict?: string;
+      checks_attempted?: string[];
+      summary?: { posture?: string };
       target?: { channel?: string };
       findings?: Array<{ check_id?: string }>;
     };
@@ -51,8 +60,32 @@ describe("copypass-tool", () => {
     expect(status.run_id).toBe(run.run_id);
     expect(status.status).toBe("complete");
     expect(status.copypass_verdict).toBe("fail");
+    expect(status.checks_attempted).toContain("audience-tone-fit");
+    expect(status.summary?.posture).toContain("copy risks");
     expect(status.target?.channel).toBe("homepage_hero");
     expect(status.findings?.map((finding) => finding.check_id)).toContain("placeholder-copy");
+  });
+
+  it("detects MCP parity checks for tone fit and internal consistency", async () => {
+    const run = (await copypassRun({
+      copy_text: "Free forever. Paid only after setup fee. This insane billing deal is a no-brainer.",
+      channel: "pricing_section",
+      audience: "technical buyers",
+      goal: "pricing clarity",
+      profile: "deep",
+    })) as {
+      copypass_verdict?: string;
+      findings?: Array<{ check_id?: string }>;
+      summary?: { counts_by_severity?: { high?: number; medium?: number } };
+    };
+
+    const checkIds = run.findings?.map((finding) => finding.check_id) ?? [];
+
+    expect(run.copypass_verdict).toBe("fail");
+    expect(checkIds).toContain("internal-consistency");
+    expect(checkIds).toContain("audience-tone-fit");
+    expect(run.summary?.counts_by_severity?.high).toBeGreaterThan(0);
+    expect(run.summary?.counts_by_severity?.medium).toBeGreaterThan(0);
   });
 
   it("passes clean scoped copy without pretending to certify external truth", async () => {
@@ -67,6 +100,7 @@ describe("copypass-tool", () => {
       status?: string;
       finding_count?: number;
       copypass_verdict?: string;
+      overall_score?: number;
       disclaimer?: { compact?: string };
       not_checked?: Array<{ label?: string }>;
     };
@@ -74,6 +108,7 @@ describe("copypass-tool", () => {
     expect(run.status).toBe("complete");
     expect(run.finding_count).toBe(0);
     expect(run.copypass_verdict).toBe("pass");
+    expect(run.overall_score).toBe(100);
     expect(run.disclaimer?.compact).toContain("Scoped review only");
     expect(run.not_checked?.map((item) => item.label)).toContain("Legal, brand, or factual approval");
   });

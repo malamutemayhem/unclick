@@ -1,10 +1,13 @@
 import { readFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { createDeterministicCopyPassReport } from "../verdict-pack.js";
 
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../");
+
 function repoPath(pathFromRoot: string): string {
-  return fileURLToPath(new URL(`../../../../${pathFromRoot}`, import.meta.url));
+  return resolve(REPO_ROOT, pathFromRoot);
 }
 
 describe("CopyPass dogfood", () => {
