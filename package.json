@@ -28,7 +28,8 @@
     "review:dry-run": "node scripts/review-dry-run.mjs",
     "brainmap:generate": "node scripts/UnClick-brainmap.mjs",
     "brainmap:check": "node scripts/UnClick-brainmap.mjs --check",
-    "test:brainmap": "node --test scripts/UnClick-brainmap.test.mjs"
+    "test:brainmap": "node --test scripts/UnClick-brainmap.test.mjs",
+    "uxpass:visual": "node scripts/uxpass-visual-audit.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.71",

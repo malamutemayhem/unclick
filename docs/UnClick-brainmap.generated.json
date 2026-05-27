@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 491,
+    "inventory": 492,
     "source_manifest": 166,
     "pages": 81,
     "tools": 185,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 12
+      "count": 13
     },
     {
       "id": "wrappers-and-protocols",
@@ -2308,6 +2308,16 @@
       "kind": "pass",
       "meaning": "uxpass site sweep UnClick module.",
       "source": "scripts/uxpass-site-sweep.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-pass-uxpass-visual-audit-scripts-uxpass-visual-audit-mjs-no-route",
+      "division": "Passes and gates",
+      "name": "uxpass visual audit",
+      "kind": "pass",
+      "meaning": "uxpass visual audit UnClick module.",
+      "source": "scripts/uxpass-visual-audit.mjs",
       "route": "",
       "tags": []
     },
@@ -6785,8 +6795,8 @@
     },
     {
       "source": "package.json",
-      "hash": "7b87b00ad681",
-      "bytes": 4559
+      "hash": "5c7bc24df50f",
+      "bytes": 4620
     },
     {
       "source": "src/pages/Index.tsx",
@@ -6845,8 +6855,8 @@
     },
     {
       "source": "src/pages/admin/copypass/CopyPassCatalog.tsx",
-      "hash": "c5690331b7c6",
-      "bytes": 6747
+      "hash": "ecfffa28e759",
+      "bytes": 7258
     },
     {
       "source": "src/pages/admin/crews/CrewComposer.tsx",
@@ -7405,8 +7415,8 @@
     },
     {
       "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "2a5f73ece606",
-      "bytes": 14259
+      "hash": "4debe88f6f2f",
+      "bytes": 28450
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",

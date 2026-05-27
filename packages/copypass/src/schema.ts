@@ -13,8 +13,14 @@ export const CopyPassCheckIdSchema = z.enum([
   "cta-presence",
   "proof-trust-gap",
   "unsupported-superiority",
+  "detector-evasion-claim",
   "placeholder-copy",
   "risky-guarantee-language",
+  "internal-consistency",
+  "audience-tone-fit",
+  "ai-slop-language",
+  "misleading-urgency",
+  "ui-honesty-gap",
 ]);
 
 export const CopyPassBlockKindSchema = z.enum([
@@ -25,6 +31,8 @@ export const CopyPassBlockKindSchema = z.enum([
   "proof",
   "pricing",
   "legal",
+  "component",
+  "doc",
   "email",
   "ad",
   "other",
@@ -41,7 +49,9 @@ export const CopyPassCopyBlockSchema = z.object({
   id: z.string().min(1),
   kind: CopyPassBlockKindSchema,
   label: z.string().min(1).optional(),
-  text: z.string().min(1),
+  text: z.string().min(1).refine((value) => value.trim().length > 0, {
+    message: "CopyPass copy block text must contain non-whitespace copy.",
+  }),
   source_path: z.string().min(1).optional(),
   source_url: z.string().url().optional(),
   public_only: z.boolean().default(true),
@@ -76,16 +86,28 @@ export const CopyPassNotCheckedSchema = z.object({
 });
 
 export const CopyPassScannerSourceSchema = z.object({
-  kind: z.enum(["fixture", "manual", "shared-scanner-plan"]),
-  mode: z.enum(["plan-only", "fixture"]),
+  kind: z.enum(["fixture", "manual", "local-detector", "shared-scanner-plan"]),
+  mode: z.enum(["plan-only", "fixture", "deterministic"]),
   target_url: z.string().url().optional(),
-  shared_check_ids: z.array(z.string().min(1)).default([]),
+  shared_check_ids: z.array(CopyPassCheckIdSchema).default([]),
+});
+
+export const CopyPassSummarySchema = z.object({
+  posture: z.string().min(1),
+  counts_by_severity: z.record(CopyPassSeveritySchema, z.number().int().nonnegative()),
+  coverage_note: z.string().min(1),
+});
+
+export const CopyPassDisclaimerSchema = z.object({
+  headline: z.string().min(1),
+  body: z.string().min(1),
+  compact: z.string().min(1),
 });
 
 export const CopyPassReportSchema = z.object({
   target: CopyPassTargetSchema,
   generated_at: z.string().datetime(),
-  mode: z.enum(["plan-only", "fixture"]),
+  mode: z.enum(["plan-only", "fixture", "deterministic"]),
   overall_score: z.number().int().min(0).max(100),
   verdict: CopyPassVerdictSchema,
   checks_attempted: z.array(CopyPassCheckIdSchema),
@@ -93,6 +115,8 @@ export const CopyPassReportSchema = z.object({
   findings: z.array(CopyPassFindingSchema),
   not_checked: z.array(CopyPassNotCheckedSchema),
   scanner_source: CopyPassScannerSourceSchema,
+  summary: CopyPassSummarySchema,
+  disclaimer: CopyPassDisclaimerSchema,
   disclaimers: z.array(z.string().min(1)),
   notes: z.array(z.string().min(1)).default([]),
 });
@@ -108,4 +132,6 @@ export type CopyPassCheckDefinition = z.output<typeof CopyPassCheckDefinitionSch
 export type CopyPassFinding = z.output<typeof CopyPassFindingSchema>;
 export type CopyPassVerdict = z.output<typeof CopyPassVerdictSchema>;
 export type CopyPassNotChecked = z.output<typeof CopyPassNotCheckedSchema>;
+export type CopyPassSummary = z.output<typeof CopyPassSummarySchema>;
+export type CopyPassDisclaimer = z.output<typeof CopyPassDisclaimerSchema>;
 export type CopyPassReport = z.output<typeof CopyPassReportSchema>;

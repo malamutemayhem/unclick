@@ -39,9 +39,9 @@ export interface LegalpassRunArgs {
 export const legalpassRunTool: ToolDescriptor<LegalpassRunArgs, RunResult> = {
   name: "legalpass_run",
   description:
-    "Run a LegalPass 12-hat issue-spotting pass against a URL, contract " +
-    "upload, or repo. Issue-spotter only - never produces a transactional " +
-    "legal instrument and never recommends a specific legal action.",
+    "Run the current LegalPass phase-one issue-spotting pass against a URL, " +
+    "contract upload, or repo. Issue-spotter only - never produces a " +
+    "transactional legal instrument and never recommends a specific legal action.",
   inputSchema: {
     type: "object",
     required: ["target"],
@@ -120,7 +120,15 @@ export const legalpassRunTool: ToolDescriptor<LegalpassRunArgs, RunResult> = {
 };
 
 function parseJurisdictions(values: string[]): JurisdictionCode[] {
-  return values.map((value) => JurisdictionCodeSchema.parse(value));
+  const jurisdictions = values.map((value) => JurisdictionCodeSchema.parse(value));
+  const seen = new Set<JurisdictionCode>();
+  for (const jurisdiction of jurisdictions) {
+    if (seen.has(jurisdiction)) {
+      throw new Error("legalpass_run: jurisdictions must be unique");
+    }
+    seen.add(jurisdiction);
+  }
+  return jurisdictions;
 }
 
 function phaseOneHatIdsForPack(pack: Pack): LegalPassPhaseOneHatId[] {
@@ -155,9 +163,7 @@ function normalizeFixtureDocuments(
   args: LegalpassRunArgs,
 ): LegalPassFixtureDocumentInput[] {
   if (args.fixture_documents?.length) {
-    return args.fixture_documents.map((document) =>
-      LegalPassFixtureDocumentSchema.parse(document),
-    );
+    return args.fixture_documents.map(parsePublicFixtureDocument);
   }
 
   const text = args.fixture_text?.trim();
@@ -179,6 +185,18 @@ function normalizeFixtureDocuments(
       public_only: true,
     },
   ];
+}
+
+function parsePublicFixtureDocument(
+  document: LegalPassFixtureDocumentInput,
+): LegalPassFixtureDocumentInput {
+  const parsed = LegalPassFixtureDocumentSchema.parse(document);
+  if (parsed.public_only !== true) {
+    throw new Error(
+      "legalpass_run: fixture_documents must be public_only; private uploads need a later guarded ingestion path",
+    );
+  }
+  return parsed;
 }
 
 function toLegalPassTarget(target: RunTarget): { name: string; url?: string } {
@@ -261,7 +279,7 @@ function toPackItem(hat: LegalPassHatResult, finding: LegalPassFinding): PackIte
       url: evidence.source_url,
     })),
     on_fail_comment: finding.practitioner_review_flag
-      ? "Issue-spotter flag only. Ask a qualified practitioner before acting on this item."
+      ? "Issue-spotter flag only. Qualified practitioner review may be warranted before any action is taken."
       : undefined,
   };
 }

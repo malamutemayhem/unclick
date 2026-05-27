@@ -1,7 +1,7 @@
 # SecurityPass Chunk 2
 
-**Status**: Draft
-**Last updated**: 2026-04-29
+**Status**: Implemented in `@unclick/securitypass`
+**Last updated**: 2026-05-27
 **Owner**: `🦾`
 **Purpose**: Lock the SecurityPass scope contract before implementation or packaging expands
 
@@ -16,7 +16,7 @@ This chunk defines:
 - what it must explicitly decline to promise
 - what banner language should stay visible in product surfaces
 
-This is a doc-first scope lock, not an implementation PR.
+This started as a doc-first scope lock. The package runner now enforces the scope gate, preserves skipped coverage, and emits the required product artifact shape.
 
 ## One-sentence definition
 
@@ -204,3 +204,19 @@ Before implementation is called done:
 ## Recommended next step
 
 When Chunk 2 is approved, the next implementation slice should wire the disclaimer banner and output-shape requirements into the first SecurityPass result surface before broader marketplace packaging or automation work proceeds.
+
+## Implementation receipt
+
+Implemented in the SecurityPass package runner:
+
+- `securitypass_run` can run a registered or inline SecurityPack after scope proof.
+- `securitypass_verify_scope` supports signed-contract, bug-bounty-program, DNS TXT, and well-known proof paths.
+- Pack runs enforce declared `in_scope_assets` and `out_of_scope_assets` before any proof fetch or active probe.
+- URL scope assets require the same origin when the scope entry is a full URL; hostname-only entries remain available for broader host scope.
+- Unknown `target_id` values are rejected instead of silently falling back to another target.
+- Reports include the disclaimer, target, performed scope, findings, skipped checks, coverage note, score, and posture summary.
+- Missing scanner binaries, unreadable scanner JSON, URL targets passed to repo-only checks, and failed header fetches are reported as `not_checked`, never as a passing result.
+- Scanner commands are time bounded so a host tool cannot hang a SecurityPass run indefinitely.
+- Well-known scope proof fetches are time bounded, and `securitypass_verify_scope` supports both URL and repo targets.
+- Sensitive credential and HTTP-session fixtures must use vault references rather than inline values.
+- PoC payloads remain inert data and are never executed.

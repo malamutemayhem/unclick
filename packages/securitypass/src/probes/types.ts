@@ -6,6 +6,7 @@ export interface CommandSpec {
   command: string;
   args: string[];
   cwd?: string;
+  timeoutMs?: number;
 }
 
 export interface CommandExecutionResult {
