@@ -59,9 +59,9 @@ jobs:
                 issue_number: context.issue.number,
                 per_page: 100,
               });
+              core.info(`Scanned ${comments.length} PR comments for a Vercel preview link.`);
               for (const comment of comments.reverse()) {
-                if (comment.user?.login !== 'vercel') continue;
-                const match = comment.body?.match(/\[Preview\]\((https:\/\/[^)\s]+)\)/);
+                const match = comment.body?.match(/\[Preview\]\((https:\/\/[^)\s]+\.vercel\.app[^)\s]*)\)/i);
                 if (match?.[1]) {
                   previewBase = match[1].replace(/\/+$/, '');
                   break;
