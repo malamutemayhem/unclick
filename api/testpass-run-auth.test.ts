@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { resolveTestPassRunActor } from "./testpass-run";
+import { canUseTestPassRunPack, resolveTestPassRunActor } from "./testpass-run";
 
 const originalFetch = globalThis.fetch;
 
@@ -17,6 +17,12 @@ function mockJsonResponse(status: number, body: unknown): Response {
 }
 
 describe("resolveTestPassRunActor", () => {
+  it("scopes CI pack access to system packs or the actor's own packs", () => {
+    expect(canUseTestPassRunPack({ owner_user_id: null }, "user-1")).toBe(true);
+    expect(canUseTestPassRunPack({ owner_user_id: "user-1" }, "user-1")).toBe(true);
+    expect(canUseTestPassRunPack({ owner_user_id: "user-2" }, "user-1")).toBe(false);
+  });
+
   it("accepts active UnClick API keys linked to a user", async () => {
     const fetchMock = vi.fn(async () => mockJsonResponse(200, [
       { user_id: "user-123", is_active: true },
