@@ -1,9 +1,8 @@
 // WriterLane free-model writer adapter (runner-side, .mjs).
 //
-// Dead code. Nothing wires it until the runner seam opts in via
-// AUTONOMOUS_RUNNER_WRITER=writerlane_free, and even then only behind the triple
-// execute gate (MODE=execute && ALLOW_EXECUTE && OPENHANDS_EXECUTE), all OFF by
-// default. Merging this changes nothing live.
+// Dormant unless the runner explicitly opts in via AUTONOMOUS_RUNNER_WRITER=
+// writerlane_free, and even then only behind the triple execute gate
+// (MODE=execute && ALLOW_EXECUTE && OPENHANDS_EXECUTE).
 //
 // WHAT: this is the runner-side adapter that lets the proven direct-OpenRouter
 // free-model writer stand in for the OpenHands CLI runner. It satisfies the SAME
