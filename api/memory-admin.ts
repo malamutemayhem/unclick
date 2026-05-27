@@ -108,6 +108,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { evaluateFishbowlCompletionPolicy } from "./lib/fishbowl-completion-policy.js";
 import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
+import { buildRecallFactSections } from "./lib/memory-recall-sections.js";
 import {
   buildOrchestratorContext,
   mergeOrchestratorTodoRows,
@@ -553,31 +554,7 @@ async function upsertAdminLibraryDoc(
   return `Library doc created: "${data.title}" (v1)`;
 }
 
-const BACKGROUND_RECALL_CATEGORIES = new Set(["identity", "preference", "standing_rule"]);
-const BACKGROUND_RECALL_PATTERNS = [
-  /^chris('s)?\s/i,
-  /^user\s/i,
-  /should always/i,
-  /never use/i,
-  /operator timezone/i,
-  /standing rule/i,
-  /profile/i,
-  /preference/i,
-];
-
-function annotateRecallFact<T extends { category?: string | null; fact?: string | null; access_count?: number | null }>(fact: T) {
-  const category = String(fact.category ?? "").toLowerCase();
-  const text = String(fact.fact ?? "");
-  const accessCount = Number(fact.access_count ?? 0);
-  const looksStatic = BACKGROUND_RECALL_CATEGORIES.has(category) || BACKGROUND_RECALL_PATTERNS.some((pattern) => pattern.test(text));
-  const isBackgroundHeavy = accessCount >= 100 && looksStatic;
-
-  return {
-    ...fact,
-    recall_signal: isBackgroundHeavy ? "background-heavy" : "top-of-mind",
-    recall_note: isBackgroundHeavy ? "Startup or heartbeat reads" : "Human-facing recall",
-  };
-}
+const TOP_OF_MIND_CANDIDATE_LIMIT = 110;
 
 function getRequestBaseUrl(req: VercelRequest): string | null {
   const explicit = process.env.EMBED_API_URL?.replace(/\/$/, "");
@@ -4302,19 +4279,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const topFactsLimit = getClampedLimit(req.query.top_facts_limit, 10, 110);
 
-        // Most accessed facts
-        const { data: topFacts } = await supabase
-          .from("mc_extracted_facts")
-          .select("id, fact, category, access_count, decay_tier")
-          .eq("api_key_hash", apiKeyHash)
-          .eq("status", "active")
-          .order("access_count", { ascending: false })
-          .limit(topFactsLimit);
-        const annotatedTopFacts = (topFacts ?? []).map(annotateRecallFact);
-        const topOfMindFacts = annotatedTopFacts
-          .filter((fact) => fact.recall_signal === "top-of-mind")
-          .slice(0, 10);
-        const backgroundHeavyCount = annotatedTopFacts.filter((fact) => fact.recall_signal === "background-heavy").length;
+        // Most Accessed stays the raw inspectable debug list. Top of Mind
+        // inspects a broader pool so static startup facts cannot crowd out
+        // useful current facts before the background-heavy filter runs.
+        const topOfMindCandidateLimit = Math.max(topFactsLimit, TOP_OF_MIND_CANDIDATE_LIMIT);
+        const [topFactsResult, topOfMindCandidateResult] = await Promise.all([
+          supabase
+            .from("mc_extracted_facts")
+            .select("id, fact, category, access_count, decay_tier")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "active")
+            .order("access_count", { ascending: false })
+            .limit(topFactsLimit),
+          supabase
+            .from("mc_extracted_facts")
+            .select("id, fact, category, access_count, decay_tier")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "active")
+            .order("access_count", { ascending: false })
+            .limit(topOfMindCandidateLimit),
+        ]);
+        if (topFactsResult.error) throw topFactsResult.error;
+        if (topOfMindCandidateResult.error) throw topOfMindCandidateResult.error;
+
+        const recallSections = buildRecallFactSections(topFactsResult.data ?? [], topOfMindCandidateResult.data ?? []);
 
         return res.status(200).json({
           facts_by_day: factsByDay,
@@ -4329,13 +4317,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                    (facts.count ?? 0) + (convos.count ?? 0) + (code.count ?? 0),
           },
           top_facts_limit: topFactsLimit,
-          recall_diagnostics: {
-            inspected_top_facts: annotatedTopFacts.length,
-            background_heavy_count: backgroundHeavyCount,
-          },
+          recall_diagnostics: recallSections.recall_diagnostics,
           recent_decay: recentDecay ?? [],
-          top_of_mind_facts: topOfMindFacts,
-          top_facts: annotatedTopFacts,
+          top_of_mind_facts: recallSections.top_of_mind_facts,
+          top_facts: recallSections.top_facts,
         });
       }
 
