@@ -22,7 +22,9 @@ import {
   isFreeModelSlug,
   listFreeModelsByStatus,
   rankFreeModelsForTask,
+  selectDefaultFreeChain,
   WRITERLANE_FREE_MODELS,
+  type FreeModelStatus,
   type WriterLaneFreeModel,
 } from "./writerlane-free-models";
 
@@ -94,50 +96,63 @@ function runnerByModel(
     byId[model.id] ?? { ok: false, reason: "no_canned_response" };
 }
 
-// The nine verified free OpenRouter candidate ids seeded into the registry.
-const VERIFIED_FREE_CANDIDATES = [
-  "qwen/qwen3-coder:free",
-  "poolside/laguna-m.1:free",
-  "poolside/laguna-xs.2:free",
-  "deepseek/deepseek-v4-flash:free",
-  "openai/gpt-oss-120b:free",
-  "z-ai/glm-4.5-air:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "minimax/minimax-m2.5:free",
-  "google/gemma-4-31b-it:free",
-];
+// The nine verified free OpenRouter candidate ids, with the status each now
+// carries from real code-slice run verdicts (see writerlane-free-models.ts):
+// proven-clean coders are "vetted"; junk-prone laguna-xs.2 is "flagged"; the
+// rest stay "trial" until a clean verdict lands.
+const VERIFIED_FREE_CANDIDATE_STATUS: Record<string, FreeModelStatus> = {
+  "openai/gpt-oss-120b:free": "vetted",
+  "minimax/minimax-m2.5:free": "vetted",
+  "poolside/laguna-m.1:free": "vetted",
+  "qwen/qwen3-coder:free": "trial",
+  "z-ai/glm-4.5-air:free": "trial",
+  "deepseek/deepseek-v4-flash:free": "trial",
+  "meta-llama/llama-3.3-70b-instruct:free": "trial",
+  "google/gemma-4-31b-it:free": "trial",
+  "poolside/laguna-xs.2:free": "flagged",
+};
 
 describe("free-model registry: verified candidates + ranking", () => {
-  it("seeds every verified free candidate as a TRIAL (not-yet-vetted) row", () => {
-    for (const slug of VERIFIED_FREE_CANDIDATES) {
+  it("seeds every verified free candidate with its verdict-based status", () => {
+    for (const [slug, status] of Object.entries(VERIFIED_FREE_CANDIDATE_STATUS)) {
       const row = WRITERLANE_FREE_MODELS.find(
         (model) => model.openRouterModel === slug,
       );
       expect(row, `missing seeded candidate ${slug}`).toBeDefined();
-      expect(row?.status).toBe("trial");
+      expect(row?.status).toBe(status);
     }
   });
 
-  it("treats the whole seed as unproven: zero vetted models until real runs validate", () => {
-    expect(listFreeModelsByStatus("vetted")).toEqual([]);
-    expect(listFreeModelsByStatus("trial").length).toBe(
-      WRITERLANE_FREE_MODELS.length,
-    );
+  it("marks exactly the proven-clean coders vetted and flags the junk-prone one", () => {
+    expect(listFreeModelsByStatus("vetted").map((m) => m.id).sort()).toEqual([
+      "gpt-oss-120b",
+      "minimax-m2.5",
+      "poolside-laguna-m1",
+    ]);
+    expect(listFreeModelsByStatus("flagged").map((m) => m.id)).toEqual([
+      "poolside-laguna-xs2",
+    ]);
+    // qwen stays unverified; glm is usable but over-edit-risk: both trial.
+    const trialIds = listFreeModelsByStatus("trial").map((m) => m.id);
+    expect(trialIds).toContain("qwen3-coder");
+    expect(trialIds).toContain("glm-4.5-air");
   });
 
-  it("ranks qwen/qwen3-coder:free first for a code task", () => {
+  it("ranks openai/gpt-oss-120b:free first for a code task (proven)", () => {
     const ranked = rankFreeModelsForTask("backend");
-    expect(ranked[0].id).toBe("qwen3-coder");
-    expect(ranked[0].openRouterModel).toBe("qwen/qwen3-coder:free");
+    expect(ranked[0].id).toBe("gpt-oss-120b");
+    expect(ranked[0].openRouterModel).toBe("openai/gpt-oss-120b:free");
   });
 
-  it("keeps the tiny Liquid model and the meta route as last-ditch, not primary", () => {
+  it("deprioritizes the junk-prone, tiny, and meta models below the proven chain", () => {
     const ranked = rankFreeModelsForTask("backend").map((m) => m.id);
+    const flaggedIndex = ranked.indexOf("poolside-laguna-xs2");
     const liquidIndex = ranked.indexOf("liquid-lfm-2.5-1.2b");
     const metaIndex = ranked.indexOf("openrouter-free-meta");
-    expect(liquidIndex).toBeGreaterThan(0);
+    expect(flaggedIndex).toBeGreaterThan(0);
+    expect(liquidIndex).toBeGreaterThan(flaggedIndex);
     expect(metaIndex).toBe(ranked.length - 1);
-    expect(ranked[0]).toBe("qwen3-coder");
+    expect(ranked[0]).toBe("gpt-oss-120b");
   });
 
   it("ranks deterministically (priority primary, stable across calls)", () => {
@@ -145,16 +160,39 @@ describe("free-model registry: verified candidates + ranking", () => {
     const second = rankFreeModelsForTask("backend").map((m) => m.id);
     expect(first).toEqual(second);
     expect(first.slice(0, 9)).toEqual([
-      "qwen3-coder",
-      "poolside-laguna-m1",
-      "poolside-laguna-xs2",
-      "deepseek-v4-flash",
       "gpt-oss-120b",
-      "glm-4.5-air",
-      "llama-3.3-70b",
       "minimax-m2.5",
+      "poolside-laguna-m1",
+      "qwen3-coder",
+      "glm-4.5-air",
+      "deepseek-v4-flash",
+      "llama-3.3-70b",
       "gemma-4-31b",
+      "poolside-laguna-xs2",
     ]);
+  });
+
+  it("keeps reasoner-class models OFF the default chain unless hardProblem is set", () => {
+    const reasoner: WriterLaneFreeModel = {
+      id: "reasoner-only",
+      openRouterModel: "vendor/reasoner:free",
+      paramScale: "unknown",
+      capabilities: ["reasoning"],
+      strengths: ["backend", "mixed"],
+      status: "trial",
+      reasonerClass: true,
+      priority: 1000, // would rank first if not filtered
+    };
+    const pool = [reasoner, ...WRITERLANE_FREE_MODELS];
+
+    const defaultChain = selectDefaultFreeChain("backend", pool).map((m) => m.id);
+    expect(defaultChain).not.toContain("reasoner-only");
+    expect(defaultChain[0]).toBe("gpt-oss-120b");
+
+    const hardChain = selectDefaultFreeChain("backend", pool, {
+      hardProblem: true,
+    }).map((m) => m.id);
+    expect(hardChain[0]).toBe("reasoner-only");
   });
 
   it("recognizes :free slugs and the explicit free meta route; rejects bare slugs", () => {
