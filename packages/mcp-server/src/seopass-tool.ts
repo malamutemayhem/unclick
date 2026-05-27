@@ -77,6 +77,8 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BODY_CHARS = 1_500_000;
 const ROBOTS_TXT_MAX_BYTES = 500 * 1024;
 const CANONICAL_IGNORED_ATTRIBUTES = ["hreflang", "lang", "media", "type"] as const;
+const ROBOTS_LITERAL_STAR = "\uE000";
+const ROBOTS_LITERAL_DOLLAR = "\uE001";
 const AI_CRAWLER_POLICY_BOTS = [
   "OAI-SearchBot",
   "GPTBot",
@@ -823,10 +825,14 @@ function formatRobotsDirectives(
 function parseRobots(body: string): RobotsRule[] {
   const groups: RobotsRule[] = [];
   let current: RobotsRule | null = null;
+  let pendingGroupHasIgnoredRecord = false;
   for (const rawLine of body.split(/\r?\n/)) {
     const line = rawLine.replace(/#.*/, "").trim();
     if (!line) {
-      current = null;
+      if (current?.rules.length || !pendingGroupHasIgnoredRecord) {
+        current = null;
+        pendingGroupHasIgnoredRecord = false;
+      }
       continue;
     }
     const separatorIndex = line.indexOf(":");
@@ -836,11 +842,14 @@ function parseRobots(body: string): RobotsRule[] {
     if (key === "user-agent") {
       if (!current || current.rules.length > 0) {
         current = { agents: [], rules: [] };
+        pendingGroupHasIgnoredRecord = false;
         groups.push(current);
       }
       current.agents.push(normalizeRobotAgentToken(value));
     } else if ((key === "allow" || key === "disallow") && current) {
       current.rules.push({ directive: key, path: value });
+    } else if (current && current.rules.length === 0) {
+      pendingGroupHasIgnoredRecord = true;
     }
   }
   return groups;
@@ -852,11 +861,12 @@ function isRobotAllowed(groups: RobotsRule[], userAgent: string, path: string): 
   if (rules.length === 0) return true;
   const matchedRules = rules
     .filter((rule) => robotsPathMatches(rule.path, path))
-    .sort((a, b) => b.path.length - a.path.length);
+    .map((rule) => ({ ...rule, specificity: robotsRuleSpecificity(rule.path) }))
+    .sort((a, b) => b.specificity - a.specificity);
   const strongest = matchedRules[0];
   if (!strongest) return true;
   if (strongest.directive === "allow") return true;
-  const sameLengthAllow = matchedRules.find((rule) => rule.directive === "allow" && rule.path.length === strongest.path.length);
+  const sameLengthAllow = matchedRules.find((rule) => rule.directive === "allow" && rule.specificity === strongest.specificity);
   return Boolean(sameLengthAllow);
 }
 
@@ -891,13 +901,71 @@ function normalizeRobotAgentToken(agent: string): string {
 
 function robotsPathMatches(rulePath: string, path: string): boolean {
   if (!rulePath) return false;
-  const endAnchored = rulePath.endsWith("$");
-  const rawPattern = endAnchored ? rulePath.slice(0, -1) : rulePath;
+  const normalizedRulePath = normalizeRobotsRulePath(rulePath);
+  const normalizedPath = normalizeRobotsUrlPath(path);
+  const endAnchored = normalizedRulePath.endsWith("$");
+  const rawPattern = endAnchored ? normalizedRulePath.slice(0, -1) : normalizedRulePath;
   const escaped = rawPattern
     .split("*")
     .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
-    .join(".*");
-  return new RegExp(`^${escaped}${endAnchored ? "$" : ""}`).test(path);
+    .join(".*")
+    .replaceAll(ROBOTS_LITERAL_STAR, "\\*")
+    .replaceAll(ROBOTS_LITERAL_DOLLAR, "\\$");
+  return new RegExp(`^${escaped}${endAnchored ? "$" : ""}`).test(normalizedPath);
+}
+
+function robotsRuleSpecificity(rulePath: string): number {
+  return normalizeRobotsRulePath(rulePath)
+    .replaceAll(ROBOTS_LITERAL_STAR, "*")
+    .replaceAll(ROBOTS_LITERAL_DOLLAR, "$")
+    .replace(/\$$/, "")
+    .length;
+}
+
+function normalizeRobotsRulePath(value: string): string {
+  return normalizeRobotsPercentEncoding(value, "rule");
+}
+
+function normalizeRobotsUrlPath(value: string): string {
+  return normalizeRobotsPercentEncoding(value, "url");
+}
+
+function normalizeRobotsPercentEncoding(value: string, mode: "rule" | "url"): string {
+  let normalized = "";
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index] ?? "";
+    const hex = value.slice(index + 1, index + 3);
+    if (char === "%" && /^[0-9A-Fa-f]{2}$/.test(hex)) {
+      const code = Number.parseInt(hex, 16);
+      if (isUnreservedAscii(code)) {
+        normalized += String.fromCharCode(code);
+      } else if (mode === "rule" && code === 0x2A) {
+        normalized += ROBOTS_LITERAL_STAR;
+      } else if (mode === "rule" && code === 0x24) {
+        normalized += ROBOTS_LITERAL_DOLLAR;
+      } else {
+        normalized += `%${hex.toUpperCase()}`;
+      }
+      index += 2;
+    } else if (char.charCodeAt(0) > 0x7F) {
+      normalized += encodeURIComponent(char).replace(/%[0-9a-f]{2}/gi, (match) => match.toUpperCase());
+    } else {
+      normalized += char;
+    }
+  }
+  return normalized;
+}
+
+function isUnreservedAscii(code: number): boolean {
+  return (
+    (code >= 0x41 && code <= 0x5A) ||
+    (code >= 0x61 && code <= 0x7A) ||
+    (code >= 0x30 && code <= 0x39) ||
+    code === 0x2D ||
+    code === 0x2E ||
+    code === 0x5F ||
+    code === 0x7E
+  );
 }
 
 function robotsPathForUrl(value: string): string {

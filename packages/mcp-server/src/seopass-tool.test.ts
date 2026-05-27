@@ -240,6 +240,50 @@ describe("seopass-tool", () => {
     expect(run.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "crawlability-search-bot-blocked"))).toBe(true);
   });
 
+  it("keeps ignored robots records inside pending user-agent groups in MCP runs", async () => {
+    installFetch({
+      "https://unclick.world/private": { status: 200, body: healthyHtml, headers: { "content-type": "text/html" } },
+      "https://unclick.world/robots.txt": [
+        "User-agent: Googlebot",
+        "Sitemap: https://unclick.world/sitemap.xml",
+        "",
+        "User-agent: OtherBot",
+        "Disallow: /private",
+      ].join("\n"),
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/private</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world/private" })) as {
+      report?: { checks?: Array<{ findings?: Array<{ id?: string }> }> };
+    };
+    expect(run.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "crawlability-search-bot-blocked"))).toBe(true);
+  });
+
+  it("matches robots rules against percent-encoded URL paths in MCP runs", async () => {
+    installFetch({
+      "https://unclick.world/foo/bar/%62%61%7A": { status: 200, body: healthyHtml, headers: { "content-type": "text/html" } },
+      "https://unclick.world/robots.txt": "User-agent: Googlebot\nDisallow: /foo/bar/baz\nUser-agent: Bingbot\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/foo/bar/baz</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+    const encodedAscii = (await seopassRun({ url: "https://unclick.world/foo/bar/%62%61%7A" })) as {
+      report?: { checks?: Array<{ findings?: Array<{ id?: string }> }> };
+    };
+    expect(encodedAscii.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "crawlability-search-bot-blocked"))).toBe(true);
+
+    installFetch({
+      "https://unclick.world/path/file-with-a-*.html": { status: 200, body: healthyHtml, headers: { "content-type": "text/html" } },
+      "https://unclick.world/robots.txt": "User-agent: Googlebot\nDisallow: /path/file-with-a-%2A.html\nUser-agent: Bingbot\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/path/file-with-a-*.html</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+    const escapedWildcard = (await seopassRun({ url: "https://unclick.world/path/file-with-a-*.html" })) as {
+      report?: { checks?: Array<{ findings?: Array<{ id?: string }> }> };
+    };
+    expect(escapedWildcard.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "crawlability-search-bot-blocked"))).toBe(true);
+  });
+
   it("flags canonical placement, duplicate, and relative canonical issues in MCP runs", async () => {
     installFetch({
       "https://unclick.world/page": {

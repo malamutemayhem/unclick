@@ -568,4 +568,61 @@ describe("runSeoPass", () => {
     const crawlability = report.checks.find((check) => check.check_id === "crawlability");
     expect(crawlability?.findings.some((finding) => finding.id === "crawlability-search-bot-blocked")).toBe(true);
   });
+
+  it("does not let ignored robots records split a pending user-agent group", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com/private",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["crawlability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/private": { body: healthyHtml, headers: { "content-type": "text/html" } },
+        "https://example.com/robots.txt": {
+          body: [
+            "User-agent: Googlebot",
+            "Sitemap: https://example.com/sitemap.xml",
+            "",
+            "User-agent: OtherBot",
+            "Disallow: /private",
+          ].join("\n"),
+        },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/private</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    const crawlability = report.checks.find((check) => check.check_id === "crawlability");
+    expect(crawlability?.findings.some((finding) => finding.id === "crawlability-search-bot-blocked")).toBe(true);
+  });
+
+  it("matches robots rules against percent-encoded URL paths", async () => {
+    const encodedAscii = await runSeoPass({
+      targetUrl: "https://example.com/foo/bar/%62%61%7A",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["crawlability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/foo/bar/%62%61%7A": { body: healthyHtml, headers: { "content-type": "text/html" } },
+        "https://example.com/robots.txt": {
+          body: "User-agent: Googlebot\nDisallow: /foo/bar/baz\nUser-agent: Bingbot\nAllow: /\n",
+        },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/foo/bar/baz</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+    expect(encodedAscii.checks[0]?.findings.some((finding) => finding.id === "crawlability-search-bot-blocked")).toBe(true);
+
+    const escapedWildcard = await runSeoPass({
+      targetUrl: "https://example.com/path/file-with-a-*.html",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["crawlability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/path/file-with-a-*.html": { body: healthyHtml, headers: { "content-type": "text/html" } },
+        "https://example.com/robots.txt": {
+          body: "User-agent: Googlebot\nDisallow: /path/file-with-a-%2A.html\nUser-agent: Bingbot\nAllow: /\n",
+        },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/path/file-with-a-*.html</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+    expect(escapedWildcard.checks[0]?.findings.some((finding) => finding.id === "crawlability-search-bot-blocked")).toBe(true);
+  });
 });
