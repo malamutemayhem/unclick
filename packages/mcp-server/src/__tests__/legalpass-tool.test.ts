@@ -370,4 +370,17 @@ describe("LegalPass MCP exposure", () => {
     expect(JSON.stringify(result.issues)).toContain("ask a qualified lawyer");
     expect(JSON.stringify(result.issues)).toContain("you may want to review with a lawyer");
   });
+
+  it("blocks safe-to-act and compliance conclusions in MCP verdict text", async () => {
+    const result = await legalpassVerdict({
+      verdict_text:
+        "This is compliant and safe to sign. It is safe to publish with no legal risk.",
+    }) as Record<string, unknown>;
+
+    expect(result.safe_to_emit).toBe(false);
+    expect(JSON.stringify(result.issues)).toContain("this is compliant");
+    expect(JSON.stringify(result.issues)).toContain("safe to sign");
+    expect(JSON.stringify(result.issues)).toContain("safe to publish");
+    expect(JSON.stringify(result.issues)).toContain("no legal risk");
+  });
 });
