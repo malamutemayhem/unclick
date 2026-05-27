@@ -51,11 +51,19 @@ function normalizePath(value) {
 }
 
 function parseGitStatusPaths(output) {
+  return parseGitStatusEntries(output).map((entry) => entry.path);
+}
+
+function parseGitStatusEntries(output) {
   return String(output ?? "")
     .split(/\r?\n/)
-    .map((line) => line.slice(3).trim())
-    .filter(Boolean)
-    .map((path) => normalizePath(path.includes(" -> ") ? path.split(" -> ").pop() : path));
+    .map((line) => {
+      const code = line.slice(0, 2);
+      const rawPath = line.slice(3).trim();
+      const path = normalizePath(rawPath.includes(" -> ") ? rawPath.split(" -> ").pop() : rawPath);
+      return { code, path };
+    })
+    .filter((entry) => entry.path);
 }
 
 function isGeneratedRunnerLedgerPath(path) {
@@ -507,10 +515,31 @@ export function createSafeCodeRoomSubmitter({
     }
     const submitterEnv = auth.env;
 
-    const status = await runProcess("git", ["status", "--porcelain"], { cwd, env: submitterEnv });
+    let status = await runProcess("git", ["status", "--porcelain"], { cwd, env: submitterEnv });
     if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
-    const dirtyFiles = parseGitStatusPaths(status.stdout);
-    const blockingDirtyFiles = dirtyFiles.filter((file) => !isGeneratedRunnerLedgerPath(file));
+    let dirtyEntries = parseGitStatusEntries(status.stdout);
+    let blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
+    if (blockingDirtyEntries.length) {
+      const changedSet = new Set(normalizedChanged);
+      const restorable = blockingDirtyEntries.every(
+        (entry) => changedSet.has(entry.path) && !entry.code.includes("?"),
+      );
+      if (!restorable) {
+        return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyEntries.map((entry) => entry.path) };
+      }
+
+      const restore = await runProcess("git", ["restore", "--worktree", "--", ...blockingDirtyEntries.map((entry) => entry.path)], {
+        cwd,
+        env: submitterEnv,
+      });
+      if (!restore.ok) return { ok: false, reason: "git_restore_preexisting_patch_failed", output: restore.output };
+
+      status = await runProcess("git", ["status", "--porcelain"], { cwd, env: submitterEnv });
+      if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
+      dirtyEntries = parseGitStatusEntries(status.stdout);
+      blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
+    }
+    const blockingDirtyFiles = blockingDirtyEntries.map((entry) => entry.path);
     if (blockingDirtyFiles.length) {
       return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyFiles };
     }

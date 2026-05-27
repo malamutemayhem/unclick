@@ -510,6 +510,82 @@ describe("safe CodeRoom submitter", () => {
     );
   });
 
+  test("restores a pre-applied owned patch before CodeRoom submit", async () => {
+    const calls = [];
+    let statusCalls = 0;
+    const submitter = createSafeCodeRoomSubmitter({
+      env: { CODEROOM_GITHUB_APP_TOKEN: "app-token" },
+      branchName: "codex/openhands-submit-todo-preapplied",
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        if (command === "git" && args[0] === "status") {
+          statusCalls += 1;
+          return {
+            ok: true,
+            stdout:
+              statusCalls === 1
+                ? ` M ${FIXTURE}\n M .pinballwake/coding-room-ledger.json\n`
+                : " M .pinballwake/coding-room-ledger.json\n",
+            stderr: "",
+            output: "",
+          };
+        }
+        if (command === "gh" && args[1] === "list") {
+          return {
+            ok: true,
+            stdout: "https://github.com/malamutemayhem/unclick/pull/933\n",
+            stderr: "",
+            output: "",
+          };
+        }
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await submitter({
+      job: { todo_id: "todo-preapplied", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: preapplied restored" }),
+      testRunId: "unit-test",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.status, "existing_pr");
+    assert.deepEqual(
+      calls.map(([command, args]) => `${command} ${args.slice(0, 4).join(" ")}`),
+      [
+        "git status --porcelain",
+        "git restore --worktree -- docs/openhands-proof-fixture.md",
+        "git status --porcelain",
+        "gh pr list --head codex/openhands-submit-todo-preapplied",
+      ],
+    );
+  });
+
+  test("does not restore untracked dirty files before CodeRoom submit", async () => {
+    const calls = [];
+    const submitter = createSafeCodeRoomSubmitter({
+      env: { CODEROOM_GITHUB_APP_TOKEN: "app-token" },
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        if (command === "git" && args[0] === "status") {
+          return { ok: true, stdout: `?? ${FIXTURE}\n`, stderr: "", output: "" };
+        }
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await submitter({
+      job: { todo_id: "todo-untracked", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: untracked" }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "dirty_worktree");
+    assert.deepEqual(calls.map(([command, args]) => `${command} ${args[0]}`), ["git status"]);
+  });
+
   test("creates a PR and enables auto-merge only after validation", async () => {
     const calls = [];
     const submitter = createSafeCodeRoomSubmitter({
