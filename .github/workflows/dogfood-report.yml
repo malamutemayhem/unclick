@@ -114,9 +114,13 @@ jobs:
           if pr_url=$(gh pr view "$receipt_branch" --json url --jq .url 2>/dev/null); then
             echo "Dogfood receipt PR: $pr_url"
           else
-            gh pr create \
+            if gh pr create \
               --title "chore(dogfood): update public receipt" \
               --body "Automated public dogfood receipt refresh from workflow run $GITHUB_RUN_ID." \
               --base main \
-              --head "$receipt_branch"
+              --head "$receipt_branch"; then
+              echo "Dogfood receipt PR created."
+            else
+              echo "::warning::Receipt branch pushed to $receipt_branch, but GitHub Actions is not permitted to create pull requests in this repository."
+            fi
           fi
