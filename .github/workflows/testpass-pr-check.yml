@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
   pull-requests: write
 
 jobs:
@@ -42,6 +43,55 @@ jobs:
             echo "has_token=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Resolve TestPass target
+        id: testpass-target
+        if: ${{ steps.token.outputs.has_token == 'true' }}
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const productionBase = 'https://unclick.world';
+            let previewBase = '';
+
+            if (context.eventName === 'pull_request') {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100,
+              });
+              for (const comment of comments.reverse()) {
+                if (comment.user?.login !== 'vercel') continue;
+                const match = comment.body?.match(/\[Preview\]\((https:\/\/[^)\s]+)\)/);
+                if (match?.[1]) {
+                  previewBase = match[1].replace(/\/+$/, '');
+                  break;
+                }
+              }
+            }
+
+            const base = previewBase || productionBase;
+            core.setOutput('api_url', `${base}/api/testpass-run`);
+            core.setOutput('server_url', `${base}/api/mcp`);
+            core.setOutput('source_base', base);
+            core.info(`TestPass target base: ${base}`);
+
+      - name: Wait for Vercel preview
+        if: ${{ steps.testpass-target.outputs.source_base != '' && steps.testpass-target.outputs.source_base != 'https://unclick.world' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in {1..24}; do
+            state="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/status" --jq '.statuses[]? | select(.context == "Vercel") | .state' 2>/dev/null | head -n 1 || true)"
+            if [ "$state" = "success" ]; then
+              echo "Vercel preview is ready."
+              exit 0
+            fi
+            echo "Waiting for Vercel preview (${state:-unknown})..."
+            sleep 10
+          done
+          echo "Vercel preview was not confirmed ready; continuing so TestPass can report the real response."
+
       - name: Run TestPass
         id: testpass
         if: ${{ steps.token.outputs.has_token == 'true' }}
@@ -54,7 +104,8 @@ jobs:
           token: ${{ secrets.TESTPASS_TOKEN }}
           pack_id: ${{ inputs.pack_id || 'testpass-core' }}
           profile: ${{ inputs.profile || 'smoke' }}
-          server_url: ${{ inputs.server_url || 'https://unclick.world/api/mcp' }}
+          server_url: ${{ inputs.server_url || steps.testpass-target.outputs.server_url || 'https://unclick.world/api/mcp' }}
+          api_url: ${{ steps.testpass-target.outputs.api_url || 'https://unclick.world/api/testpass-run' }}
 
       - name: Post PR comment
         # Run regardless of TestPass step outcome - infra failures still need a
