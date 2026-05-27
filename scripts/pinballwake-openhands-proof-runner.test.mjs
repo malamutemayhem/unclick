@@ -337,6 +337,138 @@ describe("draft PR coderoom binding", () => {
     );
     assert.equal(calls[2][2], true);
   });
+
+  test("restores a pre-applied owned docs patch before draft PR creation", async () => {
+    const calls = [];
+    let statusCalls = 0;
+    const coderoom = createDraftPrCoderoom({
+      branchName: "codex/openhands-proof-test",
+      runProcess: async (command, args, options = {}) => {
+        calls.push([command, args, Boolean(options.stdin)]);
+        if (command === "git" && args[0] === "status") {
+          statusCalls += 1;
+          return {
+            ok: true,
+            stdout: statusCalls === 1 ? ` M ${FIXTURE}\n` : "",
+            stderr: "",
+            output: "",
+          };
+        }
+        if (command === "gh") {
+          return { ok: true, stdout: "https://github.com/malamutemayhem/unclick/pull/903\n", stderr: "", output: "" };
+        }
+        if (command === "git" && args[0] === "rev-parse") {
+          return { ok: true, stdout: "def456\n", stderr: "", output: "" };
+        }
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await coderoom({
+      job: { todo_id: "todo-1", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: draft-pr-restore-test" }),
+      summary: "Docs-only proof.",
+      testRunId: "unit-test",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.pr_url, "https://github.com/malamutemayhem/unclick/pull/903");
+    assert.deepEqual(
+      calls.map(([command, args]) => `${command} ${args.slice(0, 3).join(" ")}`),
+      [
+        "git status --porcelain",
+        "git restore --staged --worktree",
+        "git status --porcelain",
+        "git checkout -b codex/openhands-proof-test",
+        "git apply --whitespace=nowarn -",
+        "git add docs/openhands-proof-fixture.md",
+        "git commit -m test(autopilot): prove OpenHands docs patch path",
+        "git push -u origin",
+        "gh pr create --draft",
+        "git rev-parse HEAD",
+      ],
+    );
+    assert.equal(calls[4][2], true);
+  });
+
+  test("cleans an untracked patch-owned docs file before draft PR creation", async () => {
+    const calls = [];
+    let statusCalls = 0;
+    const coderoom = createDraftPrCoderoom({
+      branchName: "codex/openhands-proof-test",
+      runProcess: async (command, args, options = {}) => {
+        calls.push([command, args, Boolean(options.stdin)]);
+        if (command === "git" && args[0] === "status") {
+          statusCalls += 1;
+          return { ok: true, stdout: statusCalls === 1 ? `?? ${FIXTURE}\n` : "", stderr: "", output: "" };
+        }
+        if (command === "gh") {
+          return { ok: true, stdout: "https://github.com/malamutemayhem/unclick/pull/904\n", stderr: "", output: "" };
+        }
+        if (command === "git" && args[0] === "rev-parse") {
+          return { ok: true, stdout: "fed789\n", stderr: "", output: "" };
+        }
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await coderoom({
+      job: { todo_id: "todo-1", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: draft-pr-clean-untracked-test" }),
+      summary: "Docs-only proof.",
+      testRunId: "unit-test",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.pr_url, "https://github.com/malamutemayhem/unclick/pull/904");
+    assert.deepEqual(
+      calls.map(([command, args]) => `${command} ${args.slice(0, 4).join(" ")}`),
+      [
+        "git status --porcelain",
+        "git clean -f -- docs/openhands-proof-fixture.md",
+        "git status --porcelain",
+        "git checkout -b codex/openhands-proof-test",
+        "git apply --whitespace=nowarn -",
+        "git add docs/openhands-proof-fixture.md",
+        "git commit -m test(autopilot): prove OpenHands docs patch path",
+        "git push -u origin codex/openhands-proof-test",
+        "gh pr create --draft --title",
+        "git rev-parse HEAD",
+      ],
+    );
+    assert.equal(calls[4][2], true);
+  });
+
+  test("does not clean unrelated untracked files before draft PR creation", async () => {
+    const calls = [];
+    const coderoom = createDraftPrCoderoom({
+      branchName: "codex/openhands-proof-test",
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        if (command === "git" && args[0] === "status") {
+          return { ok: true, stdout: `?? src/unrelated.ts\n`, stderr: "", output: "" };
+        }
+        throw new Error(`unexpected command ${command} ${args.join(" ")}`);
+      },
+    });
+
+    const result = await coderoom({
+      job: { todo_id: "todo-1", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: draft-pr-unrelated-untracked-test" }),
+      summary: "Docs-only proof.",
+      testRunId: "unit-test",
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "dirty_worktree");
+    assert.deepEqual(result.dirty_files, ["src/unrelated.ts"]);
+    assert.deepEqual(calls.map(([command, args]) => `${command} ${args.slice(0, 2).join(" ")}`), [
+      "git status --porcelain",
+    ]);
+  });
 });
 
 describe("safe CodeRoom submitter", () => {
