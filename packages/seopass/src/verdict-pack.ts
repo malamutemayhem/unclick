@@ -26,6 +26,22 @@ export type SeoPassVerdictPack = {
 
 export const DEFAULT_SEOPASS_VERDICT_CHECKS: SeoPassVerdictCheck[] = [
   {
+    id: "lighthouse-performance",
+    label: "Performance readiness",
+    purpose:
+      "Collect public response timing and payload signals before the heavier Lighthouse runner executes.",
+    evidenceKinds: ["http-response", "lighthouse"],
+    sharedGeoPassCheckIds: ["aggregate-ai-engine-readiness"],
+  },
+  {
+    id: "crawlability",
+    label: "Crawler access",
+    purpose:
+      "Check public fetchability and robots.txt policy for search crawlers and AI crawler handoff.",
+    evidenceKinds: ["http-response", "robots-txt", "robots-policy"],
+    sharedGeoPassCheckIds: ["ai-bot-crawlability"],
+  },
+  {
     id: "indexability",
     label: "Indexability",
     purpose:
@@ -67,11 +83,19 @@ export const DEFAULT_SEOPASS_VERDICT_CHECKS: SeoPassVerdictCheck[] = [
   },
   {
     id: "core-web-vitals",
-    label: "Core Web Vitals placeholder",
+    label: "Core Web Vitals readiness",
     purpose:
-      "Reserve the Lighthouse and field-data slot without executing a live crawler in this chip.",
+      "Collect viewport, response, and page-weight proxies before full Lighthouse field-data wiring.",
     evidenceKinds: ["lighthouse", "manual-note"],
     sharedGeoPassCheckIds: ["aggregate-ai-engine-readiness"],
+  },
+  {
+    id: "ai-overview-readiness",
+    label: "AI-era search readiness",
+    purpose:
+      "Check E-E-A-T, FAQ, freshness, citation, and llms.txt hygiene without promising AI Overview placement.",
+    evidenceKinds: ["llms-txt", "html-head", "structured-data", "geopass-signal"],
+    sharedGeoPassCheckIds: ["brand-mention-readiness", "schema-org-citation-grade"],
   },
 ];
 

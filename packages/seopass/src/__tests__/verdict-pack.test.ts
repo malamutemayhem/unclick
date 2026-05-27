@@ -9,12 +9,15 @@ import {
 describe("SEOPass verdict pack", () => {
   it("contains the default search-engine readiness checks", () => {
     expect(DEFAULT_SEOPASS_VERDICT_CHECKS.map((check) => check.id)).toEqual([
+      "lighthouse-performance",
+      "crawlability",
       "indexability",
       "metadata",
       "canonical-signals",
       "structured-data",
       "internal-links",
       "core-web-vitals",
+      "ai-overview-readiness",
     ]);
   });
 
@@ -48,7 +51,7 @@ describe("SEOPass verdict pack", () => {
 
     expect(report.target_url).toBe("https://example.com/products");
     expect(report.verdict).toBe("unknown");
-    expect(report.checks).toHaveLength(6);
+    expect(report.checks).toHaveLength(9);
     expect(report.scanner_source.kind).toBe("geopass-plan");
   });
 });

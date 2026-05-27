@@ -1,0 +1,130 @@
+import { describe, expect, it } from "vitest";
+
+import { runSeoPass, type SeoPassFetcher } from "../runner.js";
+
+function fixtureFetcher(fixtures: Record<string, { status?: number; body?: string; headers?: Record<string, string> }>): SeoPassFetcher {
+  return async (url) => {
+    const normalized = new URL(url).toString();
+    const fixture = fixtures[normalized] ?? fixtures[normalized.replace(/\/$/, "")];
+    return {
+      url: normalized,
+      status: fixture?.status ?? 404,
+      headers: fixture?.headers ?? {},
+      body: fixture?.body ?? "not found",
+      elapsed_ms: 42,
+    };
+  };
+}
+
+const healthyHtml = `<!doctype html>
+<html>
+  <head>
+    <title>UnClick SEOPass - SEO verdicts for AI-native sites</title>
+    <meta name="description" content="SEOPass scans technical SEO, metadata, schema, and AI-era search readiness, then returns fix prompts for builders.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:title" content="UnClick SEOPass">
+    <meta property="og:description" content="SEO verdicts you can fix in your IDE.">
+    <link rel="canonical" href="https://example.com/">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          { "@type": "Organization", "@id": "https://example.com/#org", "name": "Example", "sameAs": ["https://www.linkedin.com/company/example"] },
+          { "@type": "FAQPage", "mainEntity": [] },
+          { "@type": "Article", "headline": "SEOPass guide", "dateModified": "2026-05-27", "author": { "@type": "Person", "name": "Chris" } }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <h1>SEO verdicts you can fix in your IDE</h1>
+    <h2>How does SEOPass work?</h2>
+    <p>SEOPass is a read-only verdict engine. Updated on 27 May 2026 by Chris.</p>
+    <p>Teams cut fix discovery time by 42 percent when reports include direct acceptance criteria.</p>
+    <p>See the <a href="https://example.com/about">about page</a>, <a href="https://example.com/pricing">pricing</a>, and <a href="https://example.com/docs">docs</a>.</p>
+    <p>External sources: <a href="https://developers.google.com/search/docs">Google Search docs</a> and <a href="https://schema.org">Schema.org</a>.</p>
+    <img src="/logo.png" alt="Example logo">
+  </body>
+</html>`;
+
+describe("runSeoPass", () => {
+  it("runs a live-readonly deterministic report from public fixtures", async () => {
+    const healthyFetcher: SeoPassFetcher = async (url) => {
+      const parsed = new URL(url);
+      if (parsed.pathname === "/robots.txt") {
+        return { url: parsed.toString(), status: 200, headers: {}, body: "User-agent: *\nAllow: /\n", elapsed_ms: 42 };
+      }
+      if (parsed.pathname === "/sitemap.xml") {
+        return {
+          url: parsed.toString(),
+          status: 200,
+          headers: {},
+          body: "<urlset><url><loc>https://example.com/</loc></url></urlset>",
+          elapsed_ms: 42,
+        };
+      }
+      if (parsed.pathname === "/llms.txt") {
+        return {
+          url: parsed.toString(),
+          status: 200,
+          headers: {},
+          body: "# Example\n> AI-readable overview\n\n## Docs\n[Docs](https://example.com/docs): Product docs.",
+          elapsed_ms: 42,
+        };
+      }
+      return { url: parsed.toString(), status: 200, headers: {}, body: healthyHtml, elapsed_ms: 42 };
+    };
+
+    const report = await runSeoPass({
+      targetUrl: "https://example.com",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      runId: "fixture-run",
+      fetcher: healthyFetcher,
+    });
+
+    expect(report.run_id).toBe("fixture-run");
+    expect(report.mode).toBe("live-readonly");
+    expect(report.verdict).toBe("ready");
+    expect(report.search_engine_readiness_score).toBeGreaterThanOrEqual(85);
+    expect(report.checks.map((check) => check.verdict)).not.toContain("unknown");
+    expect(report.scanner_source.kind).toBe("seopass-runner");
+  });
+
+  it("blocks when search crawlers and indexability are explicitly unsafe", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com/private",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      fetcher: fixtureFetcher({
+        "https://example.com/private": {
+          body: "<html><head><meta name=\"robots\" content=\"noindex\"><title>x</title></head><body><h1>Private</h1></body></html>",
+        },
+        "https://example.com/robots.txt": { body: "User-agent: *\nDisallow: /\n" },
+        "https://example.com/sitemap.xml": { status: 404, body: "not found" },
+        "https://example.com/llms.txt": { status: 404, body: "not found" },
+      }),
+    });
+
+    expect(report.verdict).toBe("blocked");
+    expect(report.checks.find((check) => check.check_id === "crawlability")?.verdict).toBe("fail");
+    expect(report.checks.find((check) => check.check_id === "indexability")?.findings.some((finding) => finding.id === "indexability-noindex")).toBe(true);
+  });
+
+  it("emits GEOPass cross-pass signals for shared SEO/GEO gaps", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      maxInternalLinksToProbe: 0,
+      fetcher: fixtureFetcher({
+        "https://example.com/": {
+          body: "<html><head><title>Thin page</title><meta name=\"description\" content=\"Too thin\"></head><body><h1>Thin</h1></body></html>",
+        },
+        "https://example.com/robots.txt": { body: "User-agent: *\nAllow: /\nUser-agent: GPTBot\nDisallow: /\n" },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/</loc></url></urlset>" },
+        "https://example.com/llms.txt": { status: 404, body: "not found" },
+      }),
+    });
+
+    expect(report.cross_pass_signals.some((signal) => signal.pass === "geopass")).toBe(true);
+    expect(report.fix_prompts.length).toBeGreaterThan(0);
+  });
+});

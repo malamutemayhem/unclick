@@ -66,11 +66,11 @@ const xpassIndex = [
   {
     id: "seopass",
     name: "SEOPass",
-    stage: "package_ready",
-    label: "Package-ready",
-    automation: "Package runner, crawler-policy checks, MCP parity, dogfood scoring",
-    mentionProfile: "Medium mention volume around metadata, robots, sitemap, and public page changes.",
-    nextStep: "Add a recurring metadata receipt before marking it live dogfood.",
+    stage: "live_dogfood",
+    label: "Live dogfood lane",
+    automation: "Public read-only SEO receipt",
+    mentionProfile: "Medium mention volume when SEO metadata, crawler, or AI-era readiness drifts.",
+    nextStep: "Promote the read-only receipt into a scheduled baseline and GEOPass bundle handoff.",
   },
   {
     id: "copypass",
@@ -384,6 +384,128 @@ async function runUXPass() {
   }
 }
 
+async function runSEOPass() {
+  if (dryRun) {
+    return passResult(
+      "seopass",
+      "SEOPass",
+      "Dry-run receipt builder validated the SEOPass result shape.",
+      "Dry run only. Live workflow fetches public HTML, robots.txt, sitemap.xml, and llms.txt.",
+    );
+  }
+
+  const checkedAt = new Date().toISOString();
+  const targets = {
+    page: publicUrl,
+    robots: `${trimTrailingSlash(publicUrl)}/robots.txt`,
+    sitemap: `${trimTrailingSlash(publicUrl)}/sitemap.xml`,
+    llms: `${trimTrailingSlash(publicUrl)}/llms.txt`,
+  };
+
+  const [page, robots, sitemap, llms] = await Promise.all([
+    fetchPublicText(targets.page),
+    fetchPublicText(targets.robots),
+    fetchPublicText(targets.sitemap),
+    fetchPublicText(targets.llms),
+  ]);
+  const signals = analyzeSeoHtml(page.body);
+  const findings = [];
+
+  if (page.status < 200 || page.status >= 400) findings.push("Target URL did not return public 2xx HTML.");
+  if (robotsBlocksAll(robots.body)) findings.push("robots.txt appears to block all crawlers.");
+  if (!signals.title) findings.push("Page title is missing.");
+  if (!signals.description) findings.push("Meta description is missing.");
+  if (!signals.viewport) findings.push("Mobile viewport is missing.");
+  if (!signals.canonical) findings.push("Canonical tag is missing.");
+  if (signals.jsonLdCount === 0) findings.push("JSON-LD structured data is missing.");
+  if (extractSitemapUrls(sitemap.body).length === 0) findings.push("Sitemap has no discoverable URL list.");
+  if (!signals.hasQuestionHeading && !signals.hasFaqSchema) findings.push("AI-era question/FAQ structure is thin.");
+
+  const score = Math.max(0, Math.round(100 - findings.length * 9));
+  const runId = `seopass-dogfood-${checkedAt.replace(/[^0-9]/g, "").slice(0, 14)}`;
+  const proof = {
+    kind: "seopass_run",
+    runId,
+    targetUrl: publicUrl,
+    score,
+    sourceUrls: Object.values(targets),
+  };
+
+  if (findings.length === 0 || score >= 75) {
+    return passResult(
+      "seopass",
+      "SEOPass",
+      `SEOPass read-only dogfood completed with SEO health score ${score}.`,
+      `Run ${runId} checked public HTML, robots.txt, sitemap.xml, and llms.txt for ${publicUrl}.`,
+      {
+        checkedAt,
+        runId,
+        targetUrl: publicUrl,
+        proof,
+        nextProof: "Schedule this receipt and wire it to the shared GEOPass baseline.",
+      },
+    );
+  }
+
+  return failureResult(
+    "seopass",
+    "SEOPass",
+    `SEOPass read-only dogfood found ${findings.length} issue(s) with SEO health score ${score}.`,
+    findings.slice(0, 4).join(" "),
+    {
+      checkedAt,
+      runId,
+      targetUrl: publicUrl,
+      proof,
+      reasonCode: "seopass_readonly_findings",
+      nextProof: "Fix the listed public SEO findings, then rerun the dogfood report workflow.",
+    },
+  );
+}
+
+async function fetchPublicText(url) {
+  const started = Date.now();
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "user-agent": "UnClick-SEOPass/0.1 (+https://unclick.world)",
+        accept: "text/html,application/xhtml+xml,application/xml,text/plain;q=0.9,*/*;q=0.8",
+      },
+    });
+    return { url: res.url || url, status: res.status, body: await res.text(), elapsedMs: Date.now() - started };
+  } catch (err) {
+    return { url, status: 0, body: "", elapsedMs: Date.now() - started, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+function analyzeSeoHtml(html) {
+  const jsonLdBlocks = Array.from(html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)).map((match) => match[1]?.trim() || "");
+  return {
+    title: /<title\b[^>]*>[\s\S]*?<\/title>/i.test(html),
+    description: /<meta\b[^>]*(?:name=["']description["'][^>]*content=|content=[^>]*name=["']description["'])/i.test(html),
+    viewport: /<meta\b[^>]*(?:name=["']viewport["'][^>]*content=|content=[^>]*name=["']viewport["'])/i.test(html),
+    canonical: /<link\b[^>]*rel=["'][^"']*canonical[^"']*["'][^>]*href=/i.test(html),
+    jsonLdCount: jsonLdBlocks.filter((block) => {
+      try {
+        JSON.parse(block);
+        return true;
+      } catch {
+        return false;
+      }
+    }).length,
+    hasQuestionHeading: /<h[1-6]\b[^>]*>[^<]*(?:\?|how|what|why|when|where|which|can|should)/i.test(html),
+    hasFaqSchema: /FAQPage/i.test(html),
+  };
+}
+
+function robotsBlocksAll(body) {
+  return /user-agent:\s*\*[\s\S]*?disallow:\s*\/(?:\s|$)/i.test(body);
+}
+
+function extractSitemapUrls(body) {
+  return Array.from(body.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)).map((match) => match[1] || "").filter(Boolean);
+}
+
 function buildTrend(results) {
   const today = generatedAt.slice(0, 10);
   return [{
@@ -441,14 +563,7 @@ const results = [
     "packages/sloppass",
     "Add a recurring SlopPass public receipt before marking this passing.",
   ),
-  packageReadyResult(
-    "seopass",
-    "SEOPass",
-    "Package-backed search and metadata review exists, but the public dogfood receipt has not run it yet.",
-    "SEOPass has crawler-policy, robots, sitemap, canonical, package, and MCP parity checks; public status stays pending until scheduled proof exists.",
-    "packages/seopass",
-    "Add a recurring SEOPass receipt before moving this out of pending.",
-  ),
+  await runSEOPass(),
   packageReadyResult(
     "copypass",
     "CopyPass",
