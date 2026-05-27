@@ -44,6 +44,7 @@ export function buildTestPassPrCommentBody(input = {}) {
     const headlines = {
       infra_auth: ":warning: TestPass: infra issue (auth)",
       infra_vercel_auth: ":warning: TestPass: infra issue (Vercel preview auth)",
+      infra_vercel_pending: ":warning: TestPass: Vercel preview still building",
       infra_http: ":warning: TestPass: infra issue (API error)",
       infra_transport: ":warning: TestPass: infra issue (transport)",
     };
@@ -54,6 +55,10 @@ export function buildTestPassPrCommentBody(input = {}) {
         `(HTTP ${httpCode}). ` +
         (howToFix ||
           "Confirm `VERCEL_AUTOMATION_BYPASS_SECRET` is available to GitHub Actions and matches the Vercel Protection Bypass for Automation secret, then re-run the workflow."),
+      infra_vercel_pending:
+        "The Vercel preview was not ready before TestPass reached its wait limit. " +
+        (howToFix ||
+          "Wait for the Vercel preview deployment to finish, then re-run the workflow."),
       infra_auth:
         `The TestPass API rejected the provided bearer token${authReasonSuffix} ` +
         `(HTTP ${httpCode}). ` +

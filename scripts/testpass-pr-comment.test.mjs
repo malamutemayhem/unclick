@@ -51,6 +51,20 @@ test("Vercel auth infra comment names the missing bypass secret", () => {
   assert.match(body, /PR itself has not been evaluated/);
 });
 
+test("Vercel pending infra comment does not look like a product failure", () => {
+  const body = buildTestPassPrCommentBody({
+    failureKind: "infra_vercel_pending",
+    httpCode: "000",
+    authReason: "vercel_preview_pending",
+    howToFix: "Wait for the Vercel preview deployment to finish, then re-run the workflow.",
+  });
+
+  assert.match(body, /Vercel preview still building/);
+  assert.match(body, /preview was not ready/);
+  assert.match(body, /PR itself has not been evaluated/);
+  assert.doesNotMatch(body, /TestPass: :x: FAIL/);
+});
+
 test("sticky selector prefers marked comment, then newest legacy TestPass bot comment", () => {
   const marked = {
     id: 3,

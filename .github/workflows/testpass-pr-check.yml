@@ -76,26 +76,57 @@ jobs:
             core.info(`TestPass target base: ${base}`);
 
       - name: Wait for Vercel preview
+        id: vercel-preview
         if: ${{ steps.testpass-target.outputs.source_base != '' && steps.testpass-target.outputs.source_base != 'https://unclick.world' }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           VERCEL_STATUS_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
+          state=""
           for i in {1..24}; do
             state="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${VERCEL_STATUS_SHA}/status" --jq '.statuses[]? | select(.context == "Vercel") | .state' 2>/dev/null | head -n 1 || true)"
             if [ "$state" = "success" ]; then
               echo "Vercel preview is ready."
+              echo "ready=true" >> "$GITHUB_OUTPUT"
+              echo "state=success" >> "$GITHUB_OUTPUT"
               exit 0
             fi
             echo "Waiting for Vercel preview (${state:-unknown})..."
             sleep 10
           done
-          echo "Vercel preview was not confirmed ready; continuing so TestPass can report the real response."
+          echo "Vercel preview was not confirmed ready; holding TestPass as infra-pending."
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+          echo "state=${state:-unknown}" >> "$GITHUB_OUTPUT"
+
+      - name: Record pending Vercel preview
+        id: preview-pending
+        if: ${{ steps.token.outputs.has_token == 'true' && steps.testpass-target.outputs.source_base != '' && steps.testpass-target.outputs.source_base != 'https://unclick.world' && steps.vercel-preview.outputs.ready != 'true' }}
+        shell: bash
+        env:
+          VERCEL_STATE: ${{ steps.vercel-preview.outputs.state || 'unknown' }}
+        run: |
+          response=$(jq -cn \
+            --arg auth_reason "vercel_preview_pending" \
+            --arg how_to_fix "Wait for the Vercel preview deployment to finish, then re-run the workflow." \
+            --arg state "${VERCEL_STATE:-unknown}" \
+            '{auth_reason: $auth_reason, how_to_fix: $how_to_fix, vercel_state: $state}')
+          {
+            echo "run_id="
+            echo "status=infra_vercel_preview_pending"
+            echo "pass_rate=0"
+            echo "fail_count=0"
+            echo "total=0"
+            echo "failure_kind=infra_vercel_pending"
+            echo "http_code=000"
+            echo "response<<TESTPASS_EOF"
+            echo "$response"
+            echo "TESTPASS_EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Run TestPass
-        id: testpass
-        if: ${{ steps.token.outputs.has_token == 'true' }}
+        id: testpass-run
+        if: ${{ steps.token.outputs.has_token == 'true' && (steps.testpass-target.outputs.source_base == '' || steps.testpass-target.outputs.source_base == 'https://unclick.world' || steps.vercel-preview.outputs.ready == 'true') }}
         # Don't abort the workflow on infra failures - we still want to post a
         # PR comment that explains what happened so reviewers can tell infra
         # noise (stale token, transport blip) from a real product regression.
@@ -115,14 +146,14 @@ jobs:
         if: ${{ always() && github.event_name == 'pull_request' && steps.token.outputs.has_token == 'true' }}
         uses: actions/github-script@v9
         env:
-          RUN_ID: ${{ steps.testpass.outputs.run_id }}
-          STATUS: ${{ steps.testpass.outputs.status }}
-          PASS_RATE: ${{ steps.testpass.outputs.pass_rate }}
-          FAIL_COUNT: ${{ steps.testpass.outputs.fail_count }}
-          TOTAL: ${{ steps.testpass.outputs.total }}
-          RESPONSE: ${{ steps.testpass.outputs.response }}
-          FAILURE_KIND: ${{ steps.testpass.outputs.failure_kind }}
-          HTTP_CODE: ${{ steps.testpass.outputs.http_code }}
+          RUN_ID: ${{ steps.preview-pending.outputs.run_id || steps.testpass-run.outputs.run_id }}
+          STATUS: ${{ steps.preview-pending.outputs.status || steps.testpass-run.outputs.status }}
+          PASS_RATE: ${{ steps.preview-pending.outputs.pass_rate || steps.testpass-run.outputs.pass_rate }}
+          FAIL_COUNT: ${{ steps.preview-pending.outputs.fail_count || steps.testpass-run.outputs.fail_count }}
+          TOTAL: ${{ steps.preview-pending.outputs.total || steps.testpass-run.outputs.total }}
+          RESPONSE: ${{ steps.preview-pending.outputs.response || steps.testpass-run.outputs.response }}
+          FAILURE_KIND: ${{ steps.preview-pending.outputs.failure_kind || steps.testpass-run.outputs.failure_kind }}
+          HTTP_CODE: ${{ steps.preview-pending.outputs.http_code || steps.testpass-run.outputs.http_code }}
         with:
           script: |
             const { pathToFileURL } = require('node:url');
@@ -221,13 +252,13 @@ jobs:
         # Keep PR trust fail-closed: only a complete TestPass run with zero
         # failed checks is green. Running, unknown, and infra states must stay
         # visible/retryable instead of looking like evaluated product passes.
-        if: ${{ always() && steps.token.outputs.has_token == 'true' && (steps.testpass.outputs.status != 'complete' || steps.testpass.outputs.fail_count != '0') }}
+        if: ${{ always() && steps.token.outputs.has_token == 'true' && ((steps.preview-pending.outputs.status || steps.testpass-run.outputs.status) != 'complete' || (steps.preview-pending.outputs.fail_count || steps.testpass-run.outputs.fail_count) != '0') }}
         shell: bash
         env:
-          STATUS: ${{ steps.testpass.outputs.status }}
-          FAIL_COUNT: ${{ steps.testpass.outputs.fail_count }}
-          FAILURE_KIND: ${{ steps.testpass.outputs.failure_kind }}
-          HTTP_CODE: ${{ steps.testpass.outputs.http_code }}
+          STATUS: ${{ steps.preview-pending.outputs.status || steps.testpass-run.outputs.status }}
+          FAIL_COUNT: ${{ steps.preview-pending.outputs.fail_count || steps.testpass-run.outputs.fail_count }}
+          FAILURE_KIND: ${{ steps.preview-pending.outputs.failure_kind || steps.testpass-run.outputs.failure_kind }}
+          HTTP_CODE: ${{ steps.preview-pending.outputs.http_code || steps.testpass-run.outputs.http_code }}
         run: |
           echo "TestPass did not complete cleanly." >&2
           echo "status=${STATUS:-unknown}" >&2
