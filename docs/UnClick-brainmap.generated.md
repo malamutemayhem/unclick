@@ -38,7 +38,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
 | src/pages/admin/AdminBrainmap.tsx | 21baca89f0d0 | 27078 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
-| src/pages/admin/copypass/CopyPassCatalog.tsx | c5690331b7c6 | 6747 |
+| src/pages/admin/copypass/CopyPassCatalog.tsx | ecfffa28e759 | 7258 |
 | src/pages/admin/crews/CrewComposer.tsx | f3afb17bb001 | 13909 |
 | src/pages/admin/crews/CrewRun.tsx | 8a458cc0c629 | 8427 |
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
