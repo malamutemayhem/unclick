@@ -1,0 +1,492 @@
+{
+  "kind": "xpass_package_sweep_receipt_v1",
+  "generated_at": "2026-05-27T18:16:34.133Z",
+  "checked_at": "2026-05-27T18:16:34.133Z",
+  "run_id": "xpass-package-sweep-f4b3e91c0e94f4fb",
+  "source": "nightly dogfood workflow",
+  "target_sha": "82e080a2764f1b69d889e19d4a5e912df28b12b8",
+  "status": "passing",
+  "summary": "XPass package sweep passing across 10 package(s).",
+  "package_count": 10,
+  "packages": [
+    {
+      "id": "testpass",
+      "name": "TestPass",
+      "workspace": "@unclick/testpass",
+      "path": "packages/testpass",
+      "stage": "live_gate",
+      "role": "merge proof and MCP smoke gate",
+      "status": "passing",
+      "checked_at": "2026-05-27T18:16:34.133Z",
+      "command": [
+        "npm",
+        "run",
+        "test",
+        "--workspace=@unclick/testpass"
+      ],
+      "exit_code": 0,
+      "duration_ms": 6858,
+      "summary": "TestPass package tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "workspace_package_test",
+        "workspace": "@unclick/testpass",
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--workspace=@unclick/testpass"
+        ]
+      }
+    },
+    {
+      "id": "uxpass",
+      "name": "UXPass",
+      "workspace": "@unclick/uxpass",
+      "path": "packages/uxpass",
+      "stage": "live_dogfood",
+      "role": "public UX and route sweep gate",
+      "status": "passing",
+      "checked_at": "2026-05-27T18:16:34.133Z",
+      "command": [
+        "npm",
+        "run",
+        "test",
+        "--workspace=@unclick/uxpass"
+      ],
+      "exit_code": 0,
+      "duration_ms": 1330,
+      "summary": "UXPass package tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "workspace_package_test",
+        "workspace": "@unclick/uxpass",
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--workspace=@unclick/uxpass"
+        ]
+      }
+    },
+    {
+      "id": "securitypass",
+      "name": "SecurityPass",
+      "workspace": "@unclick/securitypass",
+      "path": "packages/securitypass",
+      "stage": "scope_gated",
+      "role": "safe local security package proof only",
+      "status": "passing",
+      "checked_at": "2026-05-27T18:16:34.133Z",
+      "command": [
+        "npm",
+        "run",
+        "test",
+        "--workspace=@unclick/securitypass"
+      ],
+      "exit_code": 0,
+      "duration_ms": 1507,
+      "summary": "SecurityPass package tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "workspace_package_test",
+        "workspace": "@unclick/securitypass",
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--workspace=@unclick/securitypass"
+        ]
+      }
+    },
+    {
+      "id": "sloppass",
+      "name": "SlopPass",
+      "workspace": "@unclick/sloppass",
+      "path": "packages/sloppass",
+      "stage": "package_ready",
+      "role": "AI-code quality and anti-slop review",
+      "status": "passing",
+      "checked_at": "2026-05-27T18:16:34.133Z",
+      "command": [
+        "npm",
+        "run",
+        "test",
+        "--workspace=@unclick/sloppass"
+      ],
+      "exit_code": 0,
+      "duration_ms": 1400,
+      "summary": "SlopPass package tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "workspace_package_test",
+        "workspace": "@unclick/sloppass",
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--workspace=@unclick/sloppass"
+        ]
+      }
+    },
+    {
+      "id": "seopass",
+      "name": "SEOPass",
+      "workspace": "@unclick/seopass",
+      "path": "packages/seopass",
+      "stage": "package_ready",
+      "role": "crawler, canonical, robots, sitemap, and metadata proof",
+      "status": "passing",
+      "checked_at": "2026-05-27T18:16:34.133Z",
+      "command": [
+        "npm",
+        "run",
+        "test",
+        "--workspace=@unclick/seopass"
+      ],
+      "exit_code": 0,
+      "duration_ms": 872,
+      "summary": "SEOPass package tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "workspace_package_test",
+        "workspace": "@unclick/seopass",
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--workspace=@unclick/seopass"
+        ]
+      }
+    },
+    {
+      "id": "copypass",
+      "name": "CopyPass",
+      "workspace": "@unclick/copypass",
+      "path": "packages/copypass",
+      "stage": "package_ready",
+      "role": "copy quality, claims, and source-copy boundary proof",
+      "status": "passing",
+      "checked_at": "2026-05-27T18:16:34.133Z",
+      "command": [
+        "npm",
+        "run",
+        "test",
+        "--workspace=@unclick/copypass"
+      ],
+      "exit_code": 0,
+      "duration_ms": 1173,
+      "summary": "CopyPass package tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "workspace_package_test",
+        "workspace": "@unclick/copypass",
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--workspace=@unclick/copypass"
+        ]
+      }
+    },
+    {
+      "id": "legalpass",
+      "name": "LegalPass",
+      "workspace": "@unclick/legalpass",
+      "path": "packages/legalpass",
+      "stage": "package_ready",
+      "role": "guidance-only policy and claims proof",
+      "status": "passing",
+      "checked_at": "2026-05-27T18:16:34.133Z",
+      "command": [
+        "npm",
+        "run",
+        "test",
+        "--workspace=@unclick/legalpass"
+      ],
+      "exit_code": 0,
+      "duration_ms": 1369,
+      "summary": "LegalPass package tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "workspace_package_test",
+        "workspace": "@unclick/legalpass",
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--workspace=@unclick/legalpass"
+        ]
+      }
+    },
+    {
+      "id": "commonsensepass",
+      "name": "CommonSensePass",
+      "workspace": "@unclick/commonsensepass",
+      "path": "packages/commonsensepass",
+      "stage": "live_gate",
+      "role": "false-DONE, claim sanity, and proof honesty gate",
+      "status": "passing",
+      "checked_at": "2026-05-27T18:16:34.133Z",
+      "command": [
+        "npm",
+        "run",
+        "test",
+        "--workspace=@unclick/commonsensepass"
+      ],
+      "exit_code": 0,
+      "duration_ms": 1149,
+      "summary": "CommonSensePass package tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "workspace_package_test",
+        "workspace": "@unclick/commonsensepass",
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--workspace=@unclick/commonsensepass"
+        ]
+      }
+    },
+    {
+      "id": "flowpass",
+      "name": "FlowPass",
+      "workspace": "@unclick/flowpass",
+      "path": "packages/flowpass",
+      "stage": "package_ready",
+      "role": "journey and handoff proof",
+      "status": "passing",
+      "checked_at": "2026-05-27T18:16:34.133Z",
+      "command": [
+        "npm",
+        "run",
+        "test",
+        "--workspace=@unclick/flowpass"
+      ],
+      "exit_code": 0,
+      "duration_ms": 920,
+      "summary": "FlowPass package tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "workspace_package_test",
+        "workspace": "@unclick/flowpass",
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--workspace=@unclick/flowpass"
+        ]
+      }
+    },
+    {
+      "id": "geopass",
+      "name": "GEOPass",
+      "workspace": "@unclick/geopass",
+      "path": "packages/geopass",
+      "stage": "package_ready",
+      "role": "answer-engine readiness and AI-discovery proof",
+      "status": "passing",
+      "checked_at": "2026-05-27T18:16:34.133Z",
+      "command": [
+        "npm",
+        "run",
+        "test",
+        "--workspace=@unclick/geopass"
+      ],
+      "exit_code": 0,
+      "duration_ms": 856,
+      "summary": "GEOPass package tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "workspace_package_test",
+        "workspace": "@unclick/geopass",
+        "command": [
+          "npm",
+          "run",
+          "test",
+          "--workspace=@unclick/geopass"
+        ]
+      }
+    }
+  ],
+  "cross_pass_matrix": [
+    {
+      "target_id": "sloppass",
+      "target_name": "SlopPass",
+      "status": "passing",
+      "reviewers": [
+        {
+          "id": "testpass",
+          "name": "TestPass",
+          "role": "package tests must pass before public proof is trusted",
+          "status": "passing"
+        },
+        {
+          "id": "commonsensepass",
+          "name": "CommonSensePass",
+          "role": "false-DONE and proof-claim sanity",
+          "status": "passing"
+        },
+        {
+          "id": "copypass",
+          "name": "CopyPass",
+          "role": "plain-English claims and wording boundary",
+          "status": "passing"
+        }
+      ],
+      "summary": "SlopPass was cross-checked by TestPass, CommonSensePass, CopyPass."
+    },
+    {
+      "target_id": "seopass",
+      "target_name": "SEOPass",
+      "status": "passing",
+      "reviewers": [
+        {
+          "id": "testpass",
+          "name": "TestPass",
+          "role": "package tests must pass before public proof is trusted",
+          "status": "passing"
+        },
+        {
+          "id": "geopass",
+          "name": "GEOPass",
+          "role": "answer-engine overlap for crawler and metadata signals",
+          "status": "passing"
+        },
+        {
+          "id": "commonsensepass",
+          "name": "CommonSensePass",
+          "role": "proof-claim sanity",
+          "status": "passing"
+        }
+      ],
+      "summary": "SEOPass was cross-checked by TestPass, GEOPass, CommonSensePass."
+    },
+    {
+      "target_id": "geopass",
+      "target_name": "GEOPass",
+      "status": "passing",
+      "reviewers": [
+        {
+          "id": "testpass",
+          "name": "TestPass",
+          "role": "package tests must pass before public proof is trusted",
+          "status": "passing"
+        },
+        {
+          "id": "seopass",
+          "name": "SEOPass",
+          "role": "search-indexing overlap for crawlable answer sources",
+          "status": "passing"
+        },
+        {
+          "id": "commonsensepass",
+          "name": "CommonSensePass",
+          "role": "proof-claim sanity",
+          "status": "passing"
+        }
+      ],
+      "summary": "GEOPass was cross-checked by TestPass, SEOPass, CommonSensePass."
+    },
+    {
+      "target_id": "copypass",
+      "target_name": "CopyPass",
+      "status": "passing",
+      "reviewers": [
+        {
+          "id": "sloppass",
+          "name": "SlopPass",
+          "role": "anti-slop quality review",
+          "status": "passing"
+        },
+        {
+          "id": "legalpass",
+          "name": "LegalPass",
+          "role": "claims and guidance-only boundary",
+          "status": "passing"
+        },
+        {
+          "id": "commonsensepass",
+          "name": "CommonSensePass",
+          "role": "proof-claim sanity",
+          "status": "passing"
+        }
+      ],
+      "summary": "CopyPass was cross-checked by SlopPass, LegalPass, CommonSensePass."
+    },
+    {
+      "target_id": "legalpass",
+      "target_name": "LegalPass",
+      "status": "passing",
+      "reviewers": [
+        {
+          "id": "copypass",
+          "name": "CopyPass",
+          "role": "public wording and claims clarity",
+          "status": "passing"
+        },
+        {
+          "id": "securitypass",
+          "name": "SecurityPass",
+          "role": "safe local package proof only",
+          "status": "passing"
+        },
+        {
+          "id": "commonsensepass",
+          "name": "CommonSensePass",
+          "role": "certification-claim sanity",
+          "status": "passing"
+        }
+      ],
+      "summary": "LegalPass was cross-checked by CopyPass, SecurityPass, CommonSensePass."
+    },
+    {
+      "target_id": "commonsensepass",
+      "target_name": "CommonSensePass",
+      "status": "passing",
+      "reviewers": [
+        {
+          "id": "testpass",
+          "name": "TestPass",
+          "role": "package tests must pass before public proof is trusted",
+          "status": "passing"
+        },
+        {
+          "id": "sloppass",
+          "name": "SlopPass",
+          "role": "anti-slop claim review",
+          "status": "passing"
+        }
+      ],
+      "summary": "CommonSensePass was cross-checked by TestPass, SlopPass."
+    },
+    {
+      "target_id": "flowpass",
+      "target_name": "FlowPass",
+      "status": "passing",
+      "reviewers": [
+        {
+          "id": "uxpass",
+          "name": "UXPass",
+          "role": "route and UX sweep overlap",
+          "status": "passing"
+        },
+        {
+          "id": "testpass",
+          "name": "TestPass",
+          "role": "package tests must pass before public proof is trusted",
+          "status": "passing"
+        },
+        {
+          "id": "commonsensepass",
+          "name": "CommonSensePass",
+          "role": "proof-claim sanity",
+          "status": "passing"
+        }
+      ],
+      "summary": "FlowPass was cross-checked by UXPass, TestPass, CommonSensePass."
+    }
+  ],
+  "action_needed": []
+}
