@@ -113,6 +113,23 @@ const FixtureSchema = z.object({
   kind: z.enum(["http_session", "credential_ref", "sample_payload", "graphql_query"]),
   vault_ref: z.string().optional(),
   value: z.unknown().optional(),
+}).superRefine((fixture, ctx) => {
+  if (fixture.kind === "credential_ref" || fixture.kind === "http_session") {
+    if (!fixture.vault_ref) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["vault_ref"],
+        message: `${fixture.kind} fixtures require a BackstagePass vault reference.`,
+      });
+    }
+    if (fixture.value !== undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["value"],
+        message: `${fixture.kind} fixtures must not inline sensitive values.`,
+      });
+    }
+  }
 });
 
 export const SecurityPackSchema = z.object({

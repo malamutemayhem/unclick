@@ -144,6 +144,47 @@ describe("runSecurityPack", () => {
     expect(commandRunner).not.toHaveBeenCalled();
   });
 
+  it("requires URL scope assets to match the exact origin when a URL asset is declared", async () => {
+    const pack = basePack();
+    pack.targets = [{ id: "web", type: "url", url: "http://example.com:8080/app" }];
+    pack.scope_contract.in_scope_assets = ["https://example.com/app"];
+    pack.checks = [{
+      id: "web.headers",
+      title: "Security headers",
+      category: "web.headers",
+      severity: "high",
+      probe: "security-headers",
+      tags: [],
+      profiles: ["smoke", "standard", "deep"],
+    }];
+    const fetchImpl = vi.fn<typeof fetch>();
+
+    await expect(
+      runSecurityPack(pack, { target_id: "web" }, { fetchImpl }),
+    ).rejects.toBeInstanceOf(ScopeUnverifiedError);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("still allows hostname-only scope assets across scheme and port", async () => {
+    const pack = basePack();
+    pack.targets = [{ id: "web", type: "url", url: "http://example.com:8080/app" }];
+    pack.scope_contract.in_scope_assets = ["example.com"];
+    pack.checks = [{
+      id: "future.stagehand",
+      title: "Future Stagehand check",
+      category: "browser",
+      severity: "info",
+      probe: "stagehand",
+      tags: [],
+      profiles: ["smoke", "standard", "deep"],
+    }];
+
+    const result = await runSecurityPack(pack, { target_id: "web" });
+    expect(result.run.status).toBe("complete");
+    expect(result.run.not_checked).toHaveLength(1);
+    expect(result.run.not_checked[0].reason).toMatch(/not wired/);
+  });
+
   it("lets explicit out-of-scope assets veto otherwise in-scope targets", async () => {
     const pack = basePack();
     pack.scope_contract.out_of_scope_assets = [process.cwd()];

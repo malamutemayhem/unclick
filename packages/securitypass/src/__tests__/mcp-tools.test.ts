@@ -221,6 +221,29 @@ describe("SECURITYPASS_HANDLERS validation behaviour", () => {
     expect(result.verified).toBe(true);
   });
 
+  it("securitypass_verify_scope supports repo targets for signed contracts", async () => {
+    const result = (await SECURITYPASS_HANDLERS.securitypass_verify_scope({
+      target_type: "git",
+      target_repo: process.cwd(),
+      proof_method: "signed_email",
+      contract_id: "c1",
+      expected_token: "signed-token",
+    })) as { stub?: boolean; verified?: boolean; target?: { repo?: string; type?: string } };
+    expect(result.stub).toBe(false);
+    expect(result.verified).toBe(true);
+    expect(result.target?.type).toBe("git");
+    expect(result.target?.repo).toBe(process.cwd());
+  });
+
+  it("securitypass_verify_scope requires a target locator", async () => {
+    const result = (await SECURITYPASS_HANDLERS.securitypass_verify_scope({
+      proof_method: "signed_email",
+      contract_id: "c1",
+      expected_token: "signed-token",
+    })) as { error?: string };
+    expect(result.error).toBe("target_url or target_repo is required");
+  });
+
   it("securitypass_disclosure_status is honest when the finding is unknown", async () => {
     const result = (await SECURITYPASS_HANDLERS.securitypass_disclosure_status({
       finding_id: "f1",

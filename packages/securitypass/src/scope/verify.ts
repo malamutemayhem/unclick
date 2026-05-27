@@ -9,6 +9,7 @@ export interface ScopeVerificationOptions {
   contractId?: string;
   proofMethod?: ScopeProofMethod;
   expectedToken?: string;
+  proofTimeoutMs?: number;
   fetchImpl?: typeof fetch;
   resolveTxt?: TxtResolver;
 }
@@ -153,14 +154,28 @@ export async function verifyScope(
     if (!origin) return failure(target, opts, "Well-known scope verification requires a URL target.");
     const proofUrl = `${origin}/.well-known/securitypass-scope.json`;
     const fetchImpl = opts.fetchImpl ?? fetch;
+    const timeoutMs = opts.proofTimeoutMs ?? 10_000;
+    const controller = new AbortController();
+    const timeout =
+      timeoutMs > 0
+        ? setTimeout(() => {
+            controller.abort();
+          }, timeoutMs)
+        : null;
     let response: Response;
     try {
-      response = await fetchImpl(proofUrl, { method: "GET", redirect: "follow" });
+      response = await fetchImpl(proofUrl, {
+        method: "GET",
+        redirect: "follow",
+        signal: controller.signal,
+      });
     } catch (err) {
       return failure(target, opts, "Well-known proof could not be fetched.", {
         proof_url: proofUrl,
         error: err instanceof Error ? err.message : String(err),
       });
+    } finally {
+      if (timeout) clearTimeout(timeout);
     }
     const text = await response.text();
     if (!response.ok) {

@@ -16,7 +16,7 @@ import {
   verifyScope,
   type ScopeProofMethod,
 } from "../scope/verify.js";
-import type { RunProfile } from "../types/index.js";
+import type { RunProfile, SecurityRunTarget } from "../types/index.js";
 import type { SecurityPack } from "../types/pack-schema.js";
 
 // Shared MCP tool descriptor shape. Mirrors the structure used by
@@ -50,6 +50,7 @@ export const SECURITYPASS_TOOLS: SecurityPassToolDef[] = [
           enum: ["dns_txt", "well_known", "bug_bounty_program", "signed_email"],
         },
         expected_token: { type: "string", description: "Expected scope proof token" },
+        proof_timeout_ms: { type: "number", description: "Optional timeout for well-known proof fetches" },
         profile: {
           type: "string",
           enum: ["smoke", "standard", "deep"],
@@ -103,15 +104,18 @@ export const SECURITYPASS_TOOLS: SecurityPassToolDef[] = [
     inputSchema: {
       type: "object",
       properties: {
+        target_type: { type: "string", enum: ["url", "git", "mcp", "api"] },
         target_url: { type: "string" },
+        target_repo: { type: "string" },
         proof_method: {
           type: "string",
           enum: ["dns_txt", "well_known", "bug_bounty_program", "signed_email"],
         },
         contract_id: { type: "string", description: "Signed scope contract id" },
         expected_token: { type: "string", description: "Token to look for in DNS TXT or /.well-known" },
+        proof_timeout_ms: { type: "number", description: "Optional timeout for well-known proof fetches" },
       },
-      required: ["target_url", "proof_method"],
+      required: ["proof_method"],
     },
   },
   {
@@ -148,6 +152,15 @@ function normalizeProfile(raw: unknown): RunProfile {
 
 function normalizeFormat(raw: unknown): "json" | "markdown" | "html" {
   return raw === "markdown" || raw === "html" ? raw : "json";
+}
+
+function normalizeProofTimeout(raw: unknown): number | undefined {
+  const value = Number(raw);
+  return Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
+function normalizeTargetType(raw: unknown, fallback: SecurityRunTarget["type"]): SecurityRunTarget["type"] {
+  return raw === "git" || raw === "mcp" || raw === "api" || raw === "url" ? raw : fallback;
 }
 
 function parsePackYaml(yaml: string): { pack?: SecurityPack; error?: unknown } {
@@ -192,6 +205,8 @@ export async function securitypassRun(args: Record<string, unknown>): Promise<un
       const result = await runSecurityPack(pack, {
         target_id: String(args.target_id ?? "") || undefined,
         profile: normalizeProfile(args.profile),
+      }, {
+        proofTimeoutMs: normalizeProofTimeout(args.proof_timeout_ms),
       });
       const report = buildSecurityPassReport(result.run, result.findings);
       return {
@@ -219,6 +234,7 @@ export async function securitypassRun(args: Record<string, unknown>): Promise<un
       contractId: String(args.contract_id ?? "") || undefined,
       proofMethod: (String(args.proof_method ?? "") || undefined) as ScopeProofMethod | undefined,
       expectedToken: String(args.expected_token ?? "") || undefined,
+      proofTimeoutMs: normalizeProofTimeout(args.proof_timeout_ms),
     });
     const report = buildSecurityPassReport(result.run, [result.finding]);
     return {
@@ -308,15 +324,30 @@ export async function securitypassRegisterPack(args: Record<string, unknown>): P
 
 export async function securitypassVerifyScope(args: Record<string, unknown>): Promise<unknown> {
   const targetUrl = String(args.target_url ?? "");
+  const targetRepo = String(args.target_repo ?? "");
   const proofMethod = String(args.proof_method ?? "");
-  if (!targetUrl) return { error: "target_url is required" };
   if (!proofMethod) return { error: "proof_method is required" };
+  let target: SecurityRunTarget;
+  if (targetUrl) {
+    target = {
+      type: normalizeTargetType(args.target_type, "url"),
+      url: targetUrl,
+    };
+  } else if (targetRepo) {
+    target = {
+      type: normalizeTargetType(args.target_type, "git"),
+      repo: targetRepo,
+    };
+  } else {
+    return { error: "target_url or target_repo is required" };
+  }
   const result = await verifyScope(
-    { type: "url", url: targetUrl },
+    target,
     {
       contractId: String(args.contract_id ?? "") || undefined,
       proofMethod: proofMethod as ScopeProofMethod,
       expectedToken: String(args.expected_token ?? "") || undefined,
+      proofTimeoutMs: normalizeProofTimeout(args.proof_timeout_ms),
     },
   );
   return { stub: false, ...result };

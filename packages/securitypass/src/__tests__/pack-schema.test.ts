@@ -83,6 +83,37 @@ describe("SecurityPackSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("requires sensitive fixtures to use vault references instead of inline values", () => {
+    const badCredential = {
+      ...minimalPack,
+      fixtures: [{
+        id: "cred",
+        kind: "credential_ref" as const,
+        value: { username: "admin", password: "secret" },
+      }],
+    };
+    const badSession = {
+      ...minimalPack,
+      fixtures: [{
+        id: "session",
+        kind: "http_session" as const,
+        value: { cookie: "sid=secret" },
+      }],
+    };
+    const goodPayload = {
+      ...minimalPack,
+      fixtures: [{
+        id: "payload",
+        kind: "sample_payload" as const,
+        value: { name: "example" },
+      }],
+    };
+
+    expect(SecurityPackSchema.safeParse(badCredential).success).toBe(false);
+    expect(SecurityPackSchema.safeParse(badSession).success).toBe(false);
+    expect(SecurityPackSchema.safeParse(goodPayload).success).toBe(true);
+  });
+
   it("rejects unknown hat roles", () => {
     const bad = {
       ...minimalPack,

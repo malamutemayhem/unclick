@@ -76,6 +76,25 @@ describe("scope gate", () => {
     expect(result.verified).toBe(true);
   });
 
+  it("times out well-known proof fetches instead of hanging", async () => {
+    const result = await verifyScope(
+      { type: "url", url: "https://example.com" },
+      {
+        proofMethod: "well_known",
+        expectedToken: "token-123",
+        proofTimeoutMs: 1,
+        fetchImpl: async (_url, init) =>
+          new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener("abort", () => reject(new Error("aborted")));
+          }),
+      },
+    );
+
+    expect(result.verified).toBe(false);
+    expect(result.reason).toMatch(/could not be fetched/);
+    expect(String(result.evidence.error)).toMatch(/aborted/);
+  });
+
   it("runSkeletonScan throws ScopeUnverifiedError for any caller-supplied URL", async () => {
     await expect(
       runSkeletonScan({ target: { type: "url", url: "https://example.com" } }),

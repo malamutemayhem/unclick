@@ -65,6 +65,7 @@ export interface SecurityPackRunOptions {
   commandRunner?: CommandRunner;
   fetchImpl?: typeof fetch;
   resolveTxt?: ScopeVerificationOptions["resolveTxt"];
+  proofTimeoutMs?: ScopeVerificationOptions["proofTimeoutMs"];
 }
 
 function targetFromPackTarget(target: PackTarget): SecurityRunTarget {
@@ -104,7 +105,7 @@ function urlMatchesScopeAsset(targetUrl: string, asset: string): boolean {
 
   try {
     const assetUrl = new URL(rawAsset);
-    if (assetUrl.hostname.toLowerCase() !== target.hostname.toLowerCase()) return false;
+    if (assetUrl.origin.toLowerCase() !== target.origin.toLowerCase()) return false;
     const assetPath = normalizedUrlPath(assetUrl.pathname);
     const targetPath = normalizedUrlPath(target.pathname);
     if (assetPath === "/") return true;
@@ -341,6 +342,7 @@ export async function runSecurityPack(
     contractId: pack.scope_contract.contract_id,
     proofMethod: pack.scope_contract.proof_method,
     expectedToken: pack.scope_contract.expected_token,
+    proofTimeoutMs: opts.proofTimeoutMs,
     fetchImpl: opts.fetchImpl,
     resolveTxt: opts.resolveTxt,
   });
