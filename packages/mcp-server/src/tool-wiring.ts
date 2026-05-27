@@ -12146,7 +12146,7 @@ export const ADDITIONAL_TOOLS = [
   // ── legalpass-tool.ts ──────────────────────────────────────────────────────
   {
     name: "legalpass_run",
-    description: "Plan a LegalPass issue-spotting run against a URL, contract upload, or repo. Scaffold-only: exposes LegalPass guardrails and the safe run envelope while full 12-hat execution lands in a later engine chip.",
+    description: "Run a LegalPass issue-spotting pass against a URL, contract upload, or repo. With fixture_text, returns deterministic public evidence; without it, returns the guarded run plan.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12167,6 +12167,7 @@ export const ADDITIONAL_TOOLS = [
         },
         profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Run profile (default: smoke)" },
         jurisdictions: { type: "array", items: { type: "string" }, description: "Optional jurisdiction routing hints" },
+        fixture_text: { type: "string", description: "Public text to check deterministically for dogfood or local proof" },
       },
       required: ["target"],
     },

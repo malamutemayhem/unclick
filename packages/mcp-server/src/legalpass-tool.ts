@@ -6,6 +6,8 @@
  * engine exists yet.
  */
 
+import { createHash } from "node:crypto";
+
 type DisclaimerLength = "chat" | "results" | "tos";
 
 const DISCLAIMERS: Record<DisclaimerLength, string> = {
@@ -71,12 +73,120 @@ const FORBIDDEN_PHRASES: ReadonlyArray<{ phrase: string; reason: string }> = [
 
 const ALLOWED_PHRASES = ["appears", "may", "consider", "in similar contracts", "warrants review"];
 
+const FIXTURE_CHECKS: ReadonlyArray<{
+  id: string;
+  title: string;
+  severity: "high" | "medium" | "low";
+  terms: string[];
+  finding: string;
+}> = [
+  {
+    id: "privacy-controller-contact",
+    title: "Controller or operator contact path",
+    severity: "high",
+    terms: ["contact", "privacy"],
+    finding: "The public fixture text did not include the configured privacy contact signal.",
+  },
+  {
+    id: "privacy-data-use",
+    title: "Data collection and use disclosure",
+    severity: "high",
+    terms: ["collect", "use"],
+    finding: "The public fixture text did not include the configured data collection and use signal.",
+  },
+  {
+    id: "privacy-retention-transfer",
+    title: "Retention or transfer disclosure",
+    severity: "medium",
+    terms: ["retain", "third party"],
+    finding: "The public fixture text did not include the configured retention or transfer signal.",
+  },
+  {
+    id: "tos-liability-indemnity",
+    title: "Liability and indemnity visibility",
+    severity: "high",
+    terms: ["liability", "indemnity"],
+    finding: "The public fixture text did not include the configured liability and indemnity signal.",
+  },
+  {
+    id: "tos-variation-termination",
+    title: "Variation or termination signal",
+    severity: "medium",
+    terms: ["terminate", "change"],
+    finding: "The public fixture text did not include the configured variation or termination signal.",
+  },
+  {
+    id: "tos-dispute-contact",
+    title: "Dispute or support contact path",
+    severity: "medium",
+    terms: ["dispute", "support"],
+    finding: "The public fixture text did not include the configured dispute or support signal.",
+  },
+  {
+    id: "oss-manifest-licence",
+    title: "Dependency licence manifest",
+    severity: "high",
+    terms: ["license", "dependency"],
+    finding: "The public fixture text did not include the configured dependency licence signal.",
+  },
+  {
+    id: "oss-attribution-copyleft",
+    title: "Attribution or copyleft marker",
+    severity: "medium",
+    terms: ["attribution", "copyleft"],
+    finding: "The public fixture text did not include the configured attribution or copyleft signal.",
+  },
+  {
+    id: "oss-patent-notice",
+    title: "Patent or notice signal",
+    severity: "low",
+    terms: ["patent", "notice"],
+    finding: "The public fixture text did not include the configured patent or notice signal.",
+  },
+];
+
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function disclaimerLength(value: unknown): DisclaimerLength {
   return value === "chat" || value === "tos" ? value : "results";
+}
+
+function normalizeText(value: string): string {
+  return value.toLocaleLowerCase("en-US").replace(/\s+/g, " ").trim();
+}
+
+function buildRunId(input: unknown): string {
+  return `legalpass_${createHash("sha256")
+    .update(JSON.stringify(input))
+    .digest("hex")
+    .slice(0, 12)}`;
+}
+
+function fixtureSummary(text: string) {
+  const normalized = normalizeText(text);
+  const items = FIXTURE_CHECKS.map((check) => {
+    const passed = check.terms.every((term) => normalized.includes(normalizeText(term)));
+    return {
+      item_id: check.id,
+      title: check.title,
+      severity: check.severity,
+      verdict: passed ? "check" : "fail",
+      finding: passed
+        ? `${check.title} appears in the public fixture text.`
+        : `${check.finding} This is an issue-spotting flag only.`,
+    };
+  });
+  const check = items.filter((item) => item.verdict === "check").length;
+  const fail = items.filter((item) => item.verdict === "fail").length;
+  return {
+    total: items.length,
+    check,
+    fail,
+    pass_rate: Math.round((check / items.length) * 100),
+    items,
+  };
 }
 
 export function lintLegalPassVerdict(text: string): Array<{ phrase: string; index: number; reason: string }> {
@@ -101,6 +211,35 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
 
   if (!target || typeof target.kind !== "string") {
     return { error: "target.kind is required" };
+  }
+
+  const fixtureText = typeof args.fixture_text === "string" ? args.fixture_text.trim() : "";
+  if (fixtureText) {
+    const summary = fixtureSummary(fixtureText);
+    return {
+      status: "complete",
+      pass: "legalpass",
+      run_id: buildRunId({ packId, target, profile, jurisdictions, fixtureText }),
+      pack_id: packId,
+      target,
+      profile,
+      jurisdictions,
+      summary: {
+        total: summary.total,
+        check: summary.check,
+        fail: summary.fail,
+        pass_rate: summary.pass_rate,
+      },
+      items: summary.items,
+      disclaimer: DISCLAIMERS.results,
+      note:
+        "LegalPass ran a deterministic public fixture issue-spotter pass. It did not fetch private data, draft legal text, or give legal advice.",
+      safety: {
+        issue_spotter_only: true,
+        no_legal_advice: true,
+        no_transactional_instrument: true,
+      },
+    };
   }
 
   return {
