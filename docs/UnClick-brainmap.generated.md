@@ -38,7 +38,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
 | src/pages/admin/AdminBrainmap.tsx | 21baca89f0d0 | 27078 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
-| src/pages/admin/copypass/CopyPassCatalog.tsx | efefdd41414e | 5459 |
+| src/pages/admin/copypass/CopyPassCatalog.tsx | c5690331b7c6 | 6747 |
 | src/pages/admin/crews/CrewComposer.tsx | f3afb17bb001 | 13909 |
 | src/pages/admin/crews/CrewRun.tsx | 8a458cc0c629 | 8427 |
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
@@ -58,7 +58,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/signals/SignalsCatalog.tsx | 7baa82ac0d7f | 10835 |
 | src/pages/admin/AdminSystemHealth.tsx | 6e61ae4d3d34 | 867 |
 | src/pages/admin/testpass/NewRunWizard.tsx | fd912523ee14 | 10379 |
-| src/pages/admin/AdminTestPass.tsx | 42ec1ce9d885 | 24062 |
+| src/pages/admin/AdminTestPass.tsx | 0b3cc7b44107 | 27259 |
 | src/pages/admin/testpass/ReportDetail.tsx | b3db4032aa33 | 12374 |
 | src/pages/admin/testpass/RunDetail.tsx | 52e43b795126 | 21979 |
 | src/pages/admin/testpass/TestPassCatalog.tsx | 8fc76ddd8d3f | 21847 |
