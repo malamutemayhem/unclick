@@ -40,6 +40,14 @@ export const DEFAULT_COPYPASS_CHECKS: CopyPassCheckDefinition[] = [
       "Replace the absolute claim with a qualified claim, or attach public proof in nearby copy.",
   },
   {
+    id: "detector-evasion-claim",
+    label: "Detector-evasion claim",
+    goal: "Copy should not market AI-detector bypass, deception, or guaranteed undetectability.",
+    severity: "high",
+    recommended_fix:
+      "Reposition the copy around quality, clarity, editing, and evidence instead of detector bypass claims.",
+  },
+  {
     id: "placeholder-copy",
     label: "Placeholder language",
     goal: "Shipped copy should not contain stale placeholders or drafting markers.",
@@ -54,6 +62,46 @@ export const DEFAULT_COPYPASS_CHECKS: CopyPassCheckDefinition[] = [
     severity: "high",
     recommended_fix:
       "Use advisory, evidence-backed language and remove outcome guarantees.",
+  },
+  {
+    id: "internal-consistency",
+    label: "Internal consistency",
+    goal: "Adjacent copy should not contradict the offer, price, access rules, or proof posture.",
+    severity: "high",
+    recommended_fix:
+      "Reconcile the conflicting claims or add context that makes the difference explicit.",
+  },
+  {
+    id: "audience-tone-fit",
+    label: "Audience and tone fit",
+    goal: "Copy should match the surface and audience without distracting slang, hype, or mismatched formality.",
+    severity: "medium",
+    recommended_fix:
+      "Rewrite in the audience's language and remove tone swings that do not fit the surface.",
+  },
+  {
+    id: "ai-slop-language",
+    label: "AI-slop language",
+    goal: "Copy should avoid generic AI-writing tells, bloated transitions, and avoidable em dash styling.",
+    severity: "medium",
+    recommended_fix:
+      "Replace generic AI-sounding phrases with concrete nouns, verbs, and proof-backed wording.",
+  },
+  {
+    id: "misleading-urgency",
+    label: "Misleading urgency",
+    goal: "Urgency or scarcity language should be visibly true and supported.",
+    severity: "high",
+    recommended_fix:
+      "Remove the urgency claim or add nearby evidence such as an actual deadline, quota, or availability reason.",
+  },
+  {
+    id: "ui-honesty-gap",
+    label: "Product-surface honesty",
+    goal: "UI and product copy should not imply an automated capability is finished unless proof is visible.",
+    severity: "high",
+    recommended_fix:
+      "Qualify the capability, name the proof boundary, or link to the receipt that supports the claim.",
   },
 ].map((check) => CopyPassCheckDefinitionSchema.parse(check));
 
@@ -105,11 +153,15 @@ const PROOF_TERMS = [
   "audit",
   "case study",
   "check",
+  "checked",
+  "checks",
   "customer",
   "evidence",
   "privacy",
   "proof",
   "receipt",
+  "receipts",
+  "safety",
   "security",
   "trusted",
   "verified",
@@ -131,9 +183,6 @@ const PLACEHOLDER_TERMS = [
   "copy goes here",
   "insert copy",
   "lorem ipsum",
-  "placeholder",
-  "tbd",
-  "todo",
 ];
 
 const GUARANTEE_TERMS = [
@@ -146,6 +195,79 @@ const GUARANTEE_TERMS = [
   "rank #1",
   "risk-free",
 ];
+
+const DETECTOR_EVASION_TERMS = [
+  "ai detection bypass",
+  "bypass ai detection",
+  "bypass ai detector",
+  "beat ai detection",
+  "beat ai detector",
+  "evade ai detection",
+  "evade detection",
+  "gptzero safe",
+  "pass gptzero",
+  "pass turnitin",
+  "turnitin safe",
+  "turnitin-safe",
+  "undetectable ai",
+];
+
+const AI_SLOP_TERMS = [
+  "delve",
+  "elevate",
+  "game changing",
+  "game-changing",
+  "in today's digital landscape",
+  "leverage",
+  "not just",
+  "revolutionize",
+  "seamless",
+  "tapestry",
+  "transform your",
+  "unlock",
+  "whether you're",
+];
+
+const INFORMAL_TONE_TERMS = [
+  "bro",
+  "crush it",
+  "heck yeah",
+  "insane",
+  "lol",
+  "no-brainer",
+  "skyrocket",
+];
+
+const FORMAL_SURFACE_KINDS = new Set(["pricing", "legal", "proof"]);
+
+const URGENCY_TERMS = [
+  "act now",
+  "before it's gone",
+  "don't miss out",
+  "last chance",
+  "limited time",
+  "only today",
+];
+
+const UI_AUTOMATION_TERMS = [
+  "autopilot",
+  "automatic",
+  "automatically",
+  "automated",
+  "done for you",
+  "fully built",
+  "hands-off",
+  "zero touch",
+];
+
+const CONSISTENCY_PAIRS = [
+  ["free forever", "paid only"],
+  ["no credit card", "credit card required"],
+  ["cancel anytime", "annual contract"],
+  ["zero setup", "setup fee"],
+  ["no setup", "setup fee"],
+  ["private by default", "public by default"],
+] as const;
 
 const SENSITIVE_COPY_PATTERN =
   /\b(api[_ -]?key|bearer|password|secret|sk-[a-z0-9_-]{8,}|token)\b/i;
@@ -161,7 +283,7 @@ export function detectCopyPassFindings(
   const activeCheckIds = new Set(checks.map((check) => check.id));
   const checkById = new Map(checks.map((check) => [check.id, check]));
 
-  return blocks.flatMap((block) => {
+  const blockFindings = blocks.flatMap((block) => {
     const normalized = normalizeCopy(block.text);
     const findings: CopyPassFinding[] = [];
 
@@ -228,7 +350,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "placeholder-copy") &&
-      containsAny(normalized, PLACEHOLDER_TERMS)
+      hasPlaceholderLanguage(normalized)
     ) {
       findings.push(
         createFinding(
@@ -242,7 +364,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "risky-guarantee-language") &&
-      containsAny(normalized, GUARANTEE_TERMS)
+      hasRiskyGuarantee(normalized)
     ) {
       findings.push(
         createFinding(
@@ -254,8 +376,87 @@ export function detectCopyPassFindings(
       );
     }
 
+    if (
+      isActive(activeCheckIds, "detector-evasion-claim") &&
+      containsAny(normalized, DETECTOR_EVASION_TERMS)
+    ) {
+      findings.push(
+        createFinding(
+          block,
+          requireCheck(checkById, "detector-evasion-claim"),
+          "Detector-evasion claim detected",
+          "The copy markets AI-detector bypass or guaranteed undetectability instead of quality review.",
+        ),
+      );
+    }
+
+    if (
+      isActive(activeCheckIds, "ai-slop-language") &&
+      (containsAny(normalized, AI_SLOP_TERMS) || hasEmDash(block.text))
+    ) {
+      findings.push(
+        createFinding(
+          block,
+          requireCheck(checkById, "ai-slop-language"),
+          "Generic AI-sounding language detected",
+          "The copy uses a common AI-writing tell or avoidable em dash styling instead of direct, specific wording.",
+        ),
+      );
+    }
+
+    if (
+      isActive(activeCheckIds, "audience-tone-fit") &&
+      FORMAL_SURFACE_KINDS.has(block.kind) &&
+      containsAny(normalized, INFORMAL_TONE_TERMS)
+    ) {
+      findings.push(
+        createFinding(
+          block,
+          requireCheck(checkById, "audience-tone-fit"),
+          "Tone does not fit the surface",
+          "A formal surface uses casual hype or slang that may reduce trust.",
+        ),
+      );
+    }
+
+    if (
+      isActive(activeCheckIds, "misleading-urgency") &&
+      containsAny(normalized, URGENCY_TERMS) &&
+      !hasUrgencySupport(normalized)
+    ) {
+      findings.push(
+        createFinding(
+          block,
+          requireCheck(checkById, "misleading-urgency"),
+          "Urgency claim needs support",
+          "The copy creates urgency without showing a real deadline, quota, or availability reason.",
+        ),
+      );
+    }
+
+    if (
+      isActive(activeCheckIds, "ui-honesty-gap") &&
+      containsAny(normalized, UI_AUTOMATION_TERMS) &&
+      !containsAny(normalized, PROOF_TERMS) &&
+      !containsAny(normalized, ["beta", "when safe", "preview", "manual review"])
+    ) {
+      findings.push(
+        createFinding(
+          block,
+          requireCheck(checkById, "ui-honesty-gap"),
+          "Automation claim needs a proof boundary",
+          "The copy implies finished automation without naming receipts, checks, review, or a clear beta boundary.",
+        ),
+      );
+    }
+
     return findings;
   });
+
+  return [
+    ...blockFindings,
+    ...detectInternalConsistencyFindings(blocks, activeCheckIds, checkById),
+  ];
 }
 
 export function normalizeCopy(value: string): string {
@@ -271,7 +472,73 @@ function isActive(activeCheckIds: Set<CopyPassCheckId>, checkId: CopyPassCheckId
 }
 
 function containsAny(value: string, terms: string[]): boolean {
-  return terms.some((term) => value.includes(term));
+  return terms.some((term) => containsTerm(value, term));
+}
+
+function containsTerm(value: string, term: string): boolean {
+  const escaped = escapeRegExp(term);
+  const startsWithWord = /^[a-z0-9]/i.test(term);
+  const endsWithWord = /[a-z0-9]$/i.test(term);
+  const prefix = startsWithWord ? "(?:^|[^a-z0-9])" : "";
+  const suffix = endsWithWord ? "(?=$|[^a-z0-9])" : "";
+  return new RegExp(`${prefix}${escaped}${suffix}`, "i").test(value);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function hasEmDash(value: string): boolean {
+  return /[\u2013\u2014]/u.test(value);
+}
+
+function hasUrgencySupport(value: string): boolean {
+  return /\b\d{1,2}\s*(hours?|days?|seats?|spots?|places?)\b/i.test(value) ||
+    /\b(deadline|until|ends|expires|capacity|quota)\b/i.test(value);
+}
+
+function hasPlaceholderLanguage(value: string): boolean {
+  return containsAny(value, PLACEHOLDER_TERMS) ||
+    /\b(todo|tbd)\b/i.test(value) ||
+    /\bplaceholder\s+(text|copy|headline|body)\s+(here|goes here)\b/i.test(value);
+}
+
+function hasRiskyGuarantee(value: string): boolean {
+  const neutralized = value
+    .replace(
+      /\b(?:not|no|never|without|cannot|can't|does not|doesn't|do not|don't|is not|isn't|are not|aren't)\s+(?:a\s+)?guarantee(?:d|s)?\b/g,
+      "",
+    )
+    .replace(/\bdoes not guarantee\b/g, "")
+    .replace(/\bno guarantee(?:s|d)?\b/g, "");
+
+  return containsAny(neutralized, GUARANTEE_TERMS);
+}
+
+function detectInternalConsistencyFindings(
+  blocks: CopyPassCopyBlock[],
+  activeCheckIds: Set<CopyPassCheckId>,
+  checkById: Map<CopyPassCheckId, CopyPassCheckDefinition>,
+): CopyPassFinding[] {
+  if (!isActive(activeCheckIds, "internal-consistency")) return [];
+
+  const allCopy = normalizeCopy(blocks.map((block) => block.text).join(" "));
+  const matchedPair = CONSISTENCY_PAIRS.find(([left, right]) =>
+    allCopy.includes(left) && allCopy.includes(right)
+  );
+  if (!matchedPair) return [];
+
+  const firstBlock = blocks[0];
+  if (!firstBlock) return [];
+
+  return [
+    createFinding(
+      firstBlock,
+      requireCheck(checkById, "internal-consistency"),
+      "Copy set contains conflicting offer language",
+      `The inspected copy contains both "${matchedPair[0]}" and "${matchedPair[1]}".`,
+    ),
+  ];
 }
 
 function requireCheck(

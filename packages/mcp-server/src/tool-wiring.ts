@@ -12484,7 +12484,7 @@ export const ADDITIONAL_TOOLS = [
   // ── copypass-tool.ts (copy quality QC with CopyRoom receipt support) ─────
   {
     name: "copypass_run",
-    description: "Start a CopyPass run for AI-generated copy. When exact fidelity matters, set copyroom_required=true and pass copyroom_source_packet so the run attaches a CopyRoom receipt instead of relying on retyped source text.",
+    description: "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, and optional CopyRoom exact-copy receipt.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12511,14 +12511,14 @@ export const ADDITIONAL_TOOLS = [
         channel: { type: "string", description: "Optional surface label such as homepage_hero, pricing_section, or onboarding_email." },
         audience: { type: "string", description: "Optional intended audience for the copy." },
         goal: { type: "string", description: "Optional goal for the copy, such as clarity, conversion, or trust." },
-        profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Reserved for later evaluator depth. Defaults to smoke." },
+        profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Review depth label for this scoped run. Defaults to smoke." },
       },
       required: [],
     },
   },
   {
     name: "copypass_status",
-    description: "Fetch the current status, notes, and scaffold finding count for a CopyPass run started in this MCP session.",
+    description: "Fetch the current status, notes, deterministic findings, disclaimer, and CopyRoom receipt for a CopyPass run started in this MCP session.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
