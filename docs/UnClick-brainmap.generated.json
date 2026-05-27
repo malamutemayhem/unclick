@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 473,
+    "inventory": 479,
     "source_manifest": 94,
     "pages": 94,
     "tools": 183,
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 109
+      "count": 115
     },
     {
       "id": "ledgers-and-proof",
@@ -1458,6 +1458,66 @@
       "kind": "script",
       "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
       "source": "scripts/pinballwake-worker-registry-room.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-free-models-scripts-pinballwake-writerlane-free-models-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane free models",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-free-models.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-free-models-test-scripts-pinballwake-writerlane-free-models-test-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane free models.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-free-models.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-free-writer-scripts-pinballwake-writerlane-free-writer-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane free writer",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-free-writer.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-free-writer-test-scripts-pinballwake-writerlane-free-writer-test-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane free writer.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-free-writer.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-validator-scripts-pinballwake-writerlane-validator-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane validator",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-validator.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-validator-test-scripts-pinballwake-writerlane-validator-test-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane validator.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-validator.test.mjs",
       "route": "",
       "tags": []
     },

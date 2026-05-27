@@ -1965,6 +1965,37 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(executor.testMode, true);
   });
 
+  it("keeps the OpenHands CLI writer when AUTONOMOUS_RUNNER_WRITER is unset", () => {
+    const executor = createAutonomousRunnerOpenHandsExecutorFromEnv({
+      AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: "true",
+      OPENHANDS_TEST_MODE: "1",
+    });
+    assert.equal(executor.enabled, true);
+    assert.equal(typeof executor.openHands, "function");
+    assert.equal(typeof executor.coderoom, "function");
+  });
+
+  it("routes the writer through the WriterLane free-model adapter when opted in", () => {
+    const executor = createAutonomousRunnerOpenHandsExecutorFromEnv({
+      AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: "true",
+      AUTONOMOUS_RUNNER_WRITER: "writerlane_free",
+      OPENHANDS_TEST_MODE: "1",
+    });
+    assert.equal(executor.enabled, true);
+    assert.equal(typeof executor.openHands, "function");
+    assert.equal(typeof executor.coderoom, "function");
+    assert.equal(executor.testMode, true);
+  });
+
+  it("never builds a live writer while execute stays disabled, even with the writer flag", () => {
+    const executor = createAutonomousRunnerOpenHandsExecutorFromEnv({
+      AUTONOMOUS_RUNNER_WRITER: "writerlane_free",
+    });
+    assert.equal(executor.enabled, false);
+    assert.equal(executor.openHands, null);
+    assert.equal(executor.coderoom, null);
+  });
+
   it("emits a quiet-window proof receipt that rejects manual runner triggers", async () => {
     const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
     const ledgerPath = join(dir, "ledger.json");
