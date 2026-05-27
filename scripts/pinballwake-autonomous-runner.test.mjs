@@ -692,6 +692,30 @@ describe("PinballWake autonomous Runner seat", () => {
     );
   });
 
+  it("allows a stale assigned open todo when it is assigned to this runner", () => {
+    const todo = {
+      id: "todo-stale-canary",
+      title: "AFK canary seed: docs-only OpenHands proof fixture",
+      status: "open",
+      priority: "urgent",
+      assigned_to_agent_id: "runner-plex-1",
+      actionability_reason: "stale_assigned_open",
+      scope_pack: {
+        owned_files: ["docs/openhands-proof-fixture.md"],
+        role: "docs_update",
+        tests: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+      },
+    };
+
+    assert.equal(
+      evaluateBoardroomTodoAutoClaimEligibility(todo, {
+        runner,
+        allowedActionReasons: ["unassigned_open"],
+      }).ok,
+      true,
+    );
+  });
+
   it("requires ScopePack when the canary guard is active", () => {
     const todo = {
       id: "todo-unscoped",
@@ -1956,17 +1980,28 @@ describe("PinballWake autonomous Runner seat", () => {
           testMode: true,
           openHands: async () => ({
             ok: false,
+            reason: "writerlane_free_chain_exhausted",
             exit_code: 0,
             output: "OpenHands completed without a unified diff.",
+            attempts: [
+              {
+                modelId: "gpt-oss-120b",
+                openRouterModel: "openai/gpt-oss-120b:free",
+                status: "proven",
+                ok: false,
+                reason: "writerlane_no_file_contents",
+              },
+            ],
           }),
         },
       });
 
       assert.equal(result.ok, false);
       assert.equal(result.action, "blocked");
-      assert.equal(result.reason, "openhands_reported_failure");
+      assert.equal(result.reason, "writerlane_free_chain_exhausted");
       assert.equal(result.todo_claim_sync.reason, "openhands_build_hold_recorded");
       assert.match(calls[1].body.params.arguments.text, /OpenHands build attempt HOLD/);
+      assert.match(calls[1].body.params.arguments.text, /attempts=gpt-oss-120b:writerlane_no_file_contents/);
       assert.equal(result.quiet_window_autonomy_proof.first_missing_rung, "proof_packet");
       assert.deepEqual(result.quiet_window_autonomy_proof.evidence.observed_rungs, [
         "tick",
