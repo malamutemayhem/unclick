@@ -22,11 +22,34 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | ed620f347d4f | 4873 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | fd2479b601d8 | 13242 |
-| src/pages/admin/AdminShell.tsx | 7cfbba7277d3 | 19113 |
+| src/App.tsx | 7bd815c57de3 | 13446 |
+| src/pages/admin/AdminShell.tsx | d0ad42350797 | 19229 |
+| src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
+| src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
+| src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
 | .github/workflows/ci.yml | b0a209c9c627 | 1559 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | package.json | 9f761ff407b1 | 4232 |
+| seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
+| seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
+| seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
+| seed/skills/coordinator-router.skill.md | 9413945c7540 | 1379 |
+| seed/skills/cross-pc-context-summariser.skill.md | a3ed67bc460c | 932 |
+| seed/skills/deep-research-analyst.skill.md | 74d773d9e04d | 1069 |
+| seed/skills/dependency-upgrade-reviewer.skill.md | d70607ce286b | 1045 |
+| seed/skills/draft-pr-description.skill.md | 29bd5a084a33 | 892 |
+| seed/skills/fix-failing-ci.skill.md | 7448c5e24ded | 1080 |
+| seed/skills/github-pr-summariser.skill.md | 1fd84b27d797 | 987 |
+| seed/skills/memory-distiller.skill.md | b951415aa2a7 | 983 |
+| seed/skills/research-brief-generator.skill.md | 849b249b5f2a | 915 |
+| seed/skills/reviewer-gate.skill.md | 976af541055b | 1008 |
+| seed/skills/safety-checker-gate.skill.md | 788eb3ec2b1d | 1148 |
+| seed/skills/screenshot-visual-qa.skill.md | ddfa5fd572a8 | 1025 |
+| seed/skills/security-review.skill.md | 1183cfc4b1ce | 1107 |
+| seed/skills/senior-code-reviewer.skill.md | 22a98a1953fd | 1104 |
+| seed/skills/tester-proof-plan.skill.md | d8c55bf6329a | 1153 |
+| seed/skills/watcher-heartbeat-tether.skill.md | 28acf3324343 | 1057 |
+| seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
@@ -112,7 +135,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 53 |
+| Admin surfaces | Private operator views and internal control panels. | 54 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 41 |
 | Tools | MCP and gateway capabilities available to seats. | 183 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
@@ -122,7 +145,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 19 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 40 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 4 |
 
 ## UnClick Structure
@@ -157,6 +180,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | /admin/agents/heartbeat | Admin Seat Heartbeat | Master heartbeat copy policy for scheduled AI seats. | src/pages/admin/AdminSeatHeartbeat.tsx |
 | /admin/settings | Admin Settings | Account and admin configuration. | src/pages/admin/AdminSettings.tsx |
 | /admin/shell | Admin Shell | Admin surface for Admin Shell. | src/pages/admin/AdminShell.tsx |
+| /admin/skills | Admin Skills | Read-only starter pack of UnClick-native skills, native rails, and portable SKILL.md packages. | src/pages/admin/AdminSkills.tsx |
 | /admin/system-health | Admin System Health | Health checks and operational status. | src/pages/admin/AdminSystemHealth.tsx |
 | /admin/test-pass | Admin Test Pass | Admin surface for Admin Test Pass. | src/pages/admin/AdminTestPass.tsx |
 | /admin/tools | Admin Tools | Apps, tools, and connector capability surface. | src/pages/admin/AdminTools.tsx |
@@ -444,6 +468,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Admin surfaces | admin page | Admin Seat Heartbeat | Master heartbeat copy policy for scheduled AI seats. | /admin/agents/heartbeat | src/pages/admin/AdminSeatHeartbeat.tsx |
 | Admin surfaces | admin page | Admin Settings | Account and admin configuration. | /admin/settings | src/pages/admin/AdminSettings.tsx |
 | Admin surfaces | admin page | Admin Shell | Admin surface for Admin Shell. | /admin/shell | src/pages/admin/AdminShell.tsx |
+| Admin surfaces | admin page | Admin Skills | Read-only starter pack of UnClick-native skills, native rails, and portable SKILL.md packages. | /admin/skills | src/pages/admin/AdminSkills.tsx |
 | Admin surfaces | admin page | Admin System Health | Health checks and operational status. | /admin/system-health | src/pages/admin/AdminSystemHealth.tsx |
 | Admin surfaces | admin page | Admin Test Pass | Admin surface for Admin Test Pass. | /admin/test-pass | src/pages/admin/AdminTestPass.tsx |
 | Admin surfaces | admin page | Admin Tools | Apps, tools, and connector capability surface. | /admin/tools | src/pages/admin/AdminTools.tsx |
@@ -622,6 +647,27 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Modules and apps | package | testpass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/testpass/package.json |
 | Modules and apps | package | uxpass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/uxpass/package.json |
 | Modules and apps | package | wizard | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/wizard/package.json |
+| Modules and apps | skill library | Skills Library | Read-only starter pack of UnClick-native skills, hardwired rails, hybrid workflows, and portable skill packages. | /admin/skills | src/pages/admin/AdminSkills.tsx |
+| Modules and apps | skill package | agent handoff packet writer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/agent-handoff-packet-writer.skill.md |
+| Modules and apps | skill package | browser qa tester | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/browser-qa-tester.skill.md |
+| Modules and apps | skill package | builder implementation packet | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/builder-implementation-packet.skill.md |
+| Modules and apps | skill package | coordinator router | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/coordinator-router.skill.md |
+| Modules and apps | skill package | cross pc context summariser | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/cross-pc-context-summariser.skill.md |
+| Modules and apps | skill package | deep research analyst | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/deep-research-analyst.skill.md |
+| Modules and apps | skill package | dependency upgrade reviewer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/dependency-upgrade-reviewer.skill.md |
+| Modules and apps | skill package | draft pr description | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/draft-pr-description.skill.md |
+| Modules and apps | skill package | fix failing ci | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/fix-failing-ci.skill.md |
+| Modules and apps | skill package | github pr summariser | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/github-pr-summariser.skill.md |
+| Modules and apps | skill package | memory distiller | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/memory-distiller.skill.md |
+| Modules and apps | skill package | research brief generator | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/research-brief-generator.skill.md |
+| Modules and apps | skill package | reviewer gate | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/reviewer-gate.skill.md |
+| Modules and apps | skill package | safety checker gate | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/safety-checker-gate.skill.md |
+| Modules and apps | skill package | screenshot visual qa | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/screenshot-visual-qa.skill.md |
+| Modules and apps | skill package | security review | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/security-review.skill.md |
+| Modules and apps | skill package | senior code reviewer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/senior-code-reviewer.skill.md |
+| Modules and apps | skill package | tester proof plan | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/tester-proof-plan.skill.md |
+| Modules and apps | skill package | watcher heartbeat tether | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/watcher-heartbeat-tether.skill.md |
+| Modules and apps | skill package | write tests for changed code | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/write-tests-for-changed-code.skill.md |
 | Passes and gates | fidelity gate | CopyRoom | Exact-copy room for code, docs, tables, notes, and source text so seats do not retype drift-prone material. | - | docs/UnClick-brainmap.generated.md |
 | Passes and gates | fidelity gate | FidelityPass | Checks exactness and invariant preservation when copying, refactoring, or translating content. | - | scripts/fidelitycopy.test.mjs |
 | Passes and gates | judgment gate | CommonSensePass | Plain-reasoning gate used before healthy, done, merge-ready, or PASS claims. | - | api/commonsensepass-bridge.test.ts |

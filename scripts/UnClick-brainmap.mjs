@@ -22,6 +22,9 @@ const CORE_SOURCES = [
   "docs/adr/0006-orchestrator-is-user-chat.md",
   "src/App.tsx",
   "src/pages/admin/AdminShell.tsx",
+  "src/pages/admin/AdminSkills.tsx",
+  "src/lib/skillLibrary.ts",
+  "src/lib/skillLibrarySeeds.ts",
   ".github/workflows/ci.yml",
   ".github/workflows/brainmap-auto-update.yml",
   "package.json",
@@ -78,6 +81,7 @@ const STATIC_SYSTEMS = [
   ["Wrappers and protocols", "IgniteOnly", "bridge", "Verified worker wake packets only, never build, merge, or completion state.", "docs/pinballwake-igniteonly-api.md", ""],
   ["Wrappers and protocols", "SeatRelay", "claim lifecycle", "Stale release, smart reassignment, and bonded handoff for stuck worker claims.", "docs/UnClick-brainmap.generated.md", ""],
   ["Ledgers and proof", "Proof Ledger", "ledger", "Structured evidence, proof freshness, receipts, and DONE trust surface.", "docs/agent-observability.md", ""],
+  ["Modules and apps", "Skills Library", "skill library", "Read-only starter pack of UnClick-native skills, hardwired rails, hybrid workflows, and portable skill packages.", "src/pages/admin/AdminSkills.tsx", "/admin/skills"],
   ["Modules and apps", "JobSmith", "app", "CV, cover-letter, job application, and rules/checklist engine.", "apps/jobsmith/package.json", "/admin/jobsmith"],
   ["Modules and apps", "AutoPilotKit", "automation module", "Internal automation bolt-on for proof-first work motion.", "AUTOPILOT.md", ""],
   ["Workers and seats", "Cursor Builder Seat", "seat", "External builder lane used for scoped code work and PRs.", "docs/fleet-worker-roles.md", ""],
@@ -99,6 +103,7 @@ const PAGE_MEANINGS = {
   AdminSeatHeartbeat: "Master heartbeat copy policy for scheduled AI seats.",
   AdminSettings: "Account and admin configuration.",
   AdminSystemHealth: "Health checks and operational status.",
+  AdminSkills: "Read-only starter pack of UnClick-native skills, native rails, and portable SKILL.md packages.",
   AdminTools: "Apps, tools, and connector capability surface.",
   AdminUsers: "Internal user management.",
   AdminYou: "Personal account, identity, and access panel.",
@@ -319,10 +324,11 @@ async function collectBrainmapModel(root) {
   const packageFiles = await walk(root, "packages", (file) => file.endsWith("package.json"));
   const apiFiles = await walk(root, "api", (file) => /\.(ts|js)$/.test(file) && !file.endsWith(".test.ts"));
   const srcLibFiles = await walk(root, "src/lib", (file) => /\.(ts|tsx)$/.test(file) && !file.endsWith(".test.ts"));
+  const skillFiles = await walk(root, "seed/skills", (file) => file.endsWith(".skill.md"));
   const packageJson = JSON.parse(await readText(root, "package.json") || "{}");
   const packageScripts = Object.entries(packageJson.scripts || {}).sort();
   const conceptFiles = [...new Set([...scriptFiles, ...apiFiles, ...srcLibFiles])];
-  const sourceFiles = [...new Set([...CORE_SOURCES, ...roomScripts, ...toolFiles.slice(0, 40), ...workflowFiles])];
+  const sourceFiles = [...new Set([...CORE_SOURCES, ...skillFiles, ...roomScripts, ...toolFiles.slice(0, 40), ...workflowFiles])];
   const manifest = await manifestRows(root, sourceFiles);
 
   const pageRows = [...adminPages, ...publicPages].map((file) => [
@@ -378,6 +384,16 @@ async function collectBrainmapModel(root) {
     ),
     ...packageFiles.map((file) =>
       inventoryItem("Modules and apps", titleFromName(path.dirname(file).split("/").at(-1)), "package", meaningForModule(file), file),
+    ),
+    ...skillFiles.map((file) =>
+      inventoryItem(
+        "Modules and apps",
+        titleFromName(path.basename(file).replace(/\.skill\.md$/, "")),
+        "skill package",
+        "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+        file,
+        "/admin/skills",
+      ),
     ),
     ...conceptFiles
       .map((file) => {
