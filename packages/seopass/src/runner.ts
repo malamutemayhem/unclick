@@ -1,4 +1,5 @@
 import {
+  SeoPassCheckIdSchema,
   SeoPassReportSchema,
   type SeoPassCheckId,
   type SeoPassCheckResult,
@@ -30,8 +31,10 @@ export type RunSeoPassInput = {
   targetUrl: string;
   generatedAt?: string;
   runId?: string;
-  checks?: SeoPassCheckId[];
+  checks?: readonly (SeoPassCheckId | string)[];
   maxInternalLinksToProbe?: number;
+  requestTimeoutMs?: number;
+  maxBodyChars?: number;
   fetcher?: SeoPassFetcher;
 };
 
@@ -44,6 +47,7 @@ type HtmlSignals = {
   ogTitle: string | null;
   ogDescription: string | null;
   headings: Array<{ level: number; text: string }>;
+  h1Count: number;
   links: Array<{ href: string; text: string; rel: string }>;
   jsonLdBlocks: Array<{ raw: string; parsed?: unknown; error?: string }>;
   imageCount: number;
@@ -75,11 +79,17 @@ const DEFAULT_CHECKS: SeoPassCheckId[] = [
 ];
 
 const USER_AGENT = "UnClick-SEOPass/0.1 (+https://unclick.world)";
+const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
+const DEFAULT_MAX_BODY_CHARS = 1_500_000;
 
 export async function runSeoPass(input: RunSeoPassInput): Promise<SeoPassReport> {
   const targetUrl = normalizeUrl(input.targetUrl);
-  const fetcher = input.fetcher ?? defaultFetcher;
-  const selectedChecks = new Set(input.checks ?? DEFAULT_CHECKS);
+  const fetcher = input.fetcher ?? createDefaultFetcher({
+    requestTimeoutMs: input.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS,
+    maxBodyChars: input.maxBodyChars ?? DEFAULT_MAX_BODY_CHARS,
+  });
+  const checkSelection = normalizeCheckSelection(input.checks);
+  const selectedChecks = new Set(checkSelection.valid);
   const runId = input.runId ?? `seopass-${stableRunSuffix(targetUrl, input.generatedAt)}`;
 
   const page = await fetcher(targetUrl);
@@ -148,43 +158,68 @@ export async function runSeoPass(input: RunSeoPassInput): Promise<SeoPassReport>
     notes: [
       "SEOPass v1 performs public, read-only evidence collection. It does not use credentials, mutate sites, submit URLs, or guarantee rankings.",
       "Core Web Vitals and Lighthouse checks use deterministic readiness proxies until the heavier Lighthouse runner is wired into the shared crawler.",
+      ...(
+        checkSelection.invalid.length > 0
+          ? [`Ignored unsupported SEOPass check id(s): ${checkSelection.invalid.join(", ")}.`]
+          : []
+      ),
     ],
   });
 }
 
-async function defaultFetcher(
-  url: string,
-  init: { method?: "GET"; headers?: Record<string, string> } = {},
-): Promise<SeoPassFetchResult> {
-  const started = Date.now();
-  try {
-    const res = await fetch(url, {
-      method: init.method ?? "GET",
-      headers: {
-        "user-agent": USER_AGENT,
-        accept: "text/html,application/xhtml+xml,application/xml,text/plain;q=0.9,*/*;q=0.8",
-        ...init.headers,
-      },
-      redirect: "follow",
-    });
-    const text = await res.text();
-    return {
-      url: res.url || url,
-      status: res.status,
-      headers: Object.fromEntries(res.headers.entries()),
-      body: text,
-      elapsed_ms: Date.now() - started,
-    };
-  } catch (err) {
-    return {
-      url,
-      status: 0,
-      headers: {},
-      body: "",
-      elapsed_ms: Date.now() - started,
-      error: err instanceof Error ? err.message : String(err),
-    };
-  }
+function createDefaultFetcher(options: {
+  requestTimeoutMs: number;
+  maxBodyChars: number;
+}): SeoPassFetcher {
+  return async (
+    url: string,
+    init: { method?: "GET"; headers?: Record<string, string> } = {},
+  ): Promise<SeoPassFetchResult> => {
+    const started = Date.now();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), Math.max(1, options.requestTimeoutMs));
+    try {
+      const res = await fetch(url, {
+        method: init.method ?? "GET",
+        headers: {
+          "user-agent": USER_AGENT,
+          accept: "text/html,application/xhtml+xml,application/xml,text/plain;q=0.9,*/*;q=0.8",
+          ...init.headers,
+        },
+        redirect: "follow",
+        signal: controller.signal,
+      });
+      const text = await res.text();
+      const truncated = text.length > options.maxBodyChars;
+      return {
+        url: res.url || url,
+        status: res.status,
+        headers: {
+          ...Object.fromEntries(res.headers.entries()),
+          ...(truncated ? { "x-seopass-body-truncated": "true" } : {}),
+        },
+        body: truncated ? text.slice(0, options.maxBodyChars) : text,
+        elapsed_ms: Date.now() - started,
+      };
+    } catch (err) {
+      const message =
+        err instanceof Error && err.name === "AbortError"
+          ? `Request timed out after ${options.requestTimeoutMs}ms`
+          : err instanceof Error
+            ? err.message
+            : String(err);
+      return {
+        url,
+        status: 0,
+        headers: {},
+        body: "",
+        elapsed_ms: Date.now() - started,
+        error: message,
+      };
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
 }
 
 function runCheck(
@@ -246,6 +281,26 @@ function crawlabilityCheck(context: {
         summary: `The public read-only fetch returned ${context.page.error ?? `HTTP ${context.page.status}`}.`,
         evidence: [httpEvidence(context.page, "Target URL")],
         recommendation: "Make the public URL return a stable 2xx HTML response before relying on search or AI crawlers.",
+      }),
+    );
+  }
+
+  const contentType = context.page.headers["content-type"] ?? "";
+  if (
+    context.page.status >= 200 &&
+    context.page.status < 400 &&
+    contentType &&
+    !/\b(?:text\/html|application\/xhtml\+xml)\b/i.test(contentType)
+  ) {
+    findings.push(
+      finding({
+        id: "crawlability-non-html-response",
+        check_id: "crawlability",
+        severity: "high",
+        title: "Target URL did not return HTML",
+        summary: `The target returned content-type '${contentType}', so search snippet and schema extraction may be invalid.`,
+        evidence: [httpEvidence(context.page, "Target URL")],
+        recommendation: "Point SEOPass at the canonical public HTML URL for the page.",
       }),
     );
   }
@@ -411,6 +466,16 @@ function metadataCheck(context: { targetUrl: string; signals: HtmlSignals }): Se
     );
   }
 
+  if (context.signals.h1Count === 0) {
+    findings.push(
+      metadataFinding("metadata-h1-missing", "medium", "Primary H1 heading is missing", "Add one clear H1 that matches the page intent."),
+    );
+  } else if (context.signals.h1Count > 1) {
+    findings.push(
+      metadataFinding("metadata-h1-duplicate", "low", "Multiple H1 headings were found", "Confirm the page has one primary H1 and use lower-level headings for sections."),
+    );
+  }
+
   if (!context.signals.ogTitle || !context.signals.ogDescription) {
     findings.push(
       metadataFinding(
@@ -431,7 +496,7 @@ function metadataCheck(context: { targetUrl: string; signals: HtmlSignals }): Se
         kind: "html-head",
         label: "Head metadata",
         source_url: context.targetUrl,
-        summary: `title=${context.signals.title ? context.signals.title.length : 0} chars; description=${context.signals.description ? context.signals.description.length : 0} chars; viewport=${context.signals.viewport ? "yes" : "no"}.`,
+        summary: `title=${context.signals.title ? context.signals.title.length : 0} chars; description=${context.signals.description ? context.signals.description.length : 0} chars; viewport=${context.signals.viewport ? "yes" : "no"}; h1=${context.signals.h1Count}.`,
       },
     ],
   });
@@ -636,6 +701,20 @@ function performanceCheck(context: { targetUrl: string; page: SeoPassFetchResult
     );
   }
 
+  if (context.page.headers["x-seopass-body-truncated"] === "true") {
+    findings.push(
+      finding({
+        id: "performance-html-truncated",
+        check_id: "lighthouse-performance",
+        severity: "medium",
+        title: "HTML snapshot exceeded the SEOPass body cap",
+        summary: "SEOPass truncated the public HTML snapshot before analysis to keep the run bounded.",
+        evidence: [pageEvidence(context.targetUrl, "HTML cap", `${htmlBytes} bytes retained for analysis.`)],
+        recommendation: "Reduce oversized inline HTML/data or run the deeper crawler lane with an explicit larger cap.",
+      }),
+    );
+  }
+
   if (context.signals.scriptCount > 40) {
     findings.push(
       finding({
@@ -738,6 +817,20 @@ function aiOverviewReadinessCheck(context: {
         summary: "SEOPass did not find FAQ schema or multiple question-style headings.",
         evidence: [pageEvidence(context.targetUrl, "Question structure", `${context.signals.questionHeadingCount} question-style heading(s); FAQ schema=${hasFaqSchema ? "yes" : "no"}.`)],
         recommendation: "Add clear question-led sections or FAQPage schema where it genuinely helps users.",
+      }),
+    );
+  }
+
+  if (!hasFaqSchema && context.signals.wordCount < 80) {
+    findings.push(
+      finding({
+        id: "aio-content-depth-thin",
+        check_id: "ai-overview-readiness",
+        severity: "low",
+        title: "Body copy is thin for answer extraction",
+        summary: `SEOPass found roughly ${context.signals.wordCount} visible word(s) and no FAQ schema.`,
+        evidence: [pageEvidence(context.targetUrl, "Visible text depth", `${context.signals.wordCount} visible word(s).`)],
+        recommendation: "Add useful plain-HTML explanation, examples, or answer sections where the page is meant to satisfy search intent.",
       }),
     );
   }
@@ -855,7 +948,7 @@ function finding(input: Omit<SeoPassFinding, "fix_prompt"> & { fix_prompt?: SeoP
 function defaultFixPrompt(input: Omit<SeoPassFinding, "fix_prompt">): SeoPassFixPrompt {
   return {
     title: `Fix SEOPass finding: ${input.title}`,
-    frameworks: ["nextjs", "astro", "html"],
+    frameworks: ["nextjs", "astro", "wordpress", "shopify", "webflow", "html"],
     prompt: [
       `Fix this SEOPass finding without making ranking guarantees: ${input.title}.`,
       `Finding id: ${input.id}. Check: ${input.check_id}. Severity: ${input.severity}.`,
@@ -883,6 +976,27 @@ function metadataFinding(id: string, severity: SeoPassSeverity, title: string, r
     evidence: [{ kind: "html-head", label: "Metadata", summary: recommendation }],
     recommendation,
   });
+}
+
+function normalizeCheckSelection(checks?: readonly (SeoPassCheckId | string)[]): {
+  valid: SeoPassCheckId[];
+  invalid: string[];
+} {
+  if (!checks) return { valid: DEFAULT_CHECKS, invalid: [] };
+  const valid: SeoPassCheckId[] = [];
+  const invalid: string[] = [];
+  for (const check of checks) {
+    const parsed = SeoPassCheckIdSchema.safeParse(check);
+    if (parsed.success) {
+      if (!valid.includes(parsed.data)) valid.push(parsed.data);
+    } else {
+      invalid.push(String(check));
+    }
+  }
+  if (valid.length === 0) {
+    throw new Error("At least one valid SEOPass check id is required.");
+  }
+  return { valid, invalid };
 }
 
 function weightedAverage(results: SeoPassCheckResult[]): number {
@@ -1005,6 +1119,7 @@ function analyzeHtml(html: string, baseUrl: string): HtmlSignals {
     ogTitle: extractMeta(html, "property", "og:title"),
     ogDescription: extractMeta(html, "property", "og:description"),
     headings,
+    h1Count: headings.filter((heading) => heading.level === 1).length,
     links,
     jsonLdBlocks,
     imageCount: imageTags.length,
@@ -1096,7 +1211,10 @@ function parseRobots(body: string): RobotsRule[] {
   let current: RobotsRule | null = null;
   for (const rawLine of body.split(/\r?\n/)) {
     const line = rawLine.replace(/#.*/, "").trim();
-    if (!line) continue;
+    if (!line) {
+      current = null;
+      continue;
+    }
     const separatorIndex = line.indexOf(":");
     if (separatorIndex < 0) continue;
     const key = line.slice(0, separatorIndex).trim().toLowerCase();
@@ -1116,11 +1234,7 @@ function parseRobots(body: string): RobotsRule[] {
 
 function isRobotAllowed(groups: RobotsRule[], userAgent: string, path: string): boolean {
   if (groups.length === 0) return true;
-  const normalizedAgent = userAgent.toLowerCase();
-  const matching = groups.filter((group) =>
-    group.agents.some((agent) => agent === "*" || normalizedAgent.includes(agent) || agent.includes(normalizedAgent)),
-  );
-  const rules = matching.length > 0 ? matching.flatMap((group) => group.rules) : [];
+  const rules = matchingRobotsRules(groups, userAgent);
   if (rules.length === 0) return true;
   const matchedRules = rules
     .filter((rule) => rule.path && path.startsWith(rule.path.replace(/\*.*$/, "")))
@@ -1130,6 +1244,26 @@ function isRobotAllowed(groups: RobotsRule[], userAgent: string, path: string): 
   if (strongest.directive === "allow") return true;
   const sameLengthAllow = matchedRules.find((rule) => rule.directive === "allow" && rule.path.length === strongest.path.length);
   return Boolean(sameLengthAllow);
+}
+
+function matchingRobotsRules(
+  groups: RobotsRule[],
+  userAgent: string,
+): Array<{ directive: "allow" | "disallow"; path: string }> {
+  const normalizedAgent = userAgent.toLowerCase();
+  const matches = groups.flatMap((group) => {
+    const matchingAgents = group.agents.filter((agent) =>
+      agent === "*" || normalizedAgent.includes(agent) || agent.includes(normalizedAgent),
+    );
+    if (matchingAgents.length === 0) return [];
+    const specificity = Math.max(...matchingAgents.map((agent) => (agent === "*" ? 0 : agent.length)));
+    return [{ group, specificity }];
+  });
+  if (matches.length === 0) return [];
+  const strongestSpecificity = Math.max(...matches.map((match) => match.specificity));
+  return matches
+    .filter((match) => match.specificity === strongestSpecificity)
+    .flatMap((match) => match.group.rules);
 }
 
 function extractSitemapUrls(body: string): string[] {
@@ -1175,6 +1309,9 @@ function safeUrl(value: string, base?: string): URL | null {
 
 function normalizeUrl(value: string): string {
   const url = new URL(value);
+  if (!["http:", "https:"].includes(url.protocol)) {
+    throw new Error("SEOPass only supports public http(s) URLs.");
+  }
   return url.toString();
 }
 

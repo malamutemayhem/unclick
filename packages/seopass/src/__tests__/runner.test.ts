@@ -47,34 +47,34 @@ const healthyHtml = `<!doctype html>
   </body>
 </html>`;
 
+const healthyFetcher: SeoPassFetcher = async (url) => {
+  const parsed = new URL(url);
+  if (parsed.pathname === "/robots.txt") {
+    return { url: parsed.toString(), status: 200, headers: {} as Record<string, string>, body: "User-agent: *\nAllow: /\n", elapsed_ms: 42 };
+  }
+  if (parsed.pathname === "/sitemap.xml") {
+    return {
+      url: parsed.toString(),
+      status: 200,
+      headers: {} as Record<string, string>,
+      body: "<urlset><url><loc>https://example.com/</loc></url></urlset>",
+      elapsed_ms: 42,
+    };
+  }
+  if (parsed.pathname === "/llms.txt") {
+    return {
+      url: parsed.toString(),
+      status: 200,
+      headers: {} as Record<string, string>,
+      body: "# Example\n> AI-readable overview\n\n## Docs\n[Docs](https://example.com/docs): Product docs.",
+      elapsed_ms: 42,
+    };
+  }
+  return { url: parsed.toString(), status: 200, headers: { "content-type": "text/html; charset=utf-8" }, body: healthyHtml, elapsed_ms: 42 };
+};
+
 describe("runSeoPass", () => {
   it("runs a live-readonly deterministic report from public fixtures", async () => {
-    const healthyFetcher: SeoPassFetcher = async (url) => {
-      const parsed = new URL(url);
-      if (parsed.pathname === "/robots.txt") {
-        return { url: parsed.toString(), status: 200, headers: {}, body: "User-agent: *\nAllow: /\n", elapsed_ms: 42 };
-      }
-      if (parsed.pathname === "/sitemap.xml") {
-        return {
-          url: parsed.toString(),
-          status: 200,
-          headers: {},
-          body: "<urlset><url><loc>https://example.com/</loc></url></urlset>",
-          elapsed_ms: 42,
-        };
-      }
-      if (parsed.pathname === "/llms.txt") {
-        return {
-          url: parsed.toString(),
-          status: 200,
-          headers: {},
-          body: "# Example\n> AI-readable overview\n\n## Docs\n[Docs](https://example.com/docs): Product docs.",
-          elapsed_ms: 42,
-        };
-      }
-      return { url: parsed.toString(), status: 200, headers: {}, body: healthyHtml, elapsed_ms: 42 };
-    };
-
     const report = await runSeoPass({
       targetUrl: "https://example.com",
       generatedAt: "2026-05-27T08:00:00.000Z",
@@ -126,5 +126,49 @@ describe("runSeoPass", () => {
 
     expect(report.cross_pass_signals.some((signal) => signal.pass === "geopass")).toBe(true);
     expect(report.fix_prompts.length).toBeGreaterThan(0);
+  });
+
+  it("rejects non-http targets before fetching", async () => {
+    await expect(runSeoPass({ targetUrl: "ftp://example.com", fetcher: healthyFetcher })).rejects.toThrow(/http\(s\)/);
+  });
+
+  it("ignores unsupported check ids when at least one valid check remains", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["metadata", "not-a-real-check"],
+      fetcher: healthyFetcher,
+    });
+
+    expect(report.checks.map((check) => check.check_id)).toEqual(["metadata"]);
+    expect(report.notes.join(" ")).toMatch(/Ignored unsupported SEOPass check id/);
+  });
+
+  it("honors explicit search bot groups instead of inheriting a wildcard block", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["crawlability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/": { body: healthyHtml, headers: { "content-type": "text/html" } },
+        "https://example.com/robots.txt": {
+          body: [
+            "User-agent: Googlebot",
+            "",
+            "User-agent: Bingbot",
+            "",
+            "User-agent: *",
+            "Disallow: /",
+            "",
+          ].join("\n"),
+        },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    const crawlability = report.checks.find((check) => check.check_id === "crawlability");
+    expect(crawlability?.findings.some((finding) => finding.id === "crawlability-search-bot-blocked")).toBe(false);
+    expect(crawlability?.findings.some((finding) => finding.id === "crawlability-ai-bot-limited")).toBe(true);
   });
 });

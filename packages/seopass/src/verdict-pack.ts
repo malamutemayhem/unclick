@@ -100,7 +100,8 @@ export const DEFAULT_SEOPASS_VERDICT_CHECKS: SeoPassVerdictCheck[] = [
 ];
 
 const DISALLOWED_ACTIONS = [
-  "live crawler execution",
+  "credentialed or private crawler execution",
+  "mutating crawler execution",
   "paid search API calls",
   "credential access",
   "production database writes",
@@ -162,7 +163,7 @@ export function createPlanOnlySeoPassReport(input: {
     verdict: "unknown",
     findings: [],
     comments: [
-      "Plan-only placeholder: execute read-only evidence collection in a later chip.",
+      "Plan-only placeholder: call runSeoPass or seopass_run for live-readonly evidence.",
     ],
   }));
 

@@ -1,15 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { seopassRun, seopassStatus } from "./seopass-tool.js";
 
-function installFetch(fixtures: Record<string, string | { status: number; body: string }>): void {
+function installFetch(fixtures: Record<string, string | { status: number; body: string; headers?: Record<string, string> }>): void {
   vi.stubGlobal("fetch", vi.fn(async (url: string) => {
     const normalized = new URL(url).toString();
     const fixture = fixtures[normalized] ?? fixtures[normalized.replace(/\/$/, "")];
     const status = typeof fixture === "object" ? fixture.status : fixture ? 200 : 404;
     const body = typeof fixture === "object" ? fixture.body : fixture ?? "not found";
+    const headers = typeof fixture === "object" ? fixture.headers ?? {} : {};
     return {
       url: normalized,
       status,
+      headers: new Headers(headers),
       text: async () => body,
     };
   }));
@@ -42,6 +44,11 @@ describe("seopass-tool", () => {
   it("requires a url or pack_name", async () => {
     const result = (await seopassRun({})) as { error?: string };
     expect(result.error).toMatch(/Either url or pack_name is required/);
+  });
+
+  it("rejects non-http target URLs", async () => {
+    const result = (await seopassRun({ url: "ftp://unclick.world" })) as { error?: string };
+    expect(result.error).toMatch(/http\(s\)/);
   });
 
   it("runs and stores a live-readonly SEOPass report", async () => {
@@ -88,5 +95,22 @@ describe("seopass-tool", () => {
     expect(run.verdict).toBe("blocked");
     expect(run.verdict_summary?.fail).toBeGreaterThan(0);
     expect(run.report?.cross_pass_signals?.length).toBeGreaterThan(0);
+  });
+
+  it("flags non-HTML target URLs as an MCP run gap", async () => {
+    installFetch({
+      "https://unclick.world/report.pdf": { status: 200, body: "%PDF-1.7", headers: { "content-type": "application/pdf" } },
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/report.pdf</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world/report.pdf" })) as {
+      verdict_summary?: { fail?: number };
+      report?: { checks?: Array<{ findings?: Array<{ id?: string }> }> };
+    };
+
+    expect(run.verdict_summary?.fail).toBeGreaterThan(0);
+    expect(run.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "crawlability-non-html-response"))).toBe(true);
   });
 });

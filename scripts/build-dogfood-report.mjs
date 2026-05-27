@@ -410,12 +410,15 @@ async function runSEOPass() {
   ]);
   const signals = analyzeSeoHtml(page.body);
   const findings = [];
+  const contentType = page.headers["content-type"] || "";
 
   if (page.status < 200 || page.status >= 400) findings.push("Target URL did not return public 2xx HTML.");
+  if (contentType && !/\b(?:text\/html|application\/xhtml\+xml)\b/i.test(contentType)) findings.push("Target URL did not return public HTML content.");
   if (robotsBlocksAll(robots.body)) findings.push("robots.txt appears to block all crawlers.");
   if (!signals.title) findings.push("Page title is missing.");
   if (!signals.description) findings.push("Meta description is missing.");
   if (!signals.viewport) findings.push("Mobile viewport is missing.");
+  if (signals.h1Count === 0) findings.push("Primary H1 heading is missing.");
   if (!signals.canonical) findings.push("Canonical tag is missing.");
   if (signals.jsonLdCount === 0) findings.push("JSON-LD structured data is missing.");
   if (extractSitemapUrls(sitemap.body).length === 0) findings.push("Sitemap has no discoverable URL list.");
@@ -472,9 +475,9 @@ async function fetchPublicText(url) {
         accept: "text/html,application/xhtml+xml,application/xml,text/plain;q=0.9,*/*;q=0.8",
       },
     });
-    return { url: res.url || url, status: res.status, body: await res.text(), elapsedMs: Date.now() - started };
+    return { url: res.url || url, status: res.status, headers: Object.fromEntries(res.headers.entries()), body: await res.text(), elapsedMs: Date.now() - started };
   } catch (err) {
-    return { url, status: 0, body: "", elapsedMs: Date.now() - started, error: err instanceof Error ? err.message : String(err) };
+    return { url, status: 0, headers: {}, body: "", elapsedMs: Date.now() - started, error: err instanceof Error ? err.message : String(err) };
   }
 }
 
@@ -485,6 +488,7 @@ function analyzeSeoHtml(html) {
     description: /<meta\b[^>]*(?:name=["']description["'][^>]*content=|content=[^>]*name=["']description["'])/i.test(html),
     viewport: /<meta\b[^>]*(?:name=["']viewport["'][^>]*content=|content=[^>]*name=["']viewport["'])/i.test(html),
     canonical: /<link\b[^>]*rel=["'][^"']*canonical[^"']*["'][^>]*href=/i.test(html),
+    h1Count: (html.match(/<h1\b/gi) || []).length,
     jsonLdCount: jsonLdBlocks.filter((block) => {
       try {
         JSON.parse(block);

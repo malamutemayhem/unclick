@@ -44,6 +44,7 @@ type SeoPassMcpRun = {
 type FetchTextResult = {
   url: string;
   status: number;
+  headers: Record<string, string>;
   body: string;
   elapsed_ms: number;
   error?: string;
@@ -98,13 +99,18 @@ export async function seopassRun(args: Record<string, unknown>): Promise<unknown
   if (!url && !packName) return { error: "Either url or pack_name is required" };
 
   const pack = packName ? loadRegisteredPack(packName) : null;
-  const targetUrl = normalizeUrl(url ?? (typeof pack?.url === "string" ? pack.url : ""));
-  if (!targetUrl) return { error: `No registered SEOPass pack found for '${packName}'` };
+  const rawTargetUrl = url ?? (typeof pack?.url === "string" ? pack.url : "");
+  const targetUrl = normalizeUrl(rawTargetUrl);
+  if (!targetUrl) {
+    return {
+      error: url
+        ? "SEOPass target URL must be a valid public http(s) URL"
+        : `No registered SEOPass pack found for '${packName}'`,
+    };
+  }
 
-  const selectedChecks = Array.isArray(pack?.checks)
-    ? pack.checks.filter((check): check is string => typeof check === "string")
-    : [...DEFAULT_CHECKS];
-  const run = await runReadonlySeoPass(targetUrl, selectedChecks, pack ?? {});
+  const checkSelection = selectChecks(pack?.checks);
+  const run = await runReadonlySeoPass(targetUrl, checkSelection.checks, pack ?? {}, checkSelection.ignored);
   RUNS.set(run.run_id, run);
   return {
     ...run,
@@ -163,6 +169,7 @@ async function runReadonlySeoPass(
   targetUrl: string,
   checks: string[],
   pack: Record<string, unknown>,
+  ignoredChecks: string[] = [],
 ): Promise<SeoPassMcpRun> {
   const generatedAt = new Date().toISOString();
   const runId = `seopass-${crypto.randomUUID()}`;
@@ -213,6 +220,7 @@ async function runReadonlySeoPass(
       notes: [
         "SEOPass ran public read-only checks. It did not use credentials, mutate the site, submit URLs, or guarantee rankings.",
         `Pack source: ${typeof pack.name === "string" ? pack.name : "one-off URL"}.`,
+        ...(ignoredChecks.length > 0 ? [`Ignored unsupported SEOPass check id(s): ${ignoredChecks.join(", ")}.`] : []),
       ],
     },
   };
@@ -256,6 +264,15 @@ function buildCheck(
     if (context.page.status < 200 || context.page.status >= 400) {
       add("crawlability-http-unreachable", "critical", "Target URL was not fetchable", `Public fetch returned HTTP ${context.page.status}.`, "Make the URL return stable public HTML.");
     }
+    const contentType = context.page.headers["content-type"] ?? "";
+    if (
+      context.page.status >= 200 &&
+      context.page.status < 400 &&
+      contentType &&
+      !/\b(?:text\/html|application\/xhtml\+xml)\b/i.test(contentType)
+    ) {
+      add("crawlability-non-html-response", "high", "Target URL did not return HTML", `The target returned content-type '${contentType}'.`, "Point SEOPass at the canonical public HTML URL for the page.");
+    }
     if (robotsBlocksAll(context.robots.body)) {
       add("crawlability-robots-blocks-all", "critical", "robots.txt blocks all crawlers", "robots.txt contains a wildcard Disallow: / rule.", "Review robots.txt before expecting search crawlers to index this URL.");
     }
@@ -265,6 +282,8 @@ function buildCheck(
     if (!context.signals.title) add("metadata-title-missing", "high", "Page title is missing", "No title tag was found.", "Add a unique descriptive title.");
     if (!context.signals.description) add("metadata-description-missing", "high", "Meta description is missing", "No description meta tag was found.", "Add a plain-language page summary.");
     if (!context.signals.viewport) add("metadata-viewport-missing", "high", "Viewport is missing", "No mobile viewport meta tag was found.", "Add a responsive viewport meta tag.");
+    if (context.signals.h1Count === 0) add("metadata-h1-missing", "medium", "Primary H1 heading is missing", "No H1 heading was found.", "Add one clear H1 that matches the page intent.");
+    if (context.signals.h1Count > 1) add("metadata-h1-duplicate", "low", "Multiple H1 headings were found", `${context.signals.h1Count} H1 headings were found.`, "Confirm the page has one primary H1 and lower-level headings for sections.");
   }
 
   if (checkId === "structured-data") {
@@ -328,6 +347,7 @@ async function fetchText(url: string): Promise<FetchTextResult> {
     return {
       url: res.url || url,
       status: res.status,
+      headers: res.headers ? Object.fromEntries(res.headers.entries()) : {},
       body: await res.text(),
       elapsed_ms: Date.now() - started,
     };
@@ -335,6 +355,7 @@ async function fetchText(url: string): Promise<FetchTextResult> {
     return {
       url,
       status: 0,
+      headers: {},
       body: "",
       elapsed_ms: Date.now() - started,
       error: err instanceof Error ? err.message : String(err),
@@ -348,6 +369,7 @@ function analyzeHtml(html: string, baseUrl: string): {
   viewport: boolean;
   canonical: boolean;
   robotsMeta: string;
+  h1Count: number;
   jsonLdCount: number;
   jsonLdParseErrors: number;
   internalLinks: number;
@@ -363,6 +385,7 @@ function analyzeHtml(html: string, baseUrl: string): {
     viewport: /<meta\b[^>]*(?:name=["']viewport["'][^>]*content=|content=[^>]*name=["']viewport["'])/i.test(html),
     canonical: /<link\b[^>]*rel=["'][^"']*canonical[^"']*["'][^>]*href=/i.test(html),
     robotsMeta: /<meta\b[^>]*name=["']robots["'][^>]*content=["']([^"']+)["']/i.exec(html)?.[1] ?? "",
+    h1Count: (html.match(/<h1\b/gi) ?? []).length,
     jsonLdCount: jsonLdBlocks.length,
     jsonLdParseErrors: jsonLdBlocks.filter((block) => {
       try {
@@ -395,7 +418,9 @@ function safeUrl(value: string, base: string): URL | null {
 function normalizeUrl(value: string): string | null {
   if (!value) return null;
   try {
-    return new URL(value).toString();
+    const url = new URL(value);
+    if (!["http:", "https:"].includes(url.protocol)) return null;
+    return url.toString();
   } catch {
     return null;
   }
@@ -403,6 +428,14 @@ function normalizeUrl(value: string): string | null {
 
 function extractSitemapUrls(body: string): string[] {
   return Array.from(body.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)).map((match) => match[1] ?? "").filter(Boolean);
+}
+
+function selectChecks(input: unknown): { checks: string[]; ignored: string[] } {
+  const requested = Array.isArray(input) ? input.filter((check): check is string => typeof check === "string") : [];
+  if (requested.length === 0) return { checks: [...DEFAULT_CHECKS], ignored: [] };
+  const valid = requested.filter((check) => DEFAULT_CHECKS.includes(check as (typeof DEFAULT_CHECKS)[number]));
+  const ignored = requested.filter((check) => !DEFAULT_CHECKS.includes(check as (typeof DEFAULT_CHECKS)[number]));
+  return { checks: valid.length > 0 ? valid : [...DEFAULT_CHECKS], ignored };
 }
 
 function robotsBlocksAll(body: string): boolean {

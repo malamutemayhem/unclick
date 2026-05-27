@@ -34,7 +34,8 @@ describe("SEOPass verdict pack", () => {
       "structured-data",
     ]);
     expect(pack.scannerSource.source).toBe("geopass");
-    expect(pack.disallowedActions).toContain("live crawler execution");
+    expect(pack.disallowedActions).toContain("credentialed or private crawler execution");
+    expect(pack.disallowedActions).toContain("mutating crawler execution");
   });
 
   it("creates a typed plan-only report from the verdict pack", () => {

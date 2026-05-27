@@ -4,11 +4,28 @@
   "description": "SEOPass - public-safe search-engine readiness verdicts for websites.",
   "type": "module",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./schema": "./dist/schema.js",
-    "./verdict-pack": "./dist/verdict-pack.js",
-    "./lighthouse": "./dist/lighthouse.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    },
+    "./verdict-pack": {
+      "types": "./dist/verdict-pack.d.ts",
+      "import": "./dist/verdict-pack.js"
+    },
+    "./lighthouse": {
+      "types": "./dist/lighthouse.d.ts",
+      "import": "./dist/lighthouse.js"
+    },
+    "./runner": {
+      "types": "./dist/runner.d.ts",
+      "import": "./dist/runner.js"
+    }
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",
