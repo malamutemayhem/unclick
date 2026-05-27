@@ -510,6 +510,49 @@ describe("safe CodeRoom submitter", () => {
     );
   });
 
+  test("ignores the generated autonomous runner ledger directory during clean-worktree checks", async () => {
+    const calls = [];
+    const submitter = createSafeCodeRoomSubmitter({
+      env: { CODEROOM_GITHUB_APP_TOKEN: "app-token" },
+      branchName: "codex/openhands-submit-todo-ledger-dir",
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        if (command === "git" && args[0] === "status") {
+          return {
+            ok: true,
+            stdout: "?? .pinballwake/\n",
+            stderr: "",
+            output: "",
+          };
+        }
+        if (command === "gh" && args[1] === "list") {
+          return {
+            ok: true,
+            stdout: "https://github.com/malamutemayhem/unclick/pull/935\n",
+            stderr: "",
+            output: "",
+          };
+        }
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await submitter({
+      job: { todo_id: "todo-ledger-dir", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: ledger directory ignored" }),
+      testRunId: "unit-test",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.status, "existing_pr");
+    assert.equal(result.pr_url, "https://github.com/malamutemayhem/unclick/pull/935");
+    assert.deepEqual(
+      calls.map(([command, args]) => `${command} ${args.slice(0, 2).join(" ")}`),
+      ["git status --porcelain", "gh pr list"],
+    );
+  });
+
   test("restores a pre-applied owned patch before CodeRoom submit", async () => {
     const calls = [];
     let statusCalls = 0;

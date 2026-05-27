@@ -66,8 +66,13 @@ function parseGitStatusEntries(output) {
     .filter((entry) => entry.path);
 }
 
+function normalizeGitStatusPath(value) {
+  return normalizePath(value).replace(/\/+$/, "");
+}
+
 function isGeneratedRunnerLedgerPath(path) {
-  return normalizePath(path) === ".pinballwake/coding-room-ledger.json";
+  const normalizedPath = normalizeGitStatusPath(path);
+  return normalizedPath === ".pinballwake/coding-room-ledger.json" || normalizedPath === ".pinballwake";
 }
 
 function normalizeList(values) {
