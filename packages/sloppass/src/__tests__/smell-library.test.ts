@@ -14,6 +14,7 @@ describe("SlopPass smell library", () => {
       "secret-like-literal",
       "security-verification-bypass",
       "dependency-supply-chain-change",
+      "package-lifecycle-script",
       "catch-all-fallback",
       "weak-assertion",
       "skipped-test",
@@ -180,5 +181,49 @@ describe("SlopPass smell library", () => {
     expect(
       findings.filter((finding) => finding.title === "Dependency change needs package verification"),
     ).toHaveLength(0);
+  });
+
+  it("flags diff-scoped package lifecycle scripts without treating full manifests as new", () => {
+    const fullManifestFindings = detectSlopSmells([
+      {
+        path: "package.json",
+        content: '    "postinstall": "node scripts/setup.js"',
+      },
+    ]);
+    const diffManifestFindings = detectSlopSmells([
+      {
+        path: "package.json",
+        content: [
+          '    "postinstall": "node scripts/setup.js",',
+          '    "postpublish": "node scripts/after-publish.js"',
+        ].join("\n"),
+        start_line: 17,
+      },
+    ]);
+
+    expect(
+      fullManifestFindings.filter(
+        (finding) => finding.title === "Package lifecycle script needs supply-chain review",
+      ),
+    ).toHaveLength(0);
+    expect(
+      diffManifestFindings.filter(
+        (finding) => finding.title === "Package lifecycle script needs supply-chain review",
+      ),
+    ).toHaveLength(2);
+    expect(diffManifestFindings).toContainEqual(
+      expect.objectContaining({
+        title: "Package lifecycle script needs supply-chain review",
+        category: "maintenance_change_risk",
+        severity: "high",
+        line: 17,
+      }),
+    );
+    expect(diffManifestFindings).toContainEqual(
+      expect.objectContaining({
+        title: "Package lifecycle script needs supply-chain review",
+        line: 18,
+      }),
+    );
   });
 });

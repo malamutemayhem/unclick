@@ -125,6 +125,31 @@ describe("SlopPass runner", () => {
     expect(result.verdict).toBe("warn");
   });
 
+  it("fails diff-scoped package lifecycle hooks as supply-chain review triggers", async () => {
+    const result = await runSlopPass({
+      target: { kind: "diff", label: "package script diff" },
+      diff: [
+        "diff --git a/package.json b/package.json",
+        "--- a/package.json",
+        "+++ b/package.json",
+        "@@ -12,6 +12,7 @@",
+        '     "build": "vite build",',
+        '+    "postinstall": "node scripts/setup.js"',
+      ].join("\n"),
+      checks: ["maintenance_change_risk"],
+    });
+
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({
+        title: "Package lifecycle script needs supply-chain review",
+        file: "package.json",
+        line: 13,
+        severity: "high",
+      }),
+    );
+    expect(result.verdict).toBe("fail");
+  });
+
   it("records non-default provider selection without making model calls", async () => {
     const result = await runSlopPass({
       target: { kind: "files", label: "echo", files: ["src/a.ts"] },

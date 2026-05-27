@@ -14,6 +14,7 @@ The first smell library covers:
 - Secret-looking literals with redacted evidence.
 - Security verification bypasses, such as disabled TLS checks, that make generated integrations look green without proving the trust boundary.
 - Diff-scoped dependency declarations, so hallucinated, unnecessary, or unvetted packages get explicit verification before merge.
+- Diff-scoped package lifecycle scripts, so automatic install, pack, or publish hooks get supply-chain review before merge.
 - Catch-all fallback paths that hide failure.
 - Test proof theatre, including weak assertions, skipped tests, and tautological assertions.
 - Reliability wording that needs evidence, such as retry and wrapper claims.

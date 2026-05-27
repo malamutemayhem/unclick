@@ -12,6 +12,7 @@ export type SlopPassSmellCheckId =
   | "secret-like-literal"
   | "security-verification-bypass"
   | "dependency-supply-chain-change"
+  | "package-lifecycle-script"
   | "catch-all-fallback"
   | "weak-assertion"
   | "skipped-test"
@@ -107,6 +108,21 @@ export const DEFAULT_SLOPPASS_SMELL_CHECKS: SlopPassSmellCheck[] = [
       "Verify the package exists, is intentionally needed, is pinned or ranged correctly, and has acceptable provenance before merging.",
     confidence_note:
       "Diff-scope review trigger. SlopPass does not call package registries in the deterministic runner.",
+    should_skip: (file) => !/package\.json$/i.test(file.path) || file.start_line === undefined,
+  },
+  {
+    id: "package-lifecycle-script",
+    category: "maintenance_change_risk",
+    severity: "high",
+    title: "Package lifecycle script needs supply-chain review",
+    pattern:
+      /^[ \t]*["'](?:preinstall|install|postinstall|prepublish|preprepare|prepare|postprepare|prepublishOnly|prepack|postpack|publish|postpublish|dependencies)["'][ \t]*:[ \t]*["'][^"']+["'][ \t]*,?[ \t]*$/im,
+    why_it_matters:
+      "npm lifecycle hooks can run automatically during install, pack, or publish, including in developer and CI environments.",
+    suggested_fix:
+      "Remove the hook unless it is required, document why it is safe, and add supply-chain proof for what it can execute and access.",
+    confidence_note:
+      "Diff-scope review trigger for package.json hooks. SlopPass does not execute package scripts.",
     should_skip: (file) => !/package\.json$/i.test(file.path) || file.start_line === undefined,
   },
   {
