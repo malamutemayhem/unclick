@@ -6,7 +6,7 @@ import {
 } from "../smell-library.js";
 
 describe("SlopPass smell library", () => {
-  it("ships the fixture-only chunk-1 smell checks", () => {
+  it("ships the deterministic chunk-1 smell checks", () => {
     expect(DEFAULT_SLOPPASS_SMELL_CHECKS.map((check) => check.id)).toEqual([
       "placeholder-logic",
       "broad-any-bypass",

@@ -31,6 +31,23 @@ describe("sloppass-tool", () => {
     });
   });
 
+  it("rejects empty requested check lists before calling the API", async () => {
+    process.env.UNCLICK_API_KEY = "uc_test";
+    const fetchMock = vi.fn();
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    await expect(
+      sloppassRun({
+        target: { kind: "files", label: "bad checks" },
+        files: [{ path: "src/a.ts", content: "export const ok = true;" }],
+        checks: [],
+      }),
+    ).resolves.toMatchObject({
+      error: "checks must contain at least one SlopPass category when provided",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("posts caller-provided diff text to the SlopPass API", async () => {
     process.env.UNCLICK_API_KEY = "uc_test";
     process.env.UNCLICK_API_URL = "https://example.test";

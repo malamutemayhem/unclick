@@ -82,7 +82,7 @@ export const SlopPassRunInputSchema = z
     target: SlopPassTargetSchema,
     files: z.array(SlopPassSourceFileSchema).max(SLOPPASS_LIMITS.maxFiles).optional(),
     diff: z.string().max(SLOPPASS_LIMITS.maxDiffBytes).optional(),
-    checks: z.array(SlopPassCategorySchema).optional(),
+    checks: z.array(SlopPassCategorySchema).min(1).optional(),
     provider: z.enum(["openai", "anthropic", "google", "ollama", "http"]).default("http"),
   })
   .superRefine((value, ctx) => {

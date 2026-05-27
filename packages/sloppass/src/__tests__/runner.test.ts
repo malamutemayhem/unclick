@@ -4,7 +4,7 @@ import { runSlopPass } from "../runner/index.js";
 describe("SlopPass runner", () => {
   it("returns the canonical target, scope, findings, and not_checked sections", async () => {
     const result = await runSlopPass({
-      target: { kind: "files", label: "fixture", files: ["src/generated.ts"] },
+      target: { kind: "files", label: "source sample", files: ["src/generated.ts"] },
       files: [
         {
           path: "src/generated.ts",
@@ -14,7 +14,7 @@ describe("SlopPass runner", () => {
       checks: ["logic_plausibility"],
     });
 
-    expect(result.target.label).toBe("fixture");
+    expect(result.target.label).toBe("source sample");
     expect(result.scope.checks_attempted).toEqual(["logic_plausibility"]);
     expect(result.findings.some((finding) => finding.category === "logic_plausibility")).toBe(true);
     expect(result.not_checked.length).toBeGreaterThan(0);
@@ -100,7 +100,7 @@ describe("SlopPass runner", () => {
     expect(result.findings.filter((finding) => finding.title === "Type safety was bypassed")).toHaveLength(2);
   });
 
-  it("supports a stripped promptfoo-style model provider scaffold", async () => {
+  it("records non-default provider selection without making model calls", async () => {
     const result = await runSlopPass({
       target: { kind: "files", label: "echo", files: ["src/a.ts"] },
       files: [{ path: "src/a.ts", content: "export const a = 1;" }],
@@ -111,7 +111,8 @@ describe("SlopPass runner", () => {
     expect(result.scope.provider).toBe("openai");
     expect(result.findings).toContainEqual(
       expect.objectContaining({
-        title: "OpenAI provider scaffold is wired",
+        title: "OpenAI provider is configured for offline mode",
+        confidence_note: "Offline provider mode. No model call was made.",
       })
     );
   });

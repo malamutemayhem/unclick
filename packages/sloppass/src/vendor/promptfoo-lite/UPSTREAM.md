@@ -18,4 +18,4 @@ npm run upstream:fetch --workspace=@unclick/sloppass
 npm run upstream:log --workspace=@unclick/sloppass
 ```
 
-Cherry-pick only the small primitives SlopPass keeps: eval runner concepts, provider abstraction, test schema, and report surface. Do not import promptfoo red-team or jailbreak modules, enterprise auth, plugin ecosystem, complex CLI flags, or the provider zoo.
+Cherry-pick only the small primitives SlopPass keeps: deterministic runner concepts, provider abstraction, test schema, and report surface. Do not import promptfoo red-team or jailbreak modules, enterprise auth, plugin ecosystem, complex CLI flags, or the provider zoo.

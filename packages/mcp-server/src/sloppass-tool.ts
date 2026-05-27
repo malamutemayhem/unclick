@@ -55,9 +55,16 @@ function hasSource(args: Record<string, unknown>): boolean {
   );
 }
 
+function hasValidChecks(args: Record<string, unknown>): boolean {
+  return !("checks" in args) || !Array.isArray(args.checks) || args.checks.length > 0;
+}
+
 export async function sloppassRun(args: Record<string, unknown>): Promise<unknown> {
   if (!args.target || typeof args.target !== "object") {
     return { error: "target is required" };
+  }
+  if (!hasValidChecks(args)) {
+    return { error: "checks must contain at least one SlopPass category when provided" };
   }
   if (!hasSource(args)) {
     return { error: "files or diff is required" };

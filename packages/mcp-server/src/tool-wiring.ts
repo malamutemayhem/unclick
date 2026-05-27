@@ -12337,20 +12337,21 @@ export const ADDITIONAL_TOOLS = [
           description: "Target being inspected.",
           properties: {
             kind: { type: "string", enum: ["repo", "branch", "diff", "files", "pr", "artifact"] },
-            label: { type: "string" },
-            files: { type: "array", items: { type: "string" } },
+            label: { type: "string", minLength: 1 },
+            files: { type: "array", items: { type: "string", minLength: 1 } },
             ref: { type: "string" },
           },
           required: ["kind", "label"],
         },
         files: {
           type: "array",
+          minItems: 1,
           description: "Source files to inspect. Use this for scoped local artifacts or paste-backed code review.",
           items: {
             type: "object",
             additionalProperties: false,
             properties: {
-              path: { type: "string" },
+              path: { type: "string", minLength: 1 },
               content: { type: "string" },
               start_line: { type: "number", description: "Optional starting line for a diff hunk or sliced file." },
             },
@@ -12360,6 +12361,7 @@ export const ADDITIONAL_TOOLS = [
         diff: { type: "string", description: "Unified diff text to inspect. Added lines are converted into scoped file evidence." },
         checks: {
           type: "array",
+          minItems: 1,
           description: "Optional SlopPass check categories to run. Defaults to all built-in categories.",
           items: {
             type: "string",
@@ -12377,7 +12379,7 @@ export const ADDITIONAL_TOOLS = [
         provider: {
           type: "string",
           enum: ["http", "openai", "anthropic", "google", "ollama"],
-          description: "Provider scaffold to record in the receipt. Defaults to http and does not call a model.",
+          description: "Provider mode to record in the receipt. Defaults to http and does not call a model.",
         },
       },
       required: ["target"],
