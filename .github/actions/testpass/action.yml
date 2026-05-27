@@ -93,7 +93,7 @@ runs:
             echo "pass_rate=0"
             echo "fail_count=0"
             echo "total=0"
-            echo "failure_kind=infra_auth"
+            echo "failure_kind=infra_vercel_auth"
             echo "http_code=000"
             echo "response<<TESTPASS_EOF"
             echo "$response"
@@ -144,10 +144,16 @@ runs:
           if [[ "$API_URL" == https://*.vercel.app/* ]] && { [ "$auth_reason" = "unknown" ] || [ -z "$auth_reason" ]; }; then
             auth_reason="vercel_deployment_protection"
             how_to_fix="The Vercel preview rejected the automation request. Confirm the GitHub Actions secret VERCEL_AUTOMATION_BYPASS_SECRET matches the project's Vercel Protection Bypass for Automation secret, then re-run the workflow."
+            failure_kind="infra_vercel_auth"
+          else
+            failure_kind="infra_auth"
           fi
           echo "::warning::TestPass auth failure (HTTP $http_code, $auth_reason) - $how_to_fix" >&2
-          status="infra_auth_error"
-          failure_kind="infra_auth"
+          if [ "$failure_kind" = "infra_vercel_auth" ]; then
+            status="infra_vercel_auth_error"
+          else
+            status="infra_auth_error"
+          fi
           response=$(jq -c '.' response.json 2>/dev/null || jq -cn \
             --arg auth_reason "$auth_reason" \
             --arg how_to_fix "$how_to_fix" \

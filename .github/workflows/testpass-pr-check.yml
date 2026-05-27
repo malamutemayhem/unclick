@@ -157,11 +157,19 @@ jobs:
             if (isInfra) {
               const headlines = {
                 infra_auth:      ':warning: TestPass: infra issue (auth)',
+                infra_vercel_auth:
+                  ':warning: TestPass: infra issue (Vercel preview auth)',
                 infra_http:      ':warning: TestPass: infra issue (API error)',
                 infra_transport: ':warning: TestPass: infra issue (transport)',
               };
               const authReasonSuffix = authReason ? ` (${authReason})` : '';
               const explanations = {
+                infra_vercel_auth:
+                  `The Vercel preview blocked the automation request${authReasonSuffix} ` +
+                  `(HTTP ${httpCode}). ` +
+                  (howToFix ||
+                    `Confirm \`VERCEL_AUTOMATION_BYPASS_SECRET\` is available to GitHub Actions ` +
+                    `and matches the Vercel Protection Bypass for Automation secret, then re-run the workflow.`),
                 infra_auth:
                   isVercelAuth
                     ? `The Vercel preview blocked the automation request${authReasonSuffix} ` +
