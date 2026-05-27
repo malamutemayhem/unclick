@@ -71,6 +71,9 @@ The public receipt at `public/dogfood/latest.json` should stay honest:
 run IDs, and cross-pass reviewers, but not raw command output or secrets. SecurityPass can pass its local package proof
 while still staying `blocked` in `latest.json` until safe recurring security probes exist.
 
+Because `main` requires pull requests, the dogfood workflow pushes changed receipt files to
+`automation/dogfood-public-receipt` and opens or updates a public receipt PR instead of pushing directly to `main`.
+
 ## Runtime env vars
 
 Everything the app + serverless functions need at runtime lives in Vercel
