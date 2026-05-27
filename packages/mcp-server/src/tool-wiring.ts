@@ -772,7 +772,10 @@ import {
 
 // ─── LegalPass (issue-spotting guardrails) ───────────────────────────────────
 import {
+  legalpassEditItem,
   legalpassRun,
+  legalpassSavePack,
+  legalpassStatus,
   legalpassVerdict,
 } from "./legalpass-tool.js";
 
@@ -12177,6 +12180,55 @@ export const ADDITIONAL_TOOLS = [
     },
   },
   {
+    name: "legalpass_status",
+    description: "Fetch the stored LegalPass run result and audit log for a run started through legalpass_run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The LegalPass run id returned by legalpass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "legalpass_save_pack",
+    description: "Save or update a LegalPass custom playbook pack. Requires an enabled citation_verifier hat.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["pack"] },
+        { required: ["yaml"] },
+      ],
+      properties: {
+        pack_id: { type: "string", description: "Optional pack id override for YAML payloads" },
+        pack: { type: "object", description: "LegalPass pack object" },
+        yaml: { type: "string", description: "LegalPass pack YAML" },
+        overwrite: { type: "boolean", description: "Allow replacing an existing pack id" },
+      },
+    },
+  },
+  {
+    name: "legalpass_edit_item",
+    description: "Apply a human reviewer override to a LegalPass item and return an audit entry with before/after state.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The LegalPass run id returned by legalpass_run" },
+        item_id: { type: "string", description: "The LegalPass item id to edit" },
+        verdict: { type: "string", enum: ["check", "fail", "na", "other", "pending"], description: "Reviewer override verdict" },
+        finding: { type: "string", description: "Replacement finding text, linted by PassGuard" },
+        on_fail_comment: { type: "string", description: "Replacement fail comment, linted by PassGuard" },
+        reviewer_note: { type: "string", description: "Human reviewer note for the audit trail, linted by PassGuard" },
+        notes: { type: "string", description: "Alias for reviewer_note, for TestPass-style callers" },
+        actor_user_id: { type: "string", description: "Optional actor id for the override audit entry" },
+      },
+      required: ["run_id", "item_id"],
+    },
+  },
+  {
     name: "legalpass_verdict",
     description: "Lint LegalPass-style verdict text against the issue-spotter guardrail and return the legally reviewed disclaimer banner for Pass-family outputs.",
     inputSchema: {
@@ -13637,8 +13689,11 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   testpass_report_md:   (args) => testpassReportMd(args),
 
   // legalpass-tool.ts
-  legalpass_run:     (args) => legalpassRun(args),
-  legalpass_verdict: (args) => legalpassVerdict(args),
+  legalpass_run:       (args) => legalpassRun(args),
+  legalpass_status:    (args) => legalpassStatus(args),
+  legalpass_save_pack: (args) => legalpassSavePack(args),
+  legalpass_edit_item: (args) => legalpassEditItem(args),
+  legalpass_verdict:   (args) => legalpassVerdict(args),
 
   // uxpass-tool.ts
   uxpass_run:           (args) => uxpassRun(args),

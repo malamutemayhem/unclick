@@ -1,6 +1,11 @@
 import type { ToolDescriptor } from "./index.js";
 import { assertVerdictText } from "../passguard/verdict-linter.js";
-import type { PackItemResult, Verdict, VerdictSummary } from "../types.js";
+import type {
+  LegalPassAuditEntry,
+  PackItemResult,
+  Verdict,
+  VerdictSummary,
+} from "../types.js";
 import { getRun, updateRun } from "./store.js";
 
 export interface LegalpassEditItemArgs {
@@ -21,7 +26,7 @@ export interface LegalpassEditItemResult {
   audit_entry: LegalpassEditItemAuditEntry;
 }
 
-export interface LegalpassEditItemAuditEntry {
+export interface LegalpassEditItemAuditEntry extends LegalPassAuditEntry {
   event: "legalpass_item_edit";
   run_id: string;
   item_id: string;
@@ -97,7 +102,6 @@ export const legalpassEditItemTool: ToolDescriptor<
     if (args.on_fail_comment) item.on_fail_comment = args.on_fail_comment;
 
     run.summary = summarize(run.items);
-    updateRun(run);
     const audit_entry: LegalpassEditItemAuditEntry = {
       event: "legalpass_item_edit",
       run_id: args.run_id,
@@ -108,6 +112,8 @@ export const legalpassEditItemTool: ToolDescriptor<
       after: snapshotItem(item),
       ...(args.reviewer_note ? { reviewer_note: args.reviewer_note } : {}),
     };
+    run.audit_log.push(audit_entry);
+    updateRun(run);
 
     return {
       run_id: args.run_id,

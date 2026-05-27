@@ -6,6 +6,7 @@ import {
   type LegalPassFixtureDocumentInput,
   type LegalPassFinding,
   type LegalPassHatResult,
+  type LegalPassPhaseOneHatId,
   type LegalPassReport,
 } from "../schema.js";
 import type {
@@ -15,6 +16,7 @@ import type {
   RunResult,
   RunTarget,
   Severity,
+  Pack,
   Verdict,
   VerdictSummary,
 } from "../types.js";
@@ -79,27 +81,36 @@ export const legalpassRunTool: ToolDescriptor<LegalpassRunArgs, RunResult> = {
     if (!pack) {
       throw new Error(`legalpass_run: pack '${packId}' was not found`);
     }
+    if (!pack.targets.includes(target.kind)) {
+      throw new Error(
+        `legalpass_run: pack '${packId}' does not support target kind '${target.kind}'`,
+      );
+    }
 
     const profile = ProfileSchema.parse(args.profile ?? pack.profile);
     const jurisdictions = parseJurisdictions(args.jurisdictions ?? pack.jurisdictions);
     const documents = normalizeFixtureDocuments(target, args);
+    const hatIds = phaseOneHatIdsForPack(pack);
     const generated_at = stableGeneratedAt({
       packId,
       target,
       profile,
       jurisdictions,
       documents,
+      hatIds,
     });
     const report = documents.length > 0
       ? createFixtureLegalPassReport({
           target: toLegalPassTarget(target),
           jurisdictions,
+          hat_ids: hatIds,
           documents,
           generated_at,
         })
       : createLegalPassVerdictPack({
           target: toLegalPassTarget(target),
           jurisdictions,
+          hat_ids: hatIds,
           generated_at,
         });
 
@@ -110,6 +121,33 @@ export const legalpassRunTool: ToolDescriptor<LegalpassRunArgs, RunResult> = {
 
 function parseJurisdictions(values: string[]): JurisdictionCode[] {
   return values.map((value) => JurisdictionCodeSchema.parse(value));
+}
+
+function phaseOneHatIdsForPack(pack: Pack): LegalPassPhaseOneHatId[] {
+  const enabledHatIds = new Set(
+    pack.hats
+      .filter((hat) => hat.enabled !== false)
+      .map((hat) => hat.hat_id),
+  );
+  const phaseOneHatIds: LegalPassPhaseOneHatId[] = [];
+
+  if (enabledHatIds.has("privacy")) {
+    phaseOneHatIds.push("privacy-policy");
+  }
+  if (enabledHatIds.has("consumer_tos") || enabledHatIds.has("contracts")) {
+    phaseOneHatIds.push("tos-unfair-terms");
+  }
+  if (enabledHatIds.has("oss_licence")) {
+    phaseOneHatIds.push("oss-licence");
+  }
+
+  if (phaseOneHatIds.length === 0) {
+    throw new Error(
+      `legalpass_run: pack '${pack.id}' has no enabled phase-one LegalPass hats`,
+    );
+  }
+
+  return phaseOneHatIds;
 }
 
 function normalizeFixtureDocuments(
@@ -177,6 +215,7 @@ function toRunResult(input: {
     summary,
     items,
     vetoed_items: [],
+    audit_log: [],
     created_at: createdAt,
     completed_at: createdAt,
   };
@@ -272,6 +311,7 @@ function stableGeneratedAt(input: {
   profile: RunProfile;
   jurisdictions: JurisdictionCode[];
   documents: LegalPassFixtureDocumentInput[];
+  hatIds: LegalPassPhaseOneHatId[];
 }): string {
   const hash = createHash("sha256")
     .update(JSON.stringify(input))

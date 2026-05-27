@@ -49,6 +49,12 @@ const DEFAULT_PACK = PackSchema.parse({
 
 const packStore = new Map<string, Pack>([[DEFAULT_PACK.id, DEFAULT_PACK]]);
 const runStore = new Map<string, RunResult>();
+const SUPPORTED_PHASE_ONE_HATS = new Set([
+  "privacy",
+  "consumer_tos",
+  "contracts",
+  "oss_licence",
+]);
 
 export function getDefaultPack(): Pack {
   return DEFAULT_PACK;
@@ -69,6 +75,14 @@ export function savePack(input: PackInput, overwrite = false): Pack {
       "legalpass_save_pack: citation_verifier hat is required for LegalPass packs",
     );
   }
+  const hasRunnableHat = pack.hats.some(
+    (hat) => hat.enabled !== false && SUPPORTED_PHASE_ONE_HATS.has(hat.hat_id),
+  );
+  if (!hasRunnableHat) {
+    throw new Error(
+      "legalpass_save_pack: at least one enabled phase-one LegalPass hat is required",
+    );
+  }
 
   if (!overwrite && packStore.has(pack.id)) {
     throw new Error(
@@ -81,6 +95,11 @@ export function savePack(input: PackInput, overwrite = false): Pack {
 }
 
 export function saveRun(result: RunResult): RunResult {
+  const existing = runStore.get(result.run_id);
+  if (existing) {
+    return structuredClone(existing);
+  }
+
   runStore.set(result.run_id, structuredClone(result));
   return structuredClone(result);
 }

@@ -96,6 +96,7 @@ describe("LegalPass MCP tool registration", () => {
     const status = await legalpassStatusTool.handler({ run_id: result.run_id });
     expect(status.run_id).toBe(result.run_id);
     expect(status.summary).toEqual(result.summary);
+    expect(status.audit_log).toEqual([]);
   });
 
   it("keeps no-text URL runs honest as pending issue-spotter plans", async () => {
@@ -134,13 +135,44 @@ describe("LegalPass MCP tool registration", () => {
         },
       }),
     ).rejects.toThrow(/citation_verifier/);
+
+    await expect(
+      legalpassSavePackTool.handler({
+        pack: {
+          ...VALID_PACK,
+          id: "missing-runnable-hat",
+          hats: [{ hat_id: "citation_verifier", enabled: true, weight: 1 }],
+        },
+      }),
+    ).rejects.toThrow(/phase-one LegalPass hat/);
+  });
+
+  it("uses the saved pack target support and enabled phase-one hats", async () => {
+    await legalpassSavePackTool.handler({ pack: VALID_PACK });
+
+    const result = await legalpassRunTool.handler({
+      pack_id: VALID_PACK.id,
+      target: { kind: "url", url: "https://example.com/privacy" },
+      fixture_text: "Privacy contact details explain how we collect and use data.",
+    });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.hat_id).toBe("privacy-policy");
+
+    await expect(
+      legalpassRunTool.handler({
+        pack_id: VALID_PACK.id,
+        target: { kind: "repo", repo: "malamutemayhem/unclick" },
+      }),
+    ).rejects.toThrow(/does not support target kind/);
   });
 
   it("edits an item and blocks directive legal language", async () => {
-    const result = await legalpassRunTool.handler({
+    const runArgs: Parameters<typeof legalpassRunTool.handler>[0] = {
       target: { kind: "url", url: "https://example.com/legal" },
       fixture_text: "This sparse public page has a privacy heading only.",
-    });
+    };
+    const result = await legalpassRunTool.handler(runArgs);
     const itemId = result.items[0]?.item_id;
     expect(itemId).toBeTruthy();
 
@@ -164,6 +196,22 @@ describe("LegalPass MCP tool registration", () => {
     });
     expect(edited.audit_entry.before.verdict).toBe(result.items[0]?.verdict);
     expect(edited.audit_entry.after.verdict).toBe("other");
+
+    const statusAfterEdit = await legalpassStatusTool.handler({ run_id: result.run_id });
+    expect(statusAfterEdit.audit_log).toHaveLength(1);
+    expect(statusAfterEdit.audit_log[0]).toMatchObject({
+      event: "legalpass_item_edit",
+      item_id: itemId,
+    });
+    expect(
+      statusAfterEdit.items.find((item) => item.item_id === itemId)?.verdict,
+    ).toBe("other");
+
+    const repeatedRun = await legalpassRunTool.handler(runArgs);
+    expect(repeatedRun.audit_log).toHaveLength(1);
+    expect(
+      repeatedRun.items.find((item) => item.item_id === itemId)?.verdict,
+    ).toBe("other");
 
     await expect(
       legalpassEditItemTool.handler({

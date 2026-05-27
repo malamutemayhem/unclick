@@ -7,8 +7,58 @@
  */
 
 import { createHash } from "node:crypto";
+import yaml from "js-yaml";
 
 type DisclaimerLength = "chat" | "results" | "tos";
+type LegalPassMcpVerdict = "check" | "fail" | "na" | "other" | "pending";
+
+interface LegalPassMcpItem {
+  item_id: string;
+  title: string;
+  severity: "high" | "medium" | "low";
+  verdict: LegalPassMcpVerdict;
+  finding: string;
+  evidence: Array<{ source: string; excerpt: string; url?: string }>;
+  on_fail_comment?: string;
+}
+
+interface LegalPassMcpSummary {
+  total: number;
+  check: number;
+  fail: number;
+  na: number;
+  other: number;
+  pending: number;
+  pass_rate: number;
+}
+
+interface LegalPassMcpRunRecord {
+  status: "complete" | "planned";
+  pass: "legalpass";
+  run_id: string;
+  pack_id: string;
+  target: Record<string, unknown>;
+  profile: string;
+  jurisdictions: string[];
+  summary: LegalPassMcpSummary;
+  items: LegalPassMcpItem[];
+  disclaimer: string;
+  note: string;
+  safety: {
+    issue_spotter_only: true;
+    no_legal_advice: true;
+    no_transactional_instrument: true;
+  };
+  audit_log: Array<Record<string, unknown>>;
+}
+
+interface LegalPassMcpPack {
+  id: string;
+  targets: string[];
+  hats: Array<{ hat_id?: string; enabled?: boolean }>;
+  items?: unknown[];
+  [key: string]: unknown;
+}
 
 const DISCLAIMERS: Record<DisclaimerLength, string> = {
   chat:
@@ -74,6 +124,13 @@ const FORBIDDEN_PHRASES: ReadonlyArray<{ phrase: string; reason: string }> = [
   { phrase: "this is unenforceable", reason: "definitive legal conclusion - prohibited" },
   { phrase: "you will win", reason: "outcome prediction - prohibited" },
   { phrase: "you will lose", reason: "outcome prediction - prohibited" },
+  { phrase: "robot lawyer", reason: "substitute-for-lawyer claim - prohibited" },
+  { phrase: "ai lawyer", reason: "substitute-for-lawyer claim - prohibited" },
+  { phrase: "replace your lawyer", reason: "substitute-for-lawyer claim - prohibited" },
+  { phrase: "automatic compliance", reason: "unsupported compliance claim - prohibited" },
+  { phrase: "guaranteed compliant", reason: "unsupported compliance claim - prohibited" },
+  { phrase: "we represent you", reason: "legal representation claim - prohibited" },
+  { phrase: "100% compliant", reason: "unsupported compliance claim - prohibited" },
 ];
 
 const ALLOWED_PHRASES = [
@@ -91,6 +148,7 @@ const ALLOWED_PHRASES = [
   "is standard",
   "merits attention",
   "warrants review",
+  "you may want to review with a lawyer",
   "the regulatory landscape",
 ];
 
@@ -166,8 +224,29 @@ const FIXTURE_CHECKS: ReadonlyArray<{
   },
 ];
 
+const DEFAULT_PACK: LegalPassMcpPack = {
+  id: "legalpass-mvp-v0",
+  targets: ["url", "contract_upload", "repo"],
+  hats: [
+    { hat_id: "privacy", enabled: true },
+    { hat_id: "consumer_tos", enabled: true },
+    { hat_id: "contracts", enabled: true },
+    { hat_id: "oss_licence", enabled: true },
+    { hat_id: "citation_verifier", enabled: true },
+  ],
+  items: [],
+};
+
+const packStore = new Map<string, LegalPassMcpPack>([[DEFAULT_PACK.id, DEFAULT_PACK]]);
+const runStore = new Map<string, LegalPassMcpRunRecord>();
+
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function phrasePattern(phrase: string): RegExp {
+  const escaped = phrase.trim().split(/\s+/).map(escapeRegex).join("\\s+");
+  return new RegExp(`\\b${escaped}\\b`, "gi");
 }
 
 function disclaimerLength(value: unknown): DisclaimerLength {
@@ -185,27 +264,81 @@ function buildRunId(input: unknown): string {
     .slice(0, 12)}`;
 }
 
-function fixtureSummary(text: string) {
+function summaryFromItems(items: LegalPassMcpItem[]): LegalPassMcpSummary {
+  const summary: LegalPassMcpSummary = {
+    total: items.length,
+    check: 0,
+    fail: 0,
+    na: 0,
+    other: 0,
+    pending: 0,
+    pass_rate: 0,
+  };
+  for (const item of items) {
+    summary[item.verdict] += 1;
+  }
+  summary.pass_rate = summary.total === 0
+    ? 0
+    : Math.round((summary.check / summary.total) * 100);
+  return summary;
+}
+
+function cloneRun(record: LegalPassMcpRunRecord): LegalPassMcpRunRecord {
+  return structuredClone(record);
+}
+
+function saveRun(record: LegalPassMcpRunRecord): LegalPassMcpRunRecord {
+  const existing = runStore.get(record.run_id);
+  if (existing) {
+    return cloneRun(existing);
+  }
+
+  runStore.set(record.run_id, cloneRun(record));
+  return cloneRun(record);
+}
+
+function fixtureChecksForPack(pack: LegalPassMcpPack): typeof FIXTURE_CHECKS {
+  const enabledHatIds = new Set(
+    pack.hats
+      .filter((hat) => hat.enabled !== false)
+      .map((hat) => hat.hat_id),
+  );
+  return FIXTURE_CHECKS.filter((check) => {
+    if (check.id.startsWith("privacy-")) return enabledHatIds.has("privacy");
+    if (check.id.startsWith("tos-")) {
+      return enabledHatIds.has("consumer_tos") || enabledHatIds.has("contracts");
+    }
+    if (check.id.startsWith("oss-")) return enabledHatIds.has("oss_licence");
+    return false;
+  });
+}
+
+function fixtureSummary(text: string, pack: LegalPassMcpPack) {
   const normalized = normalizeText(text);
-  const items = FIXTURE_CHECKS.map((check) => {
+  const checks = fixtureChecksForPack(pack);
+  const items: LegalPassMcpItem[] = checks.map((check) => {
     const passed = check.terms.every((term) => normalized.includes(normalizeText(term)));
     return {
       item_id: check.id,
       title: check.title,
       severity: check.severity,
-      verdict: passed ? "check" : "fail",
+      verdict: passed ? "check" as const : "fail" as const,
       finding: passed
         ? `${check.title} appears in the public fixture text.`
         : `${check.finding} This is an issue-spotting flag only.`,
+      evidence: [
+        {
+          source: "fixture_text",
+          excerpt: `Checked public fixture text for ${check.terms.join(" + ")}.`,
+        },
+      ],
+      on_fail_comment: passed
+        ? undefined
+        : "Issue-spotter flag only. Ask a qualified lawyer before acting on this item.",
     };
   });
-  const check = items.filter((item) => item.verdict === "check").length;
-  const fail = items.filter((item) => item.verdict === "fail").length;
   return {
-    total: items.length,
-    check,
-    fail,
-    pass_rate: Math.round((check / items.length) * 100),
+    summary: summaryFromItems(items),
     items,
   };
 }
@@ -213,7 +346,7 @@ function fixtureSummary(text: string) {
 export function lintLegalPassVerdict(text: string): Array<{ phrase: string; index: number; reason: string }> {
   const issues: Array<{ phrase: string; index: number; reason: string }> = [];
   for (const { phrase, reason } of FORBIDDEN_PHRASES) {
-    const pattern = new RegExp(`\\b${escapeRegex(phrase)}\\b`, "gi");
+    const pattern = phrasePattern(phrase);
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(text)) !== null) {
       issues.push({ phrase, index: match.index, reason });
@@ -224,6 +357,10 @@ export function lintLegalPassVerdict(text: string): Array<{ phrase: string; inde
 
 export async function legalpassRun(args: Record<string, unknown>): Promise<unknown> {
   const packId = typeof args.pack_id === "string" && args.pack_id ? args.pack_id : "legalpass-mvp-v0";
+  const pack = packStore.get(packId);
+  if (!pack) {
+    return { error: `pack '${packId}' was not found` };
+  }
   const target = parseTarget(args);
   const profile = typeof args.profile === "string" ? args.profile : "smoke";
   const jurisdictions = Array.isArray(args.jurisdictions) ? args.jurisdictions.filter((item) => typeof item === "string") : [];
@@ -231,11 +368,14 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
   if (!target || typeof target.kind !== "string") {
     return { error: "target.kind or target_url is required" };
   }
+  if (!pack.targets.includes(target.kind)) {
+    return { error: `pack '${packId}' does not support target kind '${target.kind}'` };
+  }
 
   const fixtureText = typeof args.fixture_text === "string" ? args.fixture_text.trim() : "";
   if (fixtureText) {
-    const summary = fixtureSummary(fixtureText);
-    return {
+    const fixture = fixtureSummary(fixtureText, pack);
+    const record: LegalPassMcpRunRecord = {
       status: "complete",
       pass: "legalpass",
       run_id: buildRunId({ packId, target, profile, jurisdictions, fixtureText }),
@@ -243,13 +383,8 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
       target,
       profile,
       jurisdictions,
-      summary: {
-        total: summary.total,
-        check: summary.check,
-        fail: summary.fail,
-        pass_rate: summary.pass_rate,
-      },
-      items: summary.items,
+      summary: fixture.summary,
+      items: fixture.items,
       disclaimer: DISCLAIMERS.results,
       note:
         "LegalPass ran a deterministic public fixture issue-spotter pass. It did not fetch private data, draft legal text, or give legal advice.",
@@ -258,25 +393,32 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
         no_legal_advice: true,
         no_transactional_instrument: true,
       },
+      audit_log: [],
     };
+    return saveRun(record);
   }
 
-  return {
+  const runId = buildRunId({ packId, target, profile, jurisdictions, mode: "planned" });
+  return saveRun({
     status: "planned",
     pass: "legalpass",
+    run_id: runId,
     pack_id: packId,
     target,
     profile,
     jurisdictions,
+    summary: summaryFromItems([]),
+    items: [],
     disclaimer: DISCLAIMERS.chat,
     note:
-      "LegalPass MCP exposure is scaffold-only. It returns the guarded run plan now; full 12-hat execution lands in a later LegalPass engine chip.",
+      "LegalPass returned a guarded run plan because no public fixture text was provided. No private data was fetched and no legal advice was generated.",
     safety: {
       issue_spotter_only: true,
       no_legal_advice: true,
       no_transactional_instrument: true,
     },
-  };
+    audit_log: [],
+  });
 }
 
 function parseTarget(args: Record<string, unknown>): Record<string, unknown> | null {
@@ -303,4 +445,146 @@ export async function legalpassVerdict(args: Record<string, unknown>): Promise<u
     disclaimer_length: length,
     disclaimer: DISCLAIMERS[length],
   };
+}
+
+export async function legalpassStatus(args: Record<string, unknown>): Promise<unknown> {
+  const runId = typeof args.run_id === "string" ? args.run_id.trim() : "";
+  if (!runId) return { error: "run_id is required" };
+
+  const record = runStore.get(runId);
+  if (!record) return { error: `run '${runId}' was not found` };
+  return cloneRun(record);
+}
+
+export async function legalpassSavePack(args: Record<string, unknown>): Promise<unknown> {
+  const overwrite = args.overwrite === true;
+  const parsedPack = parsePackInput(args);
+  if ("error" in parsedPack) return parsedPack;
+
+  const pack = parsedPack.pack;
+  if (!overwrite && packStore.has(pack.id)) {
+    return { error: `pack '${pack.id}' already exists; pass overwrite=true to update it` };
+  }
+
+  packStore.set(pack.id, structuredClone(pack));
+  return {
+    pack_id: pack.id,
+    saved: true,
+    item_count: Array.isArray(pack.items) ? pack.items.length : 0,
+    hat_count: pack.hats.length,
+  };
+}
+
+export async function legalpassEditItem(args: Record<string, unknown>): Promise<unknown> {
+  const runId = typeof args.run_id === "string" ? args.run_id.trim() : "";
+  const itemId = typeof args.item_id === "string" ? args.item_id.trim() : "";
+  if (!runId) return { error: "run_id is required" };
+  if (!itemId) return { error: "item_id is required" };
+
+  const record = runStore.get(runId);
+  if (!record) return { error: `run '${runId}' was not found` };
+  const item = record.items.find((candidate) => candidate.item_id === itemId);
+  if (!item) return { error: `item '${itemId}' was not found on run '${runId}'` };
+
+  const verdict = typeof args.verdict === "string" ? args.verdict : "";
+  if (verdict && !["check", "fail", "na", "other", "pending"].includes(verdict)) {
+    return { error: "verdict must be check|fail|na|other|pending" };
+  }
+
+  const finding = typeof args.finding === "string" ? args.finding : "";
+  const onFailComment = typeof args.on_fail_comment === "string" ? args.on_fail_comment : "";
+  const reviewerNote = typeof args.reviewer_note === "string"
+    ? args.reviewer_note
+    : typeof args.notes === "string"
+      ? args.notes
+      : "";
+  if (!verdict && !finding && !onFailComment && !reviewerNote) {
+    return { error: "provide verdict, finding, on_fail_comment, reviewer_note, or notes" };
+  }
+
+  const lintText = [finding, onFailComment, reviewerNote].filter(Boolean).join("\n");
+  const issues = lintText ? lintLegalPassVerdict(lintText) : [];
+  if (issues.length > 0) {
+    return { error: "forbidden phrasing", issues };
+  }
+
+  const before = {
+    verdict: item.verdict,
+    finding: item.finding,
+    on_fail_comment: item.on_fail_comment,
+  };
+  if (verdict) item.verdict = verdict as LegalPassMcpVerdict;
+  if (finding) item.finding = finding;
+  if (onFailComment) item.on_fail_comment = onFailComment;
+  record.summary = summaryFromItems(record.items);
+  const audit_entry = {
+    event: "legalpass_item_edit",
+    run_id: runId,
+    item_id: itemId,
+    actor_user_id: typeof args.actor_user_id === "string" && args.actor_user_id.trim()
+      ? args.actor_user_id.trim()
+      : "unknown",
+    edited_at: new Date().toISOString(),
+    before,
+    after: {
+      verdict: item.verdict,
+      finding: item.finding,
+      on_fail_comment: item.on_fail_comment,
+    },
+    ...(reviewerNote ? { reviewer_note: reviewerNote } : {}),
+  };
+  record.audit_log.push(audit_entry);
+  runStore.set(runId, cloneRun(record));
+
+  return {
+    run_id: runId,
+    item_id: itemId,
+    updated: true,
+    summary: record.summary,
+    audit_entry,
+  };
+}
+
+function parsePackInput(args: Record<string, unknown>):
+  | { pack: LegalPassMcpPack }
+  | { error: string } {
+  let rawPack = args.pack;
+  if (!rawPack && typeof args.yaml === "string") {
+    try {
+      rawPack = yaml.load(args.yaml);
+    } catch (err) {
+      return { error: `yaml parse failed: ${err instanceof Error ? err.message : String(err)}` };
+    }
+  }
+
+  if (!rawPack || typeof rawPack !== "object" || Array.isArray(rawPack)) {
+    return { error: "pack object or yaml is required" };
+  }
+
+  const pack = structuredClone(rawPack) as LegalPassMcpPack;
+  if (typeof args.pack_id === "string" && args.pack_id.trim()) {
+    pack.id = args.pack_id.trim();
+  }
+  if (typeof pack.id !== "string" || !pack.id.trim()) {
+    return { error: "pack.id or pack_id is required" };
+  }
+  pack.id = pack.id.trim();
+
+  if (!Array.isArray(pack.targets) || pack.targets.length === 0) {
+    return { error: "pack.targets must include at least one target kind" };
+  }
+  if (!Array.isArray(pack.hats) || pack.hats.length === 0) {
+    return { error: "pack.hats must include at least one hat" };
+  }
+  const hasCitationVerifier = pack.hats.some(
+    (hat) => hat?.enabled !== false && hat?.hat_id === "citation_verifier",
+  );
+  if (!hasCitationVerifier) {
+    return { error: "citation_verifier hat is required for LegalPass packs" };
+  }
+  if (fixtureChecksForPack(pack).length === 0) {
+    return { error: "at least one enabled phase-one LegalPass hat is required" };
+  }
+
+  return { pack };
 }

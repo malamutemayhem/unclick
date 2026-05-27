@@ -39,6 +39,13 @@ export const FORBIDDEN_PHRASES: ReadonlyArray<{ phrase: string; reason: string }
   { phrase: "this is unenforceable", reason: "definitive legal conclusion - prohibited" },
   { phrase: "you will win", reason: "outcome prediction - prohibited" },
   { phrase: "you will lose", reason: "outcome prediction - prohibited" },
+  { phrase: "robot lawyer", reason: "substitute-for-lawyer claim - prohibited" },
+  { phrase: "ai lawyer", reason: "substitute-for-lawyer claim - prohibited" },
+  { phrase: "replace your lawyer", reason: "substitute-for-lawyer claim - prohibited" },
+  { phrase: "automatic compliance", reason: "unsupported compliance claim - prohibited" },
+  { phrase: "guaranteed compliant", reason: "unsupported compliance claim - prohibited" },
+  { phrase: "we represent you", reason: "legal representation claim - prohibited" },
+  { phrase: "100% compliant", reason: "unsupported compliance claim - prohibited" },
 ];
 
 // Allowed framing language. Surfaced for tooling and documentation only;
@@ -58,6 +65,7 @@ export const ALLOWED_PHRASES: ReadonlyArray<string> = [
   "is standard",
   "merits attention",
   "warrants review",
+  "you may want to review with a lawyer",
   "the regulatory landscape",
 ];
 
@@ -65,10 +73,15 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function phrasePattern(phrase: string): RegExp {
+  const escaped = phrase.trim().split(/\s+/).map(escapeRegex).join("\\s+");
+  return new RegExp(`\\b${escaped}\\b`, "gi");
+}
+
 export function lintVerdictText(text: string): LintResult {
   const issues: LintIssue[] = [];
   for (const { phrase, reason } of FORBIDDEN_PHRASES) {
-    const pattern = new RegExp(`\\b${escapeRegex(phrase)}\\b`, "gi");
+    const pattern = phrasePattern(phrase);
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(text)) !== null) {
       issues.push({ phrase, index: match.index, reason });

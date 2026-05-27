@@ -8,6 +8,7 @@ import {
   type LegalPassGeoPassAdapter,
   type LegalPassHatDefinition,
   type LegalPassHatResult,
+  type LegalPassPhaseOneHatId,
   type LegalPassReport,
   type LegalPassReportVerdict,
   type LegalPassTarget,
@@ -20,6 +21,7 @@ export interface CreateLegalPassVerdictPackInput {
   target: LegalPassTarget;
   jurisdictions?: JurisdictionCode[];
   generated_at?: string;
+  hat_ids?: LegalPassPhaseOneHatId[];
   geo_pass?: LegalPassGeoPassAdapter;
 }
 
@@ -31,7 +33,10 @@ export function createLegalPassVerdictPack(
   input: CreateLegalPassVerdictPackInput,
 ): LegalPassReport {
   const jurisdictions = input.jurisdictions ?? ["AU", "EU", "US-CA"];
-  const hats = getPhaseOneLegalPassHats({ jurisdictions });
+  const hats = getPhaseOneLegalPassHats({
+    hat_ids: input.hat_ids,
+    jurisdictions,
+  });
   const report = {
     target: input.target,
     generated_at: input.generated_at ?? new Date().toISOString(),
@@ -62,7 +67,10 @@ export function createFixtureLegalPassReport(
   const documents = input.documents.map((document) =>
     LegalPassFixtureDocumentSchema.parse(document),
   );
-  const hats = getPhaseOneLegalPassHats({ jurisdictions });
+  const hats = getPhaseOneLegalPassHats({
+    hat_ids: input.hat_ids,
+    jurisdictions,
+  });
   const hatResults = hats.map((hat) => evaluateHatAgainstFixtures(hat, documents));
   const overall_score = Math.round(
     hatResults.reduce((total, result) => total + result.score, 0) / hatResults.length,
