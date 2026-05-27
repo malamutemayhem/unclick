@@ -6900,11 +6900,11 @@
     ],
     [
       "build",
-      "vite build"
+      "npm run build --workspace=@unclick/commonsensepass && vite build"
     ],
     [
       "build:dev",
-      "vite build --mode development"
+      "npm run build --workspace=@unclick/commonsensepass && vite build --mode development"
     ],
     [
       "lint",
@@ -7018,8 +7018,8 @@
     },
     {
       "source": "package.json",
-      "hash": "e6096faac8c4",
-      "bytes": 4380
+      "hash": "63c99124a722",
+      "bytes": 4525
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
