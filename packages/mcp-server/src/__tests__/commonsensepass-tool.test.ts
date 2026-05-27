@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ADDITIONAL_HANDLERS, ADDITIONAL_TOOLS } from "../tool-wiring.js";
+import { COMMONSENSEPASS_WORKER_FIXTURES } from "../commonsensepass-runtime.js";
 
 function asRecord(value: unknown): Record<string, unknown> {
   expect(value).not.toBeNull();
@@ -92,5 +93,14 @@ describe("commonsensepass MCP tools", () => {
     expect(result.verdict).toBe("ROUTE");
     expect(result.rule_id).toBe("R6");
     expect(result.route_to).toBe("securitypass");
+  });
+
+  it("keeps every bundled fixture aligned with the local runtime", async () => {
+    for (const fixture of COMMONSENSEPASS_WORKER_FIXTURES) {
+      if (!fixture.input) continue;
+      const result = asRecord(await ADDITIONAL_HANDLERS.commonsensepass_check(fixture.input));
+      expect(result.verdict).toBe(fixture.expected_verdict);
+      expect(result.rule_id).toBe(fixture.expected_rule_id);
+    }
   });
 });
