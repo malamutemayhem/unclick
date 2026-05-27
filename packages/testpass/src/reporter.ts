@@ -29,7 +29,7 @@ interface RunRow {
     pending: number;
     pass_rate: number;
   };
-  created_at: string;
+  started_at: string;
   completed_at: string | null;
 }
 
@@ -130,6 +130,11 @@ function badge(label: string, color: string): string {
   return `<span class="badge" style="background:${color}">${escapeHtml(label)}</span>`;
 }
 
+function renderJsonEvidence(ev: EvidenceRow): string {
+  const payload = JSON.stringify(ev.payload ?? {}, null, 2);
+  return `<details class="evidence"><summary>${escapeHtml(ev.kind)}</summary><pre>${escapeHtml(payload)}</pre></details>`;
+}
+
 function mimeFromPath(p: string): string {
   const ext = p.toLowerCase().split(".").pop() ?? "";
   if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
@@ -162,6 +167,12 @@ async function renderScreenshot(ev: EvidenceRow): Promise<string> {
   }
 }
 
+async function renderEvidence(ev: EvidenceRow | undefined): Promise<string> {
+  if (!ev) return "";
+  if (ev.kind === "screenshot") return renderScreenshot(ev);
+  return renderJsonEvidence(ev);
+}
+
 export async function generateHtmlReport(
   config: RunManagerConfig,
   runId: string
@@ -179,7 +190,7 @@ export async function generateHtmlReport(
       const sevColor = SEVERITY_COLORS[item.severity] ?? "#6b7280";
       const verdColor = VERDICT_COLORS[item.verdict] ?? "#6b7280";
       const ev = item.evidence_ref ? evidence.get(item.evidence_ref) : undefined;
-      const evidenceCell = ev && ev.kind === "screenshot" ? await renderScreenshot(ev) : "";
+      const evidenceCell = await renderEvidence(ev);
       return `<tr data-severity="${escapeHtml(item.severity)}" data-verdict="${escapeHtml(item.verdict)}">
         <td>${idx + 1}</td>
         <td><code>${escapeHtml(item.check_id)}</code></td>
@@ -221,6 +232,8 @@ export async function generateHtmlReport(
   .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; color: #fff; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
   .shot { max-width: 240px; max-height: 160px; border: 1px solid #e5e7eb; border-radius: 4px; display: block; }
   .shot-fallback { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 11px; color: #9ca3af; word-break: break-all; }
+  .evidence summary { cursor: pointer; color: #374151; font-size: 12px; font-weight: 600; }
+  .evidence pre { max-height: 180px; max-width: 420px; overflow: auto; white-space: pre-wrap; word-break: break-word; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; padding: 8px; font-size: 11px; color: #374151; }
   .footer { margin-top: 24px; font-size: 11px; color: #9ca3af; }
 </style>
 </head>
@@ -228,7 +241,7 @@ export async function generateHtmlReport(
 <h1>TestPass Evidence Report</h1>
 <div class="meta">
   Run <code>${escapeHtml(run.id)}</code> &middot; Pack <code>${escapeHtml(run.pack_id)}</code> &middot; Profile <code>${escapeHtml(run.profile)}</code> &middot; Target <code>${escapeHtml(targetUrl)}</code><br>
-  Status <code>${escapeHtml(run.status)}</code> &middot; Started ${escapeHtml(run.created_at)} &middot; Completed ${escapeHtml(completedAt)}
+  Status <code>${escapeHtml(run.status)}</code> &middot; Started ${escapeHtml(run.started_at)} &middot; Completed ${escapeHtml(completedAt)}
 </div>
 <div class="summary">
   <div class="card pass"><div class="label">Pass rate</div><div class="value">${passPct}%</div></div>
@@ -295,10 +308,11 @@ export async function generateJsonReport(
   config: RunManagerConfig,
   runId: string
 ): Promise<object> {
-  const { run, items } = await fetchRunAndItems(config, runId);
+  const { run, items, evidence } = await fetchRunAndItems(config, runId);
   return {
     run,
     items,
+    evidence: Object.fromEntries(evidence),
     generated_at: new Date().toISOString(),
   };
 }

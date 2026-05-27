@@ -17,6 +17,7 @@ import {
   computeVerdictSummary,
   createEvidence,
   createRun,
+  packFromJsonb,
   loadPackFromFile,
   probeServer,
   runAgentChecks,
@@ -153,17 +154,29 @@ export async function resolveTestPassRunActor(
   return { ok: true, actorUserId, tokenKind: "session" };
 }
 
-async function getPackIdBySlug(
+interface TestPassRunPackRow {
+  id: string;
+  slug: string;
+  name: string | null;
+  owner_user_id: string | null;
+  yaml: unknown;
+}
+
+export function canUseTestPassRunPack(row: Pick<TestPassRunPackRow, "owner_user_id">, actorUserId: string): boolean {
+  return row.owner_user_id === null || row.owner_user_id === actorUserId;
+}
+
+async function getPackBySlug(
   supabaseUrl: string,
   serviceKey: string,
   slug: string,
-): Promise<{ id: string; owner_user_id: string } | null> {
+): Promise<TestPassRunPackRow | null> {
   const r = await fetch(
-    `${supabaseUrl}/rest/v1/testpass_packs?slug=eq.${encodeURIComponent(slug)}&select=id,owner_user_id&limit=1`,
+    `${supabaseUrl}/rest/v1/testpass_packs?slug=eq.${encodeURIComponent(slug)}&select=id,slug,name,owner_user_id,yaml&limit=1`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
   );
   if (!r.ok) return null;
-  const rows = (await r.json()) as Array<{ id: string; owner_user_id: string }>;
+  const rows = (await r.json()) as TestPassRunPackRow[];
   return rows[0] ?? null;
 }
 
@@ -330,7 +343,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const config = { supabaseUrl, serviceRoleKey: serviceKey };
   const packSlug = input.pack_id;
 
-  const packRow = await getPackIdBySlug(supabaseUrl, serviceKey, packSlug);
+  const packRow = await getPackBySlug(supabaseUrl, serviceKey, packSlug);
   if (!packRow) return json(res, 404, { error: `Pack '${packSlug}' not found` });
 
   let actorUserId: string | null;
@@ -352,6 +365,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
     actorUserId = actor.actorUserId;
+    if (!canUseTestPassRunPack(packRow, actorUserId)) {
+      return json(res, 404, { error: `Pack '${packSlug}' not found` });
+    }
   }
   const apiKeyHash = shouldEmitScheduledSignal(input.source) || profile !== "smoke"
     ? await getApiKeyHashForUser(supabaseUrl, serviceKey, actorUserId)
@@ -360,9 +376,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const packPath = path.resolve(__dirname, `../packages/testpass/packs/${packSlug}.yaml`);
   let pack;
   try {
-    pack = loadPackFromFile(packPath);
-  } catch {
-    return json(res, 422, { error: `Pack YAML not found on server for '${packSlug}'` });
+    pack = packRow.owner_user_id === null
+      ? loadPackFromFile(packPath)
+      : packFromJsonb(packRow.yaml);
+  } catch (err) {
+    return json(res, 422, { error: `Pack '${packSlug}' could not be loaded: ${(err as Error).message}` });
   }
 
   const target: RunTarget = { type: "url", url: input.server_url ?? "" };

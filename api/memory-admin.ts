@@ -7147,7 +7147,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!user) return res.status(401).json({ error: "Authorization header required" });
         const { data, error } = await supabase
           .from("testpass_packs")
-          .select("id, slug, name, version, description, yaml")
+          .select("id, slug, name, version, description, yaml, owner_user_id")
           .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
           .order("created_at", { ascending: true });
         if (error) throw error;
@@ -7162,7 +7162,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             description: p.description,
             check_count: items.length,
             category,
-            is_system: !p.yaml || Object.keys(p.yaml as object).length === 0,
+            is_system: p.owner_user_id === null,
           };
         });
         return res.status(200).json({ packs });
@@ -7206,8 +7206,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const profile = (["smoke", "standard", "deep"].includes(depth ?? "") ? depth : "standard") as string;
         const { data: pack } = await supabase
           .from("testpass_packs")
-          .select("slug, name")
+          .select("slug, name, owner_user_id")
           .eq("id", pack_id)
+          .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
           .maybeSingle();
         if (!pack) return res.status(404).json({ error: "Pack not found" });
 

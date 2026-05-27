@@ -36,6 +36,7 @@ import {
   generateJsonReport,
   generateMarkdownFixList,
   healFailedChecks,
+  packFromJsonb,
   loadPackFromFile,
   loadPackFromYaml,
   packToJsonb,
@@ -123,18 +124,54 @@ async function resolveActorUserId(
   return getActorUserId(supabaseUrl, token);
 }
 
-async function getPackIdBySlug(
+interface TestPassPackRow {
+  id: string;
+  slug: string;
+  name: string;
+  owner_user_id: string | null;
+  yaml: unknown;
+}
+
+export function canUseTestPassPack(row: Pick<TestPassPackRow, "owner_user_id">, actorUserId: string): boolean {
+  return row.owner_user_id === null || row.owner_user_id === actorUserId;
+}
+
+export function testPassPackSaveConflict(
+  existing: Pick<TestPassPackRow, "owner_user_id" | "slug"> | null,
+  actorUserId: string,
+): string | null {
+  if (!existing || existing.owner_user_id === actorUserId) return null;
+  return existing.owner_user_id === null
+    ? `Pack slug '${existing.slug}' is reserved for a system pack`
+    : `Pack slug '${existing.slug}' is already owned by another user`;
+}
+
+async function getPackBySlug(
   supabaseUrl: string,
   serviceKey: string,
   slug: string
-): Promise<string | null> {
+): Promise<TestPassPackRow | null> {
   const r = await fetch(
-    `${supabaseUrl}/rest/v1/testpass_packs?slug=eq.${encodeURIComponent(slug)}&select=id&limit=1`,
+    `${supabaseUrl}/rest/v1/testpass_packs?slug=eq.${encodeURIComponent(slug)}&select=id,slug,name,owner_user_id,yaml&limit=1`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
   );
   if (!r.ok) return null;
-  const rows = (await r.json()) as Array<{ id: string }>;
-  return rows[0]?.id ?? null;
+  const rows = (await r.json()) as TestPassPackRow[];
+  return rows[0] ?? null;
+}
+
+async function getPackById(
+  supabaseUrl: string,
+  serviceKey: string,
+  packId: string,
+): Promise<TestPassPackRow | null> {
+  const r = await fetch(
+    `${supabaseUrl}/rest/v1/testpass_packs?id=eq.${encodeURIComponent(packId)}&select=id,slug,name,owner_user_id,yaml&limit=1`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+  );
+  if (!r.ok) return null;
+  const rows = (await r.json()) as TestPassPackRow[];
+  return rows[0] ?? null;
 }
 
 async function assertRunOwnership(
@@ -213,27 +250,35 @@ async function performStartRun(
   if (taskIdCheck.error) return { status: 400, payload: { error: taskIdCheck.error } };
 
   const profile: RunProfile = body.profile ?? "standard";
-  const slug = body.pack_slug ?? "testpass-core";
+  const packIdLooksUuid = body.pack_id ? UUID_RE.test(body.pack_id) : false;
+  const requestedSlug = body.pack_slug ?? (body.pack_id && !packIdLooksUuid ? body.pack_id : "testpass-core");
+  const requestedLabel = body.pack_slug ?? body.pack_id ?? "testpass-core";
+  const packRow = packIdLooksUuid
+    ? await getPackById(ctx.supabaseUrl, ctx.serviceKey, body.pack_id as string)
+    : await getPackBySlug(ctx.supabaseUrl, ctx.serviceKey, requestedSlug);
+  if (!packRow || !canUseTestPassPack(packRow, ctx.actorUserId)) {
+    return { status: 404, payload: { error: `Pack '${requestedLabel}' not found` } };
+  }
+  if (body.pack_slug && packRow.slug !== body.pack_slug) {
+    return { status: 400, payload: { error: "pack_id does not match pack_slug" } };
+  }
 
-  const packId = body.pack_id ?? await getPackIdBySlug(ctx.supabaseUrl, ctx.serviceKey, slug);
-  if (!packId) return { status: 404, payload: { error: `Pack '${slug}' not found` } };
-
-  // Built-in packs ship as YAML on disk. User-saved packs could be loaded
-  // from testpass_packs.yaml jsonb once the runner learns that path; for
-  // now we require the YAML file so deterministic/agent runners can
-  // consume it directly.
-  const packPath = path.resolve(__dirname, `../packages/testpass/packs/${slug}.yaml`);
   let pack;
   try {
-    pack = loadPackFromFile(packPath);
-  } catch {
-    return { status: 422, payload: { error: `Pack YAML not found on server for '${slug}'` } };
+    if (packRow.owner_user_id === null) {
+      const packPath = path.resolve(__dirname, `../packages/testpass/packs/${packRow.slug}.yaml`);
+      pack = loadPackFromFile(packPath);
+    } else {
+      pack = packFromJsonb(packRow.yaml);
+    }
+  } catch (err) {
+    return { status: 422, payload: { error: `Pack '${packRow.slug}' could not be loaded: ${(err as Error).message}` } };
   }
 
   const config = { supabaseUrl: ctx.supabaseUrl, serviceRoleKey: ctx.serviceKey };
   const { id: runId, was_duplicate } = await createRun(config, {
-    packId,
-    packName: pack.name ?? slug,
+    packId: packRow.id,
+    packName: pack.name ?? packRow.slug,
     target: body.target,
     profile,
     actorUserId: ctx.actorUserId,
@@ -329,6 +374,15 @@ async function upsertPack(
     };
   }
 
+  const existing = await getPackBySlug(supabaseUrl, serviceKey, pack.id);
+  const conflict = testPassPackSaveConflict(existing, actorUserId);
+  if (conflict) {
+    return {
+      status: 409,
+      payload: { error: conflict },
+    };
+  }
+
   const body = {
     slug:          pack.id,
     name:          pack.name,
@@ -339,20 +393,28 @@ async function upsertPack(
   };
 
   const res = await fetch(
-    `${supabaseUrl}/rest/v1/testpass_packs?on_conflict=slug`,
+    existing
+      ? `${supabaseUrl}/rest/v1/testpass_packs?id=eq.${encodeURIComponent(existing.id)}&owner_user_id=eq.${encodeURIComponent(actorUserId)}`
+      : `${supabaseUrl}/rest/v1/testpass_packs`,
     {
-      method:  "POST",
+      method:  existing ? "PATCH" : "POST",
       headers: {
         "Content-Type": "application/json",
         apikey:        serviceKey,
         Authorization: `Bearer ${serviceKey}`,
-        Prefer:        "resolution=merge-duplicates,return=representation",
+        Prefer:        "return=representation",
       },
       body: JSON.stringify(body),
     },
   );
   const text = await res.text();
   if (!res.ok) {
+    if (res.status === 409 || /duplicate key|23505/i.test(text)) {
+      return {
+        status: 409,
+        payload: { error: `Pack slug '${pack.id}' is already owned by another user` },
+      };
+    }
     return { status: 500, payload: { error: `Upsert failed: ${res.status} ${text}` } };
   }
   const rows = text ? (JSON.parse(text) as Array<Record<string, unknown>>) : [];
@@ -376,20 +438,13 @@ export function normalizeTestPassEditVerdict(raw: unknown): "check" | "fail" | "
   return verdictMap[raw.toLowerCase()] ?? null;
 }
 
-function buildFixListMarkdown(
-  run: Record<string, unknown> | null,
-  items: Array<Record<string, unknown>>,
-): string {
-  const failItems = items.filter((i) => i.verdict === "fail");
-  const header = `# TestPass Fix List\n\nRun: \`${run?.id ?? "?"}\`  \nStatus: \`${run?.status ?? "?"}\`  \nFailing checks: ${failItems.length} of ${items.length}\n`;
-  if (failItems.length === 0) {
-    return `${header}\n_No failing checks._\n`;
+export function resolveTestPassAction(queryAction: unknown, body: unknown): string | undefined {
+  if (typeof queryAction === "string" && queryAction) return queryAction;
+  if (body && typeof body === "object" && "action" in body) {
+    const action = (body as { action?: unknown }).action;
+    return typeof action === "string" && action ? action : undefined;
   }
-  const lines = failItems.map((i) => {
-    const comment = i.on_fail_comment ? `\n  - ${String(i.on_fail_comment).trim()}` : "";
-    return `- [ ] **${i.check_id}** (${i.severity}, ${i.category}) - ${i.title}${comment}`;
-  });
-  return `${header}\n## Fixes\n\n${lines.join("\n")}\n`;
+  return undefined;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -407,7 +462,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const actorUserId = await resolveActorUserId(supabaseUrl, serviceKey, token);
   if (!actorUserId) return json(res, 401, { error: "Invalid session" });
 
-  const action = req.query.action as string;
+  const action = resolveTestPassAction(req.query.action, req.body);
   const config = { supabaseUrl, serviceRoleKey: serviceKey };
 
   if (req.method === "GET" && (action === "get_run" || action === "status")) {
@@ -439,13 +494,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET" && action === "report_md") {
     const runId = req.query.run_id as string;
     if (!runId) return json(res, 400, { error: "run_id required" });
-    const data = await getRunWithItems(supabaseUrl, serviceKey, runId, actorUserId);
-    if (!data.run) return json(res, 404, { error: "Run not found" });
-    const markdown = buildFixListMarkdown(
-      data.run as Record<string, unknown>,
-      data.items as Array<Record<string, unknown>>,
-    );
-    return json(res, 200, { markdown });
+    const owns = await assertRunOwnership(supabaseUrl, serviceKey, runId, actorUserId);
+    if (!owns) return json(res, 404, { error: "Run not found" });
+    try {
+      const markdown = await generateMarkdownFixList(config, runId);
+      return json(res, 200, { markdown });
+    } catch (err) {
+      return json(res, 500, { error: (err as Error).message });
+    }
   }
 
   if (req.method === "POST" && action === "start_run") {
@@ -532,6 +588,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const body = req.body as { run_id?: string; pack_slug?: string };
     if (!body.run_id) return json(res, 400, { error: "run_id required" });
     if (!body.pack_slug) return json(res, 400, { error: "pack_slug required" });
+    const owns = await assertRunOwnership(supabaseUrl, serviceKey, body.run_id, actorUserId);
+    if (!owns) return json(res, 404, { error: "Run not found" });
 
     const packPath = path.resolve(__dirname, `../packages/testpass/packs/${body.pack_slug}.yaml`);
     let pack;
@@ -562,6 +620,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST" && action === "complete_run") {
     const body = req.body as { run_id?: string };
     if (!body.run_id) return json(res, 400, { error: "run_id required" });
+    const owns = await assertRunOwnership(supabaseUrl, serviceKey, body.run_id, actorUserId);
+    if (!owns) return json(res, 404, { error: "Run not found" });
     const summary = await computeVerdictSummary(config, body.run_id);
     const hasFailures = summary.fail > 0 || summary.pending > 0;
     await updateRunStatus(config, body.run_id, hasFailures ? "failed" : "complete", summary);
