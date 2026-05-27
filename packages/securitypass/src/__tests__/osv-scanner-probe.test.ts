@@ -6,6 +6,7 @@ describe("OSV-Scanner probe scaffold", () => {
     const spec = buildOsvScannerCommand("/repo");
     expect(spec.command).toBe("osv-scanner");
     expect(spec.args).toEqual(["--format", "json", "--recursive", "/repo"]);
+    expect(spec.timeoutMs).toBeGreaterThan(0);
   });
 
   it("parses vulnerability findings from OSV JSON", () => {
