@@ -411,6 +411,7 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
     "Do not use `CURRENT FILE:` in your answer. That label appears only in the input context.",
     "Change only the owned files. Do not commit, push, merge, deploy, or touch anything outside them.",
     "Use the current file contents below as the source of truth. Preserve unrelated code.",
+    "If a current owned file is missing, create that owned file from scratch and still return its full new contents.",
     `Model: ${model.openRouterModel || "unknown"}`,
     "Owned files:",
     ...ownedFiles.map((file) => `- ${file}`),
@@ -459,6 +460,9 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
       lines.push(`CURRENT FILE: ${file.path}`);
       if (file.error) {
         lines.push(`Unreadable: ${file.error}`);
+        if (file.error === "file_missing_new_file_ok") {
+          lines.push("This owned file does not exist yet. Create it from scratch if it is part of the requested change.");
+        }
         continue;
       }
       lines.push("```");
@@ -529,8 +533,32 @@ export function parseFileBlocks(content, ownedFiles) {
     if (fence) {
       return [{ path: ownedList[0], content: fence[1] }];
     }
+    const raw = parseSingleRawFileContent(text, ownedList[0]);
+    if (raw !== null) {
+      return [{ path: ownedList[0], content: raw }];
+    }
   }
   return [];
+}
+
+function parseSingleRawFileContent(text, path) {
+  const body = String(text ?? "").trim();
+  if (!body) return null;
+  const lower = body.toLowerCase();
+  if (
+    lower.startsWith("i cannot ") ||
+    lower.startsWith("i can't ") ||
+    lower.startsWith("sorry") ||
+    lower.startsWith("here is ") ||
+    lower.startsWith("here's ") ||
+    lower.includes("```")
+  ) {
+    return null;
+  }
+  if (isDoc(path) && /^(#\s|##\s|---\r?\n)/.test(body)) {
+    return body;
+  }
+  return null;
 }
 
 function extractFencedBlocks(text) {

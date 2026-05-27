@@ -120,6 +120,32 @@ describe("writerlane free-writer: happy path", () => {
     assert.match(prompt, /\[truncated for writer context\]/);
   });
 
+  it("treats a missing owned file as create-from-scratch context", async () => {
+    let prompt = "";
+    const runner = createWriterLaneFreeWriterRunner({
+      env: { LLM_API_KEY: "k" },
+      models: [MODEL_A],
+      fetchImpl: async (_url, init) => {
+        prompt = JSON.parse(init.body).messages[0].content;
+        return fakeFetchOnce(fileBlock("docs/x.md", "# New file\n\nCreated by the writer."))();
+      },
+      readFileImpl: async () => {
+        const err = new Error("missing");
+        err.code = "ENOENT";
+        throw err;
+      },
+      runProcess: okProcess(),
+      writeFileImpl: async () => {},
+      captureDiff: async ({ ownedFiles }) => ({ ok: true, patch: GOOD_PATCH, changed_files: ownedFiles }),
+    });
+
+    const result = await runner({ scopePack: { owned_files: OWNED, verification: ["node --test x"] } });
+
+    assert.equal(result.ok, true);
+    assert.match(prompt, /file_missing_new_file_ok/);
+    assert.match(prompt, /Create it from scratch/);
+  });
+
   it("loads current-file context from cwd with the production reader", async () => {
     const root = await mkdtemp(join(tmpdir(), "writerlane-context-"));
     try {
@@ -354,6 +380,18 @@ describe("writerlane free-writer: pure helpers", () => {
     assert.equal(blocks[0].content, "just code");
   });
 
+  it("parseFileBlocks accepts raw markdown for one owned docs file", () => {
+    const blocks = parseFileBlocks("# OpenHands proof fixture\n\n- created\n", ["docs/openhands-proof-fixture.md"]);
+    assert.equal(blocks.length, 1);
+    assert.equal(blocks[0].path, "docs/openhands-proof-fixture.md");
+    assert.match(blocks[0].content, /^# OpenHands proof fixture/);
+  });
+
+  it("parseFileBlocks does not treat chatty text as a raw docs file", () => {
+    const blocks = parseFileBlocks("Here is the markdown you asked for:\n\n# Title", ["docs/x.md"]);
+    assert.equal(blocks.length, 0);
+  });
+
   it("gateWriterLaneDiff rejects unowned, hunkless, and empty patches", () => {
     assert.equal(gateWriterLaneDiff({ patch: "", ownedFiles: OWNED }).reason, "openhands_missing_unified_diff");
     assert.equal(
@@ -404,6 +442,17 @@ describe("writerlane free-writer: pure helpers", () => {
     assert.match(prompt, /CURRENT FILE: docs\/x\.md/);
     assert.match(prompt, /Runner prompt detail/);
     assert.match(prompt, /old file/);
+  });
+
+  it("buildFullContentsPrompt tells the model missing owned files can be created", () => {
+    const prompt = buildFullContentsPrompt({
+      ownedFiles: OWNED,
+      scopePack: { verification: ["node --test x"] },
+      model: MODEL_A,
+      currentFiles: [{ path: "docs/x.md", content: "", error: "file_missing_new_file_ok" }],
+    });
+    assert.match(prompt, /missing/);
+    assert.match(prompt, /Create it from scratch/);
   });
 
   it("removes OpenHands diff instructions while preserving the canary task", () => {
