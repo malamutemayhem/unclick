@@ -29,6 +29,7 @@ import {
   WRITERLANE_FREE_MODELS,
   isFreeModelSlug,
   rankFreeModelsForTask,
+  type FreeModelStatus,
   type WriterLaneFreeModel,
 } from "./writerlane-free-models.js";
 import type {
@@ -46,6 +47,20 @@ export const OPENHANDS_BACKEND_KIND = "openhands";
 // real driver agree on caps.
 export const DEFAULT_OPENHANDS_TIMEOUT_MS = 20 * 60 * 1000;
 export const MAX_PATCH_BYTES = 120_000;
+
+// The single env flag future live wiring should consult before ever enabling
+// this backend. Default OFF: anything other than "1" leaves the backend
+// disabled. The backend itself gates on the `enabled` option (also default
+// false); this helper exists so the eventual runner/cron wiring has one named,
+// pure place to read the flag.
+export const OPENHANDS_EXECUTION_ENABLED_ENV =
+  "WRITERLANE_OPENHANDS_EXECUTION_ENABLED";
+
+export function isOpenHandsExecutionEnabled(
+  env: Record<string, string | undefined> = {},
+): boolean {
+  return String(env[OPENHANDS_EXECUTION_ENABLED_ENV] ?? "").trim() === "1";
+}
 
 // How the injected runner says it obtained the diff. Only "worktree" - a diff
 // captured from a real git diff of the owned files (see
@@ -89,6 +104,12 @@ export type OpenHandsRunner = (
 
 export interface OpenHandsBackendOptions {
   readonly runner: OpenHandsRunner;
+  // GENUINELY OFF BY DEFAULT. Unless this is explicitly true, the backend
+  // executes nothing: no model calls, no diff gate, no chain walk. produce()
+  // fails closed with writerlane_openhands_backend_disabled. This is the guard
+  // that keeps the slice inert/safe to merge. Future live wiring should set this
+  // from isOpenHandsExecutionEnabled(env) (env flag, also default off).
+  readonly enabled?: boolean;
   // Defaults to the free-model registry. Useful to inject a fixed chain in
   // tests.
   readonly models?: WriterLaneFreeModel[];
@@ -96,6 +117,11 @@ export interface OpenHandsBackendOptions {
   // is excluded before the chain runs. Setting true is the explicit, opt-in
   // door for paid / subscription models; it is never the default.
   readonly allowNonFreeModels?: boolean;
+  // OFF by default. When true, only models promoted to status "vetted" are
+  // admitted; a registry of trial-only models then fails closed with
+  // writerlane_no_vetted_free_models. This is the strict lever for once models
+  // graduate from trial.
+  readonly requireVetted?: boolean;
   readonly timeoutMs?: number;
   readonly maxPatchBytes?: number;
   readonly buildPrompt?: (
@@ -109,6 +135,9 @@ export interface OpenHandsBackendOptions {
 export interface OpenHandsAttempt {
   readonly modelId: string;
   readonly openRouterModel: string;
+  // Vetting status of the model tried, surfaced so a trial model can never be
+  // mistaken for a vetted one in the attempt log.
+  readonly status: FreeModelStatus;
   readonly ok: boolean;
   // Exact rejection reason code when ok === false.
   readonly reason?: string;
@@ -228,18 +257,34 @@ export class OpenHandsWriterLaneBackend implements WriterLaneBackend {
       modelsTried: attempts.map((attempt) => attempt.modelId),
     });
 
+    // GENUINELY OFF BY DEFAULT. Nothing below runs - no runner call, no diff
+    // gate - unless the backend was explicitly enabled.
+    if (this.options.enabled !== true) {
+      return finish({
+        ok: false,
+        reason: "writerlane_openhands_backend_disabled",
+      });
+    }
+
     const runner = this.options.runner;
     if (typeof runner !== "function") {
       return finish({ ok: false, reason: "openhands_runner_not_provided" });
     }
 
     const allowNonFree = this.options.allowNonFreeModels === true;
+    const requireVetted = this.options.requireVetted === true;
     const baseModels = this.options.models ?? WRITERLANE_FREE_MODELS;
-    const eligible = baseModels.filter(
+    const free = baseModels.filter(
       (model) => allowNonFree || isFreeModelSlug(model.openRouterModel),
     );
-    if (eligible.length === 0) {
+    if (free.length === 0) {
       return finish({ ok: false, reason: "writerlane_no_free_models" });
+    }
+    const eligible = requireVetted
+      ? free.filter((model) => model.status === "vetted")
+      : free;
+    if (eligible.length === 0) {
+      return finish({ ok: false, reason: "writerlane_no_vetted_free_models" });
     }
 
     const ranked = rankFreeModelsForTask(taskKind, eligible);
@@ -262,6 +307,7 @@ export class OpenHandsWriterLaneBackend implements WriterLaneBackend {
         attempts.push({
           modelId: model.id,
           openRouterModel: model.openRouterModel,
+          status: model.status,
           ok: false,
           reason: "openhands_runner_threw",
         });
@@ -280,6 +326,7 @@ export class OpenHandsWriterLaneBackend implements WriterLaneBackend {
         attempts.push({
           modelId: model.id,
           openRouterModel: model.openRouterModel,
+          status: model.status,
           ok: false,
           reason: gate.reason,
         });
@@ -289,6 +336,7 @@ export class OpenHandsWriterLaneBackend implements WriterLaneBackend {
       attempts.push({
         modelId: model.id,
         openRouterModel: model.openRouterModel,
+        status: model.status,
         ok: true,
       });
 

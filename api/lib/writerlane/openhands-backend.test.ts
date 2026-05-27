@@ -10,14 +10,16 @@ import {
   createOpenHandsWriterLaneBackend,
   extractChangedFilesFromPatch,
   gateOpenHandsDiff,
+  isOpenHandsExecutionEnabled,
   looksLikeUnifiedDiff,
+  OPENHANDS_EXECUTION_ENABLED_ENV,
   OpenHandsWriterLaneBackend,
-  type OpenHandsDiffSource,
   type OpenHandsRunner,
   type OpenHandsRunResult,
 } from "./openhands-backend";
 import {
   isFreeModelSlug,
+  listFreeModelsByStatus,
   rankFreeModelsForTask,
   WRITERLANE_FREE_MODELS,
   type WriterLaneFreeModel,
@@ -32,7 +34,6 @@ const scopePack = {
 };
 
 const autonomyInput: WriterLaneInput = { scopePack, proofMode: "autonomy" };
-const plumbingInput: WriterLaneInput = { scopePack, proofMode: "plumbing" };
 
 function goodPatchFor(file: string): string {
   return [
@@ -54,14 +55,15 @@ function worktreeResult(patch: string): OpenHandsRunResult {
   return { ok: true, patch, changedFiles: [ownedFile], diffSource: "worktree" };
 }
 
-// Free models with deterministic ranking for a "backend" task: strongCode wins,
-// weakDocs is the fallback.
+// Test models with deterministic ranking for a "backend" task: strongCode wins
+// (higher priority), weakDocs is the fallback. Both trial.
 const strongCode: WriterLaneFreeModel = {
   id: "strong-code",
   openRouterModel: "vendor/strong-code:free",
   paramScale: "70B",
   capabilities: ["code", "reasoning"],
   strengths: ["backend", "tests", "script", "mixed"],
+  status: "trial",
   priority: 10,
 };
 
@@ -71,6 +73,7 @@ const weakDocs: WriterLaneFreeModel = {
   paramScale: "1B",
   capabilities: ["docs", "fast"],
   strengths: ["docs"],
+  status: "trial",
   priority: 0,
 };
 
@@ -82,25 +85,73 @@ function runnerByModel(
     byId[model.id] ?? { ok: false, reason: "no_canned_response" };
 }
 
-describe("free-model registry + ranking", () => {
-  it("seeds free models only (every slug is :free)", () => {
-    expect(WRITERLANE_FREE_MODELS.length).toBeGreaterThan(0);
-    for (const model of WRITERLANE_FREE_MODELS) {
-      expect(isFreeModelSlug(model.openRouterModel)).toBe(true);
+// The nine verified free OpenRouter candidate ids seeded into the registry.
+const VERIFIED_FREE_CANDIDATES = [
+  "qwen/qwen3-coder:free",
+  "poolside/laguna-m.1:free",
+  "poolside/laguna-xs.2:free",
+  "deepseek/deepseek-v4-flash:free",
+  "openai/gpt-oss-120b:free",
+  "z-ai/glm-4.5-air:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "minimax/minimax-m2.5:free",
+  "google/gemma-4-31b-it:free",
+];
+
+describe("free-model registry: verified candidates + ranking", () => {
+  it("seeds every verified free candidate as a TRIAL (not-yet-vetted) row", () => {
+    for (const slug of VERIFIED_FREE_CANDIDATES) {
+      const row = WRITERLANE_FREE_MODELS.find(
+        (model) => model.openRouterModel === slug,
+      );
+      expect(row, `missing seeded candidate ${slug}`).toBeDefined();
+      expect(row?.status).toBe("trial");
     }
   });
 
-  it("ranks task-fit then id, deterministically", () => {
-    const ranked = rankFreeModelsForTask("backend", [weakDocs, strongCode]);
-    expect(ranked.map((model) => model.id)).toEqual([
-      "strong-code",
-      "weak-docs",
+  it("treats the whole seed as unproven: zero vetted models until real runs validate", () => {
+    expect(listFreeModelsByStatus("vetted")).toEqual([]);
+    expect(listFreeModelsByStatus("trial").length).toBe(
+      WRITERLANE_FREE_MODELS.length,
+    );
+  });
+
+  it("ranks qwen/qwen3-coder:free first for a code task", () => {
+    const ranked = rankFreeModelsForTask("backend");
+    expect(ranked[0].id).toBe("qwen3-coder");
+    expect(ranked[0].openRouterModel).toBe("qwen/qwen3-coder:free");
+  });
+
+  it("keeps the tiny Liquid model and the meta route as last-ditch, not primary", () => {
+    const ranked = rankFreeModelsForTask("backend").map((m) => m.id);
+    const liquidIndex = ranked.indexOf("liquid-lfm-2.5-1.2b");
+    const metaIndex = ranked.indexOf("openrouter-free-meta");
+    expect(liquidIndex).toBeGreaterThan(0);
+    expect(metaIndex).toBe(ranked.length - 1);
+    expect(ranked[0]).toBe("qwen3-coder");
+  });
+
+  it("ranks deterministically (priority primary, stable across calls)", () => {
+    const first = rankFreeModelsForTask("backend").map((m) => m.id);
+    const second = rankFreeModelsForTask("backend").map((m) => m.id);
+    expect(first).toEqual(second);
+    expect(first.slice(0, 9)).toEqual([
+      "qwen3-coder",
+      "poolside-laguna-m1",
+      "poolside-laguna-xs2",
+      "deepseek-v4-flash",
+      "gpt-oss-120b",
+      "glm-4.5-air",
+      "llama-3.3-70b",
+      "minimax-m2.5",
+      "gemma-4-31b",
     ]);
   });
 
-  it("rejects non-:free slugs", () => {
+  it("recognizes :free slugs and the explicit free meta route; rejects bare slugs", () => {
+    expect(isFreeModelSlug("qwen/qwen3-coder:free")).toBe(true);
+    expect(isFreeModelSlug("openrouter/free")).toBe(true);
     expect(isFreeModelSlug("vendor/model")).toBe(false);
-    expect(isFreeModelSlug("vendor/model:free")).toBe(true);
   });
 });
 
@@ -209,6 +260,52 @@ describe("gateOpenHandsDiff (pure real-diff gate)", () => {
   });
 });
 
+describe("acceptance #1: genuinely OFF BY DEFAULT", () => {
+  it("does not execute (no runner call) and fails closed unless explicitly enabled", async () => {
+    let runnerCalls = 0;
+    const runner: OpenHandsRunner = async () => {
+      runnerCalls += 1;
+      return worktreeResult(goodPatch);
+    };
+
+    const backend = createOpenHandsWriterLaneBackend({
+      runner,
+      models: [strongCode],
+      // enabled intentionally omitted -> default off
+    });
+    const result = await backend.produce(autonomyInput);
+
+    expect(result).toEqual({
+      ok: false,
+      reason: "writerlane_openhands_backend_disabled",
+    });
+    expect(runnerCalls).toBe(0);
+    expect(acceptsAsAutonomyProof(result, "autonomy")).toBe(false);
+  });
+
+  it("runs only once enabled: true is passed", async () => {
+    const backend = createOpenHandsWriterLaneBackend({
+      runner: runnerByModel({ "strong-code": worktreeResult(goodPatch) }),
+      models: [strongCode],
+      enabled: true,
+    });
+    const result = await backend.produce(autonomyInput);
+    expect(result.ok).toBe(true);
+  });
+
+  it("env flag is also off by default", () => {
+    expect(OPENHANDS_EXECUTION_ENABLED_ENV).toBe(
+      "WRITERLANE_OPENHANDS_EXECUTION_ENABLED",
+    );
+    expect(isOpenHandsExecutionEnabled({})).toBe(false);
+    expect(
+      isOpenHandsExecutionEnabled({
+        WRITERLANE_OPENHANDS_EXECUTION_ENABLED: "1",
+      }),
+    ).toBe(true);
+  });
+});
+
 describe("OpenHandsWriterLaneBackend chain", () => {
   it("is labelled a non-fixture autonomy backend", () => {
     const backend = createOpenHandsWriterLaneBackend({
@@ -223,6 +320,7 @@ describe("OpenHandsWriterLaneBackend chain", () => {
     const backend = createOpenHandsWriterLaneBackend({
       runner: runnerByModel({ "strong-code": worktreeResult(goodPatch) }),
       models: [strongCode, weakDocs],
+      enabled: true,
     });
 
     const outcome = await backend.runChain(autonomyInput);
@@ -234,37 +332,8 @@ describe("OpenHandsWriterLaneBackend chain", () => {
     expect(outcome.result.proof.autonomyProof).toBe(true);
     expect(acceptsAsAutonomyProof(outcome.result, "autonomy")).toBe(true);
 
-    // produce() returns the same contract result.
     const result = await backend.produce(autonomyInput);
     expect(isWriterLaneSuccess(result)).toBe(true);
-  });
-
-  it("(b) canned / no-diff output never counts as autonomy proof", async () => {
-    const backend = createOpenHandsWriterLaneBackend({
-      runner: runnerByModel({
-        "strong-code": { ok: true, patch: goodPatch, diffSource: "canned" },
-        "weak-docs": { ok: true, patch: "", diffSource: "worktree" },
-      }),
-      models: [strongCode, weakDocs],
-    });
-
-    const outcome = await backend.runChain(autonomyInput);
-    expect(outcome.result.ok).toBe(false);
-    expect(acceptsAsAutonomyProof(outcome.result, "autonomy")).toBe(false);
-    expect(outcome.attempts).toEqual([
-      {
-        modelId: "strong-code",
-        openRouterModel: "vendor/strong-code:free",
-        ok: false,
-        reason: "openhands_untrusted_diff_source",
-      },
-      {
-        modelId: "weak-docs",
-        openRouterModel: "vendor/weak-docs:free",
-        ok: false,
-        reason: "openhands_missing_unified_diff",
-      },
-    ]);
   });
 
   it("(c) falls back to the next free model and records why the first was rejected", async () => {
@@ -274,6 +343,7 @@ describe("OpenHandsWriterLaneBackend chain", () => {
         "weak-docs": worktreeResult(goodPatch),
       }),
       models: [strongCode, weakDocs],
+      enabled: true,
     });
 
     const outcome = await backend.runChain(autonomyInput);
@@ -283,6 +353,7 @@ describe("OpenHandsWriterLaneBackend chain", () => {
     expect(outcome.attempts[0]).toEqual({
       modelId: "strong-code",
       openRouterModel: "vendor/strong-code:free",
+      status: "trial",
       ok: false,
       reason: "openhands_reported_failure",
     });
@@ -298,6 +369,7 @@ describe("OpenHandsWriterLaneBackend chain", () => {
     const backend = createOpenHandsWriterLaneBackend({
       runner,
       models: [strongCode, weakDocs],
+      enabled: true,
     });
 
     const outcome = await backend.runChain(autonomyInput);
@@ -312,6 +384,7 @@ describe("OpenHandsWriterLaneBackend chain", () => {
         "weak-docs": { ok: false, reason: "openhands_timeout" },
       }),
       models: [strongCode, weakDocs],
+      enabled: true,
     });
 
     const result = await backend.produce(autonomyInput);
@@ -323,6 +396,7 @@ describe("OpenHandsWriterLaneBackend chain", () => {
   it("fails closed when no runner is provided", async () => {
     const backend = new OpenHandsWriterLaneBackend({
       runner: undefined as unknown as OpenHandsRunner,
+      enabled: true,
     });
     const result = await backend.produce(autonomyInput);
     expect(result).toEqual({ ok: false, reason: "openhands_runner_not_provided" });
@@ -339,6 +413,7 @@ describe("OpenHandsWriterLaneBackend chain", () => {
     const blocked = await new OpenHandsWriterLaneBackend({
       runner,
       models: [paid],
+      enabled: true,
     }).produce(autonomyInput);
     expect(blocked).toEqual({ ok: false, reason: "writerlane_no_free_models" });
 
@@ -346,7 +421,81 @@ describe("OpenHandsWriterLaneBackend chain", () => {
       runner,
       models: [paid],
       allowNonFreeModels: true,
+      enabled: true,
     }).produce(autonomyInput);
     expect(allowed.ok).toBe(true);
   });
+
+  it("requireVetted admits only vetted models (promotion path)", async () => {
+    const vettedCode: WriterLaneFreeModel = {
+      ...strongCode,
+      id: "vetted-code",
+      openRouterModel: "vendor/vetted-code:free",
+      status: "vetted",
+    };
+    const runner = runnerByModel({ "vetted-code": worktreeResult(goodPatch) });
+
+    const trialOnly = await new OpenHandsWriterLaneBackend({
+      runner,
+      models: [strongCode],
+      requireVetted: true,
+      enabled: true,
+    }).produce(autonomyInput);
+    expect(trialOnly).toEqual({
+      ok: false,
+      reason: "writerlane_no_vetted_free_models",
+    });
+
+    const withVetted = await new OpenHandsWriterLaneBackend({
+      runner,
+      models: [strongCode, vettedCode],
+      requireVetted: true,
+      enabled: true,
+    }).runChain(autonomyInput);
+    expect(withVetted.result.ok).toBe(true);
+    expect(withVetted.modelsTried).toEqual(["vetted-code"]);
+  });
+});
+
+describe("acceptance #2: a failed / no-change writer run can never be autonomy proof", () => {
+  // Each case is a single-model chain whose only model returns bad output. In
+  // every path: produce() fails closed, the exact per-model reason is logged,
+  // and acceptsAsAutonomyProof stays false.
+  const cases: Array<{
+    name: string;
+    runResult: OpenHandsRunResult | "echo";
+    reason: string;
+  }> = [
+    { name: "no diff / empty", runResult: { ok: true, patch: "", diffSource: "worktree" }, reason: "openhands_missing_unified_diff" },
+    { name: "whitespace-only", runResult: { ok: true, patch: "   \n  ", diffSource: "worktree" }, reason: "openhands_missing_unified_diff" },
+    { name: "echoed prompt", runResult: "echo", reason: "openhands_echoed_prompt_diff" },
+    { name: "canned diff", runResult: { ok: true, patch: goodPatch, diffSource: "canned" }, reason: "openhands_untrusted_diff_source" },
+    { name: "unowned files", runResult: { ok: true, patch: goodPatchFor("api/lib/writerlane/not-owned.ts"), diffSource: "worktree" }, reason: "openhands_unowned_worktree_diff" },
+    { name: "runner reported failure", runResult: { ok: false, reason: "openhands_timeout" }, reason: "openhands_timeout" },
+  ];
+
+  for (const testCase of cases) {
+    it(`${testCase.name} -> fail, autonomyProof false, exact reason`, async () => {
+      const runner: OpenHandsRunner = async ({ prompt }) =>
+        testCase.runResult === "echo"
+          ? { ok: true, patch: prompt, diffSource: "worktree" }
+          : testCase.runResult;
+
+      const backend = createOpenHandsWriterLaneBackend({
+        runner,
+        models: [strongCode],
+        enabled: true,
+      });
+
+      const outcome = await backend.runChain(autonomyInput);
+      expect(outcome.result.ok).toBe(false);
+      expect(acceptsAsAutonomyProof(outcome.result, "autonomy")).toBe(false);
+      expect(outcome.attempts).toHaveLength(1);
+      expect(outcome.attempts[0].ok).toBe(false);
+      expect(outcome.attempts[0].reason).toBe(testCase.reason);
+      if (!outcome.result.ok) {
+        expect(outcome.result.reason).toBe("writerlane_free_chain_exhausted");
+      }
+    });
+  }
 });
