@@ -84,6 +84,7 @@ const ORDER_STORAGE_KEY = "unclick_jobs_manual_order_v1";
 const SECTION_PREF_STORAGE_KEY = "unclick_jobs_section_preferences_v1";
 const SECTION_PAGE_SIZE = 10;
 export const JOBS_REFRESH_INTERVAL_MS = 60_000;
+const JOBS_REFRESH_LABEL = `${Math.round(JOBS_REFRESH_INTERVAL_MS / 1000)}s`;
 // Completed section uses bigger batches: 50 visible by default, +100 per "Show more"
 // click. Server-side completed history is fetched in matching batches via the
 // `before_created_at` cursor until exhausted.
@@ -1074,6 +1075,97 @@ function JobSection({
   );
 }
 
+function BoardPulse({
+  activeCount,
+  queueCount,
+  alertCount,
+  queueHydrationBlocked,
+  initialLoading,
+}: {
+  activeCount: number;
+  queueCount: number;
+  alertCount: number;
+  queueHydrationBlocked: boolean;
+  initialLoading: boolean;
+}) {
+  const tone = queueHydrationBlocked || alertCount > 0 ? "red" : queueCount > 0 ? "amber" : "green";
+  const toneStyles = {
+    red: {
+      frame: "border-red-300/25 bg-red-500/[0.08]",
+      dot: "bg-red-300 shadow-[0_0_18px_rgba(252,165,165,0.45)]",
+      text: "text-red-100",
+      muted: "text-red-100/60",
+      icon: "text-red-200",
+    },
+    amber: {
+      frame: "border-[#E2B93B]/25 bg-[#E2B93B]/[0.08]",
+      dot: "bg-[#E2B93B] shadow-[0_0_18px_rgba(226,185,59,0.35)]",
+      text: "text-[#F6D773]",
+      muted: "text-[#F6D773]/60",
+      icon: "text-[#E2B93B]",
+    },
+    green: {
+      frame: "border-green-300/25 bg-green-400/[0.08]",
+      dot: "bg-green-300 shadow-[0_0_18px_rgba(134,239,172,0.35)]",
+      text: "text-green-100",
+      muted: "text-green-100/60",
+      icon: "text-green-200",
+    },
+  }[tone];
+  const statusCopy = queueHydrationBlocked
+    ? "No active owner"
+    : alertCount > 0
+      ? "Needs proof"
+      : queueCount > 0
+        ? "Moving"
+        : "Clear";
+  const nextMove = queueHydrationBlocked
+    ? "Claim one waiting job"
+    : alertCount > 0
+      ? "Resolve the top alert"
+      : queueCount > 0
+        ? "Keep the active lane fresh"
+        : "Watch for new work";
+
+  return (
+    <section className={`overflow-hidden rounded-lg border ${toneStyles.frame}`}>
+      <div className="grid gap-0 md:grid-cols-[minmax(260px,1.1fr)_minmax(180px,0.7fr)_minmax(180px,0.7fr)]">
+        <div className="flex min-w-0 items-start gap-3 p-4">
+          <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ${toneStyles.dot}`} aria-hidden="true" />
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase text-white/35">Traffic light</p>
+            <p className={`mt-1 text-lg font-semibold ${toneStyles.text}`}>
+              {initialLoading ? "Loading board" : statusCopy}
+            </p>
+            <p className={`mt-1 max-w-xl text-sm leading-5 ${toneStyles.muted}`}>
+              {initialLoading
+                ? "Reading Boardroom before any proof claim."
+                : `${activeCount} active, ${queueCount} waiting, ${alertCount} alert${alertCount === 1 ? "" : "s"}.`}
+            </p>
+          </div>
+        </div>
+        <div className="border-t border-white/[0.06] p-4 md:border-l md:border-t-0">
+          <p className="text-[11px] font-semibold uppercase text-white/35">Next move</p>
+          <p className="mt-1 text-sm font-medium text-white/80">{nextMove}</p>
+          <p className="mt-1 text-xs leading-5 text-white/45">One owner, one proof path, no green chips without evidence.</p>
+        </div>
+        <div className="border-t border-white/[0.06] p-4 md:border-l md:border-t-0">
+          <p className="text-[11px] font-semibold uppercase text-white/35">Proof gate</p>
+          <p className="mt-1 flex items-center gap-2 text-sm font-medium text-white/80">
+            {alertCount > 0 ? (
+              <AlertTriangle className={`h-4 w-4 ${toneStyles.icon}`} aria-hidden="true" />
+            ) : (
+              <CheckCircle2 className={`h-4 w-4 ${toneStyles.icon}`} aria-hidden="true" />
+            )}
+            {alertCount > 0 ? "Review before DONE" : "Receipts required"}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-white/45">Screenshots for UI work, PRs and tests for code.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function AdminJobs() {
   const { session } = useSession();
   const token = session?.access_token;
@@ -1351,6 +1443,14 @@ export default function AdminJobs() {
         </div>
       </header>
 
+      <BoardPulse
+        activeCount={activeCount}
+        queueCount={queueCount}
+        alertCount={alertCount}
+        queueHydrationBlocked={queueHydrationBlocked}
+        initialLoading={initialLoading}
+      />
+
       {queueHydrationBlocked && (
         <div className="flex items-start gap-3 rounded-lg border border-red-300/25 bg-red-500/10 px-4 py-3 text-sm text-red-100">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-200" aria-hidden="true" />
@@ -1403,7 +1503,7 @@ export default function AdminJobs() {
         </span>
         <span className="inline-flex items-center gap-1.5">
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          Refreshes every 10s
+          Refreshes every {JOBS_REFRESH_LABEL}
         </span>
       </div>
 
