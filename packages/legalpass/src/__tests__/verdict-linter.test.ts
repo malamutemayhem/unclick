@@ -33,6 +33,27 @@ describe("PassGuard verdict-linter", () => {
     expect(result.issues[0].phrase).toBe("must");
   });
 
+  it("matches multi-word phrases across variable whitespace", () => {
+    const result = lintVerdictText(
+      "The right thing to do is accept this. We   represent   you.",
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.issues.some((issue) => issue.phrase === "the right thing to do is")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "we represent you")).toBe(true);
+  });
+
+  it("blocks substitute-lawyer and unsupported compliance claims", () => {
+    const result = lintVerdictText(
+      "LegalPass is an AI lawyer with automatic compliance and a 100% compliant badge.",
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.issues.some((issue) => issue.phrase === "ai lawyer")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "automatic compliance")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "100% compliant")).toBe(true);
+  });
+
   it("matches whole words only, not substrings", () => {
     // 'mustard' contains 'must' as a substring but should not match.
     const result = lintVerdictText("The mustard clause is unusual.");
@@ -57,5 +78,6 @@ describe("PassGuard verdict-linter", () => {
     expect(ALLOWED_PHRASES).toContain("consider");
     expect(ALLOWED_PHRASES).toContain("in similar contracts");
     expect(ALLOWED_PHRASES).toContain("warrants review");
+    expect(ALLOWED_PHRASES).toContain("you may want to review with a lawyer");
   });
 });

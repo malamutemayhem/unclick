@@ -9,7 +9,7 @@ const CHECK_ORDER = [
   "copypass",
   "seopass",
   "legalpass",
-  "qualitypass",
+  "sloppass",
 ];
 
 const CHECK_LABELS = {
@@ -19,7 +19,7 @@ const CHECK_LABELS = {
   copypass: "CopyPass",
   seopass: "SEOPass",
   legalpass: "LegalPass",
-  qualitypass: "QualityPass",
+  sloppass: "SlopPass",
 };
 
 const PASS_STATUS = new Set(["pass", "passed", "success", "green", "ok"]);
@@ -190,7 +190,7 @@ export function selectXPassChecks(input = {}) {
     }
 
     if (codeFile(path) && !testFile(path)) {
-      addReason(reasons, "qualitypass", `code quality surface: ${path}`);
+      addReason(reasons, "sloppass", `code quality surface: ${path}`);
     }
   }
 
@@ -213,7 +213,7 @@ export function selectXPassChecks(input = {}) {
     addReason(reasons, "legalpass", "target text mentions legal/commercial risk");
   }
   if (hasAny(allText, ["quality", "slop", "refactor", "code smell", "bug", "bugfix"])) {
-    addReason(reasons, "qualitypass", "target text mentions quality or code risk");
+    addReason(reasons, "sloppass", "target text mentions quality or code risk");
   }
 
   return CHECK_ORDER
@@ -227,8 +227,8 @@ export function selectXPassChecks(input = {}) {
 
 function normalizeCheckName(value) {
   const key = normalize(value).replace(/[\s_-]+/g, "");
-  if (key === "sloppass") return "qualitypass";
-  if (key === "quality") return "qualitypass";
+  if (key === "qualitypass") return "sloppass";
+  if (key === "quality") return "sloppass";
   return CHECK_ORDER.find((check) => check === key || CHECK_LABELS[check].toLowerCase() === key) || key;
 }
 
