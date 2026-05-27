@@ -94,6 +94,7 @@ export function generateHtmlReport(result: SlopPassResult): string {
     .map(
       (finding) => `<li>
         <strong>${escapeHtml(finding.severity)}: ${escapeHtml(finding.title)}</strong>
+        ${finding.file ? `<p><strong>Location:</strong> ${escapeHtml(finding.file)}${finding.line ? `:${escapeHtml(finding.line)}` : ""}</p>` : ""}
         <p>${escapeHtml(finding.why_it_matters)}</p>
         <p><strong>Evidence:</strong> ${escapeHtml(finding.evidence)}</p>
         <p><strong>Suggested fix:</strong> ${escapeHtml(finding.suggested_fix)}</p>
@@ -120,6 +121,8 @@ export function generateHtmlReport(result: SlopPassResult): string {
   <p>${escapeHtml(result.summary.posture)}</p>
   <h2>Findings</h2>
   <ul>${findings || "<li>No findings in the inspected scope.</li>"}</ul>
+  <h2>Build-fix prompt</h2>
+  <pre>${escapeHtml(generateBuildFixPrompt(result))}</pre>
   <h2>Not checked</h2>
   <ul>${result.not_checked.map((item) => `<li>${escapeHtml(item.label)}: ${escapeHtml(item.reason)}</li>`).join("") || "<li>All built-in SlopPass check categories were attempted.</li>"}</ul>
 </body>

@@ -4,7 +4,7 @@ SlopPass is UnClick's scoped review layer for sloppy code and risky AI-generated
 
 ## Chunk 1
 
-Chunk 1 is a fixture-only package scaffold. It focuses on deterministic source text checks that can run without executing untrusted code, crawling production, calling paid APIs, reading credentials, or writing production rows.
+Chunk 1 is a deterministic source and diff reviewer. It focuses on static checks that can run without executing untrusted code, crawling production, calling paid APIs, reading credentials, or writing production rows. The same runner powers package tests, API calls, MCP calls, and XPass routing receipts.
 
 The first smell library covers:
 
@@ -13,12 +13,13 @@ The first smell library covers:
 - Dynamic code execution such as `eval` and `new Function`.
 - Secret-looking literals with redacted evidence.
 - Catch-all fallback paths that hide failure.
+- Test proof theatre, including weak assertions, skipped tests, and tautological assertions.
 - Reliability wording that needs evidence, such as retry and wrapper claims.
 - Generated-copy markers that need human review.
 
 ## Verdict Shape
 
-Each report includes the target, inspected files, attempted checks, not-checked areas, evidence-backed findings, severity counts, and a verdict. Critical or high signals fail the fixture report. Medium, low, or info signals warn. No findings pass within the inspected fixture scope.
+Each report includes the target, inspected files, attempted checks, not-checked areas, evidence-backed findings, severity counts, a build-fix prompt, and a verdict. Critical or high signals fail the report. Medium, low, or info signals warn. No findings pass within the inspected scope.
 
 ## Boundaries
 

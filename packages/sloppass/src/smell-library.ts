@@ -70,7 +70,7 @@ export const DEFAULT_SLOPPASS_SMELL_CHECKS: SlopPassSmellCheck[] = [
     severity: "high",
     title: "Secret-looking literal was detected",
     pattern:
-      /\b(?:api[_-]?key|secret|token|password)\b\s*[:=]\s*["'][^"'\r\n]{8,}["']/i,
+      /\b(?:[A-Za-z0-9_]*?(?:api[_-]?key|apikey|secret|token|password)|authorization)\b\s*[:=]\s*["']?(?:bearer\s+)?[A-Za-z0-9._~+/=_-]{8,}["']?/i,
     why_it_matters:
       "Generated examples can accidentally preserve credentials or teach future agents to copy private values.",
     suggested_fix:

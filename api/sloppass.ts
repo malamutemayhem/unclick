@@ -36,6 +36,19 @@ function sha256hex(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
 
+function firstHeader(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+}
+
+function parseRequestBody(body: unknown): unknown {
+  if (typeof body !== "string") return body ?? {};
+  try {
+    return JSON.parse(body) as unknown;
+  } catch {
+    throw new Error("Invalid JSON body");
+  }
+}
+
 async function getActorUserIdFromJwt(supabaseUrl: string, token: string): Promise<string | null> {
   const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
     headers: {
@@ -91,14 +104,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return json(res, 500, { error: "Server misconfigured: missing Supabase env vars" });
   }
 
-  const token = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "");
+  const token = firstHeader(req.headers.authorization).replace(/^Bearer\s+/i, "");
   if (!token) return json(res, 401, { error: "Missing Bearer token" });
 
   const actorUserId = await resolveActorUserId(supabaseUrl, serviceKey, token);
   if (!actorUserId) return json(res, 401, { error: "Invalid session" });
 
-  const body = (req.body ?? {}) as SlopPassRunInput & { target_sha?: string };
   try {
+    const body = parseRequestBody(req.body) as SlopPassRunInput & { target_sha?: string };
     const result = await runSlopPass(body);
     const run_id = runIdFor({
       target: body.target,

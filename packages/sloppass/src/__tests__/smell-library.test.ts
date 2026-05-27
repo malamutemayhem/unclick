@@ -70,4 +70,21 @@ describe("SlopPass smell library", () => {
     expect(findings).toHaveLength(1);
     expect(findings[0]?.title).toBe("Dynamic code execution is present");
   });
+
+  it("redacts unquoted env-style and authorization secrets", () => {
+    const findings = detectSlopSmells([
+      {
+        path: ".env.example",
+        content: [
+          "OPENAI_API_KEY=sk-live-do-not-print-123456",
+          "authorization: Bearer token-that-should-not-print-98765",
+        ].join("\n"),
+      },
+    ]);
+
+    const text = JSON.stringify(findings);
+    expect(findings.filter((finding) => finding.title === "Secret-looking literal was detected")).toHaveLength(2);
+    expect(text).not.toContain("sk-live-do-not-print");
+    expect(text).not.toContain("token-that-should-not-print");
+  });
 });

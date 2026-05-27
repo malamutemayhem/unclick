@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export const SLOPPASS_LIMITS = {
+  maxFiles: 100,
+  maxFileBytes: 500_000,
+  maxDiffBytes: 2_000_000,
+} as const;
+
 export const SlopPassSeveritySchema = z.enum(["critical", "high", "medium", "low", "info"]);
 
 export const SlopPassCategorySchema = z.enum([
@@ -20,7 +26,7 @@ export const SlopPassTargetSchema = z.object({
 
 export const SlopPassSourceFileSchema = z.object({
   path: z.string().min(1),
-  content: z.string(),
+  content: z.string().max(SLOPPASS_LIMITS.maxFileBytes),
   start_line: z.number().int().positive().optional(),
 });
 
@@ -74,8 +80,8 @@ export const SlopPassResultSchema = z.object({
 export const SlopPassRunInputSchema = z
   .object({
     target: SlopPassTargetSchema,
-    files: z.array(SlopPassSourceFileSchema).optional(),
-    diff: z.string().optional(),
+    files: z.array(SlopPassSourceFileSchema).max(SLOPPASS_LIMITS.maxFiles).optional(),
+    diff: z.string().max(SLOPPASS_LIMITS.maxDiffBytes).optional(),
     checks: z.array(SlopPassCategorySchema).optional(),
     provider: z.enum(["openai", "anthropic", "google", "ollama", "http"]).default("http"),
   })

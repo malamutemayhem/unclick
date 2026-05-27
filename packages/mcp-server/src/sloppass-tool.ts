@@ -39,8 +39,18 @@ async function callApi(body: Record<string, unknown>): Promise<unknown> {
 }
 
 function hasSource(args: Record<string, unknown>): boolean {
+  const files = Array.isArray(args.files)
+    ? args.files.filter(
+        (file): file is { content: string } =>
+          typeof file === "object" &&
+          file !== null &&
+          "content" in file &&
+          typeof file.content === "string" &&
+          file.content.trim().length > 0,
+      )
+    : [];
   return (
-    (Array.isArray(args.files) && args.files.length > 0) ||
+    files.length > 0 ||
     (typeof args.diff === "string" && args.diff.trim().length > 0)
   );
 }

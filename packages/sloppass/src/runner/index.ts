@@ -13,13 +13,24 @@ function emptyCounts(): Record<SlopPassSeverity, number> {
   return { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
 }
 
+function reviewableFiles(files: NonNullable<SlopPassRunInput["files"]> | undefined) {
+  return (files ?? []).filter((file) => file.content.trim().length > 0);
+}
+
+function sourceFilesFor(parsed: ReturnType<typeof SlopPassRunInputSchema.parse>) {
+  const files = reviewableFiles(parsed.files);
+  if (files.length > 0) return files;
+  return sourceFilesFromUnifiedDiff(parsed.diff ?? "");
+}
+
+function uniquePaths(files: Array<{ path: string }>): string[] {
+  return Array.from(new Set(files.map((file) => file.path)));
+}
+
 export async function runSlopPass(input: SlopPassRunInput): Promise<SlopPassResult> {
   const parsed = SlopPassRunInputSchema.parse(input);
   const checks = parsed.checks ?? DEFAULT_CHECKS;
-  const files =
-    parsed.files && parsed.files.length > 0
-      ? parsed.files
-      : sourceFilesFromUnifiedDiff(parsed.diff ?? "");
+  const files = sourceFilesFor(parsed);
   if (files.length === 0) {
     throw new Error("SlopPass could not find any added source lines in the provided diff.");
   }
@@ -43,7 +54,7 @@ export async function runSlopPass(input: SlopPassRunInput): Promise<SlopPassResu
     target: parsed.target,
     scope: {
       checks_attempted: checks,
-      files_reviewed: files.map((file) => file.path),
+      files_reviewed: uniquePaths(files),
       provider: provider.id,
     },
     verdict: toSlopPassVerdict(counts),

@@ -12329,6 +12329,7 @@ export const ADDITIONAL_TOOLS = [
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
+      anyOf: [{ required: ["files"] }, { required: ["diff"] }],
       properties: {
         target: {
           type: "object",

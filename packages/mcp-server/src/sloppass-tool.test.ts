@@ -24,6 +24,11 @@ describe("sloppass-tool", () => {
     await expect(sloppassRun({ target: { kind: "files", label: "empty" } })).resolves.toMatchObject({
       error: "files or diff is required",
     });
+    await expect(
+      sloppassRun({ target: { kind: "files", label: "blank" }, files: [{ path: "src/a.ts", content: "" }] }),
+    ).resolves.toMatchObject({
+      error: "files or diff is required",
+    });
   });
 
   it("posts caller-provided diff text to the SlopPass API", async () => {
@@ -51,5 +56,26 @@ describe("sloppass-tool", () => {
         headers: expect.objectContaining({ Authorization: "Bearer uc_test" }),
       }),
     );
+  });
+
+  it("returns API errors without losing response details", async () => {
+    process.env.UNCLICK_API_KEY = "uc_test";
+    process.env.UNCLICK_API_URL = "https://example.test";
+    globalThis.fetch = vi.fn(async () =>
+      new Response(JSON.stringify({ error: "bad diff" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }),
+    ) as unknown as typeof fetch;
+
+    await expect(
+      sloppassRun({
+        target: { kind: "diff", label: "bad" },
+        diff: "not a useful diff",
+      }),
+    ).resolves.toMatchObject({
+      error: "sloppass API failed (HTTP 400)",
+      body: { error: "bad diff" },
+    });
   });
 });

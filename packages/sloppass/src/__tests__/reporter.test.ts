@@ -21,6 +21,8 @@ describe("SlopPass reporter", () => {
     expect(markdown).toContain("Build-fix prompt");
     expect(markdown).toContain("Do not change orthogonal code");
     expect(html).toContain("SlopPass is a scoped quality review");
+    expect(html).toContain("Build-fix prompt");
+    expect(html).toContain("src/report.ts:1");
   });
 
   it("emits an agent-ready build-fix prompt grouped by severity", async () => {

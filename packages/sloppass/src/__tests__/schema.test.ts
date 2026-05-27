@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CHECKS } from "../categories.js";
-import { SlopPassResultSchema, SlopPassRunInputSchema } from "../schema.js";
+import { SLOPPASS_LIMITS, SlopPassResultSchema, SlopPassRunInputSchema } from "../schema.js";
 
 describe("SlopPass run schema", () => {
   it("accepts the canonical target, files, and provider shape", () => {
@@ -54,6 +54,25 @@ describe("SlopPass run schema", () => {
       SlopPassRunInputSchema.parse({
         target: { kind: "files", label: "empty file" },
         files: [{ path: "src/empty.ts", content: "" }],
+      }),
+    ).toThrow();
+  });
+
+  it("caps file count and source size before review work starts", () => {
+    expect(() =>
+      SlopPassRunInputSchema.parse({
+        target: { kind: "files", label: "too many" },
+        files: Array.from({ length: SLOPPASS_LIMITS.maxFiles + 1 }, (_, index) => ({
+          path: `src/${index}.ts`,
+          content: "export const ok = true;",
+        })),
+      }),
+    ).toThrow();
+
+    expect(() =>
+      SlopPassRunInputSchema.parse({
+        target: { kind: "files", label: "too large" },
+        files: [{ path: "src/large.ts", content: "x".repeat(SLOPPASS_LIMITS.maxFileBytes + 1) }],
       }),
     ).toThrow();
   });

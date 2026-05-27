@@ -33,4 +33,22 @@ describe("SlopPass unified diff parser", () => {
 
     expect(files).toEqual([]);
   });
+
+  it("normalizes timestamped paths and clamps unusual zero starts", () => {
+    const files = sourceFilesFromUnifiedDiff([
+      "diff --git a/src/time.ts b/src/time.ts",
+      "--- a/src/time.ts\t2026-05-27",
+      "+++ b/src/time.ts\t2026-05-27",
+      "@@ -0,0 +0,2 @@",
+      "+const value: any = 1;",
+    ].join("\n"));
+
+    expect(files).toEqual([
+      {
+        path: "src/time.ts",
+        content: "const value: any = 1;",
+        start_line: 1,
+      },
+    ]);
+  });
 });

@@ -62,6 +62,44 @@ describe("SlopPass runner", () => {
     expect(result.verdict).toBe("fail");
   });
 
+  it("falls back to diff input when provided file slices are empty", async () => {
+    const result = await runSlopPass({
+      target: { kind: "diff", label: "empty files plus diff" },
+      files: [{ path: "src/empty.ts", content: "" }],
+      diff: [
+        "diff --git a/src/real.ts b/src/real.ts",
+        "--- a/src/real.ts",
+        "+++ b/src/real.ts",
+        "@@ -8,6 +8,7 @@ export function real() {",
+        "+const value: any = eval(input);",
+      ].join("\n"),
+    });
+
+    expect(result.scope.files_reviewed).toEqual(["src/real.ts"]);
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({ title: "Dynamic code execution is present", line: 8 }),
+    );
+  });
+
+  it("deduplicates files reviewed across multiple diff hunks", async () => {
+    const result = await runSlopPass({
+      target: { kind: "diff", label: "multi-hunk diff" },
+      diff: [
+        "diff --git a/src/repeat.ts b/src/repeat.ts",
+        "--- a/src/repeat.ts",
+        "+++ b/src/repeat.ts",
+        "@@ -1,2 +1,3 @@",
+        "+const first: any = 1;",
+        "@@ -20,2 +21,3 @@",
+        "+const second: any = 2;",
+      ].join("\n"),
+      checks: ["maintenance_change_risk"],
+    });
+
+    expect(result.scope.files_reviewed).toEqual(["src/repeat.ts"]);
+    expect(result.findings.filter((finding) => finding.title === "Type safety was bypassed")).toHaveLength(2);
+  });
+
   it("supports a stripped promptfoo-style model provider scaffold", async () => {
     const result = await runSlopPass({
       target: { kind: "files", label: "echo", files: ["src/a.ts"] },

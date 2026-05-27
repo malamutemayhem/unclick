@@ -8,7 +8,7 @@ interface DiffHunk {
 }
 
 function parseNewPath(line: string): string | null {
-  const raw = line.replace(/^\+\+\+\s+/, "").trim();
+  const raw = line.replace(/^\+\+\+\s+/, "").trim().split("\t")[0] ?? "";
   if (!raw || raw === "/dev/null") return null;
   return raw.replace(/^b\//, "");
 }
@@ -16,7 +16,7 @@ function parseNewPath(line: string): string | null {
 function parseNewStart(line: string): number | null {
   const match = /\+(\d+)(?:,\d+)?/.exec(line);
   if (!match) return null;
-  return Number.parseInt(match[1] ?? "", 10);
+  return Math.max(1, Number.parseInt(match[1] ?? "", 10));
 }
 
 function pushHunk(hunks: DiffHunk[], hunk: DiffHunk | null): void {
