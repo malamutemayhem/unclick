@@ -326,16 +326,19 @@ describe("draft PR coderoom binding", () => {
       calls.map(([command, args]) => `${command} ${args.slice(0, 2).join(" ")}`),
       [
         "git status --porcelain",
+        "git config user.name",
+        "git config user.email",
         "git checkout -b",
         "git apply --whitespace=nowarn",
         "git add docs/openhands-proof-fixture.md",
         "git commit -m",
-        "git push -u",
+        "gh auth setup-git",
+        "git -c http.https://github.com/.extraheader=",
         "gh pr create",
         "git rev-parse HEAD",
       ],
     );
-    assert.equal(calls[2][2], true);
+    assert.equal(calls[4][2], true);
   });
 
   test("restores a pre-applied owned docs patch before draft PR creation", async () => {
@@ -380,16 +383,19 @@ describe("draft PR coderoom binding", () => {
         "git status --porcelain",
         "git restore --staged --worktree",
         "git status --porcelain",
+        "git config user.name UnClick Bot",
+        "git config user.email bot@unclick.world",
         "git checkout -b codex/openhands-proof-test",
         "git apply --whitespace=nowarn -",
         "git add docs/openhands-proof-fixture.md",
         "git commit -m test(autopilot): prove OpenHands docs patch path",
-        "git push -u origin",
+        "gh auth setup-git",
+        "git -c http.https://github.com/.extraheader= push",
         "gh pr create --draft",
         "git rev-parse HEAD",
       ],
     );
-    assert.equal(calls[4][2], true);
+    assert.equal(calls[6][2], true);
   });
 
   test("cleans an untracked patch-owned docs file before draft PR creation", async () => {
@@ -429,16 +435,19 @@ describe("draft PR coderoom binding", () => {
         "git status --porcelain",
         "git clean -f -- docs/openhands-proof-fixture.md",
         "git status --porcelain",
+        "git config user.name UnClick Bot",
+        "git config user.email bot@unclick.world",
         "git checkout -b codex/openhands-proof-test",
         "git apply --whitespace=nowarn -",
         "git add docs/openhands-proof-fixture.md",
         "git commit -m test(autopilot): prove OpenHands docs patch path",
-        "git push -u origin codex/openhands-proof-test",
+        "gh auth setup-git",
+        "git -c http.https://github.com/.extraheader= push -u",
         "gh pr create --draft --title",
         "git rev-parse HEAD",
       ],
     );
-    assert.equal(calls[4][2], true);
+    assert.equal(calls[6][2], true);
   });
 
   test("does not clean unrelated untracked files before draft PR creation", async () => {
@@ -847,6 +856,8 @@ describe("safe CodeRoom submitter", () => {
       [
         "git status --porcelain",
         "gh pr list --head",
+        "git config user.name UnClick Bot",
+        "git config user.email bot@unclick.world",
         "git checkout -b codex/openhands-submit-todo-2",
         "git apply --check --whitespace=error",
         "git apply --whitespace=nowarn -",
@@ -854,14 +865,14 @@ describe("safe CodeRoom submitter", () => {
         "git add docs/openhands-proof-fixture.md",
         "git commit -m docs: submit OpenHands patch",
         "gh auth setup-git",
-        "git push -u origin",
+        "git -c http.https://github.com/.extraheader= push",
         "gh pr create --title",
         "git rev-parse HEAD",
         "gh pr merge --auto",
       ],
     );
-    assert.equal(calls[3][2], true);
-    assert.equal(calls[4][2], true);
+    assert.equal(calls[5][2], true);
+    assert.equal(calls[6][2], true);
     assert.ok(calls.every((call) => call[3] === "app-token" && call[4] === "app-token"));
   });
 
@@ -889,11 +900,18 @@ describe("safe CodeRoom submitter", () => {
     });
 
     assert.equal(result.ok, false);
-    assert.equal(result.reason, "git_failed");
+    assert.equal(result.reason, "git_apply_check_failed");
     assert.match(result.output, /patch does not apply/);
     assert.deepEqual(
       calls.map(([command, args]) => `${command} ${args.slice(0, 2).join(" ")}`),
-      ["git status --porcelain", "gh pr list", "git checkout -b", "git apply --check"],
+      [
+        "git status --porcelain",
+        "gh pr list",
+        "git config user.name",
+        "git config user.email",
+        "git checkout -b",
+        "git apply --check",
+      ],
     );
   });
 });
