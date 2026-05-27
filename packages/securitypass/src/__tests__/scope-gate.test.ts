@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   runSkeletonScan,
   ScopeUnverifiedError,
+  verifyScope,
   verifyScopeOrThrow,
 } from "../runner/index.js";
 import {
@@ -14,23 +15,23 @@ import {
 import * as packageExports from "../index.js";
 import * as runnerBarrelExports from "../runner/index.js";
 
-describe("scope gate (deny-all until Chunk 2)", () => {
+describe("scope gate", () => {
   beforeEach(() => __resetForTests());
 
-  it("verifyScopeOrThrow refuses every target type", () => {
-    expect(() => verifyScopeOrThrow({ type: "url", url: "https://example.com" }))
-      .toThrow(ScopeUnverifiedError);
-    expect(() => verifyScopeOrThrow({ type: "git", url: "https://github.com/me/repo" }))
-      .toThrow(ScopeUnverifiedError);
-    expect(() => verifyScopeOrThrow({ type: "mcp", url: "https://mcp.example.com" }))
-      .toThrow(ScopeUnverifiedError);
-    expect(() => verifyScopeOrThrow({ type: "api", url: "https://api.example.com" }))
-      .toThrow(ScopeUnverifiedError);
+  it("verifyScopeOrThrow refuses every target type without proof", async () => {
+    await expect(verifyScopeOrThrow({ type: "url", url: "https://example.com" }))
+      .rejects.toBeInstanceOf(ScopeUnverifiedError);
+    await expect(verifyScopeOrThrow({ type: "git", url: "https://github.com/me/repo" }))
+      .rejects.toBeInstanceOf(ScopeUnverifiedError);
+    await expect(verifyScopeOrThrow({ type: "mcp", url: "https://mcp.example.com" }))
+      .rejects.toBeInstanceOf(ScopeUnverifiedError);
+    await expect(verifyScopeOrThrow({ type: "api", url: "https://api.example.com" }))
+      .rejects.toBeInstanceOf(ScopeUnverifiedError);
   });
 
-  it("ScopeUnverifiedError carries a stable code and the offending target", () => {
+  it("ScopeUnverifiedError carries a stable code and the offending target", async () => {
     try {
-      verifyScopeOrThrow({ type: "url", url: "https://victim.example" });
+      await verifyScopeOrThrow({ type: "url", url: "https://victim.example" });
       throw new Error("should have thrown");
     } catch (err) {
       expect(err).toBeInstanceOf(ScopeUnverifiedError);
@@ -38,6 +39,60 @@ describe("scope gate (deny-all until Chunk 2)", () => {
       expect(e.code).toBe("scope_unverified");
       expect(e.target.url).toBe("https://victim.example");
     }
+  });
+
+  it("accepts signed scope contracts without active network proof", async () => {
+    await expect(
+      verifyScopeOrThrow(
+        { type: "git", repo: process.cwd() },
+        { contractId: "contract-1", proofMethod: "signed_email", expectedToken: "signed-token" },
+      ),
+    ).resolves.toMatchObject({ verified: true, proof_method: "signed_email" });
+  });
+
+  it("does not accept DNS proof by token substring alone", async () => {
+    const result = await verifyScope(
+      { type: "url", url: "https://example.com" },
+      {
+        proofMethod: "dns_txt",
+        expectedToken: "token-123",
+        resolveTxt: async () => [["securitypass-scope=not-token-123-extra"]],
+      },
+    );
+
+    expect(result.verified).toBe(false);
+  });
+
+  it("accepts DNS proof when the token appears as a standalone value", async () => {
+    const result = await verifyScope(
+      { type: "url", url: "https://example.com" },
+      {
+        proofMethod: "dns_txt",
+        expectedToken: "token-123",
+        resolveTxt: async () => [["securitypass-scope=token-123"]],
+      },
+    );
+
+    expect(result.verified).toBe(true);
+  });
+
+  it("times out well-known proof fetches instead of hanging", async () => {
+    const result = await verifyScope(
+      { type: "url", url: "https://example.com" },
+      {
+        proofMethod: "well_known",
+        expectedToken: "token-123",
+        proofTimeoutMs: 1,
+        fetchImpl: async (_url, init) =>
+          new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener("abort", () => reject(new Error("aborted")));
+          }),
+      },
+    );
+
+    expect(result.verified).toBe(false);
+    expect(result.reason).toMatch(/could not be fetched/);
+    expect(String(result.evidence.error)).toMatch(/aborted/);
   });
 
   it("runSkeletonScan throws ScopeUnverifiedError for any caller-supplied URL", async () => {
