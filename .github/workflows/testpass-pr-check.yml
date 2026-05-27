@@ -119,20 +119,25 @@ jobs:
             const existing = selectExistingTestPassComment(comments);
 
             if (existing) {
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body,
-              });
+              try {
+                await github.rest.issues.updateComment({
+                  owner,
+                  repo,
+                  comment_id: existing.id,
+                  body,
+                });
+                return;
+              } catch (error) {
+                console.warn(`Could not update existing TestPass comment ${existing.id}: ${error.message}`);
+              }
             }
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number,
+              body,
+            });
 
       - name: Explain Dependabot TestPass skip
         if: ${{ always() && github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' && steps.token.outputs.has_token != 'true' }}
