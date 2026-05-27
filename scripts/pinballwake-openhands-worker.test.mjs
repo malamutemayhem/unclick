@@ -265,6 +265,22 @@ describe("runOpenHandsWorker", () => {
     assert.equal(result.receipt.evidence.file, "src/outside-owned.ts");
   });
 
+  test("keeps CodeRoom dirty-file detail in HOLD evidence", async () => {
+    const result = await runOpenHandsWorker({
+      job: job(),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async () => ({ ok: true, patch: patchFor("src/example.ts") }),
+      coderoom: async () => ({ ok: false, reason: "dirty_worktree", dirty_files: ["src/outside.ts"] }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "coderoom_rejected_patch");
+    assert.equal(result.receipt.evidence.reason, "dirty_worktree");
+    assert.deepEqual(result.receipt.evidence.dirty_files, ["src/outside.ts"]);
+  });
+
   test("default coderoom submit enforces owned files", async () => {
     const result = await runOpenHandsWorker({
       job: job(),

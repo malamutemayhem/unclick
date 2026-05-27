@@ -469,6 +469,7 @@ export function createSafeCodeRoomSubmitter({
   draft = false,
   autoMerge = true,
   allowProtectedSurfaces,
+  restoreOwnedDirtyFiles = false,
   runProcess = runProcessCommand,
   now = new Date(),
 } = {}) {
@@ -512,7 +513,31 @@ export function createSafeCodeRoomSubmitter({
     const dirtyFiles = parseGitStatusPaths(status.stdout);
     const blockingDirtyFiles = dirtyFiles.filter((file) => !isGeneratedRunnerLedgerPath(file));
     if (blockingDirtyFiles.length) {
-      return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyFiles };
+      const changedSet = new Set(normalizedChanged);
+      const ownedDirtyFiles = blockingDirtyFiles.filter((file) => changedSet.has(file));
+      const otherDirtyFiles = blockingDirtyFiles.filter((file) => !changedSet.has(file));
+      if (restoreOwnedDirtyFiles && ownedDirtyFiles.length > 0 && otherDirtyFiles.length === 0) {
+        const restore = await runProcess("git", ["restore", "--worktree", "--", ...ownedDirtyFiles], {
+          cwd,
+          env: submitterEnv,
+        });
+        if (!restore.ok) {
+          return {
+            ok: false,
+            reason: "git_restore_owned_dirty_failed",
+            dirty_files: blockingDirtyFiles,
+            output: restore.output,
+          };
+        }
+        const recheck = await runProcess("git", ["status", "--porcelain"], { cwd, env: submitterEnv });
+        if (!recheck.ok) return { ok: false, reason: "git_status_failed", output: recheck.output };
+        const remainingDirtyFiles = parseGitStatusPaths(recheck.stdout).filter((file) => !isGeneratedRunnerLedgerPath(file));
+        if (remainingDirtyFiles.length) {
+          return { ok: false, reason: "dirty_worktree", dirty_files: remainingDirtyFiles };
+        }
+      } else {
+        return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyFiles };
+      }
     }
 
     const todoId = safeSlug(job?.todo_id || job?.id || job?.job_id || safeStamp(now));

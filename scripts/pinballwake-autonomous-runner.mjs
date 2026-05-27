@@ -612,7 +612,12 @@ export function createAutonomousRunnerOpenHandsExecutorFromEnv(env = process.env
       : null,
     coderoom: enabled
       ? useWriterLaneFree
-        ? createSafeCodeRoomSubmitter({ env: safeEnv, draft: true, autoMerge: false })
+        ? createSafeCodeRoomSubmitter({
+            env: safeEnv,
+            draft: true,
+            autoMerge: false,
+            restoreOwnedDirtyFiles: true,
+          })
         : createSafeCodeRoomSubmitter({ env: safeEnv })
       : null,
     env: safeEnv,
