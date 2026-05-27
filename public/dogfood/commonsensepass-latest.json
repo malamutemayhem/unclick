@@ -1,6 +1,6 @@
 {
   "kind": "commonsensepass_dogfood_receipt_v1",
-  "generatedAt": "2026-05-27T11:41:11.000Z",
+  "generatedAt": "2026-05-27T15:23:06.882Z",
   "status": "passing",
   "source": "commonsensepass package dogfood script",
   "headline": "CommonSensePass blocks fake quiet, fake done, duplicate wakes, and wrong-lane work.",

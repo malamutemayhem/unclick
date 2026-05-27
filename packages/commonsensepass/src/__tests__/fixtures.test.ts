@@ -63,9 +63,11 @@ describe("CommonSensePass worker fixtures", () => {
     const routeFixture = COMMONSENSEPASS_WORKER_FIXTURES.find(
       (fixture) => fixture.expected_verdict === "ROUTE",
     );
-    expect(routeFixture).toBeTruthy();
+    if (!routeFixture) {
+      throw new Error("Missing CommonSensePass ROUTE fixture");
+    }
 
-    const result = resultForFixture(routeFixture!);
+    const result = resultForFixture(routeFixture);
     expect(result.rule_id).toBe("R6");
     expect(result.route_to).toBe("securitypass");
   });

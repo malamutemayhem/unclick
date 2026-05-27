@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ADDITIONAL_HANDLERS, ADDITIONAL_TOOLS } from "../tool-wiring.js";
 
 function asRecord(value: unknown): Record<string, unknown> {
-  expect(value).toBeTruthy();
+  expect(value).not.toBeNull();
   expect(typeof value).toBe("object");
   return value as Record<string, unknown>;
 }
