@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 512,
+    "inventory": 513,
     "source_manifest": 189,
     "pages": 82,
-    "tools": 184,
+    "tools": 185,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 184
+      "count": 185
     },
     {
       "id": "rooms",
@@ -3492,6 +3492,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-commonsensepass-packages-mcp-server-src-commonsensepass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "commonsensepass",
+      "kind": "MCP tool",
+      "meaning": "commonsensepass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/commonsensepass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-convertkit-packages-mcp-server-src-convertkit-tool-ts-no-route",
       "division": "Tools",
       "name": "convertkit",
@@ -5896,6 +5906,11 @@
       "packages/mcp-server/src/color-tool.ts"
     ],
     [
+      "commonsensepass",
+      "commonsensepass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/commonsensepass-tool.ts"
+    ],
+    [
       "convertkit",
       "convertkit MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/convertkit-tool.ts"
@@ -7003,8 +7018,8 @@
     },
     {
       "source": "package.json",
-      "hash": "b9ae68a558a0",
-      "bytes": 4293
+      "hash": "e6096faac8c4",
+      "bytes": 4380
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7712,6 +7727,11 @@
       "bytes": 13643
     },
     {
+      "source": "packages/mcp-server/src/commonsensepass-tool.ts",
+      "hash": "02d0d82630d7",
+      "bytes": 1991
+    },
+    {
       "source": "packages/mcp-server/src/convertkit-tool.ts",
       "hash": "2f77303a3441",
       "bytes": 8498
@@ -7775,11 +7795,6 @@
       "source": "packages/mcp-server/src/ebird-tool.ts",
       "hash": "3deedf3fde19",
       "bytes": 6262
-    },
-    {
-      "source": "packages/mcp-server/src/elevenlabs-tool.ts",
-      "hash": "efcaeeff39d6",
-      "bytes": 10833
     },
     {
       "source": ".github/workflows/apply-migrations.yml",
