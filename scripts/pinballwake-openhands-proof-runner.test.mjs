@@ -562,14 +562,30 @@ describe("safe CodeRoom submitter", () => {
     );
   });
 
-  test("does not restore untracked dirty files before CodeRoom submit", async () => {
+  test("cleans an untracked patch-owned file before CodeRoom submit", async () => {
     const calls = [];
+    let statusCalls = 0;
     const submitter = createSafeCodeRoomSubmitter({
       env: { CODEROOM_GITHUB_APP_TOKEN: "app-token" },
+      branchName: "codex/openhands-submit-todo-untracked",
       runProcess: async (command, args) => {
         calls.push([command, args]);
         if (command === "git" && args[0] === "status") {
-          return { ok: true, stdout: `?? ${FIXTURE}\n`, stderr: "", output: "" };
+          statusCalls += 1;
+          return {
+            ok: true,
+            stdout: statusCalls === 1 ? `?? ${FIXTURE}\n` : "",
+            stderr: "",
+            output: "",
+          };
+        }
+        if (command === "gh" && args[1] === "list") {
+          return {
+            ok: true,
+            stdout: "https://github.com/malamutemayhem/unclick/pull/934\n",
+            stderr: "",
+            output: "",
+          };
         }
         return { ok: true, stdout: "", stderr: "", output: "" };
       },
@@ -581,8 +597,41 @@ describe("safe CodeRoom submitter", () => {
       patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: untracked" }),
     });
 
+    assert.equal(result.ok, true);
+    assert.equal(result.status, "existing_pr");
+    assert.deepEqual(
+      calls.map(([command, args]) => `${command} ${args.slice(0, 4).join(" ")}`),
+      [
+        "git status --porcelain",
+        "git clean -f -- docs/openhands-proof-fixture.md",
+        "git status --porcelain",
+        "gh pr list --head codex/openhands-submit-todo-untracked",
+      ],
+    );
+  });
+
+  test("does not clean unrelated untracked files before CodeRoom submit", async () => {
+    const calls = [];
+    const submitter = createSafeCodeRoomSubmitter({
+      env: { CODEROOM_GITHUB_APP_TOKEN: "app-token" },
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        if (command === "git" && args[0] === "status") {
+          return { ok: true, stdout: `?? src/unrelated.ts\n`, stderr: "", output: "" };
+        }
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await submitter({
+      job: { todo_id: "todo-unrelated-untracked", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: unrelated untracked" }),
+    });
+
     assert.equal(result.ok, false);
     assert.equal(result.reason, "dirty_worktree");
+    assert.deepEqual(result.dirty_files, ["src/unrelated.ts"]);
     assert.deepEqual(calls.map(([command, args]) => `${command} ${args[0]}`), ["git status"]);
   });
 
