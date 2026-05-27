@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-27T11:29:46.367Z",
-  "valid_until": "2026-06-03T11:29:46.367Z",
+  "generated_at": "2026-05-27T13:41:23.988Z",
+  "valid_until": "2026-06-03T13:41:23.988Z",
   "source": "local deterministic repo/docs scan",
   "product": "CompliancePass",
   "legacy_aliases": [
@@ -165,7 +165,7 @@
           "title": "Automated test files are present",
           "status": "pass",
           "score": 100,
-          "summary": "272 test files were found.",
+          "summary": "283 test files were found.",
           "evidence": [
             {
               "type": "file",
@@ -217,14 +217,14 @@
               "type": "file",
               "path": "packages/mcp-server/src/tool-wiring.ts",
               "label": "packages/mcp-server/src/tool-wiring.ts",
-              "summary": "13729 lines; review and ownership risk.",
+              "summary": "13900 lines; review and ownership risk.",
               "confidence": "high"
             },
             {
               "type": "file",
               "path": "api/memory-admin.ts",
               "label": "api/memory-admin.ts",
-              "summary": "10202 lines; review and ownership risk.",
+              "summary": "10596 lines; review and ownership risk.",
               "confidence": "high"
             },
             {
@@ -245,7 +245,7 @@
               "type": "file",
               "path": "packages/mcp-server/src/server.ts",
               "label": "packages/mcp-server/src/server.ts",
-              "summary": "2422 lines; review and ownership risk.",
+              "summary": "2492 lines; review and ownership risk.",
               "confidence": "high"
             },
             {
@@ -268,14 +268,14 @@
                   "type": "file",
                   "path": "packages/mcp-server/src/tool-wiring.ts",
                   "label": "packages/mcp-server/src/tool-wiring.ts",
-                  "summary": "13729 lines; review and ownership risk.",
+                  "summary": "13900 lines; review and ownership risk.",
                   "confidence": "high"
                 },
                 {
                   "type": "file",
                   "path": "api/memory-admin.ts",
                   "label": "api/memory-admin.ts",
-                  "summary": "10202 lines; review and ownership risk.",
+                  "summary": "10596 lines; review and ownership risk.",
                   "confidence": "high"
                 },
                 {
@@ -296,7 +296,7 @@
                   "type": "file",
                   "path": "packages/mcp-server/src/server.ts",
                   "label": "packages/mcp-server/src/server.ts",
-                  "summary": "2422 lines; review and ownership risk.",
+                  "summary": "2492 lines; review and ownership risk.",
                   "confidence": "high"
                 }
               ]
@@ -639,7 +639,7 @@
           "title": "Docs reference evidence and proof",
           "status": "pass",
           "score": 100,
-          "summary": "2322 evidence/proof references were found.",
+          "summary": "2328 evidence/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -831,7 +831,7 @@
           "title": "Credential and connector mapping evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "955 credential/connector mapping references were found.",
+          "summary": "953 credential/connector mapping references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -979,7 +979,7 @@
           "title": "Audit trail and proof language exists",
           "status": "pass",
           "score": 100,
-          "summary": "2848 audit/proof references were found.",
+          "summary": "2861 audit/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1076,7 +1076,7 @@
           "title": "AI provider inventory evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "454 AI provider/model references were found.",
+          "summary": "455 AI provider/model references were found.",
           "evidence": [
             {
               "type": "file",
@@ -1127,7 +1127,7 @@
           "title": "AI oversight and review evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "2392 oversight/review references were found.",
+          "summary": "2444 oversight/review references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1178,7 +1178,7 @@
           "title": "AI data/source notes exist",
           "status": "pass",
           "score": 100,
-          "summary": "1769 AI data/source references were found.",
+          "summary": "1795 AI data/source references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1261,14 +1261,14 @@
           "type": "file",
           "path": "packages/mcp-server/src/tool-wiring.ts",
           "label": "packages/mcp-server/src/tool-wiring.ts",
-          "summary": "13729 lines; review and ownership risk.",
+          "summary": "13900 lines; review and ownership risk.",
           "confidence": "high"
         },
         {
           "type": "file",
           "path": "api/memory-admin.ts",
           "label": "api/memory-admin.ts",
-          "summary": "10202 lines; review and ownership risk.",
+          "summary": "10596 lines; review and ownership risk.",
           "confidence": "high"
         },
         {
@@ -1289,7 +1289,7 @@
           "type": "file",
           "path": "packages/mcp-server/src/server.ts",
           "label": "packages/mcp-server/src/server.ts",
-          "summary": "2422 lines; review and ownership risk.",
+          "summary": "2492 lines; review and ownership risk.",
           "confidence": "high"
         }
       ]
@@ -1463,14 +1463,14 @@
       "type": "file",
       "path": "packages/mcp-server/src/tool-wiring.ts",
       "label": "packages/mcp-server/src/tool-wiring.ts",
-      "summary": "13729 lines; review and ownership risk.",
+      "summary": "13900 lines; review and ownership risk.",
       "confidence": "high"
     },
     {
       "type": "file",
       "path": "api/memory-admin.ts",
       "label": "api/memory-admin.ts",
-      "summary": "10202 lines; review and ownership risk.",
+      "summary": "10596 lines; review and ownership risk.",
       "confidence": "high"
     },
     {
@@ -1491,7 +1491,7 @@
       "type": "file",
       "path": "packages/mcp-server/src/server.ts",
       "label": "packages/mcp-server/src/server.ts",
-      "summary": "2422 lines; review and ownership risk.",
+      "summary": "2492 lines; review and ownership risk.",
       "confidence": "high"
     },
     {
