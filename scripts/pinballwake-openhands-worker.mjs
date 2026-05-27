@@ -96,6 +96,7 @@ export async function runOpenHandsWorker({
   }
 
   if (!result || result.ok === false) {
+    const attempts = compactAttemptTrail(result?.attempts);
     return hold({
       job: normalizedJob,
       executorSeatId,
@@ -104,6 +105,7 @@ export async function runOpenHandsWorker({
       evidence: {
         exit_code: result?.exit_code ?? null,
         output: clipOutput(result?.output, 2000),
+        attempts,
       },
     });
   }
@@ -416,6 +418,18 @@ function clipOutput(value, max) {
   const head = Math.ceil(budget * 0.35);
   const tail = Math.max(0, budget - head);
   return `${text.slice(0, head)}${marker}${text.slice(text.length - tail)}`;
+}
+
+function compactAttemptTrail(attempts, max = 8) {
+  if (!Array.isArray(attempts) || attempts.length === 0) return [];
+  return attempts.slice(0, max).map((attempt) => ({
+    modelId: clip(attempt?.modelId, 80),
+    openRouterModel: clip(attempt?.openRouterModel, 140),
+    status: clip(attempt?.status, 40),
+    ok: attempt?.ok === true,
+    reason: clip(attempt?.reason, 140),
+    http_status: typeof attempt?.http_status === "number" ? attempt.http_status : null,
+  }));
 }
 
 function toDate(value) {

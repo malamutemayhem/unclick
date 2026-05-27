@@ -43,10 +43,18 @@ describe("writerlane free-writer: happy path", () => {
   it("writes files, runs tests, captures the diff, and returns a validated patch", async () => {
     const order = [];
     const writes = [];
+    let requestBody;
     const runner = createWriterLaneFreeWriterRunner({
       env: { LLM_API_KEY: "k", LLM_BASE_URL: "https://example.test/api/v1" },
       models: [MODEL_A],
-      fetchImpl: fakeFetchOnce(fileBlock("docs/x.md", "hello world")),
+      fetchImpl: async (_url, init) => {
+        requestBody = JSON.parse(init.body);
+        return fakeFetchOnce(fileBlock("docs/x.md", "hello world"))();
+      },
+      readFileImpl: async ({ path }) => {
+        order.push("read");
+        return `current contents for ${path}\n`;
+      },
       runProcess: async () => {
         order.push("test");
         return { ok: true, exit_code: 0, output: "" };
@@ -61,7 +69,10 @@ describe("writerlane free-writer: happy path", () => {
       },
     });
 
-    const result = await runner({ scopePack: { owned_files: OWNED, verification: ["node --test docs/x.test.mjs"] } });
+    const result = await runner({
+      prompt: "Runner says: implement the scoped docs change.",
+      scopePack: { owned_files: OWNED, verification: ["node --test docs/x.test.mjs"] },
+    });
 
     assert.equal(result.ok, true);
     assert.equal(result.model, "m-a");
@@ -70,8 +81,12 @@ describe("writerlane free-writer: happy path", () => {
     assert.deepEqual(result.validation, { testsPassed: true, clean: true, withinDiffBudget: true });
     assert.equal(result.diff_source, "worktree");
     // ordering: write the file, run the real test, THEN capture (capture reverts)
-    assert.deepEqual(order, ["write", "test", "capture"]);
+    assert.deepEqual(order, ["read", "write", "test", "capture"]);
     assert.deepEqual(writes, [{ path: "docs/x.md", content: "hello world\n" }]);
+    const prompt = requestBody.messages[0].content;
+    assert.match(prompt, /Runner says: implement the scoped docs change/);
+    assert.match(prompt, /CURRENT_FILE: docs\/x\.md/);
+    assert.match(prompt, /current contents for docs\/x\.md/);
   });
 });
 
@@ -103,6 +118,7 @@ describe("writerlane free-writer: fail-closed paths", () => {
     assert.equal(result.ok, false);
     assert.equal(result.reason, "writerlane_free_chain_exhausted");
     assert.equal(result.attempts[0].reason, "writerlane_tests_failed");
+    assert.match(result.output, /m-a \(vendor\/a:free\): writerlane_tests_failed/);
   });
 
   it("rejects unclean output (chat-template junk in added lines)", async () => {
@@ -237,9 +253,18 @@ describe("writerlane free-writer: pure helpers", () => {
   });
 
   it("buildFullContentsPrompt lists owned files and verification commands", () => {
-    const prompt = buildFullContentsPrompt({ ownedFiles: OWNED, scopePack: { verification: ["node --test x"] }, model: MODEL_A });
+    const prompt = buildFullContentsPrompt({
+      ownedFiles: OWNED,
+      scopePack: { verification: ["node --test x"] },
+      model: MODEL_A,
+      runnerPrompt: "Runner prompt body",
+      fileContexts: [{ path: "docs/x.md", status: "present", content: "existing text", bytes: 13, included_bytes: 13, truncated: false }],
+    });
     assert.match(prompt, /FILE: <path>/);
     assert.match(prompt, /- docs\/x\.md/);
     assert.match(prompt, /node --test x/);
+    assert.match(prompt, /Runner prompt body/);
+    assert.match(prompt, /CURRENT_FILE: docs\/x\.md/);
+    assert.match(prompt, /existing text/);
   });
 });

@@ -30,7 +30,7 @@
 // never touch the network, the filesystem, or git. The API key is read only into
 // the Authorization header and never logged. Free models only.
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import {
@@ -48,6 +48,8 @@ const DEFAULT_TIMEOUT_MS = 20 * 60 * 1000;
 const MAX_PATCH_BYTES = 120_000;
 const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
 const DEFAULT_MAX_MODELS = 4;
+const DEFAULT_MAX_CONTEXT_BYTES = 90_000;
+const MAX_ATTEMPT_OUTPUT_BYTES = 2_000;
 
 // Adapter-specific reason codes (the gate / validator reuse the WriterLane codes).
 export const WRITERLANE_OPENROUTER_UNCONFIGURED = "writerlane_openrouter_unconfigured";
@@ -65,10 +67,12 @@ export function createWriterLaneFreeWriterRunner({
   fetchImpl,
   runProcess = runProcessCommand,
   captureDiff = captureOwnedWorktreeDiff,
+  readFileImpl = defaultReadFile,
   writeFileImpl = defaultWriteFile,
   models = null,
   proofMode = "autonomy",
   maxPatchBytes = MAX_PATCH_BYTES,
+  maxContextBytes = DEFAULT_MAX_CONTEXT_BYTES,
   diffBudget = {},
   // When there is no verification command in the scope pack we cannot prove the
   // code works, so by default the writer fails closed. Setting this true treats a
@@ -90,7 +94,7 @@ export function createWriterLaneFreeWriterRunner({
   ).trim();
   const doFetch = fetchImpl || globalThis.fetch;
 
-  return async ({ scopePack, job, timeoutMs: callTimeoutMs } = {}) => {
+  return async ({ scopePack, job, prompt: runnerPrompt = "", timeoutMs: callTimeoutMs } = {}) => {
     const effectiveTimeout = Number.isFinite(callTimeoutMs) ? callTimeoutMs : timeoutMs;
     const ownedFiles = normalizePaths(
       scopePack?.owned_files || scopePack?.ownedFiles || job?.owned_files || [],
@@ -115,11 +119,23 @@ export function createWriterLaneFreeWriterRunner({
       return { ok: false, reason: WRITERLANE_NO_FREE_MODELS, attempts: [] };
     }
 
+    const fileContexts = await readOwnedFileContexts({
+      cwd,
+      ownedFiles,
+      readFileImpl,
+      maxContextBytes,
+    });
     const attempts = [];
 
     for (const model of chain) {
       const status = model?.empirical?.status ?? "trial";
-      const prompt = buildFullContentsPrompt({ ownedFiles, scopePack, model });
+      const prompt = buildFullContentsPrompt({
+        ownedFiles,
+        scopePack,
+        model,
+        runnerPrompt,
+        fileContexts,
+      });
 
       const completion = await callOpenRouter({
         doFetch,
@@ -130,7 +146,7 @@ export function createWriterLaneFreeWriterRunner({
         timeoutMs: effectiveTimeout,
       });
       if (!completion.ok) {
-        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: completion.reason });
+        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: completion.reason, http_status: completion.status ?? null });
         continue;
       }
 
@@ -206,7 +222,12 @@ export function createWriterLaneFreeWriterRunner({
       };
     }
 
-    return { ok: false, reason: WRITERLANE_FREE_CHAIN_EXHAUSTED, attempts };
+    return {
+      ok: false,
+      reason: WRITERLANE_FREE_CHAIN_EXHAUSTED,
+      attempts,
+      output: summarizeAttemptTrail(attempts),
+    };
   };
 }
 
@@ -297,16 +318,27 @@ function splitArgsSafe(command) {
 // Prompt + response parsing
 // ---------------------------------------------------------------------------
 
-export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model = {} } = {}) {
+export function buildFullContentsPrompt({
+  ownedFiles = [],
+  scopePack = {},
+  model = {},
+  runnerPrompt = "",
+  fileContexts = [],
+} = {}) {
   const lines = [
     "You are an UnClick WriterLane free-model writer running AFK.",
     "Implement the requested change by returning the FULL new contents of each owned file.",
     "For EACH owned file, output a line exactly `FILE: <path>` followed by a fenced code block containing the complete new file contents.",
     "Change only the owned files. Do not commit, push, merge, deploy, or touch anything outside them.",
+    "Use the current file contents below as the source of truth. Preserve unrelated code.",
     `Model: ${model.openRouterModel || "unknown"}`,
     "Owned files:",
     ...ownedFiles.map((file) => `- ${file}`),
   ];
+  if (runnerPrompt) {
+    lines.push("Runner task prompt:");
+    lines.push(compactText(runnerPrompt, 8_000));
+  }
   const intent = scopePack?.changeIntent || scopePack?.change_intent || scopePack?.chip || scopePack?.title;
   if (intent) {
     lines.push("Change intent:");
@@ -325,6 +357,24 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
   if (scopePack?.body || scopePack?.description) {
     lines.push("Context:");
     lines.push(String(scopePack.body || scopePack.description));
+  }
+  if (fileContexts.length) {
+    lines.push("Current owned file contents:");
+    for (const context of fileContexts) {
+      lines.push(`CURRENT_FILE: ${context.path}`);
+      if (context.status === "present") {
+        lines.push(
+          context.truncated
+            ? `Content is truncated to ${context.included_bytes} of ${context.bytes} bytes.`
+            : `Content is complete (${context.bytes} bytes).`,
+        );
+        lines.push("````");
+        lines.push(context.content);
+        lines.push("````");
+      } else {
+        lines.push("File is missing or unreadable. Create it only if the ScopePack explicitly needs it.");
+      }
+    }
   }
   return lines.join("\n");
 }
@@ -466,6 +516,67 @@ async function defaultWriteFile({ cwd, path, content }) {
   const abs = join(cwd, path);
   await mkdir(dirname(abs), { recursive: true });
   await writeFile(abs, content, "utf8");
+}
+
+async function defaultReadFile({ cwd, path }) {
+  return readFile(join(cwd, path), "utf8");
+}
+
+async function readOwnedFileContexts({ cwd, ownedFiles, readFileImpl, maxContextBytes }) {
+  const contexts = [];
+  let remaining = Math.max(0, Number.isFinite(maxContextBytes) ? maxContextBytes : DEFAULT_MAX_CONTEXT_BYTES);
+  for (const file of normalizePaths(ownedFiles)) {
+    let content;
+    try {
+      content = await readFileImpl({ cwd, path: file });
+    } catch {
+      contexts.push({ path: file, status: "missing" });
+      continue;
+    }
+
+    const text = String(content ?? "");
+    const bytes = Buffer.byteLength(text, "utf8");
+    const included = remaining > 0 ? truncateToByteBudget(text, remaining) : "";
+    const includedBytes = Buffer.byteLength(included, "utf8");
+    remaining = Math.max(0, remaining - includedBytes);
+    contexts.push({
+      path: file,
+      status: "present",
+      content: included,
+      bytes,
+      included_bytes: includedBytes,
+      truncated: includedBytes < bytes,
+    });
+  }
+  return contexts;
+}
+
+function truncateToByteBudget(text, maxBytes) {
+  let used = 0;
+  let out = "";
+  for (const char of String(text ?? "")) {
+    const bytes = Buffer.byteLength(char, "utf8");
+    if (used + bytes > maxBytes) break;
+    out += char;
+    used += bytes;
+  }
+  return out;
+}
+
+function summarizeAttemptTrail(attempts = []) {
+  if (!Array.isArray(attempts) || attempts.length === 0) return null;
+  const lines = attempts.map((attempt) => {
+    const reason = attempt.ok ? "ok" : attempt.reason || "failed";
+    const http = attempt.http_status ? ` http=${attempt.http_status}` : "";
+    return `${attempt.modelId || "unknown"} (${attempt.openRouterModel || "unknown"}): ${reason}${http}`;
+  });
+  return compactText(lines.join("\n"), MAX_ATTEMPT_OUTPUT_BYTES);
+}
+
+function compactText(value, max) {
+  const text = String(value ?? "");
+  if (text.length <= max) return text;
+  return `${text.slice(0, Math.max(0, max - 3))}...`;
 }
 
 function ensureTrailingNewline(content) {

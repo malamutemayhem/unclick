@@ -186,6 +186,35 @@ describe("runOpenHandsWorker", () => {
     assert.match(result.receipt.evidence.output, /before producing a patch/);
   });
 
+  test("keeps the free-writer attempt trail on HOLD receipts", async () => {
+    const result = await runOpenHandsWorker({
+      job: job(),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async () => ({
+        ok: false,
+        reason: "writerlane_free_chain_exhausted",
+        output: "gpt-oss-120b (openai/gpt-oss-120b:free): writerlane_no_file_contents",
+        attempts: [
+          {
+            modelId: "gpt-oss-120b",
+            openRouterModel: "openai/gpt-oss-120b:free",
+            status: "proven",
+            ok: false,
+            reason: "writerlane_no_file_contents",
+          },
+        ],
+      }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "writerlane_free_chain_exhausted");
+    assert.equal(result.receipt.evidence.attempts[0].modelId, "gpt-oss-120b");
+    assert.equal(result.receipt.evidence.attempts[0].reason, "writerlane_no_file_contents");
+    assert.match(result.receipt.evidence.output, /writerlane_no_file_contents/);
+  });
+
   test("keeps the tail of long OpenHands failure output", async () => {
     const output = `${"installing dependency\n".repeat(400)}FINAL ERROR: missing model config`;
     const result = await runOpenHandsWorker({
