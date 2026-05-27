@@ -144,7 +144,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 8f56bcf4cb09 | 17833 |
+| scripts/pinballwake-xpass-gate-room.mjs | 92b4e63503f5 | 20902 |
 | packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |
