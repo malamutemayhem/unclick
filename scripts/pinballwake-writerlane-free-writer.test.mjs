@@ -244,6 +244,43 @@ describe("writerlane free-writer: pure helpers", () => {
     assert.equal(blocks[0].content, "C");
   });
 
+  it("parseFileBlocks accepts common free-model file block variants", () => {
+    const content = [
+      "File: `docs/x.md`",
+      "```markdown",
+      "from file label",
+      "```",
+      "### docs/y.md",
+      "```md",
+      "from heading",
+      "```",
+      "```markdown filename=\"docs/z.md\"",
+      "from info string",
+      "```",
+    ].join("\n");
+    const blocks = parseFileBlocks(content, ["docs/x.md", "docs/y.md", "docs/z.md"]);
+    assert.deepEqual(blocks, [
+      { path: "docs/x.md", content: "from file label" },
+      { path: "docs/y.md", content: "from heading" },
+      { path: "docs/z.md", content: "from info string" },
+    ]);
+  });
+
+  it("parseFileBlocks does not treat echoed current-file context as an output marker", () => {
+    const content = [
+      "CURRENT FILE: docs/x.md",
+      "```",
+      "old context",
+      "```",
+      "FILE: docs/y.md",
+      "```",
+      "new content",
+      "```",
+    ].join("\n");
+    const blocks = parseFileBlocks(content, ["docs/x.md", "docs/y.md"]);
+    assert.deepEqual(blocks, [{ path: "docs/y.md", content: "new content" }]);
+  });
+
   it("parseFileBlocks falls back to a lone fenced block for a single owned file", () => {
     const blocks = parseFileBlocks("```\njust code\n```", ["src/only.mjs"]);
     assert.equal(blocks.length, 1);
@@ -287,6 +324,8 @@ describe("writerlane free-writer: pure helpers", () => {
       currentFiles: [{ path: "docs/x.md", content: "old file" }],
     });
     assert.match(prompt, /FILE: <path>/);
+    assert.match(prompt, /Return only file blocks/);
+    assert.match(prompt, /Required response shape:/);
     assert.match(prompt, /- docs\/x\.md/);
     assert.match(prompt, /node --test x/);
     assert.match(prompt, /Current owned file contents:/);
