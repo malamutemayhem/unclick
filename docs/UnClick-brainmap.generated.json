@@ -6962,8 +6962,8 @@
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",
-      "hash": "18a489d3ab94",
-      "bytes": 5750
+      "hash": "111454c76c0a",
+      "bytes": 13547
     },
     {
       "source": "packages/mcp-server/src/csuite-tool.ts",
