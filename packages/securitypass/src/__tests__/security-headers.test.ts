@@ -84,7 +84,7 @@ describe("checkSecurityHeaders", () => {
 describe("runSkeletonScan (scope-gated)", () => {
   beforeEach(() => __resetForTests());
 
-  it("refuses to scan even a fixture URL until scope is verified (deny-all default)", async () => {
+  it("refuses to scan even a fixture URL when scope proof is missing", async () => {
     const srv = await startServer({
       "Content-Security-Policy": "default-src 'self'",
       "Strict-Transport-Security": "max-age=63072000",
@@ -93,12 +93,33 @@ describe("runSkeletonScan (scope-gated)", () => {
       "Permissions-Policy": "geolocation=()",
     });
     try {
-      // Even a benign fixture URL must be rejected by the gate. The probe
+      // Even a benign fixture URL must be rejected without proof. The probe
       // helper is exercised directly above; this test is strictly about
       // the runner refusing to run without scope verification.
       await expect(
         runSkeletonScan({ target: { type: "url", url: srv.url } }),
       ).rejects.toBeInstanceOf(ScopeUnverifiedError);
+    } finally {
+      await srv.close();
+    }
+  });
+
+  it("runs the shared path after signed scope proof is supplied", async () => {
+    const srv = await startServer({
+      "Content-Security-Policy": "default-src 'self'",
+      "Strict-Transport-Security": "max-age=63072000",
+      "X-Frame-Options": "DENY",
+      "X-Content-Type-Options": "nosniff",
+      "Permissions-Policy": "geolocation=()",
+    });
+    try {
+      const result = await runSkeletonScan(
+        { target: { type: "url", url: srv.url }, pack_id: "fixture-pack" },
+        { contractId: "contract-1", proofMethod: "signed_email", expectedToken: "signed-token" },
+      );
+      expect(result.run.status).toBe("complete");
+      expect(result.finding.verdict).toBe("check");
+      expect(result.run.scope_performed[0]).toMatch(/Scope verified/);
     } finally {
       await srv.close();
     }
