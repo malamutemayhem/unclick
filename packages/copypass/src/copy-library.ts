@@ -285,6 +285,7 @@ export function detectCopyPassFindings(
 
   const blockFindings = blocks.flatMap((block) => {
     const normalized = normalizeCopy(block.text);
+    const isPolicyExample = isPolicyExampleCatalog(block, normalized);
     const findings: CopyPassFinding[] = [];
 
     if (
@@ -335,6 +336,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "unsupported-superiority") &&
+      !isPolicyExample &&
       containsAny(normalized, SUPERIORITY_TERMS) &&
       !containsAny(normalized, PROOF_TERMS)
     ) {
@@ -364,6 +366,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "risky-guarantee-language") &&
+      !isPolicyExample &&
       hasRiskyGuarantee(normalized)
     ) {
       findings.push(
@@ -378,6 +381,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "detector-evasion-claim") &&
+      !isPolicyExample &&
       containsAny(normalized, DETECTOR_EVASION_TERMS)
     ) {
       findings.push(
@@ -392,6 +396,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "ai-slop-language") &&
+      !isPolicyExample &&
       (containsAny(normalized, AI_SLOP_TERMS) || hasEmDash(block.text))
     ) {
       findings.push(
@@ -421,6 +426,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "misleading-urgency") &&
+      !isPolicyExample &&
       containsAny(normalized, URGENCY_TERMS) &&
       !hasUrgencySupport(normalized)
     ) {
@@ -436,6 +442,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "ui-honesty-gap") &&
+      !isPolicyExample &&
       containsAny(normalized, UI_AUTOMATION_TERMS) &&
       !containsAny(normalized, PROOF_TERMS) &&
       !containsAny(normalized, ["beta", "when safe", "preview", "manual review"])
@@ -455,7 +462,11 @@ export function detectCopyPassFindings(
 
   return [
     ...blockFindings,
-    ...detectInternalConsistencyFindings(blocks, activeCheckIds, checkById),
+    ...detectInternalConsistencyFindings(
+      blocks.filter((block) => !isPolicyExampleCatalog(block, normalizeCopy(block.text))),
+      activeCheckIds,
+      checkById,
+    ),
   ];
 }
 
@@ -465,6 +476,54 @@ export function normalizeCopy(value: string): string {
 
 function isPrimaryBlock(block: CopyPassCopyBlock): boolean {
   return block.kind === "hero" || block.kind === "headline";
+}
+
+function isPolicyExampleCatalog(block: CopyPassCopyBlock, normalized: string): boolean {
+  if (block.kind !== "doc") return false;
+
+  const sourceContext = normalizeCopy(
+    [
+      block.label ?? "",
+      block.source_path ?? "",
+      block.source_url ?? "",
+    ].join(" "),
+  );
+  const catalogContext = `${sourceContext} ${normalized}`;
+
+  const hasGuardrailContext = containsAny(catalogContext, [
+    "banned",
+    "forbidden",
+    "blocked",
+    "disallowed",
+    "do not use",
+    "guardrail",
+    "linter",
+    "marketing copy audit",
+    "passguard",
+    "policy",
+  ]);
+  const hasExampleContext = containsAny(catalogContext, [
+    "allowed framing",
+    "banned phrase",
+    "banned phrases",
+    "example",
+    "examples",
+    "phrase",
+    "phrases",
+    "term",
+    "terms",
+    "wording",
+  ]);
+  const hasRiskTerm = containsAny(normalized, [
+    ...SUPERIORITY_TERMS,
+    ...GUARANTEE_TERMS,
+    ...DETECTOR_EVASION_TERMS,
+    ...AI_SLOP_TERMS,
+    ...URGENCY_TERMS,
+    ...UI_AUTOMATION_TERMS,
+  ]);
+
+  return hasGuardrailContext && hasExampleContext && hasRiskTerm;
 }
 
 function isActive(activeCheckIds: Set<CopyPassCheckId>, checkId: CopyPassCheckId): boolean {
