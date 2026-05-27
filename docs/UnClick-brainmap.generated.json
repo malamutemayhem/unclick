@@ -6972,8 +6972,8 @@
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",
-      "hash": "18a489d3ab94",
-      "bytes": 5750
+      "hash": "111454c76c0a",
+      "bytes": 13547
     },
     {
       "source": "packages/mcp-server/src/csuite-tool.ts",
@@ -7037,8 +7037,8 @@
     },
     {
       "source": ".github/workflows/autonomous-runner.yml",
-      "hash": "d280b09dbb76",
-      "bytes": 15265
+      "hash": "a1280cfec46b",
+      "bytes": 15338
     },
     {
       "source": ".github/workflows/claude.yml",

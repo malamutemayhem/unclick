@@ -12662,7 +12662,7 @@ export const ADDITIONAL_TOOLS = [
   // ── crews-tool.ts (Orchestrator Wizard) ──────────────────────────────────────
   {
     name: "start_crew_run",
-    description: "Call this tool when the user wants to start a Crews Council run. Creates the run row on the UnClick API and returns a ConversationalCard with next actions. LLM turns are expected to flow through MCP sampling; if the Orchestrator does not support sampling the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
+    description: "Call this tool when the user wants to start a Crews Council run. In a sampling-capable MCP client, it prepares the run, asks advisors for opinions, runs peer review, persists the Chairman synthesis, and returns a ConversationalCard. If sampling is unavailable, the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,

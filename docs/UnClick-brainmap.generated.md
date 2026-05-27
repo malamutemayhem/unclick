@@ -79,7 +79,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/commonsensepass-tool.ts | 02d0d82630d7 | 1991 |
 | packages/mcp-server/src/convertkit-tool.ts | 2f77303a3441 | 8498 |
 | packages/mcp-server/src/copypass-tool.ts | 2a5f73ece606 | 14259 |
-| packages/mcp-server/src/crews-tool.ts | 18a489d3ab94 | 5750 |
+| packages/mcp-server/src/crews-tool.ts | 111454c76c0a | 13547 |
 | packages/mcp-server/src/csuite-tool.ts | 0ab5af89bb49 | 70236 |
 | packages/mcp-server/src/datadog-tool.ts | 802b808614cd | 5556 |
 | packages/mcp-server/src/datetime-tool.ts | 19075fddbc55 | 10618 |
@@ -92,7 +92,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/ebird-tool.ts | 3deedf3fde19 | 6262 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
-| .github/workflows/autonomous-runner.yml | d280b09dbb76 | 15265 |
+| .github/workflows/autonomous-runner.yml | a1280cfec46b | 15338 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
 | .github/workflows/dirty-branch-hygiene.yml | 9d192a7da041 | 2190 |
 | .github/workflows/dogfood-report.yml | d485b8d37111 | 3987 |
