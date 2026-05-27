@@ -79,7 +79,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/compliancepass-tool.ts | 9b81776067e1 | 3127 |
 | packages/mcp-server/src/convertkit-tool.ts | 2f77303a3441 | 8498 |
 | packages/mcp-server/src/copypass-tool.ts | 2a5f73ece606 | 14259 |
-| packages/mcp-server/src/crews-tool.ts | 18a489d3ab94 | 5750 |
+| packages/mcp-server/src/crews-tool.ts | 111454c76c0a | 13547 |
 | packages/mcp-server/src/csuite-tool.ts | 0ab5af89bb49 | 70236 |
 | packages/mcp-server/src/datadog-tool.ts | 802b808614cd | 5556 |
 | packages/mcp-server/src/datetime-tool.ts | 19075fddbc55 | 10618 |

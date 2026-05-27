@@ -1,7 +1,7 @@
 # PRD: Crews
 
-**Status**: Shipped through Phase C. Council template execution engine live.
-**Last updated**: 2026-04-25.
+**Status**: Shipped through Phase C with MCP-sampling Council execution. XPass council layer documented.
+**Last updated**: 2026-05-27.
 
 ## Problem statement
 
@@ -19,8 +19,8 @@ Crews removes the wiring. Users compose a crew from pre-built personas, hit run,
 
 1. **Composable agent personas.** Pre-built roles (developer, researcher, writer, organiser) with tuned seed prompts. Users clone a system persona, adjust the seed, and add it to a crew.
 2. **Crew templates.** Ready-to-run crews (Council, Writer-Researcher, Launch Team) that drop in with one click. Starter data in `src/data/starterCrews.ts`.
-3. **Phase C execution engine.** The Council engine (`src/lib/crews/engine.ts`) runs a multi-turn orchestration with token budgets, per-agent output capture, and structured completion. `mc_crew_runs` records input, output, token spend, and provenance per run.
-4. **Per-run audit trail.** Every run writes `mc_crew_runs` plus `agent_trace` entries. Users can replay, fork, or export any run.
+3. **Phase C execution engine.** The Council engine and MCP tool run a multi-turn orchestration with token budgets, per-agent output capture, and structured completion. `mc_crew_runs` records input, output, token spend, run snapshot, and provenance per run.
+4. **Per-run audit trail.** Every run writes `mc_crew_runs` plus `mc_run_messages` entries for advisor opinions, peer reviews, and Chairman synthesis. Users can replay, fork, or export any run.
 5. **Tenant isolation.** Crews, agents, and runs all scope to `api_key_hash`. System personas (marked `is_system`) are shared in read-only form; user clones live inside their own tenant.
 6. **Admin UI.** Crew Composer, crew list, run detail, settings. Card-based, idiot-proof. Non-coders assemble a crew in under five minutes.
 
@@ -43,9 +43,23 @@ Crews removes the wiring. Users compose a crew from pre-built personas, hit run,
 
 - **System persona clone model over live reference.** If a tenant edits a cloned persona, only their crew changes. System personas are versioned; a propagation path is deliberate rather than implicit. Blast radius is self-contained.
 - **`is_system` flag over a separate table.** One `mc_agents` table with a boolean keeps the query path simple and lets admin UIs list system and user agents side-by-side.
-- **Engine in `src/lib/crews/engine.ts`, imported from the API layer.** Today's layout crosses the React-bundle / serverless boundary. The target-state architecture moves it to `packages/engine`; we accepted the boundary crossing for speed during Phases A through C. See `docs/architecture/current-state.md` section 5.
+- **MCP sampling for live Council runs.** User-facing LLM turns flow through the connected MCP client. The admin API prepares and persists the run, but it does not call a model directly.
 - **Token budget enforced per run.** `mc_crew_runs.token_budget` caps runaway crew cost. The user's provider still bills them; the cap prevents a misconfigured crew from draining their subscription.
-- **Per-turn audit trail.** `agent_trace` records every model and tool invocation. The crew run record is the summary; the trace is the forensic detail.
+- **Per-turn audit trail.** `mc_run_messages` records each advisor opinion, peer review, and Chairman synthesis. The crew run record is the summary; the message rows are the forensic detail.
+
+## Crews and XPass
+
+Crews is not the umbrella that replaces each XPass product. Each XPass product still owns its specific check, evidence shape, and pass/fail contract. Crews is the judgment layer that can sit on top when the product needs multiple declared hats before a decision is trusted.
+
+Recommended use:
+
+- **XPass owns proof.** TestPass proves tests, UXPass proves experience issues, SlopPass spots lazy output, SecurityPass inspects security risk, and so on.
+- **Crews owns judgment.** A Council run can add named reviewers, competing opinions, peer review, a Chairman synthesis, and dissents that did not make the final verdict.
+- **Hats are explicit.** A worker can review related work only when the run declares a different role, seat, or hat. This preserves the same-agent closure guard while still letting subscription LLMs do useful review work.
+- **Council decisions are auditable.** A completed run stores the resolved roster, template key, config hash, opinion messages, peer-review messages, final synthesis, token estimate, and any failure artifact.
+- **XPass can call Crews selectively.** Not every pass needs a Council. Use Crews for ambiguous product judgment, launch decisions, tradeoffs, taste, risk, conflicting evidence, or "is this good enough?" calls.
+
+The practical mental model: XPass is the checklist and evidence ledger; Crews is the council table where specialists argue over what that evidence means.
 
 ## Platform philosophy alignment
 
