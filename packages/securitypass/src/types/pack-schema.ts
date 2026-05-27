@@ -12,6 +12,21 @@ const TargetSchema = z.object({
   repo: z.string().optional(),
   branch: z.string().optional(),
   notes: z.string().optional(),
+}).superRefine((target, ctx) => {
+  if ((target.type === "url" || target.type === "api" || target.type === "mcp") && !target.url) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["url"],
+      message: `${target.type} targets require a URL.`,
+    });
+  }
+  if (target.type === "git" && !target.repo) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["repo"],
+      message: "git targets require a repo path.",
+    });
+  }
 });
 
 // Scope contract: pointer to the signed authorization artefact. Verification
@@ -23,8 +38,8 @@ const ScopeContractSchema = z.object({
   proof_method: z.enum(["dns_txt", "well_known", "bug_bounty_program", "signed_email"]),
   expected_token: z.string().min(1).optional(),
   bug_bounty_program: z.enum(["hackerone", "bugcrowd", "intigriti", "yeswehack"]).optional(),
-  in_scope_assets: z.array(z.string()).default([]),
-  out_of_scope_assets: z.array(z.string()).default([]),
+  in_scope_assets: z.array(z.string().min(1)).default([]),
+  out_of_scope_assets: z.array(z.string().min(1)).default([]),
   signed_at: z.string().datetime().optional(),
 });
 

@@ -11,9 +11,11 @@ import {
   createRun,
   getRun,
   listFindings,
+  setRunNarrative,
   setRunStatus,
   type CreateRunInput,
 } from "./run-store.js";
+import { buildSecurityPassReport } from "./reporter.js";
 import type {
   Finding,
   NotCheckedItem,
@@ -21,8 +23,13 @@ import type {
   RunRow,
   SecurityRunTarget,
 } from "../types/index.js";
-import { verifyScopeOrThrow, type ScopeVerificationOptions } from "../scope/verify.js";
-import type { SecurityPack, PackCheck, PackTarget } from "../types/pack-schema.js";
+import {
+  ScopeUnverifiedError,
+  verifyScopeOrThrow,
+  type ScopeVerificationOptions,
+  type ScopeVerificationResult,
+} from "../scope/verify.js";
+import type { SecurityPack, PackCheck, PackScopeContract, PackTarget } from "../types/pack-schema.js";
 import { runCommand, type CommandRunner } from "../probes/command-runner.js";
 import { buildGitleaksCommand, gitleaksResultFromCommand } from "../probes/gitleaks.js";
 import { buildOsvScannerCommand, osvResultFromCommand } from "../probes/osv-scanner.js";
@@ -68,6 +75,110 @@ function targetFromPackTarget(target: PackTarget): SecurityRunTarget {
     repo: target.repo,
     branch: target.branch,
   };
+}
+
+function normalizeScopeAsset(asset: string): string {
+  return asset.trim().replaceAll("\\", "/").replace(/\/+$/, "").toLowerCase();
+}
+
+function normalizedUrlPath(pathname: string): string {
+  const path = pathname.replace(/\/+$/, "");
+  return path || "/";
+}
+
+function urlMatchesScopeAsset(targetUrl: string, asset: string): boolean {
+  let target: URL;
+  try {
+    target = new URL(targetUrl);
+  } catch {
+    return false;
+  }
+
+  const rawAsset = asset.trim();
+  const normalizedAsset = normalizeScopeAsset(rawAsset);
+  if (!normalizedAsset) return false;
+
+  if (normalizedAsset.startsWith("*.")) {
+    return target.hostname.toLowerCase().endsWith(`.${normalizedAsset.slice(2)}`);
+  }
+
+  try {
+    const assetUrl = new URL(rawAsset);
+    if (assetUrl.hostname.toLowerCase() !== target.hostname.toLowerCase()) return false;
+    const assetPath = normalizedUrlPath(assetUrl.pathname);
+    const targetPath = normalizedUrlPath(target.pathname);
+    if (assetPath === "/") return true;
+    return targetPath === assetPath || targetPath.startsWith(`${assetPath}/`);
+  } catch {
+    return target.hostname.toLowerCase() === normalizedAsset;
+  }
+}
+
+function repoMatchesScopeAsset(repo: string, asset: string): boolean {
+  const normalizedRepo = normalizeScopeAsset(repo);
+  const normalizedAsset = normalizeScopeAsset(asset);
+  if (!normalizedAsset) return false;
+  return normalizedRepo === normalizedAsset || normalizedRepo.startsWith(`${normalizedAsset}/`);
+}
+
+function targetMatchesScopeAsset(target: SecurityRunTarget, asset: string): boolean {
+  if (target.url && urlMatchesScopeAsset(target.url, asset)) return true;
+  if (target.repo && repoMatchesScopeAsset(target.repo, asset)) return true;
+  return false;
+}
+
+function scopeFailure(
+  target: SecurityRunTarget,
+  contract: PackScopeContract,
+  reason: string,
+  evidence: Record<string, unknown>,
+): ScopeUnverifiedError {
+  const proof: ScopeVerificationResult = {
+    verified: false,
+    target,
+    proof_method: contract.proof_method,
+    contract_id: contract.contract_id,
+    checked_at: new Date().toISOString(),
+    reason,
+    evidence,
+  };
+  return new ScopeUnverifiedError(target, proof);
+}
+
+function assertTargetWithinDeclaredScope(pack: SecurityPack, target: SecurityRunTarget): void {
+  const contract = pack.scope_contract;
+  const outOfScopeHit = contract.out_of_scope_assets.find((asset) => targetMatchesScopeAsset(target, asset));
+  if (outOfScopeHit) {
+    throw scopeFailure(target, contract, "Target matches an explicitly out-of-scope asset.", {
+      matched_asset: outOfScopeHit,
+      target,
+    });
+  }
+
+  if (contract.in_scope_assets.length === 0) return;
+
+  const inScopeHit = contract.in_scope_assets.find((asset) => targetMatchesScopeAsset(target, asset));
+  if (!inScopeHit) {
+    throw scopeFailure(target, contract, "Target is not listed in the signed in-scope assets.", {
+      in_scope_assets: contract.in_scope_assets,
+      target,
+    });
+  }
+}
+
+function selectPackTarget(pack: SecurityPack, targetId?: string): PackTarget {
+  if (targetId) {
+    const target = pack.targets.find((candidate) => candidate.id === targetId);
+    if (!target) {
+      throw new Error(`SecurityPass target '${targetId}' was not found in pack '${pack.id}'.`);
+    }
+    return target;
+  }
+  const target = pack.targets[0];
+  if (!target) {
+    throw new Error("SecurityPass pack must include at least one target.");
+  }
+  return target;
 }
 
 function checkAppliesToProfile(check: PackCheck, profile: RunProfile): boolean {
@@ -121,6 +232,13 @@ function commandFailureNotChecked(check: PackCheck, command: string, err: unknow
   });
 }
 
+function unreadableJsonNotChecked(check: PackCheck, command: string, err: unknown): NotCheckedItem {
+  return notChecked(check, `${command} returned JSON evidence that SecurityPass could not parse.`, {
+    command,
+    detail: err instanceof Error ? err.message : String(err),
+  });
+}
+
 function appendProbeFindings(
   runId: string,
   check: PackCheck,
@@ -134,6 +252,19 @@ function appendProbeFindings(
   for (const finding of findings) {
     appendFinding(runId, findingFromProbe(check, finding));
   }
+}
+
+function finalizeRunNarrative(runId: string): RunRow {
+  const run = getRun(runId);
+  if (!run) {
+    throw new Error(`SecurityPass run '${runId}' was not found during finalisation.`);
+  }
+  const report = buildSecurityPassReport(run, listFindings(runId));
+  setRunNarrative(runId, {
+    score: report.score,
+    posture_summary: report.posture_summary,
+  });
+  return getRun(runId) ?? run;
 }
 
 // Skeleton scan: the smallest SHARED RUN PATH for SecurityPass. Every
@@ -191,7 +322,7 @@ export async function runSkeletonScan(
   });
 
   setRunStatus(run.id, "complete");
-  return { run: getRun(run.id) ?? run, finding, headers };
+  return { run: finalizeRunNarrative(run.id), finding, headers };
 }
 
 export async function runSecurityPack(
@@ -203,14 +334,9 @@ export async function runSecurityPack(
   opts: SecurityPackRunOptions = {},
 ): Promise<SecurityPackRunResult> {
   const profile = input.profile ?? "smoke";
-  const packTarget =
-    (input.target_id ? pack.targets.find((target) => target.id === input.target_id) : undefined) ??
-    pack.targets[0];
-  if (!packTarget) {
-    throw new Error("SecurityPass pack must include at least one target.");
-  }
-
+  const packTarget = selectPackTarget(pack, input.target_id);
   const target = targetFromPackTarget(packTarget);
+  assertTargetWithinDeclaredScope(pack, target);
   const scopeProof = await verifyScopeOrThrow(target, {
     contractId: pack.scope_contract.contract_id,
     proofMethod: pack.scope_contract.proof_method,
@@ -248,26 +374,32 @@ export async function runSecurityPack(
         appendNotChecked(run.id, notChecked(check, "Security headers check requires a URL target."));
         continue;
       }
-      const headers = await checkSecurityHeaders(target.url, { fetchImpl: opts.fetchImpl });
-      appendScopePerformed(run.id, `${check.id}: fetched response headers from ${target.url}.`);
-      appendFinding(run.id, {
-        check_id: check.id,
-        title: check.title,
-        severity: check.severity,
-        verdict: headers.verdict,
-        category: check.category,
-        description: check.description,
-        remediation: check.remediation,
-        on_fail_comment: headers.on_fail_comment ?? check.on_fail,
-        evidence: { status_code: headers.status_code, checks: headers.checks },
-      });
+      try {
+        const headers = await checkSecurityHeaders(target.url, { fetchImpl: opts.fetchImpl });
+        appendScopePerformed(run.id, `${check.id}: fetched response headers from ${target.url}.`);
+        appendFinding(run.id, {
+          check_id: check.id,
+          title: check.title,
+          severity: check.severity,
+          verdict: headers.verdict,
+          category: check.category,
+          description: check.description,
+          remediation: check.remediation,
+          on_fail_comment: headers.on_fail_comment ?? check.on_fail,
+          evidence: { status_code: headers.status_code, checks: headers.checks },
+        });
+      } catch (err) {
+        appendNotChecked(run.id, notChecked(check, "Security headers check could not fetch the target.", {
+          detail: err instanceof Error ? err.message : String(err),
+        }));
+      }
       continue;
     }
 
     if (check.probe === "gitleaks") {
-      const repoPath = target.repo ?? target.url;
+      const repoPath = target.repo;
       if (!repoPath) {
-        appendNotChecked(run.id, notChecked(check, "Gitleaks check requires a git repo path."));
+        appendNotChecked(run.id, notChecked(check, "Gitleaks check requires a git target with a repo path."));
         continue;
       }
       const command = buildGitleaksCommand(repoPath);
@@ -280,7 +412,13 @@ export async function runSecurityPack(
           }));
           continue;
         }
-        const findings = gitleaksResultFromCommand(target, command, result).findings;
+        let findings: SecurityProbeFinding[];
+        try {
+          findings = gitleaksResultFromCommand(target, command, result).findings;
+        } catch (err) {
+          appendNotChecked(run.id, unreadableJsonNotChecked(check, "gitleaks", err));
+          continue;
+        }
         appendScopePerformed(run.id, `${check.id}: ran gitleaks against ${repoPath}.`);
         appendProbeFindings(run.id, check, findings, {
           probe: "gitleaks",
@@ -294,9 +432,9 @@ export async function runSecurityPack(
     }
 
     if (check.probe === "osv-scanner") {
-      const repoPath = target.repo ?? target.url;
+      const repoPath = target.repo;
       if (!repoPath) {
-        appendNotChecked(run.id, notChecked(check, "OSV-Scanner check requires a git repo path."));
+        appendNotChecked(run.id, notChecked(check, "OSV-Scanner check requires a git target with a repo path."));
         continue;
       }
       const command = buildOsvScannerCommand(repoPath);
@@ -309,7 +447,13 @@ export async function runSecurityPack(
           }));
           continue;
         }
-        const findings = osvResultFromCommand(target, command, result).findings;
+        let findings: SecurityProbeFinding[];
+        try {
+          findings = osvResultFromCommand(target, command, result).findings;
+        } catch (err) {
+          appendNotChecked(run.id, unreadableJsonNotChecked(check, "osv-scanner", err));
+          continue;
+        }
         appendScopePerformed(run.id, `${check.id}: ran osv-scanner against ${repoPath}.`);
         appendProbeFindings(run.id, check, findings, {
           probe: "osv-scanner",
@@ -329,6 +473,6 @@ export async function runSecurityPack(
   }
 
   setRunStatus(run.id, "complete");
-  const finalRun = getRun(run.id) ?? run;
+  const finalRun = finalizeRunNarrative(run.id);
   return { run: finalRun, findings: listFindings(run.id) };
 }

@@ -51,8 +51,34 @@ describe("SecurityPackSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("requires type-specific target locators", () => {
+    const missingUrl = {
+      ...minimalPack,
+      targets: [{ id: "web", type: "url" as const }],
+    };
+    const missingRepo = {
+      ...minimalPack,
+      targets: [{ id: "repo", type: "git" as const }],
+    };
+
+    expect(SecurityPackSchema.safeParse(missingUrl).success).toBe(false);
+    expect(SecurityPackSchema.safeParse(missingRepo).success).toBe(false);
+  });
+
   it("requires at least one check", () => {
     const bad = { ...minimalPack, checks: [] };
+    const result = SecurityPackSchema.safeParse(bad);
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects empty scope asset entries", () => {
+    const bad = {
+      ...minimalPack,
+      scope_contract: {
+        ...minimalPack.scope_contract,
+        in_scope_assets: [""],
+      },
+    };
     const result = SecurityPackSchema.safeParse(bad);
     expect(result.success).toBe(false);
   });

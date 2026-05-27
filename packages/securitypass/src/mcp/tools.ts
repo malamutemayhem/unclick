@@ -183,6 +183,10 @@ export async function securitypassRun(args: Record<string, unknown>): Promise<un
     pack = getRegisteredPack(packId);
   }
 
+  if (packId && !pack && !packYaml.trim() && !targetUrl) {
+    return { error: "pack not found", pack_id: packId };
+  }
+
   try {
     if (pack) {
       const result = await runSecurityPack(pack, {
@@ -216,13 +220,16 @@ export async function securitypassRun(args: Record<string, unknown>): Promise<un
       proofMethod: (String(args.proof_method ?? "") || undefined) as ScopeProofMethod | undefined,
       expectedToken: String(args.expected_token ?? "") || undefined,
     });
+    const report = buildSecurityPassReport(result.run, [result.finding]);
     return {
       stub: false,
       run_id: result.run.id,
       status: result.run.status,
+      score: report.score,
       verdict_summary: result.run.verdict_summary,
       finding_count: 1,
       not_checked_count: result.run.not_checked.length,
+      posture_summary: report.posture_summary,
       disclaimer: result.run.disclaimer,
     };
   } catch (err) {
@@ -232,6 +239,12 @@ export async function securitypassRun(args: Record<string, unknown>): Promise<un
         detail: err.message,
         next_step:
           "Call securitypass_verify_scope first, then rerun with contract_id, proof_method, and expected_token or use a pack with a verified scope contract.",
+      };
+    }
+    if (err instanceof Error && /target '.+' was not found in pack/.test(err.message)) {
+      return {
+        error: "target_not_found",
+        detail: err.message,
       };
     }
     throw err;
@@ -277,6 +290,12 @@ export async function securitypassRegisterPack(args: Record<string, unknown>): P
   const parsed = parsePackYaml(yaml);
   if (parsed.error) return parsed.error;
   if (!parsed.pack) return { error: "schema validation failed" };
+  if (parsed.pack.id !== packId) {
+    return {
+      error: "pack_id mismatch",
+      detail: `Requested pack_id '${packId}' does not match YAML id '${parsed.pack.id}'.`,
+    };
+  }
   registerPack(parsed.pack);
   return {
     stub: false,

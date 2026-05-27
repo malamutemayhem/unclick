@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { runSecurityPack } from "../runner/index.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { runSecurityPack, ScopeUnverifiedError } from "../runner/index.js";
 import { __resetForTests } from "../runner/run-store.js";
 import type { SecurityPack } from "../types/pack-schema.js";
 
@@ -114,6 +114,8 @@ describe("runSecurityPack", () => {
     expect(result.findings).toHaveLength(2);
     expect(result.run.verdict_summary.fail).toBe(2);
     expect(result.findings[0].evidence?.secret_redacted).toBe("[redacted]");
+    expect(result.run.score).toBeLessThan(100);
+    expect(result.run.posture_summary).toMatch(/failing security finding/);
   });
 
   it("reports missing host scanners as not checked instead of a green pass", async () => {
@@ -127,5 +129,77 @@ describe("runSecurityPack", () => {
     expect(result.findings).toHaveLength(0);
     expect(result.run.not_checked).toHaveLength(2);
     expect(result.run.not_checked[0].reason).toMatch(/could not run/);
+    expect(result.run.score).toBe(90);
+    expect(result.run.posture_summary).toMatch(/incomplete coverage/i);
+  });
+
+  it("refuses a target outside the declared in-scope assets before any probe", async () => {
+    const pack = basePack();
+    pack.scope_contract.in_scope_assets = ["C:/not-this-repo"];
+    const commandRunner = vi.fn();
+
+    await expect(
+      runSecurityPack(pack, {}, { commandRunner }),
+    ).rejects.toBeInstanceOf(ScopeUnverifiedError);
+    expect(commandRunner).not.toHaveBeenCalled();
+  });
+
+  it("lets explicit out-of-scope assets veto otherwise in-scope targets", async () => {
+    const pack = basePack();
+    pack.scope_contract.out_of_scope_assets = [process.cwd()];
+
+    await expect(runSecurityPack(pack)).rejects.toMatchObject({
+      code: "scope_unverified",
+      proof: expect.objectContaining({
+        reason: "Target matches an explicitly out-of-scope asset.",
+      }),
+    });
+  });
+
+  it("rejects an unknown target_id instead of falling back to the first target", async () => {
+    await expect(
+      runSecurityPack(basePack(), { target_id: "missing-target" }),
+    ).rejects.toThrow(/was not found/);
+  });
+
+  it("does not send URL targets to repo-only scanners", async () => {
+    const pack = basePack();
+    pack.targets = [{ id: "web", type: "url", url: "https://example.com" }];
+    pack.scope_contract.in_scope_assets = ["https://example.com"];
+    const commandRunner = vi.fn();
+
+    const result = await runSecurityPack(pack, { target_id: "web" }, { commandRunner });
+
+    expect(result.run.status).toBe("complete");
+    expect(result.findings).toHaveLength(0);
+    expect(result.run.not_checked).toHaveLength(2);
+    expect(result.run.not_checked[0].reason).toMatch(/git target with a repo path/);
+    expect(commandRunner).not.toHaveBeenCalled();
+  });
+
+  it("records security-header fetch failures as not_checked evidence", async () => {
+    const pack = basePack();
+    pack.targets = [{ id: "web", type: "url", url: "https://example.com" }];
+    pack.scope_contract.in_scope_assets = ["https://example.com"];
+    pack.checks = [{
+      id: "web.headers",
+      title: "Security headers",
+      category: "web.headers",
+      severity: "high",
+      probe: "security-headers",
+      tags: [],
+      profiles: ["smoke", "standard", "deep"],
+    }];
+
+    const result = await runSecurityPack(pack, { target_id: "web" }, {
+      fetchImpl: async () => {
+        throw new Error("network unavailable");
+      },
+    });
+
+    expect(result.run.status).toBe("complete");
+    expect(result.findings).toHaveLength(0);
+    expect(result.run.not_checked).toHaveLength(1);
+    expect(result.run.not_checked[0].reason).toMatch(/could not fetch/);
   });
 });

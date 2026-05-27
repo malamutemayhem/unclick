@@ -28,7 +28,7 @@ export interface SecurityRunTarget {
 export interface FindingPoC {
   kind: "curl" | "prompt" | "payload" | "http_request" | "shell";
   // PoC payloads are GENERATED, NEVER auto-fired. This is a load-bearing
-  // legal invariant (DTCA / CFAA / CMA / cyber liability). Do not introduce
+  // legal invariant (DMCA / CFAA / CMA / cyber liability). Do not introduce
   // any code path that executes a PoC against a target. See test:
   // src/__tests__/runner-invariants.test.ts.
   body: string;

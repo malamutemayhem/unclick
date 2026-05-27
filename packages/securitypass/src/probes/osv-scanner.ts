@@ -25,6 +25,7 @@ export function buildOsvScannerCommand(path: string): CommandSpec {
     command: "osv-scanner",
     args: ["--format", "json", "--recursive", path],
     cwd: path,
+    timeoutMs: 120_000,
   };
 }
 

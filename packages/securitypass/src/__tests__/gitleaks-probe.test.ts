@@ -8,6 +8,7 @@ describe("Gitleaks probe scaffold", () => {
     expect(spec.args).toContain("detect");
     expect(spec.args).toContain("--report-format");
     expect(spec.args).toContain("json");
+    expect(spec.timeoutMs).toBeGreaterThan(0);
   });
 
   it("redacts secret evidence from parsed findings", () => {

@@ -10,9 +10,9 @@ import type {
   VerdictSummary,
 } from "../types/index.js";
 
-// In-memory stub for Chunk 1. Real backend is Supabase (mirrors the
-// testpass_runs / testpass_items / testpass_evidence pattern). The store
-// API is intentionally narrow so swapping backends is one file.
+// In-memory store for package tests and local dogfood runs. The production
+// backend can mirror the testpass_runs / testpass_items / testpass_evidence
+// pattern because the store API is intentionally narrow.
 
 const RUNS = new Map<string, RunRow>();
 const FINDINGS = new Map<string, Finding[]>();

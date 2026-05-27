@@ -59,6 +59,14 @@ function tokenFromWellKnown(body: unknown): string[] {
   return candidates.filter((value): value is string => typeof value === "string");
 }
 
+function textContainsStandaloneToken(value: string, token: string): boolean {
+  const trimmed = value.trim();
+  if (trimmed === token) return true;
+  return trimmed
+    .split(/[\s,;]+/)
+    .some((part) => part === token || part.endsWith(`=${token}`) || part.endsWith(`:${token}`));
+}
+
 function failure(
   target: SecurityRunTarget,
   opts: ScopeVerificationOptions,
@@ -125,7 +133,7 @@ export async function verifyScope(
       try {
         const txtRecords = await resolveTxt(recordName);
         const flattened = txtRecords.map((parts) => parts.join(""));
-        const found = flattened.some((value) => value.includes(expectedToken));
+        const found = flattened.some((value) => textContainsStandaloneToken(value, expectedToken));
         checked.push({ record: recordName, found });
         if (found) {
           return success(target, opts, {
@@ -170,7 +178,7 @@ export async function verifyScope(
         });
       }
     } catch {
-      if (text.includes(expectedToken)) {
+      if (textContainsStandaloneToken(text, expectedToken)) {
         return success(target, opts, {
           proof_url: proofUrl,
           token_sha256: hashToken(expectedToken),

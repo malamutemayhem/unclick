@@ -52,7 +52,7 @@
 
 **Legal posture (moderate):** Defensive-first language. Scope-gated offensive testing on authorised targets only. NO zero-day weaponisation. NO autonomous exploit execution. Auto-disclosure flow for third-party findings. This is the only posture that survives Australian DTCA + US ACE + cyber insurance + investor optics.
 
-**Scope verification is enforced before active probes run.** The shared run path calls `verifyScopeOrThrow` before any network I/O, so MCP tools, future API endpoints, admin UI paths, and scheduled-monitor cron paths inherit the same gate. Supported proof paths are signed scope contract, bug-bounty-program contract, DNS TXT, and `/.well-known/securitypass-scope.json`. No bypass flag exists, including for tests.
+**Scope verification is enforced before active probes run.** The shared run path checks declared `in_scope_assets` and `out_of_scope_assets`, then calls `verifyScopeOrThrow` before active probe I/O, so MCP tools, future API endpoints, admin UI paths, and scheduled-monitor cron paths inherit the same gate. Supported proof paths are signed scope contract, bug-bounty-program contract, DNS TXT, and `/.well-known/securitypass-scope.json`. No bypass flag exists, including for tests. Unknown `target_id` values fail closed, repo-only scanners require repo targets, and skipped or failed coverage is reported as `not_checked`.
 
 **Required ToS clauses:** scope warranty, prohibited use (no unauthorised targets, no malware, no DMCA circumvention, no sanctions/export violations), click-through scope acknowledgement per scan, liability cap (1x fees prior 12 mo), consequential damages limitation, willful misconduct carve-out, survival of indemnity.
 
