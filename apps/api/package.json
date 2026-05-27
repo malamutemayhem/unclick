@@ -19,7 +19,7 @@
     "@types/papaparse": "^5.5.2",
     "@unclick/core": "*",
     "diff": "^8.0.4",
-    "drizzle-orm": "^0.38.3",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.6.3",
     "marked": "^17.0.6",
     "papaparse": "^5.5.3",
