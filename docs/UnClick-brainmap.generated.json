@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 481,
+    "inventory": 482,
     "source_manifest": 94,
     "pages": 94,
-    "tools": 184,
+    "tools": 185,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 184
+      "count": 185
     },
     {
       "id": "rooms",
@@ -3182,6 +3182,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-commonsensepass-packages-mcp-server-src-commonsensepass-tool-ts",
+      "division": "Tools",
+      "name": "commonsensepass",
+      "kind": "MCP tool",
+      "meaning": "commonsensepass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/commonsensepass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-convertkit-packages-mcp-server-src-convertkit-tool-ts",
       "division": "Tools",
       "name": "convertkit",
@@ -5600,6 +5610,11 @@
       "packages/mcp-server/src/color-tool.ts"
     ],
     [
+      "commonsensepass",
+      "commonsensepass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/commonsensepass-tool.ts"
+    ],
+    [
       "convertkit",
       "convertkit MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/convertkit-tool.ts"
@@ -6692,8 +6707,8 @@
     },
     {
       "source": "package.json",
-      "hash": "9f761ff407b1",
-      "bytes": 4232
+      "hash": "70ad6dda4e3f",
+      "bytes": 4319
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",
@@ -6941,6 +6956,11 @@
       "bytes": 13643
     },
     {
+      "source": "packages/mcp-server/src/commonsensepass-tool.ts",
+      "hash": "02d0d82630d7",
+      "bytes": 1991
+    },
+    {
       "source": "packages/mcp-server/src/convertkit-tool.ts",
       "hash": "2f77303a3441",
       "bytes": 8498
@@ -7004,11 +7024,6 @@
       "source": "packages/mcp-server/src/ebird-tool.ts",
       "hash": "3deedf3fde19",
       "bytes": 6262
-    },
-    {
-      "source": "packages/mcp-server/src/elevenlabs-tool.ts",
-      "hash": "efcaeeff39d6",
-      "bytes": 10833
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

@@ -248,19 +248,35 @@ export const COMMONSENSEPASS_WORKER_FIXTURES = [
     notes: "Autopilot merge proof is complete and current.",
   },
   {
-    id: "reserved-route-specialist",
-    title: "Reserved ROUTE exemplar for specialist lanes",
+    id: "route-specialist-lane",
+    title: "Route work to the specialist lane",
     expected_verdict: "ROUTE",
-    expected_rule_id: null,
-    reserved_result: {
-      verdict: "ROUTE",
-      rule_id: null,
-      reason: "Reserved fixture for claims that should move to a specialist lane.",
-      evidence: [{ kind: "lane", ref: "securitypass" }],
-      next_action: "route_to_specialist",
-      route_to: "securitypass",
+    expected_rule_id: "R6",
+    input: {
+      claim: "route",
+      context: {
+        now_ms: NOW_MS,
+        current_lane: "general-worker",
+        required_lane: "securitypass",
+        route_to: "securitypass",
+      },
     },
-    notes: "ROUTE is part of the public verdict shape but is not emitted by R1-R5 yet.",
+    notes: "Work that belongs to a specialist lane should be routed, not self-assigned by the wrong worker.",
+  },
+  {
+    id: "route-current-lane-pass",
+    title: "Route claim already on the correct lane",
+    expected_verdict: "PASS",
+    expected_rule_id: "R6",
+    input: {
+      claim: "route",
+      context: {
+        now_ms: NOW_MS,
+        current_lane: "securitypass",
+        required_lane: "securitypass",
+      },
+    },
+    notes: "A worker on the canonical lane can continue.",
   },
 ] satisfies readonly CommonSensePassFixture[];
 

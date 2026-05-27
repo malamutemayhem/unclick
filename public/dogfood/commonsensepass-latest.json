@@ -1,0 +1,112 @@
+{
+  "kind": "commonsensepass_dogfood_receipt_v1",
+  "generatedAt": "2026-05-27T11:41:11.000Z",
+  "status": "passing",
+  "source": "commonsensepass package dogfood script",
+  "headline": "CommonSensePass blocks fake quiet, fake done, duplicate wakes, and wrong-lane work.",
+  "proofPolicy": "Passing means each listed scenario executed through commonsensepassCheck and matched its expected verdict and rule id.",
+  "scenarioIds": [
+    "false-quiet-with-backlog",
+    "no-work-with-backlog",
+    "duplicate-wake-suppress",
+    "done-without-proof",
+    "quiet-empty-queue-pass",
+    "route-specialist-lane"
+  ],
+  "summary": {
+    "total": 6,
+    "passing": 6,
+    "failing": 0
+  },
+  "results": [
+    {
+      "id": "false-quiet-with-backlog",
+      "title": "False quiet while actionable work exists",
+      "status": "passing",
+      "expected_verdict": "BLOCKER",
+      "actual_verdict": "BLOCKER",
+      "expected_rule_id": "R1",
+      "actual_rule_id": "R1",
+      "reason": "Claim \"quiet\" but 1 actionable todo(s) are queued.",
+      "evidence_refs": [
+        "todo-actionable-1"
+      ],
+      "next_action": "hydrate_queue_and_claim_one"
+    },
+    {
+      "id": "no-work-with-backlog",
+      "title": "No-work claim with backlog",
+      "status": "passing",
+      "expected_verdict": "BLOCKER",
+      "actual_verdict": "BLOCKER",
+      "expected_rule_id": "R1",
+      "actual_rule_id": "R1",
+      "reason": "Claim \"no_work\" but 1 actionable todo(s) are queued.",
+      "evidence_refs": [
+        "todo-actionable-2"
+      ],
+      "next_action": "hydrate_queue_and_claim_one"
+    },
+    {
+      "id": "duplicate-wake-suppress",
+      "title": "Duplicate wake with unchanged state",
+      "status": "passing",
+      "expected_verdict": "SUPPRESS",
+      "actual_verdict": "SUPPRESS",
+      "expected_rule_id": "R3",
+      "actual_rule_id": "R3",
+      "reason": "Wake wake-123 already emitted within 10min with matching state fingerprint.",
+      "evidence_refs": [
+        "wake-123",
+        "wake-123",
+        "same-state"
+      ]
+    },
+    {
+      "id": "done-without-proof",
+      "title": "Done claim without complete proof",
+      "status": "passing",
+      "expected_verdict": "BLOCKER",
+      "actual_verdict": "BLOCKER",
+      "expected_rule_id": "R4",
+      "actual_rule_id": "R4",
+      "reason": "done claim on todo-done-weak missing proof: closing_ref, pipeline=80.",
+      "evidence_refs": [
+        "todo-done-weak",
+        "todo-done-weak"
+      ],
+      "next_action": "attach_closing_pr_or_commit_and_set_pipeline_100"
+    },
+    {
+      "id": "quiet-empty-queue-pass",
+      "title": "Quiet claim with empty queue",
+      "status": "passing",
+      "expected_verdict": "PASS",
+      "actual_verdict": "PASS",
+      "expected_rule_id": "R1",
+      "actual_rule_id": "R1",
+      "reason": "Active-state claim consistent with queue and active_jobs.",
+      "evidence_refs": [
+        "actionable=0",
+        "in_progress_fresh=0",
+        "active_jobs=0"
+      ]
+    },
+    {
+      "id": "route-specialist-lane",
+      "title": "Route work to the specialist lane",
+      "status": "passing",
+      "expected_verdict": "ROUTE",
+      "actual_verdict": "ROUTE",
+      "expected_rule_id": "R6",
+      "actual_rule_id": "R6",
+      "reason": "Claim belongs to securitypass, not general-worker.",
+      "evidence_refs": [
+        "general-worker",
+        "securitypass"
+      ],
+      "next_action": "route_to_specialist",
+      "route_to": "securitypass"
+    }
+  ]
+}

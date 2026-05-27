@@ -22,6 +22,7 @@
     "review:dry-run": "node scripts/review-dry-run.mjs",
     "brainmap:generate": "node scripts/UnClick-brainmap.mjs",
     "brainmap:check": "node scripts/UnClick-brainmap.mjs --check",
+    "dogfood:commonsensepass": "npm run dogfood --workspace=@unclick/commonsensepass",
     "test:brainmap": "node --test scripts/UnClick-brainmap.test.mjs"
   },
   "dependencies": {

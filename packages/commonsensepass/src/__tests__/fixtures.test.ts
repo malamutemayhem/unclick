@@ -14,6 +14,7 @@ const REQUIRED_SCENARIOS = [
   "no-work-with-backlog",
   "merge-ready-without-proof",
   "done-without-proof",
+  "route-specialist-lane",
 ];
 
 function resultForFixture(fixture: CommonSensePassFixture) {
@@ -58,12 +59,14 @@ describe("CommonSensePass worker fixtures", () => {
     }
   });
 
-  it("keeps ROUTE as a reserved exemplar outside R1-R5 execution", () => {
+  it("emits ROUTE through executable R6 lane evidence", () => {
     const routeFixture = COMMONSENSEPASS_WORKER_FIXTURES.find(
       (fixture) => fixture.expected_verdict === "ROUTE",
     );
+    expect(routeFixture).toBeTruthy();
 
-    expect(routeFixture?.input).toBeUndefined();
-    expect(routeFixture?.reserved_result?.route_to).toBe("securitypass");
+    const result = resultForFixture(routeFixture!);
+    expect(result.rule_id).toBe("R6");
+    expect(result.route_to).toBe("securitypass");
   });
 });

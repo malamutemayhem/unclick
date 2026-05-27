@@ -4,16 +4,44 @@
   "description": "CommonSensePass - rule-and-evidence sanity gate for AI/worker claims (PASS/BLOCKER/HOLD/SUPPRESS/ROUTE). Verdict-only; does not build, merge, close, or mutate source state.",
   "type": "module",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./schema": "./dist/schema.js",
-    "./fixtures": "./dist/fixtures.js",
-    "./evidence": "./dist/evidence.js",
-    "./rules": "./dist/rules.js",
-    "./check": "./dist/check.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    },
+    "./fixtures": {
+      "types": "./dist/fixtures.d.ts",
+      "import": "./dist/fixtures.js"
+    },
+    "./evidence": {
+      "types": "./dist/evidence.d.ts",
+      "import": "./dist/evidence.js"
+    },
+    "./rules": {
+      "types": "./dist/rules.d.ts",
+      "import": "./dist/rules.js"
+    },
+    "./check": {
+      "types": "./dist/check.d.ts",
+      "import": "./dist/check.js"
+    },
+    "./rule-metadata": {
+      "types": "./dist/rule-metadata.d.ts",
+      "import": "./dist/rule-metadata.js"
+    },
+    "./dogfood": {
+      "types": "./dist/dogfood.d.ts",
+      "import": "./dist/dogfood.js"
+    }
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",
+    "dogfood": "npm run build && node ../../scripts/build-commonsensepass-dogfood.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
