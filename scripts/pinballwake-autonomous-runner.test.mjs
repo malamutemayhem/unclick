@@ -29,6 +29,7 @@ import {
   parseAutonomousRunnerGitStatusPorcelain,
   parseMcpEventStreamPayload,
   resolveAutonomousRunnerQueueGuard,
+  resolveAutonomousRunnerAllowedTodoRolesFromEnv,
   evaluateAutonomousRunnerGitHygiene,
   runAutonomousRunnerMainFreshnessCanary,
   runAutonomousRunnerCycle,
@@ -93,6 +94,33 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(normal.scheduled_execute_canary, false);
     assert.equal(normal.require_scope_pack, false);
     assert.equal(normal.queue_fetch_limit, 1);
+  });
+
+  it("keeps writerlane_free on the small safe queue unless explicitly widened", () => {
+    assert.deepEqual(
+      resolveAutonomousRunnerAllowedTodoRolesFromEnv({
+        AUTONOMOUS_RUNNER_WRITER: "writerlane_free",
+        AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES: "builder,plex-builder,implementation,test_fix,docs_update,code",
+      }),
+      ["docs_update", "test_fix"],
+    );
+
+    assert.equal(
+      resolveAutonomousRunnerAllowedTodoRolesFromEnv({
+        AUTONOMOUS_RUNNER_WRITER: "writerlane_free",
+        AUTONOMOUS_RUNNER_WRITER_ALLOW_BROAD_QUEUE: "true",
+        AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES: "builder,docs_update",
+      }),
+      "builder,docs_update",
+    );
+
+    assert.equal(
+      resolveAutonomousRunnerAllowedTodoRolesFromEnv({
+        AUTONOMOUS_RUNNER_WRITER: "openhands",
+        AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES: "builder,docs_update",
+      }),
+      "builder,docs_update",
+    );
   });
 
   it("treats the checked-out SHA as fresh when it matches current main", () => {
