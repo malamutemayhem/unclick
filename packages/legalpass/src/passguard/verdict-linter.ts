@@ -32,6 +32,8 @@ export const FORBIDDEN_PHRASES: ReadonlyArray<{ phrase: string; reason: string }
   { phrase: "you have to", reason: "directive phrasing - implies an instruction" },
   { phrase: "you are obligated", reason: "directive phrasing - implies a legal obligation" },
   { phrase: "do this", reason: "directive phrasing - implies an instruction" },
+  { phrase: "ask a qualified lawyer", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "ask a qualified practitioner", reason: "directive legal referral phrasing - prohibited in verdict text" },
   { phrase: "we recommend", reason: "first-person recommendation - prohibited" },
   { phrase: "the right thing to do is", reason: "normative recommendation - prohibited" },
   { phrase: "this is illegal", reason: "definitive legal conclusion - prohibited" },
