@@ -29,10 +29,10 @@ const autonomyInput: WriterLaneInput = { scopePack, proofMode: "autonomy" };
 const paidModel: WriterLaneFreeModel = {
   id: "paid-code",
   openRouterModel: "vendor/paid-code",
-  paramScale: "unknown",
-  capabilities: ["code", "reasoning"],
-  strengths: ["backend", "mixed"],
-  status: "trial",
+  bestFor: ["code", "reasoning"],
+  contextTokens: 200000,
+  bestAt: "test fixture: paid code writer",
+  empirical: { status: "trial", note: "test fixture" },
   priority: 999,
 };
 

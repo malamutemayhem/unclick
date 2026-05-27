@@ -19,12 +19,14 @@ import {
   type OpenHandsRunResult,
 } from "./openhands-backend";
 import {
+  fitScore,
   isFreeModelSlug,
   listFreeModelsByStatus,
   rankFreeModelsForTask,
   selectDefaultFreeChain,
+  topFreeModelForTask,
   WRITERLANE_FREE_MODELS,
-  type FreeModelStatus,
+  type EmpiricalStatus,
   type WriterLaneFreeModel,
 } from "./writerlane-free-models";
 
@@ -66,25 +68,25 @@ function worktreeResult(patch: string): OpenHandsRunResult {
   return { ok: true, patch, changedFiles: [ownedFile], diffSource: "worktree" };
 }
 
-// Test models with deterministic ranking for a "backend" task: strongCode wins
-// (higher priority), weakDocs is the fallback. Both trial.
+// Test models with deterministic ranking for a "backend" (code) task: strongCode
+// wins (code affinity), weakDocs is the fallback (no code affinity). Both trial.
 const strongCode: WriterLaneFreeModel = {
   id: "strong-code",
   openRouterModel: "vendor/strong-code:free",
-  paramScale: "70B",
-  capabilities: ["code", "reasoning"],
-  strengths: ["backend", "tests", "script", "mixed"],
-  status: "trial",
+  bestFor: ["code", "reasoning"],
+  contextTokens: 128000,
+  bestAt: "test fixture: code writer",
+  empirical: { status: "trial", note: "test fixture" },
   priority: 10,
 };
 
 const weakDocs: WriterLaneFreeModel = {
   id: "weak-docs",
   openRouterModel: "vendor/weak-docs:free",
-  paramScale: "1B",
-  capabilities: ["docs", "fast"],
-  strengths: ["docs"],
-  status: "trial",
+  bestFor: ["docs"],
+  contextTokens: 32000,
+  bestAt: "test fixture: docs writer",
+  empirical: { status: "trial", note: "test fixture" },
   priority: 0,
 };
 
@@ -96,52 +98,109 @@ function runnerByModel(
     byId[model.id] ?? { ok: false, reason: "no_canned_response" };
 }
 
-// The nine verified free OpenRouter candidate ids, with the status each now
-// carries from real code-slice run verdicts (see writerlane-free-models.ts):
-// proven-clean coders are "vetted"; junk-prone laguna-xs.2 is "flagged"; the
-// rest stay "trial" until a clean verdict lands.
-const VERIFIED_FREE_CANDIDATE_STATUS: Record<string, FreeModelStatus> = {
-  "openai/gpt-oss-120b:free": "vetted",
-  "minimax/minimax-m2.5:free": "vetted",
-  "poolside/laguna-m.1:free": "vetted",
+// The nine verified free OpenRouter candidate ids, with the empirical status each
+// now carries from real code-slice run verdicts (see writerlane-free-models.ts):
+// proven-clean coders are "proven"; over-editing glm and junk-prone laguna-xs.2
+// are "flagged"; the rate-limited-out reals stay "trial" until a clean verdict.
+const VERIFIED_FREE_CANDIDATE_STATUS: Record<string, EmpiricalStatus> = {
+  "openai/gpt-oss-120b:free": "proven",
+  "minimax/minimax-m2.5:free": "proven",
+  "poolside/laguna-m.1:free": "proven",
   "qwen/qwen3-coder:free": "trial",
-  "z-ai/glm-4.5-air:free": "trial",
   "deepseek/deepseek-v4-flash:free": "trial",
   "meta-llama/llama-3.3-70b-instruct:free": "trial",
   "google/gemma-4-31b-it:free": "trial",
+  "z-ai/glm-4.5-air:free": "flagged",
   "poolside/laguna-xs.2:free": "flagged",
 };
 
 describe("free-model registry: verified candidates + ranking", () => {
-  it("seeds every verified free candidate with its verdict-based status", () => {
+  it("seeds every verified free candidate with its verdict-based empirical status", () => {
     for (const [slug, status] of Object.entries(VERIFIED_FREE_CANDIDATE_STATUS)) {
       const row = WRITERLANE_FREE_MODELS.find(
         (model) => model.openRouterModel === slug,
       );
       expect(row, `missing seeded candidate ${slug}`).toBeDefined();
-      expect(row?.status).toBe(status);
+      expect(row?.empirical.status).toBe(status);
     }
   });
 
-  it("marks exactly the proven-clean coders vetted and flags the junk-prone one", () => {
-    expect(listFreeModelsByStatus("vetted").map((m) => m.id).sort()).toEqual([
+  it("marks exactly the proven-clean coders proven and flags the bad ones", () => {
+    expect(listFreeModelsByStatus("proven").map((m) => m.id).sort()).toEqual([
       "gpt-oss-120b",
       "minimax-m2.5",
       "poolside-laguna-m1",
     ]);
-    expect(listFreeModelsByStatus("flagged").map((m) => m.id)).toEqual([
+    // glm over-edits, laguna-xs.2 emits junk: both flagged.
+    expect(listFreeModelsByStatus("flagged").map((m) => m.id).sort()).toEqual([
+      "glm-4.5-air",
       "poolside-laguna-xs2",
     ]);
-    // qwen stays unverified; glm is usable but over-edit-risk: both trial.
+    // qwen and the other rate-limited-out reals stay trial (unproven, not bad).
     const trialIds = listFreeModelsByStatus("trial").map((m) => m.id);
     expect(trialIds).toContain("qwen3-coder");
-    expect(trialIds).toContain("glm-4.5-air");
+    expect(trialIds).toContain("deepseek-v4-flash");
+    expect(trialIds).not.toContain("glm-4.5-air");
+  });
+
+  it("every row carries the informed metadata the selector relies on", () => {
+    for (const model of WRITERLANE_FREE_MODELS) {
+      expect(model.bestFor.length, `${model.id} bestFor`).toBeGreaterThan(0);
+      expect(typeof model.contextTokens, `${model.id} contextTokens`).toBe(
+        "number",
+      );
+      expect(model.bestAt.trim().length, `${model.id} bestAt`).toBeGreaterThan(0);
+      expect(
+        model.empirical.note.trim().length,
+        `${model.id} empirical.note`,
+      ).toBeGreaterThan(0);
+      expect(isFreeModelSlug(model.openRouterModel), `${model.id} slug`).toBe(
+        true,
+      );
+    }
   });
 
   it("ranks openai/gpt-oss-120b:free first for a code task (proven)", () => {
     const ranked = rankFreeModelsForTask("backend");
     expect(ranked[0].id).toBe("gpt-oss-120b");
     expect(ranked[0].openRouterModel).toBe("openai/gpt-oss-120b:free");
+    expect(topFreeModelForTask("backend")?.id).toBe("gpt-oss-120b");
+  });
+
+  it("ranks by fit then empirical status: proven > trial > flagged for the same affinity", () => {
+    const ranked = rankFreeModelsForTask("backend").map((m) => m.id);
+    const idx = (id: string) => ranked.indexOf(id);
+    // proven coder above a trial coder above a flagged coder.
+    expect(idx("gpt-oss-120b")).toBeLessThan(idx("qwen3-coder")); // proven < trial
+    expect(idx("qwen3-coder")).toBeLessThan(idx("glm-4.5-air")); // trial < flagged
+    expect(idx("gemma-4-31b")).toBeLessThan(idx("poolside-laguna-xs2"));
+  });
+
+  it("routes by task-kind affinity: a docs-affinity model outranks a code-only model for docs", () => {
+    const codeRanked = rankFreeModelsForTask("backend").map((m) => m.id);
+    const docsRanked = rankFreeModelsForTask("docs").map((m) => m.id);
+    // gpt-oss is the proven generalist (code AND docs affinity), top of both.
+    expect(codeRanked[0]).toBe("gpt-oss-120b");
+    expect(docsRanked[0]).toBe("gpt-oss-120b");
+    // For docs, the docs-affinity tiny model outranks a code-only specialist;
+    // for code it is the reverse. Proves affinity, not a fixed priority, routes.
+    expect(docsRanked.indexOf("liquid-lfm-2.5-1.2b")).toBeLessThan(
+      docsRanked.indexOf("poolside-laguna-m1"),
+    );
+    expect(codeRanked.indexOf("poolside-laguna-m1")).toBeLessThan(
+      codeRanked.indexOf("liquid-lfm-2.5-1.2b"),
+    );
+  });
+
+  it("exposes the fit score so a choice is explainable", () => {
+    const gptOss = WRITERLANE_FREE_MODELS.find((m) => m.id === "gpt-oss-120b")!;
+    const lagunaXs2 = WRITERLANE_FREE_MODELS.find(
+      (m) => m.id === "poolside-laguna-xs2",
+    )!;
+    // Both code-affinity, but proven scores above flagged for a code task.
+    expect(fitScore(gptOss, "backend")).toBeGreaterThan(
+      fitScore(lagunaXs2, "backend"),
+    );
   });
 
   it("deprioritizes the junk-prone, tiny, and meta models below the proven chain", () => {
@@ -155,7 +214,7 @@ describe("free-model registry: verified candidates + ranking", () => {
     expect(ranked[0]).toBe("gpt-oss-120b");
   });
 
-  it("ranks deterministically (priority primary, stable across calls)", () => {
+  it("ranks deterministically (fit + status primary, stable across calls)", () => {
     const first = rankFreeModelsForTask("backend").map((m) => m.id);
     const second = rankFreeModelsForTask("backend").map((m) => m.id);
     expect(first).toEqual(second);
@@ -164,10 +223,10 @@ describe("free-model registry: verified candidates + ranking", () => {
       "minimax-m2.5",
       "poolside-laguna-m1",
       "qwen3-coder",
-      "glm-4.5-air",
       "deepseek-v4-flash",
       "llama-3.3-70b",
       "gemma-4-31b",
+      "glm-4.5-air",
       "poolside-laguna-xs2",
     ]);
   });
@@ -176,10 +235,10 @@ describe("free-model registry: verified candidates + ranking", () => {
     const reasoner: WriterLaneFreeModel = {
       id: "reasoner-only",
       openRouterModel: "vendor/reasoner:free",
-      paramScale: "unknown",
-      capabilities: ["reasoning"],
-      strengths: ["backend", "mixed"],
-      status: "trial",
+      bestFor: ["code", "reasoning"],
+      contextTokens: 128000,
+      bestAt: "test fixture: reasoner",
+      empirical: { status: "proven", note: "test fixture" },
       reasonerClass: true,
       priority: 1000, // would rank first if not filtered
     };
@@ -193,6 +252,18 @@ describe("free-model registry: verified candidates + ranking", () => {
       hardProblem: true,
     }).map((m) => m.id);
     expect(hardChain[0]).toBe("reasoner-only");
+  });
+
+  it("drops models below a stated minimum context window", () => {
+    const chain = selectDefaultFreeChain("backend", WRITERLANE_FREE_MODELS, {
+      minContextTokens: 150000,
+    });
+    expect(chain.every((m) => m.contextTokens >= 150000)).toBe(true);
+    const ids = chain.map((m) => m.id);
+    // minimax (200k) and qwen (262k) clear the bar; gpt-oss (131k) does not.
+    expect(ids).toContain("minimax-m2.5");
+    expect(ids).toContain("qwen3-coder");
+    expect(ids).not.toContain("gpt-oss-120b");
   });
 
   it("recognizes :free slugs and the explicit free meta route; rejects bare slugs", () => {
@@ -511,34 +582,34 @@ describe("OpenHandsWriterLaneBackend chain", () => {
     expect(allowed.ok).toBe(true);
   });
 
-  it("requireVetted admits only vetted models (promotion path)", async () => {
-    const vettedCode: WriterLaneFreeModel = {
+  it("requireProven admits only proven models (promotion path)", async () => {
+    const provenCode: WriterLaneFreeModel = {
       ...strongCode,
-      id: "vetted-code",
-      openRouterModel: "vendor/vetted-code:free",
-      status: "vetted",
+      id: "proven-code",
+      openRouterModel: "vendor/proven-code:free",
+      empirical: { status: "proven", note: "test fixture" },
     };
-    const runner = runnerByModel({ "vetted-code": worktreeResult(goodPatch) });
+    const runner = runnerByModel({ "proven-code": worktreeResult(goodPatch) });
 
     const trialOnly = await new OpenHandsWriterLaneBackend({
       runner,
       models: [strongCode],
-      requireVetted: true,
+      requireProven: true,
       enabled: true,
     }).produce(autonomyInput);
     expect(trialOnly).toEqual({
       ok: false,
-      reason: "writerlane_no_vetted_free_models",
+      reason: "writerlane_no_proven_free_models",
     });
 
-    const withVetted = await new OpenHandsWriterLaneBackend({
+    const withProven = await new OpenHandsWriterLaneBackend({
       runner,
-      models: [strongCode, vettedCode],
-      requireVetted: true,
+      models: [strongCode, provenCode],
+      requireProven: true,
       enabled: true,
     }).runChain(autonomyInput);
-    expect(withVetted.result.ok).toBe(true);
-    expect(withVetted.modelsTried).toEqual(["vetted-code"]);
+    expect(withProven.result.ok).toBe(true);
+    expect(withProven.modelsTried).toEqual(["proven-code"]);
   });
 });
 
