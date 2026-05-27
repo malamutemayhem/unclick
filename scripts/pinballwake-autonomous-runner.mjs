@@ -41,6 +41,8 @@ export const DEFAULT_AUTONOMOUS_RUNNER_POLICY = {
   allowedTodoRoles: ["builder", "plex-builder", "implementation", "test_fix", "docs_update", "code"],
 };
 
+export const WRITERLANE_FREE_SAFE_TODO_ROLES = ["docs_update", "test_fix"];
+
 export const DEFAULT_UNCLICK_MCP_URL = "https://unclick.world/api/mcp";
 export const UNCLICK_TODO_COMMENT_HYDRATION_LIMIT = 50;
 
@@ -99,6 +101,20 @@ function parseList(value, fallback = []) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+export function shouldUseWriterLaneFreeSafeQueue(env = process.env) {
+  const safeEnv = env || {};
+  const writer = String(safeEnv.AUTONOMOUS_RUNNER_WRITER ?? "").trim();
+  return writer === "writerlane_free" && !parseBoolean(safeEnv.AUTONOMOUS_RUNNER_WRITER_ALLOW_BROAD_QUEUE);
+}
+
+export function resolveAutonomousRunnerAllowedTodoRolesFromEnv(env = process.env) {
+  const safeEnv = env || {};
+  if (shouldUseWriterLaneFreeSafeQueue(safeEnv)) {
+    return WRITERLANE_FREE_SAFE_TODO_ROLES;
+  }
+  return safeEnv.AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES;
 }
 
 function getArg(name, fallback = "") {
@@ -3277,7 +3293,7 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
       maxCycles: parseIntOption(getArg("max-cycles", process.env.AUTONOMOUS_RUNNER_MAX_CYCLES), 1),
       allowedPriorities: process.env.AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES,
       allowedActionReasons: process.env.AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS,
-      allowedTodoRoles: process.env.AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES,
+      allowedTodoRoles: resolveAutonomousRunnerAllowedTodoRolesFromEnv(process.env),
     }),
   })
     .then((result) => {
