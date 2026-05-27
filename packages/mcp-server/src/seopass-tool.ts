@@ -293,8 +293,15 @@ function buildCheck(
   }
 
   if (checkId === "structured-data") {
-    if (context.signals.jsonLdCount === 0) {
-      add("structured-data-missing", "medium", "Structured data is missing", "No JSON-LD blocks were found.", "Add Organization or WebSite JSON-LD, then page-specific schema.");
+    const hasStructuredData =
+      context.signals.jsonLdCount > 0 ||
+      context.signals.microdataCount > 0 ||
+      context.signals.rdfaCount > 0;
+    if (!hasStructuredData) {
+      add("structured-data-missing", "medium", "Structured data is missing", "No JSON-LD, Microdata, or RDFa markup was found.", "Add Organization or WebSite schema, then page-specific schema.");
+    }
+    if (context.signals.jsonLdCount === 0 && hasStructuredData) {
+      add("structured-data-jsonld-recommended", "low", "Structured data uses non-JSON-LD markup", "Microdata or RDFa was detected. Google supports it, but JSON-LD is usually easier to maintain and validate.", "Keep the existing valid markup if deliberate, or migrate durable entity data to JSON-LD.");
     }
     if (context.signals.jsonLdParseErrors > 0) {
       add("structured-data-invalid", "high", "Structured data is invalid", `${context.signals.jsonLdParseErrors} JSON-LD block(s) failed parsing.`, "Validate JSON-LD before shipping.");
@@ -302,7 +309,8 @@ function buildCheck(
   }
 
   if (checkId === "indexability") {
-    if (/noindex/i.test(context.signals.robotsMeta)) add("indexability-noindex", "critical", "Page is marked noindex", "Robots meta contains noindex.", "Remove noindex only if this page should be searchable.");
+    const searchDirectives = searchRobotsDirectives(context.signals.robotsDirectives, context.page.headers["x-robots-tag"] ?? "");
+    if (hasNoindexDirective(searchDirectives)) add("indexability-noindex", "critical", "Page is marked noindex", `Search robots directives contain noindex: ${formatRobotsDirectives(searchDirectives)}.`, "Remove noindex only if this page should be searchable.");
     if (extractSitemapUrls(context.sitemap.body).length === 0) add("indexability-sitemap-missing", "medium", "Sitemap is missing or empty", "No URLs were found in /sitemap.xml.", "Publish a sitemap or sitemap index.");
   }
 
@@ -325,6 +333,8 @@ function buildCheck(
   }
 
   if (checkId === "ai-overview-readiness") {
+    const searchDirectives = searchRobotsDirectives(context.signals.robotsDirectives, context.page.headers["x-robots-tag"] ?? "");
+    if (hasSnippetLimitingDirective(searchDirectives)) add("aio-preview-controls-limit-ai-features", "medium", "Search preview controls limit AI feature eligibility", "A search robots directive such as nosnippet or max-snippet:0 can limit snippet use and AI Overview/AI Mode input.", "Keep restrictive preview controls only when intentional.");
     if (!context.signals.hasQuestionHeading && !context.signals.hasFaqSchema) add("aio-faq-readiness-thin", "medium", "Question-answer structure is thin", "No FAQ schema or question-style heading was found.", "Add real FAQ or question-led sections where useful.");
     if (!context.signals.hasDateSignal) add("aio-freshness-missing", "low", "Freshness signal is missing", "No obvious dateModified/datePublished signal was found.", "Add truthful freshness metadata where relevant.");
     if (context.llms.status >= 400) add("aio-llms-txt-missing", "info", "llms.txt was not found", "llms.txt is future-facing hygiene, not a ranking guarantee.", "Consider adding llms.txt for direct agent context.");
@@ -391,9 +401,12 @@ function analyzeHtml(html: string, baseUrl: string): {
   viewport: boolean;
   canonical: boolean;
   robotsMeta: string;
+  robotsDirectives: Array<{ source: "meta" | "x-robots-tag"; userAgent: string | null; content: string }>;
   h1Count: number;
   jsonLdCount: number;
   jsonLdParseErrors: number;
+  microdataCount: number;
+  rdfaCount: number;
   internalLinks: number;
   scriptCount: number;
   hasQuestionHeading: boolean;
@@ -401,12 +414,15 @@ function analyzeHtml(html: string, baseUrl: string): {
   hasDateSignal: boolean;
 } {
   const jsonLdBlocks = Array.from(html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)).map((match) => match[1]?.trim() ?? "");
+  const microdataCount = (html.match(/<[^>]+\b(?:itemscope|itemtype)\b[^>]*>/gi) ?? []).length;
+  const rdfaCount = (html.match(/<[^>]+\b(?:typeof|vocab)\s*=[^>]*>/gi) ?? []).length;
   return {
     title: /<title\b[^>]*>[\s\S]*?<\/title>/i.test(html),
     description: /<meta\b[^>]*(?:name=["']description["'][^>]*content=|content=[^>]*name=["']description["'])/i.test(html),
     viewport: /<meta\b[^>]*(?:name=["']viewport["'][^>]*content=|content=[^>]*name=["']viewport["'])/i.test(html),
     canonical: /<link\b[^>]*rel=["'][^"']*canonical[^"']*["'][^>]*href=/i.test(html),
     robotsMeta: /<meta\b[^>]*name=["']robots["'][^>]*content=["']([^"']+)["']/i.exec(html)?.[1] ?? "",
+    robotsDirectives: extractRobotsMetaDirectives(html),
     h1Count: (html.match(/<h1\b/gi) ?? []).length,
     jsonLdCount: jsonLdBlocks.length,
     jsonLdParseErrors: jsonLdBlocks.filter((block) => {
@@ -417,6 +433,8 @@ function analyzeHtml(html: string, baseUrl: string): {
         return true;
       }
     }).length,
+    microdataCount,
+    rdfaCount,
     internalLinks: Array.from(html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>/gi)).filter((match) => {
       const href = match[1] ?? "";
       const parsed = safeUrl(href, baseUrl);
@@ -432,7 +450,8 @@ function analyzeHtml(html: string, baseUrl: string): {
 function safeUrl(value: string, base: string): URL | null {
   try {
     return new URL(value, base);
-  } catch {
+  } catch (err) {
+    if (!(err instanceof Error)) throw err;
     return null;
   }
 }
@@ -443,13 +462,110 @@ function normalizeUrl(value: string): string | null {
     const url = new URL(value);
     if (!["http:", "https:"].includes(url.protocol)) return null;
     return url.toString();
-  } catch {
+  } catch (err) {
+    if (!(err instanceof Error)) throw err;
     return null;
   }
 }
 
 function extractSitemapUrls(body: string): string[] {
   return Array.from(body.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)).map((match) => match[1] ?? "").filter(Boolean);
+}
+
+function extractRobotsMetaDirectives(html: string): Array<{ source: "meta"; userAgent: string | null; content: string }> {
+  return Array.from(html.matchAll(/<meta\b[^>]*>/gi))
+    .map((match) => match[0])
+    .flatMap((tag) => {
+      const name = attrValue(tag, "name")?.toLowerCase() ?? "";
+      const content = attrValue(tag, "content")?.trim() ?? "";
+      if (!content || !["robots", "googlebot", "googlebot-news", "bingbot"].includes(name)) return [];
+      return [{ source: "meta" as const, userAgent: name, content }];
+    });
+}
+
+function searchRobotsDirectives(
+  metaDirectives: Array<{ source: "meta" | "x-robots-tag"; userAgent: string | null; content: string }>,
+  xRobotsHeader: string,
+): Array<{ source: "meta" | "x-robots-tag"; userAgent: string | null; content: string }> {
+  return [...metaDirectives, ...extractXRobotsDirectives(xRobotsHeader)].filter((directive) =>
+    directiveAppliesToSearch(directive.userAgent),
+  );
+}
+
+function extractXRobotsDirectives(header: string): Array<{ source: "x-robots-tag"; userAgent: string | null; content: string }> {
+  if (!header.trim()) return [];
+  const directives: Array<{ source: "x-robots-tag"; userAgent: string | null; content: string }> = [];
+  let currentAgent: string | null = null;
+  for (const rawPart of header.split(",")) {
+    const part = rawPart.trim();
+    if (!part) continue;
+    const separatorIndex = part.indexOf(":");
+    if (separatorIndex > 0) {
+      const candidate = part.slice(0, separatorIndex).trim().toLowerCase();
+      const content = part.slice(separatorIndex + 1).trim();
+      if (isXRobotsAgentToken(candidate)) {
+        currentAgent = candidate;
+        if (content) directives.push({ source: "x-robots-tag", userAgent: currentAgent, content });
+        continue;
+      }
+    }
+    directives.push({ source: "x-robots-tag", userAgent: currentAgent, content: part });
+  }
+  return directives;
+}
+
+function attrValue(tag: string, attr: string): string | null {
+  return new RegExp(`\\b${attr}\\s*=\\s*(["'])(.*?)\\1`, "i").exec(tag)?.[2] ?? null;
+}
+
+function isXRobotsAgentToken(value: string): boolean {
+  if (!/^[a-z0-9*_.-]+$/i.test(value)) return false;
+  return ![
+    "all",
+    "indexifembedded",
+    "max-image-preview",
+    "max-snippet",
+    "max-video-preview",
+    "noimageindex",
+    "nofollow",
+    "noindex",
+    "none",
+    "nosnippet",
+    "notranslate",
+    "unavailable_after",
+  ].includes(value.toLowerCase());
+}
+
+function directiveAppliesToSearch(userAgent: string | null): boolean {
+  if (!userAgent || userAgent === "*" || userAgent === "robots") return true;
+  return ["googlebot", "bingbot"].includes(userAgent.toLowerCase());
+}
+
+function hasNoindexDirective(
+  directives: Array<{ source: "meta" | "x-robots-tag"; userAgent: string | null; content: string }>,
+): boolean {
+  return directives.some((directive) =>
+    hasDirectiveToken(directive.content, "noindex") || hasDirectiveToken(directive.content, "none"),
+  );
+}
+
+function hasSnippetLimitingDirective(
+  directives: Array<{ source: "meta" | "x-robots-tag"; userAgent: string | null; content: string }>,
+): boolean {
+  return directives.some((directive) =>
+    hasDirectiveToken(directive.content, "nosnippet") || /\bmax-snippet\s*:\s*0(?:\D|$)/i.test(directive.content),
+  );
+}
+
+function hasDirectiveToken(content: string, token: string): boolean {
+  return new RegExp(`(?:^|[,\\s])${token}(?:[,\\s]|$)`, "i").test(content);
+}
+
+function formatRobotsDirectives(
+  directives: Array<{ source: "meta" | "x-robots-tag"; userAgent: string | null; content: string }>,
+): string {
+  if (directives.length === 0) return "none";
+  return directives.map((directive) => `${directive.source}:${directive.userAgent ?? "all"}=${directive.content}`).join("; ");
 }
 
 function selectChecks(input: unknown): { checks: string[]; ignored: string[] } {

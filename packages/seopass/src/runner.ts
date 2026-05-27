@@ -43,6 +43,7 @@ type HtmlSignals = {
   description: string | null;
   viewport: string | null;
   robotsMeta: string | null;
+  robotsDirectives: RobotsDirective[];
   canonical: string | null;
   ogTitle: string | null;
   ogDescription: string | null;
@@ -50,6 +51,10 @@ type HtmlSignals = {
   h1Count: number;
   links: Array<{ href: string; text: string; rel: string }>;
   jsonLdBlocks: Array<{ raw: string; parsed?: unknown; error?: string }>;
+  microdataCount: number;
+  microdataTypes: string[];
+  rdfaCount: number;
+  rdfaTypes: string[];
   imageCount: number;
   imagesWithoutAlt: number;
   scriptCount: number;
@@ -64,6 +69,12 @@ type HtmlSignals = {
 type RobotsRule = {
   agents: string[];
   rules: Array<{ directive: "allow" | "disallow"; path: string }>;
+};
+
+type RobotsDirective = {
+  source: "meta" | "x-robots-tag";
+  userAgent: string | null;
+  content: string;
 };
 
 const DEFAULT_CHECKS: SeoPassCheckId[] = [
@@ -367,9 +378,11 @@ function indexabilityCheck(context: {
   signals: HtmlSignals;
 }): SeoPassCheckResult {
   const findings: SeoPassFinding[] = [];
-  const xRobots = context.page.headers["x-robots-tag"] ?? "";
-  const robotsMeta = context.signals.robotsMeta ?? "";
-  const noindex = /noindex/i.test(`${xRobots} ${robotsMeta}`);
+  const searchDirectives = searchRobotsDirectives(
+    context.signals.robotsDirectives,
+    context.page.headers["x-robots-tag"] ?? "",
+  );
+  const noindex = hasNoindexDirective(searchDirectives);
   const sitemapUrls = extractSitemapUrls(context.sitemap.body);
 
   if (noindex) {
@@ -385,7 +398,7 @@ function indexabilityCheck(context: {
             kind: "html-head",
             label: "Robots directive",
             source_url: context.targetUrl,
-            summary: `meta=${robotsMeta || "none"}; x-robots-tag=${xRobots || "none"}`,
+            summary: formatRobotsDirectives(searchDirectives),
           },
         ],
         recommendation: "Remove noindex only if this page is intended to appear in search.",
@@ -419,7 +432,10 @@ function indexabilityCheck(context: {
         summary: `${sitemapUrls.length} URL(s) found in the sitemap sample.`,
       },
     ],
-    comments: [`Noindex detected: ${noindex ? "yes" : "no"}. Sitemap URLs found: ${sitemapUrls.length}.`],
+    comments: [
+      `Noindex detected: ${noindex ? "yes" : "no"}. Sitemap URLs found: ${sitemapUrls.length}.`,
+      `Robots directives checked: ${formatRobotsDirectives(searchDirectives)}.`,
+    ],
   });
 }
 
@@ -558,7 +574,12 @@ function structuredDataCheck(context: { targetUrl: string; signals: HtmlSignals 
   const findings: SeoPassFinding[] = [];
   const parsedBlocks = context.signals.jsonLdBlocks.filter((block) => block.parsed !== undefined);
   const parseErrors = context.signals.jsonLdBlocks.filter((block) => block.error);
-  const schemaTypes = new Set(parsedBlocks.flatMap((block) => schemaTypesFromJsonLd(block.parsed)));
+  const nonJsonLdTypes = new Set([...context.signals.microdataTypes, ...context.signals.rdfaTypes]);
+  const schemaTypes = new Set([
+    ...parsedBlocks.flatMap((block) => schemaTypesFromJsonLd(block.parsed)),
+    ...nonJsonLdTypes,
+  ]);
+  const hasStructuredData = parsedBlocks.length > 0 || context.signals.microdataCount > 0 || context.signals.rdfaCount > 0;
 
   for (const error of parseErrors) {
     findings.push(
@@ -574,21 +595,41 @@ function structuredDataCheck(context: { targetUrl: string; signals: HtmlSignals 
     );
   }
 
-  if (parsedBlocks.length === 0) {
+  if (!hasStructuredData) {
     findings.push(
       finding({
         id: "structured-data-missing",
         check_id: "structured-data",
         severity: "medium",
         title: "Structured data is missing",
-        summary: "No parseable JSON-LD was found.",
-        evidence: [schemaEvidence(context.targetUrl, "JSON-LD blocks", "0 parseable blocks.")],
+        summary: "No parseable JSON-LD, Microdata, or RDFa structured data was found.",
+        evidence: [schemaEvidence(context.targetUrl, "Structured-data formats", "0 JSON-LD blocks; 0 Microdata items; 0 RDFa items.")],
         recommendation: "Add Organization or WebSite schema at minimum, then page-specific schema where useful.",
       }),
     );
   }
 
-  if (parsedBlocks.length > 0 && !hasAny(schemaTypes, ["Organization", "WebSite", "SoftwareApplication", "LocalBusiness"])) {
+  if (parsedBlocks.length === 0 && hasStructuredData) {
+    findings.push(
+      finding({
+        id: "structured-data-jsonld-recommended",
+        check_id: "structured-data",
+        severity: "low",
+        title: "Structured data uses non-JSON-LD markup",
+        summary: "Microdata or RDFa was detected. Google supports it, but JSON-LD is usually easier to maintain and validate.",
+        evidence: [
+          schemaEvidence(
+            context.targetUrl,
+            "Structured-data formats",
+            `${context.signals.microdataCount} Microdata item(s); ${context.signals.rdfaCount} RDFa item(s).`,
+          ),
+        ],
+        recommendation: "Keep the existing valid markup if it is deliberate, or migrate durable entity data to JSON-LD for maintainability.",
+      }),
+    );
+  }
+
+  if (hasStructuredData && !hasAny(schemaTypes, ["Organization", "WebSite", "SoftwareApplication", "LocalBusiness"])) {
     findings.push(
       finding({
         id: "structured-data-entity-graph-thin",
@@ -610,10 +651,13 @@ function structuredDataCheck(context: { targetUrl: string; signals: HtmlSignals 
       schemaEvidence(
         context.targetUrl,
         "Schema inventory",
-        `${parsedBlocks.length} parseable JSON-LD block(s); types=${Array.from(schemaTypes).join(", ") || "none"}.`,
+        `${parsedBlocks.length} parseable JSON-LD block(s); ${context.signals.microdataCount} Microdata item(s); ${context.signals.rdfaCount} RDFa item(s); types=${Array.from(schemaTypes).join(", ") || "none"}.`,
       ),
     ],
-    comments: [`Schema types: ${Array.from(schemaTypes).join(", ") || "none"}.`],
+    comments: [
+      `Schema types: ${Array.from(schemaTypes).join(", ") || "none"}.`,
+      `Structured-data formats: JSON-LD=${parsedBlocks.length}; Microdata=${context.signals.microdataCount}; RDFa=${context.signals.rdfaCount}.`,
+    ],
   });
 }
 
@@ -796,16 +840,35 @@ function coreWebVitalsCheck(context: { targetUrl: string; page: SeoPassFetchResu
 
 function aiOverviewReadinessCheck(context: {
   targetUrl: string;
+  page: SeoPassFetchResult;
   llms: SeoPassFetchResult;
   signals: HtmlSignals;
 }): SeoPassCheckResult {
   const findings: SeoPassFinding[] = [];
+  const searchDirectives = searchRobotsDirectives(
+    context.signals.robotsDirectives,
+    context.page.headers["x-robots-tag"] ?? "",
+  );
   const hasFaqSchema = context.signals.jsonLdBlocks.some((block) =>
     schemaTypesFromJsonLd(block.parsed).includes("FAQPage"),
   );
   const hasAuthorSignals = context.signals.bylineSignals > 0;
   const hasFreshnessSignals = context.signals.dateSignals > 0;
   const hasCitationSignals = context.signals.externalLinks >= 2 || context.signals.statisticCount >= 2;
+
+  if (hasSnippetLimitingDirective(searchDirectives)) {
+    findings.push(
+      finding({
+        id: "aio-preview-controls-limit-ai-features",
+        check_id: "ai-overview-readiness",
+        severity: "medium",
+        title: "Search preview controls limit AI feature eligibility",
+        summary: "A search robots directive such as nosnippet or max-snippet:0 can limit snippet use and AI Overview/AI Mode input.",
+        evidence: [headEvidence(context.targetUrl, "Robots snippet controls", formatRobotsDirectives(searchDirectives))],
+        recommendation: "Keep restrictive preview controls only when intentional. If AI-era discoverability matters, allow useful snippets without exposing private content.",
+      }),
+    );
+  }
 
   if (!hasFaqSchema && context.signals.questionHeadingCount < 2) {
     findings.push(
@@ -1101,6 +1164,8 @@ function analyzeHtml(html: string, baseUrl: string): HtmlSignals {
   const headings = extractHeadings(html);
   const links = extractLinks(html, baseUrl);
   const imageTags = Array.from(html.matchAll(/<img\b[^>]*>/gi)).map((match) => match[0]);
+  const microdataTags = Array.from(html.matchAll(/<[^>]+\b(?:itemscope|itemtype)\b[^>]*>/gi)).map((match) => match[0]);
+  const rdfaTags = Array.from(html.matchAll(/<[^>]+\b(?:typeof|vocab)\s*=[^>]*>/gi)).map((match) => match[0]);
   const jsonLdBlocks = Array.from(html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)).map((match) => {
     const raw = decodeEntities(match[1]?.trim() ?? "");
     try {
@@ -1115,6 +1180,7 @@ function analyzeHtml(html: string, baseUrl: string): HtmlSignals {
     description: extractMeta(html, "name", "description"),
     viewport: extractMeta(html, "name", "viewport"),
     robotsMeta: extractMeta(html, "name", "robots"),
+    robotsDirectives: extractRobotsMetaDirectives(html),
     canonical: extractLinkRel(html, "canonical"),
     ogTitle: extractMeta(html, "property", "og:title"),
     ogDescription: extractMeta(html, "property", "og:description"),
@@ -1122,6 +1188,10 @@ function analyzeHtml(html: string, baseUrl: string): HtmlSignals {
     h1Count: headings.filter((heading) => heading.level === 1).length,
     links,
     jsonLdBlocks,
+    microdataCount: microdataTags.length,
+    microdataTypes: uniqueStrings(microdataTags.flatMap((tag) => schemaTypesFromAttr(getAttr(tag, "itemtype")))),
+    rdfaCount: rdfaTags.length,
+    rdfaTypes: uniqueStrings(rdfaTags.flatMap((tag) => schemaTypesFromAttr(getAttr(tag, "typeof")))),
     imageCount: imageTags.length,
     imagesWithoutAlt: imageTags.filter((tag) => !/\salt\s*=/i.test(tag)).length,
     scriptCount: (html.match(/<script\b/gi) ?? []).length,
@@ -1152,6 +1222,17 @@ function extractMeta(html: string, attr: "name" | "property", value: string): st
   return null;
 }
 
+function extractRobotsMetaDirectives(html: string): RobotsDirective[] {
+  return Array.from(html.matchAll(/<meta\b[^>]*>/gi))
+    .map((match) => match[0])
+    .flatMap((tag): RobotsDirective[] => {
+      const name = getAttr(tag, "name")?.toLowerCase() ?? "";
+      const content = getAttr(tag, "content")?.trim() ?? "";
+      if (!content || !["robots", "googlebot", "googlebot-news", "bingbot"].includes(name)) return [];
+      return [{ source: "meta", userAgent: name, content }];
+    });
+}
+
 function extractLinkRel(html: string, rel: string): string | null {
   const tags = Array.from(html.matchAll(/<link\b[^>]*>/gi)).map((match) => match[0]);
   for (const tag of tags) {
@@ -1177,6 +1258,27 @@ function extractHeadings(html: string): Array<{ level: number; text: string }> {
     level: Number(match[1]),
     text: cleanText(match[2] ?? ""),
   }));
+}
+
+function schemaTypesFromAttr(value: string | null): string[] {
+  if (!value) return [];
+  return value
+    .split(/\s+/)
+    .map((part) => normalizeSchemaType(part))
+    .filter((type): type is string => Boolean(type));
+}
+
+function normalizeSchemaType(value: string): string | null {
+  const cleaned = decodeEntities(value.trim()).replace(/^schema:/i, "");
+  if (!cleaned) return null;
+  const lastHash = cleaned.split("#").filter(Boolean).pop() ?? cleaned;
+  const lastSlash = lastHash.split("/").filter(Boolean).pop() ?? lastHash;
+  const compact = lastSlash.replace(/[^A-Za-z0-9_-]/g, "");
+  return compact || null;
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean)));
 }
 
 function getAttr(tag: string, attr: string): string | null {
@@ -1230,6 +1332,80 @@ function parseRobots(body: string): RobotsRule[] {
     }
   }
   return groups;
+}
+
+function searchRobotsDirectives(metaDirectives: RobotsDirective[], xRobotsHeader: string): RobotsDirective[] {
+  return [...metaDirectives, ...extractXRobotsDirectives(xRobotsHeader)].filter((directive) =>
+    directiveAppliesToSearch(directive.userAgent),
+  );
+}
+
+function extractXRobotsDirectives(header: string): RobotsDirective[] {
+  if (!header.trim()) return [];
+  const directives: RobotsDirective[] = [];
+  let currentAgent: string | null = null;
+  for (const rawPart of header.split(",")) {
+    const part = rawPart.trim();
+    if (!part) continue;
+    const separatorIndex = part.indexOf(":");
+    if (separatorIndex > 0) {
+      const candidate = part.slice(0, separatorIndex).trim().toLowerCase();
+      const content = part.slice(separatorIndex + 1).trim();
+      if (isXRobotsAgentToken(candidate)) {
+        currentAgent = candidate;
+        if (content) directives.push({ source: "x-robots-tag", userAgent: currentAgent, content });
+        continue;
+      }
+    }
+    directives.push({ source: "x-robots-tag", userAgent: currentAgent, content: part });
+  }
+  return directives;
+}
+
+function isXRobotsAgentToken(value: string): boolean {
+  if (!/^[a-z0-9*_.-]+$/i.test(value)) return false;
+  return ![
+    "noindex",
+    "nofollow",
+    "none",
+    "nosnippet",
+    "max-snippet",
+    "max-image-preview",
+    "max-video-preview",
+    "notranslate",
+    "noimageindex",
+    "unavailable_after",
+    "indexifembedded",
+    "all",
+  ].includes(value.toLowerCase());
+}
+
+function directiveAppliesToSearch(userAgent: string | null): boolean {
+  if (!userAgent || userAgent === "*" || userAgent === "robots") return true;
+  return ["googlebot", "bingbot"].includes(userAgent.toLowerCase());
+}
+
+function hasNoindexDirective(directives: RobotsDirective[]): boolean {
+  return directives.some((directive) =>
+    hasDirectiveToken(directive.content, "noindex") || hasDirectiveToken(directive.content, "none"),
+  );
+}
+
+function hasSnippetLimitingDirective(directives: RobotsDirective[]): boolean {
+  return directives.some((directive) =>
+    hasDirectiveToken(directive.content, "nosnippet") || /\bmax-snippet\s*:\s*0(?:\D|$)/i.test(directive.content),
+  );
+}
+
+function hasDirectiveToken(content: string, token: string): boolean {
+  return new RegExp(`(?:^|[,\\s])${token}(?:[,\\s]|$)`, "i").test(content);
+}
+
+function formatRobotsDirectives(directives: RobotsDirective[]): string {
+  if (directives.length === 0) return "none";
+  return directives
+    .map((directive) => `${directive.source}:${directive.userAgent ?? "all"}=${directive.content}`)
+    .join("; ");
 }
 
 function isRobotAllowed(groups: RobotsRule[], userAgent: string, path: string): boolean {
@@ -1317,7 +1493,8 @@ async function probeInternalLinks(input: {
 function safeUrl(value: string, base?: string): URL | null {
   try {
     return new URL(value, base);
-  } catch {
+  } catch (err) {
+    if (!(err instanceof Error)) throw err;
     return null;
   }
 }

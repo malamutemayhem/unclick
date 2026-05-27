@@ -109,6 +109,82 @@ describe("runSeoPass", () => {
     expect(report.checks.find((check) => check.check_id === "indexability")?.findings.some((finding) => finding.id === "indexability-noindex")).toBe(true);
   });
 
+  it("honors crawler-specific robots index directives without false positives from unrelated agents", async () => {
+    const googlebotBlocked = await runSeoPass({
+      targetUrl: "https://example.com/page",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["indexability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/page": {
+          body: "<html><head><title>Page</title><meta name=\"googlebot\" content=\"noindex\"></head><body><h1>Page</h1></body></html>",
+          headers: { "content-type": "text/html", "x-robots-tag": "otherbot: noindex" },
+        },
+        "https://example.com/robots.txt": { body: "User-agent: *\nAllow: /\n" },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/page</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+    expect(googlebotBlocked.checks[0]?.findings.some((finding) => finding.id === "indexability-noindex")).toBe(true);
+
+    const unrelatedBotBlocked = await runSeoPass({
+      targetUrl: "https://example.com/page",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["indexability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/page": {
+          body: "<html><head><title>Page</title></head><body><h1>Page</h1></body></html>",
+          headers: { "content-type": "text/html", "x-robots-tag": "otherbot: noindex" },
+        },
+        "https://example.com/robots.txt": { body: "User-agent: *\nAllow: /\n" },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/page</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+    expect(unrelatedBotBlocked.checks[0]?.findings.some((finding) => finding.id === "indexability-noindex")).toBe(false);
+  });
+
+  it("recognizes Microdata and RDFa instead of claiming structured data is missing", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["structured-data"],
+      fetcher: fixtureFetcher({
+        "https://example.com/": {
+          body: `<!doctype html><html><head><title>Example</title></head><body>
+            <section itemscope itemtype="https://schema.org/Organization"><span itemprop="name">Example</span></section>
+            <section vocab="https://schema.org/" typeof="WebSite"><span property="name">Example site</span></section>
+          </body></html>`,
+        },
+        "https://example.com/robots.txt": { body: "User-agent: *\nAllow: /\n" },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    const findings = report.checks[0]?.findings ?? [];
+    expect(findings.some((finding) => finding.id === "structured-data-missing")).toBe(false);
+    expect(findings.some((finding) => finding.id === "structured-data-jsonld-recommended")).toBe(true);
+  });
+
+  it("warns when search preview controls limit AI feature eligibility", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["ai-overview-readiness"],
+      fetcher: fixtureFetcher({
+        "https://example.com/": {
+          body: healthyHtml.replace("</head>", "<meta name=\"robots\" content=\"max-snippet:0\"></head>"),
+          headers: { "content-type": "text/html" },
+        },
+        "https://example.com/robots.txt": { body: "User-agent: *\nAllow: /\n" },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    expect(report.checks[0]?.findings.some((finding) => finding.id === "aio-preview-controls-limit-ai-features")).toBe(true);
+  });
+
   it("emits GEOPass cross-pass signals for shared SEO/GEO gaps", async () => {
     const report = await runSeoPass({
       targetUrl: "https://example.com",

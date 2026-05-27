@@ -131,6 +131,73 @@ describe("seopass-tool", () => {
     expect(run.report?.cross_pass_signals?.length).toBeGreaterThan(0);
   });
 
+  it("detects crawler-specific noindex without treating unrelated bot headers as search blockers", async () => {
+    installFetch({
+      "https://unclick.world/page": {
+        status: 200,
+        headers: { "content-type": "text/html", "x-robots-tag": "otherbot: noindex" },
+        body: "<html><head><title>Page</title><meta name=\"googlebot\" content=\"noindex\"></head><body><h1>Page</h1></body></html>",
+      },
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/page</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const googlebotRun = (await seopassRun({ url: "https://unclick.world/page" })) as {
+      report?: { checks?: Array<{ findings?: Array<{ id?: string }> }> };
+    };
+    expect(googlebotRun.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "indexability-noindex"))).toBe(true);
+
+    installFetch({
+      "https://unclick.world/page": {
+        status: 200,
+        headers: { "content-type": "text/html", "x-robots-tag": "otherbot: noindex" },
+        body: "<html><head><title>Page</title></head><body><h1>Page</h1></body></html>",
+      },
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/page</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const unrelatedBotRun = (await seopassRun({ url: "https://unclick.world/page" })) as {
+      report?: { checks?: Array<{ findings?: Array<{ id?: string }> }> };
+    };
+    expect(unrelatedBotRun.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "indexability-noindex"))).toBe(false);
+  });
+
+  it("recognizes Microdata as structured-data evidence in the MCP run", async () => {
+    installFetch({
+      "https://unclick.world/": `<!doctype html><html><head><title>UnClick</title></head><body>
+        <section itemscope itemtype="https://schema.org/Organization"><span itemprop="name">UnClick</span></section>
+      </body></html>`,
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world" })) as {
+      report?: { checks?: Array<{ findings?: Array<{ id?: string }> }> };
+    };
+
+    expect(run.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "structured-data-missing"))).toBe(false);
+    expect(run.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "structured-data-jsonld-recommended"))).toBe(true);
+  });
+
+  it("warns when robots preview controls limit AI-era search eligibility", async () => {
+    installFetch({
+      "https://unclick.world/": healthyHtml.replace("</head>", "<meta name=\"robots\" content=\"nosnippet\"></head>"),
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world" })) as {
+      report?: { checks?: Array<{ findings?: Array<{ id?: string }> }> };
+    };
+
+    expect(run.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "aio-preview-controls-limit-ai-features"))).toBe(true);
+  });
+
   it("flags non-HTML target URLs as an MCP run gap", async () => {
     installFetch({
       "https://unclick.world/report.pdf": { status: 200, body: "%PDF-1.7", headers: { "content-type": "application/pdf" } },
