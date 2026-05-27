@@ -108,6 +108,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { evaluateFishbowlCompletionPolicy } from "./lib/fishbowl-completion-policy.js";
 import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
+import { buildRecallFactSections } from "./lib/memory-recall-sections.js";
 import {
   buildOrchestratorContext,
   mergeOrchestratorTodoRows,
@@ -149,6 +150,7 @@ import {
   buildFishbowlTodoHandoffDispatchRow,
   planFishbowlTodoHandoff,
 } from "./lib/fishbowl-todo-handoff.js";
+import { classifyTodoActionability } from "./lib/fishbowl-todo-actionability.js";
 import {
   planFishbowlPostLedgerEvent,
   planTodoLedgerEvents,
@@ -552,31 +554,7 @@ async function upsertAdminLibraryDoc(
   return `Library doc created: "${data.title}" (v1)`;
 }
 
-const BACKGROUND_RECALL_CATEGORIES = new Set(["identity", "preference", "standing_rule"]);
-const BACKGROUND_RECALL_PATTERNS = [
-  /^chris('s)?\s/i,
-  /^user\s/i,
-  /should always/i,
-  /never use/i,
-  /operator timezone/i,
-  /standing rule/i,
-  /profile/i,
-  /preference/i,
-];
-
-function annotateRecallFact<T extends { category?: string | null; fact?: string | null; access_count?: number | null }>(fact: T) {
-  const category = String(fact.category ?? "").toLowerCase();
-  const text = String(fact.fact ?? "");
-  const accessCount = Number(fact.access_count ?? 0);
-  const looksStatic = BACKGROUND_RECALL_CATEGORIES.has(category) || BACKGROUND_RECALL_PATTERNS.some((pattern) => pattern.test(text));
-  const isBackgroundHeavy = accessCount >= 100 && looksStatic;
-
-  return {
-    ...fact,
-    recall_signal: isBackgroundHeavy ? "background-heavy" : "top-of-mind",
-    recall_note: isBackgroundHeavy ? "Startup or heartbeat reads" : "Human-facing recall",
-  };
-}
+const TOP_OF_MIND_CANDIDATE_LIMIT = 110;
 
 function getRequestBaseUrl(req: VercelRequest): string | null {
   const explicit = process.env.EMBED_API_URL?.replace(/\/$/, "");
@@ -4119,19 +4097,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const topFactsLimit = getClampedLimit(req.query.top_facts_limit, 10, 110);
 
-        // Most accessed facts
-        const { data: topFacts } = await supabase
-          .from("mc_extracted_facts")
-          .select("id, fact, category, access_count, decay_tier")
-          .eq("api_key_hash", apiKeyHash)
-          .eq("status", "active")
-          .order("access_count", { ascending: false })
-          .limit(topFactsLimit);
-        const annotatedTopFacts = (topFacts ?? []).map(annotateRecallFact);
-        const topOfMindFacts = annotatedTopFacts
-          .filter((fact) => fact.recall_signal === "top-of-mind")
-          .slice(0, 10);
-        const backgroundHeavyCount = annotatedTopFacts.filter((fact) => fact.recall_signal === "background-heavy").length;
+        // Most Accessed stays the raw inspectable debug list. Top of Mind
+        // inspects a broader pool so static startup facts cannot crowd out
+        // useful current facts before the background-heavy filter runs.
+        const topOfMindCandidateLimit = Math.max(topFactsLimit, TOP_OF_MIND_CANDIDATE_LIMIT);
+        const [topFactsResult, topOfMindCandidateResult] = await Promise.all([
+          supabase
+            .from("mc_extracted_facts")
+            .select("id, fact, category, access_count, decay_tier")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "active")
+            .order("access_count", { ascending: false })
+            .limit(topFactsLimit),
+          supabase
+            .from("mc_extracted_facts")
+            .select("id, fact, category, access_count, decay_tier")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "active")
+            .order("access_count", { ascending: false })
+            .limit(topOfMindCandidateLimit),
+        ]);
+        if (topFactsResult.error) throw topFactsResult.error;
+        if (topOfMindCandidateResult.error) throw topOfMindCandidateResult.error;
+
+        const recallSections = buildRecallFactSections(topFactsResult.data ?? [], topOfMindCandidateResult.data ?? []);
 
         return res.status(200).json({
           facts_by_day: factsByDay,
@@ -4146,13 +4135,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                    (facts.count ?? 0) + (convos.count ?? 0) + (code.count ?? 0),
           },
           top_facts_limit: topFactsLimit,
-          recall_diagnostics: {
-            inspected_top_facts: annotatedTopFacts.length,
-            background_heavy_count: backgroundHeavyCount,
-          },
+          recall_diagnostics: recallSections.recall_diagnostics,
           recent_decay: recentDecay ?? [],
-          top_of_mind_facts: topOfMindFacts,
-          top_facts: annotatedTopFacts,
+          top_of_mind_facts: recallSections.top_of_mind_facts,
+          top_facts: recallSections.top_facts,
         });
       }
 
@@ -7146,7 +7132,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!user) return res.status(401).json({ error: "Authorization header required" });
         const { data, error } = await supabase
           .from("testpass_packs")
-          .select("id, slug, name, version, description, yaml")
+          .select("id, slug, name, version, description, yaml, owner_user_id")
           .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
           .order("created_at", { ascending: true });
         if (error) throw error;
@@ -7161,10 +7147,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             description: p.description,
             check_count: items.length,
             category,
-            is_system: !p.yaml || Object.keys(p.yaml as object).length === 0,
+            is_system: p.owner_user_id === null,
           };
         });
         return res.status(200).json({ packs });
+      }
+
+      case "get_testpass_pack": {
+        const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!user) return res.status(401).json({ error: "Authorization header required" });
+        const packId = (req.query.pack_id ?? req.body?.pack_id ?? "") as string;
+        if (!packId) return res.status(400).json({ error: "pack_id required" });
+        const { data, error } = await supabase
+          .from("testpass_packs")
+          .select("id, slug, name, version, description, yaml, owner_user_id")
+          .eq("id", packId)
+          .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) return res.status(404).json({ error: "Pack not found" });
+        return res.status(200).json({
+          pack: {
+            id: data.id,
+            slug: data.slug,
+            name: data.name,
+            version: data.version,
+            description: data.description,
+            yaml: data.yaml,
+            is_system: data.owner_user_id === null,
+          },
+        });
       }
 
       case "get_testpass_run": {
@@ -7188,7 +7200,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (runRes.error) throw runRes.error;
         if (!runRes.data) return res.status(404).json({ error: "Run not found" });
         if (itemsRes.error) throw itemsRes.error;
-        return res.status(200).json({ run: runRes.data, items: itemsRes.data ?? [] });
+        const items = (itemsRes.data ?? []) as Array<Record<string, unknown>>;
+        const evidenceRefs = Array.from(new Set(
+          items
+            .map((item) => item.evidence_ref)
+            .filter((value): value is string => typeof value === "string" && value.length > 0),
+        ));
+        let evidenceById = new Map<string, { id: string; kind: string | null; payload: unknown }>();
+        if (evidenceRefs.length > 0) {
+          const { data: evidenceRows, error: evidenceError } = await supabase
+            .from("testpass_evidence")
+            .select("id, kind, payload")
+            .in("id", evidenceRefs);
+          if (evidenceError) throw evidenceError;
+          evidenceById = new Map(
+            (evidenceRows ?? []).map((row) => [
+              row.id as string,
+              { id: row.id as string, kind: row.kind as string | null, payload: row.payload },
+            ]),
+          );
+        }
+        const itemsWithEvidence = items.map((item) => {
+          const ref = typeof item.evidence_ref === "string" ? item.evidence_ref : "";
+          const evidence = ref ? evidenceById.get(ref) : undefined;
+          return evidence ? { ...item, evidence, evidence_json: evidence.payload } : item;
+        });
+        return res.status(200).json({ run: runRes.data, items: itemsWithEvidence });
       }
 
       case "start_testpass_run": {
@@ -7205,8 +7242,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const profile = (["smoke", "standard", "deep"].includes(depth ?? "") ? depth : "standard") as string;
         const { data: pack } = await supabase
           .from("testpass_packs")
-          .select("slug, name")
+          .select("slug, name, owner_user_id")
           .eq("id", pack_id)
+          .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
           .maybeSingle();
         if (!pack) return res.status(404).json({ error: "Pack not found" });
 
@@ -8822,11 +8860,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .eq("api_key_hash", apiKeyHash)
           .order("created_at", { ascending: false })
           .limit(Math.min(smallerLimit, 500));
-        if (searchPattern) {
-          autopilotEventsQuery = autopilotEventsQuery.or(
-            `event_type.ilike.${searchPattern},actor_agent_id.ilike.${searchPattern},ref_kind.ilike.${searchPattern},ref_id.ilike.${searchPattern}`,
-          );
-        }
+        // The zero-touch scoreboard is a safety surface, not a search result.
+        // Keep recent ledger rows visible even when callers pass q=... for
+        // narrowing messages, todos, comments, or turns.
 
         const [
           profilesResult,
@@ -9599,34 +9635,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const limit = Math.min(Math.max(Number(body.limit ?? 10) || 10, 1), 50);
           const includeDescription = body.include_description === true || body.includeDescription === true;
           const nowMs = Date.now();
-          const staleOpenAssignedMs = 6 * 60 * 60 * 1000;
-          const staleInProgressMs = 6 * 60 * 60 * 1000;
-          const liveOwnerMs = 60 * 60 * 1000;
-          const roleAssignees = new Set([
-            "master",
-            "coordinator",
-            "builder",
-            "reviewer",
-            "watcher",
-            "planner",
-            "tester",
-            "safety",
-            "messenger",
-            "pinballwake-job-runner",
-          ]);
-          const isRoleAssignee = (raw: unknown): boolean => {
-            const value = String(raw ?? "").trim().toLowerCase();
-            return (
-              roleAssignees.has(value) ||
-              value.startsWith("codex-forge-") ||
-              value.startsWith("claude-pc-tether-") ||
-              value.startsWith("claude-code-pc-tether-")
-            );
-          };
-          const ageMs = (raw: unknown): number => {
-            const ms = Date.parse(String(raw ?? ""));
-            return Number.isFinite(ms) ? Math.max(0, nowMs - ms) : Number.POSITIVE_INFINITY;
-          };
 
           const { data, error } = await supabase
             .from("mc_fishbowl_todos")
@@ -9667,19 +9675,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
 
           const actionabilityFor = (todo: Record<string, unknown>): string | null => {
-            const status = String(todo.status ?? "");
             const assignee = String(todo.assigned_to_agent_id ?? "").trim();
-            const todoAge = ageMs(todo.updated_at ?? todo.created_at);
             const ownerLastSeen = assignee ? lastSeenByAgent.get(assignee) ?? null : null;
-            const ownerAge = ownerLastSeen ? ageMs(ownerLastSeen) : Number.POSITIVE_INFINITY;
-            const ownerLooksDormant = !assignee || isRoleAssignee(assignee) || ownerAge > liveOwnerMs;
-
-            if (status === "open" && !assignee) return "unassigned_open";
-            if (status === "open" && isRoleAssignee(assignee)) return "role_assigned_open";
-            if (status === "open" && todoAge > staleOpenAssignedMs && ownerLooksDormant) return "stale_assigned_open";
-            if (status === "in_progress" && todoAge > staleInProgressMs && ownerLooksDormant) return "stale_in_progress";
-
-            return null;
+            const reason = classifyTodoActionability({
+              status: todo.status,
+              assignedToAgentId: todo.assigned_to_agent_id,
+              updatedAt: todo.updated_at,
+              createdAt: todo.created_at,
+              ownerLastSeenAt: ownerLastSeen,
+              nowMs,
+            });
+            return reason === "fresh_owner_do_not_touch" ? null : reason;
           };
 
           const actionable = (data ?? [])

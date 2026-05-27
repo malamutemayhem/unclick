@@ -9,8 +9,18 @@ import { runOpenHandsWorker } from "./pinballwake-openhands-worker.mjs";
 const DEFAULT_PROOF_FILE = "docs/openhands-proof-fixture.md";
 const DEFAULT_TODO_ID = "036de894-82a1-49c7-ac19-67335950c626";
 const DEFAULT_BRANCH_PREFIX = "codex/openhands-proof";
+const DEFAULT_SUBMITTER_BRANCH_PREFIX = "codex/openhands-submit";
 const DEFAULT_TITLE = "test(autopilot): prove OpenHands docs patch path";
 const DEFAULT_TIMEOUT_MS = 20 * 60 * 1000;
+const CODEROOM_APP_TOKEN_ENV_KEYS = ["CODEROOM_GITHUB_APP_TOKEN", "AUTONOMOUS_RUNNER_GITHUB_APP_TOKEN"];
+
+export const DEFAULT_CODEROOM_PROTECTED_PATH_PATTERNS = [
+  { reason: "protected_workflow_path", pattern: /^\.github\/workflows\//i },
+  { reason: "protected_ruleset_path", pattern: /^\.github\/rulesets?\//i },
+  { reason: "protected_supabase_migration_path", pattern: /^supabase\/migrations\//i },
+  { reason: "protected_env_path", pattern: /(^|\/)\.env(?:\.|$)/i },
+  { reason: "protected_secret_path", pattern: /(^|\/)(secrets?|credentials?|private[-_]?keys?|keychain)(\/|\.|$)/i },
+];
 
 function parseBoolean(value) {
   const raw = String(value ?? "").trim().toLowerCase();
@@ -40,10 +50,25 @@ function normalizePath(value) {
     .trim();
 }
 
+function normalizeList(values) {
+  if (Array.isArray(values)) return values.map((value) => String(value ?? "").trim()).filter(Boolean);
+  if (values === undefined || values === null || values === "") return [];
+  return [String(values).trim()].filter(Boolean);
+}
+
 function safeStamp(value = new Date()) {
   return String(value instanceof Date ? value.toISOString() : value)
     .replace(/[^0-9A-Za-z._:-]/g, "-")
     .slice(0, 80);
+}
+
+function safeSlug(value, fallback = "job") {
+  const slug = String(value || fallback)
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 72);
+  return slug || fallback;
 }
 
 export function splitArgs(value) {
@@ -86,6 +111,29 @@ export function splitArgs(value) {
   }
 
   return parts;
+}
+
+export function resolveCodeRoomSubmitterAuthEnv(env = process.env) {
+  const source = CODEROOM_APP_TOKEN_ENV_KEYS.find((key) => String(env[key] || "").trim());
+  if (!source) {
+    return { ok: false, reason: "missing_scoped_app_token" };
+  }
+
+  const token = String(env[source] || "").trim();
+  const defaultToken = String(env.GITHUB_TOKEN || "").trim();
+  if (defaultToken && token === defaultToken) {
+    return { ok: false, reason: "app_token_matches_default_github_token", token_source: source };
+  }
+
+  return {
+    ok: true,
+    token_source: source,
+    env: {
+      ...env,
+      GH_TOKEN: token,
+      GITHUB_TOKEN: token,
+    },
+  };
 }
 
 export function buildOpenHandsCliArgs({ prompt, argsTemplate = "" } = {}) {
@@ -198,18 +246,58 @@ export function createOpenHandsCliRunner({
     if (!result.ok) {
       return {
         ok: false,
+        reason: "openhands_cli_failed",
         exit_code: result.exit_code,
         output: result.output,
       };
     }
 
     const patchFile = String(env.OPENHANDS_PATCH_FILE || "").trim();
-    const patch = patchFile ? await readPatchFile(patchFile, "utf8") : extractUnifiedDiff(result.output);
+    const outputPatch = patchFile ? await readPatchFile(patchFile, "utf8") : extractUnifiedDiff(result.output);
+    const worktreeCapture = await captureOwnedWorktreeDiff({
+      cwd,
+      env,
+      ownedFiles: scopePack?.owned_files || [],
+      runProcess,
+    });
+    if (!worktreeCapture.ok) {
+      return {
+        ok: false,
+        reason: worktreeCapture.reason,
+        exit_code: result.exit_code,
+        output: compactOutput(
+          [
+            "OpenHands left an unsafe or unrestorable worktree diff.",
+            worktreeCapture.output || "",
+            result.output || "",
+          ].join("\n"),
+        ),
+      };
+    }
+
+    const patch = outputPatch || worktreeCapture.patch;
+    if (!String(patch || "").trim()) {
+      return {
+        ok: false,
+        reason: "openhands_missing_unified_diff",
+        exit_code: result.exit_code,
+        output: compactOutput(
+          [
+            "OpenHands CLI completed without a trusted unified diff.",
+            "Expected output must include a diff --git patch for the owned docs fixture.",
+            result.output,
+          ].join("\n"),
+        ),
+      };
+    }
+
     return {
-      ok: Boolean(String(patch || "").trim()),
+      ok: true,
       patch,
-      changed_files: scopePack?.owned_files || [],
-      summary: "OpenHands CLI produced a test-mode patch.",
+      changed_files: worktreeCapture.changed_files?.length ? worktreeCapture.changed_files : scopePack?.owned_files || [],
+      summary: outputPatch
+        ? "OpenHands CLI produced a test-mode patch."
+        : "OpenHands CLI applied an owned-file patch captured from git diff.",
       test_run_id: result.run_id || "openhands-cli",
       test_exit_code: result.exit_code,
       output: result.output,
@@ -335,6 +423,161 @@ export function createDraftPrCoderoom({
   };
 }
 
+export function inspectSafeCoderoomPatchPaths({
+  changedFiles = [],
+  ownedFiles = [],
+  allowProtectedSurfaces = false,
+  protectedPathPatterns = DEFAULT_CODEROOM_PROTECTED_PATH_PATTERNS,
+} = {}) {
+  const normalizedChanged = (changedFiles || []).map(normalizePath).filter(Boolean);
+  const owned = new Set((ownedFiles || []).map(normalizePath).filter(Boolean));
+  const outside = normalizedChanged.find((file) => !owned.has(file));
+  if (outside) {
+    return { ok: false, reason: "patch_file_outside_ownership", file: outside };
+  }
+
+  if (!allowProtectedSurfaces) {
+    for (const file of normalizedChanged) {
+      const match = protectedPathPatterns.find((entry) => entry.pattern.test(file));
+      if (match) {
+        return { ok: false, reason: match.reason, file };
+      }
+    }
+  }
+
+  return { ok: true, changed_files: normalizedChanged };
+}
+
+export function createSafeCodeRoomSubmitter({
+  cwd = process.cwd(),
+  env = process.env,
+  branchName,
+  title = "",
+  body = "",
+  draft = false,
+  autoMerge = true,
+  allowProtectedSurfaces,
+  runProcess = runProcessCommand,
+  now = new Date(),
+} = {}) {
+  return async ({ job, scopePack, patch, changedFiles, summary, testRunId }) => {
+    const ownedFiles = job?.owned_files?.length ? job.owned_files : scopePack?.owned_files || [];
+    const validation = validateCodingRoomBuildPatch({
+      patch,
+      ownedFiles,
+    });
+    if (!validation.ok) {
+      return {
+        ok: false,
+        reason: validation.reason,
+        file: validation.file || null,
+      };
+    }
+
+    const normalizedChanged = (changedFiles?.length ? changedFiles : validation.changed_files).map(normalizePath);
+    const safety = inspectSafeCoderoomPatchPaths({
+      changedFiles: normalizedChanged,
+      ownedFiles,
+      allowProtectedSurfaces:
+        typeof allowProtectedSurfaces === "boolean"
+          ? allowProtectedSurfaces
+          : parseBoolean(env.AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES),
+    });
+    if (!safety.ok) return safety;
+
+    const auth = resolveCodeRoomSubmitterAuthEnv(env);
+    if (!auth.ok) {
+      return {
+        ok: false,
+        reason: auth.reason,
+        token_source: auth.token_source || null,
+      };
+    }
+    const submitterEnv = auth.env;
+
+    const status = await runProcess("git", ["status", "--porcelain"], { cwd, env: submitterEnv });
+    if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
+    if (status.stdout.trim()) return { ok: false, reason: "dirty_worktree" };
+
+    const todoId = safeSlug(job?.todo_id || job?.id || job?.job_id || safeStamp(now));
+    const branch = branchName || `${DEFAULT_SUBMITTER_BRANCH_PREFIX}-${todoId}`;
+    const existing = await runProcess(
+      "gh",
+      ["pr", "list", "--head", branch, "--state", "open", "--json", "url", "--jq", ".[0].url // \"\""],
+      { cwd, env: submitterEnv },
+    );
+    if (!existing.ok) return { ok: false, reason: "gh_pr_list_failed", output: existing.output };
+    const existingUrl = existing.stdout.trim();
+    if (existingUrl) {
+      return {
+        ok: true,
+        pr_url: existingUrl,
+        head_sha_after: null,
+        test_run_id: testRunId || null,
+        test_exit_code: 0,
+        status: "existing_pr",
+        idempotent: true,
+      };
+    }
+
+    const prTitle = title || `autopilot: submit ${compactOutput(job?.title || job?.job_id || todoId, 80)}`;
+    const bodyText =
+      body ||
+      [
+        "OpenHands CodeRoom submitter PR.",
+        "",
+        `Todo: ${job?.todo_id || job?.id || "unknown"}`,
+        `Summary: ${summary || "OpenHands produced a scoped patch."}`,
+        `Test run: ${testRunId || "not supplied"}`,
+        "",
+        "Safety: protected paths rejected before branch creation; patch limited to owned files.",
+      ].join("\n");
+
+    const commands = [
+      ["git", ["checkout", "-b", branch]],
+      ["git", ["apply", "--check", "--whitespace=error", "-"], { stdin: patch }],
+      ["git", ["apply", "--whitespace=nowarn", "-"], { stdin: patch }],
+      ["git", ["diff", "--check"]],
+      ["git", ["add", ...normalizedChanged]],
+      ["git", ["commit", "-m", prTitle]],
+      ["gh", ["auth", "setup-git"]],
+      ["git", ["push", "-u", "origin", branch]],
+      ["gh", ["pr", "create", ...(draft ? ["--draft"] : []), "--title", prTitle, "--body", bodyText]],
+    ];
+
+    let prUrl = "";
+    for (const [command, args, options = {}] of commands) {
+      const result = await runProcess(command, args, { cwd, env: submitterEnv, ...options });
+      if (!result.ok) return { ok: false, reason: `${command}_failed`, output: result.output };
+      if (command === "gh" && args[1] === "create") prUrl = result.stdout.trim();
+    }
+
+    const sha = await runProcess("git", ["rev-parse", "HEAD"], { cwd, env: submitterEnv });
+    if (!sha.ok) return { ok: false, reason: "git_rev_parse_failed", output: sha.output };
+
+    let autoMergeResult = { ok: true, skipped: true, reason: draft ? "draft_pr" : "auto_merge_disabled" };
+    if (autoMerge && !draft) {
+      autoMergeResult = await runProcess("gh", ["pr", "merge", "--auto", "--squash", prUrl], {
+        cwd,
+        env: submitterEnv,
+      });
+      if (!autoMergeResult.ok) {
+        return { ok: false, reason: "gh_auto_merge_failed", output: autoMergeResult.output, pr_url: prUrl };
+      }
+    }
+
+    return {
+      ok: true,
+      pr_url: prUrl || null,
+      head_sha_after: sha.stdout.trim() || null,
+      test_run_id: testRunId || null,
+      test_exit_code: 0,
+      status: autoMerge && !draft ? "pr_created_auto_merge_enabled" : "pr_created",
+      auto_merge_enabled: Boolean(autoMerge && !draft),
+    };
+  };
+}
+
 export async function runOpenHandsProof({
   env = process.env,
   cwd = process.cwd(),
@@ -430,6 +673,61 @@ export async function runProcessCommand(command, args = [], options = {}) {
     }
     child.stdin.end();
   });
+}
+
+export async function captureOwnedWorktreeDiff({
+  cwd = process.cwd(),
+  env = process.env,
+  ownedFiles = [],
+  runProcess = runProcessCommand,
+} = {}) {
+  const owned = [...new Set((ownedFiles || []).map(normalizePath).filter(Boolean))];
+  if (owned.length === 0) return { ok: true, patch: "", changed_files: [] };
+
+  const changed = await runProcess("git", ["diff", "--name-only", "--"], { cwd, env });
+  if (!changed.ok) {
+    return { ok: false, reason: "git_diff_name_only_failed", output: changed.output };
+  }
+
+  const changedFiles = normalizeList(changed.stdout)
+    .flatMap((text) => text.split(/\r?\n/))
+    .map(normalizePath)
+    .filter(Boolean);
+  if (changedFiles.length === 0) return { ok: true, patch: "", changed_files: [] };
+
+  const ownedSet = new Set(owned);
+  const outside = changedFiles.filter((file) => !ownedSet.has(file));
+  if (outside.length) {
+    return {
+      ok: false,
+      reason: "openhands_unowned_worktree_diff",
+      output: `Changed files outside ownership: ${outside.join(", ")}`,
+      changed_files: changedFiles,
+      outside_files: outside,
+    };
+  }
+
+  const diff = await runProcess("git", ["diff", "--", ...changedFiles], { cwd, env });
+  if (!diff.ok) {
+    return { ok: false, reason: "git_diff_capture_failed", output: diff.output, changed_files: changedFiles };
+  }
+
+  const restore = await runProcess("git", ["restore", "--worktree", "--", ...changedFiles], { cwd, env });
+  if (!restore.ok) {
+    return { ok: false, reason: "git_restore_owned_diff_failed", output: restore.output, changed_files: changedFiles };
+  }
+
+  const verify = await runProcess("git", ["diff", "--quiet", "--", ...changedFiles], { cwd, env });
+  if (!verify.ok) {
+    return {
+      ok: false,
+      reason: "git_restore_owned_diff_unclean",
+      output: verify.output,
+      changed_files: changedFiles,
+    };
+  }
+
+  return { ok: true, patch: diff.stdout || diff.output || "", changed_files: changedFiles };
 }
 
 function extractUnifiedDiff(output) {

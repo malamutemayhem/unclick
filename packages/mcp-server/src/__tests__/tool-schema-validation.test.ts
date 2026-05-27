@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ENDPOINT_MAP } from "../catalog.js";
 import {
   ADVERTISED_TOOLS,
+  AUTOPILOT_VISIBLE_TOOLS,
   EXPRESSROOM_VISIBLE_TOOL_NAMES,
   validateToolArgumentsForRuntime,
 } from "../server.js";
@@ -61,6 +62,20 @@ describe("runtime tool schema validation", () => {
     },
     { name: "unclick_generate_uuid", args: { count: 1, bogus_field: "should reject" } },
     { name: "unclick_random_password", args: { length: 8, bogus_field: "should reject" } },
+    {
+      name: "autopilot_record_event",
+      args: {
+        event_type: "claim",
+        actor_agent_id: "strict-probe",
+        ref_kind: "todo",
+        ref_id: "todo-123",
+        bogus_field: "should reject",
+      },
+    },
+    {
+      name: "autopilot_zero_touch_metrics",
+      args: { ref_kind: "todo", ref_id: "todo-123", bogus_field: "should reject" },
+    },
   ];
 
   it("rejects extra fields before handlers can run", () => {
@@ -123,6 +138,18 @@ describe("runtime tool schema validation", () => {
       max_snapshots: 4,
       max_sources_per_snapshot: 3,
     })).toBeNull();
+    expect(validateToolArgumentsForRuntime("autopilot_record_event", {
+      event_type: "proof_result",
+      actor_agent_id: "strict-probe",
+      ref_kind: "pr",
+      ref_id: "1022",
+      payload: { check: "Website (root package)", conclusion: "success" },
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("autopilot_zero_touch_metrics", {
+      ref_kind: "pr",
+      ref_id: "1022",
+      limit: 25,
+    })).toBeNull();
   });
 
   it("exposes Memory taxonomy snapshot refresh as a dry-run-first catalog endpoint", () => {
@@ -146,6 +173,14 @@ describe("runtime tool schema validation", () => {
 
     for (const toolName of EXPRESSROOM_VISIBLE_TOOL_NAMES) {
       expect(advertisedNames.has(toolName), toolName).toBe(true);
+    }
+  });
+
+  it("advertises AutoPilot ledger tools to connected agents", () => {
+    const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
+
+    for (const tool of AUTOPILOT_VISIBLE_TOOLS) {
+      expect(advertisedNames.has(tool.name), tool.name).toBe(true);
     }
   });
 });

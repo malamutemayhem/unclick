@@ -235,6 +235,7 @@ export default function AdminBrainmap() {
   const [query, setQuery] = useState("");
   const [activeDivision, setActiveDivision] = useState("All");
   const [showSource, setShowSource] = useState(false);
+  const [showRawGenerated, setShowRawGenerated] = useState(false);
 
   useEffect(() => {
     if (directOwner) {
@@ -559,19 +560,24 @@ export default function AdminBrainmap() {
         </div>
       </section>
 
-      <details className="rounded-lg border border-white/[0.06] bg-[#111] p-4">
+      <details
+        className="rounded-lg border border-white/[0.06] bg-[#111] p-4"
+        onToggle={(event) => setShowRawGenerated(event.currentTarget.open)}
+      >
         <summary className="cursor-pointer text-lg font-semibold text-white">Raw generated Brainmap</summary>
         <p className="mt-2 text-sm leading-6 text-white/55">
           This is the full generated packet for AI read efficiency, source checks, and exact table lookup.
         </p>
-        <div className="mt-4 rounded-lg border border-white/[0.06] bg-[#0B0B0B] p-4">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={markdownComponents}
-          >
-            {brainmapMarkdown}
-          </ReactMarkdown>
-        </div>
+        {showRawGenerated && (
+          <div className="mt-4 rounded-lg border border-white/[0.06] bg-[#0B0B0B] p-4">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={markdownComponents}
+            >
+              {brainmapMarkdown}
+            </ReactMarkdown>
+          </div>
+        )}
       </details>
     </div>
   );

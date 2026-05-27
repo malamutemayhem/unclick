@@ -218,7 +218,7 @@ export function AdminChecks() {
           { title: "LegalPass", body: "Legal/compliance wording and risk checks.", icon: FileText },
           { title: "CopyPass", body: "Writing, messaging, and copy quality checks.", icon: FileText, href: "/admin/copypass" },
           { title: "SEOPass", body: "Search visibility and metadata checks.", icon: SearchCheck },
-          { title: "QualityPass", body: "Public name for SlopPass-style quality checking.", icon: BadgeCheck },
+          { title: "SlopPass", body: "AI-code quality, slop signals, and maintainability checks.", icon: BadgeCheck },
           { title: "CompliancePass", body: "Public name for EnterprisePass.", icon: ShieldCheck },
           { title: "RotatePass", body: "Passport rotation checks, likely folding into SecurityPass later.", icon: KeyRound },
         ]}
