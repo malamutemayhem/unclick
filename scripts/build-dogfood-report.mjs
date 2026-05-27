@@ -15,16 +15,19 @@ const apiBase = trimTrailingSlash(process.env.DOGFOOD_API_BASE || "https://uncli
 const publicUrl = process.env.DOGFOOD_PUBLIC_URL || "https://unclick.world";
 const mcpUrl = process.env.DOGFOOD_MCP_URL || "https://unclick.world/api/mcp";
 const generatedAt = new Date().toISOString();
+const targetSha = process.env.DOGFOOD_TARGET_SHA || process.env.GITHUB_SHA || process.env.VERCEL_GIT_COMMIT_SHA || "";
+const packageSweepPath = process.env.DOGFOOD_XPASS_PACKAGE_SWEEP_PATH || "public/dogfood/xpass-package-sweep.json";
+let packageSweepState = null;
 
 const statusLegend = {
-  passing: "A live check ran and returned a passing result.",
-  failing: "A live check ran and returned a failing result or could not reach its API.",
+  passing: "A live check or scheduled package sweep ran and returned a passing result.",
+  failing: "A live check or scheduled package sweep ran and returned a failing result.",
   blocked: "The check could not run because an action is needed, such as a missing credential or scope gate.",
-  pending: "The check is planned, package-ready, or scaffolded, but live proof is not available yet.",
+  pending: "The check is planned, package-ready, or scaffolded, but scheduled proof is not available yet.",
 };
 
 const proofPolicy =
-  "Public dogfood receipts mark passing only when a live check actually ran. Blocked and pending are honest product states, not failures to hide.";
+  "Public dogfood receipts mark passing only when a live check or scheduled package sweep actually ran. Blocked and pending are honest product states, not failures to hide.";
 
 const xpassIndex = [
   {
@@ -168,11 +171,63 @@ function pendingResult(id, name, summary, evidence, details = {}) {
 }
 
 function packageReadyResult(id, name, summary, evidence, targetUrl, nextProof) {
+  const sweep = packageSweepProof(id);
+  if (sweep) {
+    if (sweep.package.status === "passing" && sweep.matrix?.status === "passing") {
+      return passResult(
+        id,
+        name,
+        `Scheduled XPass package sweep passed ${name}.`,
+        `Receipt ${sweep.runId} ran ${sweep.commandText}; cross-checked by ${sweep.reviewerNames || "package proof"}.`,
+        {
+          runId: sweep.runId,
+          targetUrl,
+          proof: {
+            kind: "xpass_package_sweep",
+            runId: sweep.runId,
+            packageId: id,
+            targetUrl,
+            targetSha: sweep.targetSha || undefined,
+            receiptPath: packageSweepPath,
+            reviewers: sweep.reviewers,
+          },
+        },
+      );
+    }
+
+    if (sweep.package.status === "failing" || sweep.matrix?.status === "failing") {
+      return failureResult(
+        id,
+        name,
+        `Scheduled XPass package sweep failed ${name}.`,
+        sweep.package.failure_hint || sweep.matrix?.summary || `Receipt ${sweep.runId} reported a failing package proof.`,
+        {
+          runId: sweep.runId,
+          targetUrl,
+          proof: {
+            kind: "xpass_package_sweep",
+            runId: sweep.runId,
+            packageId: id,
+            targetUrl,
+            targetSha: sweep.targetSha || undefined,
+            receiptPath: packageSweepPath,
+            reviewers: sweep.reviewers,
+          },
+        },
+      );
+    }
+  }
+
+  const sweepNextProof = sweep && sweep.package.status === "passing" && !sweep.matrix
+    ? `Regenerate ${packageSweepPath} with a cross-pass matrix row for ${name} before marking this passing.`
+    : packageSweepState?.stale
+      ? `Regenerate ${packageSweepPath} for ${targetSha || "the current commit"} before marking this passing.`
+      : nextProof;
   return pendingResult(id, name, summary, evidence, {
     reasonCode: "package_ready_needs_scheduled_receipt",
     proof: { kind: "package_ready", targetUrl },
     targetUrl,
-    nextProof,
+    nextProof: sweepNextProof,
   });
 }
 
@@ -195,6 +250,63 @@ function failureResult(id, name, summary, evidence, details = {}) {
 
 function passResult(id, name, summary, evidence, details = {}) {
   return result(id, name, "passing", summary, evidence, details);
+}
+
+async function readPackageSweepReceipt() {
+  if (dryRun) {
+    return { receipt: null, stale: false, reason: "dry_run" };
+  }
+
+  try {
+    const receipt = JSON.parse(await fs.readFile(packageSweepPath, "utf8"));
+    if (receipt?.kind !== "xpass_package_sweep_receipt_v1") {
+      return { receipt: null, stale: false, reason: "invalid_kind" };
+    }
+    if (targetSha && receipt.target_sha !== targetSha) {
+      return {
+        receipt,
+        stale: true,
+        reason: "target_sha_mismatch",
+        expectedSha: targetSha,
+        actualSha: receipt.target_sha || "",
+      };
+    }
+    return { receipt, stale: false, reason: "fresh" };
+  } catch (err) {
+    if (err?.code === "ENOENT") {
+      return { receipt: null, stale: false, reason: "missing" };
+    }
+    return {
+      receipt: null,
+      stale: false,
+      reason: "unreadable",
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+function packageSweepProof(id) {
+  const receipt = packageSweepState?.receipt;
+  if (!receipt || packageSweepState.stale) return null;
+  const packageResult = Array.isArray(receipt.packages)
+    ? receipt.packages.find((pkg) => pkg.id === id)
+    : null;
+  if (!packageResult) return null;
+
+  const matrix = Array.isArray(receipt.cross_pass_matrix)
+    ? receipt.cross_pass_matrix.find((row) => row.target_id === id)
+    : null;
+  const reviewers = Array.isArray(matrix?.reviewers) ? matrix.reviewers : [];
+  const reviewerNames = reviewers.map((reviewer) => reviewer.name || reviewer.id).filter(Boolean).join(", ");
+  return {
+    runId: receipt.run_id || "unknown",
+    targetSha: receipt.target_sha || "",
+    package: packageResult,
+    matrix,
+    reviewers,
+    reviewerNames,
+    commandText: Array.isArray(packageResult.command) ? packageResult.command.join(" ") : "the package test command",
+  };
 }
 
 async function postJson(url, token, body) {
@@ -419,6 +531,8 @@ function buildLastActionableFailure(results) {
   };
 }
 
+packageSweepState = await readPackageSweepReceipt();
+
 const results = [
   await runTestPass(),
   await runUXPass(),
@@ -524,7 +638,7 @@ const report = {
   source: dryRun ? "dogfood receipt dry run" : "nightly dogfood workflow",
   headline: "We dogfood UnClick on UnClick.",
   target: "UnClick public and agent-facing product surfaces",
-  nextAutomation: "Nightly dogfood receipts refresh this board with live scheduled evidence.",
+  nextAutomation: "Nightly dogfood receipts refresh this board with live checks and scheduled XPass package proof.",
   statusLegend,
   proofPolicy,
   xpassIndex,

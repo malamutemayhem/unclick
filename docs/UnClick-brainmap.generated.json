@@ -7398,8 +7398,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "10f4bfd44859",
-      "bytes": 16045
+      "hash": "a2d54cc557ef",
+      "bytes": 16182
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -7833,8 +7833,8 @@
     },
     {
       "source": ".github/workflows/dogfood-report.yml",
-      "hash": "d485b8d37111",
-      "bytes": 3987
+      "hash": "a3f2533f7bef",
+      "bytes": 4805
     },
     {
       "source": ".github/workflows/event-wake-router.yml",

@@ -9,7 +9,7 @@ What's automated, what secrets are required, and what to do when something goes 
 | `ci.yml` | PRs + push to main | Lint + build the website, typecheck + build the MCP server |
 | `testpass-pr-check.yml` | PRs | Runs the shared TestPass action against the MCP endpoint under test and posts a receipt summary |
 | `testpass-scheduled-smoke.yml` | Every 5 minutes + manual dispatch | Runs scheduled TestPass smoke with explicit token precedence and fail-closed infra reporting |
-| `dogfood-report.yml` | Nightly schedule + manual dispatch | Rebuilds `public/dogfood/latest.json` with honest passing / blocked / pending proof status |
+| `dogfood-report.yml` | Nightly schedule + manual dispatch | Rebuilds `public/dogfood/latest.json`, `public/dogfood/xpass-package-sweep.json`, and `public/dogfood/uxpass-site-sweep.json` with honest passing / blocked / pending proof status |
 | `event-wake-router.yml` | `issue_comment` + workflow fan-in | Routes ready-work wake events without waking healthy quiet cycles |
 | `auto-close-fishbowl-todo.yml` | PR merge hooks | Closes linked Fishbowl todos when a merged PR satisfies them |
 | `publish-mcp-package.yml` | Push to main touching `packages/mcp-server/**` | Bumps patch version and publishes the MCP server GitHub Release tarball |
@@ -59,12 +59,17 @@ Nightly dogfood splits the proof lanes on purpose:
 |---|---|---|
 | TestPass | `TESTPASS_TOKEN` | Exported into the script as `DOGFOOD_TESTPASS_TOKEN`; no cron fallback in the current workflow |
 | UXPass | `UXPASS_TOKEN`, then `CRON_SECRET` | Exported into the script as `DOGFOOD_UXPASS_TOKEN`; a blocked receipt is expected if neither secret exists |
+| XPass package sweep | none | Runs local package tests for TestPass, UXPass, SecurityPass, SlopPass, SEOPass, CopyPass, LegalPass, CommonSensePass, FlowPass, and GEOPass before `latest.json` is built |
 
 The public receipt at `public/dogfood/latest.json` should stay honest:
 
-- `passing` only when the live scheduled check actually completed.
+- `passing` only when the live scheduled check or scheduled XPass package sweep actually completed.
 - `blocked` when the workflow cannot run because a secret path is missing.
 - `pending` for proof families that are intentionally scaffolded but not live yet.
+
+`public/dogfood/xpass-package-sweep.json` is deliberately public-safe. It stores package names, commands, statuses,
+run IDs, and cross-pass reviewers, but not raw command output or secrets. SecurityPass can pass its local package proof
+while still staying `blocked` in `latest.json` until safe recurring security probes exist.
 
 ## Runtime env vars
 

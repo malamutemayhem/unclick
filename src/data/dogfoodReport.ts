@@ -13,9 +13,18 @@ export interface DogfoodPassResult {
   runId?: string;
   targetUrl?: string;
   proof?: {
-    kind: "testpass_run" | "uxpass_run" | "planned" | "package_ready" | "boundary";
+    kind: "testpass_run" | "uxpass_run" | "planned" | "package_ready" | "boundary" | "xpass_package_sweep";
     runId?: string;
+    packageId?: string;
     targetUrl?: string;
+    targetSha?: string;
+    receiptPath?: string;
+    reviewers?: Array<{
+      id: string;
+      name?: string;
+      role?: string;
+      status?: DogfoodStatus | "planned";
+    }>;
   };
 }
 
@@ -46,14 +55,14 @@ export const dogfoodReport = {
   source: "static fallback receipt",
   headline: "We dogfood UnClick on UnClick.",
   target: "UnClick public and agent-facing product surfaces",
-  nextAutomation: "Nightly dogfood receipts refresh this board with live scheduled evidence.",
+  nextAutomation: "Nightly dogfood receipts refresh this board with live checks and scheduled XPass package proof.",
   statusLegend: {
-    passing: "A live check ran and returned a passing result.",
-    failing: "A live check ran and returned a failing result or could not reach its API.",
+    passing: "A live check or scheduled package sweep ran and returned a passing result.",
+    failing: "A live check or scheduled package sweep ran and returned a failing result.",
     blocked: "The check could not run because an action is needed, such as a missing credential or scope gate.",
-    pending: "The check is planned, package-ready, or scaffolded, but live proof is not available yet.",
+    pending: "The check is planned, package-ready, or scaffolded, but scheduled proof is not available yet.",
   } satisfies DogfoodStatusLegend,
-  proofPolicy: "Public dogfood receipts mark passing only when a live check actually ran. Blocked and pending are honest product states, not failures to hide.",
+  proofPolicy: "Public dogfood receipts mark passing only when a live check or scheduled package sweep actually ran. Blocked and pending are honest product states, not failures to hide.",
   xpassIndex: [
     {
       id: "testpass",
