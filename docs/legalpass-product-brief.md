@@ -54,13 +54,16 @@ This rule is enforced at three layers:
    `you may want to review with a lawyer`, `we recommend`,
    `the right thing to do is`, `this is illegal`, `this is enforceable`,
    `this is unenforceable`, `this is lawful`, `this is compliant`,
+   `legally compliant`, `complies with law`, `complies with the law`,
    `safe to sign`, `safe to publish`, `safe to rely on`,
-   `legally safe`, `no legal risk`, `no legal issues`,
+   `ready to sign`, `ready to publish`, `approved for signing`,
+   `approved for publication`, `legally safe`, `no legal risk`,
+   `no legal issues`, `zero legal risk`, `risk free`, `risk-free`,
    `you will win`, `you will lose`, plus
    substitute-lawyer and unsupported compliance claims such as `robot lawyer`,
    `AI lawyer`, `replace your lawyer`, `automatic compliance`,
-   `guaranteed compliant`, `fully compliant`, `we represent you`, and
-   `100% compliant`.
+   `certified compliant`, `compliance certified`, `guaranteed compliant`,
+   `fully compliant`, `we represent you`, and `100% compliant`.
    Allowed framing includes `appears`, `seems`, `may`, `might`, `could`,
    `consider`, `in similar contracts`, `in comparable agreements`,
    `is unusual`, `is common`, `is typical`, `is standard`,
