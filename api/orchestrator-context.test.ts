@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildOrchestratorContext,
+  buildSituationBrain,
   compactText,
   computeActiveJobsCount,
   isHeartbeatAutomationText,
@@ -1606,5 +1607,162 @@ describe("computeActiveJobsCount (v9 definition)", () => {
     expect(context.response_bounds.continuity_events_available).toBe(8);
     expect(context.response_bounds.continuity_events_truncated).toBe(true);
     expect(context.rolling_snapshot.source_pointers.every((pointer) => pointer.source_id)).toBe(true);
+  });
+});
+
+describe("situation brain v0 (per-worker packet)", () => {
+  it("builds a packet for a seat's claimed job with scopepack, owned files, and a hold", () => {
+    const brain = buildSituationBrain({
+      agentId: "builder-seat",
+      todos: [
+        {
+          id: "todo-claimed",
+          title: "Situation Brain v0 packet",
+          description:
+            "scopepack=present. owned_files: api/lib/orchestrator-context.ts, api/orchestrator-context.test.ts. Build the compact per-worker packet.",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: "builder-seat",
+          created_at: "2026-05-27T09:00:00.000Z",
+          updated_at: "2026-05-27T10:00:00.000Z",
+        },
+        {
+          id: "todo-other",
+          title: "Someone else's job",
+          description: "scopepack=present. owned_files: src/other.ts",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: "different-seat",
+          created_at: "2026-05-27T09:00:00.000Z",
+          updated_at: "2026-05-27T10:30:00.000Z",
+        },
+      ],
+      comments: [
+        {
+          id: "comment-hold",
+          target_kind: "todo",
+          target_id: "todo-claimed",
+          author_agent_id: "reviewer",
+          text: "BLOCKER: missing proof, no PR link yet.",
+          created_at: "2026-05-27T10:15:00.000Z",
+        },
+        {
+          id: "comment-chatter",
+          target_kind: "todo",
+          target_id: "todo-claimed",
+          author_agent_id: "builder-seat",
+          text: "Looks good, starting now.",
+          created_at: "2026-05-27T10:05:00.000Z",
+        },
+      ],
+    });
+
+    expect(brain.mode).toBe("situation-brain-v0");
+    expect(brain.agent_id).toBe("builder-seat");
+    expect(brain.has_claimed_job).toBe(true);
+    expect(brain.claimed_job?.source_id).toBe("todo-claimed");
+    expect(brain.claimed_job?.status).toBe("in_progress");
+    expect(brain.claimed_job?.scopepack_present).toBe(true);
+    expect(brain.claimed_job?.owned_files).toEqual([
+      "api/lib/orchestrator-context.ts",
+      "api/orchestrator-context.test.ts",
+    ]);
+    expect(brain.recent_holds).toHaveLength(1);
+    expect(brain.recent_holds[0].summary).toContain("missing proof");
+    expect(brain.next_step).toContain("Resolve the latest hold");
+    expect(brain.source_pointers.map((pointer) => pointer.source_id)).toEqual(
+      expect.arrayContaining(["todo-claimed", "comment-hold"]),
+    );
+  });
+
+  it("flags a claimed job that has no ScopePack", () => {
+    const brain = buildSituationBrain({
+      agentId: "builder-seat",
+      todos: [
+        {
+          id: "todo-vague",
+          title: "Vague job",
+          description: "scopepack=missing. Imported for autonomous claim/routing.",
+          status: "in_progress",
+          priority: "high",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: "builder-seat",
+          created_at: "2026-05-27T09:00:00.000Z",
+          updated_at: "2026-05-27T10:00:00.000Z",
+        },
+      ],
+      comments: [],
+    });
+
+    expect(brain.has_claimed_job).toBe(true);
+    expect(brain.claimed_job?.scopepack_present).toBe(false);
+    expect(brain.claimed_job?.owned_files).toEqual([]);
+    expect(brain.recent_holds).toHaveLength(0);
+    expect(brain.next_step).toContain("has no ScopePack");
+    expect(brain.next_step).toContain("Attach owned_files");
+  });
+
+  it("returns a no-job packet when the seat holds nothing claimed", () => {
+    const brain = buildSituationBrain({
+      agentId: "idle-seat",
+      todos: [
+        {
+          id: "todo-elsewhere",
+          title: "Owned by another seat",
+          description: "scopepack=present. owned_files: src/x.ts",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: "busy-seat",
+          created_at: "2026-05-27T09:00:00.000Z",
+          updated_at: "2026-05-27T10:00:00.000Z",
+        },
+      ],
+      comments: [],
+    });
+
+    expect(brain.has_claimed_job).toBe(false);
+    expect(brain.claimed_job).toBeNull();
+    expect(brain.recent_holds).toHaveLength(0);
+    expect(brain.source_pointers).toHaveLength(0);
+    expect(brain.next_step).toContain("No claimed job");
+  });
+
+  it("attaches situation_brain to the context only when focusAgentId is supplied", () => {
+    const baseInput = {
+      generatedAt: "2026-05-27T11:00:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [
+        {
+          id: "todo-focus",
+          title: "Focused seat job",
+          description: "scopepack=present. owned_files: api/focus.ts",
+          status: "in_progress" as const,
+          priority: "urgent" as const,
+          created_by_agent_id: "router",
+          assigned_to_agent_id: "focus-seat",
+          created_at: "2026-05-27T09:00:00.000Z",
+          updated_at: "2026-05-27T10:00:00.000Z",
+        },
+      ],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    };
+
+    const withoutFocus = buildOrchestratorContext(baseInput);
+    expect(withoutFocus.situation_brain).toBeNull();
+
+    const withFocus = buildOrchestratorContext({ ...baseInput, focusAgentId: "focus-seat" });
+    expect(withFocus.situation_brain?.agent_id).toBe("focus-seat");
+    expect(withFocus.situation_brain?.has_claimed_job).toBe(true);
+    expect(withFocus.situation_brain?.claimed_job?.source_id).toBe("todo-focus");
   });
 });

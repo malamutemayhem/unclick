@@ -152,6 +152,9 @@ export interface BuildOrchestratorContextInput {
   compact?: boolean;
   maxSummaries?: number;
   includeRaw?: boolean;
+  // When set, the context attaches a per-worker Situation Brain packet for
+  // this seat. Omitted/null keeps situation_brain null (no behavior change).
+  focusAgentId?: string | null;
   profiles: OrchestratorProfileRow[];
   messages: OrchestratorMessageRow[];
   todos: OrchestratorTodoRow[];
@@ -263,6 +266,36 @@ export interface OrchestratorSeatHandshake {
   source_pointers: OrchestratorSourceLink[];
 }
 
+// Situation Brain v0 (per-worker compact current-state packet). Unlike
+// current_state_card (the GLOBAL operator card), this is scoped to one seat:
+// its claimed job, that job's scope, recent holds against it, and a single
+// deterministic next step. Pure and additive - it is only attached to the
+// context when a focusAgentId is supplied, and never changes the global card.
+export interface OrchestratorSituationBrainJob extends OrchestratorSourceLink {
+  source_kind: "todo";
+  title: string;
+  status: string;
+  priority: string;
+  scopepack_present: boolean;
+  owned_files: string[];
+}
+
+export interface OrchestratorSituationBrainHold extends OrchestratorSourceLink {
+  source_kind: "todo_comment";
+  summary: string;
+  author_agent_id?: string | null;
+}
+
+export interface OrchestratorSituationBrain {
+  mode: "situation-brain-v0";
+  agent_id: string;
+  has_claimed_job: boolean;
+  claimed_job: OrchestratorSituationBrainJob | null;
+  recent_holds: OrchestratorSituationBrainHold[];
+  next_step: string;
+  source_pointers: OrchestratorSourceLink[];
+}
+
 export interface OrchestratorContext {
   version: "orchestrator-context-v1";
   generated_at: string;
@@ -333,6 +366,8 @@ export interface OrchestratorContext {
   library_snapshots: OrchestratorLibrarySnapshot[];
   rolling_snapshot: OrchestratorRollingSnapshot;
   seat_handshake: OrchestratorSeatHandshake;
+  // Per-worker Situation Brain v0. Null unless focusAgentId was supplied.
+  situation_brain: OrchestratorSituationBrain | null;
   response_bounds: {
     compact: boolean;
     max_summaries: number;
@@ -617,6 +652,13 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     library_snapshots: librarySnapshots,
     rolling_snapshot: rollingSnapshot,
     seat_handshake: seatHandshake,
+    situation_brain: input.focusAgentId
+      ? buildSituationBrain({
+          agentId: input.focusAgentId,
+          todos: input.todos,
+          comments: input.comments,
+        })
+      : null,
     response_bounds: {
       compact,
       max_summaries: maxSummaries,
@@ -870,6 +912,149 @@ function compactContinuityEvent(event: OrchestratorContinuityEvent): Orchestrato
   return {
     ...event,
     summary: compactText(event.summary, 120),
+  };
+}
+
+const SITUATION_BRAIN_OWNED_FILES_LIMIT = 8;
+const SITUATION_BRAIN_HOLD_LIMIT = 3;
+
+// A described ScopePack is "present" when the todo body says so explicitly or
+// when it actually names owned files. Deterministic text read; the orchestrator
+// todo row carries no structured scopepack field, so v0 reads the description.
+function parseScopepackPresence(description: string): boolean {
+  if (!description) return false;
+  if (/scope\s*pack\s*[:=]?\s*missing/i.test(description)) return false;
+  if (/scope\s*pack\s*[:=]?\s*present/i.test(description)) return true;
+  if (/scope\s*pack/i.test(description) && parseOwnedFiles(description).length > 0) return true;
+  return false;
+}
+
+// Pull the owned-files list out of an "owned_files: a/b.ts, c/d.tsx" line (also
+// tolerates a bracketed/quoted array). Keeps only path-shaped tokens, capped.
+function parseOwnedFiles(description: string): string[] {
+  if (!description) return [];
+  // Capture the file list up to the first sentence boundary (". " or newline)
+  // so trailing prose after the list is not mistaken for files.
+  const match = description.match(/owned[_ ]files\s*[:=]\s*([^\n]*?)(?:\.\s|\n|$)/i);
+  if (!match) return [];
+  const tokens = match[1]
+    .replace(/[[\]"'`]/g, " ")
+    .split(/[,\s]+/)
+    .map((token) => token.trim().replace(/[.,;:]+$/, ""))
+    .filter(Boolean);
+  const files = tokens.filter((token) => token.includes("/") || /\.[a-z0-9]+$/i.test(token));
+  return Array.from(new Set(files)).slice(0, SITUATION_BRAIN_OWNED_FILES_LIMIT);
+}
+
+function isHoldComment(text: string): boolean {
+  return /\b(blocker|blocked|hold|missing proof|needs? proof|stuck|waiting on)\b/i.test(text ?? "");
+}
+
+/**
+ * Situation Brain v0: a compact, per-worker current-state packet for a single
+ * seat. Pure and deterministic. Unlike the global current_state_card, this is
+ * scoped to one agent: its claimed job (and that job's scope), recent holds
+ * raised against it, and one explicit next step. Returns a no-job packet when
+ * the seat holds nothing claimed.
+ */
+export function buildSituationBrain(input: {
+  agentId: string;
+  todos: OrchestratorTodoRow[];
+  comments?: OrchestratorCommentRow[];
+}): OrchestratorSituationBrain {
+  const agentId = input.agentId;
+  const comments = input.comments ?? [];
+
+  const claimedTodo =
+    input.todos
+      .filter(
+        (todo) =>
+          todo.assigned_to_agent_id === agentId &&
+          (todo.status === "in_progress" || todo.status === "open"),
+      )
+      // Prefer in_progress (actually claimed) over open, then priority/recency.
+      .sort((a, b) => {
+        const aStarted = a.status === "in_progress" ? 0 : 1;
+        const bStarted = b.status === "in_progress" ? 0 : 1;
+        if (aStarted !== bStarted) return aStarted - bStarted;
+        return compareTodoPriorityThenUpdated(a, b);
+      })[0] ?? null;
+
+  const claimedJob: OrchestratorSituationBrainJob | null = claimedTodo
+    ? {
+        source_kind: "todo",
+        source_id: claimedTodo.id,
+        deep_link: `/admin/jobs#todo-${claimedTodo.id}`,
+        created_at: claimedTodo.updated_at ?? claimedTodo.created_at,
+        title: compactText(claimedTodo.title, 120),
+        status: claimedTodo.status,
+        priority: claimedTodo.priority,
+        scopepack_present: parseScopepackPresence(claimedTodo.description ?? ""),
+        owned_files: parseOwnedFiles(claimedTodo.description ?? ""),
+      }
+    : null;
+
+  const recentHolds: OrchestratorSituationBrainHold[] = claimedTodo
+    ? comments
+        .filter(
+          (comment) =>
+            comment.target_kind === "todo" &&
+            comment.target_id === claimedTodo.id &&
+            isHoldComment(comment.text),
+        )
+        .sort((a, b) => compareIsoDesc(a.created_at, b.created_at))
+        .slice(0, SITUATION_BRAIN_HOLD_LIMIT)
+        .map((comment) => ({
+          source_kind: "todo_comment" as const,
+          source_id: comment.id,
+          deep_link: `/admin/jobs#todo-${comment.target_id}`,
+          created_at: comment.created_at,
+          author_agent_id: comment.author_agent_id,
+          summary: compactText(comment.text, 160),
+        }))
+    : [];
+
+  const nextStep = !claimedJob
+    ? "No claimed job for this seat. Claim one scoped queued job or stay quiet; do not post a status-only wake."
+    : !claimedJob.scopepack_present
+      ? `Claimed "${claimedJob.title}" has no ScopePack. Attach owned_files, verification, and stop conditions before building.`
+      : recentHolds.length > 0
+        ? `Resolve the latest hold on "${claimedJob.title}", then do one bounded step in owned files and post proof (PR/SHA/run id).`
+        : `Continue "${claimedJob.title}": do one bounded step within owned files and post proof (PR/SHA/run id).`;
+
+  const sourcePointers: OrchestratorSourceLink[] = [];
+  const seenPointers = new Set<string>();
+  const pushPointer = (link: OrchestratorSourceLink) => {
+    const key = `${link.source_kind}:${link.source_id}`;
+    if (seenPointers.has(key)) return;
+    seenPointers.add(key);
+    sourcePointers.push(link);
+  };
+  if (claimedJob) {
+    pushPointer({
+      source_kind: "todo",
+      source_id: claimedJob.source_id,
+      deep_link: claimedJob.deep_link,
+      created_at: claimedJob.created_at,
+    });
+  }
+  for (const hold of recentHolds) {
+    pushPointer({
+      source_kind: "todo_comment",
+      source_id: hold.source_id,
+      deep_link: hold.deep_link,
+      created_at: hold.created_at,
+    });
+  }
+
+  return {
+    mode: "situation-brain-v0",
+    agent_id: agentId,
+    has_claimed_job: claimedJob !== null,
+    claimed_job: claimedJob,
+    recent_holds: recentHolds,
+    next_step: nextStep,
+    source_pointers: sourcePointers,
   };
 }
 
