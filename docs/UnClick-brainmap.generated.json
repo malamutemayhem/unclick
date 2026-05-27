@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 479,
+    "inventory": 480,
     "source_manifest": 94,
     "pages": 94,
     "tools": 183,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 12
+      "count": 13
     },
     {
       "id": "wrappers-and-protocols",
@@ -2168,6 +2168,16 @@
       "kind": "pass",
       "meaning": "uxpass site sweep UnClick module.",
       "source": "scripts/uxpass-site-sweep.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-pass-uxpass-visual-audit-scripts-uxpass-visual-audit-mjs",
+      "division": "Passes and gates",
+      "name": "uxpass visual audit",
+      "kind": "pass",
+      "meaning": "uxpass visual audit UnClick module.",
+      "source": "scripts/uxpass-visual-audit.mjs",
       "route": "",
       "tags": []
     },
@@ -6667,8 +6677,8 @@
     },
     {
       "source": "package.json",
-      "hash": "9f761ff407b1",
-      "bytes": 4232
+      "hash": "b9ae68a558a0",
+      "bytes": 4293
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",
