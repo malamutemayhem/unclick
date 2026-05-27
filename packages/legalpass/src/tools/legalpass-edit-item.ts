@@ -8,6 +8,8 @@ import type {
 } from "../types.js";
 import { getRun, updateRun } from "./store.js";
 
+const VALID_VERDICTS = new Set<Verdict>(["check", "na", "fail", "other", "pending"]);
+
 export interface LegalpassEditItemArgs {
   run_id: string;
   item_id: string;
@@ -68,62 +70,109 @@ export const legalpassEditItemTool: ToolDescriptor<
     },
   },
   handler: async (args) => {
-    if (!args.verdict && !args.finding && !args.on_fail_comment && !args.reviewer_note) {
+    const runId = parseRequiredNonBlankText(args.run_id, "run_id");
+    const itemId = parseRequiredNonBlankText(args.item_id, "item_id");
+    const verdict = parseOptionalVerdict(args.verdict);
+    const finding = parseOptionalNonBlankText(args.finding, "finding");
+    const onFailComment = parseOptionalNonBlankText(
+      args.on_fail_comment,
+      "on_fail_comment",
+    );
+    const reviewerNote = parseOptionalNonBlankText(
+      args.reviewer_note,
+      "reviewer_note",
+    );
+
+    if (!verdict && !finding && !onFailComment && !reviewerNote) {
       throw new Error(
         "legalpass_edit_item: provide verdict, finding, on_fail_comment, or reviewer_note",
       );
     }
 
-    if (args.finding) {
-      assertVerdictText(args.finding, `${args.item_id}.finding`);
+    if (finding) {
+      assertVerdictText(finding, `${itemId}.finding`);
     }
-    if (args.on_fail_comment) {
-      assertVerdictText(args.on_fail_comment, `${args.item_id}.on_fail_comment`);
+    if (onFailComment) {
+      assertVerdictText(onFailComment, `${itemId}.on_fail_comment`);
     }
-    if (args.reviewer_note) {
-      assertVerdictText(args.reviewer_note, `${args.item_id}.reviewer_note`);
+    if (reviewerNote) {
+      assertVerdictText(reviewerNote, `${itemId}.reviewer_note`);
     }
 
-    const run = getRun(args.run_id);
+    const run = getRun(runId);
     if (!run) {
-      throw new Error(`legalpass_edit_item: run '${args.run_id}' was not found`);
+      throw new Error(`legalpass_edit_item: run '${runId}' was not found`);
     }
 
-    const item = run.items.find((candidate) => candidate.item_id === args.item_id);
+    const item = run.items.find((candidate) => candidate.item_id === itemId);
     if (!item) {
       throw new Error(
-        `legalpass_edit_item: item '${args.item_id}' was not found on run '${args.run_id}'`,
+        `legalpass_edit_item: item '${itemId}' was not found on run '${runId}'`,
       );
     }
 
     const before = snapshotItem(item);
-    if (args.verdict) item.verdict = args.verdict;
-    if (args.finding) item.finding = args.finding;
-    if (args.on_fail_comment) item.on_fail_comment = args.on_fail_comment;
+    if (verdict) item.verdict = verdict;
+    if (finding) item.finding = finding;
+    if (onFailComment) item.on_fail_comment = onFailComment;
 
     run.summary = summarize(run.items);
     const audit_entry: LegalpassEditItemAuditEntry = {
       event: "legalpass_item_edit",
-      run_id: args.run_id,
-      item_id: args.item_id,
+      run_id: runId,
+      item_id: itemId,
       actor_user_id: args.actor_user_id?.trim() || "unknown",
       edited_at: new Date().toISOString(),
       before,
       after: snapshotItem(item),
-      ...(args.reviewer_note ? { reviewer_note: args.reviewer_note } : {}),
+      ...(reviewerNote ? { reviewer_note: reviewerNote } : {}),
     };
     run.audit_log.push(audit_entry);
     updateRun(run);
 
     return {
-      run_id: args.run_id,
-      item_id: args.item_id,
+      run_id: runId,
+      item_id: itemId,
       updated: true,
       summary: run.summary,
       audit_entry,
     };
   },
 };
+
+function parseOptionalVerdict(value: Verdict | undefined): Verdict | undefined {
+  if (value === undefined) return undefined;
+  if (!VALID_VERDICTS.has(value)) {
+    throw new Error("legalpass_edit_item: verdict must be check|fail|na|other|pending");
+  }
+  return value;
+}
+
+function parseRequiredNonBlankText(value: string, fieldName: string): string {
+  if (typeof value !== "string") {
+    throw new Error(`legalpass_edit_item: ${fieldName} must be a string`);
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error(`legalpass_edit_item: ${fieldName} must not be blank`);
+  }
+  return trimmed;
+}
+
+function parseOptionalNonBlankText(
+  value: string | undefined,
+  fieldName: string,
+): string | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string") {
+    throw new Error(`legalpass_edit_item: ${fieldName} must be a string`);
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error(`legalpass_edit_item: ${fieldName} must not be blank`);
+  }
+  return trimmed;
+}
 
 function snapshotItem(
   item: PackItemResult,

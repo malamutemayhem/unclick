@@ -112,6 +112,15 @@ describe("LegalPass MCP tool registration", () => {
     expect(JSON.stringify(result)).not.toMatch(/ask a qualified/i);
   });
 
+  it("rejects duplicate runtime jurisdictions", async () => {
+    await expect(
+      legalpassRunTool.handler({
+        target: { kind: "url", url: "https://example.com/terms" },
+        jurisdictions: ["AU", "AU"],
+      }),
+    ).rejects.toThrow(/jurisdictions must be unique/);
+  });
+
   it("rejects private fixture documents until guarded ingestion exists", async () => {
     await expect(
       legalpassRunTool.handler({
@@ -259,6 +268,30 @@ describe("LegalPass MCP tool registration", () => {
         finding: "You should sign this now.",
       }),
     ).rejects.toThrow(/forbidden phrasing/);
+
+    await expect(
+      legalpassEditItemTool.handler({
+        run_id: "   ",
+        item_id: itemId,
+        verdict: "other",
+      }),
+    ).rejects.toThrow(/run_id must not be blank/);
+
+    await expect(
+      legalpassEditItemTool.handler({
+        run_id: result.run_id,
+        item_id: itemId,
+        verdict: "approve" as never,
+      }),
+    ).rejects.toThrow(/verdict must be/);
+
+    await expect(
+      legalpassEditItemTool.handler({
+        run_id: result.run_id,
+        item_id: itemId,
+        finding: "   ",
+      }),
+    ).rejects.toThrow(/finding must not be blank/);
 
     await expect(
       legalpassEditItemTool.handler({

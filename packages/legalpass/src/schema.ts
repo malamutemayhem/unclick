@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  JurisdictionCodeSchema,
+  JurisdictionListSchema,
   SeveritySchema,
 } from "./pack-schema.js";
 
@@ -107,7 +107,7 @@ export const LegalPassHatDefinitionSchema = z.object({
   label: z.string().min(1),
   summary: z.string().min(1),
   target_documents: z.array(LegalPassDocumentKindSchema).min(1),
-  jurisdictions: z.array(JurisdictionCodeSchema).min(1),
+  jurisdictions: JurisdictionListSchema,
   checks: z.array(LegalPassHatCheckSchema).min(1),
 });
 
@@ -131,7 +131,7 @@ export const LegalPassReportSchema = z.object({
   target: LegalPassTargetSchema,
   generated_at: z.string().datetime(),
   mode: LegalPassModeSchema.default("plan-only"),
-  jurisdictions: z.array(JurisdictionCodeSchema).min(1),
+  jurisdictions: JurisdictionListSchema,
   overall_score: z.number().min(0).max(100),
   verdict: LegalPassReportVerdictSchema,
   hats: z.array(LegalPassHatResultSchema).min(1),

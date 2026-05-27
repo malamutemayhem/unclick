@@ -141,6 +141,20 @@ describe("LegalPass MCP exposure", () => {
       legalpassEditItem({
         run_id: run.run_id,
         item_id: firstItem.item_id,
+        verdict: "approve",
+      }),
+    ).resolves.toMatchObject({ error: "verdict must be check|fail|na|other|pending" });
+    await expect(
+      legalpassEditItem({
+        run_id: run.run_id,
+        item_id: firstItem.item_id,
+        finding: "   ",
+      }),
+    ).resolves.toMatchObject({ error: "finding must not be blank" });
+    await expect(
+      legalpassEditItem({
+        run_id: run.run_id,
+        item_id: firstItem.item_id,
         notes: "The right thing to do is accept this.",
       }),
     ).resolves.toMatchObject({ error: "forbidden phrasing" });
@@ -167,6 +181,10 @@ describe("LegalPass MCP exposure", () => {
       error: "jurisdictions may only include AU, EU, US-CA, US-NY, UK, CA, NZ, or SG",
     });
     await expect(legalpassRun({
+      target_url: "https://example.com/terms",
+      jurisdictions: ["AU", "AU"],
+    })).resolves.toMatchObject({ error: "jurisdictions entries must be unique" });
+    await expect(legalpassRun({
       target: { kind: "url" },
     })).resolves.toMatchObject({ error: "target.url must be a valid http(s) URL" });
     await expect(legalpassRun({
@@ -191,6 +209,18 @@ describe("LegalPass MCP exposure", () => {
         },
       }),
     ).resolves.toMatchObject({ error: "pack.targets may only include url, contract_upload, or repo" });
+    await expect(
+      legalpassSavePack({
+        pack: {
+          id: "mcp-duplicate-target-pack",
+          targets: ["url", "url"],
+          hats: [
+            { hat_id: "privacy", enabled: true },
+            { hat_id: "citation_verifier", enabled: true },
+          ],
+        },
+      }),
+    ).resolves.toMatchObject({ error: "pack.targets entries must be unique" });
     await expect(
       legalpassSavePack({
         pack: {
@@ -232,6 +262,32 @@ describe("LegalPass MCP exposure", () => {
         },
       }),
     ).resolves.toMatchObject({ error: "pack.hats contains an unknown LegalPass hat_id" });
+    await expect(
+      legalpassSavePack({
+        pack: {
+          id: "mcp-duplicate-hat-pack",
+          targets: ["url"],
+          hats: [
+            { hat_id: "privacy", enabled: true },
+            { hat_id: "privacy", enabled: true },
+            { hat_id: "citation_verifier", enabled: true },
+          ],
+        },
+      }),
+    ).resolves.toMatchObject({ error: "pack.hats entries must be unique by hat_id" });
+    await expect(
+      legalpassSavePack({
+        pack: {
+          id: "mcp-duplicate-item-pack",
+          targets: ["url"],
+          hats: [
+            { hat_id: "privacy", enabled: true },
+            { hat_id: "citation_verifier", enabled: true },
+          ],
+          items: [{ id: "privacy.001" }, { id: "privacy.001" }],
+        },
+      }),
+    ).resolves.toMatchObject({ error: "pack.items entries must be unique by id" });
   });
 
   it("includes the enabled pack shape in MCP run identity", async () => {

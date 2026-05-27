@@ -182,11 +182,14 @@ The current PR keeps the code surface deterministic and evidence-led:
 - `schema.ts` defines the advisory report, evidence, finding, hat, fixture document, and GEOPass adapter shapes for the three public-safe MVP hats.
 - `hat-library.ts` defines deterministic fixture checks for Privacy Policy, ToS and Unfair Terms, and OSS Licence.
 - `verdict-pack.ts` can emit a plan-only pack or evaluate public fixture text without live crawling, private uploads, production rows, paid calls, or legal instructions.
+- Fixture findings always carry evidence, including an explicit coverage note when no matching public fixture document exists for a hat.
+- Pack schema rejects duplicate target kinds, jurisdictions, hat ids, and item ids so runs and edits stay unambiguous.
 - `tools/` exposes `legalpass_run`, `legalpass_status`, `legalpass_save_pack`, and `legalpass_edit_item`.
 - `legalpass_run` rejects fixture documents marked `public_only: false` until a guarded private ingestion path exists.
+- `legalpass_run` rejects duplicate runtime jurisdictions and fails clearly when no phase-one hat supports the selected jurisdiction set.
 - LegalPass target, evidence, document, scanner, and GEOPass adapter URLs accept http(s) only.
-- Reviewer overrides are retained on the run `audit_log`, and a repeat deterministic run does not erase that trail.
+- Reviewer overrides reject invalid verdicts and blank text fields, are retained on the run `audit_log`, and a repeat deterministic run does not erase that trail.
 - Generated fail comments use non-imperative phrasing such as "review may be warranted" rather than telling the user what to do.
-- `packages/mcp-server/src/legalpass-tool.ts` exposes the same run/status/save/edit surface for MCP callers, validates target/profile/jurisdiction/hat shape, and adds `legalpass_verdict` for PassGuard linting.
+- `packages/mcp-server/src/legalpass-tool.ts` exposes the same run/status/save/edit surface for MCP callers, validates target/profile/jurisdiction/hat/item/edit shape, rejects duplicate pack and runtime values, and adds `legalpass_verdict` for PassGuard linting.
 
 Every report carries the issue-spotter disclaimer and stays framed as review input for a qualified practitioner.

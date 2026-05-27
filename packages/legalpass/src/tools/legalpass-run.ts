@@ -120,7 +120,15 @@ export const legalpassRunTool: ToolDescriptor<LegalpassRunArgs, RunResult> = {
 };
 
 function parseJurisdictions(values: string[]): JurisdictionCode[] {
-  return values.map((value) => JurisdictionCodeSchema.parse(value));
+  const jurisdictions = values.map((value) => JurisdictionCodeSchema.parse(value));
+  const seen = new Set<JurisdictionCode>();
+  for (const jurisdiction of jurisdictions) {
+    if (seen.has(jurisdiction)) {
+      throw new Error("legalpass_run: jurisdictions must be unique");
+    }
+    seen.add(jurisdiction);
+  }
+  return jurisdictions;
 }
 
 function phaseOneHatIdsForPack(pack: Pack): LegalPassPhaseOneHatId[] {

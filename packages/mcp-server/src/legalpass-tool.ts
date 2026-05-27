@@ -363,6 +363,15 @@ function isSupportedJurisdiction(value: string): value is LegalPassMcpJurisdicti
   return SUPPORTED_JURISDICTIONS.has(value as LegalPassMcpJurisdiction);
 }
 
+function firstDuplicate(values: string[]): string | null {
+  const seen = new Set<string>();
+  for (const value of values) {
+    if (seen.has(value)) return value;
+    seen.add(value);
+  }
+  return null;
+}
+
 function isValidUrl(value: string): boolean {
   try {
     const url = new URL(value);
@@ -610,7 +619,26 @@ function parseJurisdictions(value: unknown, fieldName: string):
   if (invalid !== undefined) {
     return { error: `${fieldName} may only include AU, EU, US-CA, US-NY, UK, CA, NZ, or SG` };
   }
+  if (firstDuplicate(value as string[])) {
+    return { error: `${fieldName} entries must be unique` };
+  }
   return { jurisdictions: value as LegalPassMcpJurisdiction[] };
+}
+
+function parseOptionalText(value: unknown, fieldName: string):
+  | { value?: string }
+  | { error: string } {
+  if (value === undefined || value === null) {
+    return {};
+  }
+  if (typeof value !== "string") {
+    return { error: `${fieldName} must be a string` };
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return { error: `${fieldName} must not be blank` };
+  }
+  return { value: trimmed };
 }
 
 export async function legalpassVerdict(args: Record<string, unknown>): Promise<unknown> {
@@ -666,18 +694,24 @@ export async function legalpassEditItem(args: Record<string, unknown>): Promise<
   const item = record.items.find((candidate) => candidate.item_id === itemId);
   if (!item) return { error: `item '${itemId}' was not found on run '${runId}'` };
 
-  const verdict = typeof args.verdict === "string" ? args.verdict : "";
+  if (args.verdict !== undefined && typeof args.verdict !== "string") {
+    return { error: "verdict must be check|fail|na|other|pending" };
+  }
+  const verdict = typeof args.verdict === "string" ? args.verdict.trim() : "";
   if (verdict && !["check", "fail", "na", "other", "pending"].includes(verdict)) {
     return { error: "verdict must be check|fail|na|other|pending" };
   }
 
-  const finding = typeof args.finding === "string" ? args.finding : "";
-  const onFailComment = typeof args.on_fail_comment === "string" ? args.on_fail_comment : "";
-  const reviewerNote = typeof args.reviewer_note === "string"
-    ? args.reviewer_note
-    : typeof args.notes === "string"
-      ? args.notes
-      : "";
+  const parsedFinding = parseOptionalText(args.finding, "finding");
+  if ("error" in parsedFinding) return parsedFinding;
+  const finding = parsedFinding.value ?? "";
+  const parsedOnFailComment = parseOptionalText(args.on_fail_comment, "on_fail_comment");
+  if ("error" in parsedOnFailComment) return parsedOnFailComment;
+  const onFailComment = parsedOnFailComment.value ?? "";
+  const reviewerNoteSource = args.reviewer_note !== undefined ? args.reviewer_note : args.notes;
+  const parsedReviewerNote = parseOptionalText(reviewerNoteSource, "reviewer_note");
+  if ("error" in parsedReviewerNote) return parsedReviewerNote;
+  const reviewerNote = parsedReviewerNote.value ?? "";
   if (!verdict && !finding && !onFailComment && !reviewerNote) {
     return { error: "provide verdict, finding, on_fail_comment, reviewer_note, or notes" };
   }
@@ -759,6 +793,9 @@ function parsePackInput(args: Record<string, unknown>):
   if (invalidTarget !== undefined) {
     return { error: "pack.targets may only include url, contract_upload, or repo" };
   }
+  if (firstDuplicate(pack.targets)) {
+    return { error: "pack.targets entries must be unique" };
+  }
   const parsedPackProfile = parseProfile(pack.profile ?? DEFAULT_PROFILE, "pack.profile");
   if ("error" in parsedPackProfile) return parsedPackProfile;
   pack.profile = parsedPackProfile.profile;
@@ -780,6 +817,31 @@ function parsePackInput(args: Record<string, unknown>):
   );
   if (invalidHat !== undefined) {
     return { error: "pack.hats contains an unknown LegalPass hat_id" };
+  }
+  const duplicateHat = firstDuplicate(pack.hats.map((hat) => hat.hat_id).filter(Boolean) as string[]);
+  if (duplicateHat) {
+    return { error: "pack.hats entries must be unique by hat_id" };
+  }
+  if (pack.items !== undefined) {
+    if (!Array.isArray(pack.items)) {
+      return { error: "pack.items must be an array when provided" };
+    }
+    const invalidItem = pack.items.find(
+      (item) =>
+        !item ||
+        typeof item !== "object" ||
+        typeof (item as Record<string, unknown>).id !== "string" ||
+        !String((item as Record<string, unknown>).id).trim(),
+    );
+    if (invalidItem !== undefined) {
+      return { error: "pack.items entries must include a non-empty id" };
+    }
+    const duplicateItem = firstDuplicate(
+      pack.items.map((item) => String((item as Record<string, unknown>).id)),
+    );
+    if (duplicateItem) {
+      return { error: "pack.items entries must be unique by id" };
+    }
   }
   const hasCitationVerifier = pack.hats.some(
     (hat) => hat?.enabled !== false && hat?.hat_id === "citation_verifier",

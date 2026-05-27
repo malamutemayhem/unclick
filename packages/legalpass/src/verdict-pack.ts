@@ -37,6 +37,7 @@ export function createLegalPassVerdictPack(
     hat_ids: input.hat_ids,
     jurisdictions,
   });
+  assertPhaseOneHats(hats, jurisdictions);
   const report = {
     target: input.target,
     generated_at: input.generated_at ?? new Date().toISOString(),
@@ -69,6 +70,7 @@ export function createFixtureLegalPassReport(
     hat_ids: input.hat_ids,
     jurisdictions,
   });
+  assertPhaseOneHats(hats, jurisdictions);
   const hatResults = hats.map((hat) => evaluateHatAgainstFixtures(hat, documents));
   const overall_score = Math.round(
     hatResults.reduce((total, result) => total + result.score, 0) / hatResults.length,
@@ -109,6 +111,16 @@ function parsePublicFixtureDocument(
   return parsed;
 }
 
+function assertPhaseOneHats(
+  hats: LegalPassHatDefinition[],
+  jurisdictions: JurisdictionCode[],
+): void {
+  if (hats.length > 0) return;
+  throw new Error(
+    `LegalPass requires at least one phase-one hat for jurisdictions: ${jurisdictions.join(", ")}`,
+  );
+}
+
 function createPlanOnlyHatResult(hat: LegalPassHatDefinition): LegalPassHatResult {
   return {
     hat_id: hat.id,
@@ -132,6 +144,7 @@ function evaluateHatAgainstFixtures(
   const searchableText = normalizeText(
     relevantDocuments.map((document) => document.text).join(" "),
   );
+  const evidence = evidenceForHat(hat, relevantDocuments);
   const findings = hat.checks.flatMap((check) => {
     const matchedTerms = check.fixture_terms.filter((term) =>
       searchableText.includes(normalizeText(term)),
@@ -149,12 +162,7 @@ function evaluateHatAgainstFixtures(
         title: `${check.label} fixture signal missing`,
         summary:
           "The provided public fixture text did not include the configured issue-spotting signal.",
-        evidence: relevantDocuments.map((document) => ({
-          kind: "fixture" as const,
-          label: document.title,
-          source_url: document.source_url,
-          summary: `Checked public fixture document ${document.id}.`,
-        })),
+        evidence,
         issue_spotting_note: check.issue_spotting_note,
         practitioner_review_flag: check.severity === "critical" || check.severity === "high",
       },
@@ -174,6 +182,29 @@ function evaluateHatAgainstFixtures(
       `Evaluated ${relevantDocuments.length} public fixture document(s) for ${hat.label}.`,
     ],
   };
+}
+
+function evidenceForHat(
+  hat: LegalPassHatDefinition,
+  relevantDocuments: LegalPassFixtureDocument[],
+): LegalPassHatResult["findings"][number]["evidence"] {
+  if (relevantDocuments.length === 0) {
+    return [
+      {
+        kind: "fixture",
+        label: `${hat.label} fixture coverage`,
+        summary:
+          "No public fixture document matched the configured document kinds for this hat.",
+      },
+    ];
+  }
+
+  return relevantDocuments.map((document) => ({
+    kind: "fixture" as const,
+    label: document.title,
+    source_url: document.source_url,
+    summary: `Checked public fixture document ${document.id}.`,
+  }));
 }
 
 function toHatVerdict(score: number, findingCount: number): LegalPassHatResult["verdict"] {

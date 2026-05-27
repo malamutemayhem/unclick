@@ -64,6 +64,9 @@ describe("LegalPass verdict pack", () => {
 
     expect(report.verdict).toBe("blocked");
     expect(report.hats.some((hat) => hat.findings.length > 0)).toBe(true);
+    expect(
+      report.hats.flatMap((hat) => hat.findings).every((finding) => finding.evidence.length > 0),
+    ).toBe(true);
     expect(JSON.stringify(report)).not.toContain("you should");
   });
 
@@ -83,5 +86,14 @@ describe("LegalPass verdict pack", () => {
         ],
       }),
     ).toThrow(/public_only documents/);
+  });
+
+  it("fails clearly when no phase-one hats support the jurisdiction", () => {
+    expect(() =>
+      createLegalPassVerdictPack({
+        target: { name: "Example", url: "https://example.com" },
+        jurisdictions: ["UK"],
+      }),
+    ).toThrow(/at least one phase-one hat/);
   });
 });
