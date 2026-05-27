@@ -582,7 +582,12 @@ describe("safe CodeRoom submitter", () => {
         if (command === "gh" && args[1] === "list") {
           return {
             ok: true,
-            stdout: "https://github.com/malamutemayhem/unclick/pull/930\n",
+            stdout: JSON.stringify([
+              {
+                url: "https://github.com/malamutemayhem/unclick/pull/930",
+                headRefOid: "def456",
+              },
+            ]),
             stderr: "",
             output: "",
           };
@@ -602,6 +607,8 @@ describe("safe CodeRoom submitter", () => {
     assert.equal(result.status, "existing_pr");
     assert.equal(result.idempotent, true);
     assert.equal(result.pr_url, "https://github.com/malamutemayhem/unclick/pull/930");
+    assert.equal(result.head_sha_after, "def456");
+    assert.ok(calls[1][1].includes("url,headRefOid"));
     assert.deepEqual(
       calls.map(([command, args]) => `${command} ${args.slice(0, 2).join(" ")}`),
       ["git status --porcelain", "gh pr list"],
@@ -841,7 +848,7 @@ describe("safe CodeRoom submitter", () => {
     });
 
     const result = await submitter({
-      job: { todo_id: "todo-2", owned_files: [FIXTURE] },
+      job: { source_state: { todo_id: "todo-2" }, owned_files: [FIXTURE] },
       changedFiles: [FIXTURE],
       patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: auto-merge" }),
       summary: "Docs-only submitter proof.",
@@ -851,6 +858,8 @@ describe("safe CodeRoom submitter", () => {
     assert.equal(result.ok, true);
     assert.equal(result.status, "pr_created_auto_merge_enabled");
     assert.equal(result.auto_merge_enabled, true);
+    const createCall = calls.find(([command, args]) => command === "gh" && args[1] === "create");
+    assert.match(createCall?.[1].join("\n") || "", /Todo: todo-2/);
     assert.deepEqual(
       calls.map(([command, args]) => `${command} ${args.slice(0, 3).join(" ")}`),
       [

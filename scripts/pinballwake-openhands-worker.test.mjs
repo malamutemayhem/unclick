@@ -119,6 +119,34 @@ describe("runOpenHandsWorker", () => {
     assert.equal(coderoomCalls, 1);
   });
 
+  test("uses Boardroom source todo id in prompt and pass receipt", async () => {
+    let promptText = "";
+    const result = await runOpenHandsWorker({
+      job: job({
+        todo_id: undefined,
+        source_state: { todo_id: "boardroom-source-todo" },
+      }),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async ({ prompt }) => {
+        promptText = prompt;
+        return { ok: true, patch: patchFor(), test_run_id: "unit-test", test_exit_code: 0 };
+      },
+      coderoom: async () => ({
+        ok: true,
+        pr_url: "https://github.com/malamutemayhem/unclick/pull/874",
+        head_sha_after: "source123",
+        test_run_id: "unit-test",
+        test_exit_code: 0,
+      }),
+    });
+
+    assert.equal(result.ok, true);
+    assert.match(promptText, /Todo: boardroom-source-todo/);
+    assert.equal(result.receipt.todo_id, "boardroom-source-todo");
+  });
+
   test("returns HOLD when test mode is not enabled", async () => {
     const result = await runOpenHandsWorker({
       job: job(),

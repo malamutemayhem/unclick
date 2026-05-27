@@ -32,6 +32,32 @@ const CHECK_LABELS = {
   wakepass: "WakePass",
 };
 
+const PASS_PRODUCT_CHECKS = new Map([
+  ["commonsensepass", "commonsensepass"],
+  ["copypass", "copypass"],
+  ["flowpass", "flowpass"],
+  ["geopass", "geopass"],
+  ["legalpass", "legalpass"],
+  ["securitypass", "securitypass"],
+  ["seopass", "seopass"],
+  ["sloppass", "sloppass"],
+  ["testpass", "testpass"],
+  ["uxpass", "uxpass"],
+  ["wakepass", "wakepass"],
+  ["rotatepass", "rotatepass"],
+]);
+
+const ENTERPRISE_READINESS_TERMS = [
+  "enterprisepass",
+  "compliancepass",
+  "enterprise readiness",
+  "compliance readiness",
+  "ai governance",
+  "model inventory",
+  "technical documentation",
+  "training data",
+];
+
 const PASS_STATUS = new Set(["pass", "passed", "success", "green", "ok"]);
 const BLOCKER_STATUS = new Set(["fail", "failed", "failure", "blocker", "blocked", "red"]);
 const SKIP_STATUS = new Set(["skip", "skipped", "not_applicable", "not-applicable"]);
@@ -79,6 +105,28 @@ function testFile(path) {
   return /(^|\/)(__tests__|tests?)\//.test(path) || /\.(test|spec)\.(mjs|js|ts|tsx|jsx)$/.test(path);
 }
 
+function passProductForPath(path) {
+  const packageMatch = path.match(/^packages\/([^/]*pass)(?:\/|$)/);
+  if (packageMatch && PASS_PRODUCT_CHECKS.has(packageMatch[1])) return packageMatch[1];
+
+  const docMatch = path.match(/^docs\/([^/]*pass)(?:[-_.].*)?\.(?:md|mdx|txt|json)$/);
+  if (docMatch && PASS_PRODUCT_CHECKS.has(docMatch[1])) return docMatch[1];
+
+  const apiMatch = path.match(/^api\/([^/]*pass)(?:[-_.].*)?\.(?:mjs|js|cjs|ts|tsx|jsx|json)$/);
+  if (apiMatch && PASS_PRODUCT_CHECKS.has(apiMatch[1])) return apiMatch[1];
+
+  return "";
+}
+
+function enterpriseReadinessSurface(path, allText) {
+  return (
+    path.includes("enterprise") ||
+    path.includes("compliance") ||
+    path.startsWith("public/enterprise/") ||
+    hasAny(allText, ENTERPRISE_READINESS_TERMS)
+  );
+}
+
 function targetText(input = {}) {
   return [
     input.title,
@@ -119,6 +167,32 @@ export function selectXPassChecks(input = {}) {
 
   for (const path of files) {
     const pathWords = path.replace(/[\/_.-]+/g, " ");
+    const passProduct = passProductForPath(path);
+
+    if (passProduct) {
+      const productCheck = PASS_PRODUCT_CHECKS.get(passProduct);
+      addReason(reasons, "testpass", `XPass product implementation needs proof tests: ${path}`);
+      addReason(reasons, productCheck, `XPass product should dogfood its own specialist check: ${path}`);
+      if (codeFile(path) && !testFile(path)) {
+        addReason(reasons, "sloppass", `XPass product implementation needs code-quality dogfood: ${path}`);
+      }
+    }
+
+    if (enterpriseReadinessSurface(path, allText)) {
+      addReason(reasons, "testpass", `enterprise-readiness evidence needs runnable proof: ${path}`);
+      addReason(reasons, "securitypass", `enterprise-readiness evidence covers security and credential hygiene: ${path}`);
+      addReason(reasons, "commonsensepass", `enterprise-readiness evidence must avoid false compliance claims: ${path}`);
+      addReason(reasons, "copypass", `enterprise-readiness wording surface: ${path}`);
+      addReason(reasons, "legalpass", `compliance/readiness positioning surface: ${path}`);
+      if (codeFile(path) && !testFile(path)) {
+        addReason(reasons, "sloppass", `enterprise-readiness implementation quality surface: ${path}`);
+      }
+    }
+
+    if (path.includes("xpass") || path.includes("qcpass")) {
+      addReason(reasons, "testpass", `multi-pass gate needs runnable proof: ${path}`);
+      addReason(reasons, "commonsensepass", `multi-pass gate must avoid false green receipts: ${path}`);
+    }
 
     if (
       path.startsWith("packages/mcp-server/") ||
@@ -267,10 +341,10 @@ export function selectXPassChecks(input = {}) {
   if (hasAny(allText, ["mcp", "tool", "tools", "connector", "connectors", "api endpoint", "native endpoint"])) {
     addReason(reasons, "testpass", "target text mentions tools/connectors/MCP");
   }
-  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin"])) {
+  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
     addReason(reasons, "uxpass", "target text mentions UI/UX/visual changes");
   }
-  if (hasAny(allText, ["security", "auth", "oauth", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "password", "redaction"])) {
+  if (hasAny(allText, ["security", "auth", "oauth", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "password", "redaction", "prompt injection", "insecure output", "llm", "model output", "sandbox"])) {
     addReason(reasons, "securitypass", "target text mentions security/auth/keys");
   }
   if (hasAny(allText, ["common sense", "commonsense", "false done", "no work", "healthy", "merge ready", "claim", "claims", "proof", "receipt", "queue", "orchestrator", "heartbeat"])) {
