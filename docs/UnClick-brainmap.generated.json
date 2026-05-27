@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 513,
+    "inventory": 514,
     "source_manifest": 189,
     "pages": 82,
     "tools": 185,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 13
+      "count": 14
     },
     {
       "id": "wrappers-and-protocols",
@@ -2468,6 +2468,16 @@
       "kind": "pass",
       "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
       "source": "api/lib/testpass-boundary.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-pass-testpass-pr-comment-scripts-testpass-pr-comment-mjs-no-route",
+      "division": "Passes and gates",
+      "name": "testpass pr comment",
+      "kind": "pass",
+      "meaning": "testpass pr comment UnClick module.",
+      "source": "scripts/testpass-pr-comment.mjs",
       "route": "",
       "tags": []
     },
@@ -7593,8 +7603,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "fc1947d2c5ee",
-      "bytes": 14412
+      "hash": "8f56bcf4cb09",
+      "bytes": 17833
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
@@ -7868,8 +7878,8 @@
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "398a44d83549",
-      "bytes": 9548
+      "hash": "06c30cc187e8",
+      "bytes": 7414
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",

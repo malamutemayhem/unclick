@@ -176,6 +176,39 @@ describe("writerlane free-writer: happy path", () => {
     }
   });
 
+  it("creates a missing owned docs file when the scope allows a new file", async () => {
+    let prompt = "";
+    const writes = [];
+    const runner = createWriterLaneFreeWriterRunner({
+      env: { LLM_API_KEY: "k" },
+      models: [MODEL_A],
+      fetchImpl: async (_url, init) => {
+        prompt = JSON.parse(init.body).messages[0].content;
+        return fakeFetchOnce(fileBlock("docs/x.md", "# New file\n\nCreated by the writer."))();
+      },
+      readFileImpl: async () => {
+        const err = new Error("missing");
+        err.code = "ENOENT";
+        throw err;
+      },
+      runProcess: okProcess(),
+      writeFileImpl: async ({ path, content }) => {
+        writes.push({ path, content });
+      },
+      captureDiff: async ({ ownedFiles }) => ({ ok: true, patch: GOOD_PATCH, changed_files: ownedFiles }),
+    });
+
+    const result = await runner({
+      prompt: "Create the missing docs file.",
+      scopePack: { owned_files: OWNED, verification: ["node --test docs/x.test.mjs"] },
+    });
+
+    assert.equal(result.ok, true);
+    assert.match(prompt, /file_missing_new_file_ok/);
+    assert.match(prompt, /Create it from scratch/);
+    assert.deepEqual(writes, [{ path: "docs/x.md", content: "# New file\n\nCreated by the writer.\n" }]);
+  });
+
   it("safely falls back when a model follows the runner and returns an owned unified diff", async () => {
     const commands = [];
     const runner = createWriterLaneFreeWriterRunner({
@@ -452,6 +485,8 @@ describe("writerlane free-writer: pure helpers", () => {
       currentFiles: [{ path: "docs/x.md", content: "", error: "file_missing_new_file_ok" }],
     });
     assert.match(prompt, /missing/);
+    assert.match(prompt, /If a current owned file is missing/);
+    assert.match(prompt, /Unreadable: file_missing_new_file_ok/);
     assert.match(prompt, /Create it from scratch/);
   });
 
