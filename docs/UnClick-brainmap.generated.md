@@ -103,7 +103,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Developers.tsx | 9657fd564797 | 19123 |
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
-| src/pages/DogfoodReport.tsx | 10f4bfd44859 | 16045 |
+| src/pages/DogfoodReport.tsx | a2d54cc557ef | 16182 |
 | src/pages/FAQPage.tsx | c3c95c39e56f | 723 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 70f86c37110a | 34772 |
@@ -190,7 +190,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/autonomous-runner.yml | a1280cfec46b | 15338 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
 | .github/workflows/dirty-branch-hygiene.yml | 9d192a7da041 | 2190 |
-| .github/workflows/dogfood-report.yml | d485b8d37111 | 3987 |
+| .github/workflows/dogfood-report.yml | a3f2533f7bef | 4805 |
 | .github/workflows/event-wake-router.yml | bfd53e324bb4 | 1453 |
 | .github/workflows/fleet-throughput-watch.yml | c5a08f4edf9b | 930 |
 | .github/workflows/openhands-test-mode.yml | 3bd5d5f48573 | 1137 |
