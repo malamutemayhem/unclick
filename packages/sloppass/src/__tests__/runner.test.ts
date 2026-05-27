@@ -4,7 +4,7 @@ import { runSlopPass } from "../runner/index.js";
 describe("SlopPass runner", () => {
   it("returns the canonical target, scope, findings, and not_checked sections", async () => {
     const result = await runSlopPass({
-      target: { kind: "files", label: "fixture", files: ["src/generated.ts"] },
+      target: { kind: "files", label: "source sample", files: ["src/generated.ts"] },
       files: [
         {
           path: "src/generated.ts",
@@ -14,7 +14,7 @@ describe("SlopPass runner", () => {
       checks: ["logic_plausibility"],
     });
 
-    expect(result.target.label).toBe("fixture");
+    expect(result.target.label).toBe("source sample");
     expect(result.scope.checks_attempted).toEqual(["logic_plausibility"]);
     expect(result.findings.some((finding) => finding.category === "logic_plausibility")).toBe(true);
     expect(result.not_checked.length).toBeGreaterThan(0);
@@ -36,7 +36,121 @@ describe("SlopPass runner", () => {
     );
   });
 
-  it("supports a stripped promptfoo-style model provider scaffold", async () => {
+  it("runs against a unified diff and keeps evidence line numbers", async () => {
+    const result = await runSlopPass({
+      target: { kind: "diff", label: "PR diff", ref: "abc123" },
+      diff: [
+        "diff --git a/src/feature.ts b/src/feature.ts",
+        "--- a/src/feature.ts",
+        "+++ b/src/feature.ts",
+        "@@ -40,6 +40,7 @@ export function feature() {",
+        " const before = true;",
+        "+const value: any = eval(input);",
+        " return before;",
+      ].join("\n"),
+      checks: ["grounding_api_reality", "maintenance_change_risk"],
+    });
+
+    expect(result.scope.files_reviewed).toEqual(["src/feature.ts"]);
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({
+        title: "Dynamic code execution is present",
+        file: "src/feature.ts",
+        line: 41,
+      }),
+    );
+    expect(result.verdict).toBe("fail");
+  });
+
+  it("falls back to diff input when provided file slices are empty", async () => {
+    const result = await runSlopPass({
+      target: { kind: "diff", label: "empty files plus diff" },
+      files: [{ path: "src/empty.ts", content: "" }],
+      diff: [
+        "diff --git a/src/real.ts b/src/real.ts",
+        "--- a/src/real.ts",
+        "+++ b/src/real.ts",
+        "@@ -8,6 +8,7 @@ export function real() {",
+        "+const value: any = eval(input);",
+      ].join("\n"),
+    });
+
+    expect(result.scope.files_reviewed).toEqual(["src/real.ts"]);
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({ title: "Dynamic code execution is present", line: 8 }),
+    );
+  });
+
+  it("deduplicates files reviewed across multiple diff hunks", async () => {
+    const result = await runSlopPass({
+      target: { kind: "diff", label: "multi-hunk diff" },
+      diff: [
+        "diff --git a/src/repeat.ts b/src/repeat.ts",
+        "--- a/src/repeat.ts",
+        "+++ b/src/repeat.ts",
+        "@@ -1,2 +1,3 @@",
+        "+const first: any = 1;",
+        "@@ -20,2 +21,3 @@",
+        "+const second: any = 2;",
+      ].join("\n"),
+      checks: ["maintenance_change_risk"],
+    });
+
+    expect(result.scope.files_reviewed).toEqual(["src/repeat.ts"]);
+    expect(result.findings.filter((finding) => finding.title === "Type safety was bypassed")).toHaveLength(2);
+  });
+
+  it("flags dependency additions in diff scope as supply-chain review triggers", async () => {
+    const result = await runSlopPass({
+      target: { kind: "diff", label: "package diff" },
+      diff: [
+        "diff --git a/package.json b/package.json",
+        "--- a/package.json",
+        "+++ b/package.json",
+        "@@ -20,6 +20,7 @@",
+        '     "typescript": "^5.9.3",',
+        '+    "plausible-new-helper": "^1.0.0"',
+      ].join("\n"),
+      checks: ["maintenance_change_risk"],
+    });
+
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({
+        title: "Dependency change needs package verification",
+        file: "package.json",
+        line: 21,
+        severity: "info",
+      }),
+    );
+    expect(result.verdict).toBe("warn");
+  });
+
+  it("fails diff-scoped package lifecycle hooks as supply-chain review triggers", async () => {
+    const result = await runSlopPass({
+      target: { kind: "diff", label: "package script diff" },
+      diff: [
+        "diff --git a/package.json b/package.json",
+        "--- a/package.json",
+        "+++ b/package.json",
+        "@@ -12,6 +12,7 @@",
+        '     "build": "vite build",',
+        '+    "postinstall": "node scripts/setup.js"',
+      ].join("\n"),
+      checks: ["maintenance_change_risk"],
+    });
+
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({
+        title: "Package lifecycle script needs supply-chain review",
+        file: "package.json",
+        line: 13,
+        severity: "high",
+      }),
+    );
+    expect(result.verdict).toBe("fail");
+  });
+
+  it("records non-default provider selection without making model calls", async () => {
     const result = await runSlopPass({
       target: { kind: "files", label: "echo", files: ["src/a.ts"] },
       files: [{ path: "src/a.ts", content: "export const a = 1;" }],
@@ -47,7 +161,8 @@ describe("SlopPass runner", () => {
     expect(result.scope.provider).toBe("openai");
     expect(result.findings).toContainEqual(
       expect.objectContaining({
-        title: "OpenAI provider scaffold is wired",
+        title: "OpenAI provider is configured for offline mode",
+        confidence_note: "Offline provider mode. No model call was made.",
       })
     );
   });

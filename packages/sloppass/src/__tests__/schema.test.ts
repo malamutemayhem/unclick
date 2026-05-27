@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CHECKS } from "../categories.js";
-import { SlopPassResultSchema, SlopPassRunInputSchema } from "../schema.js";
+import { SLOPPASS_LIMITS, SlopPassResultSchema, SlopPassRunInputSchema } from "../schema.js";
 
 describe("SlopPass run schema", () => {
   it("accepts the canonical target, files, and provider shape", () => {
     const parsed = SlopPassRunInputSchema.parse({
-      target: { kind: "files", label: "fixture", files: ["src/example.ts"] },
+      target: { kind: "files", label: "source sample", files: ["src/example.ts"] },
       files: [{ path: "src/example.ts", content: "export const ok = true;" }],
     });
 
     expect(parsed.provider).toBe("http");
-    expect(parsed.target.label).toBe("fixture");
+    expect(parsed.target.label).toBe("source sample");
   });
 
   it("keeps the six PRD categories as built-in checks", () => {
@@ -24,7 +24,23 @@ describe("SlopPass run schema", () => {
     ]);
   });
 
-  it("rejects a run without files", () => {
+  it("accepts a diff instead of source files", () => {
+    const parsed = SlopPassRunInputSchema.parse({
+      target: { kind: "diff", label: "diff-only" },
+      diff: [
+        "diff --git a/src/example.ts b/src/example.ts",
+        "--- a/src/example.ts",
+        "+++ b/src/example.ts",
+        "@@ -1 +1 @@",
+        "+export const ok = true;",
+      ].join("\n"),
+    });
+
+    expect(parsed.diff).toContain("src/example.ts");
+    expect(parsed.provider).toBe("http");
+  });
+
+  it("rejects a run without files or diff", () => {
     expect(() =>
       SlopPassRunInputSchema.parse({
         target: { kind: "files", label: "empty" },
@@ -33,13 +49,51 @@ describe("SlopPass run schema", () => {
     ).toThrow();
   });
 
+  it("rejects empty source file text", () => {
+    expect(() =>
+      SlopPassRunInputSchema.parse({
+        target: { kind: "files", label: "empty file" },
+        files: [{ path: "src/empty.ts", content: "" }],
+      }),
+    ).toThrow();
+  });
+
+  it("rejects empty requested check lists", () => {
+    expect(() =>
+      SlopPassRunInputSchema.parse({
+        target: { kind: "files", label: "no checks" },
+        files: [{ path: "src/example.ts", content: "export const ok = true;" }],
+        checks: [],
+      }),
+    ).toThrow();
+  });
+
+  it("caps file count and source size before review work starts", () => {
+    expect(() =>
+      SlopPassRunInputSchema.parse({
+        target: { kind: "files", label: "too many" },
+        files: Array.from({ length: SLOPPASS_LIMITS.maxFiles + 1 }, (_, index) => ({
+          path: `src/${index}.ts`,
+          content: "export const ok = true;",
+        })),
+      }),
+    ).toThrow();
+
+    expect(() =>
+      SlopPassRunInputSchema.parse({
+        target: { kind: "files", label: "too large" },
+        files: [{ path: "src/large.ts", content: "x".repeat(SLOPPASS_LIMITS.maxFileBytes + 1) }],
+      }),
+    ).toThrow();
+  });
+
   it("validates the advisory result contract with verdict and scope", () => {
     const parsed = SlopPassResultSchema.parse({
-      target: { kind: "files", label: "fixture", files: ["src/example.ts"] },
+      target: { kind: "files", label: "source sample", files: ["src/example.ts"] },
       scope: {
         checks_attempted: ["maintenance_change_risk"],
         files_reviewed: ["src/example.ts"],
-        provider: "fixture-only",
+        provider: "provided-source",
       },
       verdict: "warn",
       findings: [],
@@ -52,7 +106,7 @@ describe("SlopPass run schema", () => {
       summary: {
         posture: "Scoped static review completed.",
         counts_by_severity: { critical: 0, high: 0, medium: 0, low: 1, info: 0 },
-        coverage_note: "Only fixture files were inspected.",
+        coverage_note: "Only provided source files were inspected.",
       },
       disclaimer: {
         headline: "Scoped review only",
@@ -62,6 +116,6 @@ describe("SlopPass run schema", () => {
     });
 
     expect(parsed.verdict).toBe("warn");
-    expect(parsed.scope.provider).toBe("fixture-only");
+    expect(parsed.scope.provider).toBe("provided-source");
   });
 });

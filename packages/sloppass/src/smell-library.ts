@@ -10,7 +10,13 @@ export type SlopPassSmellCheckId =
   | "broad-any-bypass"
   | "unsafe-dynamic-execution"
   | "secret-like-literal"
+  | "security-verification-bypass"
+  | "dependency-supply-chain-change"
+  | "package-lifecycle-script"
   | "catch-all-fallback"
+  | "weak-assertion"
+  | "skipped-test"
+  | "tautological-test"
   | "robustness-wording"
   | "generated-copy-marker";
 
@@ -24,6 +30,7 @@ export interface SlopPassSmellCheck {
   suggested_fix: string;
   confidence_note?: string;
   evidence?: (match: RegExpExecArray, file: SlopPassSourceFile) => string;
+  should_skip?: (file: SlopPassSourceFile) => boolean;
 }
 
 const REDACTED_SECRET_EVIDENCE = "[redacted-secret-like-literal]";
@@ -67,12 +74,56 @@ export const DEFAULT_SLOPPASS_SMELL_CHECKS: SlopPassSmellCheck[] = [
     severity: "high",
     title: "Secret-looking literal was detected",
     pattern:
-      /\b(?:api[_-]?key|secret|token|password)\b\s*[:=]\s*["'][^"'\r\n]{8,}["']/i,
+      /\b(?:[A-Za-z0-9_]*?(?:api[_-]?key|apikey|secret|token|password)|authorization)\b\s*[:=]\s*["']?(?:bearer\s+)?[A-Za-z0-9._~+/=_-]{8,}["']?|\b(?:sk-[A-Za-z0-9_-]{12,}|ghp_[A-Za-z0-9_]{16,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{20,}|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})\b/i,
     why_it_matters:
       "Generated examples can accidentally preserve credentials or teach future agents to copy private values.",
     suggested_fix:
       "Move the value to a secret store or fixture placeholder, then prove the report redacts the raw value.",
     evidence: () => REDACTED_SECRET_EVIDENCE,
+  },
+  {
+    id: "security-verification-bypass",
+    category: "grounding_api_reality",
+    severity: "high",
+    title: "Security verification was bypassed",
+    pattern:
+      /\bNODE_TLS_REJECT_UNAUTHORIZED\b\s*=\s*["']?0["']?|\brejectUnauthorized\s*:\s*false\b|\bstrictSSL\s*:\s*false\b|\brequests\.(?:get|post|put|patch|delete)\s*\([^)]*verify\s*=\s*False\b/i,
+    why_it_matters:
+      "Generated fixes sometimes disable certificate or transport verification to make an integration appear to work.",
+    suggested_fix:
+      "Restore verification, fix the certificate or trust boundary, and add proof for the failing integration path.",
+    confidence_note:
+      "Concrete bypass signal only. Broader security review still belongs in SecurityPass.",
+  },
+  {
+    id: "dependency-supply-chain-change",
+    category: "maintenance_change_risk",
+    severity: "info",
+    title: "Dependency change needs package verification",
+    pattern:
+      /^[ \t]*["'](?!name["']|version["']|type["']|main["']|module["']|types["']|scripts["']|exports["']|imports["']|files["']|engines["']|packageManager["'])(?:@[\w.-]+\/)?[\w.-]+["'][ \t]*:[ \t]*["'](?:[\^~]?\d|workspace:|npm:|file:|link:|github:|git\+|https?:\/\/|\*)[^"']*["'][ \t]*,?[ \t]*$/im,
+    why_it_matters:
+      "AI-generated code can add plausible package names that are unnecessary, abandoned, or hallucinated.",
+    suggested_fix:
+      "Verify the package exists, is intentionally needed, is pinned or ranged correctly, and has acceptable provenance before merging.",
+    confidence_note:
+      "Diff-scope review trigger. SlopPass does not call package registries in the deterministic runner.",
+    should_skip: (file) => !/package\.json$/i.test(file.path) || file.start_line === undefined,
+  },
+  {
+    id: "package-lifecycle-script",
+    category: "maintenance_change_risk",
+    severity: "high",
+    title: "Package lifecycle script needs supply-chain review",
+    pattern:
+      /^[ \t]*["'](?:preinstall|install|postinstall|prepublish|preprepare|prepare|postprepare|prepublishOnly|prepack|postpack|publish|postpublish|dependencies)["'][ \t]*:[ \t]*["'][^"']+["'][ \t]*,?[ \t]*$/im,
+    why_it_matters:
+      "npm lifecycle hooks can run automatically during install, pack, or publish, including in developer and CI environments.",
+    suggested_fix:
+      "Remove the hook unless it is required, document why it is safe, and add supply-chain proof for what it can execute and access.",
+    confidence_note:
+      "Diff-scope review trigger for package.json hooks. SlopPass does not execute package scripts.",
+    should_skip: (file) => !/package\.json$/i.test(file.path) || file.start_line === undefined,
   },
   {
     id: "catch-all-fallback",
@@ -85,6 +136,40 @@ export const DEFAULT_SLOPPASS_SMELL_CHECKS: SlopPassSmellCheck[] = [
       "Catch-all fallbacks can make a feature appear resilient while failures disappear from the operator.",
     suggested_fix:
       "Return a visible error, log structured context, or add an explicit not-checked result.",
+  },
+  {
+    id: "weak-assertion",
+    category: "test_proof_theatre",
+    severity: "medium",
+    title: "Weak test assertion is present",
+    pattern: /\.(?:toBeDefined|toBeTruthy|toBeFalsy)\s*\(\s*\)/i,
+    why_it_matters:
+      "Generated fixes sometimes weaken assertions so tests pass without proving the behavior.",
+    suggested_fix:
+      "Assert the exact expected value or state transition, then prove the old failure would fail this test.",
+  },
+  {
+    id: "skipped-test",
+    category: "test_proof_theatre",
+    severity: "high",
+    title: "Skipped or todo test is present",
+    pattern: /\b(?:describe|it|test)\.(?:skip|todo)\s*\(/i,
+    why_it_matters:
+      "Skipped tests can make a run look green while the risky behavior is explicitly not checked.",
+    suggested_fix:
+      "Unskip the test, make it fail for the old behavior, then fix the implementation.",
+  },
+  {
+    id: "tautological-test",
+    category: "test_proof_theatre",
+    severity: "high",
+    title: "Tautological test assertion is present",
+    pattern:
+      /expect\s*\(\s*(true|false|null|undefined|["'][^"']*["']|\d+)\s*\)\s*\.\s*(?:toBe|toEqual|toStrictEqual)\s*\(\s*\1\s*\)/i,
+    why_it_matters:
+      "A test that asserts a constant against itself proves the test runner works, not the product behavior.",
+    suggested_fix:
+      "Assert real output from the subject under test and connect it to the user-facing behavior.",
   },
   {
     id: "robustness-wording",
@@ -119,6 +204,10 @@ function lineOf(content: string, index: number): number {
   return content.slice(0, index).split(/\r?\n/).length;
 }
 
+function actualLineOf(file: SlopPassSourceFile, index: number): number {
+  return lineOf(file.content, index) + (file.start_line ?? 1) - 1;
+}
+
 function defaultEvidence(match: RegExpExecArray): string {
   const value = match[0].replace(/\s+/g, " ").trim();
   return value.length > 160 ? `${value.slice(0, 157)}...` : value;
@@ -138,8 +227,13 @@ function findingFromMatch(
     suggested_fix: check.suggested_fix,
     confidence_note: check.confidence_note,
     file: file.path,
-    line: lineOf(file.content, match.index),
+    line: actualLineOf(file, match.index),
   };
+}
+
+function globalPattern(pattern: RegExp): RegExp {
+  const flags = pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`;
+  return new RegExp(pattern.source, flags);
 }
 
 export function getSlopPassSmellChecks(
@@ -158,10 +252,13 @@ export function detectSlopSmells(
 
   for (const file of files) {
     for (const check of checks) {
-      check.pattern.lastIndex = 0;
-      const match = check.pattern.exec(file.content);
-      if (!match) continue;
-      findings.push(findingFromMatch(file, check, match));
+      if (check.should_skip?.(file)) continue;
+      const pattern = globalPattern(check.pattern);
+      let match: RegExpExecArray | null;
+      while ((match = pattern.exec(file.content)) !== null) {
+        findings.push(findingFromMatch(file, check, match));
+        if (match[0] === "") pattern.lastIndex += 1;
+      }
     }
   }
 
