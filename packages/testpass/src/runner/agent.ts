@@ -12,6 +12,7 @@ import type { RunManagerConfig } from "../run-manager.js";
 import { updateItem, createEvidence } from "../run-manager.js";
 
 type AgentVerdict = "check" | "fail" | "na" | "other";
+type PackItem = Pack["items"][number];
 
 interface AgentOutcome {
   verdict: AgentVerdict;
@@ -70,7 +71,7 @@ async function evaluateCheck(
   sampler: JudgeSampler,
   checkId: string,
   title: string,
-  description: string | undefined,
+  instruction: string | undefined,
   expected: unknown,
   onFail: string | undefined,
   targetUrl: string,
@@ -79,7 +80,7 @@ async function evaluateCheck(
   const parts = [
     `Check ID: ${checkId}`,
     `Title: ${title}`,
-    description ? `Description: ${description}` : null,
+    instruction ? `Instruction: ${instruction}` : null,
     expected !== undefined ? `Expected: ${JSON.stringify(expected)}` : null,
     onFail ? `On fail guidance: ${onFail}` : null,
     `Target URL: ${targetUrl}`,
@@ -104,6 +105,14 @@ async function evaluateCheck(
   } catch {
     return { outcome: { verdict: "other", note: "Failed to parse LLM response", reasoning: text }, model };
   }
+}
+
+function checkInstruction(spec: PackItem): string | undefined {
+  return spec.verify?.instruction ?? spec.instruction ?? spec.description;
+}
+
+function failGuidance(spec: PackItem): string | undefined {
+  return spec.on_fail_template ?? spec.on_fail;
 }
 
 /**
@@ -160,9 +169,9 @@ export async function runAgentChecks(
           sampler,
           checkId,
           spec.title,
-          spec.description,
+          checkInstruction(spec),
           spec.expected,
-          spec.on_fail,
+          failGuidance(spec),
           targetUrl,
           probeData,
         );

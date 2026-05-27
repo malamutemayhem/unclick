@@ -313,12 +313,20 @@ async function upsertPack(
   serviceKey: string,
   actorUserId: string,
   packYaml: string,
+  expectedPackId?: string,
 ): Promise<{ status: number; payload: Record<string, unknown> }> {
   let pack;
   try {
     pack = loadPackFromYaml(packYaml);
   } catch (err) {
     return { status: 422, payload: { error: (err as Error).message } };
+  }
+
+  if (expectedPackId && pack.id !== expectedPackId) {
+    return {
+      status: 400,
+      payload: { error: `pack_id '${expectedPackId}' must match YAML id '${pack.id}'` },
+    };
   }
 
   const body = {
@@ -349,6 +357,23 @@ async function upsertPack(
   }
   const rows = text ? (JSON.parse(text) as Array<Record<string, unknown>>) : [];
   return { status: 200, payload: { pack: rows[0] ?? null } };
+}
+
+export function selectTestPassPackYaml(body: { pack_yaml?: unknown; yaml?: unknown } | null | undefined): string | null {
+  const candidate = body?.pack_yaml ?? body?.yaml;
+  return typeof candidate === "string" && candidate.trim() ? candidate : null;
+}
+
+export function normalizeTestPassEditVerdict(raw: unknown): "check" | "fail" | "na" | "other" | null {
+  if (typeof raw !== "string") return null;
+  const verdictMap: Record<string, "check" | "fail" | "na" | "other"> = {
+    pass: "check",
+    check: "check",
+    fail: "fail",
+    na: "na",
+    other: "other",
+  };
+  return verdictMap[raw.toLowerCase()] ?? null;
 }
 
 function buildFixListMarkdown(
@@ -451,9 +476,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === "POST" && action === "save_pack") {
-    const body = req.body as { pack_yaml?: string };
-    if (!body?.pack_yaml) return json(res, 400, { error: "pack_yaml required" });
-    const result = await upsertPack(supabaseUrl, serviceKey, actorUserId, body.pack_yaml);
+    const body = req.body as { pack_id?: string; pack_yaml?: string; yaml?: string };
+    const packYaml = selectTestPassPackYaml(body);
+    if (!packYaml) return json(res, 400, { error: "pack_yaml required" });
+    const result = await upsertPack(supabaseUrl, serviceKey, actorUserId, packYaml, body.pack_id);
     return json(res, result.status, result.payload);
   }
 
@@ -466,9 +492,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
     if (!body.run_id) return json(res, 400, { error: "run_id required" });
     if (!body.item_id) return json(res, 400, { error: "item_id required" });
-    const verdictMap: Record<string, string> = { pass: "check", fail: "fail", na: "na" };
-    const dbVerdict = verdictMap[body.verdict ?? ""];
-    if (!dbVerdict) return json(res, 400, { error: "verdict must be pass|fail|na" });
+    const dbVerdict = normalizeTestPassEditVerdict(body.verdict);
+    if (!dbVerdict) return json(res, 400, { error: "verdict must be pass|fail|na|other" });
 
     const ownerCheck = await fetch(
       `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${body.run_id}&actor_user_id=eq.${actorUserId}&select=id&limit=1`,

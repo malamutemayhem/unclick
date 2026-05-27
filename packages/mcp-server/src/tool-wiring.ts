@@ -12100,7 +12100,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         run_id: { type: "string", description: "The run the item belongs to" },
         item_id: { type: "string", description: "The testpass_items row id (uuid)" },
-        verdict: { type: "string", enum: ["pass", "fail", "na"], description: "New verdict" },
+        verdict: { type: "string", enum: ["pass", "fail", "na", "other"], description: "New verdict" },
         notes: { type: "string", description: "Optional reviewer notes" },
       },
       required: ["run_id", "item_id", "verdict"],

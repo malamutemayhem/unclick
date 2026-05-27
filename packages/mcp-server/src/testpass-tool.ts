@@ -128,7 +128,7 @@ export async function testpassSavePack(args: Record<string, unknown>): Promise<u
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({ pack_id: packId, yaml }),
+    body: JSON.stringify({ pack_id: packId, pack_yaml: yaml }),
   });
   const text = await res.text();
   let body: unknown = text;
@@ -144,8 +144,8 @@ export async function testpassEditItem(args: Record<string, unknown>): Promise<u
   const notes = args.notes;
   if (!runId) return { error: "run_id is required" };
   if (!itemId) return { error: "item_id is required" };
-  if (!["pass", "fail", "na"].includes(verdict)) {
-    return { error: "verdict must be pass|fail|na" };
+  if (!["pass", "fail", "na", "other"].includes(verdict)) {
+    return { error: "verdict must be pass|fail|na|other" };
   }
 
   const payload: Record<string, unknown> = { run_id: runId, item_id: itemId, verdict };
