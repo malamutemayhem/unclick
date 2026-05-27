@@ -551,7 +551,9 @@ function parseSingleRawFileContent(text, path) {
     lower.startsWith("sorry") ||
     lower.startsWith("here is ") ||
     lower.startsWith("here's ") ||
-    lower.includes("```")
+    lower.includes("```") ||
+    lower.includes("diff --git ") ||
+    lower.startsWith("--- ")
   ) {
     return null;
   }
