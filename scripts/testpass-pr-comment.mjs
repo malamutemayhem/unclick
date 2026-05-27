@@ -93,7 +93,7 @@ export function buildTestPassPrCommentBody(input = {}) {
     cell(":hourglass: pending", pending),
     cell("**total**", total),
     "",
-    "_This sticky comment replaces older TestPass receipts for the current PR._",
+    "_Future TestPass PR runs update this sticky comment instead of adding another receipt._",
   ].join("\n");
 }
 
