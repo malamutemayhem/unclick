@@ -64,6 +64,36 @@ describe("LegalPass verdict pack", () => {
 
     expect(report.verdict).toBe("blocked");
     expect(report.hats.some((hat) => hat.findings.length > 0)).toBe(true);
+    expect(
+      report.hats.flatMap((hat) => hat.findings).every((finding) => finding.evidence.length > 0),
+    ).toBe(true);
     expect(JSON.stringify(report)).not.toContain("you should");
+  });
+
+  it("rejects fixture documents marked private", () => {
+    expect(() =>
+      createFixtureLegalPassReport({
+        target: { name: "Example", url: "https://example.com" },
+        generated_at: "2026-05-09T18:10:00.000Z",
+        documents: [
+          {
+            id: "private-contract",
+            kind: "terms-of-service",
+            title: "Private contract",
+            text: "Confidential terms text.",
+            public_only: false,
+          },
+        ],
+      }),
+    ).toThrow(/public_only documents/);
+  });
+
+  it("fails clearly when no phase-one hats support the jurisdiction", () => {
+    expect(() =>
+      createLegalPassVerdictPack({
+        target: { name: "Example", url: "https://example.com" },
+        jurisdictions: ["UK"],
+      }),
+    ).toThrow(/at least one phase-one hat/);
   });
 });

@@ -1,4 +1,5 @@
-// LegalPass - 12-hat issue-spotter for AI-native teams.
+// LegalPass - issue-spotter for AI-native teams.
+// Current runnable package is phase-one public-signal proof. Product north star:
 // "Twelve hats. One verdict."
 //
 // IMMUTABLE DESIGN RULE: LegalPass is an issue-spotter only. It NEVER
