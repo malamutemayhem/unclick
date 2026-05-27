@@ -392,11 +392,14 @@ export function createDraftPrCoderoom({
       };
     }
 
-    const status = await runProcess("git", ["status", "--porcelain"], { cwd, env });
-    if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
-    if (status.stdout.trim()) {
-      return { ok: false, reason: "dirty_worktree" };
-    }
+    const clean = await cleanPreappliedOwnedPatch({
+      cwd,
+      env,
+      runProcess,
+      changedFiles: normalizedChanged,
+      restoreFailureReason: "git_restore_preexisting_draft_patch_failed",
+    });
+    if (!clean.ok) return clean;
 
     const branch = branchName || `${DEFAULT_BRANCH_PREFIX}-${safeStamp(new Date())}`;
     const bodyText =
@@ -472,6 +475,58 @@ export function inspectSafeCoderoomPatchPaths({
   return { ok: true, changed_files: normalizedChanged };
 }
 
+async function cleanPreappliedOwnedPatch({
+  cwd,
+  env,
+  runProcess,
+  changedFiles = [],
+  restoreFailureReason = "git_restore_preexisting_patch_failed",
+  cleanFailureReason = "git_clean_preexisting_patch_failed",
+} = {}) {
+  let status = await runProcess("git", ["status", "--porcelain"], { cwd, env });
+  if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
+
+  let dirtyEntries = parseGitStatusEntries(status.stdout);
+  let blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
+  if (blockingDirtyEntries.length) {
+    const changedSet = new Set((changedFiles || []).map(normalizePath));
+    const unrelatedDirtyEntries = blockingDirtyEntries.filter((entry) => !changedSet.has(entry.path));
+    if (unrelatedDirtyEntries.length) {
+      return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyEntries.map((entry) => entry.path) };
+    }
+
+    const trackedDirtyEntries = blockingDirtyEntries.filter((entry) => !entry.code.includes("?"));
+    if (trackedDirtyEntries.length) {
+      const restore = await runProcess("git", ["restore", "--staged", "--worktree", "--", ...trackedDirtyEntries.map((entry) => entry.path)], {
+        cwd,
+        env,
+      });
+      if (!restore.ok) return { ok: false, reason: restoreFailureReason, output: restore.output };
+    }
+
+    const untrackedDirtyEntries = blockingDirtyEntries.filter((entry) => entry.code.includes("?"));
+    if (untrackedDirtyEntries.length) {
+      const clean = await runProcess("git", ["clean", "-f", "--", ...untrackedDirtyEntries.map((entry) => entry.path)], {
+        cwd,
+        env,
+      });
+      if (!clean.ok) return { ok: false, reason: cleanFailureReason, output: clean.output };
+    }
+
+    status = await runProcess("git", ["status", "--porcelain"], { cwd, env });
+    if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
+    dirtyEntries = parseGitStatusEntries(status.stdout);
+    blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
+  }
+
+  const blockingDirtyFiles = blockingDirtyEntries.map((entry) => entry.path);
+  if (blockingDirtyFiles.length) {
+    return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyFiles };
+  }
+
+  return { ok: true };
+}
+
 export function createSafeCodeRoomSubmitter({
   cwd = process.cwd(),
   env = process.env,
@@ -519,52 +574,13 @@ export function createSafeCodeRoomSubmitter({
     }
     const submitterEnv = auth.env;
 
-    let status = await runProcess("git", ["status", "--porcelain"], { cwd, env: submitterEnv });
-    if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
-    let dirtyEntries = parseGitStatusEntries(status.stdout);
-    let blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
-    if (blockingDirtyEntries.length) {
-      const changedSet = new Set(normalizedChanged);
-      const unrelatedDirtyEntries = blockingDirtyEntries.filter((entry) => !changedSet.has(entry.path));
-      if (unrelatedDirtyEntries.length) {
-        return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyEntries.map((entry) => entry.path) };
-      }
-
-      const trackedDirtyEntries = blockingDirtyEntries.filter((entry) => !entry.code.includes("?"));
-      if (trackedDirtyEntries.length) {
-        const restore = await runProcess(
-          "git",
-          ["restore", "--staged", "--worktree", "--", ...trackedDirtyEntries.map((entry) => entry.path)],
-          {
-            cwd,
-            env: submitterEnv,
-          },
-        );
-        if (!restore.ok) {
-          return { ok: false, reason: "git_restore_preexisting_patch_failed", output: restore.output };
-        }
-      }
-
-      const untrackedDirtyEntries = blockingDirtyEntries.filter((entry) => entry.code.includes("?"));
-      if (untrackedDirtyEntries.length) {
-        const clean = await runProcess("git", ["clean", "-f", "--", ...untrackedDirtyEntries.map((entry) => entry.path)], {
-          cwd,
-          env: submitterEnv,
-        });
-        if (!clean.ok) {
-          return { ok: false, reason: "git_clean_preexisting_patch_failed", output: clean.output };
-        }
-      }
-
-      status = await runProcess("git", ["status", "--porcelain"], { cwd, env: submitterEnv });
-      if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
-      dirtyEntries = parseGitStatusEntries(status.stdout);
-      blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
-    }
-    const blockingDirtyFiles = blockingDirtyEntries.map((entry) => entry.path);
-    if (blockingDirtyFiles.length) {
-      return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyFiles };
-    }
+    const clean = await cleanPreappliedOwnedPatch({
+      cwd,
+      env: submitterEnv,
+      runProcess,
+      changedFiles: normalizedChanged,
+    });
+    if (!clean.ok) return clean;
 
     const todoId = safeSlug(job?.todo_id || job?.id || job?.job_id || safeStamp(now));
     const branch = branchName || `${DEFAULT_SUBMITTER_BRANCH_PREFIX}-${todoId}`;
