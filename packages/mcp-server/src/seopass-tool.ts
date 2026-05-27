@@ -355,20 +355,33 @@ function buildCheck(
 
   if (checkId === "canonical-signals") {
     const canonicalLinks = context.signals.canonicalLinks;
+    const httpCanonicalLinks = extractHttpCanonicalLinks(context.page.headers);
+    const canonicalEvidence = formatCanonicalSignals(canonicalLinks, httpCanonicalLinks);
     const headCanonicalLinks = canonicalLinks.filter((link) => link.inHead);
-    const canonical = headCanonicalLinks.find((link) => link.href)?.href ?? canonicalLinks.find((link) => link.href)?.href ?? null;
+    const htmlCanonical = headCanonicalLinks.find((link) => link.href)?.href ?? canonicalLinks.find((link) => link.href)?.href ?? null;
+    const httpCanonical = httpCanonicalLinks.find((link) => link.href)?.href ?? null;
+    const canonical = htmlCanonical ?? httpCanonical;
 
-    if (canonicalLinks.length === 0) {
-      add("canonical-missing", "medium", "Canonical tag is missing", "No rel=canonical tag was found.", "Add a canonical URL to reduce duplicate URL ambiguity.");
+    if (canonicalLinks.length === 0 && httpCanonicalLinks.length === 0) {
+      add("canonical-missing", "medium", "Canonical tag is missing", "No rel=canonical tag or HTTP Link header was found.", "Add a canonical URL to reduce duplicate URL ambiguity.");
     } else {
       if (canonicalLinks.some((link) => !link.inHead)) {
         add("canonical-outside-head", "medium", "Canonical link appears outside the head", "At least one rel=canonical link appears outside the HTML head, where search engines may ignore it.", "Keep one canonical link in the HTML head.");
       }
-      if (canonicalLinks.length > 1) {
-        add("canonical-multiple", "medium", "Multiple canonical links were found", `${canonicalLinks.length} rel=canonical links were found, which can create ambiguous canonical signals.`, "Emit exactly one canonical URL for the page.");
+      if (canonicalLinks.length > 1 || httpCanonicalLinks.length > 1) {
+        add("canonical-multiple", "medium", "Multiple canonical links were found", `${canonicalLinks.length} HTML rel=canonical link(s) and ${httpCanonicalLinks.length} HTTP rel=canonical Link header(s) were found: ${canonicalEvidence}.`, "Emit exactly one canonical URL for the page unless a deliberate single HTTP canonical header strategy is used.");
+      }
+      const parsedHtmlCanonical = htmlCanonical ? safeUrl(htmlCanonical, context.targetUrl) : null;
+      const parsedHttpCanonical = httpCanonical ? safeUrl(httpCanonical, context.targetUrl) : null;
+      if (
+        parsedHtmlCanonical &&
+        parsedHttpCanonical &&
+        canonicalComparableUrl(parsedHtmlCanonical) !== canonicalComparableUrl(parsedHttpCanonical)
+      ) {
+        add("canonical-conflicting-signals", "medium", "Canonical signals disagree", `HTML canonical points to ${parsedHtmlCanonical.toString()}, while the HTTP Link canonical points to ${parsedHttpCanonical.toString()}.`, "Keep canonical signals consistent across HTML, HTTP headers, redirects, and sitemaps.");
       }
       if (!canonical) {
-        add("canonical-empty", "high", "Canonical href is empty", "A rel=canonical link was found, but SEOPass could not read a usable href value.", "Set the canonical href to the absolute public URL for this page.");
+        add("canonical-empty", "high", "Canonical href is empty", "A rel=canonical signal was found, but SEOPass could not read a usable href value.", "Set the canonical href to the absolute public URL for this page.");
       } else {
         const parsed = safeUrl(canonical, context.targetUrl);
         if (!isAbsoluteHttpUrl(canonical)) {
@@ -402,6 +415,7 @@ function buildCheck(
   if (checkId === "ai-overview-readiness") {
     const searchDirectives = searchRobotsDirectives(context.signals.robotsDirectives, context.page.headers["x-robots-tag"] ?? "");
     if (hasSnippetLimitingDirective(searchDirectives)) add("aio-preview-controls-limit-ai-features", "medium", "Search preview controls limit AI feature eligibility", "A search robots directive such as nosnippet or max-snippet:0 can limit snippet use and AI Overview/AI Mode input.", "Keep restrictive preview controls only when intentional.");
+    if (context.signals.dataNoSnippetCount > 0) add("aio-data-nosnippet-present", "low", "Some page content is hidden from search snippets", `${context.signals.dataNoSnippetCount} data-nosnippet attribute(s) were found in the public HTML snapshot.`, "Keep data-nosnippet only around content that should be excluded from snippets and AI-era answer extraction.");
     if (!context.signals.hasQuestionHeading && !context.signals.hasFaqSchema) add("aio-faq-readiness-thin", "medium", "Question-answer structure is thin", "No FAQ schema or question-style heading was found.", "Add real FAQ or question-led sections where useful.");
     if (!context.signals.hasDateSignal) add("aio-freshness-missing", "low", "Freshness signal is missing", "No obvious dateModified/datePublished signal was found.", "Add truthful freshness metadata where relevant.");
     if (context.llms.status >= 400) add("aio-llms-txt-missing", "info", "llms.txt was not found", "llms.txt is future-facing hygiene, not a ranking guarantee.", "Consider adding llms.txt for direct agent context.");
@@ -477,6 +491,7 @@ function analyzeHtml(html: string, baseUrl: string): {
   rdfaCount: number;
   internalLinks: number;
   scriptCount: number;
+  dataNoSnippetCount: number;
   hasQuestionHeading: boolean;
   hasFaqSchema: boolean;
   hasDateSignal: boolean;
@@ -511,6 +526,7 @@ function analyzeHtml(html: string, baseUrl: string): {
       return parsed !== null && parsed.origin === new URL(baseUrl).origin;
     }).length,
     scriptCount: (html.match(/<script\b/gi) ?? []).length,
+    dataNoSnippetCount: (html.match(/\sdata-nosnippet(?:\s|=|>)/gi) ?? []).length,
     hasQuestionHeading: /<h[1-6]\b[^>]*>[^<]*(?:\?|how|what|why|when|where|which|can|should)/i.test(html),
     hasFaqSchema: /FAQPage/i.test(html),
     hasDateSignal: /\b(datePublished|dateModified|updated_time|<time\b|last updated|updated on)\b/i.test(html),
@@ -535,6 +551,59 @@ function canonicalComparableUrl(url: URL): string {
   const comparable = new URL(url.toString());
   comparable.hash = "";
   return comparable.toString();
+}
+
+function extractHttpCanonicalLinks(headers: Record<string, string>): Array<{ href: string | null }> {
+  const linkHeader = getHeader(headers, "link");
+  if (!linkHeader) return [];
+  return splitHttpLinkHeader(linkHeader).flatMap((part) => {
+    const urlMatch = /^\s*<([^>]*)>/.exec(part);
+    if (!urlMatch) return [];
+    const params = part.slice(urlMatch[0].length);
+    const relMatch = /(?:^|;)\s*rel\s*=\s*(?:"([^"]*)"|'([^']*)'|([^;,\s]+))/i.exec(params);
+    const relTokens = (relMatch?.[1] ?? relMatch?.[2] ?? relMatch?.[3] ?? "").toLowerCase().split(/\s+/);
+    if (!relTokens.includes("canonical")) return [];
+    return [{ href: urlMatch[1]?.trim() || null }];
+  });
+}
+
+function splitHttpLinkHeader(header: string): string[] {
+  const parts: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  let inAngle = false;
+  for (const char of header) {
+    if (char === "\"" && !inAngle) inQuotes = !inQuotes;
+    if (char === "<" && !inQuotes) inAngle = true;
+    if (char === ">" && !inQuotes) inAngle = false;
+    if (char === "," && !inQuotes && !inAngle) {
+      if (current.trim()) parts.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  if (current.trim()) parts.push(current.trim());
+  return parts;
+}
+
+function getHeader(headers: Record<string, string>, name: string): string | undefined {
+  const direct = headers[name] ?? headers[name.toLowerCase()] ?? headers[name.toUpperCase()];
+  if (direct !== undefined) return direct;
+  const entry = Object.entries(headers).find(([key]) => key.toLowerCase() === name.toLowerCase());
+  return entry?.[1];
+}
+
+function formatCanonicalSignals(
+  htmlLinks: Array<{ href: string | null; inHead: boolean }>,
+  httpLinks: Array<{ href: string | null }>,
+): string {
+  return [
+    formatCanonicalLinks(htmlLinks),
+    httpLinks.map((link) => `http-link:${link.href ?? "missing-href"}`).join("; "),
+  ]
+    .filter(Boolean)
+    .join("; ");
 }
 
 function normalizeUrl(value: string): string | null {
@@ -583,6 +652,12 @@ function extractCanonicalLinks(html: string): Array<{ href: string | null; inHea
       },
     ];
   });
+}
+
+function formatCanonicalLinks(links: Array<{ href: string | null; inHead: boolean }>): string {
+  return links
+    .map((link) => `${link.inHead ? "head" : "body"}:${link.href ?? "missing-href"}`)
+    .join("; ");
 }
 
 function extractRobotsMetaDirectives(html: string): Array<{ source: "meta"; userAgent: string | null; content: string }> {

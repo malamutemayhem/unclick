@@ -234,6 +234,40 @@ describe("seopass-tool", () => {
     expect(canonicalFindings).toContain("canonical-outside-head");
   });
 
+  it("accepts HTTP Link rel=canonical and flags conflicting canonical signals in MCP runs", async () => {
+    installFetch({
+      "https://unclick.world/page": {
+        status: 200,
+        headers: { "content-type": "text/html", link: "<https://unclick.world/page>; rel=\"canonical\"" },
+        body: "<!doctype html><html><head><title>UnClick Page</title></head><body><h1>UnClick Page</h1></body></html>",
+      },
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/page</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const headerOnly = (await seopassRun({ url: "https://unclick.world/page" })) as {
+      report?: { checks?: Array<{ check_id?: string; findings?: Array<{ id?: string }> }> };
+    };
+    expect(headerOnly.report?.checks?.find((check) => check.check_id === "canonical-signals")?.findings?.map((finding) => finding.id)).not.toContain("canonical-missing");
+
+    installFetch({
+      "https://unclick.world/page": {
+        status: 200,
+        headers: { "content-type": "text/html", Link: "<https://unclick.world/header-canonical>; rel=\"canonical\"" },
+        body: healthyHtml.replace("https://unclick.world/", "https://unclick.world/html-canonical"),
+      },
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/page</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const conflicting = (await seopassRun({ url: "https://unclick.world/page" })) as {
+      report?: { checks?: Array<{ check_id?: string; findings?: Array<{ id?: string }> }> };
+    };
+    expect(conflicting.report?.checks?.find((check) => check.check_id === "canonical-signals")?.findings?.map((finding) => finding.id)).toContain("canonical-conflicting-signals");
+  });
+
   it("recognizes Microdata as structured-data evidence in the MCP run", async () => {
     installFetch({
       "https://unclick.world/": `<!doctype html><html><head><title>UnClick</title></head><body>
@@ -265,6 +299,21 @@ describe("seopass-tool", () => {
     };
 
     expect(run.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "aio-preview-controls-limit-ai-features"))).toBe(true);
+  });
+
+  it("warns when data-nosnippet may hide content from AI-era answer extraction in MCP runs", async () => {
+    installFetch({
+      "https://unclick.world/": healthyHtml.replace("<h2>How does SEOPass work?</h2>", "<section data-nosnippet><h2>How does SEOPass work?</h2>").replace("</body>", "</section></body>"),
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world" })) as {
+      report?: { checks?: Array<{ findings?: Array<{ id?: string }> }> };
+    };
+
+    expect(run.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "aio-data-nosnippet-present"))).toBe(true);
   });
 
   it("uses the final fetched URL for MCP robots, sitemap, llms, canonical, and link analysis", async () => {

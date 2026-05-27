@@ -236,6 +236,59 @@ describe("runSeoPass", () => {
     expect(findings).toContain("canonical-outside-head");
   });
 
+  it("accepts HTTP Link rel=canonical and flags conflicts with HTML canonical", async () => {
+    const headerOnly = await runSeoPass({
+      targetUrl: "https://example.com/page",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["canonical-signals"],
+      fetcher: fixtureFetcher({
+        "https://example.com/page": {
+          body: "<!doctype html><html><head><title>Page</title></head><body><h1>Page</h1></body></html>",
+          headers: { "content-type": "text/html", link: "<https://example.com/page>; rel=\"canonical\"" },
+        },
+        "https://example.com/robots.txt": { body: "User-agent: *\nAllow: /\n" },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/page</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+    expect(headerOnly.checks[0]?.findings.map((finding) => finding.id)).not.toContain("canonical-missing");
+
+    const conflicting = await runSeoPass({
+      targetUrl: "https://example.com/page",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["canonical-signals"],
+      fetcher: fixtureFetcher({
+        "https://example.com/page": {
+          body: healthyHtml.replace("https://example.com/", "https://example.com/html-canonical"),
+          headers: { "content-type": "text/html", Link: "<https://example.com/header-canonical>; rel=\"canonical\"" },
+        },
+        "https://example.com/robots.txt": { body: "User-agent: *\nAllow: /\n" },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/page</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+    expect(conflicting.checks[0]?.findings.map((finding) => finding.id)).toContain("canonical-conflicting-signals");
+  });
+
+  it("warns when data-nosnippet may hide content from AI-era answer extraction", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["ai-overview-readiness"],
+      fetcher: fixtureFetcher({
+        "https://example.com/": {
+          body: healthyHtml.replace("<p>Teams cut", "<section data-nosnippet><p>Teams cut").replace("</body>", "</section></body>"),
+          headers: { "content-type": "text/html" },
+        },
+        "https://example.com/robots.txt": { body: "User-agent: *\nAllow: /\n" },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    expect(report.checks[0]?.findings.some((finding) => finding.id === "aio-data-nosnippet-present")).toBe(true);
+  });
+
   it("emits GEOPass cross-pass signals for shared SEO/GEO gaps", async () => {
     const report = await runSeoPass({
       targetUrl: "https://example.com",
