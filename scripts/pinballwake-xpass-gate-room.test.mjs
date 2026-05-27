@@ -49,6 +49,55 @@ describe("PinballWake XPass Gate Room", () => {
     assert.ok(selected.includes("legalpass"));
   });
 
+  it("routes worker claims and proof receipts to CommonSensePass", () => {
+    const selected = checks({
+      title: "False DONE proof receipt guard",
+      changed_files: ["packages/commonsensepass/src/check.ts", "api/lib/orchestrator-context.ts"],
+    });
+
+    assert.ok(selected.includes("commonsensepass"));
+    assert.ok(selected.includes("sloppass"));
+  });
+
+  it("routes product journeys to FlowPass", () => {
+    const selected = checks({
+      title: "Checkout journey handoff proof",
+      changed_files: ["packages/flowpass/src/flow-plan.ts", "src/pages/admin/CheckoutFlow.tsx"],
+    });
+
+    assert.ok(selected.includes("flowpass"));
+    assert.ok(selected.includes("uxpass"));
+  });
+
+  it("routes AI answer-engine readiness to GEOPass", () => {
+    const selected = checks({
+      title: "AI answer engine readiness",
+      changed_files: ["packages/geopass/src/scanner-plan.ts", "public/llms.txt"],
+    });
+
+    assert.ok(selected.includes("geopass"));
+    assert.ok(selected.includes("seopass"));
+  });
+
+  it("routes credential lifecycle changes to RotatePass as well as SecurityPass", () => {
+    const selected = checks({
+      title: "Credential revocation path",
+      changed_files: ["docs/rotatepass-local-phase0.md", "src/lib/system-credentials.ts"],
+    });
+
+    assert.ok(selected.includes("rotatepass"));
+    assert.ok(selected.includes("securitypass"));
+  });
+
+  it("routes stale scheduled work to WakePass", () => {
+    const selected = checks({
+      title: "Missed ACK stale heartbeat dispatch",
+      changed_files: ["docs/prd/wakepass.md", ".github/workflows/testpass-scheduled-smoke.yml"],
+    });
+
+    assert.ok(selected.includes("wakepass"));
+  });
+
   it("does not select every pass for a tiny docs-only wording change", () => {
     const selected = checks({
       title: "FAQ wording cleanup",
