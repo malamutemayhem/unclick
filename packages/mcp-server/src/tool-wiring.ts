@@ -800,6 +800,17 @@ import {
   seopassLighthousePlan,
 } from "./seopass-tool.js";
 
+// ─── FlowPass (journey completion QC, sister to UXPass) ─────────────────────
+import {
+  flowpassDisagreementQueue,
+  flowpassQuarantine,
+  flowpassRecord,
+  flowpassRegisterPack,
+  flowpassReport,
+  flowpassRun,
+  flowpassStatus,
+} from "./flowpass-tool.js";
+
 // ─── CopyPass (copy quality QC, sister to SecurityPass) ─────────────────────
 import {
   copypassRun,
@@ -12459,6 +12470,115 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── flowpass-tool.ts (end-to-end journey QC with fixture proof) ────────────
+  {
+    name: "flowpass_run",
+    description: "Run FlowPass against a public fixture or registered pack. Returns journey readiness, step verdicts, hat outputs, exclusions, and a stored report. Without fixture proof, returns a plan-only receipt instead of pretending a live journey ran.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        target_url: { type: "string", description: "Target URL for a one-off FlowPass run" },
+        url: { type: "string", description: "Alias for target_url" },
+        pack_id: { type: "string", description: "Registered FlowPass pack id" },
+        pack_name: { type: "string", description: "Registered FlowPass pack name" },
+        pack_yaml: { type: "string", description: "FlowPass YAML pack using plain-English steps" },
+        pack: { type: "object", description: "FlowPass pack object" },
+        fixture: {
+          type: "object",
+          description: "Public fixture evidence for route, CTA, form, success, failure, navigation, handoff, side channels, timing, and accessibility.",
+        },
+        profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Run profile label. Defaults to smoke." },
+        journey_id: { type: "string", description: "Optional journey id override" },
+        journey_name: { type: "string", description: "Optional journey name override" },
+        journey_kind: { type: "string", enum: ["signup", "auth", "checkout", "onboarding", "support", "custom"] },
+        generated_at: { type: "string", description: "Optional ISO timestamp for reproducible fixture tests" },
+      },
+    },
+  },
+  {
+    name: "flowpass_status",
+    description: "Fetch the stored FlowPass run status, score, summary, and open disagreement queue entries for a run started in this MCP session.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The FlowPass run id returned by flowpass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "flowpass_report",
+    description: "Fetch a FlowPass report in json, markdown, html, or fix_prompt format for a run started in this MCP session.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The FlowPass run id returned by flowpass_run" },
+        format: { type: "string", enum: ["json", "markdown", "html", "fix_prompt"], description: "Report format. Defaults to json." },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "flowpass_register_pack",
+    description: "Register a FlowPass pack from YAML or an object. Validates plain-English steps, hats, assertions, and optional fixture evidence.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["pack_yaml"] },
+        { required: ["pack"] },
+      ],
+      properties: {
+        pack_yaml: { type: "string", description: "FlowPass YAML pack" },
+        pack: { type: "object", description: "FlowPass pack object" },
+        overwrite: { type: "boolean", description: "Allow replacing an existing pack id" },
+      },
+    },
+  },
+  {
+    name: "flowpass_record",
+    description: "Convert supplied rrweb or structured session events into a draft FlowPass pack. This safe MCP surface does not start a live browser recording by itself.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        target_url: { type: "string", description: "Target URL the recording or session events came from" },
+        session_events: { type: "array", items: { type: "string" }, description: "Structured event summaries or pre-captured rrweb-derived step labels" },
+      },
+      required: ["target_url"],
+    },
+  },
+  {
+    name: "flowpass_quarantine",
+    description: "List, add, or resolve FlowPass quarantines for flows that should not be trusted as gates.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        action: { type: "string", enum: ["list", "add", "resolve"], description: "Defaults to list" },
+        flow_id: { type: "string", description: "Flow id for add or resolve" },
+        reason: { type: "string", description: "Reason when adding a quarantine" },
+      },
+    },
+  },
+  {
+    name: "flowpass_disagreement_queue",
+    description: "List or resolve FlowPass Driver versus Verifier disagreements.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        action: { type: "string", enum: ["list", "resolve"], description: "Defaults to list" },
+        run_id: { type: "string", description: "Optional FlowPass run id to filter" },
+        disagreement_id: { type: "string", description: "Disagreement id for resolve" },
+        reviewer_note: { type: "string", description: "Human note for disagreement resolution" },
+      },
+    },
+  },
+
   // ── sloppass-tool.ts (AI-code quality QC and diff review) ────────────────
   {
     name: "sloppass_run",
@@ -13862,6 +13982,15 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   seopass_status:          (args) => seopassStatus(args),
   seopass_register_pack:   (args) => seopassRegisterPack(args),
   seopass_lighthouse_plan: (args) => seopassLighthousePlan(args),
+
+  // flowpass-tool.ts
+  flowpass_run:                (args) => flowpassRun(args),
+  flowpass_status:             (args) => flowpassStatus(args),
+  flowpass_report:             (args) => flowpassReport(args),
+  flowpass_register_pack:      (args) => flowpassRegisterPack(args),
+  flowpass_record:             (args) => flowpassRecord(args),
+  flowpass_quarantine:         (args) => flowpassQuarantine(args),
+  flowpass_disagreement_queue: (args) => flowpassDisagreementQueue(args),
 
   // copypass-tool.ts
   copypass_run:            (args) => copypassRun(args),
