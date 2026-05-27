@@ -1,7 +1,7 @@
 # SecurityPass Chunk 2
 
-**Status**: Draft
-**Last updated**: 2026-04-29
+**Status**: Implemented in `@unclick/securitypass`
+**Last updated**: 2026-05-27
 **Owner**: `🦾`
 **Purpose**: Lock the SecurityPass scope contract before implementation or packaging expands
 
@@ -16,7 +16,7 @@ This chunk defines:
 - what it must explicitly decline to promise
 - what banner language should stay visible in product surfaces
 
-This is a doc-first scope lock, not an implementation PR.
+This started as a doc-first scope lock. The package runner now enforces the scope gate, preserves skipped coverage, and emits the required product artifact shape.
 
 ## One-sentence definition
 
@@ -204,3 +204,13 @@ Before implementation is called done:
 ## Recommended next step
 
 When Chunk 2 is approved, the next implementation slice should wire the disclaimer banner and output-shape requirements into the first SecurityPass result surface before broader marketplace packaging or automation work proceeds.
+
+## Implementation receipt
+
+Implemented in the SecurityPass package runner:
+
+- `securitypass_run` can run a registered or inline SecurityPack after scope proof.
+- `securitypass_verify_scope` supports signed-contract, bug-bounty-program, DNS TXT, and well-known proof paths.
+- Reports include the disclaimer, target, performed scope, findings, skipped checks, coverage note, score, and posture summary.
+- Missing scanner binaries are reported as `not_checked`, never as a passing result.
+- PoC payloads remain inert data and are never executed.

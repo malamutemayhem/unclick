@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const SeveritySchema = z.enum(["critical", "high", "medium", "low"]);
+const SeveritySchema = z.enum(["critical", "high", "medium", "low", "info"]);
 const ProfileSchema = z.enum(["smoke", "standard", "deep"]);
 
 // Targets describe what the runner is allowed to talk to. Multiple targets

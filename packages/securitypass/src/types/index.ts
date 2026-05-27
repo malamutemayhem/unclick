@@ -2,7 +2,7 @@
 // across the suite. Mirrored (not imported) so SecurityPass stays buildable
 // without a build of testpass first. See packages/testpass/src/types.ts.
 export type Verdict = "check" | "na" | "fail" | "other" | "pending";
-export type Severity = "critical" | "high" | "medium" | "low";
+export type Severity = "critical" | "high" | "medium" | "low" | "info";
 export type RunStatus = "queued" | "running" | "complete" | "failed" | "budget_exceeded";
 export type RunProfile = "smoke" | "standard" | "deep";
 
@@ -18,7 +18,9 @@ export interface VerdictSummary {
 
 export interface SecurityRunTarget {
   type: "url" | "git" | "mcp" | "api";
+  id?: string;
   url?: string;
+  repo?: string;
   commit?: string;
   branch?: string;
 }
@@ -49,6 +51,21 @@ export interface Finding {
   created_at: string;
 }
 
+export interface NotCheckedItem {
+  check_id: string;
+  title: string;
+  reason: string;
+  category: string;
+  severity: Severity;
+  evidence?: Record<string, unknown>;
+}
+
+export interface SecurityPassDisclaimer {
+  headline: string;
+  body: string;
+  compact: string;
+}
+
 export interface RunRow {
   id: string;
   pack_id: string;
@@ -56,6 +73,11 @@ export interface RunRow {
   profile: RunProfile;
   status: RunStatus;
   verdict_summary: VerdictSummary;
+  scope_performed: string[];
+  not_checked: NotCheckedItem[];
+  score: number | null;
+  posture_summary: string | null;
+  disclaimer: SecurityPassDisclaimer;
   created_at: string;
   completed_at: string | null;
 }

@@ -14,23 +14,23 @@ import {
 import * as packageExports from "../index.js";
 import * as runnerBarrelExports from "../runner/index.js";
 
-describe("scope gate (deny-all until Chunk 2)", () => {
+describe("scope gate", () => {
   beforeEach(() => __resetForTests());
 
-  it("verifyScopeOrThrow refuses every target type", () => {
-    expect(() => verifyScopeOrThrow({ type: "url", url: "https://example.com" }))
-      .toThrow(ScopeUnverifiedError);
-    expect(() => verifyScopeOrThrow({ type: "git", url: "https://github.com/me/repo" }))
-      .toThrow(ScopeUnverifiedError);
-    expect(() => verifyScopeOrThrow({ type: "mcp", url: "https://mcp.example.com" }))
-      .toThrow(ScopeUnverifiedError);
-    expect(() => verifyScopeOrThrow({ type: "api", url: "https://api.example.com" }))
-      .toThrow(ScopeUnverifiedError);
+  it("verifyScopeOrThrow refuses every target type without proof", async () => {
+    await expect(verifyScopeOrThrow({ type: "url", url: "https://example.com" }))
+      .rejects.toBeInstanceOf(ScopeUnverifiedError);
+    await expect(verifyScopeOrThrow({ type: "git", url: "https://github.com/me/repo" }))
+      .rejects.toBeInstanceOf(ScopeUnverifiedError);
+    await expect(verifyScopeOrThrow({ type: "mcp", url: "https://mcp.example.com" }))
+      .rejects.toBeInstanceOf(ScopeUnverifiedError);
+    await expect(verifyScopeOrThrow({ type: "api", url: "https://api.example.com" }))
+      .rejects.toBeInstanceOf(ScopeUnverifiedError);
   });
 
-  it("ScopeUnverifiedError carries a stable code and the offending target", () => {
+  it("ScopeUnverifiedError carries a stable code and the offending target", async () => {
     try {
-      verifyScopeOrThrow({ type: "url", url: "https://victim.example" });
+      await verifyScopeOrThrow({ type: "url", url: "https://victim.example" });
       throw new Error("should have thrown");
     } catch (err) {
       expect(err).toBeInstanceOf(ScopeUnverifiedError);
@@ -38,6 +38,15 @@ describe("scope gate (deny-all until Chunk 2)", () => {
       expect(e.code).toBe("scope_unverified");
       expect(e.target.url).toBe("https://victim.example");
     }
+  });
+
+  it("accepts signed scope contracts without active network proof", async () => {
+    await expect(
+      verifyScopeOrThrow(
+        { type: "git", repo: process.cwd() },
+        { contractId: "contract-1", proofMethod: "signed_email", expectedToken: "signed-token" },
+      ),
+    ).resolves.toMatchObject({ verified: true, proof_method: "signed_email" });
   });
 
   it("runSkeletonScan throws ScopeUnverifiedError for any caller-supplied URL", async () => {
