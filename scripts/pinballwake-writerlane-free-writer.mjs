@@ -1,9 +1,8 @@
 // WriterLane free-model writer adapter (runner-side, .mjs).
 //
-// Dead code. Nothing wires it until the runner seam opts in via
-// AUTONOMOUS_RUNNER_WRITER=writerlane_free, and even then only behind the triple
-// execute gate (MODE=execute && ALLOW_EXECUTE && OPENHANDS_EXECUTE), all OFF by
-// default. Merging this changes nothing live.
+// Dormant unless the runner explicitly opts in via AUTONOMOUS_RUNNER_WRITER=
+// writerlane_free, and even then only behind the triple execute gate
+// (MODE=execute && ALLOW_EXECUTE && OPENHANDS_EXECUTE).
 //
 // WHAT: this is the runner-side adapter that lets the proven direct-OpenRouter
 // free-model writer stand in for the OpenHands CLI runner. It satisfies the SAME
@@ -60,6 +59,8 @@ export const WRITERLANE_EMPTY_COMPLETION = "writerlane_empty_completion";
 export const WRITERLANE_NO_FILE_CONTENTS = "writerlane_no_file_contents";
 export const WRITERLANE_NO_FREE_MODELS = "writerlane_no_free_models";
 export const WRITERLANE_FREE_CHAIN_EXHAUSTED = "writerlane_free_chain_exhausted";
+export const WRITERLANE_PATCH_APPLY_CHECK_FAILED = "writerlane_patch_apply_check_failed";
+export const WRITERLANE_PATCH_APPLY_FAILED = "writerlane_patch_apply_failed";
 
 export function createWriterLaneFreeWriterRunner({
   env = process.env,
@@ -147,73 +148,72 @@ export function createWriterLaneFreeWriterRunner({
       }
 
       const files = parseFileBlocks(completion.content, ownedFiles);
-      if (files.length === 0) {
-        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: WRITERLANE_NO_FILE_CONTENTS });
-        continue;
-      }
-
-      for (const file of files) {
-        await writeFileImpl({ cwd, path: file.path, content: ensureTrailingNewline(file.content) });
-      }
-
-      // REAL scoped test-run: after writing, before capture (capture reverts).
-      let testsPassed;
-      let testRunId;
-      let testExitCode = 0;
-      if (verification.length > 0) {
-        const testRun = await runScopedTests({ runProcess, cwd, env: safeEnv, commands: verification, timeoutMs: effectiveTimeout });
-        testsPassed = testRun.ok === true;
-        testRunId = testRun.test_run_id;
-        testExitCode = testRun.exit_code;
+      if (files.length > 0) {
+        for (const file of files) {
+          await writeFileImpl({ cwd, path: file.path, content: ensureTrailingNewline(file.content) });
+        }
       } else {
-        testsPassed = allowMissingTests === true;
-        testRunId = `writerlane-no-tests-${model.id}`;
-        testExitCode = allowMissingTests === true ? 0 : 1;
+        const modelPatch = extractUnifiedDiff(completion.content);
+        if (!modelPatch) {
+          attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: WRITERLANE_NO_FILE_CONTENTS });
+          continue;
+        }
+        const modelPatchGate = gateWriterLaneDiff({
+          patch: modelPatch,
+          ownedFiles,
+          declaredFiles: [],
+          prompt: "",
+          maxPatchBytes,
+          proofMode: "model_patch_preflight",
+        });
+        if (!modelPatchGate.ok) {
+          attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: modelPatchGate.reason });
+          continue;
+        }
+        const applied = await applyUnifiedDiffToWorktree({
+          cwd,
+          env: safeEnv,
+          patch: modelPatchGate.patch,
+          runProcess,
+          timeoutMs: effectiveTimeout,
+        });
+        if (!applied.ok) {
+          attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: applied.reason });
+          continue;
+        }
       }
 
-      const cap = await captureDiff({ cwd, env: safeEnv, ownedFiles, runProcess });
-      if (!cap || cap.ok !== true) {
-        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: cap?.reason || "writerlane_capture_failed" });
-        continue;
-      }
-
-      const gate = gateWriterLaneDiff({
-        patch: cap.patch,
+      const proven = await proveCapturedWorktreePatch({
+        cwd,
+        env: safeEnv,
         ownedFiles,
-        declaredFiles: cap.changed_files || [],
+        verification,
+        allowMissingTests,
+        model,
         prompt,
+        runProcess,
+        captureDiff,
         maxPatchBytes,
         proofMode,
+        diffBudget,
+        timeoutMs: effectiveTimeout,
       });
-      if (!gate.ok) {
-        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: gate.reason });
-        continue;
-      }
-
-      const wlResult = {
-        ok: true,
-        patch: gate.patch,
-        changedFiles: gate.changedFiles,
-        proof: { autonomyProof: gate.autonomyProof },
-      };
-      const validation = buildValidationFromPatch(gate.patch, testsPassed, diffBudget);
-      const verdict = validateAutonomyProof(wlResult, proofMode, validation);
-      if (!verdict.ok) {
-        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: verdict.reason });
+      if (!proven.ok) {
+        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: proven.reason });
         continue;
       }
 
       attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: true });
       return {
         ok: true,
-        patch: gate.patch,
-        changed_files: gate.changedFiles,
+        patch: proven.gate.patch,
+        changed_files: proven.gate.changedFiles,
         summary: `WriterLane free writer ${model.id} (${model.openRouterModel}) produced a validated patch.`,
-        test_run_id: testRunId,
-        test_exit_code: testExitCode,
+        test_run_id: proven.testRunId,
+        test_exit_code: proven.testExitCode,
         diff_source: "worktree",
         model: model.id,
-        validation,
+        validation: proven.validation,
         attempts,
       };
     }
@@ -302,6 +302,92 @@ async function runScopedTests({ runProcess, cwd, env, commands, timeoutMs }) {
   return { ok: true, exit_code: 0, test_run_id: ran.join(" && ") || "writerlane-tests" };
 }
 
+async function applyUnifiedDiffToWorktree({ cwd, env, patch, runProcess, timeoutMs }) {
+  const check = await runProcess("git", ["apply", "--check", "--whitespace=error", "-"], {
+    cwd,
+    env,
+    stdin: patch,
+    timeoutMs,
+  });
+  if (!check || check.ok !== true) {
+    return { ok: false, reason: WRITERLANE_PATCH_APPLY_CHECK_FAILED };
+  }
+
+  const applied = await runProcess("git", ["apply", "--whitespace=nowarn", "-"], {
+    cwd,
+    env,
+    stdin: patch,
+    timeoutMs,
+  });
+  if (!applied || applied.ok !== true) {
+    return { ok: false, reason: WRITERLANE_PATCH_APPLY_FAILED };
+  }
+
+  return { ok: true };
+}
+
+async function proveCapturedWorktreePatch({
+  cwd,
+  env,
+  ownedFiles,
+  verification,
+  allowMissingTests,
+  model,
+  prompt,
+  runProcess,
+  captureDiff,
+  maxPatchBytes,
+  proofMode,
+  diffBudget,
+  timeoutMs,
+}) {
+  // REAL scoped test-run: after writing/applying, before capture (capture reverts).
+  let testsPassed;
+  let testRunId;
+  let testExitCode = 0;
+  if (verification.length > 0) {
+    const testRun = await runScopedTests({ runProcess, cwd, env, commands: verification, timeoutMs });
+    testsPassed = testRun.ok === true;
+    testRunId = testRun.test_run_id;
+    testExitCode = testRun.exit_code;
+  } else {
+    testsPassed = allowMissingTests === true;
+    testRunId = `writerlane-no-tests-${model.id}`;
+    testExitCode = allowMissingTests === true ? 0 : 1;
+  }
+
+  const cap = await captureDiff({ cwd, env, ownedFiles, runProcess });
+  if (!cap || cap.ok !== true) {
+    return { ok: false, reason: cap?.reason || "writerlane_capture_failed" };
+  }
+
+  const gate = gateWriterLaneDiff({
+    patch: cap.patch,
+    ownedFiles,
+    declaredFiles: cap.changed_files || [],
+    prompt,
+    maxPatchBytes,
+    proofMode,
+  });
+  if (!gate.ok) {
+    return { ok: false, reason: gate.reason };
+  }
+
+  const wlResult = {
+    ok: true,
+    patch: gate.patch,
+    changedFiles: gate.changedFiles,
+    proof: { autonomyProof: gate.autonomyProof },
+  };
+  const validation = buildValidationFromPatch(gate.patch, testsPassed, diffBudget);
+  const verdict = validateAutonomyProof(wlResult, proofMode, validation);
+  if (!verdict.ok) {
+    return { ok: false, reason: verdict.reason };
+  }
+
+  return { ok: true, gate, validation, testRunId, testExitCode };
+}
+
 function splitArgsSafe(command) {
   try {
     return splitArgs(command);
@@ -315,14 +401,17 @@ function splitArgsSafe(command) {
 // ---------------------------------------------------------------------------
 
 export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model = {}, runnerPrompt = "", currentFiles = [] } = {}) {
+  const cleanRunnerPrompt = normalizeRunnerPromptForFullContents(runnerPrompt);
+  const canaryProofLine = extractCanaryFixtureProofLine(runnerPrompt);
   const lines = [
     "You are an UnClick WriterLane free-model writer running AFK.",
     "Implement the requested change by returning the FULL new contents of each owned file.",
     "For EACH owned file, output a line exactly `FILE: <path>` followed by a fenced code block containing the complete new file contents.",
-    "Return only file blocks. Do not return JSON, explanations, bullets, markdown headings, or unified diffs.",
+    "Return only FILE blocks. Do not return JSON, explanations, bullets, markdown headings, or unified diffs.",
     "Do not use `CURRENT FILE:` in your answer. That label appears only in the input context.",
     "Change only the owned files. Do not commit, push, merge, deploy, or touch anything outside them.",
     "Use the current file contents below as the source of truth. Preserve unrelated code.",
+    "If a current owned file is missing, create that owned file from scratch and still return its full new contents.",
     `Model: ${model.openRouterModel || "unknown"}`,
     "Owned files:",
     ...ownedFiles.map((file) => `- ${file}`),
@@ -336,9 +425,18 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
       lines.push("```");
     }
   }
-  if (runnerPrompt) {
+  if (ownedFiles.length === 1) {
+    lines.push(`Because there is one owned file, your first response line must be: FILE: ${ownedFiles[0]}`);
+  }
+  if (cleanRunnerPrompt) {
     lines.push("Runner task prompt:");
-    lines.push(compactText(runnerPrompt, 8_000));
+    lines.push(compactText(cleanRunnerPrompt, 8_000));
+  }
+  if (canaryProofLine && normalizePaths(ownedFiles).includes("docs/openhands-proof-fixture.md")) {
+    lines.push("Canary fixture task:");
+    lines.push(
+      `Append the line \`${canaryProofLine}\` below \`<!-- openhands-proof-lines -->\` in docs/openhands-proof-fixture.md while preserving the rest of the file.`,
+    );
   }
   const intent = scopePack?.changeIntent || scopePack?.change_intent || scopePack?.chip || scopePack?.title;
   if (intent) {
@@ -362,6 +460,9 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
       lines.push(`CURRENT FILE: ${file.path}`);
       if (file.error) {
         lines.push(`Unreadable: ${file.error}`);
+        if (file.error === "file_missing_new_file_ok") {
+          lines.push("This owned file does not exist yet. Create it from scratch if it is part of the requested change.");
+        }
         continue;
       }
       lines.push("```");
@@ -374,6 +475,38 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
     lines.push(String(scopePack.body || scopePack.description));
   }
   return lines.join("\n");
+}
+
+function normalizeRunnerPromptForFullContents(prompt = "") {
+  const kept = [];
+  let skippingCanaryDiff = false;
+  for (const line of String(prompt ?? "").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed === "You are OpenHands running in UnClick test mode.") continue;
+    if (/^Return a unified diff patch only\b/i.test(trimmed)) continue;
+    if (
+      trimmed === "Canary fixture diff:" ||
+      trimmed === "For this fixture task, return this unified diff shape and nothing else:"
+    ) {
+      skippingCanaryDiff = true;
+      continue;
+    }
+    if (skippingCanaryDiff) {
+      if (!trimmed || /^(diff --git |--- |\+\+\+ |@@ )/.test(trimmed) || /^[+\- ]/.test(line)) {
+        continue;
+      }
+      skippingCanaryDiff = false;
+    }
+    kept.push(line);
+  }
+  return kept.join("\n").trim();
+}
+
+function extractCanaryFixtureProofLine(prompt = "") {
+  const diffLine = String(prompt ?? "").match(/^\+(-\s*proof run:\s*.+)$/m);
+  if (diffLine) return diffLine[1].trim();
+  const plainLine = String(prompt ?? "").match(/^(-\s*proof run:\s*.+)$/m);
+  return plainLine ? plainLine[1].trim() : "";
 }
 
 // Parse file-path + fenced block pairs, keeping only owned paths. The prompt asks
@@ -400,8 +533,32 @@ export function parseFileBlocks(content, ownedFiles) {
     if (fence) {
       return [{ path: ownedList[0], content: fence[1] }];
     }
+    const raw = parseSingleRawFileContent(text, ownedList[0]);
+    if (raw !== null) {
+      return [{ path: ownedList[0], content: raw }];
+    }
   }
   return [];
+}
+
+function parseSingleRawFileContent(text, path) {
+  const body = String(text ?? "").trim();
+  if (!body) return null;
+  const lower = body.toLowerCase();
+  if (
+    lower.startsWith("i cannot ") ||
+    lower.startsWith("i can't ") ||
+    lower.startsWith("sorry") ||
+    lower.startsWith("here is ") ||
+    lower.startsWith("here's ") ||
+    lower.includes("```")
+  ) {
+    return null;
+  }
+  if (isDoc(path) && /^(#\s|##\s|---\r?\n)/.test(body)) {
+    return body;
+  }
+  return null;
 }
 
 function extractFencedBlocks(text) {
@@ -445,6 +602,14 @@ function findOwnedPathInText(value, owned) {
     if (text.includes(path)) return path;
   }
   return "";
+}
+
+export function extractUnifiedDiff(content) {
+  const text = String(content ?? "");
+  const fenced = text.match(/```(?:diff|patch)?\s*([\s\S]*?diff --git[\s\S]*?)```/i);
+  if (fenced) return fenced[1].trim();
+  const index = text.indexOf("diff --git ");
+  return index === -1 ? "" : text.slice(index).trim();
 }
 
 function dedupeByPath(blocks) {
