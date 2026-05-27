@@ -119,7 +119,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 12 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 109 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 9 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 19 |
@@ -562,6 +562,12 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | script | pinballwake stale room.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-stale-room.test.mjs |
 | Automations | script | pinballwake worker registry room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-worker-registry-room.mjs |
 | Automations | script | pinballwake worker registry room.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-worker-registry-room.test.mjs |
+| Automations | script | pinballwake writerlane free models | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-free-models.mjs |
+| Automations | script | pinballwake writerlane free models.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-free-models.test.mjs |
+| Automations | script | pinballwake writerlane free writer | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-free-writer.mjs |
+| Automations | script | pinballwake writerlane free writer.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-free-writer.test.mjs |
+| Automations | script | pinballwake writerlane validator | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-validator.mjs |
+| Automations | script | pinballwake writerlane validator.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-validator.test.mjs |
 | Automations | script | pinballwake xpass gate room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-xpass-gate-room.mjs |
 | Automations | script | pinballwake xpass gate room.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-xpass-gate-room.test.mjs |
 | Automations | script | tier2 auto merge queue check | tier2 auto merge queue check operational script. | - | scripts/tier2-auto-merge-queue-check.mjs |

@@ -19,6 +19,7 @@ import { evaluateOrchestratorProofWakeGate } from "./lib/autopilotkit-liveness.m
 import { processScopePackTestOnlyExecutorPacket } from "./pinballwake-executor-lane.mjs";
 import { runOpenHandsWorker } from "./pinballwake-openhands-worker.mjs";
 import { createOpenHandsCliRunner, createSafeCodeRoomSubmitter } from "./pinballwake-openhands-proof-runner.mjs";
+import { createWriterLaneFreeWriterRunner } from "./pinballwake-writerlane-free-writer.mjs";
 import { buildScopePackHydrationReceipt } from "./pinballwake-scopepack-hydrator.mjs";
 
 export const AUTONOMOUS_RUNNER_MODES = new Set(["dry-run", "claim", "execute"]);
@@ -579,10 +580,25 @@ export async function createAutonomousRunnerOpenHandsClaimProbeReceipt({
 export function createAutonomousRunnerOpenHandsExecutorFromEnv(env = process.env) {
   const safeEnv = env || {};
   const enabled = parseBoolean(safeEnv.AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE);
+  // Opt-in writer swap. Unset (the default) keeps today's OpenHands CLI runner +
+  // default CodeRoom submitter byte-for-byte. "writerlane_free" routes the writer
+  // through the direct-OpenRouter free-model adapter and FORCES the CodeRoom
+  // submitter to draft + no-auto-merge (the default submitter is draft:false /
+  // autoMerge:true, which must NOT apply to the free-writer's first live step).
+  const useWriterLaneFree =
+    String(safeEnv.AUTONOMOUS_RUNNER_WRITER ?? "").trim() === "writerlane_free";
   return {
     enabled,
-    openHands: enabled ? createOpenHandsCliRunner({ env: safeEnv }) : null,
-    coderoom: enabled ? createSafeCodeRoomSubmitter({ env: safeEnv }) : null,
+    openHands: enabled
+      ? useWriterLaneFree
+        ? createWriterLaneFreeWriterRunner({ env: safeEnv })
+        : createOpenHandsCliRunner({ env: safeEnv })
+      : null,
+    coderoom: enabled
+      ? useWriterLaneFree
+        ? createSafeCodeRoomSubmitter({ env: safeEnv, draft: true, autoMerge: false })
+        : createSafeCodeRoomSubmitter({ env: safeEnv })
+      : null,
     env: safeEnv,
     testMode: parseBoolean(safeEnv.OPENHANDS_TEST_MODE),
     executorSeatId: safeEnv.OPENHANDS_EXECUTOR_SEAT_ID || "pinballwake-openhands-worker",
