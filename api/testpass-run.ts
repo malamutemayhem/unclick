@@ -17,6 +17,7 @@ import {
   computeVerdictSummary,
   createEvidence,
   createRun,
+  packFromJsonb,
   loadPackFromFile,
   probeServer,
   runAgentChecks,
@@ -37,6 +38,7 @@ import {
 } from "./lib/testpass-background-handoff.js";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -153,17 +155,43 @@ export async function resolveTestPassRunActor(
   return { ok: true, actorUserId, tokenKind: "session" };
 }
 
-async function getPackIdBySlug(
+interface TestPassRunPackRow {
+  id: string;
+  slug: string;
+  name: string | null;
+  owner_user_id: string | null;
+  yaml: unknown;
+}
+
+export function canUseTestPassRunPack(row: Pick<TestPassRunPackRow, "owner_user_id">, actorUserId: string): boolean {
+  return row.owner_user_id === null || row.owner_user_id === actorUserId;
+}
+
+async function getPackBySlug(
   supabaseUrl: string,
   serviceKey: string,
   slug: string,
-): Promise<{ id: string; owner_user_id: string } | null> {
+): Promise<TestPassRunPackRow | null> {
   const r = await fetch(
-    `${supabaseUrl}/rest/v1/testpass_packs?slug=eq.${encodeURIComponent(slug)}&select=id,owner_user_id&limit=1`,
+    `${supabaseUrl}/rest/v1/testpass_packs?slug=eq.${encodeURIComponent(slug)}&select=id,slug,name,owner_user_id,yaml&limit=1`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
   );
   if (!r.ok) return null;
-  const rows = (await r.json()) as Array<{ id: string; owner_user_id: string }>;
+  const rows = (await r.json()) as TestPassRunPackRow[];
+  return rows[0] ?? null;
+}
+
+async function getPackById(
+  supabaseUrl: string,
+  serviceKey: string,
+  packId: string,
+): Promise<TestPassRunPackRow | null> {
+  const r = await fetch(
+    `${supabaseUrl}/rest/v1/testpass_packs?id=eq.${encodeURIComponent(packId)}&select=id,slug,name,owner_user_id,yaml&limit=1`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+  );
+  if (!r.ok) return null;
+  const rows = (await r.json()) as TestPassRunPackRow[];
   return rows[0] ?? null;
 }
 
@@ -316,7 +344,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
 
   if (!input.pack_id) return json(res, 400, { error: "pack_id required" });
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (input.task_id !== undefined && input.task_id !== "" && !UUID_RE.test(input.task_id)) {
     return json(res, 400, { error: "task_id must be a UUID (v1-v5, recommended v5)" });
   }
@@ -328,10 +355,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const config = { supabaseUrl, serviceRoleKey: serviceKey };
-  const packSlug = input.pack_id;
+  const requestedPack = input.pack_id;
+  const requestedPackLooksUuid = UUID_RE.test(requestedPack);
 
-  const packRow = await getPackIdBySlug(supabaseUrl, serviceKey, packSlug);
-  if (!packRow) return json(res, 404, { error: `Pack '${packSlug}' not found` });
+  const packRow = requestedPackLooksUuid
+    ? await getPackById(supabaseUrl, serviceKey, requestedPack)
+    : await getPackBySlug(supabaseUrl, serviceKey, requestedPack);
+  if (!packRow) return json(res, 404, { error: `Pack '${requestedPack}' not found` });
+  const packSlug = packRow.slug;
 
   let actorUserId: string | null;
   if (isCron) {
@@ -352,6 +383,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
     actorUserId = actor.actorUserId;
+    if (!canUseTestPassRunPack(packRow, actorUserId)) {
+      return json(res, 404, { error: `Pack '${requestedPack}' not found` });
+    }
   }
   const apiKeyHash = shouldEmitScheduledSignal(input.source) || profile !== "smoke"
     ? await getApiKeyHashForUser(supabaseUrl, serviceKey, actorUserId)
@@ -360,9 +394,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const packPath = path.resolve(__dirname, `../packages/testpass/packs/${packSlug}.yaml`);
   let pack;
   try {
-    pack = loadPackFromFile(packPath);
-  } catch {
-    return json(res, 422, { error: `Pack YAML not found on server for '${packSlug}'` });
+    pack = packRow.owner_user_id === null
+      ? loadPackFromFile(packPath)
+      : packFromJsonb(packRow.yaml);
+  } catch (err) {
+    return json(res, 422, { error: `Pack '${packSlug}' could not be loaded: ${(err as Error).message}` });
   }
 
   const target: RunTarget = { type: "url", url: input.server_url ?? "" };
