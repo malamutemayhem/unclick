@@ -72,7 +72,8 @@ run IDs, and cross-pass reviewers, but not raw command output or secrets. Securi
 while still staying `blocked` in `latest.json` until safe recurring security probes exist.
 
 Because `main` requires pull requests, the dogfood workflow pushes changed receipt files to
-`automation/dogfood-public-receipt` and opens or updates a public receipt PR instead of pushing directly to `main`.
+`automation/dogfood-public-receipt` and opens or updates a public receipt PR when the token is allowed. If GitHub
+Actions cannot create PRs in this repository, the workflow leaves the branch ready for a human or agent-created PR.
 
 ## Runtime env vars
 
