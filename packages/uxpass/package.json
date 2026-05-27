@@ -7,7 +7,9 @@
   "exports": {
     ".": "./dist/index.js",
     "./schema": "./dist/schema.js",
-    "./types": "./dist/types.js"
+    "./types": "./dist/types.js",
+    "./visual-audit": "./dist/visual-audit.js",
+    "./design-director": "./dist/design-director.js"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",
