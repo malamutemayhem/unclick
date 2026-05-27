@@ -467,6 +467,49 @@ describe("safe CodeRoom submitter", () => {
     );
   });
 
+  test("ignores the generated autonomous runner ledger during clean-worktree checks", async () => {
+    const calls = [];
+    const submitter = createSafeCodeRoomSubmitter({
+      env: { CODEROOM_GITHUB_APP_TOKEN: "app-token" },
+      branchName: "codex/openhands-submit-todo-ledger",
+      runProcess: async (command, args) => {
+        calls.push([command, args]);
+        if (command === "git" && args[0] === "status") {
+          return {
+            ok: true,
+            stdout: " M .pinballwake/coding-room-ledger.json\n",
+            stderr: "",
+            output: "",
+          };
+        }
+        if (command === "gh" && args[1] === "list") {
+          return {
+            ok: true,
+            stdout: "https://github.com/malamutemayhem/unclick/pull/932\n",
+            stderr: "",
+            output: "",
+          };
+        }
+        return { ok: true, stdout: "", stderr: "", output: "" };
+      },
+    });
+
+    const result = await submitter({
+      job: { todo_id: "todo-ledger", owned_files: [FIXTURE] },
+      changedFiles: [FIXTURE],
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: ledger ignored" }),
+      testRunId: "unit-test",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.status, "existing_pr");
+    assert.equal(result.pr_url, "https://github.com/malamutemayhem/unclick/pull/932");
+    assert.deepEqual(
+      calls.map(([command, args]) => `${command} ${args.slice(0, 2).join(" ")}`),
+      ["git status --porcelain", "gh pr list"],
+    );
+  });
+
   test("creates a PR and enables auto-merge only after validation", async () => {
     const calls = [];
     const submitter = createSafeCodeRoomSubmitter({
