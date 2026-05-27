@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-27T13:41:23.988Z",
-  "valid_until": "2026-06-03T13:41:23.988Z",
+  "generated_at": "2026-05-27T13:51:02.304Z",
+  "valid_until": "2026-06-03T13:51:02.304Z",
   "source": "local deterministic repo/docs scan",
   "product": "CompliancePass",
   "legacy_aliases": [
@@ -1076,7 +1076,7 @@
           "title": "AI provider inventory evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "455 AI provider/model references were found.",
+          "summary": "461 AI provider/model references were found.",
           "evidence": [
             {
               "type": "file",
@@ -1127,7 +1127,7 @@
           "title": "AI oversight and review evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "2444 oversight/review references were found.",
+          "summary": "2487 oversight/review references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1178,7 +1178,7 @@
           "title": "AI data/source notes exist",
           "status": "pass",
           "score": 100,
-          "summary": "1795 AI data/source references were found.",
+          "summary": "1797 AI data/source references were found.",
           "evidence": [
             {
               "type": "doc",

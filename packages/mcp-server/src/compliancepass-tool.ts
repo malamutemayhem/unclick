@@ -4,7 +4,7 @@ import {
   renderCompliancePassMarkdown,
   runCompliancePass,
   type CompliancePassReport,
-} from "@unclick/compliancepass";
+} from "./compliancepass/index.js";
 
 const RUNS = new Map<string, CompliancePassReport>();
 
