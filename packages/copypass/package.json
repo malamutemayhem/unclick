@@ -1,7 +1,7 @@
 {
   "name": "@unclick/copypass",
   "version": "0.1.0",
-  "description": "CopyPass - fixture-only product-copy review with advisory verdict packs.",
+  "description": "CopyPass - deterministic product-copy review with advisory verdict packs.",
   "type": "module",
   "main": "./dist/index.js",
   "exports": {
@@ -11,8 +11,13 @@
     "./schema": "./dist/schema.js",
     "./verdict-pack": "./dist/verdict-pack.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc --project tsconfig.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc --project tsconfig.json",
+    "prepack": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest"
   },
