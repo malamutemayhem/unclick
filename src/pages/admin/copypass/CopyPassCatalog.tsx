@@ -15,7 +15,7 @@ const STARTER_PACKS = [
     category: "Commercial copy",
     useWhen: "Use this when pricing copy needs to stay specific, honest, and usable for technical buyers.",
     checks: "claim support, trust signals, internal consistency, tone drift",
-    cta: "Draft",
+    cta: "Run from MCP",
   },
 ];
 
@@ -27,7 +27,8 @@ function DisclaimerBanner() {
         <div>
           <h2 className="text-sm font-semibold text-[#E2B93B]">CopyPass proof boundary</h2>
           <p className="mt-1 text-sm text-[#d9d0a8]">
-            CopyPass is a scoped copy-quality review surface, not final brand approval, legal review, or performance proof.
+            CopyPass is a scoped copy-quality review, not final brand approval, legal review, or a guarantee of
+            performance. It reports evidence-backed findings from the copy it inspected and names what it did not check.
             Exact source work must carry a CopyRoom or FidelityCopy receipt before a worker treats the copy as safe.
           </p>
         </div>
@@ -88,7 +89,8 @@ export default function CopyPassCatalog() {
           <div>
             <h1 className="text-2xl font-semibold text-white">CopyPass</h1>
             <p className="mt-0.5 text-sm text-[#888]">
-              Copy review and exact-source receipt rails for worker-facing copy jobs.
+              Deterministic copy review for AI-generated wording, claim support, trust signals, anti-slop polish,
+              and exact-source receipt rails for worker-facing copy jobs.
             </p>
           </div>
         </div>
@@ -103,9 +105,9 @@ export default function CopyPassCatalog() {
             <div>
               <h2 className="text-sm font-semibold text-white">Available now through MCP</h2>
               <p className="mt-1 text-sm text-[#888]">
-                `copypass_run` accepts `copy_text` plus optional `channel`, `audience`, and `goal` fields today.
+                `copypass_run` accepts `copy_text` plus optional `channel`, `audience`, and `goal` fields.
                 For exact-copy work, send `copyroom_required: true` with `copyroom_source_packet` so missing source proof blocks instead of returning a null receipt.
-                `copypass_status` polls the in-session run record and attached CopyRoom receipt.
+                `copypass_status` returns the in-session verdict, deterministic findings, not-checked scope, disclaimer, and attached CopyRoom receipt.
               </p>
             </div>
           </div>
@@ -139,10 +141,12 @@ export default function CopyPassCatalog() {
           <div className="flex items-start gap-3">
             <MessagesSquare className="mt-0.5 h-5 w-5 shrink-0 text-[#61C1C4]" />
             <div>
-              <h2 className="text-sm font-semibold text-white">What lands next</h2>
+              <h2 className="text-sm font-semibold text-white">Current review coverage</h2>
               <p className="mt-1 text-sm text-[#888]">
-                Claim support, clarity, trust-signal, and tone-fit checks land next. Exact-source jobs already fail
-                closed when source packets are missing or when output drifts from the packet.
+                CopyPass checks clarity, CTA presence, proof and trust gaps, unsupported superiority claims, detector-evasion
+                positioning, risky guarantees, placeholder text, internal consistency, audience/tone fit, AI-slop language,
+                urgency, and product-surface honesty.
+                Exact-source jobs fail closed when source packets are missing or when output drifts from the packet.
               </p>
             </div>
           </div>
@@ -166,7 +170,7 @@ export default function CopyPassCatalog() {
             ))}
           </div>
           <p className="mt-3 text-xs text-[#666]">
-            Starter packs are MCP-triggered runs today. In-product launch controls land in a later chunk.
+            Starter packs are MCP-triggered run scopes today. In-product launch controls can land after the MCP path stays proven.
           </p>
         </section>
       </div>

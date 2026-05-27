@@ -12,6 +12,7 @@ import {
 import {
   createCodingRoomJobFromBoardroomTodo,
   createAutonomousRunner,
+  createAutonomousRunnerFromEnv,
   createAutonomousRunnerOpenHandsExecutorFromEnv,
   createAutonomousRunnerTestOnlyExecutorReceipt,
   assertRunnerOnFreshMain,
@@ -64,6 +65,21 @@ describe("PinballWake autonomous Runner seat", () => {
   it("defaults unknown modes back to dry-run", () => {
     assert.equal(normalizeAutonomousRunnerMode("claim"), "claim");
     assert.equal(normalizeAutonomousRunnerMode("ship-it"), "dry-run");
+  });
+
+  it("defaults the autonomous runner id to the assigned canary seat", () => {
+    assert.equal(createAutonomousRunnerFromEnv({}).id, "pinballwake-autonomous-runner");
+    assert.equal(
+      createAutonomousRunnerFromEnv({ CODING_ROOM_RUNNER_ID: "custom-coding-seat" }).id,
+      "custom-coding-seat",
+    );
+    assert.equal(
+      createAutonomousRunnerFromEnv({
+        AUTONOMOUS_RUNNER_ID: "custom-autonomous-seat",
+        CODING_ROOM_RUNNER_ID: "custom-coding-seat",
+      }).id,
+      "custom-autonomous-seat",
+    );
   });
 
   it("tightens queue intake for the scheduled execute canary", () => {

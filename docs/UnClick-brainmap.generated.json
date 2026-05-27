@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 491,
-    "source_manifest": 166,
-    "pages": 81,
+    "inventory": 513,
+    "source_manifest": 189,
+    "pages": 82,
     "tools": 185,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 45
+      "count": 46
     },
     {
       "id": "public-surfaces",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 40
+      "count": 61
     },
     {
       "id": "launch-and-onboarding",
@@ -329,6 +329,16 @@
       "meaning": "Admin surface for Admin Shell.",
       "source": "src/pages/admin/AdminShell.tsx",
       "route": "/admin",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-skills-src-pages-admin-adminskills-tsx-admin-skills",
+      "division": "Admin surfaces",
+      "name": "Admin Skills",
+      "kind": "admin page",
+      "meaning": "Read-only starter pack of UnClick-native skills, native rails, and portable SKILL.md packages.",
+      "source": "src/pages/admin/AdminSkills.tsx",
+      "route": "/admin/skills",
       "tags": []
     },
     {
@@ -2189,6 +2199,216 @@
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/wizard/package.json",
       "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-library-skills-library-src-pages-admin-adminskills-tsx-admin-skills",
+      "division": "Modules and apps",
+      "name": "Skills Library",
+      "kind": "skill library",
+      "meaning": "Read-only starter pack of UnClick-native skills, hardwired rails, hybrid workflows, and portable skill packages.",
+      "source": "src/pages/admin/AdminSkills.tsx",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-agent-handoff-packet-writer-seed-skills-agent-handoff-packet-writer-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "agent handoff packet writer",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/agent-handoff-packet-writer.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-browser-qa-tester-seed-skills-browser-qa-tester-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "browser qa tester",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/browser-qa-tester.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-builder-implementation-packet-seed-skills-builder-implementation-packet-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "builder implementation packet",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/builder-implementation-packet.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-coordinator-router-seed-skills-coordinator-router-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "coordinator router",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/coordinator-router.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-cross-pc-context-summariser-seed-skills-cross-pc-context-summariser-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "cross pc context summariser",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/cross-pc-context-summariser.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-deep-research-analyst-seed-skills-deep-research-analyst-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "deep research analyst",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/deep-research-analyst.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-dependency-upgrade-reviewer-seed-skills-dependency-upgrade-reviewer-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "dependency upgrade reviewer",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/dependency-upgrade-reviewer.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-draft-pr-description-seed-skills-draft-pr-description-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "draft pr description",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/draft-pr-description.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-fix-failing-ci-seed-skills-fix-failing-ci-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "fix failing ci",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/fix-failing-ci.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-github-pr-summariser-seed-skills-github-pr-summariser-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "github pr summariser",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/github-pr-summariser.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-memory-distiller-seed-skills-memory-distiller-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "memory distiller",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/memory-distiller.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-research-brief-generator-seed-skills-research-brief-generator-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "research brief generator",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/research-brief-generator.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-reviewer-gate-seed-skills-reviewer-gate-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "reviewer gate",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/reviewer-gate.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-safety-checker-gate-seed-skills-safety-checker-gate-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "safety checker gate",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/safety-checker-gate.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-screenshot-visual-qa-seed-skills-screenshot-visual-qa-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "screenshot visual qa",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/screenshot-visual-qa.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-security-review-seed-skills-security-review-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "security review",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/security-review.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-senior-code-reviewer-seed-skills-senior-code-reviewer-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "senior code reviewer",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/senior-code-reviewer.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-tester-proof-plan-seed-skills-tester-proof-plan-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "tester proof plan",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/tester-proof-plan.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-watcher-heartbeat-tether-seed-skills-watcher-heartbeat-tether-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "watcher heartbeat tether",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/watcher-heartbeat-tether.skill.md",
+      "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-skill-package-write-tests-for-changed-code-seed-skills-write-tests-for-changed-code-skill-md-admin-skills",
+      "division": "Modules and apps",
+      "name": "write tests for changed code",
+      "kind": "skill package",
+      "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+      "source": "seed/skills/write-tests-for-changed-code.skill.md",
+      "route": "/admin/skills",
       "tags": []
     },
     {
@@ -5214,6 +5434,12 @@
       "src/pages/admin/signals/SignalsCatalog.tsx"
     ],
     [
+      "/admin/skills",
+      "Admin Skills",
+      "Read-only starter pack of UnClick-native skills, native rails, and portable SKILL.md packages.",
+      "src/pages/admin/AdminSkills.tsx"
+    ],
+    [
       "/admin/system-health",
       "Admin System Health",
       "Health checks and operational status.",
@@ -6757,13 +6983,28 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "fd2479b601d8",
-      "bytes": 13242
+      "hash": "7bd815c57de3",
+      "bytes": 13446
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "7cfbba7277d3",
-      "bytes": 19113
+      "hash": "d0ad42350797",
+      "bytes": 19229
+    },
+    {
+      "source": "src/pages/admin/AdminSkills.tsx",
+      "hash": "4b5e69217a39",
+      "bytes": 14848
+    },
+    {
+      "source": "src/lib/skillLibrary.ts",
+      "hash": "7d69323f9491",
+      "bytes": 10487
+    },
+    {
+      "source": "src/lib/skillLibrarySeeds.ts",
+      "hash": "51ca658707f8",
+      "bytes": 652
     },
     {
       "source": ".github/workflows/ci.yml",
@@ -6779,6 +7020,106 @@
       "source": "package.json",
       "hash": "e6096faac8c4",
       "bytes": 4380
+    },
+    {
+      "source": "seed/skills/agent-handoff-packet-writer.skill.md",
+      "hash": "f9c498e48796",
+      "bytes": 938
+    },
+    {
+      "source": "seed/skills/browser-qa-tester.skill.md",
+      "hash": "b57ce8b2e63a",
+      "bytes": 1115
+    },
+    {
+      "source": "seed/skills/builder-implementation-packet.skill.md",
+      "hash": "1fcda17af905",
+      "bytes": 1276
+    },
+    {
+      "source": "seed/skills/coordinator-router.skill.md",
+      "hash": "9413945c7540",
+      "bytes": 1379
+    },
+    {
+      "source": "seed/skills/cross-pc-context-summariser.skill.md",
+      "hash": "a3ed67bc460c",
+      "bytes": 932
+    },
+    {
+      "source": "seed/skills/deep-research-analyst.skill.md",
+      "hash": "74d773d9e04d",
+      "bytes": 1069
+    },
+    {
+      "source": "seed/skills/dependency-upgrade-reviewer.skill.md",
+      "hash": "d70607ce286b",
+      "bytes": 1045
+    },
+    {
+      "source": "seed/skills/draft-pr-description.skill.md",
+      "hash": "29bd5a084a33",
+      "bytes": 892
+    },
+    {
+      "source": "seed/skills/fix-failing-ci.skill.md",
+      "hash": "7448c5e24ded",
+      "bytes": 1080
+    },
+    {
+      "source": "seed/skills/github-pr-summariser.skill.md",
+      "hash": "1fd84b27d797",
+      "bytes": 987
+    },
+    {
+      "source": "seed/skills/memory-distiller.skill.md",
+      "hash": "b951415aa2a7",
+      "bytes": 983
+    },
+    {
+      "source": "seed/skills/research-brief-generator.skill.md",
+      "hash": "849b249b5f2a",
+      "bytes": 915
+    },
+    {
+      "source": "seed/skills/reviewer-gate.skill.md",
+      "hash": "976af541055b",
+      "bytes": 1008
+    },
+    {
+      "source": "seed/skills/safety-checker-gate.skill.md",
+      "hash": "788eb3ec2b1d",
+      "bytes": 1148
+    },
+    {
+      "source": "seed/skills/screenshot-visual-qa.skill.md",
+      "hash": "ddfa5fd572a8",
+      "bytes": 1025
+    },
+    {
+      "source": "seed/skills/security-review.skill.md",
+      "hash": "1183cfc4b1ce",
+      "bytes": 1107
+    },
+    {
+      "source": "seed/skills/senior-code-reviewer.skill.md",
+      "hash": "22a98a1953fd",
+      "bytes": 1104
+    },
+    {
+      "source": "seed/skills/tester-proof-plan.skill.md",
+      "hash": "d8c55bf6329a",
+      "bytes": 1153
+    },
+    {
+      "source": "seed/skills/watcher-heartbeat-tether.skill.md",
+      "hash": "28acf3324343",
+      "bytes": 1057
+    },
+    {
+      "source": "seed/skills/write-tests-for-changed-code.skill.md",
+      "hash": "0c2617abce77",
+      "bytes": 1049
     },
     {
       "source": "src/pages/Index.tsx",
@@ -6837,8 +7178,8 @@
     },
     {
       "source": "src/pages/admin/copypass/CopyPassCatalog.tsx",
-      "hash": "c5690331b7c6",
-      "bytes": 6747
+      "hash": "ecfffa28e759",
+      "bytes": 7258
     },
     {
       "source": "src/pages/admin/crews/CrewComposer.tsx",
@@ -6957,8 +7298,8 @@
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "4dd6c628c4a4",
-      "bytes": 10027
+      "hash": "8544965a0043",
+      "bytes": 8530
     },
     {
       "source": "src/pages/admin/AdminUsers.tsx",
@@ -7397,8 +7738,8 @@
     },
     {
       "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "2a5f73ece606",
-      "bytes": 14259
+      "hash": "4debe88f6f2f",
+      "bytes": 28450
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",

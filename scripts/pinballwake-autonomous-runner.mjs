@@ -2625,7 +2625,7 @@ export function createAutonomousRunnerFromEnv(env = process.env) {
   const base = createCodingRoomRunnerFromEnv(env);
   return createAutonomousRunner({
     ...base,
-    id: env.AUTONOMOUS_RUNNER_ID || base.id || DEFAULT_AUTONOMOUS_RUNNER.id,
+    id: env.AUTONOMOUS_RUNNER_ID || env.CODING_ROOM_RUNNER_ID || DEFAULT_AUTONOMOUS_RUNNER.id,
     readiness: env.AUTONOMOUS_RUNNER_READINESS || base.readiness || DEFAULT_AUTONOMOUS_RUNNER.readiness,
     capabilities: parseList(
       env.AUTONOMOUS_RUNNER_CAPABILITIES,
