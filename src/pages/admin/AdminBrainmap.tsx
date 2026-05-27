@@ -55,6 +55,7 @@ type BrainmapData = {
   };
   divisions: BrainmapDivision[];
   inventory: BrainmapItem[];
+  inductionRows: string[][];
 };
 
 const brainmapData = JSON.parse(brainmapDataRaw) as BrainmapData;
@@ -160,7 +161,7 @@ const aliasRows = parseMarkdownTable("Public/Internal Alias Table");
 const coreSurfaceGroups = [
   {
     group: "Control tower",
-    routes: ["/admin/jobs", "/admin/orchestrator", "/fishbowl", "/admin/pinball-wake", "/admin/agents/heartbeat"],
+    routes: ["/admin/jobs", "/admin/orchestrator", "/admin/boardroom", "/admin/pinballwake", "/admin/agents/heartbeat"],
   },
   {
     group: "Knowledge",
@@ -168,11 +169,11 @@ const coreSurfaceGroups = [
   },
   {
     group: "Proof and safety",
-    routes: ["/admin/test-pass", "/admin/system-health", "/admin/audit-log", "/admin/keychain"],
+    routes: ["/admin/testpass", "/admin/system-health", "/admin/audit-log", "/admin/keychain"],
   },
   {
     group: "Product",
-    routes: ["/admin/jobsmith", "/jobsmith", "/tools", "/connect"],
+    routes: ["/admin/jobsmith", "/admin/autopilot/expressbuild", "/jobsmith", "/tools"],
   },
 ].flatMap(({ group, routes }) =>
   routes
@@ -325,6 +326,39 @@ export default function AdminBrainmap() {
               The raw generated Brainmap remains intact below for fast machine reading.
             </p>
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-[#E2B93B]/15 bg-[#111] p-4">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Launchpad induction path</h2>
+            <p className="mt-1 text-sm text-white/55">
+              Brainmap gives seats the map before Launchpad chooses the lane.
+            </p>
+          </div>
+          <span className="w-fit rounded-md bg-[#E2B93B]/10 px-2 py-1 font-mono text-xs text-[#F4D46D]">
+            {brainmapData.inductionRows.length} steps
+          </span>
+        </div>
+        <div className="grid gap-3 lg:grid-cols-2">
+          {brainmapData.inductionRows.map(([step, action, why, surface, pointer]) => (
+            <div key={`${step}-${action}`} className="rounded-lg border border-white/[0.06] bg-white/[0.025] p-3">
+              <div className="flex items-start gap-3">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#E2B93B]/10 font-mono text-xs font-semibold text-[#F4D46D]">
+                  {step}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-white">{action}</h3>
+                  <p className="mt-1 text-xs leading-5 text-white/55">{why}</p>
+                  <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+                    <span className="rounded bg-[#61C1C4]/10 px-2 py-1 text-[#8FE6E8]">{surface}</span>
+                    <span className="rounded bg-white/[0.05] px-2 py-1 font-mono text-white/45">{pointer}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
