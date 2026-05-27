@@ -30,6 +30,7 @@ describe("UnClick ecosystem Brainmap", () => {
       "## Brainmap Data Contract",
       "## Division Index",
       "## UnClick Structure",
+      "## Seat Induction Path",
       "## Pages and Meaning",
       "## Tool Families and Meaning",
       "## Tool and Worker Tree",
@@ -54,6 +55,8 @@ describe("UnClick ecosystem Brainmap", () => {
     assert.match(generated, /\| Passes and gates \| fidelity gate \| CopyRoom \| Exact-copy room/);
     assert.match(generated, /\| Wrappers and protocols \| claim lifecycle \| SeatRelay \| Stale release/);
     assert.match(generated, /\| Coordinator \| Routes work/);
+    assert.match(generated, /\| 4 \| Pass through Brainmap \| Use the generated ecosystem map/);
+    assert.match(generated, /\| 5 \| Choose the Launchpad lane \| Route the work/);
     assert.match(generated, /Admin-only surfaces use `RequireAdmin`/);
     assert.match(generated, /IgniteOnly can request worker wake packets only/);
     assert.match(generated, /Memory and Brainmap entries are pointers, not the runtime MASTER/);
@@ -89,5 +92,18 @@ describe("UnClick ecosystem Brainmap", () => {
     assert.ok(data.inventory.some((item) => item.name === "CopyRoom" && item.division === "Passes and gates"));
     assert.ok(data.inventory.some((item) => item.name === "JobSmith" && item.division === "Modules and apps"));
     assert.ok(data.inventory.some((item) => item.name === "Ecosystem Brainmap" && item.route === "/admin/brainmap"));
+    assert.ok(data.inductionRows.some((row) => row[1] === "Pass through Brainmap"));
+  });
+
+  it("uses real app routes instead of filename guesses", async () => {
+    const data = JSON.parse(await generateBrainmapData({ root: process.cwd() }));
+    const routes = new Set(data.pageRows.map((row) => row[0]));
+    assert.ok(routes.has("/admin/pinballwake"));
+    assert.ok(routes.has("/admin/testpass"));
+    assert.ok(routes.has("/admin/boardroom"));
+    assert.ok(routes.has("/admin/autopilot/expressbuild"));
+    assert.ok(!routes.has("/admin/pinball-wake"));
+    assert.ok(!routes.has("/admin/test-pass"));
+    assert.ok(!routes.has("/library-tab"));
   });
 });
