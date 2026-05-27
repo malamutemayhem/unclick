@@ -66,7 +66,10 @@ describe("writerlane free-writer: happy path", () => {
       },
     });
 
-    const result = await runner({ scopePack: { owned_files: OWNED, verification: ["node --test docs/x.test.mjs"] } });
+    const result = await runner({
+      prompt: "Runner brief: preserve the existing heading and only add the requested line.",
+      scopePack: { owned_files: OWNED, verification: ["node --test docs/x.test.mjs"] },
+    });
 
     assert.equal(result.ok, true);
     assert.equal(result.model, "m-a");
@@ -76,6 +79,8 @@ describe("writerlane free-writer: happy path", () => {
     assert.equal(result.diff_source, "worktree");
     assert.match(prompt, /Current owned file contents:/);
     assert.match(prompt, /CURRENT FILE: docs\/x\.md/);
+    assert.match(prompt, /Runner task prompt:/);
+    assert.match(prompt, /preserve the existing heading/);
     assert.match(prompt, /current docs\/x\.md/);
     assert.match(prompt, /old line/);
     // ordering: write the file, run the real test, THEN capture (capture reverts)
@@ -100,7 +105,10 @@ describe("writerlane free-writer: happy path", () => {
       captureDiff: async ({ ownedFiles }) => ({ ok: true, patch: GOOD_PATCH, changed_files: ownedFiles }),
     });
 
-    const result = await runner({ scopePack: { owned_files: OWNED, verification: ["node --test docs/x.test.mjs"] } });
+    const result = await runner({
+      prompt: "Runner brief: preserve the existing heading and only add the requested line.",
+      scopePack: { owned_files: OWNED, verification: ["node --test docs/x.test.mjs"] },
+    });
 
     assert.equal(result.ok, true);
     assert.match(prompt, /CURRENT FILE: docs\/x\.md/);
@@ -275,6 +283,7 @@ describe("writerlane free-writer: pure helpers", () => {
       ownedFiles: OWNED,
       scopePack: { verification: ["node --test x"] },
       model: MODEL_A,
+      runnerPrompt: "Runner prompt detail",
       currentFiles: [{ path: "docs/x.md", content: "old file" }],
     });
     assert.match(prompt, /FILE: <path>/);
@@ -282,6 +291,7 @@ describe("writerlane free-writer: pure helpers", () => {
     assert.match(prompt, /node --test x/);
     assert.match(prompt, /Current owned file contents:/);
     assert.match(prompt, /CURRENT FILE: docs\/x\.md/);
+    assert.match(prompt, /Runner prompt detail/);
     assert.match(prompt, /old file/);
   });
 });

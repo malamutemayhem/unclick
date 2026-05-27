@@ -200,6 +200,7 @@ describe("runOpenHandsWorker", () => {
         status: "proven",
         ok: false,
         reason: "writerlane_no_file_contents",
+        http_status: null,
       },
     ]);
   });

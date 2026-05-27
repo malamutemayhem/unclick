@@ -95,7 +95,7 @@ export function createWriterLaneFreeWriterRunner({
   ).trim();
   const doFetch = fetchImpl || globalThis.fetch;
 
-  return async ({ scopePack, job, timeoutMs: callTimeoutMs } = {}) => {
+  return async ({ scopePack, job, prompt: runnerPrompt = "", timeoutMs: callTimeoutMs } = {}) => {
     const effectiveTimeout = Number.isFinite(callTimeoutMs) ? callTimeoutMs : timeoutMs;
     const ownedFiles = normalizePaths(
       scopePack?.owned_files || scopePack?.ownedFiles || job?.owned_files || [],
@@ -131,7 +131,7 @@ export function createWriterLaneFreeWriterRunner({
 
     for (const model of chain) {
       const status = model?.empirical?.status ?? "trial";
-      const prompt = buildFullContentsPrompt({ ownedFiles, scopePack, model, currentFiles });
+      const prompt = buildFullContentsPrompt({ ownedFiles, scopePack, model, runnerPrompt, currentFiles });
 
       const completion = await callOpenRouter({
         doFetch,
@@ -142,7 +142,7 @@ export function createWriterLaneFreeWriterRunner({
         timeoutMs: effectiveTimeout,
       });
       if (!completion.ok) {
-        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: completion.reason });
+        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: completion.reason, http_status: completion.status ?? null });
         continue;
       }
 
@@ -218,7 +218,12 @@ export function createWriterLaneFreeWriterRunner({
       };
     }
 
-    return { ok: false, reason: WRITERLANE_FREE_CHAIN_EXHAUSTED, attempts };
+    return {
+      ok: false,
+      reason: WRITERLANE_FREE_CHAIN_EXHAUSTED,
+      attempts,
+      output: summarizeAttemptTrail(attempts),
+    };
   };
 }
 
@@ -309,16 +314,21 @@ function splitArgsSafe(command) {
 // Prompt + response parsing
 // ---------------------------------------------------------------------------
 
-export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model = {}, currentFiles = [] } = {}) {
+export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model = {}, runnerPrompt = "", currentFiles = [] } = {}) {
   const lines = [
     "You are an UnClick WriterLane free-model writer running AFK.",
     "Implement the requested change by returning the FULL new contents of each owned file.",
     "For EACH owned file, output a line exactly `FILE: <path>` followed by a fenced code block containing the complete new file contents.",
     "Change only the owned files. Do not commit, push, merge, deploy, or touch anything outside them.",
+    "Use the current file contents below as the source of truth. Preserve unrelated code.",
     `Model: ${model.openRouterModel || "unknown"}`,
     "Owned files:",
     ...ownedFiles.map((file) => `- ${file}`),
   ];
+  if (runnerPrompt) {
+    lines.push("Runner task prompt:");
+    lines.push(compactText(runnerPrompt, 8_000));
+  }
   const intent = scopePack?.changeIntent || scopePack?.change_intent || scopePack?.chip || scopePack?.title;
   if (intent) {
     lines.push("Change intent:");
@@ -560,6 +570,26 @@ function readFileErrorReason(err) {
   if (err?.code === "ENOENT") return "file_missing_new_file_ok";
   if (err?.code) return `read_failed_${String(err.code).toLowerCase()}`;
   return "read_failed";
+}
+
+function summarizeAttemptTrail(attempts = []) {
+  if (!Array.isArray(attempts) || attempts.length === 0) return null;
+  return compactText(
+    attempts
+      .map((attempt) => {
+        const reason = attempt?.ok ? "ok" : attempt?.reason || "failed";
+        const http = attempt?.http_status ? ` http=${attempt.http_status}` : "";
+        return `${attempt?.modelId || "unknown"} (${attempt?.openRouterModel || "unknown"}): ${reason}${http}`;
+      })
+      .join("\n"),
+    2_000,
+  );
+}
+
+function compactText(value, max) {
+  const text = String(value ?? "");
+  if (text.length <= max) return text;
+  return `${text.slice(0, Math.max(0, max - 3))}...`;
 }
 
 function ensureTrailingNewline(content) {

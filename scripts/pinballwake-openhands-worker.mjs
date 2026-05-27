@@ -275,6 +275,7 @@ function compactOpenHandsAttempts(attempts) {
     status: clip(attempt?.status || "", 40),
     ok: attempt?.ok === true,
     reason: clip(attempt?.reason || "", 140),
+    http_status: typeof attempt?.http_status === "number" ? attempt.http_status : null,
   }));
 }
 
