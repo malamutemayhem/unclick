@@ -73,7 +73,7 @@ function peekRpc(body: unknown): { id: JsonRpcId; authRequired: boolean } {
   return { id, authRequired };
 }
 
-interface ApiKeyContext {
+export interface ApiKeyContext {
   api_key_hash: string;
   tier: string;
   user_id: string | null;
@@ -241,6 +241,36 @@ function extractSupabaseAccessToken(cookieHeader: string): string | null {
   return null;
 }
 
+export function applyMcpRequestEnv(apiKey: string, ctx: ApiKeyContext | null): void {
+  if (apiKey && ctx) {
+    process.env.UNCLICK_API_KEY = apiKey;
+  } else {
+    delete process.env.UNCLICK_API_KEY;
+  }
+
+  if (ctx) {
+    process.env.UNCLICK_API_KEY_HASH = ctx.api_key_hash;
+    process.env.UNCLICK_TIER = ctx.tier;
+    if (ctx.account_email) {
+      process.env.UNCLICK_ACCOUNT_EMAIL = ctx.account_email;
+    } else {
+      delete process.env.UNCLICK_ACCOUNT_EMAIL;
+    }
+    process.env.UNCLICK_MEMORY_QUOTA_EXEMPT = ctx.memory_quota_exempt ? "true" : "false";
+    if (ctx.user_id) {
+      process.env.UNCLICK_USER_ID = ctx.user_id;
+    } else {
+      delete process.env.UNCLICK_USER_ID;
+    }
+  } else {
+    delete process.env.UNCLICK_API_KEY_HASH;
+    delete process.env.UNCLICK_TIER;
+    delete process.env.UNCLICK_USER_ID;
+    delete process.env.UNCLICK_ACCOUNT_EMAIL;
+    delete process.env.UNCLICK_MEMORY_QUOTA_EXEMPT;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // ── CORS - allow any origin so AI agents can connect from anywhere ──────────
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -338,34 +368,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // access it - this is the AES-256-GCM encryption property we
   // explicitly want to preserve: a logged-in user cannot decrypt
   // another device's stored credentials without holding the api_key.
-  if (apiKey) {
-    process.env.UNCLICK_API_KEY = apiKey;
-  } else {
-    delete process.env.UNCLICK_API_KEY;
-  }
   // ctx is null only on unauthenticated handshake calls. Clear stale tenancy
-  // env vars from prior invocations on the same warm serverless instance.
-  if (ctx) {
-    process.env.UNCLICK_API_KEY_HASH = ctx.api_key_hash;
-    process.env.UNCLICK_TIER = ctx.tier;
-    if (ctx.account_email) {
-      process.env.UNCLICK_ACCOUNT_EMAIL = ctx.account_email;
-    } else {
-      delete process.env.UNCLICK_ACCOUNT_EMAIL;
-    }
-    process.env.UNCLICK_MEMORY_QUOTA_EXEMPT = ctx.memory_quota_exempt ? "true" : "false";
-    if (ctx.user_id) {
-      process.env.UNCLICK_USER_ID = ctx.user_id;
-    } else {
-      delete process.env.UNCLICK_USER_ID;
-    }
-  } else {
-    delete process.env.UNCLICK_API_KEY_HASH;
-    delete process.env.UNCLICK_TIER;
-    delete process.env.UNCLICK_USER_ID;
-    delete process.env.UNCLICK_ACCOUNT_EMAIL;
-    delete process.env.UNCLICK_MEMORY_QUOTA_EXEMPT;
-  }
+  // env vars from prior invocations on the same warm serverless instance, and
+  // never leak an unvalidated Bearer token into the MCP server environment.
+  applyMcpRequestEnv(apiKey, ctx);
 
   // ── MCP over Streamable HTTP (stateless per-request) ───────────────────────
   const transport = new StreamableHTTPServerTransport({
