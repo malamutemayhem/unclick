@@ -315,6 +315,8 @@ function splitArgsSafe(command) {
 // ---------------------------------------------------------------------------
 
 export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model = {}, runnerPrompt = "", currentFiles = [] } = {}) {
+  const cleanRunnerPrompt = normalizeRunnerPromptForFullContents(runnerPrompt);
+  const canaryProofLine = extractCanaryFixtureProofLine(runnerPrompt);
   const lines = [
     "You are an UnClick WriterLane free-model writer running AFK.",
     "Implement the requested change by returning the FULL new contents of each owned file.",
@@ -325,9 +327,15 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
     "Owned files:",
     ...ownedFiles.map((file) => `- ${file}`),
   ];
-  if (runnerPrompt) {
+  if (cleanRunnerPrompt) {
     lines.push("Runner task prompt:");
-    lines.push(compactText(runnerPrompt, 8_000));
+    lines.push(compactText(cleanRunnerPrompt, 8_000));
+  }
+  if (canaryProofLine && normalizePaths(ownedFiles).includes("docs/openhands-proof-fixture.md")) {
+    lines.push("Canary fixture task:");
+    lines.push(
+      `Append the line \`${canaryProofLine}\` below \`<!-- openhands-proof-lines -->\` in docs/openhands-proof-fixture.md while preserving the rest of the file.`,
+    );
   }
   const intent = scopePack?.changeIntent || scopePack?.change_intent || scopePack?.chip || scopePack?.title;
   if (intent) {
@@ -363,6 +371,38 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
     lines.push(String(scopePack.body || scopePack.description));
   }
   return lines.join("\n");
+}
+
+function normalizeRunnerPromptForFullContents(prompt = "") {
+  const kept = [];
+  let skippingCanaryDiff = false;
+  for (const line of String(prompt ?? "").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed === "You are OpenHands running in UnClick test mode.") continue;
+    if (/^Return a unified diff patch only\b/i.test(trimmed)) continue;
+    if (
+      trimmed === "Canary fixture diff:" ||
+      trimmed === "For this fixture task, return this unified diff shape and nothing else:"
+    ) {
+      skippingCanaryDiff = true;
+      continue;
+    }
+    if (skippingCanaryDiff) {
+      if (!trimmed || /^(diff --git |--- |\+\+\+ |@@ )/.test(trimmed) || /^[+\- ]/.test(line)) {
+        continue;
+      }
+      skippingCanaryDiff = false;
+    }
+    kept.push(line);
+  }
+  return kept.join("\n").trim();
+}
+
+function extractCanaryFixtureProofLine(prompt = "") {
+  const diffLine = String(prompt ?? "").match(/^\+(-\s*proof run:\s*.+)$/m);
+  if (diffLine) return diffLine[1].trim();
+  const plainLine = String(prompt ?? "").match(/^(-\s*proof run:\s*.+)$/m);
+  return plainLine ? plainLine[1].trim() : "";
 }
 
 // Parse `FILE: <path>` + fenced block pairs, keeping only owned paths. Falls back

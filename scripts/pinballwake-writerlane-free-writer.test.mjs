@@ -294,4 +294,32 @@ describe("writerlane free-writer: pure helpers", () => {
     assert.match(prompt, /Runner prompt detail/);
     assert.match(prompt, /old file/);
   });
+
+  it("removes OpenHands diff instructions while preserving the canary task", () => {
+    const prompt = buildFullContentsPrompt({
+      ownedFiles: ["docs/openhands-proof-fixture.md"],
+      scopePack: { verification: ["node --test scripts/pinballwake-openhands-proof-runner.test.mjs"] },
+      model: MODEL_A,
+      runnerPrompt: [
+        "You are OpenHands running in UnClick test mode.",
+        "Return a unified diff patch only. Do not commit, push, merge, deploy, or touch secrets.",
+        "Job: AFK canary seed",
+        "Canary fixture diff:",
+        "For this fixture task, return this unified diff shape and nothing else:",
+        "diff --git a/docs/openhands-proof-fixture.md b/docs/openhands-proof-fixture.md",
+        "--- a/docs/openhands-proof-fixture.md",
+        "+++ b/docs/openhands-proof-fixture.md",
+        "@@ -3,4 +3,5 @@",
+        " <!-- openhands-proof-lines -->",
+        "+- proof run: coding-room-claim:abc123",
+      ].join("\n"),
+      currentFiles: [{ path: "docs/openhands-proof-fixture.md", content: "# OpenHands Proof Fixture\n\n<!-- openhands-proof-lines -->\n" }],
+    });
+
+    assert.doesNotMatch(prompt, /Return a unified diff patch only/);
+    assert.doesNotMatch(prompt, /diff --git/);
+    assert.match(prompt, /Job: AFK canary seed/);
+    assert.match(prompt, /Append the line `- proof run: coding-room-claim:abc123`/);
+    assert.match(prompt, /FILE: <path>/);
+  });
 });
