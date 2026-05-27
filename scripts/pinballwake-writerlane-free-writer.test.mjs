@@ -81,6 +81,8 @@ describe("writerlane free-writer: happy path", () => {
     assert.match(prompt, /CURRENT FILE: docs\/x\.md/);
     assert.match(prompt, /Runner task prompt:/);
     assert.match(prompt, /preserve the existing heading/);
+    assert.match(prompt, /Do not return a unified diff/);
+    assert.match(prompt, /first response line must be: FILE: docs\/x\.md/);
     assert.match(prompt, /current docs\/x\.md/);
     assert.match(prompt, /old line/);
     // ordering: write the file, run the real test, THEN capture (capture reverts)
