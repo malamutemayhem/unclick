@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 490,
+    "inventory": 491,
     "source_manifest": 166,
     "pages": 81,
     "tools": 185,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 12
+      "count": 13
     },
     {
       "id": "wrappers-and-protocols",
@@ -2298,6 +2298,16 @@
       "kind": "pass",
       "meaning": "uxpass site sweep UnClick module.",
       "source": "scripts/uxpass-site-sweep.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-pass-uxpass-visual-audit-scripts-uxpass-visual-audit-mjs-no-route",
+      "division": "Passes and gates",
+      "name": "uxpass visual audit",
+      "kind": "pass",
+      "meaning": "uxpass visual audit UnClick module.",
+      "source": "scripts/uxpass-visual-audit.mjs",
       "route": "",
       "tags": []
     },
@@ -6767,8 +6777,8 @@
     },
     {
       "source": "package.json",
-      "hash": "70ad6dda4e3f",
-      "bytes": 4319
+      "hash": "e6096faac8c4",
+      "bytes": 4380
     },
     {
       "source": "src/pages/Index.tsx",
