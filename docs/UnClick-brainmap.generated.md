@@ -121,7 +121,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
-| Source of truth | Canonical state, queue, memory, and context surfaces. | 9 |
+| Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 19 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 4 |
 
@@ -705,6 +705,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Source of truth | state module | embed | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/memory/embed.ts |
 | Source of truth | state module | memory admin | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/memory-admin.ts |
 | Source of truth | state module | memory Data Island | memory Data Island shared frontend logic. | - | src/lib/memoryDataIsland.ts |
+| Source of truth | state module | memory recall sections | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/memory-recall-sections.ts |
 | Source of truth | state module | memory retrieval eval | memory retrieval eval UnClick module. | - | scripts/memory-retrieval-eval.mjs |
 | Source of truth | state module | memory Taxonomy | memory Taxonomy shared frontend logic. | - | src/lib/memoryTaxonomy.ts |
 | Source of truth | state module | orchestrator context | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/orchestrator-context.ts |
