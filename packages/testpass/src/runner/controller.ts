@@ -26,7 +26,7 @@ async function fetchItems(
   select: string,
 ): Promise<Array<Record<string, unknown>>> {
   const res = await fetch(
-    `${config.supabaseUrl}/rest/v1/testpass_items?run_id=eq.${runId}&select=${select}`,
+    `${config.supabaseUrl}/rest/v1/testpass_items?run_id=eq.${encodeURIComponent(runId)}&select=${select}`,
     {
       headers: {
         apikey: config.serviceRoleKey,
