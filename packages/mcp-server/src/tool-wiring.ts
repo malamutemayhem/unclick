@@ -761,10 +761,13 @@ import {
 
 // ─── TestPass ─────────────────────────────────────────────────────────────────
 import {
+  testpassListPacks,
   testpassRun,
   testpassStatus,
   testpassSavePack,
   testpassEditItem,
+  testpassEvidence,
+  testpassFixList,
   testpassReportHtml,
   testpassReportJson,
   testpassReportMd,
@@ -772,7 +775,10 @@ import {
 
 // ─── LegalPass (issue-spotting guardrails) ───────────────────────────────────
 import {
+  legalpassEditItem,
   legalpassRun,
+  legalpassSavePack,
+  legalpassStatus,
   legalpassVerdict,
 } from "./legalpass-tool.js";
 
@@ -12052,6 +12058,15 @@ export const ADDITIONAL_TOOLS = [
 
   // ── testpass-tool.ts ────────────────────────────────────────────────────────
   {
+    name: "testpass_list_packs",
+    description: "List TestPass packs available to the caller, including system packs and the caller's custom packs.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
     name: "testpass_run",
     description: "Start a TestPass run against an MCP server. Seeds deterministic and agent checks from the given pack and returns the run id plus an initial verdict summary. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
     inputSchema: {
@@ -12103,10 +12118,24 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         run_id: { type: "string", description: "The run the item belongs to" },
         item_id: { type: "string", description: "The testpass_items row id (uuid)" },
-        verdict: { type: "string", enum: ["pass", "fail", "na"], description: "New verdict" },
-        notes: { type: "string", description: "Optional reviewer notes" },
+        verdict: { type: "string", enum: ["pass", "fail", "na", "other"], description: "New verdict" },
+        notes: { type: "string", description: "Required reviewer note explaining the manual verdict edit" },
       },
-      required: ["run_id", "item_id", "verdict"],
+      required: ["run_id", "item_id", "verdict", "notes"],
+    },
+  },
+  {
+    name: "testpass_evidence",
+    description: "Fetch one TestPass item and its attached evidence by item_id or check_id. Use this when a chat agent needs proof for a specific checklist item.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The run id returned by testpass_run" },
+        item_id: { type: "string", description: "Optional testpass_items row id" },
+        check_id: { type: "string", description: "Optional checklist id such as RPC-001 or MCP-007" },
+      },
+      required: ["run_id"],
     },
   },
   {
@@ -12145,16 +12174,33 @@ export const ADDITIONAL_TOOLS = [
       required: ["run_id"],
     },
   },
-
-  // ── legalpass-tool.ts ──────────────────────────────────────────────────────
   {
-    name: "legalpass_run",
-    description: "Plan a LegalPass issue-spotting run against a URL, contract upload, or repo. Scaffold-only: exposes LegalPass guardrails and the safe run envelope while full 12-hat execution lands in a later engine chip.",
+    name: "testpass_fix_list",
+    description: "Get the Markdown fix-list for a TestPass run. This is an explicit alias for the markdown report so agents can discover the copy-paste repair artifact directly.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
+        run_id: { type: "string", description: "The run id returned by testpass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+
+  // ── legalpass-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "legalpass_run",
+    description: "Run a LegalPass issue-spotting pass against a URL, contract upload, or repo. With fixture_text, returns deterministic public evidence; without it, returns the guarded run plan.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["target"] },
+        { required: ["target_url"] },
+      ],
+      properties: {
         pack_id: { type: "string", description: "LegalPass pack slug (default: legalpass-mvp-v0)" },
+        target_url: { type: "string", description: "URL target shortcut for TestPass-style callers" },
         target: {
           type: "object",
           additionalProperties: false,
@@ -12170,8 +12216,57 @@ export const ADDITIONAL_TOOLS = [
         },
         profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Run profile (default: smoke)" },
         jurisdictions: { type: "array", items: { type: "string" }, description: "Optional jurisdiction routing hints" },
+        fixture_text: { type: "string", description: "Public text to check deterministically for dogfood or local proof" },
       },
-      required: ["target"],
+    },
+  },
+  {
+    name: "legalpass_status",
+    description: "Fetch the stored LegalPass run result and audit log for a run started through legalpass_run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The LegalPass run id returned by legalpass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "legalpass_save_pack",
+    description: "Save or update a LegalPass custom playbook pack. Requires an enabled citation_verifier hat.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["pack"] },
+        { required: ["yaml"] },
+      ],
+      properties: {
+        pack_id: { type: "string", description: "Optional pack id override for YAML payloads" },
+        pack: { type: "object", description: "LegalPass pack object" },
+        yaml: { type: "string", description: "LegalPass pack YAML" },
+        overwrite: { type: "boolean", description: "Allow replacing an existing pack id" },
+      },
+    },
+  },
+  {
+    name: "legalpass_edit_item",
+    description: "Apply a human reviewer override to a LegalPass item and return an audit entry with before/after state.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The LegalPass run id returned by legalpass_run" },
+        item_id: { type: "string", description: "The LegalPass item id to edit" },
+        verdict: { type: "string", enum: ["check", "fail", "na", "other", "pending"], description: "Reviewer override verdict" },
+        finding: { type: "string", description: "Replacement finding text, linted by PassGuard" },
+        on_fail_comment: { type: "string", description: "Replacement fail comment, linted by PassGuard" },
+        reviewer_note: { type: "string", description: "Human reviewer note for the audit trail, linted by PassGuard" },
+        notes: { type: "string", description: "Alias for reviewer_note, for TestPass-style callers" },
+        actor_user_id: { type: "string", description: "Optional actor id for the override audit entry" },
+      },
+      required: ["run_id", "item_id"],
     },
   },
   {
@@ -13690,17 +13785,23 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   togetherai_list_models:     (args) => togetherai_list_models(args),
 
   // testpass-tool.ts
+  testpass_list_packs:  () => testpassListPacks(),
   testpass_run:         (args) => testpassRun(args),
   testpass_status:      (args) => testpassStatus(args),
   testpass_save_pack:   (args) => testpassSavePack(args),
   testpass_edit_item:   (args) => testpassEditItem(args),
+  testpass_evidence:    (args) => testpassEvidence(args),
   testpass_report_html: (args) => testpassReportHtml(args),
   testpass_report_json: (args) => testpassReportJson(args),
   testpass_report_md:   (args) => testpassReportMd(args),
+  testpass_fix_list:    (args) => testpassFixList(args),
 
   // legalpass-tool.ts
-  legalpass_run:     (args) => legalpassRun(args),
-  legalpass_verdict: (args) => legalpassVerdict(args),
+  legalpass_run:       (args) => legalpassRun(args),
+  legalpass_status:    (args) => legalpassStatus(args),
+  legalpass_save_pack: (args) => legalpassSavePack(args),
+  legalpass_edit_item: (args) => legalpassEditItem(args),
+  legalpass_verdict:   (args) => legalpassVerdict(args),
 
   // uxpass-tool.ts
   uxpass_run:           (args) => uxpassRun(args),
