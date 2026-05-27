@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
+import { mkdir, mkdtemp, rm, writeFile as writeFileFs } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 
 import {
   buildFullContentsPrompt,
   createWriterLaneFreeWriterRunner,
   extractChangedFilesFromPatch,
+  extractUnifiedDiff,
   gateWriterLaneDiff,
   parseFileBlocks,
 } from "./pinballwake-writerlane-free-writer.mjs";
@@ -114,6 +118,68 @@ describe("writerlane free-writer: happy path", () => {
     assert.match(prompt, /CURRENT FILE: docs\/x\.md/);
     assert.doesNotMatch(prompt, /tail-never-visible/);
     assert.match(prompt, /\[truncated for writer context\]/);
+  });
+
+  it("loads current-file context from cwd with the production reader", async () => {
+    const root = await mkdtemp(join(tmpdir(), "writerlane-context-"));
+    try {
+      await mkdir(join(root, "docs"), { recursive: true });
+      await writeFileFs(join(root, "docs", "x.md"), "current file from disk\n", "utf8");
+
+      let prompt = "";
+      const runner = createWriterLaneFreeWriterRunner({
+        cwd: root,
+        env: { LLM_API_KEY: "k" },
+        models: [MODEL_A],
+        fetchImpl: async (_url, init) => {
+          prompt = JSON.parse(init.body).messages[0].content;
+          return fakeFetchOnce(fileBlock("docs/x.md", "hello world"))();
+        },
+        runProcess: okProcess(),
+        writeFileImpl: async () => {},
+        captureDiff: async ({ ownedFiles }) => ({ ok: true, patch: GOOD_PATCH, changed_files: ownedFiles }),
+      });
+
+      const result = await runner({ scopePack: { owned_files: OWNED, verification: ["node --test docs/x.test.mjs"] } });
+
+      assert.equal(result.ok, true);
+      assert.match(prompt, /CURRENT FILE: docs\/x\.md/);
+      assert.match(prompt, /current file from disk/);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("safely falls back when a model follows the runner and returns an owned unified diff", async () => {
+    const commands = [];
+    const runner = createWriterLaneFreeWriterRunner({
+      env: { LLM_API_KEY: "k" },
+      models: [MODEL_A],
+      fetchImpl: fakeFetchOnce(GOOD_PATCH),
+      runProcess: async (command, args, options = {}) => {
+        commands.push(`${command} ${args.join(" ")}`);
+        if (command === "git" && args[0] === "apply") {
+          assert.equal(options.stdin, GOOD_PATCH.trimEnd());
+        }
+        return { ok: true, exit_code: 0, stdout: "", stderr: "", output: "" };
+      },
+      writeFileImpl: async () => assert.fail("unified diff fallback should not write full contents directly"),
+      captureDiff: async ({ ownedFiles }) => ({ ok: true, patch: GOOD_PATCH, changed_files: ownedFiles }),
+    });
+
+    const result = await runner({
+      prompt: "Return a unified diff patch only.",
+      scopePack: { owned_files: OWNED, verification: ["node --test docs/x.test.mjs"] },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.model, "m-a");
+    assert.deepEqual(result.changed_files, ["docs/x.md"]);
+    assert.deepEqual(commands, [
+      "git apply --check --whitespace=error -",
+      "git apply --whitespace=nowarn -",
+      "node --test docs/x.test.mjs",
+    ]);
   });
 });
 
@@ -276,6 +342,12 @@ describe("writerlane free-writer: pure helpers", () => {
 
   it("extractChangedFilesFromPatch reads the git header b/ path", () => {
     assert.deepEqual(extractChangedFilesFromPatch(GOOD_PATCH), ["docs/x.md"]);
+  });
+
+  it("extractUnifiedDiff reads raw and fenced model patches", () => {
+    assert.equal(extractUnifiedDiff(GOOD_PATCH), GOOD_PATCH.trimEnd());
+    assert.equal(extractUnifiedDiff(`Here:\n\`\`\`diff\n${GOOD_PATCH}\n\`\`\``), GOOD_PATCH.trimEnd());
+    assert.equal(extractUnifiedDiff("no patch here"), "");
   });
 
   it("buildFullContentsPrompt lists owned files and verification commands", () => {
