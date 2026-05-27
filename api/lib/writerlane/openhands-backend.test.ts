@@ -10,6 +10,7 @@ import {
   createOpenHandsWriterLaneBackend,
   extractChangedFilesFromPatch,
   gateOpenHandsDiff,
+  hasDiffHunks,
   isOpenHandsExecutionEnabled,
   looksLikeUnifiedDiff,
   OPENHANDS_EXECUTION_ENABLED_ENV,
@@ -50,6 +51,14 @@ function goodPatchFor(file: string): string {
 }
 
 const goodPatch = goodPatchFor(ownedFile);
+
+// A git header for an owned file with NO unified-diff hunk (mode-only change).
+const headerOnlyPatch = [
+  `diff --git a/${ownedFile} b/${ownedFile}`,
+  "old mode 100644",
+  "new mode 100755",
+  "",
+].join("\n");
 
 function worktreeResult(patch: string): OpenHandsRunResult {
   return { ok: true, patch, changedFiles: [ownedFile], diffSource: "worktree" };
@@ -257,6 +266,44 @@ describe("gateOpenHandsDiff (pure real-diff gate)", () => {
     expect(gate.ok).toBe(true);
     if (!gate.ok) throw new Error("expected plumbing accept");
     expect(gate.autonomyProof).toBe(false);
+  });
+
+  // FIX 1: a header-only diff (git header / mode lines, no @@ hunk) changes no
+  // lines and must never pass as autonomy proof.
+  it("rejects a header-only diff with no @@ hunks (FIX 1)", () => {
+    const gate = gateOpenHandsDiff({
+      ...base,
+      proofMode: "autonomy",
+      result: {
+        ok: true,
+        patch: headerOnlyPatch,
+        changedFiles: [ownedFile],
+        diffSource: "worktree",
+      },
+    });
+    expect(gate).toEqual({ ok: false, reason: "openhands_no_diff_hunks" });
+  });
+
+  // FIX 2: ownership is the union of patch-parsed files and result.changedFiles.
+  it("rejects when result.changedFiles declares an unowned file the patch omits (FIX 2)", () => {
+    const gate = gateOpenHandsDiff({
+      ...base,
+      proofMode: "autonomy",
+      result: {
+        ok: true,
+        patch: goodPatch, // touches only the owned file
+        changedFiles: [ownedFile, "api/lib/writerlane/secret.ts"],
+        diffSource: "worktree",
+      },
+    });
+    expect(gate).toEqual({ ok: false, reason: "openhands_unowned_worktree_diff" });
+  });
+});
+
+describe("hasDiffHunks", () => {
+  it("is true for a patch with a hunk and false for a header-only diff", () => {
+    expect(hasDiffHunks(goodPatch)).toBe(true);
+    expect(hasDiffHunks(headerOnlyPatch)).toBe(false);
   });
 });
 
@@ -470,7 +517,9 @@ describe("acceptance #2: a failed / no-change writer run can never be autonomy p
     { name: "whitespace-only", runResult: { ok: true, patch: "   \n  ", diffSource: "worktree" }, reason: "openhands_missing_unified_diff" },
     { name: "echoed prompt", runResult: "echo", reason: "openhands_echoed_prompt_diff" },
     { name: "canned diff", runResult: { ok: true, patch: goodPatch, diffSource: "canned" }, reason: "openhands_untrusted_diff_source" },
-    { name: "unowned files", runResult: { ok: true, patch: goodPatchFor("api/lib/writerlane/not-owned.ts"), diffSource: "worktree" }, reason: "openhands_unowned_worktree_diff" },
+    { name: "unowned files (in patch)", runResult: { ok: true, patch: goodPatchFor("api/lib/writerlane/not-owned.ts"), diffSource: "worktree" }, reason: "openhands_unowned_worktree_diff" },
+    { name: "header-only diff, no hunks", runResult: { ok: true, patch: headerOnlyPatch, changedFiles: [ownedFile], diffSource: "worktree" }, reason: "openhands_no_diff_hunks" },
+    { name: "unowned file declared in changedFiles", runResult: { ok: true, patch: goodPatch, changedFiles: [ownedFile, "api/lib/writerlane/secret.ts"], diffSource: "worktree" }, reason: "openhands_unowned_worktree_diff" },
     { name: "runner reported failure", runResult: { ok: false, reason: "openhands_timeout" }, reason: "openhands_timeout" },
   ];
 

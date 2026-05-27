@@ -202,13 +202,26 @@ export function gateOpenHandsDiff(input: DiffGateInput): DiffGateOutcome {
     return { ok: false, reason: "openhands_missing_unified_diff" };
   }
 
+  // A real content change must carry at least one unified-diff hunk. A
+  // header-only patch (rename / mode-only: diff --git / index / mode lines but
+  // no @@ hunk) changes no lines, so it can never stand as autonomy proof.
+  if (!hasDiffHunks(patch)) {
+    return { ok: false, reason: "openhands_no_diff_hunks" };
+  }
+
   const changedFiles = extractChangedFilesFromPatch(patch);
   if (changedFiles.length === 0) {
     return { ok: false, reason: "openhands_changed_files_required" };
   }
 
+  // Ownership is checked against the UNION of files parsed from the patch and
+  // the files the runner declares it changed. A runner cannot smuggle an
+  // unowned file past the gate by leaving it out of the patch text but
+  // declaring it in changedFiles.
   const owned = new Set(normalizePaths(input.ownedFiles));
-  const outside = changedFiles.find((file) => !owned.has(file));
+  const declaredFiles = normalizePaths(result.changedFiles ?? []);
+  const ownershipScope = [...new Set([...changedFiles, ...declaredFiles])];
+  const outside = ownershipScope.find((file) => !owned.has(file));
   if (outside) {
     return { ok: false, reason: "openhands_unowned_worktree_diff" };
   }
@@ -399,6 +412,14 @@ export function looksLikeUnifiedDiff(patch: string): boolean {
   const hasPlus = lines.some((line) => line.startsWith("+++ "));
   const hasHunk = lines.some((line) => line.startsWith("@@"));
   return hasMinus && hasPlus && hasHunk;
+}
+
+// True only when the patch contains at least one real unified-diff hunk header
+// (@@ -a,b +c,d @@). Header-only diffs (rename / mode-only) have none.
+export function hasDiffHunks(patch: string): boolean {
+  return String(patch ?? "")
+    .split(/\r?\n/)
+    .some((line) => /^@@ -\d+(?:,\d+)? \+\d+(?:,\d+)? @@/.test(line));
 }
 
 // Parse the set of changed file paths from a unified diff. Prefers the git
