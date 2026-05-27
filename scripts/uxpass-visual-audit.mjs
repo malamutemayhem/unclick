@@ -37,9 +37,12 @@ if (!args.url) {
 }
 
 const auditModulePath = path.join(repoRoot, "packages", "uxpass", "dist", "visual-audit.js");
+const directorModulePath = path.join(repoRoot, "packages", "uxpass", "dist", "design-director.js");
 let auditModule;
+let directorModule;
 try {
   auditModule = await import(pathToFileURL(auditModulePath).href);
+  directorModule = await import(pathToFileURL(directorModulePath).href);
 } catch (error) {
   console.error("UXPass visual audit needs the uxpass package built first.");
   console.error("Run: npm --workspace @unclick/uxpass run build");
@@ -151,7 +154,8 @@ try {
   }, { viewportName: viewport.name, screenshot: screenshotPath });
 
   const summary = auditModule.evaluateVisualAuditSnapshot(snapshot);
-  await writeFile(snapshotPath, JSON.stringify({ snapshot, summary }, null, 2));
+  const designDirector = directorModule.buildVisualDesignDirectorReport(snapshot, summary);
+  await writeFile(snapshotPath, JSON.stringify({ snapshot, summary, designDirector }, null, 2));
   console.log(JSON.stringify({
     url: snapshot.url,
     viewport: snapshot.viewport,
@@ -160,6 +164,13 @@ try {
     issue_count: summary.issueCount,
     by_kind: summary.byKind,
     by_severity: summary.bySeverity,
+    design_director: {
+      archetype: designDirector.archetype,
+      headline: designDirector.headline,
+      directive_count: designDirector.directives.length,
+      top_directives: designDirector.directives.slice(0, 5),
+      builder_brief: designDirector.builder_brief,
+    },
     top_issues: summary.issues.slice(0, 10),
   }, null, 2));
 

@@ -3,9 +3,9 @@
  *
  * Each check inspects the captured CheckContext (one HTTP fetch of the
  * target URL plus an optional /llms.txt fetch) and returns a Verdict plus
- * evidence. No browser, no LLM, no DOM library; all checks operate on the
- * raw HTML body, headers, and timings. This keeps the runner edge-friendly
- * and bounded at roughly 1 to 2 seconds per run.
+ * evidence. Fetch-only checks operate on raw HTML, headers, and timings.
+ * Browser-backed checks run only when a caller attaches a VisualAuditSnapshot,
+ * so the default runner stays edge-friendly and bounded.
  *
  * Heavier capture (Playwright, viewport sweeps, axe-core) and LLM hats land
  * in later chunks. The check ids are namespaced by hat so future LLM-backed
