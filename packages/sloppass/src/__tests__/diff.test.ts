@@ -51,4 +51,22 @@ describe("SlopPass unified diff parser", () => {
       },
     ]);
   });
+
+  it("normalizes quoted git paths with spaces", () => {
+    const files = sourceFilesFromUnifiedDiff([
+      'diff --git "a/src/file with space.ts" "b/src/file with space.ts"',
+      '--- "a/src/file with space.ts"',
+      '+++ "b/src/file with space.ts"',
+      "@@ -4,6 +4,7 @@ export function spaced() {",
+      "+const value: any = 1;",
+    ].join("\n"));
+
+    expect(files).toEqual([
+      {
+        path: "src/file with space.ts",
+        content: "const value: any = 1;",
+        start_line: 4,
+      },
+    ]);
+  });
 });

@@ -8,9 +8,30 @@ interface DiffHunk {
 }
 
 function parseNewPath(line: string): string | null {
-  const raw = line.replace(/^\+\+\+\s+/, "").trim().split("\t")[0] ?? "";
+  const raw = pathToken(line.replace(/^\+\+\+\s+/, "").trim());
   if (!raw || raw === "/dev/null") return null;
   return raw.replace(/^b\//, "");
+}
+
+function pathToken(value: string): string {
+  if (!value.startsWith('"')) return value.split("\t")[0] ?? "";
+  let escaped = false;
+  let token = "";
+  for (let index = 1; index < value.length; index += 1) {
+    const char = value[index] ?? "";
+    if (escaped) {
+      token += char;
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === '"') return token;
+    token += char;
+  }
+  return token;
 }
 
 function parseNewStart(line: string): number | null {
