@@ -7442,8 +7442,8 @@
     },
     {
       "source": ".github/workflows/autonomous-runner.yml",
-      "hash": "d280b09dbb76",
-      "bytes": 15265
+      "hash": "a1280cfec46b",
+      "bytes": 15338
     },
     {
       "source": ".github/workflows/claude.yml",
