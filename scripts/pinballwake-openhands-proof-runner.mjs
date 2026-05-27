@@ -521,18 +521,36 @@ export function createSafeCodeRoomSubmitter({
     let blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
     if (blockingDirtyEntries.length) {
       const changedSet = new Set(normalizedChanged);
-      const restorable = blockingDirtyEntries.every(
-        (entry) => changedSet.has(entry.path) && !entry.code.includes("?"),
-      );
-      if (!restorable) {
+      const unrelatedDirtyEntries = blockingDirtyEntries.filter((entry) => !changedSet.has(entry.path));
+      if (unrelatedDirtyEntries.length) {
         return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyEntries.map((entry) => entry.path) };
       }
 
-      const restore = await runProcess("git", ["restore", "--staged", "--worktree", "--", ...blockingDirtyEntries.map((entry) => entry.path)], {
-        cwd,
-        env: submitterEnv,
-      });
-      if (!restore.ok) return { ok: false, reason: "git_restore_preexisting_patch_failed", output: restore.output };
+      const trackedDirtyEntries = blockingDirtyEntries.filter((entry) => !entry.code.includes("?"));
+      if (trackedDirtyEntries.length) {
+        const restore = await runProcess(
+          "git",
+          ["restore", "--staged", "--worktree", "--", ...trackedDirtyEntries.map((entry) => entry.path)],
+          {
+            cwd,
+            env: submitterEnv,
+          },
+        );
+        if (!restore.ok) {
+          return { ok: false, reason: "git_restore_preexisting_patch_failed", output: restore.output };
+        }
+      }
+
+      const untrackedDirtyEntries = blockingDirtyEntries.filter((entry) => entry.code.includes("?"));
+      if (untrackedDirtyEntries.length) {
+        const clean = await runProcess("git", ["clean", "-f", "--", ...untrackedDirtyEntries.map((entry) => entry.path)], {
+          cwd,
+          env: submitterEnv,
+        });
+        if (!clean.ok) {
+          return { ok: false, reason: "git_clean_preexisting_patch_failed", output: clean.output };
+        }
+      }
 
       status = await runProcess("git", ["status", "--porcelain"], { cwd, env: submitterEnv });
       if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
