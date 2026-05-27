@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   dogfood-report:
@@ -76,12 +77,12 @@ jobs:
           {
             echo "### Public dogfood receipt"
             echo ""
-            echo "- Last run: \`$(jq -r '.lastRunAt // .generatedAt' public/dogfood/latest.json)\`"
-            echo "- Status: \`$(jq -r '.status // \"unknown\"' public/dogfood/latest.json)\`"
-            echo "- Source: \`$(jq -r '.source // \"unknown\"' public/dogfood/latest.json)\`"
+            printf -- '- Last run: `%s`\n' "$(jq -r '.lastRunAt // .generatedAt' public/dogfood/latest.json)"
+            printf -- '- Status: `%s`\n' "$(jq -r '.status // "unknown"' public/dogfood/latest.json)"
+            printf -- '- Source: `%s`\n' "$(jq -r '.source // "unknown"' public/dogfood/latest.json)"
             echo "- Output: \`public/dogfood/latest.json\`"
-            echo "- XPass package sweep: \`$(jq -r '.status // \"unknown\"' public/dogfood/xpass-package-sweep.json)\` across \`$(jq -r '.packages | length' public/dogfood/xpass-package-sweep.json)\` package(s)"
-            echo "- UXPass site sweep: \`$(jq -r '.status // \"unknown\"' public/dogfood/uxpass-site-sweep.json)\` across \`$(jq -r '.targets | length' public/dogfood/uxpass-site-sweep.json)\` URL(s)"
+            printf -- '- XPass package sweep: `%s` across `%s` package(s)\n' "$(jq -r '.status // "unknown"' public/dogfood/xpass-package-sweep.json)" "$(jq -r '.packages | length' public/dogfood/xpass-package-sweep.json)"
+            printf -- '- UXPass site sweep: `%s` across `%s` URL(s)\n' "$(jq -r '.status // "unknown"' public/dogfood/uxpass-site-sweep.json)" "$(jq -r '.targets | length' public/dogfood/uxpass-site-sweep.json)"
             echo "- Public URL: \`${{ inputs.public_url || 'https://unclick.world' }}\`"
             echo "- MCP URL: \`${{ inputs.mcp_url || 'https://unclick.world/api/mcp' }}\`"
             echo ""
@@ -94,13 +95,28 @@ jobs:
 
       - name: Commit public receipt
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
+          receipt_branch="automation/dogfood-public-receipt"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$receipt_branch"
           git add public/dogfood/latest.json public/dogfood/xpass-package-sweep.json public/dogfood/uxpass-site-sweep.json
           if git diff --cached --quiet; then
             echo "Dogfood receipt unchanged."
             exit 0
           fi
           git commit -m "chore(dogfood): update public receipt"
-          git push
+          git fetch origin "+refs/heads/$receipt_branch:refs/remotes/origin/$receipt_branch" || true
+          git push --force-with-lease origin "$receipt_branch:$receipt_branch"
+          if pr_url=$(gh pr view "$receipt_branch" --json url --jq .url 2>/dev/null); then
+            echo "Dogfood receipt PR: $pr_url"
+          else
+            gh pr create \
+              --title "chore(dogfood): update public receipt" \
+              --body "Automated public dogfood receipt refresh from workflow run $GITHUB_RUN_ID." \
+              --base main \
+              --head "$receipt_branch"
+          fi
