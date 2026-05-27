@@ -69,6 +69,14 @@ const DEFAULT_CHECKS = [
 ] as const;
 const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BODY_CHARS = 1_500_000;
+const AI_CRAWLER_POLICY_BOTS = [
+  "OAI-SearchBot",
+  "GPTBot",
+  "Claude-SearchBot",
+  "ClaudeBot",
+  "PerplexityBot",
+  "Google-Extended",
+] as const;
 
 function ensurePacksDir(): void {
   fs.mkdirSync(PACKS_DIR, { recursive: true });
@@ -184,16 +192,18 @@ async function runReadonlySeoPass(
 ): Promise<SeoPassMcpRun> {
   const generatedAt = new Date().toISOString();
   const runId = `seopass-${crypto.randomUUID()}`;
+  const initialPage = await fetchText(targetUrl);
+  const analysisUrl = resolvedFetchUrl(initialPage.url, targetUrl);
   const [page, robots, sitemap, llms] = await Promise.all([
-    fetchText(targetUrl),
-    fetchText(new URL("/robots.txt", targetUrl).toString()),
-    fetchText(new URL("/sitemap.xml", targetUrl).toString()),
-    fetchText(new URL("/llms.txt", targetUrl).toString()),
+    Promise.resolve(initialPage),
+    fetchText(new URL("/robots.txt", analysisUrl).toString()),
+    fetchText(new URL("/sitemap.xml", analysisUrl).toString()),
+    fetchText(new URL("/llms.txt", analysisUrl).toString()),
   ]);
-  const signals = analyzeHtml(page.body, targetUrl);
+  const signals = analyzeHtml(page.body, analysisUrl);
   const availableChecks = new Set(checks.length > 0 ? checks : DEFAULT_CHECKS);
   const checkResults = DEFAULT_CHECKS.filter((check) => availableChecks.has(check)).map((check) =>
-    buildCheck(check, { targetUrl, page, robots, sitemap, llms, signals }),
+    buildCheck(check, { targetUrl: analysisUrl, page, robots, sitemap, llms, signals }),
   );
   const score = Math.round(checkResults.reduce((sum, check) => sum + check.score, 0) / Math.max(1, checkResults.length));
   const verdict = checkResults.some((check) => check.findings.some((finding) => finding.severity === "critical"))
@@ -215,7 +225,7 @@ async function runReadonlySeoPass(
     run_id: runId,
     status: "complete",
     pass: "seopass",
-    target_url: targetUrl,
+    target_url: analysisUrl,
     generated_at: generatedAt,
     search_engine_readiness_score: score,
     verdict,
@@ -233,6 +243,7 @@ async function runReadonlySeoPass(
       notes: [
         "SEOPass ran public read-only checks. It did not use credentials, mutate the site, submit URLs, or guarantee rankings.",
         `Pack source: ${typeof pack.name === "string" ? pack.name : "one-off URL"}.`,
+        ...(analysisUrl !== targetUrl ? [`Requested URL resolved to ${analysisUrl}; SEOPass analyzed the final fetched URL.`] : []),
         ...(ignoredChecks.length > 0 ? [`Ignored unsupported SEOPass check id(s): ${ignoredChecks.join(", ")}.`] : []),
       ],
     },
@@ -278,7 +289,7 @@ function buildCheck(
     const targetPath = robotsPathForUrl(context.targetUrl);
     const googleAllowed = isRobotAllowed(robotsRules, "Googlebot", targetPath);
     const bingAllowed = isRobotAllowed(robotsRules, "Bingbot", targetPath);
-    const aiBots = ["GPTBot", "ClaudeBot", "PerplexityBot"].map((bot) => ({
+    const aiBots = AI_CRAWLER_POLICY_BOTS.map((bot) => ({
       bot,
       allowed: isRobotAllowed(robotsRules, bot, targetPath),
     }));
@@ -306,7 +317,7 @@ function buildCheck(
     }
     if (aiBots.some((entry) => !entry.allowed)) {
       const blocked = aiBots.filter((entry) => !entry.allowed).map((entry) => entry.bot).join(", ");
-      add("crawlability-ai-bot-limited", "low", "Some AI crawlers appear blocked", `${blocked} appears blocked for this target path.`, "Confirm AI crawler policy matches the site's distribution strategy.");
+      add("crawlability-ai-bot-limited", "low", "Some AI search or training crawlers appear blocked", `${blocked} appears blocked for this target path.`, "Confirm AI search, assistant, grounding, and training crawler policy matches the site's distribution strategy.");
     }
   }
 
@@ -367,6 +378,8 @@ function buildCheck(
           add("canonical-invalid", "high", "Canonical URL is invalid", `The canonical value could not be parsed: ${canonical}.`, "Use an absolute canonical URL.");
         } else if (parsed.origin !== new URL(context.targetUrl).origin) {
           add("canonical-cross-origin", "medium", "Canonical points to another origin", `Canonical points to ${parsed.origin}, not the scanned site origin.`, "Confirm the cross-origin canonical is intentional.");
+        } else if (canonicalComparableUrl(parsed) !== canonicalComparableUrl(new URL(context.targetUrl))) {
+          add("canonical-target-mismatch", "low", "Canonical URL differs from the final fetched URL", `Canonical points to ${parsed.toString()}, while SEOPass analyzed ${context.targetUrl}.`, "Confirm the canonical target is deliberate, especially after redirects, query URLs, or duplicate page variants.");
         }
       }
     }
@@ -511,6 +524,17 @@ function safeUrl(value: string, base: string): URL | null {
     if (!(err instanceof Error)) throw err;
     return null;
   }
+}
+
+function resolvedFetchUrl(value: string, fallback: string): string {
+  const parsed = safeUrl(value, fallback);
+  return parsed && ["http:", "https:"].includes(parsed.protocol) ? parsed.toString() : fallback;
+}
+
+function canonicalComparableUrl(url: URL): string {
+  const comparable = new URL(url.toString());
+  comparable.hash = "";
+  return comparable.toString();
 }
 
 function normalizeUrl(value: string): string | null {

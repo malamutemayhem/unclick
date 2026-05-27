@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { seopassLighthousePlan, seopassRegisterPack, seopassRun, seopassStatus } from "./seopass-tool.js";
 
-function installFetch(fixtures: Record<string, string | { status: number; body: string; headers?: Record<string, string> }>): void {
+function installFetch(fixtures: Record<string, string | { status: number; body: string; headers?: Record<string, string>; url?: string }>): void {
   vi.stubGlobal("fetch", vi.fn(async (url: string) => {
     const normalized = new URL(url).toString();
     const fixture = fixtures[normalized] ?? fixtures[normalized.replace(/\/$/, "")];
@@ -9,7 +9,7 @@ function installFetch(fixtures: Record<string, string | { status: number; body: 
     const body = typeof fixture === "object" ? fixture.body : fixture ?? "not found";
     const headers = typeof fixture === "object" ? fixture.headers ?? {} : {};
     return {
-      url: normalized,
+      url: typeof fixture === "object" && fixture.url ? fixture.url : normalized,
       status,
       headers: new Headers(headers),
       text: async () => body,
@@ -265,6 +265,62 @@ describe("seopass-tool", () => {
     };
 
     expect(run.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "aio-preview-controls-limit-ai-features"))).toBe(true);
+  });
+
+  it("uses the final fetched URL for MCP robots, sitemap, llms, canonical, and link analysis", async () => {
+    installFetch({
+      "https://unclick.world/start": {
+        status: 200,
+        url: "https://www.unclick.world/final",
+        headers: { "content-type": "text/html" },
+        body: healthyHtml
+          .replace("https://unclick.world/", "https://www.unclick.world/final")
+          .replace("https://unclick.world/about", "https://www.unclick.world/about")
+          .replace("https://unclick.world/pricing", "https://www.unclick.world/pricing")
+          .replace("https://unclick.world/docs", "https://www.unclick.world/docs"),
+      },
+      "https://www.unclick.world/robots.txt": "User-agent: *\nAllow: /\n",
+      "https://www.unclick.world/sitemap.xml": "<urlset><url><loc>https://www.unclick.world/final</loc></url></urlset>",
+      "https://www.unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world/start" })) as {
+      target_url?: string;
+      report?: { notes?: string[]; checks?: Array<{ check_id?: string; findings?: Array<{ id?: string }> }> };
+    };
+
+    expect(run.target_url).toBe("https://www.unclick.world/final");
+    expect(run.report?.notes?.join(" ")).toMatch(/Requested URL resolved/);
+    expect(run.report?.checks?.find((check) => check.check_id === "canonical-signals")?.findings?.map((finding) => finding.id)).not.toContain("canonical-cross-origin");
+    expect(run.report?.checks?.find((check) => check.check_id === "internal-links")?.findings?.map((finding) => finding.id)).not.toContain("internal-links-too-few");
+  });
+
+  it("checks current AI search and training crawler policy tokens in MCP runs", async () => {
+    installFetch({
+      "https://unclick.world/": healthyHtml,
+      "https://unclick.world/robots.txt": [
+        "User-agent: OAI-SearchBot",
+        "Disallow: /",
+        "User-agent: Claude-SearchBot",
+        "Disallow: /",
+        "User-agent: Google-Extended",
+        "Disallow: /",
+        "User-agent: *",
+        "Allow: /",
+      ].join("\n"),
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world" })) as {
+      report?: { checks?: Array<{ check_id?: string; findings?: Array<{ id?: string; summary?: string }> }> };
+    };
+    const aiFinding = run.report?.checks
+      ?.find((check) => check.check_id === "crawlability")
+      ?.findings?.find((finding) => finding.id === "crawlability-ai-bot-limited");
+    expect(aiFinding?.summary).toContain("OAI-SearchBot");
+    expect(aiFinding?.summary).toContain("Claude-SearchBot");
+    expect(aiFinding?.summary).toContain("Google-Extended");
   });
 
   it("flags non-HTML target URLs as an MCP run gap", async () => {

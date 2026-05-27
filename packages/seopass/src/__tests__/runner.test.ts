@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { runSeoPass, type SeoPassFetcher } from "../runner.js";
 
-function fixtureFetcher(fixtures: Record<string, { status?: number; body?: string; headers?: Record<string, string> }>): SeoPassFetcher {
+function fixtureFetcher(fixtures: Record<string, { status?: number; body?: string; headers?: Record<string, string>; url?: string }>): SeoPassFetcher {
   return async (url) => {
     const normalized = new URL(url).toString();
     const fixture = fixtures[normalized] ?? fixtures[normalized.replace(/\/$/, "")];
     return {
-      url: normalized,
+      url: fixture?.url ?? normalized,
       status: fixture?.status ?? 404,
       headers: fixture?.headers ?? {},
       body: fixture?.body ?? "not found",
@@ -253,6 +253,65 @@ describe("runSeoPass", () => {
 
     expect(report.cross_pass_signals.some((signal) => signal.pass === "geopass")).toBe(true);
     expect(report.fix_prompts.length).toBeGreaterThan(0);
+  });
+
+  it("uses the final fetched URL for robots, sitemap, llms, canonical, and internal-link evidence", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com/start",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      maxInternalLinksToProbe: 0,
+      fetcher: fixtureFetcher({
+        "https://example.com/start": {
+          url: "https://www.example.com/final",
+          body: healthyHtml
+            .replace("https://example.com/", "https://www.example.com/final")
+            .replace("https://example.com/about", "https://www.example.com/about")
+            .replace("https://example.com/pricing", "https://www.example.com/pricing")
+            .replace("https://example.com/docs", "https://www.example.com/docs"),
+          headers: { "content-type": "text/html" },
+        },
+        "https://www.example.com/robots.txt": { body: "User-agent: *\nAllow: /\n" },
+        "https://www.example.com/sitemap.xml": { body: "<urlset><url><loc>https://www.example.com/final</loc></url></urlset>" },
+        "https://www.example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    expect(report.target_url).toBe("https://www.example.com/final");
+    expect(report.notes.join(" ")).toMatch(/Requested URL resolved/);
+    expect(report.scanner_source.source_urls).toContain("https://www.example.com/robots.txt");
+    expect(report.checks.find((check) => check.check_id === "canonical-signals")?.findings.map((finding) => finding.id)).not.toContain("canonical-cross-origin");
+    expect(report.checks.find((check) => check.check_id === "internal-links")?.findings.map((finding) => finding.id)).not.toContain("internal-links-too-few");
+  });
+
+  it("checks current AI search and training crawler policy tokens", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["crawlability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/": { body: healthyHtml, headers: { "content-type": "text/html" } },
+        "https://example.com/robots.txt": {
+          body: [
+            "User-agent: OAI-SearchBot",
+            "Disallow: /",
+            "User-agent: Claude-SearchBot",
+            "Disallow: /",
+            "User-agent: Google-Extended",
+            "Disallow: /",
+            "User-agent: *",
+            "Allow: /",
+          ].join("\n"),
+        },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    const crawlability = report.checks.find((check) => check.check_id === "crawlability");
+    const aiFinding = crawlability?.findings.find((finding) => finding.id === "crawlability-ai-bot-limited");
+    expect(aiFinding?.summary).toContain("OAI-SearchBot");
+    expect(aiFinding?.summary).toContain("Claude-SearchBot");
+    expect(aiFinding?.summary).toContain("Google-Extended");
   });
 
   it("rejects non-http targets before fetching", async () => {

@@ -93,6 +93,14 @@ const DEFAULT_CHECKS: SeoPassCheckId[] = [
 const USER_AGENT = "UnClick-SEOPass/0.1 (+https://unclick.world)";
 const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BODY_CHARS = 1_500_000;
+const AI_CRAWLER_POLICY_BOTS = [
+  "OAI-SearchBot",
+  "GPTBot",
+  "Claude-SearchBot",
+  "ClaudeBot",
+  "PerplexityBot",
+  "Google-Extended",
+] as const;
 
 export async function runSeoPass(input: RunSeoPassInput): Promise<SeoPassReport> {
   const targetUrl = normalizeUrl(input.targetUrl);
@@ -105,9 +113,10 @@ export async function runSeoPass(input: RunSeoPassInput): Promise<SeoPassReport>
   const runId = input.runId ?? `seopass-${stableRunSuffix(targetUrl, input.generatedAt)}`;
 
   const page = await fetcher(targetUrl);
-  const robotsUrl = new URL("/robots.txt", targetUrl).toString();
-  const sitemapUrl = new URL("/sitemap.xml", targetUrl).toString();
-  const llmsUrl = new URL("/llms.txt", targetUrl).toString();
+  const analysisUrl = resolvedFetchUrl(page.url, targetUrl);
+  const robotsUrl = new URL("/robots.txt", analysisUrl).toString();
+  const sitemapUrl = new URL("/sitemap.xml", analysisUrl).toString();
+  const llmsUrl = new URL("/llms.txt", analysisUrl).toString();
   const [robots, sitemap, llms] = await Promise.all([
     fetcher(robotsUrl),
     fetcher(sitemapUrl),
@@ -115,16 +124,16 @@ export async function runSeoPass(input: RunSeoPassInput): Promise<SeoPassReport>
   ]);
 
   const html = page.body;
-  const signals = analyzeHtml(html, targetUrl);
+  const signals = analyzeHtml(html, analysisUrl);
   const probedLinks = await probeInternalLinks({
-    baseUrl: targetUrl,
+    baseUrl: analysisUrl,
     links: signals.links,
     fetcher,
     limit: input.maxInternalLinksToProbe ?? 3,
   });
 
   const context = {
-    targetUrl,
+    targetUrl: analysisUrl,
     page,
     robots,
     sitemap,
@@ -146,7 +155,7 @@ export async function runSeoPass(input: RunSeoPassInput): Promise<SeoPassReport>
 
   return SeoPassReportSchema.parse({
     run_id: runId,
-    target_url: targetUrl,
+    target_url: analysisUrl,
     generated_at: input.generatedAt ?? new Date().toISOString(),
     mode: "live-readonly",
     search_engine_readiness_score: score,
@@ -155,14 +164,14 @@ export async function runSeoPass(input: RunSeoPassInput): Promise<SeoPassReport>
     scanner_source: {
       kind: "seopass-runner",
       mode: "live-readonly",
-      target_url: targetUrl,
+      target_url: analysisUrl,
       shared_check_ids: [
         "schema-org-citation-grade",
         "brand-mention-readiness",
         "aggregate-ai-engine-readiness",
         "ai-bot-crawlability",
       ],
-      source_urls: [targetUrl, robotsUrl, sitemapUrl, llmsUrl],
+      source_urls: uniqueUrls([targetUrl, analysisUrl, robotsUrl, sitemapUrl, llmsUrl]),
     },
     cross_pass_signals: crossPassSignals,
     fix_prompts: fixPrompts,
@@ -170,6 +179,7 @@ export async function runSeoPass(input: RunSeoPassInput): Promise<SeoPassReport>
     notes: [
       "SEOPass v1 performs public, read-only evidence collection. It does not use credentials, mutate sites, submit URLs, or guarantee rankings.",
       "Core Web Vitals and Lighthouse checks use deterministic readiness proxies until the heavier Lighthouse runner is wired into the shared crawler.",
+      ...(analysisUrl !== targetUrl ? [`Requested URL resolved to ${analysisUrl}; SEOPass analyzed the final fetched URL.`] : []),
       ...(
         checkSelection.invalid.length > 0
           ? [`Ignored unsupported SEOPass check id(s): ${checkSelection.invalid.join(", ")}.`]
@@ -278,7 +288,7 @@ function crawlabilityCheck(context: {
   const targetPath = robotsPathForUrl(context.targetUrl);
   const googleAllowed = isRobotAllowed(robotsRules, "Googlebot", targetPath);
   const bingAllowed = isRobotAllowed(robotsRules, "Bingbot", targetPath);
-  const aiBots = ["GPTBot", "ClaudeBot", "PerplexityBot"].map((bot) => ({
+  const aiBots = AI_CRAWLER_POLICY_BOTS.map((bot) => ({
     bot,
     allowed: isRobotAllowed(robotsRules, bot, targetPath),
   }));
@@ -352,10 +362,10 @@ function crawlabilityCheck(context: {
         id: "crawlability-ai-bot-limited",
         check_id: "crawlability",
         severity: "low",
-        title: "Some AI crawlers appear blocked",
+        title: "Some AI search or training crawlers appear blocked",
         summary: `${blocked} appears blocked for the target path. This is not automatically wrong, but it affects GEOPass readiness.`,
         evidence: [robotsEvidence(context.robots, "AI bot policy")],
-        recommendation: "Confirm that AI crawler policy matches the site's distribution strategy.",
+        recommendation: "Confirm that AI search, assistant, grounding, and training crawler policy matches the site's distribution strategy.",
       }),
     );
   }
@@ -625,6 +635,18 @@ function canonicalSignalsCheck(context: { targetUrl: string; signals: HtmlSignal
             summary: `Canonical points to ${parsed.origin}, not the scanned site origin.`,
             evidence: [headEvidence(context.targetUrl, "Canonical tag", parsed.toString())],
             recommendation: "Confirm the cross-origin canonical is intentional.",
+          }),
+        );
+      } else if (canonicalComparableUrl(parsed) !== canonicalComparableUrl(new URL(context.targetUrl))) {
+        findings.push(
+          finding({
+            id: "canonical-target-mismatch",
+            check_id: "canonical-signals",
+            severity: "low",
+            title: "Canonical URL differs from the final fetched URL",
+            summary: `Canonical points to ${parsed.toString()}, while SEOPass analyzed ${context.targetUrl}.`,
+            evidence: [headEvidence(context.targetUrl, "Canonical tag", parsed.toString())],
+            recommendation: "Confirm the canonical target is deliberate, especially after redirects, query URLs, or duplicate page variants.",
           }),
         );
       }
@@ -1626,6 +1648,17 @@ function safeUrl(value: string, base?: string): URL | null {
     if (!(err instanceof Error)) throw err;
     return null;
   }
+}
+
+function resolvedFetchUrl(value: string, fallback: string): string {
+  const parsed = safeUrl(value, fallback);
+  return parsed && ["http:", "https:"].includes(parsed.protocol) ? parsed.toString() : fallback;
+}
+
+function canonicalComparableUrl(url: URL): string {
+  const comparable = new URL(url.toString());
+  comparable.hash = "";
+  return comparable.toString();
 }
 
 function normalizeUrl(value: string): string {
