@@ -52,4 +52,44 @@ describe("CopyPass dogfood", () => {
     expect(report.findings).toEqual([]);
     expect(report.verdict).toBe("pass");
   });
+
+  it("reviews LegalPass guardrail files without mistaking quoted examples for shipped copy", async () => {
+    const [verdictLinter, disclaimerBanner] = await Promise.all([
+      readFile(repoPath("packages/legalpass/src/passguard/verdict-linter.ts"), "utf8"),
+      readFile(repoPath("packages/legalpass/src/passguard/disclaimer-banner.ts"), "utf8"),
+    ]);
+
+    const report = createDeterministicCopyPassReport({
+      target: {
+        kind: "artifact",
+        label: "LegalPass guardrails",
+        source: "cross-pass dogfood",
+      },
+      blocks: [
+        {
+          id: "legalpass-verdict-linter",
+          kind: "doc",
+          label: "LegalPass forbidden phrase registry",
+          text: verdictLinter,
+          source_path: "packages/legalpass/src/passguard/verdict-linter.ts",
+          public_only: false,
+        },
+        {
+          id: "legalpass-disclaimer-banner",
+          kind: "legal",
+          label: "LegalPass disclaimer banner",
+          text: disclaimerBanner,
+          source_path: "packages/legalpass/src/passguard/disclaimer-banner.ts",
+        },
+      ],
+    });
+
+    expect(report.mode).toBe("deterministic");
+    expect(report.blocks_reviewed).toEqual([
+      "legalpass-verdict-linter",
+      "legalpass-disclaimer-banner",
+    ]);
+    expect(report.findings).toEqual([]);
+    expect(report.verdict).toBe("pass");
+  });
 });

@@ -54,8 +54,12 @@ test("XPass package sweep cross-checks every pass package", async () => {
   });
   const packageIds = new Set(PASS_PACKAGES.map((pkg) => pkg.id));
   const targetIds = new Set(receipt.cross_pass_matrix.map((row) => row.target_id));
+  const reviewerIds = new Set(
+    receipt.cross_pass_matrix.flatMap((row) => row.reviewers.map((reviewer) => reviewer.id)),
+  );
 
   assert.deepEqual(targetIds, packageIds);
+  assert.deepEqual(reviewerIds, packageIds);
   assert.equal(CROSS_PASS_MATRIX.length, PASS_PACKAGES.length);
 
   for (const row of receipt.cross_pass_matrix) {
