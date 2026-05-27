@@ -83,6 +83,7 @@ type SectionPreferences = {
 const ORDER_STORAGE_KEY = "unclick_jobs_manual_order_v1";
 const SECTION_PREF_STORAGE_KEY = "unclick_jobs_section_preferences_v1";
 const SECTION_PAGE_SIZE = 10;
+export const JOBS_REFRESH_INTERVAL_MS = 60_000;
 // Completed section uses bigger batches: 50 visible by default, +100 per "Show more"
 // click. Server-side completed history is fetched in matching batches via the
 // `before_created_at` cursor until exhausted.
@@ -1167,7 +1168,7 @@ export default function AdminJobs() {
     const id = setInterval(() => {
       void loadJobs();
       setPollSeq((s) => s + 1);
-    }, 10_000);
+    }, JOBS_REFRESH_INTERVAL_MS);
     return () => {
       cancelled = true;
       clearInterval(id);
