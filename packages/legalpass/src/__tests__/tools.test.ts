@@ -92,6 +92,7 @@ describe("LegalPass MCP tool registration", () => {
     expect(result.summary.fail).toBe(0);
     expect(result.summary.check).toBeGreaterThan(0);
     expect(JSON.stringify(result)).not.toMatch(/you should/i);
+    expect(JSON.stringify(result)).not.toMatch(/ask a qualified/i);
 
     const status = await legalpassStatusTool.handler({ run_id: result.run_id });
     expect(status.run_id).toBe(result.run_id);
@@ -108,6 +109,33 @@ describe("LegalPass MCP tool registration", () => {
     expect(result.status).toBe("complete");
     expect(result.summary.pending).toBeGreaterThan(0);
     expect(result.summary.check).toBe(0);
+    expect(JSON.stringify(result)).not.toMatch(/ask a qualified/i);
+  });
+
+  it("rejects duplicate runtime jurisdictions", async () => {
+    await expect(
+      legalpassRunTool.handler({
+        target: { kind: "url", url: "https://example.com/terms" },
+        jurisdictions: ["AU", "AU"],
+      }),
+    ).rejects.toThrow(/jurisdictions must be unique/);
+  });
+
+  it("rejects private fixture documents until guarded ingestion exists", async () => {
+    await expect(
+      legalpassRunTool.handler({
+        target: { kind: "contract_upload", upload_ref: "upload-123" },
+        fixture_documents: [
+          {
+            id: "private-contract",
+            kind: "terms-of-service",
+            title: "Private contract",
+            text: "Privacy contact and data use terms.",
+            public_only: false,
+          },
+        ],
+      }),
+    ).rejects.toThrow(/fixture_documents must be public_only/);
   });
 
   it("validates and stores custom packs with Citation Verifier required", async () => {
@@ -158,6 +186,7 @@ describe("LegalPass MCP tool registration", () => {
 
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.hat_id).toBe("privacy-policy");
+    expect(JSON.stringify(result)).not.toMatch(/ask a qualified/i);
 
     await expect(
       legalpassRunTool.handler({
@@ -165,6 +194,25 @@ describe("LegalPass MCP tool registration", () => {
         target: { kind: "repo", repo: "malamutemayhem/unclick" },
       }),
     ).rejects.toThrow(/does not support target kind/);
+
+    await legalpassSavePackTool.handler({
+      pack: {
+        ...VALID_PACK,
+        hats: [
+          { hat_id: "privacy", enabled: true, weight: 1 },
+          { hat_id: "consumer_tos", enabled: true, weight: 1 },
+          { hat_id: "citation_verifier", enabled: true, weight: 1 },
+        ],
+      },
+      overwrite: true,
+    });
+    const expanded = await legalpassRunTool.handler({
+      pack_id: VALID_PACK.id,
+      target: { kind: "url", url: "https://example.com/privacy" },
+      fixture_text: "Privacy contact details explain how we collect and use data.",
+    });
+    expect(expanded.run_id).not.toBe(result.run_id);
+    expect(expanded.items.length).toBeGreaterThan(result.items.length);
   });
 
   it("edits an item and blocks directive legal language", async () => {
@@ -220,6 +268,30 @@ describe("LegalPass MCP tool registration", () => {
         finding: "You should sign this now.",
       }),
     ).rejects.toThrow(/forbidden phrasing/);
+
+    await expect(
+      legalpassEditItemTool.handler({
+        run_id: "   ",
+        item_id: itemId,
+        verdict: "other",
+      }),
+    ).rejects.toThrow(/run_id must not be blank/);
+
+    await expect(
+      legalpassEditItemTool.handler({
+        run_id: result.run_id,
+        item_id: itemId,
+        verdict: "approve" as never,
+      }),
+    ).rejects.toThrow(/verdict must be/);
+
+    await expect(
+      legalpassEditItemTool.handler({
+        run_id: result.run_id,
+        item_id: itemId,
+        finding: "   ",
+      }),
+    ).rejects.toThrow(/finding must not be blank/);
 
     await expect(
       legalpassEditItemTool.handler({
