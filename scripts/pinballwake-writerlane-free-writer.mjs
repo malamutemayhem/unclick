@@ -321,12 +321,16 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
     "You are an UnClick WriterLane free-model writer running AFK.",
     "Implement the requested change by returning the FULL new contents of each owned file.",
     "For EACH owned file, output a line exactly `FILE: <path>` followed by a fenced code block containing the complete new file contents.",
+    "Return only FILE blocks. Do not return a unified diff, prose, bullets, JSON, markdown headings, or explanations.",
     "Change only the owned files. Do not commit, push, merge, deploy, or touch anything outside them.",
     "Use the current file contents below as the source of truth. Preserve unrelated code.",
     `Model: ${model.openRouterModel || "unknown"}`,
     "Owned files:",
     ...ownedFiles.map((file) => `- ${file}`),
   ];
+  if (ownedFiles.length === 1) {
+    lines.push(`Because there is one owned file, your first response line must be: FILE: ${ownedFiles[0]}`);
+  }
   if (cleanRunnerPrompt) {
     lines.push("Runner task prompt:");
     lines.push(compactText(cleanRunnerPrompt, 8_000));

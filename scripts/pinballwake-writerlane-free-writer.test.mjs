@@ -319,6 +319,8 @@ describe("writerlane free-writer: pure helpers", () => {
     assert.doesNotMatch(prompt, /Return a unified diff patch only/);
     assert.doesNotMatch(prompt, /diff --git/);
     assert.match(prompt, /Job: AFK canary seed/);
+    assert.match(prompt, /Return only FILE blocks/);
+    assert.match(prompt, /first response line must be: FILE: docs\/openhands-proof-fixture\.md/);
     assert.match(prompt, /Append the line `- proof run: coding-room-claim:abc123`/);
     assert.match(prompt, /FILE: <path>/);
   });
