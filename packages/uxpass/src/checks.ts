@@ -366,6 +366,24 @@ export const CORE_CHECKS: CheckSpec[] = [
     evaluate: (ctx) => visualCheck(ctx, "text_out_of_bounds"),
   },
   {
+    id: "VD-005",
+    hat: "visual-designer",
+    category: "visual-composition",
+    severity: "medium",
+    title: "First viewport has clear visual hierarchy",
+    remediation: "Add a dominant heading, section hierarchy, or primary work area so the page has an obvious scan order.",
+    evaluate: (ctx) => visualCheck(ctx, "weak_visual_hierarchy"),
+  },
+  {
+    id: "VD-006",
+    hat: "visual-designer",
+    category: "visual-composition",
+    severity: "medium",
+    title: "Page avoids nested panel clutter",
+    remediation: "Flatten cards-inside-cards into bands, sections, row expansion, or a detail panel.",
+    evaluate: (ctx) => visualCheck(ctx, "nested_panel_clutter"),
+  },
+  {
     id: "CL-001",
     hat: "cognitive-load",
     category: "visual-density",
@@ -382,6 +400,15 @@ export const CORE_CHECKS: CheckSpec[] = [
     title: "First viewport stays scannable",
     remediation: "Reduce inline text fragments, add section hierarchy, or progressively disclose low-priority details.",
     evaluate: (ctx) => visualCheck(ctx, "dense_first_screen"),
+  },
+  {
+    id: "CL-003",
+    hat: "cognitive-load",
+    category: "action-clarity",
+    severity: "medium",
+    title: "First viewport has a clear primary action when actions exist",
+    remediation: "Give the primary action a useful label and stable comfortable dimensions, then demote secondary actions.",
+    evaluate: (ctx) => visualCheck(ctx, "unclear_primary_action"),
   },
 ];
 

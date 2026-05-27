@@ -221,6 +221,19 @@ export function buildVisualDesignDirectorReport(
       summary,
     ),
     directive(
+      "composition-hierarchy",
+      "medium",
+      "Strengthen composition and scan order",
+      "A surface can be technically readable but still feel mediocre when hierarchy, framing, or action prominence is weak.",
+      [
+        "Give the first viewport one dominant heading or work area, then subordinate the rest.",
+        "Flatten cards-inside-cards into bands, sections, or row expansion.",
+        "Make one primary action visibly larger and clearer than secondary controls.",
+      ],
+      ["weak_visual_hierarchy", "nested_panel_clutter", "unclear_primary_action"],
+      summary,
+    ),
+    directive(
       "interaction-targets",
       "high",
       "Make controls comfortable to hit",

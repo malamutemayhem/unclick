@@ -7,7 +7,10 @@ export type VisualAuditIssueKind =
   | "small_target"
   | "low_contrast"
   | "badge_overload"
-  | "dense_first_screen";
+  | "dense_first_screen"
+  | "weak_visual_hierarchy"
+  | "nested_panel_clutter"
+  | "unclear_primary_action";
 
 export interface VisualRect {
   x: number;
@@ -87,6 +90,9 @@ const ALL_KINDS: VisualAuditIssueKind[] = [
   "low_contrast",
   "badge_overload",
   "dense_first_screen",
+  "weak_visual_hierarchy",
+  "nested_panel_clutter",
+  "unclear_primary_action",
 ];
 
 const ALL_SEVERITIES: VisualAuditSeverity[] = ["critical", "high", "medium", "low"];
@@ -135,6 +141,70 @@ function isBadgeLike(element: VisualAuditElement): boolean {
   const klass = element.className ?? "";
   const shortUpper = /^[A-Z0-9][A-Z0-9 /_-]{1,27}$/.test(text);
   return /\brounded\b|\bbadge\b|\bpill\b|\btag\b/i.test(klass) || shortUpper;
+}
+
+function isFirstViewport(element: VisualAuditElement, snapshot: VisualAuditSnapshot): boolean {
+  return element.rect.bottom > 0 && element.rect.top < snapshot.viewport.height;
+}
+
+function isHeadingLike(element: VisualAuditElement): boolean {
+  const tag = element.tagName.toLowerCase();
+  const role = (element.role ?? "").toLowerCase();
+  return /^h[1-6]$/.test(tag) || role === "heading";
+}
+
+function visualWeight(element: VisualAuditElement): number {
+  const raw = typeof element.fontWeight === "number"
+    ? element.fontWeight
+    : Number.parseInt(String(element.fontWeight ?? "400"), 10);
+  return Number.isFinite(raw) ? raw : 400;
+}
+
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[middle - 1] + sorted[middle]) / 2
+    : sorted[middle];
+}
+
+function isPanelLike(element: VisualAuditElement): boolean {
+  if (isBadgeLike(element) || isInteractive(element)) return false;
+  const tag = element.tagName.toLowerCase();
+  if (!["div", "section", "article", "main", "aside", "li"].includes(tag)) return false;
+  if (element.rect.width < 80 || element.rect.height < 48) return false;
+  const klass = element.className ?? "";
+  return /\b(card|panel|surface|container|box|rounded|border|shadow|sheet)\b/i.test(klass);
+}
+
+function rectContains(outer: VisualRect, inner: VisualRect): boolean {
+  const tolerance = 2;
+  const outerArea = outer.width * outer.height;
+  const innerArea = inner.width * inner.height;
+  return outerArea > innerArea * 1.15
+    && inner.left >= outer.left - tolerance
+    && inner.right <= outer.right + tolerance
+    && inner.top >= outer.top - tolerance
+    && inner.bottom <= outer.bottom + tolerance;
+}
+
+function isProminentAction(element: VisualAuditElement): boolean {
+  if (!isCommandAction(element)) return false;
+  const label = compactText(element.text) || compactText(element.ariaLabel) || compactText(element.title);
+  const className = element.className ?? "";
+  const hasComfortableSize = element.rect.width >= 64 && element.rect.height >= 32;
+  const hasUsefulLabel = label.length >= 3;
+  const namedPrimary = /\b(primary|cta|submit|confirm|save|continue)\b/i.test(className);
+  return hasComfortableSize && hasUsefulLabel && (namedPrimary || element.tagName.toLowerCase() === "button");
+}
+
+function isCommandAction(element: VisualAuditElement): boolean {
+  if (element.disabled) return false;
+  const tag = element.tagName.toLowerCase();
+  if (["button", "a", "summary"].includes(tag)) return true;
+  const role = (element.role ?? "").toLowerCase();
+  return ["button", "link", "menuitem", "tab"].includes(role);
 }
 
 interface RgbColor {
@@ -362,6 +432,75 @@ export function evaluateVisualAuditSnapshot(snapshot: VisualAuditSnapshot): Visu
         viewport: snapshot.viewport,
       },
       remediation: "Introduce stronger hierarchy, sectioning, progressive disclosure, or a detail panel before adding more inline metadata.",
+    });
+  }
+
+  if (firstScreenText.length >= 8) {
+    const fontSizes = firstScreenText.map((element) => element.fontSize ?? 14);
+    const maxFontSize = Math.max(...fontSizes);
+    const medianFontSize = median(fontSizes);
+    const maxWeight = Math.max(...firstScreenText.map(visualWeight));
+    const headingCount = firstScreenText.filter(isHeadingLike).length;
+    const prominentHeading = firstScreenText.some((element) => {
+      const size = element.fontSize ?? 14;
+      return isHeadingLike(element)
+        || size >= Math.max(20, medianFontSize * 1.45)
+        || (size >= medianFontSize * 1.25 && visualWeight(element) >= 700);
+    });
+    if (!prominentHeading) {
+      pushIssue(issues, {
+        kind: "weak_visual_hierarchy",
+        severity: "medium",
+        title: "First viewport lacks clear visual hierarchy",
+        description: "The first screen has many text fragments but no visibly dominant heading or anchor element.",
+        evidence: {
+          text_fragment_count: firstScreenText.length,
+          max_font_size: Math.round(maxFontSize * 10) / 10,
+          median_font_size: Math.round(medianFontSize * 10) / 10,
+          max_font_weight: maxWeight,
+          heading_count: headingCount,
+        },
+        remediation: "Add a clear page heading, stronger section labels, or a dominant primary work area before adding more inline detail.",
+      });
+    }
+  }
+
+  const panels = elements.filter((element) => isFirstViewport(element, snapshot) && isPanelLike(element));
+  const nestedPairs = panels.flatMap((outer) =>
+    panels.filter((inner) => outer !== inner && rectContains(outer.rect, inner.rect)).map((inner) => ({ outer, inner })),
+  );
+  if (nestedPairs.length >= 3 || panels.length >= 10) {
+    pushIssue(issues, {
+      kind: "nested_panel_clutter",
+      severity: "medium",
+      title: "First viewport has nested panel clutter",
+      description: `The first screen exposes ${panels.length} panel-like containers with ${nestedPairs.length} nested relationships.`,
+      evidence: {
+        panel_count: panels.length,
+        nested_pair_count: nestedPairs.length,
+        selectors: panels.map((element) => element.selector).filter(Boolean).slice(0, 10),
+      },
+      remediation: "Flatten page sections, remove cards inside cards, and use full-width bands or unframed layouts for structural regions.",
+    });
+  }
+
+  const firstScreenActions = elements.filter((element) => isFirstViewport(element, snapshot) && isCommandAction(element));
+  if (firstScreenActions.length > 0 && !firstScreenActions.some(isProminentAction)) {
+    pushIssue(issues, {
+      kind: "unclear_primary_action",
+      severity: "medium",
+      title: "First viewport lacks a clear primary action",
+      description: "Interactive controls are present, but none has enough size and label clarity to read as the primary action.",
+      evidence: {
+        action_count: firstScreenActions.length,
+        actions: firstScreenActions.map((element) => ({
+          selector: element.selector,
+          label: compactText(element.text) || compactText(element.ariaLabel) || compactText(element.title),
+          width: element.rect.width,
+          height: element.rect.height,
+        })).slice(0, 10),
+      },
+      remediation: "Provide one clearly labelled primary action with stable dimensions, and demote secondary actions visually.",
     });
   }
 

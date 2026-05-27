@@ -95,6 +95,20 @@ try {
     }
 
     function elementText(element) {
+      const directText = Array.from(element.childNodes)
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent || "")
+        .join(" ");
+      const cleanDirect = directText.replace(/\s+/g, " ").trim();
+      if (cleanDirect) return cleanDirect.slice(0, 240);
+
+      const tag = element.tagName.toLowerCase();
+      const role = (element.getAttribute("role") || "").toLowerCase();
+      const shouldUseDescendantText = element.children.length === 0
+        || ["button", "a", "summary"].includes(tag)
+        || ["button", "link", "menuitem", "tab"].includes(role);
+      if (!shouldUseDescendantText) return "";
+
       const text = element.innerText || element.textContent || "";
       return text.replace(/\s+/g, " ").trim().slice(0, 240);
     }

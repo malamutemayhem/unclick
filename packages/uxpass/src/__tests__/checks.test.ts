@@ -112,6 +112,42 @@ const badVisualAudit: VisualAuditSnapshot = {
   document: { scrollWidth: 420, scrollHeight: 900, clientWidth: 320, clientHeight: 700 },
   elements: [
     {
+      selector: ".outer-card",
+      tagName: "div",
+      className: "card rounded border",
+      visible: true,
+      rect: { x: 4, y: 4, width: 310, height: 260, top: 4, right: 314, bottom: 264, left: 4 },
+      scrollWidth: 310,
+      scrollHeight: 260,
+      clientWidth: 310,
+      clientHeight: 260,
+      backgroundColor: "rgb(24, 24, 24)",
+    },
+    {
+      selector: ".middle-card",
+      tagName: "div",
+      className: "panel rounded shadow",
+      visible: true,
+      rect: { x: 12, y: 12, width: 292, height: 220, top: 12, right: 304, bottom: 232, left: 12 },
+      scrollWidth: 292,
+      scrollHeight: 220,
+      clientWidth: 292,
+      clientHeight: 220,
+      backgroundColor: "rgb(28, 28, 28)",
+    },
+    {
+      selector: ".inner-card",
+      tagName: "div",
+      className: "surface rounded border",
+      visible: true,
+      rect: { x: 20, y: 20, width: 270, height: 180, top: 20, right: 290, bottom: 200, left: 20 },
+      scrollWidth: 270,
+      scrollHeight: 180,
+      clientWidth: 270,
+      clientHeight: 180,
+      backgroundColor: "rgb(32, 32, 32)",
+    },
+    {
       selector: ".cropped-title",
       tagName: "div",
       text: "This important title is visibly cropped by the box",
@@ -310,10 +346,13 @@ describe("evaluateAllChecks - failure paths", () => {
     expect(evaluations.find((e) => e.check_id === "VD-002")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "VD-003")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "VD-004")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "VD-005")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "VD-006")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "MOB-002")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "A11Y-004")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "CL-001")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "CL-002")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "CL-003")?.verdict).toBe("fail");
   });
 
   it("marks visual checks as N/A when no browser snapshot is attached", () => {

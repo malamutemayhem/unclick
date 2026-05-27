@@ -133,6 +133,7 @@ describe("buildVisualDesignDirectorReport", () => {
       expect.arrayContaining([
         "layout-containment",
         "silent-truncation",
+        "composition-hierarchy",
         "density-hierarchy",
         "interaction-targets",
         "contrast-tokens",

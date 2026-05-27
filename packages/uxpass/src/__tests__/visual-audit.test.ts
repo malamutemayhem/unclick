@@ -148,6 +148,75 @@ describe("evaluateVisualAuditSnapshot", () => {
     expect(summary.byKind.small_target).toBe(1);
     expect(summary.byKind.badge_overload).toBe(1);
   });
+
+  it("flags weak hierarchy and unclear action prominence", () => {
+    const summary = evaluateVisualAuditSnapshot({
+      ...cleanSnapshot,
+      elements: [
+        ...Array.from({ length: 10 }, (_, index) => ({
+          selector: `.flat-${index}`,
+          tagName: "span",
+          text: `Flat label ${index}`,
+          visible: true,
+          rect: rect(10 + index * 40, 20 + index * 18, 36, 14),
+          scrollWidth: 36,
+          scrollHeight: 14,
+          clientWidth: 36,
+          clientHeight: 14,
+          fontSize: 12,
+          fontWeight: 400,
+          color: "rgb(255, 255, 255)",
+          backgroundColor: "rgb(0, 0, 0)",
+        })),
+        {
+          selector: ".tiny-action",
+          tagName: "button",
+          role: "button",
+          text: "x",
+          visible: true,
+          rect: rect(10, 230, 18, 18),
+          scrollWidth: 18,
+          scrollHeight: 18,
+          clientWidth: 18,
+          clientHeight: 18,
+          color: "rgb(255, 255, 255)",
+          backgroundColor: "rgb(0, 0, 0)",
+        },
+      ],
+    });
+    expect(summary.byKind.weak_visual_hierarchy).toBe(1);
+    expect(summary.byKind.unclear_primary_action).toBe(1);
+  });
+
+  it("flags nested panel clutter", () => {
+    const summary = evaluateVisualAuditSnapshot({
+      ...cleanSnapshot,
+      elements: [
+        {
+          selector: ".outer",
+          tagName: "div",
+          className: "card rounded border",
+          visible: true,
+          rect: rect(10, 10, 500, 360),
+        },
+        {
+          selector: ".middle",
+          tagName: "section",
+          className: "panel rounded shadow",
+          visible: true,
+          rect: rect(24, 24, 460, 300),
+        },
+        {
+          selector: ".inner",
+          tagName: "div",
+          className: "surface rounded border",
+          visible: true,
+          rect: rect(40, 40, 420, 240),
+        },
+      ],
+    });
+    expect(summary.byKind.nested_panel_clutter).toBe(1);
+  });
 });
 
 describe("contrastRatio", () => {
