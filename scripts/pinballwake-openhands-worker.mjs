@@ -432,6 +432,7 @@ function summarizeRunnerAttempts(attempts, maxAttempts = 8) {
       status: clip(attempt?.status || "", 40),
       ok: attempt?.ok === true,
       reason: clip(attempt?.reason || "", 160),
+      http_status: typeof attempt?.http_status === "number" ? attempt.http_status : null,
     }))
     .filter((attempt) => attempt.model_id || attempt.openrouter_model || attempt.reason);
 }
