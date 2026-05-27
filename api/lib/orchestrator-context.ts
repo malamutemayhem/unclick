@@ -326,6 +326,32 @@ export interface OrchestratorContext {
       cleanup_rule: string;
       recovery_path: string;
     };
+    // truth_reconciliation (added by truth-source repair): an explicit,
+    // named drift check that reconciles the orchestrator's implicit health
+    // reading (active_jobs === 0 reads as "healthy/quiet") against the live,
+    // authoritative Boardroom counts (open + in_progress). When a quiet
+    // reading coexists with open or stale in_progress Boardroom work,
+    // drift_detected is true with a reason code, so a seat can never publish
+    // a stale "healthy / 0 active" claim while Boardroom still holds work.
+    // Boardroom is authoritative. This is additive and complements
+    // health_verdict (R1) and harness_card; it does not change them.
+    truth_reconciliation: {
+      authoritative_source: "Boardroom Jobs";
+      boardroom_open_count: number;
+      boardroom_in_progress_count: number;
+      boardroom_actionable_count: number;
+      active_jobs: number;
+      implied_health_reading: "healthy_quiet" | "active";
+      reconciled_state: "quiet" | "active_work" | "needs_claim";
+      drift_detected: boolean;
+      reason_code:
+        | "no_drift_quiet"
+        | "no_drift_active"
+        | "healthy_claim_contradicts_open_backlog"
+        | "active_count_underreports_in_progress_backlog"
+        | "healthy_claim_contradicts_boardroom_backlog";
+      drift_reason: string;
+    };
   };
   profile_cards: OrchestratorProfileCard[];
   human_operator_time: OrchestratorOperatorTimeContext | null;
@@ -610,6 +636,11 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
         queuedTodoCount,
         healthVerdict,
       }),
+      truth_reconciliation: buildTruthReconciliation({
+        activeJobsCount,
+        queuedTodoCount,
+        inProgressTodoCount,
+      }),
     },
     profile_cards: profiles,
     human_operator_time: humanOperatorTime,
@@ -721,6 +752,77 @@ function buildHarnessCard({
       "Test-only runner packets do not create active work claims unless they include build proof and a Boardroom receipt.",
     cleanup_rule: cleanupRule,
     recovery_path: recoveryPath,
+  };
+}
+
+// Reconcile the orchestrator's implicit health reading against the live,
+// authoritative Boardroom counts. active_jobs === 0 is the reading a naive
+// consumer treats as "healthy/quiet". If that quiet reading coexists with
+// open backlog or stale in_progress work that no fresh owner is carrying,
+// the implicit healthy claim has drifted from Boardroom truth. Boardroom is
+// authoritative, so we flag the drift with an explicit reason code instead
+// of letting the snapshot read as "healthy / 0 active". Pure and additive:
+// derived from the same Boardroom counts used elsewhere on the card.
+function buildTruthReconciliation({
+  activeJobsCount,
+  queuedTodoCount,
+  inProgressTodoCount,
+}: {
+  activeJobsCount: number;
+  queuedTodoCount: number;
+  inProgressTodoCount: number;
+}): OrchestratorContext["current_state_card"]["truth_reconciliation"] {
+  const boardroomActionableCount = queuedTodoCount + inProgressTodoCount;
+  // Stale in_progress: status is in_progress but no fresh owner, so it does
+  // not count toward active_jobs and would otherwise read as invisible/quiet.
+  const staleInProgressCount = Math.max(inProgressTodoCount - activeJobsCount, 0);
+  const impliedHealthReading: "healthy_quiet" | "active" =
+    activeJobsCount > 0 ? "active" : "healthy_quiet";
+  // reconciled_state reflects Boardroom truth, not the naive active_jobs
+  // reading: open backlog OR stale in_progress work both mean "needs_claim",
+  // even when active_jobs is 0 and the snapshot would otherwise read quiet.
+  const reconciledState: "quiet" | "active_work" | "needs_claim" =
+    activeJobsCount > 0
+      ? "active_work"
+      : queuedTodoCount > 0 || staleInProgressCount > 0
+        ? "needs_claim"
+        : "quiet";
+
+  // Drift only matters when the orchestrator implies a healthy/quiet state
+  // (active_jobs === 0) while Boardroom still holds open or stale in_progress
+  // work. When active_jobs > 0 the snapshot is not claiming healthy/quiet.
+  const driftDetected =
+    impliedHealthReading === "healthy_quiet" &&
+    (queuedTodoCount > 0 || staleInProgressCount > 0);
+
+  let reasonCode: OrchestratorContext["current_state_card"]["truth_reconciliation"]["reason_code"];
+  if (!driftDetected) {
+    reasonCode = impliedHealthReading === "active" ? "no_drift_active" : "no_drift_quiet";
+  } else if (queuedTodoCount > 0 && staleInProgressCount > 0) {
+    reasonCode = "healthy_claim_contradicts_boardroom_backlog";
+  } else if (queuedTodoCount > 0) {
+    reasonCode = "healthy_claim_contradicts_open_backlog";
+  } else {
+    reasonCode = "active_count_underreports_in_progress_backlog";
+  }
+
+  const driftReason = driftDetected
+    ? `active_jobs=0 reads as healthy/quiet, but Boardroom holds ${queuedTodoCount} open and ${staleInProgressCount} stale in_progress job(s). Boardroom is authoritative: treat as ${reconciledState}, not healthy.`
+    : impliedHealthReading === "active"
+      ? `active_jobs=${activeJobsCount}; orchestrator is not claiming a healthy/quiet state, so there is no drift against Boardroom.`
+      : "active_jobs=0 and Boardroom has no open or stale in_progress work; the healthy/quiet reading matches Boardroom truth.";
+
+  return {
+    authoritative_source: "Boardroom Jobs",
+    boardroom_open_count: queuedTodoCount,
+    boardroom_in_progress_count: inProgressTodoCount,
+    boardroom_actionable_count: boardroomActionableCount,
+    active_jobs: activeJobsCount,
+    implied_health_reading: impliedHealthReading,
+    reconciled_state: reconciledState,
+    drift_detected: driftDetected,
+    reason_code: reasonCode,
+    drift_reason: driftReason,
   };
 }
 
