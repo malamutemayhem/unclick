@@ -13,9 +13,14 @@ export interface DogfoodPassResult {
   runId?: string;
   targetUrl?: string;
   proof?: {
-    kind: "testpass_run" | "uxpass_run" | "planned";
+    kind: "testpass_run" | "uxpass_run" | "planned" | "compliancepass_report";
     runId?: string;
     targetUrl?: string;
+    checksTotal?: number;
+    highSeverityGaps?: number;
+    generatedAt?: string;
+    ageHours?: number;
+    maxAgeHours?: number;
   };
 }
 
@@ -50,7 +55,7 @@ export const dogfoodReport = {
   statusLegend: {
     passing: "A live check ran and returned a passing result.",
     failing: "A live check ran and returned a failing result or could not reach its API.",
-    blocked: "The check could not run because an action is needed, such as a missing credential or scope gate.",
+    blocked: "The check needs action before it can be marked passing, such as a missing credential, scope gate, or high-severity readiness gap.",
     pending: "The check is planned or scaffolded, but live proof is not available yet.",
   } satisfies DogfoodStatusLegend,
   proofPolicy: "Public dogfood receipts mark passing only when a live check actually ran. Blocked and pending are honest product states, not failures to hide.",
@@ -110,13 +115,13 @@ export const dogfoodReport = {
       nextStep: "Keep guidance-only until legal review boundaries are explicit.",
     },
     {
-      id: "enterprisepass",
-      name: "EnterprisePass",
-      stage: "guidance",
-      label: "Guidance report",
-      automation: "Receipt guard and readiness report boundary",
-      mentionProfile: "Low mention volume while it remains a guidance layer, not certification.",
-      nextStep: "Add low-risk readiness checks without claiming compliance certification.",
+      id: "compliancepass",
+      name: "CompliancePass",
+      stage: "live_dogfood",
+      label: "Readiness evidence",
+      automation: "Local deterministic scanner and public readiness receipt",
+      mentionProfile: "Low mention volume unless readiness evidence, claims, or docs drift.",
+      nextStep: "Keep report language conservative and link more XPass receipts as they mature.",
     },
   ] satisfies XPassIndexEntry[],
   results: [
@@ -188,19 +193,20 @@ export const dogfoodReport = {
       nextProof: "Add a recurring LegalPass receipt before moving this out of pending.",
     },
     {
-      id: "enterprisepass",
-      name: "EnterprisePass",
-      status: "pending",
-      summary: "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
-      evidence: "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
-      checkedAt: "2026-05-02T02:30:00Z",
-      proof: { kind: "planned", targetUrl: "/enterprise/latest.json" },
-      reasonCode: "planned_runner",
-      nextProof: "Wire automated evidence checks before moving this beyond readiness guidance.",
+      id: "compliancepass",
+      name: "CompliancePass",
+      status: "blocked",
+      summary: "CompliancePass scanned 27 readiness checks and scored 95.8/100, but the receipt is amber.",
+      evidence: "See /enterprise/latest.json for the evidence-backed readiness report and remaining gaps.",
+      checkedAt: "2026-05-27T00:00:00.000Z",
+      blockedReason: "CompliancePass readiness is amber; 1 high/critical gap remains, plus medium lint, large-file, push-protection proof, and framework index gaps.",
+      proof: { kind: "compliancepass_report", targetUrl: "/enterprise/latest.json", checksTotal: 27, highSeverityGaps: 1 },
+      reasonCode: "readiness_gap",
+      nextProof: "Resolve or explicitly route high/critical CompliancePass gaps, then regenerate /enterprise/latest.json.",
     },
   ] satisfies DogfoodPassResult[],
   trend: [
-    { date: "2026-05-01", passing: 1, failing: 0, blocked: 2, pending: 4 },
+    { date: "2026-05-01", passing: 1, failing: 0, blocked: 3, pending: 3 },
   ] satisfies DogfoodTrendPoint[],
   lastActionableFailure: {
     title: "UXPass needs attention",

@@ -23,21 +23,21 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
 
     const report = JSON.parse(await fs.readFile(output, "utf8"));
     const securitypass = report.results.find((result) => result.id === "securitypass");
-    const enterprisepass = report.results.find((result) => result.id === "enterprisepass");
+    const compliancepass = report.results.find((result) => result.id === "compliancepass");
 
     assert.equal(securitypass?.status, "blocked");
     assert.match(securitypass?.blockedReason ?? "", /scope-gated/i);
     assert.equal(securitypass?.reasonCode, "scope_gate");
     assert.match(securitypass?.nextProof ?? "", /safe recurring SecurityPass runner receipt/i);
-    assert.equal(enterprisepass?.status, "pending");
-    assert.equal(enterprisepass?.reasonCode, "planned_runner");
-    assert.match(enterprisepass?.nextProof ?? "", /automated evidence checks/i);
-    assert.deepEqual(enterprisepass?.proof, {
-      kind: "planned",
-      targetUrl: "/enterprise/latest.json",
-    });
+    assert.equal(compliancepass?.status, "blocked");
+    assert.equal(compliancepass?.reasonCode, "readiness_gap");
+    assert.match(compliancepass?.blockedReason ?? "", /high\/critical gap/i);
+    assert.equal(compliancepass?.proof?.kind, "compliancepass_report");
+    assert.equal(compliancepass?.proof?.targetUrl, "/enterprise/latest.json");
+    assert.ok(compliancepass?.proof?.checksTotal > 0);
+    assert.ok(compliancepass?.proof?.highSeverityGaps >= 1);
     assert.equal(report.status, "blocked");
-    assert.match(report.statusLegend.blocked, /action is needed/i);
+    assert.match(report.statusLegend.blocked, /needs action/i);
     assert.match(report.statusLegend.pending, /live proof is not available yet/i);
     assert.match(report.proofPolicy, /passing only when a live check actually ran/i);
     assert.match(report.lastActionableFailure.detail, /Blocked reason:/);
@@ -46,7 +46,7 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
       report.xpassIndex.find((entry) => entry.id === "testpass")?.mentionProfile ?? "",
       /protects merges/i,
     );
-    assert.equal(report.xpassIndex.find((entry) => entry.id === "enterprisepass")?.stage, "guidance");
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "compliancepass")?.stage, "live_dogfood");
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }
@@ -165,6 +165,97 @@ test("dogfood receipt uses structured missing-credential proof for blocked UXPas
     assert.equal(uxpass?.status, "blocked");
     assert.equal(uxpass?.reasonCode, "missing_credential");
     assert.match(uxpass?.nextProof ?? "", /rerun the dogfood report workflow/i);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("dogfood blocks stale CompliancePass receipts", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
+  const output = path.join(dir, "latest.json");
+  const receiptPath = path.join(dir, "enterprise-latest.json");
+
+  try {
+    await fs.writeFile(receiptPath, JSON.stringify({
+      schema_version: "1.0",
+      generated_at: "2026-01-01T00:00:00.000Z",
+      valid_until: "2026-01-08T00:00:00.000Z",
+      product: "CompliancePass",
+      status: "complete",
+      readiness_band: "green",
+      readiness_score: { value: 100, band: "green" },
+      summary: {
+        checks_total: 25,
+        checks_pending: 0,
+        blocking_gap_count: 0,
+      },
+      gaps: [],
+    }));
+
+    await execFileAsync(process.execPath, [
+      "scripts/build-dogfood-report.mjs",
+      "--dry-run",
+      "--output",
+      output,
+      "--compliancepass-receipt",
+      receiptPath,
+      "--max-compliancepass-age-hours",
+      "1",
+    ]);
+
+    const report = JSON.parse(await fs.readFile(output, "utf8"));
+    const compliancepass = report.results.find((result) => result.id === "compliancepass");
+
+    assert.equal(compliancepass?.status, "blocked");
+    assert.equal(compliancepass?.reasonCode, "stale_receipt");
+    assert.match(compliancepass?.blockedReason ?? "", /older than 1 hour/i);
+    assert.equal(compliancepass?.proof?.kind, "compliancepass_report");
+    assert.equal(compliancepass?.proof?.generatedAt, "2026-01-01T00:00:00.000Z");
+    assert.equal(compliancepass?.proof?.maxAgeHours, 1);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("dogfood keeps the CompliancePass freshness gate when max age config is invalid", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
+  const output = path.join(dir, "latest.json");
+  const receiptPath = path.join(dir, "enterprise-latest.json");
+
+  try {
+    await fs.writeFile(receiptPath, JSON.stringify({
+      schema_version: "1.0",
+      generated_at: "2026-01-01T00:00:00.000Z",
+      valid_until: "2026-01-08T00:00:00.000Z",
+      product: "CompliancePass",
+      status: "complete",
+      readiness_band: "green",
+      readiness_score: { value: 100, band: "green" },
+      summary: {
+        checks_total: 25,
+        checks_pending: 0,
+        blocking_gap_count: 0,
+      },
+      gaps: [],
+    }));
+
+    await execFileAsync(process.execPath, [
+      "scripts/build-dogfood-report.mjs",
+      "--dry-run",
+      "--output",
+      output,
+      "--compliancepass-receipt",
+      receiptPath,
+      "--max-compliancepass-age-hours",
+      "not-a-number",
+    ]);
+
+    const report = JSON.parse(await fs.readFile(output, "utf8"));
+    const compliancepass = report.results.find((result) => result.id === "compliancepass");
+
+    assert.equal(compliancepass?.status, "blocked");
+    assert.equal(compliancepass?.reasonCode, "stale_receipt");
+    assert.equal(compliancepass?.proof?.maxAgeHours, 168);
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }

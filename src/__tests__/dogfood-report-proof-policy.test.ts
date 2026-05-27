@@ -5,7 +5,7 @@ import { dogfoodReport } from "@/data/dogfoodReport";
 describe("Dogfood report proof policy", () => {
   it("keeps public status wording honest in the fallback receipt", () => {
     expect(dogfoodReport.statusLegend.passing).toMatch(/live check ran/i);
-    expect(dogfoodReport.statusLegend.blocked).toMatch(/action is needed/i);
+    expect(dogfoodReport.statusLegend.blocked).toMatch(/needs action/i);
     expect(dogfoodReport.statusLegend.pending).toMatch(/live proof is not available yet/i);
     expect(dogfoodReport.proofPolicy).toMatch(/passing only when a live check actually ran/i);
 
@@ -16,15 +16,20 @@ describe("Dogfood report proof policy", () => {
     expect(uxpass?.nextProof).toMatch(/rerun the dogfood report workflow/i);
     expect(securitypass?.reasonCode).toBe("scope_gate");
     expect(securitypass?.nextProof).toMatch(/before marking this passing/i);
+
+    const compliancepass = dogfoodReport.results.find((result) => result.id === "compliancepass");
+    expect(compliancepass?.status).toBe("blocked");
+    expect(compliancepass?.reasonCode).toBe("readiness_gap");
+    expect(compliancepass?.blockedReason).toMatch(/amber/i);
   });
 
   it("keeps the XPass family maturity index visible", () => {
     const testpass = dogfoodReport.xpassIndex.find((entry) => entry.id === "testpass");
-    const enterprisepass = dogfoodReport.xpassIndex.find((entry) => entry.id === "enterprisepass");
+    const compliancepass = dogfoodReport.xpassIndex.find((entry) => entry.id === "compliancepass");
 
     expect(testpass?.stage).toBe("live_gate");
     expect(testpass?.mentionProfile).toMatch(/protects merges/i);
-    expect(enterprisepass?.stage).toBe("guidance");
-    expect(enterprisepass?.nextStep).toMatch(/without claiming compliance certification/i);
+    expect(compliancepass?.stage).toBe("live_dogfood");
+    expect(compliancepass?.nextStep).toMatch(/conservative/i);
   });
 });

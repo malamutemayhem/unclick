@@ -1,34 +1,55 @@
 {
-  "schema_version": "0.1",
-  "generated_at": "2026-05-02T03:50:00Z",
-  "source": "public seed receipt",
-  "product": "EnterprisePass",
-  "headline": "Enterprise-readiness guidance, not compliance certification.",
+  "schema_version": "1.0",
+  "generated_at": "2026-05-27T11:29:46.367Z",
+  "valid_until": "2026-06-03T11:29:46.367Z",
+  "source": "local deterministic repo/docs scan",
+  "product": "CompliancePass",
+  "legacy_aliases": [
+    "EnterprisePass"
+  ],
+  "headline": "Evidence-backed readiness guidance, not certification.",
   "target": {
     "name": "UnClick",
-    "surface": "repo, docs, workflow, and public proof surfaces"
+    "surface": "repo, docs, workflow, package, and public proof surfaces"
   },
-  "status": "pending",
-  "readiness_band": "seed",
+  "status": "complete",
+  "readiness_band": "amber",
   "wording_notice": "This report describes readiness indicators and evidence alignment. It is not a compliance certification, SOC report, ISO audit, legal opinion, or security attestation.",
   "readiness_score": {
-    "value": null,
-    "band": "seed",
+    "value": 95.8,
+    "band": "amber",
     "traffic_light": "yellow",
-    "rationale": "EnterprisePass has a safe public report shape, but automated evidence checks are not live yet."
+    "rationale": "CompliancePass ran 27 deterministic checks across 7 readiness categories."
   },
   "summary": {
-    "score_overall": null,
-    "headline": "EnterprisePass has a product boundary and seed artifact. Automated evidence checks are not live yet.",
-    "checks_total": 0,
-    "checks_pass": 0,
-    "checks_partial": 0,
+    "score_overall": 95.8,
+    "headline": "Strong readiness evidence, but 1 high/critical gap(s) keep the report out of green.",
+    "checks_total": 27,
+    "checks_pass": 22,
+    "checks_partial": 5,
     "checks_fail": 0,
     "checks_unknown": 0,
-    "checks_pending": 7
+    "checks_na": 0,
+    "checks_pending": 0,
+    "gap_severity_counts": {
+      "critical": 0,
+      "high": 1,
+      "medium": 4,
+      "low": 0,
+      "info": 0
+    },
+    "blocking_gap_count": 1
+  },
+  "report_integrity": {
+    "categories_total": 7,
+    "checks_total_matches_categories": true,
+    "gap_count_matches_findings": true,
+    "green_requires_no_high_or_critical_gaps": true,
+    "max_public_age_hours": 168
   },
   "report_sections": [
     "readiness_score",
+    "report_integrity",
     "evidence",
     "gaps",
     "next_actions",
@@ -40,84 +61,1466 @@
     {
       "id": "code_maintainability",
       "name": "Code maintainability",
-      "status": "pending",
-      "summary": "Will review tests, build, lint, type safety, structure, oversized files, and brittle code signals."
+      "status": "partial",
+      "score": 89,
+      "band": "green",
+      "summary": "Code maintainability scored 89/100 with 0 fail and 2 partial check(s).",
+      "checks": [
+        {
+          "id": "cp-code-scripts",
+          "category_id": "code_maintainability",
+          "title": "Build, test, and lint scripts are declared",
+          "status": "pass",
+          "score": 100,
+          "summary": "Root package scripts expose build, test, and lint commands.",
+          "evidence": [
+            {
+              "type": "package",
+              "path": "package.json",
+              "label": "package.json",
+              "summary": "Root package metadata includes build/test/lint scripts.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-code-verification-notes",
+          "category_id": "code_maintainability",
+          "title": "Verification status is documented",
+          "status": "partial",
+          "score": 70,
+          "summary": "Verification notes record a repo-wide lint backlog outside the CompliancePass slice.",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "docs/compliancepass-verification-notes.md",
+              "label": "docs/compliancepass-verification-notes.md",
+              "summary": "Verification notes record passing focused proof and residual repo-wide lint backlog.",
+              "confidence": "high"
+            }
+          ],
+          "findings": [
+            {
+              "id": "cp-code-lint-backlog",
+              "severity": "medium",
+              "title": "Repo-wide lint backlog remains open",
+              "summary": "CompliancePass changed files lint clean, but the broader repo lint command is not a clean readiness signal yet.",
+              "recommendation": "Route or reduce the existing repo-wide lint backlog, then refresh the CompliancePass receipt.",
+              "evidence": [
+                {
+                  "type": "doc",
+                  "path": "docs/compliancepass-verification-notes.md",
+                  "label": "docs/compliancepass-verification-notes.md",
+                  "summary": "Verification notes record passing focused proof and residual repo-wide lint backlog.",
+                  "confidence": "high"
+                }
+              ]
+            }
+          ],
+          "recommendation": "Route or reduce the repo-wide lint backlog, then refresh verification notes and the public receipt."
+        },
+        {
+          "id": "cp-code-typescript-strict",
+          "category_id": "code_maintainability",
+          "title": "TypeScript strictness evidence exists",
+          "status": "pass",
+          "score": 100,
+          "summary": "16 tsconfig file(s) enable strict mode.",
+          "evidence": [
+            {
+              "type": "file",
+              "path": "apps/api/tsconfig.json",
+              "label": "apps/api/tsconfig.json",
+              "summary": "TypeScript strict mode is enabled here.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "packages/commonsensepass/tsconfig.json",
+              "label": "packages/commonsensepass/tsconfig.json",
+              "summary": "TypeScript strict mode is enabled here.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "packages/compliancepass/tsconfig.json",
+              "label": "packages/compliancepass/tsconfig.json",
+              "summary": "TypeScript strict mode is enabled here.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "packages/copypass/tsconfig.json",
+              "label": "packages/copypass/tsconfig.json",
+              "summary": "TypeScript strict mode is enabled here.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-code-tests",
+          "category_id": "code_maintainability",
+          "title": "Automated test files are present",
+          "status": "pass",
+          "score": 100,
+          "summary": "272 test files were found.",
+          "evidence": [
+            {
+              "type": "file",
+              "path": "api/agent-obligations.test.ts",
+              "label": "api/agent-obligations.test.ts",
+              "summary": "Automated test evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "api/ai-provider-inventory.test.ts",
+              "label": "api/ai-provider-inventory.test.ts",
+              "summary": "Automated test evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "api/analytics.test.ts",
+              "label": "api/analytics.test.ts",
+              "summary": "Automated test evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "api/arena-spend-guardrail.test.ts",
+              "label": "api/arena-spend-guardrail.test.ts",
+              "summary": "Automated test evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "api/autopilot-control-ledger.test.ts",
+              "label": "api/autopilot-control-ledger.test.ts",
+              "summary": "Automated test evidence.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-code-file-size",
+          "category_id": "code_maintainability",
+          "title": "Source file size stays reviewable",
+          "status": "partial",
+          "score": 75,
+          "summary": "15 large source file(s) were found and the highest-risk files are documented.",
+          "evidence": [
+            {
+              "type": "file",
+              "path": "packages/mcp-server/src/tool-wiring.ts",
+              "label": "packages/mcp-server/src/tool-wiring.ts",
+              "summary": "13729 lines; review and ownership risk.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "api/memory-admin.ts",
+              "label": "api/memory-admin.ts",
+              "summary": "10202 lines; review and ownership risk.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "scripts/pinballwake-autonomous-runner.mjs",
+              "label": "scripts/pinballwake-autonomous-runner.mjs",
+              "summary": "3292 lines; review and ownership risk.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "src/components/Tools.tsx",
+              "label": "src/components/Tools.tsx",
+              "summary": "2793 lines; review and ownership risk.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "packages/mcp-server/src/server.ts",
+              "label": "packages/mcp-server/src/server.ts",
+              "summary": "2422 lines; review and ownership risk.",
+              "confidence": "high"
+            },
+            {
+              "type": "doc",
+              "path": "docs/compliancepass-large-file-risk-register.md",
+              "label": "docs/compliancepass-large-file-risk-register.md",
+              "summary": "Large-file risk register documents owner, current reason, and next reduction path.",
+              "confidence": "high"
+            }
+          ],
+          "findings": [
+            {
+              "id": "cp-code-large-files",
+              "severity": "medium",
+              "title": "Large source files increase review risk",
+              "summary": "Oversized files make investor and maintainer review slower and more error-prone.",
+              "recommendation": "Split high-churn large files around clear ownership boundaries or keep their risk register current.",
+              "evidence": [
+                {
+                  "type": "file",
+                  "path": "packages/mcp-server/src/tool-wiring.ts",
+                  "label": "packages/mcp-server/src/tool-wiring.ts",
+                  "summary": "13729 lines; review and ownership risk.",
+                  "confidence": "high"
+                },
+                {
+                  "type": "file",
+                  "path": "api/memory-admin.ts",
+                  "label": "api/memory-admin.ts",
+                  "summary": "10202 lines; review and ownership risk.",
+                  "confidence": "high"
+                },
+                {
+                  "type": "file",
+                  "path": "scripts/pinballwake-autonomous-runner.mjs",
+                  "label": "scripts/pinballwake-autonomous-runner.mjs",
+                  "summary": "3292 lines; review and ownership risk.",
+                  "confidence": "high"
+                },
+                {
+                  "type": "file",
+                  "path": "src/components/Tools.tsx",
+                  "label": "src/components/Tools.tsx",
+                  "summary": "2793 lines; review and ownership risk.",
+                  "confidence": "high"
+                },
+                {
+                  "type": "file",
+                  "path": "packages/mcp-server/src/server.ts",
+                  "label": "packages/mcp-server/src/server.ts",
+                  "summary": "2422 lines; review and ownership risk.",
+                  "confidence": "high"
+                }
+              ]
+            }
+          ],
+          "recommendation": "Continue reducing the highest-risk oversized files as ownership boundaries become clearer."
+        }
+      ]
     },
     {
       "id": "secure_development",
       "name": "Secure development",
-      "status": "pending",
-      "summary": "Will review security policy, dependency checks, branch protection evidence, and secret-scanning signals."
+      "status": "partial",
+      "score": 89,
+      "band": "amber",
+      "summary": "Secure development scored 89/100 with 0 fail and 2 partial check(s).",
+      "checks": [
+        {
+          "id": "cp-sec-policy",
+          "category_id": "secure_development",
+          "title": "Security policy evidence exists",
+          "status": "pass",
+          "score": 100,
+          "summary": "Security policy or threat-model evidence was found.",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "SECURITY.md",
+              "label": "SECURITY.md",
+              "summary": "Security policy evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "doc",
+              "path": "docs/security/threat-model.md",
+              "label": "docs/security/threat-model.md",
+              "summary": "Security policy evidence.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-sec-workflow-gates",
+          "category_id": "secure_development",
+          "title": "PR workflow gate evidence exists",
+          "status": "pass",
+          "score": 100,
+          "summary": "Workflow files show pull-request or merge-group gates with build/test evidence.",
+          "evidence": [
+            {
+              "type": "workflow",
+              "path": ".github/workflows/apply-migrations.yml",
+              "label": ".github/workflows/apply-migrations.yml",
+              "summary": "Workflow gate evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "workflow",
+              "path": ".github/workflows/auto-close-fishbowl-todo.yml",
+              "label": ".github/workflows/auto-close-fishbowl-todo.yml",
+              "summary": "Workflow gate evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "workflow",
+              "path": ".github/workflows/autonomous-runner.yml",
+              "label": ".github/workflows/autonomous-runner.yml",
+              "summary": "Workflow gate evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "workflow",
+              "path": ".github/workflows/brainmap-auto-update.yml",
+              "label": ".github/workflows/brainmap-auto-update.yml",
+              "summary": "Workflow gate evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "workflow",
+              "path": ".github/workflows/ci.yml",
+              "label": ".github/workflows/ci.yml",
+              "summary": "Workflow gate evidence.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-sec-secret-scanning",
+          "category_id": "secure_development",
+          "title": "Secret-scanning evidence exists",
+          "status": "partial",
+          "score": 80,
+          "summary": "Secret-scanning policy evidence exists, but repo-level push-protection verification is still called out as needing confirmation.",
+          "evidence": [
+            {
+              "type": "file",
+              "path": "docs/architecture/target-state.md",
+              "label": "docs/architecture/target-state.md",
+              "summary": "- GitHub push protection (secret scanning) is on. CI fails if a secret-like pattern appears in a diff.",
+              "confidence": "high",
+              "line": 349
+            },
+            {
+              "type": "file",
+              "path": "docs/security/policies.md",
+              "label": "docs/security/policies.md",
+              "summary": "- GitHub push protection with secret scanning must remain enabled on the repo. If it is ever disabled, the repo is frozen until it is re-enabled.",
+              "confidence": "high",
+              "line": 16
+            },
+            {
+              "type": "file",
+              "path": "docs/security/policies.md",
+              "label": "docs/security/policies.md",
+              "summary": "- Pre-commit hooks run on every commit locally. Repository-level GitHub push protection enforces the same rules server-side.",
+              "confidence": "high",
+              "line": 61
+            },
+            {
+              "type": "file",
+              "path": "docs/security/current-posture.md",
+              "label": "docs/security/current-posture.md",
+              "summary": "- GitHub push protection status should be confirmed at the repo level; the codebase does not indicate whether it is on. **Recommend: verify via GitHub settings and screenshot fo...",
+              "confidence": "high",
+              "line": 249
+            },
+            {
+              "type": "file",
+              "path": "packages/securitypass/src/probes/gitleaks.ts",
+              "label": "packages/securitypass/src/probes/gitleaks.ts",
+              "summary": "command: \"gitleaks\",",
+              "confidence": "high",
+              "line": 15
+            }
+          ],
+          "findings": [
+            {
+              "id": "cp-sec-secret-scanning-verification-gap",
+              "severity": "medium",
+              "title": "Secret-scanning verification needs repo-level proof",
+              "summary": "Local docs show policy intent, but repo-level push-protection status still needs observable GitHub settings or workflow proof.",
+              "recommendation": "Capture GitHub push-protection/settings proof or add a blocking secret-scan workflow receipt.",
+              "evidence": [
+                {
+                  "type": "file",
+                  "path": "docs/architecture/target-state.md",
+                  "label": "docs/architecture/target-state.md",
+                  "summary": "- GitHub push protection (secret scanning) is on. CI fails if a secret-like pattern appears in a diff.",
+                  "confidence": "high",
+                  "line": 349
+                },
+                {
+                  "type": "file",
+                  "path": "docs/security/policies.md",
+                  "label": "docs/security/policies.md",
+                  "summary": "- GitHub push protection with secret scanning must remain enabled on the repo. If it is ever disabled, the repo is frozen until it is re-enabled.",
+                  "confidence": "high",
+                  "line": 16
+                },
+                {
+                  "type": "file",
+                  "path": "docs/security/policies.md",
+                  "label": "docs/security/policies.md",
+                  "summary": "- Pre-commit hooks run on every commit locally. Repository-level GitHub push protection enforces the same rules server-side.",
+                  "confidence": "high",
+                  "line": 61
+                },
+                {
+                  "type": "file",
+                  "path": "docs/security/current-posture.md",
+                  "label": "docs/security/current-posture.md",
+                  "summary": "- GitHub push protection status should be confirmed at the repo level; the codebase does not indicate whether it is on. **Recommend: verify via GitHub settings and screenshot fo...",
+                  "confidence": "high",
+                  "line": 249
+                },
+                {
+                  "type": "file",
+                  "path": "packages/securitypass/src/probes/gitleaks.ts",
+                  "label": "packages/securitypass/src/probes/gitleaks.ts",
+                  "summary": "command: \"gitleaks\",",
+                  "confidence": "high",
+                  "line": 15
+                }
+              ]
+            }
+          ],
+          "recommendation": "Capture repo-level secret-scanning proof or add a blocking secret-scan workflow receipt."
+        },
+        {
+          "id": "cp-sec-dependency-updates",
+          "category_id": "secure_development",
+          "title": "Dependency update automation is configured",
+          "status": "pass",
+          "score": 100,
+          "summary": "Dependency update configuration was found.",
+          "evidence": [
+            {
+              "type": "file",
+              "path": ".github/dependabot.yml",
+              "label": ".github/dependabot.yml",
+              "summary": "Dependency update automation evidence.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-sec-dependency-audit-notes",
+          "category_id": "secure_development",
+          "title": "Dependency audit posture is recorded",
+          "status": "partial",
+          "score": 65,
+          "summary": "Dependency audit notes record 0 critical and 17 high vulnerability item(s).",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "docs/compliancepass-dependency-audit-notes.md",
+              "label": "docs/compliancepass-dependency-audit-notes.md",
+              "summary": "Dependency audit posture receipt.",
+              "confidence": "high"
+            }
+          ],
+          "findings": [
+            {
+              "id": "cp-sec-dependency-audit-backlog",
+              "severity": "high",
+              "title": "Dependency audit backlog needs owner review",
+              "summary": "Current audit notes include high or critical vulnerability items that should not be hidden by dependency automation evidence.",
+              "recommendation": "Route the upgrade set through SecurityPass or a dependency-upgrade lane, then refresh this receipt.",
+              "evidence": [
+                {
+                  "type": "doc",
+                  "path": "docs/compliancepass-dependency-audit-notes.md",
+                  "label": "docs/compliancepass-dependency-audit-notes.md",
+                  "summary": "Dependency audit posture receipt.",
+                  "confidence": "high"
+                }
+              ]
+            }
+          ],
+          "recommendation": "Route dependency audit backlog and refresh the CompliancePass dependency receipt."
+        }
+      ]
     },
     {
       "id": "evidence_over_claims",
       "name": "Evidence over claims",
-      "status": "pending",
-      "summary": "Will flag bold claims that do not point to docs, tests, PRs, workflow runs, or public receipts."
+      "status": "pass",
+      "score": 100,
+      "band": "green",
+      "summary": "Evidence over claims scored 100/100 with 0 fail and 0 partial check(s).",
+      "checks": [
+        {
+          "id": "cp-evidence-public-receipts",
+          "category_id": "evidence_over_claims",
+          "title": "Public proof receipts exist",
+          "status": "pass",
+          "score": 100,
+          "summary": "Public proof and XPass receipt surfaces were found.",
+          "evidence": [
+            {
+              "type": "public_receipt",
+              "path": "public/dogfood/latest.json",
+              "label": "public/dogfood/latest.json",
+              "summary": "Public proof surface evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "public_receipt",
+              "path": "public/enterprise/latest.json",
+              "label": "public/enterprise/latest.json",
+              "summary": "Public proof surface evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "doc",
+              "path": "docs/prd/xpass.md",
+              "label": "docs/prd/xpass.md",
+              "summary": "Public proof surface evidence.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-evidence-rendered-report-views",
+          "category_id": "evidence_over_claims",
+          "title": "Rendered public report views exist",
+          "status": "pass",
+          "score": 100,
+          "summary": "CompliancePass publishes JSON, Markdown, and HTML report views.",
+          "evidence": [
+            {
+              "type": "public_receipt",
+              "path": "public/enterprise/latest.json",
+              "label": "public/enterprise/latest.json",
+              "summary": "Rendered CompliancePass report artifact.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "public/enterprise/latest.md",
+              "label": "public/enterprise/latest.md",
+              "summary": "Rendered CompliancePass report artifact.",
+              "confidence": "high"
+            },
+            {
+              "type": "file",
+              "path": "public/enterprise/latest.html",
+              "label": "public/enterprise/latest.html",
+              "summary": "Rendered CompliancePass report artifact.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-evidence-claim-language",
+          "category_id": "evidence_over_claims",
+          "title": "Public claims avoid unsafe certification wording",
+          "status": "pass",
+          "score": 100,
+          "summary": "No unqualified certification-style claim was found in scanned docs or public data.",
+          "evidence": [
+            {
+              "type": "derived",
+              "path": "docs",
+              "label": "docs",
+              "summary": "Docs and public receipts were scanned for unqualified certification-style wording.",
+              "confidence": "medium"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-evidence-reference-density",
+          "category_id": "evidence_over_claims",
+          "title": "Docs reference evidence and proof",
+          "status": "pass",
+          "score": 100,
+          "summary": "2322 evidence/proof references were found.",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "docs/adr/0001-mcp-first-agent-protocol.md",
+              "label": "docs/adr/0001-mcp-first-agent-protocol.md",
+              "summary": "Agent-to-tool communication has no dominant standard. OpenAI function calling, LangChain tools, LlamaIndex callbacks, custom REST shims, and the Model Context Protocol (MCP) all...",
+              "confidence": "high",
+              "line": 9
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0007-idiot-proof-as-platform-rule.md",
+              "label": "docs/adr/0007-idiot-proof-as-platform-rule.md",
+              "summary": "# ADR-0007: Idiot-proof UX as a platform rule",
+              "confidence": "high",
+              "line": 1
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0007-idiot-proof-as-platform-rule.md",
+              "label": "docs/adr/0007-idiot-proof-as-platform-rule.md",
+              "summary": "- The rule is subjective. Judgement calls about what counts as \"idiot-proof\" can slow down PR review; mitigate with explicit non-coder walkthrough gates.",
+              "confidence": "high",
+              "line": 34
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0009-path-3-vibe-kanban-routing.md",
+              "label": "docs/adr/0009-path-3-vibe-kanban-routing.md",
+              "summary": "Code tasks longer than a single chat turn are routed through Vibe Kanban as isolated worktrees with mandatory PR completion protocol. The cloud repo is the source of truth; the ...",
+              "confidence": "high",
+              "line": 15
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0011-agent-reliability-substrate.md",
+              "label": "docs/adr/0011-agent-reliability-substrate.md",
+              "summary": "It is not a general workflow engine.",
+              "confidence": "high",
+              "line": 54
+            }
+          ],
+          "findings": []
+        }
+      ]
     },
     {
       "id": "documentation_quality",
       "name": "Documentation quality",
-      "status": "pending",
-      "summary": "Will review README, ADRs, runbooks, architecture notes, onboarding, and operating docs."
+      "status": "pass",
+      "score": 100,
+      "band": "green",
+      "summary": "Documentation quality scored 100/100 with 0 fail and 0 partial check(s).",
+      "checks": [
+        {
+          "id": "cp-doc-readme",
+          "category_id": "documentation_quality",
+          "title": "README gives basic operating context",
+          "status": "pass",
+          "score": 100,
+          "summary": "README includes basic setup and operating language.",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "README.md",
+              "label": "README.md",
+              "summary": "README was checked for setup and operating context.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-doc-architecture",
+          "category_id": "documentation_quality",
+          "title": "Architecture and operating docs exist",
+          "status": "pass",
+          "score": 100,
+          "summary": "Canonical architecture and operating docs were found.",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "docs/unclick-context-boot-packet.md",
+              "label": "docs/unclick-context-boot-packet.md",
+              "summary": "Architecture or operating context evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "doc",
+              "path": "AUTOPILOT.md",
+              "label": "AUTOPILOT.md",
+              "summary": "Architecture or operating context evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "doc",
+              "path": "FLEET_SYNC.md",
+              "label": "FLEET_SYNC.md",
+              "summary": "Architecture or operating context evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "doc",
+              "path": "docs/unclick-deep-context.md",
+              "label": "docs/unclick-deep-context.md",
+              "summary": "Architecture or operating context evidence.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-doc-decisions-runbooks",
+          "category_id": "documentation_quality",
+          "title": "Decision and runbook evidence exists",
+          "status": "pass",
+          "score": 100,
+          "summary": "13 decision/runbook-style file(s) were found.",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "docs/adr/0001-mcp-first-agent-protocol.md",
+              "label": "docs/adr/0001-mcp-first-agent-protocol.md",
+              "summary": "Decision or runbook evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0002-subscription-only-billing.md",
+              "label": "docs/adr/0002-subscription-only-billing.md",
+              "summary": "Decision or runbook evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0003-stripe-model-not-windows.md",
+              "label": "docs/adr/0003-stripe-model-not-windows.md",
+              "summary": "Decision or runbook evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0004-multi-tenant-via-api-key-hash.md",
+              "label": "docs/adr/0004-multi-tenant-via-api-key-hash.md",
+              "summary": "Decision or runbook evidence.",
+              "confidence": "high"
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0005-two-layer-admin-gating.md",
+              "label": "docs/adr/0005-two-layer-admin-gating.md",
+              "summary": "Decision or runbook evidence.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        }
+      ]
     },
     {
       "id": "credential_environment_hygiene",
       "name": "Credential and environment hygiene",
-      "status": "pending",
-      "summary": "Will review ownership, used-by mapping, staleness, rotation notes, and safe evidence from RotatePass or Connections."
+      "status": "pass",
+      "score": 100,
+      "band": "green",
+      "summary": "Credential and environment hygiene scored 100/100 with 0 fail and 0 partial check(s).",
+      "checks": [
+        {
+          "id": "cp-cred-public-secret-hygiene",
+          "category_id": "credential_environment_hygiene",
+          "title": "Public docs and receipts avoid secret-shaped values",
+          "status": "pass",
+          "score": 100,
+          "summary": "No secret-shaped values were found in public/docs scan.",
+          "evidence": [
+            {
+              "type": "derived",
+              "path": "public, docs",
+              "label": "public, docs",
+              "summary": "Public and docs surfaces were scanned for secret-shaped values.",
+              "confidence": "medium"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-cred-mapping",
+          "category_id": "credential_environment_hygiene",
+          "title": "Credential and connector mapping evidence exists",
+          "status": "pass",
+          "score": 100,
+          "summary": "955 credential/connector mapping references were found.",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "docs/adr/0002-subscription-only-billing.md",
+              "label": "docs/adr/0002-subscription-only-billing.md",
+              "summary": "Agent platforms have two billing models. The first is to sit between the user and the LLM provider, meter tokens, mark them up, and bill the user for consumption. The second is ...",
+              "confidence": "high",
+              "line": 9
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0002-subscription-only-billing.md",
+              "label": "docs/adr/0002-subscription-only-billing.md",
+              "summary": "Users pay their own AI provider subscription (Claude, GPT, Cursor, Gemini, or any other MCP-compatible client). UnClick does NOT proxy or meter LLM usage. UnClick charges for pl...",
+              "confidence": "high",
+              "line": 13
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0002-subscription-only-billing.md",
+              "label": "docs/adr/0002-subscription-only-billing.md",
+              "summary": "- Pricing is predictable and explainable. Users already know what they pay their AI provider; the UnClick line is separate and fixed for their tier.",
+              "confidence": "high",
+              "line": 18
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0002-subscription-only-billing.md",
+              "label": "docs/adr/0002-subscription-only-billing.md",
+              "summary": "- Zero margin compression risk from provider price changes. If Anthropic drops or raises prices, we are unaffected.",
+              "confidence": "high",
+              "line": 19
+            },
+            {
+              "type": "doc",
+              "path": "docs/adr/0002-subscription-only-billing.md",
+              "label": "docs/adr/0002-subscription-only-billing.md",
+              "summary": "- Some tools (e.g. Crews) that orchestrate model calls still hit the user's provider. A misconfigured crew spends the user's tokens; we need to make the cost model transparent i...",
+              "confidence": "high",
+              "line": 26
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-cred-rotation",
+          "category_id": "credential_environment_hygiene",
+          "title": "Rotation and staleness evidence exists",
+          "status": "pass",
+          "score": 100,
+          "summary": "346 rotation/staleness references were found.",
+          "evidence": [
+            {
+              "type": "file",
+              "path": "docs/adr/0004-multi-tenant-via-api-key-hash.md",
+              "label": "docs/adr/0004-multi-tenant-via-api-key-hash.md",
+              "summary": "- Tenants cannot change their api_key without a hash rotation. `reset_api_key` is supported but requires downstream data migration for users running agents with the old key cached.",
+              "confidence": "high",
+              "line": 28
+            },
+            {
+              "type": "file",
+              "path": "docs/adr/0005-two-layer-admin-gating.md",
+              "label": "docs/adr/0005-two-layer-admin-gating.md",
+              "summary": "- `ADMIN_EMAILS` env var rotation requires a redeploy. Low cost, but not runtime-configurable. A future enhancement is an admin role column on `api_keys`.",
+              "confidence": "high",
+              "line": 26
+            },
+            {
+              "type": "file",
+              "path": "docs/analytics-reliability-scout.md",
+              "label": "docs/analytics-reliability-scout.md",
+              "summary": "**Owner:** Analytics / RotatePass / UXPass",
+              "confidence": "high",
+              "line": 4
+            },
+            {
+              "type": "file",
+              "path": "docs/analytics-reliability-scout.md",
+              "label": "docs/analytics-reliability-scout.md",
+              "summary": "- RotatePass/System Credentials for credential health and ownership.",
+              "confidence": "high",
+              "line": 116
+            },
+            {
+              "type": "file",
+              "path": "docs/api-crypto-helpers.md",
+              "label": "docs/api-crypto-helpers.md",
+              "summary": "- No key-rotation flow (live keys vs new keys) — separate spec; the helper itself doesn't carry rotation state.",
+              "confidence": "high",
+              "line": 84
+            }
+          ],
+          "findings": []
+        }
+      ]
     },
     {
       "id": "investor_readiness",
       "name": "Investor readiness",
-      "status": "pending",
-      "summary": "Will review license, bus-factor signals, operational discipline, and audit trail evidence."
+      "status": "partial",
+      "score": 92.5,
+      "band": "green",
+      "summary": "Investor readiness scored 92.5/100 with 0 fail and 1 partial check(s).",
+      "checks": [
+        {
+          "id": "cp-investor-license",
+          "category_id": "investor_readiness",
+          "title": "License evidence exists",
+          "status": "pass",
+          "score": 100,
+          "summary": "A license file was found.",
+          "evidence": [
+            {
+              "type": "file",
+              "path": "LICENSE",
+              "label": "LICENSE",
+              "summary": "License evidence for investor/IP review.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-investor-repo-metadata",
+          "category_id": "investor_readiness",
+          "title": "Repository metadata is explicit",
+          "status": "pass",
+          "score": 100,
+          "summary": "Root package metadata includes name and repository.",
+          "evidence": [
+            {
+              "type": "package",
+              "path": "package.json",
+              "label": "package.json",
+              "summary": "Repository metadata evidence.",
+              "confidence": "high"
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-investor-audit-trail",
+          "category_id": "investor_readiness",
+          "title": "Audit trail and proof language exists",
+          "status": "pass",
+          "score": 100,
+          "summary": "2848 audit/proof references were found.",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "api/agent-obligations.test.ts",
+              "label": "api/agent-obligations.test.ts",
+              "summary": "nextAction: \"ACK the wake, review PR #695, then post PASS, HOLD, or BLOCKER with proof.\",",
+              "confidence": "high",
+              "line": 15
+            },
+            {
+              "type": "doc",
+              "path": "api/agent-obligations.test.ts",
+              "label": "api/agent-obligations.test.ts",
+              "summary": "it(\"represents a PR review ACK request with owner, TTL, fallback, and proof fields\", () => {",
+              "confidence": "high",
+              "line": 22
+            },
+            {
+              "type": "doc",
+              "path": "api/agent-obligations.test.ts",
+              "label": "api/agent-obligations.test.ts",
+              "summary": "next_action: \"ACK the wake, review PR #695, then post PASS, HOLD, or BLOCKER with proof.\",",
+              "confidence": "high",
+              "line": 34
+            },
+            {
+              "type": "doc",
+              "path": "api/agent-obligations.test.ts",
+              "label": "api/agent-obligations.test.ts",
+              "summary": "accepted_receipt_types: [\"ACK\", \"PASS\", \"HOLD\", \"BLOCKER\", \"proof\"],",
+              "confidence": "high",
+              "line": 35
+            },
+            {
+              "type": "doc",
+              "path": "api/agent-obligations.test.ts",
+              "label": "api/agent-obligations.test.ts",
+              "summary": "it(\"accepts a matching PASS receipt with proof\", () => {",
+              "confidence": "high",
+              "line": 43
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-investor-framework-mapping",
+          "category_id": "investor_readiness",
+          "title": "Framework alignment evidence is documented",
+          "status": "partial",
+          "score": 70,
+          "summary": "Framework mapping names the expected standards, but the control-by-control index is not complete.",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "docs/compliancepass-framework-mapping.md",
+              "label": "docs/compliancepass-framework-mapping.md",
+              "summary": "Framework alignment evidence for investor and buyer review.",
+              "confidence": "high"
+            }
+          ],
+          "findings": [
+            {
+              "id": "cp-investor-framework-control-index-thin",
+              "severity": "medium",
+              "title": "Framework control index is not complete",
+              "summary": "The report can show evidence alignment today, but it cannot yet export a full control-by-control ISO/NIST/OWASP/OpenSSF/SLSA/SIG/CAIQ mapping.",
+              "recommendation": "Add a generated control-by-control index with evidence rows, owner, status, and last-proof timestamp for each mapped control.",
+              "evidence": [
+                {
+                  "type": "doc",
+                  "path": "docs/compliancepass-framework-mapping.md",
+                  "label": "docs/compliancepass-framework-mapping.md",
+                  "summary": "Framework alignment evidence for investor and buyer review.",
+                  "confidence": "high"
+                }
+              ]
+            }
+          ],
+          "recommendation": "Add a generated control-by-control framework index with evidence rows and freshness timestamps."
+        }
+      ]
     },
     {
       "id": "ai_governance_readiness",
       "name": "AI governance readiness",
-      "status": "pending",
-      "summary": "Will review model/provider inventory, human oversight, data/source notes, and AI-system evidence where applicable."
+      "status": "pass",
+      "score": 100,
+      "band": "green",
+      "summary": "AI governance readiness scored 100/100 with 0 fail and 0 partial check(s).",
+      "checks": [
+        {
+          "id": "cp-ai-provider-inventory",
+          "category_id": "ai_governance_readiness",
+          "title": "AI provider inventory evidence exists",
+          "status": "pass",
+          "score": 100,
+          "summary": "454 AI provider/model references were found.",
+          "evidence": [
+            {
+              "type": "file",
+              "path": "api/ai-provider-inventory.test.ts",
+              "label": "api/ai-provider-inventory.test.ts",
+              "summary": "describe(\"ai provider inventory\", () => {",
+              "confidence": "high",
+              "line": 12
+            },
+            {
+              "type": "file",
+              "path": "api/ai-provider-inventory.test.ts",
+              "label": "api/ai-provider-inventory.test.ts",
+              "summary": "expect(inventory.some((entry) => entry.id === \"nudgeonly.openrouter.free-default\")).toBe(true);",
+              "confidence": "high",
+              "line": 16
+            },
+            {
+              "type": "file",
+              "path": "api/ai-provider-inventory.test.ts",
+              "label": "api/ai-provider-inventory.test.ts",
+              "summary": "expect(inventory.some((entry) => entry.id === \"nudgeonly.openrouter.custom-model\")).toBe(true);",
+              "confidence": "high",
+              "line": 17
+            },
+            {
+              "type": "file",
+              "path": "api/ai-provider-inventory.test.ts",
+              "label": "api/ai-provider-inventory.test.ts",
+              "summary": "expect(inventory.some((entry) => entry.id === \"memory.mcp.openai.embeddings\")).toBe(true);",
+              "confidence": "high",
+              "line": 18
+            },
+            {
+              "type": "file",
+              "path": "api/ai-provider-inventory.test.ts",
+              "label": "api/ai-provider-inventory.test.ts",
+              "summary": "expect(inventory.some((entry) => entry.id === \"memory.mcp.openai.fact-extraction\")).toBe(true);",
+              "confidence": "high",
+              "line": 19
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-ai-oversight",
+          "category_id": "ai_governance_readiness",
+          "title": "AI oversight and review evidence exists",
+          "status": "pass",
+          "score": 100,
+          "summary": "2392 oversight/review references were found.",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "api/agent-obligations.test.ts",
+              "label": "api/agent-obligations.test.ts",
+              "summary": "id: \"obligation-pr-695-review\",",
+              "confidence": "high",
+              "line": 10
+            },
+            {
+              "type": "doc",
+              "path": "api/agent-obligations.test.ts",
+              "label": "api/agent-obligations.test.ts",
+              "summary": "nextAction: \"ACK the wake, review PR #695, then post PASS, HOLD, or BLOCKER with proof.\",",
+              "confidence": "high",
+              "line": 15
+            },
+            {
+              "type": "doc",
+              "path": "api/agent-obligations.test.ts",
+              "label": "api/agent-obligations.test.ts",
+              "summary": "it(\"represents a PR review ACK request with owner, TTL, fallback, and proof fields\", () => {",
+              "confidence": "high",
+              "line": 22
+            },
+            {
+              "type": "doc",
+              "path": "api/agent-obligations.test.ts",
+              "label": "api/agent-obligations.test.ts",
+              "summary": "id: \"obligation-pr-695-review\",",
+              "confidence": "high",
+              "line": 24
+            },
+            {
+              "type": "doc",
+              "path": "api/agent-obligations.test.ts",
+              "label": "api/agent-obligations.test.ts",
+              "summary": "next_action: \"ACK the wake, review PR #695, then post PASS, HOLD, or BLOCKER with proof.\",",
+              "confidence": "high",
+              "line": 34
+            }
+          ],
+          "findings": []
+        },
+        {
+          "id": "cp-ai-data-notes",
+          "category_id": "ai_governance_readiness",
+          "title": "AI data/source notes exist",
+          "status": "pass",
+          "score": 100,
+          "summary": "1769 AI data/source references were found.",
+          "evidence": [
+            {
+              "type": "doc",
+              "path": "api/admin-users.ts",
+              "label": "api/admin-users.ts",
+              "summary": "* memory-admin.ts because these actions query auth.users across all",
+              "confidence": "high",
+              "line": 8
+            },
+            {
+              "type": "doc",
+              "path": "api/ai-provider-inventory.test.ts",
+              "label": "api/ai-provider-inventory.test.ts",
+              "summary": "expect(inventory.some((entry) => entry.id === \"memory.mcp.openai.embeddings\")).toBe(true);",
+              "confidence": "high",
+              "line": 18
+            },
+            {
+              "type": "doc",
+              "path": "api/ai-provider-inventory.test.ts",
+              "label": "api/ai-provider-inventory.test.ts",
+              "summary": "expect(inventory.some((entry) => entry.id === \"memory.mcp.openai.fact-extraction\")).toBe(true);",
+              "confidence": "high",
+              "line": 19
+            },
+            {
+              "type": "doc",
+              "path": "api/ai-provider-inventory.test.ts",
+              "label": "api/ai-provider-inventory.test.ts",
+              "summary": "expect(decideAiProviderCall({ path_id: \"memory.mcp.openai.embeddings\" })).toMatchObject({",
+              "confidence": "high",
+              "line": 63
+            },
+            {
+              "type": "doc",
+              "path": "api/ai-provider-inventory.test.ts",
+              "label": "api/ai-provider-inventory.test.ts",
+              "summary": "expect(decideAiProviderCall({ path_id: \"memory.mcp.openai.fact-extraction\" })).toMatchObject({",
+              "confidence": "high",
+              "line": 71
+            }
+          ],
+          "findings": []
+        }
+      ]
     }
   ],
   "next_actions": [
-    "Build the Phase 0 static repo/docs scanner.",
-    "Link findings to existing TestPass, SecurityPass, SlopPass, LegalPass, RotatePass, and XPass receipts.",
-    "Render this JSON as a simple EnterprisePass report page only after evidence checks are available.",
-    "Keep all public copy in readiness language and avoid compliance-certification claims."
+    "Route or reduce the repo-wide lint backlog, then refresh verification notes and the public receipt.",
+    "Continue reducing the highest-risk oversized files as ownership boundaries become clearer.",
+    "Capture repo-level secret-scanning proof or add a blocking secret-scan workflow receipt.",
+    "Route dependency audit backlog and refresh the CompliancePass dependency receipt.",
+    "Add a generated control-by-control framework index with evidence rows and freshness timestamps."
   ],
   "gaps": [
     {
-      "id": "phase_0_scanner_not_live",
+      "id": "cp-code-lint-backlog",
       "severity": "medium",
-      "summary": "The static repo/docs scanner is not implemented yet, so every category remains pending."
+      "title": "Repo-wide lint backlog remains open",
+      "summary": "CompliancePass changed files lint clean, but the broader repo lint command is not a clean readiness signal yet.",
+      "recommendation": "Route or reduce the existing repo-wide lint backlog, then refresh the CompliancePass receipt.",
+      "evidence": [
+        {
+          "type": "doc",
+          "path": "docs/compliancepass-verification-notes.md",
+          "label": "docs/compliancepass-verification-notes.md",
+          "summary": "Verification notes record passing focused proof and residual repo-wide lint backlog.",
+          "confidence": "high"
+        }
+      ]
     },
     {
-      "id": "evidence_links_are_seed_only",
+      "id": "cp-code-large-files",
       "severity": "medium",
-      "summary": "The current evidence list points to product boundary docs, not live Pass receipts or workflow runs."
+      "title": "Large source files increase review risk",
+      "summary": "Oversized files make investor and maintainer review slower and more error-prone.",
+      "recommendation": "Split high-churn large files around clear ownership boundaries or keep their risk register current.",
+      "evidence": [
+        {
+          "type": "file",
+          "path": "packages/mcp-server/src/tool-wiring.ts",
+          "label": "packages/mcp-server/src/tool-wiring.ts",
+          "summary": "13729 lines; review and ownership risk.",
+          "confidence": "high"
+        },
+        {
+          "type": "file",
+          "path": "api/memory-admin.ts",
+          "label": "api/memory-admin.ts",
+          "summary": "10202 lines; review and ownership risk.",
+          "confidence": "high"
+        },
+        {
+          "type": "file",
+          "path": "scripts/pinballwake-autonomous-runner.mjs",
+          "label": "scripts/pinballwake-autonomous-runner.mjs",
+          "summary": "3292 lines; review and ownership risk.",
+          "confidence": "high"
+        },
+        {
+          "type": "file",
+          "path": "src/components/Tools.tsx",
+          "label": "src/components/Tools.tsx",
+          "summary": "2793 lines; review and ownership risk.",
+          "confidence": "high"
+        },
+        {
+          "type": "file",
+          "path": "packages/mcp-server/src/server.ts",
+          "label": "packages/mcp-server/src/server.ts",
+          "summary": "2422 lines; review and ownership risk.",
+          "confidence": "high"
+        }
+      ]
     },
     {
-      "id": "category_results_not_scored",
-      "severity": "low",
-      "summary": "Category statuses are intentionally pending until automated or reviewed evidence exists."
+      "id": "cp-sec-secret-scanning-verification-gap",
+      "severity": "medium",
+      "title": "Secret-scanning verification needs repo-level proof",
+      "summary": "Local docs show policy intent, but repo-level push-protection status still needs observable GitHub settings or workflow proof.",
+      "recommendation": "Capture GitHub push-protection/settings proof or add a blocking secret-scan workflow receipt.",
+      "evidence": [
+        {
+          "type": "file",
+          "path": "docs/architecture/target-state.md",
+          "label": "docs/architecture/target-state.md",
+          "summary": "- GitHub push protection (secret scanning) is on. CI fails if a secret-like pattern appears in a diff.",
+          "confidence": "high",
+          "line": 349
+        },
+        {
+          "type": "file",
+          "path": "docs/security/policies.md",
+          "label": "docs/security/policies.md",
+          "summary": "- GitHub push protection with secret scanning must remain enabled on the repo. If it is ever disabled, the repo is frozen until it is re-enabled.",
+          "confidence": "high",
+          "line": 16
+        },
+        {
+          "type": "file",
+          "path": "docs/security/policies.md",
+          "label": "docs/security/policies.md",
+          "summary": "- Pre-commit hooks run on every commit locally. Repository-level GitHub push protection enforces the same rules server-side.",
+          "confidence": "high",
+          "line": 61
+        },
+        {
+          "type": "file",
+          "path": "docs/security/current-posture.md",
+          "label": "docs/security/current-posture.md",
+          "summary": "- GitHub push protection status should be confirmed at the repo level; the codebase does not indicate whether it is on. **Recommend: verify via GitHub settings and screenshot fo...",
+          "confidence": "high",
+          "line": 249
+        },
+        {
+          "type": "file",
+          "path": "packages/securitypass/src/probes/gitleaks.ts",
+          "label": "packages/securitypass/src/probes/gitleaks.ts",
+          "summary": "command: \"gitleaks\",",
+          "confidence": "high",
+          "line": 15
+        }
+      ]
+    },
+    {
+      "id": "cp-sec-dependency-audit-backlog",
+      "severity": "high",
+      "title": "Dependency audit backlog needs owner review",
+      "summary": "Current audit notes include high or critical vulnerability items that should not be hidden by dependency automation evidence.",
+      "recommendation": "Route the upgrade set through SecurityPass or a dependency-upgrade lane, then refresh this receipt.",
+      "evidence": [
+        {
+          "type": "doc",
+          "path": "docs/compliancepass-dependency-audit-notes.md",
+          "label": "docs/compliancepass-dependency-audit-notes.md",
+          "summary": "Dependency audit posture receipt.",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": "cp-investor-framework-control-index-thin",
+      "severity": "medium",
+      "title": "Framework control index is not complete",
+      "summary": "The report can show evidence alignment today, but it cannot yet export a full control-by-control ISO/NIST/OWASP/OpenSSF/SLSA/SIG/CAIQ mapping.",
+      "recommendation": "Add a generated control-by-control index with evidence rows, owner, status, and last-proof timestamp for each mapped control.",
+      "evidence": [
+        {
+          "type": "doc",
+          "path": "docs/compliancepass-framework-mapping.md",
+          "label": "docs/compliancepass-framework-mapping.md",
+          "summary": "Framework alignment evidence for investor and buyer review.",
+          "confidence": "high"
+        }
+      ]
     }
   ],
   "future_regret_notes": [
-    "If claims are not linked to evidence, investor and enterprise reviews may treat the product as less mature than it is.",
-    "If credential ownership and rotation impact stay tribal, key changes can break proof workflows at the worst time.",
-    "If readiness gaps are discovered only during procurement, small fixes can become expensive emergency work."
+    "If evidence links are missing, buyers and investors may treat strong claims as unsupported.",
+    "If ownership and credential rotation evidence stays tribal, routine changes can become emergency work.",
+    "If AI provider and oversight notes are absent, later governance reviews become slower and more expensive."
   ],
   "evidence": [
     {
-      "type": "doc",
-      "path": "docs/enterprisepass-product-brief.md",
-      "summary": "Product boundary: readiness report, not certification."
+      "type": "package",
+      "path": "package.json",
+      "label": "package.json",
+      "summary": "Root package metadata includes build/test/lint scripts.",
+      "confidence": "high"
     },
     {
       "type": "doc",
-      "path": "docs/prd/xpass.md",
-      "summary": "EnterprisePass is listed as a scoped Pass-family product under XPass."
+      "path": "docs/compliancepass-verification-notes.md",
+      "label": "docs/compliancepass-verification-notes.md",
+      "summary": "Verification notes record passing focused proof and residual repo-wide lint backlog.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "apps/api/tsconfig.json",
+      "label": "apps/api/tsconfig.json",
+      "summary": "TypeScript strict mode is enabled here.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "packages/commonsensepass/tsconfig.json",
+      "label": "packages/commonsensepass/tsconfig.json",
+      "summary": "TypeScript strict mode is enabled here.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "packages/compliancepass/tsconfig.json",
+      "label": "packages/compliancepass/tsconfig.json",
+      "summary": "TypeScript strict mode is enabled here.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "packages/copypass/tsconfig.json",
+      "label": "packages/copypass/tsconfig.json",
+      "summary": "TypeScript strict mode is enabled here.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "api/agent-obligations.test.ts",
+      "label": "api/agent-obligations.test.ts",
+      "summary": "Automated test evidence.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "api/ai-provider-inventory.test.ts",
+      "label": "api/ai-provider-inventory.test.ts",
+      "summary": "Automated test evidence.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "api/analytics.test.ts",
+      "label": "api/analytics.test.ts",
+      "summary": "Automated test evidence.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "api/arena-spend-guardrail.test.ts",
+      "label": "api/arena-spend-guardrail.test.ts",
+      "summary": "Automated test evidence.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "api/autopilot-control-ledger.test.ts",
+      "label": "api/autopilot-control-ledger.test.ts",
+      "summary": "Automated test evidence.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "packages/mcp-server/src/tool-wiring.ts",
+      "label": "packages/mcp-server/src/tool-wiring.ts",
+      "summary": "13729 lines; review and ownership risk.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "api/memory-admin.ts",
+      "label": "api/memory-admin.ts",
+      "summary": "10202 lines; review and ownership risk.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "scripts/pinballwake-autonomous-runner.mjs",
+      "label": "scripts/pinballwake-autonomous-runner.mjs",
+      "summary": "3292 lines; review and ownership risk.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "src/components/Tools.tsx",
+      "label": "src/components/Tools.tsx",
+      "summary": "2793 lines; review and ownership risk.",
+      "confidence": "high"
+    },
+    {
+      "type": "file",
+      "path": "packages/mcp-server/src/server.ts",
+      "label": "packages/mcp-server/src/server.ts",
+      "summary": "2422 lines; review and ownership risk.",
+      "confidence": "high"
+    },
+    {
+      "type": "doc",
+      "path": "docs/compliancepass-large-file-risk-register.md",
+      "label": "docs/compliancepass-large-file-risk-register.md",
+      "summary": "Large-file risk register documents owner, current reason, and next reduction path.",
+      "confidence": "high"
+    },
+    {
+      "type": "doc",
+      "path": "SECURITY.md",
+      "label": "SECURITY.md",
+      "summary": "Security policy evidence.",
+      "confidence": "high"
+    },
+    {
+      "type": "doc",
+      "path": "docs/security/threat-model.md",
+      "label": "docs/security/threat-model.md",
+      "summary": "Security policy evidence.",
+      "confidence": "high"
+    },
+    {
+      "type": "workflow",
+      "path": ".github/workflows/apply-migrations.yml",
+      "label": ".github/workflows/apply-migrations.yml",
+      "summary": "Workflow gate evidence.",
+      "confidence": "high"
     }
   ],
   "exclusions": [
@@ -125,7 +1528,8 @@
     "No legal opinion.",
     "No network security probing.",
     "No raw secret storage.",
-    "No customer-facing certification claim."
+    "No customer-facing certification claim.",
+    "No GitHub branch-protection API call in the local scanner; workflow and repo evidence only."
   ],
-  "disclaimer": "EnterprisePass is readiness guidance and evidence alignment only. It does not certify compliance, replace legal advice, or attest to security controls."
+  "disclaimer": "CompliancePass is readiness guidance and evidence alignment only. It does not certify compliance, replace legal advice, or attest to security controls."
 }

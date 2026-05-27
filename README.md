@@ -30,6 +30,38 @@ npm install -g https://github.com/malamutemayhem/unclick/releases/latest/downloa
 
 This repo follows the AGENTS.md fence rules for agent work.
 
+## Run
+
+For local web development:
+
+```bash
+npm run dev
+```
+
+For the API workspace:
+
+```bash
+npm run dev:api
+```
+
+## Test
+
+Run the main test suite:
+
+```bash
+npm test
+```
+
+Run the production build check:
+
+```bash
+npm run build
+```
+
+## License
+
+This repository is licensed under the MIT License. See [LICENSE](./LICENSE).
+
 ## What it does
 
 Gives your agent access to a growing catalog of tools across developer utilities, social media, e-commerce, finance, messaging, media, security, and more. You don't need to install separate packages for each integration. One server provides access to everything in the catalog.

@@ -3,23 +3,34 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const args = new Set(process.argv.slice(2));
+const rawArgs = process.argv.slice(2);
+const args = new Set(rawArgs);
 const dryRun = args.has("--dry-run") || process.env.DOGFOOD_DRY_RUN === "1";
-const outputIndex = process.argv.indexOf("--output");
-const outputPath =
-  outputIndex >= 0 && process.argv[outputIndex + 1]
-    ? process.argv[outputIndex + 1]
-    : "public/dogfood/latest.json";
+const outputPath = argValue("--output", "public/dogfood/latest.json");
+const compliancepassReceiptPath = argValue("--compliancepass-receipt", "public/enterprise/latest.json");
+const requestedMaxCompliancepassAgeHours = Number(argValue(
+  "--max-compliancepass-age-hours",
+  process.env.DOGFOOD_COMPLIANCEPASS_MAX_AGE_HOURS || "168",
+));
+const maxCompliancepassAgeHours =
+  Number.isFinite(requestedMaxCompliancepassAgeHours) && requestedMaxCompliancepassAgeHours > 0
+    ? requestedMaxCompliancepassAgeHours
+    : 168;
 
 const apiBase = trimTrailingSlash(process.env.DOGFOOD_API_BASE || "https://unclick.world");
 const publicUrl = process.env.DOGFOOD_PUBLIC_URL || "https://unclick.world";
 const mcpUrl = process.env.DOGFOOD_MCP_URL || "https://unclick.world/api/mcp";
 const generatedAt = new Date().toISOString();
 
+function argValue(name, fallback) {
+  const index = rawArgs.indexOf(name);
+  return index >= 0 && rawArgs[index + 1] ? rawArgs[index + 1] : fallback;
+}
+
 const statusLegend = {
   passing: "A live check ran and returned a passing result.",
   failing: "A live check ran and returned a failing result or could not reach its API.",
-  blocked: "The check could not run because an action is needed, such as a missing credential or scope gate.",
+  blocked: "The check needs action before it can be marked passing, such as a missing credential, scope gate, or high-severity readiness gap.",
   pending: "The check is planned or scaffolded, but live proof is not available yet.",
 };
 
@@ -82,13 +93,13 @@ const xpassIndex = [
     nextStep: "Keep guidance-only until legal review boundaries are explicit.",
   },
   {
-    id: "enterprisepass",
-    name: "EnterprisePass",
-    stage: "guidance",
-    label: "Guidance report",
-    automation: "Receipt guard and readiness report boundary",
-    mentionProfile: "Low mention volume while it remains a guidance layer, not certification.",
-    nextStep: "Add low-risk readiness checks without claiming compliance certification.",
+    id: "compliancepass",
+    name: "CompliancePass",
+    stage: "live_dogfood",
+    label: "Readiness evidence",
+    automation: "Local deterministic scanner and public readiness receipt",
+    mentionProfile: "Low mention volume unless readiness evidence, claims, or docs drift.",
+    nextStep: "Keep report language conservative and link more XPass receipts as they mature.",
   },
 ];
 
@@ -119,6 +130,12 @@ function blockedResult(id, name, summary, evidence, blockedReason, details = {})
 
 function failureResult(id, name, summary, evidence, details = {}) {
   return result(id, name, "failing", summary, evidence, details);
+}
+
+function ageHoursSince(isoTimestamp) {
+  const timestamp = Date.parse(isoTimestamp);
+  if (!Number.isFinite(timestamp)) return Number.POSITIVE_INFINITY;
+  return Math.max(0, (Date.parse(generatedAt) - timestamp) / (60 * 60 * 1000));
 }
 
 function passResult(id, name, summary, evidence, details = {}) {
@@ -304,6 +321,115 @@ async function runUXPass() {
   }
 }
 
+async function runCompliancePassReceipt() {
+  const receiptPath = compliancepassReceiptPath;
+  try {
+    const receipt = JSON.parse(await fs.readFile(receiptPath, "utf8"));
+    const complete =
+      receipt.product === "CompliancePass" &&
+      receipt.status === "complete" &&
+      receipt.summary?.checks_pending === 0 &&
+      typeof receipt.readiness_score?.value === "number";
+
+    if (!complete) {
+      return pendingResult(
+        "compliancepass",
+        "CompliancePass",
+        "CompliancePass public receipt exists but is not complete yet.",
+        "See /enterprise/latest.json for the readiness-report boundary and current category map.",
+        {
+          proof: { kind: "public_receipt", targetUrl: "/enterprise/latest.json" },
+          nextProof: "Run npm run compliancepass:report after building @unclick/compliancepass.",
+        },
+      );
+    }
+
+    const receiptAgeHours = ageHoursSince(receipt.generated_at);
+    if (!Number.isFinite(receiptAgeHours) || receiptAgeHours > maxCompliancepassAgeHours) {
+      return blockedResult(
+        "compliancepass",
+        "CompliancePass",
+        "CompliancePass public receipt exists but is stale.",
+        "See /enterprise/latest.json for the readiness-report boundary and current category map.",
+        `CompliancePass receipt is older than ${maxCompliancepassAgeHours} hour(s).`,
+        {
+          reasonCode: "stale_receipt",
+          score: receipt.readiness_score.value,
+          band: receipt.readiness_band,
+          proof: {
+            kind: "compliancepass_report",
+            targetUrl: "/enterprise/latest.json",
+            checksTotal: receipt.summary.checks_total,
+            highSeverityGaps: typeof receipt.summary?.blocking_gap_count === "number"
+              ? receipt.summary.blocking_gap_count
+              : 0,
+            generatedAt: receipt.generated_at,
+            ageHours: Math.round(receiptAgeHours * 10) / 10,
+            maxAgeHours: maxCompliancepassAgeHours,
+          },
+          nextProof: "Regenerate /enterprise/latest.json with npm run compliancepass:report, then rerun dogfood.",
+        },
+      );
+    }
+
+    const highSeverityGaps = Array.isArray(receipt.gaps)
+      ? receipt.gaps.filter((gap) => gap?.severity === "critical" || gap?.severity === "high")
+      : [];
+    const blockingGapCount = typeof receipt.summary?.blocking_gap_count === "number"
+      ? receipt.summary.blocking_gap_count
+      : highSeverityGaps.length;
+    if (receipt.readiness_band !== "green" || blockingGapCount > 0) {
+      return blockedResult(
+        "compliancepass",
+        "CompliancePass",
+        `CompliancePass scanned ${receipt.summary.checks_total} readiness checks and scored ${receipt.readiness_score.value}/100, but the receipt is ${receipt.readiness_band}.`,
+        "See /enterprise/latest.json for the evidence-backed readiness report and remaining gaps.",
+        `CompliancePass readiness is ${receipt.readiness_band}; ${blockingGapCount} high/critical gap(s) remain.`,
+        {
+          reasonCode: "readiness_gap",
+          score: receipt.readiness_score.value,
+          band: receipt.readiness_band,
+          proof: {
+            kind: "compliancepass_report",
+            targetUrl: "/enterprise/latest.json",
+            checksTotal: receipt.summary.checks_total,
+            highSeverityGaps: blockingGapCount,
+          },
+          nextProof: "Resolve or explicitly route high/critical CompliancePass gaps, then regenerate /enterprise/latest.json.",
+        },
+      );
+    }
+
+    return passResult(
+      "compliancepass",
+      "CompliancePass",
+      `CompliancePass scanned ${receipt.summary.checks_total} readiness checks and scored ${receipt.readiness_score.value}/100.`,
+      "See /enterprise/latest.json for the evidence-backed readiness report.",
+      {
+        reasonCode: "public_receipt_complete",
+        score: receipt.readiness_score.value,
+        band: receipt.readiness_band,
+        proof: {
+          kind: "compliancepass_report",
+          targetUrl: "/enterprise/latest.json",
+          checksTotal: receipt.summary.checks_total,
+        },
+      },
+    );
+  } catch (err) {
+    return pendingResult(
+      "compliancepass",
+      "CompliancePass",
+      "CompliancePass public receipt could not be read.",
+      "Generate public/enterprise/latest.json before publishing the dogfood receipt.",
+      {
+        proof: { kind: "missing", targetUrl: "/enterprise/latest.json" },
+        nextProof: `Run npm run compliancepass:report. Last error: ${err instanceof Error ? err.message : String(err)}`,
+      },
+    );
+  }
+}
+
 function buildTrend(results) {
   const today = generatedAt.slice(0, 10);
   return [{
@@ -374,16 +500,7 @@ const results = [
     "LegalPass recurring public receipts will land after the runner surface is available.",
     { nextProof: "Add a recurring LegalPass receipt before moving this out of pending." },
   ),
-  pendingResult(
-    "enterprisepass",
-    "EnterprisePass",
-    "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
-    "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
-    {
-      proof: { kind: "planned", targetUrl: "/enterprise/latest.json" },
-      nextProof: "Wire automated evidence checks before moving this beyond readiness guidance.",
-    },
-  ),
+  await runCompliancePassReceipt(),
 ];
 
 const report = {

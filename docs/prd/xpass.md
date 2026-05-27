@@ -85,12 +85,16 @@ In build or scoped:
 - SecurityPass
 - GEOPass
 - RotatePass
-- EnterprisePass
+- CompliancePass
 - WakePass
 
 Archived or parked:
 
 - BackstagePass as a brand/product. Old code may be borrowed when useful, but current user-facing language should prefer Connections or Connectors.
+
+Legacy naming:
+
+- EnterprisePass is the old internal name for CompliancePass.
 
 ## Run receipt requirements
 

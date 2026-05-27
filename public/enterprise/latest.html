@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CompliancePass Report</title>
+    <style>
+      :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      body { margin: 0; background: #f8fafc; color: #172033; }
+      main { max-width: 960px; margin: 0 auto; padding: 40px 20px 56px; }
+      header { border-bottom: 1px solid #d8dee8; padding-bottom: 24px; margin-bottom: 28px; }
+      h1 { font-size: 2rem; margin: 0 0 8px; letter-spacing: 0; }
+      h2 { font-size: 1.15rem; margin: 28px 0 12px; letter-spacing: 0; }
+      p { line-height: 1.6; }
+      .meta { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-top: 20px; }
+      .metric { border: 1px solid #d8dee8; border-radius: 8px; background: white; padding: 12px; }
+      .metric span { display: block; color: #5c667a; font-size: 0.8rem; }
+      .metric strong { display: block; margin-top: 4px; font-size: 1.1rem; }
+      table { width: 100%; border-collapse: collapse; background: white; border: 1px solid #d8dee8; border-radius: 8px; overflow: hidden; }
+      th, td { border-bottom: 1px solid #e6eaf0; padding: 10px 12px; text-align: left; }
+      th { background: #eef3f8; color: #313c50; }
+      tr:last-child td { border-bottom: 0; }
+      ul { padding-left: 1.2rem; }
+      li { margin: 10px 0; }
+      li span { color: #6b3b00; margin-left: 8px; font-size: 0.85rem; text-transform: uppercase; }
+      .notice { border-left: 4px solid #c48113; background: #fff8ea; padding: 12px 14px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>CompliancePass Report</h1>
+        <p>Evidence-backed readiness guidance, not certification.</p>
+        <p class="notice">This report describes readiness indicators and evidence alignment. It is not a compliance certification, SOC report, ISO audit, legal opinion, or security attestation.</p>
+        <section class="meta" aria-label="Report summary">
+          <div class="metric"><span>Target</span><strong>UnClick</strong></div>
+          <div class="metric"><span>Score</span><strong>95.8/100</strong></div>
+          <div class="metric"><span>Band</span><strong>amber</strong></div>
+          <div class="metric"><span>Blocking gaps</span><strong>1</strong></div>
+          <div class="metric"><span>Valid until</span><strong>2026-06-03T11:29:46.367Z</strong></div>
+        </section>
+      </header>
+      <section>
+        <h2>Summary</h2>
+        <p>Strong readiness evidence, but 1 high/critical gap(s) keep the report out of green.</p>
+        <table>
+          <thead><tr><th>Category</th><th>Score</th><th>Band</th><th>Status</th></tr></thead>
+          <tbody>
+          <tr>
+            <td>Code maintainability</td>
+            <td>89</td>
+            <td>green</td>
+            <td>partial</td>
+          </tr>
+          <tr>
+            <td>Secure development</td>
+            <td>89</td>
+            <td>amber</td>
+            <td>partial</td>
+          </tr>
+          <tr>
+            <td>Evidence over claims</td>
+            <td>100</td>
+            <td>green</td>
+            <td>pass</td>
+          </tr>
+          <tr>
+            <td>Documentation quality</td>
+            <td>100</td>
+            <td>green</td>
+            <td>pass</td>
+          </tr>
+          <tr>
+            <td>Credential and environment hygiene</td>
+            <td>100</td>
+            <td>green</td>
+            <td>pass</td>
+          </tr>
+          <tr>
+            <td>Investor readiness</td>
+            <td>92.5</td>
+            <td>green</td>
+            <td>partial</td>
+          </tr>
+          <tr>
+            <td>AI governance readiness</td>
+            <td>100</td>
+            <td>green</td>
+            <td>pass</td>
+          </tr>
+          </tbody>
+        </table>
+      </section>
+      <section>
+        <h2>Gaps</h2>
+        <ul>
+          <li>
+            <strong>Repo-wide lint backlog remains open</strong>
+            <span>medium</span>
+            <p>CompliancePass changed files lint clean, but the broader repo lint command is not a clean readiness signal yet.</p>
+          </li>
+          <li>
+            <strong>Large source files increase review risk</strong>
+            <span>medium</span>
+            <p>Oversized files make investor and maintainer review slower and more error-prone.</p>
+          </li>
+          <li>
+            <strong>Secret-scanning verification needs repo-level proof</strong>
+            <span>medium</span>
+            <p>Local docs show policy intent, but repo-level push-protection status still needs observable GitHub settings or workflow proof.</p>
+          </li>
+          <li>
+            <strong>Dependency audit backlog needs owner review</strong>
+            <span>high</span>
+            <p>Current audit notes include high or critical vulnerability items that should not be hidden by dependency automation evidence.</p>
+          </li>
+          <li>
+            <strong>Framework control index is not complete</strong>
+            <span>medium</span>
+            <p>The report can show evidence alignment today, but it cannot yet export a full control-by-control ISO/NIST/OWASP/OpenSSF/SLSA/SIG/CAIQ mapping.</p>
+          </li>
+        </ul>
+      </section>
+      <section>
+        <h2>Next Actions</h2>
+        <ul><li>Route or reduce the repo-wide lint backlog, then refresh verification notes and the public receipt.</li><li>Continue reducing the highest-risk oversized files as ownership boundaries become clearer.</li><li>Capture repo-level secret-scanning proof or add a blocking secret-scan workflow receipt.</li><li>Route dependency audit backlog and refresh the CompliancePass dependency receipt.</li><li>Add a generated control-by-control framework index with evidence rows and freshness timestamps.</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Disclaimer</h2>
+        <p>CompliancePass is readiness guidance and evidence alignment only. It does not certify compliance, replace legal advice, or attest to security controls.</p>
+      </section>
+    </main>
+  </body>
+</html>

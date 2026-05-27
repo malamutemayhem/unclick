@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 481,
+    "inventory": 483,
     "source_manifest": 94,
     "pages": 94,
-    "tools": 184,
+    "tools": 185,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 184
+      "count": 185
     },
     {
       "id": "rooms",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 19
+      "count": 20
     },
     {
       "id": "launch-and-onboarding",
@@ -1932,6 +1932,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-compliancepass-packages-compliancepass-package-json",
+      "division": "Modules and apps",
+      "name": "compliancepass",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/compliancepass/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-copypass-packages-copypass-package-json",
       "division": "Modules and apps",
       "name": "copypass",
@@ -3178,6 +3188,16 @@
       "kind": "MCP tool",
       "meaning": "color MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/color-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-compliancepass-packages-mcp-server-src-compliancepass-tool-ts",
+      "division": "Tools",
+      "name": "compliancepass",
+      "kind": "MCP tool",
+      "meaning": "compliancepass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/compliancepass-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5600,6 +5620,11 @@
       "packages/mcp-server/src/color-tool.ts"
     ],
     [
+      "compliancepass",
+      "compliancepass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/compliancepass-tool.ts"
+    ],
+    [
       "convertkit",
       "convertkit MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/convertkit-tool.ts"
@@ -6596,6 +6621,10 @@
       "vite build --mode development"
     ],
     [
+      "compliancepass:report",
+      "npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs"
+    ],
+    [
       "lint",
       "eslint ."
     ],
@@ -6610,6 +6639,10 @@
     [
       "test:brainmap",
       "node --test scripts/UnClick-brainmap.test.mjs"
+    ],
+    [
+      "test:compliancepass-receipt",
+      "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
     [
       "test:enterprisepass-receipt",
@@ -6637,8 +6670,8 @@
     },
     {
       "source": "docs/unclick-context-boot-packet.md",
-      "hash": "7cf131cf22e0",
-      "bytes": 4785
+      "hash": "fc8064c5874f",
+      "bytes": 4804
     },
     {
       "source": "docs/agent-observability.md",
@@ -6657,7 +6690,7 @@
     },
     {
       "source": "docs/fleet-worker-roles.md",
-      "hash": "ed620f347d4f",
+      "hash": "a8f64d0da135",
       "bytes": 4873
     },
     {
@@ -6682,7 +6715,7 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "b0a209c9c627",
+      "hash": "8650d072f494",
       "bytes": 1559
     },
     {
@@ -6692,8 +6725,8 @@
     },
     {
       "source": "package.json",
-      "hash": "9f761ff407b1",
-      "bytes": 4232
+      "hash": "7b87b00ad681",
+      "bytes": 4559
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",
@@ -6941,6 +6974,11 @@
       "bytes": 13643
     },
     {
+      "source": "packages/mcp-server/src/compliancepass-tool.ts",
+      "hash": "9b81776067e1",
+      "bytes": 3127
+    },
+    {
       "source": "packages/mcp-server/src/convertkit-tool.ts",
       "hash": "2f77303a3441",
       "bytes": 8498
@@ -7004,11 +7042,6 @@
       "source": "packages/mcp-server/src/ebird-tool.ts",
       "hash": "3deedf3fde19",
       "bytes": 6262
-    },
-    {
-      "source": "packages/mcp-server/src/elevenlabs-tool.ts",
-      "hash": "efcaeeff39d6",
-      "bytes": 10833
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-05-23T17:19:10.375Z",
-  "lastRunAt": "2026-05-23T17:19:10.375Z",
+  "generatedAt": "2026-05-27T11:29:55.637Z",
+  "lastRunAt": "2026-05-27T11:29:55.637Z",
   "status": "blocked",
-  "source": "nightly dogfood workflow",
+  "source": "dogfood receipt dry run",
   "headline": "We dogfood UnClick on UnClick.",
   "target": "UnClick public and agent-facing product surfaces",
   "nextAutomation": "Nightly dogfood receipts refresh this board with live scheduled evidence.",
   "statusLegend": {
     "passing": "A live check ran and returned a passing result.",
     "failing": "A live check ran and returned a failing result or could not reach its API.",
-    "blocked": "The check could not run because an action is needed, such as a missing credential or scope gate.",
+    "blocked": "The check needs action before it can be marked passing, such as a missing credential, scope gate, or high-severity readiness gap.",
     "pending": "The check is planned or scaffolded, but live proof is not available yet."
   },
   "proofPolicy": "Public dogfood receipts mark passing only when a live check actually ran. Blocked and pending are honest product states, not failures to hide.",
@@ -69,13 +69,13 @@
       "nextStep": "Keep guidance-only until legal review boundaries are explicit."
     },
     {
-      "id": "enterprisepass",
-      "name": "EnterprisePass",
-      "stage": "guidance",
-      "label": "Guidance report",
-      "automation": "Receipt guard and readiness report boundary",
-      "mentionProfile": "Low mention volume while it remains a guidance layer, not certification.",
-      "nextStep": "Add low-risk readiness checks without claiming compliance certification."
+      "id": "compliancepass",
+      "name": "CompliancePass",
+      "stage": "live_dogfood",
+      "label": "Readiness evidence",
+      "automation": "Local deterministic scanner and public readiness receipt",
+      "mentionProfile": "Low mention volume unless readiness evidence, claims, or docs drift.",
+      "nextStep": "Keep report language conservative and link more XPass receipts as they mature."
     }
   ],
   "results": [
@@ -83,27 +83,17 @@
       "id": "testpass",
       "name": "TestPass",
       "status": "passing",
-      "summary": "Scheduled TestPass completed with 17 checks and 0 failures.",
-      "evidence": "Run 716f9c0e-df20-46f0-9d7b-c7ff2d657985 checked https://unclick.world/api/mcp.",
-      "checkedAt": "2026-05-23T17:19:10.375Z",
-      "runId": "716f9c0e-df20-46f0-9d7b-c7ff2d657985",
-      "targetUrl": "https://unclick.world/api/mcp",
-      "proof": {
-        "kind": "testpass_run",
-        "runId": "716f9c0e-df20-46f0-9d7b-c7ff2d657985",
-        "targetUrl": "https://unclick.world/api/mcp"
-      }
+      "summary": "Dry-run receipt builder validated the TestPass result shape.",
+      "evidence": "Dry run only. Live workflow calls /api/testpass-run with source=scheduled.",
+      "checkedAt": "2026-05-27T11:29:55.637Z"
     },
     {
       "id": "uxpass",
       "name": "UXPass",
-      "status": "blocked",
-      "summary": "Scheduled UXPass could not run because DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET is missing.",
-      "evidence": "Set one workflow secret so the nightly dogfood workflow can create a fresh uxpass_runs row.",
-      "checkedAt": "2026-05-23T17:19:10.375Z",
-      "blockedReason": "Missing DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
-      "reasonCode": "missing_credential",
-      "nextProof": "Set one UXPass workflow secret, then rerun the dogfood report workflow."
+      "status": "passing",
+      "summary": "Dry-run receipt builder validated the UXPass result shape.",
+      "evidence": "Dry run only. Live workflow calls /api/uxpass-run against the public URL.",
+      "checkedAt": "2026-05-27T11:29:55.637Z"
     },
     {
       "id": "securitypass",
@@ -111,7 +101,7 @@
       "status": "blocked",
       "summary": "SecurityPass is blocked until the recurring runner proof is ready.",
       "evidence": "SecurityPass remains scope-gated; the public dogfood receipt does not run security probes yet.",
-      "checkedAt": "2026-05-23T17:19:10.375Z",
+      "checkedAt": "2026-05-27T11:29:55.637Z",
       "blockedReason": "SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
       "reasonCode": "scope_gate",
       "nextProof": "Land a safe recurring SecurityPass runner receipt before marking this passing."
@@ -122,7 +112,7 @@
       "status": "pending",
       "summary": "Queued for recurring search and metadata review.",
       "evidence": "SEOPass is still scaffold-only for public dogfood receipts.",
-      "checkedAt": "2026-05-23T17:19:10.375Z",
+      "checkedAt": "2026-05-27T11:29:55.637Z",
       "reasonCode": "planned_runner",
       "nextProof": "Add a recurring SEOPass receipt before moving this out of pending."
     },
@@ -132,7 +122,7 @@
       "status": "pending",
       "summary": "Queued for recurring copy quality review.",
       "evidence": "CopyPass recurring public receipts will land after the runner surface is available.",
-      "checkedAt": "2026-05-23T17:19:10.375Z",
+      "checkedAt": "2026-05-27T11:29:55.637Z",
       "reasonCode": "planned_runner",
       "nextProof": "Add a recurring CopyPass receipt before moving this out of pending."
     },
@@ -142,37 +132,42 @@
       "status": "pending",
       "summary": "Queued for recurring policy and claims review.",
       "evidence": "LegalPass recurring public receipts will land after the runner surface is available.",
-      "checkedAt": "2026-05-23T17:19:10.375Z",
+      "checkedAt": "2026-05-27T11:29:55.637Z",
       "reasonCode": "planned_runner",
       "nextProof": "Add a recurring LegalPass receipt before moving this out of pending."
     },
     {
-      "id": "enterprisepass",
-      "name": "EnterprisePass",
-      "status": "pending",
-      "summary": "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
-      "evidence": "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
-      "checkedAt": "2026-05-23T17:19:10.375Z",
-      "reasonCode": "planned_runner",
+      "id": "compliancepass",
+      "name": "CompliancePass",
+      "status": "blocked",
+      "summary": "CompliancePass scanned 27 readiness checks and scored 95.8/100, but the receipt is amber.",
+      "evidence": "See /enterprise/latest.json for the evidence-backed readiness report and remaining gaps.",
+      "checkedAt": "2026-05-27T11:29:55.637Z",
+      "blockedReason": "CompliancePass readiness is amber; 1 high/critical gap(s) remain.",
+      "reasonCode": "readiness_gap",
+      "score": 95.8,
+      "band": "amber",
       "proof": {
-        "kind": "planned",
-        "targetUrl": "/enterprise/latest.json"
+        "kind": "compliancepass_report",
+        "targetUrl": "/enterprise/latest.json",
+        "checksTotal": 27,
+        "highSeverityGaps": 1
       },
-      "nextProof": "Wire automated evidence checks before moving this beyond readiness guidance."
+      "nextProof": "Resolve or explicitly route high/critical CompliancePass gaps, then regenerate /enterprise/latest.json."
     }
   ],
   "trend": [
     {
-      "date": "2026-05-23",
-      "passing": 1,
+      "date": "2026-05-27",
+      "passing": 2,
       "failing": 0,
       "blocked": 2,
-      "pending": 4
+      "pending": 3
     }
   ],
   "lastActionableFailure": {
-    "title": "UXPass needs attention",
-    "detail": "Scheduled UXPass could not run because DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET is missing. Blocked reason: Missing DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
+    "title": "SecurityPass needs attention",
+    "detail": "SecurityPass is blocked until the recurring runner proof is ready. Blocked reason: SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
     "owner": "Dogfood automation"
   }
 }
