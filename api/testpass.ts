@@ -455,6 +455,13 @@ export function normalizeTestPassEditVerdict(raw: unknown): "check" | "fail" | "
   return verdictMap[raw.toLowerCase()] ?? null;
 }
 
+export function normalizeTestPassEditNotes(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (trimmed.length < 3) return null;
+  return trimmed.slice(0, 2000);
+}
+
 export function resolveTestPassAction(queryAction: unknown, body: unknown): string | undefined {
   if (typeof queryAction === "string" && queryAction) return queryAction;
   if (body && typeof body === "object" && "action" in body) {
@@ -567,6 +574,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!body.item_id) return json(res, 400, { error: "item_id required" });
     const dbVerdict = normalizeTestPassEditVerdict(body.verdict);
     if (!dbVerdict) return json(res, 400, { error: "verdict must be pass|fail|na|other" });
+    const notes = normalizeTestPassEditNotes(body.notes);
+    if (!notes) return json(res, 400, { error: "notes are required for manual verdict edits" });
 
     const ownerCheck = await fetch(
       `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${encodeURIComponent(body.run_id)}&actor_user_id=eq.${encodeURIComponent(actorUserId)}&select=id&limit=1`,
@@ -575,8 +584,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const ownerRows = (await ownerCheck.json()) as Array<{ id: string }>;
     if (!ownerRows[0]) return json(res, 404, { error: "Run not found" });
 
-    const patch: Record<string, unknown> = { verdict: dbVerdict };
-    if (typeof body.notes === "string") patch.on_fail_comment = body.notes;
+    const patch: Record<string, unknown> = { verdict: dbVerdict, on_fail_comment: notes };
 
     const upd = await fetch(
       `${supabaseUrl}/rest/v1/testpass_items?id=eq.${encodeURIComponent(body.item_id)}&run_id=eq.${encodeURIComponent(body.run_id)}`,

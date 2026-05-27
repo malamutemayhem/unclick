@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   canUseTestPassPack,
+  normalizeTestPassEditNotes,
   normalizeTestPassEditVerdict,
   resolveTestPassAction,
   selectTestPassPackYaml,
@@ -15,6 +16,14 @@ describe("TestPass API helpers", () => {
     expect(normalizeTestPassEditVerdict("na")).toBe("na");
     expect(normalizeTestPassEditVerdict("other")).toBe("other");
     expect(normalizeTestPassEditVerdict("unknown")).toBeNull();
+  });
+
+  it("requires reviewer notes for manual verdict edits", () => {
+    expect(normalizeTestPassEditNotes("Reviewed by Chris")).toBe("Reviewed by Chris");
+    expect(normalizeTestPassEditNotes("  keep evidence scoped  ")).toBe("keep evidence scoped");
+    expect(normalizeTestPassEditNotes("")).toBeNull();
+    expect(normalizeTestPassEditNotes("ok")).toBeNull();
+    expect(normalizeTestPassEditNotes(undefined)).toBeNull();
   });
 
   it("accepts canonical and legacy save_pack YAML body keys", () => {
