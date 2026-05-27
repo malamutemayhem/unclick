@@ -177,6 +177,15 @@ describe("runOpenHandsWorker", () => {
         reason: "openhands_cli_failed",
         exit_code: 1,
         output: "OpenHands exited before producing a patch.",
+        attempts: [
+          {
+            modelId: "gpt-oss-120b",
+            openRouterModel: "openai/gpt-oss-120b:free",
+            status: "proven",
+            ok: false,
+            reason: "writerlane_no_file_contents",
+          },
+        ],
       }),
     });
 
@@ -184,6 +193,16 @@ describe("runOpenHandsWorker", () => {
     assert.equal(result.reason, "openhands_cli_failed");
     assert.equal(result.receipt.hold_reason, "openhands_cli_failed");
     assert.match(result.receipt.evidence.output, /before producing a patch/);
+    assert.deepEqual(result.receipt.evidence.attempts, [
+      {
+        model_id: "gpt-oss-120b",
+        openrouter_model: "openai/gpt-oss-120b:free",
+        status: "proven",
+        ok: false,
+        reason: "writerlane_no_file_contents",
+        http_status: null,
+      },
+    ]);
   });
 
   test("keeps WriterLane model attempt reasons in HOLD evidence", async () => {
