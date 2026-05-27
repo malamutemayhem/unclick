@@ -26,7 +26,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminShell.tsx | 7cfbba7277d3 | 19113 |
 | .github/workflows/ci.yml | b0a209c9c627 | 1559 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
-| package.json | 9f761ff407b1 | 4232 |
+| package.json | b9ae68a558a0 | 4293 |
 | src/pages/Index.tsx | 27da391f9555 | 1292 |
 | src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | 9c138bfc810d | 11515 |
@@ -189,7 +189,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Tools | MCP and gateway capabilities available to seats. | 184 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
-| Passes and gates | Quality, proof, safety, and fidelity checks. | 12 |
+| Passes and gates | Quality, proof, safety, and fidelity checks. | 13 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
@@ -721,6 +721,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Passes and gates | pass | uxpass run | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/uxpass-run.ts |
 | Passes and gates | pass | uxpass run handoff | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/uxpass-run-handoff.ts |
 | Passes and gates | pass | uxpass site sweep | uxpass site sweep UnClick module. | - | scripts/uxpass-site-sweep.mjs |
+| Passes and gates | pass | uxpass visual audit | uxpass visual audit UnClick module. | - | scripts/uxpass-visual-audit.mjs |
 | Passes and gates | wake gate | WakePass | Verifies ACKs, stale handoffs, and worker wake requests before motion claims. | - | docs/pinballwake-igniteonly-api.md |
 | Public surfaces | public page | Arena Home | Arena page for Arena Home. | /arena | src/pages/arena/ArenaHome.tsx |
 | Public surfaces | public page | Arena Leaderboard | Arena page for Arena Leaderboard. | /arena/leaderboard | src/pages/arena/ArenaLeaderboard.tsx |
