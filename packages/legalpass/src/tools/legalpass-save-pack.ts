@@ -20,8 +20,8 @@ export const legalpassSavePackTool: ToolDescriptor<
 > = {
   name: "legalpass_save_pack",
   description:
-    "Save or update a LegalPass pack definition (12-hat roster, " +
-    "jurisdictions, items). Validates against the Pack schema before persisting.",
+    "Save or update a LegalPass pack definition (hat roster, jurisdictions, " +
+    "items). Validates against the Pack schema before persisting.",
   inputSchema: {
     type: "object",
     required: ["pack"],

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PackSchema } from "../pack-schema.js";
+import { PackSchema, TargetSchema } from "../pack-schema.js";
 import type { PackInput } from "../pack-schema.js";
 
 const VALID_PACK: PackInput = {
@@ -70,5 +70,38 @@ describe("PackSchema", () => {
   it("rejects an unknown jurisdiction code", () => {
     const bad = { ...VALID_PACK, jurisdictions: ["MARS" as never] };
     expect(() => PackSchema.parse(bad)).toThrow();
+  });
+
+  it("rejects duplicate target, jurisdiction, hat, and item identifiers", () => {
+    expect(() =>
+      PackSchema.parse({ ...VALID_PACK, targets: ["url", "url"] }),
+    ).toThrow(/target kinds must be unique/);
+    expect(() =>
+      PackSchema.parse({ ...VALID_PACK, jurisdictions: ["AU", "AU"] }),
+    ).toThrow(/jurisdictions must be unique/);
+    expect(() =>
+      PackSchema.parse({
+        ...VALID_PACK,
+        hats: [
+          { hat_id: "privacy", enabled: true, weight: 1 },
+          { hat_id: "privacy", enabled: true, weight: 1 },
+        ],
+      }),
+    ).toThrow(/hat ids must be unique/);
+    expect(() =>
+      PackSchema.parse({
+        ...VALID_PACK,
+        items: [
+          VALID_PACK.items[0],
+          { ...VALID_PACK.items[0], title: "Duplicate item" },
+        ],
+      }),
+    ).toThrow(/pack item ids must be unique/);
+  });
+
+  it("rejects non-http URL targets", () => {
+    expect(() =>
+      TargetSchema.parse({ kind: "url", url: "ftp://example.com/terms" }),
+    ).toThrow(/http/);
   });
 });
