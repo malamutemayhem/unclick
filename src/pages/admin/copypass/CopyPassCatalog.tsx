@@ -89,8 +89,8 @@ export default function CopyPassCatalog() {
           <div>
             <h1 className="text-2xl font-semibold text-white">CopyPass</h1>
             <p className="mt-0.5 text-sm text-[#888]">
-              Deterministic copy review for AI-generated wording, claim support, trust signals, and anti-slop polish.
-              Deterministic copy review and exact-source receipt rails for worker-facing copy jobs.
+              Deterministic copy review for AI-generated wording, claim support, trust signals, anti-slop polish,
+              and exact-source receipt rails for worker-facing copy jobs.
             </p>
           </div>
         </div>
@@ -170,8 +170,7 @@ export default function CopyPassCatalog() {
             ))}
           </div>
           <p className="mt-3 text-xs text-[#666]">
-            Starter packs describe good MCP-triggered run scopes. In-product launch controls can land after the MCP path stays proven.
-            Starter packs are MCP-triggered runs today. In-product launch controls can land after the MCP path stays proven.
+            Starter packs are MCP-triggered run scopes today. In-product launch controls can land after the MCP path stays proven.
           </p>
         </section>
       </div>
