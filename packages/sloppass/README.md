@@ -1,14 +1,17 @@
 # SlopPass
 
-SlopPass is a scoped code-quality verdict engine for AI-generated code. It reports evidence-based slop signals in the target and scope for a run. It is not a correctness certification, full test suite, or quality guarantee.
+SlopPass is a scoped code-quality verdict engine for AI-generated code. It reports evidence-based slop signals in the target and scope for a run, including unified PR diffs. It is not a correctness certification, full test suite, or quality guarantee.
 
-This package is a deliberately stripped promptfoo-derived scaffold. It keeps the useful 80/20 primitives:
+This package is a deliberately small promptfoo-derived engine. It keeps the useful 80/20 primitives:
 
-- eval runner
+- deterministic evaluation runner
 - provider abstraction
 - test schema
 - report surface
 - a small provider set
+- unified-diff input with file and line evidence
+- markdown build-fix prompts an agent can paste back into its work loop
+- supply-chain and security-bypass review triggers for generated code that added dependency, package-hook, or transport-risk surface
 
 It drops red-team and jailbreak modules, enterprise auth, plugin ecosystem, complex CLI flags, and the wide provider zoo.
 

@@ -698,6 +698,188 @@ async function ensureStarterCrews(
   if (error) throw error;
 }
 
+type CrewAgentRow = {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  hook?: string | null;
+  description?: string | null;
+  tool_tags?: string[] | null;
+  icon?: string | null;
+  colour_token?: string | null;
+  seed_prompt?: string | null;
+  memory_scope_shared?: string[] | null;
+  memory_scope_private?: string[] | null;
+  subspecialty_tags?: string[] | null;
+  disclaimer?: string | null;
+  is_system?: boolean | null;
+  source_agent_id?: string | null;
+  api_key_hash?: string | null;
+};
+
+type CrewRunContext = {
+  crew: {
+    id: string;
+    name?: string | null;
+    description?: string | null;
+    template?: string | null;
+    agent_ids: string[];
+  };
+  agents: CrewAgentRow[];
+  advisors: CrewAgentRow[];
+  chairman: CrewAgentRow;
+  relevantFacts: string[];
+  templateKey: string | null;
+  templateVersion: string | null;
+  resolvedAgentIds: string[];
+  configHash: string;
+};
+
+function orderedRowsByIds<T extends { id: string }>(
+  storedIds: readonly string[],
+  rows: readonly T[],
+): T[] {
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return storedIds.flatMap((id) => {
+    const row = byId.get(id);
+    return row ? [row] : [];
+  });
+}
+
+function computeCrewConfigHash(input: {
+  templateKey: string | null;
+  templateVersion: string | null;
+  resolvedAgentIds: readonly string[];
+}): string {
+  return sha256hex(JSON.stringify({
+    template_key: input.templateKey,
+    template_version: input.templateVersion,
+    resolved_agent_ids: input.resolvedAgentIds,
+  }));
+}
+
+const CREW_AGENT_SELECT = [
+  "id",
+  "slug",
+  "name",
+  "category",
+  "hook",
+  "description",
+  "tool_tags",
+  "icon",
+  "colour_token",
+  "seed_prompt",
+  "memory_scope_shared",
+  "memory_scope_private",
+  "subspecialty_tags",
+  "disclaimer",
+  "is_system",
+  "source_agent_id",
+  "api_key_hash",
+].join(",");
+
+async function loadCrewRunContext(
+  supabase: SupabaseClient,
+  apiKeyHash: string,
+  crewId: string,
+  taskPrompt: string,
+  templateVersion: string | null,
+): Promise<CrewRunContext | null> {
+  const { data: crewRow, error: crewErr } = await supabase
+    .from("mc_crews")
+    .select("id,name,description,template,agent_ids")
+    .eq("id", crewId)
+    .eq("api_key_hash", apiKeyHash)
+    .maybeSingle();
+  if (crewErr) throw crewErr;
+  if (!crewRow) return null;
+
+  const crew = crewRow as {
+    id: string;
+    name?: string | null;
+    description?: string | null;
+    template?: string | null;
+    agent_ids?: unknown;
+  };
+  const agentIds = Array.isArray(crew.agent_ids)
+    ? crew.agent_ids.filter((id): id is string => typeof id === "string" && id.length > 0)
+    : [];
+
+  let agents: CrewAgentRow[] = [];
+  if (agentIds.length > 0) {
+    const { data: rawAgents, error: agentErr } = await supabase
+      .from("mc_agents")
+      .select(CREW_AGENT_SELECT)
+      .in("id", agentIds)
+      .or(`is_system.eq.true,api_key_hash.eq.${apiKeyHash}`);
+    if (agentErr) throw agentErr;
+    agents = orderedRowsByIds(agentIds, (rawAgents ?? []) as CrewAgentRow[]);
+  }
+
+  let chairman = agents.find((agent) => agent.slug === "chairman") ?? null;
+  if (!chairman) {
+    const { data: chairRow, error: chairErr } = await supabase
+      .from("mc_agents")
+      .select(CREW_AGENT_SELECT)
+      .eq("slug", "chairman")
+      .eq("is_system", true)
+      .maybeSingle();
+    if (chairErr) throw chairErr;
+    chairman = (chairRow as CrewAgentRow | null) ?? null;
+    if (chairman) agents = [...agents, chairman];
+  }
+  if (!chairman) {
+    throw new Error("Crews requires the system Chairman agent before a Council run can start");
+  }
+
+  const advisors = agents.filter((agent) => agent.category !== "meta");
+  if (advisors.length === 0) {
+    throw new Error("Crews requires at least one non-meta advisor");
+  }
+
+  const { data: factRows, error: factsErr } = await supabase
+    .from("mc_extracted_facts")
+    .select("fact")
+    .eq("api_key_hash", apiKeyHash)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (factsErr) throw factsErr;
+
+  const words = taskPrompt.toLowerCase().split(/\W+/).filter((word) => word.length > 4);
+  const relevantFacts = ((factRows ?? []) as Array<{ fact?: string }>)
+    .filter((row) => typeof row.fact === "string" && words.some((word) => row.fact!.toLowerCase().includes(word)))
+    .slice(0, 5)
+    .map((row) => row.fact as string);
+
+  const resolvedAgentIds = agents.map((agent) => agent.id);
+  const templateKey = crew.template ?? null;
+  const configHash = computeCrewConfigHash({
+    templateKey,
+    templateVersion,
+    resolvedAgentIds,
+  });
+
+  return {
+    crew: {
+      id: crew.id,
+      name: crew.name ?? null,
+      description: crew.description ?? null,
+      template: crew.template ?? null,
+      agent_ids: agentIds,
+    },
+    agents,
+    advisors,
+    chairman,
+    relevantFacts,
+    templateKey,
+    templateVersion,
+    resolvedAgentIds,
+    configHash,
+  };
+}
+
 function deriveKey(apiKey: string, salt: Buffer): Buffer {
   return crypto.pbkdf2Sync(apiKey, salt, PBKDF2_ITERATIONS, KEY_BYTES, "sha256");
 }
@@ -6636,7 +6818,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         let q = supabase
           .from("mc_agents")
-          .select("id,slug,name,category,hook,description,tool_tags,icon,colour_token,is_system,source_agent_id,api_key_hash")
+          .select(CREW_AGENT_SELECT)
           .or(`is_system.eq.true,api_key_hash.eq.${apiKeyHash}`)
           .order("is_system", { ascending: false })
           .order("name");
@@ -6841,15 +7023,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
         if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
         await ensureStarterCrews(supabase, apiKeyHash);
-        const { crew_id, task_prompt, token_budget, task_id } = (req.body ?? {}) as {
+        const { crew_id, task_prompt, token_budget, task_id, execution_mode, template_version } = (req.body ?? {}) as {
           crew_id?: string;
           task_prompt?: string;
           token_budget?: number;
           task_id?: string;
+          execution_mode?: string;
+          template_version?: string | null;
         };
         if (!crew_id || !task_prompt?.trim()) {
           return res.status(400).json({ error: "crew_id and task_prompt required" });
         }
+        const trimmedPrompt = task_prompt.trim();
+        const isMcpSampling = execution_mode === "mcp_sampling";
+        const templateVersion =
+          typeof template_version === "string" && template_version.trim()
+            ? template_version.trim()
+            : null;
         const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         let normalizedTaskId: string | undefined;
         if (task_id !== undefined && task_id !== null && task_id !== "") {
@@ -6858,32 +7048,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
           normalizedTaskId = task_id.toLowerCase();
         }
-        const { data: crewRow, error: crewErr } = await supabase
-          .from("mc_crews")
-          .select("id")
-          .eq("id", crew_id)
-          .eq("api_key_hash", apiKeyHash)
-          .maybeSingle();
-        if (crewErr) throw crewErr;
-        if (!crewRow) {
+        const crewContext = await loadCrewRunContext(
+          supabase,
+          apiKeyHash,
+          crew_id,
+          trimmedPrompt,
+          templateVersion,
+        );
+        if (!crewContext) {
           return res.status(404).json({ error: "crew_id not found for tenant" });
         }
-        // User-facing runs now route LLM traffic through MCP sampling. The HTTP
-        // path cannot do bidirectional sampling, so we create the run row for
-        // bookkeeping and return a card asking the caller to re-run via MCP.
+        const now = new Date().toISOString();
         const insertPayload: Record<string, unknown> = {
           api_key_hash: apiKeyHash,
           crew_id,
-          task_prompt: task_prompt.trim(),
+          task_prompt: trimmedPrompt,
           token_budget: token_budget ?? 150000,
-          status: "failed",
-          result_artifact: {
+          status: isMcpSampling ? "running" : "failed",
+          template_key: crewContext.templateKey,
+          template_version: crewContext.templateVersion,
+          resolved_agent_ids: crewContext.resolvedAgentIds,
+          config_hash: crewContext.configHash,
+        };
+        if (isMcpSampling) {
+          insertPayload.started_at = now;
+          insertPayload.result_artifact = {
+            status: "prepared_for_mcp_sampling",
+            message: "Run prepared. The MCP client must persist opinions, reviews, and synthesis.",
+          };
+        } else {
+          insertPayload.result_artifact = {
             error: "SAMPLING_NOT_SUPPORTED",
             message:
               "Orchestrator does not support sampling. Use Claude Desktop or another sampling-capable client.",
-          },
-          completed_at: new Date().toISOString(),
-        };
+          };
+          insertPayload.completed_at = now;
+        }
         if (normalizedTaskId) insertPayload.task_id = normalizedTaskId;
         const { data: runRow, error: runErr } = await supabase
           .from("mc_crew_runs")
@@ -6898,12 +7098,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (runErr) {
           const errCode = (runErr as { code?: string }).code;
           if (normalizedTaskId && errCode === "23505") {
-            // STALE_RUN check intentionally omitted — relies on synchronous handler invariant.
+            // STALE_RUN check intentionally omitted - relies on synchronous handler invariant.
             // If a runner is ever made async, add a `last_heartbeat`-based stale-run gate here
             // before returning was_duplicate=true on a still-running task_id.
             const { data: existing } = await supabase
               .from("mc_crew_runs")
-              .select("id")
+              .select("id,status")
               .eq("api_key_hash", apiKeyHash)
               .eq("task_id", normalizedTaskId)
               .maybeSingle();
@@ -6925,30 +7125,186 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const card: ConversationalCard = buildCard({
           headline: wasDuplicate
             ? "Crews Council run already created"
-            : "Crews Council run needs MCP sampling",
+            : isMcpSampling
+              ? "Crews Council run prepared"
+              : "Crews Council run needs MCP sampling",
           summary: wasDuplicate
             ? "A run with this task_id already exists for your tenant. Returning the original run_id; no new row was created."
-            : "This HTTP endpoint cannot run a Council round because LLM traffic now flows through MCP sampling. Start the run from a sampling-capable client (e.g. Claude Desktop) using the start_crew_run MCP tool.",
+            : isMcpSampling
+              ? "The run row is ready. The MCP client should now ask each advisor, collect peer reviews, and persist the Chairman synthesis."
+              : "This HTTP endpoint cannot run a Council round because LLM traffic now flows through MCP sampling. Start the run from a sampling-capable client such as Claude Desktop using the start_crew_run MCP tool.",
           keyFacts: [
             `run_id: ${resolvedRunId}`,
             `crew_id: ${crew_id}`,
+            `agents: ${crewContext.agents.map((agent) => agent.name).join(", ")}`,
             ...(wasDuplicate
               ? ["was_duplicate: true"]
-              : ["status: failed (SAMPLING_NOT_SUPPORTED)"]),
+              : isMcpSampling
+                ? ["status: running", `config_hash: ${crewContext.configHash}`]
+                : ["status: failed (SAMPLING_NOT_SUPPORTED)"]),
           ],
           nextActions: wasDuplicate
             ? ["Call get_run with the run_id to inspect the original run"]
-            : [
-                "Install the UnClick MCP server in a sampling-capable client",
-                "Call the start_crew_run MCP tool with the same crew_id and task_prompt",
-              ],
+            : isMcpSampling
+              ? ["Run advisor opinions", "Run peer review", "Persist the Chairman synthesis with finish_crew_run"]
+              : [
+                  "Install the UnClick MCP server in a sampling-capable client",
+                  "Call the start_crew_run MCP tool with the same crew_id and task_prompt",
+                ],
           deepLink: `/admin/crews/runs/${resolvedRunId}`,
         });
-        return res.status(wasDuplicate ? 200 : 409).json({
-          error: wasDuplicate ? undefined : "SAMPLING_NOT_SUPPORTED",
+        return res.status(wasDuplicate ? 200 : isMcpSampling ? 202 : 409).json({
+          error: wasDuplicate || isMcpSampling ? undefined : "SAMPLING_NOT_SUPPORTED",
           run_id: resolvedRunId,
           was_duplicate: wasDuplicate,
           task_id: normalizedTaskId ?? null,
+          run: wasDuplicate ? null : runRow,
+          crew: crewContext.crew,
+          agents: crewContext.agents,
+          relevant_facts: crewContext.relevantFacts,
+          card,
+        });
+      }
+
+      case "finish_crew_run": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const { run_id, status, messages, tokens_used, result_artifact } = (req.body ?? {}) as {
+          run_id?: string;
+          status?: string;
+          messages?: unknown;
+          tokens_used?: number;
+          result_artifact?: Record<string, unknown> | null;
+        };
+        const runId = String(run_id ?? "").trim();
+        if (!runId) return res.status(400).json({ error: "run_id required" });
+        const finalStatus = status === "complete" || status === "failed" ? status : null;
+        if (!finalStatus) return res.status(400).json({ error: "status must be complete or failed" });
+
+        const { data: existingRun, error: existingErr } = await supabase
+          .from("mc_crew_runs")
+          .select("id,status,task_prompt,tokens_used")
+          .eq("id", runId)
+          .eq("api_key_hash", apiKeyHash)
+          .maybeSingle();
+        if (existingErr) throw existingErr;
+        if (!existingRun) return res.status(404).json({ error: "Run not found" });
+
+        const { count: existingMessageCount, error: countErr } = await supabase
+          .from("mc_run_messages")
+          .select("id", { count: "exact", head: true })
+          .eq("run_id", runId)
+          .eq("api_key_hash", apiKeyHash);
+        if (countErr) throw countErr;
+
+        if (
+          (existingRun as { status?: string }).status !== "running" &&
+          (existingRun as { status?: string }).status !== "pending" &&
+          (existingMessageCount ?? 0) > 0
+        ) {
+          const card: ConversationalCard = buildCard({
+            headline: `Crews run already ${String((existingRun as { status?: string }).status ?? "finished")}`,
+            summary: "The run is already terminal and has persisted messages, so finish_crew_run did not write duplicates.",
+            keyFacts: [
+              `run_id: ${runId}`,
+              `status: ${String((existingRun as { status?: string }).status ?? "unknown")}`,
+              `messages: ${existingMessageCount ?? 0}`,
+            ],
+            nextActions: ["Call get_run with the run_id to inspect the persisted Council output"],
+            deepLink: `/admin/crews/runs/${runId}`,
+          });
+          return res.status(200).json({ run_id: runId, was_duplicate: true, card });
+        }
+
+        const inputMessages = Array.isArray(messages) ? messages : [];
+        const rows = inputMessages.map((raw) => {
+          const item = isRecord(raw) ? raw : {};
+          const content = typeof item.content === "string" ? item.content : "";
+          return {
+            api_key_hash: apiKeyHash,
+            run_id: runId,
+            agent_id: typeof item.agent_id === "string" && item.agent_id ? item.agent_id : null,
+            role: typeof item.role === "string" && item.role ? item.role.slice(0, 64) : "advisor",
+            stage: typeof item.stage === "string" && item.stage ? item.stage.slice(0, 64) : "unknown",
+            content,
+            tokens_in: Number.isFinite(Number(item.tokens_in)) ? Math.max(0, Math.floor(Number(item.tokens_in))) : 0,
+            tokens_out: Number.isFinite(Number(item.tokens_out)) ? Math.max(0, Math.floor(Number(item.tokens_out))) : 0,
+          };
+        }).filter((row) => row.content.trim().length > 0);
+
+        const { error: deleteErr } = await supabase
+          .from("mc_run_messages")
+          .delete()
+          .eq("run_id", runId)
+          .eq("api_key_hash", apiKeyHash);
+        if (deleteErr) throw deleteErr;
+        if (rows.length > 0) {
+          const { error: insertErr } = await supabase.from("mc_run_messages").insert(rows);
+          if (insertErr) throw insertErr;
+        }
+
+        const stageCounts = rows.reduce<Record<string, number>>((acc, row) => {
+          acc[row.stage] = (acc[row.stage] ?? 0) + 1;
+          return acc;
+        }, {});
+        const computedTokens = rows.reduce((sum, row) => sum + row.tokens_in + row.tokens_out, 0);
+        const tokensUsed = Number.isFinite(Number(tokens_used))
+          ? Math.max(0, Math.floor(Number(tokens_used)))
+          : computedTokens;
+        const artifact = result_artifact ?? (
+          finalStatus === "complete"
+            ? {
+                status: "complete",
+                stage_counts: stageCounts,
+                message_count: rows.length,
+              }
+            : {
+                error: "CREW_RUN_FAILED",
+                stage_counts: stageCounts,
+                message_count: rows.length,
+              }
+        );
+
+        const { data: updatedRun, error: updateErr } = await supabase
+          .from("mc_crew_runs")
+          .update({
+            status: finalStatus,
+            completed_at: new Date().toISOString(),
+            tokens_used: tokensUsed,
+            result_artifact: artifact,
+          })
+          .eq("id", runId)
+          .eq("api_key_hash", apiKeyHash)
+          .select()
+          .single();
+        if (updateErr) throw updateErr;
+
+        const stageSummary = Object.entries(stageCounts)
+          .map(([stage, count]) => `${stage}: ${count}`)
+          .join(", ") || "none";
+        const card: ConversationalCard = buildCard({
+          headline: `Crews run ${finalStatus}`,
+          summary: finalStatus === "complete"
+            ? "The Council opinions, peer reviews, and Chairman synthesis were persisted."
+            : "The run was marked failed and any partial Council messages were persisted for inspection.",
+          keyFacts: [
+            `run_id: ${runId}`,
+            `status: ${finalStatus}`,
+            `tokens_used: ${tokensUsed}`,
+            `messages: ${rows.length}`,
+            `stages: ${stageSummary}`,
+          ],
+          nextActions: finalStatus === "complete"
+            ? ["Open the admin run page to review the Council verdict"]
+            : ["Inspect result_artifact for the failure reason", "Start a new run via MCP sampling"],
+          deepLink: `/admin/crews/runs/${runId}`,
+        });
+        return res.status(200).json({
+          run_id: runId,
+          run: updatedRun,
+          message_count: rows.length,
+          stage_counts: stageCounts,
           card,
         });
       }
@@ -7011,15 +7367,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (agentIds.length > 0) {
             const { data: agentRows } = await supabase
               .from("mc_agents")
-              .select("id,slug,name,category,colour_token")
-              .in("id", agentIds);
-            agents = agentRows ?? [];
+              .select(CREW_AGENT_SELECT)
+              .in("id", agentIds)
+              .or(`is_system.eq.true,api_key_hash.eq.${apiKeyHash}`);
+            agents = orderedRowsByIds(agentIds, (agentRows ?? []) as CrewAgentRow[]);
           }
           const hasChairman = (agents as { slug?: string }[]).some((a) => a.slug === "chairman");
           if (!hasChairman) {
             const { data: chairRow } = await supabase
               .from("mc_agents")
-              .select("id,slug,name,category,colour_token")
+              .select(CREW_AGENT_SELECT)
               .eq("slug", "chairman")
               .eq("is_system", true)
               .maybeSingle();
@@ -7132,7 +7489,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!user) return res.status(401).json({ error: "Authorization header required" });
         const { data, error } = await supabase
           .from("testpass_packs")
-          .select("id, slug, name, version, description, yaml")
+          .select("id, slug, name, version, description, yaml, owner_user_id")
           .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
           .order("created_at", { ascending: true });
         if (error) throw error;
@@ -7147,10 +7504,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             description: p.description,
             check_count: items.length,
             category,
-            is_system: !p.yaml || Object.keys(p.yaml as object).length === 0,
+            is_system: p.owner_user_id === null,
           };
         });
         return res.status(200).json({ packs });
+      }
+
+      case "get_testpass_pack": {
+        const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!user) return res.status(401).json({ error: "Authorization header required" });
+        const packId = (req.query.pack_id ?? req.body?.pack_id ?? "") as string;
+        if (!packId) return res.status(400).json({ error: "pack_id required" });
+        const { data, error } = await supabase
+          .from("testpass_packs")
+          .select("id, slug, name, version, description, yaml, owner_user_id")
+          .eq("id", packId)
+          .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) return res.status(404).json({ error: "Pack not found" });
+        return res.status(200).json({
+          pack: {
+            id: data.id,
+            slug: data.slug,
+            name: data.name,
+            version: data.version,
+            description: data.description,
+            yaml: data.yaml,
+            is_system: data.owner_user_id === null,
+          },
+        });
       }
 
       case "get_testpass_run": {
@@ -7174,7 +7557,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (runRes.error) throw runRes.error;
         if (!runRes.data) return res.status(404).json({ error: "Run not found" });
         if (itemsRes.error) throw itemsRes.error;
-        return res.status(200).json({ run: runRes.data, items: itemsRes.data ?? [] });
+        const items = (itemsRes.data ?? []) as Array<Record<string, unknown>>;
+        const evidenceRefs = Array.from(new Set(
+          items
+            .map((item) => item.evidence_ref)
+            .filter((value): value is string => typeof value === "string" && value.length > 0),
+        ));
+        let evidenceById = new Map<string, { id: string; kind: string | null; payload: unknown }>();
+        if (evidenceRefs.length > 0) {
+          const { data: evidenceRows, error: evidenceError } = await supabase
+            .from("testpass_evidence")
+            .select("id, kind, payload")
+            .in("id", evidenceRefs);
+          if (evidenceError) throw evidenceError;
+          evidenceById = new Map(
+            (evidenceRows ?? []).map((row) => [
+              row.id as string,
+              { id: row.id as string, kind: row.kind as string | null, payload: row.payload },
+            ]),
+          );
+        }
+        const itemsWithEvidence = items.map((item) => {
+          const ref = typeof item.evidence_ref === "string" ? item.evidence_ref : "";
+          const evidence = ref ? evidenceById.get(ref) : undefined;
+          return evidence ? { ...item, evidence, evidence_json: evidence.payload } : item;
+        });
+        return res.status(200).json({ run: runRes.data, items: itemsWithEvidence });
       }
 
       case "start_testpass_run": {
@@ -7191,8 +7599,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const profile = (["smoke", "standard", "deep"].includes(depth ?? "") ? depth : "standard") as string;
         const { data: pack } = await supabase
           .from("testpass_packs")
-          .select("slug, name")
+          .select("slug, name, owner_user_id")
           .eq("id", pack_id)
+          .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
           .maybeSingle();
         if (!pack) return res.status(404).json({ error: "Pack not found" });
 
