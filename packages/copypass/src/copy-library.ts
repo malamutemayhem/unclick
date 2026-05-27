@@ -40,6 +40,14 @@ export const DEFAULT_COPYPASS_CHECKS: CopyPassCheckDefinition[] = [
       "Replace the absolute claim with a qualified claim, or attach public proof in nearby copy.",
   },
   {
+    id: "detector-evasion-claim",
+    label: "Detector-evasion claim",
+    goal: "Copy should not market AI-detector bypass, deception, or guaranteed undetectability.",
+    severity: "high",
+    recommended_fix:
+      "Reposition the copy around quality, clarity, editing, and evidence instead of detector bypass claims.",
+  },
+  {
     id: "placeholder-copy",
     label: "Placeholder language",
     goal: "Shipped copy should not contain stale placeholders or drafting markers.",
@@ -186,6 +194,22 @@ const GUARANTEE_TERMS = [
   "never fail",
   "rank #1",
   "risk-free",
+];
+
+const DETECTOR_EVASION_TERMS = [
+  "ai detection bypass",
+  "bypass ai detection",
+  "bypass ai detector",
+  "beat ai detection",
+  "beat ai detector",
+  "evade ai detection",
+  "evade detection",
+  "gptzero safe",
+  "pass gptzero",
+  "pass turnitin",
+  "turnitin safe",
+  "turnitin-safe",
+  "undetectable ai",
 ];
 
 const AI_SLOP_TERMS = [
@@ -348,6 +372,20 @@ export function detectCopyPassFindings(
           requireCheck(checkById, "risky-guarantee-language"),
           "Outcome guarantee language detected",
           "The copy appears to promise a fixed result, access, compliance, revenue, or ranking outcome.",
+        ),
+      );
+    }
+
+    if (
+      isActive(activeCheckIds, "detector-evasion-claim") &&
+      containsAny(normalized, DETECTOR_EVASION_TERMS)
+    ) {
+      findings.push(
+        createFinding(
+          block,
+          requireCheck(checkById, "detector-evasion-claim"),
+          "Detector-evasion claim detected",
+          "The copy markets AI-detector bypass or guaranteed undetectability instead of quality review.",
         ),
       );
     }

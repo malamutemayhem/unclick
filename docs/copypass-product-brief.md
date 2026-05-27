@@ -1,6 +1,6 @@
 # CopyPass Product Brief
 
-CopyPass is a deterministic product-copy review pass for UnClick. It flags copy that is unclear, overconfident, stale, unsupported, urgency-heavy, tone-mismatched, internally inconsistent, AI-sloppy, or missing a direct next action before the wording reaches a public surface.
+CopyPass is a deterministic product-copy review pass for UnClick. It flags copy that is unclear, overconfident, stale, unsupported, urgency-heavy, tone-mismatched, internally inconsistent, AI-sloppy, detector-evasion positioned, or missing a direct next action before the wording reaches a public surface.
 
 ## First Slice
 
@@ -15,4 +15,4 @@ CopyPass is advisory. It does not promise legal, compliance, revenue, ranking, c
 
 ## Future Fit
 
-The package is intentionally small so it can later consume shared scanner output from the Pass family without coupling this slice to GEOPass, SEOPass, FlowPass, LegalPass, SlopPass, UXPass, SecurityPass, or TestPass internals. The current safe completion bar is deterministic evidence on supplied copy, not a paid model rewrite or detector-evasion product.
+The package is intentionally small so it can later consume shared scanner output from the Pass family without coupling this slice to GEOPass, SEOPass, FlowPass, LegalPass, SlopPass, UXPass, SecurityPass, or TestPass internals. The current safe completion bar is deterministic evidence on supplied copy, not a paid model rewrite, voice-profile humaniser, template engine, or detector-evasion product.

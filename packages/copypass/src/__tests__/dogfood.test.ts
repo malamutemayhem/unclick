@@ -46,6 +46,9 @@ describe("CopyPass dogfood", () => {
     expect(report.not_checked.map((item) => item.label)).toContain(
       "Legal, brand, or factual approval",
     );
+    expect(report.not_checked.map((item) => item.label)).toContain(
+      "Humaniser, template, or voice-profile rewrite",
+    );
     expect(report.findings).toEqual([]);
     expect(report.verdict).toBe("pass");
   });

@@ -13,6 +13,7 @@ export const CopyPassCheckIdSchema = z.enum([
   "cta-presence",
   "proof-trust-gap",
   "unsupported-superiority",
+  "detector-evasion-claim",
   "placeholder-copy",
   "risky-guarantee-language",
   "internal-consistency",

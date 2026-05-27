@@ -38,6 +38,11 @@ const DETERMINISTIC_NOT_CHECKED: CopyPassNotChecked[] = [
     reason: "CopyPass deterministic mode uses local checks and does not call paid LLMs.",
   },
   {
+    label: "Humaniser, template, or voice-profile rewrite",
+    reason:
+      "This deterministic review slice does not rewrite copy, store voice profiles, or apply style templates.",
+  },
+  {
     label: "Legal, brand, or factual approval",
     reason:
       "CopyPass flags copy-quality evidence but does not certify lawfulness, brand approval, or external truth.",

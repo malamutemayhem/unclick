@@ -122,6 +122,27 @@ describe("copypass-tool", () => {
     expect(run.overall_score).toBe(100);
     expect(run.disclaimer?.compact).toContain("Scoped review only");
     expect(run.not_checked?.map((item) => item.label)).toContain("Legal, brand, or factual approval");
+    expect(run.not_checked?.map((item) => item.label)).toContain(
+      "Humaniser, template, or voice-profile rewrite",
+    );
+  });
+
+  it("flags detector-evasion claims in MCP runs", async () => {
+    const run = (await copypassRun({
+      copy_text: "Rewrite AI text into undetectable AI that can pass GPTZero.",
+      channel: "feature_card",
+      audience: "founders",
+      goal: "quality positioning",
+      profile: "standard",
+    })) as {
+      copypass_verdict?: string;
+      findings?: Array<{ check_id?: string; severity?: string }>;
+    };
+
+    const finding = run.findings?.find((item) => item.check_id === "detector-evasion-claim");
+
+    expect(run.copypass_verdict).toBe("fail");
+    expect(finding?.severity).toBe("high");
   });
 
   it("attaches a CopyRoom exact-copy receipt from a source packet", async () => {

@@ -90,4 +90,22 @@ describe("CopyPass copy library", () => {
 
     expect(detectCopyPassFindings(blocks)).toEqual([]);
   });
+
+  it("flags detector-evasion claims as a high-risk positioning issue", () => {
+    const blocks: CopyPassCopyBlock[] = [
+      {
+        id: "claim",
+        kind: "feature",
+        text: "Rewrite AI text into undetectable AI that can pass Turnitin every time.",
+        public_only: true,
+      },
+    ];
+
+    const [finding] = detectCopyPassFindings(blocks).filter(
+      (item) => item.check_id === "detector-evasion-claim",
+    );
+
+    expect(finding?.severity).toBe("high");
+    expect(finding?.suggested_fix).toContain("quality");
+  });
 });

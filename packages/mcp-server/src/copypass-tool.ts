@@ -8,6 +8,7 @@ type CopyPassCheckId =
   | "cta-presence"
   | "proof-trust-gap"
   | "unsupported-superiority"
+  | "detector-evasion-claim"
   | "placeholder-copy"
   | "risky-guarantee-language"
   | "internal-consistency"
@@ -149,6 +150,11 @@ const COPYPASS_NOT_CHECKED = [
     reason: "CopyPass deterministic mode uses local evidence checks and does not call paid LLMs.",
   },
   {
+    label: "Humaniser, template, or voice-profile rewrite",
+    reason:
+      "This deterministic review slice does not rewrite copy, store voice profiles, or apply style templates.",
+  },
+  {
     label: "Legal, brand, or factual approval",
     reason:
       "CopyPass flags copy-quality evidence but does not certify lawfulness, brand approval, or external truth.",
@@ -165,6 +171,7 @@ const COPYPASS_CHECK_IDS: CopyPassCheckId[] = [
   "cta-presence",
   "proof-trust-gap",
   "unsupported-superiority",
+  "detector-evasion-claim",
   "placeholder-copy",
   "risky-guarantee-language",
   "internal-consistency",
@@ -210,6 +217,7 @@ const PROOF_TERMS = ["audit", "case study", "check", "checked", "checks", "custo
 const SUPERIORITY_TERMS = ["#1", "best", "industry leading", "leading", "most advanced", "number one", "revolutionary", "ultimate"];
 const PLACEHOLDER_TERMS = ["coming soon", "copy goes here", "insert copy", "lorem ipsum"];
 const GUARANTEE_TERMS = ["100%", "always", "compliance guaranteed", "guaranteed", "instant revenue", "never fail", "rank #1", "risk-free"];
+const DETECTOR_EVASION_TERMS = ["ai detection bypass", "bypass ai detection", "bypass ai detector", "beat ai detection", "beat ai detector", "evade ai detection", "evade detection", "gptzero safe", "pass gptzero", "pass turnitin", "turnitin safe", "turnitin-safe", "undetectable ai"];
 const AI_SLOP_TERMS = ["delve", "elevate", "game changing", "game-changing", "in today's digital landscape", "leverage", "not just", "revolutionize", "seamless", "tapestry", "transform your", "unlock", "whether you're"];
 const URGENCY_TERMS = ["act now", "before it's gone", "don't miss out", "last chance", "limited time", "only today"];
 const UI_AUTOMATION_TERMS = ["autopilot", "automatic", "automatically", "automated", "done for you", "fully built", "hands-off", "zero touch"];
@@ -383,6 +391,19 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
         "high",
         "The copy appears to promise a fixed result, access, compliance, revenue, or ranking outcome.",
         "Use advisory, evidence-backed language and remove outcome guarantees.",
+        copyText,
+      ),
+    );
+  }
+
+  if (containsAny(normalized, DETECTOR_EVASION_TERMS)) {
+    findings.push(
+      createCopyFinding(
+        "detector-evasion-claim",
+        "Detector-evasion claim detected",
+        "high",
+        "The copy markets AI-detector bypass or guaranteed undetectability instead of quality review.",
+        "Reposition the copy around quality, clarity, editing, and evidence instead of detector bypass claims.",
         copyText,
       ),
     );
