@@ -13,7 +13,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 562ec208aa54 | 16311 |
+| AUTOPILOT.md | 486b704a6072 | 16305 |
 | FLEET_SYNC.md | 41ebcbca94b0 | 13200 |
 | docs/unclick-context-boot-packet.md | 7cf131cf22e0 | 4785 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
@@ -34,7 +34,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAnalytics.tsx | 8e3ab82ef00f | 10336 |
 | src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
-| src/pages/admin/AdminEcosystemPages.tsx | 4f96b03ff29a | 13583 |
+| src/pages/admin/AdminEcosystemPages.tsx | b045ed683458 | 13590 |
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
 | src/pages/admin/AdminBrainmap.tsx | 21baca89f0d0 | 27078 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
@@ -103,7 +103,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
 | scripts/pinballwake-coding-room.mjs | 9fa5689c555e | 25310 |
-| scripts/pinballwake-continuous-improvement-room.mjs | c41cf0bacf97 | 14872 |
+| scripts/pinballwake-continuous-improvement-room.mjs | 8c23d67cad4e | 14869 |
 | scripts/pinballwake-dogfood-room.mjs | d161028d1382 | 2782 |
 | scripts/pinballwake-event-ledger-room.mjs | e8f8f9f84123 | 16104 |
 | scripts/pinballwake-jobs-room.mjs | c77c394081c2 | 14217 |
@@ -121,7 +121,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 44b7d10cddc2 | 14430 |
+| scripts/pinballwake-xpass-gate-room.mjs | fc1947d2c5ee | 14412 |
 | packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |
@@ -186,7 +186,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 45 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 183 |
+| Tools | MCP and gateway capabilities available to seats. | 184 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 12 |
@@ -452,6 +452,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | shopify | shopify MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/shopify-tool.ts |
 | slack | slack MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/slack-tool.ts |
 | sleeper | sleeper MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sleeper-tool.ts |
+| sloppass | sloppass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sloppass-tool.ts |
 | speedrun | speedrun MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/speedrun-tool.ts |
 | splitwise | splitwise MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/splitwise-tool.ts |
 | spotify | spotify MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/spotify-tool.ts |
@@ -931,6 +932,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | shopify | shopify MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/shopify-tool.ts |
 | Tools | MCP tool | slack | slack MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/slack-tool.ts |
 | Tools | MCP tool | sleeper | sleeper MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sleeper-tool.ts |
+| Tools | MCP tool | sloppass | sloppass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sloppass-tool.ts |
 | Tools | MCP tool | speedrun | speedrun MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/speedrun-tool.ts |
 | Tools | MCP tool | splitwise | splitwise MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/splitwise-tool.ts |
 | Tools | MCP tool | spotify | spotify MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/spotify-tool.ts |
@@ -993,7 +995,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Internal name | Public name | Meaning |
 | --- | --- | --- |
 | EnterprisePass | CompliancePass | Enterprise readiness checks need a public-safe product name. |
-| SlopPass | QualityPass | Roughness and polish checks should be framed constructively. |
+| QualityPass | SlopPass | Old QualityPass references now resolve to SlopPass. |
 | Fishbowl | Boardroom | Internal worker discussion becomes a user-facing room name. |
 | To-Do List | Jobs | Task queue language maps to the current admin Jobs surface. |
 | Heartbeat | Heartbeat Master | The copy policy that teaches scheduled seats how to pulse. |

@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 488,
+    "inventory": 489,
     "source_manifest": 166,
     "pages": 81,
-    "tools": 183,
+    "tools": 184,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 183
+      "count": 184
     },
     {
       "id": "rooms",
@@ -4412,6 +4412,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-sloppass-packages-mcp-server-src-sloppass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "sloppass",
+      "kind": "MCP tool",
+      "meaning": "sloppass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/sloppass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-speedrun-packages-mcp-server-src-speedrun-tool-ts-no-route",
       "division": "Tools",
       "name": "speedrun",
@@ -6225,6 +6235,11 @@
       "packages/mcp-server/src/sleeper-tool.ts"
     ],
     [
+      "sloppass",
+      "sloppass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/sloppass-tool.ts"
+    ],
+    [
       "speedrun",
       "speedrun MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/speedrun-tool.ts"
@@ -6593,9 +6608,9 @@
       "Enterprise readiness checks need a public-safe product name."
     ],
     [
-      "SlopPass",
       "QualityPass",
-      "Roughness and polish checks should be framed constructively."
+      "SlopPass",
+      "Old QualityPass references now resolve to SlopPass."
     ],
     [
       "Fishbowl",
@@ -6672,8 +6687,8 @@
   "source_manifest": [
     {
       "source": "AUTOPILOT.md",
-      "hash": "562ec208aa54",
-      "bytes": 16311
+      "hash": "486b704a6072",
+      "bytes": 16305
     },
     {
       "source": "FLEET_SYNC.md",
@@ -6777,8 +6792,8 @@
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "4f96b03ff29a",
-      "bytes": 13583
+      "hash": "b045ed683458",
+      "bytes": 13590
     },
     {
       "source": "src/pages/admin/Fishbowl.tsx",
@@ -7122,8 +7137,8 @@
     },
     {
       "source": "scripts/pinballwake-continuous-improvement-room.mjs",
-      "hash": "c41cf0bacf97",
-      "bytes": 14872
+      "hash": "8c23d67cad4e",
+      "bytes": 14869
     },
     {
       "source": "scripts/pinballwake-dogfood-room.mjs",
@@ -7212,8 +7227,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "44b7d10cddc2",
-      "bytes": 14430
+      "hash": "fc1947d2c5ee",
+      "bytes": 14412
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",

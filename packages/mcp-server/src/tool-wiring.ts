@@ -800,6 +800,9 @@ import {
   copypassStatus,
 } from "./copypass-tool.js";
 
+// ─── SlopPass (AI-code quality and slop-signal QC) ─────────────────────────
+import { sloppassRun } from "./sloppass-tool.js";
+
 // --- FidelityCopy / FidelityPass (deterministic preserve-lane receipts) ------
 import {
   fidelitycopyCopy,
@@ -12319,6 +12322,70 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── sloppass-tool.ts (AI-code quality QC and diff review) ────────────────
+  {
+    name: "sloppass_run",
+    description: "Run SlopPass against caller-provided source files or a unified diff. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, read repositories, persist source content, or make paid model calls by default.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [{ required: ["files"] }, { required: ["diff"] }],
+      properties: {
+        target: {
+          type: "object",
+          additionalProperties: false,
+          description: "Target being inspected.",
+          properties: {
+            kind: { type: "string", enum: ["repo", "branch", "diff", "files", "pr", "artifact"] },
+            label: { type: "string", minLength: 1 },
+            files: { type: "array", items: { type: "string", minLength: 1 } },
+            ref: { type: "string" },
+          },
+          required: ["kind", "label"],
+        },
+        files: {
+          type: "array",
+          minItems: 1,
+          description: "Source files to inspect. Use this for scoped local artifacts or paste-backed code review.",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              path: { type: "string", minLength: 1 },
+              content: { type: "string" },
+              start_line: { type: "number", description: "Optional starting line for a diff hunk or sliced file." },
+            },
+            required: ["path", "content"],
+          },
+        },
+        diff: { type: "string", description: "Unified diff text to inspect. Added lines are converted into scoped file evidence." },
+        checks: {
+          type: "array",
+          minItems: 1,
+          description: "Optional SlopPass check categories to run. Defaults to all built-in categories.",
+          items: {
+            type: "string",
+            enum: [
+              "grounding_api_reality",
+              "logic_plausibility",
+              "scaffold_without_substance",
+              "test_proof_theatre",
+              "slopocalypse_failure_mode",
+              "maintenance_change_risk",
+            ],
+          },
+        },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks." },
+        provider: {
+          type: "string",
+          enum: ["http", "openai", "anthropic", "google", "ollama"],
+          description: "Provider mode to record in the receipt. Defaults to http and does not call a model.",
+        },
+      },
+      required: ["target"],
+    },
+  },
+
   // ── copypass-tool.ts (copy quality QC with CopyRoom receipt support) ─────
   {
     name: "copypass_run",
@@ -13652,6 +13719,9 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // copypass-tool.ts
   copypass_run:            (args) => copypassRun(args),
   copypass_status:         (args) => copypassStatus(args),
+
+  // sloppass-tool.ts
+  sloppass_run:            (args) => sloppassRun(args),
 
   // fidelitycopy-tool.ts
   fidelitycopy_copy:       (args) => fidelitycopyCopy(args),
