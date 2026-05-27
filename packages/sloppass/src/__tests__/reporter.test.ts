@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { generateHtmlReport, generateJsonReport, generateMarkdownReport } from "../reporter.js";
+import {
+  generateBuildFixPrompt,
+  generateHtmlReport,
+  generateJsonReport,
+  generateMarkdownReport,
+} from "../reporter.js";
 import { runSlopPass } from "../runner/index.js";
 
 describe("SlopPass reporter", () => {
@@ -13,7 +18,22 @@ describe("SlopPass reporter", () => {
     const html = generateHtmlReport(result);
 
     expect(markdown).toContain("Scoped review only");
+    expect(markdown).toContain("Build-fix prompt");
+    expect(markdown).toContain("Do not change orthogonal code");
     expect(html).toContain("SlopPass is a scoped quality review");
+  });
+
+  it("emits an agent-ready build-fix prompt grouped by severity", async () => {
+    const result = await runSlopPass({
+      target: { kind: "files", label: "prompt", files: ["src/prompt.ts"] },
+      files: [{ path: "src/prompt.ts", content: "export const value: any = eval(input);" }],
+    });
+
+    const prompt = generateBuildFixPrompt(result);
+
+    expect(prompt).toContain("BLOCKERS");
+    expect(prompt).toContain("Dynamic code execution is present");
+    expect(prompt).toContain("src/prompt.ts:1");
   });
 
   it("emits JSON with the canonical result shape", async () => {

@@ -11,6 +11,9 @@ export type SlopPassSmellCheckId =
   | "unsafe-dynamic-execution"
   | "secret-like-literal"
   | "catch-all-fallback"
+  | "weak-assertion"
+  | "skipped-test"
+  | "tautological-test"
   | "robustness-wording"
   | "generated-copy-marker";
 
@@ -87,6 +90,40 @@ export const DEFAULT_SLOPPASS_SMELL_CHECKS: SlopPassSmellCheck[] = [
       "Return a visible error, log structured context, or add an explicit not-checked result.",
   },
   {
+    id: "weak-assertion",
+    category: "test_proof_theatre",
+    severity: "medium",
+    title: "Weak test assertion is present",
+    pattern: /\.(?:toBeDefined|toBeTruthy|toBeFalsy)\s*\(\s*\)/i,
+    why_it_matters:
+      "Generated fixes sometimes weaken assertions so tests pass without proving the behavior.",
+    suggested_fix:
+      "Assert the exact expected value or state transition, then prove the old failure would fail this test.",
+  },
+  {
+    id: "skipped-test",
+    category: "test_proof_theatre",
+    severity: "high",
+    title: "Skipped or todo test is present",
+    pattern: /\b(?:describe|it|test)\.(?:skip|todo)\s*\(/i,
+    why_it_matters:
+      "Skipped tests can make a run look green while the risky behavior is explicitly not checked.",
+    suggested_fix:
+      "Unskip the test, make it fail for the old behavior, then fix the implementation.",
+  },
+  {
+    id: "tautological-test",
+    category: "test_proof_theatre",
+    severity: "high",
+    title: "Tautological test assertion is present",
+    pattern:
+      /expect\s*\(\s*(true|false|null|undefined|["'][^"']*["']|\d+)\s*\)\s*\.\s*(?:toBe|toEqual|toStrictEqual)\s*\(\s*\1\s*\)/i,
+    why_it_matters:
+      "A test that asserts a constant against itself proves the test runner works, not the product behavior.",
+    suggested_fix:
+      "Assert real output from the subject under test and connect it to the user-facing behavior.",
+  },
+  {
     id: "robustness-wording",
     category: "slopocalypse_failure_mode",
     severity: "info",
@@ -119,6 +156,10 @@ function lineOf(content: string, index: number): number {
   return content.slice(0, index).split(/\r?\n/).length;
 }
 
+function actualLineOf(file: SlopPassSourceFile, index: number): number {
+  return lineOf(file.content, index) + (file.start_line ?? 1) - 1;
+}
+
 function defaultEvidence(match: RegExpExecArray): string {
   const value = match[0].replace(/\s+/g, " ").trim();
   return value.length > 160 ? `${value.slice(0, 157)}...` : value;
@@ -138,8 +179,13 @@ function findingFromMatch(
     suggested_fix: check.suggested_fix,
     confidence_note: check.confidence_note,
     file: file.path,
-    line: lineOf(file.content, match.index),
+    line: actualLineOf(file, match.index),
   };
+}
+
+function globalPattern(pattern: RegExp): RegExp {
+  const flags = pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`;
+  return new RegExp(pattern.source, flags);
 }
 
 export function getSlopPassSmellChecks(
@@ -158,10 +204,12 @@ export function detectSlopSmells(
 
   for (const file of files) {
     for (const check of checks) {
-      check.pattern.lastIndex = 0;
-      const match = check.pattern.exec(file.content);
-      if (!match) continue;
-      findings.push(findingFromMatch(file, check, match));
+      const pattern = globalPattern(check.pattern);
+      let match: RegExpExecArray | null;
+      while ((match = pattern.exec(file.content)) !== null) {
+        findings.push(findingFromMatch(file, check, match));
+        if (match[0] === "") pattern.lastIndex += 1;
+      }
     }
   }
 

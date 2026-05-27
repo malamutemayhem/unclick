@@ -1,6 +1,6 @@
 # SlopPass Product Brief
 
-SlopPass is UnClick's scoped review layer for sloppy code and risky AI-generated output. It does not certify correctness. It collects evidence-backed static signals, states exactly what was checked, and leaves unknown runtime paths as unknown.
+SlopPass is UnClick's scoped review layer for sloppy code and risky AI-generated output. It does not certify correctness. It collects evidence-backed static signals, can inspect source files or unified PR diffs, states exactly what was checked, and leaves unknown runtime paths as unknown.
 
 ## Chunk 1
 
@@ -22,4 +22,4 @@ Each report includes the target, inspected files, attempted checks, not-checked 
 
 ## Boundaries
 
-SlopPass must not execute customer code, inspect private repositories without permission, print secrets, use paid providers by default, or imply a quality guarantee. Later chunks can connect shared scanner output and richer review hats, but chunk 1 stays self-contained and safe.
+SlopPass must not execute customer code, inspect private repositories without permission, print secrets, use paid providers by default, or imply a quality guarantee. The deterministic runner is allowed to inspect provided file text or diff text only. Later chunks can connect shared scanner output and richer review hats, but chunk 1 stays self-contained and safe.

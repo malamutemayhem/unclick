@@ -21,6 +21,7 @@ export const SlopPassTargetSchema = z.object({
 export const SlopPassSourceFileSchema = z.object({
   path: z.string().min(1),
   content: z.string(),
+  start_line: z.number().int().positive().optional(),
 });
 
 export const SlopPassFindingSchema = z.object({
@@ -70,12 +71,23 @@ export const SlopPassResultSchema = z.object({
   disclaimer: SlopPassDisclaimerSchema,
 });
 
-export const SlopPassRunInputSchema = z.object({
-  target: SlopPassTargetSchema,
-  files: z.array(SlopPassSourceFileSchema).min(1),
-  checks: z.array(SlopPassCategorySchema).optional(),
-  provider: z.enum(["openai", "anthropic", "google", "ollama", "http"]).default("http"),
-});
+export const SlopPassRunInputSchema = z
+  .object({
+    target: SlopPassTargetSchema,
+    files: z.array(SlopPassSourceFileSchema).optional(),
+    diff: z.string().optional(),
+    checks: z.array(SlopPassCategorySchema).optional(),
+    provider: z.enum(["openai", "anthropic", "google", "ollama", "http"]).default("http"),
+  })
+  .superRefine((value, ctx) => {
+    if (value.files?.some((file) => file.content.trim().length > 0)) return;
+    if (typeof value.diff === "string" && value.diff.trim()) return;
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["files"],
+      message: "SlopPass requires at least one source file or a unified diff.",
+    });
+  });
 
 export type SlopPassRunInput = z.input<typeof SlopPassRunInputSchema>;
 export type SlopPassParsedRunInput = z.output<typeof SlopPassRunInputSchema>;

@@ -36,6 +36,32 @@ describe("SlopPass runner", () => {
     );
   });
 
+  it("runs against a unified diff and keeps evidence line numbers", async () => {
+    const result = await runSlopPass({
+      target: { kind: "diff", label: "PR diff", ref: "abc123" },
+      diff: [
+        "diff --git a/src/feature.ts b/src/feature.ts",
+        "--- a/src/feature.ts",
+        "+++ b/src/feature.ts",
+        "@@ -40,6 +40,7 @@ export function feature() {",
+        " const before = true;",
+        "+const value: any = eval(input);",
+        " return before;",
+      ].join("\n"),
+      checks: ["grounding_api_reality", "maintenance_change_risk"],
+    });
+
+    expect(result.scope.files_reviewed).toEqual(["src/feature.ts"]);
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({
+        title: "Dynamic code execution is present",
+        file: "src/feature.ts",
+        line: 41,
+      }),
+    );
+    expect(result.verdict).toBe("fail");
+  });
+
   it("supports a stripped promptfoo-style model provider scaffold", async () => {
     const result = await runSlopPass({
       target: { kind: "files", label: "echo", files: ["src/a.ts"] },

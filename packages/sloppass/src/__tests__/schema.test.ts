@@ -24,12 +24,37 @@ describe("SlopPass run schema", () => {
     ]);
   });
 
-  it("rejects a run without files", () => {
+  it("accepts a diff instead of source files", () => {
+    const parsed = SlopPassRunInputSchema.parse({
+      target: { kind: "diff", label: "diff-only" },
+      diff: [
+        "diff --git a/src/example.ts b/src/example.ts",
+        "--- a/src/example.ts",
+        "+++ b/src/example.ts",
+        "@@ -1 +1 @@",
+        "+export const ok = true;",
+      ].join("\n"),
+    });
+
+    expect(parsed.diff).toContain("src/example.ts");
+    expect(parsed.provider).toBe("http");
+  });
+
+  it("rejects a run without files or diff", () => {
     expect(() =>
       SlopPassRunInputSchema.parse({
         target: { kind: "files", label: "empty" },
         files: [],
       })
+    ).toThrow();
+  });
+
+  it("rejects empty source file text", () => {
+    expect(() =>
+      SlopPassRunInputSchema.parse({
+        target: { kind: "files", label: "empty file" },
+        files: [{ path: "src/empty.ts", content: "" }],
+      }),
     ).toThrow();
   });
 

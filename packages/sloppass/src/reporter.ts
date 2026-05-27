@@ -16,6 +16,36 @@ export function generateJsonReport(result: SlopPassResult): object {
   };
 }
 
+export function generateBuildFixPrompt(result: SlopPassResult): string {
+  const grouped = {
+    blockers: result.findings.filter((finding) => finding.severity === "critical" || finding.severity === "high"),
+    warnings: result.findings.filter((finding) => finding.severity === "medium" || finding.severity === "low"),
+    nudges: result.findings.filter((finding) => finding.severity === "info"),
+  };
+  const lines = [
+    "SlopPass build-fix prompt",
+    "",
+    "Fix only the issues below. Do not change orthogonal code. Keep the patch inside the inspected scope unless a finding explicitly names a required extra file.",
+  ];
+
+  for (const [label, findings] of Object.entries(grouped)) {
+    lines.push("", label.toUpperCase());
+    if (findings.length === 0) {
+      lines.push("- None.");
+      continue;
+    }
+    for (const finding of findings) {
+      const location = finding.file ? ` (${finding.file}${finding.line ? `:${finding.line}` : ""})` : "";
+      lines.push(`- [${finding.category}] ${finding.title}${location}`);
+      lines.push(`  Evidence: ${finding.evidence}`);
+      lines.push(`  Fix: ${finding.suggested_fix}`);
+    }
+  }
+
+  lines.push("", "After fixing, rerun SlopPass on the same target and keep the new receipt with the PR.");
+  return lines.join("\n");
+}
+
 export function generateMarkdownReport(result: SlopPassResult): string {
   const lines: string[] = [
     `# SlopPass Report - ${result.target.label}`,
@@ -54,6 +84,7 @@ export function generateMarkdownReport(result: SlopPassResult): string {
     lines.push("");
   }
 
+  lines.push("## Build-fix prompt", "", "```text", generateBuildFixPrompt(result), "```", "");
   lines.push("## Disclaimer", "", result.disclaimer.body, "");
   return lines.join("\n");
 }

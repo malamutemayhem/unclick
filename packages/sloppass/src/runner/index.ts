@@ -1,5 +1,6 @@
 import { DEFAULT_CHECKS } from "../categories.js";
 import { SLOPPASS_DISCLAIMER } from "../disclaimer.js";
+import { sourceFilesFromUnifiedDiff } from "../diff.js";
 import { SlopPassRunInputSchema, type SlopPassRunInput } from "../schema.js";
 import type { SlopPassResult, SlopPassSeverity } from "../types.js";
 import { detectSlopSignals } from "./detectors.js";
@@ -15,9 +16,16 @@ function emptyCounts(): Record<SlopPassSeverity, number> {
 export async function runSlopPass(input: SlopPassRunInput): Promise<SlopPassResult> {
   const parsed = SlopPassRunInputSchema.parse(input);
   const checks = parsed.checks ?? DEFAULT_CHECKS;
+  const files =
+    parsed.files && parsed.files.length > 0
+      ? parsed.files
+      : sourceFilesFromUnifiedDiff(parsed.diff ?? "");
+  if (files.length === 0) {
+    throw new Error("SlopPass could not find any added source lines in the provided diff.");
+  }
   const provider = getProvider(parsed.provider);
-  const providerFindings = await provider.evaluate(parsed.files, checks);
-  const heuristicFindings = detectSlopSignals(parsed.files).filter((finding) =>
+  const providerFindings = await provider.evaluate(files, checks);
+  const heuristicFindings = detectSlopSignals(files).filter((finding) =>
     checks.includes(finding.category)
   );
   const findings = [...providerFindings, ...heuristicFindings];
@@ -35,7 +43,7 @@ export async function runSlopPass(input: SlopPassRunInput): Promise<SlopPassResu
     target: parsed.target,
     scope: {
       checks_attempted: checks,
-      files_reviewed: parsed.files.map((file) => file.path),
+      files_reviewed: files.map((file) => file.path),
       provider: provider.id,
     },
     verdict: toSlopPassVerdict(counts),
@@ -47,7 +55,7 @@ export async function runSlopPass(input: SlopPassRunInput): Promise<SlopPassResu
         : "SlopPass found no major slop signals in the inspected scope.",
       counts_by_severity: counts,
       coverage_note:
-        "This result only covers the target, files, and checks listed in the scope. Unknown runtime paths stay unknown.",
+        "This result only covers the target, diff or files, and checks listed in the scope. Unknown runtime paths stay unknown.",
     },
     disclaimer: SLOPPASS_DISCLAIMER,
   };
