@@ -22,7 +22,9 @@ import {
   evaluateQuietWindowAutonomyProofLadder,
   extractBoardroomTodoIdFromCodingRoomJob,
   fetchUnClickActionableTodos,
+  fetchUnClickAssignedTodos,
   fetchUnClickOrchestratorContext,
+  fetchUnClickTodoComments,
   hydrateAutonomousRunnerLedgerFromUnClick,
   inspectAutonomousRunnerJobSafety,
   markUnsafeJobsBlockedForAutonomousRunner,
@@ -1417,6 +1419,109 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(result.ok, true);
     assert.equal(result.todos.length, 1);
     assert.equal(result.todos[0].id, "todo-sse");
+  });
+
+  it("falls back to memory-admin when the UnClick MCP actionable queue is unavailable", async () => {
+    const calls = [];
+    const result = await fetchUnClickActionableTodos({
+      agentId: "runner-test",
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      fetchImpl: async (url, init = {}) => {
+        calls.push({ url: String(url), body: JSON.parse(init.body || "{}") });
+        if (String(url).endsWith("/api/mcp")) {
+          return { ok: false, status: 500 };
+        }
+        return {
+          ok: true,
+          async json() {
+            return {
+              todos: [{ id: "todo-fallback", title: "Claim through memory-admin" }],
+              response_bounds: { todos_returned: 1 },
+            };
+          },
+        };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.queue_transport, "memory-admin-fallback");
+    assert.equal(result.fallback_from.reason, "unclick_mcp_http_error");
+    assert.equal(result.todos[0].id, "todo-fallback");
+    assert.equal(calls.length, 2);
+    assert.equal(calls[1].url, "https://unclick.test/api/memory-admin?action=fishbowl_list_actionable_todos");
+    assert.equal(calls[1].body.agent_id, "runner-test");
+    assert.equal(calls[1].body.include_description, true);
+  });
+
+  it("falls back to memory-admin for assigned queue reads and comment hydration", async () => {
+    const calls = [];
+    const result = await fetchUnClickAssignedTodos({
+      agentId: "runner-test",
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      fetchImpl: async (url, init = {}) => {
+        const body = JSON.parse(init.body || "{}");
+        calls.push({ url: String(url), body });
+        if (String(url).endsWith("/api/mcp")) {
+          return { ok: false, status: 500 };
+        }
+        if (String(url).includes("fishbowl_list_todos")) {
+          return {
+            ok: true,
+            async json() {
+              return {
+                todos: [{ id: "11111111-1111-4111-8111-111111111111", title: "Assigned live job" }],
+                response_bounds: { todos_returned: 1 },
+              };
+            },
+          };
+        }
+        return {
+          ok: true,
+          async json() {
+            return {
+              comments: [{ text: "scope pack: keep it tiny", created_at: "2026-05-28T00:00:00.000Z" }],
+            };
+          },
+        };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.queue_transport, "memory-admin-fallback");
+    assert.equal(result.todos.length, 1);
+    assert.equal(result.todos[0].latest_comment_text, "scope pack: keep it tiny");
+    assert.equal(
+      calls.some((call) => call.url === "https://unclick.test/api/memory-admin?action=fishbowl_list_comments"),
+      true,
+    );
+  });
+
+  it("falls back to memory-admin for direct todo comment reads", async () => {
+    const result = await fetchUnClickTodoComments({
+      agentId: "runner-test",
+      todoId: "11111111-1111-4111-8111-111111111111",
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      fetchImpl: async (url) => {
+        if (String(url).endsWith("/api/mcp")) {
+          return { ok: false, status: 500 };
+        }
+        return {
+          ok: true,
+          async json() {
+            return {
+              comments: [{ text: "fallback comment", created_at: "2026-05-28T00:00:00.000Z" }],
+            };
+          },
+        };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.queue_transport, "memory-admin-fallback");
+    assert.equal(result.comments[0].text, "fallback comment");
   });
 
   it("reads Orchestrator context for a scheduled seat_handshake proof", async () => {

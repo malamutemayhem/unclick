@@ -7618,8 +7618,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "92b4e63503f5",
-      "bytes": 20902
+      "hash": "0da18178f44e",
+      "bytes": 20954
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",

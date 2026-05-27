@@ -341,7 +341,7 @@ export function selectXPassChecks(input = {}) {
   if (hasAny(allText, ["mcp", "tool", "tools", "connector", "connectors", "api endpoint", "native endpoint"])) {
     addReason(reasons, "testpass", "target text mentions tools/connectors/MCP");
   }
-  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
+  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
     addReason(reasons, "uxpass", "target text mentions UI/UX/visual changes");
   }
   if (hasAny(allText, ["security", "auth", "oauth", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "password", "redaction", "prompt injection", "insecure output", "llm", "model output", "sandbox"])) {

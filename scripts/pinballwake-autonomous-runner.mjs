@@ -747,6 +747,111 @@ async function callUnClickMcpTool({
   };
 }
 
+async function callUnClickMemoryAdminAction({
+  mcpUrl = DEFAULT_UNCLICK_MCP_URL,
+  apiKey,
+  action,
+  body = {},
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  if (!apiKey) {
+    return { ok: false, reason: "missing_unclick_api_key" };
+  }
+  if (!mcpUrl) {
+    return { ok: false, reason: "missing_unclick_mcp_url" };
+  }
+  if (!action) {
+    return { ok: false, reason: "missing_unclick_memory_admin_action" };
+  }
+  if (typeof fetchImpl !== "function") {
+    return { ok: false, reason: "missing_fetch_impl" };
+  }
+
+  const response = await fetchImpl(memoryAdminActionUrlFromMcpUrl(mcpUrl, action), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const payload = await response?.json?.().catch(() => ({}));
+  if (!response?.ok) {
+    return {
+      ok: false,
+      reason: "unclick_memory_admin_http_error",
+      status: response?.status ?? null,
+      error: compact(payload?.error || payload?.message || "", 500) || null,
+    };
+  }
+  if (payload?.error) {
+    return {
+      ok: false,
+      reason: "unclick_memory_admin_action_error",
+      error: compact(payload.error, 500),
+    };
+  }
+
+  return {
+    ok: true,
+    data: payload && typeof payload === "object" ? payload : {},
+  };
+}
+
+function decorateMemoryAdminFallbackSuccess(data = {}, failedMcpResult = {}) {
+  return {
+    ok: true,
+    data,
+    queue_transport: "memory-admin-fallback",
+    fallback_from: {
+      transport: "mcp",
+      reason: failedMcpResult.reason || null,
+      status: failedMcpResult.status ?? null,
+      error: failedMcpResult.error ?? null,
+    },
+  };
+}
+
+async function callUnClickQueueToolWithMemoryAdminFallback({
+  mcpUrl = DEFAULT_UNCLICK_MCP_URL,
+  apiKey,
+  fetchImpl = globalThis.fetch,
+  toolName,
+  memoryAdminAction,
+  arguments: toolArguments = {},
+} = {}) {
+  const result = await callUnClickMcpTool({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    toolName,
+    arguments: toolArguments,
+  });
+  if (result.ok) {
+    return {
+      ...result,
+      queue_transport: "mcp",
+    };
+  }
+
+  const fallback = await callUnClickMemoryAdminAction({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    action: memoryAdminAction,
+    body: toolArguments,
+  });
+  if (fallback.ok) {
+    return decorateMemoryAdminFallbackSuccess(fallback.data, result);
+  }
+
+  return {
+    ...result,
+    memory_admin_fallback: fallback,
+  };
+}
+
 export async function fetchUnClickOrchestratorContext({
   mcpUrl = DEFAULT_UNCLICK_MCP_URL,
   apiKey = "",
@@ -928,11 +1033,12 @@ export async function fetchUnClickActionableTodos({
   apiKey = "",
   fetchImpl = globalThis.fetch,
 } = {}) {
-  const result = await callUnClickMcpTool({
+  const result = await callUnClickQueueToolWithMemoryAdminFallback({
     mcpUrl,
     apiKey,
     fetchImpl,
     toolName: "list_actionable_todos",
+    memoryAdminAction: "fishbowl_list_actionable_todos",
     arguments: {
       agent_id: agentId,
       limit,
@@ -947,6 +1053,8 @@ export async function fetchUnClickActionableTodos({
     ok: true,
     todos,
     response_bounds: result.data?.response_bounds || null,
+    queue_transport: result.queue_transport || null,
+    fallback_from: result.fallback_from || null,
   };
 }
 
@@ -957,11 +1065,12 @@ export async function fetchUnClickAssignedTodos({
   apiKey = "",
   fetchImpl = globalThis.fetch,
 } = {}) {
-  const result = await callUnClickMcpTool({
+  const result = await callUnClickQueueToolWithMemoryAdminFallback({
     mcpUrl,
     apiKey,
     fetchImpl,
     toolName: "list_todos",
+    memoryAdminAction: "fishbowl_list_todos",
     arguments: {
       agent_id: agentId,
       assigned_to_agent_id: agentId,
@@ -1006,6 +1115,8 @@ export async function fetchUnClickAssignedTodos({
     ok: true,
     todos: enrichedTodos,
     response_bounds: result.data?.response_bounds || null,
+    queue_transport: result.queue_transport || null,
+    fallback_from: result.fallback_from || null,
   };
 }
 
@@ -1021,11 +1132,12 @@ export async function fetchUnClickTodoComments({
     return { ok: true, comments: [], response_bounds: null, skipped: true, reason: "missing_todo_id" };
   }
 
-  const result = await callUnClickMcpTool({
+  const result = await callUnClickQueueToolWithMemoryAdminFallback({
     mcpUrl,
     apiKey,
     fetchImpl,
     toolName: "list_comments",
+    memoryAdminAction: "fishbowl_list_comments",
     arguments: {
       agent_id: agentId,
       target_kind: "todo",
@@ -1040,6 +1152,8 @@ export async function fetchUnClickTodoComments({
     ok: true,
     comments: Array.isArray(result.data?.comments) ? result.data.comments : [],
     response_bounds: result.data?.response_bounds || null,
+    queue_transport: result.queue_transport || null,
+    fallback_from: result.fallback_from || null,
   };
 }
 
