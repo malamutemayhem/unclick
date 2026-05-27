@@ -214,10 +214,11 @@ export function buildVisualDesignDirectorReport(
       "Badge-heavy and text-heavy first screens make the page look busy while hiding the actual next action.",
       [
         "Collapse secondary chips into one summary state or a grouped progress cell.",
+        "Collapse crowded row actions into one primary control plus a menu, expansion, or stepper summary.",
         "Give rows a clear scan path: primary label, state, owner, proof/action.",
         "Move low-priority detail into expansion, hover, or a side panel.",
       ],
-      ["badge_overload", "dense_first_screen"],
+      ["badge_overload", "dense_first_screen", "crowded_action_cluster"],
       summary,
     ),
     directive(

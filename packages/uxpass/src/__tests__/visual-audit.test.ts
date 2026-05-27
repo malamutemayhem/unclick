@@ -150,6 +150,29 @@ describe("evaluateVisualAuditSnapshot", () => {
     expect(summary.byKind.badge_overload).toBe(1);
   });
 
+  it("flags crowded rows of compact action controls", () => {
+    const summary = evaluateVisualAuditSnapshot({
+      ...cleanSnapshot,
+      elements: ["Brief", "Build", "Proof", "Review", "Ship"].map((label, index) => ({
+        selector: `.action-${index}`,
+        tagName: "button",
+        role: "button",
+        text: label,
+        visible: true,
+        rect: rect(20 + index * 70, 80, 64, 30),
+        scrollWidth: 64,
+        scrollHeight: 30,
+        clientWidth: 64,
+        clientHeight: 30,
+        fontSize: 12,
+        color: "rgb(255, 255, 255)",
+        backgroundColor: "rgb(15, 23, 42)",
+      })),
+    });
+    expect(summary.byKind.crowded_action_cluster).toBe(1);
+    expect(summary.issues.find((issue) => issue.kind === "crowded_action_cluster")?.remediation).toMatch(/menu|expansion|stepper/i);
+  });
+
   it("flags weak hierarchy and unclear action prominence", () => {
     const summary = evaluateVisualAuditSnapshot({
       ...cleanSnapshot,

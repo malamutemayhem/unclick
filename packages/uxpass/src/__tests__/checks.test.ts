@@ -220,6 +220,24 @@ const badVisualAudit: VisualAuditSnapshot = {
         backgroundColor: backgrounds[index],
       };
     }),
+    ...["Brief", "Build", "Proof", "Review", "Ship"].map((label, index) => {
+      const left = 8 + index * 58;
+      return {
+        selector: `.action-${index}`,
+        tagName: "button",
+        role: "button",
+        text: label,
+        visible: true,
+        rect: { x: left, y: 165, width: 54, height: 30, top: 165, right: left + 54, bottom: 195, left },
+        scrollWidth: 54,
+        scrollHeight: 30,
+        clientWidth: 54,
+        clientHeight: 30,
+        fontSize: 12,
+        color: "rgb(255, 255, 255)",
+        backgroundColor: "rgb(15, 23, 42)",
+      };
+    }),
     ...denseTextElements,
   ],
 };

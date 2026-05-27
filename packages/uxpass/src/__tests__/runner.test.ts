@@ -130,7 +130,7 @@ describe("evaluateUrl - integration with live HTTP server", () => {
       expect(result.breakdown.critics?.find((critic) => critic.id === "cognitive-load")).toMatchObject({
         status: "ran",
         mode: "deterministic",
-        na: 3,
+        na: 4,
       });
     } finally {
       server.close();

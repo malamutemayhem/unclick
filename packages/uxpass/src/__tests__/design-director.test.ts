@@ -142,6 +142,9 @@ describe("buildVisualDesignDirectorReport", () => {
     );
     expect(report.builder_brief).toMatch(/before\/after screenshot proof/i);
     expect(report.guardrails.join(" ")).toMatch(/row expansion|side panel/i);
+    expect(report.directives.find((directive) => directive.id === "density-hierarchy")?.actions.join(" ")).toMatch(
+      /crowded row actions|stepper summary/i,
+    );
   });
 
   it("directs type and colour system repair when the visual system is noisy", () => {

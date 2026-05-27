@@ -437,6 +437,15 @@ export const CORE_CHECKS: CheckSpec[] = [
     remediation: "Give the primary action a useful label and stable comfortable dimensions, then demote secondary actions.",
     evaluate: (ctx) => visualCheck(ctx, "unclear_primary_action"),
   },
+  {
+    id: "CL-004",
+    hat: "cognitive-load",
+    category: "action-clarity",
+    severity: "medium",
+    title: "Rows avoid crowded action clusters",
+    remediation: "Collapse secondary controls into a menu, row expansion, or stepper summary so one primary action remains obvious.",
+    evaluate: (ctx) => visualCheck(ctx, "crowded_action_cluster"),
+  },
 ];
 
 // Severity weights for the UX score. Higher severity dominates the score so

@@ -13,7 +13,8 @@ export type VisualAuditIssueKind =
   | "unclear_primary_action"
   | "flat_type_scale"
   | "palette_indiscipline"
-  | "unlabelled_action";
+  | "unlabelled_action"
+  | "crowded_action_cluster";
 
 export interface VisualRect {
   x: number;
@@ -99,6 +100,7 @@ const ALL_KINDS: VisualAuditIssueKind[] = [
   "flat_type_scale",
   "palette_indiscipline",
   "unlabelled_action",
+  "crowded_action_cluster",
 ];
 
 const ALL_SEVERITIES: VisualAuditSeverity[] = ["critical", "high", "medium", "low"];
@@ -215,6 +217,11 @@ function isCommandAction(element: VisualAuditElement): boolean {
 
 function actionLabel(element: VisualAuditElement): string {
   return compactText(element.text) || compactText(element.ariaLabel) || compactText(element.title);
+}
+
+function isCompactAction(element: VisualAuditElement): boolean {
+  const label = actionLabel(element);
+  return element.rect.width <= 72 || element.rect.height <= 32 || (label.length > 0 && label.length <= 12);
 }
 
 interface RgbColor {
@@ -481,6 +488,33 @@ export function evaluateVisualAuditSnapshot(snapshot: VisualAuditSnapshot): Visu
         labels: row.map((element) => compactText(element.text)).filter(Boolean).slice(0, 12),
       },
       remediation: "Collapse secondary badges into a progress summary, detail drawer, or grouped status cell so the row scans cleanly.",
+    });
+  }
+
+  const actionRows = new Map<number, VisualAuditElement[]>();
+  for (const element of elements.filter((item) => isFirstViewport(item, snapshot) && isCommandAction(item))) {
+    const rowKey = Math.round(element.rect.top / 10) * 10;
+    const row = actionRows.get(rowKey) ?? [];
+    row.push(element);
+    actionRows.set(rowKey, row);
+  }
+  const crowdedActionThreshold = snapshot.viewport.width <= 480 ? 4 : 5;
+  for (const row of actionRows.values()) {
+    const compactActions = row.filter(isCompactAction);
+    if (compactActions.length < crowdedActionThreshold) continue;
+    const left = Math.min(...compactActions.map((element) => element.rect.left));
+    const right = Math.max(...compactActions.map((element) => element.rect.right));
+    pushIssue(issues, {
+      kind: "crowded_action_cluster",
+      severity: "medium",
+      title: "Row has too many competing actions",
+      description: `A single row exposes ${compactActions.length} compact action controls across ${Math.round(right - left)}px.`,
+      evidence: {
+        action_count: compactActions.length,
+        labels: compactActions.map(actionLabel).filter(Boolean).slice(0, 12),
+        viewport: snapshot.viewport,
+      },
+      remediation: "Collapse secondary controls into a menu, row expansion, or stepper summary so one primary action remains obvious.",
     });
   }
 
