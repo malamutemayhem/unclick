@@ -1276,6 +1276,11 @@ const BOARDROOM_SCOPING_ACTION_REASONS = new Set([
   "stale_assigned_open",
   "role_assigned_open",
 ]);
+const BOARDROOM_SELF_ASSIGNED_ACTION_REASONS = new Set([
+  "assigned_open",
+  "role_assigned_open",
+  "stale_assigned_open",
+]);
 
 function boardroomClaimAgentId(runner = {}) {
   const safeRunner = createAutonomousRunner(runner);
@@ -2244,6 +2249,9 @@ function formatOpenHandsBuildAttemptReceipt(result) {
   ];
   const holdReason = receipt.hold_reason || result.reason || "";
   if (holdReason) parts.push(`openhands_hold_reason=${holdReason}.`);
+  if (evidence.model) parts.push(`model=${evidence.model}.`);
+  const attemptSummary = formatOpenHandsAttemptSummary(evidence.attempts);
+  if (attemptSummary) parts.push(`attempts=${attemptSummary}.`);
   if (Array.isArray(evidence.changed_files) && evidence.changed_files.length > 0) {
     parts.push(`changed_files=${evidence.changed_files.join(",")}.`);
   }
@@ -2251,7 +2259,19 @@ function formatOpenHandsBuildAttemptReceipt(result) {
   if (evidence.pr_url) parts.push(`pr=${evidence.pr_url}.`);
   if (evidence.head_sha_after) parts.push(`head_sha=${evidence.head_sha_after}.`);
   if (receipt.next_action) parts.push(`openhands_next=${receipt.next_action}.`);
-  return compact(parts.join(" "), 600);
+  return compact(parts.join(" "), 900);
+}
+
+function formatOpenHandsAttemptSummary(attempts) {
+  if (!Array.isArray(attempts) || attempts.length === 0) return "";
+  return attempts
+    .slice(0, 4)
+    .map((attempt) => {
+      const model = compact(attempt?.model_id || attempt?.modelId || "unknown", 50);
+      const reason = attempt?.ok === true ? "ok" : compact(attempt?.reason || "failed", 70);
+      return `${model}:${reason}`;
+    })
+    .join(",");
 }
 
 export function createCodingRoomJobFromBoardroomTodo(todo = {}, { now = new Date().toISOString() } = {}) {
@@ -2342,7 +2362,7 @@ export function evaluateBoardroomTodoAutoClaimEligibility(
   const actionReason = normalizeToken(todo.actionability_reason || "");
   const safeActionReasons = tokenSet(allowedActionReasons, DEFAULT_AUTONOMOUS_RUNNER_POLICY.allowedActionReasons);
   const selfAssignedActionReason =
-    assignedToRunner && (actionReason === "role_assigned_open" || actionReason === "assigned_open");
+    assignedToRunner && BOARDROOM_SELF_ASSIGNED_ACTION_REASONS.has(actionReason);
   if (actionReason && safeActionReasons.size > 0 && !safeActionReasons.has(actionReason) && !selfAssignedActionReason) {
     return { ok: false, reason: "boardroom_todo_action_reason_not_allowed", actionability_reason: actionReason };
   }

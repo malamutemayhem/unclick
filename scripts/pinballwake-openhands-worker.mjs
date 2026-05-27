@@ -96,7 +96,6 @@ export async function runOpenHandsWorker({
   }
 
   if (!result || result.ok === false) {
-    const attempts = compactAttemptTrail(result?.attempts);
     return hold({
       job: normalizedJob,
       executorSeatId,
@@ -105,7 +104,8 @@ export async function runOpenHandsWorker({
       evidence: {
         exit_code: result?.exit_code ?? null,
         output: clipOutput(result?.output, 2000),
-        attempts,
+        model: clip(result?.model, 120),
+        attempts: summarizeRunnerAttempts(result?.attempts),
       },
     });
   }
@@ -190,6 +190,8 @@ export async function runOpenHandsWorker({
       test_run_id: coderoomResult.test_run_id ?? result.test_run_id ?? null,
       test_exit_code: coderoomResult.test_exit_code ?? result.test_exit_code ?? null,
       coderoom_status: coderoomResult.job?.status ?? coderoomResult.status ?? null,
+      model: clip(result.model, 120),
+      attempts: summarizeRunnerAttempts(result.attempts),
     },
   });
 }
@@ -420,16 +422,18 @@ function clipOutput(value, max) {
   return `${text.slice(0, head)}${marker}${text.slice(text.length - tail)}`;
 }
 
-function compactAttemptTrail(attempts, max = 8) {
-  if (!Array.isArray(attempts) || attempts.length === 0) return [];
-  return attempts.slice(0, max).map((attempt) => ({
-    modelId: clip(attempt?.modelId, 80),
-    openRouterModel: clip(attempt?.openRouterModel, 140),
-    status: clip(attempt?.status, 40),
-    ok: attempt?.ok === true,
-    reason: clip(attempt?.reason, 140),
-    http_status: typeof attempt?.http_status === "number" ? attempt.http_status : null,
-  }));
+function summarizeRunnerAttempts(attempts, maxAttempts = 8) {
+  if (!Array.isArray(attempts)) return [];
+  return attempts
+    .slice(0, maxAttempts)
+    .map((attempt) => ({
+      model_id: clip(attempt?.modelId || attempt?.model_id || "", 80),
+      openrouter_model: clip(attempt?.openRouterModel || attempt?.openrouter_model || "", 140),
+      status: clip(attempt?.status || "", 40),
+      ok: attempt?.ok === true,
+      reason: clip(attempt?.reason || "", 160),
+    }))
+    .filter((attempt) => attempt.model_id || attempt.openrouter_model || attempt.reason);
 }
 
 function toDate(value) {
