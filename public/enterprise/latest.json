@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-27T13:41:23.988Z",
-  "valid_until": "2026-06-03T13:41:23.988Z",
+  "generated_at": "2026-05-27T13:45:32.800Z",
+  "valid_until": "2026-06-03T13:45:32.800Z",
   "source": "local deterministic repo/docs scan",
   "product": "CompliancePass",
   "legacy_aliases": [
@@ -16,17 +16,17 @@
   "readiness_band": "amber",
   "wording_notice": "This report describes readiness indicators and evidence alignment. It is not a compliance certification, SOC report, ISO audit, legal opinion, or security attestation.",
   "readiness_score": {
-    "value": 95.8,
+    "value": 96.9,
     "band": "amber",
     "traffic_light": "yellow",
     "rationale": "CompliancePass ran 27 deterministic checks across 7 readiness categories."
   },
   "summary": {
-    "score_overall": 95.8,
+    "score_overall": 96.9,
     "headline": "Strong readiness evidence, but 1 high/critical gap(s) keep the report out of green.",
     "checks_total": 27,
-    "checks_pass": 22,
-    "checks_partial": 5,
+    "checks_pass": 23,
+    "checks_partial": 4,
     "checks_fail": 0,
     "checks_unknown": 0,
     "checks_na": 0,
@@ -34,7 +34,7 @@
     "gap_severity_counts": {
       "critical": 0,
       "high": 1,
-      "medium": 4,
+      "medium": 3,
       "low": 0,
       "info": 0
     },
@@ -639,7 +639,7 @@
           "title": "Docs reference evidence and proof",
           "status": "pass",
           "score": 100,
-          "summary": "2328 evidence/proof references were found.",
+          "summary": "2324 evidence/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -831,7 +831,7 @@
           "title": "Credential and connector mapping evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "953 credential/connector mapping references were found.",
+          "summary": "954 credential/connector mapping references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -932,10 +932,10 @@
     {
       "id": "investor_readiness",
       "name": "Investor readiness",
-      "status": "partial",
-      "score": 92.5,
+      "status": "pass",
+      "score": 100,
       "band": "green",
-      "summary": "Investor readiness scored 92.5/100 with 0 fail and 1 partial check(s).",
+      "summary": "Investor readiness scored 100/100 with 0 fail and 0 partial check(s).",
       "checks": [
         {
           "id": "cp-investor-license",
@@ -979,7 +979,7 @@
           "title": "Audit trail and proof language exists",
           "status": "pass",
           "score": 100,
-          "summary": "2861 audit/proof references were found.",
+          "summary": "2862 audit/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1028,9 +1028,9 @@
           "id": "cp-investor-framework-mapping",
           "category_id": "investor_readiness",
           "title": "Framework alignment evidence is documented",
-          "status": "partial",
-          "score": 70,
-          "summary": "Framework mapping names the expected standards, but the control-by-control index is not complete.",
+          "status": "pass",
+          "score": 100,
+          "summary": "Framework mapping names the expected standards and does not declare a control-index gap.",
           "evidence": [
             {
               "type": "doc",
@@ -1040,25 +1040,7 @@
               "confidence": "high"
             }
           ],
-          "findings": [
-            {
-              "id": "cp-investor-framework-control-index-thin",
-              "severity": "medium",
-              "title": "Framework control index is not complete",
-              "summary": "The report can show evidence alignment today, but it cannot yet export a full control-by-control ISO/NIST/OWASP/OpenSSF/SLSA/SIG/CAIQ mapping.",
-              "recommendation": "Add a generated control-by-control index with evidence rows, owner, status, and last-proof timestamp for each mapped control.",
-              "evidence": [
-                {
-                  "type": "doc",
-                  "path": "docs/compliancepass-framework-mapping.md",
-                  "label": "docs/compliancepass-framework-mapping.md",
-                  "summary": "Framework alignment evidence for investor and buyer review.",
-                  "confidence": "high"
-                }
-              ]
-            }
-          ],
-          "recommendation": "Add a generated control-by-control framework index with evidence rows and freshness timestamps."
+          "findings": []
         }
       ]
     },
@@ -1127,7 +1109,7 @@
           "title": "AI oversight and review evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "2444 oversight/review references were found.",
+          "summary": "2445 oversight/review references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1230,8 +1212,7 @@
     "Route or reduce the repo-wide lint backlog, then refresh verification notes and the public receipt.",
     "Continue reducing the highest-risk oversized files as ownership boundaries become clearer.",
     "Capture repo-level secret-scanning proof or add a blocking secret-scan workflow receipt.",
-    "Route dependency audit backlog and refresh the CompliancePass dependency receipt.",
-    "Add a generated control-by-control framework index with evidence rows and freshness timestamps."
+    "Route dependency audit backlog and refresh the CompliancePass dependency receipt."
   ],
   "gaps": [
     {
@@ -1355,22 +1336,6 @@
           "path": "docs/compliancepass-dependency-audit-notes.md",
           "label": "docs/compliancepass-dependency-audit-notes.md",
           "summary": "Dependency audit posture receipt.",
-          "confidence": "high"
-        }
-      ]
-    },
-    {
-      "id": "cp-investor-framework-control-index-thin",
-      "severity": "medium",
-      "title": "Framework control index is not complete",
-      "summary": "The report can show evidence alignment today, but it cannot yet export a full control-by-control ISO/NIST/OWASP/OpenSSF/SLSA/SIG/CAIQ mapping.",
-      "recommendation": "Add a generated control-by-control index with evidence rows, owner, status, and last-proof timestamp for each mapped control.",
-      "evidence": [
-        {
-          "type": "doc",
-          "path": "docs/compliancepass-framework-mapping.md",
-          "label": "docs/compliancepass-framework-mapping.md",
-          "summary": "Framework alignment evidence for investor and buyer review.",
           "confidence": "high"
         }
       ]

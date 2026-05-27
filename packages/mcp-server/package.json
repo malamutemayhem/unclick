@@ -19,6 +19,7 @@
     "server.json"
   ],
   "scripts": {
+    "prebuild": "npm run build --workspace=@unclick/compliancepass",
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
@@ -29,7 +30,7 @@
     "@iarna/toml": "^2.2.5",
     "@modelcontextprotocol/sdk": "^1.15.1",
     "@supabase/supabase-js": "^2.103.0",
-    "@unclick/compliancepass": "*",
+    "@unclick/compliancepass": "file:../compliancepass",
     "@types/imap": "^0.8.43",
     "@types/nodemailer": "^8.0.0",
     "ajv": "^8.20.0",

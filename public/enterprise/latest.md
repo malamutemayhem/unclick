@@ -3,9 +3,9 @@
 Evidence-backed readiness guidance, not certification.
 
 Target: UnClick
-Score: 95.8/100 (amber)
+Score: 96.9/100 (amber)
 Blocking gaps: 1
-Valid until: 2026-06-03T13:41:23.988Z
+Valid until: 2026-06-03T13:45:32.800Z
 
 ## Summary
 
@@ -18,7 +18,7 @@ Strong readiness evidence, but 1 high/critical gap(s) keep the report out of gre
 | Evidence over claims | 100 | green | pass |
 | Documentation quality | 100 | green | pass |
 | Credential and environment hygiene | 100 | green | pass |
-| Investor readiness | 92.5 | green | partial |
+| Investor readiness | 100 | green | pass |
 | AI governance readiness | 100 | green | pass |
 
 ## Next Actions
@@ -27,7 +27,6 @@ Strong readiness evidence, but 1 high/critical gap(s) keep the report out of gre
 - Continue reducing the highest-risk oversized files as ownership boundaries become clearer.
 - Capture repo-level secret-scanning proof or add a blocking secret-scan workflow receipt.
 - Route dependency audit backlog and refresh the CompliancePass dependency receipt.
-- Add a generated control-by-control framework index with evidence rows and freshness timestamps.
 
 ## Disclaimer
 
