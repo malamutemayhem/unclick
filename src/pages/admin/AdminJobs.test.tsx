@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import AdminJobs from "./AdminJobs";
+import AdminJobs, { JOBS_REFRESH_INTERVAL_MS } from "./AdminJobs";
 
 vi.mock("@/lib/auth", () => ({
   useSession: () => ({
@@ -210,5 +210,15 @@ describe("AdminJobs", () => {
     expect(completedSection).not.toBeNull();
     expect(within(nextSection as HTMLElement).getByText("Reopened truth job")).toBeInTheDocument();
     expect(within(completedSection as HTMLElement).queryByText("Reopened truth job")).not.toBeInTheDocument();
+  });
+
+  it("polls the jobs API on a quieter 60-second cadence", async () => {
+    const intervalSpy = vi.spyOn(globalThis, "setInterval");
+
+    render(React.createElement(AdminJobs));
+
+    await screen.findByText("Alpha ready job");
+    expect(intervalSpy).toHaveBeenCalledWith(expect.any(Function), JOBS_REFRESH_INTERVAL_MS);
+    expect(JOBS_REFRESH_INTERVAL_MS).toBe(60_000);
   });
 });
