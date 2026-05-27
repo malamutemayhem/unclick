@@ -19,7 +19,14 @@ import type {
   UXScoreBreakdown,
   Verdict,
 } from "./types.js";
-import { buildCriticBreakdown } from "./critics.js";
+import { buildCriticBreakdown, criticDefinitionsById } from "./critics.js";
+import {
+  evaluateVisualAuditSnapshot,
+  visualIssuesByKind,
+  type VisualAuditIssueKind,
+  type VisualAuditSnapshot,
+  type VisualAuditSummary,
+} from "./visual-audit.js";
 
 type CheckSeverity = "critical" | "high" | "medium" | "low";
 
@@ -31,6 +38,7 @@ export interface CheckContext {
   bodyText: string;
   bodySize: number;
   llmsTxtStatus: number | null;
+  visualAudit?: VisualAuditSnapshot;
 }
 
 export interface CheckResult {
@@ -57,6 +65,38 @@ function hasTag(body: string, tagPattern: RegExp): boolean {
 function countMatches(body: string, pattern: RegExp): number {
   const m = body.match(pattern);
   return m ? m.length : 0;
+}
+
+function visualSummary(ctx: CheckContext): VisualAuditSummary | null {
+  return ctx.visualAudit ? evaluateVisualAuditSnapshot(ctx.visualAudit) : null;
+}
+
+function visualCheck(
+  ctx: CheckContext,
+  kind: VisualAuditIssueKind,
+): CheckResult {
+  const summary = visualSummary(ctx);
+  if (!summary) {
+    return {
+      verdict: "na",
+      evidence: { reason: "visual_snapshot_missing" },
+    };
+  }
+  const issues = visualIssuesByKind(summary, kind);
+  return {
+    verdict: issues.length === 0 ? "pass" : "fail",
+    evidence: {
+      issue_count: issues.length,
+      examples: issues.slice(0, 5).map((issue) => ({
+        title: issue.title,
+        description: issue.description,
+        selector: issue.selector,
+        evidence: issue.evidence,
+      })),
+      screenshot_path: ctx.visualAudit?.screenshotPath ?? null,
+      viewport: ctx.visualAudit?.viewport ?? null,
+    },
+  };
 }
 
 export const CORE_CHECKS: CheckSpec[] = [
@@ -155,6 +195,15 @@ export const CORE_CHECKS: CheckSpec[] = [
       };
     },
   },
+  {
+    id: "A11Y-004",
+    hat: "accessibility",
+    category: "visual-a11y",
+    severity: "high",
+    title: "Visible text meets contrast target",
+    remediation: "Increase foreground/background contrast for failing text states.",
+    evaluate: (ctx) => visualCheck(ctx, "low_contrast"),
+  },
 
   // ── mobile ───────────────────────────────────────────────────────────────
   {
@@ -167,6 +216,15 @@ export const CORE_CHECKS: CheckSpec[] = [
     evaluate: (ctx) => ({
       verdict: hasTag(ctx.bodyText, /<meta[^>]+name\s*=\s*["']viewport["']/i) ? "pass" : "fail",
     }),
+  },
+  {
+    id: "MOB-002",
+    hat: "mobile",
+    category: "visual-mobile",
+    severity: "high",
+    title: "Interactive targets meet 24px minimum",
+    remediation: "Increase the hit area for links, buttons, tabs, and icon controls to at least 24 by 24 CSS pixels.",
+    evaluate: (ctx) => visualCheck(ctx, "small_target"),
   },
 
   // ── agent-readability ────────────────────────────────────────────────────
@@ -280,6 +338,51 @@ export const CORE_CHECKS: CheckSpec[] = [
         : "fail",
     }),
   },
+  {
+    id: "VD-002",
+    hat: "visual-designer",
+    category: "visual-layout",
+    severity: "high",
+    title: "Page has no horizontal overflow",
+    remediation: "Constrain grids, tables, badges, and fixed-width panels so the page never scrolls sideways.",
+    evaluate: (ctx) => visualCheck(ctx, "horizontal_overflow"),
+  },
+  {
+    id: "VD-003",
+    hat: "visual-designer",
+    category: "visual-layout",
+    severity: "high",
+    title: "Visible text is not clipped",
+    remediation: "Wrap text, widen the container, move secondary metadata into a detail surface, or provide a full fallback label.",
+    evaluate: (ctx) => visualCheck(ctx, "clipped_text"),
+  },
+  {
+    id: "VD-004",
+    hat: "visual-designer",
+    category: "visual-layout",
+    severity: "high",
+    title: "Text stays inside its visual container",
+    remediation: "Fix layout constraints, grid tracks, min-width rules, or wrapping so text cannot run outside boxes.",
+    evaluate: (ctx) => visualCheck(ctx, "text_out_of_bounds"),
+  },
+  {
+    id: "CL-001",
+    hat: "cognitive-load",
+    category: "visual-density",
+    severity: "medium",
+    title: "Rows avoid badge overload",
+    remediation: "Group secondary statuses, use a summary cell, or move lower-priority metadata behind row expansion.",
+    evaluate: (ctx) => visualCheck(ctx, "badge_overload"),
+  },
+  {
+    id: "CL-002",
+    hat: "cognitive-load",
+    category: "visual-density",
+    severity: "medium",
+    title: "First viewport stays scannable",
+    remediation: "Reduce inline text fragments, add section hierarchy, or progressively disclose low-priority details.",
+    evaluate: (ctx) => visualCheck(ctx, "dense_first_screen"),
+  },
 ];
 
 // Severity weights for the UX score. Higher severity dominates the score so
@@ -337,24 +440,38 @@ export function computeUxScore(evaluations: CheckEvaluation[]): number {
  * without changing the breakdown shape.
  */
 function computeScoreComponents(evaluations: CheckEvaluation[]): UXScoreBreakdown {
-  const arEvals = evaluations.filter((e) => e.hat === "agent-readability" && e.verdict !== "na");
-  let arScore: number | null = null;
-  if (arEvals.length > 0) {
+  const critics = criticDefinitionsById();
+  const components: Record<keyof UXScoreBreakdown, CheckEvaluation[]> = {
+    agent_readability: [],
+    dark_pattern_cleanliness: [],
+    aesthetic_coherence: [],
+    motion_quality: [],
+    first_run_quality: [],
+  };
+  for (const evaluation of evaluations) {
+    if (evaluation.verdict === "na") continue;
+    const component = critics[evaluation.hat]?.score_component;
+    if (component) components[component].push(evaluation);
+  }
+
+  function scoreFor(componentEvaluations: CheckEvaluation[]): number | null {
+    if (componentEvaluations.length === 0) return null;
     let total = 0;
     let earned = 0;
-    for (const e of arEvals) {
+    for (const e of componentEvaluations) {
       const w = SEVERITY_WEIGHT[e.severity] ?? 1;
       total += w;
       if (e.verdict === "pass") earned += w;
     }
-    arScore = total > 0 ? Math.round((earned / total) * 100 * 100) / 100 : null;
+    return total > 0 ? Math.round((earned / total) * 100 * 100) / 100 : null;
   }
+
   return {
-    agent_readability: arScore,
-    dark_pattern_cleanliness: null,
-    aesthetic_coherence: null,
-    motion_quality: null,
-    first_run_quality: null,
+    agent_readability: scoreFor(components.agent_readability),
+    dark_pattern_cleanliness: scoreFor(components.dark_pattern_cleanliness),
+    aesthetic_coherence: scoreFor(components.aesthetic_coherence),
+    motion_quality: scoreFor(components.motion_quality),
+    first_run_quality: scoreFor(components.first_run_quality),
   };
 }
 

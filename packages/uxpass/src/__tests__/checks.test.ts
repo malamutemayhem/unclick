@@ -9,6 +9,7 @@ import {
 } from "../checks.js";
 import { HAT_IDS } from "../schema.js";
 import { UXPASS_CRITICS, criticIds, validateCriticRoster } from "../critics.js";
+import type { VisualAuditSnapshot } from "../visual-audit.js";
 
 const goodHtml = `<!doctype html>
 <html lang="en">
@@ -39,6 +40,144 @@ const badHtml = `<!doctype html>
 </body>
 </html>`;
 
+const goodVisualAudit: VisualAuditSnapshot = {
+  url: "https://example.com",
+  viewport: { name: "desktop", width: 1440, height: 900 },
+  document: { scrollWidth: 1440, scrollHeight: 900, clientWidth: 1440, clientHeight: 900 },
+  elements: [
+    {
+      selector: "h1",
+      tagName: "h1",
+      text: "Hello",
+      visible: true,
+      rect: { x: 80, y: 80, width: 300, height: 48, top: 80, right: 380, bottom: 128, left: 80 },
+      scrollWidth: 300,
+      scrollHeight: 48,
+      clientWidth: 300,
+      clientHeight: 48,
+      fontSize: 32,
+      fontWeight: 700,
+      color: "rgb(255, 255, 255)",
+      backgroundColor: "rgb(0, 0, 0)",
+    },
+    {
+      selector: "button",
+      tagName: "button",
+      role: "button",
+      text: "Save",
+      visible: true,
+      rect: { x: 80, y: 150, width: 120, height: 40, top: 150, right: 200, bottom: 190, left: 80 },
+      scrollWidth: 120,
+      scrollHeight: 40,
+      clientWidth: 120,
+      clientHeight: 40,
+      fontSize: 14,
+      color: "rgb(255, 255, 255)",
+      backgroundColor: "rgb(15, 23, 42)",
+    },
+  ],
+};
+
+const denseTextElements = Array.from({ length: 100 }, (_, index) => {
+  const top = 300 + Math.floor(index / 10) * 18;
+  const left = 10 + (index % 10) * 40;
+  return {
+    selector: `.t-${index}`,
+    tagName: "span",
+    text: `Tiny ${index}`,
+    visible: true,
+    rect: {
+      x: left,
+      y: top,
+      width: 35,
+      height: 12,
+      top,
+      right: left + 35,
+      bottom: top + 12,
+      left,
+    },
+    scrollWidth: 35,
+    scrollHeight: 12,
+    clientWidth: 35,
+    clientHeight: 12,
+    fontSize: 12,
+    color: "rgb(120, 120, 120)",
+    backgroundColor: "rgb(120, 120, 120)",
+  };
+});
+
+const badVisualAudit: VisualAuditSnapshot = {
+  url: "https://example.com",
+  viewport: { name: "desktop", width: 320, height: 700 },
+  document: { scrollWidth: 420, scrollHeight: 900, clientWidth: 320, clientHeight: 700 },
+  elements: [
+    {
+      selector: ".cropped-title",
+      tagName: "div",
+      text: "This important title is visibly cropped by the box",
+      visible: true,
+      rect: { x: 8, y: 20, width: 100, height: 18, top: 20, right: 108, bottom: 38, left: 8 },
+      parentRect: { x: 8, y: 20, width: 100, height: 18, top: 20, right: 108, bottom: 38, left: 8 },
+      scrollWidth: 260,
+      scrollHeight: 18,
+      clientWidth: 100,
+      clientHeight: 18,
+      fontSize: 14,
+      color: "rgb(120, 120, 120)",
+      backgroundColor: "rgb(120, 120, 120)",
+    },
+    {
+      selector: ".escaping",
+      tagName: "span",
+      text: "Runs outside",
+      visible: true,
+      rect: { x: 300, y: 50, width: 80, height: 18, top: 50, right: 380, bottom: 68, left: 300 },
+      parentRect: { x: 280, y: 50, width: 30, height: 18, top: 50, right: 310, bottom: 68, left: 280 },
+      scrollWidth: 80,
+      scrollHeight: 18,
+      clientWidth: 80,
+      clientHeight: 18,
+      fontSize: 14,
+      color: "rgb(120, 120, 120)",
+      backgroundColor: "rgb(120, 120, 120)",
+    },
+    {
+      selector: ".tiny-button",
+      tagName: "button",
+      role: "button",
+      text: "x",
+      visible: true,
+      rect: { x: 8, y: 90, width: 18, height: 18, top: 90, right: 26, bottom: 108, left: 8 },
+      scrollWidth: 18,
+      scrollHeight: 18,
+      clientWidth: 18,
+      clientHeight: 18,
+      fontSize: 12,
+      color: "rgb(120, 120, 120)",
+      backgroundColor: "rgb(120, 120, 120)",
+    },
+    ...["HIGH", "ACTIVE", "NEEDS PROOF", "BRIEF", "BUILD"].map((label, index) => {
+      const left = 8 + index * 55;
+      return {
+        selector: `.badge-${index}`,
+        tagName: "span",
+        text: label,
+        className: "rounded badge",
+        visible: true,
+        rect: { x: left, y: 130, width: 48, height: 20, top: 130, right: left + 48, bottom: 150, left },
+        scrollWidth: 48,
+        scrollHeight: 20,
+        clientWidth: 48,
+        clientHeight: 20,
+        fontSize: 12,
+        color: "rgb(120, 120, 120)",
+        backgroundColor: "rgb(120, 120, 120)",
+      };
+    }),
+    ...denseTextElements,
+  ],
+};
+
 const baseCtx = (overrides: Partial<CheckContext> = {}): CheckContext => ({
   url: "https://example.com",
   status: 200,
@@ -47,6 +186,7 @@ const baseCtx = (overrides: Partial<CheckContext> = {}): CheckContext => ({
   bodyText: goodHtml,
   bodySize: goodHtml.length,
   llmsTxtStatus: 200,
+  visualAudit: goodVisualAudit,
   ...overrides,
 });
 
@@ -58,7 +198,7 @@ describe("CORE_CHECKS", () => {
 
   it("covers at least seven hats", () => {
     const hats = new Set(CORE_CHECKS.map((c) => c.hat));
-    expect(hats.size).toBeGreaterThanOrEqual(7);
+    expect(hats.size).toBeGreaterThanOrEqual(8);
   });
 
   it("maps deterministic checks to canonical critics", () => {
@@ -164,6 +304,25 @@ describe("evaluateAllChecks - failure paths", () => {
     const ar001 = evaluations.find((e) => e.check_id === "AR-001");
     expect(ar001?.verdict).toBe("fail");
   });
+
+  it("flags browser-evidence visual layout failures", () => {
+    const evaluations = evaluateAllChecks(baseCtx({ visualAudit: badVisualAudit }));
+    expect(evaluations.find((e) => e.check_id === "VD-002")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "VD-003")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "VD-004")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "MOB-002")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "A11Y-004")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "CL-001")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "CL-002")?.verdict).toBe("fail");
+  });
+
+  it("marks visual checks as N/A when no browser snapshot is attached", () => {
+    const evaluations = evaluateAllChecks(baseCtx({ visualAudit: undefined }));
+    expect(evaluations.find((e) => e.check_id === "VD-003")?.verdict).toBe("na");
+    expect(evaluations.find((e) => e.check_id === "VD-003")?.evidence).toMatchObject({
+      reason: "visual_snapshot_missing",
+    });
+  });
 });
 
 describe("computeUxScore", () => {
@@ -177,6 +336,7 @@ describe("computeUxScore", () => {
         responseTimeMs: 5000,
         url: "http://example.com",
         llmsTxtStatus: 404,
+        visualAudit: badVisualAudit,
       }),
     );
     expect(computeUxScore(evaluations)).toBe(0);
@@ -208,17 +368,17 @@ describe("buildBreakdown", () => {
     const breakdown = buildBreakdown(evaluations);
     expect(breakdown.score_components).toEqual({
       agent_readability: 100,
-      dark_pattern_cleanliness: null,
-      aesthetic_coherence: null,
+      dark_pattern_cleanliness: 100,
+      aesthetic_coherence: 100,
       motion_quality: null,
-      first_run_quality: null,
+      first_run_quality: 100,
     });
   });
 
   it("groups pass/fail/na counts by hat", () => {
     const evaluations = evaluateAllChecks(baseCtx());
     const breakdown = buildBreakdown(evaluations);
-    expect(breakdown.by_hat["accessibility"]).toEqual({ pass: 3, fail: 0, na: 0 });
+    expect(breakdown.by_hat["accessibility"]).toEqual({ pass: 4, fail: 0, na: 0 });
     expect(breakdown.by_hat["agent-readability"]).toEqual({ pass: 3, fail: 0, na: 0 });
   });
 
@@ -236,7 +396,7 @@ describe("buildBreakdown", () => {
     expect(breakdown.critics?.find((critic) => critic.id === "accessibility")).toMatchObject({
       status: "ran",
       mode: "deterministic",
-      pass: 3,
+      pass: 4,
       fail: 0,
       na: 0,
     });

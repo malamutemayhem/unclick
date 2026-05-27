@@ -4,4 +4,5 @@ export * from "./checks.js";
 export * from "./run-manager.js";
 export * from "./runner.js";
 export * from "./reporter.js";
+export * from "./visual-audit.js";
 export type * from "./types.js";
