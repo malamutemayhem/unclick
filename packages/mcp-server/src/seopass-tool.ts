@@ -208,6 +208,8 @@ async function runReadonlySeoPass(
     warn: checkResults.filter((check) => check.verdict === "warn").length,
     fail: checkResults.filter((check) => check.verdict === "fail").length,
   };
+  const sitemapUrls = extractSitemapUrls(sitemap.body);
+  const robotsSitemapUrls = extractRobotsSitemapUrls(robots.body);
 
   return {
     run_id: runId,
@@ -224,7 +226,7 @@ async function runReadonlySeoPass(
       evidence: [
         { kind: "http-response", source_url: page.url, summary: page.error ?? `HTTP ${page.status} in ${page.elapsed_ms}ms` },
         { kind: "robots-txt", source_url: robots.url, summary: robots.error ?? `HTTP ${robots.status}` },
-        { kind: "sitemap", source_url: sitemap.url, summary: `${extractSitemapUrls(sitemap.body).length} URL(s) found` },
+        { kind: "sitemap", source_url: sitemap.url, summary: `${sitemapUrls.length} URL(s) found; ${robotsSitemapUrls.length} robots.txt Sitemap directive(s)` },
         { kind: "llms-txt", source_url: llms.url, summary: llms.status >= 200 && llms.status < 400 ? "llms.txt found" : "llms.txt not found" },
       ],
       cross_pass_signals: crossPassSignals(checkResults),
@@ -335,11 +337,39 @@ function buildCheck(
   if (checkId === "indexability") {
     const searchDirectives = searchRobotsDirectives(context.signals.robotsDirectives, context.page.headers["x-robots-tag"] ?? "");
     if (hasNoindexDirective(searchDirectives)) add("indexability-noindex", "critical", "Page is marked noindex", `Search robots directives contain noindex: ${formatRobotsDirectives(searchDirectives)}.`, "Remove noindex only if this page should be searchable.");
-    if (extractSitemapUrls(context.sitemap.body).length === 0) add("indexability-sitemap-missing", "medium", "Sitemap is missing or empty", "No URLs were found in /sitemap.xml.", "Publish a sitemap or sitemap index.");
+    const sitemapUrls = extractSitemapUrls(context.sitemap.body);
+    const robotsSitemapUrls = extractRobotsSitemapUrls(context.robots.body);
+    if ((context.sitemap.status >= 400 || sitemapUrls.length === 0) && robotsSitemapUrls.length === 0) add("indexability-sitemap-missing", "medium", "Sitemap is missing or empty", "No URLs were found in /sitemap.xml or robots.txt Sitemap directives.", "Publish a sitemap or sitemap index.");
   }
 
-  if (checkId === "canonical-signals" && !context.signals.canonical) {
-    add("canonical-missing", "medium", "Canonical tag is missing", "No rel=canonical tag was found.", "Add a canonical URL to reduce duplicate URL ambiguity.");
+  if (checkId === "canonical-signals") {
+    const canonicalLinks = context.signals.canonicalLinks;
+    const headCanonicalLinks = canonicalLinks.filter((link) => link.inHead);
+    const canonical = headCanonicalLinks.find((link) => link.href)?.href ?? canonicalLinks.find((link) => link.href)?.href ?? null;
+
+    if (canonicalLinks.length === 0) {
+      add("canonical-missing", "medium", "Canonical tag is missing", "No rel=canonical tag was found.", "Add a canonical URL to reduce duplicate URL ambiguity.");
+    } else {
+      if (canonicalLinks.some((link) => !link.inHead)) {
+        add("canonical-outside-head", "medium", "Canonical link appears outside the head", "At least one rel=canonical link appears outside the HTML head, where search engines may ignore it.", "Keep one canonical link in the HTML head.");
+      }
+      if (canonicalLinks.length > 1) {
+        add("canonical-multiple", "medium", "Multiple canonical links were found", `${canonicalLinks.length} rel=canonical links were found, which can create ambiguous canonical signals.`, "Emit exactly one canonical URL for the page.");
+      }
+      if (!canonical) {
+        add("canonical-empty", "high", "Canonical href is empty", "A rel=canonical link was found, but SEOPass could not read a usable href value.", "Set the canonical href to the absolute public URL for this page.");
+      } else {
+        const parsed = safeUrl(canonical, context.targetUrl);
+        if (!isAbsoluteHttpUrl(canonical)) {
+          add("canonical-relative-url", "low", "Canonical URL is relative", "The canonical href is relative. Google supports relative canonicals, but recommends absolute URLs to avoid long-term ambiguity.", "Use the absolute canonical URL, including protocol and host.");
+        }
+        if (!parsed) {
+          add("canonical-invalid", "high", "Canonical URL is invalid", `The canonical value could not be parsed: ${canonical}.`, "Use an absolute canonical URL.");
+        } else if (parsed.origin !== new URL(context.targetUrl).origin) {
+          add("canonical-cross-origin", "medium", "Canonical points to another origin", `Canonical points to ${parsed.origin}, not the scanned site origin.`, "Confirm the cross-origin canonical is intentional.");
+        }
+      }
+    }
   }
 
   if (checkId === "internal-links" && context.signals.internalLinks < 3) {
@@ -424,6 +454,7 @@ function analyzeHtml(html: string, baseUrl: string): {
   description: boolean;
   viewport: boolean;
   canonical: boolean;
+  canonicalLinks: Array<{ href: string | null; inHead: boolean }>;
   robotsMeta: string;
   robotsDirectives: Array<{ source: "meta" | "x-robots-tag"; userAgent: string | null; content: string }>;
   h1Count: number;
@@ -440,11 +471,13 @@ function analyzeHtml(html: string, baseUrl: string): {
   const jsonLdBlocks = Array.from(html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)).map((match) => match[1]?.trim() ?? "");
   const microdataCount = (html.match(/<[^>]+\b(?:itemscope|itemtype)\b[^>]*>/gi) ?? []).length;
   const rdfaCount = (html.match(/<[^>]+\b(?:typeof|vocab)\s*=[^>]*>/gi) ?? []).length;
+  const canonicalLinks = extractCanonicalLinks(html);
   return {
     title: /<title\b[^>]*>[\s\S]*?<\/title>/i.test(html),
     description: /<meta\b[^>]*(?:name=["']description["'][^>]*content=|content=[^>]*name=["']description["'])/i.test(html),
     viewport: /<meta\b[^>]*(?:name=["']viewport["'][^>]*content=|content=[^>]*name=["']viewport["'])/i.test(html),
-    canonical: /<link\b[^>]*rel=["'][^"']*canonical[^"']*["'][^>]*href=/i.test(html),
+    canonical: canonicalLinks.some((link) => link.href),
+    canonicalLinks,
     robotsMeta: /<meta\b[^>]*name=["']robots["'][^>]*content=["']([^"']+)["']/i.exec(html)?.[1] ?? "",
     robotsDirectives: extractRobotsMetaDirectives(html),
     h1Count: (html.match(/<h1\b/gi) ?? []).length,
@@ -496,6 +529,38 @@ function extractSitemapUrls(body: string): string[] {
   return Array.from(body.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)).map((match) => match[1] ?? "").filter(Boolean);
 }
 
+function extractRobotsSitemapUrls(body: string): string[] {
+  return Array.from(new Set(
+    body.split(/\r?\n/).flatMap((rawLine) => {
+      const line = rawLine.replace(/#.*/, "").trim();
+      if (!line) return [];
+      const separatorIndex = line.indexOf(":");
+      if (separatorIndex < 0) return [];
+      const key = line.slice(0, separatorIndex).trim().toLowerCase();
+      const value = line.slice(separatorIndex + 1).trim();
+      return key === "sitemap" && value ? [value] : [];
+    }),
+  ));
+}
+
+function extractCanonicalLinks(html: string): Array<{ href: string | null; inHead: boolean }> {
+  const headMatch = /<head\b[^>]*>[\s\S]*?<\/head>/i.exec(html);
+  const headStart = headMatch?.index ?? -1;
+  const headEnd = headStart >= 0 ? headStart + (headMatch?.[0].length ?? 0) : -1;
+  return Array.from(html.matchAll(/<link\b[^>]*>/gi)).flatMap((match) => {
+    const tag = match[0];
+    const relValue = attrValue(tag, "rel")?.toLowerCase() ?? "";
+    if (!relValue.split(/\s+/).includes("canonical")) return [];
+    const tagIndex = match.index ?? -1;
+    return [
+      {
+        href: attrValue(tag, "href")?.trim() || null,
+        inHead: headStart >= 0 && tagIndex >= headStart && tagIndex < headEnd,
+      },
+    ];
+  });
+}
+
 function extractRobotsMetaDirectives(html: string): Array<{ source: "meta"; userAgent: string | null; content: string }> {
   return Array.from(html.matchAll(/<meta\b[^>]*>/gi))
     .map((match) => match[0])
@@ -540,6 +605,15 @@ function extractXRobotsDirectives(header: string): Array<{ source: "x-robots-tag
 
 function attrValue(tag: string, attr: string): string | null {
   return new RegExp(`\\b${attr}\\s*=\\s*(["'])(.*?)\\1`, "i").exec(tag)?.[2] ?? null;
+}
+
+function isAbsoluteHttpUrl(value: string): boolean {
+  try {
+    return ["http:", "https:"].includes(new URL(value).protocol);
+  } catch (err) {
+    if (!(err instanceof Error)) throw err;
+    return false;
+  }
 }
 
 function isXRobotsAgentToken(value: string): boolean {

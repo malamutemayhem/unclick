@@ -143,6 +143,29 @@ describe("runSeoPass", () => {
     expect(unrelatedBotBlocked.checks[0]?.findings.some((finding) => finding.id === "indexability-noindex")).toBe(false);
   });
 
+  it("uses robots.txt Sitemap directives when /sitemap.xml is not available", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com/page",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["indexability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/page": {
+          body: "<html><head><title>Page</title></head><body><h1>Page</h1></body></html>",
+          headers: { "content-type": "text/html" },
+        },
+        "https://example.com/robots.txt": {
+          body: "User-agent: *\nAllow: /\nSitemap: https://example.com/custom-sitemap.xml\n",
+        },
+        "https://example.com/sitemap.xml": { status: 404, body: "not found" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    const indexability = report.checks.find((check) => check.check_id === "indexability");
+    expect(indexability?.findings.some((finding) => finding.id === "indexability-sitemap-missing")).toBe(false);
+    expect(indexability?.comments.join(" ")).toMatch(/robots\.txt Sitemap directives found: 1/);
+  });
+
   it("recognizes Microdata and RDFa instead of claiming structured data is missing", async () => {
     const report = await runSeoPass({
       targetUrl: "https://example.com",
@@ -183,6 +206,34 @@ describe("runSeoPass", () => {
     });
 
     expect(report.checks[0]?.findings.some((finding) => finding.id === "aio-preview-controls-limit-ai-features")).toBe(true);
+  });
+
+  it("flags canonical links outside head, duplicate canonicals, and relative canonical URLs", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com/page",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["canonical-signals"],
+      fetcher: fixtureFetcher({
+        "https://example.com/page": {
+          body: `<!doctype html><html><head>
+            <title>Page</title>
+            <link rel="canonical" href="/canonical-page">
+          </head><body>
+            <h1>Page</h1>
+            <link rel="canonical" href="https://example.com/body-canonical">
+          </body></html>`,
+          headers: { "content-type": "text/html" },
+        },
+        "https://example.com/robots.txt": { body: "User-agent: *\nAllow: /\n" },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/page</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    const findings = report.checks[0]?.findings.map((finding) => finding.id) ?? [];
+    expect(findings).toContain("canonical-relative-url");
+    expect(findings).toContain("canonical-multiple");
+    expect(findings).toContain("canonical-outside-head");
   });
 
   it("emits GEOPass cross-pass signals for shared SEO/GEO gaps", async () => {

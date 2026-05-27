@@ -45,6 +45,7 @@ type HtmlSignals = {
   robotsMeta: string | null;
   robotsDirectives: RobotsDirective[];
   canonical: string | null;
+  canonicalLinks: Array<{ href: string | null; inHead: boolean }>;
   ogTitle: string | null;
   ogDescription: string | null;
   headings: Array<{ level: number; text: string }>;
@@ -374,6 +375,7 @@ function crawlabilityCheck(context: {
 function indexabilityCheck(context: {
   targetUrl: string;
   page: SeoPassFetchResult;
+  robots: SeoPassFetchResult;
   sitemap: SeoPassFetchResult;
   signals: HtmlSignals;
 }): SeoPassCheckResult {
@@ -384,6 +386,8 @@ function indexabilityCheck(context: {
   );
   const noindex = hasNoindexDirective(searchDirectives);
   const sitemapUrls = extractSitemapUrls(context.sitemap.body);
+  const robotsSitemapUrls = extractRobotsSitemapUrls(context.robots.body);
+  const sitemapFetchUsable = context.sitemap.status < 400 && sitemapUrls.length > 0;
 
   if (noindex) {
     findings.push(
@@ -406,7 +410,7 @@ function indexabilityCheck(context: {
     );
   }
 
-  if (context.sitemap.status >= 400 || sitemapUrls.length === 0) {
+  if (!sitemapFetchUsable && robotsSitemapUrls.length === 0) {
     findings.push(
       finding({
         id: "indexability-sitemap-missing",
@@ -431,9 +435,15 @@ function indexabilityCheck(context: {
         source_url: new URL("/sitemap.xml", context.targetUrl).toString(),
         summary: `${sitemapUrls.length} URL(s) found in the sitemap sample.`,
       },
+      {
+        kind: "robots-txt",
+        label: "robots.txt Sitemap directives",
+        source_url: context.robots.url,
+        summary: `${robotsSitemapUrls.length} Sitemap directive(s) found in robots.txt.`,
+      },
     ],
     comments: [
-      `Noindex detected: ${noindex ? "yes" : "no"}. Sitemap URLs found: ${sitemapUrls.length}.`,
+      `Noindex detected: ${noindex ? "yes" : "no"}. Sitemap URLs found: ${sitemapUrls.length}; robots.txt Sitemap directives found: ${robotsSitemapUrls.length}.`,
       `Robots directives checked: ${formatRobotsDirectives(searchDirectives)}.`,
     ],
   });
@@ -520,8 +530,11 @@ function metadataCheck(context: { targetUrl: string; signals: HtmlSignals }): Se
 
 function canonicalSignalsCheck(context: { targetUrl: string; signals: HtmlSignals }): SeoPassCheckResult {
   const findings: SeoPassFinding[] = [];
-  const canonical = context.signals.canonical;
-  if (!canonical) {
+  const canonicalLinks = context.signals.canonicalLinks;
+  const headCanonicalLinks = canonicalLinks.filter((link) => link.inHead);
+  const canonical = headCanonicalLinks.find((link) => link.href)?.href ?? canonicalLinks.find((link) => link.href)?.href ?? null;
+
+  if (canonicalLinks.length === 0) {
     findings.push(
       finding({
         id: "canonical-missing",
@@ -534,31 +547,87 @@ function canonicalSignalsCheck(context: { targetUrl: string; signals: HtmlSignal
       }),
     );
   } else {
-    const parsed = safeUrl(canonical, context.targetUrl);
-    if (!parsed) {
+    if (canonicalLinks.some((link) => !link.inHead)) {
       findings.push(
         finding({
-          id: "canonical-invalid",
-          check_id: "canonical-signals",
-          severity: "high",
-          title: "Canonical URL is invalid",
-          summary: `The canonical value could not be parsed: ${canonical}`,
-          evidence: [headEvidence(context.targetUrl, "Canonical tag", canonical)],
-          recommendation: "Use an absolute canonical URL.",
-        }),
-      );
-    } else if (parsed.origin !== new URL(context.targetUrl).origin) {
-      findings.push(
-        finding({
-          id: "canonical-cross-origin",
+          id: "canonical-outside-head",
           check_id: "canonical-signals",
           severity: "medium",
-          title: "Canonical points to another origin",
-          summary: `Canonical points to ${parsed.origin}, not the scanned site origin.`,
-          evidence: [headEvidence(context.targetUrl, "Canonical tag", parsed.toString())],
-          recommendation: "Confirm the cross-origin canonical is intentional.",
+          title: "Canonical link appears outside the head",
+          summary: "At least one rel=canonical link appears outside the HTML head, where search engines may ignore it.",
+          evidence: [headEvidence(context.targetUrl, "Canonical placement", formatCanonicalLinks(canonicalLinks))],
+          recommendation: "Keep one canonical link in the HTML head.",
         }),
       );
+    }
+
+    if (canonicalLinks.length > 1) {
+      findings.push(
+        finding({
+          id: "canonical-multiple",
+          check_id: "canonical-signals",
+          severity: "medium",
+          title: "Multiple canonical links were found",
+          summary: `${canonicalLinks.length} rel=canonical links were found, which can create ambiguous canonical signals.`,
+          evidence: [headEvidence(context.targetUrl, "Canonical links", formatCanonicalLinks(canonicalLinks))],
+          recommendation: "Emit exactly one canonical URL for the page unless a deliberate HTTP canonical header strategy is used.",
+        }),
+      );
+    }
+
+    if (!canonical) {
+      findings.push(
+        finding({
+          id: "canonical-empty",
+          check_id: "canonical-signals",
+          severity: "high",
+          title: "Canonical href is empty",
+          summary: "A rel=canonical link was found, but SEOPass could not read a usable href value.",
+          evidence: [headEvidence(context.targetUrl, "Canonical tag", formatCanonicalLinks(canonicalLinks))],
+          recommendation: "Set the canonical href to the absolute public URL for this page.",
+        }),
+      );
+    } else {
+      const parsed = safeUrl(canonical, context.targetUrl);
+      if (!isAbsoluteHttpUrl(canonical)) {
+        findings.push(
+          finding({
+            id: "canonical-relative-url",
+            check_id: "canonical-signals",
+            severity: "low",
+            title: "Canonical URL is relative",
+            summary: "The canonical href is relative. Google supports relative canonicals, but recommends absolute URLs to avoid long-term ambiguity.",
+            evidence: [headEvidence(context.targetUrl, "Canonical tag", canonical)],
+            recommendation: "Use the absolute canonical URL, including protocol and host.",
+          }),
+        );
+      }
+
+      if (!parsed) {
+        findings.push(
+          finding({
+            id: "canonical-invalid",
+            check_id: "canonical-signals",
+            severity: "high",
+            title: "Canonical URL is invalid",
+            summary: `The canonical value could not be parsed: ${canonical}`,
+            evidence: [headEvidence(context.targetUrl, "Canonical tag", canonical)],
+            recommendation: "Use an absolute canonical URL.",
+          }),
+        );
+      } else if (parsed.origin !== new URL(context.targetUrl).origin) {
+        findings.push(
+          finding({
+            id: "canonical-cross-origin",
+            check_id: "canonical-signals",
+            severity: "medium",
+            title: "Canonical points to another origin",
+            summary: `Canonical points to ${parsed.origin}, not the scanned site origin.`,
+            evidence: [headEvidence(context.targetUrl, "Canonical tag", parsed.toString())],
+            recommendation: "Confirm the cross-origin canonical is intentional.",
+          }),
+        );
+      }
     }
   }
 
@@ -566,7 +635,7 @@ function canonicalSignalsCheck(context: { targetUrl: string; signals: HtmlSignal
     check_id: "canonical-signals",
     label: "Canonical signals",
     findings,
-    evidence: [headEvidence(context.targetUrl, "Canonical tag", canonical ?? "missing")],
+    evidence: [headEvidence(context.targetUrl, "Canonical tag", formatCanonicalLinks(canonicalLinks) || "missing")],
   });
 }
 
@@ -1182,6 +1251,7 @@ function analyzeHtml(html: string, baseUrl: string): HtmlSignals {
     robotsMeta: extractMeta(html, "name", "robots"),
     robotsDirectives: extractRobotsMetaDirectives(html),
     canonical: extractLinkRel(html, "canonical"),
+    canonicalLinks: extractCanonicalLinks(html),
     ogTitle: extractMeta(html, "property", "og:title"),
     ogDescription: extractMeta(html, "property", "og:description"),
     headings,
@@ -1240,6 +1310,30 @@ function extractLinkRel(html: string, rel: string): string | null {
     if (relValue.split(/\s+/).includes(rel.toLowerCase())) return getAttr(tag, "href") ?? null;
   }
   return null;
+}
+
+function extractCanonicalLinks(html: string): Array<{ href: string | null; inHead: boolean }> {
+  const headMatch = /<head\b[^>]*>[\s\S]*?<\/head>/i.exec(html);
+  const headStart = headMatch?.index ?? -1;
+  const headEnd = headStart >= 0 ? headStart + (headMatch?.[0].length ?? 0) : -1;
+  return Array.from(html.matchAll(/<link\b[^>]*>/gi)).flatMap((match) => {
+    const tag = match[0];
+    const relValue = getAttr(tag, "rel")?.toLowerCase() ?? "";
+    if (!relValue.split(/\s+/).includes("canonical")) return [];
+    const tagIndex = match.index ?? -1;
+    return [
+      {
+        href: getAttr(tag, "href")?.trim() || null,
+        inHead: headStart >= 0 && tagIndex >= headStart && tagIndex < headEnd,
+      },
+    ];
+  });
+}
+
+function formatCanonicalLinks(links: Array<{ href: string | null; inHead: boolean }>): string {
+  return links
+    .map((link) => `${link.inHead ? "head" : "body"}:${link.href ?? "missing-href"}`)
+    .join("; ");
 }
 
 function extractLinks(html: string, baseUrl: string): Array<{ href: string; text: string; rel: string }> {
@@ -1471,6 +1565,29 @@ function robotsPathMatches(rulePath: string, path: string): boolean {
 
 function extractSitemapUrls(body: string): string[] {
   return Array.from(body.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)).map((match) => decodeEntities(match[1] ?? "").trim()).filter(Boolean);
+}
+
+function extractRobotsSitemapUrls(body: string): string[] {
+  return uniqueStrings(
+    body.split(/\r?\n/).flatMap((rawLine) => {
+      const line = rawLine.replace(/#.*/, "").trim();
+      if (!line) return [];
+      const separatorIndex = line.indexOf(":");
+      if (separatorIndex < 0) return [];
+      const key = line.slice(0, separatorIndex).trim().toLowerCase();
+      const value = line.slice(separatorIndex + 1).trim();
+      return key === "sitemap" && value ? [decodeEntities(value)] : [];
+    }),
+  );
+}
+
+function isAbsoluteHttpUrl(value: string): boolean {
+  try {
+    return ["http:", "https:"].includes(new URL(value).protocol);
+  } catch (err) {
+    if (!(err instanceof Error)) throw err;
+    return false;
+  }
 }
 
 function schemaTypesFromJsonLd(value: unknown): string[] {

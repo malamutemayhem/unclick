@@ -165,6 +165,21 @@ describe("seopass-tool", () => {
     expect(unrelatedBotRun.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "indexability-noindex"))).toBe(false);
   });
 
+  it("uses robots.txt Sitemap directives as sitemap evidence in MCP runs", async () => {
+    installFetch({
+      "https://unclick.world/page": { status: 200, body: healthyHtml, headers: { "content-type": "text/html" } },
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\nSitemap: https://unclick.world/custom-sitemap.xml\n",
+      "https://unclick.world/sitemap.xml": { status: 404, body: "not found" },
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world/page" })) as {
+      report?: { checks?: Array<{ check_id?: string; findings?: Array<{ id?: string }> }> };
+    };
+    const indexability = run.report?.checks?.find((check) => check.check_id === "indexability");
+    expect(indexability?.findings?.some((finding) => finding.id === "indexability-sitemap-missing")).toBe(false);
+  });
+
   it("applies robots rules to path/query and decorated user-agent tokens in MCP runs", async () => {
     installFetch({
       "https://unclick.world/search?draft=1": { status: 200, body: healthyHtml, headers: { "content-type": "text/html" } },
@@ -180,6 +195,43 @@ describe("seopass-tool", () => {
 
     expect(run.verdict).toBe("blocked");
     expect(run.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "crawlability-search-bot-blocked"))).toBe(true);
+  });
+
+  it("flags canonical placement, duplicate, and relative canonical issues in MCP runs", async () => {
+    installFetch({
+      "https://unclick.world/page": {
+        status: 200,
+        headers: { "content-type": "text/html" },
+        body: `<!doctype html><html><head>
+          <title>UnClick Page</title>
+          <meta name="description" content="A page with canonical edge cases.">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <link rel="canonical" href="/canonical-page">
+          <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"UnClick"}</script>
+        </head><body>
+          <h1>UnClick Page</h1>
+          <h2>How does it work?</h2>
+          <a href="https://unclick.world/about">About</a>
+          <a href="https://unclick.world/pricing">Pricing</a>
+          <a href="https://unclick.world/docs">Docs</a>
+          <link rel="canonical" href="https://unclick.world/body-canonical">
+          <time datetime="2026-05-27">Updated May 27, 2026</time>
+        </body></html>`,
+      },
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/page</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world/page" })) as {
+      report?: { checks?: Array<{ check_id?: string; findings?: Array<{ id?: string }> }> };
+    };
+    const canonicalFindings = run.report?.checks
+      ?.find((check) => check.check_id === "canonical-signals")
+      ?.findings?.map((finding) => finding.id) ?? [];
+    expect(canonicalFindings).toContain("canonical-relative-url");
+    expect(canonicalFindings).toContain("canonical-multiple");
+    expect(canonicalFindings).toContain("canonical-outside-head");
   });
 
   it("recognizes Microdata as structured-data evidence in the MCP run", async () => {
