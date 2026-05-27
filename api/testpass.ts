@@ -181,7 +181,7 @@ async function assertRunOwnership(
   actorUserId: string
 ): Promise<boolean> {
   const r = await fetch(
-    `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${runId}&actor_user_id=eq.${actorUserId}&select=id&limit=1`,
+    `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${encodeURIComponent(runId)}&actor_user_id=eq.${encodeURIComponent(actorUserId)}&select=id&limit=1`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
   );
   if (!r.ok) return false;
@@ -201,7 +201,7 @@ async function getRunForActor(
   actorUserId: string
 ): Promise<TestPassRunRow | null> {
   const r = await fetch(
-    `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${runId}&actor_user_id=eq.${actorUserId}&select=id,pack_id&limit=1`,
+    `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${encodeURIComponent(runId)}&actor_user_id=eq.${encodeURIComponent(actorUserId)}&select=id,pack_id&limit=1`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
   );
   if (!r.ok) return null;
@@ -217,11 +217,11 @@ async function getRunWithItems(
 ) {
   const [runRes, itemsRes] = await Promise.all([
     fetch(
-      `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${runId}&actor_user_id=eq.${actorUserId}&select=*&limit=1`,
+      `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${encodeURIComponent(runId)}&actor_user_id=eq.${encodeURIComponent(actorUserId)}&select=*&limit=1`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     ),
     fetch(
-      `${supabaseUrl}/rest/v1/testpass_items?run_id=eq.${runId}&select=*&order=created_at.asc`,
+      `${supabaseUrl}/rest/v1/testpass_items?run_id=eq.${encodeURIComponent(runId)}&select=*&order=created_at.asc`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     ),
   ]);
@@ -569,7 +569,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!dbVerdict) return json(res, 400, { error: "verdict must be pass|fail|na|other" });
 
     const ownerCheck = await fetch(
-      `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${body.run_id}&actor_user_id=eq.${actorUserId}&select=id&limit=1`,
+      `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${encodeURIComponent(body.run_id)}&actor_user_id=eq.${encodeURIComponent(actorUserId)}&select=id&limit=1`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     );
     const ownerRows = (await ownerCheck.json()) as Array<{ id: string }>;
@@ -579,7 +579,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (typeof body.notes === "string") patch.on_fail_comment = body.notes;
 
     const upd = await fetch(
-      `${supabaseUrl}/rest/v1/testpass_items?id=eq.${body.item_id}&run_id=eq.${body.run_id}`,
+      `${supabaseUrl}/rest/v1/testpass_items?id=eq.${encodeURIComponent(body.item_id)}&run_id=eq.${encodeURIComponent(body.run_id)}`,
       {
         method: "PATCH",
         headers: {
@@ -598,7 +598,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const rows = (await upd.json()) as unknown[];
     const item = rows[0];
     if (!item) return json(res, 404, { error: "Item not found" });
-    return json(res, 200, { item });
+    const summary = await computeVerdictSummary(config, body.run_id);
+    const isDone = summary.pending === 0;
+    await updateRunStatus(config, body.run_id, isDone ? (summary.fail > 0 ? "failed" : "complete") : "running", summary);
+    return json(res, 200, { item, summary });
   }
 
   if (req.method === "POST" && action === "heal") {

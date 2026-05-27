@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import { EditorState } from "@codemirror/state";
 import { EditorView, lineNumbers, highlightActiveLine } from "@codemirror/view";
 import { yaml as yamlLang } from "@codemirror/lang-yaml";
@@ -189,6 +190,13 @@ interface VerdictSummary {
   pass_rate: number;
 }
 
+interface PackDetail {
+  id: string;
+  slug: string;
+  yaml: unknown;
+  is_system?: boolean;
+}
+
 const VERDICT_BADGES: Record<string, string> = {
   check:   "bg-[#61C1C4]/10 text-[#61C1C4] border-[#61C1C4]/30",
   na:      "bg-gray-500/10 text-gray-400 border-gray-500/30",
@@ -206,11 +214,13 @@ const SEVERITY_BADGES: Record<string, string> = {
 
 export default function AdminTestPass() {
   const { session } = useSession();
+  const { id: routePackId } = useParams<{ id: string }>();
   const token = session?.access_token;
   const authHeader = useMemo(
     () => (token ? { Authorization: `Bearer ${token}` } : {}),
     [token],
   );
+  const editingPackId = routePackId && routePackId !== "new" ? routePackId : null;
 
   // ─── Pack editor ────────────────────────────────────────────────
   const editorContainerRef = useRef<HTMLDivElement | null>(null);
@@ -219,6 +229,9 @@ export default function AdminTestPass() {
   const [validateOk,    setValidateOk]    = useState(false);
   const [savingPack,    setSavingPack]    = useState(false);
   const [savePackMsg,   setSavePackMsg]   = useState<string | null>(null);
+  const [loadingPack,   setLoadingPack]   = useState(false);
+  const [loadedPack,    setLoadedPack]    = useState<PackDetail | null>(null);
+  const [editorReady,   setEditorReady]   = useState(false);
 
   useEffect(() => {
     if (!editorContainerRef.current || editorViewRef.current) return;
@@ -243,13 +256,43 @@ export default function AdminTestPass() {
       ],
     });
     editorViewRef.current = new EditorView({ state, parent: editorContainerRef.current });
+    setEditorReady(true);
     return () => {
       editorViewRef.current?.destroy();
       editorViewRef.current = null;
+      setEditorReady(false);
     };
   }, []);
 
   const getPackYaml = () => editorViewRef.current?.state.doc.toString() ?? "";
+
+  const setPackYaml = useCallback((nextDoc: string) => {
+    const view = editorViewRef.current;
+    if (!view) return;
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: nextDoc },
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!editingPackId || !token || !editorReady) return;
+    setLoadingPack(true);
+    setSavePackMsg(null);
+    fetch(`/api/memory-admin?action=get_testpass_pack&pack_id=${encodeURIComponent(editingPackId)}`, {
+      headers: authHeader,
+    })
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error ?? `Pack load failed with ${res.status}`);
+        const pack = body.pack as PackDetail;
+        setLoadedPack(pack);
+        setPackYaml(yaml.dump(pack.yaml ?? {}, { lineWidth: 100 }));
+      })
+      .catch((err) => {
+        setSavePackMsg(err instanceof Error ? err.message : "Pack load failed");
+      })
+      .finally(() => setLoadingPack(false));
+  }, [editingPackId, token, authHeader, editorReady, setPackYaml]);
 
   function validateYaml() {
     setSavePackMsg(null);
@@ -272,10 +315,11 @@ export default function AdminTestPass() {
     setSavingPack(true);
     setSavePackMsg(null);
     try {
+      const expectedPackId = loadedPack && !loadedPack.is_system ? loadedPack.slug : undefined;
       const res = await fetch("/api/testpass", {
         method:  "POST",
         headers: { ...authHeader, "Content-Type": "application/json" },
-        body:    JSON.stringify({ action: "save_pack", pack_yaml: getPackYaml() }),
+        body:    JSON.stringify({ action: "save_pack", pack_id: expectedPackId, pack_yaml: getPackYaml() }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error ?? `Save failed with ${res.status}`);
@@ -399,6 +443,16 @@ export default function AdminTestPass() {
       {/* Section 1 - Pack editor */}
       <section className="mb-8 rounded-xl border border-white/[0.06] bg-[#111111] p-5">
         <h2 className="mb-3 text-sm font-semibold text-white">Pack editor</h2>
+        {loadingPack && (
+          <p className="mb-3 flex items-center gap-2 text-xs text-[#888]">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading pack...
+          </p>
+        )}
+        {loadedPack?.is_system && (
+          <p className="mb-3 text-xs text-[#888]">
+            System pack loaded. Rename it before saving if you want a custom copy.
+          </p>
+        )}
         <div ref={editorContainerRef} className="overflow-hidden rounded-lg border border-white/[0.06]" />
         {validateError && (
           <p className="mt-3 flex items-start gap-2 text-xs text-red-400">

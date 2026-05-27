@@ -28,7 +28,7 @@ async function fetchPendingCheckIds(
   config: RunManagerConfig,
   runId: string,
 ): Promise<string[]> {
-  const url = `${config.supabaseUrl}/rest/v1/testpass_items?run_id=eq.${runId}&verdict=eq.pending&select=check_id`;
+  const url = `${config.supabaseUrl}/rest/v1/testpass_items?run_id=eq.${encodeURIComponent(runId)}&verdict=eq.pending&select=check_id`;
   const res = await fetch(url, {
     headers: {
       apikey: config.serviceRoleKey,
@@ -44,7 +44,7 @@ async function fetchProbePayload(
   config: RunManagerConfig,
   evidenceRef: string,
 ): Promise<unknown> {
-  const url = `${config.supabaseUrl}/rest/v1/testpass_evidence?id=eq.${evidenceRef}&select=payload&limit=1`;
+  const url = `${config.supabaseUrl}/rest/v1/testpass_evidence?id=eq.${encodeURIComponent(evidenceRef)}&select=payload&limit=1`;
   const res = await fetch(url, {
     headers: {
       apikey: config.serviceRoleKey,

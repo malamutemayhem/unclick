@@ -37,7 +37,7 @@ async function fetchFailedDeterministicIds(
   config: RunManagerConfig,
   runId: string,
 ): Promise<string[]> {
-  const url = `${config.supabaseUrl}/rest/v1/testpass_items?run_id=eq.${runId}&verdict=eq.fail&select=check_id`;
+  const url = `${config.supabaseUrl}/rest/v1/testpass_items?run_id=eq.${encodeURIComponent(runId)}&verdict=eq.fail&select=check_id`;
   const res = await fetch(url, {
     headers: {
       apikey: config.serviceRoleKey,

@@ -8,6 +8,7 @@
  */
 
 const API_BASE = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function getApiKey(): string {
   const key = process.env.UNCLICK_API_KEY?.trim();
@@ -26,10 +27,10 @@ export async function testpassRun(args: Record<string, unknown>): Promise<unknow
 
   const apiKey = getApiKey();
   const requestBody: Record<string, unknown> = {
-    pack_slug: packId,
     target: { type: "mcp", url: targetUrl },
     profile,
   };
+  requestBody[UUID_RE.test(packId) ? "pack_id" : "pack_slug"] = packId;
   if (taskId) requestBody.task_id = taskId;
   const res = await fetch(`${API_BASE}/api/testpass?action=start_run`, {
     method: "POST",

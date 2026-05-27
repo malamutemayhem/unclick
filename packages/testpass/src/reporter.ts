@@ -74,10 +74,10 @@ async function fetchRunAndItems(
   runId: string
 ): Promise<{ run: RunRow; items: ItemRow[]; evidence: Map<string, EvidenceRow> }> {
   const [runRows, items] = await Promise.all([
-    supaGet(config, `testpass_runs?id=eq.${runId}&select=*&limit=1`) as Promise<RunRow[]>,
+    supaGet(config, `testpass_runs?id=eq.${encodeURIComponent(runId)}&select=*&limit=1`) as Promise<RunRow[]>,
     supaGet(
       config,
-      `testpass_items?run_id=eq.${runId}&select=*&order=severity.asc,check_id.asc`
+      `testpass_items?run_id=eq.${encodeURIComponent(runId)}&select=*&order=severity.asc,check_id.asc`
     ) as Promise<ItemRow[]>,
   ]);
   if (!runRows || runRows.length === 0) {

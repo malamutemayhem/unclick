@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ADDITIONAL_TOOLS } from "../tool-wiring.js";
-import { testpassEditItem, testpassSavePack } from "../testpass-tool.js";
+import { testpassEditItem, testpassRun, testpassSavePack } from "../testpass-tool.js";
 
 const originalFetch = globalThis.fetch;
 const originalApiKey = process.env.UNCLICK_API_KEY;
@@ -22,6 +22,24 @@ function okJson(body: unknown): Response {
 }
 
 describe("TestPass MCP tool", () => {
+  it("passes UUID pack identifiers as pack_id instead of pack_slug", async () => {
+    process.env.UNCLICK_API_KEY = "uc_test";
+    const fetchMock = vi.fn(async (..._args: unknown[]) => okJson({ run_id: "run-1" }));
+    globalThis.fetch = fetchMock as typeof fetch;
+
+    await testpassRun({
+      target_url: "https://example.test/mcp",
+      pack_id: "550e8400-e29b-41d4-a716-446655440000",
+    });
+
+    const [, init] = fetchMock.mock.calls[0] as [unknown, RequestInit];
+    expect(JSON.parse(String(init.body))).toMatchObject({
+      pack_id: "550e8400-e29b-41d4-a716-446655440000",
+      target: { type: "mcp", url: "https://example.test/mcp" },
+    });
+    expect(JSON.parse(String(init.body))).not.toHaveProperty("pack_slug");
+  });
+
   it("sends canonical pack_yaml when saving packs", async () => {
     process.env.UNCLICK_API_KEY = "uc_test";
     const fetchMock = vi.fn(async (..._args: unknown[]) => okJson({ pack: { slug: "demo" } }));
