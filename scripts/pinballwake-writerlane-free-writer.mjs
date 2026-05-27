@@ -338,7 +338,7 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
   if (contexts.length) {
     lines.push("Current owned file contents:");
     for (const file of contexts) {
-      lines.push(`FILE: ${file.path}`);
+      lines.push(`CURRENT FILE: ${file.path}`);
       if (file.error) {
         lines.push(`Unreadable: ${file.error}`);
         continue;
@@ -543,11 +543,17 @@ function normalizeFileContexts(files) {
 function clipUtf8(value, maxBytes) {
   const text = String(value ?? "");
   if (Buffer.byteLength(text, "utf8") <= maxBytes) return text;
-  let clipped = text.slice(0, Math.max(0, maxBytes));
+  const marker = "\n[truncated for writer context]";
+  const markerBytes = Buffer.byteLength(marker, "utf8");
+  if (maxBytes <= markerBytes) return "";
+  let clipped = text.slice(0, Math.max(0, maxBytes - markerBytes));
   while (Buffer.byteLength(clipped, "utf8") > maxBytes) {
     clipped = clipped.slice(0, -1);
   }
-  return `${clipped}\n[truncated for writer context]`;
+  while (Buffer.byteLength(`${clipped}${marker}`, "utf8") > maxBytes) {
+    clipped = clipped.slice(0, -1);
+  }
+  return `${clipped}${marker}`;
 }
 
 function readFileErrorReason(err) {

@@ -75,11 +75,37 @@ describe("writerlane free-writer: happy path", () => {
     assert.deepEqual(result.validation, { testsPassed: true, clean: true, withinDiffBudget: true });
     assert.equal(result.diff_source, "worktree");
     assert.match(prompt, /Current owned file contents:/);
+    assert.match(prompt, /CURRENT FILE: docs\/x\.md/);
     assert.match(prompt, /current docs\/x\.md/);
     assert.match(prompt, /old line/);
     // ordering: write the file, run the real test, THEN capture (capture reverts)
     assert.deepEqual(order, ["write", "test", "capture"]);
     assert.deepEqual(writes, [{ path: "docs/x.md", content: "hello world\n" }]);
+  });
+
+  it("keeps current-file context distinct from response file markers and bounded", async () => {
+    let prompt = "";
+    const runner = createWriterLaneFreeWriterRunner({
+      env: { LLM_API_KEY: "k" },
+      models: [MODEL_A],
+      maxContextFileBytes: 56,
+      maxContextTotalBytes: 56,
+      fetchImpl: async (_url, init) => {
+        prompt = JSON.parse(init.body).messages[0].content;
+        return fakeFetchOnce(fileBlock("docs/x.md", "hello world"))();
+      },
+      readFileImpl: async () => `${"a".repeat(120)}tail-never-visible`,
+      runProcess: okProcess(),
+      writeFileImpl: async () => {},
+      captureDiff: async ({ ownedFiles }) => ({ ok: true, patch: GOOD_PATCH, changed_files: ownedFiles }),
+    });
+
+    const result = await runner({ scopePack: { owned_files: OWNED, verification: ["node --test docs/x.test.mjs"] } });
+
+    assert.equal(result.ok, true);
+    assert.match(prompt, /CURRENT FILE: docs\/x\.md/);
+    assert.doesNotMatch(prompt, /tail-never-visible/);
+    assert.match(prompt, /\[truncated for writer context\]/);
   });
 });
 
@@ -255,6 +281,7 @@ describe("writerlane free-writer: pure helpers", () => {
     assert.match(prompt, /- docs\/x\.md/);
     assert.match(prompt, /node --test x/);
     assert.match(prompt, /Current owned file contents:/);
+    assert.match(prompt, /CURRENT FILE: docs\/x\.md/);
     assert.match(prompt, /old file/);
   });
 });
