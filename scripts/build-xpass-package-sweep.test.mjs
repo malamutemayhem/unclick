@@ -7,6 +7,7 @@ import { test } from "node:test";
 import { promisify } from "node:util";
 
 import {
+  CROSS_PASS_MATRIX,
   PASS_PACKAGES,
   buildXPassPackageSweep,
   defaultRunCommand,
@@ -43,6 +44,28 @@ test("XPass package sweep records package and cross-pass proof", async () => {
     "copypass",
   ]);
   assert.deepEqual(receipt.action_needed, []);
+});
+
+test("XPass package sweep cross-checks every pass package", async () => {
+  const receipt = await buildXPassPackageSweep({
+    now: "2026-05-28T00:00:00.000Z",
+    targetSha: "abc123",
+    runCommand: async () => ({ status: "passing", exitCode: 0, durationMs: 12, failureHint: "" }),
+  });
+  const packageIds = new Set(PASS_PACKAGES.map((pkg) => pkg.id));
+  const targetIds = new Set(receipt.cross_pass_matrix.map((row) => row.target_id));
+
+  assert.deepEqual(targetIds, packageIds);
+  assert.equal(CROSS_PASS_MATRIX.length, PASS_PACKAGES.length);
+
+  for (const row of receipt.cross_pass_matrix) {
+    assert.equal(row.status, "passing");
+    assert.ok(row.reviewers.length >= 2, `${row.target_id} needs at least two cross-pass reviewers`);
+    for (const reviewer of row.reviewers) {
+      assert.notEqual(reviewer.id, row.target_id, `${row.target_id} should not review itself`);
+      assert.ok(packageIds.has(reviewer.id), `${row.target_id} references unknown reviewer ${reviewer.id}`);
+    }
+  }
 });
 
 test("XPass package sweep fails honestly when a package reviewer fails", async () => {
