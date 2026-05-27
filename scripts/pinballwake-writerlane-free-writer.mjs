@@ -407,13 +407,23 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
     "You are an UnClick WriterLane free-model writer running AFK.",
     "Implement the requested change by returning the FULL new contents of each owned file.",
     "For EACH owned file, output a line exactly `FILE: <path>` followed by a fenced code block containing the complete new file contents.",
-    "Return only FILE blocks. Do not return a unified diff, prose, bullets, JSON, markdown headings, or explanations.",
+    "Return only FILE blocks. Do not return JSON, explanations, bullets, markdown headings, or unified diffs.",
+    "Do not use `CURRENT FILE:` in your answer. That label appears only in the input context.",
     "Change only the owned files. Do not commit, push, merge, deploy, or touch anything outside them.",
     "Use the current file contents below as the source of truth. Preserve unrelated code.",
     `Model: ${model.openRouterModel || "unknown"}`,
     "Owned files:",
     ...ownedFiles.map((file) => `- ${file}`),
   ];
+  if (ownedFiles.length) {
+    lines.push("Required response shape:");
+    for (const file of ownedFiles) {
+      lines.push(`FILE: ${file}`);
+      lines.push("```");
+      lines.push("<complete new file contents>");
+      lines.push("```");
+    }
+  }
   if (ownedFiles.length === 1) {
     lines.push(`Because there is one owned file, your first response line must be: FILE: ${ownedFiles[0]}`);
   }
@@ -495,18 +505,19 @@ function extractCanaryFixtureProofLine(prompt = "") {
   return plainLine ? plainLine[1].trim() : "";
 }
 
-// Parse `FILE: <path>` + fenced block pairs, keeping only owned paths. Falls back
-// to a single fenced block when exactly one file is owned.
+// Parse file-path + fenced block pairs, keeping only owned paths. The prompt asks
+// for exact `FILE: <path>` blocks, but cheap/free models often drift into
+// headings, backticked paths, or fence info strings. Accept those safe variants
+// while still refusing unowned paths.
 export function parseFileBlocks(content, ownedFiles) {
   const owned = new Set(normalizePaths(ownedFiles));
   const text = String(content ?? "");
   const blocks = [];
-  const re = /FILE:\s*([^\n`]+?)\s*\r?\n+```[^\n]*\r?\n([\s\S]*?)\r?\n?```/g;
-  let match;
-  while ((match = re.exec(text)) !== null) {
-    const path = normalizePath(match[1]);
-    if (owned.has(path)) {
-      blocks.push({ path, content: match[2] });
+  for (const fence of extractFencedBlocks(text)) {
+    const previousLine = previousNonEmptyLine(text, fence.start);
+    const path = findOwnedPathForFence({ info: fence.info, previousLine, owned });
+    if (path) {
+      blocks.push({ path, content: fence.content });
     }
   }
   if (blocks.length > 0) {
@@ -520,6 +531,49 @@ export function parseFileBlocks(content, ownedFiles) {
     }
   }
   return [];
+}
+
+function extractFencedBlocks(text) {
+  const blocks = [];
+  const re = /```([^\n`]*)\r?\n([\s\S]*?)\r?\n?```/g;
+  let match;
+  while ((match = re.exec(text)) !== null) {
+    blocks.push({
+      start: match.index,
+      info: String(match[1] ?? ""),
+      content: match[2],
+    });
+  }
+  return blocks;
+}
+
+function previousNonEmptyLine(text, index) {
+  const before = String(text ?? "").slice(0, index).split(/\r?\n/);
+  for (let i = before.length - 1; i >= 0; i -= 1) {
+    const line = before[i]?.trim();
+    if (line) return line;
+  }
+  return "";
+}
+
+function findOwnedPathForFence({ info = "", previousLine = "", owned }) {
+  const fromInfo = findOwnedPathInText(info, owned);
+  if (fromInfo) return fromInfo;
+  if (/current\s+file/i.test(previousLine)) return "";
+  return findOwnedPathInText(previousLine, owned);
+}
+
+function findOwnedPathInText(value, owned) {
+  const text = normalizePath(
+    String(value ?? "")
+      .replace(/^[#>\s*-]+/, "")
+      .replace(/\b(file|filename|path)\b\s*[:=]/gi, " ")
+      .replace(/[`"']/g, " "),
+  );
+  for (const path of owned) {
+    if (text.includes(path)) return path;
+  }
+  return "";
 }
 
 export function extractUnifiedDiff(content) {
