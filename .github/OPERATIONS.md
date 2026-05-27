@@ -24,7 +24,7 @@ Set these at **Settings → Secrets and variables → Actions → Repository sec
 
 | Secret | Used by | Where to get it |
 |---|---|---|
-| `TESTPASS_TOKEN` | `testpass-pr-check.yml`, `dogfood-report.yml` TestPass proof | Active TestPass bearer for `/api/testpass-run` |
+| `TESTPASS_TOKEN` | `testpass-pr-check.yml`, `dogfood-report.yml` TestPass proof | Active `uc_` UnClick API key for `/api/testpass-run`; PR smoke also forwards this key to the target MCP probe |
 | `TESTPASS_CRON_SECRET` | `testpass-scheduled-smoke.yml` first-choice token | Optional dedicated scheduled-smoke bearer for `/api/testpass-run` |
 | `UXPASS_TOKEN` | `dogfood-report.yml` UXPass proof | Active UXPass bearer for `/api/uxpass-run` |
 | `CRON_SECRET` | `testpass-scheduled-smoke.yml` fallback, `dogfood-report.yml` UXPass fallback | Shared cron bearer when a dedicated pass token is not set |
@@ -126,6 +126,7 @@ npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclic
    - Do not patch around this by loosening CI from `npm ci` to `npm install`.
 2. **`testpass-pr-check.yml` or `testpass-scheduled-smoke.yml` 401/403** - token precedence resolved to an expired or wrong bearer.
    - Scheduled smoke checks `TESTPASS_CRON_SECRET`, then `CRON_SECRET`, then `TESTPASS_TOKEN`.
+   - PR smoke should use a `uc_` UnClick API key so `/api/testpass-run` can authenticate the run and forward the same tenant key into the MCP target probe.
    - Dogfood TestPass uses `TESTPASS_TOKEN`.
    - Dogfood UXPass uses `UXPASS_TOKEN` first, then `CRON_SECRET`.
    - If `public/dogfood/latest.json` flips to `blocked`, treat that as honest evidence and refresh the missing secret instead of forcing a green status.
