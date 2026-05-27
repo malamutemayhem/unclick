@@ -12,6 +12,8 @@ The first smell library covers:
 - Broad type bypasses such as `any` and TypeScript suppression comments.
 - Dynamic code execution such as `eval` and `new Function`.
 - Secret-looking literals with redacted evidence.
+- Security verification bypasses, such as disabled TLS checks, that make generated integrations look green without proving the trust boundary.
+- Diff-scoped dependency declarations, so hallucinated, unnecessary, or unvetted packages get explicit verification before merge.
 - Catch-all fallback paths that hide failure.
 - Test proof theatre, including weak assertions, skipped tests, and tautological assertions.
 - Reliability wording that needs evidence, such as retry and wrapper claims.

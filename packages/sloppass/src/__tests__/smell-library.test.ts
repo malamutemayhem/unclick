@@ -12,6 +12,8 @@ describe("SlopPass smell library", () => {
       "broad-any-bypass",
       "unsafe-dynamic-execution",
       "secret-like-literal",
+      "security-verification-bypass",
+      "dependency-supply-chain-change",
       "catch-all-fallback",
       "weak-assertion",
       "skipped-test",
@@ -107,5 +109,76 @@ describe("SlopPass smell library", () => {
     expect(findings.filter((finding) => finding.title === "Secret-looking literal was detected")).toHaveLength(2);
     expect(text).not.toContain(fakeOpenAiToken);
     expect(text).not.toContain(fakeGitHubToken);
+  });
+
+  it("flags concrete security verification bypasses", () => {
+    const findings = detectSlopSmells([
+      {
+        path: "src/client.ts",
+        content: [
+          "process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';",
+          "const agent = new https.Agent({ rejectUnauthorized: false });",
+        ].join("\n"),
+      },
+    ]);
+
+    expect(
+      findings.filter((finding) => finding.title === "Security verification was bypassed"),
+    ).toHaveLength(2);
+    expect(findings).toContainEqual(
+      expect.objectContaining({
+        category: "grounding_api_reality",
+        severity: "high",
+        line: 1,
+      }),
+    );
+  });
+
+  it("flags diff-scoped dependency additions without treating full manifests as new", () => {
+    const fullManifestFindings = detectSlopSmells([
+      {
+        path: "package.json",
+        content: '    "left-pad": "^1.3.0"',
+      },
+    ]);
+    const diffManifestFindings = detectSlopSmells([
+      {
+        path: "package.json",
+        content: '    "left-pad": "^1.3.0"',
+        start_line: 42,
+      },
+    ]);
+
+    expect(
+      fullManifestFindings.filter(
+        (finding) => finding.title === "Dependency change needs package verification",
+      ),
+    ).toHaveLength(0);
+    expect(diffManifestFindings).toContainEqual(
+      expect.objectContaining({
+        title: "Dependency change needs package verification",
+        category: "maintenance_change_risk",
+        severity: "info",
+        line: 42,
+      }),
+    );
+  });
+
+  it("does not treat package metadata edits as dependency additions", () => {
+    const findings = detectSlopSmells([
+      {
+        path: "package.json",
+        content: [
+          '  "name": "@unclick/sloppass",',
+          '  "version": "0.1.1",',
+          '  "type": "module"',
+        ].join("\n"),
+        start_line: 1,
+      },
+    ]);
+
+    expect(
+      findings.filter((finding) => finding.title === "Dependency change needs package verification"),
+    ).toHaveLength(0);
   });
 });

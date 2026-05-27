@@ -100,6 +100,31 @@ describe("SlopPass runner", () => {
     expect(result.findings.filter((finding) => finding.title === "Type safety was bypassed")).toHaveLength(2);
   });
 
+  it("flags dependency additions in diff scope as supply-chain review triggers", async () => {
+    const result = await runSlopPass({
+      target: { kind: "diff", label: "package diff" },
+      diff: [
+        "diff --git a/package.json b/package.json",
+        "--- a/package.json",
+        "+++ b/package.json",
+        "@@ -20,6 +20,7 @@",
+        '     "typescript": "^5.9.3",',
+        '+    "plausible-new-helper": "^1.0.0"',
+      ].join("\n"),
+      checks: ["maintenance_change_risk"],
+    });
+
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({
+        title: "Dependency change needs package verification",
+        file: "package.json",
+        line: 21,
+        severity: "info",
+      }),
+    );
+    expect(result.verdict).toBe("warn");
+  });
+
   it("records non-default provider selection without making model calls", async () => {
     const result = await runSlopPass({
       target: { kind: "files", label: "echo", files: ["src/a.ts"] },

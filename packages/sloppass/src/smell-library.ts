@@ -10,6 +10,8 @@ export type SlopPassSmellCheckId =
   | "broad-any-bypass"
   | "unsafe-dynamic-execution"
   | "secret-like-literal"
+  | "security-verification-bypass"
+  | "dependency-supply-chain-change"
   | "catch-all-fallback"
   | "weak-assertion"
   | "skipped-test"
@@ -27,6 +29,7 @@ export interface SlopPassSmellCheck {
   suggested_fix: string;
   confidence_note?: string;
   evidence?: (match: RegExpExecArray, file: SlopPassSourceFile) => string;
+  should_skip?: (file: SlopPassSourceFile) => boolean;
 }
 
 const REDACTED_SECRET_EVIDENCE = "[redacted-secret-like-literal]";
@@ -76,6 +79,35 @@ export const DEFAULT_SLOPPASS_SMELL_CHECKS: SlopPassSmellCheck[] = [
     suggested_fix:
       "Move the value to a secret store or fixture placeholder, then prove the report redacts the raw value.",
     evidence: () => REDACTED_SECRET_EVIDENCE,
+  },
+  {
+    id: "security-verification-bypass",
+    category: "grounding_api_reality",
+    severity: "high",
+    title: "Security verification was bypassed",
+    pattern:
+      /\bNODE_TLS_REJECT_UNAUTHORIZED\b\s*=\s*["']?0["']?|\brejectUnauthorized\s*:\s*false\b|\bstrictSSL\s*:\s*false\b|\brequests\.(?:get|post|put|patch|delete)\s*\([^)]*verify\s*=\s*False\b/i,
+    why_it_matters:
+      "Generated fixes sometimes disable certificate or transport verification to make an integration appear to work.",
+    suggested_fix:
+      "Restore verification, fix the certificate or trust boundary, and add proof for the failing integration path.",
+    confidence_note:
+      "Concrete bypass signal only. Broader security review still belongs in SecurityPass.",
+  },
+  {
+    id: "dependency-supply-chain-change",
+    category: "maintenance_change_risk",
+    severity: "info",
+    title: "Dependency change needs package verification",
+    pattern:
+      /^[ \t]*["'](?!name["']|version["']|type["']|main["']|module["']|types["']|scripts["']|exports["']|imports["']|files["']|engines["']|packageManager["'])(?:@[\w.-]+\/)?[\w.-]+["'][ \t]*:[ \t]*["'](?:[\^~]?\d|workspace:|npm:|file:|link:|github:|git\+|https?:\/\/|\*)[^"']*["'][ \t]*,?[ \t]*$/im,
+    why_it_matters:
+      "AI-generated code can add plausible package names that are unnecessary, abandoned, or hallucinated.",
+    suggested_fix:
+      "Verify the package exists, is intentionally needed, is pinned or ranged correctly, and has acceptable provenance before merging.",
+    confidence_note:
+      "Diff-scope review trigger. SlopPass does not call package registries in the deterministic runner.",
+    should_skip: (file) => !/package\.json$/i.test(file.path) || file.start_line === undefined,
   },
   {
     id: "catch-all-fallback",
@@ -204,6 +236,7 @@ export function detectSlopSmells(
 
   for (const file of files) {
     for (const check of checks) {
+      if (check.should_skip?.(file)) continue;
       const pattern = globalPattern(check.pattern);
       let match: RegExpExecArray | null;
       while ((match = pattern.exec(file.content)) !== null) {
