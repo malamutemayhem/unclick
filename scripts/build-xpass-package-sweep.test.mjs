@@ -9,6 +9,7 @@ import { promisify } from "node:util";
 import {
   PASS_PACKAGES,
   buildXPassPackageSweep,
+  defaultRunCommand,
 } from "./build-xpass-package-sweep.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -88,4 +89,20 @@ test("XPass package sweep CLI writes a public-safe receipt", async () => {
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }
+});
+
+test("XPass package sweep failure hints do not expose raw command output", async () => {
+  const result = await defaultRunCommand(process.execPath, [
+    "-e",
+    "console.error('SECRET_TOKEN=uc_should_not_escape'); process.exit(7)",
+  ], {
+    cwd: process.cwd(),
+    timeoutMs: 5000,
+  });
+
+  assert.equal(result.status, "failing");
+  assert.equal(result.exitCode, 7);
+  assert.match(result.failureHint, /code 7/);
+  assert.doesNotMatch(result.failureHint, /SECRET_TOKEN/i);
+  assert.doesNotMatch(result.failureHint, /uc_should_not_escape/i);
 });

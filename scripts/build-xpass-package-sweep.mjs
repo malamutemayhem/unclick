@@ -224,7 +224,9 @@ export async function defaultRunCommand(command, args, { cwd, timeoutMs }) {
     const signal = typeof error?.signal === "string" ? error.signal : "";
     const hint = signal
       ? `Process stopped with signal ${signal}.`
-      : compactText(error?.message || "Command failed.");
+      : Number.isFinite(exitCode)
+        ? `Process exited with code ${exitCode}.`
+        : "Command failed before completion.";
     return {
       status: "failing",
       exitCode,
