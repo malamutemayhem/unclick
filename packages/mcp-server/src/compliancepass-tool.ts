@@ -37,13 +37,15 @@ export async function compliancepassRun(args: Record<string, unknown>): Promise<
       legacy_aliases: report.legacy_aliases,
       readiness_score: report.readiness_score,
       summary: report.summary,
-      categories: report.categories.map((category) => ({
-        id: category.id,
-        name: category.name,
-        score: category.score,
-        band: category.band,
-        status: category.status,
-      })),
+      categories: report.categories.map(
+        (category: CompliancePassReport["categories"][number]) => ({
+          id: category.id,
+          name: category.name,
+          score: category.score,
+          band: category.band,
+          status: category.status,
+        }),
+      ),
       gaps: report.gaps.slice(0, 10),
       next_actions: report.next_actions,
       disclaimer: report.disclaimer,

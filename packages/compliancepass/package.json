@@ -12,6 +12,7 @@
     "./reporter": "./dist/reporter.js"
   },
   "scripts": {
+    "prepare": "npm run build",
     "build": "tsc --project tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",

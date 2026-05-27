@@ -76,7 +76,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/coingecko-tool.ts | e7d8c7535112 | 6827 |
 | packages/mcp-server/src/coinmarketcap-tool.ts | b1c5fd280acb | 6892 |
 | packages/mcp-server/src/color-tool.ts | f9aa9c0fec6e | 13643 |
-| packages/mcp-server/src/compliancepass-tool.ts | e48d981ca137 | 3129 |
+| packages/mcp-server/src/compliancepass-tool.ts | 13242448457f | 3202 |
 | packages/mcp-server/src/convertkit-tool.ts | 2f77303a3441 | 8498 |
 | packages/mcp-server/src/copypass-tool.ts | 2a5f73ece606 | 14259 |
 | packages/mcp-server/src/crews-tool.ts | 111454c76c0a | 13547 |

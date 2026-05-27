@@ -958,11 +958,23 @@ export class SupabaseBackend implements MemoryBackend {
       if (existing) {
         docId = (existing as { id: string }).id;
       } else {
-        const insertRow =
+        const { data: doc, error } =
           this.tenancy.mode === "managed"
-            ? { api_key_hash: this.tenancy.apiKeyHash, title: data.category, body: data.fact, content_hash: hash }
-            : { title: data.category, body: data.fact, content_hash: hash };
-        const { data: doc, error } = await this.client.from(docTable).insert(insertRow).select().single();
+            ? await this.client
+                .from("mc_canonical_docs")
+                .insert({
+                  api_key_hash: this.tenancy.apiKeyHash,
+                  title: data.category,
+                  body: data.fact,
+                  content_hash: hash,
+                })
+                .select()
+                .single()
+            : await this.client
+                .from("canonical_docs")
+                .insert({ title: data.category, body: data.fact, content_hash: hash })
+                .select()
+                .single();
         if (error) throw pgError("saveBlob canonical_docs insert", error);
         docId = (doc as { id: string }).id;
       }
