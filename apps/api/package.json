@@ -20,7 +20,7 @@
     "@unclick/core": "*",
     "diff": "^8.0.4",
     "drizzle-orm": "^0.38.3",
-    "hono": "^4.6.3",
+    "hono": "^4.12.23",
     "marked": "^17.0.6",
     "papaparse": "^5.5.3",
     "qrcode": "^1.5.4",
