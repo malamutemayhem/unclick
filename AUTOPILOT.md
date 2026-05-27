@@ -72,7 +72,7 @@ Selection defaults:
 - Public wording, docs, and claims select CopyPass.
 - Public pages, metadata, sitemap, and discoverability changes select SEOPass.
 - Legal, pricing, billing copy, privacy, terms, and compliance-sensitive wording select LegalPass.
-- Code changes select QualityPass when a quality/smell receipt is useful.
+- Code changes select SlopPass when a quality/smell receipt is useful.
 
 The gate may run in advisory mode while Pass-family coverage is still catching up. Enforcement should only turn on after the relevant Pass has a stable runner, clear receipt shape, and enough dogfood proof to avoid noisy false blockers.
 
@@ -91,7 +91,7 @@ Operating shape:
 Priority order:
 
 1. Finish UXPass enough to support visual/site sweeps, screenshot evidence, console errors, obvious layout problems, navigation confusion, and mobile/desktop checks.
-2. Finish QualityPass enough to catch messy AI-build risks, weak abstractions, brittle tests, and obvious maintainability problems.
+2. Finish SlopPass enough to catch messy AI-build risks, weak abstractions, brittle tests, and obvious maintainability problems.
 3. Finish CopyPass enough to catch unclear product wording, old names, mixed metaphors, and overcomplicated user-facing copy.
 4. Harden SecurityPass for auth, keys, sessions, redaction, permissions, browser extension, OAuth, API keys, and Password Bridge surfaces.
 5. Add SEOPass and LegalPass when public, pricing, docs, legal, privacy, or compliance surfaces change.

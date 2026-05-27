@@ -52,7 +52,7 @@ function xpassAdvisoryFor(kind) {
   else if (kind === "proof_flow") advisory.push("ProofPass");
   else if (kind === "launchpad_routing") advisory.push("FlowPass");
   else if (kind === "merge_flow") advisory.push("MergePass");
-  else advisory.push("QualityPass");
+  else advisory.push("SlopPass");
   return advisory;
 }
 

@@ -29,7 +29,7 @@ import {
   WRITERLANE_FREE_MODELS,
   isFreeModelSlug,
   rankFreeModelsForTask,
-  type FreeModelStatus,
+  type EmpiricalStatus,
   type WriterLaneFreeModel,
 } from "./writerlane-free-models.js";
 import type {
@@ -117,11 +117,11 @@ export interface OpenHandsBackendOptions {
   // is excluded before the chain runs. Setting true is the explicit, opt-in
   // door for paid / subscription models; it is never the default.
   readonly allowNonFreeModels?: boolean;
-  // OFF by default. When true, only models promoted to status "vetted" are
-  // admitted; a registry of trial-only models then fails closed with
-  // writerlane_no_vetted_free_models. This is the strict lever for once models
+  // OFF by default. When true, only models whose empirical status is "proven"
+  // are admitted; a registry with no proven models then fails closed with
+  // writerlane_no_proven_free_models. This is the strict lever for once models
   // graduate from trial.
-  readonly requireVetted?: boolean;
+  readonly requireProven?: boolean;
   readonly timeoutMs?: number;
   readonly maxPatchBytes?: number;
   readonly buildPrompt?: (
@@ -135,9 +135,9 @@ export interface OpenHandsBackendOptions {
 export interface OpenHandsAttempt {
   readonly modelId: string;
   readonly openRouterModel: string;
-  // Vetting status of the model tried, surfaced so a trial model can never be
-  // mistaken for a vetted one in the attempt log.
-  readonly status: FreeModelStatus;
+  // Empirical status of the model tried, surfaced so a trial / flagged model can
+  // never be mistaken for a proven one in the attempt log.
+  readonly status: EmpiricalStatus;
   readonly ok: boolean;
   // Exact rejection reason code when ok === false.
   readonly reason?: string;
@@ -285,7 +285,7 @@ export class OpenHandsWriterLaneBackend implements WriterLaneBackend {
     }
 
     const allowNonFree = this.options.allowNonFreeModels === true;
-    const requireVetted = this.options.requireVetted === true;
+    const requireProven = this.options.requireProven === true;
     const baseModels = this.options.models ?? WRITERLANE_FREE_MODELS;
     const free = baseModels.filter(
       (model) => allowNonFree || isFreeModelSlug(model.openRouterModel),
@@ -293,11 +293,11 @@ export class OpenHandsWriterLaneBackend implements WriterLaneBackend {
     if (free.length === 0) {
       return finish({ ok: false, reason: "writerlane_no_free_models" });
     }
-    const eligible = requireVetted
-      ? free.filter((model) => model.status === "vetted")
+    const eligible = requireProven
+      ? free.filter((model) => model.empirical.status === "proven")
       : free;
     if (eligible.length === 0) {
-      return finish({ ok: false, reason: "writerlane_no_vetted_free_models" });
+      return finish({ ok: false, reason: "writerlane_no_proven_free_models" });
     }
 
     const ranked = rankFreeModelsForTask(taskKind, eligible);
@@ -320,7 +320,7 @@ export class OpenHandsWriterLaneBackend implements WriterLaneBackend {
         attempts.push({
           modelId: model.id,
           openRouterModel: model.openRouterModel,
-          status: model.status,
+          status: model.empirical.status,
           ok: false,
           reason: "openhands_runner_threw",
         });
@@ -339,7 +339,7 @@ export class OpenHandsWriterLaneBackend implements WriterLaneBackend {
         attempts.push({
           modelId: model.id,
           openRouterModel: model.openRouterModel,
-          status: model.status,
+          status: model.empirical.status,
           ok: false,
           reason: gate.reason,
         });
@@ -349,7 +349,7 @@ export class OpenHandsWriterLaneBackend implements WriterLaneBackend {
       attempts.push({
         modelId: model.id,
         openRouterModel: model.openRouterModel,
-        status: model.status,
+        status: model.empirical.status,
         ok: true,
       });
 

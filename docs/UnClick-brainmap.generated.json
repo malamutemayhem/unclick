@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 473,
+    "inventory": 481,
     "source_manifest": 94,
     "pages": 94,
-    "tools": 183,
+    "tools": 184,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 183
+      "count": 184
     },
     {
       "id": "rooms",
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 109
+      "count": 115
     },
     {
       "id": "ledgers-and-proof",
@@ -75,7 +75,7 @@
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 9
+      "count": 10
     },
     {
       "id": "modules-and-apps",
@@ -1462,6 +1462,66 @@
       "tags": []
     },
     {
+      "id": "automations-script-pinballwake-writerlane-free-models-scripts-pinballwake-writerlane-free-models-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane free models",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-free-models.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-free-models-test-scripts-pinballwake-writerlane-free-models-test-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane free models.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-free-models.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-free-writer-scripts-pinballwake-writerlane-free-writer-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane free writer",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-free-writer.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-free-writer-test-scripts-pinballwake-writerlane-free-writer-test-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane free writer.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-free-writer.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-validator-scripts-pinballwake-writerlane-validator-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane validator",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-validator.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-validator-test-scripts-pinballwake-writerlane-validator-test-mjs",
+      "division": "Automations",
+      "name": "pinballwake writerlane validator.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-validator.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "automations-script-pinballwake-xpass-gate-room-scripts-pinballwake-xpass-gate-room-mjs",
       "division": "Automations",
       "name": "pinballwake xpass gate room",
@@ -2818,6 +2878,16 @@
       "kind": "state module",
       "meaning": "memory Data Island shared frontend logic.",
       "source": "src/lib/memoryDataIsland.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-memory-recall-sections-api-lib-memory-recall-sections-ts",
+      "division": "Source of truth",
+      "name": "memory recall sections",
+      "kind": "state module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/memory-recall-sections.ts",
       "route": "",
       "tags": []
     },
@@ -4258,6 +4328,16 @@
       "kind": "MCP tool",
       "meaning": "sleeper MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/sleeper-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-sloppass-packages-mcp-server-src-sloppass-tool-ts",
+      "division": "Tools",
+      "name": "sloppass",
+      "kind": "MCP tool",
+      "meaning": "sloppass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/sloppass-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6095,6 +6175,11 @@
       "packages/mcp-server/src/sleeper-tool.ts"
     ],
     [
+      "sloppass",
+      "sloppass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/sloppass-tool.ts"
+    ],
+    [
       "speedrun",
       "speedrun MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/speedrun-tool.ts"
@@ -6463,9 +6548,9 @@
       "Enterprise readiness checks need a public-safe product name."
     ],
     [
-      "SlopPass",
       "QualityPass",
-      "Roughness and polish checks should be framed constructively."
+      "SlopPass",
+      "Old QualityPass references now resolve to SlopPass."
     ],
     [
       "Fishbowl",
@@ -6542,8 +6627,8 @@
   "source_manifest": [
     {
       "source": "AUTOPILOT.md",
-      "hash": "562ec208aa54",
-      "bytes": 16311
+      "hash": "486b704a6072",
+      "bytes": 16305
     },
     {
       "source": "FLEET_SYNC.md",
@@ -6632,8 +6717,8 @@
     },
     {
       "source": "scripts/pinballwake-continuous-improvement-room.mjs",
-      "hash": "c41cf0bacf97",
-      "bytes": 14872
+      "hash": "8c23d67cad4e",
+      "bytes": 14869
     },
     {
       "source": "scripts/pinballwake-dogfood-room.mjs",
@@ -6722,8 +6807,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "44b7d10cddc2",
-      "bytes": 14430
+      "hash": "fc1947d2c5ee",
+      "bytes": 14412
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
