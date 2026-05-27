@@ -823,6 +823,13 @@ import {
   fidelitypassVerifyCopy,
 } from "./fidelitycopy-tool.js";
 
+// --- CommonSensePass (worker sanity-gate verdicts) ---------------------------
+import {
+  commonsensepassCheckTool,
+  commonsensepassRulesTool,
+  COMMONSENSEPASS_CLAIM_KINDS,
+} from "./commonsensepass-tool.js";
+
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
 
@@ -12064,6 +12071,41 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // -- commonsensepass-tool.ts (worker sanity-gate verdicts) ------------------
+  {
+    name: "commonsensepass_check",
+    description: "Run the verdict-only CommonSensePass sanity gate before a worker claims healthy, quiet, no_work, pass, done, merge_ready, duplicate_wake, or route.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        claim: { type: "string", enum: [...COMMONSENSEPASS_CLAIM_KINDS], description: "Worker claim to sanity-check." },
+        context: {
+          type: "object",
+          additionalProperties: true,
+          description: "Evidence packet for the claim, such as todos, active_jobs, PR state, wake state, SHAs, or lane evidence.",
+        },
+        evidence: {
+          type: "array",
+          items: { type: "object", additionalProperties: true },
+          description: "Optional evidence entries to echo when no rule-specific evidence is available.",
+        },
+      },
+      required: ["claim", "context"],
+    },
+  },
+  {
+    name: "commonsensepass_rules",
+    description: "Return the worker-readable CommonSensePass rules, verdict vocabulary, and fixture ids. Set include_fixtures=true for full example packets.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        include_fixtures: { type: "boolean", default: false, description: "Include full deterministic worker fixture packets." },
+      },
+    },
+  },
+
   // ── testpass-tool.ts ────────────────────────────────────────────────────────
   {
     name: "testpass_list_packs",
@@ -13853,6 +13895,10 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   testpass_report_json: (args) => testpassReportJson(args),
   testpass_report_md:   (args) => testpassReportMd(args),
   testpass_fix_list:    (args) => testpassFixList(args),
+
+  // commonsensepass-tool.ts
+  commonsensepass_check: (args) => commonsensepassCheckTool(args),
+  commonsensepass_rules: (args) => commonsensepassRulesTool(args),
 
   // legalpass-tool.ts
   legalpass_run:       (args) => legalpassRun(args),

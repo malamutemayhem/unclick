@@ -1,6 +1,6 @@
 # @unclick/commonsensepass
 
-Rule-and-evidence sanity gate for AI/worker claims. Verdict-only: does not build, merge, close, or mutate source state. Workers call `commonsensepassCheck(input)` before claiming `healthy`, `quiet`, `no_work`, `pass`, `done`, `merge_ready`, or `duplicate_wake`, and respect the returned verdict.
+Rule-and-evidence sanity gate for AI/worker claims. Verdict-only: does not build, merge, close, or mutate source state. Workers call `commonsensepassCheck(input)` before claiming `healthy`, `quiet`, `no_work`, `pass`, `done`, `merge_ready`, `duplicate_wake`, or `route`, and respect the returned verdict.
 
 ## Verdicts
 
@@ -8,7 +8,7 @@ Rule-and-evidence sanity gate for AI/worker claims. Verdict-only: does not build
 - `BLOCKER` - claim is contradicted by evidence; do not proceed. Includes a `next_action`.
 - `HOLD` - claim is missing required evidence; supply it and retry.
 - `SUPPRESS` - claim is a duplicate / no-op; drop it silently.
-- `ROUTE` - claim is valid but should be handled elsewhere (reserved; not emitted by R1-R5).
+- `ROUTE` - claim is valid but should be handled by another worker or specialist lane.
 
 ## Rules (baseline)
 
@@ -19,6 +19,9 @@ Rule-and-evidence sanity gate for AI/worker claims. Verdict-only: does not build
 | R3   | `duplicate_wake`  | Wake suppression: same `id` and `state_fingerprint` emitted within the duplicate-wake window. |
 | R4   | `done`            | Done-without-proof: requires `pipeline === 100` AND a `closing_ref` on the subject todo. |
 | R5   | `merge_ready`     | Merge-ready-without-proof: PR must be mergeable, checks green, and have Reviewer PASS plus Safety PASS authored on the current head SHA. |
+| R6   | `route`           | Wrong-lane routing: returns `ROUTE` when the current worker is not the required specialist lane. |
+
+Unsupported claim kinds return `HOLD`, not `PASS`, so unknown worker language cannot become a silent all-good signal.
 
 The worker-facing rule matrix and next candidate backlog live in `docs/commonsensepass-rule-matrix.md`.
 
@@ -38,7 +41,7 @@ for (const fixture of COMMONSENSEPASS_WORKER_FIXTURES) {
 }
 ```
 
-The pack covers PASS, BLOCKER, HOLD, SUPPRESS, and the reserved ROUTE verdict. Named scenarios include false quiet, stale proof, duplicate wake, no-work-with-backlog, merge-ready-without-proof, and done-without-proof. ROUTE is included as a reserved exemplar only; R1-R5 do not emit it yet.
+The pack covers PASS, BLOCKER, HOLD, SUPPRESS, and ROUTE. Named scenarios include false quiet, stale proof, duplicate wake, no-work-with-backlog, merge-ready-without-proof, done-without-proof, and wrong-lane routing.
 
 ## Evidence Receipts
 
@@ -86,6 +89,8 @@ if (result.verdict !== "PASS") {
   // do not emit the heartbeat-healthy claim; act on result.next_action
 }
 ```
+
+MCP-connected workers can use `commonsensepass_rules` to inspect the active rule catalog and `commonsensepass_check` to run the same verdict gate without importing this package.
 
 ## Boundaries
 

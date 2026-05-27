@@ -359,3 +359,52 @@ export function checkR5(input: ClaimInput): CommonSensePassResult | null {
     ],
   };
 }
+
+/**
+ * R6 - Wrong-lane routing.
+ *
+ * A worker can ask CommonSensePass whether it should keep a claim or route it
+ * to the canonical specialist lane. This stays verdict-only: it names the
+ * destination and does not enqueue, assign, or wake anything.
+ */
+export function checkR6(input: ClaimInput): CommonSensePassResult | null {
+  if (input.claim !== "route") return null;
+  const currentLane = input.context.current_lane?.trim();
+  const requiredLane = input.context.required_lane?.trim();
+  const routeTo = input.context.route_to?.trim() || requiredLane;
+
+  if (!currentLane || !requiredLane) {
+    return {
+      verdict: "HOLD",
+      rule_id: "R6",
+      reason:
+        "route claim missing current_lane or required_lane evidence; cannot decide lane ownership.",
+      evidence: [
+        { kind: "lane", ref: `current_lane=${currentLane || "missing"}` },
+        { kind: "lane", ref: `required_lane=${requiredLane || "missing"}` },
+      ],
+      next_action: "include_current_and_required_lane",
+    };
+  }
+
+  if (currentLane !== requiredLane) {
+    return {
+      verdict: "ROUTE",
+      rule_id: "R6",
+      reason: `Claim belongs to ${requiredLane}, not ${currentLane}.`,
+      evidence: [
+        { kind: "lane", ref: currentLane, note: "current_lane" },
+        { kind: "lane", ref: requiredLane, note: "required_lane" },
+      ],
+      next_action: "route_to_specialist",
+      route_to: routeTo,
+    };
+  }
+
+  return {
+    verdict: "PASS",
+    rule_id: "R6",
+    reason: `Lane ${currentLane} matches the required lane.`,
+    evidence: [{ kind: "lane", ref: currentLane, note: "current=required" }],
+  };
+}
