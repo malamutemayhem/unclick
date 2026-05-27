@@ -12150,8 +12150,13 @@ export const ADDITIONAL_TOOLS = [
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
+      anyOf: [
+        { required: ["target"] },
+        { required: ["target_url"] },
+      ],
       properties: {
         pack_id: { type: "string", description: "LegalPass pack slug (default: legalpass-mvp-v0)" },
+        target_url: { type: "string", description: "URL target shortcut for TestPass-style callers" },
         target: {
           type: "object",
           additionalProperties: false,
@@ -12169,7 +12174,6 @@ export const ADDITIONAL_TOOLS = [
         jurisdictions: { type: "array", items: { type: "string" }, description: "Optional jurisdiction routing hints" },
         fixture_text: { type: "string", description: "Public text to check deterministically for dogfood or local proof" },
       },
-      required: ["target"],
     },
   },
   {

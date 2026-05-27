@@ -12,6 +12,7 @@ describe("LegalPass MCP exposure", () => {
     expect(ADDITIONAL_HANDLERS).toHaveProperty("legalpass_verdict");
     const runTool = ADDITIONAL_TOOLS.find((tool) => tool.name === "legalpass_run");
     expect(JSON.stringify(runTool?.inputSchema)).toContain("fixture_text");
+    expect(JSON.stringify(runTool?.inputSchema)).toContain("target_url");
   });
 
   it("plans LegalPass runs with the issue-spotter guardrail", async () => {
@@ -22,7 +23,7 @@ describe("LegalPass MCP exposure", () => {
 
     expect(result.status).toBe("planned");
     expect(result.pack_id).toBe("legalpass-mvp-v0");
-    expect(String(result.disclaimer)).toContain("issue-spotter");
+    expect(String(result.disclaimer)).toContain("not a law firm");
     expect(result.safety).toMatchObject({
       issue_spotter_only: true,
       no_legal_advice: true,
@@ -32,7 +33,7 @@ describe("LegalPass MCP exposure", () => {
 
   it("runs deterministic public fixture checks when text is provided", async () => {
     const result = await legalpassRun({
-      target: { kind: "url", url: "https://example.com/legal" },
+      target_url: "https://example.com/legal",
       jurisdictions: ["AU"],
       fixture_text:
         "Privacy contact details explain how we collect and use data, " +
@@ -50,7 +51,7 @@ describe("LegalPass MCP exposure", () => {
 
   it("returns a validation-style error when target.kind is missing", async () => {
     await expect(legalpassRun({ target: {} })).resolves.toMatchObject({
-      error: "target.kind is required",
+      error: "target.kind or target_url is required",
     });
   });
 
@@ -66,6 +67,17 @@ describe("LegalPass MCP exposure", () => {
     expect(result.safe_to_emit).toBe(false);
     expect(JSON.stringify(result.issues)).toContain("should");
     expect(JSON.stringify(result.issues)).toContain("this is illegal");
-    expect(String(result.disclaimer)).toContain("not a lawyer");
+    expect(String(result.disclaimer)).toContain("not a law firm");
+  });
+
+  it("blocks the expanded deep-research directive phrases", async () => {
+    const result = await legalpassVerdict({
+      verdict_text: "The right thing to do is accept this because this is unenforceable.",
+      disclaimer_length: "chat",
+    }) as Record<string, unknown>;
+
+    expect(result.safe_to_emit).toBe(false);
+    expect(JSON.stringify(result.issues)).toContain("the right thing to do is");
+    expect(JSON.stringify(result.issues)).toContain("this is unenforceable");
   });
 });

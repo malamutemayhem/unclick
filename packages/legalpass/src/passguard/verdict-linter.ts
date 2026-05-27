@@ -30,8 +30,13 @@ export const FORBIDDEN_PHRASES: ReadonlyArray<{ phrase: string; reason: string }
   { phrase: "must", reason: "directive verb - implies an obligation" },
   { phrase: "you need to", reason: "directive phrasing - implies an instruction" },
   { phrase: "you have to", reason: "directive phrasing - implies an instruction" },
+  { phrase: "you are obligated", reason: "directive phrasing - implies a legal obligation" },
+  { phrase: "do this", reason: "directive phrasing - implies an instruction" },
   { phrase: "we recommend", reason: "first-person recommendation - prohibited" },
+  { phrase: "the right thing to do is", reason: "normative recommendation - prohibited" },
   { phrase: "this is illegal", reason: "definitive legal conclusion - prohibited" },
+  { phrase: "this is enforceable", reason: "definitive legal conclusion - prohibited" },
+  { phrase: "this is unenforceable", reason: "definitive legal conclusion - prohibited" },
   { phrase: "you will win", reason: "outcome prediction - prohibited" },
   { phrase: "you will lose", reason: "outcome prediction - prohibited" },
 ];
@@ -40,10 +45,20 @@ export const FORBIDDEN_PHRASES: ReadonlyArray<{ phrase: string; reason: string }
 // not a whitelist (the linter is a denylist).
 export const ALLOWED_PHRASES: ReadonlyArray<string> = [
   "appears",
+  "seems",
   "may",
+  "might",
+  "could",
   "consider",
   "in similar contracts",
+  "in comparable agreements",
+  "is unusual",
+  "is common",
+  "is typical",
+  "is standard",
+  "merits attention",
   "warrants review",
+  "the regulatory landscape",
 ];
 
 function escapeRegex(s: string): string {

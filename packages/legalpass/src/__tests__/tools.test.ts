@@ -149,16 +149,35 @@ describe("LegalPass MCP tool registration", () => {
       item_id: itemId,
       verdict: "other",
       finding: "This item may warrant review by a qualified practitioner.",
+      reviewer_note: "Founder accepted this flag after reviewing the context.",
+      actor_user_id: "user-123",
     });
 
     expect(edited.updated).toBe(true);
     expect(edited.summary.other).toBeGreaterThan(0);
+    expect(edited.audit_entry).toMatchObject({
+      event: "legalpass_item_edit",
+      run_id: result.run_id,
+      item_id: itemId,
+      actor_user_id: "user-123",
+      reviewer_note: "Founder accepted this flag after reviewing the context.",
+    });
+    expect(edited.audit_entry.before.verdict).toBe(result.items[0]?.verdict);
+    expect(edited.audit_entry.after.verdict).toBe("other");
 
     await expect(
       legalpassEditItemTool.handler({
         run_id: result.run_id,
         item_id: itemId,
         finding: "You should sign this now.",
+      }),
+    ).rejects.toThrow(/forbidden phrasing/);
+
+    await expect(
+      legalpassEditItemTool.handler({
+        run_id: result.run_id,
+        item_id: itemId,
+        reviewer_note: "The right thing to do is accept this.",
       }),
     ).rejects.toThrow(/forbidden phrasing/);
   });
