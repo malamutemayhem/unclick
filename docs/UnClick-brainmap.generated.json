@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 515,
+    "inventory": 516,
     "source_manifest": 189,
     "pages": 82,
     "tools": 186,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 13
+      "count": 14
     },
     {
       "id": "wrappers-and-protocols",
@@ -2478,6 +2478,16 @@
       "kind": "pass",
       "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
       "source": "api/lib/testpass-boundary.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-pass-testpass-pr-comment-scripts-testpass-pr-comment-mjs-no-route",
+      "division": "Passes and gates",
+      "name": "testpass pr comment",
+      "kind": "pass",
+      "meaning": "testpass pr comment UnClick module.",
+      "source": "scripts/testpass-pr-comment.mjs",
       "route": "",
       "tags": []
     },
@@ -6925,7 +6935,7 @@
     ],
     [
       "build",
-      "vite build"
+      "npm run build --workspace=@unclick/commonsensepass && vite build"
     ],
     [
       "build:dev",
@@ -7051,8 +7061,8 @@
     },
     {
       "source": "package.json",
-      "hash": "8aa53b668bf2",
-      "bytes": 4707
+      "hash": "9f57ae01d79e",
+      "bytes": 4761
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7626,8 +7636,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "fc1947d2c5ee",
-      "bytes": 14412
+      "hash": "92b4e63503f5",
+      "bytes": 20902
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
@@ -7761,8 +7771,8 @@
     },
     {
       "source": "packages/mcp-server/src/commonsensepass-tool.ts",
-      "hash": "02d0d82630d7",
-      "bytes": 1991
+      "hash": "bad23b55ea01",
+      "bytes": 1995
     },
     {
       "source": "packages/mcp-server/src/compliancepass-tool.ts",
@@ -7901,8 +7911,8 @@
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "398a44d83549",
-      "bytes": 9548
+      "hash": "06c30cc187e8",
+      "bytes": 7414
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",

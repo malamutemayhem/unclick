@@ -265,6 +265,48 @@ describe("runOpenHandsWorker", () => {
     assert.equal(result.receipt.evidence.file, "src/outside-owned.ts");
   });
 
+  test("includes dirty file detail when coderoom rejects a patch", async () => {
+    const result = await runOpenHandsWorker({
+      job: job(),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async () => ({ ok: true, patch: patchFor("docs/openhands-proof-fixture.md") }),
+      coderoom: async () => ({
+        ok: false,
+        reason: "dirty_worktree",
+        dirty_files: ["docs/openhands-proof-fixture.md"],
+      }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "coderoom_rejected_patch");
+    assert.deepEqual(result.receipt.evidence.dirty_files, ["docs/openhands-proof-fixture.md"]);
+  });
+
+  test("includes clipped command output when coderoom rejects a patch", async () => {
+    const output = `${"checking patch\n".repeat(200)}FINAL ERROR: missing git user.name`;
+    const result = await runOpenHandsWorker({
+      job: job(),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async () => ({ ok: true, patch: patchFor("docs/openhands-proof-fixture.md") }),
+      coderoom: async () => ({
+        ok: false,
+        reason: "git_commit_failed",
+        output,
+      }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "coderoom_rejected_patch");
+    assert.equal(result.receipt.evidence.reason, "git_commit_failed");
+    assert.match(result.receipt.evidence.output, /checking patch/);
+    assert.match(result.receipt.evidence.output, /omitted \d+ chars/);
+    assert.match(result.receipt.evidence.output, /FINAL ERROR: missing git user.name/);
+  });
+
   test("default coderoom submit enforces owned files", async () => {
     const result = await runOpenHandsWorker({
       job: job(),

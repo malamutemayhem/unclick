@@ -5,7 +5,7 @@ Evidence-backed readiness guidance, not certification.
 Target: UnClick
 Score: 96.9/100 (amber)
 Blocking gaps: 1
-Valid until: 2026-06-03T13:59:50.438Z
+Valid until: 2026-06-03T17:34:42.365Z
 
 ## Summary
 

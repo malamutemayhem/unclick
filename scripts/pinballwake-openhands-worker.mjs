@@ -173,6 +173,8 @@ export async function runOpenHandsWorker({
       evidence: {
         reason: coderoomResult?.reason ?? "unknown",
         file: coderoomResult?.file ?? null,
+        output: clipOutput(coderoomResult?.output, 1200),
+        dirty_files: normalizeChangedFiles(coderoomResult?.dirty_files || []),
         changed_files: changedFiles,
       },
     });

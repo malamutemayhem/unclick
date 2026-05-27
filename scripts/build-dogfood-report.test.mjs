@@ -22,9 +22,17 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
     ]);
 
     const report = JSON.parse(await fs.readFile(output, "utf8"));
+    const testpass = report.results.find((result) => result.id === "testpass");
+    const uxpass = report.results.find((result) => result.id === "uxpass");
     const securitypass = report.results.find((result) => result.id === "securitypass");
     const compliancepass = report.results.find((result) => result.id === "compliancepass");
+    const copypass = report.results.find((result) => result.id === "copypass");
+    const legalpass = report.results.find((result) => result.id === "legalpass");
 
+    assert.equal(testpass?.status, "pending");
+    assert.equal(testpass?.reasonCode, "dry_run_only");
+    assert.equal(uxpass?.status, "pending");
+    assert.equal(uxpass?.reasonCode, "dry_run_only");
     assert.equal(securitypass?.status, "blocked");
     assert.match(securitypass?.blockedReason ?? "", /scope-gated/i);
     assert.equal(securitypass?.reasonCode, "scope_gate");
@@ -36,6 +44,12 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
     assert.equal(compliancepass?.proof?.targetUrl, "/enterprise/latest.json");
     assert.ok(compliancepass?.proof?.checksTotal > 0);
     assert.ok(compliancepass?.proof?.highSeverityGaps >= 1);
+    assert.equal(copypass?.status, "pending");
+    assert.equal(copypass?.reasonCode, "package_ready_needs_scheduled_receipt");
+    assert.equal(copypass?.proof?.kind, "package_ready");
+    assert.equal(legalpass?.status, "pending");
+    assert.equal(legalpass?.reasonCode, "package_ready_needs_scheduled_receipt");
+    assert.equal(legalpass?.proof?.kind, "package_ready");
     assert.equal(report.status, "blocked");
     assert.match(report.statusLegend.blocked, /needs action/i);
     assert.match(report.statusLegend.pending, /live proof is not available yet/i);
@@ -47,6 +61,8 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
       /protects merges/i,
     );
     assert.equal(report.xpassIndex.find((entry) => entry.id === "compliancepass")?.stage, "live_dogfood");
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "copypass")?.stage, "package_ready");
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "legalpass")?.stage, "package_ready");
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }
@@ -114,7 +130,21 @@ test("dogfood receipt includes structured proof for live TestPass and UXPass run
 
     assert.match(report.statusLegend.passing, /live check ran/i);
     assert.match(report.proofPolicy, /Blocked and pending are honest product states/i);
-    assert.equal(report.xpassIndex.length, 7);
+    assert.deepEqual(report.xpassIndex.map((entry) => entry.id), [
+      "testpass",
+      "uxpass",
+      "securitypass",
+      "sloppass",
+      "seopass",
+      "copypass",
+      "legalpass",
+      "commonsensepass",
+      "flowpass",
+      "geopass",
+      "rotatepass",
+      "wakepass",
+      "compliancepass",
+    ]);
 
     assert.equal(testpassRequest.body.source, "scheduled");
     assert.equal(testpass.runId, "testpass-run-123");
