@@ -205,6 +205,7 @@ jobs:
               `| \`${mdCell(item.check_id || 'unknown')}\` | ${mdCell(item.severity)} | ${mdCell(item.title)} |`,
               item.on_fail_comment ? `|  |  | _${mdCell(item.on_fail_comment)}_ |` : null,
             ]).filter(Boolean);
+            const missingFailureDetails = failCount > 0 && failureLines.length === 0;
 
             const body = [
               `### TestPass: ${statusEmoji}`,
@@ -221,6 +222,10 @@ jobs:
               cell(':heavy_minus_sign: n/a', summary.na),
               cell(':hourglass: pending', summary.pending),
               cell('**total**', total),
+              ...(missingFailureDetails ? [
+                ``,
+                `**Why this is thin:** the TestPass API response did not include per-check failure details. That usually means the live API has not deployed the diagnostic payload yet, so use the run id above for database lookup or re-run after deployment.`,
+              ] : []),
               ...(failureLines.length > 0 ? [
                 ``,
                 `**Failed checks shown:** ${shownFailures.length}`,
