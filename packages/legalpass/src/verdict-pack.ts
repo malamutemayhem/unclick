@@ -64,9 +64,7 @@ export function createFixtureLegalPassReport(
   input: CreateFixtureLegalPassReportInput,
 ): LegalPassReport {
   const jurisdictions = input.jurisdictions ?? ["AU", "EU", "US-CA"];
-  const documents = input.documents.map((document) =>
-    LegalPassFixtureDocumentSchema.parse(document),
-  );
+  const documents = input.documents.map(parsePublicFixtureDocument);
   const hats = getPhaseOneLegalPassHats({
     hat_ids: input.hat_ids,
     jurisdictions,
@@ -96,6 +94,19 @@ export function createFixtureLegalPassReport(
   };
 
   return LegalPassReportSchema.parse(report);
+}
+
+function parsePublicFixtureDocument(
+  document: LegalPassFixtureDocumentInput,
+): LegalPassFixtureDocument {
+  const parsed = LegalPassFixtureDocumentSchema.parse(document);
+  if (parsed.public_only !== true) {
+    throw new Error(
+      "LegalPass fixture reports require public_only documents; private uploads need a later guarded ingestion path",
+    );
+  }
+
+  return parsed;
 }
 
 function createPlanOnlyHatResult(hat: LegalPassHatDefinition): LegalPassHatResult {

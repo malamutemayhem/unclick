@@ -61,6 +61,7 @@ describe("LegalPass MCP exposure", () => {
     expect(JSON.stringify(result.items)).toContain("fixture_text");
     expect(String(result.note)).toContain("deterministic public fixture");
     expect(JSON.stringify(result)).not.toMatch(/you should/i);
+    expect(JSON.stringify(result)).not.toMatch(/ask a qualified/i);
 
     const status = await legalpassStatus({ run_id: result.run_id }) as Record<string, unknown>;
     expect(status.run_id).toBe(result.run_id);
@@ -151,6 +152,91 @@ describe("LegalPass MCP exposure", () => {
     });
   });
 
+  it("rejects malformed MCP targets and pack shapes", async () => {
+    await expect(legalpassRun({
+      target_url: "ftp://example.com/terms",
+    })).resolves.toMatchObject({ error: "target_url must be a valid http(s) URL" });
+    await expect(legalpassRun({
+      target: { kind: "url" },
+    })).resolves.toMatchObject({ error: "target.url must be a valid http(s) URL" });
+    await expect(legalpassRun({
+      target: { kind: "contract_upload" },
+    })).resolves.toMatchObject({ error: "target.upload_ref is required for contract_upload runs" });
+    await expect(legalpassRun({
+      target: { kind: "repo" },
+    })).resolves.toMatchObject({ error: "target.repo is required for repo runs" });
+    await expect(legalpassRun({
+      target: { kind: "email", url: "https://example.com" },
+    })).resolves.toMatchObject({ error: "target.kind must be url|contract_upload|repo" });
+
+    await expect(
+      legalpassSavePack({
+        pack: {
+          id: "mcp-invalid-target-pack",
+          targets: ["email"],
+          hats: [
+            { hat_id: "privacy", enabled: true },
+            { hat_id: "citation_verifier", enabled: true },
+          ],
+        },
+      }),
+    ).resolves.toMatchObject({ error: "pack.targets may only include url, contract_upload, or repo" });
+    await expect(
+      legalpassSavePack({
+        pack: {
+          id: "mcp-invalid-hat-pack",
+          targets: ["url"],
+          hats: [
+            { hat_id: "privacy", enabled: true },
+            { hat_id: "unknown_hat", enabled: true },
+            { hat_id: "citation_verifier", enabled: true },
+          ],
+        },
+      }),
+    ).resolves.toMatchObject({ error: "pack.hats contains an unknown LegalPass hat_id" });
+  });
+
+  it("includes the enabled pack shape in MCP run identity", async () => {
+    const packId = "mcp-overwrite-run-identity";
+    await legalpassSavePack({
+      pack: {
+        id: packId,
+        targets: ["url"],
+        hats: [
+          { hat_id: "privacy", enabled: true },
+          { hat_id: "citation_verifier", enabled: true },
+        ],
+      },
+      overwrite: true,
+    });
+    const first = await legalpassRun({
+      pack_id: packId,
+      target_url: "https://example.com/legal",
+      fixture_text: "Privacy contact details explain how we collect and use data.",
+    }) as Record<string, unknown>;
+
+    await legalpassSavePack({
+      pack: {
+        id: packId,
+        targets: ["url"],
+        hats: [
+          { hat_id: "privacy", enabled: true },
+          { hat_id: "consumer_tos", enabled: true },
+          { hat_id: "citation_verifier", enabled: true },
+        ],
+      },
+      overwrite: true,
+    });
+    const second = await legalpassRun({
+      pack_id: packId,
+      target_url: "https://example.com/legal",
+      fixture_text: "Privacy contact details explain how we collect and use data.",
+    }) as Record<string, unknown>;
+
+    expect(second.run_id).not.toBe(first.run_id);
+    expect((second.items as unknown[]).length).toBeGreaterThan((first.items as unknown[]).length);
+  });
+
   it("lints directive LegalPass verdict language", async () => {
     expect(lintLegalPassVerdict("This clause may warrant review.")).toEqual([]);
 
@@ -179,5 +265,14 @@ describe("LegalPass MCP exposure", () => {
     expect(JSON.stringify(result.issues)).toContain("this is unenforceable");
     expect(JSON.stringify(result.issues)).toContain("ai lawyer");
     expect(JSON.stringify(result.issues)).toContain("automatic compliance");
+  });
+
+  it("blocks imperative referral wording in MCP verdict text", async () => {
+    const result = await legalpassVerdict({
+      verdict_text: "Ask a qualified lawyer before acting on this item.",
+    }) as Record<string, unknown>;
+
+    expect(result.safe_to_emit).toBe(false);
+    expect(JSON.stringify(result.issues)).toContain("ask a qualified lawyer");
   });
 });

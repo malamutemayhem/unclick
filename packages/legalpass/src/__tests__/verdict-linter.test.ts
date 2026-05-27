@@ -54,6 +54,16 @@ describe("PassGuard verdict-linter", () => {
     expect(result.issues.some((issue) => issue.phrase === "100% compliant")).toBe(true);
   });
 
+  it("blocks imperative legal referral wording in verdict text", () => {
+    const result = lintVerdictText(
+      "Ask a qualified practitioner before acting on this item.",
+    );
+
+    expect(result.issues.some(
+      (issue) => issue.phrase === "ask a qualified practitioner",
+    )).toBe(true);
+  });
+
   it("matches whole words only, not substrings", () => {
     // 'mustard' contains 'must' as a substring but should not match.
     const result = lintVerdictText("The mustard clause is unusual.");

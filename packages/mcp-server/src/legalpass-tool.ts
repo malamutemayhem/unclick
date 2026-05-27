@@ -11,6 +11,29 @@ import yaml from "js-yaml";
 
 type DisclaimerLength = "chat" | "results" | "tos";
 type LegalPassMcpVerdict = "check" | "fail" | "na" | "other" | "pending";
+type LegalPassMcpTargetKind = "url" | "contract_upload" | "repo";
+type LegalPassMcpHatId =
+  | "privacy"
+  | "consumer_tos"
+  | "contracts"
+  | "oss_licence"
+  | "ai_ethics"
+  | "ip"
+  | "marketing_claims"
+  | "litigator"
+  | "plain_english"
+  | "compliance"
+  | "jurisdiction_router"
+  | "citation_verifier";
+
+interface LegalPassMcpTarget {
+  kind: LegalPassMcpTargetKind;
+  url?: string;
+  upload_ref?: string;
+  repo?: string;
+  branch?: string;
+  commit?: string;
+}
 
 interface LegalPassMcpItem {
   item_id: string;
@@ -37,7 +60,7 @@ interface LegalPassMcpRunRecord {
   pass: "legalpass";
   run_id: string;
   pack_id: string;
-  target: Record<string, unknown>;
+  target: LegalPassMcpTarget;
   profile: string;
   jurisdictions: string[];
   summary: LegalPassMcpSummary;
@@ -54,11 +77,32 @@ interface LegalPassMcpRunRecord {
 
 interface LegalPassMcpPack {
   id: string;
-  targets: string[];
-  hats: Array<{ hat_id?: string; enabled?: boolean }>;
+  targets: LegalPassMcpTargetKind[];
+  hats: Array<{ hat_id?: LegalPassMcpHatId; enabled?: boolean }>;
   items?: unknown[];
   [key: string]: unknown;
 }
+
+const SUPPORTED_TARGET_KINDS = new Set<LegalPassMcpTargetKind>([
+  "url",
+  "contract_upload",
+  "repo",
+]);
+
+const SUPPORTED_HAT_IDS = new Set<LegalPassMcpHatId>([
+  "privacy",
+  "consumer_tos",
+  "contracts",
+  "oss_licence",
+  "ai_ethics",
+  "ip",
+  "marketing_claims",
+  "litigator",
+  "plain_english",
+  "compliance",
+  "jurisdiction_router",
+  "citation_verifier",
+]);
 
 const DISCLAIMERS: Record<DisclaimerLength, string> = {
   chat:
@@ -117,6 +161,8 @@ const FORBIDDEN_PHRASES: ReadonlyArray<{ phrase: string; reason: string }> = [
   { phrase: "you have to", reason: "directive phrasing - implies an instruction" },
   { phrase: "you are obligated", reason: "directive phrasing - implies a legal obligation" },
   { phrase: "do this", reason: "directive phrasing - implies an instruction" },
+  { phrase: "ask a qualified lawyer", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "ask a qualified practitioner", reason: "directive legal referral phrasing - prohibited in verdict text" },
   { phrase: "we recommend", reason: "first-person recommendation - prohibited" },
   { phrase: "the right thing to do is", reason: "normative recommendation - prohibited" },
   { phrase: "this is illegal", reason: "definitive legal conclusion - prohibited" },
@@ -264,6 +310,35 @@ function buildRunId(input: unknown): string {
     .slice(0, 12)}`;
 }
 
+function packRunSignature(pack: LegalPassMcpPack): Record<string, unknown> {
+  return {
+    id: pack.id,
+    targets: [...pack.targets].sort(),
+    enabled_hats: pack.hats
+      .filter((hat) => hat.enabled !== false)
+      .map((hat) => hat.hat_id)
+      .filter(Boolean)
+      .sort(),
+  };
+}
+
+function isSupportedTargetKind(value: string): value is LegalPassMcpTargetKind {
+  return SUPPORTED_TARGET_KINDS.has(value as LegalPassMcpTargetKind);
+}
+
+function isSupportedHatId(value: string): value is LegalPassMcpHatId {
+  return SUPPORTED_HAT_IDS.has(value as LegalPassMcpHatId);
+}
+
+function isValidUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function summaryFromItems(items: LegalPassMcpItem[]): LegalPassMcpSummary {
   const summary: LegalPassMcpSummary = {
     total: items.length,
@@ -334,7 +409,7 @@ function fixtureSummary(text: string, pack: LegalPassMcpPack) {
       ],
       on_fail_comment: passed
         ? undefined
-        : "Issue-spotter flag only. Ask a qualified lawyer before acting on this item.",
+        : "Issue-spotter flag only. Qualified lawyer review may be warranted before any action is taken.",
     };
   });
   return {
@@ -361,16 +436,18 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
   if (!pack) {
     return { error: `pack '${packId}' was not found` };
   }
-  const target = parseTarget(args);
+  const parsedTarget = parseTarget(args);
+  if ("error" in parsedTarget) {
+    return parsedTarget;
+  }
+  const target = parsedTarget.target;
   const profile = typeof args.profile === "string" ? args.profile : "smoke";
   const jurisdictions = Array.isArray(args.jurisdictions) ? args.jurisdictions.filter((item) => typeof item === "string") : [];
 
-  if (!target || typeof target.kind !== "string") {
-    return { error: "target.kind or target_url is required" };
-  }
   if (!pack.targets.includes(target.kind)) {
     return { error: `pack '${packId}' does not support target kind '${target.kind}'` };
   }
+  const pack_signature = packRunSignature(pack);
 
   const fixtureText = typeof args.fixture_text === "string" ? args.fixture_text.trim() : "";
   if (fixtureText) {
@@ -378,7 +455,7 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
     const record: LegalPassMcpRunRecord = {
       status: "complete",
       pass: "legalpass",
-      run_id: buildRunId({ packId, target, profile, jurisdictions, fixtureText }),
+      run_id: buildRunId({ packId, pack_signature, target, profile, jurisdictions, fixtureText }),
       pack_id: packId,
       target,
       profile,
@@ -398,7 +475,7 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
     return saveRun(record);
   }
 
-  const runId = buildRunId({ packId, target, profile, jurisdictions, mode: "planned" });
+  const runId = buildRunId({ packId, pack_signature, target, profile, jurisdictions, mode: "planned" });
   return saveRun({
     status: "planned",
     pass: "legalpass",
@@ -421,16 +498,57 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
   });
 }
 
-function parseTarget(args: Record<string, unknown>): Record<string, unknown> | null {
+function parseTarget(args: Record<string, unknown>):
+  | { target: LegalPassMcpTarget }
+  | { error: string } {
   if (args.target && typeof args.target === "object" && !Array.isArray(args.target)) {
-    return args.target as Record<string, unknown>;
+    const raw = args.target as Record<string, unknown>;
+    if (typeof raw.kind !== "string") {
+      return { error: "target.kind or target_url is required" };
+    }
+    if (!isSupportedTargetKind(raw.kind)) {
+      return { error: "target.kind must be url|contract_upload|repo" };
+    }
+
+    if (raw.kind === "url") {
+      const url = typeof raw.url === "string" ? raw.url.trim() : "";
+      if (!url || !isValidUrl(url)) {
+        return { error: "target.url must be a valid http(s) URL" };
+      }
+      return { target: { kind: "url", url } };
+    }
+
+    if (raw.kind === "contract_upload") {
+      const uploadRef = typeof raw.upload_ref === "string" ? raw.upload_ref.trim() : "";
+      if (!uploadRef) {
+        return { error: "target.upload_ref is required for contract_upload runs" };
+      }
+      return { target: { kind: "contract_upload", upload_ref: uploadRef } };
+    }
+
+    const repo = typeof raw.repo === "string" ? raw.repo.trim() : "";
+    if (!repo) {
+      return { error: "target.repo is required for repo runs" };
+    }
+    return {
+      target: {
+        kind: "repo",
+        repo,
+        ...(typeof raw.branch === "string" && raw.branch.trim() ? { branch: raw.branch.trim() } : {}),
+        ...(typeof raw.commit === "string" && raw.commit.trim() ? { commit: raw.commit.trim() } : {}),
+      },
+    };
   }
 
   if (typeof args.target_url === "string" && args.target_url.trim()) {
-    return { kind: "url", url: args.target_url.trim() };
+    const url = args.target_url.trim();
+    if (!isValidUrl(url)) {
+      return { error: "target_url must be a valid http(s) URL" };
+    }
+    return { target: { kind: "url", url } };
   }
 
-  return null;
+  return { error: "target.kind or target_url is required" };
 }
 
 export async function legalpassVerdict(args: Record<string, unknown>): Promise<unknown> {
@@ -573,8 +691,24 @@ function parsePackInput(args: Record<string, unknown>):
   if (!Array.isArray(pack.targets) || pack.targets.length === 0) {
     return { error: "pack.targets must include at least one target kind" };
   }
+  const invalidTarget = pack.targets.find(
+    (target) => typeof target !== "string" || !isSupportedTargetKind(target),
+  );
+  if (invalidTarget !== undefined) {
+    return { error: "pack.targets may only include url, contract_upload, or repo" };
+  }
   if (!Array.isArray(pack.hats) || pack.hats.length === 0) {
     return { error: "pack.hats must include at least one hat" };
+  }
+  const invalidHat = pack.hats.find(
+    (hat) =>
+      !hat ||
+      typeof hat !== "object" ||
+      typeof hat.hat_id !== "string" ||
+      !isSupportedHatId(hat.hat_id),
+  );
+  if (invalidHat !== undefined) {
+    return { error: "pack.hats contains an unknown LegalPass hat_id" };
   }
   const hasCitationVerifier = pack.hats.some(
     (hat) => hat?.enabled !== false && hat?.hat_id === "citation_verifier",
