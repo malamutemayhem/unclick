@@ -5,6 +5,7 @@ export {
   computeVerdictSummary,
   createEvidence,
   createRun,
+  listRunFailures,
   seedPendingItems,
   updateRunStatus,
 } from "../../packages/testpass/src/run-manager.js";

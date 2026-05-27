@@ -23,6 +23,7 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
 
     const report = JSON.parse(await fs.readFile(output, "utf8"));
     const securitypass = report.results.find((result) => result.id === "securitypass");
+    const commonsensepass = report.results.find((result) => result.id === "commonsensepass");
     const copypass = report.results.find((result) => result.id === "copypass");
     const wakepass = report.results.find((result) => result.id === "wakepass");
     const enterprisepass = report.results.find((result) => result.id === "enterprisepass");
@@ -31,6 +32,9 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
     assert.match(securitypass?.blockedReason ?? "", /public dogfood/i);
     assert.equal(securitypass?.reasonCode, "scope_gate");
     assert.match(securitypass?.nextProof ?? "", /safe recurring SecurityPass runner receipt/i);
+    assert.equal(commonsensepass?.status, "passing");
+    assert.match(commonsensepass?.summary ?? "", /dogfood passed/i);
+    assert.deepEqual(commonsensepass?.proof?.kind, "commonsensepass_dogfood_receipt");
     assert.equal(copypass?.status, "pending");
     assert.match(copypass?.summary ?? "", /Deterministic CopyPass package proof exists/i);
     assert.equal(wakepass?.status, "pending");

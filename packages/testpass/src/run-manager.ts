@@ -206,3 +206,39 @@ export async function computeVerdictSummary(
   summary.pass_rate = decided > 0 ? summary.check / decided : 0;
   return summary;
 }
+
+export interface RunFailureDetail {
+  check_id: string;
+  title: string;
+  category: string;
+  severity: string;
+  on_fail_comment: string | null;
+}
+
+export async function listRunFailures(
+  config: RunManagerConfig,
+  runId: string,
+  limit = 8
+): Promise<RunFailureDetail[]> {
+  const safeLimit = Math.max(1, Math.min(20, Math.trunc(limit) || 8));
+  const rows = (await supaFetch(
+    config,
+    `testpass_items?run_id=eq.${encodeURIComponent(runId)}&verdict=eq.fail&select=check_id,title,category,severity,on_fail_comment&order=check_id.asc&limit=${safeLimit}`,
+    "GET"
+  )) as RunFailureDetail[];
+
+  return rows.map((row) => ({
+    check_id: row.check_id,
+    title: row.title,
+    category: row.category,
+    severity: row.severity,
+    on_fail_comment: compactFailureComment(row.on_fail_comment),
+  }));
+}
+
+function compactFailureComment(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const compact = value.replace(/\s+/g, " ").trim();
+  if (compact.length <= 240) return compact;
+  return `${compact.slice(0, 237)}...`;
+}

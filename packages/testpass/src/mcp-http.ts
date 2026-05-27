@@ -1,12 +1,12 @@
 export const MCP_ACCEPT_HEADER = "application/json, text/event-stream";
 
-export function buildMcpHeaders(): Record<string, string> {
+export function buildMcpHeaders(authToken = process.env.TESTPASS_TOKEN): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: MCP_ACCEPT_HEADER,
   };
-  if (process.env.TESTPASS_TOKEN) {
-    headers.Authorization = `Bearer ${process.env.TESTPASS_TOKEN}`;
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
   }
   return headers;
 }

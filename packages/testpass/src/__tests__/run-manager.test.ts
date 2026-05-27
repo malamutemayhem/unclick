@@ -1,13 +1,55 @@
 import { jest } from "@jest/globals";
-import { createRun } from "../run-manager.js";
+import { createRun, listRunFailures } from "../run-manager.js";
+
+const originalFetch = globalThis.fetch;
+
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+});
+
+function mockRestResponse(body: unknown): Response {
+  return {
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify(body),
+  } as Response;
+}
+
+describe("listRunFailures", () => {
+  it("returns compact safe failure details for CI comments", async () => {
+    const fetchMock = jest.fn(async () => mockRestResponse([
+      {
+        check_id: "MCP-007",
+        title: "tools/list returns tool metadata",
+        category: "mcp-lifecycle",
+        severity: "critical",
+        on_fail_comment: "  Missing tool description.  ".repeat(20),
+      },
+    ]));
+    globalThis.fetch = fetchMock as typeof fetch;
+
+    const failures = await listRunFailures(
+      { supabaseUrl: "https://example.supabase.co", serviceRoleKey: "service-role" },
+      "run-123",
+      50,
+    );
+
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toMatchObject({
+      check_id: "MCP-007",
+      title: "tools/list returns tool metadata",
+      category: "mcp-lifecycle",
+      severity: "critical",
+    });
+    expect(failures[0].on_fail_comment?.length).toBeLessThanOrEqual(240);
+    const calls = fetchMock.mock.calls as unknown as Array<[unknown]>;
+    const firstUrl = String(calls[0]?.[0]);
+    expect(firstUrl).toContain("verdict=eq.fail");
+    expect(firstUrl).toContain("limit=20");
+  });
+});
 
 describe("run-manager", () => {
-  const originalFetch = globalThis.fetch;
-
-  afterEach(() => {
-    globalThis.fetch = originalFetch;
-  });
-
   it("persists pack_name when a run is created with a pack label", async () => {
     const fetchMock = jest.fn(async (_url: string, init?: RequestInit) => {
       const body = JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>;
@@ -74,7 +116,6 @@ describe("run-manager", () => {
             JSON.stringify({ code: "23505", message: "duplicate key value violates unique constraint" }),
         } as Response;
       }
-      // second call: lookup of existing row
       expect(url).toContain(`task_id=eq.${taskId}`);
       expect(url).toContain("actor_user_id=eq.user-1");
       return {

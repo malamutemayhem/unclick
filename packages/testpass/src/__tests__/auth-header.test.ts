@@ -94,6 +94,24 @@ describe("dispatcher Authorization header", () => {
     }
   });
 
+  it("deterministic runner can use the request token without relying on process env", async () => {
+    delete process.env.TESTPASS_TOKEN;
+    const srv = await makeAuthCapturingServer();
+    try {
+      const pack = loadPackFromYaml(PACK_YAML);
+      const config = { supabaseUrl: "http://unused", serviceRoleKey: "unused" };
+      await runDeterministicChecks(config, "run-1", srv.url, pack, "standard", {
+        authToken: "request-token-abc",
+      });
+      expect(srv.authHeaders.length).toBeGreaterThan(0);
+      for (const h of srv.authHeaders) {
+        expect(h).toBe("Bearer request-token-abc");
+      }
+    } finally {
+      srv.close();
+    }
+  });
+
   it("probe sends Bearer token when TESTPASS_TOKEN is set", async () => {
     process.env.TESTPASS_TOKEN = "probe-token-xyz";
     const srv = await makeAuthCapturingServer();
@@ -102,6 +120,20 @@ describe("dispatcher Authorization header", () => {
       expect(srv.authHeaders.length).toBeGreaterThan(0);
       for (const h of srv.authHeaders) {
         expect(h).toBe("Bearer probe-token-xyz");
+      }
+    } finally {
+      srv.close();
+    }
+  });
+
+  it("probe can use the request token without relying on process env", async () => {
+    delete process.env.TESTPASS_TOKEN;
+    const srv = await makeAuthCapturingServer();
+    try {
+      await probeServer(srv.url, { timeoutMs: 2_000, authToken: "probe-request-token" });
+      expect(srv.authHeaders.length).toBeGreaterThan(0);
+      for (const h of srv.authHeaders) {
+        expect(h).toBe("Bearer probe-request-token");
       }
     } finally {
       srv.close();

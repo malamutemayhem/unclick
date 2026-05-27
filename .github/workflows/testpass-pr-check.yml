@@ -85,6 +85,9 @@ jobs:
             try { responseJson = JSON.parse(process.env.RESPONSE || '{}'); }
             catch { responseJson = {}; }
             const summary = responseJson.verdict_summary || {};
+            const failureDetails = Array.isArray(responseJson.failure_details)
+              ? responseJson.failure_details
+              : [];
             const authReason =
               typeof responseJson.auth_reason === 'string' ? responseJson.auth_reason : '';
             const howToFix =
@@ -145,6 +148,12 @@ jobs:
 
             const cell = (label, n) => `| ${label} | ${n ?? 0} |`;
             const pct = (passRate * 100).toFixed(1);
+            const mdCell = (value) => String(value ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+            const shownFailures = failureDetails.slice(0, 8);
+            const failureLines = failureDetails.slice(0, 8).flatMap((item) => [
+              `| \`${mdCell(item.check_id || 'unknown')}\` | ${mdCell(item.severity)} | ${mdCell(item.title)} |`,
+              item.on_fail_comment ? `|  |  | _${mdCell(item.on_fail_comment)}_ |` : null,
+            ]).filter(Boolean);
 
             const body = [
               `### TestPass: ${statusEmoji}`,
@@ -161,6 +170,14 @@ jobs:
               cell(':heavy_minus_sign: n/a', summary.na),
               cell(':hourglass: pending', summary.pending),
               cell('**total**', total),
+              ...(failureLines.length > 0 ? [
+                ``,
+                `**Failed checks shown:** ${shownFailures.length}`,
+                ``,
+                `| Check | Severity | What failed |`,
+                `| --- | --- | --- |`,
+                ...failureLines,
+              ] : []),
             ].join('\n');
 
             await github.rest.issues.createComment({

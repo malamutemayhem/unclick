@@ -18,6 +18,7 @@ import {
   createEvidence,
   createRun,
   packFromJsonb,
+  listRunFailures,
   loadPackFromFile,
   probeServer,
   runAgentChecks,
@@ -416,10 +417,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (was_duplicate) {
     const summary = await computeVerdictSummary(config, runId);
     const status = summary.pending === 0 ? (summary.fail > 0 ? "failed" : "complete") : "running";
+    const failureDetails = summary.fail > 0 ? await listRunFailures(config, runId) : [];
     return json(res, 200, {
       run_id: runId,
       status,
       verdict_summary: summary,
+      failure_details: failureDetails,
       was_duplicate: true,
       task_id: taskId,
     });
@@ -429,7 +432,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let evidenceRef: string | undefined;
     if (target.url) {
       try {
-        const probeResult = await probeServer(target.url, { timeoutMs: 12_000 });
+        const probeResult = await probeServer(target.url, { timeoutMs: 12_000, authToken: token });
         evidenceRef = await createEvidence(config, { kind: "tool_list", payload: probeResult });
       } catch (err) {
         console.error(`testpass-run probe failed for ${runId}:`, (err as Error).message);
@@ -440,7 +443,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (target.url) {
       try {
-        await runDeterministicChecks(config, runId, target.url, pack, profile);
+        await runDeterministicChecks(config, runId, target.url, pack, profile, { authToken: token });
       } catch (err) {
         console.error(`testpass-run deterministic failed for ${runId}:`, (err as Error).message);
       }
@@ -478,10 +481,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (profile === "smoke") {
     const summary = await runWork();
     const status = summary.pending === 0 ? (summary.fail > 0 ? "failed" : "complete") : "running";
+    const failureDetails = summary.fail > 0 ? await listRunFailures(config, runId) : [];
     return json(res, 200, {
       run_id: runId,
       status,
       verdict_summary: summary,
+      failure_details: failureDetails,
       was_duplicate: false,
       task_id: taskId ?? null,
     });

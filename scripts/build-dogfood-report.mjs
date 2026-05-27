@@ -41,9 +41,9 @@ const xpassIndex = [
     name: "CommonSensePass",
     stage: "worker_sanity_gate",
     label: "Worker sanity gate",
-    automation: "Worker claim guard and MCP protocol surface",
+    automation: "Worker claim guard, MCP protocol surface, and public dogfood receipt",
     mentionProfile: "High mention volume around no-work, done, healthy, and merge-ready claims.",
-    nextStep: "Add the CommonSensePass dogfood receipt to the public dogfood board.",
+    nextStep: "Keep the receipt in the main dogfood board and expand it as new worker-claim risks appear.",
   },
   {
     id: "uxpass",
@@ -358,6 +358,67 @@ async function runUXPass() {
   }
 }
 
+async function runCommonSensePass() {
+  const receiptPath = "public/dogfood/commonsensepass-latest.json";
+  let receipt;
+  try {
+    receipt = JSON.parse(await fs.readFile(receiptPath, "utf8"));
+  } catch {
+    return pendingResult(
+      "commonsensepass",
+      "CommonSensePass",
+      "CommonSensePass package exists, but the public dogfood receipt is missing.",
+      `Expected receipt at ${receiptPath}.`,
+      {
+        nextProof: "Run scripts/build-commonsensepass-dogfood.mjs and publish the receipt.",
+      },
+    );
+  }
+
+  const summary = receipt.summary || {};
+  const total = Number(summary.total || 0);
+  const failing = Number(summary.failing || 0);
+  const passing = Number(summary.passing || 0);
+  const generated = typeof receipt.generatedAt === "string" ? receipt.generatedAt : generatedAt;
+
+  if (receipt.status === "passing" && failing === 0 && total > 0) {
+    return passResult(
+      "commonsensepass",
+      "CommonSensePass",
+      `CommonSensePass dogfood passed ${passing}/${total} worker sanity scenarios.`,
+      "Public receipt proves false quiet, no-work, duplicate wake, done-without-proof, empty-queue, and specialist-route scenarios.",
+      {
+        checkedAt: generated,
+        proof: {
+          kind: "commonsensepass_dogfood_receipt",
+          targetUrl: "/dogfood/commonsensepass-latest.json",
+          total,
+          passing,
+          failing,
+        },
+        nextProof: "Keep adding scenarios as new worker-claim risks appear.",
+      },
+    );
+  }
+
+  return failureResult(
+    "commonsensepass",
+    "CommonSensePass",
+    `CommonSensePass dogfood receipt is ${receipt.status || "unknown"} with ${failing}/${total} failing scenarios.`,
+    `See ${receiptPath} for the failing scenario list.`,
+    {
+      checkedAt: generated,
+      proof: {
+        kind: "commonsensepass_dogfood_receipt",
+        targetUrl: "/dogfood/commonsensepass-latest.json",
+        total,
+        passing,
+        failing,
+      },
+    },
+  );
+}
+
 function buildTrend(results) {
   const today = generatedAt.slice(0, 10);
   return [{
@@ -395,15 +456,7 @@ function buildLastActionableFailure(results) {
 
 const results = [
   await runTestPass(),
-  pendingResult(
-    "commonsensepass",
-    "CommonSensePass",
-    "Worker sanity-gate code exists, but the public dogfood board does not yet publish its receipt.",
-    "CommonSensePass guards false healthy, done, no-work, duplicate, and route claims before workers move state.",
-    {
-      nextProof: "Publish the CommonSensePass receipt in public dogfood and include it in XPass receipts.",
-    },
-  ),
+  await runCommonSensePass(),
   await runUXPass(),
   blockedResult(
     "securitypass",

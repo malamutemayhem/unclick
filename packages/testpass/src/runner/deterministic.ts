@@ -32,6 +32,10 @@ interface CheckOutcome {
   traces:  HttpTrace[];
 }
 
+interface CheckContext {
+  authToken?: string;
+}
+
 // ─── Low-level send ─────────────────────────────────────────────────
 // Always reads the full response body regardless of whether it is a
 // notification. This differs from probe.ts which shortcuts for
@@ -41,11 +45,12 @@ async function send(
   url:       string,
   reqBody:   unknown,
   timeoutMs  = 10_000,
+  authToken?: string,
 ): Promise<{ status: number; body: unknown; latency_ms: number }> {
   const start      = Date.now();
   const controller = new AbortController();
   const tid        = setTimeout(() => controller.abort(), timeoutMs);
-  const headers = buildMcpHeaders();
+  const headers = buildMcpHeaders(authToken);
   try {
     const res = await fetch(url, {
       method:  "POST",
@@ -86,7 +91,7 @@ async function runGitStatusPorcelain(
 
 // ─── Check handlers ────────────────────────────────────────────────
 
-type CheckHandler = (targetUrl: string, config: RunManagerConfig) => Promise<CheckOutcome>;
+type CheckHandler = (targetUrl: string, config: RunManagerConfig, context: CheckContext) => Promise<CheckOutcome>;
 
 function apiKeyHash(): string | null {
   const token = process.env.TESTPASS_TOKEN?.trim();
@@ -129,13 +134,13 @@ function matchingGithubSignal(rows: Array<Record<string, unknown>>, owner: strin
 const HANDLERS: Record<string, CheckHandler> = {
 
   // RPC-001: Every response must carry jsonrpc: "2.0".
-  "RPC-001": async (url) => {
+  "RPC-001": async (url, _config, context) => {
     const req = rpcReq("initialize", {
       protocolVersion: "2024-11-05",
       clientInfo: { name: "testpass-runner", version: "0.1.0" },
       capabilities: {},
     }, 1);
-    const r = await send(url, req);
+    const r = await send(url, req, 10_000, context.authToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body = r.body as Record<string, unknown> | null;
     if (body?.jsonrpc === "2.0") return { verdict: "check", traces: [trace] };
@@ -143,14 +148,14 @@ const HANDLERS: Record<string, CheckHandler> = {
   },
 
   // RPC-002: Response id must echo the request id.
-  "RPC-002": async (url) => {
+  "RPC-002": async (url, _config, context) => {
     const ID  = 42;
     const req = rpcReq("initialize", {
       protocolVersion: "2024-11-05",
       clientInfo: { name: "testpass-runner", version: "0.1.0" },
       capabilities: {},
     }, ID);
-    const r = await send(url, req);
+    const r = await send(url, req, 10_000, context.authToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body = r.body as Record<string, unknown> | null;
     if (body?.id === ID) return { verdict: "check", traces: [trace] };
@@ -158,9 +163,9 @@ const HANDLERS: Record<string, CheckHandler> = {
   },
 
   // RPC-003: Error object must have integer code and string message.
-  "RPC-003": async (url) => {
+  "RPC-003": async (url, _config, context) => {
     const req = rpcReq("__testpass_nonexistent__", {}, 99);
-    const r   = await send(url, req);
+    const r   = await send(url, req, 10_000, context.authToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body = r.body as Record<string, unknown> | null;
     const err  = body?.error as Record<string, unknown> | undefined;
@@ -171,9 +176,9 @@ const HANDLERS: Record<string, CheckHandler> = {
   },
 
   // RPC-004: Unknown method must return error.code === -32601.
-  "RPC-004": async (url) => {
+  "RPC-004": async (url, _config, context) => {
     const req = rpcReq("__testpass_nonexistent__", {}, 100);
-    const r   = await send(url, req);
+    const r   = await send(url, req, 10_000, context.authToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body = r.body as Record<string, unknown> | null;
     const err  = body?.error as Record<string, unknown> | undefined;
@@ -182,12 +187,12 @@ const HANDLERS: Record<string, CheckHandler> = {
   },
 
   // RPC-005: Batch request must return an array (or a graceful non-crash).
-  "RPC-005": async (url) => {
+  "RPC-005": async (url, _config, context) => {
     const batchBody = [
       rpcReq("initialize", { protocolVersion: "2024-11-05", clientInfo: { name: "testpass-runner", version: "0.1.0" }, capabilities: {} }, 201),
       rpcReq("initialize", { protocolVersion: "2024-11-05", clientInfo: { name: "testpass-runner", version: "0.1.0" }, capabilities: {} }, 202),
     ];
-    const r     = await send(url, batchBody);
+    const r     = await send(url, batchBody, 10_000, context.authToken);
     const trace: HttpTrace = { request: { url, body: batchBody }, response: r };
     if (r.status === 204 || r.body === null) {
       return { verdict: "na", note: "Server returned no content for batch - batch not supported (acceptable)", traces: [trace] };
@@ -201,9 +206,9 @@ const HANDLERS: Record<string, CheckHandler> = {
   },
 
   // RPC-006: Notification (no id) must not return a JSON-RPC response object.
-  "RPC-006": async (url) => {
+  "RPC-006": async (url, _config, context) => {
     const req = { jsonrpc: "2.0", method: "notifications/initialized", params: {} };
-    const r   = await send(url, req);
+    const r   = await send(url, req, 10_000, context.authToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     if (r.status === 204 || r.body === null || r.body === "") {
       return { verdict: "check", traces: [trace] };
@@ -219,13 +224,13 @@ const HANDLERS: Record<string, CheckHandler> = {
   },
 
   // MCP-001: initialize must return serverInfo, protocolVersion, and capabilities.
-  "MCP-001": async (url) => {
+  "MCP-001": async (url, _config, context) => {
     const req = rpcReq("initialize", {
       protocolVersion: "2024-11-05",
       clientInfo: { name: "testpass-runner", version: "0.1.0" },
       capabilities: {},
     }, 300);
-    const r = await send(url, req);
+    const r = await send(url, req, 10_000, context.authToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body   = r.body as Record<string, unknown> | null;
     const result = body?.result as Record<string, unknown> | undefined;
@@ -236,13 +241,13 @@ const HANDLERS: Record<string, CheckHandler> = {
   },
 
   // MCP-002: instructions must be a non-empty string.
-  "MCP-002": async (url) => {
+  "MCP-002": async (url, _config, context) => {
     const req = rpcReq("initialize", {
       protocolVersion: "2024-11-05",
       clientInfo: { name: "testpass-runner", version: "0.1.0" },
       capabilities: {},
     }, 301);
-    const r = await send(url, req);
+    const r = await send(url, req, 10_000, context.authToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body   = r.body as Record<string, unknown> | null;
     const result = body?.result as Record<string, unknown> | undefined;
@@ -253,13 +258,13 @@ const HANDLERS: Record<string, CheckHandler> = {
   },
 
   // MCP-003: capabilities must declare at least tools, resources, or prompts.
-  "MCP-003": async (url) => {
+  "MCP-003": async (url, _config, context) => {
     const req = rpcReq("initialize", {
       protocolVersion: "2024-11-05",
       clientInfo: { name: "testpass-runner", version: "0.1.0" },
       capabilities: {},
     }, 302);
-    const r = await send(url, req);
+    const r = await send(url, req, 10_000, context.authToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body   = r.body as Record<string, unknown> | null;
     const result = body?.result as Record<string, unknown> | undefined;
@@ -271,15 +276,15 @@ const HANDLERS: Record<string, CheckHandler> = {
   },
 
   // MCP-004: initialized notification must not return an error.
-  "MCP-004": async (url) => {
+  "MCP-004": async (url, _config, context) => {
     const initReq  = rpcReq("initialize", {
       protocolVersion: "2024-11-05",
       clientInfo: { name: "testpass-runner", version: "0.1.0" },
       capabilities: {},
     }, 303);
     const notifReq = { jsonrpc: "2.0", method: "notifications/initialized", params: {} };
-    const initR  = await send(url, initReq);
-    const notifR = await send(url, notifReq);
+    const initR  = await send(url, initReq, 10_000, context.authToken);
+    const notifR = await send(url, notifReq, 10_000, context.authToken);
     const traces: HttpTrace[] = [
       { request: { url, body: initReq }, response: initR },
       { request: { url, body: notifReq }, response: notifR },
@@ -295,10 +300,10 @@ const HANDLERS: Record<string, CheckHandler> = {
   },
 
   // MCP-005: ping must return an empty result within 5 seconds.
-  "MCP-005": async (url) => {
+  "MCP-005": async (url, _config, context) => {
     const req   = rpcReq("ping", {}, 304);
     const start = Date.now();
-    const r     = await send(url, req, 5_500);
+    const r     = await send(url, req, 5_500, context.authToken);
     const latency = Date.now() - start;
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     if (latency > 5_000) {
@@ -313,9 +318,9 @@ const HANDLERS: Record<string, CheckHandler> = {
   },
 
   // MCP-006: Unknown method must return error.code -32601 without crashing.
-  "MCP-006": async (url) => {
+  "MCP-006": async (url, _config, context) => {
     const req = rpcReq("__testpass_unknown_mcp__", {}, 305);
-    const r   = await send(url, req);
+    const r   = await send(url, req, 10_000, context.authToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body = r.body as Record<string, unknown> | null;
     const err  = body?.error as Record<string, unknown> | undefined;
@@ -326,7 +331,7 @@ const HANDLERS: Record<string, CheckHandler> = {
 
   // FB-010: github_action failures must create tenant-scoped Signals with
   // an /admin/signals fallback and fixture marker context.
-  "FB-010": async (url, config) => {
+  "FB-010": async (url, config, context) => {
     const hash = apiKeyHash();
     if (!hash) {
       return { verdict: "na", note: "TESTPASS_TOKEN is unset, cannot run authenticated signal smoke.", traces: [] };
@@ -342,7 +347,7 @@ const HANDLERS: Record<string, CheckHandler> = {
         repo: fixtureRepo,
       },
     }, 410);
-    const r = await send(url, req, 15_000);
+    const r = await send(url, req, 15_000, context.authToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
 
     let lastRows: Array<Record<string, unknown>> = [];
@@ -422,6 +427,7 @@ export async function runDeterministicChecks(
   targetUrl: string,
   pack:      Pack,
   profile:   RunProfile,
+  options:   CheckContext = {},
 ): Promise<void> {
   const items = pack.items.filter(
     (i) => !i.profiles || i.profiles.includes(profile),
@@ -435,7 +441,7 @@ export async function runDeterministicChecks(
       const checkStart = Date.now();
       let outcome: CheckOutcome;
       try {
-        outcome = await handler(targetUrl, config);
+        outcome = await handler(targetUrl, config, options);
       } catch (err) {
         outcome = {
           verdict: "other",

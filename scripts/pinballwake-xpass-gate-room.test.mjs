@@ -84,6 +84,29 @@ describe("PinballWake XPass Gate Room", () => {
     );
   });
 
+  it("dogfoods every package-level Pass surface through its own XPass check", () => {
+    for (const [dir, check] of [
+      ["testpass", "testpass"],
+      ["commonsensepass", "commonsensepass"],
+      ["uxpass", "uxpass"],
+      ["securitypass", "securitypass"],
+      ["copypass", "copypass"],
+      ["seopass", "seopass"],
+      ["legalpass", "legalpass"],
+      ["sloppass", "sloppass"],
+      ["flowpass", "flowpass"],
+      ["geopass", "geopass"],
+    ]) {
+      const selected = checks({
+        title: `Dogfood ${dir}`,
+        changed_files: [`packages/${dir}/src/index.ts`],
+      });
+
+      assert.ok(selected.includes(check), `${dir} should select ${check}`);
+      assert.ok(selected.includes("sloppass"), `${dir} code changes should select SlopPass`);
+    }
+  });
+
   it("routes reliability and credential hygiene to WakePass and RotatePass", () => {
     const selected = checks({
       title: "WakePass stale ACK repair and RotatePass metadata",
