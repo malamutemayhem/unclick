@@ -319,6 +319,8 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
     "You are an UnClick WriterLane free-model writer running AFK.",
     "Implement the requested change by returning the FULL new contents of each owned file.",
     "For EACH owned file, output a line exactly `FILE: <path>` followed by a fenced code block containing the complete new file contents.",
+    "Do not return a unified diff. Do not return markdown explanation. Return FILE blocks only.",
+    "The runner task prompt may come from a different adapter that asked for a patch; use it for intent only and convert any patch hint into full final file contents.",
     "Change only the owned files. Do not commit, push, merge, deploy, or touch anything outside them.",
     "Use the current file contents below as the source of truth. Preserve unrelated code.",
     `Model: ${model.openRouterModel || "unknown"}`,
@@ -327,7 +329,7 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
   ];
   if (runnerPrompt) {
     lines.push("Runner task prompt:");
-    lines.push(compactText(runnerPrompt, 8_000));
+    lines.push(normalizeRunnerPromptForFullContents(runnerPrompt));
   }
   const intent = scopePack?.changeIntent || scopePack?.change_intent || scopePack?.chip || scopePack?.title;
   if (intent) {
@@ -363,6 +365,20 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
     lines.push(String(scopePack.body || scopePack.description));
   }
   return lines.join("\n");
+}
+
+export function normalizeRunnerPromptForFullContents(runnerPrompt = "") {
+  const text = compactText(runnerPrompt, 8_000);
+  if (!text) return "";
+  return text
+    .replace(
+      /^Return a unified diff patch only\..*$/gim,
+      "Use any requested diff as a change description. WriterLane must return FILE blocks with complete final contents.",
+    )
+    .replace(
+      /^For this fixture task, return this unified diff shape and nothing else:.*$/gim,
+      "For this fixture task, convert the diff shape below into complete final file contents.",
+    );
 }
 
 // Parse `FILE: <path>` + fenced block pairs, keeping only owned paths. Falls back

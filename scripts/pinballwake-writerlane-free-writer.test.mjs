@@ -6,6 +6,7 @@ import {
   createWriterLaneFreeWriterRunner,
   extractChangedFilesFromPatch,
   gateWriterLaneDiff,
+  normalizeRunnerPromptForFullContents,
   parseFileBlocks,
 } from "./pinballwake-writerlane-free-writer.mjs";
 
@@ -293,5 +294,26 @@ describe("writerlane free-writer: pure helpers", () => {
     assert.match(prompt, /CURRENT FILE: docs\/x\.md/);
     assert.match(prompt, /Runner prompt detail/);
     assert.match(prompt, /old file/);
+  });
+
+  it("buildFullContentsPrompt converts OpenHands diff instructions into WriterLane file-block instructions", () => {
+    const runnerPrompt = [
+      "Return a unified diff patch only. Do not commit, push, merge, deploy, or touch secrets.",
+      "Canary fixture diff:",
+      "For this fixture task, return this unified diff shape and nothing else:",
+      "diff --git a/docs/openhands-proof-fixture.md b/docs/openhands-proof-fixture.md",
+    ].join("\n");
+    const prompt = buildFullContentsPrompt({
+      ownedFiles: ["docs/openhands-proof-fixture.md"],
+      scopePack: { verification: ["node --test scripts/pinballwake-openhands-proof-runner.test.mjs"] },
+      model: MODEL_A,
+      runnerPrompt,
+      currentFiles: [{ path: "docs/openhands-proof-fixture.md", content: "# OpenHands Proof Fixture\n" }],
+    });
+    assert.match(prompt, /Do not return a unified diff/);
+    assert.match(prompt, /Return FILE blocks only/);
+    assert.match(prompt, /WriterLane must return FILE blocks with complete final contents/);
+    assert.match(prompt, /convert the diff shape below into complete final file contents/);
+    assert.doesNotMatch(normalizeRunnerPromptForFullContents(runnerPrompt), /^Return a unified diff patch only/m);
   });
 });
