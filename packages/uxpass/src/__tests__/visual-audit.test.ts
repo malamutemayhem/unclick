@@ -146,6 +146,7 @@ describe("evaluateVisualAuditSnapshot", () => {
       ],
     });
     expect(summary.byKind.small_target).toBe(1);
+    expect(summary.byKind.unlabelled_action).toBe(1);
     expect(summary.byKind.badge_overload).toBe(1);
   });
 

@@ -204,6 +204,15 @@ export const CORE_CHECKS: CheckSpec[] = [
     remediation: "Increase foreground/background contrast for failing text states.",
     evaluate: (ctx) => visualCheck(ctx, "low_contrast"),
   },
+  {
+    id: "A11Y-005",
+    hat: "accessibility",
+    category: "visual-a11y",
+    severity: "high",
+    title: "Interactive actions have useful accessible names",
+    remediation: "Give icon-only and compact actions a clear aria-label, title, or visible label.",
+    evaluate: (ctx) => visualCheck(ctx, "unlabelled_action"),
+  },
 
   // ── mobile ───────────────────────────────────────────────────────────────
   {

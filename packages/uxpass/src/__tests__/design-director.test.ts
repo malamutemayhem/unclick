@@ -136,6 +136,7 @@ describe("buildVisualDesignDirectorReport", () => {
         "composition-hierarchy",
         "density-hierarchy",
         "interaction-targets",
+        "interaction-semantics",
         "contrast-tokens",
       ]),
     );

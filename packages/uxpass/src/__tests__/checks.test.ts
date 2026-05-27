@@ -362,6 +362,7 @@ describe("evaluateAllChecks - failure paths", () => {
     expect(evaluations.find((e) => e.check_id === "VD-008")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "MOB-002")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "A11Y-004")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "A11Y-005")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "CL-001")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "CL-002")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "CL-003")?.verdict).toBe("fail");
@@ -429,7 +430,7 @@ describe("buildBreakdown", () => {
   it("groups pass/fail/na counts by hat", () => {
     const evaluations = evaluateAllChecks(baseCtx());
     const breakdown = buildBreakdown(evaluations);
-    expect(breakdown.by_hat["accessibility"]).toEqual({ pass: 4, fail: 0, na: 0 });
+    expect(breakdown.by_hat["accessibility"]).toEqual({ pass: 5, fail: 0, na: 0 });
     expect(breakdown.by_hat["agent-readability"]).toEqual({ pass: 3, fail: 0, na: 0 });
   });
 
@@ -447,7 +448,7 @@ describe("buildBreakdown", () => {
     expect(breakdown.critics?.find((critic) => critic.id === "accessibility")).toMatchObject({
       status: "ran",
       mode: "deterministic",
-      pass: 4,
+      pass: 5,
       fail: 0,
       na: 0,
     });

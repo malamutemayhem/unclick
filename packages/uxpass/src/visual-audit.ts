@@ -12,7 +12,8 @@ export type VisualAuditIssueKind =
   | "nested_panel_clutter"
   | "unclear_primary_action"
   | "flat_type_scale"
-  | "palette_indiscipline";
+  | "palette_indiscipline"
+  | "unlabelled_action";
 
 export interface VisualRect {
   x: number;
@@ -97,6 +98,7 @@ const ALL_KINDS: VisualAuditIssueKind[] = [
   "unclear_primary_action",
   "flat_type_scale",
   "palette_indiscipline",
+  "unlabelled_action",
 ];
 
 const ALL_SEVERITIES: VisualAuditSeverity[] = ["critical", "high", "medium", "low"];
@@ -209,6 +211,10 @@ function isCommandAction(element: VisualAuditElement): boolean {
   if (["button", "a", "summary"].includes(tag)) return true;
   const role = (element.role ?? "").toLowerCase();
   return ["button", "link", "menuitem", "tab"].includes(role);
+}
+
+function actionLabel(element: VisualAuditElement): string {
+  return compactText(element.text) || compactText(element.ariaLabel) || compactText(element.title);
 }
 
 interface RgbColor {
@@ -431,6 +437,24 @@ export function evaluateVisualAuditSnapshot(snapshot: VisualAuditSnapshot): Visu
             minimum_css_px: MIN_TOUCH_TARGET,
           },
           remediation: "Increase hit area to at least 24 by 24 CSS pixels or add enough spacing to meet WCAG 2.2 target-size intent.",
+        });
+      }
+
+      if (isCommandAction(element) && actionLabel(element).length < 2) {
+        pushIssue(issues, {
+          kind: "unlabelled_action",
+          severity: "high",
+          title: "Interactive action has no useful accessible name",
+          description: `${describeElement(element)} exposes no useful visible, title, or aria-label text.`,
+          selector: element.selector,
+          elementId: element.id,
+          evidence: {
+            text: compactText(element.text),
+            aria_label: element.ariaLabel ?? null,
+            title: element.title ?? null,
+            role: element.role ?? null,
+          },
+          remediation: "Give icon-only and compact actions a clear aria-label or title, and use visible labels for primary actions.",
         });
       }
     }

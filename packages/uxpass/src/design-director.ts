@@ -260,6 +260,19 @@ export function buildVisualDesignDirectorReport(
       summary,
     ),
     directive(
+      "interaction-semantics",
+      "high",
+      "Name every action clearly",
+      "Icon-only and single-letter actions slow users down and break assistive technology unless they expose a useful action name.",
+      [
+        "Give every icon-only control a clear aria-label or title.",
+        "Replace one-character labels with recognizable icons, visible text, or a tooltip-backed button.",
+        "Verify primary actions have visible labels, not only hover text.",
+      ],
+      ["unlabelled_action"],
+      summary,
+    ),
+    directive(
       "contrast-tokens",
       "high",
       "Fix contrast at the token level",

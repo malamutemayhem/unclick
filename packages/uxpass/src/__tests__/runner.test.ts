@@ -114,7 +114,7 @@ describe("evaluateUrl - integration with live HTTP server", () => {
     try {
       const result = await evaluateUrl(server.url);
       expect(result.breakdown.checks_run.length).toBeGreaterThan(10);
-      expect(result.breakdown.by_hat["accessibility"]).toEqual({ pass: 3, fail: 0, na: 1 });
+      expect(result.breakdown.by_hat["accessibility"]).toEqual({ pass: 3, fail: 0, na: 2 });
       // PT-001 fails on http://; PT-002 passes (HSTS present).
       expect(result.breakdown.by_hat["privacy-trust"]).toEqual({ pass: 1, fail: 1, na: 0 });
       expect(result.breakdown.critics).toHaveLength(18);
