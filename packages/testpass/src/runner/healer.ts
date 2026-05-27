@@ -20,6 +20,8 @@ interface FailedItem {
   check_type?: string;
 }
 
+type PackItem = Pack["items"][number];
+
 const SYSTEM_PROMPT = `You are a QA healer for MCP (Model Context Protocol) servers. A deterministic probe previously marked this check as failed. Re-evaluate the check based on the latest server behaviour described in the probe data and decide whether it now passes.
 
 Respond with valid JSON only, no other text:
@@ -35,7 +37,7 @@ async function fetchFailedDeterministicIds(
   config: RunManagerConfig,
   runId: string,
 ): Promise<string[]> {
-  const url = `${config.supabaseUrl}/rest/v1/testpass_items?run_id=eq.${runId}&verdict=eq.fail&select=check_id`;
+  const url = `${config.supabaseUrl}/rest/v1/testpass_items?run_id=eq.${encodeURIComponent(runId)}&verdict=eq.fail&select=check_id`;
   const res = await fetch(url, {
     headers: {
       apikey: config.serviceRoleKey,
@@ -70,9 +72,9 @@ export async function healFailedChecks(
       const parts = [
         `Check ID: ${checkId}`,
         `Title: ${spec.title}`,
-        spec.description ? `Description: ${spec.description}` : null,
+        checkInstruction(spec) ? `Instruction: ${checkInstruction(spec)}` : null,
         spec.expected !== undefined ? `Expected: ${JSON.stringify(spec.expected)}` : null,
-        spec.on_fail ? `On fail guidance: ${spec.on_fail}` : null,
+        failGuidance(spec) ? `On fail guidance: ${failGuidance(spec)}` : null,
       ].filter(Boolean) as string[];
 
       type HealedVerdict = "check" | "fail" | "na" | "other";
@@ -126,4 +128,12 @@ export async function healFailedChecks(
   );
 
   return healedCount;
+}
+
+function checkInstruction(spec: PackItem): string | undefined {
+  return spec.verify?.instruction ?? spec.instruction ?? spec.description;
+}
+
+function failGuidance(spec: PackItem): string | undefined {
+  return spec.on_fail_template ?? spec.on_fail;
 }
