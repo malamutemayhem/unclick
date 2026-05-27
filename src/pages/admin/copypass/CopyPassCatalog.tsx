@@ -15,7 +15,7 @@ const STARTER_PACKS = [
     category: "Commercial copy",
     useWhen: "Use this when pricing copy needs to stay specific, honest, and usable for technical buyers.",
     checks: "claim support, trust signals, internal consistency, tone drift",
-    cta: "Scaffold only",
+    cta: "Run from MCP",
   },
 ];
 
@@ -25,10 +25,10 @@ function DisclaimerBanner() {
       <div className="flex items-start gap-3">
         <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-[#E2B93B]" />
         <div>
-          <h2 className="text-sm font-semibold text-[#E2B93B]">CopyPass scaffold disclaimer</h2>
+          <h2 className="text-sm font-semibold text-[#E2B93B]">CopyPass scope disclaimer</h2>
           <p className="mt-1 text-sm text-[#d9d0a8]">
-            CopyPass is a scoped copy-quality review surface, not final brand approval, legal review, or a guarantee of
-            performance. This first scaffold wires the MCP and admin surfaces. Evidence-led copy checks land in a later chunk.
+            CopyPass is a scoped copy-quality review, not final brand approval, legal review, or a guarantee of
+            performance. It reports evidence-backed findings from the copy it inspected and names what it did not check.
           </p>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function CopyPassCatalog() {
           <div>
             <h1 className="text-2xl font-semibold text-white">CopyPass</h1>
             <p className="mt-0.5 text-sm text-[#888]">
-              A scaffolded review surface for AI-generated copy. Start with routing and operator context, then layer in deeper verdict logic later.
+              Deterministic copy review for AI-generated wording, claim support, trust signals, and anti-slop polish.
             </p>
           </div>
         </div>
@@ -93,11 +93,11 @@ export default function CopyPassCatalog() {
           <div className="flex items-start gap-3">
             <FileText className="mt-0.5 h-5 w-5 shrink-0 text-fuchsia-300" />
             <div>
-              <h2 className="text-sm font-semibold text-white">Available now through MCP scaffold</h2>
+              <h2 className="text-sm font-semibold text-white">Available now through MCP</h2>
               <p className="mt-1 text-sm text-[#888]">
-                `copypass_run` accepts `copy_text` plus optional `channel`, `audience`, and `goal` fields today.
+                `copypass_run` accepts `copy_text` plus optional `channel`, `audience`, and `goal` fields.
                 For exact-copy work, send `copyroom_required: true` with `copyroom_source_packet` so missing source proof blocks instead of returning a null receipt.
-                `copypass_status` polls the in-session scaffold run record and attached CopyRoom receipt.
+                `copypass_status` returns the in-session verdict, deterministic findings, not-checked scope, disclaimer, and attached CopyRoom receipt.
               </p>
             </div>
           </div>
@@ -107,10 +107,10 @@ export default function CopyPassCatalog() {
           <div className="flex items-start gap-3">
             <MessagesSquare className="mt-0.5 h-5 w-5 shrink-0 text-[#61C1C4]" />
             <div>
-              <h2 className="text-sm font-semibold text-white">What lands next</h2>
+              <h2 className="text-sm font-semibold text-white">Current review coverage</h2>
               <p className="mt-1 text-sm text-[#888]">
-                Claim support, clarity, trust-signal, and tone-fit checks land next. This first scaffold is for tool
-                routing, admin placement, and later evaluator integration.
+                CopyPass checks clarity, CTA presence, proof and trust gaps, unsupported superiority claims, risky guarantees,
+                placeholder text, AI-slop language, urgency, and product-surface honesty.
               </p>
             </div>
           </div>
@@ -134,7 +134,7 @@ export default function CopyPassCatalog() {
             ))}
           </div>
           <p className="mt-3 text-xs text-[#666]">
-            Starter packs are planning prompts for MCP-triggered runs today. In-product launch controls land in a later chunk.
+            Starter packs describe good MCP-triggered run scopes. In-product launch controls can land after the MCP path stays proven.
           </p>
         </section>
       </div>

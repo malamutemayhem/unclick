@@ -15,27 +15,67 @@ describe("copypass-tool", () => {
     expect(result.error).toMatch(/profile must be one of/);
   });
 
-  it("stores an in-memory scaffold run and exposes status", async () => {
+  it("stores an in-memory deterministic run and exposes status", async () => {
     const run = (await copypassRun({
-      copy_text: "Ship the fastest way to turn your chat model into a useful operator.",
+      copy_text: "The ultimate all-in-one solution. Coming soon.",
       channel: "homepage_hero",
       audience: "technical founders",
       goal: "clarity and conversion",
       profile: "smoke",
-    })) as { run_id?: string; status?: string; finding_count?: number; verdict_summary?: { na?: number } };
+    })) as {
+      run_id?: string;
+      status?: string;
+      finding_count?: number;
+      copypass_verdict?: string;
+      verdict_summary?: { fail?: number };
+      findings?: Array<{ check_id?: string }>;
+    };
 
     expect(run.status).toBe("complete");
-    expect(run.finding_count).toBe(1);
-    expect(run.verdict_summary?.na).toBe(1);
+    expect(run.finding_count).toBeGreaterThan(0);
+    expect(run.copypass_verdict).toBe("fail");
+    expect(run.verdict_summary?.fail).toBeGreaterThan(0);
+    expect(run.findings?.map((finding) => finding.check_id)).toContain("unsupported-superiority");
     expect(run.run_id).toBeTruthy();
 
     const status = (await copypassStatus({
       run_id: run.run_id,
-    })) as { run_id?: string; status?: string; target?: { channel?: string } };
+    })) as {
+      run_id?: string;
+      status?: string;
+      copypass_verdict?: string;
+      target?: { channel?: string };
+      findings?: Array<{ check_id?: string }>;
+    };
 
     expect(status.run_id).toBe(run.run_id);
     expect(status.status).toBe("complete");
+    expect(status.copypass_verdict).toBe("fail");
     expect(status.target?.channel).toBe("homepage_hero");
+    expect(status.findings?.map((finding) => finding.check_id)).toContain("placeholder-copy");
+  });
+
+  it("passes clean scoped copy without pretending to certify external truth", async () => {
+    const run = (await copypassRun({
+      copy_text:
+        "UnClick helps teams review AI work with shared context, public proof, and green checks. Start a free review.",
+      channel: "homepage_hero",
+      audience: "technical founders",
+      goal: "clarity and trust",
+      profile: "standard",
+    })) as {
+      status?: string;
+      finding_count?: number;
+      copypass_verdict?: string;
+      disclaimer?: { compact?: string };
+      not_checked?: Array<{ label?: string }>;
+    };
+
+    expect(run.status).toBe("complete");
+    expect(run.finding_count).toBe(0);
+    expect(run.copypass_verdict).toBe("pass");
+    expect(run.disclaimer?.compact).toContain("Scoped review only");
+    expect(run.not_checked?.map((item) => item.label)).toContain("Legal, brand, or factual approval");
   });
 
   it("attaches a CopyRoom exact-copy receipt from a source packet", async () => {

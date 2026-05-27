@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createDeterministicCopyPassReport,
   createCopyPassVerdictPack,
   createFixtureCopyPassReport,
 } from "../verdict-pack.js";
@@ -18,6 +19,31 @@ describe("CopyPass verdict pack", () => {
     expect(report.mode).toBe("plan-only");
     expect(report.verdict).toBe("unknown");
     expect(report.not_checked.map((item) => item.label)).toContain("Production crawl");
+    expect(report.disclaimer.headline).toContain("scoped review");
+    expect(report.summary.coverage_note).toContain("plan artifact");
+  });
+
+  it("creates a deterministic evidence report for caller-provided copy", () => {
+    const report = createDeterministicCopyPassReport({
+      target: {
+        kind: "page",
+        label: "CopyPass landing page",
+      },
+      generated_at: "2026-05-09T19:00:00.000Z",
+      blocks: [
+        {
+          id: "hero",
+          kind: "hero",
+          text: "The ultimate AI writing tool. Coming soon.",
+        },
+      ],
+    });
+
+    expect(report.mode).toBe("deterministic");
+    expect(report.scanner_source.kind).toBe("local-detector");
+    expect(report.verdict).toBe("fail");
+    expect(report.summary.counts_by_severity.high).toBeGreaterThan(0);
+    expect(report.disclaimer.compact).toContain("Scoped review only");
   });
 
   it("fails a fixture with unsupported outcome language", () => {
@@ -68,5 +94,6 @@ describe("CopyPass verdict pack", () => {
     expect(report.verdict).toBe("pass");
     expect(report.overall_score).toBe(100);
     expect(report.findings).toEqual([]);
+    expect(report.summary.posture).toContain("no deterministic copy-quality issues");
   });
 });

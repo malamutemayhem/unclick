@@ -36,4 +36,30 @@ describe("CopyPass copy library", () => {
 
     expect(finding.evidence).toBe("[redacted-sensitive-copy-fragment]");
   });
+
+  it("flags AI-slop language, misleading urgency, UI honesty gaps, and offer contradictions", () => {
+    const blocks: CopyPassCopyBlock[] = [
+      {
+        id: "hero",
+        kind: "hero",
+        text:
+          "Autopilot is fully automated and will unlock a seamless workflow. Act now before it's gone.",
+        public_only: true,
+      },
+      {
+        id: "pricing",
+        kind: "pricing",
+        text: "Free forever. Paid only after setup fee. This insane deal is a no-brainer.",
+        public_only: true,
+      },
+    ];
+
+    const checkIds = detectCopyPassFindings(blocks).map((finding) => finding.check_id);
+
+    expect(checkIds).toContain("ai-slop-language");
+    expect(checkIds).toContain("misleading-urgency");
+    expect(checkIds).toContain("ui-honesty-gap");
+    expect(checkIds).toContain("audience-tone-fit");
+    expect(checkIds).toContain("internal-consistency");
+  });
 });

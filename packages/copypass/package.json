@@ -1,7 +1,7 @@
 {
   "name": "@unclick/copypass",
   "version": "0.1.0",
-  "description": "CopyPass - fixture-only product-copy review with advisory verdict packs.",
+  "description": "CopyPass - deterministic product-copy review with advisory verdict packs.",
   "type": "module",
   "main": "./dist/index.js",
   "exports": {

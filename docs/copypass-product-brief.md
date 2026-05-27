@@ -1,11 +1,11 @@
 # CopyPass Product Brief
 
-CopyPass is a fixture-first product-copy review pass for UnClick. It flags copy that is unclear, overconfident, stale, or missing a direct next action before the wording reaches a public surface.
+CopyPass is a deterministic product-copy review pass for UnClick. It flags copy that is unclear, overconfident, stale, unsupported, urgency-heavy, AI-sloppy, or missing a direct next action before the wording reaches a public surface.
 
 ## First Slice
 
-- Run only on caller-provided fixture text.
-- Detect vague hero language, missing CTAs, missing trust signals, unsupported superiority claims, placeholder copy, and risky guarantee language.
+- Run only on caller-provided copy text or CopyRoom source packets.
+- Detect vague hero language, missing CTAs, missing trust signals, unsupported superiority claims, placeholder copy, risky guarantee language, AI-slop language, misleading urgency, and product-surface honesty gaps.
 - Return a structured advisory verdict pack with findings, evidence, not-checked boundaries, and disclaimers.
 - Avoid paid model calls, production crawls, private customer copy, live analytics writes, migrations, scheduled jobs, and production test rows.
 
@@ -15,4 +15,4 @@ CopyPass is advisory. It does not promise legal, compliance, revenue, ranking, c
 
 ## Future Fit
 
-The package is intentionally small so it can later consume shared scanner output from the Pass family without coupling this first slice to GEOPass, SEOPass, FlowPass, LegalPass, SlopPass, UXPass, SecurityPass, or TestPass internals.
+The package is intentionally small so it can later consume shared scanner output from the Pass family without coupling this slice to GEOPass, SEOPass, FlowPass, LegalPass, SlopPass, UXPass, SecurityPass, or TestPass internals. The current safe completion bar is deterministic evidence on supplied copy, not a paid model rewrite or detector-evasion product.
