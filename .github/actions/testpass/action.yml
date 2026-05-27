@@ -21,6 +21,10 @@ inputs:
     description: TestPass run API endpoint; this action calls it and passes server_url as the MCP target under test.
     required: false
     default: https://unclick.world/api/testpass-run
+  vercel_bypass:
+    description: Optional Vercel Deployment Protection bypass secret for preview deployments.
+    required: false
+    default: ""
   source:
     description: Source label sent to TestPass for visibility routing.
     required: false
@@ -63,6 +67,7 @@ runs:
         PROFILE: ${{ inputs.profile }}
         SERVER_URL: ${{ inputs.server_url }}
         API_URL: ${{ inputs.api_url }}
+        VERCEL_BYPASS: ${{ inputs.vercel_bypass }}
         SOURCE: ${{ inputs.source }}
       run: |
         # Note: -e intentionally omitted so curl/jq failures don't abort
@@ -76,6 +81,14 @@ runs:
           --arg source "$SOURCE" \
           '{pack_id: $pack_id, profile: $profile, source: $source} + (if $server_url == "" then {} else {server_url: $server_url} end)')
 
+        headers=(
+          -H "Authorization: Bearer $TESTPASS_TOKEN"
+          -H "Content-Type: application/json"
+        )
+        if [ -n "${VERCEL_BYPASS:-}" ]; then
+          headers+=(-H "x-vercel-protection-bypass: $VERCEL_BYPASS")
+        fi
+
         # Capture curl transport exit code separately from HTTP status.
         # curl exits non-zero on DNS failure, connection refused, timeout, etc.
         curl_exit=0
@@ -83,8 +96,7 @@ runs:
           --connect-timeout 10 \
           --max-time 60 \
           -X POST "$API_URL" \
-          -H "Authorization: Bearer $TESTPASS_TOKEN" \
-          -H "Content-Type: application/json" \
+          "${headers[@]}" \
           -d "$payload") || curl_exit=$?
         http_code="${http_code:-000}"
 

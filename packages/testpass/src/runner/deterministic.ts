@@ -34,6 +34,7 @@ interface CheckOutcome {
 
 interface CheckContext {
   authToken?: string;
+  vercelBypassToken?: string;
 }
 
 // ─── Low-level send ─────────────────────────────────────────────────
@@ -46,11 +47,12 @@ async function send(
   reqBody:   unknown,
   timeoutMs  = 10_000,
   authToken?: string,
+  vercelBypassToken?: string,
 ): Promise<{ status: number; body: unknown; latency_ms: number }> {
   const start      = Date.now();
   const controller = new AbortController();
   const tid        = setTimeout(() => controller.abort(), timeoutMs);
-  const headers = buildMcpHeaders(authToken);
+  const headers = buildMcpHeaders(authToken, vercelBypassToken);
   try {
     const res = await fetch(url, {
       method:  "POST",
@@ -140,7 +142,7 @@ const HANDLERS: Record<string, CheckHandler> = {
       clientInfo: { name: "testpass-runner", version: "0.1.0" },
       capabilities: {},
     }, 1);
-    const r = await send(url, req, 10_000, context.authToken);
+    const r = await send(url, req, 10_000, context.authToken, context.vercelBypassToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body = r.body as Record<string, unknown> | null;
     if (body?.jsonrpc === "2.0") return { verdict: "check", traces: [trace] };
@@ -155,7 +157,7 @@ const HANDLERS: Record<string, CheckHandler> = {
       clientInfo: { name: "testpass-runner", version: "0.1.0" },
       capabilities: {},
     }, ID);
-    const r = await send(url, req, 10_000, context.authToken);
+    const r = await send(url, req, 10_000, context.authToken, context.vercelBypassToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body = r.body as Record<string, unknown> | null;
     if (body?.id === ID) return { verdict: "check", traces: [trace] };
@@ -165,7 +167,7 @@ const HANDLERS: Record<string, CheckHandler> = {
   // RPC-003: Error object must have integer code and string message.
   "RPC-003": async (url, _config, context) => {
     const req = rpcReq("__testpass_nonexistent__", {}, 99);
-    const r   = await send(url, req, 10_000, context.authToken);
+    const r   = await send(url, req, 10_000, context.authToken, context.vercelBypassToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body = r.body as Record<string, unknown> | null;
     const err  = body?.error as Record<string, unknown> | undefined;
@@ -178,7 +180,7 @@ const HANDLERS: Record<string, CheckHandler> = {
   // RPC-004: Unknown method must return error.code === -32601.
   "RPC-004": async (url, _config, context) => {
     const req = rpcReq("__testpass_nonexistent__", {}, 100);
-    const r   = await send(url, req, 10_000, context.authToken);
+    const r   = await send(url, req, 10_000, context.authToken, context.vercelBypassToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body = r.body as Record<string, unknown> | null;
     const err  = body?.error as Record<string, unknown> | undefined;
@@ -192,7 +194,7 @@ const HANDLERS: Record<string, CheckHandler> = {
       rpcReq("initialize", { protocolVersion: "2024-11-05", clientInfo: { name: "testpass-runner", version: "0.1.0" }, capabilities: {} }, 201),
       rpcReq("initialize", { protocolVersion: "2024-11-05", clientInfo: { name: "testpass-runner", version: "0.1.0" }, capabilities: {} }, 202),
     ];
-    const r     = await send(url, batchBody, 10_000, context.authToken);
+    const r     = await send(url, batchBody, 10_000, context.authToken, context.vercelBypassToken);
     const trace: HttpTrace = { request: { url, body: batchBody }, response: r };
     if (r.status === 204 || r.body === null) {
       return { verdict: "na", note: "Server returned no content for batch - batch not supported (acceptable)", traces: [trace] };
@@ -208,7 +210,7 @@ const HANDLERS: Record<string, CheckHandler> = {
   // RPC-006: Notification (no id) must not return a JSON-RPC response object.
   "RPC-006": async (url, _config, context) => {
     const req = { jsonrpc: "2.0", method: "notifications/initialized", params: {} };
-    const r   = await send(url, req, 10_000, context.authToken);
+    const r   = await send(url, req, 10_000, context.authToken, context.vercelBypassToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     if (r.status === 204 || r.body === null || r.body === "") {
       return { verdict: "check", traces: [trace] };
@@ -230,7 +232,7 @@ const HANDLERS: Record<string, CheckHandler> = {
       clientInfo: { name: "testpass-runner", version: "0.1.0" },
       capabilities: {},
     }, 300);
-    const r = await send(url, req, 10_000, context.authToken);
+    const r = await send(url, req, 10_000, context.authToken, context.vercelBypassToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body   = r.body as Record<string, unknown> | null;
     const result = body?.result as Record<string, unknown> | undefined;
@@ -247,7 +249,7 @@ const HANDLERS: Record<string, CheckHandler> = {
       clientInfo: { name: "testpass-runner", version: "0.1.0" },
       capabilities: {},
     }, 301);
-    const r = await send(url, req, 10_000, context.authToken);
+    const r = await send(url, req, 10_000, context.authToken, context.vercelBypassToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body   = r.body as Record<string, unknown> | null;
     const result = body?.result as Record<string, unknown> | undefined;
@@ -264,7 +266,7 @@ const HANDLERS: Record<string, CheckHandler> = {
       clientInfo: { name: "testpass-runner", version: "0.1.0" },
       capabilities: {},
     }, 302);
-    const r = await send(url, req, 10_000, context.authToken);
+    const r = await send(url, req, 10_000, context.authToken, context.vercelBypassToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body   = r.body as Record<string, unknown> | null;
     const result = body?.result as Record<string, unknown> | undefined;
@@ -283,8 +285,8 @@ const HANDLERS: Record<string, CheckHandler> = {
       capabilities: {},
     }, 303);
     const notifReq = { jsonrpc: "2.0", method: "notifications/initialized", params: {} };
-    const initR  = await send(url, initReq, 10_000, context.authToken);
-    const notifR = await send(url, notifReq, 10_000, context.authToken);
+    const initR  = await send(url, initReq, 10_000, context.authToken, context.vercelBypassToken);
+    const notifR = await send(url, notifReq, 10_000, context.authToken, context.vercelBypassToken);
     const traces: HttpTrace[] = [
       { request: { url, body: initReq }, response: initR },
       { request: { url, body: notifReq }, response: notifR },
@@ -303,7 +305,7 @@ const HANDLERS: Record<string, CheckHandler> = {
   "MCP-005": async (url, _config, context) => {
     const req   = rpcReq("ping", {}, 304);
     const start = Date.now();
-    const r     = await send(url, req, 5_500, context.authToken);
+    const r     = await send(url, req, 5_500, context.authToken, context.vercelBypassToken);
     const latency = Date.now() - start;
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     if (latency > 5_000) {
@@ -320,7 +322,7 @@ const HANDLERS: Record<string, CheckHandler> = {
   // MCP-006: Unknown method must return error.code -32601 without crashing.
   "MCP-006": async (url, _config, context) => {
     const req = rpcReq("__testpass_unknown_mcp__", {}, 305);
-    const r   = await send(url, req, 10_000, context.authToken);
+    const r   = await send(url, req, 10_000, context.authToken, context.vercelBypassToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
     const body = r.body as Record<string, unknown> | null;
     const err  = body?.error as Record<string, unknown> | undefined;
@@ -347,7 +349,7 @@ const HANDLERS: Record<string, CheckHandler> = {
         repo: fixtureRepo,
       },
     }, 410);
-    const r = await send(url, req, 15_000, context.authToken);
+    const r = await send(url, req, 15_000, context.authToken, context.vercelBypassToken);
     const trace: HttpTrace = { request: { url, body: req }, response: r };
 
     let lastRows: Array<Record<string, unknown>> = [];

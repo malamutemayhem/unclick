@@ -106,6 +106,7 @@ jobs:
           profile: ${{ inputs.profile || 'smoke' }}
           server_url: ${{ inputs.server_url || steps.testpass-target.outputs.server_url || 'https://unclick.world/api/mcp' }}
           api_url: ${{ steps.testpass-target.outputs.api_url || 'https://unclick.world/api/testpass-run' }}
+          vercel_bypass: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Post PR comment
         # Run regardless of TestPass step outcome - infra failures still need a

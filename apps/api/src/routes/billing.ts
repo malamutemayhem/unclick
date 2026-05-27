@@ -257,7 +257,7 @@ export function createBillingRouter(db: Db, authMiddleware: MiddlewareHandler<an
         stripe_record_id: r.stripeRecordId ?? null,
         updated_at: r.updatedAt.toISOString(),
       })),
-      { page, per_page: perPage, total, total_pages: Math.ceil(total / perPage) },
+      { page, per_page: perPage, total, total_pages: Math.ceil(total / perPage), has_more: page * perPage < total },
     );
   });
 

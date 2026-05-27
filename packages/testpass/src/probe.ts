@@ -26,6 +26,7 @@ export interface ProbeOptions {
   clientName?: string;
   clientVersion?: string;
   authToken?: string;
+  vercelBypassToken?: string;
 }
 
 class JsonRpcError extends Error {
@@ -44,13 +45,14 @@ async function rpc(
   id: number | null,
   timeoutMs: number,
   authToken?: string,
+  vercelBypassToken?: string,
 ): Promise<unknown> {
   const body: Record<string, unknown> = { jsonrpc: "2.0", method, params };
   if (id !== null) body.id = id;
 
   const controller = new AbortController();
   const tid = setTimeout(() => controller.abort(), timeoutMs);
-  const headers = buildMcpHeaders(authToken);
+  const headers = buildMcpHeaders(authToken, vercelBypassToken);
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -77,7 +79,13 @@ async function rpc(
  * Probe an MCP server: initialize, list tools, return structured evidence.
  */
 export async function probeServer(url: string, opts: ProbeOptions = {}): Promise<ProbeResult> {
-  const { timeoutMs = 10_000, clientName = "testpass-probe", clientVersion = "0.1.0", authToken } = opts;
+  const {
+    timeoutMs = 10_000,
+    clientName = "testpass-probe",
+    clientVersion = "0.1.0",
+    authToken,
+    vercelBypassToken,
+  } = opts;
   const start = Date.now();
 
   const initResult = (await rpc(
@@ -91,6 +99,7 @@ export async function probeServer(url: string, opts: ProbeOptions = {}): Promise
     1,
     timeoutMs,
     authToken,
+    vercelBypassToken,
   )) as {
     protocolVersion: string;
     serverInfo?: { name: string; version: string };
@@ -99,14 +108,14 @@ export async function probeServer(url: string, opts: ProbeOptions = {}): Promise
   };
 
   // Send initialized notification (no id = notification, no response expected)
-  await rpc(url, "notifications/initialized", {}, null, timeoutMs, authToken).catch(() => {
+  await rpc(url, "notifications/initialized", {}, null, timeoutMs, authToken, vercelBypassToken).catch(() => {
     // Servers that don't accept POSTs for notifications return errors; ignore.
   });
 
   // List tools if capability declared
   let tools: ToolEntry[] = [];
   if (initResult.capabilities?.tools !== undefined) {
-    const listResult = (await rpc(url, "tools/list", {}, 2, timeoutMs, authToken)) as {
+    const listResult = (await rpc(url, "tools/list", {}, 2, timeoutMs, authToken, vercelBypassToken)) as {
       tools?: ToolEntry[];
     };
     tools = listResult?.tools ?? [];

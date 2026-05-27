@@ -1,12 +1,18 @@
 export const MCP_ACCEPT_HEADER = "application/json, text/event-stream";
 
-export function buildMcpHeaders(authToken = process.env.TESTPASS_TOKEN): Record<string, string> {
+export function buildMcpHeaders(
+  authToken = process.env.TESTPASS_TOKEN,
+  vercelBypassToken?: string,
+): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: MCP_ACCEPT_HEADER,
   };
   if (authToken) {
     headers.Authorization = `Bearer ${authToken}`;
+  }
+  if (vercelBypassToken) {
+    headers["x-vercel-protection-bypass"] = vercelBypassToken;
   }
   return headers;
 }

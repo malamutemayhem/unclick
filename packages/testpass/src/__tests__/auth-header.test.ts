@@ -22,11 +22,14 @@ function makeAuthCapturingServer(): Promise<{
   url: string;
   close: () => void;
   authHeaders: string[];
+  bypassHeaders: string[];
 }> {
   const authHeaders: string[] = [];
+  const bypassHeaders: string[] = [];
   return new Promise((resolve) => {
     const server = createServer((req: IncomingMessage, res: ServerResponse) => {
       authHeaders.push((req.headers.authorization as string | undefined) ?? "");
+      bypassHeaders.push((req.headers["x-vercel-protection-bypass"] as string | undefined) ?? "");
       let raw = "";
       req.on("data", (c: Buffer) => (raw += c.toString()));
       req.on("end", () => {
@@ -54,6 +57,7 @@ function makeAuthCapturingServer(): Promise<{
         url:         `http://127.0.0.1:${addr.port}`,
         close:       () => server.close(),
         authHeaders,
+        bypassHeaders,
       });
     });
   });
@@ -112,6 +116,25 @@ describe("dispatcher Authorization header", () => {
     }
   });
 
+  it("deterministic runner forwards Vercel preview bypass header when provided", async () => {
+    delete process.env.TESTPASS_TOKEN;
+    const srv = await makeAuthCapturingServer();
+    try {
+      const pack = loadPackFromYaml(PACK_YAML);
+      const config = { supabaseUrl: "http://unused", serviceRoleKey: "unused" };
+      await runDeterministicChecks(config, "run-1", srv.url, pack, "standard", {
+        authToken: "request-token-abc",
+        vercelBypassToken: "preview-bypass-token",
+      });
+      expect(srv.bypassHeaders.length).toBeGreaterThan(0);
+      for (const h of srv.bypassHeaders) {
+        expect(h).toBe("preview-bypass-token");
+      }
+    } finally {
+      srv.close();
+    }
+  });
+
   it("probe sends Bearer token when TESTPASS_TOKEN is set", async () => {
     process.env.TESTPASS_TOKEN = "probe-token-xyz";
     const srv = await makeAuthCapturingServer();
@@ -134,6 +157,24 @@ describe("dispatcher Authorization header", () => {
       expect(srv.authHeaders.length).toBeGreaterThan(0);
       for (const h of srv.authHeaders) {
         expect(h).toBe("Bearer probe-request-token");
+      }
+    } finally {
+      srv.close();
+    }
+  });
+
+  it("probe forwards Vercel preview bypass header when provided", async () => {
+    delete process.env.TESTPASS_TOKEN;
+    const srv = await makeAuthCapturingServer();
+    try {
+      await probeServer(srv.url, {
+        timeoutMs: 2_000,
+        authToken: "probe-request-token",
+        vercelBypassToken: "preview-bypass-token",
+      });
+      expect(srv.bypassHeaders.length).toBeGreaterThan(0);
+      for (const h of srv.bypassHeaders) {
+        expect(h).toBe("preview-bypass-token");
       }
     } finally {
       srv.close();

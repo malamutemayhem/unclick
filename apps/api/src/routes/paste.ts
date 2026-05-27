@@ -105,6 +105,7 @@ export function createPasteRouter(db: Db) {
         per_page: perPage,
         total,
         total_pages: Math.ceil(total / perPage),
+        has_more: page * perPage < total,
       },
     );
   });

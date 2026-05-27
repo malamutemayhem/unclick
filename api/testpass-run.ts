@@ -308,6 +308,10 @@ function queryString(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function headerString(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") return json(res, 204, {});
 
@@ -319,6 +323,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const token = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "");
   if (!token) return json(res, 401, { error: "Missing Bearer token" });
+  const vercelBypassToken = headerString(req.headers["x-vercel-protection-bypass"]);
 
   const isCron = Boolean(process.env.CRON_SECRET) && token === process.env.CRON_SECRET;
   if (req.method === "GET" && !isCron) return json(res, 405, { error: "Method not allowed" });
@@ -432,7 +437,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let evidenceRef: string | undefined;
     if (target.url) {
       try {
-        const probeResult = await probeServer(target.url, { timeoutMs: 12_000, authToken: token });
+        const probeResult = await probeServer(target.url, {
+          timeoutMs: 12_000,
+          authToken: token,
+          vercelBypassToken,
+        });
         evidenceRef = await createEvidence(config, { kind: "tool_list", payload: probeResult });
       } catch (err) {
         console.error(`testpass-run probe failed for ${runId}:`, (err as Error).message);
@@ -443,7 +452,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (target.url) {
       try {
-        await runDeterministicChecks(config, runId, target.url, pack, profile, { authToken: token });
+        await runDeterministicChecks(config, runId, target.url, pack, profile, {
+          authToken: token,
+          vercelBypassToken,
+        });
       } catch (err) {
         console.error(`testpass-run deterministic failed for ${runId}:`, (err as Error).message);
       }

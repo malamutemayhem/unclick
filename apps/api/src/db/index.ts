@@ -144,10 +144,12 @@ export async function initDb(): Promise<void> {
       ab_variant TEXT,
       ab_test_id TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at TIMESTAMPTZ
     );
     CREATE INDEX IF NOT EXISTS links_page_idx ON links(page_id, position);
     CREATE INDEX IF NOT EXISTS links_org_idx ON links(org_id);
+    ALTER TABLE links ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
 
     CREATE TABLE IF NOT EXISTS social_links (
       id TEXT PRIMARY KEY,
