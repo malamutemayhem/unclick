@@ -197,6 +197,35 @@ interface PackDetail {
   is_system?: boolean;
 }
 
+const CORE_PACK_SLUG = "testpass-core";
+
+export function buildTestPassEditorRunBody(input: {
+  targetUrl: string;
+  profile: "smoke" | "standard" | "deep";
+  loadedPack: Pick<PackDetail, "id"> | null;
+}) {
+  return {
+    action: "run",
+    target_url: input.targetUrl,
+    profile: input.profile,
+    ...(input.loadedPack?.id
+      ? { pack_id: input.loadedPack.id }
+      : { pack_slug: CORE_PACK_SLUG }),
+  };
+}
+
+export function coerceSavedTestPassPackDetail(raw: unknown): PackDetail | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Record<string, unknown>;
+  if (typeof row.id !== "string" || typeof row.slug !== "string") return null;
+  return {
+    id: row.id,
+    slug: row.slug,
+    yaml: row.yaml,
+    is_system: row.is_system === true || row.owner_user_id === null,
+  };
+}
+
 const VERDICT_BADGES: Record<string, string> = {
   check:   "bg-[#61C1C4]/10 text-[#61C1C4] border-[#61C1C4]/30",
   na:      "bg-gray-500/10 text-gray-400 border-gray-500/30",
@@ -323,6 +352,8 @@ export default function AdminTestPass() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error ?? `Save failed with ${res.status}`);
+      const savedPack = coerceSavedTestPassPackDetail(body.pack);
+      if (savedPack) setLoadedPack(savedPack);
       setSavePackMsg(`Saved pack ${body.pack?.slug ?? ""}`);
     } catch (err) {
       setSavePackMsg(err instanceof Error ? err.message : "Save failed");
@@ -380,12 +411,7 @@ export default function AdminTestPass() {
       const res = await fetch("/api/testpass", {
         method:  "POST",
         headers: { ...authHeader, "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          action: "run",
-          target_url: targetUrl,
-          profile,
-          pack_slug: "testpass-core",
-        }),
+        body:    JSON.stringify(buildTestPassEditorRunBody({ targetUrl, profile, loadedPack })),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error ?? `Run failed with ${res.status}`);
@@ -486,7 +512,10 @@ export default function AdminTestPass() {
 
       {/* Section 2 - Run controls */}
       <section className="mb-8 rounded-xl border border-white/[0.06] bg-[#111111] p-5">
-        <h2 className="mb-3 text-sm font-semibold text-white">Run</h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-white">Run</h2>
+          <span className="font-mono text-[11px] text-[#888]">{loadedPack?.slug ?? CORE_PACK_SLUG}</span>
+        </div>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_auto]">
           <input
             type="text"
@@ -506,7 +535,7 @@ export default function AdminTestPass() {
           </select>
           <button
             onClick={() => void runPack()}
-            disabled={running || !targetUrl}
+            disabled={running || !targetUrl || loadingPack}
             className="flex items-center gap-2 rounded-md border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-3 py-2 text-xs font-semibold text-[#E2B93B] transition-colors hover:bg-[#E2B93B]/20 disabled:opacity-50"
           >
             {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
