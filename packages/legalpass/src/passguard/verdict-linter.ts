@@ -30,30 +30,58 @@ export const FORBIDDEN_PHRASES: ReadonlyArray<{ phrase: string; reason: string }
   { phrase: "must", reason: "directive verb - implies an obligation" },
   { phrase: "you need to", reason: "directive phrasing - implies an instruction" },
   { phrase: "you have to", reason: "directive phrasing - implies an instruction" },
+  { phrase: "you are obligated", reason: "directive phrasing - implies a legal obligation" },
+  { phrase: "do this", reason: "directive phrasing - implies an instruction" },
   { phrase: "we recommend", reason: "first-person recommendation - prohibited" },
+  { phrase: "the right thing to do is", reason: "normative recommendation - prohibited" },
   { phrase: "this is illegal", reason: "definitive legal conclusion - prohibited" },
+  { phrase: "this is enforceable", reason: "definitive legal conclusion - prohibited" },
+  { phrase: "this is unenforceable", reason: "definitive legal conclusion - prohibited" },
   { phrase: "you will win", reason: "outcome prediction - prohibited" },
   { phrase: "you will lose", reason: "outcome prediction - prohibited" },
+  { phrase: "robot lawyer", reason: "substitute-for-lawyer claim - prohibited" },
+  { phrase: "ai lawyer", reason: "substitute-for-lawyer claim - prohibited" },
+  { phrase: "replace your lawyer", reason: "substitute-for-lawyer claim - prohibited" },
+  { phrase: "automatic compliance", reason: "unsupported compliance claim - prohibited" },
+  { phrase: "guaranteed compliant", reason: "unsupported compliance claim - prohibited" },
+  { phrase: "we represent you", reason: "legal representation claim - prohibited" },
+  { phrase: "100% compliant", reason: "unsupported compliance claim - prohibited" },
 ];
 
 // Allowed framing language. Surfaced for tooling and documentation only;
 // not a whitelist (the linter is a denylist).
 export const ALLOWED_PHRASES: ReadonlyArray<string> = [
   "appears",
+  "seems",
   "may",
+  "might",
+  "could",
   "consider",
   "in similar contracts",
+  "in comparable agreements",
+  "is unusual",
+  "is common",
+  "is typical",
+  "is standard",
+  "merits attention",
   "warrants review",
+  "you may want to review with a lawyer",
+  "the regulatory landscape",
 ];
 
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function phrasePattern(phrase: string): RegExp {
+  const escaped = phrase.trim().split(/\s+/).map(escapeRegex).join("\\s+");
+  return new RegExp(`\\b${escaped}\\b`, "gi");
+}
+
 export function lintVerdictText(text: string): LintResult {
   const issues: LintIssue[] = [];
   for (const { phrase, reason } of FORBIDDEN_PHRASES) {
-    const pattern = new RegExp(`\\b${escapeRegex(phrase)}\\b`, "gi");
+    const pattern = phrasePattern(phrase);
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(text)) !== null) {
       issues.push({ phrase, index: match.index, reason });

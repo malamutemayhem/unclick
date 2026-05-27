@@ -1,10 +1,11 @@
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 import { loadPackFromFile, loadPackFromYaml, packToJsonb, packFromJsonb, packToYaml } from "../pack-loader.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const CORE_PACK_PATH = path.resolve(__dirname, "../../packs/testpass-core.yaml");
-const FISHBOWL_PACK_PATH = path.resolve(__dirname, "../../packs/testpass-fishbowl-v0.yaml");
+const TESTPASS_ROOT = process.cwd().endsWith(`${path.sep}testpass`)
+  ? process.cwd()
+  : path.resolve(process.cwd(), "packages/testpass");
+const CORE_PACK_PATH = path.resolve(TESTPASS_ROOT, "packs/testpass-core.yaml");
+const FISHBOWL_PACK_PATH = path.resolve(TESTPASS_ROOT, "packs/testpass-fishbowl-v0.yaml");
 
 describe("loadPackFromFile", () => {
   it("loads and validates testpass-core.yaml without errors", () => {
@@ -50,6 +51,45 @@ items:
     const pack = loadPackFromYaml(yaml);
     expect(pack.id).toBe("test-pack");
     expect(pack.items).toHaveLength(1);
+  });
+
+  it("preserves the research-brief checklist fields", () => {
+    const yaml = `
+id: research-style
+name: Research Style
+version: 1.0.0
+items:
+  - id: MCP-CONF-014
+    title: Tool annotations present on every tool
+    category: conformance
+    spec_ref: "MCP 2025-06-18 tools.annotations"
+    severity: high
+    verdict_values: [check, na, fail, other]
+    evidence_required:
+      - tool_list_response
+      - per_tool_annotation_snapshot
+    check_type: agent
+    instruction: List all tools and confirm annotations are present.
+    verify:
+      type: agent
+      instruction: Missing any annotation is a fail.
+      timeout_ms: 15000
+      cost_budget_usd: 0.02
+    on_fail_template: Add the missing annotation to the tool definition.
+    estimated_seconds: 15
+    retry_on: [transport_error]
+    waiver:
+      allowed: false
+`;
+    const pack = loadPackFromYaml(yaml);
+    const item = pack.items[0];
+
+    expect(item.spec_ref).toContain("tools.annotations");
+    expect(item.evidence_required).toEqual(["tool_list_response", "per_tool_annotation_snapshot"]);
+    expect(item.verify).toMatchObject({ type: "agent", timeout_ms: 15000, cost_budget_usd: 0.02 });
+    expect(item.on_fail_template).toContain("missing annotation");
+    expect(item.waiver).toMatchObject({ allowed: false });
+    expect(packFromJsonb(packToJsonb(pack)).items[0].retry_on).toEqual(["transport_error"]);
   });
 
   it("throws on invalid schema", () => {

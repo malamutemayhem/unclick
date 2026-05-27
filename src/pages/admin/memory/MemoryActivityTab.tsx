@@ -36,7 +36,9 @@ interface ActivityData {
   top_facts: RecallFact[];
   recall_diagnostics?: {
     inspected_top_facts: number;
+    inspected_top_of_mind_candidates?: number;
     background_heavy_count: number;
+    background_heavy_candidate_count?: number;
   };
 }
 
