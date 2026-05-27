@@ -50,6 +50,11 @@ type FetchTextResult = {
   error?: string;
 };
 
+type RobotsRule = {
+  agents: string[];
+  rules: Array<{ directive: "allow" | "disallow"; path: string }>;
+};
+
 const RUNS = new Map<string, SeoPassMcpRun>();
 const DEFAULT_CHECKS = [
   "lighthouse-performance",
@@ -267,6 +272,15 @@ function buildCheck(
   };
 
   if (checkId === "crawlability") {
+    const robotsRules = parseRobots(context.robots.body);
+    const targetPath = robotsPathForUrl(context.targetUrl);
+    const googleAllowed = isRobotAllowed(robotsRules, "Googlebot", targetPath);
+    const bingAllowed = isRobotAllowed(robotsRules, "Bingbot", targetPath);
+    const aiBots = ["GPTBot", "ClaudeBot", "PerplexityBot"].map((bot) => ({
+      bot,
+      allowed: isRobotAllowed(robotsRules, bot, targetPath),
+    }));
+
     if (context.page.status < 200 || context.page.status >= 400) {
       add("crawlability-http-unreachable", "critical", "Target URL was not fetchable", `Public fetch returned HTTP ${context.page.status}.`, "Make the URL return stable public HTML.");
     }
@@ -279,8 +293,18 @@ function buildCheck(
     ) {
       add("crawlability-non-html-response", "high", "Target URL did not return HTML", `The target returned content-type '${contentType}'.`, "Point SEOPass at the canonical public HTML URL for the page.");
     }
-    if (robotsBlocksAll(context.robots.body)) {
-      add("crawlability-robots-blocks-all", "critical", "robots.txt blocks all crawlers", "robots.txt contains a wildcard Disallow: / rule.", "Review robots.txt before expecting search crawlers to index this URL.");
+    if (!googleAllowed || !bingAllowed) {
+      add(
+        "crawlability-search-bot-blocked",
+        "critical",
+        "A major search crawler appears blocked",
+        `Googlebot allowed: ${googleAllowed ? "yes" : "no"}; Bingbot allowed: ${bingAllowed ? "yes" : "no"}.`,
+        "Review robots.txt before expecting search crawlers to index this URL.",
+      );
+    }
+    if (aiBots.some((entry) => !entry.allowed)) {
+      const blocked = aiBots.filter((entry) => !entry.allowed).map((entry) => entry.bot).join(", ");
+      add("crawlability-ai-bot-limited", "low", "Some AI crawlers appear blocked", `${blocked} appears blocked for this target path.`, "Confirm AI crawler policy matches the site's distribution strategy.");
     }
   }
 
@@ -568,6 +592,91 @@ function formatRobotsDirectives(
   return directives.map((directive) => `${directive.source}:${directive.userAgent ?? "all"}=${directive.content}`).join("; ");
 }
 
+function parseRobots(body: string): RobotsRule[] {
+  const groups: RobotsRule[] = [];
+  let current: RobotsRule | null = null;
+  for (const rawLine of body.split(/\r?\n/)) {
+    const line = rawLine.replace(/#.*/, "").trim();
+    if (!line) {
+      current = null;
+      continue;
+    }
+    const separatorIndex = line.indexOf(":");
+    if (separatorIndex < 0) continue;
+    const key = line.slice(0, separatorIndex).trim().toLowerCase();
+    const value = line.slice(separatorIndex + 1).trim();
+    if (key === "user-agent") {
+      if (!current || current.rules.length > 0) {
+        current = { agents: [], rules: [] };
+        groups.push(current);
+      }
+      current.agents.push(normalizeRobotAgentToken(value));
+    } else if ((key === "allow" || key === "disallow") && current) {
+      current.rules.push({ directive: key, path: value });
+    }
+  }
+  return groups;
+}
+
+function isRobotAllowed(groups: RobotsRule[], userAgent: string, path: string): boolean {
+  if (groups.length === 0) return true;
+  const rules = matchingRobotsRules(groups, userAgent);
+  if (rules.length === 0) return true;
+  const matchedRules = rules
+    .filter((rule) => robotsPathMatches(rule.path, path))
+    .sort((a, b) => b.path.length - a.path.length);
+  const strongest = matchedRules[0];
+  if (!strongest) return true;
+  if (strongest.directive === "allow") return true;
+  const sameLengthAllow = matchedRules.find((rule) => rule.directive === "allow" && rule.path.length === strongest.path.length);
+  return Boolean(sameLengthAllow);
+}
+
+function matchingRobotsRules(
+  groups: RobotsRule[],
+  userAgent: string,
+): Array<{ directive: "allow" | "disallow"; path: string }> {
+  const normalizedAgent = normalizeRobotAgentToken(userAgent);
+  const matches = groups.flatMap((group) => {
+    const matchingAgents = group.agents.filter((agent) => robotAgentMatches(agent, normalizedAgent));
+    if (matchingAgents.length === 0) return [];
+    const specificity = Math.max(...matchingAgents.map((agent) => (agent === "*" ? 0 : normalizeRobotAgentToken(agent).length)));
+    return [{ group, specificity }];
+  });
+  if (matches.length === 0) return [];
+  const strongestSpecificity = Math.max(...matches.map((match) => match.specificity));
+  return matches
+    .filter((match) => match.specificity === strongestSpecificity)
+    .flatMap((match) => match.group.rules);
+}
+
+function robotAgentMatches(agent: string, normalizedAgent: string): boolean {
+  const normalizedRuleAgent = normalizeRobotAgentToken(agent);
+  return normalizedRuleAgent === "*" || normalizedAgent === normalizedRuleAgent;
+}
+
+function normalizeRobotAgentToken(agent: string): string {
+  const trimmed = agent.toLowerCase().trim();
+  if (trimmed === "*") return "*";
+  return trimmed.replace(/\*+$/g, "").split("/")[0] ?? "";
+}
+
+function robotsPathMatches(rulePath: string, path: string): boolean {
+  if (!rulePath) return false;
+  const endAnchored = rulePath.endsWith("$");
+  const rawPattern = endAnchored ? rulePath.slice(0, -1) : rulePath;
+  const escaped = rawPattern
+    .split("*")
+    .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+    .join(".*");
+  return new RegExp(`^${escaped}${endAnchored ? "$" : ""}`).test(path);
+}
+
+function robotsPathForUrl(value: string): string {
+  const url = new URL(value);
+  return `${url.pathname || "/"}${url.search}`;
+}
+
 function selectChecks(input: unknown): { checks: string[]; ignored: string[] } {
   const requested = Array.isArray(input) ? input.filter((check): check is string => typeof check === "string") : [];
   if (requested.length === 0) return { checks: [...DEFAULT_CHECKS], ignored: [] };
@@ -585,10 +694,6 @@ function validatePack(pack: Record<string, unknown>): { error: string; details?:
     return { error: "pack contains unsupported SEOPass check id(s)", details: invalidChecks };
   }
   return null;
-}
-
-function robotsBlocksAll(body: string): boolean {
-  return /user-agent:\s*\*[\s\S]*?disallow:\s*\/(?:\s|$)/i.test(body);
 }
 
 function highestSeverity(

@@ -292,4 +292,42 @@ describe("runSeoPass", () => {
     const crawlability = report.checks.find((check) => check.check_id === "crawlability");
     expect(crawlability?.findings.some((finding) => finding.id === "crawlability-search-bot-blocked")).toBe(true);
   });
+
+  it("applies robots rules to path and query strings", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com/search?draft=1",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["crawlability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/search?draft=1": { body: healthyHtml, headers: { "content-type": "text/html" } },
+        "https://example.com/robots.txt": {
+          body: "User-agent: Googlebot\nDisallow: /*?draft=\nUser-agent: Bingbot\nAllow: /\n",
+        },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/search</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    const crawlability = report.checks.find((check) => check.check_id === "crawlability");
+    expect(crawlability?.findings.some((finding) => finding.id === "crawlability-search-bot-blocked")).toBe(true);
+  });
+
+  it("normalizes decorated robots user-agent tokens", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com/private",
+      generatedAt: "2026-05-27T08:00:00.000Z",
+      checks: ["crawlability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/private": { body: healthyHtml, headers: { "content-type": "text/html" } },
+        "https://example.com/robots.txt": {
+          body: "User-agent: googlebot*\nDisallow: /private\nUser-agent: *\nAllow: /\n",
+        },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/private</loc></url></urlset>" },
+        "https://example.com/llms.txt": { body: "# Example" },
+      }),
+    });
+
+    const crawlability = report.checks.find((check) => check.check_id === "crawlability");
+    expect(crawlability?.findings.some((finding) => finding.id === "crawlability-search-bot-blocked")).toBe(true);
+  });
 });

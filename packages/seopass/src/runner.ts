@@ -274,7 +274,7 @@ function crawlabilityCheck(context: {
 }): SeoPassCheckResult {
   const findings: SeoPassFinding[] = [];
   const robotsRules = parseRobots(context.robots.body);
-  const targetPath = new URL(context.targetUrl).pathname || "/";
+  const targetPath = robotsPathForUrl(context.targetUrl);
   const googleAllowed = isRobotAllowed(robotsRules, "Googlebot", targetPath);
   const bingAllowed = isRobotAllowed(robotsRules, "Bingbot", targetPath);
   const aiBots = ["GPTBot", "ClaudeBot", "PerplexityBot"].map((bot) => ({
@@ -1326,7 +1326,7 @@ function parseRobots(body: string): RobotsRule[] {
         current = { agents: [], rules: [] };
         groups.push(current);
       }
-      current.agents.push(value.toLowerCase());
+      current.agents.push(normalizeRobotAgentToken(value));
     } else if ((key === "allow" || key === "disallow") && current) {
       current.rules.push({ directive: key, path: value });
     }
@@ -1426,13 +1426,13 @@ function matchingRobotsRules(
   groups: RobotsRule[],
   userAgent: string,
 ): Array<{ directive: "allow" | "disallow"; path: string }> {
-  const normalizedAgent = userAgent.toLowerCase();
+  const normalizedAgent = normalizeRobotAgentToken(userAgent);
   const matches = groups.flatMap((group) => {
     const matchingAgents = group.agents.filter((agent) =>
       robotAgentMatches(agent, normalizedAgent),
     );
     if (matchingAgents.length === 0) return [];
-    const specificity = Math.max(...matchingAgents.map((agent) => (agent === "*" ? 0 : agent.length)));
+    const specificity = Math.max(...matchingAgents.map((agent) => (agent === "*" ? 0 : normalizeRobotAgentToken(agent).length)));
     return [{ group, specificity }];
   });
   if (matches.length === 0) return [];
@@ -1443,7 +1443,19 @@ function matchingRobotsRules(
 }
 
 function robotAgentMatches(agent: string, normalizedAgent: string): boolean {
-  return agent === "*" || normalizedAgent === agent || normalizedAgent.startsWith(agent);
+  const normalizedRuleAgent = normalizeRobotAgentToken(agent);
+  return normalizedRuleAgent === "*" || normalizedAgent === normalizedRuleAgent;
+}
+
+function normalizeRobotAgentToken(agent: string): string {
+  const trimmed = agent.toLowerCase().trim();
+  if (trimmed === "*") return "*";
+  return trimmed.replace(/\*+$/g, "").split("/")[0] ?? "";
+}
+
+function robotsPathForUrl(value: string): string {
+  const url = new URL(value);
+  return `${url.pathname || "/"}${url.search}`;
 }
 
 function robotsPathMatches(rulePath: string, path: string): boolean {

@@ -165,6 +165,23 @@ describe("seopass-tool", () => {
     expect(unrelatedBotRun.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "indexability-noindex"))).toBe(false);
   });
 
+  it("applies robots rules to path/query and decorated user-agent tokens in MCP runs", async () => {
+    installFetch({
+      "https://unclick.world/search?draft=1": { status: 200, body: healthyHtml, headers: { "content-type": "text/html" } },
+      "https://unclick.world/robots.txt": "User-agent: googlebot*\nDisallow: /*?draft=\nUser-agent: Bingbot\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/search</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world/search?draft=1" })) as {
+      verdict?: string;
+      report?: { checks?: Array<{ findings?: Array<{ id?: string }> }> };
+    };
+
+    expect(run.verdict).toBe("blocked");
+    expect(run.report?.checks?.some((check) => check.findings?.some((finding) => finding.id === "crawlability-search-bot-blocked"))).toBe(true);
+  });
+
   it("recognizes Microdata as structured-data evidence in the MCP run", async () => {
     installFetch({
       "https://unclick.world/": `<!doctype html><html><head><title>UnClick</title></head><body>
