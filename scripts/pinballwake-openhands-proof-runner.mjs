@@ -490,7 +490,7 @@ async function cleanPreappliedOwnedPatch({
       return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyEntries.map((entry) => entry.path) };
     }
 
-    const restore = await runProcess("git", ["restore", "--worktree", "--", ...blockingDirtyEntries.map((entry) => entry.path)], {
+    const restore = await runProcess("git", ["restore", "--staged", "--worktree", "--", ...blockingDirtyEntries.map((entry) => entry.path)], {
       cwd,
       env,
     });

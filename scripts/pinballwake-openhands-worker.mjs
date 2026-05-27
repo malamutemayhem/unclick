@@ -174,6 +174,7 @@ export async function runOpenHandsWorker({
         reason: coderoomResult?.reason ?? "unknown",
         file: coderoomResult?.file ?? null,
         changed_files: changedFiles,
+        dirty_files: coderoomResult?.dirty_files ?? [],
       },
     });
   }

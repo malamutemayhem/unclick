@@ -378,7 +378,7 @@ describe("draft PR coderoom binding", () => {
       calls.map(([command, args]) => `${command} ${args.slice(0, 3).join(" ")}`),
       [
         "git status --porcelain",
-        "git restore --worktree --",
+        "git restore --staged --worktree",
         "git status --porcelain",
         "git checkout -b codex/openhands-proof-test",
         "git apply --whitespace=nowarn -",
@@ -607,7 +607,7 @@ describe("safe CodeRoom submitter", () => {
             ok: true,
             stdout:
               statusCalls === 1
-                ? ` M ${FIXTURE}\n M .pinballwake/coding-room-ledger.json\n`
+                ? `M  ${FIXTURE}\n M .pinballwake/coding-room-ledger.json\n`
                 : " M .pinballwake/coding-room-ledger.json\n",
             stderr: "",
             output: "",
@@ -638,7 +638,7 @@ describe("safe CodeRoom submitter", () => {
       calls.map(([command, args]) => `${command} ${args.slice(0, 4).join(" ")}`),
       [
         "git status --porcelain",
-        "git restore --worktree -- docs/openhands-proof-fixture.md",
+        "git restore --staged --worktree --",
         "git status --porcelain",
         "gh pr list --head codex/openhands-submit-todo-preapplied",
       ],
