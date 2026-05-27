@@ -13,9 +13,14 @@ function escapeHtml(value: unknown): string {
 
 function escapeMarkdownText(value: unknown): string {
   return String(value ?? "")
+    .replace(/\r?\n/g, " ")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+function targetSummary(result: SlopPassResult): string {
+  return [result.target.kind, result.target.label, result.target.ref].filter(Boolean).join(" / ");
 }
 
 function severityLines(result: SlopPassResult): string[] {
@@ -74,6 +79,8 @@ export function generateBuildFixPrompt(result: SlopPassResult): string {
 export function generateMarkdownReport(result: SlopPassResult): string {
   const lines: string[] = [
     `# SlopPass Report - ${escapeMarkdownText(result.target.label)}`,
+    "",
+    `Target: ${escapeMarkdownText(targetSummary(result))}`,
     "",
     `> ${escapeMarkdownText(result.disclaimer.compact)}`,
     "",
@@ -148,6 +155,7 @@ export function generateHtmlReport(result: SlopPassResult): string {
         <p>${escapeHtml(finding.why_it_matters)}</p>
         <p><strong>Evidence:</strong> ${escapeHtml(finding.evidence)}</p>
         <p><strong>Suggested fix:</strong> ${escapeHtml(finding.suggested_fix)}</p>
+        ${finding.confidence_note ? `<p><strong>Confidence:</strong> ${escapeHtml(finding.confidence_note)}</p>` : ""}
       </li>`
     )
     .join("");
@@ -167,7 +175,8 @@ export function generateHtmlReport(result: SlopPassResult): string {
     <strong>${escapeHtml(result.disclaimer.headline)}</strong>
     <p>${escapeHtml(result.disclaimer.body)}</p>
   </div>
-  <h1>SlopPass Report</h1>
+  <h1>SlopPass Report - ${escapeHtml(result.target.label)}</h1>
+  <p><strong>Target:</strong> ${escapeHtml(targetSummary(result))}</p>
   <p><strong>Verdict:</strong> ${escapeHtml(result.verdict)}</p>
   <p><strong>Provider:</strong> ${escapeHtml(result.scope.provider)}</p>
   <p>${escapeHtml(result.summary.posture)}</p>

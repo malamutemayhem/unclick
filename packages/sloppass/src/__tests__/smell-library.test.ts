@@ -72,19 +72,40 @@ describe("SlopPass smell library", () => {
   });
 
   it("redacts unquoted env-style and authorization secrets", () => {
+    const fakeOpenAiToken = ["sk", "live", "do", "not", "print", "123456"].join("-");
+    const fakeBearerToken = ["token", "that", "should", "not", "print", "98765"].join("-");
     const findings = detectSlopSmells([
       {
         path: ".env.example",
         content: [
-          "OPENAI_API_KEY=sk-live-do-not-print-123456",
-          "authorization: Bearer token-that-should-not-print-98765",
+          `OPENAI_API_KEY=${fakeOpenAiToken}`,
+          `authorization: Bearer ${fakeBearerToken}`,
         ].join("\n"),
       },
     ]);
 
     const text = JSON.stringify(findings);
     expect(findings.filter((finding) => finding.title === "Secret-looking literal was detected")).toHaveLength(2);
-    expect(text).not.toContain("sk-live-do-not-print");
-    expect(text).not.toContain("token-that-should-not-print");
+    expect(text).not.toContain(fakeOpenAiToken);
+    expect(text).not.toContain(fakeBearerToken);
+  });
+
+  it("redacts standalone common token shapes", () => {
+    const fakeOpenAiToken = ["sk", "live", "standalone", "token", "123456"].join("-");
+    const fakeGitHubToken = `ghp_${"abcdefghijklmnop1234567890"}`;
+    const findings = detectSlopSmells([
+      {
+        path: "src/client.ts",
+        content: [
+          `const openAiToken = '${fakeOpenAiToken}';`,
+          `const githubToken = '${fakeGitHubToken}';`,
+        ].join("\n"),
+      },
+    ]);
+
+    const text = JSON.stringify(findings);
+    expect(findings.filter((finding) => finding.title === "Secret-looking literal was detected")).toHaveLength(2);
+    expect(text).not.toContain(fakeOpenAiToken);
+    expect(text).not.toContain(fakeGitHubToken);
   });
 });

@@ -19,6 +19,7 @@ describe("SlopPass reporter", () => {
     const html = generateHtmlReport(result);
 
     expect(markdown).toContain("Scoped review only");
+    expect(markdown).toContain("Target: files / report");
     expect(markdown).toContain("Build-fix prompt");
     expect(markdown).toContain("Do not change orthogonal code");
     expect(markdown).toContain("Verdict: warn");
@@ -29,6 +30,8 @@ describe("SlopPass reporter", () => {
     expect(markdown).toContain("## Severity counts");
     expect(markdown).toContain("- medium: 1");
     expect(html).toContain("SlopPass is a scoped quality review");
+    expect(html).toContain("<h1>SlopPass Report - report</h1>");
+    expect(html).toContain("<strong>Target:</strong> files / report");
     expect(html).toContain("Build-fix prompt");
     expect(html).toContain("<strong>Verdict:</strong> warn");
     expect(html).toContain("<strong>Provider:</strong> http");
@@ -40,20 +43,32 @@ describe("SlopPass reporter", () => {
 
   it("escapes target and file names in rendered reports", async () => {
     const result = await runSlopPass({
-      target: { kind: "files", label: "<script>alert(1)</script>", files: ["src/<report>.ts"] },
+      target: { kind: "files", label: "<script>\nalert(1)</script>", files: ["src/<report>.ts"] },
       files: [{ path: "src/<report>.ts", content: "export const placeholder = true;" }],
     });
 
     const markdown = generateMarkdownReport(result);
     const html = generateHtmlReport(result);
 
-    expect(markdown).toContain("SlopPass Report - &lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(markdown).toContain("SlopPass Report - &lt;script&gt; alert(1)&lt;/script&gt;");
     expect(markdown).toContain("- src/&lt;report&gt;.ts");
-    expect(markdown).not.toContain("# SlopPass Report - <script>alert(1)</script>");
-    expect(html).toContain("SlopPass Report - &lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(markdown).not.toContain("# SlopPass Report - <script>");
+    expect(html).toContain("SlopPass Report - &lt;script&gt;\nalert(1)&lt;/script&gt;");
     expect(html).toContain("<li>src/&lt;report&gt;.ts</li>");
-    expect(html).not.toContain("<script>alert(1)</script>");
+    expect(html).not.toContain("<script>");
     expect(html).not.toContain("<li>src/<report>.ts</li>");
+  });
+
+  it("renders confidence notes in both markdown and HTML findings", async () => {
+    const result = await runSlopPass({
+      target: { kind: "files", label: "provider", files: ["src/provider.ts"] },
+      files: [{ path: "src/provider.ts", content: "export const ok = true;" }],
+      provider: "openai",
+      checks: ["maintenance_change_risk"],
+    });
+
+    expect(generateMarkdownReport(result)).toContain("Confidence: Offline provider mode. No model call was made.");
+    expect(generateHtmlReport(result)).toContain("<strong>Confidence:</strong> Offline provider mode. No model call was made.");
   });
 
   it("emits an agent-ready build-fix prompt grouped by severity", async () => {
