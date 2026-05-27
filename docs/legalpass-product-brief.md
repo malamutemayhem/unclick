@@ -169,6 +169,30 @@ components: verdict-linter, disclaimer-banner, escalation-router,
 action-gate, audit-log, insurance-rider-map, ToS-shared,
 jurisdiction-resolver, consent-ledger.
 
+## 10.1 Legal SEO and advertising copy guardrails
+
+If LegalPass is used as the legal-market SEO skin for law-firm pages,
+practice-area pages, testimonials, badges, directory copy, or AI-search copy,
+the Marketing Claims hat must treat lawyer advertising rules as a first-class
+risk area, not a later polish pass.
+
+For the US default source pack, the minimum issue-spotting checks are:
+
+- no false or misleading communication about a lawyer or legal service
+- no material fact or law misstatement, and no omission that makes the overall claim misleading
+- no result, comparison, fee, award, or "best" claim unless the claim is factually supportable and qualified where needed
+- no specialist or certified-specialist claim unless the certifying body is valid and named
+- no paid endorsement, testimonial, referral, affiliate, or lead-gen relationship without a clear disclosure where one is needed
+- any legal-service communication must leave the responsible lawyer or firm identifiable where the governing rule requires it
+
+The output remains issue-spotting only. LegalPass can flag "this claim may be risky under the selected source pack" and cite the source. It must not decide whether a page is lawful, compliant, or safe to publish.
+
+Reference sources:
+
+- https://www.americanbar.org/groups/professional_responsibility/publications/model_rules_of_professional_conduct/rule_7_1_communication_concerning_a_lawyer_s_services/
+- https://www.americanbar.org/groups/professional_responsibility/publications/model_rules_of_professional_conduct/rule_7_2_advertising/
+- https://www.ftc.gov/business-guidance/resources/ftcs-endorsement-guides-what-people-are-asking
+
 ## 11. Out of scope for this brief
 
 Pricing experiments, marketplace economics, Phase 2 jurisdictions,
