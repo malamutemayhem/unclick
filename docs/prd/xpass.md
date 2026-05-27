@@ -1,7 +1,7 @@
 # PRD: XPass
 
 **Status**: Naming contract locked. Implementation slices land through the individual Pass products.
-**Last updated**: 2026-05-01.
+**Last updated**: 2026-05-28.
 **Owner**: Product and Pass-family maintainers.
 
 ## Why this exists
@@ -70,23 +70,29 @@ XPass does not own the finding logic for each Pass. It owns orchestration and pr
 
 ## Current family map
 
-Working or exposed:
+Package-level exposed or dogfoodable:
 
 - TestPass
+- CommonSensePass
 - UXPass
 - SEOPass
 - CopyPass
 - LegalPass
-
-In build or scoped:
-
+- SecurityPass
 - SlopPass
 - FlowPass
-- SecurityPass
 - GEOPass
+
+Scoped, internal, or receipt-only:
+
 - RotatePass
 - EnterprisePass
 - WakePass
+
+Public dogfood still stays honest: a package or protocol can exist without
+being marked as a live public proof. XPass receipts must say when a pass is
+available only as package-level proof, a plan-only pack, a scoped internal gate,
+or a missing recurring receipt.
 
 Archived or parked:
 

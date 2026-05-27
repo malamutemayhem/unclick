@@ -58,6 +58,47 @@ describe("PinballWake XPass Gate Room", () => {
     assert.deepEqual(selected, ["copypass"]);
   });
 
+  it("routes Pass package changes to their own pass plus code quality", () => {
+    assert.deepEqual(
+      checks({
+        title: "Improve FlowPass journey verifier",
+        changed_files: ["packages/flowpass/src/runner.ts"],
+      }),
+      ["sloppass", "flowpass"],
+    );
+
+    assert.deepEqual(
+      checks({
+        title: "Tighten GEOPass AI answer-engine scanner",
+        changed_files: ["packages/geopass/src/scanner.ts"],
+      }),
+      ["sloppass", "geopass"],
+    );
+
+    assert.deepEqual(
+      checks({
+        title: "CommonSensePass false done guard",
+        changed_files: ["packages/commonsensepass/src/rules.ts"],
+      }),
+      ["commonsensepass", "sloppass"],
+    );
+  });
+
+  it("routes reliability and credential hygiene to WakePass and RotatePass", () => {
+    const selected = checks({
+      title: "WakePass stale ACK repair and RotatePass metadata",
+      changed_files: [
+        "scripts/pinballwake-ack-ledger-room.mjs",
+        "docs/rotatepass-connector-metadata.md",
+      ],
+    });
+
+    assert.ok(selected.includes("wakepass"));
+    assert.ok(selected.includes("rotatepass"));
+    assert.ok(selected.includes("copypass"));
+    assert.ok(selected.includes("sloppass"));
+  });
+
   it("returns advisory xpass_needed when selected checks have no receipts yet", () => {
     const result = evaluateXPassGate({
       mode: "advisory",
@@ -175,6 +216,7 @@ describe("PinballWake XPass Gate Room", () => {
       changed_files: ["scripts/pinballwake-xpass-gate-room.mjs"],
       pass_results: [
         { check: "QualityPass", status: "passed", run_id: "quality-1", target_sha: "abc123" },
+        { check: "WakePass", status: "passed", run_id: "wake-1", target_sha: "abc123" },
       ],
     });
 
