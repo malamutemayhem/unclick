@@ -180,6 +180,49 @@ describe("seopass-tool", () => {
     expect(indexability?.findings?.some((finding) => finding.id === "indexability-sitemap-missing")).toBe(false);
   });
 
+  it("rejects relative robots.txt Sitemap directives in MCP runs", async () => {
+    installFetch({
+      "https://unclick.world/page": { status: 200, body: healthyHtml, headers: { "content-type": "text/html" } },
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\nSitemap: /sitemap.xml\n",
+      "https://unclick.world/sitemap.xml": { status: 404, body: "not found" },
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world/page" })) as {
+      report?: { checks?: Array<{ check_id?: string; findings?: Array<{ id?: string }> }> };
+    };
+    const findings = run.report?.checks
+      ?.find((check) => check.check_id === "indexability")
+      ?.findings?.map((finding) => finding.id) ?? [];
+    expect(findings).toContain("indexability-sitemap-missing");
+    expect(findings).toContain("indexability-robots-sitemap-invalid");
+  });
+
+  it("ignores robots.txt rules after Google's 500 KiB parsing limit in MCP runs", async () => {
+    const robotsBody = [
+      "User-agent: *",
+      "Allow: /",
+      "a".repeat(512 * 1024),
+      "User-agent: Googlebot",
+      "Disallow: /private",
+    ].join("\n");
+    installFetch({
+      "https://unclick.world/private": { status: 200, body: healthyHtml, headers: { "content-type": "text/html" } },
+      "https://unclick.world/robots.txt": robotsBody,
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/private</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world/private" })) as {
+      report?: { checks?: Array<{ check_id?: string; findings?: Array<{ id?: string }> }> };
+    };
+    const findings = run.report?.checks
+      ?.find((check) => check.check_id === "crawlability")
+      ?.findings?.map((finding) => finding.id) ?? [];
+    expect(findings).toContain("crawlability-robots-too-large");
+    expect(findings).not.toContain("crawlability-search-bot-blocked");
+  });
+
   it("applies robots rules to path/query and decorated user-agent tokens in MCP runs", async () => {
     installFetch({
       "https://unclick.world/search?draft=1": { status: 200, body: healthyHtml, headers: { "content-type": "text/html" } },
@@ -266,6 +309,31 @@ describe("seopass-tool", () => {
       report?: { checks?: Array<{ check_id?: string; findings?: Array<{ id?: string }> }> };
     };
     expect(conflicting.report?.checks?.find((check) => check.check_id === "canonical-signals")?.findings?.map((finding) => finding.id)).toContain("canonical-conflicting-signals");
+  });
+
+  it("flags canonical link attributes that Google ignores in MCP runs", async () => {
+    installFetch({
+      "https://unclick.world/": {
+        status: 200,
+        headers: { "content-type": "text/html" },
+        body: healthyHtml.replace(
+          '<link rel="canonical" href="https://unclick.world/">',
+          '<link rel="canonical" href="https://unclick.world/" hreflang="en" media="screen">',
+        ),
+      },
+      "https://unclick.world/robots.txt": "User-agent: *\nAllow: /\n",
+      "https://unclick.world/sitemap.xml": "<urlset><url><loc>https://unclick.world/</loc></url></urlset>",
+      "https://unclick.world/llms.txt": "# UnClick",
+    });
+
+    const run = (await seopassRun({ url: "https://unclick.world" })) as {
+      report?: { checks?: Array<{ check_id?: string; findings?: Array<{ id?: string }> }> };
+    };
+    const findings = run.report?.checks
+      ?.find((check) => check.check_id === "canonical-signals")
+      ?.findings?.map((finding) => finding.id) ?? [];
+    expect(findings).toContain("canonical-ignored-attributes");
+    expect(findings).toContain("canonical-no-usable-signal");
   });
 
   it("recognizes Microdata as structured-data evidence in the MCP run", async () => {

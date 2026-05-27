@@ -45,7 +45,7 @@ type HtmlSignals = {
   robotsMeta: string | null;
   robotsDirectives: RobotsDirective[];
   canonical: string | null;
-  canonicalLinks: Array<{ href: string | null; inHead: boolean }>;
+  canonicalLinks: CanonicalLink[];
   ogTitle: string | null;
   ogDescription: string | null;
   headings: Array<{ level: number; text: string }>;
@@ -79,6 +79,12 @@ type RobotsDirective = {
   content: string;
 };
 
+type CanonicalLink = {
+  href: string | null;
+  inHead: boolean;
+  ignoredAttributes: string[];
+};
+
 const DEFAULT_CHECKS: SeoPassCheckId[] = [
   "lighthouse-performance",
   "crawlability",
@@ -94,6 +100,8 @@ const DEFAULT_CHECKS: SeoPassCheckId[] = [
 const USER_AGENT = "UnClick-SEOPass/0.1 (+https://unclick.world)";
 const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BODY_CHARS = 1_500_000;
+const ROBOTS_TXT_MAX_BYTES = 500 * 1024;
+const CANONICAL_IGNORED_ATTRIBUTES = ["hreflang", "lang", "media", "type"] as const;
 const AI_CRAWLER_POLICY_BOTS = [
   "OAI-SearchBot",
   "GPTBot",
@@ -285,7 +293,9 @@ function crawlabilityCheck(context: {
   robots: SeoPassFetchResult;
 }): SeoPassCheckResult {
   const findings: SeoPassFinding[] = [];
-  const robotsRules = parseRobots(context.robots.body);
+  const robotsBody = robotsBodyForParsing(context.robots.body);
+  const robotsBytes = byteLength(context.robots.body);
+  const robotsRules = parseRobots(robotsBody);
   const targetPath = robotsPathForUrl(context.targetUrl);
   const googleAllowed = isRobotAllowed(robotsRules, "Googlebot", targetPath);
   const bingAllowed = isRobotAllowed(robotsRules, "Bingbot", targetPath);
@@ -328,7 +338,7 @@ function crawlabilityCheck(context: {
     );
   }
 
-  if (context.robots.status === 0 || context.robots.status >= 500) {
+  if (context.robots.status === 0 || context.robots.status === 429 || context.robots.status >= 500) {
     findings.push(
       finding({
         id: "crawlability-robots-unreachable",
@@ -338,6 +348,20 @@ function crawlabilityCheck(context: {
         summary: "SEOPass could not fetch robots.txt, so crawler access could not be proven.",
         evidence: [httpEvidence(context.robots, "robots.txt")],
         recommendation: "Publish a readable robots.txt with explicit Googlebot and Bingbot policy.",
+      }),
+    );
+  }
+
+  if (robotsBytes > ROBOTS_TXT_MAX_BYTES) {
+    findings.push(
+      finding({
+        id: "crawlability-robots-too-large",
+        check_id: "crawlability",
+        severity: "medium",
+        title: "robots.txt is over Google's supported size",
+        summary: `robots.txt is ${robotsBytes} bytes; Google ignores content after ${ROBOTS_TXT_MAX_BYTES} bytes.`,
+        evidence: [robotsEvidence(context.robots, "robots.txt size")],
+        recommendation: "Move long rule lists into shorter grouped paths so the important crawler policy fits before 500 KiB.",
       }),
     );
   }
@@ -397,7 +421,9 @@ function indexabilityCheck(context: {
   );
   const noindex = hasNoindexDirective(searchDirectives);
   const sitemapUrls = extractSitemapUrls(context.sitemap.body);
-  const robotsSitemapUrls = extractRobotsSitemapUrls(context.robots.body);
+  const robotsSitemapUrls = extractRobotsSitemapUrls(robotsBodyForParsing(context.robots.body));
+  const validRobotsSitemapUrls = robotsSitemapUrls.filter(isAbsoluteHttpUrl);
+  const invalidRobotsSitemapUrls = robotsSitemapUrls.filter((url) => !isAbsoluteHttpUrl(url));
   const sitemapFetchUsable = context.sitemap.status < 400 && sitemapUrls.length > 0;
 
   if (noindex) {
@@ -421,7 +447,7 @@ function indexabilityCheck(context: {
     );
   }
 
-  if (!sitemapFetchUsable && robotsSitemapUrls.length === 0) {
+  if (!sitemapFetchUsable && validRobotsSitemapUrls.length === 0) {
     findings.push(
       finding({
         id: "indexability-sitemap-missing",
@@ -431,6 +457,20 @@ function indexabilityCheck(context: {
         summary: "SEOPass did not find a usable /sitemap.xml URL list.",
         evidence: [httpEvidence(context.sitemap, "sitemap.xml")],
         recommendation: "Publish a sitemap or sitemap index so search crawlers can discover public pages efficiently.",
+      }),
+    );
+  }
+
+  if (invalidRobotsSitemapUrls.length > 0) {
+    findings.push(
+      finding({
+        id: "indexability-robots-sitemap-invalid",
+        check_id: "indexability",
+        severity: "low",
+        title: "robots.txt contains invalid Sitemap directives",
+        summary: `${invalidRobotsSitemapUrls.length} robots.txt Sitemap directive(s) were not fully qualified absolute URLs.`,
+        evidence: [robotsEvidence(context.robots, "robots.txt Sitemap directives")],
+        recommendation: "Use complete Sitemap URLs in robots.txt, including protocol and host.",
       }),
     );
   }
@@ -450,11 +490,11 @@ function indexabilityCheck(context: {
         kind: "robots-txt",
         label: "robots.txt Sitemap directives",
         source_url: context.robots.url,
-        summary: `${robotsSitemapUrls.length} Sitemap directive(s) found in robots.txt.`,
+        summary: `${validRobotsSitemapUrls.length} valid and ${invalidRobotsSitemapUrls.length} invalid Sitemap directive(s) found in robots.txt.`,
       },
     ],
     comments: [
-      `Noindex detected: ${noindex ? "yes" : "no"}. Sitemap URLs found: ${sitemapUrls.length}; robots.txt Sitemap directives found: ${robotsSitemapUrls.length}.`,
+      `Noindex detected: ${noindex ? "yes" : "no"}. Sitemap URLs found: ${sitemapUrls.length}; valid robots.txt Sitemap directives found: ${validRobotsSitemapUrls.length}; invalid robots.txt Sitemap directives found: ${invalidRobotsSitemapUrls.length}.`,
       `Robots directives checked: ${formatRobotsDirectives(searchDirectives)}.`,
     ],
   });
@@ -544,8 +584,10 @@ function canonicalSignalsCheck(context: { targetUrl: string; page: SeoPassFetchR
   const canonicalLinks = context.signals.canonicalLinks;
   const httpCanonicalLinks = extractHttpCanonicalLinks(context.page.headers);
   const canonicalEvidence = formatCanonicalSignals(canonicalLinks, httpCanonicalLinks);
-  const headCanonicalLinks = canonicalLinks.filter((link) => link.inHead);
-  const htmlCanonical = headCanonicalLinks.find((link) => link.href)?.href ?? canonicalLinks.find((link) => link.href)?.href ?? null;
+  const ignoredCanonicalLinks = canonicalLinks.filter((link) => link.ignoredAttributes.length > 0);
+  const usableHtmlCanonicalLinks = canonicalLinks.filter((link) => link.inHead && link.ignoredAttributes.length === 0);
+  const htmlCanonicalLinksWithHref = canonicalLinks.filter((link) => link.href);
+  const htmlCanonical = usableHtmlCanonicalLinks.find((link) => link.href)?.href ?? null;
   const httpCanonical = httpCanonicalLinks.find((link) => link.href)?.href ?? null;
   const canonical = htmlCanonical ?? httpCanonical;
 
@@ -562,6 +604,20 @@ function canonicalSignalsCheck(context: { targetUrl: string; page: SeoPassFetchR
       }),
     );
   } else {
+    if (ignoredCanonicalLinks.length > 0) {
+      findings.push(
+        finding({
+          id: "canonical-ignored-attributes",
+          check_id: "canonical-signals",
+          severity: "medium",
+          title: "Canonical link uses ignored attributes",
+          summary: `${ignoredCanonicalLinks.length} HTML rel=canonical link(s) include hreflang, lang, media, or type attributes that Google does not use for canonicalization.`,
+          evidence: [headEvidence(context.targetUrl, "Canonical links", canonicalEvidence)],
+          recommendation: "Move alternate-language, media, and type hints to separate rel=alternate links and keep rel=canonical plain.",
+        }),
+      );
+    }
+
     if (canonicalLinks.some((link) => !link.inHead)) {
       findings.push(
         finding({
@@ -611,17 +667,33 @@ function canonicalSignalsCheck(context: { targetUrl: string; page: SeoPassFetchR
     }
 
     if (!canonical) {
-      findings.push(
-        finding({
-          id: "canonical-empty",
-          check_id: "canonical-signals",
-          severity: "high",
-          title: "Canonical href is empty",
-          summary: "A rel=canonical link was found, but SEOPass could not read a usable href value.",
-          evidence: [headEvidence(context.targetUrl, "Canonical tag", canonicalEvidence)],
-          recommendation: "Set the canonical href to the absolute public URL for this page.",
-        }),
-      );
+      if (ignoredCanonicalLinks.length > 0 || htmlCanonicalLinksWithHref.length > 0) {
+        findings.push(
+          finding({
+            id: "canonical-no-usable-signal",
+            check_id: "canonical-signals",
+            severity: "medium",
+            title: "No usable canonical signal was found",
+            summary: ignoredCanonicalLinks.length > 0
+              ? "The only canonical HTML signal uses attributes search engines ignore, and no usable HTTP canonical was found."
+              : "The only canonical HTML signal appears outside the head, and no usable HTTP canonical was found.",
+            evidence: [headEvidence(context.targetUrl, "Canonical tag", canonicalEvidence)],
+            recommendation: "Publish one plain rel=canonical URL in the HTML head or a matching HTTP Link header.",
+          }),
+        );
+      } else {
+        findings.push(
+          finding({
+            id: "canonical-empty",
+            check_id: "canonical-signals",
+            severity: "high",
+            title: "Canonical href is empty",
+            summary: "A rel=canonical signal was found, but SEOPass could not read a usable href value.",
+            evidence: [headEvidence(context.targetUrl, "Canonical tag", canonicalEvidence)],
+            recommendation: "Set the canonical href to the absolute public URL for this page.",
+          }),
+        );
+      }
     } else {
       const parsed = safeUrl(canonical, context.targetUrl);
       if (!isAbsoluteHttpUrl(canonical)) {
@@ -1374,7 +1446,7 @@ function extractLinkRel(html: string, rel: string): string | null {
   return null;
 }
 
-function extractCanonicalLinks(html: string): Array<{ href: string | null; inHead: boolean }> {
+function extractCanonicalLinks(html: string): CanonicalLink[] {
   const headMatch = /<head\b[^>]*>[\s\S]*?<\/head>/i.exec(html);
   const headStart = headMatch?.index ?? -1;
   const headEnd = headStart >= 0 ? headStart + (headMatch?.[0].length ?? 0) : -1;
@@ -1387,14 +1459,22 @@ function extractCanonicalLinks(html: string): Array<{ href: string | null; inHea
       {
         href: getAttr(tag, "href")?.trim() || null,
         inHead: headStart >= 0 && tagIndex >= headStart && tagIndex < headEnd,
+        ignoredAttributes: canonicalIgnoredAttributes(tag),
       },
     ];
   });
 }
 
-function formatCanonicalLinks(links: Array<{ href: string | null; inHead: boolean }>): string {
+function canonicalIgnoredAttributes(tag: string): string[] {
+  return CANONICAL_IGNORED_ATTRIBUTES.filter((attr) => hasAttr(tag, attr));
+}
+
+function formatCanonicalLinks(links: CanonicalLink[]): string {
   return links
-    .map((link) => `${link.inHead ? "head" : "body"}:${link.href ?? "missing-href"}`)
+    .map((link) => {
+      const ignored = link.ignoredAttributes.length > 0 ? ` [ignored=${link.ignoredAttributes.join(",")}]` : "";
+      return `${link.inHead ? "head" : "body"}:${link.href ?? "missing-href"}${ignored}`;
+    })
     .join("; ");
 }
 
@@ -1440,7 +1520,7 @@ function getHeader(headers: Record<string, string>, name: string): string | unde
 }
 
 function formatCanonicalSignals(
-  htmlLinks: Array<{ href: string | null; inHead: boolean }>,
+  htmlLinks: CanonicalLink[],
   httpLinks: Array<{ href: string | null }>,
 ): string {
   return [
@@ -1493,6 +1573,10 @@ function uniqueStrings(values: string[]): string[] {
 function getAttr(tag: string, attr: string): string | null {
   const match = tag.match(new RegExp(`\\b${attr}\\s*=\\s*(["'])(.*?)\\1`, "i"));
   return match?.[2] ? decodeEntities(match[2]) : null;
+}
+
+function hasAttr(tag: string, attr: string): boolean {
+  return new RegExp(`\\b${attr}(?:\\s*=|\\s|>|/)`, "i").test(tag);
 }
 
 function stripTags(html: string): string {
@@ -1694,6 +1778,12 @@ function extractRobotsSitemapUrls(body: string): string[] {
       return key === "sitemap" && value ? [decodeEntities(value)] : [];
     }),
   );
+}
+
+function robotsBodyForParsing(body: string): string {
+  if (byteLength(body) <= ROBOTS_TXT_MAX_BYTES) return body;
+  const bytes = new TextEncoder().encode(body);
+  return new TextDecoder().decode(bytes.slice(0, ROBOTS_TXT_MAX_BYTES));
 }
 
 function isAbsoluteHttpUrl(value: string): boolean {

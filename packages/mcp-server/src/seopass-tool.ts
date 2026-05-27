@@ -55,6 +55,12 @@ type RobotsRule = {
   rules: Array<{ directive: "allow" | "disallow"; path: string }>;
 };
 
+type CanonicalLink = {
+  href: string | null;
+  inHead: boolean;
+  ignoredAttributes: string[];
+};
+
 const RUNS = new Map<string, SeoPassMcpRun>();
 const DEFAULT_CHECKS = [
   "lighthouse-performance",
@@ -69,6 +75,8 @@ const DEFAULT_CHECKS = [
 ] as const;
 const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BODY_CHARS = 1_500_000;
+const ROBOTS_TXT_MAX_BYTES = 500 * 1024;
+const CANONICAL_IGNORED_ATTRIBUTES = ["hreflang", "lang", "media", "type"] as const;
 const AI_CRAWLER_POLICY_BOTS = [
   "OAI-SearchBot",
   "GPTBot",
@@ -219,7 +227,9 @@ async function runReadonlySeoPass(
     fail: checkResults.filter((check) => check.verdict === "fail").length,
   };
   const sitemapUrls = extractSitemapUrls(sitemap.body);
-  const robotsSitemapUrls = extractRobotsSitemapUrls(robots.body);
+  const robotsSitemapUrls = extractRobotsSitemapUrls(robotsBodyForParsing(robots.body));
+  const validRobotsSitemapUrls = robotsSitemapUrls.filter(isAbsoluteHttpUrl);
+  const invalidRobotsSitemapUrls = robotsSitemapUrls.filter((url) => !isAbsoluteHttpUrl(url));
 
   return {
     run_id: runId,
@@ -236,7 +246,7 @@ async function runReadonlySeoPass(
       evidence: [
         { kind: "http-response", source_url: page.url, summary: page.error ?? `HTTP ${page.status} in ${page.elapsed_ms}ms` },
         { kind: "robots-txt", source_url: robots.url, summary: robots.error ?? `HTTP ${robots.status}` },
-        { kind: "sitemap", source_url: sitemap.url, summary: `${sitemapUrls.length} URL(s) found; ${robotsSitemapUrls.length} robots.txt Sitemap directive(s)` },
+        { kind: "sitemap", source_url: sitemap.url, summary: `${sitemapUrls.length} URL(s) found; ${validRobotsSitemapUrls.length} valid and ${invalidRobotsSitemapUrls.length} invalid robots.txt Sitemap directive(s)` },
         { kind: "llms-txt", source_url: llms.url, summary: llms.status >= 200 && llms.status < 400 ? "llms.txt found" : "llms.txt not found" },
       ],
       cross_pass_signals: crossPassSignals(checkResults),
@@ -285,7 +295,9 @@ function buildCheck(
   };
 
   if (checkId === "crawlability") {
-    const robotsRules = parseRobots(context.robots.body);
+    const robotsBody = robotsBodyForParsing(context.robots.body);
+    const robotsBytes = byteLength(context.robots.body);
+    const robotsRules = parseRobots(robotsBody);
     const targetPath = robotsPathForUrl(context.targetUrl);
     const googleAllowed = isRobotAllowed(robotsRules, "Googlebot", targetPath);
     const bingAllowed = isRobotAllowed(robotsRules, "Bingbot", targetPath);
@@ -305,6 +317,12 @@ function buildCheck(
       !/\b(?:text\/html|application\/xhtml\+xml)\b/i.test(contentType)
     ) {
       add("crawlability-non-html-response", "high", "Target URL did not return HTML", `The target returned content-type '${contentType}'.`, "Point SEOPass at the canonical public HTML URL for the page.");
+    }
+    if (context.robots.status === 0 || context.robots.status === 429 || context.robots.status >= 500) {
+      add("crawlability-robots-unreachable", "medium", "robots.txt could not be checked", `robots.txt returned ${context.robots.error ?? `HTTP ${context.robots.status}`}.`, "Publish a readable robots.txt with explicit crawler policy.");
+    }
+    if (robotsBytes > ROBOTS_TXT_MAX_BYTES) {
+      add("crawlability-robots-too-large", "medium", "robots.txt is over Google's supported size", `robots.txt is ${robotsBytes} bytes; Google ignores content after ${ROBOTS_TXT_MAX_BYTES} bytes.`, "Move long rule lists into shorter grouped paths so the important crawler policy fits before 500 KiB.");
     }
     if (!googleAllowed || !bingAllowed) {
       add(
@@ -349,22 +367,30 @@ function buildCheck(
     const searchDirectives = searchRobotsDirectives(context.signals.robotsDirectives, context.page.headers["x-robots-tag"] ?? "");
     if (hasNoindexDirective(searchDirectives)) add("indexability-noindex", "critical", "Page is marked noindex", `Search robots directives contain noindex: ${formatRobotsDirectives(searchDirectives)}.`, "Remove noindex only if this page should be searchable.");
     const sitemapUrls = extractSitemapUrls(context.sitemap.body);
-    const robotsSitemapUrls = extractRobotsSitemapUrls(context.robots.body);
-    if ((context.sitemap.status >= 400 || sitemapUrls.length === 0) && robotsSitemapUrls.length === 0) add("indexability-sitemap-missing", "medium", "Sitemap is missing or empty", "No URLs were found in /sitemap.xml or robots.txt Sitemap directives.", "Publish a sitemap or sitemap index.");
+    const robotsSitemapUrls = extractRobotsSitemapUrls(robotsBodyForParsing(context.robots.body));
+    const validRobotsSitemapUrls = robotsSitemapUrls.filter(isAbsoluteHttpUrl);
+    const invalidRobotsSitemapUrls = robotsSitemapUrls.filter((url) => !isAbsoluteHttpUrl(url));
+    if ((context.sitemap.status >= 400 || sitemapUrls.length === 0) && validRobotsSitemapUrls.length === 0) add("indexability-sitemap-missing", "medium", "Sitemap is missing or empty", "No URLs were found in /sitemap.xml or valid robots.txt Sitemap directives.", "Publish a sitemap or sitemap index.");
+    if (invalidRobotsSitemapUrls.length > 0) add("indexability-robots-sitemap-invalid", "low", "robots.txt contains invalid Sitemap directives", `${invalidRobotsSitemapUrls.length} robots.txt Sitemap directive(s) were not fully qualified absolute URLs.`, "Use complete Sitemap URLs in robots.txt, including protocol and host.");
   }
 
   if (checkId === "canonical-signals") {
     const canonicalLinks = context.signals.canonicalLinks;
     const httpCanonicalLinks = extractHttpCanonicalLinks(context.page.headers);
     const canonicalEvidence = formatCanonicalSignals(canonicalLinks, httpCanonicalLinks);
-    const headCanonicalLinks = canonicalLinks.filter((link) => link.inHead);
-    const htmlCanonical = headCanonicalLinks.find((link) => link.href)?.href ?? canonicalLinks.find((link) => link.href)?.href ?? null;
+    const ignoredCanonicalLinks = canonicalLinks.filter((link) => link.ignoredAttributes.length > 0);
+    const usableHtmlCanonicalLinks = canonicalLinks.filter((link) => link.inHead && link.ignoredAttributes.length === 0);
+    const htmlCanonicalLinksWithHref = canonicalLinks.filter((link) => link.href);
+    const htmlCanonical = usableHtmlCanonicalLinks.find((link) => link.href)?.href ?? null;
     const httpCanonical = httpCanonicalLinks.find((link) => link.href)?.href ?? null;
     const canonical = htmlCanonical ?? httpCanonical;
 
     if (canonicalLinks.length === 0 && httpCanonicalLinks.length === 0) {
       add("canonical-missing", "medium", "Canonical tag is missing", "No rel=canonical tag or HTTP Link header was found.", "Add a canonical URL to reduce duplicate URL ambiguity.");
     } else {
+      if (ignoredCanonicalLinks.length > 0) {
+        add("canonical-ignored-attributes", "medium", "Canonical link uses ignored attributes", `${ignoredCanonicalLinks.length} HTML rel=canonical link(s) include hreflang, lang, media, or type attributes that Google does not use for canonicalization: ${canonicalEvidence}.`, "Move alternate-language, media, and type hints to separate rel=alternate links and keep rel=canonical plain.");
+      }
       if (canonicalLinks.some((link) => !link.inHead)) {
         add("canonical-outside-head", "medium", "Canonical link appears outside the head", "At least one rel=canonical link appears outside the HTML head, where search engines may ignore it.", "Keep one canonical link in the HTML head.");
       }
@@ -381,7 +407,14 @@ function buildCheck(
         add("canonical-conflicting-signals", "medium", "Canonical signals disagree", `HTML canonical points to ${parsedHtmlCanonical.toString()}, while the HTTP Link canonical points to ${parsedHttpCanonical.toString()}.`, "Keep canonical signals consistent across HTML, HTTP headers, redirects, and sitemaps.");
       }
       if (!canonical) {
-        add("canonical-empty", "high", "Canonical href is empty", "A rel=canonical signal was found, but SEOPass could not read a usable href value.", "Set the canonical href to the absolute public URL for this page.");
+        if (ignoredCanonicalLinks.length > 0 || htmlCanonicalLinksWithHref.length > 0) {
+          const reason = ignoredCanonicalLinks.length > 0
+            ? "The only canonical HTML signal uses attributes search engines ignore, and no usable HTTP canonical was found."
+            : "The only canonical HTML signal appears outside the head, and no usable HTTP canonical was found.";
+          add("canonical-no-usable-signal", "medium", "No usable canonical signal was found", reason, "Publish one plain rel=canonical URL in the HTML head or a matching HTTP Link header.");
+        } else {
+          add("canonical-empty", "high", "Canonical href is empty", "A rel=canonical signal was found, but SEOPass could not read a usable href value.", "Set the canonical href to the absolute public URL for this page.");
+        }
       } else {
         const parsed = safeUrl(canonical, context.targetUrl);
         if (!isAbsoluteHttpUrl(canonical)) {
@@ -481,7 +514,7 @@ function analyzeHtml(html: string, baseUrl: string): {
   description: boolean;
   viewport: boolean;
   canonical: boolean;
-  canonicalLinks: Array<{ href: string | null; inHead: boolean }>;
+  canonicalLinks: CanonicalLink[];
   robotsMeta: string;
   robotsDirectives: Array<{ source: "meta" | "x-robots-tag"; userAgent: string | null; content: string }>;
   h1Count: number;
@@ -595,7 +628,7 @@ function getHeader(headers: Record<string, string>, name: string): string | unde
 }
 
 function formatCanonicalSignals(
-  htmlLinks: Array<{ href: string | null; inHead: boolean }>,
+  htmlLinks: CanonicalLink[],
   httpLinks: Array<{ href: string | null }>,
 ): string {
   return [
@@ -636,7 +669,17 @@ function extractRobotsSitemapUrls(body: string): string[] {
   ));
 }
 
-function extractCanonicalLinks(html: string): Array<{ href: string | null; inHead: boolean }> {
+function robotsBodyForParsing(body: string): string {
+  if (byteLength(body) <= ROBOTS_TXT_MAX_BYTES) return body;
+  const bytes = new TextEncoder().encode(body);
+  return new TextDecoder().decode(bytes.slice(0, ROBOTS_TXT_MAX_BYTES));
+}
+
+function byteLength(value: string): number {
+  return new TextEncoder().encode(value).length;
+}
+
+function extractCanonicalLinks(html: string): CanonicalLink[] {
   const headMatch = /<head\b[^>]*>[\s\S]*?<\/head>/i.exec(html);
   const headStart = headMatch?.index ?? -1;
   const headEnd = headStart >= 0 ? headStart + (headMatch?.[0].length ?? 0) : -1;
@@ -649,14 +692,22 @@ function extractCanonicalLinks(html: string): Array<{ href: string | null; inHea
       {
         href: attrValue(tag, "href")?.trim() || null,
         inHead: headStart >= 0 && tagIndex >= headStart && tagIndex < headEnd,
+        ignoredAttributes: canonicalIgnoredAttributes(tag),
       },
     ];
   });
 }
 
-function formatCanonicalLinks(links: Array<{ href: string | null; inHead: boolean }>): string {
+function canonicalIgnoredAttributes(tag: string): string[] {
+  return CANONICAL_IGNORED_ATTRIBUTES.filter((attr) => hasAttr(tag, attr));
+}
+
+function formatCanonicalLinks(links: CanonicalLink[]): string {
   return links
-    .map((link) => `${link.inHead ? "head" : "body"}:${link.href ?? "missing-href"}`)
+    .map((link) => {
+      const ignored = link.ignoredAttributes.length > 0 ? ` [ignored=${link.ignoredAttributes.join(",")}]` : "";
+      return `${link.inHead ? "head" : "body"}:${link.href ?? "missing-href"}${ignored}`;
+    })
     .join("; ");
 }
 
@@ -704,6 +755,10 @@ function extractXRobotsDirectives(header: string): Array<{ source: "x-robots-tag
 
 function attrValue(tag: string, attr: string): string | null {
   return new RegExp(`\\b${attr}\\s*=\\s*(["'])(.*?)\\1`, "i").exec(tag)?.[2] ?? null;
+}
+
+function hasAttr(tag: string, attr: string): boolean {
+  return new RegExp(`\\b${attr}(?:\\s*=|\\s|>|/)`, "i").test(tag);
 }
 
 function isAbsoluteHttpUrl(value: string): boolean {

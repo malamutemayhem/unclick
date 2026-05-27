@@ -163,7 +163,58 @@ describe("runSeoPass", () => {
 
     const indexability = report.checks.find((check) => check.check_id === "indexability");
     expect(indexability?.findings.some((finding) => finding.id === "indexability-sitemap-missing")).toBe(false);
-    expect(indexability?.comments.join(" ")).toMatch(/robots\.txt Sitemap directives found: 1/);
+    expect(indexability?.comments.join(" ")).toMatch(/valid robots\.txt Sitemap directives found: 1/);
+  });
+
+  it("rejects relative robots.txt Sitemap directives as sitemap evidence", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com",
+      checks: ["indexability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/": {
+          status: 200,
+          headers: { "content-type": "text/html" },
+          body: healthyHtml,
+        },
+        "https://example.com/robots.txt": {
+          body: "User-agent: *\nAllow: /\nSitemap: /sitemap.xml\n",
+        },
+        "https://example.com/sitemap.xml": { status: 404, body: "not found" },
+        "https://example.com/llms.txt": { status: 404, body: "not found" },
+      }),
+    });
+
+    const findings = report.checks[0]?.findings.map((finding) => finding.id) ?? [];
+    expect(findings).toContain("indexability-sitemap-missing");
+    expect(findings).toContain("indexability-robots-sitemap-invalid");
+  });
+
+  it("ignores robots.txt rules after Google's 500 KiB parsing limit", async () => {
+    const robotsBody = [
+      "User-agent: *",
+      "Allow: /",
+      "a".repeat(512 * 1024),
+      "User-agent: Googlebot",
+      "Disallow: /private",
+    ].join("\n");
+    const report = await runSeoPass({
+      targetUrl: "https://example.com/private",
+      checks: ["crawlability"],
+      fetcher: fixtureFetcher({
+        "https://example.com/private": {
+          status: 200,
+          headers: { "content-type": "text/html" },
+          body: healthyHtml,
+        },
+        "https://example.com/robots.txt": { body: robotsBody },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/private</loc></url></urlset>" },
+        "https://example.com/llms.txt": { status: 404, body: "not found" },
+      }),
+    });
+
+    const findings = report.checks[0]?.findings.map((finding) => finding.id) ?? [];
+    expect(findings).toContain("crawlability-robots-too-large");
+    expect(findings).not.toContain("crawlability-search-bot-blocked");
   });
 
   it("recognizes Microdata and RDFa instead of claiming structured data is missing", async () => {
@@ -268,6 +319,30 @@ describe("runSeoPass", () => {
       }),
     });
     expect(conflicting.checks[0]?.findings.map((finding) => finding.id)).toContain("canonical-conflicting-signals");
+  });
+
+  it("flags canonical link attributes that Google ignores", async () => {
+    const report = await runSeoPass({
+      targetUrl: "https://example.com",
+      checks: ["canonical-signals"],
+      fetcher: fixtureFetcher({
+        "https://example.com/": {
+          status: 200,
+          headers: { "content-type": "text/html" },
+          body: healthyHtml.replace(
+            '<link rel="canonical" href="https://example.com/">',
+            '<link rel="canonical" href="https://example.com/" hreflang="en" type="text/html">',
+          ),
+        },
+        "https://example.com/robots.txt": { body: "User-agent: *\nAllow: /\n" },
+        "https://example.com/sitemap.xml": { body: "<urlset><url><loc>https://example.com/</loc></url></urlset>" },
+        "https://example.com/llms.txt": { status: 404, body: "not found" },
+      }),
+    });
+
+    const findings = report.checks[0]?.findings.map((finding) => finding.id) ?? [];
+    expect(findings).toContain("canonical-ignored-attributes");
+    expect(findings).toContain("canonical-no-usable-signal");
   });
 
   it("warns when data-nosnippet may hide content from AI-era answer extraction", async () => {
