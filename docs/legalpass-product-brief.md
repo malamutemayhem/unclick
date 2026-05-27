@@ -49,7 +49,9 @@ This rule is enforced at three layers:
 1. **Verdict-linter** at render time (`packages/legalpass/src/passguard/verdict-linter.ts`)
    bans directive verbs in any verdict text: `should`, `must`, `you need to`,
    `you have to`, `you are obligated`, `do this`,
-   `ask a qualified lawyer`, `ask a qualified practitioner`, `we recommend`,
+   `ask a qualified lawyer`, `ask a qualified practitioner`,
+   `talk to a qualified lawyer`, `get advice from a lawyer`,
+   `you may want to review with a lawyer`, `we recommend`,
    `the right thing to do is`, `this is illegal`, `this is enforceable`,
    `this is unenforceable`, `you will win`, `you will lose`, plus
    substitute-lawyer and unsupported compliance claims such as `robot lawyer`,
@@ -58,7 +60,8 @@ This rule is enforced at three layers:
    Allowed framing includes `appears`, `seems`, `may`, `might`, `could`,
    `consider`, `in similar contracts`, `in comparable agreements`,
    `is unusual`, `is common`, `is typical`, `is standard`,
-   `merits attention`, `warrants review`, and `you may want to review with a lawyer`.
+   `merits attention`, `warrants review`, and
+   `qualified practitioner review may be warranted`.
 2. **Disclaimer banner** present in three render contexts (chat / results / ToS).
 3. **Marketing copy audit** (`qc_copy_audit`, lives outside this PR) bans the
    words `lawyer`, `attorney`, `counsel`, `legal advice`, `legal opinion`,
@@ -181,8 +184,9 @@ The current PR keeps the code surface deterministic and evidence-led:
 - `verdict-pack.ts` can emit a plan-only pack or evaluate public fixture text without live crawling, private uploads, production rows, paid calls, or legal instructions.
 - `tools/` exposes `legalpass_run`, `legalpass_status`, `legalpass_save_pack`, and `legalpass_edit_item`.
 - `legalpass_run` rejects fixture documents marked `public_only: false` until a guarded private ingestion path exists.
+- LegalPass target, evidence, document, scanner, and GEOPass adapter URLs accept http(s) only.
 - Reviewer overrides are retained on the run `audit_log`, and a repeat deterministic run does not erase that trail.
 - Generated fail comments use non-imperative phrasing such as "review may be warranted" rather than telling the user what to do.
-- `packages/mcp-server/src/legalpass-tool.ts` exposes the same run/status/save/edit surface for MCP callers, plus `legalpass_verdict` for PassGuard linting.
+- `packages/mcp-server/src/legalpass-tool.ts` exposes the same run/status/save/edit surface for MCP callers, validates target/profile/jurisdiction/hat shape, and adds `legalpass_verdict` for PassGuard linting.
 
 Every report carries the issue-spotter disclaimer and stays framed as review input for a qualified practitioner.

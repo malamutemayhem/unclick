@@ -16,6 +16,18 @@ describe("LegalPass phase-one schema", () => {
     expect(document.public_only).toBe(true);
   });
 
+  it("rejects non-http source URLs in public evidence fixtures", () => {
+    expect(() =>
+      LegalPassFixtureDocumentSchema.parse({
+        id: "privacy-fixture",
+        kind: "privacy-policy",
+        title: "Privacy Policy Fixture",
+        source_url: "ftp://example.com/privacy",
+        text: "We collect account data and provide a privacy contact.",
+      }),
+    ).toThrow(/http/);
+  });
+
   it("requires report disclaimers", () => {
     expect(() =>
       LegalPassReportSchema.parse({

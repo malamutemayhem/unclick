@@ -89,7 +89,7 @@ export function createFixtureLegalPassReport(
     },
     disclaimers: [ISSUE_SPOTTER_DISCLAIMER],
     notes: [
-      "Fixture-only LegalPass report. Findings are deterministic text signals and require human practitioner review before action.",
+      "Fixture-only LegalPass report. Findings are deterministic text signals and may warrant human practitioner review before action.",
     ],
   };
 

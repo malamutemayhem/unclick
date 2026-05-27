@@ -157,6 +157,16 @@ describe("LegalPass MCP exposure", () => {
       target_url: "ftp://example.com/terms",
     })).resolves.toMatchObject({ error: "target_url must be a valid http(s) URL" });
     await expect(legalpassRun({
+      target_url: "https://example.com/terms",
+      profile: "instant",
+    })).resolves.toMatchObject({ error: "profile must be smoke|standard|deep" });
+    await expect(legalpassRun({
+      target_url: "https://example.com/terms",
+      jurisdictions: ["MARS"],
+    })).resolves.toMatchObject({
+      error: "jurisdictions may only include AU, EU, US-CA, US-NY, UK, CA, NZ, or SG",
+    });
+    await expect(legalpassRun({
       target: { kind: "url" },
     })).resolves.toMatchObject({ error: "target.url must be a valid http(s) URL" });
     await expect(legalpassRun({
@@ -181,6 +191,34 @@ describe("LegalPass MCP exposure", () => {
         },
       }),
     ).resolves.toMatchObject({ error: "pack.targets may only include url, contract_upload, or repo" });
+    await expect(
+      legalpassSavePack({
+        pack: {
+          id: "mcp-invalid-jurisdiction-pack",
+          targets: ["url"],
+          jurisdictions: ["MARS"],
+          hats: [
+            { hat_id: "privacy", enabled: true },
+            { hat_id: "citation_verifier", enabled: true },
+          ],
+        },
+      }),
+    ).resolves.toMatchObject({
+      error: "pack.jurisdictions may only include AU, EU, US-CA, US-NY, UK, CA, NZ, or SG",
+    });
+    await expect(
+      legalpassSavePack({
+        pack: {
+          id: "mcp-invalid-profile-pack",
+          targets: ["url"],
+          profile: "instant",
+          hats: [
+            { hat_id: "privacy", enabled: true },
+            { hat_id: "citation_verifier", enabled: true },
+          ],
+        },
+      }),
+    ).resolves.toMatchObject({ error: "pack.profile must be smoke|standard|deep" });
     await expect(
       legalpassSavePack({
         pack: {
@@ -269,10 +307,11 @@ describe("LegalPass MCP exposure", () => {
 
   it("blocks imperative referral wording in MCP verdict text", async () => {
     const result = await legalpassVerdict({
-      verdict_text: "Ask a qualified lawyer before acting on this item.",
+      verdict_text: "Ask a qualified lawyer before acting on this item. You may want to review with a lawyer.",
     }) as Record<string, unknown>;
 
     expect(result.safe_to_emit).toBe(false);
     expect(JSON.stringify(result.issues)).toContain("ask a qualified lawyer");
+    expect(JSON.stringify(result.issues)).toContain("you may want to review with a lawyer");
   });
 });

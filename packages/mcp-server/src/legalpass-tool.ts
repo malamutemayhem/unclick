@@ -12,6 +12,8 @@ import yaml from "js-yaml";
 type DisclaimerLength = "chat" | "results" | "tos";
 type LegalPassMcpVerdict = "check" | "fail" | "na" | "other" | "pending";
 type LegalPassMcpTargetKind = "url" | "contract_upload" | "repo";
+type LegalPassMcpProfile = "smoke" | "standard" | "deep";
+type LegalPassMcpJurisdiction = "AU" | "EU" | "US-CA" | "US-NY" | "UK" | "CA" | "NZ" | "SG";
 type LegalPassMcpHatId =
   | "privacy"
   | "consumer_tos"
@@ -61,8 +63,8 @@ interface LegalPassMcpRunRecord {
   run_id: string;
   pack_id: string;
   target: LegalPassMcpTarget;
-  profile: string;
-  jurisdictions: string[];
+  profile: LegalPassMcpProfile;
+  jurisdictions: LegalPassMcpJurisdiction[];
   summary: LegalPassMcpSummary;
   items: LegalPassMcpItem[];
   disclaimer: string;
@@ -78,6 +80,8 @@ interface LegalPassMcpRunRecord {
 interface LegalPassMcpPack {
   id: string;
   targets: LegalPassMcpTargetKind[];
+  jurisdictions?: LegalPassMcpJurisdiction[];
+  profile?: LegalPassMcpProfile;
   hats: Array<{ hat_id?: LegalPassMcpHatId; enabled?: boolean }>;
   items?: unknown[];
   [key: string]: unknown;
@@ -103,6 +107,20 @@ const SUPPORTED_HAT_IDS = new Set<LegalPassMcpHatId>([
   "jurisdiction_router",
   "citation_verifier",
 ]);
+
+const SUPPORTED_PROFILES = new Set<LegalPassMcpProfile>(["smoke", "standard", "deep"]);
+const SUPPORTED_JURISDICTIONS = new Set<LegalPassMcpJurisdiction>([
+  "AU",
+  "EU",
+  "US-CA",
+  "US-NY",
+  "UK",
+  "CA",
+  "NZ",
+  "SG",
+]);
+const DEFAULT_PROFILE: LegalPassMcpProfile = "standard";
+const DEFAULT_JURISDICTIONS: LegalPassMcpJurisdiction[] = ["AU", "EU", "US-CA"];
 
 const DISCLAIMERS: Record<DisclaimerLength, string> = {
   chat:
@@ -163,6 +181,9 @@ const FORBIDDEN_PHRASES: ReadonlyArray<{ phrase: string; reason: string }> = [
   { phrase: "do this", reason: "directive phrasing - implies an instruction" },
   { phrase: "ask a qualified lawyer", reason: "directive legal referral phrasing - prohibited in verdict text" },
   { phrase: "ask a qualified practitioner", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "talk to a qualified lawyer", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "get advice from a lawyer", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "you may want to review with a lawyer", reason: "user-directed legal referral phrasing - prohibited in verdict text" },
   { phrase: "we recommend", reason: "first-person recommendation - prohibited" },
   { phrase: "the right thing to do is", reason: "normative recommendation - prohibited" },
   { phrase: "this is illegal", reason: "definitive legal conclusion - prohibited" },
@@ -194,7 +215,7 @@ const ALLOWED_PHRASES = [
   "is standard",
   "merits attention",
   "warrants review",
-  "you may want to review with a lawyer",
+  "qualified practitioner review may be warranted",
   "the regulatory landscape",
 ];
 
@@ -273,6 +294,8 @@ const FIXTURE_CHECKS: ReadonlyArray<{
 const DEFAULT_PACK: LegalPassMcpPack = {
   id: "legalpass-mvp-v0",
   targets: ["url", "contract_upload", "repo"],
+  jurisdictions: DEFAULT_JURISDICTIONS,
+  profile: DEFAULT_PROFILE,
   hats: [
     { hat_id: "privacy", enabled: true },
     { hat_id: "consumer_tos", enabled: true },
@@ -314,6 +337,8 @@ function packRunSignature(pack: LegalPassMcpPack): Record<string, unknown> {
   return {
     id: pack.id,
     targets: [...pack.targets].sort(),
+    profile: pack.profile ?? DEFAULT_PROFILE,
+    jurisdictions: [...(pack.jurisdictions ?? DEFAULT_JURISDICTIONS)].sort(),
     enabled_hats: pack.hats
       .filter((hat) => hat.enabled !== false)
       .map((hat) => hat.hat_id)
@@ -328,6 +353,14 @@ function isSupportedTargetKind(value: string): value is LegalPassMcpTargetKind {
 
 function isSupportedHatId(value: string): value is LegalPassMcpHatId {
   return SUPPORTED_HAT_IDS.has(value as LegalPassMcpHatId);
+}
+
+function isSupportedProfile(value: string): value is LegalPassMcpProfile {
+  return SUPPORTED_PROFILES.has(value as LegalPassMcpProfile);
+}
+
+function isSupportedJurisdiction(value: string): value is LegalPassMcpJurisdiction {
+  return SUPPORTED_JURISDICTIONS.has(value as LegalPassMcpJurisdiction);
 }
 
 function isValidUrl(value: string): boolean {
@@ -409,7 +442,7 @@ function fixtureSummary(text: string, pack: LegalPassMcpPack) {
       ],
       on_fail_comment: passed
         ? undefined
-        : "Issue-spotter flag only. Qualified lawyer review may be warranted before any action is taken.",
+        : "Issue-spotter flag only. Qualified practitioner review may be warranted before any action is taken.",
     };
   });
   return {
@@ -441,8 +474,15 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
     return parsedTarget;
   }
   const target = parsedTarget.target;
-  const profile = typeof args.profile === "string" ? args.profile : "smoke";
-  const jurisdictions = Array.isArray(args.jurisdictions) ? args.jurisdictions.filter((item) => typeof item === "string") : [];
+  const parsedProfile = parseProfile(args.profile ?? pack.profile ?? DEFAULT_PROFILE, "profile");
+  if ("error" in parsedProfile) return parsedProfile;
+  const profile = parsedProfile.profile;
+  const parsedJurisdictions = parseJurisdictions(
+    args.jurisdictions ?? pack.jurisdictions ?? DEFAULT_JURISDICTIONS,
+    "jurisdictions",
+  );
+  if ("error" in parsedJurisdictions) return parsedJurisdictions;
+  const jurisdictions = parsedJurisdictions.jurisdictions;
 
   if (!pack.targets.includes(target.kind)) {
     return { error: `pack '${packId}' does not support target kind '${target.kind}'` };
@@ -549,6 +589,28 @@ function parseTarget(args: Record<string, unknown>):
   }
 
   return { error: "target.kind or target_url is required" };
+}
+
+function parseProfile(value: unknown, fieldName: string):
+  | { profile: LegalPassMcpProfile }
+  | { error: string } {
+  if (typeof value !== "string" || !isSupportedProfile(value)) {
+    return { error: `${fieldName} must be smoke|standard|deep` };
+  }
+  return { profile: value };
+}
+
+function parseJurisdictions(value: unknown, fieldName: string):
+  | { jurisdictions: LegalPassMcpJurisdiction[] }
+  | { error: string } {
+  if (!Array.isArray(value) || value.length === 0) {
+    return { error: `${fieldName} must be a non-empty array` };
+  }
+  const invalid = value.find((item) => typeof item !== "string" || !isSupportedJurisdiction(item));
+  if (invalid !== undefined) {
+    return { error: `${fieldName} may only include AU, EU, US-CA, US-NY, UK, CA, NZ, or SG` };
+  }
+  return { jurisdictions: value as LegalPassMcpJurisdiction[] };
 }
 
 export async function legalpassVerdict(args: Record<string, unknown>): Promise<unknown> {
@@ -697,6 +759,15 @@ function parsePackInput(args: Record<string, unknown>):
   if (invalidTarget !== undefined) {
     return { error: "pack.targets may only include url, contract_upload, or repo" };
   }
+  const parsedPackProfile = parseProfile(pack.profile ?? DEFAULT_PROFILE, "pack.profile");
+  if ("error" in parsedPackProfile) return parsedPackProfile;
+  pack.profile = parsedPackProfile.profile;
+  const parsedPackJurisdictions = parseJurisdictions(
+    pack.jurisdictions ?? DEFAULT_JURISDICTIONS,
+    "pack.jurisdictions",
+  );
+  if ("error" in parsedPackJurisdictions) return parsedPackJurisdictions;
+  pack.jurisdictions = parsedPackJurisdictions.jurisdictions;
   if (!Array.isArray(pack.hats) || pack.hats.length === 0) {
     return { error: "pack.hats must include at least one hat" };
   }

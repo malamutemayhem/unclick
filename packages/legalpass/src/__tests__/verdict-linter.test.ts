@@ -56,11 +56,14 @@ describe("PassGuard verdict-linter", () => {
 
   it("blocks imperative legal referral wording in verdict text", () => {
     const result = lintVerdictText(
-      "Ask a qualified practitioner before acting on this item.",
+      "Ask a qualified practitioner before acting on this item. You may want to review with a lawyer.",
     );
 
     expect(result.issues.some(
       (issue) => issue.phrase === "ask a qualified practitioner",
+    )).toBe(true);
+    expect(result.issues.some(
+      (issue) => issue.phrase === "you may want to review with a lawyer",
     )).toBe(true);
   });
 
@@ -88,6 +91,6 @@ describe("PassGuard verdict-linter", () => {
     expect(ALLOWED_PHRASES).toContain("consider");
     expect(ALLOWED_PHRASES).toContain("in similar contracts");
     expect(ALLOWED_PHRASES).toContain("warrants review");
-    expect(ALLOWED_PHRASES).toContain("you may want to review with a lawyer");
+    expect(ALLOWED_PHRASES).toContain("qualified practitioner review may be warranted");
   });
 });

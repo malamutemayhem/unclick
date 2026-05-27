@@ -34,6 +34,9 @@ export const FORBIDDEN_PHRASES: ReadonlyArray<{ phrase: string; reason: string }
   { phrase: "do this", reason: "directive phrasing - implies an instruction" },
   { phrase: "ask a qualified lawyer", reason: "directive legal referral phrasing - prohibited in verdict text" },
   { phrase: "ask a qualified practitioner", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "talk to a qualified lawyer", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "get advice from a lawyer", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "you may want to review with a lawyer", reason: "user-directed legal referral phrasing - prohibited in verdict text" },
   { phrase: "we recommend", reason: "first-person recommendation - prohibited" },
   { phrase: "the right thing to do is", reason: "normative recommendation - prohibited" },
   { phrase: "this is illegal", reason: "definitive legal conclusion - prohibited" },
@@ -67,7 +70,7 @@ export const ALLOWED_PHRASES: ReadonlyArray<string> = [
   "is standard",
   "merits attention",
   "warrants review",
-  "you may want to review with a lawyer",
+  "qualified practitioner review may be warranted",
   "the regulatory landscape",
 ];
 

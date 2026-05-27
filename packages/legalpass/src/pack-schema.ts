@@ -1,8 +1,14 @@
 import { z } from "zod";
 
-// Twelve-hat panel for LegalPass MVP. Citation Verifier is a hard-veto:
-// every claim from the other eleven hats must trace to a primary source
-// or it is dropped from the verdict.
+const HttpUrlSchema = z.string().url().refine((value) => {
+  const url = new URL(value);
+  return url.protocol === "http:" || url.protocol === "https:";
+}, "must be an http(s) URL");
+
+// Full LegalPass pack schema supports the twelve-hat product panel. The
+// current deterministic runner executes the phase-one hats. Citation Verifier
+// remains a hard-veto: every claim from the other hats must trace to a primary
+// source or it is dropped from the verdict.
 export const HatIdSchema = z.enum([
   "privacy",
   "consumer_tos",
@@ -35,7 +41,7 @@ export const ProfileSchema = z.enum(["smoke", "standard", "deep"]);
 export const TargetSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("url"),
-    url: z.string().url(),
+    url: HttpUrlSchema,
   }),
   z.object({
     kind: z.literal("contract_upload"),

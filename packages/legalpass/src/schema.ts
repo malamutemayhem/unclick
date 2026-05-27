@@ -4,6 +4,11 @@ import {
   SeveritySchema,
 } from "./pack-schema.js";
 
+const HttpUrlSchema = z.string().url().refine((value) => {
+  const url = new URL(value);
+  return url.protocol === "http:" || url.protocol === "https:";
+}, "must be an http(s) URL");
+
 export const LegalPassPhaseOneHatIdSchema = z.enum([
   "privacy-policy",
   "tos-unfair-terms",
@@ -54,13 +59,13 @@ export const LegalPassModeSchema = z.enum([
 
 export const LegalPassTargetSchema = z.object({
   name: z.string().min(1),
-  url: z.string().url().optional(),
+  url: HttpUrlSchema.optional(),
 });
 
 export const LegalPassEvidenceSchema = z.object({
   kind: LegalPassEvidenceKindSchema,
   label: z.string().min(1),
-  source_url: z.string().url().optional(),
+  source_url: HttpUrlSchema.optional(),
   summary: z.string().min(1),
 });
 
@@ -68,7 +73,7 @@ export const LegalPassDocumentSchema = z.object({
   id: z.string().min(1),
   kind: LegalPassDocumentKindSchema,
   title: z.string().min(1),
-  source_url: z.string().url().optional(),
+  source_url: HttpUrlSchema.optional(),
   content_ref: z.string().min(1).optional(),
   public_only: z.boolean().default(true),
 });
@@ -118,7 +123,7 @@ export const LegalPassHatResultSchema = z.object({
 export const LegalPassScannerSourceSchema = z.object({
   kind: z.enum(["geopass-plan", "fixture", "manual"]),
   mode: LegalPassModeSchema.default("plan-only"),
-  target_url: z.string().url().optional(),
+  target_url: HttpUrlSchema.optional(),
   shared_check_ids: z.array(z.string().min(1)).default([]),
 });
 
@@ -137,7 +142,7 @@ export const LegalPassReportSchema = z.object({
 
 export const LegalPassGeoPassAdapterSchema = z.object({
   source: z.literal("geopass"),
-  target_url: z.string().url(),
+  target_url: HttpUrlSchema,
   mode: LegalPassModeSchema.optional(),
   shared_check_ids: z.array(z.string().min(1)).default([]),
 });

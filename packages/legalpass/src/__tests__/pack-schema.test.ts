@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PackSchema } from "../pack-schema.js";
+import { PackSchema, TargetSchema } from "../pack-schema.js";
 import type { PackInput } from "../pack-schema.js";
 
 const VALID_PACK: PackInput = {
@@ -70,5 +70,11 @@ describe("PackSchema", () => {
   it("rejects an unknown jurisdiction code", () => {
     const bad = { ...VALID_PACK, jurisdictions: ["MARS" as never] };
     expect(() => PackSchema.parse(bad)).toThrow();
+  });
+
+  it("rejects non-http URL targets", () => {
+    expect(() =>
+      TargetSchema.parse({ kind: "url", url: "ftp://example.com/terms" }),
+    ).toThrow(/http/);
   });
 });
