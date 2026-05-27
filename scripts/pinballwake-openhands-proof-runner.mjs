@@ -13,6 +13,8 @@ const DEFAULT_SUBMITTER_BRANCH_PREFIX = "codex/openhands-submit";
 const DEFAULT_TITLE = "test(autopilot): prove OpenHands docs patch path";
 const DEFAULT_TIMEOUT_MS = 20 * 60 * 1000;
 const CODEROOM_APP_TOKEN_ENV_KEYS = ["CODEROOM_GITHUB_APP_TOKEN", "AUTONOMOUS_RUNNER_GITHUB_APP_TOKEN"];
+const DEFAULT_CODEROOM_GIT_USER_NAME = "UnClick Bot";
+const DEFAULT_CODEROOM_GIT_USER_EMAIL = "bot@unclick.world";
 
 export const DEFAULT_CODEROOM_PROTECTED_PATH_PATTERNS = [
   { reason: "protected_workflow_path", pattern: /^\.github\/workflows\//i },
@@ -93,6 +95,28 @@ function safeSlug(value, fallback = "job") {
     .replace(/^-+|-+$/g, "")
     .slice(0, 72);
   return slug || fallback;
+}
+
+function commandFailureReason(command, args = []) {
+  const parts = (args || []).map((arg) => String(arg || "").trim()).filter(Boolean);
+  let actionParts = [parts[0] || "command"];
+  if (command === "git" && actionParts[0] === "-c") {
+    actionParts = [parts[2] || "command"];
+  } else if (command === "git" && parts[0] === "apply" && parts.includes("--check")) {
+    actionParts = ["apply", "check"];
+  } else if (command === "git" && parts[0] === "diff" && parts.includes("--check")) {
+    actionParts = ["diff", "check"];
+  } else if (command === "git" && parts[0] === "config") {
+    actionParts = [parts[0], parts[1]].filter(Boolean);
+  } else if (command === "gh" && parts[0]) {
+    actionParts = [parts[0], parts[1]].filter(Boolean);
+  }
+  const action = actionParts.join("_");
+  return `${command}_${safeSlug(action, "command")}_failed`;
+}
+
+function scopedPushArgs(branch) {
+  return ["-c", "http.https://github.com/.extraheader=", "push", "-u", "origin", branch];
 }
 
 export function splitArgs(value) {
@@ -414,12 +438,16 @@ export function createDraftPrCoderoom({
         "No production data, secrets, deploy, billing, DNS, or auto-merge.",
       ].join("\n");
 
+    const identity = await configureCodeRoomGitIdentity({ cwd, env, runProcess });
+    if (!identity.ok) return identity;
+
     const commands = [
       ["git", ["checkout", "-b", branch]],
       ["git", ["apply", "--whitespace=nowarn", "-"], { stdin: patch }],
       ["git", ["add", ...normalizedChanged]],
       ["git", ["commit", "-m", title]],
-      ["git", ["push", "-u", "origin", branch]],
+      ["gh", ["auth", "setup-git"]],
+      ["git", scopedPushArgs(branch)],
       ["gh", ["pr", "create", "--draft", "--title", title, "--body", bodyText]],
     ];
 
@@ -429,7 +457,7 @@ export function createDraftPrCoderoom({
       if (!result.ok) {
         return {
           ok: false,
-          reason: `${command}_failed`,
+          reason: commandFailureReason(command, args),
           output: result.output,
         };
       }
@@ -527,6 +555,20 @@ async function cleanPreappliedOwnedPatch({
   return { ok: true };
 }
 
+async function configureCodeRoomGitIdentity({ cwd, env = process.env, runProcess = runProcessCommand } = {}) {
+  const name = String(env.CODEROOM_GIT_USER_NAME || DEFAULT_CODEROOM_GIT_USER_NAME).trim();
+  const email = String(env.CODEROOM_GIT_USER_EMAIL || DEFAULT_CODEROOM_GIT_USER_EMAIL).trim();
+  const nameResult = await runProcess("git", ["config", "user.name", name], { cwd, env });
+  if (!nameResult.ok) {
+    return { ok: false, reason: "git_config_user_name_failed", output: nameResult.output };
+  }
+  const emailResult = await runProcess("git", ["config", "user.email", email], { cwd, env });
+  if (!emailResult.ok) {
+    return { ok: false, reason: "git_config_user_email_failed", output: emailResult.output };
+  }
+  return { ok: true };
+}
+
 export function createSafeCodeRoomSubmitter({
   cwd = process.cwd(),
   env = process.env,
@@ -616,6 +658,9 @@ export function createSafeCodeRoomSubmitter({
         "Safety: protected paths rejected before branch creation; patch limited to owned files.",
       ].join("\n");
 
+    const identity = await configureCodeRoomGitIdentity({ cwd, env: submitterEnv, runProcess });
+    if (!identity.ok) return identity;
+
     const commands = [
       ["git", ["checkout", "-b", branch]],
       ["git", ["apply", "--check", "--whitespace=error", "-"], { stdin: patch }],
@@ -624,14 +669,14 @@ export function createSafeCodeRoomSubmitter({
       ["git", ["add", ...normalizedChanged]],
       ["git", ["commit", "-m", prTitle]],
       ["gh", ["auth", "setup-git"]],
-      ["git", ["push", "-u", "origin", branch]],
+      ["git", scopedPushArgs(branch)],
       ["gh", ["pr", "create", ...(draft ? ["--draft"] : []), "--title", prTitle, "--body", bodyText]],
     ];
 
     let prUrl = "";
     for (const [command, args, options = {}] of commands) {
       const result = await runProcess(command, args, { cwd, env: submitterEnv, ...options });
-      if (!result.ok) return { ok: false, reason: `${command}_failed`, output: result.output };
+      if (!result.ok) return { ok: false, reason: commandFailureReason(command, args), output: result.output };
       if (command === "gh" && args[1] === "create") prUrl = result.stdout.trim();
     }
 
