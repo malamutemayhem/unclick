@@ -189,6 +189,26 @@ async function assertRunOwnership(
   return rows.length > 0;
 }
 
+interface TestPassRunRow {
+  id: string;
+  pack_id: string | null;
+}
+
+async function getRunForActor(
+  supabaseUrl: string,
+  serviceKey: string,
+  runId: string,
+  actorUserId: string
+): Promise<TestPassRunRow | null> {
+  const r = await fetch(
+    `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${runId}&actor_user_id=eq.${actorUserId}&select=id,pack_id&limit=1`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+  );
+  if (!r.ok) return null;
+  const rows = (await r.json()) as TestPassRunRow[];
+  return rows[0] ?? null;
+}
+
 async function getRunWithItems(
   supabaseUrl: string,
   serviceKey: string,
@@ -242,9 +262,6 @@ async function performStartRun(
 ): Promise<{ status: number; payload: Record<string, unknown> }> {
   if (!body.target?.url) {
     return { status: 400, payload: { error: "target.url required" } };
-  }
-  if (!body.pack_slug && !body.pack_id) {
-    return { status: 400, payload: { error: "pack_slug or pack_id required" } };
   }
   const taskIdCheck = validateTaskId(body.task_id);
   if (taskIdCheck.error) return { status: 400, payload: { error: taskIdCheck.error } };
@@ -587,16 +604,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST" && action === "heal") {
     const body = req.body as { run_id?: string; pack_slug?: string };
     if (!body.run_id) return json(res, 400, { error: "run_id required" });
-    if (!body.pack_slug) return json(res, 400, { error: "pack_slug required" });
-    const owns = await assertRunOwnership(supabaseUrl, serviceKey, body.run_id, actorUserId);
-    if (!owns) return json(res, 404, { error: "Run not found" });
+    const run = await getRunForActor(supabaseUrl, serviceKey, body.run_id, actorUserId);
+    if (!run) return json(res, 404, { error: "Run not found" });
+    if (!run.pack_id) return json(res, 422, { error: "Run has no pack_id" });
+    const packRow = await getPackById(supabaseUrl, serviceKey, run.pack_id);
+    if (!packRow || !canUseTestPassPack(packRow, actorUserId)) {
+      return json(res, 404, { error: "Pack not found" });
+    }
+    if (body.pack_slug && packRow.slug !== body.pack_slug) {
+      return json(res, 400, { error: "pack_slug does not match run pack" });
+    }
 
-    const packPath = path.resolve(__dirname, `../packages/testpass/packs/${body.pack_slug}.yaml`);
     let pack;
     try {
-      pack = loadPackFromFile(packPath);
-    } catch {
-      return json(res, 422, { error: `Pack YAML not found on server for '${body.pack_slug}'` });
+      if (packRow.owner_user_id === null) {
+        const packPath = path.resolve(__dirname, `../packages/testpass/packs/${packRow.slug}.yaml`);
+        pack = loadPackFromFile(packPath);
+      } else {
+        pack = packFromJsonb(packRow.yaml);
+      }
+    } catch (err) {
+      return json(res, 422, { error: `Pack '${packRow.slug}' could not be loaded: ${(err as Error).message}` });
     }
 
     let healed = 0;
