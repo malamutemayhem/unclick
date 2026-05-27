@@ -125,10 +125,15 @@ jobs:
           HTTP_CODE: ${{ steps.testpass.outputs.http_code }}
         with:
           script: |
+            const { pathToFileURL } = require('node:url');
+            const helperUrl = pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/testpass-pr-comment.mjs`).href;
+            const {
+              buildTestPassPrCommentBody,
+              selectExistingTestPassComment,
+            } = await import(helperUrl);
+
             const runId = process.env.RUN_ID || '(unknown)';
             const status = process.env.STATUS || 'unknown';
-            const passRateRaw = parseFloat(process.env.PASS_RATE || '0');
-            const passRate = Number.isFinite(passRateRaw) ? passRateRaw : 0;
             const failCount = parseInt(process.env.FAIL_COUNT || '0', 10) || 0;
             const total = parseInt(process.env.TOTAL || '0', 10) || 0;
             const failureKind = process.env.FAILURE_KIND || 'unknown';
@@ -138,127 +143,52 @@ jobs:
             try { responseJson = JSON.parse(process.env.RESPONSE || '{}'); }
             catch { responseJson = {}; }
             const summary = responseJson.verdict_summary || {};
-            const failureDetails = Array.isArray(responseJson.failure_details)
-              ? responseJson.failure_details
-              : [];
             const authReason =
               typeof responseJson.auth_reason === 'string' ? responseJson.auth_reason : '';
             const howToFix =
               typeof responseJson.how_to_fix === 'string' ? responseJson.how_to_fix : '';
-            const isVercelAuth =
-              authReason.startsWith('vercel_') ||
-              howToFix.includes('VERCEL_AUTOMATION_BYPASS_SECRET');
 
-            const isInfra = failureKind && failureKind.startsWith('infra_');
+            const body = buildTestPassPrCommentBody({
+              runId,
+              status,
+              failCount,
+              total,
+              failureKind,
+              httpCode,
+              summary,
+              authReason,
+              howToFix,
+            });
 
-            // Infra path: short, friendly, "retry the workflow" tone. Don't
-            // dump a verdict table - the numbers are all zero and would just
-            // look like a real failure.
-            if (isInfra) {
-              const headlines = {
-                infra_auth:      ':warning: TestPass: infra issue (auth)',
-                infra_vercel_auth:
-                  ':warning: TestPass: infra issue (Vercel preview auth)',
-                infra_http:      ':warning: TestPass: infra issue (API error)',
-                infra_transport: ':warning: TestPass: infra issue (transport)',
-              };
-              const authReasonSuffix = authReason ? ` (${authReason})` : '';
-              const explanations = {
-                infra_vercel_auth:
-                  `The Vercel preview blocked the automation request${authReasonSuffix} ` +
-                  `(HTTP ${httpCode}). ` +
-                  (howToFix ||
-                    `Confirm \`VERCEL_AUTOMATION_BYPASS_SECRET\` is available to GitHub Actions ` +
-                    `and matches the Vercel Protection Bypass for Automation secret, then re-run the workflow.`),
-                infra_auth:
-                  isVercelAuth
-                    ? `The Vercel preview blocked the automation request${authReasonSuffix} ` +
-                      `(HTTP ${httpCode}). ` +
-                      (howToFix ||
-                        `Confirm \`VERCEL_AUTOMATION_BYPASS_SECRET\` is available to GitHub Actions ` +
-                        `and matches the Vercel Protection Bypass for Automation secret, then re-run the workflow.`)
-                    : `The TestPass API rejected the provided bearer token${authReasonSuffix} ` +
-                      `(HTTP ${httpCode}). ` +
-                      (howToFix ||
-                        `Use a valid Supabase JWT or uc_ UnClick API key in ` +
-                        `\`TESTPASS_TOKEN\`, then re-run the workflow.`),
-                infra_http:
-                  `The TestPass API returned HTTP ${httpCode}. This is a ` +
-                  `service-side issue, **not** a problem with this PR. ` +
-                  `Re-run the workflow in a few minutes.`,
-                infra_transport:
-                  `Could not reach the TestPass API (DNS, connection, or ` +
-                  `timeout). This is **not** a problem with this PR. ` +
-                  `Re-run the workflow.`,
-              };
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = selectExistingTestPassComment(comments);
 
-              const body = [
-                `### ${headlines[failureKind] || ':warning: TestPass: infra issue'}`,
-                ``,
-                explanations[failureKind] || `Infra failure: \`${failureKind}\` (HTTP ${httpCode}).`,
-                ``,
-                `_This comment is posted automatically because TestPass failed before it could check anything. The PR itself has not been evaluated._`,
-              ].join('\n');
-
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-              return;
+            if (existing) {
+              try {
+                await github.rest.issues.updateComment({
+                  owner,
+                  repo,
+                  comment_id: existing.id,
+                  body,
+                });
+                return;
+              } catch (error) {
+                console.warn(`Could not update existing TestPass comment ${existing.id}: ${error.message}`);
+              }
             }
 
-            // Product path: real verdicts, real table.
-            const statusEmoji =
-              status === 'complete' && failCount === 0 ? ':white_check_mark: PASS' :
-              status === 'failed' || failCount > 0    ? ':x: FAIL' :
-              status === 'running'                     ? ':hourglass_flowing_sand: RUNNING' :
-              ':grey_question: UNKNOWN';
-
-            const cell = (label, n) => `| ${label} | ${n ?? 0} |`;
-            const pct = (passRate * 100).toFixed(1);
-            const mdCell = (value) => String(value ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
-            const shownFailures = failureDetails.slice(0, 8);
-            const failureLines = failureDetails.slice(0, 8).flatMap((item) => [
-              `| \`${mdCell(item.check_id || 'unknown')}\` | ${mdCell(item.severity)} | ${mdCell(item.title)} |`,
-              item.on_fail_comment ? `|  |  | _${mdCell(item.on_fail_comment)}_ |` : null,
-            ]).filter(Boolean);
-            const missingFailureDetails = failCount > 0 && failureLines.length === 0;
-
-            const body = [
-              `### TestPass: ${statusEmoji}`,
-              ``,
-              `**Run:** \`${runId}\``,
-              `**Status:** \`${status}\``,
-              `**Pass rate:** ${pct}%`,
-              ``,
-              `| Verdict | Count |`,
-              `| --- | ---: |`,
-              cell(':white_check_mark: check', summary.check),
-              cell(':x: fail', summary.fail),
-              cell(':grey_question: other', summary.other),
-              cell(':heavy_minus_sign: n/a', summary.na),
-              cell(':hourglass: pending', summary.pending),
-              cell('**total**', total),
-              ...(missingFailureDetails ? [
-                ``,
-                `**Why this is thin:** the TestPass API response did not include per-check failure details. That usually means the live API has not deployed the diagnostic payload yet, so use the run id above for database lookup or re-run after deployment.`,
-              ] : []),
-              ...(failureLines.length > 0 ? [
-                ``,
-                `**Failed checks shown:** ${shownFailures.length}`,
-                ``,
-                `| Check | Severity | What failed |`,
-                `| --- | --- | --- |`,
-                ...failureLines,
-              ] : []),
-            ].join('\n');
-
             await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
+              owner,
+              repo,
+              issue_number,
               body,
             });
 

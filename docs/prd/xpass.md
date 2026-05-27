@@ -6,7 +6,7 @@
 
 ## Why this exists
 
-The Pass family is growing quickly. TestPass, UXPass, SEOPass, CopyPass, LegalPass, SecurityPass, SlopPass, FlowPass, GEOPass, RotatePass, and WakePass each need their own scope contract, but users should not have to remember which Pass to call for every situation.
+The Pass family is growing quickly. TestPass, UXPass, SEOPass, CopyPass, LegalPass, SecurityPass, SlopPass, CommonSensePass, FlowPass, GEOPass, RotatePass, WakePass, and EnterprisePass each need their own scope contract, but users should not have to remember which Pass to call for every situation.
 
 XPass is the umbrella/action name for orchestration across the Pass family.
 
@@ -70,29 +70,29 @@ XPass does not own the finding logic for each Pass. It owns orchestration and pr
 
 ## Current family map
 
-Package-level exposed or dogfoodable:
+Live gates or public dogfood:
 
 - TestPass
-- CommonSensePass
 - UXPass
+- CommonSensePass
+- WakePass
+
+Package-ready or merged product tools:
+
+- SlopPass
+- SecurityPass
 - SEOPass
 - CopyPass
 - LegalPass
-- SecurityPass
-- SlopPass
 - FlowPass
 - GEOPass
 
-Scoped, internal, or receipt-only:
+Boundary or guidance:
 
 - RotatePass
 - EnterprisePass
-- WakePass
 
-Public dogfood still stays honest: a package or protocol can exist without
-being marked as a live public proof. XPass receipts must say when a pass is
-available only as package-level proof, a plan-only pack, a scoped internal gate,
-or a missing recurring receipt.
+Public dogfood receipts stay conservative: a Pass can be package-ready and useful in XPass routing while the public dogfood result remains pending until a recurring receipt has actually run.
 
 Archived or parked:
 

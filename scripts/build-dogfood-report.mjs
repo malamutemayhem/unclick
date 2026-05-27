@@ -20,7 +20,7 @@ const statusLegend = {
   passing: "A live check ran and returned a passing result.",
   failing: "A live check ran and returned a failing result or could not reach its API.",
   blocked: "The check could not run because an action is needed, such as a missing credential or scope gate.",
-  pending: "The check is planned or scaffolded, but live proof is not available yet.",
+  pending: "The check is planned, package-ready, or scaffolded, but live proof is not available yet.",
 };
 
 const proofPolicy =
@@ -37,15 +37,6 @@ const xpassIndex = [
     nextStep: "Keep it as the default proof gate while the rest of XPass catches up.",
   },
   {
-    id: "commonsensepass",
-    name: "CommonSensePass",
-    stage: "worker_sanity_gate",
-    label: "Worker sanity gate",
-    automation: "Worker claim guard, MCP protocol surface, and public dogfood receipt",
-    mentionProfile: "High mention volume around no-work, done, healthy, and merge-ready claims.",
-    nextStep: "Keep the receipt in the main dogfood board and expand it as new worker-claim risks appear.",
-  },
-  {
     id: "uxpass",
     name: "UXPass",
     stage: "live_dogfood",
@@ -57,83 +48,92 @@ const xpassIndex = [
   {
     id: "securitypass",
     name: "SecurityPass",
-    stage: "scope_verified_runner",
-    label: "Scope-verified runner",
-    automation: "Deterministic package and MCP surface; public recurring probes remain gated",
+    stage: "scope_gated",
+    label: "Scope-gated",
+    automation: "Blocked public receipt until safe recurring proof exists",
     mentionProfile: "Low mention volume by design because unsafe probes stay disabled.",
     nextStep: "Add a deny-by-default recurring runner proof before live security checks.",
   },
   {
+    id: "sloppass",
+    name: "SlopPass",
+    stage: "package_ready",
+    label: "Package-ready quality gate",
+    automation: "Package runner, verdict pack, dogfood tests, XPass routing",
+    mentionProfile: "Medium mention volume because historical QualityPass references now route here.",
+    nextStep: "Add a recurring SlopPass public receipt before marking it live dogfood.",
+  },
+  {
     id: "seopass",
     name: "SEOPass",
-    stage: "deterministic_pack",
-    label: "Deterministic pack",
-    automation: "Package-level runner and proof tests; public recurring receipt not yet wired",
-    mentionProfile: "Medium mention volume when public/search surfaces change.",
-    nextStep: "Wire the recurring metadata receipt into public dogfood.",
+    stage: "package_ready",
+    label: "Package-ready",
+    automation: "Package runner, crawler-policy checks, MCP parity, dogfood scoring",
+    mentionProfile: "Medium mention volume around metadata, robots, sitemap, and public page changes.",
+    nextStep: "Add a recurring metadata receipt before marking it live dogfood.",
   },
   {
     id: "copypass",
     name: "CopyPass",
-    stage: "deterministic_pack",
-    label: "Deterministic pack",
-    automation: "Package-level copy review and MCP surface; public recurring receipt not yet wired",
-    mentionProfile: "Medium mention volume for public copy, docs, and exact-source claims.",
-    nextStep: "Wire the recurring copy-quality receipt into public dogfood.",
+    stage: "package_ready",
+    label: "Package-ready",
+    automation: "Deterministic copy review, CopyRoom boundary, dogfood tests",
+    mentionProfile: "Medium mention volume for public wording, claims, docs, and source-copy risk.",
+    nextStep: "Add a recurring CopyPass receipt with CopyRoom/source-copy proof.",
   },
   {
     id: "legalpass",
     name: "LegalPass",
-    stage: "deterministic_pack",
-    label: "Deterministic pack",
-    automation: "Package-level issue spotting and MCP surface; public recurring receipt not yet wired",
-    mentionProfile: "Medium mention volume for terms, privacy, billing, and public claim changes.",
-    nextStep: "Wire the recurring policy/claims receipt into public dogfood.",
+    stage: "package_ready",
+    label: "Package-ready guidance",
+    automation: "Legal guidance tools, pack schema, public proof boundaries",
+    mentionProfile: "Medium mention volume when public claims, policy language, or disclaimers change.",
+    nextStep: "Add a recurring LegalPass receipt that stays guidance-only, not legal certification.",
   },
   {
-    id: "sloppass",
-    name: "SlopPass",
-    stage: "deterministic_pack",
-    label: "Code-quality pack",
-    automation: "Package-level source and diff review; public recurring receipt not yet wired",
-    mentionProfile: "Medium mention volume for AI-generated or code-quality-sensitive changes.",
-    nextStep: "Wire a SlopPass diff receipt into XPass PR proof.",
+    id: "commonsensepass",
+    name: "CommonSensePass",
+    stage: "live_gate",
+    label: "Worker sanity gate",
+    automation: "False-DONE and proof sanity checks for worker claims and queues",
+    mentionProfile: "High mention volume around claims, proof receipts, merge-ready language, and queue health.",
+    nextStep: "Publish the recurring proof receipt for queue and worker-claim sanity.",
   },
   {
     id: "flowpass",
     name: "FlowPass",
-    stage: "plan_only_package",
-    label: "Plan-only package",
-    automation: "Package-level journey schema and fixtures; live route execution not yet wired",
-    mentionProfile: "Low mention volume until journey receipts can run on deployed flows.",
-    nextStep: "Connect the smallest login-free journey receipt.",
+    stage: "package_ready",
+    label: "Package-ready",
+    automation: "Journey map checks and end-to-end flow fixtures",
+    mentionProfile: "Medium mention volume for onboarding, checkout, handoff, forms, and success states.",
+    nextStep: "Add a recurring journey receipt with one public flow target.",
   },
   {
     id: "geopass",
     name: "GEOPass",
-    stage: "plan_only_package",
-    label: "Plan-only package",
-    automation: "Package-level generative-engine readiness contract; live crawler not yet wired",
-    mentionProfile: "Low mention volume until public AI-readiness scans are scheduled.",
-    nextStep: "Connect GEOPass scanner evidence to SEOPass and public dogfood.",
+    stage: "package_ready",
+    label: "Package-ready",
+    automation: "AI answer-engine readiness scanner and metadata evidence",
+    mentionProfile: "Medium mention volume for llms.txt, schema, bots, and answer-engine readiness.",
+    nextStep: "Add a recurring answer-engine readiness receipt.",
   },
   {
     id: "rotatepass",
     name: "RotatePass",
-    stage: "metadata_contract",
-    label: "Credential metadata contract",
-    automation: "Docs and redaction guard protect credential-health language",
-    mentionProfile: "Low mention volume unless credentials, tokens, or rotation metadata change.",
-    nextStep: "Add safe metadata-only receipt without exposing secret values.",
+    stage: "boundary",
+    label: "Boundary guard",
+    automation: "Credential lifecycle docs and redaction guard",
+    mentionProfile: "Low mention volume because live credential rotation stays behind explicit scope.",
+    nextStep: "Add a safe local credential lifecycle receipt without touching real secrets.",
   },
   {
     id: "wakepass",
     name: "WakePass",
-    stage: "reliability_gate",
-    label: "Reliability gate",
-    automation: "PinballWake and dispatch ACK checks feed action-needed handoffs",
-    mentionProfile: "High mention volume when worker ACKs, dispatches, or stale handoffs break.",
-    nextStep: "Publish a public-safe WakePass receipt for stale-ACK cleanup.",
+    stage: "live_gate",
+    label: "Wake and stale-work gate",
+    automation: "Dispatch, stale ACK, heartbeat, and reclaim visibility",
+    mentionProfile: "High mention volume when scheduled work stalls or needs a fresh owner.",
+    nextStep: "Expose a public-safe stale-work receipt for dogfood runs.",
   },
   {
     id: "enterprisepass",
@@ -164,6 +164,24 @@ function pendingResult(id, name, summary, evidence, details = {}) {
   return result(id, name, "pending", summary, evidence, {
     reasonCode: "planned_runner",
     ...details,
+  });
+}
+
+function packageReadyResult(id, name, summary, evidence, targetUrl, nextProof) {
+  return pendingResult(id, name, summary, evidence, {
+    reasonCode: "package_ready_needs_scheduled_receipt",
+    proof: { kind: "package_ready", targetUrl },
+    targetUrl,
+    nextProof,
+  });
+}
+
+function boundaryResult(id, name, summary, evidence, targetUrl, nextProof) {
+  return pendingResult(id, name, summary, evidence, {
+    reasonCode: "boundary_needs_runner",
+    proof: { kind: "boundary", targetUrl },
+    targetUrl,
+    nextProof,
   });
 }
 
@@ -202,11 +220,15 @@ async function postJson(url, token, body) {
 async function runTestPass() {
   const token = process.env.DOGFOOD_TESTPASS_TOKEN || process.env.TESTPASS_TOKEN || "";
   if (dryRun) {
-    return passResult(
+    return pendingResult(
       "testpass",
       "TestPass",
       "Dry-run receipt builder validated the TestPass result shape.",
       "Dry run only. Live workflow calls /api/testpass-run with source=scheduled.",
+      {
+        reasonCode: "dry_run_only",
+        nextProof: "Run the dogfood report without --dry-run and with a TestPass token before marking this passing.",
+      },
     );
   }
   if (!token) {
@@ -284,11 +306,15 @@ async function runTestPass() {
 async function runUXPass() {
   const token = process.env.DOGFOOD_UXPASS_TOKEN || process.env.UXPASS_TOKEN || process.env.CRON_SECRET || "";
   if (dryRun) {
-    return passResult(
+    return pendingResult(
       "uxpass",
       "UXPass",
       "Dry-run receipt builder validated the UXPass result shape.",
       "Dry run only. Live workflow calls /api/uxpass-run against the public URL.",
+      {
+        reasonCode: "dry_run_only",
+        nextProof: "Run the dogfood report without --dry-run and with a UXPass token before marking this passing.",
+      },
     );
   }
   if (!token) {
@@ -358,67 +384,6 @@ async function runUXPass() {
   }
 }
 
-async function runCommonSensePass() {
-  const receiptPath = "public/dogfood/commonsensepass-latest.json";
-  let receipt;
-  try {
-    receipt = JSON.parse(await fs.readFile(receiptPath, "utf8"));
-  } catch {
-    return pendingResult(
-      "commonsensepass",
-      "CommonSensePass",
-      "CommonSensePass package exists, but the public dogfood receipt is missing.",
-      `Expected receipt at ${receiptPath}.`,
-      {
-        nextProof: "Run scripts/build-commonsensepass-dogfood.mjs and publish the receipt.",
-      },
-    );
-  }
-
-  const summary = receipt.summary || {};
-  const total = Number(summary.total || 0);
-  const failing = Number(summary.failing || 0);
-  const passing = Number(summary.passing || 0);
-  const generated = typeof receipt.generatedAt === "string" ? receipt.generatedAt : generatedAt;
-
-  if (receipt.status === "passing" && failing === 0 && total > 0) {
-    return passResult(
-      "commonsensepass",
-      "CommonSensePass",
-      `CommonSensePass dogfood passed ${passing}/${total} worker sanity scenarios.`,
-      "Public receipt proves false quiet, no-work, duplicate wake, done-without-proof, empty-queue, and specialist-route scenarios.",
-      {
-        checkedAt: generated,
-        proof: {
-          kind: "commonsensepass_dogfood_receipt",
-          targetUrl: "/dogfood/commonsensepass-latest.json",
-          total,
-          passing,
-          failing,
-        },
-        nextProof: "Keep adding scenarios as new worker-claim risks appear.",
-      },
-    );
-  }
-
-  return failureResult(
-    "commonsensepass",
-    "CommonSensePass",
-    `CommonSensePass dogfood receipt is ${receipt.status || "unknown"} with ${failing}/${total} failing scenarios.`,
-    `See ${receiptPath} for the failing scenario list.`,
-    {
-      checkedAt: generated,
-      proof: {
-        kind: "commonsensepass_dogfood_receipt",
-        targetUrl: "/dogfood/commonsensepass-latest.json",
-        total,
-        passing,
-        failing,
-      },
-    },
-  );
-}
-
 function buildTrend(results) {
   const today = generatedAt.slice(0, 10);
   return [{
@@ -456,74 +421,89 @@ function buildLastActionableFailure(results) {
 
 const results = [
   await runTestPass(),
-  await runCommonSensePass(),
   await runUXPass(),
   blockedResult(
     "securitypass",
     "SecurityPass",
-    "SecurityPass has a scope-verified runner, but public recurring probes remain blocked until a safe schedule exists.",
-    "The deterministic package and MCP surface exist; the public dogfood receipt does not run security probes yet.",
-    "SecurityPass public dogfood is intentionally blocked until a deny-by-default recurring proof lands.",
+    "SecurityPass is blocked until the recurring runner proof is ready.",
+    "SecurityPass remains scope-gated; the public dogfood receipt does not run security probes yet.",
+    "SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
     {
       reasonCode: "scope_gate",
       nextProof: "Land a safe recurring SecurityPass runner receipt before marking this passing.",
     },
   ),
-  pendingResult(
-    "seopass",
-    "SEOPass",
-    "Deterministic SEOPass package proof exists, but the public dogfood board has no recurring SEO receipt yet.",
-    "SEOPass should feed public search and metadata evidence through the shared GEOPass scanner contract.",
-    { nextProof: "Wire a recurring SEOPass receipt before moving this out of pending." },
-  ),
-  pendingResult(
-    "copypass",
-    "CopyPass",
-    "Deterministic CopyPass package proof exists, but the public dogfood board has no recurring copy receipt yet.",
-    "CopyPass should check public wording, docs, and exact-source copy claims before XPass marks copy surfaces covered.",
-    { nextProof: "Wire a recurring CopyPass receipt before moving this out of pending." },
-  ),
-  pendingResult(
-    "legalpass",
-    "LegalPass",
-    "Deterministic LegalPass package proof exists, but the public dogfood board has no recurring policy/claims receipt yet.",
-    "LegalPass should stay guidance-only and call out what was not reviewed.",
-    { nextProof: "Wire a recurring LegalPass receipt before moving this out of pending." },
-  ),
-  pendingResult(
+  packageReadyResult(
     "sloppass",
     "SlopPass",
-    "Deterministic SlopPass package proof exists, but the public dogfood board has no recurring diff-quality receipt yet.",
-    "SlopPass can inspect provided source or unified diffs without executing code or making paid model calls.",
-    { nextProof: "Wire a SlopPass diff receipt into XPass PR proof." },
+    "Package-backed quality review exists, but the public dogfood receipt has not run it yet.",
+    "SlopPass has a package runner, verdict pack, and dogfood tests; public status stays pending until a scheduled receipt exists.",
+    "packages/sloppass",
+    "Add a recurring SlopPass public receipt before marking this passing.",
   ),
-  pendingResult(
+  packageReadyResult(
+    "seopass",
+    "SEOPass",
+    "Package-backed search and metadata review exists, but the public dogfood receipt has not run it yet.",
+    "SEOPass has crawler-policy, robots, sitemap, canonical, package, and MCP parity checks; public status stays pending until scheduled proof exists.",
+    "packages/seopass",
+    "Add a recurring SEOPass receipt before moving this out of pending.",
+  ),
+  packageReadyResult(
+    "copypass",
+    "CopyPass",
+    "Package-backed copy quality review exists, but the public dogfood receipt has not run it yet.",
+    "CopyPass has deterministic review tooling and CopyRoom boundary checks; public status stays pending until scheduled proof exists.",
+    "packages/copypass",
+    "Add a recurring CopyPass receipt with CopyRoom/source-copy proof.",
+  ),
+  packageReadyResult(
+    "legalpass",
+    "LegalPass",
+    "Package-backed policy and claims guidance exists, but the public dogfood receipt has not run it yet.",
+    "LegalPass has guidance tooling, pack schema, and public proof boundaries; public status stays pending until scheduled proof exists.",
+    "packages/legalpass",
+    "Add a recurring LegalPass receipt that stays guidance-only, not legal certification.",
+  ),
+  packageReadyResult(
+    "commonsensepass",
+    "CommonSensePass",
+    "Worker sanity checks exist, but the public dogfood receipt has not run them yet.",
+    "CommonSensePass is routed for proof, queue, claim, false-DONE, and merge-ready sanity; public status stays pending until scheduled proof exists.",
+    "packages/commonsensepass",
+    "Add a recurring CommonSensePass proof receipt for worker claims and queue health.",
+  ),
+  packageReadyResult(
     "flowpass",
     "FlowPass",
-    "FlowPass is a plan-only package; live journey receipts are not wired yet.",
-    "FlowPass should prove important user journeys end-to-end once safe target routes are declared.",
-    { nextProof: "Add one login-free journey receipt before moving FlowPass out of pending." },
+    "Package-backed journey checks exist, but the public dogfood receipt has not run them yet.",
+    "FlowPass has journey fixtures for onboarding, checkout, handoff, forms, and success/failure states; public status stays pending until scheduled proof exists.",
+    "packages/flowpass",
+    "Add a recurring FlowPass receipt for one public journey target.",
   ),
-  pendingResult(
+  packageReadyResult(
     "geopass",
     "GEOPass",
-    "GEOPass is a plan-only package; live generative-engine readiness scans are not wired yet.",
-    "GEOPass owns the shared scanner contract that SEOPass and public AI-readiness checks can consume.",
-    { nextProof: "Connect GEOPass scanner evidence to public dogfood." },
+    "Package-backed answer-engine readiness checks exist, but the public dogfood receipt has not run them yet.",
+    "GEOPass has AI answer-engine readiness scanning for llms.txt, schema, bots, and metadata; public status stays pending until scheduled proof exists.",
+    "packages/geopass",
+    "Add a recurring GEOPass answer-engine readiness receipt.",
   ),
-  pendingResult(
+  boundaryResult(
     "rotatepass",
     "RotatePass",
-    "RotatePass has a safe metadata contract, but no public credential-health receipt is published yet.",
-    "RotatePass must not expose secret values; it should only report metadata such as owner, age, and verification target.",
-    { nextProof: "Add a metadata-only RotatePass receipt with redaction proof." },
+    "Credential lifecycle boundaries are documented and guarded, but no live credential rotation runs in public dogfood.",
+    "RotatePass stays boundary-only until a safe local receipt can prove redaction and lifecycle behavior without touching real secrets.",
+    "docs/rotatepass-local-phase0.md",
+    "Add a safe local RotatePass receipt that proves lifecycle handling without exposing secrets.",
   ),
-  pendingResult(
+  boundaryResult(
     "wakepass",
     "WakePass",
-    "WakePass reliability checks exist internally, but no public-safe stale-ACK receipt is published yet.",
-    "WakePass should surface action-needed handoffs, missed ACKs, and stale dispatch cleanup without creating noise.",
-    { nextProof: "Publish a public-safe WakePass receipt for stale ACK cleanup." },
+    "Wake and stale-work visibility exists, but the public dogfood receipt has not run a public-safe stale-work check yet.",
+    "WakePass powers dispatch, stale ACK, heartbeat, and reclaim visibility; public status stays pending until a public-safe receipt exists.",
+    "docs/prd/wakepass.md",
+    "Add a public-safe WakePass receipt for stale scheduled work and reclaim visibility.",
   ),
   pendingResult(
     "enterprisepass",

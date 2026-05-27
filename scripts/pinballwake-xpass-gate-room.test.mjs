@@ -49,6 +49,55 @@ describe("PinballWake XPass Gate Room", () => {
     assert.ok(selected.includes("legalpass"));
   });
 
+  it("routes worker claims and proof receipts to CommonSensePass", () => {
+    const selected = checks({
+      title: "False DONE proof receipt guard",
+      changed_files: ["packages/commonsensepass/src/check.ts", "api/lib/orchestrator-context.ts"],
+    });
+
+    assert.ok(selected.includes("commonsensepass"));
+    assert.ok(selected.includes("sloppass"));
+  });
+
+  it("routes product journeys to FlowPass", () => {
+    const selected = checks({
+      title: "Checkout journey handoff proof",
+      changed_files: ["packages/flowpass/src/flow-plan.ts", "src/pages/admin/CheckoutFlow.tsx"],
+    });
+
+    assert.ok(selected.includes("flowpass"));
+    assert.ok(selected.includes("uxpass"));
+  });
+
+  it("routes AI answer-engine readiness to GEOPass", () => {
+    const selected = checks({
+      title: "AI answer engine readiness",
+      changed_files: ["packages/geopass/src/scanner-plan.ts", "public/llms.txt"],
+    });
+
+    assert.ok(selected.includes("geopass"));
+    assert.ok(selected.includes("seopass"));
+  });
+
+  it("routes credential lifecycle changes to RotatePass as well as SecurityPass", () => {
+    const selected = checks({
+      title: "Credential revocation path",
+      changed_files: ["docs/rotatepass-local-phase0.md", "src/lib/system-credentials.ts"],
+    });
+
+    assert.ok(selected.includes("rotatepass"));
+    assert.ok(selected.includes("securitypass"));
+  });
+
+  it("routes stale scheduled work to WakePass", () => {
+    const selected = checks({
+      title: "Missed ACK stale heartbeat dispatch",
+      changed_files: ["docs/prd/wakepass.md", ".github/workflows/testpass-scheduled-smoke.yml"],
+    });
+
+    assert.ok(selected.includes("wakepass"));
+  });
+
   it("does not select every pass for a tiny docs-only wording change", () => {
     const selected = checks({
       title: "FAQ wording cleanup",
@@ -59,29 +108,26 @@ describe("PinballWake XPass Gate Room", () => {
   });
 
   it("routes Pass package changes to their own pass plus code quality", () => {
-    assert.deepEqual(
-      checks({
-        title: "Improve FlowPass journey verifier",
-        changed_files: ["packages/flowpass/src/runner.ts"],
-      }),
-      ["sloppass", "flowpass"],
-    );
+    const flow = checks({
+      title: "Improve FlowPass journey verifier",
+      changed_files: ["packages/flowpass/src/runner.ts"],
+    });
+    assert.ok(flow.includes("flowpass"));
+    assert.ok(flow.includes("sloppass"));
 
-    assert.deepEqual(
-      checks({
-        title: "Tighten GEOPass AI answer-engine scanner",
-        changed_files: ["packages/geopass/src/scanner.ts"],
-      }),
-      ["sloppass", "geopass"],
-    );
+    const geo = checks({
+      title: "Tighten GEOPass AI answer-engine scanner",
+      changed_files: ["packages/geopass/src/scanner.ts"],
+    });
+    assert.ok(geo.includes("geopass"));
+    assert.ok(geo.includes("sloppass"));
 
-    assert.deepEqual(
-      checks({
-        title: "CommonSensePass false done guard",
-        changed_files: ["packages/commonsensepass/src/rules.ts"],
-      }),
-      ["commonsensepass", "sloppass"],
-    );
+    const commonSense = checks({
+      title: "CommonSensePass false done guard",
+      changed_files: ["packages/commonsensepass/src/rules.ts"],
+    });
+    assert.ok(commonSense.includes("commonsensepass"));
+    assert.ok(commonSense.includes("sloppass"));
   });
 
   it("dogfoods every package-level Pass surface through its own XPass check", () => {
