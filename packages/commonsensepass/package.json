@@ -40,6 +40,7 @@
     }
   },
   "scripts": {
+    "prepare": "npm run build",
     "build": "tsc --project tsconfig.json",
     "dogfood": "npm run build && node ../../scripts/build-commonsensepass-dogfood.mjs",
     "test": "vitest run",
