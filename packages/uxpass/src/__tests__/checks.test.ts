@@ -192,8 +192,18 @@ const badVisualAudit: VisualAuditSnapshot = {
       color: "rgb(120, 120, 120)",
       backgroundColor: "rgb(120, 120, 120)",
     },
-    ...["HIGH", "ACTIVE", "NEEDS PROOF", "BRIEF", "BUILD"].map((label, index) => {
+    ...["HIGH", "ACTIVE", "NEEDS PROOF", "BRIEF", "BUILD", "REVIEW", "SHIP", "STALE"].map((label, index) => {
       const left = 8 + index * 55;
+      const backgrounds = [
+        "rgb(220, 38, 38)",
+        "rgb(234, 88, 12)",
+        "rgb(202, 138, 4)",
+        "rgb(22, 163, 74)",
+        "rgb(8, 145, 178)",
+        "rgb(37, 99, 235)",
+        "rgb(124, 58, 237)",
+        "rgb(219, 39, 119)",
+      ];
       return {
         selector: `.badge-${index}`,
         tagName: "span",
@@ -206,8 +216,8 @@ const badVisualAudit: VisualAuditSnapshot = {
         clientWidth: 48,
         clientHeight: 20,
         fontSize: 12,
-        color: "rgb(120, 120, 120)",
-        backgroundColor: "rgb(120, 120, 120)",
+        color: "rgb(255, 255, 255)",
+        backgroundColor: backgrounds[index],
       };
     }),
     ...denseTextElements,
@@ -348,6 +358,8 @@ describe("evaluateAllChecks - failure paths", () => {
     expect(evaluations.find((e) => e.check_id === "VD-004")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "VD-005")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "VD-006")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "VD-007")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "VD-008")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "MOB-002")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "A11Y-004")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "CL-001")?.verdict).toBe("fail");

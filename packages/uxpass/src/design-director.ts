@@ -234,6 +234,19 @@ export function buildVisualDesignDirectorReport(
       summary,
     ),
     directive(
+      "visual-system-discipline",
+      "medium",
+      "Tighten type and colour discipline",
+      "A page can avoid hard layout bugs and still feel generic or noisy when typography and colour are not governed by a clear system.",
+      [
+        "Define explicit type roles for page title, section label, row title, metadata, and controls.",
+        "Limit saturated colour to named semantic states and one primary accent.",
+        "Replace decorative colour variety with spacing, weight, and layout hierarchy.",
+      ],
+      ["flat_type_scale", "palette_indiscipline"],
+      summary,
+    ),
+    directive(
       "interaction-targets",
       "high",
       "Make controls comfortable to hit",

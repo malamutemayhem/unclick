@@ -10,7 +10,9 @@ export type VisualAuditIssueKind =
   | "dense_first_screen"
   | "weak_visual_hierarchy"
   | "nested_panel_clutter"
-  | "unclear_primary_action";
+  | "unclear_primary_action"
+  | "flat_type_scale"
+  | "palette_indiscipline";
 
 export interface VisualRect {
   x: number;
@@ -93,6 +95,8 @@ const ALL_KINDS: VisualAuditIssueKind[] = [
   "weak_visual_hierarchy",
   "nested_panel_clutter",
   "unclear_primary_action",
+  "flat_type_scale",
+  "palette_indiscipline",
 ];
 
 const ALL_SEVERITIES: VisualAuditSeverity[] = ["critical", "high", "medium", "low"];
@@ -214,6 +218,12 @@ interface RgbColor {
   a: number;
 }
 
+interface HslColor {
+  h: number;
+  s: number;
+  l: number;
+}
+
 function parseColor(value: string | undefined): RgbColor | null {
   if (!value) return null;
   const trimmed = value.trim();
@@ -243,6 +253,40 @@ function parseColor(value: string | undefined): RgbColor | null {
     };
   }
   return null;
+}
+
+function rgbToHsl(color: RgbColor): HslColor {
+  const r = color.r / 255;
+  const g = color.g / 255;
+  const b = color.b / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  const l = (max + min) / 2;
+  const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  if (delta !== 0) {
+    if (max === r) h = ((g - b) / delta) % 6;
+    else if (max === g) h = (b - r) / delta + 2;
+    else h = (r - g) / delta + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h, s, l };
+}
+
+function nonNeutralColor(value: string | undefined): { key: string; hueBucket: number } | null {
+  const parsed = parseColor(value);
+  if (!parsed || parsed.a < 0.95) return null;
+  const hsl = rgbToHsl(parsed);
+  if (hsl.s < 0.18 || hsl.l < 0.08 || hsl.l > 0.94) return null;
+  const hueBucket = Math.floor(hsl.h / 30) * 30;
+  const saturationBand = Math.round((hsl.s * 100) / 10) * 10;
+  const lightnessBand = Math.round((hsl.l * 100) / 10) * 10;
+  return {
+    key: `${hueBucket}:${saturationBand}:${lightnessBand}`,
+    hueBucket,
+  };
 }
 
 function channelToLinear(channel: number): number {
@@ -436,6 +480,30 @@ export function evaluateVisualAuditSnapshot(snapshot: VisualAuditSnapshot): Visu
   }
 
   if (firstScreenText.length >= 8) {
+    const fontSizes = firstScreenText.map((element) => Math.round(element.fontSize ?? 14));
+    const distinctSizes = new Set(fontSizes);
+    const maxFontSize = Math.max(...fontSizes);
+    const medianFontSize = median(fontSizes);
+    const typeRatio = medianFontSize > 0 ? maxFontSize / medianFontSize : 1;
+    if (distinctSizes.size <= 2 && (maxFontSize < 20 || typeRatio < 1.25)) {
+      pushIssue(issues, {
+        kind: "flat_type_scale",
+        severity: "medium",
+        title: "First viewport uses a flat type scale",
+        description: `The first screen has ${firstScreenText.length} text fragments but only ${distinctSizes.size} distinct text sizes.`,
+        evidence: {
+          text_fragment_count: firstScreenText.length,
+          distinct_font_sizes: Array.from(distinctSizes).sort((a, b) => a - b),
+          max_font_size: maxFontSize,
+          median_font_size: medianFontSize,
+          type_ratio: Math.round(typeRatio * 100) / 100,
+        },
+        remediation: "Introduce a deliberate type scale with clear page, section, row, metadata, and control roles instead of relying on tiny size differences.",
+      });
+    }
+  }
+
+  if (firstScreenText.length >= 8) {
     const fontSizes = firstScreenText.map((element) => element.fontSize ?? 14);
     const maxFontSize = Math.max(...fontSizes);
     const medianFontSize = median(fontSizes);
@@ -463,6 +531,44 @@ export function evaluateVisualAuditSnapshot(snapshot: VisualAuditSnapshot): Visu
         remediation: "Add a clear page heading, stronger section labels, or a dominant primary work area before adding more inline detail.",
       });
     }
+  }
+
+  const firstViewportElements = elements.filter((element) => isFirstViewport(element, snapshot));
+  const colorTokens = new Map<string, number>();
+  const hueBuckets = new Set<number>();
+  let coloredBadgeCount = 0;
+  for (const element of firstViewportElements) {
+    const tokens = [nonNeutralColor(element.color), nonNeutralColor(element.backgroundColor)].filter(
+      (token): token is { key: string; hueBucket: number } => token !== null,
+    );
+    if (tokens.length === 0) continue;
+    if (isBadgeLike(element)) coloredBadgeCount++;
+    for (const token of tokens) {
+      colorTokens.set(token.key, (colorTokens.get(token.key) ?? 0) + 1);
+      hueBuckets.add(token.hueBucket);
+    }
+  }
+  if (
+    colorTokens.size >= 10
+    || (coloredBadgeCount >= 8 && hueBuckets.size >= 3)
+    || (firstViewportElements.length >= 20 && hueBuckets.size >= 5)
+  ) {
+    pushIssue(issues, {
+      kind: "palette_indiscipline",
+      severity: "medium",
+      title: "First viewport has an undisciplined colour system",
+      description: `The first screen uses ${colorTokens.size} saturated colour tokens across ${hueBuckets.size} hue families.`,
+      evidence: {
+        saturated_color_token_count: colorTokens.size,
+        hue_family_count: hueBuckets.size,
+        colored_badge_count: coloredBadgeCount,
+        top_tokens: Array.from(colorTokens.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10)
+          .map(([token, count]) => ({ token, count })),
+      },
+      remediation: "Limit status colours to named semantic roles, use neutral surfaces for structure, and reserve accent colour for the primary action or true exceptions.",
+    });
   }
 
   const panels = elements.filter((element) => isFirstViewport(element, snapshot) && isPanelLike(element));

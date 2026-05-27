@@ -143,6 +143,42 @@ describe("buildVisualDesignDirectorReport", () => {
     expect(report.guardrails.join(" ")).toMatch(/row expansion|side panel/i);
   });
 
+  it("directs type and colour system repair when the visual system is noisy", () => {
+    const report = buildVisualDesignDirectorReport({
+      ...formSnapshot,
+      elements: Array.from({ length: 10 }, (_, index) => ({
+        selector: `.chip-${index}`,
+        tagName: "span",
+        className: "rounded badge",
+        text: `STATE ${index}`,
+        visible: true,
+        rect: rect(20 + index * 68, 40, 58, 20),
+        scrollWidth: 58,
+        scrollHeight: 20,
+        clientWidth: 58,
+        clientHeight: 20,
+        fontSize: index % 2 === 0 ? 12 : 14,
+        color: "rgb(255, 255, 255)",
+        backgroundColor: [
+          "rgb(220, 38, 38)",
+          "rgb(234, 88, 12)",
+          "rgb(202, 138, 4)",
+          "rgb(22, 163, 74)",
+          "rgb(8, 145, 178)",
+          "rgb(37, 99, 235)",
+          "rgb(124, 58, 237)",
+          "rgb(219, 39, 119)",
+          "rgb(14, 165, 233)",
+          "rgb(132, 204, 22)",
+        ][index],
+      })),
+    });
+    expect(report.directives.map((directive) => directive.id)).toContain("visual-system-discipline");
+    expect(report.directives.find((directive) => directive.id === "visual-system-discipline")?.actions.join(" ")).toMatch(
+      /type roles|semantic states/i,
+    );
+  });
+
   it("returns a quiet maintain-baseline brief when no issues are found", () => {
     const report = buildVisualDesignDirectorReport(formSnapshot);
     expect(report.issue_count).toBe(0);

@@ -185,7 +185,40 @@ describe("evaluateVisualAuditSnapshot", () => {
       ],
     });
     expect(summary.byKind.weak_visual_hierarchy).toBe(1);
+    expect(summary.byKind.flat_type_scale).toBe(1);
     expect(summary.byKind.unclear_primary_action).toBe(1);
+  });
+
+  it("flags noisy, undisciplined colour systems", () => {
+    const colours = [
+      "rgb(220, 38, 38)",
+      "rgb(234, 88, 12)",
+      "rgb(202, 138, 4)",
+      "rgb(22, 163, 74)",
+      "rgb(8, 145, 178)",
+      "rgb(37, 99, 235)",
+      "rgb(124, 58, 237)",
+      "rgb(219, 39, 119)",
+    ];
+    const summary = evaluateVisualAuditSnapshot({
+      ...cleanSnapshot,
+      elements: colours.map((colour, index) => ({
+        selector: `.status-${index}`,
+        tagName: "span",
+        className: "rounded badge",
+        text: `STATE ${index}`,
+        visible: true,
+        rect: rect(10 + index * 70, 20, 62, 20),
+        scrollWidth: 62,
+        scrollHeight: 20,
+        clientWidth: 62,
+        clientHeight: 20,
+        fontSize: 12,
+        color: "rgb(255, 255, 255)",
+        backgroundColor: colour,
+      })),
+    });
+    expect(summary.byKind.palette_indiscipline).toBe(1);
   });
 
   it("flags nested panel clutter", () => {
