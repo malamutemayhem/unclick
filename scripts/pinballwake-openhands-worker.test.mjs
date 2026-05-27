@@ -186,7 +186,7 @@ describe("runOpenHandsWorker", () => {
     assert.match(result.receipt.evidence.output, /before producing a patch/);
   });
 
-  test("keeps the free-writer attempt trail on HOLD receipts", async () => {
+  test("keeps WriterLane model attempt reasons in HOLD evidence", async () => {
     const result = await runOpenHandsWorker({
       job: job(),
       scopePack: scopePack(),
@@ -195,7 +195,6 @@ describe("runOpenHandsWorker", () => {
       openHands: async () => ({
         ok: false,
         reason: "writerlane_free_chain_exhausted",
-        output: "gpt-oss-120b (openai/gpt-oss-120b:free): writerlane_no_file_contents",
         attempts: [
           {
             modelId: "gpt-oss-120b",
@@ -210,9 +209,9 @@ describe("runOpenHandsWorker", () => {
 
     assert.equal(result.ok, false);
     assert.equal(result.reason, "writerlane_free_chain_exhausted");
-    assert.equal(result.receipt.evidence.attempts[0].modelId, "gpt-oss-120b");
+    assert.equal(result.receipt.evidence.attempts[0].model_id, "gpt-oss-120b");
+    assert.equal(result.receipt.evidence.attempts[0].openrouter_model, "openai/gpt-oss-120b:free");
     assert.equal(result.receipt.evidence.attempts[0].reason, "writerlane_no_file_contents");
-    assert.match(result.receipt.evidence.output, /writerlane_no_file_contents/);
   });
 
   test("keeps the tail of long OpenHands failure output", async () => {
