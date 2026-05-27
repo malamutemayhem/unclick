@@ -50,6 +50,18 @@ function normalizePath(value) {
     .trim();
 }
 
+function parseGitStatusPaths(output) {
+  return String(output ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.slice(3).trim())
+    .filter(Boolean)
+    .map((path) => normalizePath(path.includes(" -> ") ? path.split(" -> ").pop() : path));
+}
+
+function isGeneratedRunnerLedgerPath(path) {
+  return normalizePath(path) === ".pinballwake/coding-room-ledger.json";
+}
+
 function normalizeList(values) {
   if (Array.isArray(values)) return values.map((value) => String(value ?? "").trim()).filter(Boolean);
   if (values === undefined || values === null || values === "") return [];
@@ -497,7 +509,11 @@ export function createSafeCodeRoomSubmitter({
 
     const status = await runProcess("git", ["status", "--porcelain"], { cwd, env: submitterEnv });
     if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
-    if (status.stdout.trim()) return { ok: false, reason: "dirty_worktree" };
+    const dirtyFiles = parseGitStatusPaths(status.stdout);
+    const blockingDirtyFiles = dirtyFiles.filter((file) => !isGeneratedRunnerLedgerPath(file));
+    if (blockingDirtyFiles.length) {
+      return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyFiles };
+    }
 
     const todoId = safeSlug(job?.todo_id || job?.id || job?.job_id || safeStamp(now));
     const branch = branchName || `${DEFAULT_SUBMITTER_BRANCH_PREFIX}-${todoId}`;
