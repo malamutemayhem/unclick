@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 479,
+    "inventory": 480,
     "source_manifest": 94,
     "pages": 94,
     "tools": 183,
@@ -75,7 +75,7 @@
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 9
+      "count": 10
     },
     {
       "id": "modules-and-apps",
@@ -2878,6 +2878,16 @@
       "kind": "state module",
       "meaning": "memory Data Island shared frontend logic.",
       "source": "src/lib/memoryDataIsland.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-memory-recall-sections-api-lib-memory-recall-sections-ts",
+      "division": "Source of truth",
+      "name": "memory recall sections",
+      "kind": "state module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/memory-recall-sections.ts",
       "route": "",
       "tags": []
     },
