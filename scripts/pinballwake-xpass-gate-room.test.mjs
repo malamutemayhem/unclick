@@ -221,7 +221,7 @@ describe("PinballWake XPass Gate Room", () => {
     const result = evaluateXPassGate({
       mode: "enforce",
       target: { type: "pr", id: 547, sha: "abc123" },
-      changed_files: ["scripts/pinballwake-xpass-gate-room.mjs"],
+      changed_files: ["src/lib/quality-review.ts"],
       pass_results: [
         { check: "QualityPass", status: "passed", run_id: "quality-1", target_sha: "abc123" },
       ],
@@ -230,5 +230,63 @@ describe("PinballWake XPass Gate Room", () => {
     assert.equal(result.ok, true);
     assert.equal(result.receipt.evidence[0].check, "sloppass");
     assert.equal(result.receipt.evidence[0].name, "SlopPass");
+  });
+
+  it("dogfoods Pass product package changes through their own specialist check", () => {
+    const selected = checks({
+      title: "Tighten SEOPass robots scanner",
+      changed_files: ["packages/seopass/src/robots.ts"],
+    });
+
+    assert.deepEqual(selected, ["testpass", "seopass", "sloppass"]);
+  });
+
+  it("dogfoods CopyPass package changes through CopyPass, TestPass, and SlopPass", () => {
+    const selected = checks({
+      title: "Improve CopyPass claim evidence matching",
+      changed_files: ["packages/copypass/src/runner.ts"],
+    });
+
+    assert.deepEqual(selected, ["testpass", "commonsensepass", "copypass", "sloppass"]);
+  });
+
+  it("routes XPass gate changes through TestPass, CommonSensePass, and SlopPass", () => {
+    const selected = checks({
+      title: "XPass gate routing update",
+      changed_files: ["scripts/pinballwake-xpass-gate-room.mjs"],
+    });
+
+    assert.deepEqual(selected, ["testpass", "commonsensepass", "sloppass"]);
+  });
+
+  it("routes EnterprisePass and CompliancePass readiness work through cross-pass evidence checks", () => {
+    const selected = checks({
+      title: "CompliancePass enterprise readiness evidence runner",
+      changed_files: [
+        "docs/enterprisepass-product-brief.md",
+        "public/enterprise/latest.json",
+      ],
+    });
+
+    assert.deepEqual(selected, [
+      "testpass",
+      "securitypass",
+      "commonsensepass",
+      "copypass",
+      "seopass",
+      "legalpass",
+      "sloppass",
+    ]);
+  });
+
+  it("routes current accessibility and AI security terms from external standards to the right checks", () => {
+    const selected = checks({
+      title: "WCAG focus target size and LLM prompt injection review",
+      changed_files: ["docs/research/xpass-gap-notes.md"],
+    });
+
+    assert.ok(selected.includes("uxpass"));
+    assert.ok(selected.includes("securitypass"));
+    assert.ok(selected.includes("copypass"));
   });
 });
