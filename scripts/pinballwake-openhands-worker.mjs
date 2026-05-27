@@ -175,6 +175,9 @@ export async function runOpenHandsWorker({
         file: coderoomResult?.file ?? null,
         dirty_files: normalizeChangedFiles(coderoomResult?.dirty_files || []),
         changed_files: changedFiles,
+        failed_step: clip(coderoomResult?.failed_step, 200),
+        exit_code: coderoomResult?.exit_code ?? null,
+        output: clipOutput(coderoomResult?.output, 2000),
       },
     });
   }

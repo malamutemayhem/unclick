@@ -852,6 +852,8 @@ describe("safe CodeRoom submitter", () => {
         "git apply --whitespace=nowarn -",
         "git diff --check",
         "git add docs/openhands-proof-fixture.md",
+        "git config user.name github-actions[bot]",
+        "git config user.email 41898282+github-actions[bot]@users.noreply.github.com",
         "git commit -m docs: submit OpenHands patch",
         "gh auth setup-git",
         "git push -u origin",
@@ -890,6 +892,7 @@ describe("safe CodeRoom submitter", () => {
 
     assert.equal(result.ok, false);
     assert.equal(result.reason, "git_failed");
+    assert.equal(result.failed_step, "git apply --check --whitespace=error");
     assert.match(result.output, /patch does not apply/);
     assert.deepEqual(
       calls.map(([command, args]) => `${command} ${args.slice(0, 2).join(" ")}`),

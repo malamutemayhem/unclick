@@ -13,6 +13,8 @@ const DEFAULT_SUBMITTER_BRANCH_PREFIX = "codex/openhands-submit";
 const DEFAULT_TITLE = "test(autopilot): prove OpenHands docs patch path";
 const DEFAULT_TIMEOUT_MS = 20 * 60 * 1000;
 const CODEROOM_APP_TOKEN_ENV_KEYS = ["CODEROOM_GITHUB_APP_TOKEN", "AUTONOMOUS_RUNNER_GITHUB_APP_TOKEN"];
+const DEFAULT_CODEROOM_GIT_USER_NAME = "github-actions[bot]";
+const DEFAULT_CODEROOM_GIT_USER_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com";
 
 export const DEFAULT_CODEROOM_PROTECTED_PATH_PATTERNS = [
   { reason: "protected_workflow_path", pattern: /^\.github\/workflows\//i },
@@ -41,6 +43,10 @@ export function compactOutput(value, max = 2000) {
   const head = Math.ceil(budget * 0.35);
   const tail = Math.max(0, budget - head);
   return `${text.slice(0, head)}${marker}${text.slice(text.length - tail)}`;
+}
+
+function describeCommand(command, args = []) {
+  return [command, ...args.slice(0, 3)].join(" ").trim();
 }
 
 function normalizePath(value) {
@@ -622,6 +628,8 @@ export function createSafeCodeRoomSubmitter({
       ["git", ["apply", "--whitespace=nowarn", "-"], { stdin: patch }],
       ["git", ["diff", "--check"]],
       ["git", ["add", ...normalizedChanged]],
+      ["git", ["config", "user.name", DEFAULT_CODEROOM_GIT_USER_NAME]],
+      ["git", ["config", "user.email", DEFAULT_CODEROOM_GIT_USER_EMAIL]],
       ["git", ["commit", "-m", prTitle]],
       ["gh", ["auth", "setup-git"]],
       ["git", ["push", "-u", "origin", branch]],
@@ -631,7 +639,15 @@ export function createSafeCodeRoomSubmitter({
     let prUrl = "";
     for (const [command, args, options = {}] of commands) {
       const result = await runProcess(command, args, { cwd, env: submitterEnv, ...options });
-      if (!result.ok) return { ok: false, reason: `${command}_failed`, output: result.output };
+      if (!result.ok) {
+        return {
+          ok: false,
+          reason: `${command}_failed`,
+          output: result.output,
+          failed_step: describeCommand(command, args),
+          exit_code: result.exit_code ?? null,
+        };
+      }
       if (command === "gh" && args[1] === "create") prUrl = result.stdout.trim();
     }
 

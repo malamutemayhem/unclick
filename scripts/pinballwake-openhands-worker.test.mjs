@@ -276,12 +276,18 @@ describe("runOpenHandsWorker", () => {
         ok: false,
         reason: "dirty_worktree",
         dirty_files: ["docs/openhands-proof-fixture.md"],
+        failed_step: "git commit -m",
+        exit_code: 128,
+        output: "Author identity unknown",
       }),
     });
 
     assert.equal(result.ok, false);
     assert.equal(result.reason, "coderoom_rejected_patch");
     assert.deepEqual(result.receipt.evidence.dirty_files, ["docs/openhands-proof-fixture.md"]);
+    assert.equal(result.receipt.evidence.failed_step, "git commit -m");
+    assert.equal(result.receipt.evidence.exit_code, 128);
+    assert.match(result.receipt.evidence.output, /Author identity unknown/);
   });
 
   test("default coderoom submit enforces owned files", async () => {
