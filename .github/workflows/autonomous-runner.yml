@@ -253,6 +253,7 @@ jobs:
           AUTONOMOUS_RUNNER_DISABLED: ${{ steps.runner-plan.outputs.disabled }}
           AUTONOMOUS_RUNNER_ALLOW_EXECUTE: ${{ steps.runner-plan.outputs.execute }}
           AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: ${{ steps.runner-plan.outputs.execute }}
+          AUTONOMOUS_RUNNER_WRITER: ${{ vars.AUTONOMOUS_RUNNER_WRITER }}
           AUTONOMOUS_RUNNER_REQUIRE_ASSIGNED_QUEUE: ${{ steps.runner-plan.outputs.canary_execute == 'true' && 'true' || vars.AUTONOMOUS_RUNNER_REQUIRE_ASSIGNED_QUEUE || 'false' }}
           OPENHANDS_TEST_MODE: ${{ steps.runner-plan.outputs.execute == 'true' && '1' || '' }}
           OPENHANDS_COMMAND: ${{ vars.OPENHANDS_COMMAND || 'uvx' }}
