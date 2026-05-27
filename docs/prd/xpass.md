@@ -1,12 +1,12 @@
 # PRD: XPass
 
 **Status**: Naming contract locked. Implementation slices land through the individual Pass products.
-**Last updated**: 2026-05-01.
+**Last updated**: 2026-05-28.
 **Owner**: Product and Pass-family maintainers.
 
 ## Why this exists
 
-The Pass family is growing quickly. TestPass, UXPass, SEOPass, CopyPass, LegalPass, SecurityPass, SlopPass, FlowPass, GEOPass, RotatePass, and WakePass each need their own scope contract, but users should not have to remember which Pass to call for every situation.
+The Pass family is growing quickly. TestPass, UXPass, SEOPass, CopyPass, LegalPass, SecurityPass, SlopPass, CommonSensePass, FlowPass, GEOPass, RotatePass, WakePass, and EnterprisePass each need their own scope contract, but users should not have to remember which Pass to call for every situation.
 
 XPass is the umbrella/action name for orchestration across the Pass family.
 
@@ -70,23 +70,29 @@ XPass does not own the finding logic for each Pass. It owns orchestration and pr
 
 ## Current family map
 
-Working or exposed:
+Live gates or public dogfood:
 
 - TestPass
 - UXPass
+- CommonSensePass
+- WakePass
+
+Package-ready or merged product tools:
+
+- SlopPass
+- SecurityPass
 - SEOPass
 - CopyPass
 - LegalPass
-
-In build or scoped:
-
-- SlopPass
 - FlowPass
-- SecurityPass
 - GEOPass
+
+Boundary or guidance:
+
 - RotatePass
 - EnterprisePass
-- WakePass
+
+Public dogfood receipts stay conservative: a Pass can be package-ready and useful in XPass routing while the public dogfood result remains pending until a recurring receipt has actually run.
 
 Archived or parked:
 

@@ -103,7 +103,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Developers.tsx | 9657fd564797 | 19123 |
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
-| src/pages/DogfoodReport.tsx | 10f4bfd44859 | 16045 |
+| src/pages/DogfoodReport.tsx | a2d54cc557ef | 16182 |
 | src/pages/FAQPage.tsx | c3c95c39e56f | 723 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 70f86c37110a | 34772 |
@@ -144,7 +144,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | fc1947d2c5ee | 14412 |
+| scripts/pinballwake-xpass-gate-room.mjs | 92b4e63503f5 | 20902 |
 | packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |
@@ -171,9 +171,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/coingecko-tool.ts | e7d8c7535112 | 6827 |
 | packages/mcp-server/src/coinmarketcap-tool.ts | b1c5fd280acb | 6892 |
 | packages/mcp-server/src/color-tool.ts | f9aa9c0fec6e | 13643 |
-| packages/mcp-server/src/commonsensepass-tool.ts | 02d0d82630d7 | 1991 |
+| packages/mcp-server/src/commonsensepass-tool.ts | bad23b55ea01 | 1995 |
 | packages/mcp-server/src/convertkit-tool.ts | 2f77303a3441 | 8498 |
-| packages/mcp-server/src/copypass-tool.ts | 4debe88f6f2f | 28450 |
+| packages/mcp-server/src/copypass-tool.ts | 9cb57c05f879 | 29686 |
 | packages/mcp-server/src/crews-tool.ts | 111454c76c0a | 13547 |
 | packages/mcp-server/src/csuite-tool.ts | 0ab5af89bb49 | 70236 |
 | packages/mcp-server/src/datadog-tool.ts | 802b808614cd | 5556 |
@@ -190,7 +190,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/autonomous-runner.yml | a1280cfec46b | 15338 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
 | .github/workflows/dirty-branch-hygiene.yml | 9d192a7da041 | 2190 |
-| .github/workflows/dogfood-report.yml | d485b8d37111 | 3987 |
+| .github/workflows/dogfood-report.yml | 7f0699c0a69a | 5891 |
 | .github/workflows/event-wake-router.yml | bfd53e324bb4 | 1453 |
 | .github/workflows/fleet-throughput-watch.yml | c5a08f4edf9b | 930 |
 | .github/workflows/openhands-test-mode.yml | 3bd5d5f48573 | 1137 |
@@ -199,7 +199,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | 398a44d83549 | 9548 |
+| .github/workflows/testpass-pr-check.yml | 06c30cc187e8 | 7414 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | f26a538f2ee9 | 896 |
 
@@ -212,7 +212,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Tools | MCP and gateway capabilities available to seats. | 185 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
-| Passes and gates | Quality, proof, safety, and fidelity checks. | 13 |
+| Passes and gates | Quality, proof, safety, and fidelity checks. | 14 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
@@ -763,6 +763,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Passes and gates | pass | testpass | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/testpass.ts |
 | Passes and gates | pass | testpass background handoff | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-background-handoff.ts |
 | Passes and gates | pass | testpass boundary | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-boundary.ts |
+| Passes and gates | pass | testpass pr comment | testpass pr comment UnClick module. | - | scripts/testpass-pr-comment.mjs |
 | Passes and gates | pass | testpass run | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/testpass-run.ts |
 | Passes and gates | pass | uxpass | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/uxpass.ts |
 | Passes and gates | pass | uxpass run | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/uxpass-run.ts |

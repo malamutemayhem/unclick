@@ -317,6 +317,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
   const normalized = normalizeCopy(copyText);
   const findings: CopyFinding[] = [];
   const channel = normalizeCopy(run.target.channel ?? "");
+  const isPolicyExample = isPolicyExampleCatalog(normalized, channel);
 
   if (containsAny(normalized, VAGUE_TERMS) && !containsAny(normalized, VALUE_TERMS)) {
     findings.push(
@@ -357,7 +358,11 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if (containsAny(normalized, SUPERIORITY_TERMS) && !containsAny(normalized, PROOF_TERMS)) {
+  if (
+    !isPolicyExample &&
+    containsAny(normalized, SUPERIORITY_TERMS) &&
+    !containsAny(normalized, PROOF_TERMS)
+  ) {
     findings.push(
       createCopyFinding(
         "unsupported-superiority",
@@ -383,7 +388,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if (hasRiskyGuarantee(normalized)) {
+  if (!isPolicyExample && hasRiskyGuarantee(normalized)) {
     findings.push(
       createCopyFinding(
         "risky-guarantee-language",
@@ -396,7 +401,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if (containsAny(normalized, DETECTOR_EVASION_TERMS)) {
+  if (!isPolicyExample && containsAny(normalized, DETECTOR_EVASION_TERMS)) {
     findings.push(
       createCopyFinding(
         "detector-evasion-claim",
@@ -412,7 +417,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
   const matchedPair = CONSISTENCY_PAIRS.find(([left, right]) =>
     containsAny(normalized, [left]) && containsAny(normalized, [right])
   );
-  if (matchedPair) {
+  if (!isPolicyExample && matchedPair) {
     findings.push(
       createCopyFinding(
         "internal-consistency",
@@ -441,7 +446,10 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if (containsAny(normalized, AI_SLOP_TERMS) || /[\u2013\u2014]/u.test(copyText)) {
+  if (
+    !isPolicyExample &&
+    (containsAny(normalized, AI_SLOP_TERMS) || /[\u2013\u2014]/u.test(copyText))
+  ) {
     findings.push(
       createCopyFinding(
         "ai-slop-language",
@@ -454,7 +462,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if (containsAny(normalized, URGENCY_TERMS) && !hasUrgencySupport(normalized)) {
+  if (!isPolicyExample && containsAny(normalized, URGENCY_TERMS) && !hasUrgencySupport(normalized)) {
     findings.push(
       createCopyFinding(
         "misleading-urgency",
@@ -468,6 +476,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
   }
 
   if (
+    !isPolicyExample &&
     containsAny(normalized, UI_AUTOMATION_TERMS) &&
     !containsAny(normalized, PROOF_TERMS) &&
     !containsAny(normalized, ["beta", "manual review", "preview", "when safe"])
@@ -571,6 +580,48 @@ function normalizeCopy(value: string): string {
 
 function containsAny(value: string, terms: string[]): boolean {
   return terms.some((term) => containsTerm(value, term));
+}
+
+function isPolicyExampleCatalog(normalized: string, channel: string): boolean {
+  if (!containsAny(channel, ["doc", "docs", "policy", "guardrail", "linter", "audit"])) {
+    return false;
+  }
+
+  const catalogContext = `${channel} ${normalized}`;
+  const hasGuardrailContext = containsAny(catalogContext, [
+    "banned",
+    "forbidden",
+    "blocked",
+    "disallowed",
+    "do not use",
+    "guardrail",
+    "linter",
+    "marketing copy audit",
+    "passguard",
+    "policy",
+  ]);
+  const hasExampleContext = containsAny(catalogContext, [
+    "allowed framing",
+    "banned phrase",
+    "banned phrases",
+    "example",
+    "examples",
+    "phrase",
+    "phrases",
+    "term",
+    "terms",
+    "wording",
+  ]);
+  const hasRiskTerm = containsAny(normalized, [
+    ...SUPERIORITY_TERMS,
+    ...GUARANTEE_TERMS,
+    ...DETECTOR_EVASION_TERMS,
+    ...AI_SLOP_TERMS,
+    ...URGENCY_TERMS,
+    ...UI_AUTOMATION_TERMS,
+  ]);
+
+  return hasGuardrailContext && hasExampleContext && hasRiskTerm;
 }
 
 function containsTerm(value: string, term: string): boolean {
