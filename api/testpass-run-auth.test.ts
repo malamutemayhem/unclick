@@ -124,6 +124,22 @@ describe("TestPass target token forwarding", () => {
     })).toBe("uc_configured_target_key");
   });
 
+  it("forwards an inbound session token only to the same preview host when no target token is configured", () => {
+    expect(resolveTestPassTargetToken({
+      incomingToken: "supabase.jwt.token",
+      isCron: false,
+      requestHost: "preview.example.vercel.app",
+      targetUrl: "https://preview.example.vercel.app/api/mcp",
+    })).toBe("supabase.jwt.token");
+
+    expect(resolveTestPassTargetToken({
+      incomingToken: "supabase.jwt.token",
+      isCron: false,
+      requestHost: "preview.example.vercel.app",
+      targetUrl: "https://other.example.vercel.app/api/mcp",
+    })).toBeUndefined();
+  });
+
   it("temporarily exposes the selected token to the TestPass dispatcher and restores it", async () => {
     process.env.TESTPASS_TOKEN = "uc_previous";
 

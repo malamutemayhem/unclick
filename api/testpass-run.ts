@@ -316,11 +316,25 @@ export function resolveTestPassTargetToken(params: {
   incomingToken: string;
   isCron: boolean;
   configuredToken?: string;
+  requestHost?: string;
+  targetUrl?: string;
 }): string | undefined {
   const configured = params.configuredToken?.trim();
   const incoming = params.incomingToken.trim();
   if (!params.isCron && incoming.startsWith("uc_")) return incoming;
-  return configured || undefined;
+  if (configured) return configured;
+
+  if (!params.isCron && incoming && params.requestHost && params.targetUrl) {
+    try {
+      const targetHost = new URL(params.targetUrl).host.toLowerCase();
+      const requestHost = params.requestHost.split(",")[0]?.trim().toLowerCase();
+      if (targetHost && requestHost && targetHost === requestHost) return incoming;
+    } catch {
+      return undefined;
+    }
+  }
+
+  return undefined;
 }
 
 export async function withTestPassTargetToken<T>(
@@ -444,6 +458,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     incomingToken: token,
     isCron,
     configuredToken: process.env.TESTPASS_TOKEN,
+    requestHost: headerString(req.headers.host),
+    targetUrl: target.url,
   });
 
   const { id: runId, was_duplicate } = await createRun(config, {
