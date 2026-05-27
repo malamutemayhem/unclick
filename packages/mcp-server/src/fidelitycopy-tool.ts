@@ -10,6 +10,14 @@ interface Payload {
   ref: string;
 }
 
+interface CopyRoomSourcePacketInput {
+  source_id: string;
+  source_pointer: string;
+  text: string;
+  encoding?: "utf8";
+  newline_policy?: "preserve";
+}
+
 interface CanonicalizationReceipt {
   mode: FidelityCopyMode;
   source_canonical_hash?: string;
@@ -20,6 +28,7 @@ interface CanonicalizationReceipt {
 interface FidelityCopyReceipt {
   kind: "fidelitycopy_receipt_v1";
   receipt_id: string;
+  mode: FidelityCopyMode;
   source_ref: string;
   source_hash: string;
   output_ref: string;
@@ -140,6 +149,7 @@ function buildReceipt(
   const base: FidelityCopyReceipt = {
     kind: "fidelitycopy_receipt_v1",
     receipt_id: `fidelitycopy_${randomUUID()}`,
+    mode,
     source_ref: source.ref,
     source_hash: sourceHash,
     output_ref: output.ref,
@@ -245,6 +255,21 @@ function parsePayload(
   prefix: "source" | "output",
   fallbackRef: string,
 ): Payload | { error: string } {
+  if (prefix === "source" && args.copyroom_source_packet !== undefined && args.copyroom_source_packet !== null) {
+    if (readString(args.source_text) !== null || readString(args.source_base64) !== null) {
+      return { error: "copyroom_source_packet cannot be combined with source_text or source_base64" };
+    }
+
+    const packet = parseCopyRoomSourcePacketInput(args.copyroom_source_packet);
+    if ("error" in packet) return { error: packet.error };
+    return {
+      kind: "text",
+      bytes: Buffer.from(packet.text, "utf8"),
+      text: packet.text,
+      ref: packet.source_pointer,
+    };
+  }
+
   const text = readString(args[`${prefix}_text`]);
   const base64 = readString(args[`${prefix}_base64`]);
   const ref = readString(args[`${prefix}_ref`]) || (prefix === "output" ? resolveOutputRef(args) : fallbackRef);
@@ -274,11 +299,42 @@ function modeFromReceipt(receipt: Partial<FidelityCopyReceipt> | null): Fidelity
 }
 
 function hasAnyPayload(args: Record<string, unknown>, prefix: "source" | "output"): boolean {
+  if (prefix === "source" && args.copyroom_source_packet !== undefined && args.copyroom_source_packet !== null) {
+    return true;
+  }
   return readString(args[`${prefix}_text`]) !== null || readString(args[`${prefix}_base64`]) !== null;
 }
 
 function readString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
+}
+
+function parseCopyRoomSourcePacketInput(value: unknown): CopyRoomSourcePacketInput | { error: string } {
+  if (!isRecord(value)) {
+    return { error: "COPYROOM_MISSING: copyroom_source_packet must be an object." };
+  }
+
+  const sourceId = readString(value.source_id);
+  const sourcePointer = readString(value.source_pointer);
+  const text = readString(value.text);
+  const encoding = value.encoding === undefined || value.encoding === "utf8" ? "utf8" : null;
+  const newlinePolicy = value.newline_policy === undefined || value.newline_policy === "preserve" ? "preserve" : null;
+
+  if (!sourceId?.trim() || !sourcePointer?.trim() || text === null) {
+    return {
+      error: "COPYROOM_MISSING: copyroom_source_packet must include source_id, source_pointer, and text.",
+    };
+  }
+  if (!encoding) return { error: "COPYROOM_MISSING: copyroom_source_packet encoding must be utf8." };
+  if (!newlinePolicy) return { error: "COPYROOM_MISSING: copyroom_source_packet newline_policy must be preserve." };
+
+  return {
+    source_id: sourceId.trim(),
+    source_pointer: sourcePointer.trim(),
+    text,
+    encoding,
+    newline_policy: newlinePolicy,
+  };
 }
 
 function parseAllowedChanges(value: unknown): string[] {
@@ -304,8 +360,11 @@ function decodeBase64(value: string): Buffer | null {
   try {
     const normalized = value.replace(/\s+/g, "");
     if (!normalized) return null;
+    if (normalized.length % 4 === 1 || !/^[A-Za-z0-9+/]*={0,2}$/.test(normalized)) return null;
     const decoded = Buffer.from(normalized, "base64");
     if (decoded.length === 0 && normalized !== "") return null;
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    if (decoded.toString("base64") !== padded) return null;
     return decoded;
   } catch {
     return null;
@@ -353,6 +412,10 @@ function stableJsonStringify(value: unknown): string {
 function parseReceipt(value: unknown): Partial<FidelityCopyReceipt> | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
   return value as Partial<FidelityCopyReceipt>;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function compareProvidedReceipt(
