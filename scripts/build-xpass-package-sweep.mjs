@@ -94,6 +94,31 @@ export const PASS_PACKAGES = [
 
 export const CROSS_PASS_MATRIX = [
   {
+    targetId: "testpass",
+    reviewers: [
+      { id: "commonsensepass", role: "proof honesty and false-DONE gate coverage" },
+      { id: "securitypass", role: "MCP and safe local security boundary review" },
+      { id: "sloppass", role: "fixture quality and failure-message review" },
+    ],
+  },
+  {
+    targetId: "uxpass",
+    reviewers: [
+      { id: "testpass", role: "package tests must pass before public UX proof is trusted" },
+      { id: "flowpass", role: "route, journey, and handoff overlap" },
+      { id: "copypass", role: "interface copy and public wording clarity" },
+      { id: "commonsensepass", role: "proof-claim sanity" },
+    ],
+  },
+  {
+    targetId: "securitypass",
+    reviewers: [
+      { id: "testpass", role: "package tests must pass before security proof is trusted" },
+      { id: "commonsensepass", role: "scope-gate and proof-claim sanity" },
+      { id: "legalpass", role: "safe guidance boundary and non-certification wording" },
+    ],
+  },
+  {
     targetId: "sloppass",
     reviewers: [
       { id: "testpass", role: "package tests must pass before public proof is trusted" },
