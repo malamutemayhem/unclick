@@ -9,7 +9,7 @@ What's automated, what secrets are required, and what to do when something goes 
 | `ci.yml` | PRs + push to main | Lint + build the website, typecheck + build the MCP server |
 | `testpass-pr-check.yml` | PRs | Runs the shared TestPass action against the MCP endpoint under test and posts a receipt summary |
 | `testpass-scheduled-smoke.yml` | Every 5 minutes + manual dispatch | Runs scheduled TestPass smoke with explicit token precedence and fail-closed infra reporting |
-| `dogfood-report.yml` | Nightly schedule + manual dispatch | Rebuilds `public/dogfood/latest.json` with honest passing / blocked / pending proof status |
+| `dogfood-report.yml` | Nightly schedule + manual dispatch | Rebuilds `public/dogfood/latest.json`, `public/dogfood/xpass-package-sweep.json`, and `public/dogfood/uxpass-site-sweep.json` with honest passing / blocked / pending proof status |
 | `event-wake-router.yml` | `issue_comment` + workflow fan-in | Routes ready-work wake events without waking healthy quiet cycles |
 | `auto-close-fishbowl-todo.yml` | PR merge hooks | Closes linked Fishbowl todos when a merged PR satisfies them |
 | `publish-mcp-package.yml` | Push to main touching `packages/mcp-server/**` | Bumps patch version and publishes the MCP server GitHub Release tarball |
@@ -24,7 +24,7 @@ Set these at **Settings → Secrets and variables → Actions → Repository sec
 
 | Secret | Used by | Where to get it |
 |---|---|---|
-| `TESTPASS_TOKEN` | `testpass-pr-check.yml`, `dogfood-report.yml` TestPass proof | Active TestPass bearer for `/api/testpass-run` |
+| `TESTPASS_TOKEN` | `testpass-pr-check.yml`, `dogfood-report.yml` TestPass proof | Active `uc_` UnClick API key for `/api/testpass-run`; PR smoke also forwards this key to the target MCP probe |
 | `TESTPASS_CRON_SECRET` | `testpass-scheduled-smoke.yml` first-choice token | Optional dedicated scheduled-smoke bearer for `/api/testpass-run` |
 | `UXPASS_TOKEN` | `dogfood-report.yml` UXPass proof | Active UXPass bearer for `/api/uxpass-run` |
 | `CRON_SECRET` | `testpass-scheduled-smoke.yml` fallback, `dogfood-report.yml` UXPass fallback | Shared cron bearer when a dedicated pass token is not set |
@@ -59,12 +59,21 @@ Nightly dogfood splits the proof lanes on purpose:
 |---|---|---|
 | TestPass | `TESTPASS_TOKEN` | Exported into the script as `DOGFOOD_TESTPASS_TOKEN`; no cron fallback in the current workflow |
 | UXPass | `UXPASS_TOKEN`, then `CRON_SECRET` | Exported into the script as `DOGFOOD_UXPASS_TOKEN`; a blocked receipt is expected if neither secret exists |
+| XPass package sweep | none | Runs local package tests for TestPass, UXPass, SecurityPass, SlopPass, SEOPass, CopyPass, LegalPass, CommonSensePass, FlowPass, and GEOPass before `latest.json` is built |
 
 The public receipt at `public/dogfood/latest.json` should stay honest:
 
-- `passing` only when the live scheduled check actually completed.
+- `passing` only when the live scheduled check or scheduled XPass package sweep actually completed.
 - `blocked` when the workflow cannot run because a secret path is missing.
 - `pending` for proof families that are intentionally scaffolded but not live yet.
+
+`public/dogfood/xpass-package-sweep.json` is deliberately public-safe. It stores package names, commands, statuses,
+run IDs, and cross-pass reviewers, but not raw command output or secrets. SecurityPass can pass its local package proof
+while still staying `blocked` in `latest.json` until safe recurring security probes exist.
+
+Because `main` requires pull requests, the dogfood workflow pushes changed receipt files to
+`automation/dogfood-public-receipt` and opens or updates a public receipt PR when the token is allowed. If GitHub
+Actions cannot create PRs in this repository, the workflow leaves the branch ready for a human or agent-created PR.
 
 ## Runtime env vars
 
@@ -126,6 +135,7 @@ npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclic
    - Do not patch around this by loosening CI from `npm ci` to `npm install`.
 2. **`testpass-pr-check.yml` or `testpass-scheduled-smoke.yml` 401/403** - token precedence resolved to an expired or wrong bearer.
    - Scheduled smoke checks `TESTPASS_CRON_SECRET`, then `CRON_SECRET`, then `TESTPASS_TOKEN`.
+   - PR smoke should use a `uc_` UnClick API key so `/api/testpass-run` can authenticate the run and forward the same tenant key into the MCP target probe.
    - Dogfood TestPass uses `TESTPASS_TOKEN`.
    - Dogfood UXPass uses `UXPASS_TOKEN` first, then `CRON_SECRET`.
    - If `public/dogfood/latest.json` flips to `blocked`, treat that as honest evidence and refresh the missing secret instead of forcing a green status.
