@@ -43,10 +43,15 @@ describe("writerlane free-writer: happy path", () => {
   it("writes files, runs tests, captures the diff, and returns a validated patch", async () => {
     const order = [];
     const writes = [];
+    let prompt = "";
     const runner = createWriterLaneFreeWriterRunner({
       env: { LLM_API_KEY: "k", LLM_BASE_URL: "https://example.test/api/v1" },
       models: [MODEL_A],
-      fetchImpl: fakeFetchOnce(fileBlock("docs/x.md", "hello world")),
+      fetchImpl: async (_url, init) => {
+        prompt = JSON.parse(init.body).messages[0].content;
+        return fakeFetchOnce(fileBlock("docs/x.md", "hello world"))();
+      },
+      readFileImpl: async ({ path }) => `current ${path}\nold line`,
       runProcess: async () => {
         order.push("test");
         return { ok: true, exit_code: 0, output: "" };
@@ -69,6 +74,9 @@ describe("writerlane free-writer: happy path", () => {
     assert.match(result.patch, /hello world/);
     assert.deepEqual(result.validation, { testsPassed: true, clean: true, withinDiffBudget: true });
     assert.equal(result.diff_source, "worktree");
+    assert.match(prompt, /Current owned file contents:/);
+    assert.match(prompt, /current docs\/x\.md/);
+    assert.match(prompt, /old line/);
     // ordering: write the file, run the real test, THEN capture (capture reverts)
     assert.deepEqual(order, ["write", "test", "capture"]);
     assert.deepEqual(writes, [{ path: "docs/x.md", content: "hello world\n" }]);
@@ -237,9 +245,16 @@ describe("writerlane free-writer: pure helpers", () => {
   });
 
   it("buildFullContentsPrompt lists owned files and verification commands", () => {
-    const prompt = buildFullContentsPrompt({ ownedFiles: OWNED, scopePack: { verification: ["node --test x"] }, model: MODEL_A });
+    const prompt = buildFullContentsPrompt({
+      ownedFiles: OWNED,
+      scopePack: { verification: ["node --test x"] },
+      model: MODEL_A,
+      currentFiles: [{ path: "docs/x.md", content: "old file" }],
+    });
     assert.match(prompt, /FILE: <path>/);
     assert.match(prompt, /- docs\/x\.md/);
     assert.match(prompt, /node --test x/);
+    assert.match(prompt, /Current owned file contents:/);
+    assert.match(prompt, /old file/);
   });
 });

@@ -30,7 +30,7 @@
 // never touch the network, the filesystem, or git. The API key is read only into
 // the Authorization header and never logged. Free models only.
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import {
@@ -46,6 +46,8 @@ import {
 
 const DEFAULT_TIMEOUT_MS = 20 * 60 * 1000;
 const MAX_PATCH_BYTES = 120_000;
+const DEFAULT_MAX_CONTEXT_FILE_BYTES = 40_000;
+const DEFAULT_MAX_CONTEXT_TOTAL_BYTES = 160_000;
 const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
 const DEFAULT_MAX_MODELS = 4;
 
@@ -65,10 +67,13 @@ export function createWriterLaneFreeWriterRunner({
   fetchImpl,
   runProcess = runProcessCommand,
   captureDiff = captureOwnedWorktreeDiff,
+  readFileImpl = defaultReadFile,
   writeFileImpl = defaultWriteFile,
   models = null,
   proofMode = "autonomy",
   maxPatchBytes = MAX_PATCH_BYTES,
+  maxContextFileBytes = DEFAULT_MAX_CONTEXT_FILE_BYTES,
+  maxContextTotalBytes = DEFAULT_MAX_CONTEXT_TOTAL_BYTES,
   diffBudget = {},
   // When there is no verification command in the scope pack we cannot prove the
   // code works, so by default the writer fails closed. Setting this true treats a
@@ -116,10 +121,17 @@ export function createWriterLaneFreeWriterRunner({
     }
 
     const attempts = [];
+    const currentFiles = await readOwnedFileContexts({
+      cwd,
+      ownedFiles,
+      readFileImpl,
+      maxFileBytes: maxContextFileBytes,
+      maxTotalBytes: maxContextTotalBytes,
+    });
 
     for (const model of chain) {
       const status = model?.empirical?.status ?? "trial";
-      const prompt = buildFullContentsPrompt({ ownedFiles, scopePack, model });
+      const prompt = buildFullContentsPrompt({ ownedFiles, scopePack, model, currentFiles });
 
       const completion = await callOpenRouter({
         doFetch,
@@ -297,7 +309,7 @@ function splitArgsSafe(command) {
 // Prompt + response parsing
 // ---------------------------------------------------------------------------
 
-export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model = {} } = {}) {
+export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model = {}, currentFiles = [] } = {}) {
   const lines = [
     "You are an UnClick WriterLane free-model writer running AFK.",
     "Implement the requested change by returning the FULL new contents of each owned file.",
@@ -321,6 +333,20 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
   if (verification.length) {
     lines.push("Verification (these commands will be run for real):");
     lines.push(...verification.map((item) => `- ${item}`));
+  }
+  const contexts = normalizeFileContexts(currentFiles);
+  if (contexts.length) {
+    lines.push("Current owned file contents:");
+    for (const file of contexts) {
+      lines.push(`FILE: ${file.path}`);
+      if (file.error) {
+        lines.push(`Unreadable: ${file.error}`);
+        continue;
+      }
+      lines.push("```");
+      lines.push(file.content);
+      lines.push("```");
+    }
   }
   if (scopePack?.body || scopePack?.description) {
     lines.push("Context:");
@@ -466,6 +492,68 @@ async function defaultWriteFile({ cwd, path, content }) {
   const abs = join(cwd, path);
   await mkdir(dirname(abs), { recursive: true });
   await writeFile(abs, content, "utf8");
+}
+
+async function defaultReadFile({ cwd, path }) {
+  return readFile(join(cwd, path), "utf8");
+}
+
+async function readOwnedFileContexts({
+  cwd,
+  ownedFiles,
+  readFileImpl,
+  maxFileBytes = DEFAULT_MAX_CONTEXT_FILE_BYTES,
+  maxTotalBytes = DEFAULT_MAX_CONTEXT_TOTAL_BYTES,
+}) {
+  const contexts = [];
+  let remaining = Math.max(0, maxTotalBytes);
+  for (const path of normalizePaths(ownedFiles)) {
+    if (remaining <= 0) {
+      contexts.push({ path, content: "", error: "context_budget_exhausted" });
+      continue;
+    }
+    try {
+      const raw = String(await readFileImpl({ cwd, path }) ?? "");
+      const maxBytes = Math.max(0, Math.min(maxFileBytes, remaining));
+      const clipped = clipUtf8(raw, maxBytes);
+      remaining -= Buffer.byteLength(clipped, "utf8");
+      contexts.push({
+        path,
+        content: clipped,
+        truncated: Buffer.byteLength(raw, "utf8") > Buffer.byteLength(clipped, "utf8"),
+      });
+    } catch (err) {
+      contexts.push({ path, content: "", error: readFileErrorReason(err) });
+    }
+  }
+  return contexts;
+}
+
+function normalizeFileContexts(files) {
+  if (!Array.isArray(files)) return [];
+  return files
+    .map((file) => ({
+      path: normalizePath(file?.path),
+      content: String(file?.content ?? ""),
+      error: file?.error ? String(file.error) : "",
+    }))
+    .filter((file) => file.path);
+}
+
+function clipUtf8(value, maxBytes) {
+  const text = String(value ?? "");
+  if (Buffer.byteLength(text, "utf8") <= maxBytes) return text;
+  let clipped = text.slice(0, Math.max(0, maxBytes));
+  while (Buffer.byteLength(clipped, "utf8") > maxBytes) {
+    clipped = clipped.slice(0, -1);
+  }
+  return `${clipped}\n[truncated for writer context]`;
+}
+
+function readFileErrorReason(err) {
+  if (err?.code === "ENOENT") return "file_missing_new_file_ok";
+  if (err?.code) return `read_failed_${String(err.code).toLowerCase()}`;
+  return "read_failed";
 }
 
 function ensureTrailingNewline(content) {

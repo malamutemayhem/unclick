@@ -104,6 +104,7 @@ export async function runOpenHandsWorker({
       evidence: {
         exit_code: result?.exit_code ?? null,
         output: clipOutput(result?.output, 2000),
+        attempts: compactOpenHandsAttempts(result?.attempts),
       },
     });
   }
@@ -264,6 +265,17 @@ export function sanitizeOpenHandsReceipt(receipt) {
     ...(redacted && typeof redacted === "object" ? redacted : {}),
     sanitized: true,
   };
+}
+
+function compactOpenHandsAttempts(attempts) {
+  if (!Array.isArray(attempts)) return [];
+  return attempts.slice(0, 8).map((attempt) => ({
+    model_id: clip(attempt?.modelId || attempt?.model_id || "", 80),
+    openrouter_model: clip(attempt?.openRouterModel || attempt?.openrouter_model || "", 140),
+    status: clip(attempt?.status || "", 40),
+    ok: attempt?.ok === true,
+    reason: clip(attempt?.reason || "", 140),
+  }));
 }
 
 async function invokeWithOptionalSpendGuard({ spendGuard, label, provider, run }) {
