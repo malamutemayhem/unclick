@@ -6,7 +6,7 @@
 
 ## Why this exists
 
-The Pass family is growing quickly. TestPass, UXPass, SEOPass, CopyPass, LegalPass, SecurityPass, SlopPass, CommonSensePass, FlowPass, GEOPass, RotatePass, WakePass, and EnterprisePass each need their own scope contract, but users should not have to remember which Pass to call for every situation.
+The Pass family is growing quickly. TestPass, UXPass, SEOPass, CopyPass, LegalPass, SecurityPass, SlopPass, CommonSensePass, FlowPass, GEOPass, RotatePass, WakePass, and CompliancePass each need their own scope contract, but users should not have to remember which Pass to call for every situation.
 
 XPass is the umbrella/action name for orchestration across the Pass family.
 
@@ -91,7 +91,7 @@ Boundary or guidance:
 
 - RotatePass
 - WakePass
-- EnterprisePass
+- CompliancePass (formerly EnterprisePass) readiness surface
 
 Public dogfood receipts stay conservative: a Pass can be package-ready and useful in XPass routing while the public dogfood result remains pending until a recurring receipt has actually run.
 Package-backed products promote through the scheduled XPass package sweep. Boundary or guidance products promote only through a public-safe boundary sweep that does not touch secrets, live queues, unsafe security probes, or compliance-certification claims.
@@ -99,6 +99,10 @@ Package-backed products promote through the scheduled XPass package sweep. Bound
 Archived or parked:
 
 - BackstagePass as a brand/product. Old code may be borrowed when useful, but current user-facing language should prefer Connections or Connectors.
+
+Legacy naming:
+
+- EnterprisePass is the old internal name for CompliancePass.
 
 ## Run receipt requirements
 

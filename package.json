@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malamutemayhem/unclick.git"
+  },
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -15,6 +19,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run",
+    "compliancepass:report": "npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs",
+    "test:compliancepass-receipt": "node --test scripts/enterprisepass-receipt-guard.test.mjs",
     "test:enterprisepass-receipt": "node --test scripts/enterprisepass-receipt-guard.test.mjs",
     "test:rotatepass-redaction": "node --test scripts/rotatepass-redaction-guard.test.mjs",
     "test:watch": "vitest",
@@ -31,7 +37,7 @@
     "@ai-sdk/google": "^3.0.64",
     "@ai-sdk/openai": "^3.0.53",
     "@ai-sdk/react": "^3.0.170",
-    "@anthropic-ai/sdk": "^0.90.0",
+    "@anthropic-ai/sdk": "^0.99.0",
     "@codemirror/lang-yaml": "^6.1.1",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.1",
@@ -108,9 +114,10 @@
     "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
-    "@vercel/node": "^3.2.29",
+    "@vercel/node": "^5.8.5",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
+    "esbuild": "^0.27.7",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
@@ -120,7 +127,20 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.3",
-    "vite": "^5.4.19",
+    "vite": "^6.4.2",
     "vitest": "^4.1.6"
+  },
+  "overrides": {
+    "@vercel/node": {
+      "path-to-regexp": "^6.3.0",
+      "undici": "^6.24.0"
+    },
+    "@vercel/python-analysis": {
+      "minimatch": "^10.2.5",
+      "smol-toml": "^1.6.1"
+    },
+    "@vercel/static-config": {
+      "ajv": "^8.18.0"
+    }
   }
 }

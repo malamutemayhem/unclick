@@ -18,7 +18,7 @@ on:
         required: false
         default: https://unclick.world/api/mcp
       api_url:
-        description: Optional TestPass API URL.
+        description: Optional TestPass API URL. Use a protected Vercel preview URL for branch dogfood reruns.
         required: false
         default: https://unclick.world/api/testpass-run
 

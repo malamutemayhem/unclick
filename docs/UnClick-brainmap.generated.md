@@ -15,11 +15,11 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | AUTOPILOT.md | 486b704a6072 | 16305 |
 | FLEET_SYNC.md | 41ebcbca94b0 | 13200 |
-| docs/unclick-context-boot-packet.md | 7cf131cf22e0 | 4785 |
+| docs/unclick-context-boot-packet.md | fc8064c5874f | 4804 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
 | docs/pinballwake-nudgeonly-api.md | e056b727ce53 | 7559 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
-| docs/fleet-worker-roles.md | ed620f347d4f | 4873 |
+| docs/fleet-worker-roles.md | a8f64d0da135 | 4873 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | 7bd815c57de3 | 13446 |
@@ -27,9 +27,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
-| .github/workflows/ci.yml | b0a209c9c627 | 1559 |
+| .github/workflows/ci.yml | 8650d072f494 | 1559 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
-| package.json | 76fdae8ef856 | 4582 |
+| package.json | 2c50a18f4684 | 5202 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -70,7 +70,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminDashboard.tsx | 437a146a3d78 | 5259 |
 | src/pages/admin/AdminJobs.tsx | d4782e020bb5 | 59940 |
 | src/pages/admin/AdminJobsmith.tsx | 34ba72c04cb2 | 54660 |
-| src/pages/admin/AdminKeychain.tsx | 885131936227 | 77036 |
+| src/pages/admin/AdminKeychain.tsx | 0c355d737922 | 77124 |
 | src/pages/admin/AdminMemory.tsx | f001b0a54b31 | 9731 |
 | src/pages/admin/AdminModeration.tsx | c81500ffb43d | 880 |
 | src/pages/admin/AdminOrchestrator.tsx | 4741f71afba9 | 94705 |
@@ -172,6 +172,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/coinmarketcap-tool.ts | b1c5fd280acb | 6892 |
 | packages/mcp-server/src/color-tool.ts | f9aa9c0fec6e | 13643 |
 | packages/mcp-server/src/commonsensepass-tool.ts | bad23b55ea01 | 1995 |
+| packages/mcp-server/src/compliancepass-tool.ts | 13242448457f | 3202 |
 | packages/mcp-server/src/convertkit-tool.ts | 2f77303a3441 | 8498 |
 | packages/mcp-server/src/copypass-tool.ts | 70d540c397a5 | 31503 |
 | packages/mcp-server/src/crews-tool.ts | 111454c76c0a | 13547 |
@@ -184,7 +185,6 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/discord-tool.ts | c70b8ac42f28 | 8191 |
 | packages/mcp-server/src/domain-tool.ts | 1beecc106e80 | 6076 |
 | packages/mcp-server/src/ebay-tool.ts | 10dffe36315f | 7595 |
-| packages/mcp-server/src/ebird-tool.ts | 3deedf3fde19 | 6262 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | a1280cfec46b | 15338 |
@@ -199,7 +199,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | bbb701a7cb34 | 12844 |
+| .github/workflows/testpass-pr-check.yml | 439715253466 | 12906 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | f26a538f2ee9 | 896 |
 
@@ -209,7 +209,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 46 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 186 |
+| Tools | MCP and gateway capabilities available to seats. | 187 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 15 |
@@ -217,7 +217,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 61 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 62 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 4 |
 
 ## UnClick Structure
@@ -362,6 +362,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | coinmarketcap | coinmarketcap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coinmarketcap-tool.ts |
 | color | color MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/color-tool.ts |
 | commonsensepass | commonsensepass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/commonsensepass-tool.ts |
+| compliancepass | compliancepass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/compliancepass-tool.ts |
 | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/convertkit-tool.ts |
 | copypass | copypass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/copypass-tool.ts |
 | crews | crews MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crews-tool.ts |
@@ -724,6 +725,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Un Click Tools | Tool page for Un Click Tools. | - | src/pages/admin/tools/UnClickTools.tsx |
 | Modules and apps | package | channel plugin | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/channel-plugin/package.json |
 | Modules and apps | package | commonsensepass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/commonsensepass/package.json |
+| Modules and apps | package | compliancepass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/compliancepass/package.json |
 | Modules and apps | package | copypass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/copypass/package.json |
 | Modules and apps | package | core | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/core/package.json |
 | Modules and apps | package | flowpass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/flowpass/package.json |
@@ -869,6 +871,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | coinmarketcap | coinmarketcap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coinmarketcap-tool.ts |
 | Tools | MCP tool | color | color MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/color-tool.ts |
 | Tools | MCP tool | commonsensepass | commonsensepass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/commonsensepass-tool.ts |
+| Tools | MCP tool | compliancepass | compliancepass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/compliancepass-tool.ts |
 | Tools | MCP tool | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/convertkit-tool.ts |
 | Tools | MCP tool | copypass | copypass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/copypass-tool.ts |
 | Tools | MCP tool | crews | crews MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crews-tool.ts |
@@ -1127,10 +1130,12 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | brainmap:generate | node scripts/UnClick-brainmap.mjs |
 | build | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build |
 | build:dev | vite build --mode development |
+| compliancepass:report | npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs |
 | lint | eslint . |
 | test | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run |
 | test:api | npm run test --workspace=apps/api |
 | test:brainmap | node --test scripts/UnClick-brainmap.test.mjs |
+| test:compliancepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
 | test:enterprisepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
 | test:rotatepass-redaction | node --test scripts/rotatepass-redaction-guard.test.mjs |
 | test:watch | vitest |

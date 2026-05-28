@@ -800,6 +800,14 @@ import {
   seopassLighthousePlan,
 } from "./seopass-tool.js";
 
+// ─── CompliancePass (public name for EnterprisePass readiness) ───────────────
+import {
+  compliancepassRun,
+  compliancepassStatus,
+  compliancepassReportJson,
+  compliancepassReportMd,
+} from "./compliancepass-tool.js";
+
 // ─── FlowPass (journey completion QC, sister to UXPass) ─────────────────────
 import {
   flowpassDisagreementQueue,
@@ -12685,6 +12693,56 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── compliancepass-tool.ts (evidence-backed readiness guidance) ───────────
+  {
+    name: "compliancepass_run",
+    description: "Run CompliancePass against a local repo path. Returns evidence-backed readiness guidance, gaps, next actions, and an in-session run id. Historical EnterprisePass references are treated as this same product.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        repo_path: { type: "string", description: "Local repository path to scan. Defaults to the MCP server working directory." },
+        target_name: { type: "string", description: "Human-readable target name for the report. Defaults to UnClick." },
+      },
+    },
+  },
+  {
+    name: "compliancepass_status",
+    description: "Fetch the stored in-session status and summary for a CompliancePass run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The CompliancePass run id returned by compliancepass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "compliancepass_report_json",
+    description: "Fetch the full JSON CompliancePass readiness report for a completed in-session run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The CompliancePass run id returned by compliancepass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "compliancepass_report_md",
+    description: "Fetch a Markdown CompliancePass readiness report for a completed in-session run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The CompliancePass run id returned by compliancepass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+
   // ── copypass-tool.ts (copy quality QC with CopyRoom receipt support) ─────
   {
     name: "copypass_run",
@@ -14024,6 +14082,12 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   seopass_status:          (args) => seopassStatus(args),
   seopass_register_pack:   (args) => seopassRegisterPack(args),
   seopass_lighthouse_plan: (args) => seopassLighthousePlan(args),
+
+  // compliancepass-tool.ts
+  compliancepass_run:         (args) => compliancepassRun(args),
+  compliancepass_status:      (args) => compliancepassStatus(args),
+  compliancepass_report_json: (args) => compliancepassReportJson(args),
+  compliancepass_report_md:   (args) => compliancepassReportMd(args),
 
   // flowpass-tool.ts
   flowpass_run:                (args) => flowpassRun(args),

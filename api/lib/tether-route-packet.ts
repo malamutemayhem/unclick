@@ -56,7 +56,7 @@ function normalizeExpectedReceipt(input: TetherRouteIntent["expected_receipt"]):
   }
   if (typeof input === "string") {
     return input
-      .split(/[,\|]/)
+      .split(/[,|]/)
       .map((value) => value.trim())
       .filter(Boolean);
   }
