@@ -234,6 +234,67 @@ function packageReadyResult(id, name, summary, evidence, targetUrl, nextProof) {
   });
 }
 
+function securityPassResult() {
+  const sweep = packageSweepProof("securitypass");
+  if (sweep) {
+    const proof = {
+      kind: "xpass_package_sweep",
+      runId: sweep.runId,
+      packageId: "securitypass",
+      targetUrl: "packages/securitypass",
+      targetSha: sweep.targetSha || undefined,
+      receiptPath: packageSweepPath,
+      reviewers: sweep.reviewers,
+      boundary: "safe_package_proof_only_no_live_security_probe",
+    };
+
+    if (sweep.package.status === "passing" && sweep.matrix?.status === "passing") {
+      return passResult(
+        "securitypass",
+        "SecurityPass",
+        "Scheduled XPass package sweep passed SecurityPass safe package proof.",
+        `Receipt ${sweep.runId} ran ${sweep.commandText}; live security probes remain scope-gated.`,
+        {
+          runId: sweep.runId,
+          targetUrl: "packages/securitypass",
+          proof,
+          reasonCode: "safe_package_proof_only",
+          nextProof: "Add a deny-by-default live SecurityPass runner before claiming live security scanning.",
+        },
+      );
+    }
+
+    if (sweep.package.status === "failing" || sweep.matrix?.status === "failing") {
+      return failureResult(
+        "securitypass",
+        "SecurityPass",
+        "Scheduled XPass package sweep failed SecurityPass safe package proof.",
+        sweep.package.failure_hint || sweep.matrix?.summary || `Receipt ${sweep.runId} reported a failing SecurityPass package proof.`,
+        {
+          runId: sweep.runId,
+          targetUrl: "packages/securitypass",
+          proof,
+        },
+      );
+    }
+  }
+
+  const nextProof = packageSweepState?.stale
+    ? `Regenerate ${packageSweepPath} as a full current XPass package sweep for ${targetSha || "the current commit"} before marking this passing.`
+    : "Land a safe recurring SecurityPass package sweep receipt before marking this passing.";
+  return blockedResult(
+    "securitypass",
+    "SecurityPass",
+    "SecurityPass is blocked until safe recurring package proof is ready.",
+    "SecurityPass live probes remain scope-gated; the public dogfood receipt needs safe package proof before showing passing.",
+    "SecurityPass is intentionally deny-all/scope-gated until safe recurring package proof lands.",
+    {
+      reasonCode: "scope_gate",
+      nextProof,
+    },
+  );
+}
+
 function boundaryResult(id, name, summary, evidence, targetUrl, nextProof) {
   return pendingResult(id, name, summary, evidence, {
     reasonCode: "boundary_needs_runner",
@@ -714,17 +775,7 @@ packageSweepState = await readPackageSweepReceipt();
 const results = [
   await runTestPass(),
   await runUXPass(),
-  blockedResult(
-    "securitypass",
-    "SecurityPass",
-    "SecurityPass is blocked until the recurring runner proof is ready.",
-    "SecurityPass remains scope-gated; the public dogfood receipt does not run security probes yet.",
-    "SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
-    {
-      reasonCode: "scope_gate",
-      nextProof: "Land a safe recurring SecurityPass runner receipt before marking this passing.",
-    },
-  ),
+  securityPassResult(),
   packageReadyResult(
     "sloppass",
     "SlopPass",

@@ -41,7 +41,7 @@ function passingSweepMatrixRows() {
   }));
 }
 
-test("dogfood receipt marks SecurityPass as blocked with a reason", async () => {
+test("dogfood receipt marks SecurityPass as blocked until safe package proof exists", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
   const output = path.join(dir, "latest.json");
 
@@ -68,7 +68,7 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
     assert.equal(securitypass?.status, "blocked");
     assert.match(securitypass?.blockedReason ?? "", /scope-gated/i);
     assert.equal(securitypass?.reasonCode, "scope_gate");
-    assert.match(securitypass?.nextProof ?? "", /safe recurring SecurityPass runner receipt/i);
+    assert.match(securitypass?.nextProof ?? "", /safe recurring SecurityPass package sweep receipt/i);
     assert.equal(copypass?.status, "pending");
     assert.equal(copypass?.reasonCode, "package_ready_needs_scheduled_receipt");
     assert.equal(copypass?.proof?.kind, "package_ready");
@@ -293,8 +293,12 @@ test("dogfood receipt promotes package-ready passes from a fresh XPass sweep rec
     const seopass = report.results.find((result) => result.id === "seopass");
     assert.equal(seopass?.status, "passing");
     assert.equal(seopass?.proof?.kind, "seopass_run");
-    assert.equal(securitypass?.status, "blocked");
-    assert.equal(securitypass?.reasonCode, "scope_gate");
+    assert.equal(securitypass?.status, "passing");
+    assert.equal(securitypass?.reasonCode, "safe_package_proof_only");
+    assert.equal(securitypass?.proof?.kind, "xpass_package_sweep");
+    assert.equal(securitypass?.proof?.boundary, "safe_package_proof_only_no_live_security_probe");
+    assert.match(securitypass?.summary ?? "", /safe package proof/i);
+    assert.match(securitypass?.evidence ?? "", /live security probes remain scope-gated/i);
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }

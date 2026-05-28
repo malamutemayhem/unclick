@@ -16,8 +16,10 @@ describe("Dogfood report proof policy", () => {
 
     expect(uxpass?.reasonCode).toBe("missing_credential");
     expect(uxpass?.nextProof).toMatch(/rerun the dogfood report workflow/i);
-    expect(securitypass?.reasonCode).toBe("scope_gate");
-    expect(securitypass?.nextProof).toMatch(/before marking this passing/i);
+    expect(securitypass?.reasonCode).toBe("safe_package_proof_only");
+    expect(securitypass?.proof?.kind).toBe("xpass_package_sweep");
+    expect(securitypass?.proof?.boundary).toBe("safe_package_proof_only_no_live_security_probe");
+    expect(securitypass?.nextProof).toMatch(/before claiming live security scanning/i);
     expect(copypass?.reasonCode).toBe("package_ready_needs_scheduled_receipt");
     expect(copypass?.proof?.kind).toBe("package_ready");
     expect(seopass?.proof?.kind).toBe("seopass_run");
