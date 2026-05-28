@@ -5,9 +5,12 @@ describe("Gitleaks probe scaffold", () => {
   it("builds an inert JSON command spec", () => {
     const spec = buildGitleaksCommand("/repo");
     expect(spec.command).toBe("gitleaks");
-    expect(spec.args).toContain("detect");
+    expect(spec.args).toContain("git");
     expect(spec.args).toContain("--report-format");
     expect(spec.args).toContain("json");
+    expect(spec.args).toContain("--report-path");
+    expect(spec.args).toContain("-");
+    expect(spec.args).toContain("--redact=100");
     expect(spec.timeoutMs).toBeGreaterThan(0);
   });
 
@@ -17,11 +20,14 @@ describe("Gitleaks probe scaffold", () => {
       Description: "Generic API Key",
       File: ".env",
       StartLine: 2,
+      EndLine: 2,
       Secret: "sk_live_secret",
+      Fingerprint: "abc123:.env:generic-api-key:2",
     }]));
     expect(findings).toHaveLength(1);
     expect(findings[0].severity).toBe("critical");
     expect(findings[0].evidence.secret_redacted).toBe("[redacted]");
+    expect(findings[0].evidence.fingerprint).toBe("abc123:.env:generic-api-key:2");
     expect(JSON.stringify(findings)).not.toContain("sk_live_secret");
   });
 
