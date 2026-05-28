@@ -53,7 +53,7 @@ const YEAR_RE = /^\d{4}$/;
 // A blank-but-valid starting point. Contains no claims: every field is a
 // placeholder the user replaces with their own real facts.
 export const CV_FACTS_TEMPLATE: MasterCvFacts = {
-  name: "Christopher Byrne",
+  name: "Your Name",
   contact: "your.email@example.com | City, State",
   summary: {
     id: "summary",

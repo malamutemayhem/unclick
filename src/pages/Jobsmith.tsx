@@ -48,6 +48,17 @@ import {
   scanAgeSignals,
   scanTone,
 } from "@jobsmith/lib/riskAudit";
+import { JOBSMITH_RULE_PACK_V1, runJobsmithChecks, summarizeRulePack } from "../../apps/jobsmith/src/lib/checkEngine";
+import {
+  buildDecisionCards,
+  buildManagedApplicationRun,
+  buildWelcomePacket,
+  summarizeDecisionCards,
+  type DecisionCard,
+  type DecisionCardReview,
+  type ManagedApplicationRunReport,
+  type WelcomePacket,
+} from "../../apps/jobsmith/src/lib/applicationManager";
 
 const CV_FACTS_STORAGE_KEY = "jobsmith.cvFacts.v1";
 
@@ -86,13 +97,24 @@ async function downloadDocx(
 
 type ReadinessLevel = "blocked" | "review" | "ready";
 
-const SIGNOFF_SUFFIX = "Creative Lead & Founder, Malamute Mayhem";
-
 interface ReadinessCheck {
   label: string;
   level: ReadinessLevel;
   reason: string;
 }
+
+const STANDARD_HEADING_SAMPLE = `
+Profile
+Summary
+Experience
+Built proof-backed UnClick workflows.
+
+Education
+University Degree Equivalent
+
+Skills
+Automation, product strategy, operations
+`;
 
 const LEVEL_LABELS: Record<ReadinessLevel, string> = {
   blocked: "Blocked",
@@ -116,6 +138,47 @@ type CorpusState =
       letterCount: number;
     }
   | { kind: "error"; message: string };
+
+const WELCOME_STATUS_LABELS: Record<WelcomePacket["status"], string> = {
+  loading_inputs: "Loading inputs",
+  needs_job_ad: "Needs intake",
+  ready_to_generate: "Ready to generate",
+  draft_ready: "Draft ready for review",
+};
+
+const WELCOME_STATUS_STYLES: Record<WelcomePacket["status"], string> = {
+  loading_inputs: "border-white/[0.08] bg-white/[0.05] text-white/70",
+  needs_job_ad: "border-rose-300/25 bg-rose-300/10 text-rose-100",
+  ready_to_generate: "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#F4D36B]",
+  draft_ready: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100",
+};
+
+const DECISION_STATUS_LABELS: Record<DecisionCard["status"], string> = {
+  blocked: "Blocked",
+  needs_decision: "Needs decision",
+  ready_for_review: "Ready for review",
+};
+
+const DECISION_OWNER_LABELS: Record<DecisionCard["owner"], string> = {
+  human: "Human",
+  jobsmith: "JobSmith",
+  reviewer: "Reviewer",
+};
+
+const MANAGED_RUN_STATUS_LABELS: Record<ManagedApplicationRunReport["status"], string> = {
+  blocked: "Blocked",
+  proof_needed: "Proof needed",
+  review_needed: "Review needed",
+  submit_ready: "Submit-ready",
+};
+
+const SAMPLE_DECISION_REVIEWS: DecisionCardReview[] = [
+  {
+    ruleId: "JS-AGE-02",
+    resolution: "blocker",
+    evidence: "Graduation-year review is still unresolved in this browser-local starter run.",
+  },
+];
 
 function hasBrittleFormatLanguage(value: string): boolean {
   return /\b(table|tables|column|columns|two-column|textbox|text box|image-only|pdf-only|scanned|screenshot|infographic|hidden text|keyword stuffing)\b/i.test(
@@ -229,6 +292,25 @@ function overallLevel(checks: ReadinessCheck[]): ReadinessLevel {
   return "ready";
 }
 
+function buildSourceBackedClaim(
+  letterText: string,
+  draft: DraftResult | null,
+  profile: VoiceProfile | null,
+): string {
+  if (!draft || letterText.trim().length === 0) return "";
+
+  const citedBrand = (profile?.pastBrands ?? []).find((brand) => letterText.includes(brand));
+  if (citedBrand) {
+    return `Cover letter draft cites ${citedBrand} from the uploaded corpus.`;
+  }
+
+  if (draft.detectedRole && draft.detectedCompany) {
+    return `Cover letter draft generated for ${draft.detectedRole} at ${draft.detectedCompany}.`;
+  }
+
+  return "Cover letter draft generated from the uploaded corpus.";
+}
+
 function LevelBadge({ level }: { level: ReadinessLevel }) {
   const Icon = level === "ready" ? CheckCircle2 : AlertTriangle;
   return (
@@ -238,6 +320,373 @@ function LevelBadge({ level }: { level: ReadinessLevel }) {
       <Icon className="h-3.5 w-3.5" />
       {LEVEL_LABELS[level]}
     </span>
+  );
+}
+
+function WelcomePacketPanel({ packet }: { packet: WelcomePacket }) {
+  return (
+    <section
+      aria-label="Jobsmith AI welcome packet"
+      data-testid="jobsmith-ai-welcome-packet"
+      className="mb-4 rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.07] p-5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">AI Welcome Packet</p>
+          <h2 className="mt-1 text-xl font-semibold text-white">{packet.title}</h2>
+          <p className="mt-2 text-sm leading-6 text-white/65">{packet.purpose}</p>
+        </div>
+        <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${WELCOME_STATUS_STYLES[packet.status]}`}>
+          {WELCOME_STATUS_LABELS[packet.status]}
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Inputs visible now</h3>
+          <ul className="mt-3 space-y-2 text-sm leading-6 text-white/70">
+            {packet.availableInputs.map((input) => (
+              <li key={input}>{input}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Missing before submit-ready</h3>
+          {packet.missingInputs.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-white/70">
+              {packet.missingInputs.map((input) => (
+                <li key={input}>{input}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm leading-6 text-emerald-100">No missing inputs in this slice.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-5 md:grid-cols-3">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Can do</h3>
+          <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+            {packet.capabilities.map((capability) => (
+              <li key={capability}>{capability}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Proof expected</h3>
+          <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+            {packet.proofExpectations.map((proof) => (
+              <li key={proof}>{proof}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Stop conditions</h3>
+          <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+            {packet.stopConditions.map((condition) => (
+              <li key={condition}>{condition}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-5 border-t border-white/[0.08] pt-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9EE4E6]">Safest next move</p>
+        <p className="mt-2 text-sm leading-6 text-white/75">{packet.safestNextMove}</p>
+      </div>
+    </section>
+  );
+}
+
+function ManagedRunReport({
+  report,
+  decisionCards,
+}: {
+  report: ManagedApplicationRunReport;
+  decisionCards: DecisionCard[];
+}) {
+  const decisionSummary = summarizeDecisionCards(
+    decisionCards,
+    report.artifacts.every((artifact) => artifact.ready),
+  );
+  const visibleBlockers = report.blockers.slice(0, 4);
+  const visibleFindings = report.deterministicFindings.slice(0, 3);
+
+  return (
+    <section
+      aria-label="Jobsmith managed run report"
+      data-testid="jobsmith-managed-run-report"
+      className="rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.06] p-5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">Managed Run Report</p>
+          <h2 className="mt-1 text-xl font-semibold text-white">Checklist to submit-ready gate</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
+            JobSmith keeps the rule run, decision cards, artifacts, and submit-ready status visible instead of hiding review work in chat.
+          </p>
+        </div>
+        <span
+          className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+            report.submitReady ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" : "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#F4D36B]"
+          }`}
+        >
+          {report.submitReady ? "Submit-ready" : "Not submit-ready"}
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <RunMetric label="Rules passed" value={report.rulesPassed} />
+        <RunMetric label="Blockers" value={report.blockers.length} />
+        <RunMetric label="Findings" value={report.deterministicFindings.length} />
+        <RunMetric label="Review needed" value={report.reviewNeededCount} />
+        <RunMetric label="Artifacts" value={report.artifacts.length} />
+        <RunMetric label="Proof" value={report.proof.length} />
+        <RunMetric label="Resolved" value={decisionSummary.resolved} />
+        <RunMetric label="Unresolved" value={decisionSummary.unresolved} />
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Run steps</h3>
+            <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-xs font-semibold text-white/65">
+              {MANAGED_RUN_STATUS_LABELS[report.status]}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-2">
+            {report.steps.map((step) => (
+              <div key={step.id} className="rounded-lg border border-white/[0.06] bg-[#111] p-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <p className="text-sm font-semibold text-white">{step.label}</p>
+                  <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-xs font-semibold text-white/65">
+                    {step.status === "review_needed" ? "Review" : step.status === "blocked" ? "Blocked" : "Ready"}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs leading-5 text-white/55">{step.reason}</p>
+                <p className="mt-1 text-xs leading-5 text-[#9EE4E6]">Proof needed: {step.proofNeeded}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Final report</h3>
+          <dl className="mt-4 grid gap-3 text-xs leading-5 text-white/60">
+            <div>
+              <dt className="font-semibold text-white/45">Run id</dt>
+              <dd className="mt-1 text-white/70">{report.runId}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-white/45">Next safe action</dt>
+              <dd className="mt-1 text-white/70">{report.nextSafeAction}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-white/45">Artifacts</dt>
+              <dd className="mt-1 space-y-1 text-white/70">
+                {report.artifacts.map((artifact) => (
+                  <span key={artifact.id} className="block">
+                    {artifact.label}: {artifact.ready ? "Ready" : "Blocked"} ({artifact.proof})
+                  </span>
+                ))}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-white/45">Proof</dt>
+              <dd className="mt-1 space-y-1 text-white/70">
+                {report.proof.length > 0 ? (
+                  report.proof.map((proof) => (
+                    <span key={proof.id} className="block">
+                      {proof.label}: {proof.uri}
+                    </span>
+                  ))
+                ) : (
+                  <span>No run proof attached yet.</span>
+                )}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Blockers</h3>
+          {visibleBlockers.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+              {visibleBlockers.map((blocker) => (
+                <li key={blocker}>{blocker}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-xs leading-5 text-emerald-100">No blockers in the managed report.</p>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Deterministic findings</h3>
+          {visibleFindings.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-xs leading-5 text-white/60">
+              {visibleFindings.map((finding) => (
+                <li key={finding.ruleId}>
+                  {finding.ruleId}: {finding.message}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-xs leading-5 text-emerald-100">No deterministic findings in the current run.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-lg border border-white/[0.06] bg-black/20 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Decision cards</h3>
+            <p className="mt-1 text-xs leading-5 text-white/50">
+              Showing the first {Math.min(5, decisionCards.length)} of {decisionCards.length}. The full count stays in the run report.
+            </p>
+          </div>
+          <p className="text-xs font-semibold text-[#9EE4E6]">
+            {decisionSummary.blocked} blocked, {decisionSummary.needsDecision} need decision, {decisionSummary.resolved} resolved
+          </p>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {decisionCards.slice(0, 5).map((card) => (
+            <article key={card.id} className="rounded-lg border border-white/[0.06] bg-[#111] p-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-white">{card.title}</p>
+                  <p className="mt-1 text-xs text-white/45">
+                    {card.ruleId} | {card.category} | Owner: {DECISION_OWNER_LABELS[card.owner]}
+                  </p>
+                </div>
+                <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-xs font-semibold text-white/65">
+                  {DECISION_STATUS_LABELS[card.status]}
+                </span>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-white/55">{card.reason}</p>
+              <p className="mt-2 text-xs leading-5 text-[#9EE4E6]">Proof needed: {card.proofNeeded}</p>
+              {card.resolutionEvidence ? (
+                <p className="mt-2 text-xs leading-5 text-emerald-100">Evidence: {card.resolutionEvidence}</p>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RunMetric({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+      <p className="text-xs text-white/45">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function RulePackStatus({ summary }: { summary: ReturnType<typeof summarizeRulePack> }) {
+  const sampleResult = useMemo(() => runJobsmithChecks(STANDARD_HEADING_SAMPLE, JOBSMITH_RULE_PACK_V1), []);
+  const sampleClean = sampleResult.findings.length === 0;
+  const standardHeadingsSafe = sampleResult.findings.every((finding) => finding.ruleId !== "JS-ATS-03");
+
+  return (
+    <section
+      aria-label="Jobsmith universal rules"
+      className="rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.06] p-5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">Universal Rules v{summary.version}</p>
+          <h2 className="mt-1 text-xl font-semibold text-white">Rule-pack check status</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
+            Source-backed rules are loaded as data. Allowlist and requirement specs stay out of banned-keyword findings unless a rule explicitly says to flag or block the terms.
+          </p>
+        </div>
+        <LevelBadge level={sampleClean && standardHeadingsSafe ? "ready" : "review"} />
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-4">
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Rules</p>
+          <p className="mt-1 text-lg font-semibold text-white">{summary.totalRules}</p>
+        </div>
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Categories</p>
+          <p className="mt-1 text-lg font-semibold text-white">{summary.categories.length}</p>
+        </div>
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Blockers</p>
+          <p className="mt-1 text-lg font-semibold text-white">{summary.bySeverity.ERROR}</p>
+        </div>
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-3">
+          <p className="text-xs text-white/45">Sample check</p>
+          <p className="mt-1 text-sm font-semibold text-emerald-100">
+            {sampleClean && standardHeadingsSafe ? "Standard headings pass" : "Review standard headings"}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Field({
+  id,
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <label htmlFor={id} className="block">
+      <span className="mb-1 block text-xs font-medium text-white/55">{label}</span>
+      <input
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="h-10 w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+      />
+    </label>
+  );
+}
+
+function TextAreaField({
+  id,
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows = 3,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  rows?: number;
+}) {
+  return (
+    <label htmlFor={id} className="block">
+      <span className="mb-1 block text-xs font-medium text-white/55">{label}</span>
+      <textarea
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        rows={rows}
+        placeholder={placeholder}
+        className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+      />
+    </label>
   );
 }
 
@@ -302,6 +751,140 @@ export default function JobsmithPage() {
     () => (letterText ? extractQuantifiedClaims(letterText) : []),
     [letterText],
   );
+  const hasDraft = letterDraft !== null || cvDraft !== null;
+  const ruleSummary = useMemo(() => summarizeRulePack(JOBSMITH_RULE_PACK_V1), []);
+  const detectedCompany = letterDraft?.detectedCompany ?? "";
+  const detectedRole = letterDraft?.detectedRole ?? "";
+  const jobSource = jobText.trim().length > 0 ? "Browser-local pasted job description" : "";
+  const sourceBackedClaim = useMemo(
+    () => buildSourceBackedClaim(letterText, letterDraft, profile),
+    [letterDraft, letterText, profile],
+  );
+  const proofNote =
+    sourceBackedClaim.length > 0
+      ? "Derived from the uploaded cover-letter corpus and browser-local draft artifacts."
+      : "";
+  const managedRunText = useMemo(
+    () => [jobText, letterText, cvText].filter((part) => part.trim().length > 0).join("\n\n"),
+    [cvText, jobText, letterText],
+  );
+  const checkResult = useMemo(
+    () => runJobsmithChecks(managedRunText || jobText, JOBSMITH_RULE_PACK_V1),
+    [jobText, managedRunText],
+  );
+  const welcomePacket = useMemo(
+    () =>
+      buildWelcomePacket({
+        corpusReady: corpus.kind === "ready",
+        corpusStats:
+          corpus.kind === "ready"
+            ? {
+                coverLetters: corpus.letterCount,
+                jobsApplied: appLog.length,
+                roleTypes: profile?.roleTypes ?? [],
+                pastBrands: profile?.pastBrands ?? [],
+              }
+            : undefined,
+        applicationRun: {
+          company: detectedCompany,
+          role: detectedRole,
+          jobSource,
+          sourceBackedClaim,
+          proofNote,
+        },
+        jobText,
+        draftReady: hasDraft,
+        ruleSummary,
+      }),
+    [appLog.length, corpus, detectedCompany, detectedRole, hasDraft, jobSource, jobText, profile, proofNote, ruleSummary, sourceBackedClaim],
+  );
+  const decisionCards = useMemo(
+    () =>
+      buildDecisionCards({
+        reviewNeeded: checkResult.reviewNeeded,
+        findings: checkResult.findings,
+        missingInputs: welcomePacket.missingInputs,
+        artifactsReady: hasDraft,
+        reviews: SAMPLE_DECISION_REVIEWS,
+      }),
+    [checkResult.findings, checkResult.reviewNeeded, hasDraft, welcomePacket.missingInputs],
+  );
+  const managedRunReport = useMemo(
+    () =>
+      buildManagedApplicationRun({
+        runId: "browser-local-jobsmith-run",
+        company: detectedCompany,
+        role: detectedRole,
+        jobSource,
+        sourceBackedClaim,
+        proofNote,
+        ruleResult: {
+          totalRules: checkResult.totalRules,
+          findings: checkResult.findings,
+          reviewNeeded: checkResult.reviewNeeded,
+          blocked: checkResult.blocked,
+        },
+        decisionCards,
+        artifacts: [
+          {
+            id: "cover-letter-draft",
+            label: "Browser-local cover letter draft",
+            kind: "cover_letter",
+            ready: letterDraft !== null && letterText.trim().length > 0,
+            proof: letterDraft ? "Editable cover letter draft rendered" : "Generate a cover letter draft first",
+          },
+          {
+            id: "cv-draft",
+            label: "Tailored CV draft",
+            kind: "cv",
+            ready: cvDraft !== null && cvText.trim().length > 0,
+            proof: cvDraft ? "Editable CV draft rendered from structured facts" : "Paste structured CV facts to generate a CV draft",
+          },
+          {
+            id: "application-log",
+            label: "Application log receipt",
+            kind: "proof_json",
+            ready: appLog.length > 0,
+            proof: appLog.length > 0 ? `${appLog.length} browser-local application log row(s)` : "Log an application after generating a draft",
+          },
+        ],
+        proof:
+          !hasDraft
+            ? []
+            : [
+                {
+                  id: "managed-run-report-ui",
+                  label: "Managed run report UI",
+                  kind: "receipt",
+                  uri: "ui://jobsmith/managed-run-report",
+                },
+                {
+                  id: "browser-local-draft-ui",
+                  label: "Browser-local draft UI",
+                  kind: "receipt",
+                  uri: "ui://jobsmith/tailored-draft",
+                },
+              ],
+      }),
+    [
+      appLog.length,
+      checkResult.blocked,
+      checkResult.findings,
+      checkResult.reviewNeeded,
+      checkResult.totalRules,
+      cvDraft,
+      cvText,
+      decisionCards,
+      detectedCompany,
+      detectedRole,
+      hasDraft,
+      jobSource,
+      letterDraft,
+      letterText,
+      proofNote,
+      sourceBackedClaim,
+    ],
+  );
 
   async function handleCorpusFiles(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) return;
@@ -326,7 +909,7 @@ export default function JobsmithPage() {
   function handleGenerate() {
     if (profile) {
       const letter = renderCoverLetterDraft({ rawText: jobText }, profile, {
-        brandSuffix: SIGNOFF_SUFFIX,
+        name: cvFacts?.name,
       });
       setLetterDraft(letter);
       setLetterText(letter.draft);
@@ -370,7 +953,6 @@ export default function JobsmithPage() {
   }
 
   const canGenerate = profile !== null && jobText.trim().length > 0;
-  const hasDraft = letterDraft !== null || cvDraft !== null;
 
   return (
     <div className="min-h-screen bg-[#090909] text-white">
@@ -393,6 +975,18 @@ export default function JobsmithPage() {
         </FadeIn>
 
         <FadeIn delay={0.05}>
+          <WelcomePacketPanel packet={welcomePacket} />
+        </FadeIn>
+
+        <FadeIn delay={0.1}>
+          <RulePackStatus summary={ruleSummary} />
+        </FadeIn>
+
+        <FadeIn delay={0.15}>
+          <ManagedRunReport report={managedRunReport} decisionCards={decisionCards} />
+        </FadeIn>
+
+        <FadeIn delay={0.2}>
           <section
             aria-label="Jobsmith draft builder"
             className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]"

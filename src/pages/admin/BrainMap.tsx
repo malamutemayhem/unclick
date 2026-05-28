@@ -129,7 +129,7 @@ const TREE: Node[] = [
       { label: "LegalPass", note: "legal proof" },
       { label: "CopyPass", note: "writing proof" },
       { label: "SEOPass", note: "search proof" },
-      { label: "QualityPass", note: "public name for SlopPass-style checks" },
+      { label: "SlopPass", note: "AI-code quality and slop-signal checks" },
       { label: "CompliancePass", note: "public name for EnterprisePass" },
       { label: "RotatePass", note: "likely folded into SecurityPass later" },
     ],
@@ -173,7 +173,7 @@ const INTERNAL_ADMIN = [
 
 const PUBLIC_ALIASES = [
   ["EnterprisePass", "CompliancePass"],
-  ["SlopPass", "QualityPass"],
+  ["QualityPass", "SlopPass"],
 ];
 
 const ICONS = [

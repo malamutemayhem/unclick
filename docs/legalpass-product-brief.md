@@ -47,16 +47,22 @@ national bar rules. The mitigation is architectural, not marketing.
 This rule is enforced at three layers:
 
 1. **Verdict-linter** at render time (`packages/legalpass/src/passguard/verdict-linter.ts`)
-   bans directive verbs in any verdict text: `should`, `must`, `you need to`,
-   `you have to`, `we recommend`, `this is illegal`, `you will win`, `you will lose`.
-   Allowed framing: `appears`, `may`, `consider`, `in similar contracts`, `warrants review`.
+   blocks directive action language, substitute-practitioner claims,
+   certification-style compliance claims, outcome guarantees, and
+   assurance language that could make a verdict look like legal advice.
+   The exact denylist lives in code and tests so product docs do not
+   repeat unsafe public wording while describing the guardrail.
+   Allowed framing includes `appears`, `seems`, `may`, `might`, `could`,
+   `consider`, `in similar contracts`, `in comparable agreements`,
+   `is unusual`, `is common`, `is typical`, `is standard`,
+   `merits attention`, `warrants review`, and
+   `qualified practitioner review may be warranted`.
 2. **Disclaimer banner** present in three render contexts (chat / results / ToS).
 3. **Marketing copy audit** (`qc_copy_audit`, lives outside this PR) bans the
-   words `lawyer`, `attorney`, `counsel`, `legal advice`, `legal opinion`,
-   `legal representation`, `robot lawyer`, `AI lawyer`, `law firm`, `client`,
-   `attorney-client privilege`, `we will defend you`, `sue`, `guarantee compliance`,
-   `100% compliant`. The disclaimer-banner module is exempt (it must use the
-   word "lawyer" to disclaim being one).
+   same substitute-practitioner, advice, representation, privileged-relationship,
+   litigation, and compliance-guarantee claim families in public marketing
+   copy. The disclaimer-banner module is exempt when it needs practitioner
+   wording to state the product boundary clearly.
 
 ## 4. The 12-hat panel
 
@@ -85,22 +91,42 @@ The Jurisdiction Router maps each finding to the correct primary source
 for the resolved jurisdiction; ambiguous routing returns a `pending`
 verdict with a routing note rather than guessing.
 
-## 6. MVP scope (6 to 8 weeks)
+## 6. MVP scope
 
-- **Hats live:** Privacy, Consumer / ToS Unfair Terms, OSS Licence, Contracts (4 of 12)
-- **Jurisdictions:** AU + EU + US-CA
-- **Tiers live:** Free + Solo
-- **Surface:** badge embed for sites, MCP tools for agents
+- **Current deterministic tool surface:** Privacy, Consumer / ToS Unfair Terms,
+  and OSS Licence fixture checks are live in `@unclick/legalpass`.
+- **Pack compatibility:** `contracts` maps onto the ToS / Unfair Terms
+  phase-one runner until the dedicated Contracts hat lands.
+- **Launch jurisdictions:** AU + EU + US-CA first.
+- **Tiers to launch:** Free + Solo first.
+- **Surface:** MCP tools for agents now; badge embed and public trust page later.
 - **Citation Verifier:** hard-veto active from day one (not a Phase 2 add)
+
+The long research also calls Accessibility-Legal Exposure the marquee fourth
+hat and Regulatory Compliance the fifth. Those remain follow-up slices because
+they need UXPass/regulatory corpus inputs rather than fixture-only text.
+
+## 6.1 MCP surface
+
+LegalPass follows the TestPass-style MCP shape from the research:
+
+- `legalpass_run`
+- `legalpass_status`
+- `legalpass_save_pack`
+- `legalpass_edit_item`
+- `legalpass_verdict`
+
+`legalpass_run` accepts either the structured `target` object or the
+TestPass-style `target_url` shortcut.
 
 ## 7. Pricing (AUD per month)
 
 | Tier | Price | Quota | Bolt-ons |
 |------|-------|-------|----------|
-| Free | $0 | 3 scans / month | n/a |
-| Solo | $29 | 25 scans / month | $9 per extra scan |
-| Team | $99 | 150 scans / month | $9 per extra scan |
-| Scale | $299 | 750 scans / month | $9 per extra scan |
+| Free | $0 | one site, one jurisdiction, one verdict per month | watermarked preview |
+| Solo | $29 | one site, two jurisdictions, five verdicts per month | $9 per extra scan |
+| Studio | $99 | five sites, all jurisdictions, twenty-five verdicts per month | monitoring and signals |
+| Team | $299 | twenty-five sites, API access, audit-log export | white-label badge |
 | Human-practitioner bolt-on | $149 per matter | n/a | marketplace fee |
 
 ## 8. Slogan candidates (for reference)
@@ -118,15 +144,15 @@ files and through legal review.
 
 ### 9.1 Chat (42 words)
 
-> LegalPass is an issue-spotter, not a lawyer. It surfaces risks in plain English and does not give legal advice, take legal action on your behalf, or replace counsel. For action on a specific matter, engage a qualified human practitioner in your jurisdiction.
+> LegalPass gives general legal information about contracts, not legal advice. We are not a law firm. Using LegalPass does not create a lawyer-client relationship. Laws change and vary by location. For decisions that matter, talk to a qualified lawyer in your jurisdiction.
 
 ### 9.2 Results (108 words)
 
-> These findings are issue-spotting output only. LegalPass is not a lawyer, law firm, or substitute for one, and nothing here is legal advice or a legal opinion about your situation. No solicitor-client or attorney-client relationship is created. Items are flagged using a twelve-hat panel, with every claim traced to a primary source by the Citation Verifier. Jurisdictions named are routing hints, not warranties of coverage. Before acting on any item, consult a qualified practitioner admitted in the relevant jurisdiction. You can engage one through the LegalPass marketplace bolt-on or any provider of your choice. LegalPass disclaims liability for action or inaction taken on the basis of this report.
+> Heads up: LegalPass is an information tool, not a law firm. The verdict you are reading is generated by AI from patterns in similar documents. It is not legal advice, not an opinion on your rights, and not a substitute for review by a qualified lawyer. Your use of LegalPass does not create a lawyer-client, solicitor-client or attorney-client relationship, and what you tell us is not protected by legal professional privilege. Laws change. They differ between countries, states, and territories. For anything important, especially anything you plan to sign, send, or rely on, please get advice from a lawyer qualified in your jurisdiction before acting on that information.
 
 ### 9.3 ToS (312 words)
 
-> LegalPass is an automated issue-spotting service operated by UnClick. It is not a lawyer, attorney, solicitor, barrister, law firm, or licensed provider of legal services in any jurisdiction. Use of LegalPass does not create a solicitor-client, attorney-client, or fiduciary relationship between you and UnClick. Output is provided for informational purposes only. It is not legal advice, a legal opinion, legal representation, certification of compliance, or a guarantee that any document is lawful. LegalPass does not draft, execute, file, or serve any transactional legal instrument and does not recommend that you take or refrain from any specific legal action. Findings reference primary sources via the Citation Verifier hard-veto, but those references may be incomplete or out of date. Jurisdictional routing is best-effort and may be wrong; you are responsible for confirming jurisdiction with a qualified practitioner. Where LegalPass surfaces an option to engage a practitioner through the marketplace bolt-on, that practitioner contracts with you directly and is solely responsible for services they provide. To the fullest extent permitted by law, UnClick disclaims all liability for loss, damage, or cost arising from action or inaction taken on the basis of LegalPass output. Always consult a qualified practitioner before acting on any finding, and treat the report as a starting point. Rubrics are updated periodically; an item rated as a check today may be rated otherwise tomorrow, and you should not rely on a stale report. LegalPass does not retain privilege over uploads and does not assert work-product protection. Where you face dispute resolution, statutes of limitation, or any other deadline, LegalPass does not track or warn you, and a missed deadline remains your responsibility. If a finding conflicts with advice from a practitioner you have engaged, defer to the practitioner. UnClick may update these terms, the rubrics, the hat roster, and the routing logic at any time without notice, and continued use constitutes acceptance.
+> LegalPass is a software tool operated by UnClick Operations Pty Ltd. It scans contracts, terms of service, privacy policies, end-user licence agreements, intellectual property agreements, and similar documents, and produces a plain-English summary, called a verdict, that compares clauses in your document with patterns observed in similar documents. UnClick Operations Pty Ltd is not a law firm. It is not a regulated legal practice in Australia, the United States, the United Kingdom, or any other jurisdiction. Its directors and employees are not acting as your lawyer, solicitor, or attorney. LegalPass cannot and does not give legal advice, opinions, or recommendations about your legal rights, remedies, defences, options, or strategies. LegalPass does not apply law to the facts of your situation. Your use of LegalPass does not create a lawyer-client, solicitor-client, or attorney-client relationship between you and UnClick Operations Pty Ltd or anyone working for UnClick Operations Pty Ltd. Information you upload or type into LegalPass is not protected by legal professional privilege, attorney-client privilege, or any equivalent doctrine. The verdict is informational only. It is generated by artificial intelligence and may contain errors, omissions, or out-of-date material. Laws change frequently. They vary between countries, states, territories, and even between municipalities. A clause that is common in one jurisdiction may be unusual or unenforceable in another. You are responsible for confirming whether information in a verdict is current and applies to your situation. Before you sign, send, or rely on any document, get advice from a lawyer qualified in the jurisdiction whose laws apply. LegalPass offers a Talk to a Lawyer feature that introduces you to independent lawyers. Those lawyers are not employees or agents of UnClick Operations Pty Ltd. Any engagement you enter is between you and that lawyer. By using LegalPass you acknowledge and accept these limits. To the maximum extent permitted by law, you use LegalPass at your own risk.
 
 ## 10. Cross-Pass architecture: PassGuard
 
@@ -137,18 +163,51 @@ components: verdict-linter, disclaimer-banner, escalation-router,
 action-gate, audit-log, insurance-rider-map, ToS-shared,
 jurisdiction-resolver, consent-ledger.
 
+## 10.1 Legal SEO and advertising copy guardrails
+
+If LegalPass is used as the legal-market SEO skin for law-firm pages,
+practice-area pages, testimonials, badges, directory copy, or AI-search copy,
+the Marketing Claims hat must treat lawyer advertising rules as a first-class
+risk area, not a later polish pass.
+
+For the US default source pack, the minimum issue-spotting checks are:
+
+- no false or misleading communication about a lawyer or legal service
+- no material fact or law misstatement, and no omission that makes the overall claim misleading
+- no result, comparison, fee, award, or "best" claim unless the claim is factually supportable and qualified where needed
+- no specialist or certified-specialist claim unless the certifying body is valid and named
+- no paid endorsement, testimonial, referral, affiliate, or lead-gen relationship without a clear disclosure where one is needed
+- any legal-service communication must leave the responsible lawyer or firm identifiable where the governing rule requires it
+
+The output remains issue-spotting only. LegalPass can flag "this claim may be risky under the selected source pack" and cite the source. It must not decide whether a page is lawful, compliant, or safe to publish.
+
+Reference sources:
+
+- https://www.americanbar.org/groups/professional_responsibility/publications/model_rules_of_professional_conduct/rule_7_1_communication_concerning_a_lawyer_s_services/
+- https://www.americanbar.org/groups/professional_responsibility/publications/model_rules_of_professional_conduct/rule_7_2_advertising/
+- https://www.ftc.gov/business-guidance/resources/ftcs-endorsement-guides-what-people-are-asking
+
 ## 11. Out of scope for this brief
 
 Pricing experiments, marketplace economics, Phase 2 jurisdictions,
 Phase 2 hats (5 through 12), and the full bar-rule mapping per
 jurisdiction are covered in the long brief.
 
-## 12. Phase-1 package scaffold
+## 12. Current package and MCP implementation
 
-Chunk 1 keeps the code surface intentionally narrow:
+The current PR keeps the code surface deterministic and evidence-led:
 
 - `schema.ts` defines the advisory report, evidence, finding, hat, fixture document, and GEOPass adapter shapes for the three public-safe MVP hats.
 - `hat-library.ts` defines deterministic fixture checks for Privacy Policy, ToS and Unfair Terms, and OSS Licence.
 - `verdict-pack.ts` can emit a plan-only pack or evaluate public fixture text without live crawling, private uploads, production rows, paid calls, or legal instructions.
+- Report schema rejects any finding without evidence, and fixture findings always carry evidence, including an explicit coverage note when no matching public fixture document exists for a hat.
+- Pack and report schemas reject duplicate target kinds, jurisdictions, hat ids, check ids, finding ids, and item ids so runs and edits stay unambiguous.
+- `tools/` exposes `legalpass_run`, `legalpass_status`, `legalpass_save_pack`, and `legalpass_edit_item`.
+- `legalpass_run` rejects fixture documents marked `public_only: false` until a guarded private ingestion path exists.
+- `legalpass_run` rejects duplicate runtime jurisdictions and fails clearly when no phase-one hat supports the selected jurisdiction set.
+- LegalPass target, evidence, document, scanner, and GEOPass adapter URLs accept http(s) only.
+- Reviewer overrides reject invalid verdicts and blank text fields, are retained on the run `audit_log`, and a repeat deterministic run does not erase that trail.
+- Generated fail comments use non-imperative phrasing such as "review may be warranted" rather than telling the user what to do.
+- `packages/mcp-server/src/legalpass-tool.ts` exposes the same run/status/save/edit surface for MCP callers, validates target/profile/jurisdiction/hat/item/edit shape, rejects duplicate pack and runtime values, and adds `legalpass_verdict` for PassGuard linting.
 
 Every report carries the issue-spotter disclaimer and stays framed as review input for a qualified practitioner.

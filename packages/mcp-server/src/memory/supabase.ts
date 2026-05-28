@@ -512,6 +512,54 @@ function now(): string {
   return new Date().toISOString();
 }
 
+function parsedTime(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isMemoryFactVisibleAt(
+  row: {
+    invalidated_at?: string | null;
+    valid_from?: string | null;
+    valid_to?: string | null;
+    created_at?: string | null;
+  },
+  asOf: string
+): boolean {
+  const point = parsedTime(asOf) ?? Date.now();
+  const validFrom = parsedTime(row.valid_from ?? row.created_at ?? undefined);
+  if (validFrom !== null && validFrom > point) return false;
+
+  const validTo = parsedTime(row.valid_to);
+  if (validTo !== null && validTo <= point) return false;
+
+  const invalidatedAt = parsedTime(row.invalidated_at);
+  return invalidatedAt === null || invalidatedAt > point;
+}
+
+function hasOperationalMemorySignal(...values: Array<string | null | undefined>): boolean {
+  const text = values.filter(Boolean).join(" ").toLowerCase();
+  if (!text) return false;
+  if (text.includes("heartbeat")) return true;
+  if (text.includes("self-report") || text.includes("self report")) return true;
+  if (text.includes("testpass_cron_user_id")) return true;
+  if (text.includes("cron") && text.includes("resolved")) return true;
+  if (text.includes("signal") && text.includes("blocked")) return true;
+  return /\b(self[_ -]?report|cron|system|heartbeat)\b/.test(text);
+}
+
+function isMemoryFactOperational(row: {
+  category?: string | null;
+  fact?: string | null;
+  source_type?: string | null;
+  startup_fact_kind?: string | null;
+}): boolean {
+  const kind = row.startup_fact_kind ?? "legacy_unspecified";
+  if (kind === "operational" || kind === "excluded") return true;
+  return hasOperationalMemorySignal(row.source_type, row.category, row.fact);
+}
+
 function truncate(s: string, max = 8000): string {
   return s.length > max ? s.slice(0, max) + "\n...[truncated]" : s;
 }
@@ -689,7 +737,10 @@ export class SupabaseBackend implements MemoryBackend {
           "mc_search_memory_hybrid",
           { p_search_query: query, p_query_embedding: embedding, p_max_results: maxResults, p_as_of: asOf ?? null }
         );
-        if (Array.isArray(results) && results.length > 0) return results;
+        if (Array.isArray(results) && results.length > 0) {
+          const visibleResults = await this.filterRecallVisibleSearchResults(results, asOf ?? now());
+          if (visibleResults.length > 0) return visibleResults;
+        }
       }
     } catch (err) {
       console.error("[search_memory] optional hybrid search failed:", err);
@@ -713,23 +764,22 @@ export class SupabaseBackend implements MemoryBackend {
     const tokens = tokenizeLocalMemoryQuery(query);
     if (tokens.length === 0) return [];
     const patterns = tokens.map((t) => `%${t.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+    const effectiveAsOf = asOf ?? now();
 
     const runScan = async (mode: "and" | "or"): Promise<unknown[]> => {
       let factQ = this.client
         .from(this.tables.extracted_facts)
-        .select("id, fact, category, confidence, created_at")
+        .select("id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at")
         .eq("status", "active")
         .is("invalidated_at", null);
       let sessQ = this.client
         .from(this.tables.session_summaries)
         .select("id, summary, created_at");
 
-      if (asOf) {
-        factQ = factQ
-          .lte("valid_from", asOf)
-          .or(`valid_to.is.null,valid_to.gt.${asOf}`);
-        sessQ = sessQ.lte("created_at", asOf);
-      }
+      factQ = factQ
+        .lte("valid_from", effectiveAsOf)
+        .or(`valid_to.is.null,valid_to.gt.${effectiveAsOf}`);
+      sessQ = sessQ.lte("created_at", effectiveAsOf);
 
       if (mode === "and") {
         for (const p of patterns) {
@@ -747,13 +797,26 @@ export class SupabaseBackend implements MemoryBackend {
       factQ = factQ
         .order("confidence", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(maxResults);
+        .limit(Math.max(maxResults * 3, maxResults));
       sessQ = sessQ.order("created_at", { ascending: false }).limit(maxResults);
 
       const [factsRes, sessRes] = await Promise.all([factQ, sessQ]);
-      type FactRow = { id: string; fact: string; category: string; confidence: number; created_at: string };
+      type FactRow = {
+        id: string;
+        fact: string;
+        category: string;
+        confidence: number;
+        created_at: string;
+        source_type?: string | null;
+        startup_fact_kind?: string | null;
+        valid_from?: string | null;
+        valid_to?: string | null;
+        invalidated_at?: string | null;
+      };
       type SessRow = { id: string; summary: string; created_at: string };
-      const facts = ((factsRes.data ?? []) as FactRow[]).map((r) => {
+      const facts = ((factsRes.data ?? []) as FactRow[]).filter((r) =>
+        !isMemoryFactOperational(r) && isMemoryFactVisibleAt(r, effectiveAsOf)
+      ).map((r) => {
         const s = scoreLocalMemoryContent({
           query,
           tokens,
@@ -806,6 +869,59 @@ export class SupabaseBackend implements MemoryBackend {
     const andResults = await runScan("and");
     if (andResults.length > 0 || tokens.length < 2) return andResults;
     return runScan("or");
+  }
+
+  private async filterRecallVisibleSearchResults(results: unknown[], asOf: string): Promise<unknown[]> {
+    type SearchResult = {
+      id?: unknown;
+      source?: unknown;
+      content?: unknown;
+      category?: unknown;
+    };
+
+    const rows = results as SearchResult[];
+    const factIds = rows
+      .filter((row) => row.source === "fact" && typeof row.id === "string")
+      .map((row) => row.id as string);
+    if (factIds.length === 0) return results;
+
+    let query = this.client
+      .from(this.tables.extracted_facts)
+      .select("id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at")
+      .in("id", factIds);
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error("[search_memory] recall-visibility filter failed:", error.message);
+      return rows.filter((row) => {
+        if (row.source !== "fact") return true;
+        return !isMemoryFactOperational({
+          category: typeof row.category === "string" ? row.category : undefined,
+          fact: typeof row.content === "string" ? row.content : undefined,
+        });
+      });
+    }
+
+    const visibleFactIds = new Set(
+      ((data ?? []) as Array<{
+        id: string;
+        fact?: string | null;
+        category?: string | null;
+        source_type?: string | null;
+        startup_fact_kind?: string | null;
+        valid_from?: string | null;
+        valid_to?: string | null;
+        invalidated_at?: string | null;
+        created_at?: string | null;
+      }>)
+        .filter((row) => isMemoryFactVisibleAt(row, asOf) && !isMemoryFactOperational(row))
+        .map((row) => row.id)
+    );
+
+    return rows.filter((row) => row.source !== "fact" || (typeof row.id === "string" && visibleFactIds.has(row.id)));
   }
 
   async searchFacts(query: string): Promise<unknown> {
@@ -958,11 +1074,23 @@ export class SupabaseBackend implements MemoryBackend {
       if (existing) {
         docId = (existing as { id: string }).id;
       } else {
-        const insertRow =
+        const { data: doc, error } =
           this.tenancy.mode === "managed"
-            ? { api_key_hash: this.tenancy.apiKeyHash, title: data.category, body: data.fact, content_hash: hash }
-            : { title: data.category, body: data.fact, content_hash: hash };
-        const { data: doc, error } = await this.client.from(docTable).insert(insertRow).select().single();
+            ? await this.client
+                .from("mc_canonical_docs")
+                .insert({
+                  api_key_hash: this.tenancy.apiKeyHash,
+                  title: data.category,
+                  body: data.fact,
+                  content_hash: hash,
+                })
+                .select()
+                .single()
+            : await this.client
+                .from("canonical_docs")
+                .insert({ title: data.category, body: data.fact, content_hash: hash })
+                .select()
+                .single();
         if (error) throw pgError("saveBlob canonical_docs insert", error);
         docId = (doc as { id: string }).id;
       }
@@ -1290,14 +1418,18 @@ export class SupabaseBackend implements MemoryBackend {
   }
 
   private async readTaxonomySnapshotSources(maxSources: number): Promise<MemoryTaxonomySnapshotSource[]> {
+    const asOf = now();
+    const factLimit = Math.min(Math.max(maxSources * 3, maxSources), 250);
     let factQuery = this.client
       .from(this.tables.extracted_facts)
-      .select("id, fact, category, confidence, created_at, updated_at, valid_from")
+      .select("id, fact, category, confidence, created_at, updated_at, valid_from, valid_to, invalidated_at, source_type, startup_fact_kind")
       .eq("status", "active")
       .is("invalidated_at", null)
+      .lte("valid_from", asOf)
+      .or(`valid_to.is.null,valid_to.gt.${asOf}`)
       .order("confidence", { ascending: false })
       .order("updated_at", { ascending: false })
-      .limit(maxSources);
+      .limit(factLimit);
     let sessionQuery = this.client
       .from(this.tables.session_summaries)
       .select("id, summary, topics, created_at")
@@ -1321,6 +1453,10 @@ export class SupabaseBackend implements MemoryBackend {
       created_at?: string | null;
       updated_at?: string | null;
       valid_from?: string | null;
+      valid_to?: string | null;
+      invalidated_at?: string | null;
+      source_type?: string | null;
+      startup_fact_kind?: string | null;
     };
     type SessionRow = {
       id: string;
@@ -1329,16 +1465,19 @@ export class SupabaseBackend implements MemoryBackend {
       created_at?: string | null;
     };
 
-    const facts = ((factsRes.data ?? []) as FactRow[]).map((row) => ({
-      id: row.id,
-      kind: "fact" as const,
-      text: row.fact,
-      category: row.category ?? undefined,
-      confidence: row.confidence ?? null,
-      created_at: row.created_at ?? null,
-      updated_at: row.updated_at ?? null,
-      valid_from: row.valid_from ?? null,
-    }));
+    const facts = ((factsRes.data ?? []) as FactRow[])
+      .filter((row) => isMemoryFactVisibleAt(row, asOf) && !isMemoryFactOperational(row))
+      .slice(0, maxSources)
+      .map((row) => ({
+        id: row.id,
+        kind: "fact" as const,
+        text: row.fact,
+        category: row.category ?? undefined,
+        confidence: row.confidence ?? null,
+        created_at: row.created_at ?? null,
+        updated_at: row.updated_at ?? null,
+        valid_from: row.valid_from ?? null,
+      }));
     const sessions = ((sessionsRes.data ?? []) as SessionRow[]).map((row) => ({
       id: row.id,
       kind: "session" as const,

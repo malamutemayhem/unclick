@@ -16,6 +16,7 @@ import {
   jobKindForState,
   latestCommentSignals,
   queuePushWakeFromPacket,
+  queuepushRoutingLabel,
   resolveQueuePushRunnerRoster,
   routeWorkerForPr,
   runnerCanAcceptQueuePushJob,
@@ -102,11 +103,24 @@ describe("Dormant owner requeue detector", () => {
     assert.equal(packet?.scopepack_present, false);
   });
 
-  it("stays quiet while the owner is still inside the 48 hour window", () => {
+  it("stays quiet while the owner is still inside the 60 minute lease", () => {
     const todo = {
       id: "todo-fresh",
       assigned_to_agent_id: "builder-seat",
-      owner_last_seen_at: "2026-05-15T18:30:00Z",
+      owner_last_seen_at: "2026-05-16T17:30:00Z",
+      scope_pack: { owned_files: ["scripts/fleet-throughput-watch.mjs"] },
+    };
+
+    assert.equal(detectDormantOwner(todo, now), null);
+    assert.equal(buildDormantOwnerPacket(todo, now), null);
+  });
+
+  it("stays quiet for human owners even when they are old", () => {
+    const todo = {
+      id: "todo-human",
+      assigned_to_agent_id: "human-616d4beb-4960-451d-bbd3-4d4347a7f9f5",
+      owner_type: "human",
+      owner_last_seen_at: "2026-05-14T17:00:00Z",
       scope_pack: { owned_files: ["scripts/fleet-throughput-watch.mjs"] },
     };
 
@@ -565,6 +579,17 @@ describe("QueuePush routing and packets", () => {
     );
   });
 
+  it("routes routine owner-lift decisions to Navigator", () => {
+    assert.equal(
+      routeWorkerForPr(
+        pr({ title: "fix(memory): widen Top-of-Mind recall candidates" }),
+        [{ filename: "api/lib/memory-recall-sections.ts" }],
+        "draft_green_needs_owner_lift",
+      ),
+      "🧭",
+    );
+  });
+
   it("routes code-required RotatePass repair work to a proven builder", () => {
     assert.equal(
       routeWorkerForPr(
@@ -587,14 +612,14 @@ describe("QueuePush routing and packets", () => {
     );
   });
 
-  it("keeps PinballWake owner decisions with Builder even when the PR mentions other lanes", () => {
+  it("routes routine owner-lift decisions away from Builder even when the PR mentions builder lanes", () => {
     assert.equal(
       routeWorkerForPr(
-        pr({ title: "PinballWake job runner registry", body: "Also mentions XPass context." }),
+        pr({ title: "PinballWake job runner registry", body: "Also mentions WakePass context." }),
         [{ filename: "src/pages/admin/pinballwakeJobRunners.ts" }],
         "draft_green_needs_owner_lift",
       ),
-      "🛠️",
+      "🧭",
     );
   });
 
@@ -729,17 +754,46 @@ describe("QueuePush routing and packets", () => {
     assert.equal(packet.worker, "🧪");
     assert.equal(packet.recipient, "🧪");
     assert.equal(packet.jobKind, "owner_decision");
+    assert.equal(packet.routingLabel, "operator_only");
+    assert.ok(packet.tags.includes("operator_only"));
     assert.equal(packet.requiresCode, false);
     assert.match(packet.packetId, /^queuepush:v3:pr-506:draft_green_needs_owner_lift:abcdef1:[a-f0-9]{10}$/);
     assert.match(packet.text, /DIRECT DECISION PACKET/);
-    assert.match(packet.text, /Decide, ACK, or reply blocker/);
+    assert.match(packet.text, /routine lift now/);
+    assert.match(packet.text, /non-author lift hat/);
     assert.match(packet.text, /worker: 🧪/);
     assert.match(packet.text, /job kind: owner_decision/);
+    assert.match(packet.text, /routing label: operator_only/);
     assert.match(packet.text, /requires code: no/);
-    assert.match(packet.text, /do: Claim it/);
+    assert.match(packet.text, /do: Claim with non-author lift hat/);
+    assert.match(packet.text, /expected proof: Non-author lift proof/);
     assert.match(packet.text, /fallback: if not ACKed after two pulses/);
     assert.match(packet.text, /ack: done\/blocker/);
     assert.ok(packet.text.length < 1200);
+  });
+
+  it("labels routine draft owner lifts as walk-in eligible", () => {
+    const packet = buildQueuePacket({
+      pr: pr({ number: 548, title: "docs: clarify QueuePush handoff", body: "status: ready" }),
+      state: "draft_green_needs_owner_lift",
+      reason: "Draft PR is green and clean.",
+      files: [{ filename: "docs/reliability-substrate.md" }],
+    });
+
+    assert.equal(packet.routingLabel, "walkin_eligible");
+    assert.ok(packet.tags.includes("walkin_eligible"));
+    assert.match(packet.text, /routing label: walkin_eligible/);
+  });
+
+  it("keeps sensitive routine draft owner lifts operator-only", () => {
+    assert.equal(
+      queuepushRoutingLabel(
+        pr({ title: "RotatePass: harden metadata key redaction guard" }),
+        [{ filename: "src/pages/admin/systemCredentialInventory.ts" }],
+        "draft_green_needs_owner_lift",
+      ),
+      "operator_only",
+    );
   });
 
   it("builds code-required implementation packets for proven builders", () => {

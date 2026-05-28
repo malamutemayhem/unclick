@@ -123,6 +123,7 @@ export function AdminAutopilot() {
         items={[
           { title: "Boardroom", body: "Shared room for decisions, handoffs, and short updates from people and AI workers.", icon: MessagesSquare, href: "/admin/boardroom" },
           { title: "Orchestrator", body: "Compact cross-seat context with profile cards, continuity, and memory snapshots.", icon: Brain, href: "/admin/orchestrator" },
+          { title: "DraftRoom", body: "Manual front-of-line room for visible chat-first drafts before official Jobs integration.", icon: Code2, href: "/admin/autopilot/expressbuild" },
           { title: "Jobs", body: "The live work queue. Pick, assign, complete, and prove the next safe step.", icon: ListTodo, href: "/admin/jobs" },
           { title: "XPass", body: "Proof and quality checks for work before it ships.", icon: ClipboardCheck, href: "/admin/checks" },
           { title: "Projects", body: "Containers for company, team, client, or personal work areas.", icon: FolderKanban, href: "/admin/projects" },
@@ -217,7 +218,7 @@ export function AdminChecks() {
           { title: "LegalPass", body: "Legal/compliance wording and risk checks.", icon: FileText },
           { title: "CopyPass", body: "Writing, messaging, and copy quality checks.", icon: FileText, href: "/admin/copypass" },
           { title: "SEOPass", body: "Search visibility and metadata checks.", icon: SearchCheck },
-          { title: "QualityPass", body: "Public name for SlopPass-style quality checking.", icon: BadgeCheck },
+          { title: "SlopPass", body: "AI-code quality, slop signals, and maintainability checks.", icon: BadgeCheck },
           { title: "CompliancePass", body: "Public name for EnterprisePass.", icon: ShieldCheck },
           { title: "RotatePass", body: "Passport rotation checks, likely folding into SecurityPass later.", icon: KeyRound },
         ]}

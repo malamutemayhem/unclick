@@ -17,7 +17,7 @@ const RESOURCES_LINKS = [
 const COMPANY_LINKS = [
   { label: "Contact", href: "mailto:hello@unclick.world" },
   { label: "GitHub", href: "https://github.com/malamutemayhem/unclick", external: true },
-  { label: "npm", href: "https://www.npmjs.com/package/@unclick/mcp-server", external: true },
+  { label: "Releases", href: "https://github.com/malamutemayhem/unclick/releases", external: true },
 ];
 
 const LEGAL_LINKS = [
@@ -38,7 +38,7 @@ function FooterLinkGroup({ title, links }: { title: string; links: typeof PRODUC
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-muted-custom transition-colors hover:text-body"
+            className="inline-flex min-h-6 items-center text-xs text-muted-custom transition-colors hover:text-body"
           >
             {link.label}
           </a>
@@ -46,7 +46,7 @@ function FooterLinkGroup({ title, links }: { title: string; links: typeof PRODUC
           <a
             key={link.label}
             href={link.href}
-            className="text-xs text-muted-custom transition-colors hover:text-body"
+            className="inline-flex min-h-6 items-center text-xs text-muted-custom transition-colors hover:text-body"
           >
             {link.label}
           </a>
@@ -54,7 +54,7 @@ function FooterLinkGroup({ title, links }: { title: string; links: typeof PRODUC
           <Link
             key={link.label}
             to={link.href}
-            className="text-xs text-muted-custom transition-colors hover:text-body"
+            className="inline-flex min-h-6 items-center text-xs text-muted-custom transition-colors hover:text-body"
           >
             {link.label}
           </Link>
@@ -70,7 +70,7 @@ const Footer = () => (
       <div className="grid grid-cols-2 gap-8 sm:grid-cols-5">
         {/* Brand */}
         <div className="col-span-2 sm:col-span-1">
-          <Link to="/">
+          <Link to="/" aria-label="UnClick home" className="inline-flex min-h-6 items-center">
             <img src="/logo-wordmark.svg" alt="UnClick" style={{ height: "2.4rem" }} className="w-auto" />
           </Link>
           <p className="mt-2 text-xs text-muted-custom leading-relaxed">

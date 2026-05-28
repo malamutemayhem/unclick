@@ -244,7 +244,7 @@ async function collectJobsApplied(entries: WalkEntry[]): Promise<JobApplied[]> {
     const declined = e_isDeclined(f.relPath);
     const baseName = path.basename(f.name, path.extname(f.name));
     const m = baseName.match(JOB_APPLIED_NAME_RE);
-    let company: string | null = null;
+    let company: string;
     let role: string | null = null;
     if (m) {
       company = m[1].trim();

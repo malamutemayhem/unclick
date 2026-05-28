@@ -170,7 +170,7 @@ export function createWebhooksRouter(db: Db) {
       .update(body)
       .digest('hex');
 
-    let statusCode = 0;
+    let statusCode: number;
     try {
       const res = await fetch(row.url, {
         method: 'POST',

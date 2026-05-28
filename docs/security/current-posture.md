@@ -6,7 +6,7 @@ This document audits the security posture of UnClick as it stands today. Every r
 
 ---
 
-## Critical findings (fix before Phase 3)
+## Critical findings and refreshed dependency finding
 
 ### C1. `memory_configs` and `memory_devices` have no RLS enabled
 **File**: `supabase/migrations/20260414000000_memory_byod.sql`.
@@ -41,22 +41,20 @@ If `platform_connectors` only holds public catalog data, the disclosure is low-s
 
 **Action**: either confirm the table is global-public and add a comment, or add per-tenant scoping.
 
-### C4. 32 npm vulnerabilities, 18 High (including SQL injection and XSS)
-`npm audit` on the root workspace reports:
-- **32 vulnerabilities: 3 low, 11 moderate, 18 high**.
+### C4. Dependency audit High/Critical blocker cleared; Moderate dev-tooling follow-up remains
+`npm audit --audit-level=moderate --json` on the root workspace now reports:
+- **4 vulnerabilities: 0 critical, 0 high, 4 moderate**.
 
-High-severity highlights:
-- **`drizzle-orm` < 0.45.2** - SQL injection via improperly escaped identifiers (GHSA-gpj5-g38j-94v9). Used in `apps/api`. Current version < 0.45.2 per lockfile.
-- **`@remix-run/router` <= 1.23.1** - XSS via open redirects in React Router (GHSA-2w69-qvjg-hvjx). Affects `react-router-dom@^6.30.1`.
-- **`undici` <= 6.23.0** - Multiple High issues: CRLF injection, HTTP smuggling, unbounded decompression, insufficient randomness. Pulled in via `@vercel/node`.
-- **`@vercel/node`** - multiple transitive highs (esbuild dev-server access, path-to-regexp, undici).
-- **`flatted`** - prototype pollution + unbounded recursion DoS.
-- **`tar` / `@mapbox/node-pre-gyp`** - hardlink path traversal.
-- **`glob` 10.2.0-10.4.5** - CLI command injection (lower practical concern; we do not shell out via `glob`).
+2026-05-28 refresh:
+- `drizzle-orm` was upgraded to a fixed line.
+- `@vercel/node` was upgraded to `^5.8.5`, with transitive overrides for `undici`, `path-to-regexp`, `minimatch`, `smol-toml`, and `ajv`.
+- `vite`, `fast-xml-parser`, `hono`, `@hono/node-server`, `imap`, `@anthropic-ai/sdk`, and related lockfile entries were refreshed.
+- `npm run build --workspace=apps/api` passes.
+- `npm test --workspace=apps/api` passes: 30 files, 686 tests.
 
-Fix path: `npm audit fix --force` requires major-version upgrades of `drizzle-kit`, `@vercel/node`, and `jsdom`. Plan a dedicated PR.
+The remaining Moderate findings all trace to the Drizzle Kit development-tooling chain: `drizzle-kit` -> `@esbuild-kit/esm-loader` -> `@esbuild-kit/core-utils` -> nested `esbuild@0.18.20`. The package manager's forced fix proposes `drizzle-kit@0.18.1`, which is a risky downgrade and should stay routed to SecurityPass or a dependency-upgrade lane. A test install of `drizzle-kit@1.0.0-rc.3` cleared audit output but failed Drizzle CLI/API compatibility checks, so the stable toolchain was restored.
 
-**Action**: run `npm audit fix`, then triage each remaining High via targeted upgrades.
+**Action**: keep the Moderate Drizzle Kit dev-tooling chain tracked; do not use the forced downgrade as a blind fix.
 
 ---
 
@@ -177,7 +175,7 @@ Query strings are captured by Vercel access logs, CDN logs, browser history, and
 
 ### 9. Dependency vulnerabilities - fix now
 
-See C4. Totals: **32 vulnerabilities (3 low, 11 moderate, 18 high)**. Breakdown above.
+See C4. Current totals: **4 Moderate, 0 High, 0 Critical**. The remaining items are a development-tooling chain, not a production dependency blocker.
 
 **Rating**: fix now.
 
@@ -246,7 +244,8 @@ No `DROP TABLE` or `TRUNCATE` statements exist anywhere under `api/` or in non-m
 
 - `git log --all -p -- .env*` returns nothing.
 - `.gitignore` covers `*.local`, `*.local.json`, `.vercel`.
-- GitHub push protection status should be confirmed at the repo level; the codebase does not indicate whether it is on. **Recommend: verify via GitHub settings and screenshot for audit.**
+- GitHub Secret Protection and push protection are enabled at the repo level as of 2026-05-28. Evidence receipt `ss_7915ye3zi` shows the GitHub Advanced Security page for `malamutemayhem/unclick` with Secret Protection enabled and push protection set to block commits that contain supported secrets.
+- Private vulnerability reporting, dependency graph, Dependabot alerts, Dependabot security updates, Dependabot malware alerts, and grouped security updates are also enabled. CodeQL setup and Copilot Autofix remain separate follow-up work.
 
 Gaps in `.gitignore`:
 - No explicit `*.pem`, `*.key`, `*.p12`, `*.pfx` patterns. These are unlikely to be present today but a defensive addition costs nothing.
@@ -267,7 +266,7 @@ Gaps in `.gitignore`:
 | XSS surface | strong |
 | CORS + security headers | **fix now** |
 | Query-string auth | needs attention |
-| Dependency CVEs | **fix now** (C4) |
+| Dependency CVEs | needs attention (C4 Moderate dev-tooling follow-up) |
 | Rate limiting | **fix now** |
 | Audit log coverage | needs attention (C2) |
 | Auth flow review | needs attention |

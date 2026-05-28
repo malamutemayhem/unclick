@@ -20,7 +20,7 @@ export interface DraftResult {
 
 const DEFAULT_OPENING = "Dear Hiring Manager,";
 const DEFAULT_SIGNOFF = "Sincerely,";
-const FALLBACK_NAME = "Christopher Byrne";
+const FALLBACK_NAME = "Your Name";
 
 export function renderCoverLetterDraft(
   job: JobDescription,

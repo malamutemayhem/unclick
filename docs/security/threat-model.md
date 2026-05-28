@@ -54,7 +54,7 @@ Boundaries we do **not** trust (any input crossing them is untrusted):
 | Tampering with stored facts or memory rows. | RLS on `mc_*` tables blocks direct client access; serverless layer always filters by `api_key_hash`. Bitemporal columns (`valid_from`, `valid_to`) + `mc_facts_audit` record provenance (`20260422010000_memory_bitemporal_and_provenance.sql`). | `memory_configs`, `memory_devices`, `build_*`, `memory_load_events`, `tenant_settings`, `conflict_detections`, `tool_detections` have **no RLS** (see current-posture C1). | **High** |
 | Tampering with audit records. | `backstagepass_audit` is append-only; RLS restricts writes to service_role. | No cryptographic chaining or external log sink; a DB admin could still erase rows. | Med |
 | Tampering with encrypted service-role keys at rest. | AES-256-GCM with PBKDF2 per-row salt (`api/memory-admin.ts:106-130`, `api/backstagepass.ts:63-88`). Auth tag verified on decrypt. | `memory_configs` lacks RLS (see C1). Crypto primitive is sound; storage access control is not. | **High** |
-| SQL injection via user-supplied filters. | All Supabase queries use `.eq()` / `.in()` parameterised builders (no raw SQL). | `drizzle-orm < 0.45.2` (used in `apps/api`) has a High-severity SQL-injection CVE via improperly escaped identifiers (GHSA-gpj5-g38j-94v9). | **High** |
+| SQL injection via user-supplied filters. | All Supabase queries use `.eq()` / `.in()` parameterised builders (no raw SQL). `drizzle-orm` has been upgraded to a fixed line in the 2026-05-28 dependency pass. | No known High/Critical npm audit finding remains for this path. Continue normal query review. | Low |
 | Tampering with cron invocations (`nightly_decay`). | `CRON_SECRET` Bearer required; request fails closed if env var unset (`api/memory-admin.ts:4063-4076`). | None material. | Low |
 
 ### R - Repudiation
@@ -88,8 +88,8 @@ Boundaries we do **not** trust (any input crossing them is untrusted):
 | Unauthenticated flood of public endpoints (`api/arena`, `api/mcp`, `api/report-bug`). | Vercel platform burst protection. | No application-level limit. | Med |
 | Computationally expensive BYOD `setup`: user-provided Supabase URL can point to a slow target. | No timeout on the ping + install step (`api/memory-admin.ts:2052-2059`). | A slow BYOD project could hold a function open until Vercel timeout. | Low |
 | `admin_ai_chat` / crew run token exhaustion. | Token budget enforced on `mc_crew_runs` (`20260423000000_crews_phase_b.sql`). | No per-tenant daily cap on Gemini fallback usage. | Med |
-| Undici HTTP smuggling / unbounded decompression. | - | **High-severity CVE** in undici <=6.23.0 (pulled via @vercel/node); see current-posture C4. | **High** |
-| `brace-expansion` / `flatted` prototype-pollution or parse-bomb DoS. | - | Moderate and High CVEs in `flatted`, `brace-expansion` (current-posture C4). | Med |
+| Undici HTTP smuggling / unbounded decompression. | `@vercel/node` was upgraded to `^5.8.5` and the lockfile now resolves a fixed `undici` line. | No known High/Critical npm audit finding remains for this path. | Low |
+| Drizzle Kit dev-tooling chain DoS/read risk. | Runtime API build and tests pass after the dependency pass. The Drizzle Kit CLI help command also loads on the restored stable toolchain. | Four Moderate audit findings remain through `drizzle-kit` -> `@esbuild-kit/esm-loader` -> `@esbuild-kit/core-utils` -> nested `esbuild@0.18.20`; the forced fix is a risky downgrade, and the tested `1.0.0-rc.3` path failed compatibility checks. | Med |
 
 ### E - Elevation of privilege
 
@@ -99,7 +99,7 @@ Boundaries we do **not** trust (any input crossing them is untrusted):
 | Non-admin reaches admin-only endpoints by guessing URLs. | Every admin action checks `ADMIN_EMAILS` server-side. | Not all checks audited exhaustively; recommend spot test. | Med |
 | User modifies their own api_key tier to bypass paywall. | `api_keys.tier` is server-written only; `generate_api_key` sets tier based on server-side policy (Stripe webhook integration). | Stripe webhook validation not reviewed in this audit. | Med |
 | BYOD project compromise escalates to managed-cloud write. | Services use their own Supabase client; BYOD credentials are only used for the user's own project operations. | If a handler ever mixes the clients, an attacker-controlled Supabase could echo back malicious responses. | Low |
-| Drizzle ORM SQL injection CVE allows privilege escalation. | - | **High** (GHSA-gpj5-g38j-94v9). See C4. | **High** |
+| Drizzle ORM SQL injection CVE allows privilege escalation. | `drizzle-orm` has been upgraded to a fixed line and `apps/api` build/tests pass. | No known High/Critical npm audit finding remains for this path. | Low |
 
 ---
 
@@ -143,7 +143,7 @@ Boundaries we do **not** trust (any input crossing them is untrusted):
 **Scenario**: Chris's GitHub / Supabase / Vercel account is compromised.
 
 **Mitigations in place**:
-- GitHub push protection should be on at the repo level (confirm).
+- GitHub Secret Protection and push protection are enabled at the repo level as of 2026-05-28. Evidence receipt: `ss_7915ye3zi`.
 - Supabase service-role key rotation is supported.
 - Vercel project linked to GitHub via per-project token.
 
@@ -226,10 +226,10 @@ Sorted by impact × feasibility. These are the items to resolve in Phase 3 befor
 **Effort**: One migration (~30 LOC) mirroring `user_credentials`' RLS pattern.
 **Blocks**: UC-1, STRIDE-T, STRIDE-I.
 
-### 2. Upgrade the vulnerable npm dependency set (Phase 3)
-**Impact**: Removes High-severity SQL injection (drizzle-orm), XSS via open redirects (react-router), HTTP smuggling / CRLF injection (undici), path traversal (tar), prototype pollution (flatted).
-**Effort**: One PR running `npm audit fix`, plus targeted major-version bumps for `drizzle-kit`, `@vercel/node`, `jsdom`.
-**Blocks**: UC-2, C4, STRIDE-T, STRIDE-D.
+### 2. Keep dependency audit at zero High/Critical (Phase 3)
+**Impact**: The 2026-05-28 dependency pass cleared the previous High/Critical audit blocker. Keeping this gate active prevents those classes from returning.
+**Effort**: Review Dependabot output, keep `npm audit` in CI, and route the remaining Moderate Drizzle Kit dev-tooling chain through SecurityPass or the dependency-upgrade lane once the stable Drizzle release drops the deprecated `@esbuild-kit` chain.
+**Blocks**: C4 regression, STRIDE-T, STRIDE-D.
 
 ### 3. Add rate limiting to the Vercel serverless surface (Phase 3)
 **Impact**: Prevents DDoS, bill-shock, and api-key abuse.

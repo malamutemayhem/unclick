@@ -70,10 +70,27 @@ describe("JobsmithPage", () => {
 
   it("renders the Jobsmith draft builder without the dead ApplyPass name", () => {
     renderJobsmith();
+
     expect(
       screen.getByRole("heading", { name: "Tailored application drafts" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Jobsmith")).toBeInTheDocument();
+    const welcomePacket = screen.getByRole("region", { name: "Jobsmith AI welcome packet" });
+    expect(welcomePacket).toHaveTextContent("AI Welcome Packet");
+    expect(welcomePacket).toHaveTextContent("Loading inputs");
+    expect(welcomePacket).toHaveTextContent("Loaded CV corpus and voice profile");
+    const rulePack = screen.getByRole("region", { name: "Jobsmith universal rules" });
+    expect(rulePack).toHaveTextContent("Universal Rules v1");
+    expect(rulePack).toHaveTextContent("229");
+    expect(rulePack).toHaveTextContent("Standard headings pass");
+    const managedRunReport = screen.getByRole("region", { name: "Jobsmith managed run report" });
+    expect(managedRunReport).toHaveTextContent("Managed Run Report");
+    expect(managedRunReport).toHaveTextContent("Rules passed");
+    expect(managedRunReport).toHaveTextContent("Run steps");
+    expect(managedRunReport).toHaveTextContent("Final report");
+    expect(managedRunReport).toHaveTextContent("No run proof attached yet.");
+    expect(managedRunReport).toHaveTextContent("Decision cards");
+    expect(managedRunReport).toHaveTextContent("Not submit-ready");
     expect(screen.queryByText(/ApplyPass/i)).not.toBeInTheDocument();
   });
 
@@ -88,7 +105,7 @@ describe("JobsmithPage", () => {
     renderJobsmith();
     await loadCorpus();
     expect(screen.getByText(/1 of 1 file parsed/)).toBeInTheDocument();
-    expect(screen.getByText(/Paslode/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Paslode/).length).toBeGreaterThan(0);
   });
 
   it("generates a tailored draft from a corpus and a job description", async () => {
@@ -111,6 +128,8 @@ describe("JobsmithPage", () => {
     expect(draft.value).toContain("Digital Media Designer");
     expect(draft.value).toContain("Ampersand International");
     expect(draft.value).toContain("Paslode");
+    expect(draft.value).toContain("Your Name");
+    expect(draft.value).not.toContain("Creative Lead & Founder");
 
     const readiness = screen.getByRole("region", {
       name: "ATS and paste readiness",
@@ -121,6 +140,16 @@ describe("JobsmithPage", () => {
     expect(readiness).toHaveTextContent(
       "No brittle ATS formatting language detected",
     );
+
+    const welcomePacket = screen.getByRole("region", { name: "Jobsmith AI welcome packet" });
+    expect(welcomePacket).toHaveTextContent("Draft artifact: application packet generated for review");
+    expect(welcomePacket).toHaveTextContent("Company: Ampersand International");
+    expect(welcomePacket).toHaveTextContent("Role: Digital Media Designer");
+    expect(welcomePacket).toHaveTextContent("Source-backed claim captured");
+
+    const managedRunReport = screen.getByRole("region", { name: "Jobsmith managed run report" });
+    expect(managedRunReport).toHaveTextContent("Browser-local cover letter draft: Ready");
+    expect(managedRunReport).toHaveTextContent("Managed run report UI");
   });
 
   it("logs an application and persists it across a remount", async () => {

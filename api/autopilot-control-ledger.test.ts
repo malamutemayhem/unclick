@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildAutopilotEventRow,
+  createAutopilotZeroTouchMetrics,
   planAutoPilotKitRecommendationLedgerEvents,
   planFishbowlPostLedgerEvent,
   planTodoLedgerEvents,
@@ -246,5 +247,81 @@ describe("autopilot control ledger helpers", () => {
     })[0];
 
     expect(() => buildAutopilotEventRow({ ...event, apiKeyHash: "hash_123" })).toThrow(/sensitive text/);
+  });
+
+  it("scores refs with only automation events as zero-touch", () => {
+    const metrics = createAutopilotZeroTouchMetrics([
+      {
+        event_type: "claim",
+        actor_agent_id: "github-action-queuepush",
+        ref_kind: "todo",
+        ref_id: "todo-123",
+        payload: { source: "wakepass" },
+        created_at: "2026-05-09T00:00:00.000Z",
+      },
+      {
+        event_type: "proof_result",
+        actor_agent_id: "unclick-builder-tether-seat",
+        ref_kind: "todo",
+        ref_id: "todo-123",
+        payload: { result: "pass" },
+        created_at: "2026-05-09T00:05:00.000Z",
+      },
+    ]);
+
+    expect(metrics).toMatchObject({
+      total_refs: 1,
+      zero_touch_refs: 1,
+      human_touched_refs: 0,
+      human_touch_count: 0,
+      automation_event_count: 2,
+    });
+    expect(metrics.refs[0]).toMatchObject({
+      ref_kind: "todo",
+      ref_id: "todo-123",
+      zero_touch: true,
+      human_touch_count: 0,
+    });
+  });
+
+  it("counts operator chat and human actors as human touches", () => {
+    const metrics = createAutopilotZeroTouchMetrics([
+      {
+        event_type: "dispatch",
+        actor_agent_id: "github-action-queuepush",
+        ref_kind: "pr",
+        ref_id: "1015",
+        payload: { source: "wakepass" },
+        created_at: "2026-05-09T00:00:00.000Z",
+      },
+      {
+        event_type: "merge_decision",
+        actor_agent_id: "unclick-builder-tether-seat",
+        ref_kind: "pr",
+        ref_id: "1015",
+        payload: { trigger_source: "operator_chat" },
+        created_at: "2026-05-09T00:02:00.000Z",
+      },
+      {
+        event_type: "ack",
+        actor_agent_id: "human-616d4beb-4960-451d-bbd3-4d4347a7f9f5",
+        ref_kind: "todo",
+        ref_id: "todo-operator",
+        payload: { blocker: "answered" },
+        created_at: "2026-05-09T00:03:00.000Z",
+      },
+    ]);
+
+    expect(metrics).toMatchObject({
+      total_refs: 2,
+      zero_touch_refs: 0,
+      human_touched_refs: 2,
+      human_touch_count: 2,
+      automation_event_count: 1,
+    });
+    expect(metrics.touch_reason_counts).toMatchObject({
+      "trigger_source:operator_chat": 1,
+      human_actor: 1,
+    });
   });
 });

@@ -370,6 +370,41 @@ describe("worker movement pilot API dry-run", () => {
     expect(JSON.stringify(inserted[0])).not.toContain("lease-secret");
   });
 
+  it("inserts BLOCKER proof for protected human-owned or manual-only candidates", async () => {
+    const { store, inserted } = buildStore({
+      candidate: expiredLeaseCandidate({
+        id: "todo-human-manual",
+        title: "manual_only operator handoff",
+        assigned_to_agent_id: "human-chris",
+      }),
+    });
+
+    const result = await runWorkerMovementPilotDryRun({ store, nowMs });
+
+    expect(result).toMatchObject({
+      ok: true,
+      status: "proof_inserted",
+      candidate_id: "todo-human-manual",
+      action: "post_refusal_proof",
+      proof_signal_action: "worker_movement_workflow_pilot_blocker",
+      proof_status: "BLOCKER",
+      next_safe_step:
+        "post refusal proof and leave the job with its owner (manual_only_protected)",
+    });
+    expect(inserted).toHaveLength(1);
+    expect(inserted[0]).toMatchObject({
+      action: "worker_movement_workflow_pilot_blocker",
+      severity: "action_needed",
+      payload: {
+        proof_status: "BLOCKER",
+        candidate_id: "todo-human-manual",
+        decision_action: "no_action",
+        safety_reason: "manual_only_protected",
+      },
+    });
+    expect(JSON.stringify(inserted[0])).not.toContain("lease-secret");
+  });
+
   it("dedupes proof when the same candidate was recently emitted", async () => {
     const { store, inserted } = buildStore({
       candidate: expiredLeaseCandidate(),

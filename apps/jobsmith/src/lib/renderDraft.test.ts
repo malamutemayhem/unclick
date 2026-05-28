@@ -64,20 +64,20 @@ describe("renderCoverLetterDraft", () => {
     expect(result.draft).toContain("Victoria");
   });
 
-  test("signs off with Christopher Byrne by default", () => {
+  test("uses a neutral placeholder name by default", () => {
     const profile = makeProfile();
     const result = renderCoverLetterDraft({ rawText: AMPERSAND_JOB }, profile);
-    expect(result.draft.trim().endsWith("Christopher Byrne")).toBe(true);
+    expect(result.draft.trim().endsWith("Your Name")).toBe(true);
   });
 
-  test("supports a brand suffix line", () => {
+  test("supports a user-provided name and brand suffix line", () => {
     const profile = makeProfile();
     const result = renderCoverLetterDraft(
       { rawText: AMPERSAND_JOB },
       profile,
-      { brandSuffix: "Creative Lead & Founder, Malamute Mayhem" },
+      { name: "Casey Example", brandSuffix: "Portfolio Lead" },
     );
-    expect(result.draft).toMatch(/Christopher Byrne\nCreative Lead & Founder, Malamute Mayhem/);
+    expect(result.draft).toMatch(/Casey Example\nPortfolio Lead/);
   });
 
   test("falls back to placeholders when role/company cannot be detected", () => {

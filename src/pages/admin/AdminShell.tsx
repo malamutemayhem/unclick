@@ -57,6 +57,7 @@ import {
   LockKeyhole,
   Tags,
   FileStack,
+  FileCode2,
   SlidersHorizontal,
 } from "lucide-react";
 
@@ -116,6 +117,7 @@ function SeatsCascadeIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 const AUTOPILOT_LINKS = [
+  { path: "/admin/autopilot/expressbuild", label: "DraftRoom", icon: FileCode2 },
   { path: "/admin/boardroom", label: "Boardroom", icon: MessagesSquare },
   { path: "/admin/jobs", label: "Jobs", icon: ListTodo },
   { path: "/admin/checks", label: "XPass", icon: ClipboardCheck },
@@ -349,6 +351,7 @@ function SidebarNav({
       <MemoryNavItem onClick={onLinkClick} />
       <OrchestratorNavItem onClick={onLinkClick} />
       <SurfaceLink path="/admin/tools"    label="Apps"                     icon={AppWindow} onClick={onLinkClick} />
+      <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
       <SurfaceLink path="/admin/jobsmith" label="Jobsmith"                 icon={PenSquare} onClick={onLinkClick} />
       <SurfaceLink path="/admin/keychain" label="Passport"                 icon={KeyRound} onClick={onLinkClick} />
       <SeatsNavItem onClick={onLinkClick} />

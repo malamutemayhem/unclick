@@ -6,15 +6,29 @@ interface GitleaksLeak {
   Description?: string;
   File?: string;
   StartLine?: number;
+  EndLine?: number;
   Secret?: string;
   Commit?: string;
+  Fingerprint?: string;
 }
 
 export function buildGitleaksCommand(repoPath: string): CommandSpec {
   return {
     command: "gitleaks",
-    args: ["detect", "--source", repoPath, "--report-format", "json", "--no-banner"],
+    args: [
+      "git",
+      "--report-format",
+      "json",
+      "--report-path",
+      "-",
+      "--redact=100",
+      "--no-banner",
+      "--log-level",
+      "error",
+      repoPath,
+    ],
     cwd: repoPath,
+    timeoutMs: 120_000,
   };
 }
 
@@ -33,7 +47,9 @@ export function parseGitleaksJson(stdout: string): SecurityProbeFinding[] {
       rule_id: leak.RuleID ?? null,
       file: leak.File ?? null,
       start_line: leak.StartLine ?? null,
+      end_line: leak.EndLine ?? null,
       commit: leak.Commit ?? null,
+      fingerprint: leak.Fingerprint ?? null,
       secret_redacted: leak.Secret ? "[redacted]" : null,
     },
   }));
