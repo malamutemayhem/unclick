@@ -4,6 +4,7 @@ import {
   extractVercelPreviewUrls,
   hasSuccessfulVercelStatus,
   resolveTestPassPrTarget,
+  selectLatestStatusContext,
   selectLatestVercelPreviewUrl,
   toMcpServerUrl,
   toTestPassRunApiUrl,
@@ -50,6 +51,13 @@ test("detects a successful Vercel commit status", () => {
   assert.equal(hasSuccessfulVercelStatus([{ context: "Vercel", state: "success" }]), true);
   assert.equal(hasSuccessfulVercelStatus([{ context: "Vercel", state: "pending" }]), false);
   assert.equal(hasSuccessfulVercelStatus([{ context: "CI", state: "success" }]), false);
+  assert.equal(
+    hasSuccessfulVercelStatus([
+      { context: "Vercel", state: "success", updated_at: "2026-05-28T10:00:00Z" },
+      { context: "Vercel", state: "pending", updated_at: "2026-05-28T10:10:00Z" },
+    ]),
+    false,
+  );
 });
 
 test("normalizes a Vercel preview URL to the MCP endpoint", () => {
@@ -95,4 +103,14 @@ test("prefers explicit workflow input, then preview, then production default", (
     apiUrl: "https://unclick.world/api/testpass-run",
     source: "default",
   });
+});
+test("selects the newest named commit status", () => {
+  const statuses = [
+    { context: "Vercel", state: "pending", updated_at: "2026-05-28T10:00:00Z" },
+    { context: "Other", state: "success", updated_at: "2026-05-28T10:30:00Z" },
+    { context: "Vercel", state: "success", updated_at: "2026-05-28T10:20:00Z" },
+  ];
+
+  assert.deepEqual(selectLatestStatusContext(statuses, "vercel"), statuses[2]);
+  assert.equal(selectLatestStatusContext(statuses, "Missing"), null);
 });

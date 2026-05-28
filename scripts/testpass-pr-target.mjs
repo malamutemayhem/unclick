@@ -10,7 +10,7 @@ function authorLogin(comment) {
 }
 
 function createdTime(comment) {
-  const value = comment?.created_at || comment?.createdAt || 0;
+  const value = comment?.updated_at || comment?.updatedAt || comment?.created_at || comment?.createdAt || 0;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
@@ -24,7 +24,7 @@ function statusState(status) {
 }
 
 export function hasSuccessfulVercelStatus(statuses = []) {
-  return statuses.some((status) => statusContext(status) === "vercel" && statusState(status) === "success");
+  return statusState(selectLatestStatusContext(statuses, "Vercel")) === "success";
 }
 
 export function extractVercelPreviewUrls(body) {
@@ -94,4 +94,10 @@ export function resolveTestPassPrTarget(input = {}) {
   }
 
   return { serverUrl: requestedServerUrl || defaultServerUrl, apiUrl: defaultApiUrl, source: "default" };
+}
+export function selectLatestStatusContext(statuses = [], contextName = "Vercel") {
+  const wanted = safeText(contextName).toLowerCase();
+  return statuses
+    .filter((status) => statusContext(status) === wanted)
+    .sort((a, b) => createdTime(b) - createdTime(a))[0] || null;
 }
