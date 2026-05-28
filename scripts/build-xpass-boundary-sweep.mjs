@@ -42,15 +42,6 @@ export const BOUNDARY_PRODUCTS = [
       "scripts/worker-liveness-watchdog.test.mjs",
     ],
   },
-  {
-    id: "enterprisepass",
-    name: "EnterprisePass",
-    stage: "guidance",
-    role: "guidance-only readiness receipt guard",
-    target_url: "/enterprise/latest.json",
-    command: ["node", "--test", "scripts/enterprisepass-receipt-guard.test.mjs"],
-    actualCommand: [process.execPath, "--test", "scripts/enterprisepass-receipt-guard.test.mjs"],
-  },
 ];
 
 export const BOUNDARY_CROSS_PASS_MATRIX = [
@@ -68,15 +59,6 @@ export const BOUNDARY_CROSS_PASS_MATRIX = [
       { id: "testpass", role: "automation and MCP smoke trust gate" },
       { id: "commonsensepass", role: "stale-work and false-DONE sanity" },
       { id: "flowpass", role: "handoff and recovery-path overlap" },
-    ],
-  },
-  {
-    targetId: "enterprisepass",
-    reviewers: [
-      { id: "legalpass", role: "guidance-only and non-compliance-certification boundary" },
-      { id: "copypass", role: "public claim clarity" },
-      { id: "securitypass", role: "safe evidence-only boundary review" },
-      { id: "commonsensepass", role: "proof-claim sanity" },
     ],
   },
 ];

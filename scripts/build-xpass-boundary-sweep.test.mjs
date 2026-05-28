@@ -47,7 +47,7 @@ test("XPass boundary sweep records public-safe boundary and cross-pass proof", a
 
     assert.equal(receipt.kind, "xpass_boundary_sweep_receipt_v1");
     assert.equal(receipt.status, "passing");
-    assert.equal(receipt.product_count, 3);
+    assert.equal(receipt.product_count, 2);
     assert.deepEqual(receipt.action_needed, []);
 
     const rotatepass = receipt.products.find((product) => product.id === "rotatepass");
@@ -58,7 +58,7 @@ test("XPass boundary sweep records public-safe boundary and cross-pass proof", a
     assert.equal(rotatepass?.proof.kind, "public_safe_boundary_test");
     assert.match(rotatepass?.summary ?? "", /public-safe boundary tests passed/i);
     assert.equal(wakepass?.status, "passing");
-    assert.equal(enterprisepass?.status, "passing");
+    assert.equal(enterprisepass, undefined);
 
     const rotatepassMatrix = receipt.cross_pass_matrix.find((row) => row.target_id === "rotatepass");
     assert.equal(rotatepassMatrix?.status, "passing");
@@ -132,8 +132,8 @@ test("XPass boundary sweep CLI writes a public-safe receipt", async () => {
 
     const receipt = JSON.parse(await fs.readFile(output, "utf8"));
     assert.equal(receipt.status, "passing");
-    assert.equal(receipt.products.length, 3);
-    assert.equal(receipt.cross_pass_matrix.length, 3);
+    assert.equal(receipt.products.length, 2);
+    assert.equal(receipt.cross_pass_matrix.length, 2);
     assert.equal(receipt.action_needed.length, 0);
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
