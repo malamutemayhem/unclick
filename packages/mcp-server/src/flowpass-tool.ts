@@ -16,7 +16,7 @@ import {
   type FlowPassFixture,
   type FlowPassNormalizedPack,
   type FlowPassReport,
-} from "@unclick/flowpass";
+} from "../../flowpass/dist/index.js";
 
 type ReportFormat = "json" | "markdown" | "html" | "fix_prompt";
 
