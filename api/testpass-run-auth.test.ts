@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { canUseTestPassRunPack, resolveTestPassRunActor } from "./testpass-run";
+import {
+  canUseTestPassRunPack,
+  resolveTestPassRunActor,
+  resolveTestPassTargetToken,
+  withTestPassTargetToken,
+} from "./testpass-run";
 
 const originalFetch = globalThis.fetch;
 
@@ -86,5 +91,45 @@ describe("resolveTestPassRunActor", () => {
     );
 
     expect(result).toEqual({ ok: true, actorUserId: "session-user", tokenKind: "session" });
+  });
+});
+
+describe("TestPass target token forwarding", () => {
+  const originalToken = process.env.TESTPASS_TOKEN;
+
+  afterEach(() => {
+    if (originalToken === undefined) delete process.env.TESTPASS_TOKEN;
+    else process.env.TESTPASS_TOKEN = originalToken;
+  });
+
+  it("uses the inbound UnClick API key for PR smoke target calls", () => {
+    expect(resolveTestPassTargetToken({
+      incomingToken: "uc_ci_key",
+      isCron: false,
+      configuredToken: "uc_stale_env_key",
+    })).toBe("uc_ci_key");
+  });
+
+  it("does not treat cron secrets or browser sessions as MCP target API keys", () => {
+    expect(resolveTestPassTargetToken({
+      incomingToken: "cron-secret",
+      isCron: true,
+      configuredToken: "uc_configured_target_key",
+    })).toBe("uc_configured_target_key");
+
+    expect(resolveTestPassTargetToken({
+      incomingToken: "supabase.jwt.token",
+      isCron: false,
+      configuredToken: "uc_configured_target_key",
+    })).toBe("uc_configured_target_key");
+  });
+
+  it("temporarily exposes the selected token to the TestPass dispatcher and restores it", async () => {
+    process.env.TESTPASS_TOKEN = "uc_previous";
+
+    const seen = await withTestPassTargetToken("uc_current", async () => process.env.TESTPASS_TOKEN);
+
+    expect(seen).toBe("uc_current");
+    expect(process.env.TESTPASS_TOKEN).toBe("uc_previous");
   });
 });

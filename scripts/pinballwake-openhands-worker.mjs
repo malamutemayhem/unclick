@@ -173,8 +173,9 @@ export async function runOpenHandsWorker({
       evidence: {
         reason: coderoomResult?.reason ?? "unknown",
         file: coderoomResult?.file ?? null,
+        output: clipOutput(coderoomResult?.output, 1200),
+        dirty_files: normalizeChangedFiles(coderoomResult?.dirty_files || []),
         changed_files: changedFiles,
-        dirty_files: coderoomResult?.dirty_files ?? [],
       },
     });
   }
@@ -207,7 +208,7 @@ export function buildOpenHandsTaskPrompt({ job = {}, scopePack = {} } = {}) {
     "Return a unified diff patch only. Do not commit, push, merge, deploy, or touch secrets.",
     `Job: ${compact(job.title || job.job_id || job.id || "untitled job", 300)}`,
     `Chip: ${compact(job.chip || "none", 300)}`,
-    `Todo: ${job.todo_id || job.id || "unknown"}`,
+    `Todo: ${resolveJobTodoId(job) || "unknown"}`,
     "Owned files:",
     ...ownedFiles.map((file) => `- ${file}`),
     "Acceptance:",
@@ -240,8 +241,7 @@ function buildFixtureDiffHint({ job = {}, ownedFiles = [] } = {}) {
   const proofId = compact(
     job.claim_id ||
       job.claimId ||
-      job.todo_id ||
-      job.id ||
+      resolveJobTodoId(job) ||
       job.job_id ||
       "openhands-afk-canary",
     160,
@@ -308,6 +308,7 @@ async function defaultCoderoomSubmit({ job, changedFiles, summary, testRunId }) 
 }
 
 function pass({ job, executorSeatId, now, evidence }) {
+  const todoId = resolveJobTodoId(job);
   return {
     ok: true,
     reason: "openhands_worker_pass",
@@ -315,7 +316,7 @@ function pass({ job, executorSeatId, now, evidence }) {
       receipt_type: RECEIPT_TYPE_PASS,
       emitted_at: now.toISOString(),
       job_id: job?.job_id ?? null,
-      todo_id: job?.todo_id ?? job?.id ?? null,
+      todo_id: todoId || null,
       executor_seat_id: executorSeatId,
       evidence,
       proof_required: PROOF_REQUIRED,
@@ -326,6 +327,7 @@ function pass({ job, executorSeatId, now, evidence }) {
 }
 
 function hold({ job, executorSeatId, now, reason, evidence }) {
+  const todoId = resolveJobTodoId(job);
   return {
     ok: false,
     reason,
@@ -333,7 +335,7 @@ function hold({ job, executorSeatId, now, reason, evidence }) {
       receipt_type: RECEIPT_TYPE_HOLD,
       emitted_at: now.toISOString(),
       job_id: job?.job_id ?? null,
-      todo_id: job?.todo_id ?? job?.id ?? null,
+      todo_id: todoId || null,
       executor_seat_id: executorSeatId,
       hold_reason: reason,
       evidence,
@@ -367,6 +369,17 @@ function normalizeJob(job, scopePack) {
       requires_tests: true,
     },
   };
+}
+
+function resolveJobTodoId(job = {}) {
+  return String(
+    job?.todo_id ||
+      job?.todoId ||
+      job?.id ||
+      job?.source_state?.todo_id ||
+      job?.sourceState?.todo_id ||
+      "",
+  ).trim();
 }
 
 function normalizeChangedFiles(values) {

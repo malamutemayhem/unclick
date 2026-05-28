@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 513,
+    "inventory": 515,
     "source_manifest": 189,
     "pages": 82,
-    "tools": 185,
+    "tools": 186,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 185
+      "count": 186
     },
     {
       "id": "rooms",
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 13
+      "count": 14
     },
     {
       "id": "wrappers-and-protocols",
@@ -2472,6 +2472,16 @@
       "tags": []
     },
     {
+      "id": "passes-and-gates-pass-testpass-pr-comment-scripts-testpass-pr-comment-mjs-no-route",
+      "division": "Passes and gates",
+      "name": "testpass pr comment",
+      "kind": "pass",
+      "meaning": "testpass pr comment UnClick module.",
+      "source": "scripts/testpass-pr-comment.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "passes-and-gates-pass-testpass-run-api-testpass-run-ts-no-route",
       "division": "Passes and gates",
       "name": "testpass run",
@@ -3718,6 +3728,16 @@
       "kind": "MCP tool",
       "meaning": "figma MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/figma-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-flowpass-packages-mcp-server-src-flowpass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "flowpass",
+      "kind": "MCP tool",
+      "meaning": "flowpass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/flowpass-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6021,6 +6041,11 @@
       "packages/mcp-server/src/figma-tool.ts"
     ],
     [
+      "flowpass",
+      "flowpass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/flowpass-tool.ts"
+    ],
+    [
       "flyio",
       "flyio MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/flyio-tool.ts"
@@ -6900,7 +6925,7 @@
     ],
     [
       "build",
-      "vite build"
+      "npm run build --workspace=@unclick/commonsensepass && vite build"
     ],
     [
       "build:dev",
@@ -7018,8 +7043,8 @@
     },
     {
       "source": "package.json",
-      "hash": "e6096faac8c4",
-      "bytes": 4380
+      "hash": "f416df3bc693",
+      "bytes": 4434
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7388,8 +7413,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "10f4bfd44859",
-      "bytes": 16045
+      "hash": "a2d54cc557ef",
+      "bytes": 16182
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -7593,8 +7618,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "fc1947d2c5ee",
-      "bytes": 14412
+      "hash": "92b4e63503f5",
+      "bytes": 20902
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
@@ -7728,8 +7753,8 @@
     },
     {
       "source": "packages/mcp-server/src/commonsensepass-tool.ts",
-      "hash": "02d0d82630d7",
-      "bytes": 1991
+      "hash": "bad23b55ea01",
+      "bytes": 1995
     },
     {
       "source": "packages/mcp-server/src/convertkit-tool.ts",
@@ -7738,8 +7763,8 @@
     },
     {
       "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "4debe88f6f2f",
-      "bytes": 28450
+      "hash": "9cb57c05f879",
+      "bytes": 29686
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",
@@ -7823,8 +7848,8 @@
     },
     {
       "source": ".github/workflows/dogfood-report.yml",
-      "hash": "d485b8d37111",
-      "bytes": 3987
+      "hash": "7f0699c0a69a",
+      "bytes": 5891
     },
     {
       "source": ".github/workflows/event-wake-router.yml",
@@ -7868,8 +7893,8 @@
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "398a44d83549",
-      "bytes": 9548
+      "hash": "06c30cc187e8",
+      "bytes": 7414
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",
