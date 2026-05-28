@@ -39,6 +39,7 @@ So in the meantime, when you hit the symptom, use the empty-commit unstick. It i
 ## Historical context
 
 - PR #1047: first observation. Chris discovered the unstick after the required checks sat as "expected" for over an hour on a one-character ESM extension fix.
+- PR #1165 (this doc): second observation, meta-recursive. The docs-only PR landing this very procedure was itself blocked by the same bug. Applied the unstick to land it.
 - Lesson captured in `20260527 UnClick_Session_Handover.md` §12.
 - Boardroom todo `e1a51d36` is the parent for this whole topic. It links the option A / option B fork.
 
