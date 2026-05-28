@@ -17,6 +17,9 @@ export default defineConfig({
     ],
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@unclick/flowpass": path.resolve(__dirname, "./packages/flowpass/src/index.ts"),
+    },
   },
 });
