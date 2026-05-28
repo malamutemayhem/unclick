@@ -13,12 +13,40 @@ import {
   generateFlowPassMarkdownReport,
   parseFlowPassPack,
   runFlowPass,
-  type FlowPassFixture,
-  type FlowPassNormalizedPack,
-  type FlowPassReport,
-} from "../../flowpass/dist/index.js";
+} from "./flowpass-runtime.js";
 
 type ReportFormat = "json" | "markdown" | "html" | "fix_prompt";
+type FlowPassFixture = Record<string, unknown>;
+
+interface FlowPassJourney {
+  id: string;
+  name: string;
+  kind: string;
+}
+
+interface FlowPassNormalizedPack {
+  id: string;
+  name: string;
+  targetUrl: string;
+  journey: FlowPassJourney;
+  steps: unknown[];
+  plainEnglishSteps: unknown[];
+  assertions: unknown[];
+  hats: unknown[];
+  fixture?: FlowPassFixture;
+}
+
+interface FlowPassReport {
+  run_id?: string;
+  mode: string;
+  verdict: string;
+  journey_readiness_score: number;
+  target_url: string;
+  journey: FlowPassJourney;
+  summary?: unknown;
+  disagreements: Array<{ id: string } & Record<string, unknown>>;
+  generated_at: string;
+}
 
 interface FlowPassRunRecord {
   run_id: string;
