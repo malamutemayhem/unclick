@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-28T00:40:43.892Z",
-  "valid_until": "2026-06-04T00:40:43.892Z",
+  "generated_at": "2026-05-28T00:53:01.354Z",
+  "valid_until": "2026-06-04T00:53:01.354Z",
   "source": "local deterministic repo/docs scan",
   "product": "CompliancePass",
   "legacy_aliases": [
@@ -147,7 +147,7 @@
           "title": "Automated test files are present",
           "status": "pass",
           "score": 100,
-          "summary": "283 test files were found.",
+          "summary": "292 test files were found.",
           "evidence": [
             {
               "type": "file",
@@ -199,7 +199,7 @@
               "type": "file",
               "path": "packages/mcp-server/src/tool-wiring.ts",
               "label": "packages/mcp-server/src/tool-wiring.ts",
-              "summary": "13900 lines; review and ownership risk.",
+              "summary": "13946 lines; review and ownership risk.",
               "confidence": "high"
             },
             {
@@ -213,7 +213,7 @@
               "type": "file",
               "path": "scripts/pinballwake-autonomous-runner.mjs",
               "label": "scripts/pinballwake-autonomous-runner.mjs",
-              "summary": "3292 lines; review and ownership risk.",
+              "summary": "3328 lines; review and ownership risk.",
               "confidence": "high"
             },
             {
@@ -250,7 +250,7 @@
                   "type": "file",
                   "path": "packages/mcp-server/src/tool-wiring.ts",
                   "label": "packages/mcp-server/src/tool-wiring.ts",
-                  "summary": "13900 lines; review and ownership risk.",
+                  "summary": "13946 lines; review and ownership risk.",
                   "confidence": "high"
                 },
                 {
@@ -264,7 +264,7 @@
                   "type": "file",
                   "path": "scripts/pinballwake-autonomous-runner.mjs",
                   "label": "scripts/pinballwake-autonomous-runner.mjs",
-                  "summary": "3292 lines; review and ownership risk.",
+                  "summary": "3328 lines; review and ownership risk.",
                   "confidence": "high"
                 },
                 {
@@ -552,7 +552,7 @@
           "title": "Docs reference evidence and proof",
           "status": "pass",
           "score": 100,
-          "summary": "2348 evidence/proof references were found.",
+          "summary": "2611 evidence/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -744,7 +744,7 @@
           "title": "Credential and connector mapping evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "959 credential/connector mapping references were found.",
+          "summary": "968 credential/connector mapping references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -795,7 +795,7 @@
           "title": "Rotation and staleness evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "347 rotation/staleness references were found.",
+          "summary": "377 rotation/staleness references were found.",
           "evidence": [
             {
               "type": "file",
@@ -892,7 +892,7 @@
           "title": "Audit trail and proof language exists",
           "status": "pass",
           "score": 100,
-          "summary": "2893 audit/proof references were found.",
+          "summary": "3141 audit/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -978,7 +978,7 @@
           "title": "AI provider inventory evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "457 AI provider/model references were found.",
+          "summary": "463 AI provider/model references were found.",
           "evidence": [
             {
               "type": "file",
@@ -1029,7 +1029,7 @@
           "title": "AI oversight and review evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "2470 oversight/review references were found.",
+          "summary": "2748 oversight/review references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1080,7 +1080,7 @@
           "title": "AI data/source notes exist",
           "status": "pass",
           "score": 100,
-          "summary": "1773 AI data/source references were found.",
+          "summary": "1783 AI data/source references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1143,7 +1143,7 @@
           "type": "file",
           "path": "packages/mcp-server/src/tool-wiring.ts",
           "label": "packages/mcp-server/src/tool-wiring.ts",
-          "summary": "13900 lines; review and ownership risk.",
+          "summary": "13946 lines; review and ownership risk.",
           "confidence": "high"
         },
         {
@@ -1157,7 +1157,7 @@
           "type": "file",
           "path": "scripts/pinballwake-autonomous-runner.mjs",
           "label": "scripts/pinballwake-autonomous-runner.mjs",
-          "summary": "3292 lines; review and ownership risk.",
+          "summary": "3328 lines; review and ownership risk.",
           "confidence": "high"
         },
         {
@@ -1264,7 +1264,7 @@
       "type": "file",
       "path": "packages/mcp-server/src/tool-wiring.ts",
       "label": "packages/mcp-server/src/tool-wiring.ts",
-      "summary": "13900 lines; review and ownership risk.",
+      "summary": "13946 lines; review and ownership risk.",
       "confidence": "high"
     },
     {
@@ -1278,7 +1278,7 @@
       "type": "file",
       "path": "scripts/pinballwake-autonomous-runner.mjs",
       "label": "scripts/pinballwake-autonomous-runner.mjs",
-      "summary": "3292 lines; review and ownership risk.",
+      "summary": "3328 lines; review and ownership risk.",
       "confidence": "high"
     },
     {

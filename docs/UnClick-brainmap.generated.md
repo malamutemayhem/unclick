@@ -22,11 +22,34 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | a8f64d0da135 | 4873 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | fd2479b601d8 | 13242 |
-| src/pages/admin/AdminShell.tsx | 7cfbba7277d3 | 19113 |
+| src/App.tsx | 7bd815c57de3 | 13446 |
+| src/pages/admin/AdminShell.tsx | d0ad42350797 | 19229 |
+| src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
+| src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
+| src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
 | .github/workflows/ci.yml | 8650d072f494 | 1559 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
-| package.json | 9d0686715c45 | 4852 |
+| package.json | f00ebf81d5e4 | 5054 |
+| seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
+| seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
+| seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
+| seed/skills/coordinator-router.skill.md | 9413945c7540 | 1379 |
+| seed/skills/cross-pc-context-summariser.skill.md | a3ed67bc460c | 932 |
+| seed/skills/deep-research-analyst.skill.md | 74d773d9e04d | 1069 |
+| seed/skills/dependency-upgrade-reviewer.skill.md | d70607ce286b | 1045 |
+| seed/skills/draft-pr-description.skill.md | 29bd5a084a33 | 892 |
+| seed/skills/fix-failing-ci.skill.md | 7448c5e24ded | 1080 |
+| seed/skills/github-pr-summariser.skill.md | 1fd84b27d797 | 987 |
+| seed/skills/memory-distiller.skill.md | b951415aa2a7 | 983 |
+| seed/skills/research-brief-generator.skill.md | 849b249b5f2a | 915 |
+| seed/skills/reviewer-gate.skill.md | 976af541055b | 1008 |
+| seed/skills/safety-checker-gate.skill.md | 788eb3ec2b1d | 1148 |
+| seed/skills/screenshot-visual-qa.skill.md | ddfa5fd572a8 | 1025 |
+| seed/skills/security-review.skill.md | 1183cfc4b1ce | 1107 |
+| seed/skills/senior-code-reviewer.skill.md | 22a98a1953fd | 1104 |
+| seed/skills/tester-proof-plan.skill.md | d8c55bf6329a | 1153 |
+| seed/skills/watcher-heartbeat-tether.skill.md | 28acf3324343 | 1057 |
+| seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
 | src/pages/Index.tsx | 27da391f9555 | 1292 |
 | src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | 9c138bfc810d | 11515 |
@@ -38,7 +61,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
 | src/pages/admin/AdminBrainmap.tsx | 21baca89f0d0 | 27078 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
-| src/pages/admin/copypass/CopyPassCatalog.tsx | c5690331b7c6 | 6747 |
+| src/pages/admin/copypass/CopyPassCatalog.tsx | ecfffa28e759 | 7258 |
 | src/pages/admin/crews/CrewComposer.tsx | f3afb17bb001 | 13909 |
 | src/pages/admin/crews/CrewRun.tsx | 8a458cc0c629 | 8427 |
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
@@ -62,7 +85,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/testpass/ReportDetail.tsx | b3db4032aa33 | 12374 |
 | src/pages/admin/testpass/RunDetail.tsx | 52e43b795126 | 21979 |
 | src/pages/admin/testpass/TestPassCatalog.tsx | 8fc76ddd8d3f | 21847 |
-| src/pages/admin/AdminTools.tsx | 4dd6c628c4a4 | 10027 |
+| src/pages/admin/AdminTools.tsx | 8544965a0043 | 8530 |
 | src/pages/admin/AdminUsers.tsx | 701e7da2f201 | 863 |
 | src/pages/admin/AdminYou.tsx | 394d65c7aabb | 37346 |
 | src/pages/arena/ArenaProblem.tsx | 11869f637abe | 15032 |
@@ -80,7 +103,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Developers.tsx | 9657fd564797 | 19123 |
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
-| src/pages/DogfoodReport.tsx | 10f4bfd44859 | 16045 |
+| src/pages/DogfoodReport.tsx | a2d54cc557ef | 16182 |
 | src/pages/FAQPage.tsx | c3c95c39e56f | 723 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 70f86c37110a | 34772 |
@@ -121,7 +144,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | fc1947d2c5ee | 14412 |
+| scripts/pinballwake-xpass-gate-room.mjs | 92b4e63503f5 | 20902 |
 | packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |
@@ -148,9 +171,10 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/coingecko-tool.ts | e7d8c7535112 | 6827 |
 | packages/mcp-server/src/coinmarketcap-tool.ts | b1c5fd280acb | 6892 |
 | packages/mcp-server/src/color-tool.ts | f9aa9c0fec6e | 13643 |
-| packages/mcp-server/src/compliancepass-tool.ts | 6aeabeb6051a | 3200 |
+| packages/mcp-server/src/commonsensepass-tool.ts | bad23b55ea01 | 1995 |
+| packages/mcp-server/src/compliancepass-tool.ts | 13242448457f | 3202 |
 | packages/mcp-server/src/convertkit-tool.ts | 2f77303a3441 | 8498 |
-| packages/mcp-server/src/copypass-tool.ts | 2a5f73ece606 | 14259 |
+| packages/mcp-server/src/copypass-tool.ts | 4debe88f6f2f | 28450 |
 | packages/mcp-server/src/crews-tool.ts | 111454c76c0a | 13547 |
 | packages/mcp-server/src/csuite-tool.ts | 0ab5af89bb49 | 70236 |
 | packages/mcp-server/src/datadog-tool.ts | 802b808614cd | 5556 |
@@ -161,13 +185,12 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/discord-tool.ts | c70b8ac42f28 | 8191 |
 | packages/mcp-server/src/domain-tool.ts | 1beecc106e80 | 6076 |
 | packages/mcp-server/src/ebay-tool.ts | 10dffe36315f | 7595 |
-| packages/mcp-server/src/ebird-tool.ts | 3deedf3fde19 | 6262 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | a1280cfec46b | 15338 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
 | .github/workflows/dirty-branch-hygiene.yml | 9d192a7da041 | 2190 |
-| .github/workflows/dogfood-report.yml | d485b8d37111 | 3987 |
+| .github/workflows/dogfood-report.yml | a3f2533f7bef | 4805 |
 | .github/workflows/event-wake-router.yml | bfd53e324bb4 | 1453 |
 | .github/workflows/fleet-throughput-watch.yml | c5a08f4edf9b | 930 |
 | .github/workflows/openhands-test-mode.yml | 3bd5d5f48573 | 1137 |
@@ -176,7 +199,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | 398a44d83549 | 9548 |
+| .github/workflows/testpass-pr-check.yml | 06c30cc187e8 | 7414 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | f26a538f2ee9 | 896 |
 
@@ -184,17 +207,17 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 45 |
+| Admin surfaces | Private operator views and internal control panels. | 46 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 185 |
+| Tools | MCP and gateway capabilities available to seats. | 186 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
-| Passes and gates | Quality, proof, safety, and fidelity checks. | 12 |
+| Passes and gates | Quality, proof, safety, and fidelity checks. | 14 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 41 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 62 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 4 |
 
 ## UnClick Structure
@@ -260,6 +283,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/setup-guide | Memory Setup Guide | User-facing page for Memory Setup Guide. | src/pages/MemorySetupGuide.tsx |
 | /admin/signals/settings | Signals Settings | Admin surface for Signals Settings. | src/pages/admin/signals/SignalsSettings.tsx |
 | /admin/signals | Signals Catalog | Admin surface for Signals Catalog. | src/pages/admin/signals/SignalsCatalog.tsx |
+| /admin/skills | Admin Skills | Read-only starter pack of UnClick-native skills, native rails, and portable SKILL.md packages. | src/pages/admin/AdminSkills.tsx |
 | /admin/system-health | Admin System Health | Health checks and operational status. | src/pages/admin/AdminSystemHealth.tsx |
 | /admin/testpass/new | New Run Wizard | Admin surface for New Run Wizard. | src/pages/admin/testpass/NewRunWizard.tsx |
 | /admin/testpass/packs/:id/edit | Admin Test Pass | Admin surface for Admin Test Pass. | src/pages/admin/AdminTestPass.tsx |
@@ -337,6 +361,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | coingecko | coingecko MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coingecko-tool.ts |
 | coinmarketcap | coinmarketcap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coinmarketcap-tool.ts |
 | color | color MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/color-tool.ts |
+| commonsensepass | commonsensepass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/commonsensepass-tool.ts |
 | compliancepass | compliancepass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/compliancepass-tool.ts |
 | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/convertkit-tool.ts |
 | copypass | copypass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/copypass-tool.ts |
@@ -525,6 +550,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Seat Heartbeat | Master heartbeat copy policy for scheduled AI seats. | /admin/agents/heartbeat | src/pages/admin/AdminSeatHeartbeat.tsx |
 | Admin surfaces | admin page | Admin Settings | Account and admin configuration. | /admin/settings | src/pages/admin/AdminSettings.tsx |
 | Admin surfaces | admin page | Admin Shell | Admin surface for Admin Shell. | /admin | src/pages/admin/AdminShell.tsx |
+| Admin surfaces | admin page | Admin Skills | Read-only starter pack of UnClick-native skills, native rails, and portable SKILL.md packages. | /admin/skills | src/pages/admin/AdminSkills.tsx |
 | Admin surfaces | admin page | Admin System Health | Health checks and operational status. | /admin/system-health | src/pages/admin/AdminSystemHealth.tsx |
 | Admin surfaces | admin page | Admin Test Pass | Admin surface for Admin Test Pass. | /admin/testpass/packs/:id/edit | src/pages/admin/AdminTestPass.tsx |
 | Admin surfaces | admin page | Admin Tools | Apps, tools, and connector capability surface. | /admin/tools | src/pages/admin/AdminTools.tsx |
@@ -712,17 +738,40 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | package | testpass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/testpass/package.json |
 | Modules and apps | package | uxpass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/uxpass/package.json |
 | Modules and apps | package | wizard | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/wizard/package.json |
+| Modules and apps | skill library | Skills Library | Read-only starter pack of UnClick-native skills, hardwired rails, hybrid workflows, and portable skill packages. | /admin/skills | src/pages/admin/AdminSkills.tsx |
+| Modules and apps | skill package | agent handoff packet writer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/agent-handoff-packet-writer.skill.md |
+| Modules and apps | skill package | browser qa tester | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/browser-qa-tester.skill.md |
+| Modules and apps | skill package | builder implementation packet | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/builder-implementation-packet.skill.md |
+| Modules and apps | skill package | coordinator router | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/coordinator-router.skill.md |
+| Modules and apps | skill package | cross pc context summariser | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/cross-pc-context-summariser.skill.md |
+| Modules and apps | skill package | deep research analyst | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/deep-research-analyst.skill.md |
+| Modules and apps | skill package | dependency upgrade reviewer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/dependency-upgrade-reviewer.skill.md |
+| Modules and apps | skill package | draft pr description | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/draft-pr-description.skill.md |
+| Modules and apps | skill package | fix failing ci | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/fix-failing-ci.skill.md |
+| Modules and apps | skill package | github pr summariser | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/github-pr-summariser.skill.md |
+| Modules and apps | skill package | memory distiller | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/memory-distiller.skill.md |
+| Modules and apps | skill package | research brief generator | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/research-brief-generator.skill.md |
+| Modules and apps | skill package | reviewer gate | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/reviewer-gate.skill.md |
+| Modules and apps | skill package | safety checker gate | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/safety-checker-gate.skill.md |
+| Modules and apps | skill package | screenshot visual qa | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/screenshot-visual-qa.skill.md |
+| Modules and apps | skill package | security review | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/security-review.skill.md |
+| Modules and apps | skill package | senior code reviewer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/senior-code-reviewer.skill.md |
+| Modules and apps | skill package | tester proof plan | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/tester-proof-plan.skill.md |
+| Modules and apps | skill package | watcher heartbeat tether | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/watcher-heartbeat-tether.skill.md |
+| Modules and apps | skill package | write tests for changed code | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/write-tests-for-changed-code.skill.md |
 | Passes and gates | fidelity gate | CopyRoom | Exact-copy room for code, docs, tables, notes, and source text so seats do not retype drift-prone material. | - | docs/UnClick-brainmap.generated.md |
 | Passes and gates | fidelity gate | FidelityPass | Checks exactness and invariant preservation when copying, refactoring, or translating content. | - | scripts/fidelitycopy.test.mjs |
 | Passes and gates | judgment gate | CommonSensePass | Plain-reasoning gate used before healthy, done, merge-ready, or PASS claims. | - | api/commonsensepass-bridge.test.ts |
 | Passes and gates | pass | testpass | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/testpass.ts |
 | Passes and gates | pass | testpass background handoff | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-background-handoff.ts |
 | Passes and gates | pass | testpass boundary | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-boundary.ts |
+| Passes and gates | pass | testpass pr comment | testpass pr comment UnClick module. | - | scripts/testpass-pr-comment.mjs |
 | Passes and gates | pass | testpass run | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/testpass-run.ts |
 | Passes and gates | pass | uxpass | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/uxpass.ts |
 | Passes and gates | pass | uxpass run | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/uxpass-run.ts |
 | Passes and gates | pass | uxpass run handoff | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/uxpass-run-handoff.ts |
 | Passes and gates | pass | uxpass site sweep | uxpass site sweep UnClick module. | - | scripts/uxpass-site-sweep.mjs |
+| Passes and gates | pass | uxpass visual audit | uxpass visual audit UnClick module. | - | scripts/uxpass-visual-audit.mjs |
 | Passes and gates | wake gate | WakePass | Verifies ACKs, stale handoffs, and worker wake requests before motion claims. | - | docs/pinballwake-igniteonly-api.md |
 | Public surfaces | public page | Arena Home | Arena page for Arena Home. | /arena | src/pages/arena/ArenaHome.tsx |
 | Public surfaces | public page | Arena Leaderboard | Arena page for Arena Leaderboard. | /arena/leaderboard | src/pages/arena/ArenaLeaderboard.tsx |
@@ -819,6 +868,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | coingecko | coingecko MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coingecko-tool.ts |
 | Tools | MCP tool | coinmarketcap | coinmarketcap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coinmarketcap-tool.ts |
 | Tools | MCP tool | color | color MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/color-tool.ts |
+| Tools | MCP tool | commonsensepass | commonsensepass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/commonsensepass-tool.ts |
 | Tools | MCP tool | compliancepass | compliancepass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/compliancepass-tool.ts |
 | Tools | MCP tool | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/convertkit-tool.ts |
 | Tools | MCP tool | copypass | copypass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/copypass-tool.ts |
@@ -1075,7 +1125,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | --- | --- |
 | brainmap:check | node scripts/UnClick-brainmap.mjs --check |
 | brainmap:generate | node scripts/UnClick-brainmap.mjs |
-| build | vite build |
+| build | npm run build --workspace=@unclick/commonsensepass && vite build |
 | build:dev | vite build --mode development |
 | compliancepass:report | npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs |
 | lint | eslint . |

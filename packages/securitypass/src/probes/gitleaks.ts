@@ -15,6 +15,7 @@ export function buildGitleaksCommand(repoPath: string): CommandSpec {
     command: "gitleaks",
     args: ["detect", "--source", repoPath, "--report-format", "json", "--no-banner"],
     cwd: repoPath,
+    timeoutMs: 120_000,
   };
 }
 

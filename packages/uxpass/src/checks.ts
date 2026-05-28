@@ -3,9 +3,9 @@
  *
  * Each check inspects the captured CheckContext (one HTTP fetch of the
  * target URL plus an optional /llms.txt fetch) and returns a Verdict plus
- * evidence. No browser, no LLM, no DOM library; all checks operate on the
- * raw HTML body, headers, and timings. This keeps the runner edge-friendly
- * and bounded at roughly 1 to 2 seconds per run.
+ * evidence. Fetch-only checks operate on raw HTML, headers, and timings.
+ * Browser-backed checks run only when a caller attaches a VisualAuditSnapshot,
+ * so the default runner stays edge-friendly and bounded.
  *
  * Heavier capture (Playwright, viewport sweeps, axe-core) and LLM hats land
  * in later chunks. The check ids are namespaced by hat so future LLM-backed
@@ -19,7 +19,14 @@ import type {
   UXScoreBreakdown,
   Verdict,
 } from "./types.js";
-import { buildCriticBreakdown } from "./critics.js";
+import { buildCriticBreakdown, criticDefinitionsById } from "./critics.js";
+import {
+  evaluateVisualAuditSnapshot,
+  visualIssuesByKind,
+  type VisualAuditIssueKind,
+  type VisualAuditSnapshot,
+  type VisualAuditSummary,
+} from "./visual-audit.js";
 
 type CheckSeverity = "critical" | "high" | "medium" | "low";
 
@@ -31,6 +38,7 @@ export interface CheckContext {
   bodyText: string;
   bodySize: number;
   llmsTxtStatus: number | null;
+  visualAudit?: VisualAuditSnapshot;
 }
 
 export interface CheckResult {
@@ -57,6 +65,38 @@ function hasTag(body: string, tagPattern: RegExp): boolean {
 function countMatches(body: string, pattern: RegExp): number {
   const m = body.match(pattern);
   return m ? m.length : 0;
+}
+
+function visualSummary(ctx: CheckContext): VisualAuditSummary | null {
+  return ctx.visualAudit ? evaluateVisualAuditSnapshot(ctx.visualAudit) : null;
+}
+
+function visualCheck(
+  ctx: CheckContext,
+  kind: VisualAuditIssueKind,
+): CheckResult {
+  const summary = visualSummary(ctx);
+  if (!summary) {
+    return {
+      verdict: "na",
+      evidence: { reason: "visual_snapshot_missing" },
+    };
+  }
+  const issues = visualIssuesByKind(summary, kind);
+  return {
+    verdict: issues.length === 0 ? "pass" : "fail",
+    evidence: {
+      issue_count: issues.length,
+      examples: issues.slice(0, 5).map((issue) => ({
+        title: issue.title,
+        description: issue.description,
+        selector: issue.selector,
+        evidence: issue.evidence,
+      })),
+      screenshot_path: ctx.visualAudit?.screenshotPath ?? null,
+      viewport: ctx.visualAudit?.viewport ?? null,
+    },
+  };
 }
 
 export const CORE_CHECKS: CheckSpec[] = [
@@ -155,6 +195,24 @@ export const CORE_CHECKS: CheckSpec[] = [
       };
     },
   },
+  {
+    id: "A11Y-004",
+    hat: "accessibility",
+    category: "visual-a11y",
+    severity: "high",
+    title: "Visible text meets contrast target",
+    remediation: "Increase foreground/background contrast for failing text states.",
+    evaluate: (ctx) => visualCheck(ctx, "low_contrast"),
+  },
+  {
+    id: "A11Y-005",
+    hat: "accessibility",
+    category: "visual-a11y",
+    severity: "high",
+    title: "Interactive actions have useful accessible names",
+    remediation: "Give icon-only and compact actions a clear aria-label, title, or visible label.",
+    evaluate: (ctx) => visualCheck(ctx, "unlabelled_action"),
+  },
 
   // ── mobile ───────────────────────────────────────────────────────────────
   {
@@ -167,6 +225,15 @@ export const CORE_CHECKS: CheckSpec[] = [
     evaluate: (ctx) => ({
       verdict: hasTag(ctx.bodyText, /<meta[^>]+name\s*=\s*["']viewport["']/i) ? "pass" : "fail",
     }),
+  },
+  {
+    id: "MOB-002",
+    hat: "mobile",
+    category: "visual-mobile",
+    severity: "high",
+    title: "Interactive targets meet 24px minimum",
+    remediation: "Increase the hit area for links, buttons, tabs, and icon controls to at least 24 by 24 CSS pixels.",
+    evaluate: (ctx) => visualCheck(ctx, "small_target"),
   },
 
   // ── agent-readability ────────────────────────────────────────────────────
@@ -280,6 +347,105 @@ export const CORE_CHECKS: CheckSpec[] = [
         : "fail",
     }),
   },
+  {
+    id: "VD-002",
+    hat: "visual-designer",
+    category: "visual-layout",
+    severity: "high",
+    title: "Page has no horizontal overflow",
+    remediation: "Constrain grids, tables, badges, and fixed-width panels so the page never scrolls sideways.",
+    evaluate: (ctx) => visualCheck(ctx, "horizontal_overflow"),
+  },
+  {
+    id: "VD-003",
+    hat: "visual-designer",
+    category: "visual-layout",
+    severity: "high",
+    title: "Visible text is not clipped",
+    remediation: "Wrap text, widen the container, move secondary metadata into a detail surface, or provide a full fallback label.",
+    evaluate: (ctx) => visualCheck(ctx, "clipped_text"),
+  },
+  {
+    id: "VD-004",
+    hat: "visual-designer",
+    category: "visual-layout",
+    severity: "high",
+    title: "Text stays inside its visual container",
+    remediation: "Fix layout constraints, grid tracks, min-width rules, or wrapping so text cannot run outside boxes.",
+    evaluate: (ctx) => visualCheck(ctx, "text_out_of_bounds"),
+  },
+  {
+    id: "VD-005",
+    hat: "visual-designer",
+    category: "visual-composition",
+    severity: "medium",
+    title: "First viewport has clear visual hierarchy",
+    remediation: "Add a dominant heading, section hierarchy, or primary work area so the page has an obvious scan order.",
+    evaluate: (ctx) => visualCheck(ctx, "weak_visual_hierarchy"),
+  },
+  {
+    id: "VD-006",
+    hat: "visual-designer",
+    category: "visual-composition",
+    severity: "medium",
+    title: "Page avoids nested panel clutter",
+    remediation: "Flatten cards-inside-cards into bands, sections, row expansion, or a detail panel.",
+    evaluate: (ctx) => visualCheck(ctx, "nested_panel_clutter"),
+  },
+  {
+    id: "VD-007",
+    hat: "visual-designer",
+    category: "visual-system",
+    severity: "medium",
+    title: "First viewport uses a deliberate type scale",
+    remediation: "Define page, section, row, metadata, and control type roles so scan order is visible at a glance.",
+    evaluate: (ctx) => visualCheck(ctx, "flat_type_scale"),
+  },
+  {
+    id: "VD-008",
+    hat: "visual-designer",
+    category: "visual-system",
+    severity: "medium",
+    title: "Colour system stays disciplined",
+    remediation: "Limit saturated colours to named semantic roles and keep structural surfaces neutral.",
+    evaluate: (ctx) => visualCheck(ctx, "palette_indiscipline"),
+  },
+  {
+    id: "CL-001",
+    hat: "cognitive-load",
+    category: "visual-density",
+    severity: "medium",
+    title: "Rows avoid badge overload",
+    remediation: "Group secondary statuses, use a summary cell, or move lower-priority metadata behind row expansion.",
+    evaluate: (ctx) => visualCheck(ctx, "badge_overload"),
+  },
+  {
+    id: "CL-002",
+    hat: "cognitive-load",
+    category: "visual-density",
+    severity: "medium",
+    title: "First viewport stays scannable",
+    remediation: "Reduce inline text fragments, add section hierarchy, or progressively disclose low-priority details.",
+    evaluate: (ctx) => visualCheck(ctx, "dense_first_screen"),
+  },
+  {
+    id: "CL-003",
+    hat: "cognitive-load",
+    category: "action-clarity",
+    severity: "medium",
+    title: "First viewport has a clear primary action when actions exist",
+    remediation: "Give the primary action a useful label and stable comfortable dimensions, then demote secondary actions.",
+    evaluate: (ctx) => visualCheck(ctx, "unclear_primary_action"),
+  },
+  {
+    id: "CL-004",
+    hat: "cognitive-load",
+    category: "action-clarity",
+    severity: "medium",
+    title: "Rows avoid crowded action clusters",
+    remediation: "Collapse secondary controls into a menu, row expansion, or stepper summary so one primary action remains obvious.",
+    evaluate: (ctx) => visualCheck(ctx, "crowded_action_cluster"),
+  },
 ];
 
 // Severity weights for the UX score. Higher severity dominates the score so
@@ -337,24 +503,38 @@ export function computeUxScore(evaluations: CheckEvaluation[]): number {
  * without changing the breakdown shape.
  */
 function computeScoreComponents(evaluations: CheckEvaluation[]): UXScoreBreakdown {
-  const arEvals = evaluations.filter((e) => e.hat === "agent-readability" && e.verdict !== "na");
-  let arScore: number | null = null;
-  if (arEvals.length > 0) {
+  const critics = criticDefinitionsById();
+  const components: Record<keyof UXScoreBreakdown, CheckEvaluation[]> = {
+    agent_readability: [],
+    dark_pattern_cleanliness: [],
+    aesthetic_coherence: [],
+    motion_quality: [],
+    first_run_quality: [],
+  };
+  for (const evaluation of evaluations) {
+    if (evaluation.verdict === "na") continue;
+    const component = critics[evaluation.hat]?.score_component;
+    if (component) components[component].push(evaluation);
+  }
+
+  function scoreFor(componentEvaluations: CheckEvaluation[]): number | null {
+    if (componentEvaluations.length === 0) return null;
     let total = 0;
     let earned = 0;
-    for (const e of arEvals) {
+    for (const e of componentEvaluations) {
       const w = SEVERITY_WEIGHT[e.severity] ?? 1;
       total += w;
       if (e.verdict === "pass") earned += w;
     }
-    arScore = total > 0 ? Math.round((earned / total) * 100 * 100) / 100 : null;
+    return total > 0 ? Math.round((earned / total) * 100 * 100) / 100 : null;
   }
+
   return {
-    agent_readability: arScore,
-    dark_pattern_cleanliness: null,
-    aesthetic_coherence: null,
-    motion_quality: null,
-    first_run_quality: null,
+    agent_readability: scoreFor(components.agent_readability),
+    dark_pattern_cleanliness: scoreFor(components.dark_pattern_cleanliness),
+    aesthetic_coherence: scoreFor(components.aesthetic_coherence),
+    motion_quality: scoreFor(components.motion_quality),
+    first_run_quality: scoreFor(components.first_run_quality),
   };
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "@unclick/legalpass",
   "version": "0.1.0",
-  "description": "LegalPass - 12-hat issue-spotter for AI-native teams. Twelve checks. One verdict. Plain English.",
+  "description": "LegalPass - phase-one issue-spotter for AI-native teams. Public signals. One verdict. Plain English.",
   "type": "module",
   "main": "./dist/index.js",
   "exports": {

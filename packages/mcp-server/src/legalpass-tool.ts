@@ -11,6 +11,31 @@ import yaml from "js-yaml";
 
 type DisclaimerLength = "chat" | "results" | "tos";
 type LegalPassMcpVerdict = "check" | "fail" | "na" | "other" | "pending";
+type LegalPassMcpTargetKind = "url" | "contract_upload" | "repo";
+type LegalPassMcpProfile = "smoke" | "standard" | "deep";
+type LegalPassMcpJurisdiction = "AU" | "EU" | "US-CA" | "US-NY" | "UK" | "CA" | "NZ" | "SG";
+type LegalPassMcpHatId =
+  | "privacy"
+  | "consumer_tos"
+  | "contracts"
+  | "oss_licence"
+  | "ai_ethics"
+  | "ip"
+  | "marketing_claims"
+  | "litigator"
+  | "plain_english"
+  | "compliance"
+  | "jurisdiction_router"
+  | "citation_verifier";
+
+interface LegalPassMcpTarget {
+  kind: LegalPassMcpTargetKind;
+  url?: string;
+  upload_ref?: string;
+  repo?: string;
+  branch?: string;
+  commit?: string;
+}
 
 interface LegalPassMcpItem {
   item_id: string;
@@ -37,9 +62,9 @@ interface LegalPassMcpRunRecord {
   pass: "legalpass";
   run_id: string;
   pack_id: string;
-  target: Record<string, unknown>;
-  profile: string;
-  jurisdictions: string[];
+  target: LegalPassMcpTarget;
+  profile: LegalPassMcpProfile;
+  jurisdictions: LegalPassMcpJurisdiction[];
   summary: LegalPassMcpSummary;
   items: LegalPassMcpItem[];
   disclaimer: string;
@@ -54,11 +79,48 @@ interface LegalPassMcpRunRecord {
 
 interface LegalPassMcpPack {
   id: string;
-  targets: string[];
-  hats: Array<{ hat_id?: string; enabled?: boolean }>;
+  targets: LegalPassMcpTargetKind[];
+  jurisdictions?: LegalPassMcpJurisdiction[];
+  profile?: LegalPassMcpProfile;
+  hats: Array<{ hat_id?: LegalPassMcpHatId; enabled?: boolean }>;
   items?: unknown[];
   [key: string]: unknown;
 }
+
+const SUPPORTED_TARGET_KINDS = new Set<LegalPassMcpTargetKind>([
+  "url",
+  "contract_upload",
+  "repo",
+]);
+
+const SUPPORTED_HAT_IDS = new Set<LegalPassMcpHatId>([
+  "privacy",
+  "consumer_tos",
+  "contracts",
+  "oss_licence",
+  "ai_ethics",
+  "ip",
+  "marketing_claims",
+  "litigator",
+  "plain_english",
+  "compliance",
+  "jurisdiction_router",
+  "citation_verifier",
+]);
+
+const SUPPORTED_PROFILES = new Set<LegalPassMcpProfile>(["smoke", "standard", "deep"]);
+const SUPPORTED_JURISDICTIONS = new Set<LegalPassMcpJurisdiction>([
+  "AU",
+  "EU",
+  "US-CA",
+  "US-NY",
+  "UK",
+  "CA",
+  "NZ",
+  "SG",
+]);
+const DEFAULT_PROFILE: LegalPassMcpProfile = "standard";
+const DEFAULT_JURISDICTIONS: LegalPassMcpJurisdiction[] = ["AU", "EU", "US-CA"];
 
 const DISCLAIMERS: Record<DisclaimerLength, string> = {
   chat:
@@ -117,6 +179,11 @@ const FORBIDDEN_PHRASES: ReadonlyArray<{ phrase: string; reason: string }> = [
   { phrase: "you have to", reason: "directive phrasing - implies an instruction" },
   { phrase: "you are obligated", reason: "directive phrasing - implies a legal obligation" },
   { phrase: "do this", reason: "directive phrasing - implies an instruction" },
+  { phrase: "ask a qualified lawyer", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "ask a qualified practitioner", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "talk to a qualified lawyer", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "get advice from a lawyer", reason: "directive legal referral phrasing - prohibited in verdict text" },
+  { phrase: "you may want to review with a lawyer", reason: "user-directed legal referral phrasing - prohibited in verdict text" },
   { phrase: "we recommend", reason: "first-person recommendation - prohibited" },
   { phrase: "the right thing to do is", reason: "normative recommendation - prohibited" },
   { phrase: "this is illegal", reason: "definitive legal conclusion - prohibited" },
@@ -148,7 +215,7 @@ const ALLOWED_PHRASES = [
   "is standard",
   "merits attention",
   "warrants review",
-  "you may want to review with a lawyer",
+  "qualified practitioner review may be warranted",
   "the regulatory landscape",
 ];
 
@@ -227,6 +294,8 @@ const FIXTURE_CHECKS: ReadonlyArray<{
 const DEFAULT_PACK: LegalPassMcpPack = {
   id: "legalpass-mvp-v0",
   targets: ["url", "contract_upload", "repo"],
+  jurisdictions: DEFAULT_JURISDICTIONS,
+  profile: DEFAULT_PROFILE,
   hats: [
     { hat_id: "privacy", enabled: true },
     { hat_id: "consumer_tos", enabled: true },
@@ -262,6 +331,54 @@ function buildRunId(input: unknown): string {
     .update(JSON.stringify(input))
     .digest("hex")
     .slice(0, 12)}`;
+}
+
+function packRunSignature(pack: LegalPassMcpPack): Record<string, unknown> {
+  return {
+    id: pack.id,
+    targets: [...pack.targets].sort(),
+    profile: pack.profile ?? DEFAULT_PROFILE,
+    jurisdictions: [...(pack.jurisdictions ?? DEFAULT_JURISDICTIONS)].sort(),
+    enabled_hats: pack.hats
+      .filter((hat) => hat.enabled !== false)
+      .map((hat) => hat.hat_id)
+      .filter(Boolean)
+      .sort(),
+  };
+}
+
+function isSupportedTargetKind(value: string): value is LegalPassMcpTargetKind {
+  return SUPPORTED_TARGET_KINDS.has(value as LegalPassMcpTargetKind);
+}
+
+function isSupportedHatId(value: string): value is LegalPassMcpHatId {
+  return SUPPORTED_HAT_IDS.has(value as LegalPassMcpHatId);
+}
+
+function isSupportedProfile(value: string): value is LegalPassMcpProfile {
+  return SUPPORTED_PROFILES.has(value as LegalPassMcpProfile);
+}
+
+function isSupportedJurisdiction(value: string): value is LegalPassMcpJurisdiction {
+  return SUPPORTED_JURISDICTIONS.has(value as LegalPassMcpJurisdiction);
+}
+
+function firstDuplicate(values: string[]): string | null {
+  const seen = new Set<string>();
+  for (const value of values) {
+    if (seen.has(value)) return value;
+    seen.add(value);
+  }
+  return null;
+}
+
+function isValidUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 function summaryFromItems(items: LegalPassMcpItem[]): LegalPassMcpSummary {
@@ -334,7 +451,7 @@ function fixtureSummary(text: string, pack: LegalPassMcpPack) {
       ],
       on_fail_comment: passed
         ? undefined
-        : "Issue-spotter flag only. Ask a qualified lawyer before acting on this item.",
+        : "Issue-spotter flag only. Qualified practitioner review may be warranted before any action is taken.",
     };
   });
   return {
@@ -361,16 +478,25 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
   if (!pack) {
     return { error: `pack '${packId}' was not found` };
   }
-  const target = parseTarget(args);
-  const profile = typeof args.profile === "string" ? args.profile : "smoke";
-  const jurisdictions = Array.isArray(args.jurisdictions) ? args.jurisdictions.filter((item) => typeof item === "string") : [];
-
-  if (!target || typeof target.kind !== "string") {
-    return { error: "target.kind or target_url is required" };
+  const parsedTarget = parseTarget(args);
+  if ("error" in parsedTarget) {
+    return parsedTarget;
   }
+  const target = parsedTarget.target;
+  const parsedProfile = parseProfile(args.profile ?? pack.profile ?? DEFAULT_PROFILE, "profile");
+  if ("error" in parsedProfile) return parsedProfile;
+  const profile = parsedProfile.profile;
+  const parsedJurisdictions = parseJurisdictions(
+    args.jurisdictions ?? pack.jurisdictions ?? DEFAULT_JURISDICTIONS,
+    "jurisdictions",
+  );
+  if ("error" in parsedJurisdictions) return parsedJurisdictions;
+  const jurisdictions = parsedJurisdictions.jurisdictions;
+
   if (!pack.targets.includes(target.kind)) {
     return { error: `pack '${packId}' does not support target kind '${target.kind}'` };
   }
+  const pack_signature = packRunSignature(pack);
 
   const fixtureText = typeof args.fixture_text === "string" ? args.fixture_text.trim() : "";
   if (fixtureText) {
@@ -378,7 +504,7 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
     const record: LegalPassMcpRunRecord = {
       status: "complete",
       pass: "legalpass",
-      run_id: buildRunId({ packId, target, profile, jurisdictions, fixtureText }),
+      run_id: buildRunId({ packId, pack_signature, target, profile, jurisdictions, fixtureText }),
       pack_id: packId,
       target,
       profile,
@@ -398,7 +524,7 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
     return saveRun(record);
   }
 
-  const runId = buildRunId({ packId, target, profile, jurisdictions, mode: "planned" });
+  const runId = buildRunId({ packId, pack_signature, target, profile, jurisdictions, mode: "planned" });
   return saveRun({
     status: "planned",
     pass: "legalpass",
@@ -421,16 +547,98 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
   });
 }
 
-function parseTarget(args: Record<string, unknown>): Record<string, unknown> | null {
+function parseTarget(args: Record<string, unknown>):
+  | { target: LegalPassMcpTarget }
+  | { error: string } {
   if (args.target && typeof args.target === "object" && !Array.isArray(args.target)) {
-    return args.target as Record<string, unknown>;
+    const raw = args.target as Record<string, unknown>;
+    if (typeof raw.kind !== "string") {
+      return { error: "target.kind or target_url is required" };
+    }
+    if (!isSupportedTargetKind(raw.kind)) {
+      return { error: "target.kind must be url|contract_upload|repo" };
+    }
+
+    if (raw.kind === "url") {
+      const url = typeof raw.url === "string" ? raw.url.trim() : "";
+      if (!url || !isValidUrl(url)) {
+        return { error: "target.url must be a valid http(s) URL" };
+      }
+      return { target: { kind: "url", url } };
+    }
+
+    if (raw.kind === "contract_upload") {
+      const uploadRef = typeof raw.upload_ref === "string" ? raw.upload_ref.trim() : "";
+      if (!uploadRef) {
+        return { error: "target.upload_ref is required for contract_upload runs" };
+      }
+      return { target: { kind: "contract_upload", upload_ref: uploadRef } };
+    }
+
+    const repo = typeof raw.repo === "string" ? raw.repo.trim() : "";
+    if (!repo) {
+      return { error: "target.repo is required for repo runs" };
+    }
+    return {
+      target: {
+        kind: "repo",
+        repo,
+        ...(typeof raw.branch === "string" && raw.branch.trim() ? { branch: raw.branch.trim() } : {}),
+        ...(typeof raw.commit === "string" && raw.commit.trim() ? { commit: raw.commit.trim() } : {}),
+      },
+    };
   }
 
   if (typeof args.target_url === "string" && args.target_url.trim()) {
-    return { kind: "url", url: args.target_url.trim() };
+    const url = args.target_url.trim();
+    if (!isValidUrl(url)) {
+      return { error: "target_url must be a valid http(s) URL" };
+    }
+    return { target: { kind: "url", url } };
   }
 
-  return null;
+  return { error: "target.kind or target_url is required" };
+}
+
+function parseProfile(value: unknown, fieldName: string):
+  | { profile: LegalPassMcpProfile }
+  | { error: string } {
+  if (typeof value !== "string" || !isSupportedProfile(value)) {
+    return { error: `${fieldName} must be smoke|standard|deep` };
+  }
+  return { profile: value };
+}
+
+function parseJurisdictions(value: unknown, fieldName: string):
+  | { jurisdictions: LegalPassMcpJurisdiction[] }
+  | { error: string } {
+  if (!Array.isArray(value) || value.length === 0) {
+    return { error: `${fieldName} must be a non-empty array` };
+  }
+  const invalid = value.find((item) => typeof item !== "string" || !isSupportedJurisdiction(item));
+  if (invalid !== undefined) {
+    return { error: `${fieldName} may only include AU, EU, US-CA, US-NY, UK, CA, NZ, or SG` };
+  }
+  if (firstDuplicate(value as string[])) {
+    return { error: `${fieldName} entries must be unique` };
+  }
+  return { jurisdictions: value as LegalPassMcpJurisdiction[] };
+}
+
+function parseOptionalText(value: unknown, fieldName: string):
+  | { value?: string }
+  | { error: string } {
+  if (value === undefined || value === null) {
+    return {};
+  }
+  if (typeof value !== "string") {
+    return { error: `${fieldName} must be a string` };
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return { error: `${fieldName} must not be blank` };
+  }
+  return { value: trimmed };
 }
 
 export async function legalpassVerdict(args: Record<string, unknown>): Promise<unknown> {
@@ -486,18 +694,24 @@ export async function legalpassEditItem(args: Record<string, unknown>): Promise<
   const item = record.items.find((candidate) => candidate.item_id === itemId);
   if (!item) return { error: `item '${itemId}' was not found on run '${runId}'` };
 
-  const verdict = typeof args.verdict === "string" ? args.verdict : "";
+  if (args.verdict !== undefined && typeof args.verdict !== "string") {
+    return { error: "verdict must be check|fail|na|other|pending" };
+  }
+  const verdict = typeof args.verdict === "string" ? args.verdict.trim() : "";
   if (verdict && !["check", "fail", "na", "other", "pending"].includes(verdict)) {
     return { error: "verdict must be check|fail|na|other|pending" };
   }
 
-  const finding = typeof args.finding === "string" ? args.finding : "";
-  const onFailComment = typeof args.on_fail_comment === "string" ? args.on_fail_comment : "";
-  const reviewerNote = typeof args.reviewer_note === "string"
-    ? args.reviewer_note
-    : typeof args.notes === "string"
-      ? args.notes
-      : "";
+  const parsedFinding = parseOptionalText(args.finding, "finding");
+  if ("error" in parsedFinding) return parsedFinding;
+  const finding = parsedFinding.value ?? "";
+  const parsedOnFailComment = parseOptionalText(args.on_fail_comment, "on_fail_comment");
+  if ("error" in parsedOnFailComment) return parsedOnFailComment;
+  const onFailComment = parsedOnFailComment.value ?? "";
+  const reviewerNoteSource = args.reviewer_note !== undefined ? args.reviewer_note : args.notes;
+  const parsedReviewerNote = parseOptionalText(reviewerNoteSource, "reviewer_note");
+  if ("error" in parsedReviewerNote) return parsedReviewerNote;
+  const reviewerNote = parsedReviewerNote.value ?? "";
   if (!verdict && !finding && !onFailComment && !reviewerNote) {
     return { error: "provide verdict, finding, on_fail_comment, reviewer_note, or notes" };
   }
@@ -573,8 +787,61 @@ function parsePackInput(args: Record<string, unknown>):
   if (!Array.isArray(pack.targets) || pack.targets.length === 0) {
     return { error: "pack.targets must include at least one target kind" };
   }
+  const invalidTarget = pack.targets.find(
+    (target) => typeof target !== "string" || !isSupportedTargetKind(target),
+  );
+  if (invalidTarget !== undefined) {
+    return { error: "pack.targets may only include url, contract_upload, or repo" };
+  }
+  if (firstDuplicate(pack.targets)) {
+    return { error: "pack.targets entries must be unique" };
+  }
+  const parsedPackProfile = parseProfile(pack.profile ?? DEFAULT_PROFILE, "pack.profile");
+  if ("error" in parsedPackProfile) return parsedPackProfile;
+  pack.profile = parsedPackProfile.profile;
+  const parsedPackJurisdictions = parseJurisdictions(
+    pack.jurisdictions ?? DEFAULT_JURISDICTIONS,
+    "pack.jurisdictions",
+  );
+  if ("error" in parsedPackJurisdictions) return parsedPackJurisdictions;
+  pack.jurisdictions = parsedPackJurisdictions.jurisdictions;
   if (!Array.isArray(pack.hats) || pack.hats.length === 0) {
     return { error: "pack.hats must include at least one hat" };
+  }
+  const invalidHat = pack.hats.find(
+    (hat) =>
+      !hat ||
+      typeof hat !== "object" ||
+      typeof hat.hat_id !== "string" ||
+      !isSupportedHatId(hat.hat_id),
+  );
+  if (invalidHat !== undefined) {
+    return { error: "pack.hats contains an unknown LegalPass hat_id" };
+  }
+  const duplicateHat = firstDuplicate(pack.hats.map((hat) => hat.hat_id).filter(Boolean) as string[]);
+  if (duplicateHat) {
+    return { error: "pack.hats entries must be unique by hat_id" };
+  }
+  if (pack.items !== undefined) {
+    if (!Array.isArray(pack.items)) {
+      return { error: "pack.items must be an array when provided" };
+    }
+    const invalidItem = pack.items.find(
+      (item) =>
+        !item ||
+        typeof item !== "object" ||
+        typeof (item as Record<string, unknown>).id !== "string" ||
+        !String((item as Record<string, unknown>).id).trim(),
+    );
+    if (invalidItem !== undefined) {
+      return { error: "pack.items entries must include a non-empty id" };
+    }
+    const duplicateItem = firstDuplicate(
+      pack.items.map((item) => String((item as Record<string, unknown>).id)),
+    );
+    if (duplicateItem) {
+      return { error: "pack.items entries must be unique by id" };
+    }
   }
   const hasCitationVerifier = pack.hats.some(
     (hat) => hat?.enabled !== false && hat?.hat_id === "citation_verifier",

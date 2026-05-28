@@ -13,6 +13,8 @@ const DEFAULT_SUBMITTER_BRANCH_PREFIX = "codex/openhands-submit";
 const DEFAULT_TITLE = "test(autopilot): prove OpenHands docs patch path";
 const DEFAULT_TIMEOUT_MS = 20 * 60 * 1000;
 const CODEROOM_APP_TOKEN_ENV_KEYS = ["CODEROOM_GITHUB_APP_TOKEN", "AUTONOMOUS_RUNNER_GITHUB_APP_TOKEN"];
+const DEFAULT_CODEROOM_GIT_USER_NAME = "UnClick Bot";
+const DEFAULT_CODEROOM_GIT_USER_EMAIL = "bot@unclick.world";
 
 export const DEFAULT_CODEROOM_PROTECTED_PATH_PATTERNS = [
   { reason: "protected_workflow_path", pattern: /^\.github\/workflows\//i },
@@ -50,6 +52,30 @@ function normalizePath(value) {
     .trim();
 }
 
+function parseGitStatusPaths(output) {
+  return parseGitStatusEntries(output).map((entry) => entry.path);
+}
+
+function parseGitStatusEntries(output) {
+  return String(output ?? "")
+    .split(/\r?\n/)
+    .map((line) => {
+      const code = line.slice(0, 2);
+      const rawPath = line.slice(3).trim();
+      const path = normalizePath(rawPath.includes(" -> ") ? rawPath.split(" -> ").pop() : rawPath);
+      return { code, path };
+    })
+    .filter((entry) => entry.path);
+}
+
+function isGeneratedRunnerLedgerPath(path) {
+  const normalized = normalizePath(path).replace(/\/+$/, "");
+  return (
+    normalized === ".pinballwake" ||
+    normalized === ".pinballwake/coding-room-ledger.json"
+  );
+}
+
 function normalizeList(values) {
   if (Array.isArray(values)) return values.map((value) => String(value ?? "").trim()).filter(Boolean);
   if (values === undefined || values === null || values === "") return [];
@@ -69,6 +95,57 @@ function safeSlug(value, fallback = "job") {
     .replace(/^-+|-+$/g, "")
     .slice(0, 72);
   return slug || fallback;
+}
+
+function commandFailureReason(command, args = []) {
+  const parts = (args || []).map((arg) => String(arg || "").trim()).filter(Boolean);
+  let actionParts = [parts[0] || "command"];
+  if (command === "git" && actionParts[0] === "-c") {
+    actionParts = [parts[2] || "command"];
+  } else if (command === "git" && parts[0] === "apply" && parts.includes("--check")) {
+    actionParts = ["apply", "check"];
+  } else if (command === "git" && parts[0] === "diff" && parts.includes("--check")) {
+    actionParts = ["diff", "check"];
+  } else if (command === "git" && parts[0] === "config") {
+    actionParts = [parts[0], parts[1]].filter(Boolean);
+  } else if (command === "gh" && parts[0]) {
+    actionParts = [parts[0], parts[1]].filter(Boolean);
+  }
+  const action = actionParts.join("_");
+  return `${command}_${safeSlug(action, "command")}_failed`;
+}
+
+function resolveJobTodoId(job = {}) {
+  return String(
+    job?.todo_id ||
+      job?.todoId ||
+      job?.id ||
+      job?.source_state?.todo_id ||
+      job?.sourceState?.todo_id ||
+      "",
+  ).trim();
+}
+
+function parseExistingPr(stdout = "") {
+  const text = String(stdout || "").trim();
+  if (!text) return null;
+  if (/^https?:\/\//i.test(text)) return { url: text, headRefOid: null };
+  try {
+    const entries = JSON.parse(text);
+    const first = Array.isArray(entries) ? entries[0] : entries;
+    const url = String(first?.url || "").trim();
+    if (!url) return null;
+    return {
+      url,
+      headRefOid: String(first?.headRefOid || first?.head_sha_after || "").trim() || null,
+    };
+  } catch {
+    return { url: text, headRefOid: null };
+  }
+}
+
+function scopedPushArgs(branch) {
+  return ["-c", "http.https://github.com/.extraheader=", "push", "-u", "origin", branch];
 }
 
 export function splitArgs(value) {
@@ -368,11 +445,14 @@ export function createDraftPrCoderoom({
       };
     }
 
-    const status = await runProcess("git", ["status", "--porcelain"], { cwd, env });
-    if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
-    if (status.stdout.trim()) {
-      return { ok: false, reason: "dirty_worktree" };
-    }
+    const clean = await cleanPreappliedOwnedPatch({
+      cwd,
+      env,
+      runProcess,
+      changedFiles: normalizedChanged,
+      restoreFailureReason: "git_restore_preexisting_draft_patch_failed",
+    });
+    if (!clean.ok) return clean;
 
     const branch = branchName || `${DEFAULT_BRANCH_PREFIX}-${safeStamp(new Date())}`;
     const bodyText =
@@ -387,12 +467,16 @@ export function createDraftPrCoderoom({
         "No production data, secrets, deploy, billing, DNS, or auto-merge.",
       ].join("\n");
 
+    const identity = await configureCodeRoomGitIdentity({ cwd, env, runProcess });
+    if (!identity.ok) return identity;
+
     const commands = [
       ["git", ["checkout", "-b", branch]],
       ["git", ["apply", "--whitespace=nowarn", "-"], { stdin: patch }],
       ["git", ["add", ...normalizedChanged]],
       ["git", ["commit", "-m", title]],
-      ["git", ["push", "-u", "origin", branch]],
+      ["gh", ["auth", "setup-git"]],
+      ["git", scopedPushArgs(branch)],
       ["gh", ["pr", "create", "--draft", "--title", title, "--body", bodyText]],
     ];
 
@@ -402,7 +486,7 @@ export function createDraftPrCoderoom({
       if (!result.ok) {
         return {
           ok: false,
-          reason: `${command}_failed`,
+          reason: commandFailureReason(command, args),
           output: result.output,
         };
       }
@@ -446,6 +530,72 @@ export function inspectSafeCoderoomPatchPaths({
   }
 
   return { ok: true, changed_files: normalizedChanged };
+}
+
+async function cleanPreappliedOwnedPatch({
+  cwd,
+  env,
+  runProcess,
+  changedFiles = [],
+  restoreFailureReason = "git_restore_preexisting_patch_failed",
+  cleanFailureReason = "git_clean_preexisting_patch_failed",
+} = {}) {
+  let status = await runProcess("git", ["status", "--porcelain"], { cwd, env });
+  if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
+
+  let dirtyEntries = parseGitStatusEntries(status.stdout);
+  let blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
+  if (blockingDirtyEntries.length) {
+    const changedSet = new Set((changedFiles || []).map(normalizePath));
+    const unrelatedDirtyEntries = blockingDirtyEntries.filter((entry) => !changedSet.has(entry.path));
+    if (unrelatedDirtyEntries.length) {
+      return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyEntries.map((entry) => entry.path) };
+    }
+
+    const trackedDirtyEntries = blockingDirtyEntries.filter((entry) => !entry.code.includes("?"));
+    if (trackedDirtyEntries.length) {
+      const restore = await runProcess("git", ["restore", "--staged", "--worktree", "--", ...trackedDirtyEntries.map((entry) => entry.path)], {
+        cwd,
+        env,
+      });
+      if (!restore.ok) return { ok: false, reason: restoreFailureReason, output: restore.output };
+    }
+
+    const untrackedDirtyEntries = blockingDirtyEntries.filter((entry) => entry.code.includes("?"));
+    if (untrackedDirtyEntries.length) {
+      const clean = await runProcess("git", ["clean", "-f", "--", ...untrackedDirtyEntries.map((entry) => entry.path)], {
+        cwd,
+        env,
+      });
+      if (!clean.ok) return { ok: false, reason: cleanFailureReason, output: clean.output };
+    }
+
+    status = await runProcess("git", ["status", "--porcelain"], { cwd, env });
+    if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
+    dirtyEntries = parseGitStatusEntries(status.stdout);
+    blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
+  }
+
+  const blockingDirtyFiles = blockingDirtyEntries.map((entry) => entry.path);
+  if (blockingDirtyFiles.length) {
+    return { ok: false, reason: "dirty_worktree", dirty_files: blockingDirtyFiles };
+  }
+
+  return { ok: true };
+}
+
+async function configureCodeRoomGitIdentity({ cwd, env = process.env, runProcess = runProcessCommand } = {}) {
+  const name = String(env.CODEROOM_GIT_USER_NAME || DEFAULT_CODEROOM_GIT_USER_NAME).trim();
+  const email = String(env.CODEROOM_GIT_USER_EMAIL || DEFAULT_CODEROOM_GIT_USER_EMAIL).trim();
+  const nameResult = await runProcess("git", ["config", "user.name", name], { cwd, env });
+  if (!nameResult.ok) {
+    return { ok: false, reason: "git_config_user_name_failed", output: nameResult.output };
+  }
+  const emailResult = await runProcess("git", ["config", "user.email", email], { cwd, env });
+  if (!emailResult.ok) {
+    return { ok: false, reason: "git_config_user_email_failed", output: emailResult.output };
+  }
+  return { ok: true };
 }
 
 export function createSafeCodeRoomSubmitter({
@@ -495,24 +645,29 @@ export function createSafeCodeRoomSubmitter({
     }
     const submitterEnv = auth.env;
 
-    const status = await runProcess("git", ["status", "--porcelain"], { cwd, env: submitterEnv });
-    if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
-    if (status.stdout.trim()) return { ok: false, reason: "dirty_worktree" };
+    const clean = await cleanPreappliedOwnedPatch({
+      cwd,
+      env: submitterEnv,
+      runProcess,
+      changedFiles: normalizedChanged,
+    });
+    if (!clean.ok) return clean;
 
-    const todoId = safeSlug(job?.todo_id || job?.id || job?.job_id || safeStamp(now));
+    const displayTodoId = resolveJobTodoId(job);
+    const todoId = safeSlug(job?.todo_id || job?.id || job?.job_id || displayTodoId || safeStamp(now));
     const branch = branchName || `${DEFAULT_SUBMITTER_BRANCH_PREFIX}-${todoId}`;
     const existing = await runProcess(
       "gh",
-      ["pr", "list", "--head", branch, "--state", "open", "--json", "url", "--jq", ".[0].url // \"\""],
+      ["pr", "list", "--head", branch, "--state", "open", "--json", "url,headRefOid"],
       { cwd, env: submitterEnv },
     );
     if (!existing.ok) return { ok: false, reason: "gh_pr_list_failed", output: existing.output };
-    const existingUrl = existing.stdout.trim();
-    if (existingUrl) {
+    const existingPr = parseExistingPr(existing.stdout);
+    if (existingPr?.url) {
       return {
         ok: true,
-        pr_url: existingUrl,
-        head_sha_after: null,
+        pr_url: existingPr.url,
+        head_sha_after: existingPr.headRefOid,
         test_run_id: testRunId || null,
         test_exit_code: 0,
         status: "existing_pr",
@@ -526,12 +681,15 @@ export function createSafeCodeRoomSubmitter({
       [
         "OpenHands CodeRoom submitter PR.",
         "",
-        `Todo: ${job?.todo_id || job?.id || "unknown"}`,
+        `Todo: ${displayTodoId || "unknown"}`,
         `Summary: ${summary || "OpenHands produced a scoped patch."}`,
         `Test run: ${testRunId || "not supplied"}`,
         "",
         "Safety: protected paths rejected before branch creation; patch limited to owned files.",
       ].join("\n");
+
+    const identity = await configureCodeRoomGitIdentity({ cwd, env: submitterEnv, runProcess });
+    if (!identity.ok) return identity;
 
     const commands = [
       ["git", ["checkout", "-b", branch]],
@@ -541,14 +699,14 @@ export function createSafeCodeRoomSubmitter({
       ["git", ["add", ...normalizedChanged]],
       ["git", ["commit", "-m", prTitle]],
       ["gh", ["auth", "setup-git"]],
-      ["git", ["push", "-u", "origin", branch]],
+      ["git", scopedPushArgs(branch)],
       ["gh", ["pr", "create", ...(draft ? ["--draft"] : []), "--title", prTitle, "--body", bodyText]],
     ];
 
     let prUrl = "";
     for (const [command, args, options = {}] of commands) {
       const result = await runProcess(command, args, { cwd, env: submitterEnv, ...options });
-      if (!result.ok) return { ok: false, reason: `${command}_failed`, output: result.output };
+      if (!result.ok) return { ok: false, reason: commandFailureReason(command, args), output: result.output };
       if (command === "gh" && args[1] === "create") prUrl = result.stdout.trim();
     }
 

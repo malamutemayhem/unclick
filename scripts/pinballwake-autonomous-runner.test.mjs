@@ -12,6 +12,7 @@ import {
 import {
   createCodingRoomJobFromBoardroomTodo,
   createAutonomousRunner,
+  createAutonomousRunnerFromEnv,
   createAutonomousRunnerOpenHandsExecutorFromEnv,
   createAutonomousRunnerTestOnlyExecutorReceipt,
   assertRunnerOnFreshMain,
@@ -29,6 +30,7 @@ import {
   parseAutonomousRunnerGitStatusPorcelain,
   parseMcpEventStreamPayload,
   resolveAutonomousRunnerQueueGuard,
+  resolveAutonomousRunnerAllowedTodoRolesFromEnv,
   evaluateAutonomousRunnerGitHygiene,
   runAutonomousRunnerMainFreshnessCanary,
   runAutonomousRunnerCycle,
@@ -65,6 +67,21 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(normalizeAutonomousRunnerMode("ship-it"), "dry-run");
   });
 
+  it("defaults the autonomous runner id to the assigned canary seat", () => {
+    assert.equal(createAutonomousRunnerFromEnv({}).id, "pinballwake-autonomous-runner");
+    assert.equal(
+      createAutonomousRunnerFromEnv({ CODING_ROOM_RUNNER_ID: "custom-coding-seat" }).id,
+      "custom-coding-seat",
+    );
+    assert.equal(
+      createAutonomousRunnerFromEnv({
+        AUTONOMOUS_RUNNER_ID: "custom-autonomous-seat",
+        CODING_ROOM_RUNNER_ID: "custom-coding-seat",
+      }).id,
+      "custom-autonomous-seat",
+    );
+  });
+
   it("tightens queue intake for the scheduled execute canary", () => {
     const guard = resolveAutonomousRunnerQueueGuard({
       mode: "execute",
@@ -93,6 +110,33 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(normal.scheduled_execute_canary, false);
     assert.equal(normal.require_scope_pack, false);
     assert.equal(normal.queue_fetch_limit, 1);
+  });
+
+  it("keeps writerlane_free on the small safe queue unless explicitly widened", () => {
+    assert.deepEqual(
+      resolveAutonomousRunnerAllowedTodoRolesFromEnv({
+        AUTONOMOUS_RUNNER_WRITER: "writerlane_free",
+        AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES: "builder,plex-builder,implementation,test_fix,docs_update,code",
+      }),
+      ["docs_update", "test_fix"],
+    );
+
+    assert.equal(
+      resolveAutonomousRunnerAllowedTodoRolesFromEnv({
+        AUTONOMOUS_RUNNER_WRITER: "writerlane_free",
+        AUTONOMOUS_RUNNER_WRITER_ALLOW_BROAD_QUEUE: "true",
+        AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES: "builder,docs_update",
+      }),
+      "builder,docs_update",
+    );
+
+    assert.equal(
+      resolveAutonomousRunnerAllowedTodoRolesFromEnv({
+        AUTONOMOUS_RUNNER_WRITER: "openhands",
+        AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES: "builder,docs_update",
+      }),
+      "builder,docs_update",
+    );
   });
 
   it("treats the checked-out SHA as fresh when it matches current main", () => {
@@ -661,6 +705,30 @@ describe("PinballWake autonomous Runner seat", () => {
         },
       }).reason,
       "boardroom_todo_role_not_allowed",
+    );
+  });
+
+  it("allows a stale assigned open todo when it is assigned to this runner", () => {
+    const todo = {
+      id: "todo-stale-canary",
+      title: "AFK canary seed: docs-only OpenHands proof fixture",
+      status: "open",
+      priority: "urgent",
+      assigned_to_agent_id: "runner-plex-1",
+      actionability_reason: "stale_assigned_open",
+      scope_pack: {
+        owned_files: ["docs/openhands-proof-fixture.md"],
+        role: "docs_update",
+        tests: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+      },
+    };
+
+    assert.equal(
+      evaluateBoardroomTodoAutoClaimEligibility(todo, {
+        runner,
+        allowedActionReasons: ["unassigned_open"],
+      }).ok,
+      true,
     );
   });
 
@@ -1928,17 +1996,28 @@ describe("PinballWake autonomous Runner seat", () => {
           testMode: true,
           openHands: async () => ({
             ok: false,
+            reason: "writerlane_free_chain_exhausted",
             exit_code: 0,
             output: "OpenHands completed without a unified diff.",
+            attempts: [
+              {
+                modelId: "gpt-oss-120b",
+                openRouterModel: "openai/gpt-oss-120b:free",
+                status: "proven",
+                ok: false,
+                reason: "writerlane_no_file_contents",
+              },
+            ],
           }),
         },
       });
 
       assert.equal(result.ok, false);
       assert.equal(result.action, "blocked");
-      assert.equal(result.reason, "openhands_reported_failure");
+      assert.equal(result.reason, "writerlane_free_chain_exhausted");
       assert.equal(result.todo_claim_sync.reason, "openhands_build_hold_recorded");
       assert.match(calls[1].body.params.arguments.text, /OpenHands build attempt HOLD/);
+      assert.match(calls[1].body.params.arguments.text, /attempts=gpt-oss-120b:writerlane_no_file_contents/);
       assert.equal(result.quiet_window_autonomy_proof.first_missing_rung, "proof_packet");
       assert.deepEqual(result.quiet_window_autonomy_proof.evidence.observed_rungs, [
         "tick",

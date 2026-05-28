@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "vite",
     "dev:api": "npm run dev --workspace=apps/api",
-    "build": "vite build",
+    "build": "npm run build --workspace=@unclick/commonsensepass && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -28,7 +28,9 @@
     "review:dry-run": "node scripts/review-dry-run.mjs",
     "brainmap:generate": "node scripts/UnClick-brainmap.mjs",
     "brainmap:check": "node scripts/UnClick-brainmap.mjs --check",
-    "test:brainmap": "node --test scripts/UnClick-brainmap.test.mjs"
+    "dogfood:commonsensepass": "npm run dogfood --workspace=@unclick/commonsensepass",
+    "test:brainmap": "node --test scripts/UnClick-brainmap.test.mjs",
+    "uxpass:visual": "node scripts/uxpass-visual-audit.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.71",

@@ -823,6 +823,13 @@ import {
   fidelitypassVerifyCopy,
 } from "./fidelitycopy-tool.js";
 
+// --- CommonSensePass (worker sanity-gate verdicts) ---------------------------
+import {
+  commonsensepassCheckTool,
+  commonsensepassRulesTool,
+  COMMONSENSEPASS_CLAIM_KINDS,
+} from "./commonsensepass-tool.js";
+
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
 
@@ -12064,6 +12071,41 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // -- commonsensepass-tool.ts (worker sanity-gate verdicts) ------------------
+  {
+    name: "commonsensepass_check",
+    description: "Run the verdict-only CommonSensePass sanity gate before a worker claims healthy, quiet, no_work, pass, done, merge_ready, duplicate_wake, or route.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        claim: { type: "string", enum: [...COMMONSENSEPASS_CLAIM_KINDS], description: "Worker claim to sanity-check." },
+        context: {
+          type: "object",
+          additionalProperties: true,
+          description: "Evidence packet for the claim, such as todos, active_jobs, PR state, wake state, SHAs, or lane evidence.",
+        },
+        evidence: {
+          type: "array",
+          items: { type: "object", additionalProperties: true },
+          description: "Optional evidence entries to echo when no rule-specific evidence is available.",
+        },
+      },
+      required: ["claim", "context"],
+    },
+  },
+  {
+    name: "commonsensepass_rules",
+    description: "Return the worker-readable CommonSensePass rules, verdict vocabulary, and fixture ids. Set include_fixtures=true for full example packets.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        include_fixtures: { type: "boolean", default: false, description: "Include full deterministic worker fixture packets." },
+      },
+    },
+  },
+
   // ── testpass-tool.ts ────────────────────────────────────────────────────────
   {
     name: "testpass_list_packs",
@@ -12542,7 +12584,7 @@ export const ADDITIONAL_TOOLS = [
   // ── copypass-tool.ts (copy quality QC with CopyRoom receipt support) ─────
   {
     name: "copypass_run",
-    description: "Start a CopyPass run for AI-generated copy. When exact fidelity matters, set copyroom_required=true and pass copyroom_source_packet so the run attaches a CopyRoom receipt instead of relying on retyped source text.",
+    description: "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, and optional CopyRoom exact-copy receipt.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12569,14 +12611,14 @@ export const ADDITIONAL_TOOLS = [
         channel: { type: "string", description: "Optional surface label such as homepage_hero, pricing_section, or onboarding_email." },
         audience: { type: "string", description: "Optional intended audience for the copy." },
         goal: { type: "string", description: "Optional goal for the copy, such as clarity, conversion, or trust." },
-        profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Reserved for later evaluator depth. Defaults to smoke." },
+        profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Review depth label for this scoped run. Defaults to smoke." },
       },
       required: [],
     },
   },
   {
     name: "copypass_status",
-    description: "Fetch the current status, notes, and scaffold finding count for a CopyPass run started in this MCP session.",
+    description: "Fetch the current status, notes, deterministic findings, disclaimer, and CopyRoom receipt for a CopyPass run started in this MCP session.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -13853,6 +13895,10 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   testpass_report_json: (args) => testpassReportJson(args),
   testpass_report_md:   (args) => testpassReportMd(args),
   testpass_fix_list:    (args) => testpassFixList(args),
+
+  // commonsensepass-tool.ts
+  commonsensepass_check: (args) => commonsensepassCheckTool(args),
+  commonsensepass_rules: (args) => commonsensepassRulesTool(args),
 
   // legalpass-tool.ts
   legalpass_run:       (args) => legalpassRun(args),

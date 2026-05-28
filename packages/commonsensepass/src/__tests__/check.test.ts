@@ -403,6 +403,43 @@ describe("commonsensepassCheck - R5 merge-ready without proof", () => {
   });
 });
 
+describe("commonsensepassCheck - R6 specialist routing", () => {
+  it("ROUTE when the current worker is not the required lane", () => {
+    const result = commonsensepassCheck({
+      claim: "route",
+      context: ctx({
+        current_lane: "general-worker",
+        required_lane: "securitypass",
+      }),
+    });
+    expect(result.verdict).toBe("ROUTE");
+    expect(result.rule_id).toBe("R6");
+    expect(result.route_to).toBe("securitypass");
+  });
+
+  it("PASS when current lane matches required lane", () => {
+    const result = commonsensepassCheck({
+      claim: "route",
+      context: ctx({
+        current_lane: "securitypass",
+        required_lane: "securitypass",
+      }),
+    });
+    expect(result.verdict).toBe("PASS");
+    expect(result.rule_id).toBe("R6");
+  });
+
+  it("HOLD when lane evidence is missing", () => {
+    const result = commonsensepassCheck({
+      claim: "route",
+      context: ctx({ current_lane: "general-worker" }),
+    });
+    expect(result.verdict).toBe("HOLD");
+    expect(result.rule_id).toBe("R6");
+    expect(result.next_action).toBe("include_current_and_required_lane");
+  });
+});
+
 describe("commonsensepassCheck - verdict coverage", () => {
   it("emits all five verdict types across the rule set", () => {
     const verdicts = new Set<string>();
@@ -445,19 +482,32 @@ describe("commonsensepassCheck - verdict coverage", () => {
       }).verdict,
     );
 
+    // ROUTE - R6 specialist lane mismatch
+    verdicts.add(
+      commonsensepassCheck({
+        claim: "route",
+        context: ctx({
+          current_lane: "general-worker",
+          required_lane: "securitypass",
+        }),
+      }).verdict,
+    );
+
     expect(verdicts.has("PASS")).toBe(true);
     expect(verdicts.has("BLOCKER")).toBe(true);
     expect(verdicts.has("HOLD")).toBe(true);
     expect(verdicts.has("SUPPRESS")).toBe(true);
+    expect(verdicts.has("ROUTE")).toBe(true);
   });
 
-  it("returns default PASS for an unrecognized claim wired via type-cast", () => {
+  it("returns HOLD for an unrecognized claim wired via type-cast", () => {
     const result = commonsensepassCheck({
       // deliberately bypass the type to exercise the default branch
       claim: "unknown_claim_kind" as ClaimInput["claim"],
       context: ctx({}),
     });
-    expect(result.verdict).toBe("PASS");
+    expect(result.verdict).toBe("HOLD");
     expect(result.rule_id).toBeNull();
+    expect(result.next_action).toBe("use_supported_claim_kind_or_add_rule");
   });
 });
