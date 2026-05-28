@@ -57,6 +57,9 @@ describe("UnClick ecosystem Brainmap", () => {
     assert.match(generated, /\| Coordinator \| Routes work/);
     assert.match(generated, /\| 4 \| Pass through Brainmap \| Use the generated ecosystem map/);
     assert.match(generated, /\| 5 \| Choose the Launchpad lane \| Route the work/);
+    assert.match(generated, /\| 6 \| Ask Crews Council if needed \| Run Council Lite on material work/);
+    assert.match(generated, /\| Launch and onboarding \| judgement prompt \| Crews Council Induction/);
+    assert.match(generated, /Council Lite for light dissent/);
     assert.match(generated, /Admin-only surfaces use `RequireAdmin`/);
     assert.match(generated, /IgniteOnly can request worker wake packets only/);
     assert.match(generated, /Memory and Brainmap entries are pointers, not the runtime MASTER/);
@@ -92,7 +95,9 @@ describe("UnClick ecosystem Brainmap", () => {
     assert.ok(data.inventory.some((item) => item.name === "CopyRoom" && item.division === "Passes and gates"));
     assert.ok(data.inventory.some((item) => item.name === "JobSmith" && item.division === "Modules and apps"));
     assert.ok(data.inventory.some((item) => item.name === "Ecosystem Brainmap" && item.route === "/admin/brainmap"));
+    assert.ok(data.inventory.some((item) => item.name === "Crews Council Induction" && item.division === "Launch and onboarding"));
     assert.ok(data.inductionRows.some((row) => row[1] === "Pass through Brainmap"));
+    assert.ok(data.inductionRows.some((row) => row[1] === "Ask Crews Council if needed"));
   });
 
   it("uses real app routes instead of filename guesses", async () => {
