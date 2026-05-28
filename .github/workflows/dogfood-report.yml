@@ -43,6 +43,11 @@ jobs:
           DOGFOOD_TARGET_SHA: ${{ github.sha }}
         run: node scripts/build-xpass-package-sweep.mjs --output public/dogfood/xpass-package-sweep.json --target-sha "$GITHUB_SHA"
 
+      - name: Build XPass boundary sweep receipt
+        env:
+          DOGFOOD_TARGET_SHA: ${{ github.sha }}
+        run: node scripts/build-xpass-boundary-sweep.mjs --output public/dogfood/xpass-boundary-sweep.json --target-sha "$GITHUB_SHA"
+
       - name: Build receipt
         env:
           DOGFOOD_API_BASE: https://unclick.world
@@ -69,6 +74,7 @@ jobs:
           path: |
             public/dogfood/latest.json
             public/dogfood/xpass-package-sweep.json
+            public/dogfood/xpass-boundary-sweep.json
             public/dogfood/uxpass-site-sweep.json
 
       - name: Summarize receipt
@@ -82,6 +88,7 @@ jobs:
             printf -- '- Source: `%s`\n' "$(jq -r '.source // "unknown"' public/dogfood/latest.json)"
             echo "- Output: \`public/dogfood/latest.json\`"
             printf -- '- XPass package sweep: `%s` across `%s` package(s)\n' "$(jq -r '.status // "unknown"' public/dogfood/xpass-package-sweep.json)" "$(jq -r '.packages | length' public/dogfood/xpass-package-sweep.json)"
+            printf -- '- XPass boundary sweep: `%s` across `%s` product(s)\n' "$(jq -r '.status // "unknown"' public/dogfood/xpass-boundary-sweep.json)" "$(jq -r '.products | length' public/dogfood/xpass-boundary-sweep.json)"
             printf -- '- UXPass site sweep: `%s` across `%s` URL(s)\n' "$(jq -r '.status // "unknown"' public/dogfood/uxpass-site-sweep.json)" "$(jq -r '.targets | length' public/dogfood/uxpass-site-sweep.json)"
             echo "- Public URL: \`${{ inputs.public_url || 'https://unclick.world' }}\`"
             echo "- MCP URL: \`${{ inputs.mcp_url || 'https://unclick.world/api/mcp' }}\`"
@@ -89,6 +96,8 @@ jobs:
             jq -r '.results[] | "- \(.name): \(.status) - \(.summary)\(if .blockedReason then " Blocked reason: \(.blockedReason)" else "" end)"' public/dogfood/latest.json
             echo ""
             jq -r '.packages[] | "- XPass package \(.name): \(.status) - \(.summary)"' public/dogfood/xpass-package-sweep.json
+            echo ""
+            jq -r '.products[] | "- XPass boundary \(.name): \(.status) - \(.summary)"' public/dogfood/xpass-boundary-sweep.json
             echo ""
             jq -r '.targets[] | "- UXPass sweep \(.url): \(.status) - \(.summary)"' public/dogfood/uxpass-site-sweep.json
           } >> "$GITHUB_STEP_SUMMARY"
@@ -103,7 +112,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$receipt_branch"
-          git add public/dogfood/latest.json public/dogfood/xpass-package-sweep.json public/dogfood/uxpass-site-sweep.json
+          git add public/dogfood/latest.json public/dogfood/xpass-package-sweep.json public/dogfood/xpass-boundary-sweep.json public/dogfood/uxpass-site-sweep.json
           if git diff --cached --quiet; then
             echo "Dogfood receipt unchanged."
             exit 0
