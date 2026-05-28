@@ -58,6 +58,7 @@ import {
   LockKeyhole,
   Tags,
   FileStack,
+  FileCode2,
   SlidersHorizontal,
 } from "lucide-react";
 
@@ -103,20 +104,21 @@ function SeatsCascadeIcon(props: SVGProps<SVGSVGElement>) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <rect x="7" y="4" width="13" height="10" rx="2" />
-      <path d="M11 14v2" />
-      <path d="M9 16h6" />
-      <rect x="3" y="8" width="13" height="10" rx="2" />
-      <path d="M7.5 12.5h.01" />
-      <path d="M11.5 12.5h.01" />
-      <path d="M8 15h3" />
-      <path d="M8 18v2" />
-      <path d="M6 20h6" />
+      <rect x="3" y="4" width="18" height="13" rx="2" />
+      <path d="M12 17v3" />
+      <path d="M8 20h8" />
+      <path d="M12 7V5.5" />
+      <path d="M10.5 7h3" />
+      <rect x="8" y="8" width="8" height="6" rx="2" />
+      <path d="M10.5 11h.01" />
+      <path d="M13.5 11h.01" />
+      <path d="M11 13h2" />
     </svg>
   );
 }
 
 const AUTOPILOT_LINKS = [
+  { path: "/admin/autopilot/expressbuild", label: "DraftRoom", icon: FileCode2 },
   { path: "/admin/boardroom", label: "Boardroom", icon: MessagesSquare },
   { path: "/admin/jobs", label: "Jobs", icon: ListTodo },
   { path: "/admin/checks", label: "XPass", icon: ClipboardCheck },
@@ -291,6 +293,49 @@ function SeatsNavItem({ onClick }: { onClick?: () => void }) {
   );
 }
 
+function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
+  const location = useLocation();
+  const isOrchestrator = location.pathname === "/admin/orchestrator" ||
+    location.pathname.startsWith("/admin/orchestrator/");
+  const storyActive = location.pathname === "/admin/orchestrator" ||
+    location.pathname === "/admin/orchestrator/story";
+  const timelineActive = location.pathname === "/admin/orchestrator/timeline";
+
+  return (
+    <div>
+      <SurfaceLink path="/admin/orchestrator" label="Orchestrator" icon={Terminal} onClick={onClick} />
+      {isOrchestrator && (
+        <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
+          <Link
+            to="/admin/orchestrator"
+            onClick={onClick}
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              storyActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-card/40 hover:text-body"
+            }`}
+          >
+            <BookOpen className="h-3 w-3 shrink-0" />
+            Story
+          </Link>
+          <Link
+            to="/admin/orchestrator/timeline"
+            onClick={onClick}
+            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              timelineActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-card/40 hover:text-body"
+            }`}
+          >
+            <Clock className="h-3 w-3 shrink-0" />
+            Timeline
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SidebarNav({
   isAdmin,
   signalsUnread,
@@ -305,13 +350,14 @@ function SidebarNav({
       <SurfaceLink path="/admin/dashboard" label="Dashboard"               icon={LayoutDashboard} onClick={onLinkClick} />
       <SurfaceLink path="/admin/you"      label="You"                      icon={User}    onClick={onLinkClick} />
       <MemoryNavItem onClick={onLinkClick} />
-      <SurfaceLink path="/admin/orchestrator" label="Orchestrator"          icon={Terminal} onClick={onLinkClick} />
+      <OrchestratorNavItem onClick={onLinkClick} />
       <SurfaceLink path="/admin/tools"    label="Apps"                     icon={AppWindow} onClick={onLinkClick} />
+      <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
+      <SurfaceLink path="/admin/jobsmith" label="Jobsmith"                 icon={PenSquare} onClick={onLinkClick} />
       <SurfaceLink path="/admin/keychain" label="Passport"                 icon={KeyRound} onClick={onLinkClick} />
       <SeatsNavItem onClick={onLinkClick} />
       <AutopilotNavGroup onLinkClick={onLinkClick} />
       <SurfaceLink path="/admin/signals"      label="Signals"       icon={Bell}     onClick={onLinkClick} badge={signalsUnread} />
-      {isAdmin && <SurfaceLink path="/admin/analytics" label="Analytics"    icon={BarChart3} onClick={onLinkClick} />}
       <SurfaceLink path="/admin/settings" label="Settings"                 icon={Settings}  onClick={onLinkClick} />
       <SurfaceLink path="/admin/billing"  label="Billing"                  icon={CreditCard} onClick={onLinkClick} />
       {isAdmin && <AdminSubmenu onLinkClick={onLinkClick} />}

@@ -54,10 +54,15 @@ const STATUS_STYLES: Record<DogfoodStatus, { label: string; badge: string; icon:
  * XPass stage labels used to be rainbow. Now they share one calm vocabulary:
  * live work in teal, future work in muted neutral. Stage is communicated by the
  * label itself, not by a colour assignment.
+ *
+ * All five stages from XPassIndexEntry["stage"] are mapped. If a new stage is
+ * added to the data shape, add it here too or the badge will render as broken.
  */
 const XPASS_STAGE_STYLES: Record<XPassIndexEntry["stage"], string> = {
   live_gate: "border-primary/30 bg-primary/10 text-primary",
   live_dogfood: "border-primary/30 bg-primary/10 text-primary",
+  package_ready: "border-primary/20 bg-primary/[0.06] text-body",
+  boundary: "border-border/60 bg-card/40 text-muted-foreground",
   scope_gated: "border-border/60 bg-card/60 text-heading",
   planned: "border-border/60 bg-card/40 text-muted-foreground",
   guidance: "border-border/60 bg-card/40 text-muted-foreground",
