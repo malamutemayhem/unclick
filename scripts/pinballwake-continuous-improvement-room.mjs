@@ -148,6 +148,9 @@ function classifyImprovement(signal = {}) {
   if (/(security|secret|credential|token|payment|billing|auth|dns|migration|destructive)/.test(text)) {
     return "protected_surface_safeguard";
   }
+  if (/(proof_failure|proof_wait|proof|testpass|ci|vercel|build executor|proof executor|test)/.test(text)) {
+    return "proof_flow";
+  }
   if (/(ack|pass|blocker|review|gatekeeper|popcorn|forge|handoff|mirror)/.test(text)) {
     return "ack_handoff";
   }
@@ -159,9 +162,6 @@ function classifyImprovement(signal = {}) {
   }
   if (/(queue|job|claim|lease|stale|dormant|idle|waiting|nudge|runner)/.test(text)) {
     return "queue_flow";
-  }
-  if (/(proof|testpass|ci|vercel|build executor|proof executor|test)/.test(text)) {
-    return "proof_flow";
   }
   return "general_improvement";
 }

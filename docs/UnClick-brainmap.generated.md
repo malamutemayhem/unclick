@@ -27,9 +27,10 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
-| .github/workflows/ci.yml | 8650d072f494 | 1559 |
+| .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
-| package.json | a4e95e9f78d7 | 6171 |
+| .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
+| package.json | bbceabab4654 | 6285 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -125,7 +126,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
 | scripts/pinballwake-coding-room.mjs | 9fa5689c555e | 25310 |
-| scripts/pinballwake-continuous-improvement-room.mjs | 8c23d67cad4e | 14869 |
+| scripts/pinballwake-continuous-improvement-room.mjs | 51ca5eb8745b | 14894 |
 | scripts/pinballwake-dogfood-room.mjs | d161028d1382 | 2782 |
 | scripts/pinballwake-event-ledger-room.mjs | e8f8f9f84123 | 16104 |
 | scripts/pinballwake-jobs-room.mjs | c77c394081c2 | 14217 |
@@ -213,7 +214,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 15 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 118 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 66 |
@@ -604,6 +605,8 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | script | pinballwake commonsense pass.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-commonsense-pass.test.mjs |
 | Automations | script | pinballwake continuous improvement room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-room.mjs |
 | Automations | script | pinballwake continuous improvement room.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-room.test.mjs |
+| Automations | script | pinballwake continuous improvement watch | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-watch.mjs |
+| Automations | script | pinballwake continuous improvement watch.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-watch.test.mjs |
 | Automations | script | pinballwake dogfood room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-dogfood-room.mjs |
 | Automations | script | pinballwake dogfood room.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-dogfood-room.test.mjs |
 | Automations | script | pinballwake event ledger room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-event-ledger-room.mjs |
@@ -675,6 +678,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | workflow | brainmap auto update.yml | Scheduled workflow that regenerates the ecosystem Brainmap. | - | .github/workflows/brainmap-auto-update.yml |
 | Automations | workflow | ci.yml | Continuous integration checks for build, tests, and proof safety. | - | .github/workflows/ci.yml |
 | Automations | workflow | claude.yml | claude GitHub automation workflow. | - | .github/workflows/claude.yml |
+| Automations | workflow | continuous improvement watch.yml | continuous improvement watch GitHub automation workflow. | - | .github/workflows/continuous-improvement-watch.yml |
 | Automations | workflow | dirty branch hygiene.yml | dirty branch hygiene GitHub automation workflow. | - | .github/workflows/dirty-branch-hygiene.yml |
 | Automations | workflow | dogfood report.yml | dogfood report GitHub automation workflow. | - | .github/workflows/dogfood-report.yml |
 | Automations | workflow | event wake router.yml | GitHub-triggered wake and routing workflow. | - | .github/workflows/event-wake-router.yml |
@@ -1141,6 +1145,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | test:api | npm run test --workspace=apps/api |
 | test:brainmap | node --test scripts/UnClick-brainmap.test.mjs |
 | test:compliancepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
+| test:continuous-improvement-watch | node --test scripts/pinballwake-continuous-improvement-watch.test.mjs |
 | test:enterprisepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
 | test:rotatepass-redaction | node --test scripts/rotatepass-redaction-guard.test.mjs |
 | test:watch | vitest |
