@@ -214,7 +214,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 14 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 116 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 61 |
@@ -572,6 +572,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Signals Settings | Admin surface for Signals Settings. | /admin/signals/settings | src/pages/admin/signals/SignalsSettings.tsx |
 | Admin surfaces | admin page | Test Pass Catalog | Admin surface for Test Pass Catalog. | /admin/testpass | src/pages/admin/testpass/TestPassCatalog.tsx |
 | Automations | autopilot module | autopilot control ledger | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/autopilot-control-ledger.ts |
+| Automations | autopilot module | autopilotiq probe set | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/autopilotiq-probe-set.ts |
 | Automations | autopilot module | autopilotkit liveness | autopilotkit liveness shared frontend logic. | - | scripts/lib/autopilotkit-liveness.mjs |
 | Automations | autopilot module | pinballwake autopilot master loop | pinballwake autopilot master loop UnClick module. | - | scripts/pinballwake-autopilot-master-loop.mjs |
 | Automations | autopilot module | pinballwake autopilot triage | pinballwake autopilot triage UnClick module. | - | scripts/pinballwake-autopilot-triage.mjs |
