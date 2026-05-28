@@ -95,4 +95,3 @@ export function resolveTestPassPrTarget(input = {}) {
 
   return { serverUrl: requestedServerUrl || defaultServerUrl, apiUrl: defaultApiUrl, source: "default" };
 }
-
