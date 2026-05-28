@@ -29,6 +29,12 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import * as crypto from "node:crypto";
 import {
+  buildTestPassFailToPassOverrideSignal,
+  isTestPassFailToPassOverride,
+  type TestPassEditItemRow,
+  type TestPassOverrideSignal,
+} from "./lib/testpass-edit-guard.js";
+import {
   computeVerdictSummary,
   createEvidence,
   createRun,
@@ -122,6 +128,41 @@ async function resolveActorUserId(
     return getActorUserIdFromApiKey(supabaseUrl, serviceKey, token);
   }
   return getActorUserId(supabaseUrl, token);
+}
+
+async function resolveApiKeyHashForSignal(
+  supabaseUrl: string,
+  serviceKey: string,
+  token: string,
+  actorUserId: string,
+): Promise<string | null> {
+  if (token.startsWith("uc_")) return sha256hex(token);
+
+  const r = await fetch(
+    `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(actorUserId)}&is_active=eq.true&select=key_hash&limit=1`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+  );
+  if (!r.ok) return null;
+  const rows = (await r.json()) as Array<{ key_hash: string | null }>;
+  return rows[0]?.key_hash ?? null;
+}
+
+async function insertTestPassOverrideSignal(
+  supabaseUrl: string,
+  serviceKey: string,
+  signal: TestPassOverrideSignal,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const r = await fetch(`${supabaseUrl}/rest/v1/mc_signals`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+    },
+    body: JSON.stringify(signal),
+  });
+  if (r.ok) return { ok: true };
+  return { ok: false, error: await r.text() };
 }
 
 interface TestPassPackRow {
@@ -584,6 +625,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const ownerRows = (await ownerCheck.json()) as Array<{ id: string }>;
     if (!ownerRows[0]) return json(res, 404, { error: "Run not found" });
 
+    const itemBeforeRes = await fetch(
+      `${supabaseUrl}/rest/v1/testpass_items?id=eq.${encodeURIComponent(body.item_id)}&run_id=eq.${encodeURIComponent(body.run_id)}&select=id,run_id,check_id,title,verdict&limit=1`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+    );
+    if (!itemBeforeRes.ok) {
+      const text = await itemBeforeRes.text();
+      return json(res, 500, { error: `edit_item item lookup failed: ${text}` });
+    }
+    const itemBeforeRows = (await itemBeforeRes.json()) as TestPassEditItemRow[];
+    const itemBefore = itemBeforeRows[0];
+    if (!itemBefore) return json(res, 404, { error: "Item not found" });
+
+    let overrideSignal: TestPassOverrideSignal | null = null;
+    if (isTestPassFailToPassOverride(itemBefore.verdict, dbVerdict)) {
+      const apiKeyHash = await resolveApiKeyHashForSignal(supabaseUrl, serviceKey, token, actorUserId);
+      if (!apiKeyHash) {
+        return json(res, 409, {
+          error: "fail-to-pass overrides require an auditable mc_signals key",
+        });
+      }
+      overrideSignal = buildTestPassFailToPassOverrideSignal({
+        apiKeyHash,
+        actorUserId,
+        runId: body.run_id,
+        item: itemBefore,
+        notes,
+      });
+      const signalInsert = await insertTestPassOverrideSignal(supabaseUrl, serviceKey, overrideSignal);
+      if (!signalInsert.ok) {
+        return json(res, 500, { error: `fail-to-pass override signal failed: ${signalInsert.error}` });
+      }
+    }
+
     const patch: Record<string, unknown> = { verdict: dbVerdict, on_fail_comment: notes };
 
     const upd = await fetch(
@@ -609,7 +683,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const summary = await computeVerdictSummary(config, body.run_id);
     const isDone = summary.pending === 0;
     await updateRunStatus(config, body.run_id, isDone ? (summary.fail > 0 ? "failed" : "complete") : "running", summary);
-    return json(res, 200, { item, summary });
+    return json(res, 200, {
+      item,
+      summary,
+      override_guard: overrideSignal
+        ? { fail_to_pass: true, signal_action: overrideSignal.action, signal_inserted: true }
+        : { fail_to_pass: false },
+    });
   }
 
   if (req.method === "POST" && action === "heal") {
