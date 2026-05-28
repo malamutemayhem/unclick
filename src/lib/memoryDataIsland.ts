@@ -132,7 +132,9 @@ export function parseDataIsland(json: string): DataIsland {
   try {
     obj = JSON.parse(json);
   } catch (err) {
-    throw new SyntaxError(`parseDataIsland: invalid JSON: ${(err as Error).message}`);
+    const error = new SyntaxError(`parseDataIsland: invalid JSON: ${(err as Error).message}`);
+    Object.assign(error, { cause: err });
+    throw error;
   }
   if (!obj || typeof obj !== "object") {
     throw new TypeError("parseDataIsland: not an object");

@@ -65,8 +65,7 @@ export interface CreateFixtureCopyPassReportInput
   blocks: CopyPassCopyBlockInput[];
 }
 
-export interface CreateDeterministicCopyPassReportInput
-  extends CreateFixtureCopyPassReportInput {}
+export type CreateDeterministicCopyPassReportInput = CreateFixtureCopyPassReportInput;
 
 export function createCopyPassVerdictPack(
   input: CreateCopyPassVerdictPackInput,

@@ -40,10 +40,10 @@ export async function captureContext(
   const controller = new AbortController();
   const tid = setTimeout(() => controller.abort(), timeoutMs);
   const start = Date.now();
-  let status = 0;
-  let bodyText = "";
-  let headers: Record<string, string> = {};
-  let bodySize = 0;
+  let status: number;
+  let bodyText: string;
+  const headers: Record<string, string> = {};
+  let bodySize: number;
   try {
     const res = await f(url, {
       signal: controller.signal,
@@ -62,7 +62,7 @@ export async function captureContext(
   const responseTimeMs = Date.now() - start;
 
   // Best-effort sidecar probe; never blocks the run.
-  let llmsTxtStatus: number | null = null;
+  let llmsTxtStatus: number | null;
   try {
     const llmsUrl = new URL("/llms.txt", url).toString();
     const lc = new AbortController();

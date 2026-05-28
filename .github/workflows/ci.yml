@@ -38,8 +38,8 @@ jobs:
         run: npm test --if-present
       - name: RotatePass redaction guard
         run: npm run test:rotatepass-redaction
-      - name: EnterprisePass receipt guard
-        run: npm run test:enterprisepass-receipt
+      - name: CompliancePass receipt guard
+        run: npm run test:compliancepass-receipt
 
   mcp-server:
     name: MCP server package

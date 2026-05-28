@@ -90,6 +90,7 @@ const JOBS_REFRESH_LABEL = `${Math.round(JOBS_REFRESH_INTERVAL_MS / 1000)}s`;
 // `before_created_at` cursor until exhausted.
 const COMPLETED_INITIAL_VISIBLE = 50;
 const COMPLETED_PAGE_SIZE = 100;
+const ADMIN_JOBS_READ_AGENT_ID = "admin-jobs-ui";
 const EMPTY_MANUAL_ORDER: ManualOrder = {
   active: [],
   next: [],
@@ -1188,14 +1189,22 @@ export default function AdminJobs() {
   const [loading, setLoading] = useState(false);
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileClaimError, setProfileClaimError] = useState<string | null>(null);
   const [pollSeq, setPollSeq] = useState(0);
   const [manualOrder, setManualOrder] = useState<ManualOrder>(() => loadManualOrder());
   const [sectionPrefs, setSectionPrefs] = useState<SectionPreferences>(() => loadSectionPreferences());
   const [searchQuery, setSearchQuery] = useState("");
+  const jobsReadAgentId = humanAgentId ?? (token ? ADMIN_JOBS_READ_AGENT_ID : null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setHumanAgentId(null);
+      setProfileClaimError(null);
+      return;
+    }
     let cancelled = false;
+    setHumanAgentId(null);
+    setProfileClaimError(null);
 
     async function claim() {
       try {
@@ -1206,12 +1215,19 @@ export default function AdminJobs() {
         });
         const body = (await res.json().catch(() => ({}))) as {
           profile?: FishbowlProfile;
+          error?: string;
         };
         if (!cancelled && res.ok && body.profile) {
           setHumanAgentId(body.profile.agent_id);
+          setProfileClaimError(null);
+        } else if (!cancelled) {
+          setProfileClaimError(body.error ?? "Admin profile claim failed");
         }
       } catch {
-        if (!cancelled) setHumanAgentId(null);
+        if (!cancelled) {
+          setHumanAgentId(null);
+          setProfileClaimError("Admin profile claim failed");
+        }
       }
     }
 
@@ -1222,7 +1238,7 @@ export default function AdminJobs() {
   }, [authHeader, token]);
 
   useEffect(() => {
-    if (!humanAgentId) return;
+    if (!jobsReadAgentId) return;
     let cancelled = false;
 
     async function loadJobs() {
@@ -1232,7 +1248,7 @@ export default function AdminJobs() {
           method: "POST",
           headers: { ...authHeader, "Content-Type": "application/json" },
           body: JSON.stringify({
-            agent_id: humanAgentId,
+            agent_id: jobsReadAgentId,
             include_description: true,
             limit: 200,
           }),
@@ -1265,7 +1281,7 @@ export default function AdminJobs() {
       cancelled = true;
       clearInterval(id);
     };
-  }, [authHeader, humanAgentId]);
+  }, [authHeader, jobsReadAgentId]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1357,7 +1373,7 @@ export default function AdminJobs() {
   // the visible count on the client via SectionPreferences. When server
   // cursor support lands, this becomes a paged loop.
   const fetchCompletedBatch = useCallback(async () => {
-    if (!humanAgentId) return;
+    if (!jobsReadAgentId) return;
     setCompletedHistoryLoading(true);
     try {
       const requestLimit = 200;
@@ -1365,7 +1381,7 @@ export default function AdminJobs() {
         method: "POST",
         headers: { ...authHeader, "Content-Type": "application/json" },
         body: JSON.stringify({
-          agent_id: humanAgentId,
+          agent_id: jobsReadAgentId,
           include_description: true,
           status: "done",
           limit: requestLimit,
@@ -1386,19 +1402,19 @@ export default function AdminJobs() {
     } finally {
       setCompletedHistoryLoading(false);
     }
-  }, [authHeader, humanAgentId]);
+  }, [authHeader, jobsReadAgentId]);
 
   // Auto-load the first batch as soon as the agent id is known. Replaces the
   // old "Show completed history" first-click gate; users now see the last
   // 50 completed without any extra action.
   useEffect(() => {
-    if (!humanAgentId) return;
+    if (!jobsReadAgentId) return;
     if (completedHistoryLoaded || completedHistoryLoading) return;
     void fetchCompletedBatch();
-  }, [humanAgentId, completedHistoryLoaded, completedHistoryLoading, fetchCompletedBatch]);
+  }, [jobsReadAgentId, completedHistoryLoaded, completedHistoryLoading, fetchCompletedBatch]);
 
   const loadCompletedHistory = async () => {
-    if (!humanAgentId || completedHistoryLoading) return;
+    if (!jobsReadAgentId || completedHistoryLoading) return;
     if (!completedHistoryLoaded) {
       // Edge case: button clicked before the auto-load finished.
       await fetchCompletedBatch();
@@ -1466,6 +1482,12 @@ export default function AdminJobs() {
       {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {error}
+        </div>
+      )}
+
+      {profileClaimError && firstLoadDone && (
+        <div className="rounded-lg border border-[#E2B93B]/25 bg-[#E2B93B]/10 px-4 py-3 text-sm text-[#F6D773]">
+          Jobs are visible, but posting comments is waiting for the admin profile.
         </div>
       )}
 

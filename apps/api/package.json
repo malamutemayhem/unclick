@@ -20,7 +20,7 @@
     "@unclick/core": "*",
     "diff": "^8.0.4",
     "drizzle-orm": "^0.45.2",
-    "hono": "^4.6.3",
+    "hono": "^4.12.23",
     "marked": "^17.0.6",
     "papaparse": "^5.5.3",
     "qrcode": "^1.5.4",
@@ -32,7 +32,7 @@
     "@types/diff": "^7.0.2",
     "@types/node": "^22.0.0",
     "@types/qrcode": "^1.5.6",
-    "drizzle-kit": "^0.30.4",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4.19.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.6"

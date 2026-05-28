@@ -4,8 +4,8 @@ Jobsmith is the UnClick application workshop for real job applications. It helps
 
 Source context:
 
-- `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\CV_research_2_2.md`
-- `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\CV_research_1_2.md`
+- Private research packet `CV_research_2_2.md`
+- Private research packet `CV_research_1_2.md`
 - Jobs todo `4bcb3169-54a6-4ed9-bb14-8b20f01c98ba`
 - GitHub issue `#779`
 

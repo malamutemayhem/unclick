@@ -13,7 +13,8 @@ export interface PaginationMeta {
   total: number;
   page: number;
   per_page: number;
-  has_more: boolean;
+  total_pages?: number;
+  has_more?: boolean;
 }
 
 export interface RateLimitMeta {

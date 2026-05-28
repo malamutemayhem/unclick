@@ -51,7 +51,7 @@ function FooterLinkGroup({ title, links }: { title: string; links: readonly Foot
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-muted-custom transition-colors hover:text-body"
+            className="inline-flex min-h-6 items-center text-xs text-muted-custom transition-colors hover:text-body"
           >
             {link.label}
           </a>
@@ -59,7 +59,7 @@ function FooterLinkGroup({ title, links }: { title: string; links: readonly Foot
           <a
             key={link.label}
             href={link.href}
-            className="text-xs text-muted-custom transition-colors hover:text-body"
+            className="inline-flex min-h-6 items-center text-xs text-muted-custom transition-colors hover:text-body"
           >
             {link.label}
           </a>
@@ -67,7 +67,7 @@ function FooterLinkGroup({ title, links }: { title: string; links: readonly Foot
           <Link
             key={link.label}
             to={link.href}
-            className="text-xs text-muted-custom transition-colors hover:text-body"
+            className="inline-flex min-h-6 items-center text-xs text-muted-custom transition-colors hover:text-body"
           >
             {link.label}
           </Link>
@@ -83,13 +83,8 @@ const Footer = () => (
       <div className="grid grid-cols-2 gap-10 sm:grid-cols-5">
         {/* Brand */}
         <div className="col-span-2 sm:col-span-1">
-          <Link to="/">
-            <img
-              src="/logo-wordmark.svg"
-              alt="UnClick"
-              style={{ height: "2.4rem" }}
-              className="w-auto"
-            />
+          <Link to="/" aria-label="UnClick home" className="inline-flex min-h-6 items-center">
+            <img src="/logo-wordmark.svg" alt="UnClick" style={{ height: "2.4rem" }} className="w-auto" />
           </Link>
           <p className="mt-3 text-xs text-muted-custom leading-relaxed">
             The universal remote for AI.

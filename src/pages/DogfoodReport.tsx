@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Activity, AlertTriangle, CheckCircle2, Clock3, ExternalLink } from "lucide-react";
-import PageShell from "@/components/PageShell";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
-import { presets } from "@/lib/design-system";
 import {
   dogfoodReport as fallbackReport,
   type DogfoodPassResult,
@@ -22,50 +22,37 @@ type DogfoodReportData = Omit<typeof fallbackReport, "results" | "trend"> & {
   xpassIndex?: XPassIndexEntry[];
 };
 
-/**
- * Status colours stay semantic. Pass/fail/blocked/pending are scannable signals
- * users need to read at a glance, so the colour is functional, not decorative.
- * Everything else is monochrome teal on neutral, per the design system.
- */
 const STATUS_STYLES: Record<DogfoodStatus, { label: string; badge: string; icon: typeof CheckCircle2 }> = {
   passing: {
     label: "Passing",
-    badge: "border-emerald-400/20 bg-emerald-400/10 text-emerald-200",
+    badge: "border-border/60 bg-background/50 text-body",
     icon: CheckCircle2,
   },
   failing: {
     label: "Needs action",
-    badge: "border-red-400/20 bg-red-400/10 text-red-200",
+    badge: "border-border/60 bg-background/50 text-body",
     icon: AlertTriangle,
   },
   pending: {
     label: "Pending",
-    badge: "border-amber-400/20 bg-amber-400/10 text-amber-200",
+    badge: "border-border/60 bg-background/50 text-body",
     icon: Clock3,
   },
   blocked: {
     label: "Blocked",
-    badge: "border-sky-400/25 bg-sky-400/10 text-sky-200",
+    badge: "border-border/60 bg-background/50 text-body",
     icon: AlertTriangle,
   },
 };
 
-/**
- * XPass stage labels used to be rainbow. Now they share one calm vocabulary:
- * live work in teal, future work in muted neutral. Stage is communicated by the
- * label itself, not by a colour assignment.
- *
- * All five stages from XPassIndexEntry["stage"] are mapped. If a new stage is
- * added to the data shape, add it here too or the badge will render as broken.
- */
 const XPASS_STAGE_STYLES: Record<XPassIndexEntry["stage"], string> = {
-  live_gate: "border-primary/30 bg-primary/10 text-primary",
-  live_dogfood: "border-primary/30 bg-primary/10 text-primary",
-  package_ready: "border-primary/20 bg-primary/[0.06] text-body",
-  boundary: "border-border/60 bg-card/40 text-muted-foreground",
-  scope_gated: "border-border/60 bg-card/60 text-heading",
-  planned: "border-border/60 bg-card/40 text-muted-foreground",
-  guidance: "border-border/60 bg-card/40 text-muted-foreground",
+  live_gate: "border-border/60 bg-background/50 text-body",
+  live_dogfood: "border-border/60 bg-background/50 text-body",
+  scope_gated: "border-border/60 bg-background/50 text-body",
+  package_ready: "border-border/60 bg-background/50 text-body",
+  boundary: "border-border/60 bg-background/50 text-body",
+  planned: "border-border/60 bg-background/50 text-body",
+  guidance: "border-border/60 bg-background/50 text-body",
 };
 
 function countByStatus(results: DogfoodPassResult[], status: DogfoodStatus): number {
@@ -90,12 +77,10 @@ export default function DogfoodReportPage() {
 
   useCanonical("/dogfood");
   useMetaTags({
-    title: "Dogfood report - We run UnClick on UnClick",
-    description:
-      "Public dogfood receipt for the XPass family of checks running against UnClick itself.",
+    title: "UnClick Dogfood Report - We Run UnClick on UnClick",
+    description: "Public dogfood receipt for UnClick Pass-family checks running against UnClick itself.",
     ogTitle: "UnClick Dogfood Report",
-    ogDescription:
-      "We dogfood UnClick on UnClick. Public XPass quality receipts.",
+    ogDescription: "We dogfood UnClick on UnClick. Public Pass-family quality receipts.",
     ogUrl: "https://unclick.world/dogfood",
   });
 
@@ -117,87 +102,95 @@ export default function DogfoodReportPage() {
   const xpassIndex = report.xpassIndex?.length ? report.xpassIndex : fallbackReport.xpassIndex;
 
   return (
-    <PageShell
-      eyebrow="Public receipt"
-      title="We run UnClick on UnClick."
-      lede="The XPass family of quality checks runs against this site every day. The receipts live here. Nothing hidden."
-    >
-      {/* Latest receipt summary */}
-      <section className="px-6 pb-4">
-        <div className="mx-auto max-w-5xl">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+
+      <main className="overflow-hidden px-4 pt-28 pb-16 sm:px-6">
+        <section className="mx-auto max-w-5xl">
           <FadeIn>
-            <div className="rounded-2xl border border-border/70 bg-card/60 p-6 backdrop-blur-sm">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="space-y-2">
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
-                    Latest receipt
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${receiptStatus.badge}`}>
-                      <ReceiptIcon className="h-3.5 w-3.5" />
-                      {receiptStatus.label}
-                    </span>
-                    <span className="text-xs text-muted-custom">{report.source}</span>
-                  </div>
-                  <p className="text-sm text-heading">
-                    Last run: {formatDate(report.lastRunAt || report.generatedAt)}
-                  </p>
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
+              <Activity className="h-3.5 w-3.5" />
+              Public dogfood receipt
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.05}>
+            <div className="mt-6 grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-end">
+              <div className="min-w-0">
+                <h1
+                  className="max-w-full break-words text-3xl font-semibold !leading-[1.15] text-heading sm:text-5xl"
+                  aria-label={report.headline}
+                  title={report.headline}
+                >
+                  {report.headline}
+                </h1>
+                <p className="mt-4 max-w-2xl break-words text-lg leading-relaxed text-body">
+                  This page shows the latest Pass-family receipt evidence from checks running
+                  against UnClick itself.
+                </p>
+                <a
+                  href="/dogfood/latest.json"
+                  className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                >
+                  View JSON receipt
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+
+              <div className="min-w-0 lg:pl-6">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
+                  Latest receipt
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${receiptStatus.badge}`}>
+                    <ReceiptIcon className="h-3.5 w-3.5" />
+                    {receiptStatus.label}
+                  </span>
+                  <span className="text-xs text-muted-custom">{report.source}</span>
                 </div>
-                <div className="max-w-md text-right">
-                  <Activity className="ml-auto mb-2 h-4 w-4 text-primary" />
-                  <p className="text-xs leading-relaxed text-body">
-                    {report.nextAutomation}
-                  </p>
-                </div>
+                <p className="mt-3 text-sm text-heading">Last run: {formatDate(report.lastRunAt || report.generatedAt)}</p>
+                <p className="mt-3 text-xs leading-relaxed text-body">{report.nextAutomation}</p>
               </div>
             </div>
           </FadeIn>
-        </div>
-      </section>
+        </section>
 
-      {/* Stat counts */}
-      <section className="px-6 py-6">
-        <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-4">
+        <section className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-4">
           {([
             ["Passing", counts.passing],
             ["Needs action", counts.failing],
             ["Blocked", counts.blocked],
-            ["Pending", counts.pending],
+            ["Pending automation", counts.pending],
           ] as const).map(([label, value]) => (
             <FadeIn key={label} delay={0.08}>
-              <div className="rounded-2xl border border-border/70 bg-card/40 p-5">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
-                  {label}
-                </p>
+              <div className="min-w-0 py-1">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">{label}</p>
                 <p className="mt-2 text-4xl font-semibold text-heading">{value}</p>
               </div>
             </FadeIn>
           ))}
-        </div>
-      </section>
+        </section>
 
-      {/* XPass family index */}
-      <section className="px-6 py-6">
-        <div className="mx-auto max-w-5xl">
+        <section className="mx-auto mt-10 max-w-5xl">
           <FadeIn delay={0.09}>
-            <div className="rounded-2xl border border-border/70 bg-card/40 p-6">
+            <div className="min-w-0">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
-                    XPass family
+                    XPass family index
                   </p>
                   <h2 className="mt-2 text-xl font-semibold text-heading">
-                    What gates, what watches, what is on the way.
+                    TestPass is loud because it is the live gate.
                   </h2>
                 </div>
                 <p className="max-w-md text-xs leading-relaxed text-muted-custom">
-                  Live gates block bad work. Dogfood lanes report receipts without
-                  blocking. Planned and guidance stages are still maturing.
+                  This index shows which Pass products are live gates, dogfood lanes, scope-gated,
+                  planned, or guidance-only so the whole family stays visible.
                 </p>
               </div>
-              <div className="mt-6 grid gap-3 md:grid-cols-2">
+              <div className="mt-5 grid gap-x-6 gap-y-5 md:grid-cols-2">
                 {xpassIndex.map((entry) => (
-                  <div key={entry.id} className="rounded-xl border border-border/50 bg-background/40 p-4">
+                  <div key={entry.id} className="min-w-0 py-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <h3 className="text-sm font-semibold text-heading">{entry.name}</h3>
                       <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-medium ${XPASS_STAGE_STYLES[entry.stage]}`}>
@@ -223,25 +216,22 @@ export default function DogfoodReportPage() {
               </div>
             </div>
           </FadeIn>
-        </div>
-      </section>
+        </section>
 
-      {/* Proof policy + status legend */}
-      <section className="px-6 py-6">
-        <div className="mx-auto max-w-5xl">
+        <section className="mx-auto mt-10 max-w-5xl">
           <FadeIn delay={0.1}>
-            <div className="rounded-2xl border border-border/70 bg-card/40 p-6">
+            <div className="min-w-0">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
                 Proof policy
               </p>
               <p className="mt-3 text-sm leading-relaxed text-body">{report.proofPolicy}</p>
-              <div className="mt-5 grid gap-3 md:grid-cols-2">
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
                 {(Object.keys(report.statusLegend) as DogfoodStatus[]).map((statusKey) => {
                   const status = STATUS_STYLES[statusKey];
                   const Icon = status.icon;
 
                   return (
-                    <div key={statusKey} className="rounded-xl border border-border/50 bg-background/40 p-3">
+                    <div key={statusKey} className="min-w-0 py-1">
                       <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${status.badge}`}>
                         <Icon className="h-3.5 w-3.5" />
                         {status.label}
@@ -255,12 +245,9 @@ export default function DogfoodReportPage() {
               </div>
             </div>
           </FadeIn>
-        </div>
-      </section>
+        </section>
 
-      {/* Individual pass results */}
-      <section className="px-6 py-6">
-        <div className="mx-auto max-w-5xl">
+        <section className="mx-auto mt-10 max-w-5xl">
           <div className="grid gap-4 md:grid-cols-2">
             {report.results.map((result, index) => {
               const status = STATUS_STYLES[result.status];
@@ -268,11 +255,11 @@ export default function DogfoodReportPage() {
 
               return (
                 <FadeIn key={result.id} delay={0.04 * index}>
-                  <article className="h-full rounded-2xl border border-border/70 bg-card/40 p-5">
+                  <article className="h-full min-w-0 rounded-2xl border border-border/70 bg-card/40 p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h2 className="text-lg font-semibold text-heading">{result.name}</h2>
-                        <p className="mt-2 text-sm leading-relaxed text-body">{result.summary}</p>
+                        <h2 className="break-words text-lg font-semibold text-heading">{result.name}</h2>
+                        <p className="mt-2 break-words text-sm leading-relaxed text-body">{result.summary}</p>
                       </div>
                       <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${status.badge}`}>
                         <Icon className="h-3.5 w-3.5" />
@@ -283,12 +270,12 @@ export default function DogfoodReportPage() {
                       {result.evidence}
                     </p>
                     {result.blockedReason ? (
-                      <p className="mt-3 text-xs leading-relaxed text-sky-200">
+                      <p className="mt-3 break-words text-xs leading-relaxed text-body">
                         Blocked reason: {result.blockedReason}
                       </p>
                     ) : null}
                     {result.reasonCode || result.nextProof ? (
-                      <div className="mt-3 rounded-xl border border-border/50 bg-background/40 p-3 text-xs leading-relaxed text-muted-custom">
+                      <div className="mt-3 min-w-0 rounded-xl border border-border/50 bg-background/40 p-3 text-xs leading-relaxed text-muted-custom">
                         {result.reasonCode ? (
                           <p>
                             Reason code: <span className="font-mono text-heading">{result.reasonCode}</span>
@@ -313,7 +300,7 @@ export default function DogfoodReportPage() {
                     {proofTarget(result) ? (
                       <a
                         href={proofTarget(result) || undefined}
-                        className="mt-3 inline-flex items-center gap-1.5 break-all text-[11px] font-medium text-primary transition-opacity hover:opacity-80"
+                        className="mt-3 inline-flex min-h-6 items-center gap-1.5 break-all py-1 text-xs font-medium text-primary transition-opacity hover:opacity-80"
                       >
                         View proof target
                         <ExternalLink className="h-3 w-3 shrink-0" />
@@ -324,54 +311,50 @@ export default function DogfoodReportPage() {
               );
             })}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Last failure + trend */}
-      <section className="px-6 py-6">
-        <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-          <FadeIn>
-            <div className="rounded-2xl border border-border/70 bg-card/40 p-6">
+        <section className="mx-auto mt-10 grid max-w-5xl min-w-0 gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+          <FadeIn className="min-w-0">
+            <div className="min-w-0 rounded-2xl border border-border/70 bg-card/40 p-5">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
                 Last actionable failure
               </p>
-              <h2 className="mt-3 text-lg font-semibold text-heading">{report.lastActionableFailure.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-body">{report.lastActionableFailure.detail}</p>
-              <p className="mt-4 text-xs text-muted-custom">Owner: {report.lastActionableFailure.owner}</p>
+              <h2 className="mt-3 break-words text-lg font-semibold text-heading">{report.lastActionableFailure.title}</h2>
+              <p className="mt-2 break-words text-sm leading-relaxed text-body">{report.lastActionableFailure.detail}</p>
+              <p className="mt-4 break-words text-xs text-muted-custom">Owner: {report.lastActionableFailure.owner}</p>
             </div>
           </FadeIn>
 
-          <FadeIn delay={0.05}>
-            <div className="rounded-2xl border border-border/70 bg-card/40 p-6">
+          <FadeIn delay={0.05} className="min-w-0">
+            <div className="min-w-0 rounded-2xl border border-border/70 bg-card/40 p-5">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">Receipt trend</p>
               <div className="mt-4 overflow-x-auto rounded-xl border border-border/60">
                 {report.trend.map((point) => (
-                  <div key={point.date} className="grid min-w-[460px] grid-cols-5 gap-2 border-b border-border/50 px-4 py-3 text-xs last:border-b-0">
+                  <div key={point.date} className="grid grid-cols-2 gap-2 border-b border-border/50 px-4 py-3 text-xs last:border-b-0 sm:min-w-[460px] sm:grid-cols-5">
                     <span className="text-heading">{point.date}</span>
-                    <span className="text-emerald-200">Pass {point.passing}</span>
-                    <span className="text-red-200">Fail {point.failing}</span>
-                    <span className="text-sky-200">Blocked {point.blocked || 0}</span>
-                    <span className="text-amber-200">Pending {point.pending}</span>
+                    <span className="text-body">Pass {point.passing}</span>
+                    <span className="text-body">Fail {point.failing}</span>
+                    <span className="text-body">Blocked {point.blocked || 0}</span>
+                    <span className="text-body">Pending {point.pending}</span>
                   </div>
                 ))}
               </div>
             </div>
           </FadeIn>
-        </div>
-      </section>
+        </section>
 
-      {/* Public JSON link */}
-      <section className="px-6 py-10">
-        <div className="mx-auto max-w-5xl">
+        <section className="mx-auto mt-10 max-w-5xl">
           <a
             href="/dogfood/latest.json"
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary transition-opacity hover:opacity-80"
+            className="inline-flex min-h-6 items-center gap-2 py-1 text-sm font-medium text-primary transition-opacity hover:opacity-80"
           >
             View public JSON receipt
             <ExternalLink className="h-4 w-4" />
           </a>
-        </div>
-      </section>
-    </PageShell>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
   );
 }

@@ -91,20 +91,27 @@ const SEAT_INDUCTION = [
   ],
   [
     "6",
+    "Ask Crews Council if needed",
+    "Run Council Lite on material work, then prompt full Crews Council for launch, risk, mixed proof, or broad XPass evidence.",
+    "Crews Council",
+    "scripts/pinballwake-launchpad-room.mjs",
+  ],
+  [
+    "7",
     "Check proof gates",
     "Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing.",
     "Proof Ledger",
     "docs/agent-observability.md",
   ],
   [
-    "7",
+    "8",
     "Dogtest the outcome",
     "Run the focused local tests and browser or live proof that match the touched surface.",
     "XPass and CI",
     "package.json",
   ],
   [
-    "8",
+    "9",
     "Reply and log proof",
     "End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step.",
     "Boardroom and Orchestrator",
@@ -129,6 +136,7 @@ const DIVISIONS = [
 
 const STATIC_SYSTEMS = [
   ["Launch and onboarding", "Launchpad", "route", "Control hub that points seats to the next safe operating lane.", "scripts/pinballwake-launchpad-room.mjs", "/admin/pinballwake"],
+  ["Launch and onboarding", "Crews Council Induction", "judgement prompt", "Launchpad prompt that runs Council Lite on material work and asks for a full Crews Council only when launch, risk, mixed proof, or broad XPass evidence needs judgement.", "scripts/pinballwake-launchpad-room.mjs", "/admin/pinballwake"],
   ["Launch and onboarding", "Heartbeat Master", "policy", "Canonical schedule prompt and procedure for safe heartbeat seats.", "src/pages/admin/AdminSeatHeartbeat.tsx", "/admin/agents/heartbeat"],
   ["Launch and onboarding", "Ecosystem Brainmap", "map", "Generated sitemap and system map that teaches seats what UnClick contains.", "src/pages/admin/AdminBrainmap.tsx", "/admin/brainmap"],
   ["Source of truth", "Boardroom Jobs", "queue", "Primary work source for open, in-progress, done, and dropped chips.", "src/pages/admin/AdminJobs.tsx", "/admin/jobs"],
@@ -633,6 +641,7 @@ export async function generateBrainmap({ root = process.cwd() } = {}) {
     "",
     "- UnClick is the platform: tools, memory, agents, proof, and admin surfaces.",
     "- Launchpad is the control hub for Autopilot work.",
+    "- Crews Council induction is a Launchpad prompt, not a new Pass product; it uses Council Lite for light dissent and asks for full Crews only when judgement is needed.",
     "- Rooms are the operational stages that route work through research, planning, build, proof, review, safety, merge, publish, repair, and improvement.",
     "- Heartbeat Master at `/admin/agents/heartbeat` teaches scheduled AI seats how to pulse safely.",
     "- Heartbeat policy changes must update the `/admin/agents/heartbeat` source and verify the MASTER induction text. Memory and Brainmap entries are pointers, not the runtime MASTER.",
@@ -681,6 +690,7 @@ export async function generateBrainmap({ root = process.cwd() } = {}) {
     "## Launchpad Route",
     "",
     "- Launchpad routes work from Coordinator to Builder, Tester, Reviewer, Safety Checker, and Ledger PASS.",
+    "- Launchpad checks Council induction so Council Lite is always visible on material work, and full Crews appears when launch, risk, mixed XPass proof, or broad evidence needs judgement.",
     "- Launchpad readiness is represented in `scripts/pinballwake-launchpad-room.mjs` and related tests.",
     "- User-facing control lives in Autopilot admin surfaces, with worker discussion in Boardroom.",
     "",

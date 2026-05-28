@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 516,
+    "inventory": 522,
     "source_manifest": 189,
     "pages": 82,
-    "tools": 186,
+    "tools": 187,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 186
+      "count": 187
     },
     {
       "id": "rooms",
@@ -81,13 +81,13 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 61
+      "count": 65
     },
     {
       "id": "launch-and-onboarding",
       "name": "Launch and onboarding",
       "meaning": "Launchpad, Heartbeat, Brainmap, and first-seat orientation.",
-      "count": 4
+      "count": 5
     }
   ],
   "inventory": [
@@ -1712,6 +1712,16 @@
       "tags": []
     },
     {
+      "id": "launch-and-onboarding-judgement-prompt-crews-council-induction-scripts-pinballwake-launchpad-room-mjs-admin-pinballwake",
+      "division": "Launch and onboarding",
+      "name": "Crews Council Induction",
+      "kind": "judgement prompt",
+      "meaning": "Launchpad prompt that runs Council Lite on material work and asks for a full Crews Council only when launch, risk, mixed proof, or broad XPass evidence needs judgement.",
+      "source": "scripts/pinballwake-launchpad-room.mjs",
+      "route": "/admin/pinballwake",
+      "tags": []
+    },
+    {
       "id": "launch-and-onboarding-map-ecosystem-brainmap-src-pages-admin-adminbrainmap-tsx-admin-brainmap",
       "division": "Launch and onboarding",
       "name": "Ecosystem Brainmap",
@@ -1798,6 +1808,36 @@
       "kind": "proof module",
       "meaning": "pinballwake quiet window proof UnClick module.",
       "source": "scripts/pinballwake-quiet-window-proof.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-app-log-store-src-lib-jobsmith-applogstore-ts-no-route",
+      "division": "Modules and apps",
+      "name": "app Log Store",
+      "kind": "app module",
+      "meaning": "app Log Store shared frontend logic.",
+      "source": "src/lib/jobsmith/appLogStore.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-build-browser-corpus-src-lib-jobsmith-buildbrowsercorpus-ts-no-route",
+      "division": "Modules and apps",
+      "name": "build Browser Corpus",
+      "kind": "app module",
+      "meaning": "build Browser Corpus shared frontend logic.",
+      "source": "src/lib/jobsmith/buildBrowserCorpus.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-parse-pdf-browser-src-lib-jobsmith-parsepdfbrowser-ts-no-route",
+      "division": "Modules and apps",
+      "name": "parse Pdf Browser",
+      "kind": "app module",
+      "meaning": "parse Pdf Browser shared frontend logic.",
+      "source": "src/lib/jobsmith/parsePdfBrowser.ts",
       "route": "",
       "tags": []
     },
@@ -2068,6 +2108,16 @@
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/commonsensepass/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-compliancepass-packages-compliancepass-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "compliancepass",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/compliancepass/package.json",
       "route": "",
       "tags": []
     },
@@ -3518,6 +3568,16 @@
       "kind": "MCP tool",
       "meaning": "commonsensepass MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/commonsensepass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-compliancepass-packages-mcp-server-src-compliancepass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "compliancepass",
+      "kind": "MCP tool",
+      "meaning": "compliancepass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/compliancepass-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5784,20 +5844,27 @@
     ],
     [
       "6",
+      "Ask Crews Council if needed",
+      "Run Council Lite on material work, then prompt full Crews Council for launch, risk, mixed proof, or broad XPass evidence.",
+      "Crews Council",
+      "scripts/pinballwake-launchpad-room.mjs"
+    ],
+    [
+      "7",
       "Check proof gates",
       "Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing.",
       "Proof Ledger",
       "docs/agent-observability.md"
     ],
     [
-      "7",
+      "8",
       "Dogtest the outcome",
       "Run the focused local tests and browser or live proof that match the touched surface.",
       "XPass and CI",
       "package.json"
     ],
     [
-      "8",
+      "9",
       "Reply and log proof",
       "End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step.",
       "Boardroom and Orchestrator",
@@ -5939,6 +6006,11 @@
       "commonsensepass",
       "commonsensepass MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/commonsensepass-tool.ts"
+    ],
+    [
+      "compliancepass",
+      "compliancepass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/compliancepass-tool.ts"
     ],
     [
       "convertkit",
@@ -6942,6 +7014,10 @@
       "vite build --mode development"
     ],
     [
+      "compliancepass:report",
+      "npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs"
+    ],
+    [
       "lint",
       "eslint ."
     ],
@@ -6956,6 +7032,10 @@
     [
       "test:brainmap",
       "node --test scripts/UnClick-brainmap.test.mjs"
+    ],
+    [
+      "test:compliancepass-receipt",
+      "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
     [
       "test:enterprisepass-receipt",
@@ -6983,8 +7063,8 @@
     },
     {
       "source": "docs/unclick-context-boot-packet.md",
-      "hash": "7cf131cf22e0",
-      "bytes": 4785
+      "hash": "fc8064c5874f",
+      "bytes": 4804
     },
     {
       "source": "docs/agent-observability.md",
@@ -7003,7 +7083,7 @@
     },
     {
       "source": "docs/fleet-worker-roles.md",
-      "hash": "ed620f347d4f",
+      "hash": "a8f64d0da135",
       "bytes": 4873
     },
     {
@@ -7043,7 +7123,7 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "b0a209c9c627",
+      "hash": "8650d072f494",
       "bytes": 1559
     },
     {
@@ -7053,8 +7133,8 @@
     },
     {
       "source": "package.json",
-      "hash": "76fdae8ef856",
-      "bytes": 4582
+      "hash": "a4e95e9f78d7",
+      "bytes": 6171
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7203,8 +7283,8 @@
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "21baca89f0d0",
-      "bytes": 27078
+      "hash": "c764ced96836",
+      "bytes": 26511
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -7248,8 +7328,8 @@
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "d4782e020bb5",
-      "bytes": 59940
+      "hash": "ea5ff201abd2",
+      "bytes": 60846
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
@@ -7258,8 +7338,8 @@
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "885131936227",
-      "bytes": 77036
+      "hash": "0c355d737922",
+      "bytes": 77124
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
@@ -7423,8 +7503,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "a2d54cc557ef",
-      "bytes": 16182
+      "hash": "16909fd44b92",
+      "bytes": 16552
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -7438,8 +7518,8 @@
     },
     {
       "source": "src/pages/Jobsmith.tsx",
-      "hash": "70f86c37110a",
-      "bytes": 34772
+      "hash": "08e9c9874c22",
+      "bytes": 61541
     },
     {
       "source": "src/pages/Login.tsx",
@@ -7558,8 +7638,8 @@
     },
     {
       "source": "scripts/pinballwake-launchpad-room.mjs",
-      "hash": "64cc89cd3253",
-      "bytes": 12693
+      "hash": "9ee3556460d0",
+      "bytes": 20544
     },
     {
       "source": "scripts/pinballwake-merge-room.mjs",
@@ -7628,8 +7708,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "92b4e63503f5",
-      "bytes": 20902
+      "hash": "51c7580b8abf",
+      "bytes": 28631
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
@@ -7767,6 +7847,11 @@
       "bytes": 1995
     },
     {
+      "source": "packages/mcp-server/src/compliancepass-tool.ts",
+      "hash": "13242448457f",
+      "bytes": 3202
+    },
+    {
       "source": "packages/mcp-server/src/convertkit-tool.ts",
       "hash": "2f77303a3441",
       "bytes": 8498
@@ -7825,11 +7910,6 @@
       "source": "packages/mcp-server/src/ebay-tool.ts",
       "hash": "10dffe36315f",
       "bytes": 7595
-    },
-    {
-      "source": "packages/mcp-server/src/ebird-tool.ts",
-      "hash": "3deedf3fde19",
-      "bytes": 6262
     },
     {
       "source": ".github/workflows/apply-migrations.yml",
@@ -7903,8 +7983,8 @@
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "bbb701a7cb34",
-      "bytes": 12844
+      "hash": "bca601f0a1c2",
+      "bytes": 20251
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",

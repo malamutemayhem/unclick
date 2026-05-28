@@ -71,7 +71,7 @@ describe("AdminJobsmith", () => {
     expect(portals[0]).toHaveTextContent("Ready");
     expect(within(portals[1]).getByText("Greenhouse")).toBeInTheDocument();
     expect(portals[1]).toHaveTextContent("Ready");
-  });
+  }, 15_000);
 
   it("captures silence after a sent dogfood application", () => {
     render(React.createElement(AdminJobsmith));

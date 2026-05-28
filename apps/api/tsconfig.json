@@ -6,7 +6,9 @@
     "strict": true,
     "skipLibCheck": true,
     "sourceMap": true,
+    "rootDir": "../..",
     "outDir": "./dist",
+    "rootDir": "../..",
     "paths": {
       "@unclick/core": ["../../packages/core/src/index.ts"]
     }
