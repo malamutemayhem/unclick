@@ -9,8 +9,8 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 518,
-    "source_manifest": 189,
+    "inventory": 526,
+    "source_manifest": 190,
     "pages": 82,
     "tools": 187,
     "rooms": 23,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 15
+      "count": 16
     },
     {
       "id": "wrappers-and-protocols",
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 115
+      "count": 118
     },
     {
       "id": "ledgers-and-proof",
@@ -81,13 +81,13 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 62
+      "count": 65
     },
     {
       "id": "launch-and-onboarding",
       "name": "Launch and onboarding",
       "meaning": "Launchpad, Heartbeat, Brainmap, and first-seat orientation.",
-      "count": 4
+      "count": 5
     }
   ],
   "inventory": [
@@ -862,6 +862,26 @@
       "tags": []
     },
     {
+      "id": "automations-script-pinballwake-continuous-improvement-watch-scripts-pinballwake-continuous-improvement-watch-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake continuous improvement watch",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-continuous-improvement-watch.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-continuous-improvement-watch-test-scripts-pinballwake-continuous-improvement-watch-test-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake continuous improvement watch.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-continuous-improvement-watch.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "automations-script-pinballwake-dogfood-room-scripts-pinballwake-dogfood-room-mjs-no-route",
       "division": "Automations",
       "name": "pinballwake dogfood room",
@@ -1572,6 +1592,16 @@
       "tags": []
     },
     {
+      "id": "automations-workflow-continuous-improvement-watch-yml-github-workflows-continuous-improvement-watch-yml-no-route",
+      "division": "Automations",
+      "name": "continuous improvement watch.yml",
+      "kind": "workflow",
+      "meaning": "continuous improvement watch GitHub automation workflow.",
+      "source": ".github/workflows/continuous-improvement-watch.yml",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "automations-workflow-dirty-branch-hygiene-yml-github-workflows-dirty-branch-hygiene-yml-no-route",
       "division": "Automations",
       "name": "dirty branch hygiene.yml",
@@ -1712,6 +1742,16 @@
       "tags": []
     },
     {
+      "id": "launch-and-onboarding-judgement-prompt-crews-council-induction-scripts-pinballwake-launchpad-room-mjs-admin-pinballwake",
+      "division": "Launch and onboarding",
+      "name": "Crews Council Induction",
+      "kind": "judgement prompt",
+      "meaning": "Launchpad prompt that runs Council Lite on material work and asks for a full Crews Council only when launch, risk, mixed proof, or broad XPass evidence needs judgement.",
+      "source": "scripts/pinballwake-launchpad-room.mjs",
+      "route": "/admin/pinballwake",
+      "tags": []
+    },
+    {
       "id": "launch-and-onboarding-map-ecosystem-brainmap-src-pages-admin-adminbrainmap-tsx-admin-brainmap",
       "division": "Launch and onboarding",
       "name": "Ecosystem Brainmap",
@@ -1798,6 +1838,36 @@
       "kind": "proof module",
       "meaning": "pinballwake quiet window proof UnClick module.",
       "source": "scripts/pinballwake-quiet-window-proof.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-app-log-store-src-lib-jobsmith-applogstore-ts-no-route",
+      "division": "Modules and apps",
+      "name": "app Log Store",
+      "kind": "app module",
+      "meaning": "app Log Store shared frontend logic.",
+      "source": "src/lib/jobsmith/appLogStore.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-build-browser-corpus-src-lib-jobsmith-buildbrowsercorpus-ts-no-route",
+      "division": "Modules and apps",
+      "name": "build Browser Corpus",
+      "kind": "app module",
+      "meaning": "build Browser Corpus shared frontend logic.",
+      "source": "src/lib/jobsmith/buildBrowserCorpus.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-parse-pdf-browser-src-lib-jobsmith-parsepdfbrowser-ts-no-route",
+      "division": "Modules and apps",
+      "name": "parse Pdf Browser",
+      "kind": "app module",
+      "meaning": "parse Pdf Browser shared frontend logic.",
+      "source": "src/lib/jobsmith/parsePdfBrowser.ts",
       "route": "",
       "tags": []
     },
@@ -2478,6 +2548,16 @@
       "kind": "pass",
       "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
       "source": "api/lib/testpass-boundary.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-pass-testpass-edit-guard-api-lib-testpass-edit-guard-ts-no-route",
+      "division": "Passes and gates",
+      "name": "testpass edit guard",
+      "kind": "pass",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/testpass-edit-guard.ts",
       "route": "",
       "tags": []
     },
@@ -5804,20 +5884,27 @@
     ],
     [
       "6",
+      "Ask Crews Council if needed",
+      "Run Council Lite on material work, then prompt full Crews Council for launch, risk, mixed proof, or broad XPass evidence.",
+      "Crews Council",
+      "scripts/pinballwake-launchpad-room.mjs"
+    ],
+    [
+      "7",
       "Check proof gates",
       "Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing.",
       "Proof Ledger",
       "docs/agent-observability.md"
     ],
     [
-      "7",
+      "8",
       "Dogtest the outcome",
       "Run the focused local tests and browser or live proof that match the touched surface.",
       "XPass and CI",
       "package.json"
     ],
     [
-      "8",
+      "9",
       "Reply and log proof",
       "End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step.",
       "Boardroom and Orchestrator",
@@ -6991,6 +7078,10 @@
       "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
     [
+      "test:continuous-improvement-watch",
+      "node --test scripts/pinballwake-continuous-improvement-watch.test.mjs"
+    ],
+    [
       "test:enterprisepass-receipt",
       "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
@@ -7076,8 +7167,8 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "8650d072f494",
-      "bytes": 1559
+      "hash": "ab3e717a4ae9",
+      "bytes": 1663
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
@@ -7085,9 +7176,14 @@
       "bytes": 1211
     },
     {
+      "source": ".github/workflows/continuous-improvement-watch.yml",
+      "hash": "d121a434a464",
+      "bytes": 2358
+    },
+    {
       "source": "package.json",
-      "hash": "2c50a18f4684",
-      "bytes": 5202
+      "hash": "bbceabab4654",
+      "bytes": 6285
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7236,8 +7332,8 @@
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "21baca89f0d0",
-      "bytes": 27078
+      "hash": "c764ced96836",
+      "bytes": 26511
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -7281,8 +7377,8 @@
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
-      "hash": "d4782e020bb5",
-      "bytes": 59940
+      "hash": "ea5ff201abd2",
+      "bytes": 60846
     },
     {
       "source": "src/pages/admin/AdminJobsmith.tsx",
@@ -7456,8 +7552,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "a2d54cc557ef",
-      "bytes": 16182
+      "hash": "16909fd44b92",
+      "bytes": 16552
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -7471,8 +7567,8 @@
     },
     {
       "source": "src/pages/Jobsmith.tsx",
-      "hash": "70f86c37110a",
-      "bytes": 34772
+      "hash": "08e9c9874c22",
+      "bytes": 61541
     },
     {
       "source": "src/pages/Login.tsx",
@@ -7571,8 +7667,8 @@
     },
     {
       "source": "scripts/pinballwake-continuous-improvement-room.mjs",
-      "hash": "8c23d67cad4e",
-      "bytes": 14869
+      "hash": "51ca5eb8745b",
+      "bytes": 14894
     },
     {
       "source": "scripts/pinballwake-dogfood-room.mjs",
@@ -7591,8 +7687,8 @@
     },
     {
       "source": "scripts/pinballwake-launchpad-room.mjs",
-      "hash": "64cc89cd3253",
-      "bytes": 12693
+      "hash": "9ee3556460d0",
+      "bytes": 20544
     },
     {
       "source": "scripts/pinballwake-merge-room.mjs",
@@ -7661,8 +7757,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "92b4e63503f5",
-      "bytes": 20902
+      "hash": "51c7580b8abf",
+      "bytes": 28631
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
@@ -7936,8 +8032,8 @@
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "3f15309a71f0",
-      "bytes": 17290
+      "hash": "bca601f0a1c2",
+      "bytes": 20251
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",

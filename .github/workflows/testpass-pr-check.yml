@@ -25,7 +25,9 @@ on:
 permissions:
   contents: read
   deployments: read
+  issues: write
   pull-requests: write
+  statuses: read
 
 jobs:
   testpass:
@@ -53,7 +55,7 @@ jobs:
         uses: actions/github-script@v9
         env:
           VERCEL_STATUS_CONTEXT: Vercel
-          VERCEL_WAIT_SECONDS: "120"
+          VERCEL_WAIT_SECONDS: "600"
           VERCEL_WAIT_INTERVAL_SECONDS: "10"
         with:
           script: |
@@ -70,11 +72,19 @@ jobs:
             const startedAt = Date.now();
 
             while (true) {
-              const { data } = await github.rest.repos.getCombinedStatusForRef({
-                owner,
-                repo,
-                ref,
-              });
+              let data = { statuses: [] };
+              try {
+                const response = await github.rest.repos.getCombinedStatusForRef({
+                  owner,
+                  repo,
+                  ref,
+                });
+                data = response.data || data;
+              } catch (error) {
+                core.warning(`Could not read ${statusContext} status for ${ref}: ${error.status || 'error'} ${error.message}`);
+                core.setOutput('ready', 'unknown');
+                return;
+              }
               const status = selectLatestStatusContext(data.statuses || [], statusContext);
               const state = status?.state || 'missing';
               core.notice(`${statusContext} status for ${ref}: ${state}`);
@@ -109,7 +119,7 @@ jobs:
           script: |
             const { pathToFileURL } = require('node:url');
             const helperUrl = pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/testpass-pr-target.mjs`).href;
-            const { resolveTestPassPrTarget } = await import(helperUrl);
+            const { hasSuccessfulVercelStatus, resolveTestPassPrTarget } = await import(helperUrl);
 
             const trim = (value) => String(value || '').replace(/\/+$/, '');
             const defaultApiUrl = 'https://unclick.world/api/testpass-run';
@@ -145,12 +155,17 @@ jobs:
             const repo = context.repo.repo;
             const headSha = context.payload.pull_request.head.sha;
             const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner,
-              repo,
-              issue_number: context.issue.number,
-              per_page: 100,
-            });
+            let comments = [];
+            try {
+              comments = await github.paginate(github.rest.issues.listComments, {
+                owner,
+                repo,
+                issue_number: context.issue.number,
+                per_page: 100,
+              });
+            } catch (error) {
+              core.warning(`Could not read PR comments for TestPass preview fallback: ${error.status || 'error'} ${error.message}`);
+            }
             const fallback = resolveTestPassPrTarget({
               requestedServerUrl: process.env.REQUESTED_SERVER_URL,
               defaultServerUrl: process.env.DEFAULT_SERVER_URL,
@@ -167,23 +182,34 @@ jobs:
             }
 
             for (let attempt = 1; attempt <= 40; attempt++) {
-              const deployments = await github.paginate(github.rest.repos.listDeployments, {
-                owner,
-                repo,
-                sha: headSha,
-                environment: 'Preview',
-                per_page: 100,
-              });
+              let deployments = [];
+              try {
+                deployments = await github.paginate(github.rest.repos.listDeployments, {
+                  owner,
+                  repo,
+                  sha: headSha,
+                  environment: 'Preview',
+                  per_page: 100,
+                });
+              } catch (error) {
+                core.warning(`Could not list Vercel deployments for ${headSha}: ${error.status || 'error'} ${error.message}`);
+              }
 
               deployments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
               for (const deployment of deployments) {
-                const statuses = await github.paginate(github.rest.repos.listDeploymentStatuses, {
-                  owner,
-                  repo,
-                  deployment_id: deployment.id,
-                  per_page: 100,
-                });
+                let statuses = [];
+                try {
+                  statuses = await github.paginate(github.rest.repos.listDeploymentStatuses, {
+                    owner,
+                    repo,
+                    deployment_id: deployment.id,
+                    per_page: 100,
+                  });
+                } catch (error) {
+                  core.warning(`Could not list Vercel deployment statuses for ${deployment.id}: ${error.status || 'error'} ${error.message}`);
+                  continue;
+                }
                 const ready = statuses.find((status) =>
                   status.state === 'success' && (status.environment_url || status.target_url)
                 );
@@ -194,6 +220,32 @@ jobs:
                     serverUrl: `${baseUrl}/api/mcp`,
                     apiUrl: `${baseUrl}/api/testpass-run`,
                     source: 'vercel_preview_deployment',
+                  });
+                  return;
+                }
+              }
+
+              if (fallback.source === 'vercel_preview_comment') {
+                let combinedStatus = { statuses: [] };
+                let statusReadError = false;
+                try {
+                  const response = await github.rest.repos.getCombinedStatusForRef({
+                    owner,
+                    repo,
+                    ref: headSha,
+                  });
+                  combinedStatus = response.data || combinedStatus;
+                } catch (error) {
+                  statusReadError = true;
+                  core.warning(`Could not read ${headSha} commit statuses for preview-comment fallback: ${error.status || 'error'} ${error.message}`);
+                }
+                if (statusReadError || hasSuccessfulVercelStatus(combinedStatus.statuses || [])) {
+                  const sourceLabel = statusReadError ? 'after commit status read fallback' : 'after green Vercel status';
+                  core.info(`Resolved Vercel preview comment ${sourceLabel} for ${headSha}: ${fallback.serverUrl}`);
+                  setTarget({
+                    serverUrl: fallback.serverUrl,
+                    apiUrl: fallback.apiUrl || toApiUrl(fallback.serverUrl),
+                    source: statusReadError ? 'vercel_preview_comment_status_unread' : 'vercel_preview_comment_status',
                   });
                   return;
                 }
@@ -359,6 +411,13 @@ jobs:
                 body,
               });
             }
+
+      - name: Fail while Vercel preview is pending
+        if: ${{ always() && github.event_name == 'pull_request' && steps.token.outputs.has_token == 'true' && steps.vercel.outputs.ready == 'false' }}
+        shell: bash
+        run: |
+          echo "::error::Vercel preview is still pending; TestPass did not run and must be retried after Vercel is green."
+          exit 1
 
       - name: Explain Dependabot TestPass skip
         if: ${{ always() && github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' && steps.token.outputs.has_token != 'true' }}

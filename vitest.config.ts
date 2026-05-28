@@ -12,6 +12,7 @@ export default defineConfig({
     include: [
       "src/**/*.{test,spec}.{ts,tsx}",
       "api/**/*.{test,spec}.{ts,tsx}",
+      "apps/jobsmith/src/**/*.{test,spec}.{ts,tsx}",
       "packages/copypass/src/**/*.{test,spec}.ts",
       "packages/commonsensepass/src/**/*.{test,spec}.ts",
     ],
@@ -19,6 +20,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@jobsmith": path.resolve(__dirname, "./apps/jobsmith/src"),
       "@unclick/flowpass": path.resolve(__dirname, "./packages/flowpass/src/index.ts"),
     },
   },

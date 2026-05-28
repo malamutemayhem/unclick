@@ -27,9 +27,10 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
-| .github/workflows/ci.yml | 8650d072f494 | 1559 |
+| .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
-| package.json | 2c50a18f4684 | 5202 |
+| .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
+| package.json | bbceabab4654 | 6285 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -59,7 +60,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
 | src/pages/admin/AdminEcosystemPages.tsx | b045ed683458 | 13590 |
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
-| src/pages/admin/AdminBrainmap.tsx | 21baca89f0d0 | 27078 |
+| src/pages/admin/AdminBrainmap.tsx | c764ced96836 | 26511 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | a7d741e75c78 | 7306 |
 | src/pages/admin/crews/CrewComposer.tsx | f3afb17bb001 | 13909 |
@@ -68,7 +69,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 089b6c00af2e | 5949 |
 | src/pages/admin/AdminDashboard.tsx | 437a146a3d78 | 5259 |
-| src/pages/admin/AdminJobs.tsx | d4782e020bb5 | 59940 |
+| src/pages/admin/AdminJobs.tsx | ea5ff201abd2 | 60846 |
 | src/pages/admin/AdminJobsmith.tsx | 34ba72c04cb2 | 54660 |
 | src/pages/admin/AdminKeychain.tsx | 0c355d737922 | 77124 |
 | src/pages/admin/AdminMemory.tsx | f001b0a54b31 | 9731 |
@@ -103,10 +104,10 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Developers.tsx | 9657fd564797 | 19123 |
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
-| src/pages/DogfoodReport.tsx | a2d54cc557ef | 16182 |
+| src/pages/DogfoodReport.tsx | 16909fd44b92 | 16552 |
 | src/pages/FAQPage.tsx | c3c95c39e56f | 723 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
-| src/pages/Jobsmith.tsx | 70f86c37110a | 34772 |
+| src/pages/Jobsmith.tsx | 08e9c9874c22 | 61541 |
 | src/pages/Login.tsx | 0cfc79660be5 | 8862 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
@@ -126,11 +127,11 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
 | scripts/pinballwake-coding-room.mjs | 9fa5689c555e | 25310 |
-| scripts/pinballwake-continuous-improvement-room.mjs | 8c23d67cad4e | 14869 |
+| scripts/pinballwake-continuous-improvement-room.mjs | 51ca5eb8745b | 14894 |
 | scripts/pinballwake-dogfood-room.mjs | d161028d1382 | 2782 |
 | scripts/pinballwake-event-ledger-room.mjs | e8f8f9f84123 | 16104 |
 | scripts/pinballwake-jobs-room.mjs | c77c394081c2 | 14217 |
-| scripts/pinballwake-launchpad-room.mjs | 64cc89cd3253 | 12693 |
+| scripts/pinballwake-launchpad-room.mjs | 9ee3556460d0 | 20544 |
 | scripts/pinballwake-merge-room.mjs | 3645da5c0c93 | 8431 |
 | scripts/pinballwake-overlap-resolver-room.mjs | 14d03ef6acd3 | 6787 |
 | scripts/pinballwake-personality-room.mjs | c1ca769346f1 | 9644 |
@@ -144,7 +145,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 92b4e63503f5 | 20902 |
+| scripts/pinballwake-xpass-gate-room.mjs | 51c7580b8abf | 28631 |
 | packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |
@@ -199,7 +200,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | 3f15309a71f0 | 17290 |
+| .github/workflows/testpass-pr-check.yml | bca601f0a1c2 | 20251 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | f26a538f2ee9 | 896 |
 
@@ -212,18 +213,19 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Tools | MCP and gateway capabilities available to seats. | 187 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
-| Passes and gates | Quality, proof, safety, and fidelity checks. | 15 |
+| Passes and gates | Quality, proof, safety, and fidelity checks. | 16 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 118 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 62 |
-| Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 4 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 65 |
+| Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 5 |
 
 ## UnClick Structure
 
 - UnClick is the platform: tools, memory, agents, proof, and admin surfaces.
 - Launchpad is the control hub for Autopilot work.
+- Crews Council induction is a Launchpad prompt, not a new Pass product; it uses Council Lite for light dissent and asks for full Crews only when judgement is needed.
 - Rooms are the operational stages that route work through research, planning, build, proof, review, safety, merge, publish, repair, and improvement.
 - Heartbeat Master at `/admin/agents/heartbeat` teaches scheduled AI seats how to pulse safely.
 - Heartbeat policy changes must update the `/admin/agents/heartbeat` source and verify the MASTER induction text. Memory and Brainmap entries are pointers, not the runtime MASTER.
@@ -240,9 +242,10 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | 3 | Open Boardroom Jobs | Use Jobs as the source of truth for active work, proof state, blockers, and safe next action. | Boardroom Jobs | /admin/jobs |
 | 4 | Pass through Brainmap | Use the generated ecosystem map to find current routes, tools, rooms, workers, aliases, and safety gates. | Ecosystem Brainmap | /admin/brainmap |
 | 5 | Choose the Launchpad lane | Route the work through the safest current Autopilot lane before acting or handing off. | Launchpad | /admin/pinballwake |
-| 6 | Check proof gates | Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing. | Proof Ledger | docs/agent-observability.md |
-| 7 | Dogtest the outcome | Run the focused local tests and browser or live proof that match the touched surface. | XPass and CI | package.json |
-| 8 | Reply and log proof | End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step. | Boardroom and Orchestrator | /admin/jobs |
+| 6 | Ask Crews Council if needed | Run Council Lite on material work, then prompt full Crews Council for launch, risk, mixed proof, or broad XPass evidence. | Crews Council | scripts/pinballwake-launchpad-room.mjs |
+| 7 | Check proof gates | Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing. | Proof Ledger | docs/agent-observability.md |
+| 8 | Dogtest the outcome | Run the focused local tests and browser or live proof that match the touched surface. | XPass and CI | package.json |
+| 9 | Reply and log proof | End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step. | Boardroom and Orchestrator | /admin/jobs |
 
 ## Pages and Meaning
 
@@ -604,6 +607,8 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | script | pinballwake commonsense pass.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-commonsense-pass.test.mjs |
 | Automations | script | pinballwake continuous improvement room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-room.mjs |
 | Automations | script | pinballwake continuous improvement room.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-room.test.mjs |
+| Automations | script | pinballwake continuous improvement watch | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-watch.mjs |
+| Automations | script | pinballwake continuous improvement watch.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-watch.test.mjs |
 | Automations | script | pinballwake dogfood room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-dogfood-room.mjs |
 | Automations | script | pinballwake dogfood room.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-dogfood-room.test.mjs |
 | Automations | script | pinballwake event ledger room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-event-ledger-room.mjs |
@@ -675,6 +680,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | workflow | brainmap auto update.yml | Scheduled workflow that regenerates the ecosystem Brainmap. | - | .github/workflows/brainmap-auto-update.yml |
 | Automations | workflow | ci.yml | Continuous integration checks for build, tests, and proof safety. | - | .github/workflows/ci.yml |
 | Automations | workflow | claude.yml | claude GitHub automation workflow. | - | .github/workflows/claude.yml |
+| Automations | workflow | continuous improvement watch.yml | continuous improvement watch GitHub automation workflow. | - | .github/workflows/continuous-improvement-watch.yml |
 | Automations | workflow | dirty branch hygiene.yml | dirty branch hygiene GitHub automation workflow. | - | .github/workflows/dirty-branch-hygiene.yml |
 | Automations | workflow | dogfood report.yml | dogfood report GitHub automation workflow. | - | .github/workflows/dogfood-report.yml |
 | Automations | workflow | event wake router.yml | GitHub-triggered wake and routing workflow. | - | .github/workflows/event-wake-router.yml |
@@ -689,6 +695,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | workflow | testpass scheduled smoke.yml | testpass scheduled smoke GitHub automation workflow. | - | .github/workflows/testpass-scheduled-smoke.yml |
 | Automations | workflow | tier2 auto merge queue check.yml | tier2 auto merge queue check GitHub automation workflow. | - | .github/workflows/tier2-auto-merge-queue-check.yml |
 | Launch and onboarding | brainmap source | Un Click brainmap | Un Click brainmap UnClick module. | - | scripts/UnClick-brainmap.mjs |
+| Launch and onboarding | judgement prompt | Crews Council Induction | Launchpad prompt that runs Council Lite on material work and asks for a full Crews Council only when launch, risk, mixed proof, or broad XPass evidence needs judgement. | /admin/pinballwake | scripts/pinballwake-launchpad-room.mjs |
 | Launch and onboarding | map | Ecosystem Brainmap | Generated sitemap and system map that teaches seats what UnClick contains. | /admin/brainmap | src/pages/admin/AdminBrainmap.tsx |
 | Launch and onboarding | policy | Heartbeat Master | Canonical schedule prompt and procedure for safe heartbeat seats. | /admin/agents/heartbeat | src/pages/admin/AdminSeatHeartbeat.tsx |
 | Launch and onboarding | route | Launchpad | Control hub that points seats to the next safe operating lane. | /admin/pinballwake | scripts/pinballwake-launchpad-room.mjs |
@@ -698,6 +705,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Ledgers and proof | proof module | pinballwake openhands proof runner | pinballwake openhands proof runner UnClick module. | - | scripts/pinballwake-openhands-proof-runner.mjs |
 | Ledgers and proof | proof module | pinballwake proof executor | pinballwake proof executor UnClick module. | - | scripts/pinballwake-proof-executor.mjs |
 | Ledgers and proof | proof module | pinballwake quiet window proof | pinballwake quiet window proof UnClick module. | - | scripts/pinballwake-quiet-window-proof.mjs |
+| Modules and apps | app module | app Log Store | app Log Store shared frontend logic. | - | src/lib/jobsmith/appLogStore.ts |
+| Modules and apps | app module | build Browser Corpus | build Browser Corpus shared frontend logic. | - | src/lib/jobsmith/buildBrowserCorpus.ts |
+| Modules and apps | app module | parse Pdf Browser | parse Pdf Browser shared frontend logic. | - | src/lib/jobsmith/parsePdfBrowser.ts |
 | Modules and apps | app | api | package UnClick module. | - | apps/api/package.json |
 | Modules and apps | app | jobsmith | JobSmith application module for CV, checklist, and rule-pack work. | - | apps/jobsmith/package.json |
 | Modules and apps | app | JobSmith | CV, cover-letter, job application, and rules/checklist engine. | /admin/jobsmith | apps/jobsmith/package.json |
@@ -766,6 +776,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Passes and gates | pass | testpass | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/testpass.ts |
 | Passes and gates | pass | testpass background handoff | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-background-handoff.ts |
 | Passes and gates | pass | testpass boundary | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-boundary.ts |
+| Passes and gates | pass | testpass edit guard | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-edit-guard.ts |
 | Passes and gates | pass | testpass pr comment | testpass pr comment UnClick module. | - | scripts/testpass-pr-comment.mjs |
 | Passes and gates | pass | testpass pr target | testpass pr target UnClick module. | - | scripts/testpass-pr-target.mjs |
 | Passes and gates | pass | testpass run | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/testpass-run.ts |
@@ -1112,6 +1123,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 ## Launchpad Route
 
 - Launchpad routes work from Coordinator to Builder, Tester, Reviewer, Safety Checker, and Ledger PASS.
+- Launchpad checks Council induction so Council Lite is always visible on material work, and full Crews appears when launch, risk, mixed XPass proof, or broad evidence needs judgement.
 - Launchpad readiness is represented in `scripts/pinballwake-launchpad-room.mjs` and related tests.
 - User-facing control lives in Autopilot admin surfaces, with worker discussion in Boardroom.
 
@@ -1136,6 +1148,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | test:api | npm run test --workspace=apps/api |
 | test:brainmap | node --test scripts/UnClick-brainmap.test.mjs |
 | test:compliancepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
+| test:continuous-improvement-watch | node --test scripts/pinballwake-continuous-improvement-watch.test.mjs |
 | test:enterprisepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
 | test:rotatepass-redaction | node --test scripts/rotatepass-redaction-guard.test.mjs |
 | test:watch | vitest |

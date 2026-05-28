@@ -5,31 +5,33 @@ import { readFile } from "node:fs/promises";
 const CHECK_ORDER = [
   "testpass",
   "uxpass",
-  "securitypass",
-  "commonsensepass",
   "flowpass",
-  "geopass",
+  "securitypass",
   "rotatepass",
   "copypass",
   "seopass",
+  "geopass",
   "legalpass",
-  "sloppass",
+  "enterprisepass",
+  "commonsensepass",
   "wakepass",
+  "sloppass",
 ];
 
 const CHECK_LABELS = {
   testpass: "TestPass",
   uxpass: "UXPass",
-  securitypass: "SecurityPass",
-  commonsensepass: "CommonSensePass",
   flowpass: "FlowPass",
-  geopass: "GEOPass",
+  securitypass: "SecurityPass",
   rotatepass: "RotatePass",
   copypass: "CopyPass",
   seopass: "SEOPass",
+  geopass: "GEOPass",
   legalpass: "LegalPass",
-  sloppass: "SlopPass",
+  enterprisepass: "EnterprisePass",
+  commonsensepass: "CommonSensePass",
   wakepass: "WakePass",
+  sloppass: "SlopPass",
 };
 
 const PASS_PRODUCT_CHECKS = new Map([
@@ -37,6 +39,7 @@ const PASS_PRODUCT_CHECKS = new Map([
   ["copypass", "copypass"],
   ["flowpass", "flowpass"],
   ["geopass", "geopass"],
+  ["enterprisepass", "enterprisepass"],
   ["legalpass", "legalpass"],
   ["securitypass", "securitypass"],
   ["seopass", "seopass"],
@@ -56,6 +59,47 @@ const ENTERPRISE_READINESS_TERMS = [
   "model inventory",
   "technical documentation",
   "training data",
+];
+
+const COUNCIL_TRIGGER_TERMS = [
+  "ambiguous",
+  "council",
+  "crew",
+  "crews",
+  "debate",
+  "decide",
+  "decision",
+  "dissent",
+  "good enough",
+  "go no go",
+  "go/no-go",
+  "judgement",
+  "judgment",
+  "launch",
+  "opinion",
+  "opinions",
+  "positioning",
+  "ready to ship",
+  "risk acceptance",
+  "strategy",
+  "taste",
+  "trade-off",
+  "tradeoff",
+  "unclear",
+];
+
+const COUNCIL_HIGH_JUDGMENT_CHECKS = new Set([
+  "securitypass",
+  "legalpass",
+  "commonsensepass",
+  "rotatepass",
+]);
+
+const COUNCIL_LITE_QUESTIONS = [
+  "What would make this answer or change wrong?",
+  "What evidence is missing, stale, or too weak?",
+  "Who would object: user, maintainer, reviewer, legal, security, or operator?",
+  "What is the smallest proof needed before saying ready?",
 ];
 
 const PASS_STATUS = new Set(["pass", "passed", "success", "green", "ok"]);
@@ -220,6 +264,23 @@ export function selectXPassChecks(input = {}) {
     }
 
     if (
+      path.includes("flowpass") ||
+      path.includes("onboarding") ||
+      path.includes("checkout") ||
+      path.includes("signup") ||
+      path.includes("sign-up") ||
+      path.includes("login") ||
+      path.includes("handoff") ||
+      path.includes("navigation") ||
+      path.includes("journey") ||
+      path.includes("funnel") ||
+      path.includes("route") ||
+      path.startsWith("src/pages/")
+    ) {
+      addReason(reasons, "flowpass", `journey or route surface: ${path}`);
+    }
+
+    if (
       path.startsWith("public/") ||
       path === "index.html" ||
       path.includes("landing") ||
@@ -227,7 +288,7 @@ export function selectXPassChecks(input = {}) {
       path.includes("geopass") ||
       path.includes("llms.txt") ||
       path.includes("schema.org") ||
-      hasAny(pathWords, ["seo", "meta", "sitemap", "robots"])
+      hasAny(pathWords, ["seo", "meta", "sitemap", "robots", "canonical", "schema"])
     ) {
       addReason(reasons, "seopass", `public/SEO surface: ${path}`);
     }
@@ -236,9 +297,27 @@ export function selectXPassChecks(input = {}) {
       path.includes("geopass") ||
       path.includes("llms.txt") ||
       path.includes("schema.org") ||
-      hasAny(pathWords, ["geo", "ai", "answer", "engine", "gptbot", "claudebot", "perplexitybot", "wikidata"])
+      path.includes("common-crawl") ||
+      path.includes("wikidata") ||
+      path.includes("structured-data") ||
+      hasAny(pathWords, [
+        "geo",
+        "generative",
+        "engine",
+        "ai",
+        "answer",
+        "crawlability",
+        "sitemap",
+        "robots",
+        "canonical",
+        "schema",
+        "gptbot",
+        "claudebot",
+        "perplexitybot",
+        "wikidata",
+      ])
     ) {
-      addReason(reasons, "geopass", `AI answer-engine readiness surface: ${path}`);
+      addReason(reasons, "geopass", `AI discovery/readiness surface: ${path}`);
     }
 
     if (
@@ -273,6 +352,24 @@ export function selectXPassChecks(input = {}) {
     }
 
     if (
+      path.includes("enterprise") ||
+      path.includes("compliance") ||
+      path.includes("audit") ||
+      path.includes("evidence") ||
+      path.includes("receipt") ||
+      path.includes("policy") ||
+      path.includes("ruleset") ||
+      path.includes("secret-scanning") ||
+      path.endsWith("package-lock.json") ||
+      path.endsWith("pnpm-lock.yaml") ||
+      path.endsWith("yarn.lock") ||
+      path.includes("dependabot") ||
+      hasAny(pathWords, ["soc", "iso", "gdpr", "dpa"])
+    ) {
+      addReason(reasons, "enterprisepass", `enterprise/compliance evidence surface: ${path}`);
+    }
+
+    if (
       path.includes("auth") ||
       path.includes("oauth") ||
       path.includes("session") ||
@@ -289,7 +386,12 @@ export function selectXPassChecks(input = {}) {
       path.includes("csrf") ||
       path.includes("csp") ||
       path.includes("rls") ||
-      path.includes("supabase/migrations")
+      path.includes("supabase/migrations") ||
+      path.endsWith("package.json") ||
+      path.endsWith("package-lock.json") ||
+      path.endsWith("pnpm-lock.yaml") ||
+      path.endsWith("yarn.lock") ||
+      path.includes("dependabot")
     ) {
       addReason(reasons, "securitypass", `security-sensitive surface: ${path}`);
     }
@@ -298,13 +400,19 @@ export function selectXPassChecks(input = {}) {
       path.includes("rotatepass") ||
       path.includes("credential") ||
       path.includes("credentials") ||
-      path.includes("keychain") ||
       path.includes("revocation") ||
       path.includes("local-session") ||
       path.includes("browser-profile") ||
-      path.includes("password")
+      path.includes("token") ||
+      path.includes("secret") ||
+      path.includes("keychain") ||
+      path.includes("password") ||
+      path.includes("redaction") ||
+      path.includes("system-credentials") ||
+      path.includes("provider-response") ||
+      path.includes("rotation")
     ) {
-      addReason(reasons, "rotatepass", `credential lifecycle surface: ${path}`);
+      addReason(reasons, "rotatepass", `credential rotation/redaction surface: ${path}`);
     }
 
     if (
@@ -312,25 +420,34 @@ export function selectXPassChecks(input = {}) {
       path.includes("orchestrator") ||
       path.includes("heartbeat") ||
       path.includes("runner") ||
+      path.includes("queue") ||
+      path.includes("boardroom") ||
       path.includes("claim") ||
       path.includes("proof") ||
-      path.includes("queue") ||
-      path.includes("done") ||
-      path.includes("merge-ready")
+      path.includes("receipt") ||
+      path.includes("merge-ready") ||
+      path.includes("no-work") ||
+      path.includes("done")
     ) {
-      addReason(reasons, "commonsensepass", `worker claim/proof surface: ${path}`);
+      addReason(reasons, "commonsensepass", `claim/proof sanity surface: ${path}`);
     }
 
     if (
       path.includes("wakepass") ||
+      path.includes("pinballwake") ||
+      path.startsWith(".github/workflows/") ||
+      path.includes("workflow") ||
       path.includes("heartbeat") ||
+      path.includes("dispatch") ||
+      hasAny(pathWords, ["ack"]) ||
       path.includes("scheduled") ||
       path.includes("cron") ||
       path.includes("stale") ||
-      path.includes("dispatch") ||
-      hasAny(pathWords, ["ack"])
+      path.includes("lease") ||
+      path.includes("runner") ||
+      path.includes("queue")
     ) {
-      addReason(reasons, "wakepass", `wake or dispatch surface: ${path}`);
+      addReason(reasons, "wakepass", `wake/runner reliability surface: ${path}`);
     }
 
     if (codeFile(path) && !testFile(path)) {
@@ -341,35 +458,38 @@ export function selectXPassChecks(input = {}) {
   if (hasAny(allText, ["mcp", "tool", "tools", "connector", "connectors", "api endpoint", "native endpoint"])) {
     addReason(reasons, "testpass", "target text mentions tools/connectors/MCP");
   }
-  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
+  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
     addReason(reasons, "uxpass", "target text mentions UI/UX/visual changes");
+  }
+  if (hasAny(allText, ["flow", "journey", "path", "route", "checkout", "signup", "sign up", "onboarding", "handoff", "navigation", "funnel", "success state", "failure state"])) {
+    addReason(reasons, "flowpass", "target text mentions journey/flow completion");
   }
   if (hasAny(allText, ["security", "auth", "oauth", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "password", "redaction", "prompt injection", "insecure output", "llm", "model output", "sandbox"])) {
     addReason(reasons, "securitypass", "target text mentions security/auth/keys");
   }
-  if (hasAny(allText, ["common sense", "commonsense", "false done", "no work", "healthy", "merge ready", "claim", "claims", "proof", "receipt", "queue", "orchestrator", "heartbeat"])) {
-    addReason(reasons, "commonsensepass", "target text mentions worker claims or proof sanity");
-  }
-  if (hasAny(allText, ["flow", "journey", "onboarding", "checkout", "signup", "handoff", "end to end", "e2e", "cta", "form", "success state", "failure state"])) {
-    addReason(reasons, "flowpass", "target text mentions product journey or end-to-end flow");
-  }
-  if (hasAny(allText, ["geo", "generative engine", "answer engine", "ai overview", "ai mode", "gptbot", "claudebot", "perplexity", "llms.txt", "wikidata", "schema.org"])) {
-    addReason(reasons, "geopass", "target text mentions AI answer-engine readiness");
-  }
-  if (hasAny(allText, ["rotate", "rotation", "revocation", "credential", "credentials", "keychain", "local session", "browser profile", "password"])) {
-    addReason(reasons, "rotatepass", "target text mentions credential lifecycle");
-  }
-  if (hasAny(allText, ["wake", "wakepass", "ack", "missed ack", "stale", "heartbeat", "cron", "schedule", "scheduled", "dispatch"])) {
-    addReason(reasons, "wakepass", "target text mentions wakes, stale work, or schedules");
+  if (hasAny(allText, ["rotatepass", "rotation", "rotate", "revocation", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "redaction", "system credentials", "local session", "browser profile", "password"])) {
+    addReason(reasons, "rotatepass", "target text mentions credential rotation/redaction");
   }
   if (hasAny(allText, ["copy", "wording", "homepage", "landing", "docs", "faq", "marketing", "public claim", "public claims"])) {
     addReason(reasons, "copypass", "target text mentions copy/docs/claims");
   }
-  if (hasAny(allText, ["seo", "search", "meta", "sitemap", "robots"])) {
+  if (hasAny(allText, ["seo", "search", "meta", "sitemap", "robots", "canonical", "schema", "structured data"])) {
     addReason(reasons, "seopass", "target text mentions SEO");
+  }
+  if (hasAny(allText, ["geo", "geopass", "generative engine", "ai discovery", "ai citation", "llms", "crawlability", "common crawl", "wikidata", "brand mention", "answer engine"])) {
+    addReason(reasons, "geopass", "target text mentions generative-engine readiness");
   }
   if (hasAny(allText, ["legal", "privacy", "terms", "license", "pricing", "billing", "invoice", "subprocessor", "compliance"])) {
     addReason(reasons, "legalpass", "target text mentions legal/commercial risk");
+  }
+  if (hasAny(allText, ["enterprise", "enterprisepass", "compliancepass", "compliance", "audit", "evidence", "receipt", "policy", "soc", "iso", "gdpr", "dpa", "secret scanning", "push protection"])) {
+    addReason(reasons, "enterprisepass", "target text mentions enterprise/compliance evidence");
+  }
+  if (hasAny(allText, ["commonsensepass", "common sense", "healthy", "quiet", "no work", "no_work", "done", "merge ready", "merge_ready", "stale proof", "green chip", "claim", "completion proof"])) {
+    addReason(reasons, "commonsensepass", "target text mentions claim/proof sanity");
+  }
+  if (hasAny(allText, ["wakepass", "pinballwake", "wake", "heartbeat", "dispatch", "ack", "lease", "stale check", "scheduled", "cron", "runner", "queue", "job claim"])) {
+    addReason(reasons, "wakepass", "target text mentions wake/runner reliability");
   }
   if (hasAny(allText, ["quality", "slop", "refactor", "code smell", "bug", "bugfix"])) {
     addReason(reasons, "sloppass", "target text mentions quality or code risk");
@@ -388,6 +508,9 @@ function normalizeCheckName(value) {
   const key = normalize(value).replace(/[\s_-]+/g, "");
   if (key === "qualitypass") return "sloppass";
   if (key === "quality") return "sloppass";
+  if (key === "compliancepass") return "enterprisepass";
+  if (key === "compliance") return "enterprisepass";
+  if (key === "enterprise") return "enterprisepass";
   return CHECK_ORDER.find((check) => check === key || CHECK_LABELS[check].toLowerCase() === key) || key;
 }
 
@@ -446,6 +569,82 @@ function isUnscopedForTarget(result, inspectedTarget) {
   return Boolean(result && inspectedTarget?.sha && !result.target_sha);
 }
 
+export function selectCrewsCouncilTrigger(input = {}, selected = selectXPassChecks(input), results = resultMap(input.pass_results || input.passResults || input.results)) {
+  const files = changedFiles(input);
+  const text = targetText(input);
+  const allText = `${text} ${files.join(" ")}`;
+  const selectedChecks = selected.map((check) => check.check);
+  const selectedSet = new Set(selectedChecks);
+  const providedResults = [...results.values()];
+  const passedResults = providedResults.filter((result) => result.status === "passed");
+  const blockerResults = providedResults.filter((result) => result.status === "blocker");
+  const skippedResults = providedResults.filter((result) => result.status === "skipped");
+  const highJudgmentChecks = selectedChecks.filter((check) => COUNCIL_HIGH_JUDGMENT_CHECKS.has(check));
+  const reasons = new Set();
+
+  if (input.require_council === true || input.requireCouncil === true || input.force_council === true || input.forceCouncil === true) {
+    reasons.add("Council explicitly requested for this target.");
+  }
+
+  if (hasAny(allText, COUNCIL_TRIGGER_TERMS)) {
+    reasons.add("Target language asks for judgement, debate, launch readiness, or a decision.");
+  }
+
+  if (files.some((path) => path.includes("/crews/") || path.includes("crews") || path.includes("council"))) {
+    reasons.add("Crews or Council surface changed; dogfood Crews with its own Council judgement.");
+  }
+
+  if (selectedChecks.length >= 4) {
+    reasons.add(`Broad XPass surface selected ${selectedChecks.length} checks; use a Council to interpret the combined evidence.`);
+  }
+
+  if (highJudgmentChecks.length >= 2) {
+    reasons.add(`High-judgement checks overlap: ${highJudgmentChecks.map((check) => CHECK_LABELS[check]).join(", ")}.`);
+  }
+
+  if (
+    (selectedSet.has("legalpass") || selectedSet.has("securitypass")) &&
+    (selectedSet.has("copypass") || selectedSet.has("uxpass") || selectedSet.has("seopass")) &&
+    hasAny(allText, ["public", "publish", "release", "launch", "pricing", "homepage", "landing", "claims", "enterprise", "compliance"])
+  ) {
+    reasons.add("Public, commercial, legal, or security evidence needs a named final judgement before release.");
+  }
+
+  if (blockerResults.length > 0 && passedResults.length > 0) {
+    reasons.add("Pass evidence is mixed; a Council should decide what the blockers mean before owners treat the target as ready.");
+  }
+
+  if (skippedResults.length > 0 && selectedChecks.length >= 3) {
+    reasons.add("Some checks were skipped on a multi-pass target; use a Council to record accepted exclusions.");
+  }
+
+  const triggerScore = Math.min(100, (reasons.size * 22) + Math.min(30, selectedChecks.length * 5));
+  const needed = reasons.size > 0;
+  const liteNeeded = Boolean(files.length || text || selectedChecks.length || providedResults.length);
+
+  return {
+    needed,
+    status: needed ? (triggerScore >= 55 ? "recommended" : "consider") : "not_needed",
+    trigger_score: triggerScore,
+    suggested_template: needed ? "Council" : null,
+    suggested_tool: needed ? "start_crew_run" : null,
+    reasons: [...reasons],
+    note: needed
+      ? "Crews should interpret the evidence; XPass still owns the checks and receipts."
+      : "XPass can handle this without a Crews Council.",
+    lite_check: {
+      needed: liteNeeded,
+      status: liteNeeded ? "baseline" : "not_needed",
+      suggested_template: liteNeeded ? "Council Lite" : null,
+      mode: "anti_rubber_stamp",
+      questions: liteNeeded ? COUNCIL_LITE_QUESTIONS : [],
+      note: liteNeeded
+        ? "Use this tiny dissent check before treating the answer as ready; escalate to full Council only when the recommendation says consider or recommended."
+        : "No meaningful target was supplied for a light Crews check.",
+    },
+  };
+}
+
 function makeReceipt({
   inspectedTarget,
   selected,
@@ -455,6 +654,7 @@ function makeReceipt({
   stale,
   unscoped,
   skipped,
+  council,
   now,
 }) {
   return {
@@ -487,6 +687,7 @@ function makeReceipt({
       unscoped_checks: unscoped.map((result) => result.check),
       target_sha: inspectedTarget.sha || null,
     },
+    crews_council: council,
   };
 }
 
@@ -500,6 +701,7 @@ export function evaluateXPassGate(input = {}) {
   const available = new Set(safeList(input.available_checks || input.availableChecks).map(normalizeCheckName));
   const hasAvailability = available.size > 0;
   const results = resultMap(input.pass_results || input.passResults || input.results);
+  const council = selectCrewsCouncilTrigger(input, selected, results);
 
   const skipped = [];
   const missing = [];
@@ -547,6 +749,7 @@ export function evaluateXPassGate(input = {}) {
     stale,
     unscoped,
     skipped,
+    council,
     now,
   });
 
@@ -585,6 +788,7 @@ export function evaluateXPassGate(input = {}) {
     stale_checks: stale.map((result) => result.check),
     unscoped_checks: unscoped.map((result) => result.check),
     skipped_checks: skipped,
+    crews_council: council,
     receipt,
   };
 }

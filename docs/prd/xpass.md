@@ -120,6 +120,12 @@ Every XPass receipt must show:
    Clear next step when a result needs owner action.
 6. **Staleness**
    When the receipt was generated and whether newer code, credentials, or deploys may invalidate it.
+7. **Crews Council recommendation**
+   Whether this target needs no Council, should consider a Council, or should run a recommended Council before owners treat the evidence as a final decision.
+
+XPass should recommend full Crews only for judgement-heavy targets. It should not call a full Council for every run. Examples that deserve a Council recommendation: launch go/no-go, legal/security plus public claims, conflicting Pass evidence, accepted skipped checks on broad targets, or Crews/Council product changes.
+
+For material targets, XPass may also attach `lite_check` anti-rubber-stamp questions. Council Lite is a prompt/checklist, not a full Crews run. It keeps dissent visible without bloating every proof run.
 
 ## Public copy rules
 
