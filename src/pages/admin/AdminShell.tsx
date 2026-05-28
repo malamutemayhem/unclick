@@ -5,7 +5,8 @@
  * a global Ctrl+K search bar in the header, user avatar/email, logout.
  * Content rendered via React Router <Outlet>.
  *
- * Dark palette: bg #0A0A0A, primary teal #61C1C4, secondary amber #E2B93B.
+ * Dark palette: design tokens via Tailwind (bg-background, text-primary, etc).
+ * Amber accents on the Admin submenu intentionally signal superuser surface.
  * Each surface is extractable as a native app later.
  */
 
@@ -57,7 +58,6 @@ import {
   LockKeyhole,
   Tags,
   FileStack,
-  FileCode2,
   SlidersHorizontal,
 } from "lucide-react";
 
@@ -75,8 +75,8 @@ function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
           isActive
-            ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-            : "text-[#888] hover:bg-white/[0.04] hover:text-[#ccc]"
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
         }`
       }
     >
@@ -103,21 +103,20 @@ function SeatsCascadeIcon(props: SVGProps<SVGSVGElement>) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <rect x="3" y="4" width="18" height="13" rx="2" />
-      <path d="M12 17v3" />
-      <path d="M8 20h8" />
-      <path d="M12 7V5.5" />
-      <path d="M10.5 7h3" />
-      <rect x="8" y="8" width="8" height="6" rx="2" />
-      <path d="M10.5 11h.01" />
-      <path d="M13.5 11h.01" />
-      <path d="M11 13h2" />
+      <rect x="7" y="4" width="13" height="10" rx="2" />
+      <path d="M11 14v2" />
+      <path d="M9 16h6" />
+      <rect x="3" y="8" width="13" height="10" rx="2" />
+      <path d="M7.5 12.5h.01" />
+      <path d="M11.5 12.5h.01" />
+      <path d="M8 15h3" />
+      <path d="M8 18v2" />
+      <path d="M6 20h6" />
     </svg>
   );
 }
 
 const AUTOPILOT_LINKS = [
-  { path: "/admin/autopilot/expressbuild", label: "DraftRoom", icon: FileCode2 },
   { path: "/admin/boardroom", label: "Boardroom", icon: MessagesSquare },
   { path: "/admin/jobs", label: "Jobs", icon: ListTodo },
   { path: "/admin/checks", label: "XPass", icon: ClipboardCheck },
@@ -132,10 +131,10 @@ function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
     AUTOPILOT_LINKS.some((item) => location.pathname.startsWith(item.path));
 
   return (
-    <div className="rounded-lg border border-[#61C1C4]/15 bg-[#61C1C4]/[0.03] p-1">
+    <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-1">
       <SurfaceLink path="/admin/autopilot" label="AutoPilot" icon={Plane} onClick={onLinkClick} />
       {open && (
-        <div className="mt-1 space-y-0.5 border-l border-[#61C1C4]/20 pl-3">
+        <div className="mt-1 space-y-0.5 border-l border-primary/20 pl-3">
           {AUTOPILOT_LINKS.map((item) => (
             <SurfaceLink
               key={item.path}
@@ -230,8 +229,8 @@ function MemoryNavItem({ onClick }: { onClick?: () => void }) {
         className={({ isActive }) =>
           `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
             isActive
-              ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-              : "text-[#888] hover:bg-white/[0.04] hover:text-[#ccc]"
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
           }`
         }
       >
@@ -250,8 +249,8 @@ function MemoryNavItem({ onClick }: { onClick?: () => void }) {
               onClick={onClick}
               className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 activeTab === id
-                  ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-                  : "text-[#666] hover:bg-white/[0.04] hover:text-[#aaa]"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-card/40 hover:text-body"
               }`}
             >
               <Icon className="h-3 w-3 shrink-0" />
@@ -279,55 +278,12 @@ function SeatsNavItem({ onClick }: { onClick?: () => void }) {
             onClick={onClick}
             className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
               heartbeatActive
-                ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-                : "text-[#666] hover:bg-white/[0.04] hover:text-[#aaa]"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-card/40 hover:text-body"
             }`}
           >
             <HeartPulse className="h-3 w-3 shrink-0" />
             Heartbeat
-          </Link>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
-  const location = useLocation();
-  const isOrchestrator = location.pathname === "/admin/orchestrator" ||
-    location.pathname.startsWith("/admin/orchestrator/");
-  const storyActive = location.pathname === "/admin/orchestrator" ||
-    location.pathname === "/admin/orchestrator/story";
-  const timelineActive = location.pathname === "/admin/orchestrator/timeline";
-
-  return (
-    <div>
-      <SurfaceLink path="/admin/orchestrator" label="Orchestrator" icon={Terminal} onClick={onClick} />
-      {isOrchestrator && (
-        <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
-          <Link
-            to="/admin/orchestrator"
-            onClick={onClick}
-            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-              storyActive
-                ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-                : "text-[#666] hover:bg-white/[0.04] hover:text-[#aaa]"
-            }`}
-          >
-            <BookOpen className="h-3 w-3 shrink-0" />
-            Story
-          </Link>
-          <Link
-            to="/admin/orchestrator/timeline"
-            onClick={onClick}
-            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-              timelineActive
-                ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-                : "text-[#666] hover:bg-white/[0.04] hover:text-[#aaa]"
-            }`}
-          >
-            <Clock className="h-3 w-3 shrink-0" />
-            Timeline
           </Link>
         </div>
       )}
@@ -349,14 +305,13 @@ function SidebarNav({
       <SurfaceLink path="/admin/dashboard" label="Dashboard"               icon={LayoutDashboard} onClick={onLinkClick} />
       <SurfaceLink path="/admin/you"      label="You"                      icon={User}    onClick={onLinkClick} />
       <MemoryNavItem onClick={onLinkClick} />
-      <OrchestratorNavItem onClick={onLinkClick} />
+      <SurfaceLink path="/admin/orchestrator" label="Orchestrator"          icon={Terminal} onClick={onLinkClick} />
       <SurfaceLink path="/admin/tools"    label="Apps"                     icon={AppWindow} onClick={onLinkClick} />
-      <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
-      <SurfaceLink path="/admin/jobsmith" label="Jobsmith"                 icon={PenSquare} onClick={onLinkClick} />
       <SurfaceLink path="/admin/keychain" label="Passport"                 icon={KeyRound} onClick={onLinkClick} />
       <SeatsNavItem onClick={onLinkClick} />
       <AutopilotNavGroup onLinkClick={onLinkClick} />
       <SurfaceLink path="/admin/signals"      label="Signals"       icon={Bell}     onClick={onLinkClick} badge={signalsUnread} />
+      {isAdmin && <SurfaceLink path="/admin/analytics" label="Analytics"    icon={BarChart3} onClick={onLinkClick} />}
       <SurfaceLink path="/admin/settings" label="Settings"                 icon={Settings}  onClick={onLinkClick} />
       <SurfaceLink path="/admin/billing"  label="Billing"                  icon={CreditCard} onClick={onLinkClick} />
       {isAdmin && <AdminSubmenu onLinkClick={onLinkClick} />}
@@ -417,9 +372,9 @@ export default function AdminShell() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0A0A0A] text-[#ccc]">
-      {/* ── Desktop sidebar (md+) ──────────────────────────── */}
-      <aside className="fixed left-0 z-40 hidden w-56 flex-col border-r border-white/[0.06] bg-[#0A0A0A] md:flex" style={{ top: "var(--bbn-h, 0px)", bottom: 0 }}>
+    <div className="flex min-h-screen bg-background text-foreground">
+      {/* ── Desktop sidebar (md+) ──────────────────── */}
+      <aside className="fixed left-0 z-40 hidden w-56 flex-col border-r border-border/40 bg-background md:flex" style={{ top: "var(--bbn-h, 0px)", bottom: 0 }}>
         <div className="flex h-14 items-center px-5">
           <Link to="/">
             <img
@@ -435,29 +390,29 @@ export default function AdminShell() {
           <SidebarNav isAdmin={isAdmin} signalsUnread={signalsUnread} />
           <a
             href="/memory"
-            className="text-white/30 hover:text-white/50 text-xs block px-3 py-2"
+            className="text-muted-foreground/60 hover:text-muted-foreground text-xs block px-3 py-2"
           >
             How it works →
           </a>
         </nav>
 
-        <div className="border-t border-white/[0.06] p-3">
+        <div className="border-t border-border/40 p-3">
           <BugReportButton />
         </div>
 
-        <div className="border-t border-white/[0.06] p-4">
+        <div className="border-t border-border/40 p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#61C1C4]/10 text-[#61C1C4]">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
               <User className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium text-[#ccc]">
+              <p className="truncate text-xs font-medium text-foreground">
                 {user?.email ?? "Unknown"}
               </p>
             </div>
             <button
               onClick={handleLogout}
-              className="rounded-md p-1.5 text-[#666] transition-colors hover:bg-white/[0.04] hover:text-[#ccc]"
+              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-card/40 hover:text-foreground"
               title="Sign out"
             >
               <LogOut className="h-4 w-4" />
@@ -466,8 +421,8 @@ export default function AdminShell() {
         </div>
       </aside>
 
-      {/* ── Desktop top bar (md+) with global search ───────────── */}
-      <header className="fixed inset-x-0 z-30 hidden h-14 items-center border-b border-white/[0.06] bg-[#0A0A0A] md:flex md:pl-56" style={{ top: "var(--bbn-h, 0px)" }}>
+      {/* ── Desktop top bar (md+) with global search ─────────── */}
+      <header className="fixed inset-x-0 z-30 hidden h-14 items-center border-b border-border/40 bg-background md:flex md:pl-56" style={{ top: "var(--bbn-h, 0px)" }}>
         <div className="flex flex-1 items-center gap-3 px-4 lg:px-8">
           <div className="flex-1">
             <AdminSearchBar />
@@ -476,8 +431,8 @@ export default function AdminShell() {
         </div>
       </header>
 
-      {/* ── Mobile/tablet top bar (<md) ────────────────────── */}
-      <header className="fixed inset-x-0 z-40 flex h-14 items-center justify-between border-b border-white/[0.06] bg-[#0A0A0A] px-4 md:hidden" style={{ top: "var(--bbn-h, 0px)" }}>
+      {/* ── Mobile/tablet top bar (<md) ────────────────── */}
+      <header className="fixed inset-x-0 z-40 flex h-14 items-center justify-between border-b border-border/40 bg-background px-4 md:hidden" style={{ top: "var(--bbn-h, 0px)" }}>
         <Link to="/">
           <img
             src="/logo-wordmark.svg"
@@ -489,14 +444,14 @@ export default function AdminShell() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleLogout}
-            className="rounded-md p-2 text-[#666] hover:text-[#ccc]"
+            className="rounded-md p-2 text-muted-foreground hover:text-foreground"
             title="Sign out"
           >
             <LogOut className="h-4 w-4" />
           </button>
           <button
             onClick={() => setMobileNavOpen((v) => !v)}
-            className="rounded-md p-2 text-[#888] hover:text-[#ccc]"
+            className="rounded-md p-2 text-muted-foreground hover:text-foreground"
           >
             {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -505,7 +460,7 @@ export default function AdminShell() {
 
       {/* Mobile nav drawer */}
       {mobileNavOpen && (
-        <div className="fixed inset-x-0 z-30 border-b border-white/[0.06] bg-[#0A0A0A] p-3 md:hidden" style={{ top: "calc(var(--bbn-h, 0px) + 56px)" }}>
+        <div className="fixed inset-x-0 z-30 border-b border-border/40 bg-background p-3 md:hidden" style={{ top: "calc(var(--bbn-h, 0px) + 56px)" }}>
           <div className="mb-3">
             <AdminSearchBar />
           </div>
@@ -516,18 +471,18 @@ export default function AdminShell() {
               onLinkClick={() => setMobileNavOpen(false)}
             />
           </nav>
-          <div className="mt-3 border-t border-white/[0.06] pt-3">
+          <div className="mt-3 border-t border-border/40 pt-3">
             <BugReportButton />
           </div>
-          <div className="mt-2 border-t border-white/[0.06] pt-2">
-            <p className="truncate px-3 text-xs text-[#666]">
+          <div className="mt-2 border-t border-border/40 pt-2">
+            <p className="truncate px-3 text-xs text-muted-foreground">
               {user?.email ?? "Unknown"}
             </p>
           </div>
         </div>
       )}
 
-      {/* ── Main content ────────────────────────────────── */}
+      {/* ── Main content ─────────────────────────── */}
       <main className="min-h-screen flex-1 md:ml-56" style={{ paddingTop: "calc(var(--bbn-h, 0px) + 56px)" }}>
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
           <Outlet />
