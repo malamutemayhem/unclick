@@ -23,6 +23,7 @@ import DeveloperSubmitPage from "./pages/DeveloperSubmit.tsx";
 import VibeCodingPage from "./pages/VibeCoding.tsx";
 import TermsPage from "./pages/Terms.tsx";
 import PrivacyPage from "./pages/Privacy.tsx";
+// BackstagePassPage import removed 2026-05-28 — page hidden per Chris (legal review). File retained at src/pages/BackstagePass.tsx; /backstagepass route still redirects to /admin/keychain.
 import MemoryPage from "./pages/Memory.tsx";
 import MemorySetupPage from "./pages/MemorySetup.tsx";
 import MemoryConnectPage from "./pages/MemoryConnect.tsx";
@@ -32,7 +33,6 @@ import OrganiserPage from "./pages/Organiser.tsx";
 import DispatchPage from "./pages/Dispatch.tsx";
 import CrewsPage from "./pages/Crews.tsx";
 import ToolsPage from "./pages/Tools.tsx";
-import JobsmithPage from "./pages/Jobsmith.tsx";
 import NewToAIPage from "./pages/NewToAI.tsx";
 import SmartHomePage from "./pages/SmartHome.tsx";
 import InstallRecoverPage from "./pages/InstallRecover.tsx";
@@ -50,7 +50,6 @@ import AdminYou from "./pages/admin/AdminYou.tsx";
 import AdminMemory from "./pages/admin/AdminMemory.tsx";
 import AdminKeychain from "./pages/admin/AdminKeychain.tsx";
 import AdminTools from "./pages/admin/AdminTools.tsx";
-import AdminSkills from "./pages/admin/AdminSkills.tsx";
 import AdminActivity from "./pages/admin/AdminActivity.tsx";
 import AdminSettings from "./pages/admin/AdminSettings.tsx";
 import AdminAgentsPage from "./pages/admin/AdminAgents.tsx";
@@ -76,8 +75,6 @@ import AdminModeration from "./pages/admin/AdminModeration.tsx";
 import AdminAuditLog from "./pages/admin/AdminAuditLog.tsx";
 import AdminBrainmap from "./pages/admin/AdminBrainmap.tsx";
 import AdminJobs from "./pages/admin/AdminJobs.tsx";
-import AdminJobsmith from "./pages/admin/AdminJobsmith.tsx";
-import AdminExpressBuild from "./pages/admin/AdminExpressBuild.tsx";
 import {
   AdminAutopilot,
   AdminBilling,
@@ -89,7 +86,7 @@ import {
 import SignalsCatalog from "./pages/admin/signals/SignalsCatalog.tsx";
 import SignalsSettings from "./pages/admin/signals/SignalsSettings.tsx";
 import Fishbowl from "./pages/admin/Fishbowl.tsx";
-import BuildDeskPage from "./pages/BuildDesk.tsx";
+// BuildDeskPage import removed 2026-05-28 — page hidden per Chris. File retained at src/pages/BuildDesk.tsx for future revival.
 import { trackPageView } from "./lib/analytics.ts";
 
 const queryClient = new QueryClient();
@@ -139,8 +136,6 @@ const App = () => (
           <Route path="/backstagepass" element={<Navigate to="/admin/keychain" replace />} />
           {/* Core product pages */}
           <Route path="/tools" element={<ToolsPage />} />
-          <Route path="/skills" element={<Navigate to="/admin/skills" replace />} />
-          <Route path="/jobsmith" element={<JobsmithPage />} />
           <Route path="/memory" element={<MemoryPage />} />
           {/* /memory/admin redirects to the new admin shell */}
           <Route path="/memory/admin" element={<Navigate to="/admin/memory" replace />} />
@@ -164,17 +159,14 @@ const App = () => (
             <Route path="memory" element={<AdminMemory />} />
             <Route path="keychain" element={<AdminKeychain />} />
             <Route path="tools" element={<AdminTools />} />
-            <Route path="skills" element={<AdminSkills />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="projects" element={<AdminProjects />} />
             <Route path="autopilot" element={<AdminAutopilot />} />
-            <Route path="autopilot/expressbuild" element={<AdminExpressBuild />} />
             <Route path="agents"     element={<AdminAgentsPage />} />
             <Route path="agents/heartbeat" element={<AdminSeatHeartbeatPage />} />
             <Route path="workers" element={<AdminWorkers />} />
             <Route path="jobs" element={<AdminJobs />} />
-            <Route path="jobsmith" element={<AdminJobsmith />} />
             <Route path="todos" element={<Navigate to="/admin/jobs" replace />} />
             <Route path="checks" element={<AdminChecks />} />
             <Route path="ledger" element={<AdminLedger />} />
@@ -194,8 +186,6 @@ const App = () => (
             <Route path="crews/settings"      element={<CrewsSettings />} />
             {/* End-user visible read-only continuity surface */}
             <Route path="orchestrator"   element={<AdminOrchestratorPage />} />
-            <Route path="orchestrator/story" element={<Navigate to="/admin/orchestrator" replace />} />
-            <Route path="orchestrator/timeline" element={<AdminOrchestratorPage />} />
             {/* Admin-only surfaces (wrapped in RequireAdmin; also hidden from non-admin sidebar) */}
             <Route path="analytics"      element={<RequireAdmin><AdminAnalytics /></RequireAdmin>} />
             <Route path="codebase"       element={<RequireAdmin><AdminCodebase /></RequireAdmin>} />
@@ -219,7 +209,10 @@ const App = () => (
           <Route path="/dispatch" element={<DispatchPage />} />
           <Route path="/crews" element={<CrewsPage />} />
           <Route path="/dogfood" element={<DogfoodReportPage />} />
-          <Route path="/build" element={<BuildDeskPage />} />
+          {/* BuildDesk: hidden per Chris 2026-05-28. Developer dispatch surface
+              for AI coding workers, paused until the developer marketplace
+              chapter is ready. Page component retained; route redirected. */}
+          <Route path="/build" element={<Navigate to="/" replace />} />
           <Route path="/new-to-ai" element={<NewToAIPage />} />
           <Route path="/smarthome" element={<SmartHomePage />} />
           <Route path="/pricing" element={<PricingPage />} />
