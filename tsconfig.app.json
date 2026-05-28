@@ -19,6 +19,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@jobsmith/*": [
+        "./apps/jobsmith/src/*"
       ]
     },
     "skipLibCheck": true,

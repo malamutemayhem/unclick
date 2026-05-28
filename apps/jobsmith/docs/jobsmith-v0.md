@@ -30,21 +30,37 @@ pnpm --filter jobsmith test
 npx vitest run
 ```
 
+## v0.1 status
+
+v0.1 shipped the end-to-end working product on the public `/jobsmith` page:
+PDF cover-letter parsing, the engine wired into the public site, a tailored CV
+draft (`renderCvDraft`), ATS-safe DOCX export, a browser-persisted application
+log, and an upgraded risk dashboard (tone, truthfulness, age signals). The
+public page runs entirely browser-local: corpus PDFs are parsed in-browser with
+`pdfjs-dist`, and nothing is uploaded.
+
 ## Known limitations
 
-- **No PDF/INDD parsing.** Most of the cover letter corpus is `.pdf` or `.indd`; v0 lists their paths but doesn't read their text. The 5 sample cover letters embedded in `ChatGPT Prompt Letter Generation.txt` carry most of the voice signal in v0. PDF parsing is the headline v0.1 feature.
-- **Heuristic job description parsing.** v0 assumes the first non-empty line is the role and the second is the company. Unusual JD formats break this. The UI falls back to placeholders and surfaces a warning when detection fails.
-- **No LLM call.** Phrasing comes from statistical extraction + templating. Drafts are starter copy, not finished letters — always edit before sending.
-- **Brand seed list is hand-curated.** `voiceProfile.SEED_BRANDS` is a small list. Past employers not in the seed will be missed.
+- **Heuristic job description parsing.** The first non-empty line is read as the
+  role and the second as the company. Unusual JD formats break this. The UI
+  falls back to placeholders and surfaces a warning when detection fails.
+- **No LLM call.** Phrasing comes from statistical extraction + templating.
+  Drafts are starter copy, not finished letters — always edit before sending.
+- **Brand seed list is hand-curated.** `voiceProfile.SEED_BRANDS` is a small
+  list. Past employers not in the seed will be missed.
+- **CV facts are entered as JSON.** The master CV facts editor on the public
+  page takes structured JSON. A form-based editor is a future improvement.
+- **`.indd` files are still listed but not parsed.**
 
-## Deferred to v0.1
+## Deferred beyond v0.1
 
-1. PDF text extraction (probably `pdf-parse` server-side or `pdfjs-dist` browser-side).
-2. Per-role-type template variants (Senior Designer vs. Content Designer use different middle paragraphs).
-3. Recruitment-letter tone detection — different opener pattern (see lines 105–110 of the prompt template).
-4. LLM polish pass (OpenAI/Claude API call to smooth the templated draft) — gated by an opt-in setting.
-5. UnClick integration: file a draft as a comment against a UnClick todo for review.
-6. Local persistence of the corpus (currently in-memory only).
+1. Per-role-type template variants (Senior Designer vs. Content Designer use
+   different middle paragraphs).
+2. Recruitment-letter tone detection — different opener pattern.
+3. LLM polish pass (Claude API call to smooth the templated draft) — gated by an
+   opt-in setting; would require PII redaction before any external call.
+4. UnClick integration: file a draft as a comment against a UnClick todo.
+5. A form-based master CV facts editor instead of raw JSON.
 
 ## Test plan
 
@@ -61,16 +77,20 @@ npx vitest run
 apps/jobsmith/
 ├─ src/
 │  ├─ lib/
-│  │  ├─ ingestCvCorpus.ts
-│  │  ├─ ingestCvCorpus.test.ts
-│  │  ├─ voiceProfile.ts
-│  │  ├─ voiceProfile.test.ts
-│  │  ├─ renderDraft.ts
-│  │  └─ renderDraft.test.ts
-│  └─ pages/
-│     └─ JobsmithDraft.tsx
+│  │  ├─ ingestCvCorpus.ts      voiceProfile.ts      renderDraft.ts
+│  │  ├─ pdfText.ts             pdfArtifacts.ts      renderCvDraft.ts
+│  │  ├─ cvFacts.ts             exportDocx.ts        appLog.ts
+│  │  ├─ riskAudit.ts
+│  │  └─ *.test.ts              (one suite per module)
+│  ├─ pages/
+│  │  └─ JobsmithDraft.tsx      (v0 Node-side demo page)
+│  └─ test/
+│     └─ makePdf.ts             (test-only minimal-PDF generator)
 └─ docs/
    └─ jobsmith-v0.md  (this file)
+
+The public browser-local page is src/pages/Jobsmith.tsx, with browser glue in
+src/lib/jobsmith/ (parsePdfBrowser, buildBrowserCorpus, appLogStore).
 ```
 
 ## Acceptance checklist (mirrors ScopePack v1 on UnClick todo 4bcb3169)
