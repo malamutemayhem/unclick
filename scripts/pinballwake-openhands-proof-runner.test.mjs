@@ -658,11 +658,11 @@ describe("safe CodeRoom submitter", () => {
     );
   });
 
-  test("ignores the generated autonomous runner ledger directory entry", async () => {
+  test("ignores the generated autonomous runner artifact directory during clean-worktree checks", async () => {
     const calls = [];
     const submitter = createSafeCodeRoomSubmitter({
       env: { CODEROOM_GITHUB_APP_TOKEN: "app-token" },
-      branchName: "codex/openhands-submit-todo-ledger-dir",
+      branchName: "codex/openhands-submit-todo-artifacts",
       runProcess: async (command, args) => {
         calls.push([command, args]);
         if (command === "git" && args[0] === "status") {
@@ -676,7 +676,7 @@ describe("safe CodeRoom submitter", () => {
         if (command === "gh" && args[1] === "list") {
           return {
             ok: true,
-            stdout: "https://github.com/malamutemayhem/unclick/pull/934\n",
+            stdout: "https://github.com/malamutemayhem/unclick/pull/935\n",
             stderr: "",
             output: "",
           };
@@ -686,15 +686,15 @@ describe("safe CodeRoom submitter", () => {
     });
 
     const result = await submitter({
-      job: { todo_id: "todo-ledger-dir", owned_files: [FIXTURE] },
+      job: { todo_id: "todo-artifacts", owned_files: [FIXTURE] },
       changedFiles: [FIXTURE],
-      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: ledger dir ignored" }),
+      patch: buildDocsOnlyFixturePatch({ filePath: FIXTURE, proofLine: "- proof run: artifact dir ignored" }),
       testRunId: "unit-test",
     });
 
     assert.equal(result.ok, true);
     assert.equal(result.status, "existing_pr");
-    assert.equal(result.pr_url, "https://github.com/malamutemayhem/unclick/pull/934");
+    assert.equal(result.pr_url, "https://github.com/malamutemayhem/unclick/pull/935");
     assert.deepEqual(
       calls.map(([command, args]) => `${command} ${args.slice(0, 2).join(" ")}`),
       ["git status --porcelain", "gh pr list"],
