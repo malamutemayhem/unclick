@@ -274,6 +274,7 @@ test("dogfood receipt promotes package-ready passes from a fresh XPass sweep rec
     const report = JSON.parse(await fs.readFile(output, "utf8"));
     const sloppass = report.results.find((result) => result.id === "sloppass");
     const geopass = report.results.find((result) => result.id === "geopass");
+    const seopass = report.results.find((result) => result.id === "seopass");
     const securitypass = report.results.find((result) => result.id === "securitypass");
 
     for (const pkg of packageRows.filter((row) => packageReadySweepIds.includes(row.id))) {
@@ -290,7 +291,6 @@ test("dogfood receipt promotes package-ready passes from a fresh XPass sweep rec
     assert.equal(sloppass?.proof?.packageId, "sloppass");
     assert.equal(geopass?.status, "passing");
     assert.equal(geopass?.proof?.kind, "xpass_package_sweep");
-    const seopass = report.results.find((result) => result.id === "seopass");
     assert.equal(seopass?.status, "passing");
     assert.equal(seopass?.proof?.kind, "seopass_run");
     assert.equal(securitypass?.status, "passing");

@@ -42,6 +42,40 @@ jobs:
             echo "has_token=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Resolve TestPass target
+        id: target
+        if: ${{ steps.token.outputs.has_token == 'true' }}
+        uses: actions/github-script@v9
+        env:
+          REQUESTED_SERVER_URL: ${{ inputs.server_url || '' }}
+          DEFAULT_SERVER_URL: https://unclick.world/api/mcp
+        with:
+          script: |
+            const { pathToFileURL } = require('node:url');
+            const helperUrl = pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/testpass-pr-target.mjs`).href;
+            const { resolveTestPassPrTarget } = await import(helperUrl);
+
+            let comments = [];
+            if (context.eventName === 'pull_request') {
+              comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100,
+              });
+            }
+
+            const resolved = resolveTestPassPrTarget({
+              requestedServerUrl: process.env.REQUESTED_SERVER_URL,
+              defaultServerUrl: process.env.DEFAULT_SERVER_URL,
+              comments,
+            });
+
+            core.setOutput('server_url', resolved.serverUrl);
+            core.setOutput('source', resolved.source);
+            core.notice(`TestPass target source: ${resolved.source}`);
+            core.notice(`TestPass target: ${resolved.serverUrl}`);
+
       - name: Run TestPass
         id: testpass
         if: ${{ steps.token.outputs.has_token == 'true' }}
@@ -54,7 +88,7 @@ jobs:
           token: ${{ secrets.TESTPASS_TOKEN }}
           pack_id: ${{ inputs.pack_id || 'testpass-core' }}
           profile: ${{ inputs.profile || 'smoke' }}
-          server_url: ${{ inputs.server_url || 'https://unclick.world/api/mcp' }}
+          server_url: ${{ steps.target.outputs.server_url || inputs.server_url || 'https://unclick.world/api/mcp' }}
 
       - name: Post PR comment
         # Run regardless of TestPass step outcome - infra failures still need a
