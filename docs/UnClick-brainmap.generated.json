@@ -9,8 +9,8 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 519,
-    "source_manifest": 189,
+    "inventory": 525,
+    "source_manifest": 190,
     "pages": 82,
     "tools": 187,
     "rooms": 23,
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 115
+      "count": 118
     },
     {
       "id": "ledgers-and-proof",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 62
+      "count": 65
     },
     {
       "id": "launch-and-onboarding",
@@ -862,6 +862,26 @@
       "tags": []
     },
     {
+      "id": "automations-script-pinballwake-continuous-improvement-watch-scripts-pinballwake-continuous-improvement-watch-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake continuous improvement watch",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-continuous-improvement-watch.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-continuous-improvement-watch-test-scripts-pinballwake-continuous-improvement-watch-test-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake continuous improvement watch.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-continuous-improvement-watch.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "automations-script-pinballwake-dogfood-room-scripts-pinballwake-dogfood-room-mjs-no-route",
       "division": "Automations",
       "name": "pinballwake dogfood room",
@@ -1572,6 +1592,16 @@
       "tags": []
     },
     {
+      "id": "automations-workflow-continuous-improvement-watch-yml-github-workflows-continuous-improvement-watch-yml-no-route",
+      "division": "Automations",
+      "name": "continuous improvement watch.yml",
+      "kind": "workflow",
+      "meaning": "continuous improvement watch GitHub automation workflow.",
+      "source": ".github/workflows/continuous-improvement-watch.yml",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "automations-workflow-dirty-branch-hygiene-yml-github-workflows-dirty-branch-hygiene-yml-no-route",
       "division": "Automations",
       "name": "dirty branch hygiene.yml",
@@ -1808,6 +1838,36 @@
       "kind": "proof module",
       "meaning": "pinballwake quiet window proof UnClick module.",
       "source": "scripts/pinballwake-quiet-window-proof.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-app-log-store-src-lib-jobsmith-applogstore-ts-no-route",
+      "division": "Modules and apps",
+      "name": "app Log Store",
+      "kind": "app module",
+      "meaning": "app Log Store shared frontend logic.",
+      "source": "src/lib/jobsmith/appLogStore.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-build-browser-corpus-src-lib-jobsmith-buildbrowsercorpus-ts-no-route",
+      "division": "Modules and apps",
+      "name": "build Browser Corpus",
+      "kind": "app module",
+      "meaning": "build Browser Corpus shared frontend logic.",
+      "source": "src/lib/jobsmith/buildBrowserCorpus.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-parse-pdf-browser-src-lib-jobsmith-parsepdfbrowser-ts-no-route",
+      "division": "Modules and apps",
+      "name": "parse Pdf Browser",
+      "kind": "app module",
+      "meaning": "parse Pdf Browser shared frontend logic.",
+      "source": "src/lib/jobsmith/parsePdfBrowser.ts",
       "route": "",
       "tags": []
     },
@@ -7008,6 +7068,10 @@
       "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
     [
+      "test:continuous-improvement-watch",
+      "node --test scripts/pinballwake-continuous-improvement-watch.test.mjs"
+    ],
+    [
       "test:enterprisepass-receipt",
       "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
@@ -7093,8 +7157,8 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "8650d072f494",
-      "bytes": 1559
+      "hash": "ab3e717a4ae9",
+      "bytes": 1663
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
@@ -7102,9 +7166,14 @@
       "bytes": 1211
     },
     {
+      "source": ".github/workflows/continuous-improvement-watch.yml",
+      "hash": "d121a434a464",
+      "bytes": 2358
+    },
+    {
       "source": "package.json",
-      "hash": "92d5c368f911",
-      "bytes": 6092
+      "hash": "bbceabab4654",
+      "bytes": 6285
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7488,8 +7557,8 @@
     },
     {
       "source": "src/pages/Jobsmith.tsx",
-      "hash": "70f86c37110a",
-      "bytes": 34772
+      "hash": "08e9c9874c22",
+      "bytes": 61541
     },
     {
       "source": "src/pages/Login.tsx",
@@ -7588,8 +7657,8 @@
     },
     {
       "source": "scripts/pinballwake-continuous-improvement-room.mjs",
-      "hash": "8c23d67cad4e",
-      "bytes": 14869
+      "hash": "51ca5eb8745b",
+      "bytes": 14894
     },
     {
       "source": "scripts/pinballwake-dogfood-room.mjs",
