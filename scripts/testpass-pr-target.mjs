@@ -9,7 +9,7 @@ function authorLogin(comment) {
 }
 
 function createdTime(comment) {
-  const value = comment?.created_at || comment?.createdAt || 0;
+  const value = comment?.updated_at || comment?.updatedAt || comment?.created_at || comment?.createdAt || 0;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
@@ -62,4 +62,9 @@ export function resolveTestPassPrTarget(input = {}) {
   }
 
   return { serverUrl: requestedServerUrl || defaultServerUrl, source: "default" };
+}
+export function selectLatestStatusContext(statuses = [], contextName = "Vercel") {
+  return statuses
+    .filter((status) => safeText(status?.context) === contextName)
+    .sort((a, b) => createdTime(b) - createdTime(a))[0] || null;
 }
