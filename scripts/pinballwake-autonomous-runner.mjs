@@ -813,6 +813,20 @@ function decorateMemoryAdminFallbackSuccess(data = {}, failedMcpResult = {}) {
   };
 }
 
+function decorateMemoryAdminWriteFallbackSuccess(data = {}, failedMcpResult = {}) {
+  return {
+    ok: true,
+    data,
+    write_transport: "memory-admin-fallback",
+    fallback_from: {
+      transport: "mcp",
+      reason: failedMcpResult.reason || null,
+      status: failedMcpResult.status ?? null,
+      error: failedMcpResult.error ?? null,
+    },
+  };
+}
+
 async function callUnClickQueueToolWithMemoryAdminFallback({
   mcpUrl = DEFAULT_UNCLICK_MCP_URL,
   apiKey,
@@ -844,6 +858,43 @@ async function callUnClickQueueToolWithMemoryAdminFallback({
   });
   if (fallback.ok) {
     return decorateMemoryAdminFallbackSuccess(fallback.data, result);
+  }
+
+  return {
+    ...result,
+    memory_admin_fallback: fallback,
+  };
+}
+
+async function callUnClickCommentToolWithMemoryAdminFallback({
+  mcpUrl = DEFAULT_UNCLICK_MCP_URL,
+  apiKey,
+  fetchImpl = globalThis.fetch,
+  arguments: toolArguments = {},
+} = {}) {
+  const result = await callUnClickMcpTool({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    toolName: "comment_on",
+    arguments: toolArguments,
+  });
+  if (result.ok) {
+    return {
+      ...result,
+      write_transport: "mcp",
+    };
+  }
+
+  const fallback = await callUnClickMemoryAdminAction({
+    mcpUrl,
+    apiKey,
+    fetchImpl,
+    action: "fishbowl_comment_on",
+    body: toolArguments,
+  });
+  if (fallback.ok) {
+    return decorateMemoryAdminWriteFallbackSuccess(fallback.data, result);
   }
 
   return {
@@ -1496,11 +1547,10 @@ export async function syncClaimedBoardroomTodoToUnClick({
   }
 
   if (openHandsExecuteResult) {
-    const comment = await callUnClickMcpTool({
+    const comment = await callUnClickCommentToolWithMemoryAdminFallback({
       mcpUrl,
       apiKey,
       fetchImpl,
-      toolName: "comment_on",
       arguments: {
         agent_id: agentId,
         target_kind: "todo",
@@ -1546,6 +1596,7 @@ export async function syncClaimedBoardroomTodoToUnClick({
       comment_id: comment.data?.comment?.id || null,
       comment_detail: null,
       comment_status: null,
+      comment_transport: comment.write_transport || null,
       openhands_execute: openHandsExecuteResult,
     };
   }
@@ -1560,11 +1611,10 @@ export async function syncClaimedBoardroomTodoToUnClick({
   }
 
   if (testOnlyExecutorPacketResult) {
-    const comment = await callUnClickMcpTool({
+    const comment = await callUnClickCommentToolWithMemoryAdminFallback({
       mcpUrl,
       apiKey,
       fetchImpl,
-      toolName: "comment_on",
       arguments: {
         agent_id: agentId,
         target_kind: "todo",
@@ -1615,6 +1665,7 @@ export async function syncClaimedBoardroomTodoToUnClick({
       comment_id: comment.data?.comment?.id || null,
       comment_detail: null,
       comment_status: null,
+      comment_transport: comment.write_transport || null,
       test_only_executor_packet: testOnlyExecutorPacketResult,
       openhands_claim_probe: openHandsClaimProbeResult,
     };
@@ -1643,11 +1694,10 @@ export async function syncClaimedBoardroomTodoToUnClick({
     };
   }
 
-  const comment = await callUnClickMcpTool({
+  const comment = await callUnClickCommentToolWithMemoryAdminFallback({
     mcpUrl,
     apiKey,
     fetchImpl,
-    toolName: "comment_on",
     arguments: {
       agent_id: agentId,
       target_kind: "todo",
@@ -1688,6 +1738,7 @@ export async function syncClaimedBoardroomTodoToUnClick({
     status: "in_progress",
     comment_ok: true,
     comment_id: comment.data?.comment?.id || null,
+    comment_transport: comment.write_transport || null,
     test_only_executor_packet: testOnlyExecutorPacketResult,
   };
 }
@@ -2296,11 +2347,10 @@ export async function syncBoardroomTodoScopingRequestToUnClick({
     formatTestOnlyExecutorPacketReceipt(testOnlyExecutorPacketResult),
   ].filter(Boolean).join(" ");
 
-  const comment = await callUnClickMcpTool({
+  const comment = await callUnClickCommentToolWithMemoryAdminFallback({
     mcpUrl,
     apiKey,
     fetchImpl,
-    toolName: "comment_on",
     arguments: {
       agent_id: agentId,
       target_kind: "todo",
@@ -2317,6 +2367,7 @@ export async function syncBoardroomTodoScopingRequestToUnClick({
     comment_ok: comment.ok,
     comment_id: comment.ok ? comment.data?.comment?.id || null : null,
     comment_detail: comment.ok ? null : comment.reason || comment.error || null,
+    comment_transport: comment.ok ? comment.write_transport || null : null,
     scopepack_hydration: hydration.action === "needs_manual_scoping" ? null : hydration,
     test_only_executor_packet: testOnlyExecutorPacketResult,
   };
