@@ -108,4 +108,40 @@ describe("CopyPass copy library", () => {
     expect(finding?.severity).toBe("high");
     expect(finding?.suggested_fix).toContain("quality");
   });
+
+  it("does not treat explicit banned-phrase documentation as live risky copy", () => {
+    const blocks: CopyPassCopyBlock[] = [
+      {
+        id: "legalpass-guardrail-doc",
+        kind: "doc",
+        label: "LegalPass banned phrases",
+        source_path: "docs/legalpass-product-brief.md",
+        text:
+          "Verdict-linter guardrail examples: banned phrases include `100% compliant`, " +
+          "`risk-free`, `AI lawyer`, `rank #1`, `last chance`, and `fully automated`. " +
+          "Allowed framing includes `may warrant review` and `qualified practitioner review may be warranted`.",
+        public_only: true,
+      },
+    ];
+
+    expect(detectCopyPassFindings(blocks)).toEqual([]);
+  });
+
+  it("still flags the same risky words in live public claim copy", () => {
+    const blocks: CopyPassCopyBlock[] = [
+      {
+        id: "legalpass-hero",
+        kind: "hero",
+        text:
+          "LegalPass is the best AI lawyer, 100% compliant, risk-free, fully automated, and guaranteed to rank #1.",
+        public_only: true,
+      },
+    ];
+
+    const checkIds = detectCopyPassFindings(blocks).map((finding) => finding.check_id);
+
+    expect(checkIds).toContain("unsupported-superiority");
+    expect(checkIds).toContain("risky-guarantee-language");
+    expect(checkIds).toContain("ui-honesty-gap");
+  });
 });
