@@ -2,10 +2,10 @@
   "kind": "uxpass_site_sweep_receipt",
   "check": "uxpass",
   "name": "UXPass",
-  "generated_at": "2026-05-27T18:16:58.806Z",
-  "run_id": "uxpass-site-sweep-8d444e83ea3bf574",
-  "status": "blocked",
-  "target_sha": "82e080a2764f1b69d889e19d4a5e912df28b12b8",
+  "generated_at": "2026-05-28T12:35:04.622Z",
+  "run_id": "uxpass-site-sweep-ef2db80c6f989426",
+  "status": "passing",
+  "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
   "min_score": 80,
   "allowed_origins": [
     "https://unclick.world",
@@ -31,15 +31,15 @@
         "origin": "https://unclick.world",
         "path": "/"
       },
-      "status": "blocked",
-      "run_id": null,
-      "ux_score": null,
-      "summary": "Missing UXPASS_SITE_SWEEP_TOKEN, DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
+      "status": "passing",
+      "run_id": "f30e905d-d433-4e14-8abe-8991b2946410",
+      "ux_score": 100,
+      "summary": "UXPass completed with score 100.",
       "proof": {
-        "kind": "safe_fallback_receipt",
-        "reason": "missing_credential",
+        "kind": "uxpass_run",
+        "runId": "f30e905d-d433-4e14-8abe-8991b2946410",
         "targetUrl": "https://unclick.world/",
-        "target_sha": "82e080a2764f1b69d889e19d4a5e912df28b12b8"
+        "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0"
       },
       "evidence": {
         "viewports": [
@@ -47,7 +47,7 @@
             "name": "desktop",
             "width": 1440,
             "height": 1000,
-            "capture_status": "skipped_missing_credential",
+            "capture_status": "api_receipt",
             "screenshot_url": null,
             "console_issues": [],
             "layout_issues": []
@@ -56,7 +56,7 @@
             "name": "mobile",
             "width": 390,
             "height": 844,
-            "capture_status": "skipped_missing_credential",
+            "capture_status": "api_receipt",
             "screenshot_url": null,
             "console_issues": [],
             "layout_issues": []
@@ -73,15 +73,15 @@
         "origin": "https://unclick.world",
         "path": "/dashboard"
       },
-      "status": "blocked",
-      "run_id": null,
-      "ux_score": null,
-      "summary": "Missing UXPASS_SITE_SWEEP_TOKEN, DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
+      "status": "passing",
+      "run_id": "424a8960-3fad-4675-9523-6bee565c3642",
+      "ux_score": 100,
+      "summary": "UXPass completed with score 100.",
       "proof": {
-        "kind": "safe_fallback_receipt",
-        "reason": "missing_credential",
+        "kind": "uxpass_run",
+        "runId": "424a8960-3fad-4675-9523-6bee565c3642",
         "targetUrl": "https://unclick.world/dashboard",
-        "target_sha": "82e080a2764f1b69d889e19d4a5e912df28b12b8"
+        "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0"
       },
       "evidence": {
         "viewports": [
@@ -89,7 +89,7 @@
             "name": "desktop",
             "width": 1440,
             "height": 1000,
-            "capture_status": "skipped_missing_credential",
+            "capture_status": "api_receipt",
             "screenshot_url": null,
             "console_issues": [],
             "layout_issues": []
@@ -98,7 +98,7 @@
             "name": "mobile",
             "width": 390,
             "height": 844,
-            "capture_status": "skipped_missing_credential",
+            "capture_status": "api_receipt",
             "screenshot_url": null,
             "console_issues": [],
             "layout_issues": []
@@ -115,15 +115,15 @@
         "origin": "https://unclick.world",
         "path": "/admin/you"
       },
-      "status": "blocked",
-      "run_id": null,
-      "ux_score": null,
-      "summary": "Missing UXPASS_SITE_SWEEP_TOKEN, DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
+      "status": "passing",
+      "run_id": "80bfc60d-7dae-4e2b-9639-1d21771424f5",
+      "ux_score": 100,
+      "summary": "UXPass completed with score 100.",
       "proof": {
-        "kind": "safe_fallback_receipt",
-        "reason": "missing_credential",
+        "kind": "uxpass_run",
+        "runId": "80bfc60d-7dae-4e2b-9639-1d21771424f5",
         "targetUrl": "https://unclick.world/admin/you",
-        "target_sha": "82e080a2764f1b69d889e19d4a5e912df28b12b8"
+        "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0"
       },
       "evidence": {
         "viewports": [
@@ -131,7 +131,7 @@
             "name": "desktop",
             "width": 1440,
             "height": 1000,
-            "capture_status": "skipped_missing_credential",
+            "capture_status": "api_receipt",
             "screenshot_url": null,
             "console_issues": [],
             "layout_issues": []
@@ -140,7 +140,7 @@
             "name": "mobile",
             "width": 390,
             "height": 844,
-            "capture_status": "skipped_missing_credential",
+            "capture_status": "api_receipt",
             "screenshot_url": null,
             "console_issues": [],
             "layout_issues": []
@@ -151,20 +151,16 @@
       }
     }
   ],
-  "action_needed": [
-    "https://unclick.world/: Missing UXPASS_SITE_SWEEP_TOKEN, DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
-    "https://unclick.world/dashboard: Missing UXPASS_SITE_SWEEP_TOKEN, DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
-    "https://unclick.world/admin/you: Missing UXPASS_SITE_SWEEP_TOKEN, DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET."
-  ],
-  "summary": "UXPass site sweep could not run because no token was available.",
+  "action_needed": [],
+  "summary": "UXPass site sweep passing across 3 URL(s).",
   "xpass_gate_result": {
     "check": "uxpass",
     "name": "UXPass",
-    "status": "blocked",
-    "run_id": "uxpass-site-sweep-8d444e83ea3bf574",
-    "target_sha": "82e080a2764f1b69d889e19d4a5e912df28b12b8",
+    "status": "passed",
+    "run_id": "uxpass-site-sweep-ef2db80c6f989426",
+    "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
     "url": "https://unclick.world",
-    "summary": "UXPass site sweep could not run because no token was available.",
-    "generated_at": "2026-05-27T18:16:58.806Z"
+    "summary": "UXPass site sweep passing across 3 URL(s).",
+    "generated_at": "2026-05-28T12:35:04.622Z"
   }
 }
