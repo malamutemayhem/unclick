@@ -22,7 +22,9 @@ import {
   evaluateQuietWindowAutonomyProofLadder,
   extractBoardroomTodoIdFromCodingRoomJob,
   fetchUnClickActionableTodos,
+  fetchUnClickAssignedTodos,
   fetchUnClickOrchestratorContext,
+  fetchUnClickTodoComments,
   hydrateAutonomousRunnerLedgerFromUnClick,
   inspectAutonomousRunnerJobSafety,
   markUnsafeJobsBlockedForAutonomousRunner,
@@ -1419,6 +1421,109 @@ describe("PinballWake autonomous Runner seat", () => {
     assert.equal(result.todos[0].id, "todo-sse");
   });
 
+  it("falls back to memory-admin when the UnClick MCP actionable queue is unavailable", async () => {
+    const calls = [];
+    const result = await fetchUnClickActionableTodos({
+      agentId: "runner-test",
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      fetchImpl: async (url, init = {}) => {
+        calls.push({ url: String(url), body: JSON.parse(init.body || "{}") });
+        if (String(url).endsWith("/api/mcp")) {
+          return { ok: false, status: 500 };
+        }
+        return {
+          ok: true,
+          async json() {
+            return {
+              todos: [{ id: "todo-fallback", title: "Claim through memory-admin" }],
+              response_bounds: { todos_returned: 1 },
+            };
+          },
+        };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.queue_transport, "memory-admin-fallback");
+    assert.equal(result.fallback_from.reason, "unclick_mcp_http_error");
+    assert.equal(result.todos[0].id, "todo-fallback");
+    assert.equal(calls.length, 2);
+    assert.equal(calls[1].url, "https://unclick.test/api/memory-admin?action=fishbowl_list_actionable_todos");
+    assert.equal(calls[1].body.agent_id, "runner-test");
+    assert.equal(calls[1].body.include_description, true);
+  });
+
+  it("falls back to memory-admin for assigned queue reads and comment hydration", async () => {
+    const calls = [];
+    const result = await fetchUnClickAssignedTodos({
+      agentId: "runner-test",
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      fetchImpl: async (url, init = {}) => {
+        const body = JSON.parse(init.body || "{}");
+        calls.push({ url: String(url), body });
+        if (String(url).endsWith("/api/mcp")) {
+          return { ok: false, status: 500 };
+        }
+        if (String(url).includes("fishbowl_list_todos")) {
+          return {
+            ok: true,
+            async json() {
+              return {
+                todos: [{ id: "11111111-1111-4111-8111-111111111111", title: "Assigned live job" }],
+                response_bounds: { todos_returned: 1 },
+              };
+            },
+          };
+        }
+        return {
+          ok: true,
+          async json() {
+            return {
+              comments: [{ text: "scope pack: keep it tiny", created_at: "2026-05-28T00:00:00.000Z" }],
+            };
+          },
+        };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.queue_transport, "memory-admin-fallback");
+    assert.equal(result.todos.length, 1);
+    assert.equal(result.todos[0].latest_comment_text, "scope pack: keep it tiny");
+    assert.equal(
+      calls.some((call) => call.url === "https://unclick.test/api/memory-admin?action=fishbowl_list_comments"),
+      true,
+    );
+  });
+
+  it("falls back to memory-admin for direct todo comment reads", async () => {
+    const result = await fetchUnClickTodoComments({
+      agentId: "runner-test",
+      todoId: "11111111-1111-4111-8111-111111111111",
+      apiKey: "uc_test",
+      mcpUrl: "https://unclick.test/api/mcp",
+      fetchImpl: async (url) => {
+        if (String(url).endsWith("/api/mcp")) {
+          return { ok: false, status: 500 };
+        }
+        return {
+          ok: true,
+          async json() {
+            return {
+              comments: [{ text: "fallback comment", created_at: "2026-05-28T00:00:00.000Z" }],
+            };
+          },
+        };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.queue_transport, "memory-admin-fallback");
+    assert.equal(result.comments[0].text, "fallback comment");
+  });
+
   it("reads Orchestrator context for a scheduled seat_handshake proof", async () => {
     const calls = [];
     const result = await runAutonomousRunnerFile({
@@ -1908,6 +2013,126 @@ describe("PinballWake autonomous Runner seat", () => {
         "build_attempt_or_commonsense_blocker",
         "proof_packet",
         "terminal_receipt",
+      ]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("falls back to memory-admin when the OpenHands proof comment MCP write fails", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
+    const ledgerPath = join(dir, "ledger.json");
+    try {
+      await writeCodingRoomJobLedger(ledgerPath, createCodingRoomJobLedger());
+
+      const calls = [];
+      const fetchImpl = async (url, init = {}) => {
+        const body = JSON.parse(init.body);
+        calls.push({ url: String(url), init, body });
+        if (String(url).includes("/api/memory-admin?action=fishbowl_comment_on")) {
+          assert.equal(body.target_id, "todo-execute-fallback");
+          assert.match(body.text, /OpenHands build attempt PASS/);
+          return {
+            ok: true,
+            async json() {
+              return { comment: { id: "memory-admin-comment-1" } };
+            },
+          };
+        }
+
+        const toolName = body.params.name;
+        if (toolName === "list_actionable_todos") {
+          return {
+            ok: true,
+            async json() {
+              return {
+                result: {
+                  content: [
+                    {
+                      type: "text",
+                      text: JSON.stringify({
+                        todos: [
+                          {
+                            id: "todo-execute-fallback",
+                            title: "OpenHands execute bridge proof",
+                            status: "open",
+                            priority: "high",
+                            assigned_to_agent_id: "runner-plex-1",
+                            created_at: "2026-05-08T05:00:00.000Z",
+                            scope_pack: {
+                              owned_files: ["docs/runner-scope.md"],
+                              acceptance: ["Execute bridge records OpenHands proof only"],
+                              verification: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+                              tests: [],
+                            },
+                          },
+                        ],
+                      }),
+                    },
+                  ],
+                },
+              };
+            },
+          };
+        }
+
+        if (toolName === "comment_on") {
+          return {
+            ok: false,
+            status: 500,
+            async json() {
+              return { error: { message: "mcp comment write failed" } };
+            },
+          };
+        }
+
+        throw new Error(`unexpected tool ${toolName}`);
+      };
+
+      const result = await runAutonomousRunnerFile({
+        ledgerPath,
+        runner,
+        mode: "execute",
+        policy: { allowExecute: true },
+        queueSource: "unclick",
+        unclickApiKey: "uc_test",
+        unclickMcpUrl: "https://unclick.test/api/mcp",
+        fetchImpl,
+        now: "2026-05-08T05:30:00.000Z",
+        wakeSource: "queuepush",
+        openHandsExecutor: {
+          enabled: true,
+          env: { OPENHANDS_TEST_MODE: "1" },
+          testMode: true,
+          openHands: async () => ({
+            ok: true,
+            patch:
+              "diff --git a/docs/runner-scope.md b/docs/runner-scope.md\n--- a/docs/runner-scope.md\n+++ b/docs/runner-scope.md\n@@ -1 +1 @@\n-old\n+new\n",
+            changed_files: ["docs/runner-scope.md"],
+            summary: "OpenHands execute bridge proof.",
+            test_run_id: "openhands-execute-unit",
+          }),
+          coderoom: async ({ changedFiles }) => ({
+            ok: true,
+            pr_url: "https://github.com/malamutemayhem/unclick/pull/920",
+            head_sha_after: "abc123",
+            test_run_id: "openhands-execute-unit",
+            test_exit_code: 0,
+            status: "draft_pr_created",
+            job: { status: "testing" },
+            changed_files: changedFiles,
+          }),
+        },
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(result.todo_claim_sync.reason, "openhands_build_attempt_recorded");
+      assert.equal(result.todo_claim_sync.comment_id, "memory-admin-comment-1");
+      assert.equal(result.todo_claim_sync.comment_transport, "memory-admin-fallback");
+      assert.deepEqual(calls.map((call) => call.body?.params?.name || new URL(call.url).searchParams.get("action")), [
+        "list_actionable_todos",
+        "comment_on",
+        "fishbowl_comment_on",
       ]);
     } finally {
       await rm(dir, { recursive: true, force: true });
@@ -3032,7 +3257,7 @@ describe("PinballWake autonomous Runner seat", () => {
 
       const fetchImpl = async (_url, init = {}) => {
         const body = JSON.parse(init.body);
-        if (body.params.name === "list_actionable_todos") {
+        if (body.params?.name === "list_actionable_todos") {
           return {
             ok: true,
             async json() {

@@ -68,12 +68,9 @@ function parseGitStatusEntries(output) {
     .filter((entry) => entry.path);
 }
 
-function isGeneratedRunnerLedgerPath(path) {
+function isGeneratedRunnerArtifactPath(path) {
   const normalized = normalizePath(path).replace(/\/+$/, "");
-  return (
-    normalized === ".pinballwake" ||
-    normalized === ".pinballwake/coding-room-ledger.json"
-  );
+  return normalized === ".pinballwake" || normalized.startsWith(".pinballwake/");
 }
 
 function normalizeList(values) {
@@ -544,7 +541,7 @@ async function cleanPreappliedOwnedPatch({
   if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
 
   let dirtyEntries = parseGitStatusEntries(status.stdout);
-  let blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
+  let blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerArtifactPath(entry.path));
   if (blockingDirtyEntries.length) {
     const changedSet = new Set((changedFiles || []).map(normalizePath));
     const unrelatedDirtyEntries = blockingDirtyEntries.filter((entry) => !changedSet.has(entry.path));
@@ -573,7 +570,7 @@ async function cleanPreappliedOwnedPatch({
     status = await runProcess("git", ["status", "--porcelain"], { cwd, env });
     if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
     dirtyEntries = parseGitStatusEntries(status.stdout);
-    blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
+    blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerArtifactPath(entry.path));
   }
 
   const blockingDirtyFiles = blockingDirtyEntries.map((entry) => entry.path);

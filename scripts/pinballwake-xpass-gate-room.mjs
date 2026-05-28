@@ -61,6 +61,47 @@ const ENTERPRISE_READINESS_TERMS = [
   "training data",
 ];
 
+const COUNCIL_TRIGGER_TERMS = [
+  "ambiguous",
+  "council",
+  "crew",
+  "crews",
+  "debate",
+  "decide",
+  "decision",
+  "dissent",
+  "good enough",
+  "go no go",
+  "go/no-go",
+  "judgement",
+  "judgment",
+  "launch",
+  "opinion",
+  "opinions",
+  "positioning",
+  "ready to ship",
+  "risk acceptance",
+  "strategy",
+  "taste",
+  "trade-off",
+  "tradeoff",
+  "unclear",
+];
+
+const COUNCIL_HIGH_JUDGMENT_CHECKS = new Set([
+  "securitypass",
+  "legalpass",
+  "commonsensepass",
+  "rotatepass",
+]);
+
+const COUNCIL_LITE_QUESTIONS = [
+  "What would make this answer or change wrong?",
+  "What evidence is missing, stale, or too weak?",
+  "Who would object: user, maintainer, reviewer, legal, security, or operator?",
+  "What is the smallest proof needed before saying ready?",
+];
+
 const PASS_STATUS = new Set(["pass", "passed", "success", "green", "ok"]);
 const BLOCKER_STATUS = new Set(["fail", "failed", "failure", "blocker", "blocked", "red"]);
 const SKIP_STATUS = new Set(["skip", "skipped", "not_applicable", "not-applicable"]);
@@ -417,7 +458,7 @@ export function selectXPassChecks(input = {}) {
   if (hasAny(allText, ["mcp", "tool", "tools", "connector", "connectors", "api endpoint", "native endpoint"])) {
     addReason(reasons, "testpass", "target text mentions tools/connectors/MCP");
   }
-  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
+  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
     addReason(reasons, "uxpass", "target text mentions UI/UX/visual changes");
   }
   if (hasAny(allText, ["flow", "journey", "path", "route", "checkout", "signup", "sign up", "onboarding", "handoff", "navigation", "funnel", "success state", "failure state"])) {
@@ -528,6 +569,82 @@ function isUnscopedForTarget(result, inspectedTarget) {
   return Boolean(result && inspectedTarget?.sha && !result.target_sha);
 }
 
+export function selectCrewsCouncilTrigger(input = {}, selected = selectXPassChecks(input), results = resultMap(input.pass_results || input.passResults || input.results)) {
+  const files = changedFiles(input);
+  const text = targetText(input);
+  const allText = `${text} ${files.join(" ")}`;
+  const selectedChecks = selected.map((check) => check.check);
+  const selectedSet = new Set(selectedChecks);
+  const providedResults = [...results.values()];
+  const passedResults = providedResults.filter((result) => result.status === "passed");
+  const blockerResults = providedResults.filter((result) => result.status === "blocker");
+  const skippedResults = providedResults.filter((result) => result.status === "skipped");
+  const highJudgmentChecks = selectedChecks.filter((check) => COUNCIL_HIGH_JUDGMENT_CHECKS.has(check));
+  const reasons = new Set();
+
+  if (input.require_council === true || input.requireCouncil === true || input.force_council === true || input.forceCouncil === true) {
+    reasons.add("Council explicitly requested for this target.");
+  }
+
+  if (hasAny(allText, COUNCIL_TRIGGER_TERMS)) {
+    reasons.add("Target language asks for judgement, debate, launch readiness, or a decision.");
+  }
+
+  if (files.some((path) => path.includes("/crews/") || path.includes("crews") || path.includes("council"))) {
+    reasons.add("Crews or Council surface changed; dogfood Crews with its own Council judgement.");
+  }
+
+  if (selectedChecks.length >= 4) {
+    reasons.add(`Broad XPass surface selected ${selectedChecks.length} checks; use a Council to interpret the combined evidence.`);
+  }
+
+  if (highJudgmentChecks.length >= 2) {
+    reasons.add(`High-judgement checks overlap: ${highJudgmentChecks.map((check) => CHECK_LABELS[check]).join(", ")}.`);
+  }
+
+  if (
+    (selectedSet.has("legalpass") || selectedSet.has("securitypass")) &&
+    (selectedSet.has("copypass") || selectedSet.has("uxpass") || selectedSet.has("seopass")) &&
+    hasAny(allText, ["public", "publish", "release", "launch", "pricing", "homepage", "landing", "claims", "enterprise", "compliance"])
+  ) {
+    reasons.add("Public, commercial, legal, or security evidence needs a named final judgement before release.");
+  }
+
+  if (blockerResults.length > 0 && passedResults.length > 0) {
+    reasons.add("Pass evidence is mixed; a Council should decide what the blockers mean before owners treat the target as ready.");
+  }
+
+  if (skippedResults.length > 0 && selectedChecks.length >= 3) {
+    reasons.add("Some checks were skipped on a multi-pass target; use a Council to record accepted exclusions.");
+  }
+
+  const triggerScore = Math.min(100, (reasons.size * 22) + Math.min(30, selectedChecks.length * 5));
+  const needed = reasons.size > 0;
+  const liteNeeded = Boolean(files.length || text || selectedChecks.length || providedResults.length);
+
+  return {
+    needed,
+    status: needed ? (triggerScore >= 55 ? "recommended" : "consider") : "not_needed",
+    trigger_score: triggerScore,
+    suggested_template: needed ? "Council" : null,
+    suggested_tool: needed ? "start_crew_run" : null,
+    reasons: [...reasons],
+    note: needed
+      ? "Crews should interpret the evidence; XPass still owns the checks and receipts."
+      : "XPass can handle this without a Crews Council.",
+    lite_check: {
+      needed: liteNeeded,
+      status: liteNeeded ? "baseline" : "not_needed",
+      suggested_template: liteNeeded ? "Council Lite" : null,
+      mode: "anti_rubber_stamp",
+      questions: liteNeeded ? COUNCIL_LITE_QUESTIONS : [],
+      note: liteNeeded
+        ? "Use this tiny dissent check before treating the answer as ready; escalate to full Council only when the recommendation says consider or recommended."
+        : "No meaningful target was supplied for a light Crews check.",
+    },
+  };
+}
+
 function makeReceipt({
   inspectedTarget,
   selected,
@@ -537,6 +654,7 @@ function makeReceipt({
   stale,
   unscoped,
   skipped,
+  council,
   now,
 }) {
   return {
@@ -569,6 +687,7 @@ function makeReceipt({
       unscoped_checks: unscoped.map((result) => result.check),
       target_sha: inspectedTarget.sha || null,
     },
+    crews_council: council,
   };
 }
 
@@ -582,6 +701,7 @@ export function evaluateXPassGate(input = {}) {
   const available = new Set(safeList(input.available_checks || input.availableChecks).map(normalizeCheckName));
   const hasAvailability = available.size > 0;
   const results = resultMap(input.pass_results || input.passResults || input.results);
+  const council = selectCrewsCouncilTrigger(input, selected, results);
 
   const skipped = [];
   const missing = [];
@@ -629,6 +749,7 @@ export function evaluateXPassGate(input = {}) {
     stale,
     unscoped,
     skipped,
+    council,
     now,
   });
 
@@ -667,6 +788,7 @@ export function evaluateXPassGate(input = {}) {
     stale_checks: stale.map((result) => result.check),
     unscoped_checks: unscoped.map((result) => result.check),
     skipped_checks: skipped,
+    crews_council: council,
     receipt,
   };
 }
