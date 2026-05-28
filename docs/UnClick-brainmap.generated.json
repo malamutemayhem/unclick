@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 515,
+    "inventory": 516,
     "source_manifest": 189,
     "pages": 82,
     "tools": 186,
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 115
+      "count": 116
     },
     {
       "id": "ledgers-and-proof",
@@ -558,6 +558,16 @@
       "kind": "autopilot module",
       "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
       "source": "api/lib/autopilot-control-ledger.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-autopilot-module-autopilotiq-circuit-breakers-api-lib-autopilotiq-circuit-breakers-ts-no-route",
+      "division": "Automations",
+      "name": "autopilotiq circuit breakers",
+      "kind": "autopilot module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/autopilotiq-circuit-breakers.ts",
       "route": "",
       "tags": []
     },
