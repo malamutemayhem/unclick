@@ -144,6 +144,11 @@ describe("TestPass MCP tool", () => {
     expect(tool?.inputSchema.required).toContain("notes");
   });
 
+  it("warns agents that fail-to-pass edits are signal flagged", () => {
+    const tool = ADDITIONAL_TOOLS.find((candidate) => candidate.name === "testpass_edit_item");
+    expect(tool?.description).toContain("Fail-to-pass edits are flagged in mc_signals");
+  });
+
   it("advertises the research-brief MCP affordances", () => {
     const toolNames = ADDITIONAL_TOOLS.map((tool) => tool.name);
     expect(toolNames).toEqual(expect.arrayContaining([

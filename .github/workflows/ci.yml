@@ -36,6 +36,8 @@ jobs:
           npm run test:brainmap
       - name: Tests
         run: npm test --if-present
+      - name: Continuous Improvement watch guard
+        run: npm run test:continuous-improvement-watch
       - name: RotatePass redaction guard
         run: npm run test:rotatepass-redaction
       - name: CompliancePass receipt guard
