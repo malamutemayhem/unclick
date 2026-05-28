@@ -27,6 +27,7 @@ const CORE_SOURCES = [
   "src/lib/skillLibrarySeeds.ts",
   ".github/workflows/ci.yml",
   ".github/workflows/brainmap-auto-update.yml",
+  ".github/workflows/continuous-improvement-watch.yml",
   "package.json",
 ];
 
