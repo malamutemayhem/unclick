@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   extractVercelPreviewUrls,
+  hasSuccessfulVercelStatus,
   resolveTestPassPrTarget,
   selectLatestVercelPreviewUrl,
   toMcpServerUrl,
@@ -43,6 +44,12 @@ test("selects the newest Vercel bot preview comment", () => {
   ];
 
   assert.equal(selectLatestVercelPreviewUrl(comments), "https://new-preview.vercel.app");
+});
+
+test("detects a successful Vercel commit status", () => {
+  assert.equal(hasSuccessfulVercelStatus([{ context: "Vercel", state: "success" }]), true);
+  assert.equal(hasSuccessfulVercelStatus([{ context: "Vercel", state: "pending" }]), false);
+  assert.equal(hasSuccessfulVercelStatus([{ context: "CI", state: "success" }]), false);
 });
 
 test("normalizes a Vercel preview URL to the MCP endpoint", () => {

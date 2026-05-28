@@ -26,6 +26,7 @@ permissions:
   contents: read
   deployments: read
   pull-requests: write
+  statuses: read
 
 jobs:
   testpass:
@@ -60,7 +61,7 @@ jobs:
           script: |
             const { pathToFileURL } = require('node:url');
             const helperUrl = pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/testpass-pr-target.mjs`).href;
-            const { resolveTestPassPrTarget } = await import(helperUrl);
+            const { hasSuccessfulVercelStatus, resolveTestPassPrTarget } = await import(helperUrl);
 
             const trim = (value) => String(value || '').replace(/\/+$/, '');
             const defaultApiUrl = 'https://unclick.world/api/testpass-run';
@@ -145,6 +146,23 @@ jobs:
                     serverUrl: `${baseUrl}/api/mcp`,
                     apiUrl: `${baseUrl}/api/testpass-run`,
                     source: 'vercel_preview_deployment',
+                  });
+                  return;
+                }
+              }
+
+              if (fallback.source === 'vercel_preview_comment') {
+                const { data: combinedStatus } = await github.rest.repos.getCombinedStatusForRef({
+                  owner,
+                  repo,
+                  ref: headSha,
+                });
+                if (hasSuccessfulVercelStatus(combinedStatus.statuses || [])) {
+                  core.info(`Resolved Vercel preview comment after green Vercel status for ${headSha}: ${fallback.serverUrl}`);
+                  setTarget({
+                    serverUrl: fallback.serverUrl,
+                    apiUrl: fallback.apiUrl || toApiUrl(fallback.serverUrl),
+                    source: 'vercel_preview_comment_status',
                   });
                   return;
                 }

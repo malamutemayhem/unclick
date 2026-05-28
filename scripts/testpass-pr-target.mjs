@@ -15,6 +15,18 @@ function createdTime(comment) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function statusContext(status) {
+  return safeText(status?.context || status?.name).toLowerCase();
+}
+
+function statusState(status) {
+  return safeText(status?.state || status?.conclusion).toLowerCase();
+}
+
+export function hasSuccessfulVercelStatus(statuses = []) {
+  return statuses.some((status) => statusContext(status) === "vercel" && statusState(status) === "success");
+}
+
 export function extractVercelPreviewUrls(body) {
   const text = safeText(body);
   if (!text) return [];
