@@ -29,7 +29,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
 | .github/workflows/ci.yml | 8650d072f494 | 1559 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
-| package.json | 2c50a18f4684 | 5202 |
+| package.json | 92d5c368f911 | 6092 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -59,7 +59,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
 | src/pages/admin/AdminEcosystemPages.tsx | b045ed683458 | 13590 |
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
-| src/pages/admin/AdminBrainmap.tsx | 21baca89f0d0 | 27078 |
+| src/pages/admin/AdminBrainmap.tsx | c764ced96836 | 26511 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | a7d741e75c78 | 7306 |
 | src/pages/admin/crews/CrewComposer.tsx | f3afb17bb001 | 13909 |
@@ -103,7 +103,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Developers.tsx | 9657fd564797 | 19123 |
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
-| src/pages/DogfoodReport.tsx | a2d54cc557ef | 16182 |
+| src/pages/DogfoodReport.tsx | 16909fd44b92 | 16552 |
 | src/pages/FAQPage.tsx | c3c95c39e56f | 723 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 70f86c37110a | 34772 |
@@ -144,7 +144,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 2afd189d9458 | 25665 |
+| scripts/pinballwake-xpass-gate-room.mjs | 51c7580b8abf | 28631 |
 | packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |

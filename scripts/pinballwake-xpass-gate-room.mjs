@@ -5,31 +5,33 @@ import { readFile } from "node:fs/promises";
 const CHECK_ORDER = [
   "testpass",
   "uxpass",
-  "securitypass",
-  "commonsensepass",
   "flowpass",
-  "geopass",
+  "securitypass",
   "rotatepass",
   "copypass",
   "seopass",
+  "geopass",
   "legalpass",
-  "sloppass",
+  "enterprisepass",
+  "commonsensepass",
   "wakepass",
+  "sloppass",
 ];
 
 const CHECK_LABELS = {
   testpass: "TestPass",
   uxpass: "UXPass",
-  securitypass: "SecurityPass",
-  commonsensepass: "CommonSensePass",
   flowpass: "FlowPass",
-  geopass: "GEOPass",
+  securitypass: "SecurityPass",
   rotatepass: "RotatePass",
   copypass: "CopyPass",
   seopass: "SEOPass",
+  geopass: "GEOPass",
   legalpass: "LegalPass",
-  sloppass: "SlopPass",
+  enterprisepass: "EnterprisePass",
+  commonsensepass: "CommonSensePass",
   wakepass: "WakePass",
+  sloppass: "SlopPass",
 };
 
 const PASS_PRODUCT_CHECKS = new Map([
@@ -37,6 +39,7 @@ const PASS_PRODUCT_CHECKS = new Map([
   ["copypass", "copypass"],
   ["flowpass", "flowpass"],
   ["geopass", "geopass"],
+  ["enterprisepass", "enterprisepass"],
   ["legalpass", "legalpass"],
   ["securitypass", "securitypass"],
   ["seopass", "seopass"],
@@ -261,6 +264,23 @@ export function selectXPassChecks(input = {}) {
     }
 
     if (
+      path.includes("flowpass") ||
+      path.includes("onboarding") ||
+      path.includes("checkout") ||
+      path.includes("signup") ||
+      path.includes("sign-up") ||
+      path.includes("login") ||
+      path.includes("handoff") ||
+      path.includes("navigation") ||
+      path.includes("journey") ||
+      path.includes("funnel") ||
+      path.includes("route") ||
+      path.startsWith("src/pages/")
+    ) {
+      addReason(reasons, "flowpass", `journey or route surface: ${path}`);
+    }
+
+    if (
       path.startsWith("public/") ||
       path === "index.html" ||
       path.includes("landing") ||
@@ -268,7 +288,7 @@ export function selectXPassChecks(input = {}) {
       path.includes("geopass") ||
       path.includes("llms.txt") ||
       path.includes("schema.org") ||
-      hasAny(pathWords, ["seo", "meta", "sitemap", "robots"])
+      hasAny(pathWords, ["seo", "meta", "sitemap", "robots", "canonical", "schema"])
     ) {
       addReason(reasons, "seopass", `public/SEO surface: ${path}`);
     }
@@ -277,9 +297,27 @@ export function selectXPassChecks(input = {}) {
       path.includes("geopass") ||
       path.includes("llms.txt") ||
       path.includes("schema.org") ||
-      hasAny(pathWords, ["geo", "ai", "answer", "engine", "gptbot", "claudebot", "perplexitybot", "wikidata"])
+      path.includes("common-crawl") ||
+      path.includes("wikidata") ||
+      path.includes("structured-data") ||
+      hasAny(pathWords, [
+        "geo",
+        "generative",
+        "engine",
+        "ai",
+        "answer",
+        "crawlability",
+        "sitemap",
+        "robots",
+        "canonical",
+        "schema",
+        "gptbot",
+        "claudebot",
+        "perplexitybot",
+        "wikidata",
+      ])
     ) {
-      addReason(reasons, "geopass", `AI answer-engine readiness surface: ${path}`);
+      addReason(reasons, "geopass", `AI discovery/readiness surface: ${path}`);
     }
 
     if (
@@ -314,6 +352,24 @@ export function selectXPassChecks(input = {}) {
     }
 
     if (
+      path.includes("enterprise") ||
+      path.includes("compliance") ||
+      path.includes("audit") ||
+      path.includes("evidence") ||
+      path.includes("receipt") ||
+      path.includes("policy") ||
+      path.includes("ruleset") ||
+      path.includes("secret-scanning") ||
+      path.endsWith("package-lock.json") ||
+      path.endsWith("pnpm-lock.yaml") ||
+      path.endsWith("yarn.lock") ||
+      path.includes("dependabot") ||
+      hasAny(pathWords, ["soc", "iso", "gdpr", "dpa"])
+    ) {
+      addReason(reasons, "enterprisepass", `enterprise/compliance evidence surface: ${path}`);
+    }
+
+    if (
       path.includes("auth") ||
       path.includes("oauth") ||
       path.includes("session") ||
@@ -330,7 +386,12 @@ export function selectXPassChecks(input = {}) {
       path.includes("csrf") ||
       path.includes("csp") ||
       path.includes("rls") ||
-      path.includes("supabase/migrations")
+      path.includes("supabase/migrations") ||
+      path.endsWith("package.json") ||
+      path.endsWith("package-lock.json") ||
+      path.endsWith("pnpm-lock.yaml") ||
+      path.endsWith("yarn.lock") ||
+      path.includes("dependabot")
     ) {
       addReason(reasons, "securitypass", `security-sensitive surface: ${path}`);
     }
@@ -339,13 +400,19 @@ export function selectXPassChecks(input = {}) {
       path.includes("rotatepass") ||
       path.includes("credential") ||
       path.includes("credentials") ||
-      path.includes("keychain") ||
       path.includes("revocation") ||
       path.includes("local-session") ||
       path.includes("browser-profile") ||
-      path.includes("password")
+      path.includes("token") ||
+      path.includes("secret") ||
+      path.includes("keychain") ||
+      path.includes("password") ||
+      path.includes("redaction") ||
+      path.includes("system-credentials") ||
+      path.includes("provider-response") ||
+      path.includes("rotation")
     ) {
-      addReason(reasons, "rotatepass", `credential lifecycle surface: ${path}`);
+      addReason(reasons, "rotatepass", `credential rotation/redaction surface: ${path}`);
     }
 
     if (
@@ -353,25 +420,34 @@ export function selectXPassChecks(input = {}) {
       path.includes("orchestrator") ||
       path.includes("heartbeat") ||
       path.includes("runner") ||
+      path.includes("queue") ||
+      path.includes("boardroom") ||
       path.includes("claim") ||
       path.includes("proof") ||
-      path.includes("queue") ||
-      path.includes("done") ||
-      path.includes("merge-ready")
+      path.includes("receipt") ||
+      path.includes("merge-ready") ||
+      path.includes("no-work") ||
+      path.includes("done")
     ) {
-      addReason(reasons, "commonsensepass", `worker claim/proof surface: ${path}`);
+      addReason(reasons, "commonsensepass", `claim/proof sanity surface: ${path}`);
     }
 
     if (
       path.includes("wakepass") ||
+      path.includes("pinballwake") ||
+      path.startsWith(".github/workflows/") ||
+      path.includes("workflow") ||
       path.includes("heartbeat") ||
+      path.includes("dispatch") ||
+      hasAny(pathWords, ["ack"]) ||
       path.includes("scheduled") ||
       path.includes("cron") ||
       path.includes("stale") ||
-      path.includes("dispatch") ||
-      hasAny(pathWords, ["ack"])
+      path.includes("lease") ||
+      path.includes("runner") ||
+      path.includes("queue")
     ) {
-      addReason(reasons, "wakepass", `wake or dispatch surface: ${path}`);
+      addReason(reasons, "wakepass", `wake/runner reliability surface: ${path}`);
     }
 
     if (codeFile(path) && !testFile(path)) {
@@ -385,32 +461,35 @@ export function selectXPassChecks(input = {}) {
   if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
     addReason(reasons, "uxpass", "target text mentions UI/UX/visual changes");
   }
+  if (hasAny(allText, ["flow", "journey", "path", "route", "checkout", "signup", "sign up", "onboarding", "handoff", "navigation", "funnel", "success state", "failure state"])) {
+    addReason(reasons, "flowpass", "target text mentions journey/flow completion");
+  }
   if (hasAny(allText, ["security", "auth", "oauth", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "password", "redaction", "prompt injection", "insecure output", "llm", "model output", "sandbox"])) {
     addReason(reasons, "securitypass", "target text mentions security/auth/keys");
   }
-  if (hasAny(allText, ["common sense", "commonsense", "false done", "no work", "healthy", "merge ready", "claim", "claims", "proof", "receipt", "queue", "orchestrator", "heartbeat"])) {
-    addReason(reasons, "commonsensepass", "target text mentions worker claims or proof sanity");
-  }
-  if (hasAny(allText, ["flow", "journey", "onboarding", "checkout", "signup", "handoff", "end to end", "e2e", "cta", "form", "success state", "failure state"])) {
-    addReason(reasons, "flowpass", "target text mentions product journey or end-to-end flow");
-  }
-  if (hasAny(allText, ["geo", "generative engine", "answer engine", "ai overview", "ai mode", "gptbot", "claudebot", "perplexity", "llms.txt", "wikidata", "schema.org"])) {
-    addReason(reasons, "geopass", "target text mentions AI answer-engine readiness");
-  }
-  if (hasAny(allText, ["rotate", "rotation", "revocation", "credential", "credentials", "keychain", "local session", "browser profile", "password"])) {
-    addReason(reasons, "rotatepass", "target text mentions credential lifecycle");
-  }
-  if (hasAny(allText, ["wake", "wakepass", "ack", "missed ack", "stale", "heartbeat", "cron", "schedule", "scheduled", "dispatch"])) {
-    addReason(reasons, "wakepass", "target text mentions wakes, stale work, or schedules");
+  if (hasAny(allText, ["rotatepass", "rotation", "rotate", "revocation", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "redaction", "system credentials", "local session", "browser profile", "password"])) {
+    addReason(reasons, "rotatepass", "target text mentions credential rotation/redaction");
   }
   if (hasAny(allText, ["copy", "wording", "homepage", "landing", "docs", "faq", "marketing", "public claim", "public claims"])) {
     addReason(reasons, "copypass", "target text mentions copy/docs/claims");
   }
-  if (hasAny(allText, ["seo", "search", "meta", "sitemap", "robots"])) {
+  if (hasAny(allText, ["seo", "search", "meta", "sitemap", "robots", "canonical", "schema", "structured data"])) {
     addReason(reasons, "seopass", "target text mentions SEO");
+  }
+  if (hasAny(allText, ["geo", "geopass", "generative engine", "ai discovery", "ai citation", "llms", "crawlability", "common crawl", "wikidata", "brand mention", "answer engine"])) {
+    addReason(reasons, "geopass", "target text mentions generative-engine readiness");
   }
   if (hasAny(allText, ["legal", "privacy", "terms", "license", "pricing", "billing", "invoice", "subprocessor", "compliance"])) {
     addReason(reasons, "legalpass", "target text mentions legal/commercial risk");
+  }
+  if (hasAny(allText, ["enterprise", "enterprisepass", "compliancepass", "compliance", "audit", "evidence", "receipt", "policy", "soc", "iso", "gdpr", "dpa", "secret scanning", "push protection"])) {
+    addReason(reasons, "enterprisepass", "target text mentions enterprise/compliance evidence");
+  }
+  if (hasAny(allText, ["commonsensepass", "common sense", "healthy", "quiet", "no work", "no_work", "done", "merge ready", "merge_ready", "stale proof", "green chip", "claim", "completion proof"])) {
+    addReason(reasons, "commonsensepass", "target text mentions claim/proof sanity");
+  }
+  if (hasAny(allText, ["wakepass", "pinballwake", "wake", "heartbeat", "dispatch", "ack", "lease", "stale check", "scheduled", "cron", "runner", "queue", "job claim"])) {
+    addReason(reasons, "wakepass", "target text mentions wake/runner reliability");
   }
   if (hasAny(allText, ["quality", "slop", "refactor", "code smell", "bug", "bugfix"])) {
     addReason(reasons, "sloppass", "target text mentions quality or code risk");
@@ -429,6 +508,9 @@ function normalizeCheckName(value) {
   const key = normalize(value).replace(/[\s_-]+/g, "");
   if (key === "qualitypass") return "sloppass";
   if (key === "quality") return "sloppass";
+  if (key === "compliancepass") return "enterprisepass";
+  if (key === "compliance") return "enterprisepass";
+  if (key === "enterprise") return "enterprisepass";
   return CHECK_ORDER.find((check) => check === key || CHECK_LABELS[check].toLowerCase() === key) || key;
 }
 

@@ -14,30 +14,33 @@ const Navbar = () => {
 
   const navLinks = [
     { label: "Apps", href: "/tools", icon: AppWindow },
+    { label: "Pricing", href: "/pricing" },
+    { label: "Docs", href: "/docs" },
+  ];
+
+  const mobileOnlyLinks = [
     { label: "Memory", href: "/memory", icon: Brain },
     { label: "Autopilot", href: "/build", icon: Plane },
     { label: "XPass", href: "/admin/checks", icon: BadgeCheck },
     { label: "Arena", href: "/arena", icon: Trophy },
-    { label: "Pricing", href: "/pricing" },
-    { label: "Docs", href: "/docs" },
     { label: "New to AI?", href: "/new-to-ai", icon: HelpCircle },
   ];
 
   return (
     <nav className="fixed left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md" style={{ top: "var(--bbn-h, 0px)" }}>
-      <div className="container mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-6">
-        <Link to="/" className="shrink-0">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-6">
+        <Link to="/" aria-label="UnClick home" className="inline-flex min-h-6 shrink-0 items-center">
           <img src="/logo-wordmark.svg" alt="UnClick" style={{ height: "3.3rem" }} className="w-auto pt-2 pb-[3px]" />
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-6 lg:flex">
           {navLinks.map((link) =>
             link.icon ? (
               <Link
                 key={link.label}
                 to={link.href}
-                className={`flex items-center gap-1.5 text-sm transition-colors hover:text-heading ${
+                className={`flex min-h-6 items-center gap-1.5 text-sm transition-colors hover:text-heading ${
                   pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href))
                     ? "text-heading"
                     : "text-body"
@@ -50,7 +53,7 @@ const Navbar = () => {
               <Link
                 key={link.label}
                 to={link.href}
-                className={`text-sm transition-colors hover:text-heading ${
+                className={`inline-flex min-h-6 items-center text-sm transition-colors hover:text-heading ${
                   pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href))
                     ? "text-heading"
                     : "text-body"
@@ -66,7 +69,7 @@ const Navbar = () => {
           {isLoggedIn ? (
             <Link
               to="/admin/you"
-              className="hidden whitespace-nowrap text-sm text-body transition-colors hover:text-heading hover:underline sm:inline-block"
+              className="hidden min-h-6 items-center whitespace-nowrap text-sm text-body transition-colors hover:text-heading hover:underline sm:inline-flex"
             >
               Dashboard
             </Link>
@@ -74,13 +77,13 @@ const Navbar = () => {
             <>
               <Link
                 to="/login"
-                className="hidden whitespace-nowrap text-sm text-body transition-colors hover:text-heading hover:underline sm:inline-block"
+                className="hidden min-h-6 items-center whitespace-nowrap text-sm text-body transition-colors hover:text-heading hover:underline sm:inline-flex"
               >
                 Log in
               </Link>
               <a
                 href={installHref}
-                className="hidden whitespace-nowrap rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:block"
+                className="hidden min-h-9 items-center whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:inline-flex"
               >
                 Get Started Free
               </a>
@@ -89,7 +92,7 @@ const Navbar = () => {
 
           {/* Hamburger button */}
           <button
-            className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 md:hidden"
+            className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label="Toggle menu"
           >
@@ -120,16 +123,16 @@ const Navbar = () => {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden border-t border-border/50 bg-background/95 backdrop-blur-md md:hidden"
+            className="overflow-hidden border-t border-border/50 bg-background/95 backdrop-blur-md lg:hidden"
           >
             <div className="flex flex-col gap-1 px-6 py-4">
-              {navLinks.map((link) =>
+              {[...navLinks, ...mobileOnlyLinks].map((link) =>
                 link.icon ? (
                   <Link
                     key={link.label}
                     to={link.href}
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-2 py-2 text-sm text-body transition-colors hover:text-heading"
+                    className="flex min-h-8 items-center gap-2 py-2 text-sm text-body transition-colors hover:text-heading"
                   >
                     <link.icon className="h-3.5 w-3.5 shrink-0" />
                     {link.label}
@@ -139,7 +142,7 @@ const Navbar = () => {
                     key={link.label}
                     to={link.href}
                     onClick={() => setOpen(false)}
-                    className="py-2 text-sm text-body transition-colors hover:text-heading"
+                    className="flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
                   >
                     {link.label}
                   </Link>
@@ -149,7 +152,7 @@ const Navbar = () => {
                 <Link
                   to="/admin/you"
                   onClick={() => setOpen(false)}
-                  className="mt-2 py-2 text-sm text-body transition-colors hover:text-heading"
+                  className="mt-2 flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
                 >
                   Dashboard
                 </Link>
@@ -158,7 +161,7 @@ const Navbar = () => {
                   <Link
                     to="/login"
                     onClick={() => setOpen(false)}
-                    className="mt-2 py-2 text-sm text-body transition-colors hover:text-heading"
+                    className="mt-2 flex min-h-8 items-center py-2 text-sm text-body transition-colors hover:text-heading"
                   >
                     Log in
                   </Link>
