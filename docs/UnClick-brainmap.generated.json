@@ -6935,7 +6935,7 @@
     ],
     [
       "build",
-      "npm run build --workspace=@unclick/commonsensepass && vite build"
+      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build"
     ],
     [
       "build:dev",
@@ -7053,8 +7053,8 @@
     },
     {
       "source": "package.json",
-      "hash": "f416df3bc693",
-      "bytes": 4434
+      "hash": "1b0dc950899e",
+      "bytes": 4481
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
