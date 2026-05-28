@@ -96,7 +96,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
 | src/pages/BuildDesk.tsx | 36cf3e2985ba | 4474 |
 | src/pages/Connect.tsx | ec4230e130ef | 29356 |
-| src/pages/Crews.tsx | 1cdeaee2ae36 | 17586 |
+| src/pages/Crews.tsx | 9b4b9dfca188 | 18784 |
 | src/pages/DeveloperDocs.tsx | 339b3a5c60ae | 23490 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | e09d777363c0 | 8012 |
