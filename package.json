@@ -18,7 +18,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run",
+    "test": "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run && npm run test:api-lib-esm-extension",
     "compliancepass:report": "npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs",
     "test:compliancepass-receipt": "node --test scripts/enterprisepass-receipt-guard.test.mjs",
     "test:enterprisepass-receipt": "node --test scripts/enterprisepass-receipt-guard.test.mjs",
