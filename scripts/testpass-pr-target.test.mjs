@@ -5,6 +5,7 @@ import {
   resolveTestPassPrTarget,
   selectLatestVercelPreviewUrl,
   toMcpServerUrl,
+  toTestPassRunApiUrl,
 } from "./testpass-pr-target.mjs";
 
 test("extracts Vercel preview links without taking the feedback comment link", () => {
@@ -51,24 +52,40 @@ test("normalizes a Vercel preview URL to the MCP endpoint", () => {
   );
 });
 
+test("normalizes a Vercel preview URL to the preview TestPass API endpoint", () => {
+  assert.equal(
+    toTestPassRunApiUrl("https://unclick-git-abc-team.vercel.app/dashboard?x=1"),
+    "https://unclick-git-abc-team.vercel.app/api/testpass-run",
+  );
+});
+
 test("prefers explicit workflow input, then preview, then production default", () => {
   assert.deepEqual(
     resolveTestPassPrTarget({
       requestedServerUrl: "https://custom.example/api/mcp",
       comments: [{ user: { login: "vercel[bot]" }, body: "[Preview](https://preview.vercel.app)" }],
     }),
-    { serverUrl: "https://custom.example/api/mcp", source: "workflow_input" },
+    {
+      serverUrl: "https://custom.example/api/mcp",
+      apiUrl: "https://custom.example/api/testpass-run",
+      source: "workflow_input",
+    },
   );
 
   assert.deepEqual(
     resolveTestPassPrTarget({
       comments: [{ user: { login: "vercel[bot]" }, body: "[Preview](https://preview.vercel.app)" }],
     }),
-    { serverUrl: "https://preview.vercel.app/api/mcp", source: "vercel_preview_comment" },
+    {
+      serverUrl: "https://preview.vercel.app/api/mcp",
+      apiUrl: "https://preview.vercel.app/api/testpass-run",
+      source: "vercel_preview_comment",
+    },
   );
 
   assert.deepEqual(resolveTestPassPrTarget(), {
     serverUrl: "https://unclick.world/api/mcp",
+    apiUrl: "https://unclick.world/api/testpass-run",
     source: "default",
   });
 });

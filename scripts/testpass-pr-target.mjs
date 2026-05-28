@@ -1,4 +1,5 @@
 const DEFAULT_TESTPASS_SERVER_URL = "https://unclick.world/api/mcp";
+const DEFAULT_TESTPASS_API_URL = "https://unclick.world/api/testpass-run";
 
 function safeText(value) {
   return String(value ?? "").trim();
@@ -48,19 +49,38 @@ export function toMcpServerUrl(previewUrl) {
   return parsed.toString().replace(/\/$/, "");
 }
 
+export function toTestPassRunApiUrl(previewUrl) {
+  const parsed = new URL(previewUrl);
+  parsed.pathname = "/api/testpass-run";
+  parsed.search = "";
+  parsed.hash = "";
+  return parsed.toString().replace(/\/$/, "");
+}
+
 export function resolveTestPassPrTarget(input = {}) {
   const requestedServerUrl = safeText(input.requestedServerUrl);
   const defaultServerUrl = safeText(input.defaultServerUrl) || DEFAULT_TESTPASS_SERVER_URL;
+  const defaultApiUrl = safeText(input.defaultApiUrl) || DEFAULT_TESTPASS_API_URL;
 
   if (requestedServerUrl && requestedServerUrl !== defaultServerUrl) {
-    return { serverUrl: requestedServerUrl, source: "workflow_input" };
+    let apiUrl = defaultApiUrl;
+    try {
+      apiUrl = toTestPassRunApiUrl(requestedServerUrl);
+    } catch {
+      apiUrl = defaultApiUrl;
+    }
+    return { serverUrl: requestedServerUrl, apiUrl, source: "workflow_input" };
   }
 
   const previewUrl = selectLatestVercelPreviewUrl(input.comments);
   if (previewUrl) {
-    return { serverUrl: toMcpServerUrl(previewUrl), source: "vercel_preview_comment" };
+    return {
+      serverUrl: toMcpServerUrl(previewUrl),
+      apiUrl: toTestPassRunApiUrl(previewUrl),
+      source: "vercel_preview_comment",
+    };
   }
 
-  return { serverUrl: requestedServerUrl || defaultServerUrl, source: "default" };
+  return { serverUrl: requestedServerUrl || defaultServerUrl, apiUrl: defaultApiUrl, source: "default" };
 }
 

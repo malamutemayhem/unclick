@@ -318,6 +318,26 @@ export function resolveTestPassTargetToken(params: {
   return configured || undefined;
 }
 
+export function resolveTestPassTargetVercelBypassSecret(params: {
+  targetUrl?: string;
+  incomingSecret?: string;
+  configuredSecret?: string;
+}): string | undefined {
+  const target = params.targetUrl?.trim();
+  if (!target) return undefined;
+  let host = "";
+  try {
+    host = new URL(target).hostname.toLowerCase();
+  } catch {
+    return undefined;
+  }
+  if (!host.endsWith(".vercel.app")) return undefined;
+
+  const incoming = params.incomingSecret?.trim();
+  const configured = params.configuredSecret?.trim();
+  return incoming || configured || undefined;
+}
+
 export async function withTestPassTargetToken<T>(
   targetToken: string | undefined,
   work: () => Promise<T>,
@@ -334,6 +354,26 @@ export async function withTestPassTargetToken<T>(
       delete process.env.TESTPASS_TOKEN;
     } else {
       process.env.TESTPASS_TOKEN = previous;
+    }
+  }
+}
+
+export async function withTestPassTargetVercelBypassSecret<T>(
+  bypassSecret: string | undefined,
+  work: () => Promise<T>,
+): Promise<T> {
+  const secret = bypassSecret?.trim();
+  if (!secret) return work();
+
+  const previous = process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+  process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = secret;
+  try {
+    return await work();
+  } finally {
+    if (previous === undefined) {
+      delete process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+    } else {
+      process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = previous;
     }
   }
 }
@@ -364,6 +404,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         server_url: queryString(req.query.server_url),
         task_id: queryString(req.query.task_id),
         source: queryString(req.query.source),
+        target_vercel_bypass_secret: undefined,
       }
     : ((req.body ?? {}) as {
         pack_id?: string;
@@ -372,6 +413,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         server_url?: string;
         task_id?: string;
         source?: string;
+        target_vercel_bypass_secret?: string;
       });
 
   if (!input.pack_id) return json(res, 400, { error: "pack_id required" });
@@ -439,6 +481,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     isCron,
     configuredToken: process.env.TESTPASS_TOKEN,
   });
+  const targetVercelBypassSecret = resolveTestPassTargetVercelBypassSecret({
+    targetUrl: target.url,
+    incomingSecret: input.target_vercel_bypass_secret,
+    configuredSecret: process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+  });
 
   const { id: runId, was_duplicate } = await createRun(config, {
     packId: packRow.id,
@@ -462,7 +509,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const runWork = async () => {
-    return withTestPassTargetToken(targetToken, async () => {
+    return withTestPassTargetToken(targetToken, async () => withTestPassTargetVercelBypassSecret(targetVercelBypassSecret, async () => {
       let evidenceRef: string | undefined;
       if (target.url) {
         try {
@@ -510,7 +557,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
       return summary;
-    });
+    }));
   };
 
   if (profile === "smoke") {

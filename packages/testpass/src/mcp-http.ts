@@ -8,6 +8,9 @@ export function buildMcpHeaders(): Record<string, string> {
   if (process.env.TESTPASS_TOKEN) {
     headers.Authorization = `Bearer ${process.env.TESTPASS_TOKEN}`;
   }
+  if (process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET) {
+    headers["x-vercel-protection-bypass"] = process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+  }
   return headers;
 }
 

@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   canUseTestPassRunPack,
   resolveTestPassRunActor,
+  resolveTestPassTargetVercelBypassSecret,
   resolveTestPassTargetToken,
+  withTestPassTargetVercelBypassSecret,
   withTestPassTargetToken,
 } from "./testpass-run";
 
@@ -96,10 +98,13 @@ describe("resolveTestPassRunActor", () => {
 
 describe("TestPass target token forwarding", () => {
   const originalToken = process.env.TESTPASS_TOKEN;
+  const originalBypassSecret = process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
 
   afterEach(() => {
     if (originalToken === undefined) delete process.env.TESTPASS_TOKEN;
     else process.env.TESTPASS_TOKEN = originalToken;
+    if (originalBypassSecret === undefined) delete process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+    else process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = originalBypassSecret;
   });
 
   it("uses the inbound UnClick API key for PR smoke target calls", () => {
@@ -131,5 +136,31 @@ describe("TestPass target token forwarding", () => {
 
     expect(seen).toBe("uc_current");
     expect(process.env.TESTPASS_TOKEN).toBe("uc_previous");
+  });
+
+  it("only forwards the Vercel bypass secret for Vercel preview targets", () => {
+    expect(resolveTestPassTargetVercelBypassSecret({
+      targetUrl: "https://unclick-git-branch-team.vercel.app/api/mcp",
+      incomingSecret: "from-actions",
+      configuredSecret: "from-env",
+    })).toBe("from-actions");
+
+    expect(resolveTestPassTargetVercelBypassSecret({
+      targetUrl: "https://unclick.world/api/mcp",
+      incomingSecret: "from-actions",
+      configuredSecret: "from-env",
+    })).toBeUndefined();
+  });
+
+  it("temporarily exposes the selected Vercel bypass secret and restores it", async () => {
+    process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = "previous";
+
+    const seen = await withTestPassTargetVercelBypassSecret(
+      "current",
+      async () => process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET,
+    );
+
+    expect(seen).toBe("current");
+    expect(process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET).toBe("previous");
   });
 });
