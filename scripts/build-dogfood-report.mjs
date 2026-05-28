@@ -3,6 +3,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { PASS_PACKAGES } from "./build-xpass-package-sweep.mjs";
+
 const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run") || process.env.DOGFOOD_DRY_RUN === "1";
 const outputIndex = process.argv.indexOf("--output");
@@ -20,6 +22,7 @@ const packageSweepPath = process.env.DOGFOOD_XPASS_PACKAGE_SWEEP_PATH || "public
 const boundarySweepPath = process.env.DOGFOOD_XPASS_BOUNDARY_SWEEP_PATH || "public/dogfood/xpass-boundary-sweep.json";
 let packageSweepState = null;
 let boundarySweepState = null;
+const requiredSweepPackageIds = PASS_PACKAGES.map((pkg) => pkg.id);
 
 const statusLegend = {
   passing: "A live check or scheduled package sweep ran and returned a passing result, or a scheduled boundary sweep ran and returned a passing result.",
@@ -223,7 +226,7 @@ function packageReadyResult(id, name, summary, evidence, targetUrl, nextProof) {
   const sweepNextProof = sweep && sweep.package.status === "passing" && !sweep.matrix
     ? `Regenerate ${packageSweepPath} with a cross-pass matrix row for ${name} before marking this passing.`
     : packageSweepState?.stale
-      ? `Regenerate ${packageSweepPath} for ${targetSha || "the current commit"} before marking this passing.`
+      ? `Regenerate ${packageSweepPath} as a full current XPass package sweep for ${targetSha || "the current commit"} before marking this passing.`
       : nextProof;
   return pendingResult(id, name, summary, evidence, {
     reasonCode: "package_ready_needs_scheduled_receipt",
@@ -325,6 +328,15 @@ async function readPackageSweepReceipt() {
         actualSha: receipt.target_sha || "",
       };
     }
+    const validation = validatePackageSweepReceipt(receipt);
+    if (!validation.ok) {
+      return {
+        receipt,
+        stale: true,
+        reason: validation.reason,
+        validation,
+      };
+    }
     return { receipt, stale: false, reason: "fresh" };
   } catch (err) {
     if (err?.code === "ENOENT") {
@@ -370,6 +382,46 @@ async function readBoundarySweepReceipt() {
       error: err instanceof Error ? err.message : String(err),
     };
   }
+}
+
+function normalizedIdSet(values) {
+  return new Set((Array.isArray(values) ? values : [])
+    .map((value) => String(value ?? "").trim().toLowerCase())
+    .filter(Boolean));
+}
+
+function hasExactRequiredPackageIds(values) {
+  const ids = normalizedIdSet(values);
+  return ids.size === requiredSweepPackageIds.length
+    && requiredSweepPackageIds.every((id) => ids.has(id));
+}
+
+function validatePackageSweepReceipt(receipt) {
+  if (receipt?.status !== "passing") {
+    return { ok: false, reason: "xpass_sweep_not_passing" };
+  }
+  if (receipt?.scope !== "full") {
+    return { ok: false, reason: "xpass_sweep_not_full_scope" };
+  }
+  if (receipt?.expected_package_count !== requiredSweepPackageIds.length) {
+    return { ok: false, reason: "xpass_sweep_expected_count_mismatch" };
+  }
+  if (!hasExactRequiredPackageIds(receipt?.expected_package_ids)) {
+    return { ok: false, reason: "xpass_sweep_expected_ids_mismatch" };
+  }
+  if (!hasExactRequiredPackageIds(receipt?.selected_package_ids)) {
+    return { ok: false, reason: "xpass_sweep_selected_ids_mismatch" };
+  }
+  if (normalizedIdSet(receipt?.unknown_package_ids).size > 0) {
+    return { ok: false, reason: "xpass_sweep_unknown_package_ids" };
+  }
+  if (!hasExactRequiredPackageIds((receipt?.packages || []).map((pkg) => pkg.id))) {
+    return { ok: false, reason: "xpass_sweep_package_rows_mismatch" };
+  }
+  if (!hasExactRequiredPackageIds((receipt?.cross_pass_matrix || []).map((row) => row.target_id))) {
+    return { ok: false, reason: "xpass_sweep_matrix_rows_mismatch" };
+  }
+  return { ok: true, reason: "fresh_full_scope" };
 }
 
 function packageSweepProof(id) {
