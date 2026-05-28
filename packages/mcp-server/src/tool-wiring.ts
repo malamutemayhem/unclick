@@ -12474,6 +12474,12 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "flowpass_run",
     description: "Run FlowPass against a public fixture or registered pack. Returns journey readiness, step verdicts, hat outputs, exclusions, and a stored report. Without fixture proof, returns a plan-only receipt instead of pretending a live journey ran.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12499,6 +12505,12 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "flowpass_status",
     description: "Fetch the stored FlowPass run status, score, summary, and open disagreement queue entries for a run started in this MCP session.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12511,6 +12523,12 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "flowpass_report",
     description: "Fetch a FlowPass report in json, markdown, html, or fix_prompt format for a run started in this MCP session.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12524,6 +12542,12 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "flowpass_register_pack",
     description: "Register a FlowPass pack from YAML or an object. Validates plain-English steps, hats, assertions, and optional fixture evidence.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12541,6 +12565,12 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "flowpass_record",
     description: "Convert supplied rrweb or structured session events into a draft FlowPass pack. This safe MCP surface does not start a live browser recording by itself.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12554,6 +12584,12 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "flowpass_quarantine",
     description: "List, add, or resolve FlowPass quarantines for flows that should not be trusted as gates.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12567,6 +12603,12 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "flowpass_disagreement_queue",
     description: "List or resolve FlowPass Driver versus Verifier disagreements.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,

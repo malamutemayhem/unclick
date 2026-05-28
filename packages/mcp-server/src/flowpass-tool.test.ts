@@ -28,6 +28,25 @@ describe("flowpass-tool", () => {
     }
   });
 
+  it("marks every FlowPass MCP tool with risk annotations", () => {
+    const annotationKeys = [
+      "readOnlyHint",
+      "destructiveHint",
+      "idempotentHint",
+      "openWorldHint",
+    ] as const;
+    const tools = ADDITIONAL_TOOLS.filter((tool) => tool.name.startsWith("flowpass_"));
+
+    expect(tools).toHaveLength(7);
+    for (const tool of tools) {
+      const annotations = "annotations" in tool && tool.annotations;
+      expect(annotations && typeof annotations).toBe("object");
+      for (const key of annotationKeys) {
+        expect(typeof (annotations as Record<string, unknown>)[key]).toBe("boolean");
+      }
+    }
+  });
+
   it("runs deterministic fixture checks and exposes reports", async () => {
     const run = await flowpassRun({
       target_url: "https://example.com/signup",
