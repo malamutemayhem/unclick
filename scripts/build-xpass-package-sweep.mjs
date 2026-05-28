@@ -94,6 +94,31 @@ export const PASS_PACKAGES = [
 
 export const CROSS_PASS_MATRIX = [
   {
+    targetId: "testpass",
+    reviewers: [
+      { id: "commonsensepass", role: "proof honesty and false-DONE gate coverage" },
+      { id: "securitypass", role: "MCP and safe local security boundary review" },
+      { id: "sloppass", role: "fixture quality and failure-message review" },
+    ],
+  },
+  {
+    targetId: "uxpass",
+    reviewers: [
+      { id: "testpass", role: "package tests must pass before public UX proof is trusted" },
+      { id: "flowpass", role: "route, journey, and handoff overlap" },
+      { id: "copypass", role: "interface copy and public wording clarity" },
+      { id: "commonsensepass", role: "proof-claim sanity" },
+    ],
+  },
+  {
+    targetId: "securitypass",
+    reviewers: [
+      { id: "testpass", role: "package tests must pass before security proof is trusted" },
+      { id: "commonsensepass", role: "scope-gate and proof-claim sanity" },
+      { id: "legalpass", role: "safe guidance boundary and non-certification wording" },
+    ],
+  },
+  {
     targetId: "sloppass",
     reviewers: [
       { id: "testpass", role: "package tests must pass before public proof is trusted" },
@@ -262,23 +287,32 @@ function normalizePackageResult(pkg, commandResult, now) {
   };
 }
 
-function reviewerRows(matrixEntry, packageById) {
+function normalizeSelectedIds(selectedIds) {
+  return [...new Set(selectedIds
+    .map((id) => String(id ?? "").trim().toLowerCase())
+    .filter(Boolean))];
+}
+
+function reviewerRows(matrixEntry, resultById, catalogById) {
   return matrixEntry.reviewers.map((reviewer) => {
-    const reviewerPackage = packageById.get(reviewer.id);
+    const reviewerResult = resultById.get(reviewer.id);
+    const reviewerPackage = reviewerResult || catalogById.get(reviewer.id);
     return {
       id: reviewer.id,
       name: reviewerPackage?.name || reviewer.id,
       role: reviewer.role,
-      status: reviewerPackage?.status || "pending",
+      status: reviewerResult?.status || "pending",
     };
   });
 }
 
-function buildCrossPassMatrix(packages) {
-  const packageById = new Map(packages.map((pkg) => [pkg.id, pkg]));
+function buildCrossPassMatrix(packageResults, packageCatalog = packageResults) {
+  const packageById = new Map(packageResults.map((pkg) => [pkg.id, pkg]));
+  const catalogById = new Map(packageCatalog.map((pkg) => [pkg.id, pkg]));
   return CROSS_PASS_MATRIX.map((entry) => {
     const target = packageById.get(entry.targetId);
-    const reviewers = reviewerRows(entry, packageById);
+    const catalogTarget = catalogById.get(entry.targetId);
+    const reviewers = reviewerRows(entry, packageById, catalogById);
     const failingReviewer = reviewers.find((reviewer) => reviewer.status === "failing");
     const pendingReviewer = reviewers.find((reviewer) => reviewer.status === "pending" || reviewer.status === "blocked");
     const status = target?.status === "failing" || failingReviewer
@@ -286,20 +320,32 @@ function buildCrossPassMatrix(packages) {
       : target && !pendingReviewer
         ? "passing"
         : "pending";
+    const targetName = target?.name || catalogTarget?.name || entry.targetId;
     return {
       target_id: entry.targetId,
-      target_name: target?.name || entry.targetId,
+      target_name: targetName,
       status,
       reviewers,
       summary: status === "passing"
-        ? `${target?.name || entry.targetId} was cross-checked by ${reviewers.map((reviewer) => reviewer.name).join(", ")}.`
-        : `${target?.name || entry.targetId} cross-pass proof is not green yet.`,
+        ? `${targetName} was cross-checked by ${reviewers.map((reviewer) => reviewer.name).join(", ")}.`
+        : `${targetName} cross-pass proof is not green yet.`,
     };
   });
 }
 
-function actionNeeded(packages, matrix) {
+function actionNeeded(packages, matrix, {
+  scope = "full",
+  expectedPackageCount = packages.length,
+  selectedPackageCount = packages.length,
+  unknownPackageIds = [],
+} = {}) {
   return [
+    ...(unknownPackageIds.length
+      ? [`XPass package sweep: unknown selected package id(s): ${unknownPackageIds.join(", ")}.`]
+      : []),
+    ...(scope === "partial"
+      ? [`XPass package sweep: partial selected run checked ${selectedPackageCount} of ${expectedPackageCount} package(s); run the full package sweep before treating this as complete cross-pass dogfood.`]
+      : []),
     ...packages
       .filter((pkg) => pkg.status !== "passing")
       .map((pkg) => `${pkg.name}: ${pkg.summary}`),
@@ -320,9 +366,17 @@ export async function buildXPassPackageSweep({
   skipCommands = false,
   runCommand = defaultRunCommand,
 } = {}) {
-  const selected = selectedIds.length
-    ? packages.filter((pkg) => selectedIds.includes(pkg.id))
+  const expectedPackageIds = packages.map((pkg) => pkg.id);
+  const expectedPackageIdSet = new Set(expectedPackageIds);
+  const requestedSelectedIds = normalizeSelectedIds(selectedIds);
+  const unknownPackageIds = requestedSelectedIds.filter((id) => !expectedPackageIdSet.has(id));
+  const selected = requestedSelectedIds.length
+    ? packages.filter((pkg) => requestedSelectedIds.includes(pkg.id))
     : packages;
+  const selectedPackageIds = selected.map((pkg) => pkg.id);
+  const scope = selectedPackageIds.length === packages.length && unknownPackageIds.length === 0
+    ? "full"
+    : "partial";
   const packageResults = [];
 
   for (const pkg of selected) {
@@ -333,19 +387,30 @@ export async function buildXPassPackageSweep({
     packageResults.push(normalizePackageResult(pkg, commandResult, now));
   }
 
-  const matrix = buildCrossPassMatrix(packageResults);
+  const matrix = buildCrossPassMatrix(packageResults, packages);
   const packageStatus = statusFromPackages(packageResults);
   const matrixStatus = matrix.some((row) => row.status === "failing")
     ? "failing"
     : matrix.some((row) => row.status !== "passing")
       ? "pending"
       : "passing";
+  const selectionStatus = unknownPackageIds.length ? "pending" : "passing";
   const status = packageStatus === "failing" || matrixStatus === "failing"
     ? "failing"
-    : packageStatus === "passing" && matrixStatus === "passing"
+    : packageStatus === "passing" && matrixStatus === "passing" && selectionStatus === "passing"
       ? "passing"
       : "pending";
-  const seed = JSON.stringify({ now, targetSha, packages: packageResults.map((pkg) => [pkg.id, pkg.status]) });
+  const seed = JSON.stringify({
+    now,
+    targetSha,
+    scope,
+    selectedPackageIds,
+    unknownPackageIds,
+    packages: packageResults.map((pkg) => [pkg.id, pkg.status]),
+  });
+  const summary = scope === "full"
+    ? `XPass package sweep ${status} across all ${packages.length} package(s).`
+    : `XPass package sweep ${status} across ${packageResults.length} selected package(s); full cross-pass dogfood requires ${packages.length} package(s).`;
 
   return {
     kind: "xpass_package_sweep_receipt_v1",
@@ -355,11 +420,21 @@ export async function buildXPassPackageSweep({
     source,
     target_sha: targetSha || null,
     status,
-    summary: `XPass package sweep ${status} across ${packageResults.length} package(s).`,
+    scope,
+    summary,
     package_count: packageResults.length,
+    expected_package_count: packages.length,
+    selected_package_ids: selectedPackageIds,
+    expected_package_ids: expectedPackageIds,
+    unknown_package_ids: unknownPackageIds,
     packages: packageResults,
     cross_pass_matrix: matrix,
-    action_needed: actionNeeded(packageResults, matrix),
+    action_needed: actionNeeded(packageResults, matrix, {
+      scope,
+      expectedPackageCount: packages.length,
+      selectedPackageCount: packageResults.length,
+      unknownPackageIds,
+    }),
   };
 }
 
@@ -383,7 +458,9 @@ async function main() {
   console.log(JSON.stringify({
     generated_at: receipt.generated_at,
     status: receipt.status,
+    scope: receipt.scope,
     packages: receipt.package_count,
+    expected_packages: receipt.expected_package_count,
     action_needed: receipt.action_needed.length,
     output: outputPath,
   }, null, 2));

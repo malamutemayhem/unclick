@@ -295,6 +295,24 @@ test("dogfood receipt promotes package-ready passes from a fresh XPass sweep rec
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
   const output = path.join(dir, "latest.json");
   const sweepPath = path.join(dir, "xpass-package-sweep.json");
+  const packageRows = [
+    { id: "sloppass", name: "SlopPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/sloppass"] },
+    { id: "seopass", name: "SEOPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/seopass"] },
+    { id: "copypass", name: "CopyPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/copypass"] },
+    { id: "legalpass", name: "LegalPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/legalpass"] },
+    { id: "commonsensepass", name: "CommonSensePass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/commonsensepass"] },
+    { id: "flowpass", name: "FlowPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/flowpass"] },
+    { id: "geopass", name: "GEOPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/geopass"] },
+  ];
+  const reviewerNames = new Map([
+    ["testpass", "TestPass"],
+    ["commonsensepass", "CommonSensePass"],
+    ["sloppass", "SlopPass"],
+  ]);
+  const reviewersFor = (targetId) => ["testpass", "commonsensepass", "sloppass"]
+    .filter((id) => id !== targetId)
+    .slice(0, 2)
+    .map((id) => ({ id, name: reviewerNames.get(id), status: "passing" }));
 
   try {
     await fs.writeFile(sweepPath, JSON.stringify({
@@ -302,33 +320,12 @@ test("dogfood receipt promotes package-ready passes from a fresh XPass sweep rec
       run_id: "xpass-package-sweep-123",
       target_sha: "abc123",
       status: "passing",
-      packages: [
-        { id: "sloppass", name: "SlopPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/sloppass"] },
-        { id: "seopass", name: "SEOPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/seopass"] },
-        { id: "copypass", name: "CopyPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/copypass"] },
-        { id: "legalpass", name: "LegalPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/legalpass"] },
-        { id: "commonsensepass", name: "CommonSensePass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/commonsensepass"] },
-        { id: "flowpass", name: "FlowPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/flowpass"] },
-        { id: "geopass", name: "GEOPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/geopass"] },
-      ],
-      cross_pass_matrix: [
-        {
-          target_id: "sloppass",
-          status: "passing",
-          reviewers: [
-            { id: "testpass", name: "TestPass", status: "passing" },
-            { id: "commonsensepass", name: "CommonSensePass", status: "passing" },
-          ],
-        },
-        {
-          target_id: "geopass",
-          status: "passing",
-          reviewers: [
-            { id: "testpass", name: "TestPass", status: "passing" },
-            { id: "seopass", name: "SEOPass", status: "passing" },
-          ],
-        },
-      ],
+      packages: packageRows,
+      cross_pass_matrix: packageRows.map((pkg) => ({
+        target_id: pkg.id,
+        status: "passing",
+        reviewers: reviewersFor(pkg.id),
+      })),
     }));
 
     await execFileAsync(process.execPath, [
@@ -351,8 +348,16 @@ test("dogfood receipt promotes package-ready passes from a fresh XPass sweep rec
     const report = JSON.parse(await fs.readFile(output, "utf8"));
     const sloppass = report.results.find((result) => result.id === "sloppass");
     const geopass = report.results.find((result) => result.id === "geopass");
+    const seopass = report.results.find((result) => result.id === "seopass");
     const securitypass = report.results.find((result) => result.id === "securitypass");
 
+    for (const pkg of packageRows.filter((row) => row.id !== "seopass")) {
+      const result = report.results.find((entry) => entry.id === pkg.id);
+      assert.equal(result?.status, "passing", `${pkg.name} should promote from a fresh full XPass sweep`);
+      assert.equal(result?.runId, "xpass-package-sweep-123");
+      assert.equal(result?.proof?.kind, "xpass_package_sweep");
+      assert.equal(result?.proof?.packageId, pkg.id);
+    }
     assert.equal(sloppass?.status, "passing");
     assert.equal(sloppass?.runId, "xpass-package-sweep-123");
     assert.equal(sloppass?.proof?.kind, "xpass_package_sweep");
@@ -360,6 +365,8 @@ test("dogfood receipt promotes package-ready passes from a fresh XPass sweep rec
     assert.equal(sloppass?.proof?.packageId, "sloppass");
     assert.equal(geopass?.status, "passing");
     assert.equal(geopass?.proof?.kind, "xpass_package_sweep");
+    assert.equal(seopass?.status, "passing");
+    assert.equal(seopass?.proof?.kind, "seopass_run");
     assert.equal(securitypass?.status, "blocked");
     assert.equal(securitypass?.reasonCode, "scope_gate");
   } finally {

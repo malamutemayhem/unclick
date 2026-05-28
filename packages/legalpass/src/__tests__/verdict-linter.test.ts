@@ -54,6 +54,34 @@ describe("PassGuard verdict-linter", () => {
     expect(result.issues.some((issue) => issue.phrase === "100% compliant")).toBe(true);
   });
 
+  it("blocks safe-to-act and compliance conclusions", () => {
+    const result = lintVerdictText(
+      "This is compliant and safe to sign. It is safe to publish with no legal risk.",
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.issues.some((issue) => issue.phrase === "this is compliant")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "safe to sign")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "safe to publish")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "no legal risk")).toBe(true);
+  });
+
+  it("blocks safe-to-act and compliance variants", () => {
+    const result = lintVerdictText(
+      "This is legally compliant, complies with the law, and is ready to sign. " +
+        "It is approved for publication, certified compliant, and risk-free with zero legal risk.",
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.issues.some((issue) => issue.phrase === "legally compliant")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "complies with the law")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "ready to sign")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "approved for publication")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "certified compliant")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "risk-free")).toBe(true);
+    expect(result.issues.some((issue) => issue.phrase === "zero legal risk")).toBe(true);
+  });
+
   it("blocks imperative legal referral wording in verdict text", () => {
     const result = lintVerdictText(
       "Ask a qualified practitioner before acting on this item. You may want to review with a lawyer.",

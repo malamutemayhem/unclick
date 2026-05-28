@@ -96,6 +96,51 @@ function makeStrictSseMcpServer(): Promise<{ url: string; close: () => void }> {
   });
 }
 
+function makeToolListMcpServer(
+  tools: Array<Record<string, unknown>>,
+): Promise<{ url: string; close: () => void }> {
+  return new Promise((resolve) => {
+    const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+      let raw = "";
+      req.on("data", (c: Buffer) => (raw += c.toString()));
+      req.on("end", () => {
+        const rpc = JSON.parse(raw) as { id?: number; method: string };
+        if (rpc.id === undefined) {
+          res.writeHead(204).end();
+          return;
+        }
+
+        let payload: unknown;
+        if (rpc.method === "initialize") {
+          payload = {
+            protocolVersion: "2024-11-05",
+            serverInfo: { name: "tool-list-mcp", version: "1.0.0" },
+            capabilities: { tools: {} },
+            instructions: "Tool metadata fixture.",
+          };
+        } else if (rpc.method === "tools/list") {
+          payload = { tools };
+        } else {
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({
+            jsonrpc: "2.0",
+            id: rpc.id,
+            error: { code: -32601, message: "Method not found" },
+          }));
+          return;
+        }
+
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ jsonrpc: "2.0", id: rpc.id, result: payload }));
+      });
+    });
+    server.listen(0, "127.0.0.1", () => {
+      const addr = server.address() as { port: number };
+      resolve({ url: `http://127.0.0.1:${addr.port}`, close: () => server.close() });
+    });
+  });
+}
+
 function mockResult(method: string): unknown {
   if (method === "initialize") {
     return {
@@ -315,6 +360,83 @@ items:
       expect(mcp005?.[3].verdict).toBe("check");
     } finally {
       strictSrv.close();
+    }
+  });
+
+  it("passes tools/list shape and tool annotation checks for well-described tools", async () => {
+    const toolSrv = await makeToolListMcpServer([
+      {
+        name: "search_memory",
+        description: "Search durable user memory with a query string.",
+        inputSchema: { type: "object", properties: { q: { type: "string" } } },
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+        },
+      },
+    ]);
+    const metadataPack = loadPackFromYaml(`
+id: tool-metadata
+name: Tool Metadata
+version: 0.1.0
+items:
+  - id: MCP-007
+    title: tools/list shape
+    category: mcp-lifecycle
+    severity: critical
+    check_type: deterministic
+  - id: TOOL-META-001
+    title: annotations
+    category: tool-hygiene
+    severity: high
+    check_type: deterministic
+`);
+
+    try {
+      await runDeterministicChecks(config, "run-tools", toolSrv.url, metadataPack, "standard");
+      const mcp007 = mockUpdateItem.mock.calls.find((c) => c[2] === "MCP-007");
+      const meta001 = mockUpdateItem.mock.calls.find((c) => c[2] === "TOOL-META-001");
+      expect(mcp007?.[3].verdict).toBe("check");
+      expect(meta001?.[3].verdict).toBe("check");
+    } finally {
+      toolSrv.close();
+    }
+  });
+
+  it("fails the tool annotation check when a tool omits boolean MCP risk hints", async () => {
+    const toolSrv = await makeToolListMcpServer([
+      {
+        name: "save_fact",
+        description: "Persist a durable memory fact for the signed-in user.",
+        inputSchema: { type: "object", properties: { fact: { type: "string" } } },
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+        },
+      },
+    ]);
+    const metadataPack = loadPackFromYaml(`
+id: tool-metadata
+name: Tool Metadata
+version: 0.1.0
+items:
+  - id: TOOL-META-001
+    title: annotations
+    category: tool-hygiene
+    severity: high
+    check_type: deterministic
+`);
+
+    try {
+      await runDeterministicChecks(config, "run-tools-missing", toolSrv.url, metadataPack, "standard");
+      const meta001 = mockUpdateItem.mock.calls.find((c) => c[2] === "TOOL-META-001");
+      expect(meta001?.[3].verdict).toBe("fail");
+      expect(meta001?.[3].on_fail_comment).toMatch(/idempotentHint/);
+      expect(meta001?.[3].on_fail_comment).toMatch(/openWorldHint/);
+    } finally {
+      toolSrv.close();
     }
   });
 });

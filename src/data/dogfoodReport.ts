@@ -13,10 +13,20 @@ export interface DogfoodPassResult {
   runId?: string;
   targetUrl?: string;
   proof?: {
-    kind: "testpass_run" | "uxpass_run" | "planned" | "package_ready" | "boundary" | "xpass_package_sweep" | "compliancepass_report";
+    kind:
+      | "testpass_run"
+      | "uxpass_run"
+      | "seopass_run"
+      | "planned"
+      | "package_ready"
+      | "boundary"
+      | "xpass_package_sweep"
+      | "compliancepass_report";
     runId?: string;
     packageId?: string;
     targetUrl?: string;
+    score?: number;
+    sourceUrls?: string[];
     checksTotal?: number;
     highSeverityGaps?: number;
     generatedAt?: string;
@@ -108,11 +118,11 @@ export const dogfoodReport = {
     {
       id: "seopass",
       name: "SEOPass",
-      stage: "package_ready",
-      label: "Package-ready",
-      automation: "Package runner, crawler-policy checks, MCP parity, dogfood scoring",
-      mentionProfile: "Medium mention volume around metadata, robots, sitemap, and public page changes.",
-      nextStep: "Add a recurring metadata receipt before marking it live dogfood.",
+      stage: "live_dogfood",
+      label: "Live dogfood lane",
+      automation: "Public read-only SEO receipt",
+      mentionProfile: "Medium mention volume when SEO metadata, crawler, or AI-era readiness drifts.",
+      nextStep: "Promote the read-only receipt into a scheduled baseline and GEOPass bundle handoff.",
     },
     {
       id: "copypass",
@@ -240,14 +250,18 @@ export const dogfoodReport = {
     {
       id: "seopass",
       name: "SEOPass",
-      status: "pending",
-      summary: "Package-backed search and metadata review exists, but the public dogfood receipt has not run it yet.",
-      evidence: "SEOPass has crawler-policy, robots, sitemap, canonical, package, and MCP parity checks; public status stays pending until scheduled proof exists.",
+      status: "passing",
+      summary: "SEOPass read-only dogfood completed with public SEO evidence.",
+      evidence: "Read-only fallback receipt checks public HTML, robots.txt, sitemap.xml, and llms.txt shape.",
       checkedAt: "2026-05-28T00:00:00.000Z",
-      reasonCode: "package_ready_needs_scheduled_receipt",
-      targetUrl: "packages/seopass",
-      proof: { kind: "package_ready", targetUrl: "packages/seopass" },
-      nextProof: "Add a recurring SEOPass receipt before moving this out of pending.",
+      runId: "seopass-static-fallback",
+      targetUrl: "https://unclick.world",
+      proof: {
+        kind: "seopass_run",
+        runId: "seopass-static-fallback",
+        targetUrl: "https://unclick.world",
+      },
+      nextProof: "Replace the static fallback with the latest scheduled SEOPass receipt.",
     },
     {
       id: "copypass",
@@ -347,7 +361,7 @@ export const dogfoodReport = {
     },
   ] satisfies DogfoodPassResult[],
   trend: [
-    { date: "2026-05-28", passing: 1, failing: 0, blocked: 3, pending: 9 },
+    { date: "2026-05-28", passing: 2, failing: 0, blocked: 3, pending: 8 },
   ] satisfies DogfoodTrendPoint[],
   lastActionableFailure: {
     title: "UXPass needs attention",

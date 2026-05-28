@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 516,
+    "inventory": 517,
     "source_manifest": 189,
     "pages": 82,
-    "tools": 186,
+    "tools": 187,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 186
+      "count": 187
     },
     {
       "id": "rooms",
@@ -3752,6 +3752,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-flowpass-packages-mcp-server-src-flowpass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "flowpass",
+      "kind": "MCP tool",
+      "meaning": "flowpass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/flowpass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-flyio-packages-mcp-server-src-flyio-tool-ts-no-route",
       "division": "Tools",
       "name": "flyio",
@@ -6056,6 +6066,11 @@
       "packages/mcp-server/src/figma-tool.ts"
     ],
     [
+      "flowpass",
+      "flowpass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/flowpass-tool.ts"
+    ],
+    [
       "flyio",
       "flyio MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/flyio-tool.ts"
@@ -7786,8 +7801,8 @@
     },
     {
       "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "4debe88f6f2f",
-      "bytes": 28450
+      "hash": "9cb57c05f879",
+      "bytes": 29686
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",
@@ -7866,8 +7881,8 @@
     },
     {
       "source": ".github/workflows/dogfood-report.yml",
-      "hash": "a3f2533f7bef",
-      "bytes": 4805
+      "hash": "7f0699c0a69a",
+      "bytes": 5891
     },
     {
       "source": ".github/workflows/event-wake-router.yml",

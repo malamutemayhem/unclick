@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-27T17:34:42.365Z",
-  "valid_until": "2026-06-03T17:34:42.365Z",
+  "generated_at": "2026-05-28T03:30:09.225Z",
+  "valid_until": "2026-06-04T03:30:09.225Z",
   "source": "local deterministic repo/docs scan",
   "product": "CompliancePass",
   "legacy_aliases": [
@@ -165,7 +165,7 @@
           "title": "Automated test files are present",
           "status": "pass",
           "score": 100,
-          "summary": "291 test files were found.",
+          "summary": "298 test files were found.",
           "evidence": [
             {
               "type": "file",
@@ -211,13 +211,13 @@
           "title": "Source file size stays reviewable",
           "status": "partial",
           "score": 75,
-          "summary": "15 large source file(s) were found and the highest-risk files are documented.",
+          "summary": "16 large source file(s) were found and the highest-risk files are documented.",
           "evidence": [
             {
               "type": "file",
               "path": "packages/mcp-server/src/tool-wiring.ts",
               "label": "packages/mcp-server/src/tool-wiring.ts",
-              "summary": "13946 lines; review and ownership risk.",
+              "summary": "14117 lines; review and ownership risk.",
               "confidence": "high"
             },
             {
@@ -268,7 +268,7 @@
                   "type": "file",
                   "path": "packages/mcp-server/src/tool-wiring.ts",
                   "label": "packages/mcp-server/src/tool-wiring.ts",
-                  "summary": "13946 lines; review and ownership risk.",
+                  "summary": "14117 lines; review and ownership risk.",
                   "confidence": "high"
                 },
                 {
@@ -639,7 +639,7 @@
           "title": "Docs reference evidence and proof",
           "status": "pass",
           "score": 100,
-          "summary": "2518 evidence/proof references were found.",
+          "summary": "2672 evidence/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -979,7 +979,7 @@
           "title": "Audit trail and proof language exists",
           "status": "pass",
           "score": 100,
-          "summary": "3053 audit/proof references were found.",
+          "summary": "3180 audit/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1109,7 +1109,7 @@
           "title": "AI oversight and review evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "2711 oversight/review references were found.",
+          "summary": "2796 oversight/review references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1160,7 +1160,7 @@
           "title": "AI data/source notes exist",
           "status": "pass",
           "score": 100,
-          "summary": "1783 AI data/source references were found.",
+          "summary": "1797 AI data/source references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1242,7 +1242,7 @@
           "type": "file",
           "path": "packages/mcp-server/src/tool-wiring.ts",
           "label": "packages/mcp-server/src/tool-wiring.ts",
-          "summary": "13946 lines; review and ownership risk.",
+          "summary": "14117 lines; review and ownership risk.",
           "confidence": "high"
         },
         {
@@ -1428,7 +1428,7 @@
       "type": "file",
       "path": "packages/mcp-server/src/tool-wiring.ts",
       "label": "packages/mcp-server/src/tool-wiring.ts",
-      "summary": "13946 lines; review and ownership risk.",
+      "summary": "14117 lines; review and ownership risk.",
       "confidence": "high"
     },
     {

@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-05-27T17:45:39.269Z",
-  "lastRunAt": "2026-05-27T17:45:39.269Z",
+  "generatedAt": "2026-05-28T03:30:41.441Z",
+  "lastRunAt": "2026-05-28T03:30:41.441Z",
   "status": "blocked",
-  "source": "dogfood receipt dry run",
+  "source": "nightly dogfood workflow",
   "headline": "We dogfood UnClick on UnClick.",
   "target": "UnClick public and agent-facing product surfaces",
   "nextAutomation": "Nightly dogfood receipts refresh this board with live checks and scheduled XPass package proof.",
@@ -53,11 +53,11 @@
     {
       "id": "seopass",
       "name": "SEOPass",
-      "stage": "package_ready",
-      "label": "Package-ready",
-      "automation": "Package runner, crawler-policy checks, MCP parity, dogfood scoring",
-      "mentionProfile": "Medium mention volume around metadata, robots, sitemap, and public page changes.",
-      "nextStep": "Add a recurring metadata receipt before marking it live dogfood."
+      "stage": "live_dogfood",
+      "label": "Live dogfood lane",
+      "automation": "Public read-only SEO receipt",
+      "mentionProfile": "Medium mention volume when SEO metadata, crawler, or AI-era readiness drifts.",
+      "nextStep": "Promote the read-only receipt into a scheduled baseline and GEOPass bundle handoff."
     },
     {
       "id": "copypass",
@@ -136,22 +136,24 @@
     {
       "id": "testpass",
       "name": "TestPass",
-      "status": "pending",
-      "summary": "Dry-run receipt builder validated the TestPass result shape.",
-      "evidence": "Dry run only. Live workflow calls /api/testpass-run with source=scheduled.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
-      "reasonCode": "dry_run_only",
-      "nextProof": "Run the dogfood report without --dry-run and with a TestPass token before marking this passing."
+      "status": "blocked",
+      "summary": "Scheduled TestPass could not run because DOGFOOD_TESTPASS_TOKEN or TESTPASS_TOKEN is missing.",
+      "evidence": "Set the GitHub secret so the nightly dogfood workflow can create a fresh testpass_runs row.",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
+      "blockedReason": "Missing DOGFOOD_TESTPASS_TOKEN or TESTPASS_TOKEN.",
+      "reasonCode": "missing_credential",
+      "nextProof": "Set one TestPass workflow secret, then rerun the dogfood report workflow."
     },
     {
       "id": "uxpass",
       "name": "UXPass",
-      "status": "pending",
-      "summary": "Dry-run receipt builder validated the UXPass result shape.",
-      "evidence": "Dry run only. Live workflow calls /api/uxpass-run against the public URL.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
-      "reasonCode": "dry_run_only",
-      "nextProof": "Run the dogfood report without --dry-run and with a UXPass token before marking this passing."
+      "status": "blocked",
+      "summary": "Scheduled UXPass could not run because DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET is missing.",
+      "evidence": "Set one workflow secret so the nightly dogfood workflow can create a fresh uxpass_runs row.",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
+      "blockedReason": "Missing DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
+      "reasonCode": "missing_credential",
+      "nextProof": "Set one UXPass workflow secret, then rerun the dogfood report workflow."
     },
     {
       "id": "securitypass",
@@ -159,7 +161,7 @@
       "status": "blocked",
       "summary": "SecurityPass is blocked until the recurring runner proof is ready.",
       "evidence": "SecurityPass remains scope-gated; the public dogfood receipt does not run security probes yet.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
       "blockedReason": "SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
       "reasonCode": "scope_gate",
       "nextProof": "Land a safe recurring SecurityPass runner receipt before marking this passing."
@@ -167,107 +169,247 @@
     {
       "id": "sloppass",
       "name": "SlopPass",
-      "status": "pending",
-      "summary": "Package-backed quality review exists, but the public dogfood receipt has not run it yet.",
-      "evidence": "SlopPass has a package runner, verdict pack, and dogfood tests; public status stays pending until a scheduled receipt exists.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
-      "reasonCode": "package_ready_needs_scheduled_receipt",
-      "proof": {
-        "kind": "package_ready",
-        "targetUrl": "packages/sloppass"
-      },
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed SlopPass.",
+      "evidence": "Receipt xpass-package-sweep-f4b3e91c0e94f4fb ran npm run test --workspace=@unclick/sloppass; cross-checked by TestPass, CommonSensePass, CopyPass.",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
+      "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
       "targetUrl": "packages/sloppass",
-      "nextProof": "Add a recurring SlopPass public receipt before marking this passing."
+      "proof": {
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
+        "packageId": "sloppass",
+        "targetUrl": "packages/sloppass",
+        "targetSha": "82e080a2764f1b69d889e19d4a5e912df28b12b8",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "testpass",
+            "name": "TestPass",
+            "role": "package tests must pass before public proof is trusted",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "false-DONE and proof-claim sanity",
+            "status": "passing"
+          },
+          {
+            "id": "copypass",
+            "name": "CopyPass",
+            "role": "plain-English claims and wording boundary",
+            "status": "passing"
+          }
+        ]
+      }
     },
     {
       "id": "seopass",
       "name": "SEOPass",
-      "status": "pending",
-      "summary": "Package-backed search and metadata review exists, but the public dogfood receipt has not run it yet.",
-      "evidence": "SEOPass has crawler-policy, robots, sitemap, canonical, package, and MCP parity checks; public status stays pending until scheduled proof exists.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
-      "reasonCode": "package_ready_needs_scheduled_receipt",
+      "status": "passing",
+      "summary": "SEOPass read-only dogfood completed with SEO health score 91.",
+      "evidence": "Run seopass-dogfood-20260528033041 checked public HTML, robots.txt, sitemap.xml, and llms.txt for https://unclick.world.",
+      "checkedAt": "2026-05-28T03:30:41.443Z",
+      "runId": "seopass-dogfood-20260528033041",
+      "targetUrl": "https://unclick.world",
       "proof": {
-        "kind": "package_ready",
-        "targetUrl": "packages/seopass"
+        "kind": "seopass_run",
+        "runId": "seopass-dogfood-20260528033041",
+        "targetUrl": "https://unclick.world",
+        "score": 91,
+        "sourceUrls": [
+          "https://unclick.world",
+          "https://unclick.world/robots.txt",
+          "https://unclick.world/sitemap.xml",
+          "https://unclick.world/llms.txt"
+        ]
       },
-      "targetUrl": "packages/seopass",
-      "nextProof": "Add a recurring SEOPass receipt before moving this out of pending."
+      "nextProof": "Schedule this receipt and wire it to the shared GEOPass baseline."
     },
     {
       "id": "copypass",
       "name": "CopyPass",
-      "status": "pending",
-      "summary": "Package-backed copy quality review exists, but the public dogfood receipt has not run it yet.",
-      "evidence": "CopyPass has deterministic review tooling and CopyRoom boundary checks; public status stays pending until scheduled proof exists.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
-      "reasonCode": "package_ready_needs_scheduled_receipt",
-      "proof": {
-        "kind": "package_ready",
-        "targetUrl": "packages/copypass"
-      },
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed CopyPass.",
+      "evidence": "Receipt xpass-package-sweep-f4b3e91c0e94f4fb ran npm run test --workspace=@unclick/copypass; cross-checked by SlopPass, LegalPass, CommonSensePass.",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
+      "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
       "targetUrl": "packages/copypass",
-      "nextProof": "Add a recurring CopyPass receipt with CopyRoom/source-copy proof."
+      "proof": {
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
+        "packageId": "copypass",
+        "targetUrl": "packages/copypass",
+        "targetSha": "82e080a2764f1b69d889e19d4a5e912df28b12b8",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "sloppass",
+            "name": "SlopPass",
+            "role": "anti-slop quality review",
+            "status": "passing"
+          },
+          {
+            "id": "legalpass",
+            "name": "LegalPass",
+            "role": "claims and guidance-only boundary",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "proof-claim sanity",
+            "status": "passing"
+          }
+        ]
+      }
     },
     {
       "id": "legalpass",
       "name": "LegalPass",
-      "status": "pending",
-      "summary": "Package-backed policy and claims guidance exists, but the public dogfood receipt has not run it yet.",
-      "evidence": "LegalPass has guidance tooling, pack schema, and public proof boundaries; public status stays pending until scheduled proof exists.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
-      "reasonCode": "package_ready_needs_scheduled_receipt",
-      "proof": {
-        "kind": "package_ready",
-        "targetUrl": "packages/legalpass"
-      },
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed LegalPass.",
+      "evidence": "Receipt xpass-package-sweep-f4b3e91c0e94f4fb ran npm run test --workspace=@unclick/legalpass; cross-checked by CopyPass, SecurityPass, CommonSensePass.",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
+      "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
       "targetUrl": "packages/legalpass",
-      "nextProof": "Add a recurring LegalPass receipt that stays guidance-only, not legal certification."
+      "proof": {
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
+        "packageId": "legalpass",
+        "targetUrl": "packages/legalpass",
+        "targetSha": "82e080a2764f1b69d889e19d4a5e912df28b12b8",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "copypass",
+            "name": "CopyPass",
+            "role": "public wording and claims clarity",
+            "status": "passing"
+          },
+          {
+            "id": "securitypass",
+            "name": "SecurityPass",
+            "role": "safe local package proof only",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "certification-claim sanity",
+            "status": "passing"
+          }
+        ]
+      }
     },
     {
       "id": "commonsensepass",
       "name": "CommonSensePass",
-      "status": "pending",
-      "summary": "Worker sanity checks exist, but the public dogfood receipt has not run them yet.",
-      "evidence": "CommonSensePass is routed for proof, queue, claim, false-DONE, and merge-ready sanity; public status stays pending until scheduled proof exists.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
-      "reasonCode": "package_ready_needs_scheduled_receipt",
-      "proof": {
-        "kind": "package_ready",
-        "targetUrl": "packages/commonsensepass"
-      },
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed CommonSensePass.",
+      "evidence": "Receipt xpass-package-sweep-f4b3e91c0e94f4fb ran npm run test --workspace=@unclick/commonsensepass; cross-checked by TestPass, SlopPass.",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
+      "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
       "targetUrl": "packages/commonsensepass",
-      "nextProof": "Add a recurring CommonSensePass proof receipt for worker claims and queue health."
+      "proof": {
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
+        "packageId": "commonsensepass",
+        "targetUrl": "packages/commonsensepass",
+        "targetSha": "82e080a2764f1b69d889e19d4a5e912df28b12b8",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "testpass",
+            "name": "TestPass",
+            "role": "package tests must pass before public proof is trusted",
+            "status": "passing"
+          },
+          {
+            "id": "sloppass",
+            "name": "SlopPass",
+            "role": "anti-slop claim review",
+            "status": "passing"
+          }
+        ]
+      }
     },
     {
       "id": "flowpass",
       "name": "FlowPass",
-      "status": "pending",
-      "summary": "Package-backed journey checks exist, but the public dogfood receipt has not run them yet.",
-      "evidence": "FlowPass has journey fixtures for onboarding, checkout, handoff, forms, and success/failure states; public status stays pending until scheduled proof exists.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
-      "reasonCode": "package_ready_needs_scheduled_receipt",
-      "proof": {
-        "kind": "package_ready",
-        "targetUrl": "packages/flowpass"
-      },
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed FlowPass.",
+      "evidence": "Receipt xpass-package-sweep-f4b3e91c0e94f4fb ran npm run test --workspace=@unclick/flowpass; cross-checked by UXPass, TestPass, CommonSensePass.",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
+      "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
       "targetUrl": "packages/flowpass",
-      "nextProof": "Add a recurring FlowPass receipt for one public journey target."
+      "proof": {
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
+        "packageId": "flowpass",
+        "targetUrl": "packages/flowpass",
+        "targetSha": "82e080a2764f1b69d889e19d4a5e912df28b12b8",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "uxpass",
+            "name": "UXPass",
+            "role": "route and UX sweep overlap",
+            "status": "passing"
+          },
+          {
+            "id": "testpass",
+            "name": "TestPass",
+            "role": "package tests must pass before public proof is trusted",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "proof-claim sanity",
+            "status": "passing"
+          }
+        ]
+      }
     },
     {
       "id": "geopass",
       "name": "GEOPass",
-      "status": "pending",
-      "summary": "Package-backed answer-engine readiness checks exist, but the public dogfood receipt has not run them yet.",
-      "evidence": "GEOPass has AI answer-engine readiness scanning for llms.txt, schema, bots, and metadata; public status stays pending until scheduled proof exists.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
-      "reasonCode": "package_ready_needs_scheduled_receipt",
-      "proof": {
-        "kind": "package_ready",
-        "targetUrl": "packages/geopass"
-      },
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed GEOPass.",
+      "evidence": "Receipt xpass-package-sweep-f4b3e91c0e94f4fb ran npm run test --workspace=@unclick/geopass; cross-checked by TestPass, SEOPass, CommonSensePass.",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
+      "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
       "targetUrl": "packages/geopass",
-      "nextProof": "Add a recurring GEOPass answer-engine readiness receipt."
+      "proof": {
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-f4b3e91c0e94f4fb",
+        "packageId": "geopass",
+        "targetUrl": "packages/geopass",
+        "targetSha": "82e080a2764f1b69d889e19d4a5e912df28b12b8",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "testpass",
+            "name": "TestPass",
+            "role": "package tests must pass before public proof is trusted",
+            "status": "passing"
+          },
+          {
+            "id": "seopass",
+            "name": "SEOPass",
+            "role": "search-indexing overlap for crawlable answer sources",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "proof-claim sanity",
+            "status": "passing"
+          }
+        ]
+      }
     },
     {
       "id": "rotatepass",
@@ -275,7 +417,7 @@
       "status": "pending",
       "summary": "Credential lifecycle boundaries are documented and guarded, but no live credential rotation runs in public dogfood.",
       "evidence": "RotatePass stays boundary-only until a safe local receipt can prove redaction and lifecycle behavior without touching real secrets.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
       "reasonCode": "boundary_needs_runner",
       "proof": {
         "kind": "boundary",
@@ -290,7 +432,7 @@
       "status": "pending",
       "summary": "Wake and stale-work visibility exists, but the public dogfood receipt has not run a public-safe stale-work check yet.",
       "evidence": "WakePass powers dispatch, stale ACK, heartbeat, and reclaim visibility; public status stays pending until a public-safe receipt exists.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
       "reasonCode": "boundary_needs_runner",
       "proof": {
         "kind": "boundary",
@@ -305,7 +447,7 @@
       "status": "blocked",
       "summary": "CompliancePass scanned 27 readiness checks and scored 96.9/100, but the receipt is amber.",
       "evidence": "See /enterprise/latest.json for the evidence-backed readiness report and remaining gaps.",
-      "checkedAt": "2026-05-27T17:45:39.269Z",
+      "checkedAt": "2026-05-28T03:30:41.441Z",
       "blockedReason": "CompliancePass readiness is amber; 1 high/critical gap(s) remain.",
       "reasonCode": "readiness_gap",
       "score": 96.9,
@@ -321,16 +463,16 @@
   ],
   "trend": [
     {
-      "date": "2026-05-27",
-      "passing": 0,
+      "date": "2026-05-28",
+      "passing": 7,
       "failing": 0,
-      "blocked": 2,
-      "pending": 11
+      "blocked": 4,
+      "pending": 2
     }
   ],
   "lastActionableFailure": {
-    "title": "SecurityPass needs attention",
-    "detail": "SecurityPass is blocked until the recurring runner proof is ready. Blocked reason: SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
+    "title": "TestPass needs attention",
+    "detail": "Scheduled TestPass could not run because DOGFOOD_TESTPASS_TOKEN or TESTPASS_TOKEN is missing. Blocked reason: Missing DOGFOOD_TESTPASS_TOKEN or TESTPASS_TOKEN.",
     "owner": "Dogfood automation"
   }
 }
