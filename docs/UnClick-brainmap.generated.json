@@ -7213,8 +7213,8 @@
     },
     {
       "source": "src/pages/admin/copypass/CopyPassCatalog.tsx",
-      "hash": "ecfffa28e759",
-      "bytes": 7258
+      "hash": "a7d741e75c78",
+      "bytes": 7306
     },
     {
       "source": "src/pages/admin/crews/CrewComposer.tsx",
@@ -7773,8 +7773,8 @@
     },
     {
       "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "9cb57c05f879",
-      "bytes": 29686
+      "hash": "70d540c397a5",
+      "bytes": 31503
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",

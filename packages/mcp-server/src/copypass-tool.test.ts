@@ -145,11 +145,47 @@ describe("copypass-tool", () => {
     expect(finding?.severity).toBe("high");
   });
 
+  it("flags social-proof claims without visible evidence in MCP runs", async () => {
+    const run = (await copypassRun({
+      copy_text: "Trusted by thousands of teams and rated five-star by founders.",
+      channel: "homepage_hero",
+      audience: "founders",
+      goal: "trust positioning",
+      profile: "standard",
+    })) as {
+      copypass_verdict?: string;
+      findings?: Array<{ check_id?: string; severity?: string }>;
+    };
+
+    const finding = run.findings?.find((item) => item.check_id === "testimonial-proof-gap");
+
+    expect(run.copypass_verdict).toBe("warn");
+    expect(finding?.severity).toBe("medium");
+  });
+
+  it("flags unsupported human-authorship claims in MCP runs", async () => {
+    const run = (await copypassRun({
+      copy_text: "Turn AI drafts into 100% human-written copy with one click.",
+      channel: "feature_card",
+      audience: "founders",
+      goal: "quality positioning",
+      profile: "standard",
+    })) as {
+      copypass_verdict?: string;
+      findings?: Array<{ check_id?: string; severity?: string }>;
+    };
+
+    const finding = run.findings?.find((item) => item.check_id === "authorship-transparency");
+
+    expect(run.copypass_verdict).toBe("fail");
+    expect(finding?.severity).toBe("high");
+  });
+
   it("does not treat banned-phrase docs as live risky claims in MCP runs", async () => {
     const run = (await copypassRun({
       copy_text:
         "Verdict-linter guardrail examples: banned phrases include 100% compliant, " +
-        "risk-free, AI lawyer, rank #1, last chance, and fully automated. " +
+        "risk-free, AI lawyer, rank #1, last chance, trusted by, 100% human, and fully automated. " +
         "Allowed framing includes may warrant review.",
       channel: "legalpass_guardrail_docs",
       audience: "builders",
