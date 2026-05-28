@@ -18,7 +18,7 @@ export async function assertPageOwnership(db: Db, pageId: string, orgId: string)
 
 /**
  * Asserts that a link exists, belongs to the given page, and belongs to the given org.
- * Throws a 404 if the link is not found, is deleted, or does not belong to the page.
+ * Throws a 404 if the link is not found or does not belong to the page.
  */
 export async function assertLinkOwnership(
   db: Db,
@@ -34,7 +34,6 @@ export async function assertLinkOwnership(
         eq(links.id, linkId),
         eq(links.pageId, pageId),
         eq(links.orgId, orgId),
-        isNull(links.deletedAt),
       ),
     )
     .limit(1);

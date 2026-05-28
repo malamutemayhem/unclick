@@ -148,8 +148,8 @@ export async function webSearch(args: {
   const exaKey = process.env.EXA_API_KEY;
   const braveKey = process.env.BRAVE_SEARCH_API_KEY;
 
-  let results: WebSearchResult[] = [];
-  let provider = "";
+  let results: WebSearchResult[];
+  let provider: string;
 
   try {
     if (tavilyKey) {

@@ -158,7 +158,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const isCron = Boolean(process.env.CRON_SECRET) && token === process.env.CRON_SECRET;
 
-  let actorUserId: string | null = null;
+  let actorUserId: string;
   if (isCron) {
     actorUserId = process.env.UXPASS_CRON_USER_ID ?? null;
     if (!actorUserId) {

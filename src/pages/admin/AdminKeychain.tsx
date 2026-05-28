@@ -1588,7 +1588,9 @@ function RotateValuesModal({
           throw new Error("Values must be a JSON object of string fields.");
         }
       } catch (e) {
-        throw new Error(e instanceof Error ? e.message : "Invalid JSON");
+        const parseError = new Error(e instanceof Error ? e.message : "Invalid JSON");
+        Object.assign(parseError, { cause: e });
+        throw parseError;
       }
 
       const apiKey = readLocalApiKey();

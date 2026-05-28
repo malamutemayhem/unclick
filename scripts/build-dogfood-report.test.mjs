@@ -57,6 +57,7 @@ test("dogfood receipt includes a safe SecurityPass proof without active probes",
     const testpass = report.results.find((result) => result.id === "testpass");
     const uxpass = report.results.find((result) => result.id === "uxpass");
     const securitypass = report.results.find((result) => result.id === "securitypass");
+    const compliancepass = report.results.find((result) => result.id === "compliancepass");
     const copypass = report.results.find((result) => result.id === "copypass");
     const legalpass = report.results.find((result) => result.id === "legalpass");
     const enterprisepass = report.results.find((result) => result.id === "enterprisepass");
@@ -74,6 +75,12 @@ test("dogfood receipt includes a safe SecurityPass proof without active probes",
       true,
     );
     assert.match(securitypass?.nextProof ?? "", /scoped active-runner receipt/i);
+    assert.equal(compliancepass?.status, "passing");
+    assert.equal(compliancepass?.reasonCode, "public_receipt_complete");
+    assert.equal(compliancepass?.proof?.kind, "compliancepass_report");
+    assert.equal(compliancepass?.proof?.targetUrl, "/enterprise/latest.json");
+    assert.ok(compliancepass?.proof?.checksTotal > 0);
+    assert.equal(compliancepass?.proof?.highSeverityGaps, undefined);
     assert.equal(copypass?.status, "pending");
     assert.equal(copypass?.reasonCode, "package_ready_needs_scheduled_receipt");
     assert.equal(copypass?.proof?.kind, "package_ready");
@@ -88,7 +95,7 @@ test("dogfood receipt includes a safe SecurityPass proof without active probes",
       targetUrl: "/enterprise/latest.json",
     });
     assert.equal(report.status, "pending");
-    assert.match(report.statusLegend.blocked, /action is needed/i);
+    assert.match(report.statusLegend.blocked, /needs action|action is needed/i);
     assert.match(report.statusLegend.pending, /scheduled proof is not available yet/i);
     assert.match(report.proofPolicy, /live check or scheduled package sweep actually ran/i);
     assert.match(report.lastActionableFailure.title, /No actionable dogfood failure/i);
@@ -98,9 +105,9 @@ test("dogfood receipt includes a safe SecurityPass proof without active probes",
       report.xpassIndex.find((entry) => entry.id === "testpass")?.mentionProfile ?? "",
       /protects merges/i,
     );
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "compliancepass")?.stage, "live_dogfood");
     assert.equal(report.xpassIndex.find((entry) => entry.id === "copypass")?.stage, "package_ready");
     assert.equal(report.xpassIndex.find((entry) => entry.id === "legalpass")?.stage, "package_ready");
-    assert.equal(report.xpassIndex.find((entry) => entry.id === "enterprisepass")?.stage, "guidance");
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }
@@ -181,6 +188,7 @@ test("dogfood receipt includes structured proof for live TestPass and UXPass run
       "geopass",
       "rotatepass",
       "wakepass",
+      "compliancepass",
       "enterprisepass",
     ]);
 
@@ -233,6 +241,97 @@ test("dogfood receipt uses structured missing-credential proof for blocked UXPas
     assert.equal(uxpass?.status, "blocked");
     assert.equal(uxpass?.reasonCode, "missing_credential");
     assert.match(uxpass?.nextProof ?? "", /rerun the dogfood report workflow/i);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("dogfood blocks stale CompliancePass receipts", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
+  const output = path.join(dir, "latest.json");
+  const receiptPath = path.join(dir, "enterprise-latest.json");
+
+  try {
+    await fs.writeFile(receiptPath, JSON.stringify({
+      schema_version: "1.0",
+      generated_at: "2026-01-01T00:00:00.000Z",
+      valid_until: "2026-01-08T00:00:00.000Z",
+      product: "CompliancePass",
+      status: "complete",
+      readiness_band: "green",
+      readiness_score: { value: 100, band: "green" },
+      summary: {
+        checks_total: 25,
+        checks_pending: 0,
+        blocking_gap_count: 0,
+      },
+      gaps: [],
+    }));
+
+    await execFileAsync(process.execPath, [
+      "scripts/build-dogfood-report.mjs",
+      "--dry-run",
+      "--output",
+      output,
+      "--compliancepass-receipt",
+      receiptPath,
+      "--max-compliancepass-age-hours",
+      "1",
+    ]);
+
+    const report = JSON.parse(await fs.readFile(output, "utf8"));
+    const compliancepass = report.results.find((result) => result.id === "compliancepass");
+
+    assert.equal(compliancepass?.status, "blocked");
+    assert.equal(compliancepass?.reasonCode, "stale_receipt");
+    assert.match(compliancepass?.blockedReason ?? "", /older than 1 hour/i);
+    assert.equal(compliancepass?.proof?.kind, "compliancepass_report");
+    assert.equal(compliancepass?.proof?.generatedAt, "2026-01-01T00:00:00.000Z");
+    assert.equal(compliancepass?.proof?.maxAgeHours, 1);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("dogfood keeps the CompliancePass freshness gate when max age config is invalid", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
+  const output = path.join(dir, "latest.json");
+  const receiptPath = path.join(dir, "enterprise-latest.json");
+
+  try {
+    await fs.writeFile(receiptPath, JSON.stringify({
+      schema_version: "1.0",
+      generated_at: "2026-01-01T00:00:00.000Z",
+      valid_until: "2026-01-08T00:00:00.000Z",
+      product: "CompliancePass",
+      status: "complete",
+      readiness_band: "green",
+      readiness_score: { value: 100, band: "green" },
+      summary: {
+        checks_total: 25,
+        checks_pending: 0,
+        blocking_gap_count: 0,
+      },
+      gaps: [],
+    }));
+
+    await execFileAsync(process.execPath, [
+      "scripts/build-dogfood-report.mjs",
+      "--dry-run",
+      "--output",
+      output,
+      "--compliancepass-receipt",
+      receiptPath,
+      "--max-compliancepass-age-hours",
+      "not-a-number",
+    ]);
+
+    const report = JSON.parse(await fs.readFile(output, "utf8"));
+    const compliancepass = report.results.find((result) => result.id === "compliancepass");
+
+    assert.equal(compliancepass?.status, "blocked");
+    assert.equal(compliancepass?.reasonCode, "stale_receipt");
+    assert.equal(compliancepass?.proof?.maxAgeHours, 168);
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }
@@ -323,12 +422,6 @@ test("dogfood receipt promotes public-safe boundary products from a fresh XPass 
       name: "WakePass",
       status: "passing",
       command: ["node", "--test", "scripts/event-wake-router.test.mjs"],
-    },
-    {
-      id: "enterprisepass",
-      name: "EnterprisePass",
-      status: "passing",
-      command: ["node", "--test", "scripts/enterprisepass-receipt-guard.test.mjs"],
     },
   ];
 

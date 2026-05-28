@@ -78,9 +78,9 @@ export async function healFailedChecks(
       ].filter(Boolean) as string[];
 
       type HealedVerdict = "check" | "fail" | "na" | "other";
-      let reasoning = "";
+      let reasoning: string;
       let newVerdict: HealedVerdict = "other";
-      let model = "unknown";
+      let model: string;
 
       try {
         const r = await sampler({
@@ -95,8 +95,7 @@ export async function healFailedChecks(
           newVerdict = parsed.verdict as HealedVerdict;
         }
         reasoning = parsed.reasoning ?? r.text;
-      } catch (err) {
-        reasoning = `Healer exception: ${(err as Error).message}`;
+      } catch {
         return;
       }
 
