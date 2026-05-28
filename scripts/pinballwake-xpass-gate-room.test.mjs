@@ -119,6 +119,20 @@ describe("PinballWake XPass Gate Room", () => {
     assert.deepEqual(selected, ["copypass"]);
   });
 
+  it("does not recommend a Crews Council for a tiny single-pass wording change", () => {
+    const result = evaluateXPassGate({
+      title: "FAQ wording cleanup",
+      changed_files: ["docs/faq.md"],
+    });
+
+    assert.equal(result.crews_council.needed, false);
+    assert.equal(result.crews_council.status, "not_needed");
+    assert.equal(result.crews_council.lite_check.needed, true);
+    assert.equal(result.crews_council.lite_check.mode, "anti_rubber_stamp");
+    assert.ok(result.crews_council.lite_check.questions.length >= 4);
+    assert.equal(result.receipt.crews_council.needed, false);
+  });
+
   it("returns advisory xpass_needed when selected checks have no receipts yet", () => {
     const result = evaluateXPassGate({
       mode: "advisory",
@@ -289,6 +303,49 @@ describe("PinballWake XPass Gate Room", () => {
       "legalpass",
       "sloppass",
     ]);
+  });
+
+  it("recommends a Crews Council for broad public launch and compliance judgement", () => {
+    const result = evaluateXPassGate({
+      title: "Launch pricing and compliance readiness decision",
+      context: "Need a go/no-go judgement before this public enterprise page ships.",
+      changed_files: [
+        "docs/enterprisepass-product-brief.md",
+        "docs/legal/pricing-claims.md",
+        "src/pages/Enterprise.tsx",
+      ],
+    });
+
+    assert.equal(result.crews_council.needed, true);
+    assert.equal(result.crews_council.status, "recommended");
+    assert.equal(result.crews_council.suggested_template, "Council");
+    assert.equal(result.crews_council.suggested_tool, "start_crew_run");
+    assert.match(result.crews_council.reasons.join("\n"), /judgement|launch|decision/i);
+    assert.equal(result.receipt.crews_council.needed, true);
+  });
+
+  it("recommends a Crews Council when pass evidence is mixed", () => {
+    const result = evaluateXPassGate({
+      target: { type: "pr", id: 548, sha: "abc123" },
+      changed_files: ["docs/pricing.md", "docs/legal/terms.md"],
+      pass_results: [
+        { check: "CopyPass", status: "passed", run_id: "copy-1", target_sha: "abc123" },
+        { check: "LegalPass", status: "failed", run_id: "legal-1", target_sha: "abc123" },
+      ],
+    });
+
+    assert.equal(result.crews_council.needed, true);
+    assert.match(result.crews_council.reasons.join("\n"), /mixed/i);
+  });
+
+  it("dogfoods Crews surfaces by recommending a Crews Council", () => {
+    const result = evaluateXPassGate({
+      title: "Improve Crews composer council handoff",
+      changed_files: ["src/pages/admin/crews/CrewComposer.tsx"],
+    });
+
+    assert.equal(result.crews_council.needed, true);
+    assert.match(result.crews_council.reasons.join("\n"), /Crews|Council/);
   });
 
   it("routes current accessibility and AI security terms from external standards to the right checks", () => {

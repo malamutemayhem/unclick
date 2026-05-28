@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 518,
+    "inventory": 519,
     "source_manifest": 189,
     "pages": 82,
     "tools": 187,
@@ -87,7 +87,7 @@
       "id": "launch-and-onboarding",
       "name": "Launch and onboarding",
       "meaning": "Launchpad, Heartbeat, Brainmap, and first-seat orientation.",
-      "count": 4
+      "count": 5
     }
   ],
   "inventory": [
@@ -1709,6 +1709,16 @@
       "meaning": "Un Click brainmap UnClick module.",
       "source": "scripts/UnClick-brainmap.mjs",
       "route": "",
+      "tags": []
+    },
+    {
+      "id": "launch-and-onboarding-judgement-prompt-crews-council-induction-scripts-pinballwake-launchpad-room-mjs-admin-pinballwake",
+      "division": "Launch and onboarding",
+      "name": "Crews Council Induction",
+      "kind": "judgement prompt",
+      "meaning": "Launchpad prompt that runs Council Lite on material work and asks for a full Crews Council only when launch, risk, mixed proof, or broad XPass evidence needs judgement.",
+      "source": "scripts/pinballwake-launchpad-room.mjs",
+      "route": "/admin/pinballwake",
       "tags": []
     },
     {
@@ -5804,20 +5814,27 @@
     ],
     [
       "6",
+      "Ask Crews Council if needed",
+      "Run Council Lite on material work, then prompt full Crews Council for launch, risk, mixed proof, or broad XPass evidence.",
+      "Crews Council",
+      "scripts/pinballwake-launchpad-room.mjs"
+    ],
+    [
+      "7",
       "Check proof gates",
       "Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing.",
       "Proof Ledger",
       "docs/agent-observability.md"
     ],
     [
-      "7",
+      "8",
       "Dogtest the outcome",
       "Run the focused local tests and browser or live proof that match the touched surface.",
       "XPass and CI",
       "package.json"
     ],
     [
-      "8",
+      "9",
       "Reply and log proof",
       "End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step.",
       "Boardroom and Orchestrator",
@@ -7591,8 +7608,8 @@
     },
     {
       "source": "scripts/pinballwake-launchpad-room.mjs",
-      "hash": "64cc89cd3253",
-      "bytes": 12693
+      "hash": "9ee3556460d0",
+      "bytes": 20544
     },
     {
       "source": "scripts/pinballwake-merge-room.mjs",
@@ -7661,8 +7678,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "0da18178f44e",
-      "bytes": 20954
+      "hash": "2afd189d9458",
+      "bytes": 25665
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
