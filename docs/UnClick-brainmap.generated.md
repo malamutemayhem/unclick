@@ -29,7 +29,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
 | .github/workflows/ci.yml | b0a209c9c627 | 1559 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
-| package.json | f416df3bc693 | 4434 |
+| package.json | 76fdae8ef856 | 4582 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -190,7 +190,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/autonomous-runner.yml | a1280cfec46b | 15338 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
 | .github/workflows/dirty-branch-hygiene.yml | 9d192a7da041 | 2190 |
-| .github/workflows/dogfood-report.yml | 7f0699c0a69a | 5891 |
+| .github/workflows/dogfood-report.yml | 65897c4393aa | 6605 |
 | .github/workflows/event-wake-router.yml | bfd53e324bb4 | 1453 |
 | .github/workflows/fleet-throughput-watch.yml | c5a08f4edf9b | 930 |
 | .github/workflows/openhands-test-mode.yml | 3bd5d5f48573 | 1137 |
@@ -199,7 +199,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | 3089d5df48e3 | 8876 |
+| .github/workflows/testpass-pr-check.yml | bbb701a7cb34 | 12844 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | f26a538f2ee9 | 896 |
 
@@ -1125,10 +1125,10 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | --- | --- |
 | brainmap:check | node scripts/UnClick-brainmap.mjs --check |
 | brainmap:generate | node scripts/UnClick-brainmap.mjs |
-| build | npm run build --workspace=@unclick/commonsensepass && vite build |
+| build | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build |
 | build:dev | vite build --mode development |
 | lint | eslint . |
-| test | vitest run |
+| test | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run |
 | test:api | npm run test --workspace=apps/api |
 | test:brainmap | node --test scripts/UnClick-brainmap.test.mjs |
 | test:enterprisepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |

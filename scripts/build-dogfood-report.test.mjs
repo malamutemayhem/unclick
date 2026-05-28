@@ -41,7 +41,7 @@ function passingSweepMatrixRows() {
   }));
 }
 
-test("dogfood receipt marks SecurityPass as blocked with a reason", async () => {
+test("dogfood receipt includes a safe SecurityPass proof without active probes", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
   const output = path.join(dir, "latest.json");
 
@@ -65,10 +65,15 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
     assert.equal(testpass?.reasonCode, "dry_run_only");
     assert.equal(uxpass?.status, "pending");
     assert.equal(uxpass?.reasonCode, "dry_run_only");
-    assert.equal(securitypass?.status, "blocked");
-    assert.match(securitypass?.blockedReason ?? "", /scope-gated/i);
-    assert.equal(securitypass?.reasonCode, "scope_gate");
-    assert.match(securitypass?.nextProof ?? "", /safe recurring SecurityPass runner receipt/i);
+    assert.equal(securitypass?.status, "passing");
+    assert.match(securitypass?.summary ?? "", /deny-by-default/i);
+    assert.equal(securitypass?.proof?.kind, "securitypass_safe_static_proof");
+    assert.equal(securitypass?.proof?.activeProbesRun, false);
+    assert.equal(
+      securitypass?.proof?.checks.every((check) => check.ok),
+      true,
+    );
+    assert.match(securitypass?.nextProof ?? "", /scoped active-runner receipt/i);
     assert.equal(copypass?.status, "pending");
     assert.equal(copypass?.reasonCode, "package_ready_needs_scheduled_receipt");
     assert.equal(copypass?.proof?.kind, "package_ready");
@@ -76,18 +81,19 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
     assert.equal(legalpass?.reasonCode, "package_ready_needs_scheduled_receipt");
     assert.equal(legalpass?.proof?.kind, "package_ready");
     assert.equal(enterprisepass?.status, "pending");
-    assert.equal(enterprisepass?.reasonCode, "planned_runner");
+    assert.equal(enterprisepass?.reasonCode, "boundary_needs_runner");
     assert.match(enterprisepass?.nextProof ?? "", /automated evidence checks/i);
     assert.deepEqual(enterprisepass?.proof, {
-      kind: "planned",
+      kind: "boundary",
       targetUrl: "/enterprise/latest.json",
     });
-    assert.equal(report.status, "blocked");
+    assert.equal(report.status, "pending");
     assert.match(report.statusLegend.blocked, /action is needed/i);
     assert.match(report.statusLegend.pending, /scheduled proof is not available yet/i);
     assert.match(report.proofPolicy, /live check or scheduled package sweep actually ran/i);
-    assert.match(report.lastActionableFailure.detail, /Blocked reason:/);
+    assert.match(report.lastActionableFailure.title, /No actionable dogfood failure/i);
     assert.equal(report.xpassIndex.find((entry) => entry.id === "testpass")?.stage, "live_gate");
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "securitypass")?.stage, "safe_proof");
     assert.match(
       report.xpassIndex.find((entry) => entry.id === "testpass")?.mentionProfile ?? "",
       /protects merges/i,
@@ -293,8 +299,82 @@ test("dogfood receipt promotes package-ready passes from a fresh XPass sweep rec
     assert.equal(geopass?.proof?.kind, "xpass_package_sweep");
     assert.equal(seopass?.status, "passing");
     assert.equal(seopass?.proof?.kind, "seopass_run");
-    assert.equal(securitypass?.status, "blocked");
-    assert.equal(securitypass?.reasonCode, "scope_gate");
+    assert.equal(securitypass?.status, "passing");
+    assert.equal(securitypass?.proof?.kind, "securitypass_safe_static_proof");
+    assert.equal(securitypass?.proof?.activeProbesRun, false);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("dogfood receipt promotes public-safe boundary products from a fresh XPass boundary sweep receipt", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
+  const output = path.join(dir, "latest.json");
+  const boundarySweepPath = path.join(dir, "xpass-boundary-sweep.json");
+  const productRows = [
+    {
+      id: "rotatepass",
+      name: "RotatePass",
+      status: "passing",
+      command: ["node", "--test", "scripts/rotatepass-redaction-guard.test.mjs"],
+    },
+    {
+      id: "wakepass",
+      name: "WakePass",
+      status: "passing",
+      command: ["node", "--test", "scripts/event-wake-router.test.mjs"],
+    },
+    {
+      id: "enterprisepass",
+      name: "EnterprisePass",
+      status: "passing",
+      command: ["node", "--test", "scripts/enterprisepass-receipt-guard.test.mjs"],
+    },
+  ];
+
+  try {
+    await fs.writeFile(boundarySweepPath, JSON.stringify({
+      kind: "xpass_boundary_sweep_receipt_v1",
+      run_id: "xpass-boundary-sweep-123",
+      target_sha: "abc123",
+      status: "passing",
+      products: productRows,
+      cross_pass_matrix: productRows.map((product) => ({
+        target_id: product.id,
+        status: "passing",
+        reviewers: [
+          { id: "commonsensepass", name: "CommonSensePass", status: "passing" },
+          { id: "testpass", name: "TestPass", status: "passing" },
+        ],
+      })),
+    }));
+
+    await execFileAsync(process.execPath, [
+      "scripts/build-dogfood-report.mjs",
+      "--output",
+      output,
+    ], {
+      env: {
+        ...process.env,
+        TESTPASS_TOKEN: "",
+        DOGFOOD_TESTPASS_TOKEN: "",
+        UXPASS_TOKEN: "",
+        DOGFOOD_UXPASS_TOKEN: "",
+        CRON_SECRET: "",
+        DOGFOOD_TARGET_SHA: "abc123",
+        DOGFOOD_XPASS_BOUNDARY_SWEEP_PATH: boundarySweepPath,
+      },
+    });
+
+    const report = JSON.parse(await fs.readFile(output, "utf8"));
+    for (const product of productRows) {
+      const result = report.results.find((entry) => entry.id === product.id);
+      assert.equal(result?.status, "passing", `${product.name} should promote from a fresh boundary sweep`);
+      assert.equal(result?.runId, "xpass-boundary-sweep-123");
+      assert.equal(result?.proof?.kind, "xpass_boundary_sweep");
+      assert.equal(result?.proof?.productId, product.id);
+      assert.equal(result?.proof?.targetSha, "abc123");
+    }
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }

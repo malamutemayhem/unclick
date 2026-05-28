@@ -6935,7 +6935,7 @@
     ],
     [
       "build",
-      "npm run build --workspace=@unclick/commonsensepass && vite build"
+      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build"
     ],
     [
       "build:dev",
@@ -6947,7 +6947,7 @@
     ],
     [
       "test",
-      "vitest run"
+      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run"
     ],
     [
       "test:api",
@@ -7053,8 +7053,8 @@
     },
     {
       "source": "package.json",
-      "hash": "f416df3bc693",
-      "bytes": 4434
+      "hash": "76fdae8ef856",
+      "bytes": 4582
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7858,8 +7858,8 @@
     },
     {
       "source": ".github/workflows/dogfood-report.yml",
-      "hash": "7f0699c0a69a",
-      "bytes": 5891
+      "hash": "65897c4393aa",
+      "bytes": 6605
     },
     {
       "source": ".github/workflows/event-wake-router.yml",
@@ -7903,8 +7903,8 @@
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "3089d5df48e3",
-      "bytes": 8876
+      "hash": "bbb701a7cb34",
+      "bytes": 12844
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",
