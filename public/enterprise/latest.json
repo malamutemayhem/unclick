@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-28T10:17:48.596Z",
-  "valid_until": "2026-06-04T10:17:48.596Z",
+  "generated_at": "2026-05-28T10:23:23.539Z",
+  "valid_until": "2026-06-04T10:23:23.539Z",
   "source": "local deterministic repo/docs scan",
   "product": "CompliancePass",
   "legacy_aliases": [
@@ -552,7 +552,7 @@
           "title": "Docs reference evidence and proof",
           "status": "pass",
           "score": 100,
-          "summary": "2703 evidence/proof references were found.",
+          "summary": "2695 evidence/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -744,7 +744,7 @@
           "title": "Credential and connector mapping evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "974 credential/connector mapping references were found.",
+          "summary": "968 credential/connector mapping references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -795,7 +795,7 @@
           "title": "Rotation and staleness evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "387 rotation/staleness references were found.",
+          "summary": "377 rotation/staleness references were found.",
           "evidence": [
             {
               "type": "file",
@@ -892,7 +892,7 @@
           "title": "Audit trail and proof language exists",
           "status": "pass",
           "score": 100,
-          "summary": "3251 audit/proof references were found.",
+          "summary": "3198 audit/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1080,7 +1080,7 @@
           "title": "AI data/source notes exist",
           "status": "pass",
           "score": 100,
-          "summary": "1799 AI data/source references were found.",
+          "summary": "1797 AI data/source references were found.",
           "evidence": [
             {
               "type": "doc",
