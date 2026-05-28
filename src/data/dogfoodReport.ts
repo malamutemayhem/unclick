@@ -13,7 +13,7 @@ export interface DogfoodPassResult {
   runId?: string;
   targetUrl?: string;
   proof?: {
-    kind: "testpass_run" | "uxpass_run" | "planned" | "package_ready" | "boundary" | "xpass_package_sweep";
+    kind: "testpass_run" | "uxpass_run" | "planned" | "package_ready" | "boundary" | "xpass_package_sweep" | "xpass_boundary_sweep";
     runId?: string;
     packageId?: string;
     targetUrl?: string;
@@ -55,14 +55,14 @@ export const dogfoodReport = {
   source: "static fallback receipt",
   headline: "We dogfood UnClick on UnClick.",
   target: "UnClick public and agent-facing product surfaces",
-  nextAutomation: "Nightly dogfood receipts refresh this board with live checks and scheduled XPass package proof.",
+  nextAutomation: "Nightly dogfood receipts refresh this board with live checks, scheduled XPass package proof, and scheduled public-safe boundary proof.",
   statusLegend: {
-    passing: "A live check or scheduled package sweep ran and returned a passing result.",
+    passing: "A live check or scheduled package sweep ran and returned a passing result, or a scheduled boundary sweep ran and returned a passing result.",
     failing: "A live check or scheduled package sweep ran and returned a failing result.",
     blocked: "The check could not run because an action is needed, such as a missing credential or scope gate.",
     pending: "The check is planned, package-ready, or scaffolded, but scheduled proof is not available yet.",
   } satisfies DogfoodStatusLegend,
-  proofPolicy: "Public dogfood receipts mark passing only when a live check or scheduled package sweep actually ran. Blocked and pending are honest product states, not failures to hide.",
+  proofPolicy: "Public dogfood receipts mark passing only when a live check or scheduled package sweep actually ran, or a scheduled boundary sweep actually ran. Blocked and pending are honest product states, not failures to hide.",
   xpassIndex: [
     {
       id: "testpass",
@@ -335,8 +335,9 @@ export const dogfoodReport = {
       summary: "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
       evidence: "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
       checkedAt: "2026-05-28T00:00:00.000Z",
-      proof: { kind: "planned", targetUrl: "/enterprise/latest.json" },
-      reasonCode: "planned_runner",
+      targetUrl: "/enterprise/latest.json",
+      proof: { kind: "boundary", targetUrl: "/enterprise/latest.json" },
+      reasonCode: "boundary_needs_runner",
       nextProof: "Wire automated evidence checks before moving this beyond readiness guidance.",
     },
   ] satisfies DogfoodPassResult[],

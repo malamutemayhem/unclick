@@ -7833,8 +7833,8 @@
     },
     {
       "source": ".github/workflows/dogfood-report.yml",
-      "hash": "7f0699c0a69a",
-      "bytes": 5891
+      "hash": "65897c4393aa",
+      "bytes": 6605
     },
     {
       "source": ".github/workflows/event-wake-router.yml",
