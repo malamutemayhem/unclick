@@ -7398,8 +7398,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "10f4bfd44859",
-      "bytes": 16045
+      "hash": "a2d54cc557ef",
+      "bytes": 16182
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -7603,8 +7603,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "8f56bcf4cb09",
-      "bytes": 17833
+      "hash": "92b4e63503f5",
+      "bytes": 20902
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
@@ -7748,8 +7748,8 @@
     },
     {
       "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "4debe88f6f2f",
-      "bytes": 28450
+      "hash": "9cb57c05f879",
+      "bytes": 29686
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",
@@ -7833,8 +7833,8 @@
     },
     {
       "source": ".github/workflows/dogfood-report.yml",
-      "hash": "d485b8d37111",
-      "bytes": 3987
+      "hash": "7f0699c0a69a",
+      "bytes": 5891
     },
     {
       "source": ".github/workflows/event-wake-router.yml",

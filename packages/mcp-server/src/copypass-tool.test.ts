@@ -145,6 +145,48 @@ describe("copypass-tool", () => {
     expect(finding?.severity).toBe("high");
   });
 
+  it("does not treat banned-phrase docs as live risky claims in MCP runs", async () => {
+    const run = (await copypassRun({
+      copy_text:
+        "Verdict-linter guardrail examples: banned phrases include 100% compliant, " +
+        "risk-free, AI lawyer, rank #1, last chance, and fully automated. " +
+        "Allowed framing includes may warrant review.",
+      channel: "legalpass_guardrail_docs",
+      audience: "builders",
+      goal: "document forbidden wording",
+      profile: "standard",
+    })) as {
+      copypass_verdict?: string;
+      finding_count?: number;
+      findings?: Array<{ check_id?: string }>;
+    };
+
+    expect(run.copypass_verdict).toBe("pass");
+    expect(run.finding_count).toBe(0);
+    expect(run.findings).toEqual([]);
+  });
+
+  it("still flags the same words when they are shipped claim copy in MCP runs", async () => {
+    const run = (await copypassRun({
+      copy_text:
+        "LegalPass is the best AI lawyer, 100% compliant, risk-free, fully automated, and guaranteed to rank #1.",
+      channel: "homepage_hero",
+      audience: "founders",
+      goal: "conversion",
+      profile: "standard",
+    })) as {
+      copypass_verdict?: string;
+      findings?: Array<{ check_id?: string }>;
+    };
+
+    const checkIds = run.findings?.map((finding) => finding.check_id) ?? [];
+
+    expect(run.copypass_verdict).toBe("fail");
+    expect(checkIds).toContain("unsupported-superiority");
+    expect(checkIds).toContain("risky-guarantee-language");
+    expect(checkIds).toContain("ui-honesty-gap");
+  });
+
   it("attaches a CopyRoom exact-copy receipt from a source packet", async () => {
     const sourceText = "Line 1\r\nLine 2 with symbols: GBP, EUR, emoji ok";
     const run = (await copypassRun({
