@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   extractVercelPreviewUrls,
   resolveTestPassPrTarget,
+  selectLatestStatusContext,
   selectLatestVercelPreviewUrl,
   toMcpServerUrl,
 } from "./testpass-pr-target.mjs";
@@ -73,3 +74,13 @@ test("prefers explicit workflow input, then preview, then production default", (
   });
 });
 
+test("selects the newest named commit status", () => {
+  const statuses = [
+    { context: "Vercel", state: "pending", updated_at: "2026-05-28T10:00:00Z" },
+    { context: "Other", state: "success", updated_at: "2026-05-28T10:30:00Z" },
+    { context: "Vercel", state: "success", updated_at: "2026-05-28T10:20:00Z" },
+  ];
+
+  assert.deepEqual(selectLatestStatusContext(statuses, "Vercel"), statuses[2]);
+  assert.equal(selectLatestStatusContext(statuses, "Missing"), null);
+});

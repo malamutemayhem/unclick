@@ -42,6 +42,51 @@ jobs:
             echo "has_token=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Wait for Vercel preview
+        if: ${{ github.event_name == 'pull_request' && steps.token.outputs.has_token == 'true' }}
+        uses: actions/github-script@v9
+        env:
+          VERCEL_STATUS_CONTEXT: Vercel
+          VERCEL_WAIT_SECONDS: "900"
+          VERCEL_WAIT_INTERVAL_SECONDS: "10"
+        with:
+          script: |
+            const { pathToFileURL } = require('node:url');
+            const helperUrl = pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/testpass-pr-target.mjs`).href;
+            const { selectLatestStatusContext } = await import(helperUrl);
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const ref = context.payload.pull_request?.head?.sha || context.sha;
+            const statusContext = process.env.VERCEL_STATUS_CONTEXT || 'Vercel';
+            const timeoutMs = Math.max(1, Number(process.env.VERCEL_WAIT_SECONDS || 900)) * 1000;
+            const intervalMs = Math.max(1, Number(process.env.VERCEL_WAIT_INTERVAL_SECONDS || 10)) * 1000;
+            const startedAt = Date.now();
+
+            while (true) {
+              const { data } = await github.rest.repos.getCombinedStatusForRef({
+                owner,
+                repo,
+                ref,
+              });
+              const status = selectLatestStatusContext(data.statuses || [], statusContext);
+              const state = status?.state || 'missing';
+              core.notice(`${statusContext} status for ${ref}: ${state}`);
+
+              if (state === 'success') {
+                core.notice(`${statusContext} preview is ready: ${status.target_url || '(no target URL)'}`);
+                return;
+              }
+              if (state === 'failure' || state === 'error') {
+                throw new Error(`${statusContext} preview is ${state}. TestPass will not run against a failed preview.`);
+              }
+              if (Date.now() - startedAt >= timeoutMs) {
+                throw new Error(`Timed out waiting for ${statusContext} preview to finish before TestPass.`);
+              }
+
+              await new Promise((resolve) => setTimeout(resolve, intervalMs));
+            }
+
       - name: Resolve TestPass target
         id: target
         if: ${{ steps.token.outputs.has_token == 'true' }}
