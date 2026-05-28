@@ -1,0 +1,130 @@
+{
+  "kind": "xpass_boundary_sweep_receipt_v1",
+  "generated_at": "2026-05-28T11:40:19.953Z",
+  "checked_at": "2026-05-28T11:40:19.953Z",
+  "run_id": "xpass-boundary-sweep-755f48c8fcf229e7",
+  "source": "local xpass boundary sweep",
+  "target_sha": null,
+  "package_sweep_path": "public/dogfood/xpass-package-sweep.json",
+  "package_sweep_status": "fresh",
+  "status": "passing",
+  "summary": "XPass boundary sweep passing across 2 public-safe boundary product(s).",
+  "product_count": 2,
+  "products": [
+    {
+      "id": "rotatepass",
+      "name": "RotatePass",
+      "stage": "boundary",
+      "role": "safe credential lifecycle and redaction proof",
+      "target_url": "docs/rotatepass-local-phase0.md",
+      "status": "passing",
+      "checked_at": "2026-05-28T11:40:19.953Z",
+      "command": [
+        "node",
+        "--test",
+        "scripts/rotatepass-redaction-guard.test.mjs"
+      ],
+      "exit_code": 0,
+      "duration_ms": 0,
+      "summary": "RotatePass public-safe boundary tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "public_safe_boundary_test",
+        "command": [
+          "node",
+          "--test",
+          "scripts/rotatepass-redaction-guard.test.mjs"
+        ],
+        "targetUrl": "docs/rotatepass-local-phase0.md"
+      }
+    },
+    {
+      "id": "wakepass",
+      "name": "WakePass",
+      "stage": "live_gate",
+      "role": "public-safe wake, stale work, ACK, and liveness proof",
+      "target_url": "docs/prd/wakepass.md",
+      "status": "passing",
+      "checked_at": "2026-05-28T11:40:19.953Z",
+      "command": [
+        "node",
+        "--test",
+        "scripts/event-wake-router.test.mjs",
+        "scripts/pinballwake-ack-ledger-room.test.mjs",
+        "scripts/pinballwake-stale-room.test.mjs",
+        "scripts/worker-liveness-watchdog.test.mjs"
+      ],
+      "exit_code": 0,
+      "duration_ms": 0,
+      "summary": "WakePass public-safe boundary tests passed.",
+      "failure_hint": null,
+      "proof": {
+        "kind": "public_safe_boundary_test",
+        "command": [
+          "node",
+          "--test",
+          "scripts/event-wake-router.test.mjs",
+          "scripts/pinballwake-ack-ledger-room.test.mjs",
+          "scripts/pinballwake-stale-room.test.mjs",
+          "scripts/worker-liveness-watchdog.test.mjs"
+        ],
+        "targetUrl": "docs/prd/wakepass.md"
+      }
+    }
+  ],
+  "cross_pass_matrix": [
+    {
+      "target_id": "rotatepass",
+      "target_name": "RotatePass",
+      "status": "passing",
+      "reviewers": [
+        {
+          "id": "securitypass",
+          "name": "SecurityPass",
+          "role": "safe local security and secret-boundary proof",
+          "status": "passing"
+        },
+        {
+          "id": "legalpass",
+          "name": "LegalPass",
+          "role": "safe guidance and non-certification wording",
+          "status": "passing"
+        },
+        {
+          "id": "commonsensepass",
+          "name": "CommonSensePass",
+          "role": "proof-claim sanity and false-DONE guard",
+          "status": "passing"
+        }
+      ],
+      "summary": "RotatePass was cross-checked by SecurityPass, LegalPass, CommonSensePass."
+    },
+    {
+      "target_id": "wakepass",
+      "target_name": "WakePass",
+      "status": "passing",
+      "reviewers": [
+        {
+          "id": "testpass",
+          "name": "TestPass",
+          "role": "automation and MCP smoke trust gate",
+          "status": "passing"
+        },
+        {
+          "id": "commonsensepass",
+          "name": "CommonSensePass",
+          "role": "stale-work and false-DONE sanity",
+          "status": "passing"
+        },
+        {
+          "id": "flowpass",
+          "name": "FlowPass",
+          "role": "handoff and recovery-path overlap",
+          "status": "passing"
+        }
+      ],
+      "summary": "WakePass was cross-checked by TestPass, CommonSensePass, FlowPass."
+    }
+  ],
+  "action_needed": []
+}
