@@ -55,10 +55,12 @@ export function createPlanOnlyFlowPassReport(input: {
     label: step.label,
     score: 0,
     verdict: "unknown",
+    evidence: [],
     findings: [],
     comments: [
       "Plan-only placeholder: run fixture-driven checks in a later chip.",
     ],
+    hat_ids: [],
   }));
 
   return FlowPassReportSchema.parse({
