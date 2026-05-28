@@ -79,11 +79,16 @@ runs:
         # before outputs are written. We classify failures explicitly below.
         set -uo pipefail
 
+        target_vercel_bypass_secret=""
+        if [[ "$SERVER_URL" == *".vercel.app"* ]]; then
+          target_vercel_bypass_secret="${TARGET_VERCEL_BYPASS_SECRET:-}"
+        fi
+
         payload=$(jq -n \
           --arg pack_id "$PACK_ID" \
           --arg profile "$PROFILE" \
           --arg server_url "$SERVER_URL" \
-          --arg target_vercel_bypass_secret "$TARGET_VERCEL_BYPASS_SECRET" \
+          --arg target_vercel_bypass_secret "$target_vercel_bypass_secret" \
           --arg source "$SOURCE" \
           '{pack_id: $pack_id, profile: $profile, source: $source}
             + (if $server_url == "" then {} else {server_url: $server_url} end)
@@ -102,7 +107,7 @@ runs:
           -H "Authorization: Bearer $TESTPASS_TOKEN"
           -H "Content-Type: application/json"
         )
-        if [ -n "${VERCEL_BYPASS_SECRET:-}" ]; then
+        if [ -n "${VERCEL_BYPASS_SECRET:-}" ] && [[ "$API_URL" == *".vercel.app"* ]]; then
           curl_args+=(-H "x-vercel-protection-bypass: $VERCEL_BYPASS_SECRET")
         fi
         http_code=$(curl "${curl_args[@]}" \

@@ -61,7 +61,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
 | src/pages/admin/AdminBrainmap.tsx | 21baca89f0d0 | 27078 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
-| src/pages/admin/copypass/CopyPassCatalog.tsx | ecfffa28e759 | 7258 |
+| src/pages/admin/copypass/CopyPassCatalog.tsx | a7d741e75c78 | 7306 |
 | src/pages/admin/crews/CrewComposer.tsx | f3afb17bb001 | 13909 |
 | src/pages/admin/crews/CrewRun.tsx | 8a458cc0c629 | 8427 |
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
@@ -96,7 +96,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
 | src/pages/BuildDesk.tsx | 36cf3e2985ba | 4474 |
 | src/pages/Connect.tsx | ec4230e130ef | 29356 |
-| src/pages/Crews.tsx | 1cdeaee2ae36 | 17586 |
+| src/pages/Crews.tsx | 9b4b9dfca188 | 18784 |
 | src/pages/DeveloperDocs.tsx | 339b3a5c60ae | 23490 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | e09d777363c0 | 8012 |
@@ -173,7 +173,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/color-tool.ts | f9aa9c0fec6e | 13643 |
 | packages/mcp-server/src/commonsensepass-tool.ts | bad23b55ea01 | 1995 |
 | packages/mcp-server/src/convertkit-tool.ts | 2f77303a3441 | 8498 |
-| packages/mcp-server/src/copypass-tool.ts | 9cb57c05f879 | 29686 |
+| packages/mcp-server/src/copypass-tool.ts | 70d540c397a5 | 31503 |
 | packages/mcp-server/src/crews-tool.ts | 111454c76c0a | 13547 |
 | packages/mcp-server/src/csuite-tool.ts | 0ab5af89bb49 | 70236 |
 | packages/mcp-server/src/datadog-tool.ts | 802b808614cd | 5556 |
@@ -199,7 +199,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | b293a0bd491d | 10351 |
+| .github/workflows/testpass-pr-check.yml | bbb701a7cb34 | 12844 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | f26a538f2ee9 | 896 |
 
@@ -212,7 +212,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Tools | MCP and gateway capabilities available to seats. | 186 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
-| Passes and gates | Quality, proof, safety, and fidelity checks. | 14 |
+| Passes and gates | Quality, proof, safety, and fidelity checks. | 15 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
@@ -765,6 +765,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Passes and gates | pass | testpass background handoff | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-background-handoff.ts |
 | Passes and gates | pass | testpass boundary | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-boundary.ts |
 | Passes and gates | pass | testpass pr comment | testpass pr comment UnClick module. | - | scripts/testpass-pr-comment.mjs |
+| Passes and gates | pass | testpass pr target | testpass pr target UnClick module. | - | scripts/testpass-pr-target.mjs |
 | Passes and gates | pass | testpass run | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/testpass-run.ts |
 | Passes and gates | pass | uxpass | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/uxpass.ts |
 | Passes and gates | pass | uxpass run | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/uxpass-run.ts |

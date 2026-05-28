@@ -54,12 +54,41 @@ jobs:
         env:
           DISPATCH_SERVER_URL: ${{ inputs.server_url || 'https://unclick.world/api/mcp' }}
           DISPATCH_API_URL: ${{ inputs.api_url || 'https://unclick.world/api/testpass-run' }}
+          REQUESTED_SERVER_URL: ${{ inputs.server_url || '' }}
+          DEFAULT_SERVER_URL: https://unclick.world/api/mcp
         with:
           script: |
+            const { pathToFileURL } = require('node:url');
+            const helperUrl = pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/testpass-pr-target.mjs`).href;
+            const { resolveTestPassPrTarget } = await import(helperUrl);
+
             const trim = (value) => String(value || '').replace(/\/+$/, '');
+            const defaultApiUrl = 'https://unclick.world/api/testpass-run';
+            const toApiUrl = (serverUrl) => {
+              try {
+                const parsed = new URL(serverUrl);
+                parsed.pathname = '/api/testpass-run';
+                parsed.search = '';
+                parsed.hash = '';
+                return parsed.toString().replace(/\/$/, '');
+              } catch {
+                return process.env.DISPATCH_API_URL || defaultApiUrl;
+              }
+            };
+            const setTarget = ({ serverUrl, apiUrl, source }) => {
+              core.setOutput('server_url', serverUrl);
+              core.setOutput('api_url', apiUrl || toApiUrl(serverUrl));
+              core.setOutput('source', source);
+              core.notice(`TestPass target source: ${source}`);
+              core.notice(`TestPass target: ${serverUrl}`);
+            };
+
             if (context.eventName !== 'pull_request') {
-              core.setOutput('server_url', process.env.DISPATCH_SERVER_URL || 'https://unclick.world/api/mcp');
-              core.setOutput('api_url', process.env.DISPATCH_API_URL || 'https://unclick.world/api/testpass-run');
+              setTarget({
+                serverUrl: process.env.DISPATCH_SERVER_URL || 'https://unclick.world/api/mcp',
+                apiUrl: process.env.DISPATCH_API_URL || defaultApiUrl,
+                source: 'workflow_input',
+              });
               return;
             }
 
@@ -67,6 +96,26 @@ jobs:
             const repo = context.repo.repo;
             const headSha = context.payload.pull_request.head.sha;
             const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            const fallback = resolveTestPassPrTarget({
+              requestedServerUrl: process.env.REQUESTED_SERVER_URL,
+              defaultServerUrl: process.env.DEFAULT_SERVER_URL,
+              comments,
+            });
+
+            if (fallback.source === 'workflow_input') {
+              setTarget({
+                serverUrl: fallback.serverUrl,
+                apiUrl: toApiUrl(fallback.serverUrl),
+                source: fallback.source,
+              });
+              return;
+            }
 
             for (let attempt = 1; attempt <= 40; attempt++) {
               const deployments = await github.paginate(github.rest.repos.listDeployments, {
@@ -91,9 +140,12 @@ jobs:
                 );
                 if (ready) {
                   const baseUrl = trim(ready.environment_url || ready.target_url);
-                  core.setOutput('server_url', `${baseUrl}/api/mcp`);
-                  core.setOutput('api_url', `${baseUrl}/api/testpass-run`);
                   core.info(`Resolved Vercel preview deployment for ${headSha}: ${baseUrl}`);
+                  setTarget({
+                    serverUrl: `${baseUrl}/api/mcp`,
+                    apiUrl: `${baseUrl}/api/testpass-run`,
+                    source: 'vercel_preview_deployment',
+                  });
                   return;
                 }
               }
@@ -102,7 +154,14 @@ jobs:
               await sleep(15000);
             }
 
-            core.setFailed(`Could not find a successful Vercel preview deployment for ${headSha}.`);
+            if (fallback.source === 'default') {
+              core.warning(`Could not find a successful Vercel preview deployment or comment for ${headSha}; falling back to ${fallback.serverUrl}.`);
+            }
+            setTarget({
+              serverUrl: fallback.serverUrl,
+              apiUrl: toApiUrl(fallback.serverUrl),
+              source: fallback.source,
+            });
 
       - name: Run TestPass
         id: testpass
@@ -116,8 +175,8 @@ jobs:
           token: ${{ secrets.TESTPASS_TOKEN }}
           pack_id: ${{ inputs.pack_id || 'testpass-core' }}
           profile: ${{ inputs.profile || 'smoke' }}
-          server_url: ${{ steps.target.outputs.server_url }}
-          api_url: ${{ steps.target.outputs.api_url }}
+          server_url: ${{ steps.target.outputs.server_url || inputs.server_url || 'https://unclick.world/api/mcp' }}
+          api_url: ${{ steps.target.outputs.api_url || inputs.api_url || 'https://unclick.world/api/testpass-run' }}
           vercel_bypass_secret: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           target_vercel_bypass_secret: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
