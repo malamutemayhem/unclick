@@ -54,11 +54,11 @@ const xpassIndex = [
   {
     id: "securitypass",
     name: "SecurityPass",
-    stage: "scope_gated",
-    label: "Scope-gated",
-    automation: "Blocked public receipt until safe recurring proof exists",
+    stage: "safe_proof",
+    label: "Safe proof live",
+    automation: "Recurring static safety proof; active probes remain scope-gated",
     mentionProfile: "Low mention volume by design because unsafe probes stay disabled.",
-    nextStep: "Add a deny-by-default recurring runner proof before live security checks.",
+    nextStep: "Add a deny-by-default recurring active-runner proof before live security checks.",
   },
   {
     id: "sloppass",
@@ -674,6 +674,107 @@ function extractSitemapUrls(body) {
   return Array.from(body.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)).map((match) => match[1] || "").filter(Boolean);
 }
 
+async function runSecurityPassSafeProof() {
+  const proofFiles = {
+    runner: "packages/securitypass/src/runner/index.ts",
+    gitleaks: "packages/securitypass/src/probes/gitleaks.ts",
+    osv: "packages/securitypass/src/probes/osv-scanner.ts",
+  };
+
+  try {
+    const [runner, gitleaks, osv] = await Promise.all([
+      fs.readFile(proofFiles.runner, "utf8"),
+      fs.readFile(proofFiles.gitleaks, "utf8"),
+      fs.readFile(proofFiles.osv, "utf8"),
+    ]);
+
+    const skeletonStart = runner.indexOf("export async function runSkeletonScan");
+    const skeletonVerify = runner.indexOf("await verifyScopeOrThrow(target, opts);", skeletonStart);
+    const skeletonCreateRun = runner.indexOf("const run = createRun", skeletonStart);
+    const skeletonHeaderProbe = runner.indexOf("checkSecurityHeaders(url", skeletonStart);
+    const packStart = runner.indexOf("export async function runSecurityPack");
+    const packDeclaredScope = runner.indexOf("assertTargetWithinDeclaredScope(pack, target);", packStart);
+    const packVerify = runner.indexOf("const scopeProof = await verifyScopeOrThrow", packStart);
+
+    const checks = [
+      {
+        name: "runSkeletonScan verifies scope before creating a run.",
+        ok: skeletonStart >= 0 && skeletonVerify > skeletonStart && skeletonCreateRun > skeletonVerify,
+      },
+      {
+        name: "runSkeletonScan verifies scope before fetching security headers.",
+        ok: skeletonStart >= 0 && skeletonVerify > skeletonStart && skeletonHeaderProbe > skeletonVerify,
+      },
+      {
+        name: "runSecurityPack checks declared in-scope/out-of-scope assets before proof verification.",
+        ok: packStart >= 0 && packDeclaredScope > packStart && packVerify > packDeclaredScope,
+      },
+      {
+        name: "Gitleaks uses the current git scan command with scanner-side redaction.",
+        ok: /args:\s*\[\s*"git"/.test(gitleaks) && gitleaks.includes('"--redact=100"'),
+      },
+      {
+        name: "OSV-Scanner uses the v2 source scan command and keeps source-path evidence.",
+        ok: /args:\s*\[\s*"scan",\s*"source"/.test(osv) && osv.includes("source_path"),
+      },
+      {
+        name: "OSV-Scanner keeps Rust call analysis explicitly disabled for safe source scans.",
+        ok: osv.includes('"--no-call-analysis=rust"'),
+      },
+      {
+        name: "OSV-Scanner evidence keeps fixed-version and call-analysis context.",
+        ok: osv.includes("fixed_versions") && osv.includes("call_analysis"),
+      },
+      {
+        name: "OSV-Scanner scores official CVSS vector evidence instead of defaulting it low.",
+        ok: osv.includes("cvss_scores") && osv.includes("cvssV3Score") && osv.includes("cvssV2Score"),
+      },
+    ];
+
+    const failedChecks = checks.filter((check) => !check.ok);
+    const proof = {
+      kind: "securitypass_safe_static_proof",
+      files: proofFiles,
+      checks,
+      activeProbesRun: false,
+    };
+
+    if (failedChecks.length > 0) {
+      return failureResult(
+        "securitypass",
+        "SecurityPass",
+        `SecurityPass safe proof failed ${failedChecks.length} static check(s).`,
+        failedChecks.map((check) => check.name).join(" "),
+        {
+          reasonCode: "safe_proof_failed",
+          proof,
+        },
+      );
+    }
+
+    return passResult(
+      "securitypass",
+      "SecurityPass",
+      "Safe recurring proof verified SecurityPass remains deny-by-default before active probes.",
+      "Static proof checked the runner scope gate plus scanner wrapper safety settings; no active probes were run.",
+      {
+        proof,
+        nextProof: "Add a scoped active-runner receipt before marking live security probes as passing.",
+      },
+    );
+  } catch (err) {
+    return failureResult(
+      "securitypass",
+      "SecurityPass",
+      "SecurityPass safe proof could not read the expected source files.",
+      err instanceof Error ? err.message : String(err),
+      {
+        reasonCode: "safe_proof_unreadable",
+      },
+    );
+  }
+}
+
 function buildTrend(results) {
   const today = generatedAt.slice(0, 10);
   return [{
@@ -714,17 +815,7 @@ packageSweepState = await readPackageSweepReceipt();
 const results = [
   await runTestPass(),
   await runUXPass(),
-  blockedResult(
-    "securitypass",
-    "SecurityPass",
-    "SecurityPass is blocked until the recurring runner proof is ready.",
-    "SecurityPass remains scope-gated; the public dogfood receipt does not run security probes yet.",
-    "SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
-    {
-      reasonCode: "scope_gate",
-      nextProof: "Land a safe recurring SecurityPass runner receipt before marking this passing.",
-    },
-  ),
+  await runSecurityPassSafeProof(),
   packageReadyResult(
     "sloppass",
     "SlopPass",
