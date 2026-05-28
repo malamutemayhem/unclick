@@ -145,7 +145,7 @@ export default function CopyPassCatalog() {
               <p className="mt-1 text-sm text-[#888]">
                 CopyPass checks clarity, CTA presence, proof and trust gaps, unsupported superiority claims, detector-evasion
                 positioning, risky guarantees, placeholder text, internal consistency, audience/tone fit, AI-slop language,
-                urgency, and product-surface honesty.
+                social-proof evidence, human-authorship claims, urgency, and product-surface honesty.
                 Exact-source jobs fail closed when source packets are missing or when output drifts from the packet.
               </p>
             </div>
