@@ -23,6 +23,8 @@ export interface DogfoodPassResult {
       | "package_ready"
       | "boundary"
       | "xpass_package_sweep"
+      | "xpass_boundary_sweep"
+      | "securitypass_safe_static_proof"
       | "compliancepass_report"
       | "public_receipt"
       | "missing";
@@ -38,6 +40,12 @@ export interface DogfoodPassResult {
     receiptPath?: string;
     score?: number;
     sourceUrls?: string[];
+    files?: Record<string, string>;
+    activeProbesRun?: boolean;
+    checks?: Array<{
+      name: string;
+      ok: boolean;
+    }>;
     reviewers?: Array<{
       id: string;
       name?: string;
@@ -60,7 +68,7 @@ export type DogfoodStatusLegend = Record<DogfoodStatus, string>;
 export interface XPassIndexEntry {
   id: string;
   name: string;
-  stage: "live_gate" | "live_dogfood" | "scope_gated" | "package_ready" | "boundary" | "planned" | "guidance";
+  stage: "live_gate" | "live_dogfood" | "scope_gated" | "safe_proof" | "package_ready" | "boundary" | "planned" | "guidance";
   label: string;
   automation: string;
   mentionProfile: string;
@@ -88,20 +96,20 @@ export interface DogfoodReport {
 }
 
 export const dogfoodReport = {
-  "generatedAt": "2026-05-28T10:23:29.017Z",
-  "lastRunAt": "2026-05-28T10:23:29.017Z",
-  "status": "blocked",
+  "generatedAt": "2026-05-28T10:58:29.589Z",
+  "lastRunAt": "2026-05-28T10:58:29.589Z",
+  "status": "pending",
   "source": "dogfood receipt dry run",
   "headline": "We dogfood UnClick on UnClick.",
   "target": "UnClick public and agent-facing product surfaces",
-  "nextAutomation": "Nightly dogfood receipts refresh this board with live checks and scheduled XPass package proof.",
+  "nextAutomation": "Nightly dogfood receipts refresh this board with live checks, scheduled XPass package proof, and scheduled public-safe boundary proof.",
   "statusLegend": {
-    "passing": "A live check or scheduled package sweep ran and returned a passing result.",
+    "passing": "A live check or scheduled package sweep ran and returned a passing result, or a scheduled boundary sweep ran and returned a passing result.",
     "failing": "A live check or scheduled package sweep ran and returned a failing result.",
     "blocked": "The check needs action before it can be marked passing, such as a missing credential, scope gate, or high-severity readiness gap.",
     "pending": "The check is planned, package-ready, or scaffolded, but scheduled proof is not available yet."
   },
-  "proofPolicy": "Public dogfood receipts mark passing only when a live check or scheduled package sweep actually ran. Blocked and pending are honest product states, not failures to hide.",
+  "proofPolicy": "Public dogfood receipts mark passing only when a live check or scheduled package sweep actually ran, or a scheduled boundary sweep actually ran. Blocked and pending are honest product states, not failures to hide.",
   "xpassIndex": [
     {
       "id": "testpass",
@@ -124,11 +132,11 @@ export const dogfoodReport = {
     {
       "id": "securitypass",
       "name": "SecurityPass",
-      "stage": "scope_gated",
-      "label": "Scope-gated",
-      "automation": "Blocked public receipt until safe recurring proof exists",
+      "stage": "safe_proof",
+      "label": "Safe proof live",
+      "automation": "Recurring static safety proof; active probes remain scope-gated",
       "mentionProfile": "Low mention volume by design because unsafe probes stay disabled.",
-      "nextStep": "Add a deny-by-default recurring runner proof before live security checks."
+      "nextStep": "Add a deny-by-default recurring active-runner proof before live security checks."
     },
     {
       "id": "sloppass",
@@ -228,7 +236,7 @@ export const dogfoodReport = {
       "status": "pending",
       "summary": "Dry-run receipt builder validated the TestPass result shape.",
       "evidence": "Dry run only. Live workflow calls /api/testpass-run with source=scheduled.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "dry_run_only",
       "nextProof": "Run the dogfood report without --dry-run and with a TestPass token before marking this passing."
     },
@@ -238,20 +246,61 @@ export const dogfoodReport = {
       "status": "pending",
       "summary": "Dry-run receipt builder validated the UXPass result shape.",
       "evidence": "Dry run only. Live workflow calls /api/uxpass-run against the public URL.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "dry_run_only",
       "nextProof": "Run the dogfood report without --dry-run and with a UXPass token before marking this passing."
     },
     {
       "id": "securitypass",
       "name": "SecurityPass",
-      "status": "blocked",
-      "summary": "SecurityPass is blocked until the recurring runner proof is ready.",
-      "evidence": "SecurityPass remains scope-gated; the public dogfood receipt does not run security probes yet.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
-      "blockedReason": "SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
-      "reasonCode": "scope_gate",
-      "nextProof": "Land a safe recurring SecurityPass runner receipt before marking this passing."
+      "status": "passing",
+      "summary": "Safe recurring proof verified SecurityPass remains deny-by-default before active probes.",
+      "evidence": "Static proof checked the runner scope gate plus scanner wrapper safety settings; no active probes were run.",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
+      "proof": {
+        "kind": "securitypass_safe_static_proof",
+        "files": {
+          "runner": "packages/securitypass/src/runner/index.ts",
+          "gitleaks": "packages/securitypass/src/probes/gitleaks.ts",
+          "osv": "packages/securitypass/src/probes/osv-scanner.ts"
+        },
+        "checks": [
+          {
+            "name": "runSkeletonScan verifies scope before creating a run.",
+            "ok": true
+          },
+          {
+            "name": "runSkeletonScan verifies scope before fetching security headers.",
+            "ok": true
+          },
+          {
+            "name": "runSecurityPack checks declared in-scope/out-of-scope assets before proof verification.",
+            "ok": true
+          },
+          {
+            "name": "Gitleaks uses the current git scan command with scanner-side redaction.",
+            "ok": true
+          },
+          {
+            "name": "OSV-Scanner uses the v2 source scan command and keeps source-path evidence.",
+            "ok": true
+          },
+          {
+            "name": "OSV-Scanner keeps Rust call analysis explicitly disabled for safe source scans.",
+            "ok": true
+          },
+          {
+            "name": "OSV-Scanner evidence keeps fixed-version and call-analysis context.",
+            "ok": true
+          },
+          {
+            "name": "OSV-Scanner scores official CVSS vector evidence instead of defaulting it low.",
+            "ok": true
+          }
+        ],
+        "activeProbesRun": false
+      },
+      "nextProof": "Add a scoped active-runner receipt before marking live security probes as passing."
     },
     {
       "id": "sloppass",
@@ -259,7 +308,7 @@ export const dogfoodReport = {
       "status": "pending",
       "summary": "Package-backed quality review exists, but the public dogfood receipt has not run it yet.",
       "evidence": "SlopPass has a package runner, verdict pack, and dogfood tests; public status stays pending until a scheduled receipt exists.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "package_ready_needs_scheduled_receipt",
       "proof": {
         "kind": "package_ready",
@@ -274,7 +323,7 @@ export const dogfoodReport = {
       "status": "pending",
       "summary": "Dry-run receipt builder validated the SEOPass result shape.",
       "evidence": "Dry run only. Live workflow fetches public HTML, robots.txt, sitemap.xml, and llms.txt.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "dry_run_only",
       "runId": "seopass-dry-run-shape",
       "targetUrl": "https://unclick.world",
@@ -297,7 +346,7 @@ export const dogfoodReport = {
       "status": "pending",
       "summary": "Package-backed copy quality review exists, but the public dogfood receipt has not run it yet.",
       "evidence": "CopyPass has deterministic review tooling and CopyRoom boundary checks; public status stays pending until scheduled proof exists.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "package_ready_needs_scheduled_receipt",
       "proof": {
         "kind": "package_ready",
@@ -312,7 +361,7 @@ export const dogfoodReport = {
       "status": "pending",
       "summary": "Package-backed policy and claims guidance exists, but the public dogfood receipt has not run it yet.",
       "evidence": "LegalPass has guidance tooling, pack schema, and public proof boundaries; public status stays pending until scheduled proof exists.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "package_ready_needs_scheduled_receipt",
       "proof": {
         "kind": "package_ready",
@@ -327,7 +376,7 @@ export const dogfoodReport = {
       "status": "pending",
       "summary": "Worker sanity checks exist, but the public dogfood receipt has not run them yet.",
       "evidence": "CommonSensePass is routed for proof, queue, claim, false-DONE, and merge-ready sanity; public status stays pending until scheduled proof exists.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "package_ready_needs_scheduled_receipt",
       "proof": {
         "kind": "package_ready",
@@ -342,7 +391,7 @@ export const dogfoodReport = {
       "status": "pending",
       "summary": "Package-backed journey checks exist, but the public dogfood receipt has not run them yet.",
       "evidence": "FlowPass has journey fixtures for onboarding, checkout, handoff, forms, and success/failure states; public status stays pending until scheduled proof exists.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "package_ready_needs_scheduled_receipt",
       "proof": {
         "kind": "package_ready",
@@ -357,7 +406,7 @@ export const dogfoodReport = {
       "status": "pending",
       "summary": "Package-backed answer-engine readiness checks exist, but the public dogfood receipt has not run them yet.",
       "evidence": "GEOPass has AI answer-engine readiness scanning for llms.txt, schema, bots, and metadata; public status stays pending until scheduled proof exists.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "package_ready_needs_scheduled_receipt",
       "proof": {
         "kind": "package_ready",
@@ -372,7 +421,7 @@ export const dogfoodReport = {
       "status": "pending",
       "summary": "Credential lifecycle boundaries are documented and guarded, but no live credential rotation runs in public dogfood.",
       "evidence": "RotatePass stays boundary-only until a safe local receipt can prove redaction and lifecycle behavior without touching real secrets.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "boundary_needs_runner",
       "proof": {
         "kind": "boundary",
@@ -387,7 +436,7 @@ export const dogfoodReport = {
       "status": "pending",
       "summary": "Wake and stale-work visibility exists, but the public dogfood receipt has not run a public-safe stale-work check yet.",
       "evidence": "WakePass powers dispatch, stale ACK, heartbeat, and reclaim visibility; public status stays pending until a public-safe receipt exists.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "boundary_needs_runner",
       "proof": {
         "kind": "boundary",
@@ -402,7 +451,7 @@ export const dogfoodReport = {
       "status": "passing",
       "summary": "CompliancePass scanned 27 readiness checks and scored 99.3/100.",
       "evidence": "See /enterprise/latest.json for the evidence-backed readiness report.",
-      "checkedAt": "2026-05-28T10:23:29.017Z",
+      "checkedAt": "2026-05-28T10:58:29.589Z",
       "reasonCode": "public_receipt_complete",
       "score": 99.3,
       "band": "green",
@@ -416,15 +465,15 @@ export const dogfoodReport = {
   "trend": [
     {
       "date": "2026-05-28",
-      "passing": 1,
+      "passing": 2,
       "failing": 0,
-      "blocked": 1,
+      "blocked": 0,
       "pending": 11
     }
   ],
   "lastActionableFailure": {
-    "title": "SecurityPass needs attention",
-    "detail": "SecurityPass is blocked until the recurring runner proof is ready. Blocked reason: SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
+    "title": "No actionable dogfood failure in the latest receipt",
+    "detail": "The live checks that ran in this receipt did not report a blocking failure.",
     "owner": "Dogfood automation"
   }
 } satisfies DogfoodReport;

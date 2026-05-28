@@ -5,9 +5,11 @@ import { dogfoodReport } from "@/data/dogfoodReport";
 describe("Dogfood report proof policy", () => {
   it("keeps public status wording honest in the fallback receipt", () => {
     expect(dogfoodReport.statusLegend.passing).toMatch(/live check or scheduled package sweep ran/i);
-    expect(dogfoodReport.statusLegend.blocked).toMatch(/needs action/i);
+    expect(dogfoodReport.statusLegend.passing).toMatch(/scheduled boundary sweep ran/i);
+    expect(dogfoodReport.statusLegend.blocked).toMatch(/needs action|action is needed/i);
     expect(dogfoodReport.statusLegend.pending).toMatch(/scheduled proof is not available yet/i);
     expect(dogfoodReport.proofPolicy).toMatch(/live check or scheduled package sweep actually ran/i);
+    expect(dogfoodReport.proofPolicy).toMatch(/scheduled boundary sweep actually ran/i);
 
     const uxpass = dogfoodReport.results.find((result) => result.id === "uxpass");
     const securitypass = dogfoodReport.results.find((result) => result.id === "securitypass");
@@ -17,8 +19,9 @@ describe("Dogfood report proof policy", () => {
     expect(uxpass?.status).toBe("pending");
     expect(uxpass?.reasonCode).toBe("dry_run_only");
     expect(uxpass?.summary).toMatch(/validated the UXPass result shape/i);
-    expect(securitypass?.reasonCode).toBe("scope_gate");
-    expect(securitypass?.nextProof).toMatch(/before marking this passing/i);
+    expect(securitypass?.status).toBe("passing");
+    expect(securitypass?.proof?.kind).toBe("securitypass_safe_static_proof");
+    expect(securitypass?.nextProof).toMatch(/active-runner receipt/i);
 
     const compliancepass = dogfoodReport.results.find((result) => result.id === "compliancepass");
     expect(compliancepass?.status).toBe("passing");

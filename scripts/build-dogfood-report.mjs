@@ -25,7 +25,9 @@ const mcpUrl = process.env.DOGFOOD_MCP_URL || "https://unclick.world/api/mcp";
 const generatedAt = new Date().toISOString();
 const targetSha = process.env.DOGFOOD_TARGET_SHA || process.env.GITHUB_SHA || process.env.VERCEL_GIT_COMMIT_SHA || "";
 const packageSweepPath = process.env.DOGFOOD_XPASS_PACKAGE_SWEEP_PATH || "public/dogfood/xpass-package-sweep.json";
+const boundarySweepPath = process.env.DOGFOOD_XPASS_BOUNDARY_SWEEP_PATH || "public/dogfood/xpass-boundary-sweep.json";
 let packageSweepState = null;
+let boundarySweepState = null;
 const requiredSweepPackageIds = PASS_PACKAGES.map((pkg) => pkg.id);
 
 function argValue(name, fallback) {
@@ -34,14 +36,14 @@ function argValue(name, fallback) {
 }
 
 const statusLegend = {
-  passing: "A live check or scheduled package sweep ran and returned a passing result.",
+  passing: "A live check or scheduled package sweep ran and returned a passing result, or a scheduled boundary sweep ran and returned a passing result.",
   failing: "A live check or scheduled package sweep ran and returned a failing result.",
   blocked: "The check needs action before it can be marked passing, such as a missing credential, scope gate, or high-severity readiness gap.",
   pending: "The check is planned, package-ready, or scaffolded, but scheduled proof is not available yet.",
 };
 
 const proofPolicy =
-  "Public dogfood receipts mark passing only when a live check or scheduled package sweep actually ran. Blocked and pending are honest product states, not failures to hide.";
+  "Public dogfood receipts mark passing only when a live check or scheduled package sweep actually ran, or a scheduled boundary sweep actually ran. Blocked and pending are honest product states, not failures to hide.";
 
 const xpassIndex = [
   {
@@ -246,11 +248,63 @@ function packageReadyResult(id, name, summary, evidence, targetUrl, nextProof) {
 }
 
 function boundaryResult(id, name, summary, evidence, targetUrl, nextProof) {
+  const sweep = boundarySweepProof(id);
+  if (sweep) {
+    if (sweep.product.status === "passing" && sweep.matrix?.status === "passing") {
+      return passResult(
+        id,
+        name,
+        `Scheduled XPass boundary sweep passed ${name}.`,
+        `Receipt ${sweep.runId} ran ${sweep.commandText}; cross-checked by ${sweep.reviewerNames || "boundary proof"}.`,
+        {
+          runId: sweep.runId,
+          targetUrl,
+          proof: {
+            kind: "xpass_boundary_sweep",
+            runId: sweep.runId,
+            productId: id,
+            targetUrl,
+            targetSha: sweep.targetSha || undefined,
+            receiptPath: boundarySweepPath,
+            reviewers: sweep.reviewers,
+          },
+        },
+      );
+    }
+
+    if (sweep.product.status === "failing" || sweep.matrix?.status === "failing") {
+      return failureResult(
+        id,
+        name,
+        `Scheduled XPass boundary sweep failed ${name}.`,
+        sweep.product.failure_hint || sweep.matrix?.summary || `Receipt ${sweep.runId} reported a failing boundary proof.`,
+        {
+          runId: sweep.runId,
+          targetUrl,
+          proof: {
+            kind: "xpass_boundary_sweep",
+            runId: sweep.runId,
+            productId: id,
+            targetUrl,
+            targetSha: sweep.targetSha || undefined,
+            receiptPath: boundarySweepPath,
+            reviewers: sweep.reviewers,
+          },
+        },
+      );
+    }
+  }
+
+  const sweepNextProof = sweep && sweep.product.status === "passing" && !sweep.matrix
+    ? `Regenerate ${boundarySweepPath} with a cross-pass matrix row for ${name} before marking this passing.`
+    : boundarySweepState?.stale
+      ? `Regenerate ${boundarySweepPath} for ${targetSha || "the current commit"} before marking this passing.`
+      : nextProof;
   return pendingResult(id, name, summary, evidence, {
     reasonCode: "boundary_needs_runner",
     proof: { kind: "boundary", targetUrl },
     targetUrl,
-    nextProof,
+    nextProof: sweepNextProof,
   });
 }
 
@@ -298,6 +352,39 @@ async function readPackageSweepReceipt() {
         stale: true,
         reason: validation.reason,
         validation,
+      };
+    }
+    return { receipt, stale: false, reason: "fresh" };
+  } catch (err) {
+    if (err?.code === "ENOENT") {
+      return { receipt: null, stale: false, reason: "missing" };
+    }
+    return {
+      receipt: null,
+      stale: false,
+      reason: "unreadable",
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+async function readBoundarySweepReceipt() {
+  if (dryRun) {
+    return { receipt: null, stale: false, reason: "dry_run" };
+  }
+
+  try {
+    const receipt = JSON.parse(await fs.readFile(boundarySweepPath, "utf8"));
+    if (receipt?.kind !== "xpass_boundary_sweep_receipt_v1") {
+      return { receipt: null, stale: false, reason: "invalid_kind" };
+    }
+    if (targetSha && receipt.target_sha !== targetSha) {
+      return {
+        receipt,
+        stale: true,
+        reason: "target_sha_mismatch",
+        expectedSha: targetSha,
+        actualSha: receipt.target_sha || "",
       };
     }
     return { receipt, stale: false, reason: "fresh" };
@@ -375,6 +462,30 @@ function packageSweepProof(id) {
     reviewers,
     reviewerNames,
     commandText: Array.isArray(packageResult.command) ? packageResult.command.join(" ") : "the package test command",
+  };
+}
+
+function boundarySweepProof(id) {
+  const receipt = boundarySweepState?.receipt;
+  if (!receipt || boundarySweepState.stale) return null;
+  const productResult = Array.isArray(receipt.products)
+    ? receipt.products.find((product) => product.id === id)
+    : null;
+  if (!productResult) return null;
+
+  const matrix = Array.isArray(receipt.cross_pass_matrix)
+    ? receipt.cross_pass_matrix.find((row) => row.target_id === id)
+    : null;
+  const reviewers = Array.isArray(matrix?.reviewers) ? matrix.reviewers : [];
+  const reviewerNames = reviewers.map((reviewer) => reviewer.name || reviewer.id).filter(Boolean).join(", ");
+  return {
+    runId: receipt.run_id || "unknown",
+    targetSha: receipt.target_sha || "",
+    product: productResult,
+    matrix,
+    reviewers,
+    reviewerNames,
+    commandText: Array.isArray(productResult.command) ? productResult.command.join(" ") : "the public-safe boundary test command",
   };
 }
 
@@ -955,6 +1066,7 @@ function buildLastActionableFailure(results) {
 }
 
 packageSweepState = await readPackageSweepReceipt();
+boundarySweepState = await readBoundarySweepReceipt();
 
 const results = [
   await runTestPass(),
@@ -1035,7 +1147,7 @@ const report = {
   source: dryRun ? "dogfood receipt dry run" : "nightly dogfood workflow",
   headline: "We dogfood UnClick on UnClick.",
   target: "UnClick public and agent-facing product surfaces",
-  nextAutomation: "Nightly dogfood receipts refresh this board with live checks and scheduled XPass package proof.",
+  nextAutomation: "Nightly dogfood receipts refresh this board with live checks, scheduled XPass package proof, and scheduled public-safe boundary proof.",
   statusLegend,
   proofPolicy,
   xpassIndex,

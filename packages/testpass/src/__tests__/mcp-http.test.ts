@@ -11,7 +11,8 @@ describe("mcp-http helpers", () => {
     process.env.VERCEL_AUTOMATION_BYPASS_SECRET = "bypass-secret";
 
     try {
-      expect(buildMcpHeaders()["x-vercel-protection-bypass"]).toBe("bypass-secret");
+      expect(buildMcpHeaders("https://preview.vercel.app/api/mcp")["x-vercel-protection-bypass"]).toBe("bypass-secret");
+      expect(buildMcpHeaders("https://unclick.world/api/mcp")["x-vercel-protection-bypass"]).toBeUndefined();
     } finally {
       if (previous === undefined) {
         delete process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
