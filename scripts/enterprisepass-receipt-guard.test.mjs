@@ -108,12 +108,13 @@ describe("CompliancePass public receipt guard", () => {
     assert.equal(receipt.report_integrity.gap_count_matches_findings, true);
     assert.equal(receipt.report_integrity.green_requires_no_high_or_critical_gaps, true);
     assert.equal(receipt.report_integrity.max_public_age_hours, 168);
-    assert.equal(receipt.summary.gap_severity_counts.high, 1);
-    assert.equal(receipt.summary.blocking_gap_count, 1);
+    assert.equal(receipt.summary.gap_severity_counts.critical, 0);
+    assert.equal(receipt.summary.gap_severity_counts.high, 0);
+    assert.equal(receipt.summary.blocking_gap_count, 0);
 
     const categoryIds = receipt.categories.map((category) => category.id);
     assert.deepEqual(categoryIds, REQUIRED_CATEGORY_IDS);
-    assert.equal(receipt.categories.find((category) => category.id === "secure_development")?.band, "amber");
+    assert.equal(receipt.categories.find((category) => category.id === "secure_development")?.band, "green");
 
     for (const category of receipt.categories) {
       assert.notEqual(category.status, "pending");

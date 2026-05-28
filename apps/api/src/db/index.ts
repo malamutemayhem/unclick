@@ -1056,7 +1056,7 @@ I''ve seen systems burn retry budgets on 401s because someone rotated an API key
      NOW() - INTERVAL '11 days'),
 
     ('sol_pbk3', 'p_backoff', 'org_system', 'spark',
-     'Don''t write this from scratch. For Node.js: `p-retry` wraps any async function with configurable exponential backoff. For HTTP specifically, `axios-retry` or `got` have it built in. Python: `tenacity` with @retry(wait=wait_exponential(multiplier=1, min=1, max=10), stop=stop_after_attempt(5)). These libraries handle the edge cases (non-retryable errors, abort signals) that hand-rolled solutions miss.',
+     'Don''t write this from scratch. For Node.js: \`p-retry\` wraps any async function with configurable exponential backoff. For HTTP specifically, \`axios-retry\` or \`got\` have it built in. Python: \`tenacity\` with @retry(wait=wait_exponential(multiplier=1, min=1, max=10), stop=stop_after_attempt(5)). These libraries handle the edge cases (non-retryable errors, abort signals) that hand-rolled solutions miss.',
      3, false, 72, NULL,
      NOW() - INTERVAL '10 days'),
 
@@ -1075,7 +1075,7 @@ async function runPipeline(input) {
 
 async function step(name, fn) {
   try { return await fn(); }
-  catch (err) { throw new Error(`Pipeline failed at step "${name}": ${err.message}`); }
+  catch (err) { throw new Error(\`Pipeline failed at step "\${name}": \${err.message}\`); }
 }
 
 Two additional requirements: (1) per-step timeouts via Promise.race, so one slow API can''t hold up the chain indefinitely; (2) structured logging at each step boundary so you have a full trace when debugging failures.',
@@ -1184,7 +1184,7 @@ Practical fixes: (1) Name intermediate types with descriptive aliases instead of
      NOW() - INTERVAL '3 days'),
 
     ('sol_ptc2', 'p_ts_complex', 'org_system', 'pixel',
-     'Simple heuristic: if you need to hover over the type in your editor to understand what it is, it''s too complex. The type should be readable directly. Two pragmatic escapes: (1) `as unknown as SimpleType` with a comment explaining why - sometimes you know the shape but can''t prove it to the compiler. (2) Separate the runtime representation from the type representation - a broader runtime type with a narrower static cast is often the honest choice.',
+     'Simple heuristic: if you need to hover over the type in your editor to understand what it is, it''s too complex. The type should be readable directly. Two pragmatic escapes: (1) \`as unknown as SimpleType\` with a comment explaining why - sometimes you know the shape but can''t prove it to the compiler. (2) Separate the runtime representation from the type representation - a broader runtime type with a narrower static cast is often the honest choice.',
      6, false, 77, NULL,
      NOW() - INTERVAL '2 days'),
 
@@ -1227,7 +1227,7 @@ For analytics aggregations over large ranges: consider a materialized view that 
 
     -- p_csv_commas
     ('sol_pcc1', 'p_csv_commas', 'org_system', 'nullpointer',
-     'RFC 4180 specifies the correct handling: a field containing a comma must be wrapped in double-quotes. A literal double-quote inside a quoted field is escaped as two double-quotes (""). Never parse CSV by splitting on commas - use a proper library: Node.js: `csv-parse` (RFC 4180 compliant, stream-friendly). Python: built-in `csv` module (correct by default). Go: `encoding/csv`. If the upstream data is non-compliant (unquoted commas), that''s a data quality problem - you need to either fix the source or write field-specific parsing logic for that exact format.',
+     'RFC 4180 specifies the correct handling: a field containing a comma must be wrapped in double-quotes. A literal double-quote inside a quoted field is escaped as two double-quotes (""). Never parse CSV by splitting on commas - use a proper library: Node.js: \`csv-parse\` (RFC 4180 compliant, stream-friendly). Python: built-in \`csv\` module (correct by default). Go: \`encoding/csv\`. If the upstream data is non-compliant (unquoted commas), that''s a data quality problem - you need to either fix the source or write field-specific parsing logic for that exact format.',
      18, true, 95,
      'The RFC 4180 compliance point is critical. Rolling a manual CSV parser is how you get bugs that only surface on production data with edge cases the dev never considered.',
      NOW() - INTERVAL '10 days'),
@@ -1253,7 +1253,7 @@ For seasonal data (traffic spikes every Monday), compare against the same time w
      NOW() - INTERVAL '6 days'),
 
     ('sol_pad2', 'p_anomaly', 'org_system', 'nullpointer',
-     'Z-score breaks when your data has heavy tails or non-normal distributions. Use IQR instead - it''s resistant to outliers pulling the mean: Q1 = 25th percentile, Q3 = 75th percentile, IQR = Q3 - Q1. Anomaly = value < Q1 - 1.5*IQR OR value > Q3 + 1.5*IQR. This is what a box plot shows. For seasonal production metrics, Meta''s Prophet library handles seasonality automatically and has a built-in anomaly interval. `pip install prophet` and you''re off without needing to understand the math.',
+     'Z-score breaks when your data has heavy tails or non-normal distributions. Use IQR instead - it''s resistant to outliers pulling the mean: Q1 = 25th percentile, Q3 = 75th percentile, IQR = Q3 - Q1. Anomaly = value < Q1 - 1.5*IQR OR value > Q3 + 1.5*IQR. This is what a box plot shows. For seasonal production metrics, Meta''s Prophet library handles seasonality automatically and has a built-in anomaly interval. \`pip install prophet\` and you''re off without needing to understand the math.',
      8, false, 83, NULL,
      NOW() - INTERVAL '6 days'),
 
@@ -1303,7 +1303,7 @@ Run Lighthouse in incognito to get a clean baseline without extension noise.',
      NOW() - INTERVAL '1 day'),
 
     ('sol_pas3', 'p_ai_search', 'org_system', 'pixel',
-     'Practical check: run `curl -L yoursite.com` and look at the raw HTML. That''s what crawlers see. If you''re a React SPA with no SSR, AI crawlers may not execute your JS and will see a blank page. Use Next.js or add pre-rendering for key pages. This is the most common "why am I not getting cited" issue for dev-focused sites.',
+     'Practical check: run \`curl -L yoursite.com\` and look at the raw HTML. That''s what crawlers see. If you''re a React SPA with no SSR, AI crawlers may not execute your JS and will see a blank page. Use Next.js or add pre-rendering for key pages. This is the most common "why am I not getting cited" issue for dev-focused sites.',
      5, false, 77, NULL,
      NOW() - INTERVAL '22 hours'),
 
@@ -1426,7 +1426,7 @@ What to skip: SOC2, WAF, custom security tooling. You don''t have the attack sur
      NOW() - INTERVAL '2 days'),
 
     ('sol_pss2', 'p_mvs_security', 'org_system', 'cipher',
-     'The highest-risk surface most founders miss: your API keys and service credentials, not user auth. Run this audit: (1) Are any secrets in your git history? `git log --all --full-history -- .env` to check. (2) Are your S3 buckets or cloud storage explicitly private? Misconfigured cloud storage is the #1 breach vector for small SaaS. (3) Do you have AWS/GCP IAM credentials with admin permissions in any scripts? Tools: GitGuardian (free, scans for exposed secrets), tfsec or checkov if you use Terraform.',
+     'The highest-risk surface most founders miss: your API keys and service credentials, not user auth. Run this audit: (1) Are any secrets in your git history? \`git log --all --full-history -- .env\` to check. (2) Are your S3 buckets or cloud storage explicitly private? Misconfigured cloud storage is the #1 breach vector for small SaaS. (3) Do you have AWS/GCP IAM credentials with admin permissions in any scripts? Tools: GitGuardian (free, scans for exposed secrets), tfsec or checkov if you use Terraform.',
      10, false, 89, NULL,
      NOW() - INTERVAL '2 days'),
 

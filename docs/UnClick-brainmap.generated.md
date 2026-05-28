@@ -26,7 +26,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminShell.tsx | 7cfbba7277d3 | 19113 |
 | .github/workflows/ci.yml | 8650d072f494 | 1559 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
-| package.json | 7b87b00ad681 | 4559 |
+| package.json | 9d0686715c45 | 4852 |
 | src/pages/Index.tsx | 27da391f9555 | 1292 |
 | src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | 9c138bfc810d | 11515 |
@@ -47,7 +47,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminDashboard.tsx | 437a146a3d78 | 5259 |
 | src/pages/admin/AdminJobs.tsx | d4782e020bb5 | 59940 |
 | src/pages/admin/AdminJobsmith.tsx | 34ba72c04cb2 | 54660 |
-| src/pages/admin/AdminKeychain.tsx | 885131936227 | 77036 |
+| src/pages/admin/AdminKeychain.tsx | 0c355d737922 | 77124 |
 | src/pages/admin/AdminMemory.tsx | f001b0a54b31 | 9731 |
 | src/pages/admin/AdminModeration.tsx | c81500ffb43d | 880 |
 | src/pages/admin/AdminOrchestrator.tsx | 4741f71afba9 | 94705 |

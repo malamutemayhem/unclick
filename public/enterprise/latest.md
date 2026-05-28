@@ -3,18 +3,18 @@
 Evidence-backed readiness guidance, not certification.
 
 Target: UnClick
-Score: 96.9/100 (amber)
-Blocking gaps: 1
-Valid until: 2026-06-03T13:45:32.800Z
+Score: 99.3/100 (green)
+Blocking gaps: 0
+Valid until: 2026-06-04T00:40:43.892Z
 
 ## Summary
 
-Strong readiness evidence, but 1 high/critical gap(s) keep the report out of green.
+Strong readiness evidence with 1 gap(s) to track.
 
 | Category | Score | Band | Status |
 | --- | ---: | --- | --- |
-| Code maintainability | 89 | green | partial |
-| Secure development | 89 | amber | partial |
+| Code maintainability | 95 | green | partial |
+| Secure development | 100 | green | pass |
 | Evidence over claims | 100 | green | pass |
 | Documentation quality | 100 | green | pass |
 | Credential and environment hygiene | 100 | green | pass |
@@ -23,10 +23,7 @@ Strong readiness evidence, but 1 high/critical gap(s) keep the report out of gre
 
 ## Next Actions
 
-- Route or reduce the repo-wide lint backlog, then refresh verification notes and the public receipt.
 - Continue reducing the highest-risk oversized files as ownership boundaries become clearer.
-- Capture repo-level secret-scanning proof or add a blocking secret-scan workflow receipt.
-- Route dependency audit backlog and refresh the CompliancePass dependency receipt.
 
 ## Disclaimer
 

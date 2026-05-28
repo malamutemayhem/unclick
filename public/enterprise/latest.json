@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-27T13:45:32.800Z",
-  "valid_until": "2026-06-03T13:45:32.800Z",
+  "generated_at": "2026-05-28T00:40:43.892Z",
+  "valid_until": "2026-06-04T00:40:43.892Z",
   "source": "local deterministic repo/docs scan",
   "product": "CompliancePass",
   "legacy_aliases": [
@@ -13,32 +13,32 @@
     "surface": "repo, docs, workflow, package, and public proof surfaces"
   },
   "status": "complete",
-  "readiness_band": "amber",
+  "readiness_band": "green",
   "wording_notice": "This report describes readiness indicators and evidence alignment. It is not a compliance certification, SOC report, ISO audit, legal opinion, or security attestation.",
   "readiness_score": {
-    "value": 96.9,
-    "band": "amber",
-    "traffic_light": "yellow",
+    "value": 99.3,
+    "band": "green",
+    "traffic_light": "green",
     "rationale": "CompliancePass ran 27 deterministic checks across 7 readiness categories."
   },
   "summary": {
-    "score_overall": 96.9,
-    "headline": "Strong readiness evidence, but 1 high/critical gap(s) keep the report out of green.",
+    "score_overall": 99.3,
+    "headline": "Strong readiness evidence with 1 gap(s) to track.",
     "checks_total": 27,
-    "checks_pass": 23,
-    "checks_partial": 4,
+    "checks_pass": 26,
+    "checks_partial": 1,
     "checks_fail": 0,
     "checks_unknown": 0,
     "checks_na": 0,
     "checks_pending": 0,
     "gap_severity_counts": {
       "critical": 0,
-      "high": 1,
-      "medium": 3,
+      "high": 0,
+      "medium": 1,
       "low": 0,
       "info": 0
     },
-    "blocking_gap_count": 1
+    "blocking_gap_count": 0
   },
   "report_integrity": {
     "categories_total": 7,
@@ -62,9 +62,9 @@
       "id": "code_maintainability",
       "name": "Code maintainability",
       "status": "partial",
-      "score": 89,
+      "score": 95,
       "band": "green",
-      "summary": "Code maintainability scored 89/100 with 0 fail and 2 partial check(s).",
+      "summary": "Code maintainability scored 95/100 with 0 fail and 1 partial check(s).",
       "checks": [
         {
           "id": "cp-code-scripts",
@@ -88,37 +88,19 @@
           "id": "cp-code-verification-notes",
           "category_id": "code_maintainability",
           "title": "Verification status is documented",
-          "status": "partial",
-          "score": 70,
-          "summary": "Verification notes record a repo-wide lint backlog outside the CompliancePass slice.",
+          "status": "pass",
+          "score": 100,
+          "summary": "CompliancePass verification notes include build, test, and report proof.",
           "evidence": [
             {
               "type": "doc",
               "path": "docs/compliancepass-verification-notes.md",
               "label": "docs/compliancepass-verification-notes.md",
-              "summary": "Verification notes record passing focused proof and residual repo-wide lint backlog.",
+              "summary": "Verification proof notes.",
               "confidence": "high"
             }
           ],
-          "findings": [
-            {
-              "id": "cp-code-lint-backlog",
-              "severity": "medium",
-              "title": "Repo-wide lint backlog remains open",
-              "summary": "CompliancePass changed files lint clean, but the broader repo lint command is not a clean readiness signal yet.",
-              "recommendation": "Route or reduce the existing repo-wide lint backlog, then refresh the CompliancePass receipt.",
-              "evidence": [
-                {
-                  "type": "doc",
-                  "path": "docs/compliancepass-verification-notes.md",
-                  "label": "docs/compliancepass-verification-notes.md",
-                  "summary": "Verification notes record passing focused proof and residual repo-wide lint backlog.",
-                  "confidence": "high"
-                }
-              ]
-            }
-          ],
-          "recommendation": "Route or reduce the repo-wide lint backlog, then refresh verification notes and the public receipt."
+          "findings": []
         },
         {
           "id": "cp-code-typescript-strict",
@@ -309,10 +291,10 @@
     {
       "id": "secure_development",
       "name": "Secure development",
-      "status": "partial",
-      "score": 89,
-      "band": "amber",
-      "summary": "Secure development scored 89/100 with 0 fail and 2 partial check(s).",
+      "status": "pass",
+      "score": 100,
+      "band": "green",
+      "summary": "Secure development scored 100/100 with 0 fail and 0 partial check(s).",
       "checks": [
         {
           "id": "cp-sec-policy",
@@ -389,9 +371,9 @@
           "id": "cp-sec-secret-scanning",
           "category_id": "secure_development",
           "title": "Secret-scanning evidence exists",
-          "status": "partial",
-          "score": 80,
-          "summary": "Secret-scanning policy evidence exists, but repo-level push-protection verification is still called out as needing confirmation.",
+          "status": "pass",
+          "score": 100,
+          "summary": "Secret-scanning policy, workflow, or push-protection evidence was found.",
           "evidence": [
             {
               "type": "file",
@@ -400,6 +382,14 @@
               "summary": "- GitHub push protection (secret scanning) is on. CI fails if a secret-like pattern appears in a diff.",
               "confidence": "high",
               "line": 349
+            },
+            {
+              "type": "file",
+              "path": "docs/security/current-posture.md",
+              "label": "docs/security/current-posture.md",
+              "summary": "- GitHub Secret Protection and push protection are enabled at the repo level as of 2026-05-28. Evidence receipt `ss_7915ye3zi` shows the GitHub Advanced Security page for `malam...",
+              "confidence": "high",
+              "line": 247
             },
             {
               "type": "file",
@@ -419,14 +409,6 @@
             },
             {
               "type": "file",
-              "path": "docs/security/current-posture.md",
-              "label": "docs/security/current-posture.md",
-              "summary": "- GitHub push protection status should be confirmed at the repo level; the codebase does not indicate whether it is on. **Recommend: verify via GitHub settings and screenshot fo...",
-              "confidence": "high",
-              "line": 249
-            },
-            {
-              "type": "file",
               "path": "packages/securitypass/src/probes/gitleaks.ts",
               "label": "packages/securitypass/src/probes/gitleaks.ts",
               "summary": "command: \"gitleaks\",",
@@ -434,58 +416,7 @@
               "line": 15
             }
           ],
-          "findings": [
-            {
-              "id": "cp-sec-secret-scanning-verification-gap",
-              "severity": "medium",
-              "title": "Secret-scanning verification needs repo-level proof",
-              "summary": "Local docs show policy intent, but repo-level push-protection status still needs observable GitHub settings or workflow proof.",
-              "recommendation": "Capture GitHub push-protection/settings proof or add a blocking secret-scan workflow receipt.",
-              "evidence": [
-                {
-                  "type": "file",
-                  "path": "docs/architecture/target-state.md",
-                  "label": "docs/architecture/target-state.md",
-                  "summary": "- GitHub push protection (secret scanning) is on. CI fails if a secret-like pattern appears in a diff.",
-                  "confidence": "high",
-                  "line": 349
-                },
-                {
-                  "type": "file",
-                  "path": "docs/security/policies.md",
-                  "label": "docs/security/policies.md",
-                  "summary": "- GitHub push protection with secret scanning must remain enabled on the repo. If it is ever disabled, the repo is frozen until it is re-enabled.",
-                  "confidence": "high",
-                  "line": 16
-                },
-                {
-                  "type": "file",
-                  "path": "docs/security/policies.md",
-                  "label": "docs/security/policies.md",
-                  "summary": "- Pre-commit hooks run on every commit locally. Repository-level GitHub push protection enforces the same rules server-side.",
-                  "confidence": "high",
-                  "line": 61
-                },
-                {
-                  "type": "file",
-                  "path": "docs/security/current-posture.md",
-                  "label": "docs/security/current-posture.md",
-                  "summary": "- GitHub push protection status should be confirmed at the repo level; the codebase does not indicate whether it is on. **Recommend: verify via GitHub settings and screenshot fo...",
-                  "confidence": "high",
-                  "line": 249
-                },
-                {
-                  "type": "file",
-                  "path": "packages/securitypass/src/probes/gitleaks.ts",
-                  "label": "packages/securitypass/src/probes/gitleaks.ts",
-                  "summary": "command: \"gitleaks\",",
-                  "confidence": "high",
-                  "line": 15
-                }
-              ]
-            }
-          ],
-          "recommendation": "Capture repo-level secret-scanning proof or add a blocking secret-scan workflow receipt."
+          "findings": []
         },
         {
           "id": "cp-sec-dependency-updates",
@@ -509,9 +440,9 @@
           "id": "cp-sec-dependency-audit-notes",
           "category_id": "secure_development",
           "title": "Dependency audit posture is recorded",
-          "status": "partial",
-          "score": 65,
-          "summary": "Dependency audit notes record 0 critical and 17 high vulnerability item(s).",
+          "status": "pass",
+          "score": 100,
+          "summary": "Dependency audit notes are present and do not record high or critical vulnerability backlog.",
           "evidence": [
             {
               "type": "doc",
@@ -521,25 +452,7 @@
               "confidence": "high"
             }
           ],
-          "findings": [
-            {
-              "id": "cp-sec-dependency-audit-backlog",
-              "severity": "high",
-              "title": "Dependency audit backlog needs owner review",
-              "summary": "Current audit notes include high or critical vulnerability items that should not be hidden by dependency automation evidence.",
-              "recommendation": "Route the upgrade set through SecurityPass or a dependency-upgrade lane, then refresh this receipt.",
-              "evidence": [
-                {
-                  "type": "doc",
-                  "path": "docs/compliancepass-dependency-audit-notes.md",
-                  "label": "docs/compliancepass-dependency-audit-notes.md",
-                  "summary": "Dependency audit posture receipt.",
-                  "confidence": "high"
-                }
-              ]
-            }
-          ],
-          "recommendation": "Route dependency audit backlog and refresh the CompliancePass dependency receipt."
+          "findings": []
         }
       ]
     },
@@ -639,7 +552,7 @@
           "title": "Docs reference evidence and proof",
           "status": "pass",
           "score": 100,
-          "summary": "2324 evidence/proof references were found.",
+          "summary": "2348 evidence/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -831,7 +744,7 @@
           "title": "Credential and connector mapping evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "954 credential/connector mapping references were found.",
+          "summary": "959 credential/connector mapping references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -882,7 +795,7 @@
           "title": "Rotation and staleness evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "346 rotation/staleness references were found.",
+          "summary": "347 rotation/staleness references were found.",
           "evidence": [
             {
               "type": "file",
@@ -979,7 +892,7 @@
           "title": "Audit trail and proof language exists",
           "status": "pass",
           "score": 100,
-          "summary": "2862 audit/proof references were found.",
+          "summary": "2893 audit/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1030,13 +943,20 @@
           "title": "Framework alignment evidence is documented",
           "status": "pass",
           "score": 100,
-          "summary": "Framework mapping names the expected standards and does not declare a control-index gap.",
+          "summary": "Framework mapping names the expected standards and links a control index with evidence rows, owners, status, last proof, and freshness windows.",
           "evidence": [
             {
               "type": "doc",
               "path": "docs/compliancepass-framework-mapping.md",
               "label": "docs/compliancepass-framework-mapping.md",
               "summary": "Framework alignment evidence for investor and buyer review.",
+              "confidence": "high"
+            },
+            {
+              "type": "doc",
+              "path": "docs/compliancepass-control-index.md",
+              "label": "docs/compliancepass-control-index.md",
+              "summary": "Framework control index evidence for investor and buyer review.",
               "confidence": "high"
             }
           ],
@@ -1058,7 +978,7 @@
           "title": "AI provider inventory evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "455 AI provider/model references were found.",
+          "summary": "457 AI provider/model references were found.",
           "evidence": [
             {
               "type": "file",
@@ -1109,7 +1029,7 @@
           "title": "AI oversight and review evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "2445 oversight/review references were found.",
+          "summary": "2470 oversight/review references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1160,7 +1080,7 @@
           "title": "AI data/source notes exist",
           "status": "pass",
           "score": 100,
-          "summary": "1795 AI data/source references were found.",
+          "summary": "1773 AI data/source references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1209,28 +1129,9 @@
     }
   ],
   "next_actions": [
-    "Route or reduce the repo-wide lint backlog, then refresh verification notes and the public receipt.",
-    "Continue reducing the highest-risk oversized files as ownership boundaries become clearer.",
-    "Capture repo-level secret-scanning proof or add a blocking secret-scan workflow receipt.",
-    "Route dependency audit backlog and refresh the CompliancePass dependency receipt."
+    "Continue reducing the highest-risk oversized files as ownership boundaries become clearer."
   ],
   "gaps": [
-    {
-      "id": "cp-code-lint-backlog",
-      "severity": "medium",
-      "title": "Repo-wide lint backlog remains open",
-      "summary": "CompliancePass changed files lint clean, but the broader repo lint command is not a clean readiness signal yet.",
-      "recommendation": "Route or reduce the existing repo-wide lint backlog, then refresh the CompliancePass receipt.",
-      "evidence": [
-        {
-          "type": "doc",
-          "path": "docs/compliancepass-verification-notes.md",
-          "label": "docs/compliancepass-verification-notes.md",
-          "summary": "Verification notes record passing focused proof and residual repo-wide lint backlog.",
-          "confidence": "high"
-        }
-      ]
-    },
     {
       "id": "cp-code-large-files",
       "severity": "medium",
@@ -1274,71 +1175,6 @@
           "confidence": "high"
         }
       ]
-    },
-    {
-      "id": "cp-sec-secret-scanning-verification-gap",
-      "severity": "medium",
-      "title": "Secret-scanning verification needs repo-level proof",
-      "summary": "Local docs show policy intent, but repo-level push-protection status still needs observable GitHub settings or workflow proof.",
-      "recommendation": "Capture GitHub push-protection/settings proof or add a blocking secret-scan workflow receipt.",
-      "evidence": [
-        {
-          "type": "file",
-          "path": "docs/architecture/target-state.md",
-          "label": "docs/architecture/target-state.md",
-          "summary": "- GitHub push protection (secret scanning) is on. CI fails if a secret-like pattern appears in a diff.",
-          "confidence": "high",
-          "line": 349
-        },
-        {
-          "type": "file",
-          "path": "docs/security/policies.md",
-          "label": "docs/security/policies.md",
-          "summary": "- GitHub push protection with secret scanning must remain enabled on the repo. If it is ever disabled, the repo is frozen until it is re-enabled.",
-          "confidence": "high",
-          "line": 16
-        },
-        {
-          "type": "file",
-          "path": "docs/security/policies.md",
-          "label": "docs/security/policies.md",
-          "summary": "- Pre-commit hooks run on every commit locally. Repository-level GitHub push protection enforces the same rules server-side.",
-          "confidence": "high",
-          "line": 61
-        },
-        {
-          "type": "file",
-          "path": "docs/security/current-posture.md",
-          "label": "docs/security/current-posture.md",
-          "summary": "- GitHub push protection status should be confirmed at the repo level; the codebase does not indicate whether it is on. **Recommend: verify via GitHub settings and screenshot fo...",
-          "confidence": "high",
-          "line": 249
-        },
-        {
-          "type": "file",
-          "path": "packages/securitypass/src/probes/gitleaks.ts",
-          "label": "packages/securitypass/src/probes/gitleaks.ts",
-          "summary": "command: \"gitleaks\",",
-          "confidence": "high",
-          "line": 15
-        }
-      ]
-    },
-    {
-      "id": "cp-sec-dependency-audit-backlog",
-      "severity": "high",
-      "title": "Dependency audit backlog needs owner review",
-      "summary": "Current audit notes include high or critical vulnerability items that should not be hidden by dependency automation evidence.",
-      "recommendation": "Route the upgrade set through SecurityPass or a dependency-upgrade lane, then refresh this receipt.",
-      "evidence": [
-        {
-          "type": "doc",
-          "path": "docs/compliancepass-dependency-audit-notes.md",
-          "label": "docs/compliancepass-dependency-audit-notes.md",
-          "summary": "Dependency audit posture receipt.",
-          "confidence": "high"
-        }
-      ]
     }
   ],
   "future_regret_notes": [
@@ -1358,7 +1194,7 @@
       "type": "doc",
       "path": "docs/compliancepass-verification-notes.md",
       "label": "docs/compliancepass-verification-notes.md",
-      "summary": "Verification notes record passing focused proof and residual repo-wide lint backlog.",
+      "summary": "Verification proof notes.",
       "confidence": "high"
     },
     {

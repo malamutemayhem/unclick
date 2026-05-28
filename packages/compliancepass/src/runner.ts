@@ -267,7 +267,10 @@ async function checkVerificationBacklog(snapshot: RepoSnapshot): Promise<Complia
     /\bnpm run compliancepass:report\b/.test(text) &&
     /\bnpm test\b/.test(text) &&
     /\bnpm run build\b/.test(text);
-  const lintBacklog = /\bnpm run lint\b[\s\S]{0,240}\b(?:fails|failed|failing|errors?)\b/i.test(text);
+  const lintClean = /\bnpx eslint\s+\.\s+--format\s+json\b[\s\S]{0,180}\b(?:exits\s+0|exits\s+clean|0\s+errors?)\b/i.test(text);
+  const lintBacklog =
+    !lintClean &&
+    /\b(?:npm run lint|npx eslint)\b[\s\S]{0,320}\b(?:fails|failed|failing|[1-9]\d*\s+errors?)\b/i.test(text);
 
   if (lintBacklog) {
     return check("cp-code-verification-notes", "code_maintainability", "Verification status is documented", "partial", 70, "Verification notes record a repo-wide lint backlog outside the CompliancePass slice.", [
@@ -607,14 +610,16 @@ async function checkAuditTrailEvidence(snapshot: RepoSnapshot): Promise<Complian
 
 async function checkFrameworkMappingEvidence(snapshot: RepoSnapshot): Promise<CompliancePassCheck> {
   const mappingPath = "docs/compliancepass-framework-mapping.md";
+  const indexPath = "docs/compliancepass-control-index.md";
   const text = await readText(snapshot, mappingPath);
+  const indexText = await readText(snapshot, indexPath);
   if (!text) {
     return check("cp-investor-framework-mapping", "investor_readiness", "Framework alignment evidence is documented", "partial", 45, "No CompliancePass framework mapping was found.", [missingEvidence(mappingPath, "Framework alignment mapping was not found.")], [
       finding("cp-investor-framework-mapping-missing", "medium", "Framework mapping is missing", "The original CompliancePass research expects evidence alignment to ISO, AI governance, secure development, supply-chain, SIG/CAIQ, and buyer diligence language.", "Add a framework mapping that names the external frameworks and states exactly which parts are evidence alignment rather than certification."),
     ], "Add explicit framework-alignment evidence and keep the wording out of certification territory.");
   }
 
-  const normalized = text.toLowerCase();
+  const normalized = `${text}\n${indexText}`.toLowerCase();
   const requiredTerms = [
     "iso/iec 27001",
     "iso/iec 42001",
@@ -627,23 +632,45 @@ async function checkFrameworkMappingEvidence(snapshot: RepoSnapshot): Promise<Co
     "vc technical due diligence",
   ];
   const missingTerms = requiredTerms.filter((term) => !normalized.includes(term));
+  const normalizedIndex = indexText.toLowerCase();
+  const requiredIndexColumns = [
+    "framework",
+    "control or question id",
+    "compliancepass check id",
+    "evidence path",
+    "owner",
+    "status",
+    "last proof",
+    "freshness window",
+  ];
+  const missingIndexColumns = requiredIndexColumns.filter((term) => !normalizedIndex.includes(term));
+  const indexRowCount = indexText.split(/\r?\n/).filter((line) => line.trim().startsWith("|")).length;
+  const hasControlIndexRows = indexRowCount >= 7;
   const declaresPartialControlIndex =
-    /\b(partial|incomplete|not yet complete|not complete)\b[\s\S]{0,180}\bcontrol-by-control\b/i.test(text) ||
-    /\bcontrol-by-control\b[\s\S]{0,180}\b(partial|incomplete|not yet complete|not complete)\b/i.test(text);
+    /\b(partial|incomplete|not yet complete|not complete)\b[\s\S]{0,180}\bcontrol-by-control\b/i.test(`${text}\n${indexText}`) ||
+    /\bcontrol-by-control\b[\s\S]{0,180}\b(partial|incomplete|not yet complete|not complete)\b/i.test(`${text}\n${indexText}`);
 
-  if (missingTerms.length === 0 && !declaresPartialControlIndex) {
-    return check("cp-investor-framework-mapping", "investor_readiness", "Framework alignment evidence is documented", "pass", 100, "Framework mapping names the expected standards and does not declare a control-index gap.", [
+  if (missingTerms.length === 0 && missingIndexColumns.length === 0 && hasControlIndexRows && !declaresPartialControlIndex) {
+    return check("cp-investor-framework-mapping", "investor_readiness", "Framework alignment evidence is documented", "pass", 100, "Framework mapping names the expected standards and links a control index with evidence rows, owners, status, last proof, and freshness windows.", [
       evidence("doc", mappingPath, "Framework alignment evidence for investor and buyer review."),
+      evidence("doc", indexPath, "Framework control index evidence for investor and buyer review."),
     ]);
   }
 
-  const score = missingTerms.length === 0 ? 70 : Math.max(40, 70 - missingTerms.length * 5);
-  const summary = missingTerms.length === 0
-    ? "Framework mapping names the expected standards, but the control-by-control index is not complete."
-    : `Framework mapping is present, but missing expected term(s): ${missingTerms.join(", ")}.`;
+  const missingIndexItems = [
+    ...missingIndexColumns.map((column) => `index column: ${column}`),
+    ...(!hasControlIndexRows ? ["at least 5 control rows"] : []),
+  ];
+  const score = missingTerms.length === 0 && missingIndexColumns.length === 0 ? 70 : Math.max(40, 80 - (missingTerms.length + missingIndexItems.length) * 5);
+  const summary = [
+    missingTerms.length > 0 ? `missing expected term(s): ${missingTerms.join(", ")}` : "",
+    missingIndexItems.length > 0 ? `missing index evidence: ${missingIndexItems.join(", ")}` : "",
+    declaresPartialControlIndex ? "control-index wording still declares the index unfinished" : "",
+  ].filter(Boolean).join("; ");
 
   return check("cp-investor-framework-mapping", "investor_readiness", "Framework alignment evidence is documented", "partial", score, summary, [
     evidence("doc", mappingPath, "Framework alignment evidence for investor and buyer review."),
+    indexText ? evidence("doc", indexPath, "Framework control index evidence for investor and buyer review.") : missingEvidence(indexPath, "Framework control index was not found."),
   ], [
     finding("cp-investor-framework-control-index-thin", "medium", "Framework control index is not complete", "The report can show evidence alignment today, but it cannot yet export a full control-by-control ISO/NIST/OWASP/OpenSSF/SLSA/SIG/CAIQ mapping.", "Add a generated control-by-control index with evidence rows, owner, status, and last-proof timestamp for each mapped control."),
   ], "Add a generated control-by-control framework index with evidence rows and freshness timestamps.");

@@ -34,29 +34,29 @@
         <p class="notice">This report describes readiness indicators and evidence alignment. It is not a compliance certification, SOC report, ISO audit, legal opinion, or security attestation.</p>
         <section class="meta" aria-label="Report summary">
           <div class="metric"><span>Target</span><strong>UnClick</strong></div>
-          <div class="metric"><span>Score</span><strong>96.9/100</strong></div>
-          <div class="metric"><span>Band</span><strong>amber</strong></div>
-          <div class="metric"><span>Blocking gaps</span><strong>1</strong></div>
-          <div class="metric"><span>Valid until</span><strong>2026-06-03T13:45:32.800Z</strong></div>
+          <div class="metric"><span>Score</span><strong>99.3/100</strong></div>
+          <div class="metric"><span>Band</span><strong>green</strong></div>
+          <div class="metric"><span>Blocking gaps</span><strong>0</strong></div>
+          <div class="metric"><span>Valid until</span><strong>2026-06-04T00:40:43.892Z</strong></div>
         </section>
       </header>
       <section>
         <h2>Summary</h2>
-        <p>Strong readiness evidence, but 1 high/critical gap(s) keep the report out of green.</p>
+        <p>Strong readiness evidence with 1 gap(s) to track.</p>
         <table>
           <thead><tr><th>Category</th><th>Score</th><th>Band</th><th>Status</th></tr></thead>
           <tbody>
           <tr>
             <td>Code maintainability</td>
-            <td>89</td>
+            <td>95</td>
             <td>green</td>
             <td>partial</td>
           </tr>
           <tr>
             <td>Secure development</td>
-            <td>89</td>
-            <td>amber</td>
-            <td>partial</td>
+            <td>100</td>
+            <td>green</td>
+            <td>pass</td>
           </tr>
           <tr>
             <td>Evidence over claims</td>
@@ -95,30 +95,15 @@
         <h2>Gaps</h2>
         <ul>
           <li>
-            <strong>Repo-wide lint backlog remains open</strong>
-            <span>medium</span>
-            <p>CompliancePass changed files lint clean, but the broader repo lint command is not a clean readiness signal yet.</p>
-          </li>
-          <li>
             <strong>Large source files increase review risk</strong>
             <span>medium</span>
             <p>Oversized files make investor and maintainer review slower and more error-prone.</p>
-          </li>
-          <li>
-            <strong>Secret-scanning verification needs repo-level proof</strong>
-            <span>medium</span>
-            <p>Local docs show policy intent, but repo-level push-protection status still needs observable GitHub settings or workflow proof.</p>
-          </li>
-          <li>
-            <strong>Dependency audit backlog needs owner review</strong>
-            <span>high</span>
-            <p>Current audit notes include high or critical vulnerability items that should not be hidden by dependency automation evidence.</p>
           </li>
         </ul>
       </section>
       <section>
         <h2>Next Actions</h2>
-        <ul><li>Route or reduce the repo-wide lint backlog, then refresh verification notes and the public receipt.</li><li>Continue reducing the highest-risk oversized files as ownership boundaries become clearer.</li><li>Capture repo-level secret-scanning proof or add a blocking secret-scan workflow receipt.</li><li>Route dependency audit backlog and refresh the CompliancePass dependency receipt.</li>
+        <ul><li>Continue reducing the highest-risk oversized files as ownership boundaries become clearer.</li>
         </ul>
       </section>
       <section>

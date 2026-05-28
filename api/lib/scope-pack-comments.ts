@@ -90,14 +90,15 @@ export function parseScopePackFromText(value: unknown): Record<string, unknown> 
   }
 
   const inlinePattern = new RegExp(String.raw`(?:^|\n)\s*${label}\s*:\s*(\{[^\r\n]*\})`, "gi");
-  let match;
-  while ((match = inlinePattern.exec(text))) {
-    const parsed = parseJsonObject(match[1]);
+  let inlineMatch: RegExpExecArray | null;
+  while ((inlineMatch = inlinePattern.exec(text))) {
+    const parsed = parseJsonObject(inlineMatch[1]);
     if (parsed) return parsed;
   }
 
   const rawJsonPattern = new RegExp(String.raw`(?:^|\n)\s*${label}\s*:?\s*(?:\r?\n|\s)+`, "gi");
-  while ((match = rawJsonPattern.exec(text))) {
+  let rawMatch: RegExpExecArray | null;
+  while ((rawMatch = rawJsonPattern.exec(text))) {
     const jsonText = findJsonObjectAfterIndex(text, rawJsonPattern.lastIndex);
     const parsed = parseJsonObject(jsonText);
     if (parsed) return parsed;

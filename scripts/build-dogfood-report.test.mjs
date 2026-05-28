@@ -29,13 +29,12 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
     assert.match(securitypass?.blockedReason ?? "", /scope-gated/i);
     assert.equal(securitypass?.reasonCode, "scope_gate");
     assert.match(securitypass?.nextProof ?? "", /safe recurring SecurityPass runner receipt/i);
-    assert.equal(compliancepass?.status, "blocked");
-    assert.equal(compliancepass?.reasonCode, "readiness_gap");
-    assert.match(compliancepass?.blockedReason ?? "", /high\/critical gap/i);
+    assert.equal(compliancepass?.status, "passing");
+    assert.equal(compliancepass?.reasonCode, "public_receipt_complete");
     assert.equal(compliancepass?.proof?.kind, "compliancepass_report");
     assert.equal(compliancepass?.proof?.targetUrl, "/enterprise/latest.json");
     assert.ok(compliancepass?.proof?.checksTotal > 0);
-    assert.ok(compliancepass?.proof?.highSeverityGaps >= 1);
+    assert.equal(compliancepass?.proof?.highSeverityGaps, undefined);
     assert.equal(report.status, "blocked");
     assert.match(report.statusLegend.blocked, /needs action/i);
     assert.match(report.statusLegend.pending, /live proof is not available yet/i);

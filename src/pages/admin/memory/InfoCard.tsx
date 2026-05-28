@@ -25,7 +25,7 @@ export function InfoCard({ id, title, description, learnMore }: InfoCardProps) {
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-white/70">{title}</span>
             <button
-              onClick={() => { setDismissed(true); try { localStorage.setItem(storageKey, '1'); } catch {} }}
+              onClick={() => { setDismissed(true); try { localStorage.setItem(storageKey, '1'); } catch { /* localStorage unavailable */ } }}
               className="text-white/20 hover:text-white/40 p-0.5"
             >
               <X size={12} />

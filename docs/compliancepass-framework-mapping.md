@@ -20,13 +20,18 @@ This mapping keeps that promise without overstating the result. CompliancePass m
 | --- | --- | --- |
 | ISO/IEC 27001:2022 | Security policy, workflow gates, dependency posture, credential hygiene, evidence trail, risk ownership docs | Partial evidence alignment |
 | ISO/IEC 42001:2023 | AI provider inventory, human oversight, data/source notes, proof-first agent workflow | Partial evidence alignment |
-| NIST SP 800-218 v1.1 | Build/test/lint proof, PR workflow gates, dependency audit notes, secure development evidence | Partial evidence alignment |
+| NIST SP 800-218 v1.1 final baseline | Build/test/lint proof, PR workflow gates, dependency audit notes, secure development evidence | Partial evidence alignment |
+| NIST SP 800-218A AI SSDF profile | AI provider inventory, human oversight, data/source notes, proof-first agent workflow | Final-profile evidence alignment |
 | OWASP SAMM v2 | Secure development checks, verification notes, SecurityPass linkage, vulnerability routing | Partial evidence alignment |
 | OpenSSF Scorecard | Dependency update evidence, workflow checks, public receipt freshness, secret scanning posture | Thin alignment until a generated scorecard import exists |
-| SLSA | CI and workflow evidence, package metadata, audit trail language | Thin alignment until provenance or build attestation evidence exists |
+| SLSA v1.2 latest specification | CI and workflow evidence, package metadata, audit trail language | Thin alignment until provenance or build attestation evidence exists |
 | SIG | Buyer diligence sections, documentation, security, ownership, and operational proof | Partial evidence alignment |
 | CAIQ | Security, credential, data, AI provider, and governance notes | Partial evidence alignment |
 | VC technical due diligence | License, repo metadata, large-file risk, test proof, audit trail, public receipts, dependency risk | Active evidence alignment |
+
+## Source Refresh
+
+Framework language was refreshed on 2026-05-28 against official or primary sources: NIST SP 800-218 SSDF v1.1 final, NIST SP 800-218A AI SSDF profile final, OWASP SAMM, OpenSSF Scorecard, SLSA v1.2 latest specification and provenance guidance, CSA CAIQ, Shared Assessments SIG, ISO/IEC 27001:2022, and ISO/IEC 42001:2023. NIST also lists SP 800-218 Rev. 1 / SSDF v1.2 as a draft, so CompliancePass treats v1.1 as the SSDF final baseline, treats 218A as a final AI profile, and tracks v1.2 as a monitor item only. CompliancePass still presents evidence alignment only; it does not claim certification, attestation, or legal compliance.
 
 ## Current Check Family
 
@@ -42,22 +47,25 @@ This mapping keeps that promise without overstating the result. CompliancePass m
 
 ## Framework Control Index
 
-| Framework | Control or question id | CompliancePass check id | Evidence path | Owner | Status | Last proof | Freshness window |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| ISO/IEC 27001:2022 | A.5.1 / A.5.37 governance and documented procedures | cp-sec-policy, cp-doc-architecture | `docs/security/policies.md`, `docs/architecture/target-state.md` | SecurityPass lane | Evidence linked | 2026-05-27 | 30 days |
-| ISO/IEC 27001:2022 | A.8.8 technical vulnerability management | cp-sec-dependency-audit-notes | `docs/compliancepass-dependency-audit-notes.md` | SecurityPass or dependency lane | Needs owner review | 2026-05-27 | 7 days |
-| ISO/IEC 42001:2023 | AI system impact, provider, and oversight evidence | cp-ai-provider-inventory, cp-ai-oversight, cp-ai-data-notes | `docs/unclick-deep-context.md`, `docs/unclick-context-boot-packet.md` | AI governance lane | Evidence linked | 2026-05-27 | 30 days |
-| NIST SP 800-218 v1.1 | PO.3, PS.3, PW.8, RV.1 secure development evidence | cp-code-scripts, cp-sec-workflow-gates, cp-sec-dependency-audit-notes | `package.json`, `.github/workflows/ci.yml`, `docs/compliancepass-verification-notes.md` | Build and SecurityPass lanes | Evidence linked with open dependency backlog | 2026-05-27 | 7 days |
-| OWASP SAMM v2 | Implementation, verification, and operations readiness | cp-sec-policy, cp-sec-workflow-gates, cp-evidence-public-receipts | `docs/security/policies.md`, `.github/workflows/ci.yml`, `public/enterprise/latest.json` | SecurityPass lane | Evidence linked | 2026-05-27 | 30 days |
-| OpenSSF Scorecard | Branch protection, dependency update, CI, secret scanning signals | cp-sec-dependency-updates, cp-sec-secret-scanning, cp-sec-workflow-gates | `.github/dependabot.yml`, `docs/security/current-posture.md`, `.github/workflows/ci.yml` | SecurityPass lane | Needs repo settings proof | 2026-05-27 | 7 days |
-| SLSA | Build service, source control, and provenance evidence | cp-sec-workflow-gates, cp-evidence-report-integrity | `.github/workflows/ci.yml`, `public/enterprise/latest.json` | Build lane | Evidence linked; attestation follow-up open | 2026-05-27 | 30 days |
-| SIG | Information security, privacy, AI governance, resiliency diligence | cp-sec-policy, cp-ai-data-notes, cp-doc-architecture, cp-investor-audit-trail | `docs/security/policies.md`, `docs/architecture/target-state.md`, `docs/decisions` | Investor readiness lane | Evidence linked | 2026-05-27 | 30 days |
-| CAIQ | IAM, application security, data governance, change control, AI data handling | cp-sec-policy, cp-sec-workflow-gates, cp-ai-data-notes | `docs/security/policies.md`, `.github/workflows/ci.yml`, `docs/unclick-context-boot-packet.md` | Enterprise readiness lane | Evidence linked | 2026-05-27 | 30 days |
-| VC technical due diligence | Repo maturity, license, tests, proof receipts, dependency risk, reviewability | cp-investor-license, cp-code-tests, cp-code-file-size, cp-evidence-public-receipts | `LICENSE`, `public/dogfood/latest.json`, `docs/compliancepass-large-file-risk-register.md` | Investor readiness lane | Evidence linked with reviewability follow-up | 2026-05-27 | 30 days |
+The source control table now lives in `docs/compliancepass-control-index.md`.
+
+That index includes:
+
+- framework
+- control or question id
+- CompliancePass check id
+- evidence path
+- owner
+- status
+- last proof
+- freshness window
+
+The current index covers ISO/IEC 27001:2022, ISO/IEC 42001:2023, NIST SP 800-218 v1.1, NIST SP 800-218A, OWASP SAMM v2, OpenSSF Scorecard, SLSA v1.2, SIG, CAIQ, and VC technical due diligence.
 
 ## Known Follow-Up Evidence
 
 - OpenSSF Scorecard output should be imported as a first-class evidence row.
 - SLSA provenance or build-attestation evidence should be generated when the build lane is ready.
+- NIST SP 800-218 Rev. 1 / SSDF v1.2 should be monitored until final before CompliancePass promotes it from draft context to baseline.
 - SIG/CAIQ export files should be generated from the framework index.
 - C6 comment/code-style coverage is still indirect until a dedicated scanner exists.

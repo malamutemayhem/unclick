@@ -42,6 +42,15 @@ describe("runCompliancePass", () => {
       await writeFixture(root, "docs/connectors/spec.md", "Credential provider used-by mapping, rotation, blast radius.\n");
       await writeFixture(root, "docs/ai/provider-inventory.md", "AI provider inventory: OpenAI, Anthropic, OpenRouter. Human oversight and redaction notes.\n");
       await writeFixture(root, "docs/compliancepass-framework-mapping.md", "ISO/IEC 27001:2022, ISO/IEC 42001:2023, NIST SP 800-218 v1.1, OWASP SAMM v2, OpenSSF Scorecard, SLSA, SIG, CAIQ, and VC technical due diligence evidence mapping.\n");
+      await writeFixture(root, "docs/compliancepass-control-index.md", [
+        "| Framework | Control or question id | CompliancePass check id | Evidence path | Owner | Status | Last proof | Freshness window |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| ISO/IEC 27001:2022 | A.5.1 | cp-sec-policy | `SECURITY.md` | SecurityPass lane | Evidence linked | 2026-05-27 | 30 days |",
+        "| ISO/IEC 42001:2023 | A.6 | cp-ai-oversight | `AUTOPILOT.md` | AI lane | Evidence linked | 2026-05-27 | 30 days |",
+        "| NIST SP 800-218 v1.1 | PO.3 | cp-sec-workflow-gates | `.github/workflows/ci.yml` | Build lane | Evidence linked | 2026-05-27 | 14 days |",
+        "| OWASP SAMM v2 | Verification | cp-sec-dependency-audit-notes | `docs/compliancepass-dependency-audit-notes.md` | SecurityPass lane | Evidence linked | 2026-05-27 | 7 days |",
+        "| OpenSSF Scorecard | CI-Tests | cp-sec-workflow-gates | `.github/workflows/ci.yml` | Build lane | Evidence linked | 2026-05-27 | 14 days |",
+      ].join("\n"));
       await writeFixture(root, "docs/guardrail-examples.md", "Do not use:\n- enterprise certified\n\nDisallowed phrasing:\n> CompliancePass certifies your startup is enterprise compliant.\n");
       await writeFixture(root, "public/vibe-coding/REVIEW-RUBRIC.md", "## Human review (Certified tier only)\nCertified apps get a marketplace badge after review.\n");
       await writeFixture(root, "public/dogfood/latest.json", JSON.stringify({ proof: "receipt" }));
@@ -71,6 +80,7 @@ describe("runCompliancePass", () => {
       expect(report.wording_notice).toMatch(/not a compliance certification/i);
       expect(getCheck(report, "cp-evidence-claim-language").status).toBe("pass");
       expect(getCheck(report, "cp-evidence-rendered-report-views").status).toBe("pass");
+      expect(getCheck(report, "cp-investor-framework-mapping").status).toBe("pass");
       expect(JSON.stringify(report)).not.toMatch(/\bsk-[A-Za-z0-9_-]{16,}/);
       expect(renderCompliancePassMarkdown(report)).toMatch(/Blocking gaps: 0/);
       expect(renderCompliancePassHtml(report)).toMatch(/CompliancePass Report/);

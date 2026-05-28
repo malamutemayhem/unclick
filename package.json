@@ -35,7 +35,7 @@
     "@ai-sdk/google": "^3.0.64",
     "@ai-sdk/openai": "^3.0.53",
     "@ai-sdk/react": "^3.0.170",
-    "@anthropic-ai/sdk": "^0.90.0",
+    "@anthropic-ai/sdk": "^0.99.0",
     "@codemirror/lang-yaml": "^6.1.1",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.1",
@@ -112,9 +112,10 @@
     "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
-    "@vercel/node": "^3.2.29",
+    "@vercel/node": "^5.8.5",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
+    "esbuild": "^0.27.7",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
@@ -124,7 +125,20 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.3",
-    "vite": "^5.4.19",
+    "vite": "^6.4.2",
     "vitest": "^4.1.6"
+  },
+  "overrides": {
+    "@vercel/node": {
+      "path-to-regexp": "^6.3.0",
+      "undici": "^6.24.0"
+    },
+    "@vercel/python-analysis": {
+      "minimatch": "^10.2.5",
+      "smol-toml": "^1.6.1"
+    },
+    "@vercel/static-config": {
+      "ajv": "^8.18.0"
+    }
   }
 }

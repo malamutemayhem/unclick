@@ -12,15 +12,15 @@ describe("Dogfood report proof policy", () => {
     const uxpass = dogfoodReport.results.find((result) => result.id === "uxpass");
     const securitypass = dogfoodReport.results.find((result) => result.id === "securitypass");
 
-    expect(uxpass?.reasonCode).toBe("missing_credential");
-    expect(uxpass?.nextProof).toMatch(/rerun the dogfood report workflow/i);
+    expect(uxpass?.status).toBe("passing");
+    expect(uxpass?.summary).toMatch(/validated the UXPass result shape/i);
     expect(securitypass?.reasonCode).toBe("scope_gate");
     expect(securitypass?.nextProof).toMatch(/before marking this passing/i);
 
     const compliancepass = dogfoodReport.results.find((result) => result.id === "compliancepass");
-    expect(compliancepass?.status).toBe("blocked");
-    expect(compliancepass?.reasonCode).toBe("readiness_gap");
-    expect(compliancepass?.blockedReason).toMatch(/amber/i);
+    expect(compliancepass?.status).toBe("passing");
+    expect(compliancepass?.reasonCode).toBe("public_receipt_complete");
+    expect(compliancepass?.summary).toMatch(/98\.4\/100/i);
   });
 
   it("keeps the XPass family maturity index visible", () => {

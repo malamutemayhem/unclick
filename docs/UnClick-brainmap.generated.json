@@ -6785,8 +6785,8 @@
     },
     {
       "source": "package.json",
-      "hash": "7b87b00ad681",
-      "bytes": 4559
+      "hash": "9d0686715c45",
+      "bytes": 4852
     },
     {
       "source": "src/pages/Index.tsx",
@@ -6890,8 +6890,8 @@
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "885131936227",
-      "bytes": 77036
+      "hash": "0c355d737922",
+      "bytes": 77124
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",

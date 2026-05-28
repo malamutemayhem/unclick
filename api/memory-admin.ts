@@ -9211,7 +9211,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .limit(smallerLimit);
         if (turnSearchFilter) chatMessagesQuery = chatMessagesQuery.or(turnSearchFilter);
 
-        let autopilotEventsQuery = supabase
+        const autopilotEventsQuery = supabase
           .from("mc_autopilot_events")
           .select("event_type, actor_agent_id, ref_kind, ref_id, payload, created_at")
           .eq("api_key_hash", apiKeyHash)

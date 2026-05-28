@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-05-27T11:29:55.637Z",
-  "lastRunAt": "2026-05-27T11:29:55.637Z",
+  "generatedAt": "2026-05-28T00:42:17.201Z",
+  "lastRunAt": "2026-05-28T00:42:17.201Z",
   "status": "blocked",
   "source": "dogfood receipt dry run",
   "headline": "We dogfood UnClick on UnClick.",
@@ -85,7 +85,7 @@
       "status": "passing",
       "summary": "Dry-run receipt builder validated the TestPass result shape.",
       "evidence": "Dry run only. Live workflow calls /api/testpass-run with source=scheduled.",
-      "checkedAt": "2026-05-27T11:29:55.637Z"
+      "checkedAt": "2026-05-28T00:42:17.201Z"
     },
     {
       "id": "uxpass",
@@ -93,7 +93,7 @@
       "status": "passing",
       "summary": "Dry-run receipt builder validated the UXPass result shape.",
       "evidence": "Dry run only. Live workflow calls /api/uxpass-run against the public URL.",
-      "checkedAt": "2026-05-27T11:29:55.637Z"
+      "checkedAt": "2026-05-28T00:42:17.201Z"
     },
     {
       "id": "securitypass",
@@ -101,7 +101,7 @@
       "status": "blocked",
       "summary": "SecurityPass is blocked until the recurring runner proof is ready.",
       "evidence": "SecurityPass remains scope-gated; the public dogfood receipt does not run security probes yet.",
-      "checkedAt": "2026-05-27T11:29:55.637Z",
+      "checkedAt": "2026-05-28T00:42:17.201Z",
       "blockedReason": "SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
       "reasonCode": "scope_gate",
       "nextProof": "Land a safe recurring SecurityPass runner receipt before marking this passing."
@@ -112,7 +112,7 @@
       "status": "pending",
       "summary": "Queued for recurring search and metadata review.",
       "evidence": "SEOPass is still scaffold-only for public dogfood receipts.",
-      "checkedAt": "2026-05-27T11:29:55.637Z",
+      "checkedAt": "2026-05-28T00:42:17.201Z",
       "reasonCode": "planned_runner",
       "nextProof": "Add a recurring SEOPass receipt before moving this out of pending."
     },
@@ -122,7 +122,7 @@
       "status": "pending",
       "summary": "Queued for recurring copy quality review.",
       "evidence": "CopyPass recurring public receipts will land after the runner surface is available.",
-      "checkedAt": "2026-05-27T11:29:55.637Z",
+      "checkedAt": "2026-05-28T00:42:17.201Z",
       "reasonCode": "planned_runner",
       "nextProof": "Add a recurring CopyPass receipt before moving this out of pending."
     },
@@ -132,36 +132,33 @@
       "status": "pending",
       "summary": "Queued for recurring policy and claims review.",
       "evidence": "LegalPass recurring public receipts will land after the runner surface is available.",
-      "checkedAt": "2026-05-27T11:29:55.637Z",
+      "checkedAt": "2026-05-28T00:42:17.201Z",
       "reasonCode": "planned_runner",
       "nextProof": "Add a recurring LegalPass receipt before moving this out of pending."
     },
     {
       "id": "compliancepass",
       "name": "CompliancePass",
-      "status": "blocked",
-      "summary": "CompliancePass scanned 27 readiness checks and scored 95.8/100, but the receipt is amber.",
-      "evidence": "See /enterprise/latest.json for the evidence-backed readiness report and remaining gaps.",
-      "checkedAt": "2026-05-27T11:29:55.637Z",
-      "blockedReason": "CompliancePass readiness is amber; 1 high/critical gap(s) remain.",
-      "reasonCode": "readiness_gap",
-      "score": 95.8,
-      "band": "amber",
+      "status": "passing",
+      "summary": "CompliancePass scanned 27 readiness checks and scored 99.3/100.",
+      "evidence": "See /enterprise/latest.json for the evidence-backed readiness report.",
+      "checkedAt": "2026-05-28T00:42:17.201Z",
+      "reasonCode": "public_receipt_complete",
+      "score": 99.3,
+      "band": "green",
       "proof": {
         "kind": "compliancepass_report",
         "targetUrl": "/enterprise/latest.json",
-        "checksTotal": 27,
-        "highSeverityGaps": 1
-      },
-      "nextProof": "Resolve or explicitly route high/critical CompliancePass gaps, then regenerate /enterprise/latest.json."
+        "checksTotal": 27
+      }
     }
   ],
   "trend": [
     {
-      "date": "2026-05-27",
-      "passing": 2,
+      "date": "2026-05-28",
+      "passing": 3,
       "failing": 0,
-      "blocked": 2,
+      "blocked": 1,
       "pending": 3
     }
   ],
