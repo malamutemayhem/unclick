@@ -1,0 +1,68 @@
+name: Continuous Improvement Watch
+
+on:
+  schedule:
+    - cron: "23 */2 * * *"
+  workflow_dispatch:
+    inputs:
+      fail_on_action:
+        description: Fail the workflow when an improvement packet is produced.
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+
+concurrency:
+  group: continuous-improvement-watch
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    name: Background improvement scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: Guard the watch logic
+        run: npm run test:continuous-improvement-watch
+
+      - name: Collect GitHub PR friction
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .codex-tmp
+          gh pr list \
+            --state open \
+            --json number,title,isDraft,mergeStateStatus,updatedAt,url,statusCheckRollup \
+            --limit 80 > .codex-tmp/continuous-improvement-prs.json
+
+      - name: Run Continuous Improvement Watch
+        env:
+          FAIL_ON_ACTION: ${{ github.event_name == 'workflow_dispatch' && inputs.fail_on_action || 'false' }}
+        run: |
+          node scripts/pinballwake-continuous-improvement-watch.mjs \
+            --github-prs=.codex-tmp/continuous-improvement-prs.json \
+            --output=public/dogfood/continuous-improvement-watch.json \
+            --source=github_actions_schedule \
+            --fail-on-action=$FAIL_ON_ACTION
+
+      - name: Upload watch receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: continuous-improvement-watch
+          path: public/dogfood/continuous-improvement-watch.json
+
+      - name: Summarize watch receipt
+        run: |
+          node -e "const fs=require('node:fs'); const r=JSON.parse(fs.readFileSync('public/dogfood/continuous-improvement-watch.json','utf8')); console.log('### Continuous Improvement Watch'); console.log(''); console.log('- Status: `'+r.status+'`'); console.log('- Result: `'+r.result+'`'); console.log('- Signals: `'+r.signal_count+'`'); console.log('- Summary: '+r.summary); if (r.packet) { console.log('- Packet: `'+r.packet.chip+'`'); }" >> "$GITHUB_STEP_SUMMARY"

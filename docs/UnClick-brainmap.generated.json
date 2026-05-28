@@ -9,8 +9,8 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 522,
-    "source_manifest": 189,
+    "inventory": 525,
+    "source_manifest": 190,
     "pages": 82,
     "tools": 187,
     "rooms": 23,
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 115
+      "count": 118
     },
     {
       "id": "ledgers-and-proof",
@@ -862,6 +862,26 @@
       "tags": []
     },
     {
+      "id": "automations-script-pinballwake-continuous-improvement-watch-scripts-pinballwake-continuous-improvement-watch-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake continuous improvement watch",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-continuous-improvement-watch.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-continuous-improvement-watch-test-scripts-pinballwake-continuous-improvement-watch-test-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake continuous improvement watch.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-continuous-improvement-watch.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "automations-script-pinballwake-dogfood-room-scripts-pinballwake-dogfood-room-mjs-no-route",
       "division": "Automations",
       "name": "pinballwake dogfood room",
@@ -1568,6 +1588,16 @@
       "kind": "workflow",
       "meaning": "claude GitHub automation workflow.",
       "source": ".github/workflows/claude.yml",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-workflow-continuous-improvement-watch-yml-github-workflows-continuous-improvement-watch-yml-no-route",
+      "division": "Automations",
+      "name": "continuous improvement watch.yml",
+      "kind": "workflow",
+      "meaning": "continuous improvement watch GitHub automation workflow.",
+      "source": ".github/workflows/continuous-improvement-watch.yml",
       "route": "",
       "tags": []
     },
@@ -7038,6 +7068,10 @@
       "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
     [
+      "test:continuous-improvement-watch",
+      "node --test scripts/pinballwake-continuous-improvement-watch.test.mjs"
+    ],
+    [
       "test:enterprisepass-receipt",
       "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
@@ -7123,8 +7157,8 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "8650d072f494",
-      "bytes": 1559
+      "hash": "ab3e717a4ae9",
+      "bytes": 1663
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
@@ -7132,9 +7166,14 @@
       "bytes": 1211
     },
     {
+      "source": ".github/workflows/continuous-improvement-watch.yml",
+      "hash": "d121a434a464",
+      "bytes": 2358
+    },
+    {
       "source": "package.json",
-      "hash": "a4e95e9f78d7",
-      "bytes": 6171
+      "hash": "bbceabab4654",
+      "bytes": 6285
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7618,8 +7657,8 @@
     },
     {
       "source": "scripts/pinballwake-continuous-improvement-room.mjs",
-      "hash": "8c23d67cad4e",
-      "bytes": 14869
+      "hash": "51ca5eb8745b",
+      "bytes": 14894
     },
     {
       "source": "scripts/pinballwake-dogfood-room.mjs",
