@@ -119,6 +119,7 @@ jobs:
           server_url: ${{ steps.target.outputs.server_url }}
           api_url: ${{ steps.target.outputs.api_url }}
           vercel_bypass_secret: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          target_vercel_bypass_secret: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Post PR comment
         # Run regardless of TestPass step outcome - infra failures still need a
