@@ -190,7 +190,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/autonomous-runner.yml | a1280cfec46b | 15338 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
 | .github/workflows/dirty-branch-hygiene.yml | 9d192a7da041 | 2190 |
-| .github/workflows/dogfood-report.yml | 7f0699c0a69a | 5891 |
+| .github/workflows/dogfood-report.yml | 65897c4393aa | 6605 |
 | .github/workflows/event-wake-router.yml | bfd53e324bb4 | 1453 |
 | .github/workflows/fleet-throughput-watch.yml | c5a08f4edf9b | 930 |
 | .github/workflows/openhands-test-mode.yml | 3bd5d5f48573 | 1137 |
@@ -199,7 +199,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | d8811a5730bd | 10809 |
+| .github/workflows/testpass-pr-check.yml | bbb701a7cb34 | 12844 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | f26a538f2ee9 | 896 |
 

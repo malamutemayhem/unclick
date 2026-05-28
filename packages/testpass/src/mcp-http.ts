@@ -1,6 +1,16 @@
 export const MCP_ACCEPT_HEADER = "application/json, text/event-stream";
 
-export function buildMcpHeaders(): Record<string, string> {
+export function shouldSendVercelBypass(targetUrl?: string): boolean {
+  if (!targetUrl) return false;
+  try {
+    const hostname = new URL(targetUrl).hostname.toLowerCase();
+    return hostname === "vercel.app" || hostname.endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+}
+
+export function buildMcpHeaders(targetUrl?: string): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: MCP_ACCEPT_HEADER,
@@ -8,8 +18,11 @@ export function buildMcpHeaders(): Record<string, string> {
   if (process.env.TESTPASS_TOKEN) {
     headers.Authorization = `Bearer ${process.env.TESTPASS_TOKEN}`;
   }
-  if (process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET) {
-    headers["x-vercel-protection-bypass"] = process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+  const vercelBypass =
+    process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET?.trim()
+    || process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+  if (vercelBypass && shouldSendVercelBypass(targetUrl)) {
+    headers["x-vercel-protection-bypass"] = vercelBypass;
   }
   return headers;
 }

@@ -20,10 +20,11 @@ describe("mcp-http helpers", () => {
     process.env.TESTPASS_TOKEN = "uc_target";
     process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = "vercel-secret";
 
-    expect(buildMcpHeaders()).toMatchObject({
+    expect(buildMcpHeaders("https://unclick-preview.vercel.app/api/mcp")).toMatchObject({
       Authorization: "Bearer uc_target",
       "x-vercel-protection-bypass": "vercel-secret",
     });
+    expect(buildMcpHeaders("https://unclick.world/api/mcp")["x-vercel-protection-bypass"]).toBeUndefined();
   });
 
   it("parses JSON-RPC payloads from SSE message frames", async () => {

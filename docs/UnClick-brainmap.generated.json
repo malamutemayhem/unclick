@@ -7858,8 +7858,8 @@
     },
     {
       "source": ".github/workflows/dogfood-report.yml",
-      "hash": "7f0699c0a69a",
-      "bytes": 5891
+      "hash": "65897c4393aa",
+      "bytes": 6605
     },
     {
       "source": ".github/workflows/event-wake-router.yml",
@@ -7903,8 +7903,8 @@
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "d8811a5730bd",
-      "bytes": 10809
+      "hash": "bbb701a7cb34",
+      "bytes": 12844
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",
