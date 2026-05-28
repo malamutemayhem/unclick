@@ -225,4 +225,29 @@ describe("AdminJobs", () => {
     expect(JOBS_REFRESH_INTERVAL_MS).toBe(60_000);
     expect(screen.getByText("Refreshes every 60s")).toBeInTheDocument();
   });
+
+  it("loads jobs with a safe read identity when the admin profile claim fails", async () => {
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("fishbowl_admin_claim")) {
+        return Promise.resolve({
+          ok: false,
+          json: () => Promise.resolve({ error: "claim unavailable" }),
+        } as Response);
+      }
+      if (url.includes("fishbowl_list_todos")) {
+        expect(JSON.parse(String(init?.body))).toMatchObject({
+          agent_id: "admin-jobs-ui",
+          include_description: true,
+        });
+        return jsonResponse({ todos: currentJobs });
+      }
+      return jsonResponse({});
+    });
+
+    render(React.createElement(AdminJobs));
+
+    expect(await screen.findByText("Alpha ready job")).toBeInTheDocument();
+    expect(screen.getByText("Jobs are visible, but posting comments is waiting for the admin profile.")).toBeInTheDocument();
+  });
 });
