@@ -108,7 +108,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { evaluateFishbowlCompletionPolicy } from "./lib/fishbowl-completion-policy.js";
 import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
-import { buildRecallFactSections } from "./lib/memory-recall-sections.js";
+import { buildRecallFactSections, isRecallVisibleFact } from "./lib/memory-recall-sections.js";
 import {
   buildOrchestratorContext,
   mergeOrchestratorTodoRows,
@@ -446,16 +446,21 @@ async function readAdminLibraryTaxonomySources(
 ): Promise<MemoryTaxonomySnapshotSource[]> {
   const factLimit = Math.max(1, Math.min(250, maxSources));
   const sessionLimit = Math.max(1, Math.floor(factLimit / 2));
+  const candidateLimit = Math.min(250, Math.max(factLimit * 3, factLimit));
+  const asOf = new Date();
+  const asOfIso = asOf.toISOString();
   const [factsRes, sessionsRes] = await Promise.all([
     supabase
       .from("mc_extracted_facts")
-      .select("id, fact, category, confidence, created_at, updated_at, valid_from")
+      .select("id, fact, category, confidence, created_at, updated_at, valid_from, valid_to, invalidated_at, source_type, startup_fact_kind, status")
       .eq("api_key_hash", apiKeyHash)
       .eq("status", "active")
       .is("invalidated_at", null)
+      .lte("valid_from", asOfIso)
+      .or(`valid_to.is.null,valid_to.gt.${asOfIso}`)
       .order("confidence", { ascending: false })
       .order("updated_at", { ascending: false })
-      .limit(factLimit),
+      .limit(candidateLimit),
     supabase
       .from("mc_session_summaries")
       .select("id, summary, topics, created_at")
@@ -473,7 +478,12 @@ async function readAdminLibraryTaxonomySources(
     confidence?: number | null;
     created_at?: string | null;
     updated_at?: string | null;
+    valid_to?: string | null;
     valid_from?: string | null;
+    invalidated_at?: string | null;
+    source_type?: string | null;
+    startup_fact_kind?: string | null;
+    status?: string | null;
   };
   type SessionRow = {
     id: string;
@@ -482,16 +492,19 @@ async function readAdminLibraryTaxonomySources(
     created_at?: string | null;
   };
 
-  const factSources: MemoryTaxonomySnapshotSource[] = ((factsRes.data ?? []) as FactRow[]).map((row) => ({
-    id: row.id,
-    kind: "fact",
-    text: row.fact,
-    category: row.category ?? undefined,
-    confidence: row.confidence ?? null,
-    created_at: row.created_at ?? null,
-    updated_at: row.updated_at ?? null,
-    valid_from: row.valid_from ?? null,
-  }));
+  const factSources: MemoryTaxonomySnapshotSource[] = ((factsRes.data ?? []) as FactRow[])
+    .filter((row) => isRecallVisibleFact(row, asOf))
+    .slice(0, factLimit)
+    .map((row) => ({
+      id: row.id,
+      kind: "fact",
+      text: row.fact,
+      category: row.category ?? undefined,
+      confidence: row.confidence ?? null,
+      created_at: row.created_at ?? null,
+      updated_at: row.updated_at ?? null,
+      valid_from: row.valid_from ?? null,
+    }));
   const sessionSources: MemoryTaxonomySnapshotSource[] = ((sessionsRes.data ?? []) as SessionRow[]).map((row) => ({
     id: row.id,
     kind: "session",
@@ -4220,14 +4233,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (method === "history") {
           const slug = (req.body?.slug ?? req.query.slug) as string;
           if (!slug) return res.status(400).json({ error: "slug required" });
+          const { data: doc, error: docError } = await supabase
+            .from("mc_knowledge_library")
+            .select("id, slug")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("slug", slug)
+            .maybeSingle();
+          if (docError) throw docError;
+          if (!doc) return res.status(200).json({ data: [] });
+
           const { data, error } = await supabase
             .from("mc_knowledge_library_history")
             .select("*")
             .eq("api_key_hash", apiKeyHash)
-            .eq("slug", slug)
+            .eq("library_id", doc.id)
             .order("version", { ascending: false });
           if (error) throw error;
-          return res.status(200).json({ data: data ?? [] });
+          return res.status(200).json({
+            data: (data ?? []).map((row) => ({
+              ...row,
+              slug: doc.slug,
+              created_at: row.changed_at,
+            })),
+          });
         }
 
         // list
@@ -4278,26 +4306,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .limit(20);
 
         const topFactsLimit = getClampedLimit(req.query.top_facts_limit, 10, 110);
+        const activityAsOf = new Date().toISOString();
 
         // Most Accessed stays the raw inspectable debug list. Top of Mind
         // inspects a broader pool so static startup facts cannot crowd out
         // useful current facts before the background-heavy filter runs.
         const topOfMindCandidateLimit = Math.max(topFactsLimit, TOP_OF_MIND_CANDIDATE_LIMIT);
+        const rawCandidateLimit = Math.min(250, Math.max(topOfMindCandidateLimit * 3, topOfMindCandidateLimit));
         const [topFactsResult, topOfMindCandidateResult] = await Promise.all([
           supabase
             .from("mc_extracted_facts")
-            .select("id, fact, category, access_count, decay_tier")
+            .select("id, fact, category, access_count, decay_tier, status, source_type, startup_fact_kind, invalidated_at, valid_from, valid_to")
             .eq("api_key_hash", apiKeyHash)
             .eq("status", "active")
+            .is("invalidated_at", null)
+            .lte("valid_from", activityAsOf)
+            .or(`valid_to.is.null,valid_to.gt.${activityAsOf}`)
             .order("access_count", { ascending: false })
             .limit(topFactsLimit),
           supabase
             .from("mc_extracted_facts")
-            .select("id, fact, category, access_count, decay_tier")
+            .select("id, fact, category, access_count, decay_tier, status, source_type, startup_fact_kind, invalidated_at, valid_from, valid_to")
             .eq("api_key_hash", apiKeyHash)
             .eq("status", "active")
+            .is("invalidated_at", null)
+            .lte("valid_from", activityAsOf)
+            .or(`valid_to.is.null,valid_to.gt.${activityAsOf}`)
             .order("access_count", { ascending: false })
-            .limit(topOfMindCandidateLimit),
+            .limit(rawCandidateLimit),
         ]);
         if (topFactsResult.error) throw topFactsResult.error;
         if (topOfMindCandidateResult.error) throw topOfMindCandidateResult.error;
@@ -5099,22 +5135,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // their AI actually sees at the start of every session.
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
         if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const previewAsOf = new Date();
+        const previewAsOfIso = previewAsOf.toISOString();
 
         const [ctxRes, factsRes, sessionsRes] = await Promise.all([
           supabase
             .from("mc_business_context")
             .select("category, key, value, priority")
             .eq("api_key_hash", apiKeyHash)
-            .order("priority", { ascending: true }),
+            .order("priority", { ascending: false }),
           supabase
             .from("mc_extracted_facts")
-            .select("id, fact, category, confidence, decay_tier, created_at")
+            .select("id, fact, category, confidence, decay_tier, created_at, status, source_type, startup_fact_kind, invalidated_at, valid_from, valid_to")
             .eq("api_key_hash", apiKeyHash)
             .eq("status", "active")
             .eq("decay_tier", "hot")
+            .is("invalidated_at", null)
+            .lte("valid_from", previewAsOfIso)
+            .or(`valid_to.is.null,valid_to.gt.${previewAsOfIso}`)
             .order("confidence", { ascending: false })
             .order("created_at", { ascending: false })
-            .limit(10),
+            .limit(50),
           supabase
             .from("mc_session_summaries")
             .select("id, summary, topics, created_at, platform")
@@ -5125,7 +5166,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         return res.status(200).json({
           identity: ctxRes.data ?? [],
-          hot_facts: factsRes.data ?? [],
+          hot_facts: ((factsRes.data ?? []) as Array<Record<string, unknown>>)
+            .filter((row) => isRecallVisibleFact(row, previewAsOf))
+            .slice(0, 10),
           recent_sessions: sessionsRes.data ?? [],
         });
       }

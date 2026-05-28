@@ -14,6 +14,7 @@ describe("Dogfood report proof policy", () => {
     const uxpass = dogfoodReport.results.find((result) => result.id === "uxpass");
     const securitypass = dogfoodReport.results.find((result) => result.id === "securitypass");
     const copypass = dogfoodReport.results.find((result) => result.id === "copypass");
+    const enterprisepass = dogfoodReport.results.find((result) => result.id === "enterprisepass");
     const seopass = dogfoodReport.results.find((result) => result.id === "seopass");
 
     expect(uxpass?.status).toBe("pending");
@@ -29,6 +30,8 @@ describe("Dogfood report proof policy", () => {
     expect(compliancepass?.summary).toMatch(/99\.3\/100/i);
     expect(copypass?.reasonCode).toBe("package_ready_needs_scheduled_receipt");
     expect(copypass?.proof?.kind).toBe("package_ready");
+    expect(enterprisepass?.reasonCode).toBe("boundary_needs_runner");
+    expect(enterprisepass?.proof?.kind).toBe("boundary");
     expect(seopass?.proof?.kind).toBe("seopass_run");
     expect(seopass?.evidence).not.toMatch(/scaffold-only/i);
   });
@@ -39,9 +42,10 @@ describe("Dogfood report proof policy", () => {
     const sloppass = dogfoodReport.xpassIndex.find((entry) => entry.id === "sloppass");
     const commonsensepass = dogfoodReport.xpassIndex.find((entry) => entry.id === "commonsensepass");
     const wakepass = dogfoodReport.xpassIndex.find((entry) => entry.id === "wakepass");
+    const enterprisepass = dogfoodReport.xpassIndex.find((entry) => entry.id === "enterprisepass");
     const seopass = dogfoodReport.xpassIndex.find((entry) => entry.id === "seopass");
 
-    expect(dogfoodReport.xpassIndex).toHaveLength(13);
+    expect(dogfoodReport.xpassIndex).toHaveLength(14);
     expect(testpass?.stage).toBe("live_gate");
     expect(testpass?.mentionProfile).toMatch(/protects merges/i);
     expect(compliancepass?.stage).toBe("live_dogfood");
@@ -51,6 +55,7 @@ describe("Dogfood report proof policy", () => {
     expect(commonsensepass?.stage).toBe("live_gate");
     expect(commonsensepass?.nextStep).toMatch(/worker-claim sanity/i);
     expect(wakepass?.stage).toBe("live_gate");
+    expect(enterprisepass?.stage).toBe("guidance");
     expect(seopass?.stage).toBe("live_dogfood");
     expect(seopass?.automation).toMatch(/read-only SEO receipt/i);
   });

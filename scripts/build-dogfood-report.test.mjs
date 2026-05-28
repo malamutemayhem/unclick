@@ -60,6 +60,7 @@ test("dogfood receipt includes a safe SecurityPass proof without active probes",
     const compliancepass = report.results.find((result) => result.id === "compliancepass");
     const copypass = report.results.find((result) => result.id === "copypass");
     const legalpass = report.results.find((result) => result.id === "legalpass");
+    const enterprisepass = report.results.find((result) => result.id === "enterprisepass");
 
     assert.equal(testpass?.status, "pending");
     assert.equal(testpass?.reasonCode, "dry_run_only");
@@ -86,6 +87,13 @@ test("dogfood receipt includes a safe SecurityPass proof without active probes",
     assert.equal(legalpass?.status, "pending");
     assert.equal(legalpass?.reasonCode, "package_ready_needs_scheduled_receipt");
     assert.equal(legalpass?.proof?.kind, "package_ready");
+    assert.equal(enterprisepass?.status, "pending");
+    assert.equal(enterprisepass?.reasonCode, "boundary_needs_runner");
+    assert.match(enterprisepass?.nextProof ?? "", /automated evidence checks/i);
+    assert.deepEqual(enterprisepass?.proof, {
+      kind: "boundary",
+      targetUrl: "/enterprise/latest.json",
+    });
     assert.equal(report.status, "pending");
     assert.match(report.statusLegend.blocked, /needs action|action is needed/i);
     assert.match(report.statusLegend.pending, /scheduled proof is not available yet/i);
@@ -181,6 +189,7 @@ test("dogfood receipt includes structured proof for live TestPass and UXPass run
       "rotatepass",
       "wakepass",
       "compliancepass",
+      "enterprisepass",
     ]);
 
     assert.equal(testpassRequest.body.source, "scheduled");

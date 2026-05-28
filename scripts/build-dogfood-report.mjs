@@ -163,6 +163,15 @@ const xpassIndex = [
     mentionProfile: "Low mention volume unless readiness evidence, claims, or docs drift.",
     nextStep: "Keep report language conservative and link more XPass receipts as they mature.",
   },
+  {
+    id: "enterprisepass",
+    name: "EnterprisePass",
+    stage: "guidance",
+    label: "Guidance report",
+    automation: "Receipt guard and readiness report boundary",
+    mentionProfile: "Low mention volume while it remains a guidance layer, not certification.",
+    nextStep: "Add low-risk readiness checks without claiming compliance certification.",
+  },
 ];
 
 function trimTrailingSlash(value) {
@@ -1138,6 +1147,14 @@ const results = [
     "Add a public-safe WakePass receipt for stale scheduled work and reclaim visibility.",
   ),
   await runCompliancePassReceipt(),
+  boundaryResult(
+    "enterprisepass",
+    "EnterprisePass",
+    "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
+    "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
+    "/enterprise/latest.json",
+    "Wire automated evidence checks before moving this beyond readiness guidance.",
+  ),
 ];
 
 const report = {
