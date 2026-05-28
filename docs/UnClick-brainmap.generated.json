@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 515,
+    "inventory": 516,
     "source_manifest": 189,
     "pages": 82,
     "tools": 186,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 14
+      "count": 15
     },
     {
       "id": "wrappers-and-protocols",
@@ -2478,6 +2478,16 @@
       "kind": "pass",
       "meaning": "testpass pr comment UnClick module.",
       "source": "scripts/testpass-pr-comment.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-pass-testpass-pr-target-scripts-testpass-pr-target-mjs-no-route",
+      "division": "Passes and gates",
+      "name": "testpass pr target",
+      "kind": "pass",
+      "meaning": "testpass pr target UnClick module.",
+      "source": "scripts/testpass-pr-target.mjs",
       "route": "",
       "tags": []
     },
@@ -7893,8 +7903,8 @@
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "06c30cc187e8",
-      "bytes": 7414
+      "hash": "3089d5df48e3",
+      "bytes": 8876
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",
