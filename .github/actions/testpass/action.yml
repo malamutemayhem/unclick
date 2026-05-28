@@ -21,6 +21,10 @@ inputs:
     description: TestPass run API endpoint; this action calls it and passes server_url as the MCP target under test.
     required: false
     default: https://unclick.world/api/testpass-run
+  vercel_bypass_secret:
+    description: Optional Vercel Protection Bypass for Automation secret used when the TestPass API is on a protected preview deployment.
+    required: false
+    default: ""
   source:
     description: Source label sent to TestPass for visibility routing.
     required: false
@@ -63,6 +67,7 @@ runs:
         PROFILE: ${{ inputs.profile }}
         SERVER_URL: ${{ inputs.server_url }}
         API_URL: ${{ inputs.api_url }}
+        VERCEL_BYPASS_SECRET: ${{ inputs.vercel_bypass_secret }}
         SOURCE: ${{ inputs.source }}
       run: |
         # Note: -e intentionally omitted so curl/jq failures don't abort
@@ -79,12 +84,20 @@ runs:
         # Capture curl transport exit code separately from HTTP status.
         # curl exits non-zero on DNS failure, connection refused, timeout, etc.
         curl_exit=0
-        http_code=$(curl -sS -o response.json -w "%{http_code}" \
-          --connect-timeout 10 \
-          --max-time 60 \
-          -X POST "$API_URL" \
-          -H "Authorization: Bearer $TESTPASS_TOKEN" \
-          -H "Content-Type: application/json" \
+        curl_args=(
+          -sS
+          -o response.json
+          -w "%{http_code}"
+          --connect-timeout 10
+          --max-time 60
+          -X POST "$API_URL"
+          -H "Authorization: Bearer $TESTPASS_TOKEN"
+          -H "Content-Type: application/json"
+        )
+        if [ -n "${VERCEL_BYPASS_SECRET:-}" ]; then
+          curl_args+=(-H "x-vercel-protection-bypass: $VERCEL_BYPASS_SECRET")
+        fi
+        http_code=$(curl "${curl_args[@]}" \
           -d "$payload") || curl_exit=$?
         http_code="${http_code:-000}"
 
