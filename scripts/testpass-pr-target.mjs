@@ -63,4 +63,3 @@ export function resolveTestPassPrTarget(input = {}) {
 
   return { serverUrl: requestedServerUrl || defaultServerUrl, source: "default" };
 }
-
