@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 517,
+    "inventory": 518,
     "source_manifest": 189,
     "pages": 82,
     "tools": 187,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 14
+      "count": 15
     },
     {
       "id": "wrappers-and-protocols",
@@ -2488,6 +2488,16 @@
       "kind": "pass",
       "meaning": "testpass pr comment UnClick module.",
       "source": "scripts/testpass-pr-comment.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-pass-testpass-pr-target-scripts-testpass-pr-target-mjs-no-route",
+      "division": "Passes and gates",
+      "name": "testpass pr target",
+      "kind": "pass",
+      "meaning": "testpass pr target UnClick module.",
+      "source": "scripts/testpass-pr-target.mjs",
       "route": "",
       "tags": []
     },
@@ -7236,8 +7246,8 @@
     },
     {
       "source": "src/pages/admin/copypass/CopyPassCatalog.tsx",
-      "hash": "ecfffa28e759",
-      "bytes": 7258
+      "hash": "a7d741e75c78",
+      "bytes": 7306
     },
     {
       "source": "src/pages/admin/crews/CrewComposer.tsx",
@@ -7411,8 +7421,8 @@
     },
     {
       "source": "src/pages/Crews.tsx",
-      "hash": "1cdeaee2ae36",
-      "bytes": 17586
+      "hash": "9b4b9dfca188",
+      "bytes": 18784
     },
     {
       "source": "src/pages/DeveloperDocs.tsx",
@@ -7801,8 +7811,8 @@
     },
     {
       "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "9cb57c05f879",
-      "bytes": 29686
+      "hash": "70d540c397a5",
+      "bytes": 31503
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",
@@ -7926,8 +7936,8 @@
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "06c30cc187e8",
-      "bytes": 7414
+      "hash": "0499ba17ef3e",
+      "bytes": 9245
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",
