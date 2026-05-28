@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 525,
+    "inventory": 526,
     "source_manifest": 190,
     "pages": 82,
     "tools": 187,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 15
+      "count": 16
     },
     {
       "id": "wrappers-and-protocols",
@@ -2548,6 +2548,16 @@
       "kind": "pass",
       "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
       "source": "api/lib/testpass-boundary.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-pass-testpass-edit-guard-api-lib-testpass-edit-guard-ts-no-route",
+      "division": "Passes and gates",
+      "name": "testpass edit guard",
+      "kind": "pass",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/testpass-edit-guard.ts",
       "route": "",
       "tags": []
     },
