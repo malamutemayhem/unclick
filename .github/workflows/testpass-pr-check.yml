@@ -17,6 +17,10 @@ on:
         description: Optional target MCP server URL.
         required: false
         default: https://unclick.world/api/mcp
+      api_url:
+        description: Optional TestPass API URL. Use a protected Vercel preview URL for branch dogfood reruns.
+        required: false
+        default: https://unclick.world/api/testpass-run
 
 permissions:
   contents: read
@@ -55,6 +59,8 @@ jobs:
           pack_id: ${{ inputs.pack_id || 'testpass-core' }}
           profile: ${{ inputs.profile || 'smoke' }}
           server_url: ${{ inputs.server_url || 'https://unclick.world/api/mcp' }}
+          api_url: ${{ inputs.api_url || 'https://unclick.world/api/testpass-run' }}
+          vercel_bypass_secret: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Post PR comment
         # Run regardless of TestPass step outcome - infra failures still need a
