@@ -12421,24 +12421,24 @@ export const ADDITIONAL_TOOLS = [
   // ── seopass-tool.ts (search visibility QC, sister to UXPass) ────────────────
   {
     name: "seopass_run",
-    description: "Plan a SEOPass run against a URL or registered pack. Chunk 1 returns the crawl and Lighthouse execution plan without persisting results.",
+    description: "Run SEOPass against a public URL or registered pack. Returns a live-readonly SEO verdict, score, findings, fix prompts, and an in-session run id.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        url: { type: "string", description: "Target URL for a one-off SEOPass plan" },
+        url: { type: "string", description: "Target URL for a one-off SEOPass read-only run" },
         pack_name: { type: "string", description: "Name of a registered SEOPass pack; the pack URL is used as the target" },
       },
     },
   },
   {
     name: "seopass_status",
-    description: "Fetch the status for a SEOPass run. Chunk 1 reserves the tool shape; persistence lands later.",
+    description: "Fetch the stored in-session status and report for a SEOPass run.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        run_id: { type: "string", description: "The SEOPass run id returned by a future seopass_run execution path" },
+        run_id: { type: "string", description: "The SEOPass run id returned by seopass_run" },
       },
       required: ["run_id"],
     },
@@ -12457,7 +12457,7 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "seopass_lighthouse_plan",
-    description: "Build the Lighthouse execution plan for a SEOPass target URL. Execution and persistence land in a later chunk.",
+    description: "Build the heavier Lighthouse execution plan for a SEOPass target URL. seopass_run already emits a lightweight live-readonly verdict.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
