@@ -58,6 +58,8 @@ function makeFakeClient(opts: { factsRows: unknown[]; sessionsRows: unknown[]; c
       builder.order = chain("order");
       builder.limit = chain("limit");
       builder.is = chain("is");
+      builder.lte = chain("lte");
+      builder.in = chain("in");
       // The keywordFallback awaits the builder directly, so it must be
       // thenable and resolve to the recorded result.
       builder.then = (onFulfilled: (v: typeof recorded.result) => unknown) =>
@@ -131,8 +133,10 @@ describe("keywordFallback tokenization", () => {
     expect(patterns).toContain("%active%");
     expect(patterns).toContain("%fishbowl%");
     expect(patterns).toContain("%topic%");
-    // No `.or` should have been used in AND mode.
-    expect(factCall!.filters.find((f) => f.kind === "or")).toBeUndefined();
+    // No fact-token `.or` should have been used in AND mode.
+    expect(factCall!.filters.find((f) => f.kind === "or" && String(f.args[0]).includes("fact.ilike"))).toBeUndefined();
+    expect(factCall!.filters.find((f) => f.kind === "is" && f.args[0] === "invalidated_at")).toBeTruthy();
+    expect(factCall!.filters.find((f) => f.kind === "lte" && f.args[0] === "valid_from")).toBeTruthy();
   });
 
   it("OR fallback fires only when AND returns [] and tokens >= 2", async () => {
@@ -170,6 +174,8 @@ describe("keywordFallback tokenization", () => {
         builder.order = chain("order");
         builder.limit = chain("limit");
         builder.is = chain("is");
+        builder.lte = chain("lte");
+        builder.in = chain("in");
         builder.then = (onFulfilled: (v: typeof recorded.result) => unknown) =>
           Promise.resolve(recorded.result).then(onFulfilled);
         return builder;
@@ -197,7 +203,9 @@ describe("keywordFallback tokenization", () => {
     expect(result).toEqual([]);
     // Only the AND scan ran (2 calls: facts + sessions). No OR retry.
     expect(calls.length).toBe(2);
-    expect(calls.every((c) => c.filters.find((f) => f.kind === "or") === undefined)).toBe(true);
+    expect(calls.every((c) =>
+      c.filters.find((f) => f.kind === "or" && String(f.args[0]).includes("fact.ilike")) === undefined
+    )).toBe(true);
   });
 
   it("managed mode adds api_key_hash filter to keyword fallback", async () => {
@@ -229,6 +237,111 @@ describe("keywordFallback tokenization", () => {
     const factCall = calls.find((c) => c.table === "extracted_facts");
     const eqs = factCall!.filters.filter((f) => f.kind === "eq");
     expect(eqs.some((f) => f.args[0] === "api_key_hash")).toBe(false);
+  });
+
+  it("filters operational and future facts from keyword fallback results", async () => {
+    const calls: RecordedCall[] = [];
+    const client = makeFakeClient({
+      factsRows: [
+        {
+          id: "durable-memory-fact",
+          fact: "Durable Memory fact should be recall visible.",
+          category: "technical",
+          confidence: 0.95,
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2026-05-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "manual",
+          startup_fact_kind: "durable",
+        },
+        {
+          id: "operational-memory-fact",
+          fact: "heartbeat self-report Memory note should stay hidden.",
+          category: "system",
+          confidence: 1,
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2026-05-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "heartbeat",
+          startup_fact_kind: "operational",
+        },
+        {
+          id: "future-memory-fact",
+          fact: "Future Memory fact should wait for its valid window.",
+          category: "technical",
+          confidence: 1,
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2099-01-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "manual",
+          startup_fact_kind: "durable",
+        },
+      ],
+      sessionsRows: [],
+      calls,
+    });
+    const backend = await loadBackendWithFake(client, { mode: "byod" });
+
+    const result = await backend.searchMemory("Memory", 10) as Array<{ id: string }>;
+    expect(result.map((row) => row.id)).toEqual(["durable-memory-fact"]);
+  });
+
+  it("filters operational and future facts from hybrid results", async () => {
+    const calls: RecordedCall[] = [];
+    const client = makeFakeClient({
+      factsRows: [
+        {
+          id: "durable-memory-fact",
+          fact: "Durable Memory fact should be recall visible.",
+          category: "technical",
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2026-05-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "manual",
+          startup_fact_kind: "durable",
+        },
+        {
+          id: "operational-memory-fact",
+          fact: "heartbeat self-report Memory note should stay hidden.",
+          category: "system",
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2026-05-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "heartbeat",
+          startup_fact_kind: "operational",
+        },
+        {
+          id: "future-memory-fact",
+          fact: "Future Memory fact should wait for its valid window.",
+          category: "technical",
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2099-01-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "manual",
+          startup_fact_kind: "durable",
+        },
+      ],
+      sessionsRows: [],
+      calls,
+    });
+    const backend = await loadBackendWithFake(client, { mode: "byod" });
+
+    const result = await backend.filterRecallVisibleSearchResults(
+      [
+        { id: "durable-memory-fact", source: "fact", content: "Durable Memory fact should be recall visible." },
+        { id: "operational-memory-fact", source: "fact", content: "heartbeat self-report Memory note should stay hidden." },
+        { id: "future-memory-fact", source: "fact", content: "Future Memory fact should wait for its valid window." },
+        { id: "session-1", source: "session", content: "Session results pass through." },
+      ],
+      "2026-05-28T00:00:00Z",
+    ) as Array<{ id: string }>;
+    expect(result.map((row) => row.id)).toEqual(["durable-memory-fact", "session-1"]);
   });
 });
 
