@@ -42,6 +42,39 @@ jobs:
             echo "has_token=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Wait for Vercel preview
+        if: ${{ github.event_name == 'pull_request' && steps.token.outputs.has_token == 'true' }}
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const ref = context.payload.pull_request?.head?.sha || context.sha;
+            const started = Date.now();
+            const timeoutMs = 12 * 60 * 1000;
+
+            while (Date.now() - started < timeoutMs) {
+              const { data } = await github.rest.repos.getCombinedStatusForRef({
+                owner,
+                repo,
+                ref,
+              });
+              const vercel = data.statuses.find((status) => status.context === 'Vercel');
+              if (!vercel) {
+                core.notice('Waiting for Vercel status to appear...');
+              } else if (vercel.state === 'success') {
+                core.notice(`Vercel preview is ready: ${vercel.target_url || '(no target url)'}`);
+                return;
+              } else if (['failure', 'error'].includes(vercel.state)) {
+                throw new Error(`Vercel preview did not become ready: ${vercel.state}`);
+              } else {
+                core.notice(`Waiting for Vercel preview: ${vercel.state}`);
+              }
+              await new Promise((resolve) => setTimeout(resolve, 10_000));
+            }
+
+            throw new Error('Timed out waiting for Vercel preview to become ready.');
+
       - name: Resolve TestPass target
         id: target
         if: ${{ steps.token.outputs.has_token == 'true' }}
