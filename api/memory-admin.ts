@@ -150,6 +150,12 @@ import {
   buildFishbowlTodoHandoffDispatchRow,
   planFishbowlTodoHandoff,
 } from "./lib/fishbowl-todo-handoff.js";
+import {
+  buildFishbowlPrMergeProofComment,
+  buildFishbowlPrMergeVerifierAgentId,
+  hasFishbowlPrMergeProofComment,
+  parseFishbowlMergedPullRequest,
+} from "./lib/fishbowl-pr-merge-reconcile.js";
 import { classifyTodoActionability } from "./lib/fishbowl-todo-actionability.js";
 import {
   planFishbowlPostLedgerEvent,
@@ -9392,7 +9398,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // ─── Fishbowl Todos + Ideas v1 ────────────────────────────────────────
       //
-      // All thirteen handlers below share the same shape:
+      // These handlers share the same shape:
       //   1. Require POST.
       //   2. Resolve api_key_hash.
       //   3. Validate agent_id (<= 128 chars).
@@ -9410,6 +9416,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case "fishbowl_create_todo":
       case "fishbowl_update_todo":
       case "fishbowl_complete_todo":
+      case "fishbowl_reconcile_merged_pr":
       case "fishbowl_drop_todo":
       case "fishbowl_delete_todo":
       case "fishbowl_list_todos":
@@ -9488,6 +9495,192 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const DONE_TODO_ARCHIVE_WINDOW_MS = 12 * 60 * 60 * 1000;
 
         // ── Todos ──────────────────────────────────────────────────────────
+
+        if (action === "fishbowl_reconcile_merged_pr") {
+          const parsed = parseFishbowlMergedPullRequest(body);
+          if (parsed.error || !parsed.pr) {
+            return res.status(400).json({
+              error: parsed.error ?? "pull_request payload required",
+              how_to_fix:
+                "Send a GitHub pull_request payload, or { pr_number, pr_url, merged, merged_at, merge_commit_sha }.",
+            });
+          }
+
+          const pr = parsed.pr;
+          if (!pr.merged) {
+            return res.status(200).json({
+              closed: 0,
+              skipped: [{ reason: "pull_request_not_merged" }],
+              pr: { number: pr.number, url: pr.url },
+            });
+          }
+          if (!pr.mergeCommitSha) {
+            return res.status(409).json({
+              error: "merge_commit_sha required",
+              how_to_fix: "Pass the merged PR merge_commit_sha so the todo gets durable Git proof.",
+            });
+          }
+          if (pr.linkedTodoIds.length === 0) {
+            return res.status(200).json({
+              closed: 0,
+              skipped: [{ reason: "no_linked_todos" }],
+              pr: { number: pr.number, url: pr.url, merge_commit_sha: pr.mergeCommitSha },
+            });
+          }
+
+          const { data: todoRows, error: todoErr } = await supabase
+            .from("mc_fishbowl_todos")
+            .select("id,title,description,status,created_by_agent_id,assigned_to_agent_id,priority")
+            .eq("api_key_hash", apiKeyHash)
+            .in("id", pr.linkedTodoIds);
+          if (todoErr) throw todoErr;
+
+          const todosById = new Map((todoRows ?? []).map((todo) => [String(todo.id), todo]));
+          const foundTodoIds = (todoRows ?? []).map((todo) => String(todo.id));
+          let commentsByTodoId = new Map<string, Array<{ author_agent_id: string | null; text: string | null; created_at: string | null }>>();
+          if (foundTodoIds.length > 0) {
+            const { data: comments, error: commentErr } = await supabase
+              .from("mc_fishbowl_comments")
+              .select("target_id,author_agent_id,text,created_at")
+              .eq("api_key_hash", apiKeyHash)
+              .eq("target_kind", "todo")
+              .in("target_id", foundTodoIds)
+              .order("created_at", { ascending: true });
+            if (commentErr) throw commentErr;
+            commentsByTodoId = (comments ?? []).reduce<typeof commentsByTodoId>((acc, comment) => {
+              const targetId = String(comment.target_id);
+              acc.set(targetId, [
+                ...(acc.get(targetId) ?? []),
+                {
+                  author_agent_id: typeof comment.author_agent_id === "string" ? comment.author_agent_id : null,
+                  text: typeof comment.text === "string" ? comment.text : null,
+                  created_at: typeof comment.created_at === "string" ? comment.created_at : null,
+                },
+              ]);
+              return acc;
+            }, new Map());
+          }
+
+          const nowIso = new Date().toISOString();
+          const proofAgentId = buildFishbowlPrMergeVerifierAgentId(agentId);
+          const closed: Array<{ todo_id: string; title: string | null; merge_commit_sha: string }> = [];
+          const skipped: Array<{ todo_id?: string; reason: string; code?: string; how_to_fix?: string }> = [];
+
+          for (const todoId of pr.linkedTodoIds) {
+            const beforeTodo = todosById.get(todoId);
+            if (!beforeTodo) {
+              skipped.push({ todo_id: todoId, reason: "todo_not_found" });
+              continue;
+            }
+
+            const status = String(beforeTodo.status ?? "");
+            if (status === "done") {
+              skipped.push({ todo_id: todoId, reason: "already_done" });
+              continue;
+            }
+            if (status === "dropped") {
+              skipped.push({ todo_id: todoId, reason: "todo_dropped" });
+              continue;
+            }
+
+            const existingComments = commentsByTodoId.get(todoId) ?? [];
+            let gateComments = existingComments;
+            if (!hasFishbowlPrMergeProofComment(existingComments, pr)) {
+              const proofText = buildFishbowlPrMergeProofComment({ pr, todoId });
+              const { error: proofErr } = await supabase.from("mc_fishbowl_comments").insert({
+                api_key_hash: apiKeyHash,
+                target_kind: "todo",
+                target_id: todoId,
+                author_agent_id: proofAgentId,
+                text: proofText,
+              });
+              if (proofErr) throw proofErr;
+              gateComments = [
+                ...existingComments,
+                {
+                  author_agent_id: proofAgentId,
+                  text: proofText,
+                  created_at: nowIso,
+                },
+              ];
+              commentsByTodoId.set(todoId, gateComments);
+            }
+
+            const completionGate = evaluateFishbowlCompletionPolicy({
+              todo: {
+                id: String(beforeTodo.id),
+                title: typeof beforeTodo.title === "string" ? beforeTodo.title : null,
+                description: typeof beforeTodo.description === "string" ? beforeTodo.description : null,
+                created_by_agent_id:
+                  typeof beforeTodo.created_by_agent_id === "string" ? beforeTodo.created_by_agent_id : null,
+              },
+              comments: gateComments,
+              closerAgentId: agentId,
+            });
+            if (!completionGate.allowed) {
+              skipped.push({
+                todo_id: todoId,
+                reason: "completion_gate_failed",
+                code: completionGate.code,
+                how_to_fix: completionGate.how_to_fix,
+              });
+              continue;
+            }
+
+            const { data: updatedTodo, error: updateErr } = await supabase
+              .from("mc_fishbowl_todos")
+              .update({ status: "done", completed_at: nowIso, updated_at: nowIso })
+              .eq("api_key_hash", apiKeyHash)
+              .eq("id", todoId)
+              .in("status", ["open", "in_progress"])
+              .select("*")
+              .maybeSingle();
+            if (updateErr) throw updateErr;
+            if (!updatedTodo) {
+              skipped.push({ todo_id: todoId, reason: "todo_changed_before_close" });
+              continue;
+            }
+
+            await recordAutopilotEvents(
+              supabase,
+              apiKeyHash,
+              planTodoLedgerEvents({
+                todoId: updatedTodo.id,
+                actorAgentId: agentId,
+                before: beforeTodo,
+                after: updatedTodo,
+              }),
+            );
+
+            void postFishbowlEvent(
+              supabase,
+              apiKeyHash,
+              agentId,
+              "todo-completed",
+              `Todo done: ${updatedTodo.title}`,
+            );
+            closed.push({
+              todo_id: String(updatedTodo.id),
+              title: typeof updatedTodo.title === "string" ? updatedTodo.title : null,
+              merge_commit_sha: pr.mergeCommitSha,
+            });
+          }
+
+          return res.status(200).json({
+            closed: closed.length,
+            closed_todos: closed,
+            skipped,
+            linked_todo_ids: pr.linkedTodoIds,
+            pr: {
+              number: pr.number,
+              url: pr.url,
+              repository_full_name: pr.repositoryFullName,
+              merged_at: pr.mergedAt,
+              merge_commit_sha: pr.mergeCommitSha,
+            },
+            proof_agent_id: proofAgentId,
+          });
+        }
 
         if (action === "fishbowl_create_todo") {
           const titleRes = validateTitle(body.title);
