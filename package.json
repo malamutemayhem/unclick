@@ -31,7 +31,7 @@
     "@ai-sdk/google": "^3.0.64",
     "@ai-sdk/openai": "^3.0.53",
     "@ai-sdk/react": "^3.0.170",
-    "@anthropic-ai/sdk": "^0.90.0",
+    "@anthropic-ai/sdk": "^0.37.0",
     "@codemirror/lang-yaml": "^6.1.1",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.1",
