@@ -95,7 +95,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/arena/ArenaHome.tsx | 7674a937b45c | 10180 |
 | src/pages/AuthCallback.tsx | 41644ade9f97 | 5284 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/Connect.tsx | 178b9b22bd22 | 29578 |
+| src/pages/Connect.tsx | ebf2c68ad6c3 | 29590 |
 | src/pages/Crews.tsx | 9b4b9dfca188 | 18784 |
 | src/pages/DeveloperDocs.tsx | 339b3a5c60ae | 23490 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
@@ -111,7 +111,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
 | src/pages/Memory.tsx | cf7f06bacc89 | 18641 |
-| src/pages/NewToAI.tsx | f6e4f503e984 | 12617 |
+| src/pages/NewToAI.tsx | a28cb1d9ece8 | 12559 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |

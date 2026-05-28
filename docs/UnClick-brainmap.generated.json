@@ -7491,8 +7491,8 @@
     },
     {
       "source": "src/pages/Connect.tsx",
-      "hash": "178b9b22bd22",
-      "bytes": 29578
+      "hash": "ebf2c68ad6c3",
+      "bytes": 29590
     },
     {
       "source": "src/pages/Crews.tsx",
@@ -7571,8 +7571,8 @@
     },
     {
       "source": "src/pages/NewToAI.tsx",
-      "hash": "f6e4f503e984",
-      "bytes": 12617
+      "hash": "a28cb1d9ece8",
+      "bytes": 12559
     },
     {
       "source": "src/pages/Organiser.tsx",

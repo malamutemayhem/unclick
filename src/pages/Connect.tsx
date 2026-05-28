@@ -311,7 +311,7 @@ export default function ConnectPage() {
               {connector.name} connected
             </h2>
             <p className="text-sm text-body mt-1">
-              Credentials stored securely. MCP tool calls will use them automatically.
+              Access details stored securely. MCP tool calls will use them automatically.
             </p>
           </div>
 
@@ -790,7 +790,7 @@ function ConnectShell({
           </div>
 
           <p className="text-center text-xs text-muted-foreground">
-            Credentials are encrypted with AES-256-GCM using your API key before storage.
+            Saved access details are encrypted with AES-256-GCM using your API key before storage.
           </p>
         </div>
       </main>

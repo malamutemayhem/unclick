@@ -19,8 +19,7 @@ import {
 
 /**
  * Features users meet first. Plain-English analogies. Apple-friendly voice.
- * BackstagePass intentionally hidden here per the current ringfence pass
- * (legal review pending). When it comes back, slot it in next to Memory.
+ * The paused connection surface stays hidden during the current ringfence pass.
  */
 const FEATURES = [
   {
@@ -77,7 +76,7 @@ const FAQ = [
   },
   {
     q: "Is it safe?",
-    a: "Yes. Your data is processed in real time, not stored. Credentials are encrypted. You control what your AI can access.",
+    a: "Yes. Your data is processed in real time, not stored. Saved access details are encrypted. You control what your AI can access.",
   },
 ];
 
