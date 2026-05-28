@@ -41,6 +41,74 @@ interface ByodConfig {
   service_role_key: string;
 }
 
+export interface BackendCacheMetrics {
+  hits: number;
+  misses: number;
+  evictions: number;
+  size: number;
+  maxSize: number;
+}
+
+export interface BoundedMemoryBackendCache<T> {
+  get(key: string): T | null;
+  set(key: string, value: T): void;
+  metrics(): BackendCacheMetrics;
+}
+
+const DEFAULT_BACKEND_CACHE_MAX_TENANTS = 1024;
+const MAX_BACKEND_CACHE_MAX_TENANTS = 100000;
+
+export function parseBackendCacheMaxTenants(raw = process.env.UNCLICK_MEMORY_BACKEND_CACHE_MAX_TENANTS): number {
+  if (raw == null || raw === "") return DEFAULT_BACKEND_CACHE_MAX_TENANTS;
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed < 1) return DEFAULT_BACKEND_CACHE_MAX_TENANTS;
+  return Math.min(parsed, MAX_BACKEND_CACHE_MAX_TENANTS);
+}
+
+export function createBoundedMemoryBackendCache<T>(
+  maxSize = parseBackendCacheMaxTenants(),
+): BoundedMemoryBackendCache<T> {
+  const entries = new Map<string, T>();
+  let hits = 0;
+  let misses = 0;
+  let evictions = 0;
+
+  return {
+    get(key: string): T | null {
+      if (!entries.has(key)) {
+        misses += 1;
+        return null;
+      }
+      const value = entries.get(key) as T;
+      entries.delete(key);
+      entries.set(key, value);
+      hits += 1;
+      return value;
+    },
+    set(key: string, value: T): void {
+      if (entries.has(key)) {
+        entries.delete(key);
+      }
+      entries.set(key, value);
+      while (entries.size > maxSize) {
+        const oldestKey = entries.keys().next().value;
+        if (typeof oldestKey !== "string") break;
+        entries.delete(oldestKey);
+        evictions += 1;
+      }
+    },
+    metrics(): BackendCacheMetrics {
+      return {
+        hits,
+        misses,
+        evictions,
+        size: entries.size,
+        maxSize,
+      };
+    },
+  };
+}
+
 async function fetchByodConfig(apiKey: string): Promise<ByodConfig | null> {
   try {
     const res = await fetch(`${MEMORY_API_BASE}/api/memory-admin?action=config`, {
@@ -65,10 +133,11 @@ async function fetchByodConfig(apiKey: string): Promise<ByodConfig | null> {
 // Per-tenant backend cache. Keyed so different api_keys never share a backend.
 // In serverless this lives only for the lifetime of a warm instance, which is
 // the right scope. In long-lived standalone use, the cache key is constant.
-//
-// TODO(phase-1+): bound this with an LRU if a single warm instance ever serves
-// thousands of tenants. For Phase 1 the unbounded map is fine.
-const backendCache = new Map<string, MemoryBackend>();
+const backendCache = createBoundedMemoryBackendCache<MemoryBackend>();
+
+export function getBackendCacheMetrics(): BackendCacheMetrics {
+  return backendCache.metrics();
+}
 
 function instanceKey(): string {
   const hash = process.env.UNCLICK_API_KEY_HASH;
