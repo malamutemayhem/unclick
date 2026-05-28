@@ -12,7 +12,6 @@ import { CROSS_PASS_MATRIX, PASS_PACKAGES } from "./build-xpass-package-sweep.mj
 const execFileAsync = promisify(execFile);
 const packageReadySweepIds = [
   "sloppass",
-  "seopass",
   "copypass",
   "legalpass",
   "commonsensepass",
@@ -291,6 +290,9 @@ test("dogfood receipt promotes package-ready passes from a fresh XPass sweep rec
     assert.equal(sloppass?.proof?.packageId, "sloppass");
     assert.equal(geopass?.status, "passing");
     assert.equal(geopass?.proof?.kind, "xpass_package_sweep");
+    const seopass = report.results.find((result) => result.id === "seopass");
+    assert.equal(seopass?.status, "passing");
+    assert.equal(seopass?.proof?.kind, "seopass_run");
     assert.equal(securitypass?.status, "blocked");
     assert.equal(securitypass?.reasonCode, "scope_gate");
   } finally {
