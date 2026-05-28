@@ -4,11 +4,40 @@
   "description": "FlowPass - fixture-driven end-to-end journey readiness diagnostics for products.",
   "type": "module",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./schema": "./dist/schema.js",
-    "./flow-plan": "./dist/flow-plan.js",
-    "./verdict-pack": "./dist/verdict-pack.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    },
+    "./flow-plan": {
+      "types": "./dist/flow-plan.d.ts",
+      "import": "./dist/flow-plan.js"
+    },
+    "./verdict-pack": {
+      "types": "./dist/verdict-pack.d.ts",
+      "import": "./dist/verdict-pack.js"
+    },
+    "./runner": {
+      "types": "./dist/runner.d.ts",
+      "import": "./dist/runner.js"
+    },
+    "./reporter": {
+      "types": "./dist/reporter.d.ts",
+      "import": "./dist/reporter.js"
+    },
+    "./pack": {
+      "types": "./dist/pack.d.ts",
+      "import": "./dist/pack.js"
+    },
+    "./fixtures": {
+      "types": "./dist/fixtures.d.ts",
+      "import": "./dist/fixtures.js"
+    }
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",
@@ -17,9 +46,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "js-yaml": "^4.1.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.0.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.6"

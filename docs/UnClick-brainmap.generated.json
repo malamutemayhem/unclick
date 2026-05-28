@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 514,
+    "inventory": 515,
     "source_manifest": 189,
     "pages": 82,
-    "tools": 185,
+    "tools": 186,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 185
+      "count": 186
     },
     {
       "id": "rooms",
@@ -3732,6 +3732,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-flowpass-packages-mcp-server-src-flowpass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "flowpass",
+      "kind": "MCP tool",
+      "meaning": "flowpass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/flowpass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-flyio-packages-mcp-server-src-flyio-tool-ts-no-route",
       "division": "Tools",
       "name": "flyio",
@@ -6029,6 +6039,11 @@
       "figma",
       "figma MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/figma-tool.ts"
+    ],
+    [
+      "flowpass",
+      "flowpass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/flowpass-tool.ts"
     ],
     [
       "flyio",
