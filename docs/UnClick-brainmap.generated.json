@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 522,
+    "inventory": 525,
     "source_manifest": 190,
     "pages": 82,
     "tools": 187,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 62
+      "count": 65
     },
     {
       "id": "launch-and-onboarding",
@@ -1838,6 +1838,36 @@
       "kind": "proof module",
       "meaning": "pinballwake quiet window proof UnClick module.",
       "source": "scripts/pinballwake-quiet-window-proof.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-app-log-store-src-lib-jobsmith-applogstore-ts-no-route",
+      "division": "Modules and apps",
+      "name": "app Log Store",
+      "kind": "app module",
+      "meaning": "app Log Store shared frontend logic.",
+      "source": "src/lib/jobsmith/appLogStore.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-build-browser-corpus-src-lib-jobsmith-buildbrowsercorpus-ts-no-route",
+      "division": "Modules and apps",
+      "name": "build Browser Corpus",
+      "kind": "app module",
+      "meaning": "build Browser Corpus shared frontend logic.",
+      "source": "src/lib/jobsmith/buildBrowserCorpus.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-app-module-parse-pdf-browser-src-lib-jobsmith-parsepdfbrowser-ts-no-route",
+      "division": "Modules and apps",
+      "name": "parse Pdf Browser",
+      "kind": "app module",
+      "meaning": "parse Pdf Browser shared frontend logic.",
+      "source": "src/lib/jobsmith/parsePdfBrowser.ts",
       "route": "",
       "tags": []
     },
@@ -7142,8 +7172,8 @@
     },
     {
       "source": "package.json",
-      "hash": "ee050f961dad",
-      "bytes": 6206
+      "hash": "bbceabab4654",
+      "bytes": 6285
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7527,8 +7557,8 @@
     },
     {
       "source": "src/pages/Jobsmith.tsx",
-      "hash": "70f86c37110a",
-      "bytes": 34772
+      "hash": "08e9c9874c22",
+      "bytes": 61541
     },
     {
       "source": "src/pages/Login.tsx",

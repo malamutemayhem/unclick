@@ -30,7 +30,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | ee050f961dad | 6206 |
+| package.json | bbceabab4654 | 6285 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -107,7 +107,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/DogfoodReport.tsx | 16909fd44b92 | 16552 |
 | src/pages/FAQPage.tsx | c3c95c39e56f | 723 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
-| src/pages/Jobsmith.tsx | 70f86c37110a | 34772 |
+| src/pages/Jobsmith.tsx | 08e9c9874c22 | 61541 |
 | src/pages/Login.tsx | 0cfc79660be5 | 8862 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
@@ -218,7 +218,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 118 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 62 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 65 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 5 |
 
 ## UnClick Structure
@@ -705,6 +705,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Ledgers and proof | proof module | pinballwake openhands proof runner | pinballwake openhands proof runner UnClick module. | - | scripts/pinballwake-openhands-proof-runner.mjs |
 | Ledgers and proof | proof module | pinballwake proof executor | pinballwake proof executor UnClick module. | - | scripts/pinballwake-proof-executor.mjs |
 | Ledgers and proof | proof module | pinballwake quiet window proof | pinballwake quiet window proof UnClick module. | - | scripts/pinballwake-quiet-window-proof.mjs |
+| Modules and apps | app module | app Log Store | app Log Store shared frontend logic. | - | src/lib/jobsmith/appLogStore.ts |
+| Modules and apps | app module | build Browser Corpus | build Browser Corpus shared frontend logic. | - | src/lib/jobsmith/buildBrowserCorpus.ts |
+| Modules and apps | app module | parse Pdf Browser | parse Pdf Browser shared frontend logic. | - | src/lib/jobsmith/parsePdfBrowser.ts |
 | Modules and apps | app | api | package UnClick module. | - | apps/api/package.json |
 | Modules and apps | app | jobsmith | JobSmith application module for CV, checklist, and rule-pack work. | - | apps/jobsmith/package.json |
 | Modules and apps | app | JobSmith | CV, cover-letter, job application, and rules/checklist engine. | /admin/jobsmith | apps/jobsmith/package.json |
