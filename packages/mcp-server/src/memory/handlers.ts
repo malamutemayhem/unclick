@@ -6,7 +6,7 @@
  * params object. Used by both direct MCP tools and the unclick_call meta-tool.
  */
 
-import { getBackend } from "./db.js";
+import { getBackend, getBackendCacheMetrics } from "./db.js";
 import {
   buildToolGuidance,
   classifyTools,
@@ -776,7 +776,15 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
 
   async memory_status() {
     const db = await getBackend();
-    return db.getMemoryStatus();
+    const status = await db.getMemoryStatus();
+    const statusObject =
+      status && typeof status === "object" && !Array.isArray(status)
+        ? status as Record<string, unknown>
+        : { status };
+    return {
+      ...statusObject,
+      backend_cache: getBackendCacheMetrics(),
+    };
   },
 
   async invalidate_fact(args) {
