@@ -109,6 +109,39 @@ describe("CopyPass copy library", () => {
     expect(finding?.suggested_fix).toContain("quality");
   });
 
+  it("flags social-proof claims without evidence", () => {
+    const blocks: CopyPassCopyBlock[] = [
+      {
+        id: "hero",
+        kind: "hero",
+        text: "Trusted by thousands of teams and rated five-star by founders.",
+        public_only: true,
+      },
+    ];
+
+    const checkIds = detectCopyPassFindings(blocks).map((finding) => finding.check_id);
+
+    expect(checkIds).toContain("testimonial-proof-gap");
+  });
+
+  it("flags unsupported human-authorship claims", () => {
+    const blocks: CopyPassCopyBlock[] = [
+      {
+        id: "feature",
+        kind: "feature",
+        text: "Turn AI drafts into 100% human-written copy with one click.",
+        public_only: true,
+      },
+    ];
+
+    const [finding] = detectCopyPassFindings(blocks).filter(
+      (item) => item.check_id === "authorship-transparency",
+    );
+
+    expect(finding?.severity).toBe("high");
+    expect(finding?.suggested_fix).toContain("human-written");
+  });
+
   it("does not treat explicit banned-phrase documentation as live risky copy", () => {
     const blocks: CopyPassCopyBlock[] = [
       {
@@ -118,7 +151,7 @@ describe("CopyPass copy library", () => {
         source_path: "docs/legalpass-product-brief.md",
         text:
           "Verdict-linter guardrail examples: banned phrases include `100% compliant`, " +
-          "`risk-free`, `AI lawyer`, `rank #1`, `last chance`, and `fully automated`. " +
+          "`risk-free`, `AI lawyer`, `rank #1`, `last chance`, `trusted by`, `100% human`, and `fully automated`. " +
           "Allowed framing includes `may warrant review` and `qualified practitioner review may be warranted`.",
         public_only: true,
       },

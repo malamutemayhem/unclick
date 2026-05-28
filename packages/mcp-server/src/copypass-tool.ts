@@ -7,8 +7,10 @@ type CopyPassCheckId =
   | "value-prop-clarity"
   | "cta-presence"
   | "proof-trust-gap"
+  | "testimonial-proof-gap"
   | "unsupported-superiority"
   | "detector-evasion-claim"
+  | "authorship-transparency"
   | "placeholder-copy"
   | "risky-guarantee-language"
   | "internal-consistency"
@@ -170,8 +172,10 @@ const COPYPASS_CHECK_IDS: CopyPassCheckId[] = [
   "value-prop-clarity",
   "cta-presence",
   "proof-trust-gap",
+  "testimonial-proof-gap",
   "unsupported-superiority",
   "detector-evasion-claim",
+  "authorship-transparency",
   "placeholder-copy",
   "risky-guarantee-language",
   "internal-consistency",
@@ -214,10 +218,13 @@ const VAGUE_TERMS = [
 
 const CTA_TERMS = ["book", "connect", "create", "get", "join", "open", "run", "scan", "start", "try"];
 const PROOF_TERMS = ["audit", "case study", "check", "checked", "checks", "customer", "evidence", "privacy", "proof", "receipt", "receipts", "safety", "security", "trusted", "verified"];
-const SUPERIORITY_TERMS = ["#1", "best", "industry leading", "leading", "most advanced", "number one", "revolutionary", "ultimate"];
+const SOCIAL_PROOF_TERMS = ["as seen in", "customers love", "endorsed by", "featured in", "five-star", "loved by", "rated", "recommended by", "trusted by", "users love", "5-star"];
+const SOCIAL_PROOF_EVIDENCE_TERMS = ["case study", "customer quote", "evidence", "public proof", "receipt", "review", "source", "testimonial", "verified"];
+const SUPERIORITY_TERMS = ["#1", "best", "better than", "industry leading", "leading", "most advanced", "number one", "outperforms", "revolutionary", "safer than", "smarter than", "ultimate"];
 const PLACEHOLDER_TERMS = ["coming soon", "copy goes here", "insert copy", "lorem ipsum"];
 const GUARANTEE_TERMS = ["100%", "always", "compliance guaranteed", "guaranteed", "instant revenue", "never fail", "rank #1", "risk-free"];
 const DETECTOR_EVASION_TERMS = ["ai detection bypass", "bypass ai detection", "bypass ai detector", "beat ai detection", "beat ai detector", "evade ai detection", "evade detection", "gptzero safe", "pass gptzero", "pass turnitin", "turnitin safe", "turnitin-safe", "undetectable ai"];
+const AUTHORSHIP_TRANSPARENCY_TERMS = ["100% human", "ai-free", "human written", "human-written", "no ai generated", "no ai-generated", "not ai generated", "not ai-generated", "written by humans"];
 const AI_SLOP_TERMS = ["delve", "elevate", "game changing", "game-changing", "in today's digital landscape", "leverage", "not just", "revolutionize", "seamless", "tapestry", "transform your", "unlock", "whether you're"];
 const URGENCY_TERMS = ["act now", "before it's gone", "don't miss out", "last chance", "limited time", "only today"];
 const UI_AUTOMATION_TERMS = ["autopilot", "automatic", "automatically", "automated", "done for you", "fully built", "hands-off", "zero touch"];
@@ -375,6 +382,23 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
+  if (
+    !isPolicyExample &&
+    containsAny(normalized, SOCIAL_PROOF_TERMS) &&
+    !containsAny(normalized, SOCIAL_PROOF_EVIDENCE_TERMS)
+  ) {
+    findings.push(
+      createCopyFinding(
+        "testimonial-proof-gap",
+        "Social-proof claim needs evidence",
+        "medium",
+        "The copy uses a testimonial, rating, endorsement, or trusted-by claim without a visible source.",
+        "Attach a public source, review, testimonial, case study, or receipt before using the social-proof claim.",
+        copyText,
+      ),
+    );
+  }
+
   if (hasPlaceholderLanguage(normalized)) {
     findings.push(
       createCopyFinding(
@@ -409,6 +433,19 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
         "high",
         "The copy markets AI-detector bypass or guaranteed undetectability instead of quality review.",
         "Reposition the copy around quality, clarity, editing, and evidence instead of detector bypass claims.",
+        copyText,
+      ),
+    );
+  }
+
+  if (!isPolicyExample && containsAny(normalized, AUTHORSHIP_TRANSPARENCY_TERMS)) {
+    findings.push(
+      createCopyFinding(
+        "authorship-transparency",
+        "Human-authorship claim needs support",
+        "high",
+        "The copy implies the text is fully human-written or AI-free, which can be misleading without proof.",
+        "Remove human-written or AI-free claims unless they are true and supported, or reframe around human review.",
         copyText,
       ),
     );
@@ -614,8 +651,10 @@ function isPolicyExampleCatalog(normalized: string, channel: string): boolean {
   ]);
   const hasRiskTerm = containsAny(normalized, [
     ...SUPERIORITY_TERMS,
+    ...SOCIAL_PROOF_TERMS,
     ...GUARANTEE_TERMS,
     ...DETECTOR_EVASION_TERMS,
+    ...AUTHORSHIP_TRANSPARENCY_TERMS,
     ...AI_SLOP_TERMS,
     ...URGENCY_TERMS,
     ...UI_AUTOMATION_TERMS,
