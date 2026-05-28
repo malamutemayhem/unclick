@@ -7086,8 +7086,8 @@
     },
     {
       "source": "package.json",
-      "hash": "2c50a18f4684",
-      "bytes": 5202
+      "hash": "92d5c368f911",
+      "bytes": 6092
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7236,8 +7236,8 @@
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "21baca89f0d0",
-      "bytes": 27078
+      "hash": "c764ced96836",
+      "bytes": 26511
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -7456,8 +7456,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "a2d54cc557ef",
-      "bytes": 16182
+      "hash": "475957fc3a6b",
+      "bytes": 16469
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -7661,8 +7661,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "92b4e63503f5",
-      "bytes": 20902
+      "hash": "92abd377c201",
+      "bytes": 23868
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",

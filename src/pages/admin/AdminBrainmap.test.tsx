@@ -78,8 +78,9 @@ describe("AdminBrainmap", () => {
 
     expect(screen.queryByText("Pages and Meaning")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Show source" }));
-    expect(screen.getAllByText("Pages and Meaning").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Tool and Worker Tree").length).toBeGreaterThan(0);
+    const source = screen.getByLabelText("Generated Brainmap markdown source");
+    expect(source).toHaveTextContent("Pages and Meaning");
+    expect(source).toHaveTextContent("Tool and Worker Tree");
   });
 
   it("blocks the private view for non-owner admins", async () => {

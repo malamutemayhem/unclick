@@ -102,6 +102,11 @@ test("dogfood receipt includes a safe SecurityPass proof without active probes",
     assert.equal(report.xpassIndex.find((entry) => entry.id === "compliancepass")?.stage, "live_dogfood");
     assert.equal(report.xpassIndex.find((entry) => entry.id === "copypass")?.stage, "package_ready");
     assert.equal(report.xpassIndex.find((entry) => entry.id === "legalpass")?.stage, "package_ready");
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "commonsensepass")?.stage, "live_gate");
+    assert.match(
+      report.xpassIndex.find((entry) => entry.id === "geopass")?.nextStep ?? "",
+      /answer-engine/i,
+    );
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }

@@ -110,13 +110,33 @@ runs:
         if [ -n "${VERCEL_BYPASS_SECRET:-}" ] && [[ "$API_URL" == *".vercel.app"* ]]; then
           curl_args+=(-H "x-vercel-protection-bypass: $VERCEL_BYPASS_SECRET")
         fi
-        http_code=$(curl "${curl_args[@]}" \
-          -d "$payload") || curl_exit=$?
-        http_code="${http_code:-000}"
+        is_preview_building_response() {
+          [ "${http_code:-000}" = "200" ] || return 1
+          [ -f response.json ] || return 1
+          grep -Eiq 'Deployment is building|instant-preview-site\.vercel\.app|initialReadyState\\":\\"BUILDING' response.json
+        }
 
-        echo "curl exit: $curl_exit"
-        echo "HTTP $http_code"
-        if [ -f response.json ]; then cat response.json; echo; fi
+        max_attempts=20
+        attempt=1
+        while :; do
+          curl_exit=0
+          http_code=$(curl "${curl_args[@]}" \
+            -d "$payload") || curl_exit=$?
+          http_code="${http_code:-000}"
+
+          echo "curl exit: $curl_exit"
+          echo "HTTP $http_code"
+          if [ -f response.json ]; then cat response.json; echo; fi
+
+          if [ "$curl_exit" -eq 0 ] && is_preview_building_response && [ "$attempt" -lt "$max_attempts" ]; then
+            echo "::notice::Vercel preview is still building; retrying TestPass API call ($attempt/$max_attempts)." >&2
+            attempt=$((attempt + 1))
+            sleep 15
+            continue
+          fi
+
+          break
+        done
 
         # Defaults for outputs - written even if every parse below fails.
         run_id=""
@@ -143,6 +163,15 @@ runs:
           status="infra_http_error"
           failure_kind="infra_http"
           response=$(jq -c '.' response.json 2>/dev/null || echo "{}")
+        elif ! jq -e type response.json >/dev/null 2>&1; then
+          if is_preview_building_response; then
+            echo "::warning::Vercel preview was still building after $max_attempts TestPass attempts; retry the workflow after deployment finishes." >&2
+          else
+            echo "::warning::TestPass API returned a non-JSON response with HTTP $http_code; treating this as service-side infra, not product failure." >&2
+          fi
+          status="infra_http_error"
+          failure_kind="infra_http"
+          response="{}"
         else
           run_id=$(jq -r '.run_id // ""' response.json 2>/dev/null || echo "")
           status=$(jq -r '.status // ""' response.json 2>/dev/null || echo "")
@@ -150,7 +179,13 @@ runs:
           fail_count=$(jq -r '.verdict_summary.fail // 0' response.json 2>/dev/null || echo "0")
           total=$(jq -r '.verdict_summary.total // 0' response.json 2>/dev/null || echo "0")
           response=$(jq -c '.' response.json 2>/dev/null || echo "{}")
-          failure_kind="product"
+          if [ -z "$run_id" ] || [ -z "$status" ]; then
+            echo "::warning::TestPass API returned JSON without a run_id/status; treating this as service-side infra, not product failure." >&2
+            status="infra_http_error"
+            failure_kind="infra_http"
+          else
+            failure_kind="product"
+          fi
         fi
 
         # Always write outputs, even on infra failure, so downstream
