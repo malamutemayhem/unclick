@@ -12,6 +12,7 @@ import { createServer, IncomingMessage, ServerResponse } from "node:http";
 import { runDeterministicChecks } from "../runner/deterministic.js";
 import { probeServer } from "../probe.js";
 import { loadPackFromYaml } from "../pack-loader.js";
+import { buildMcpHeaders } from "../mcp-http.js";
 
 jest.mock("../run-manager.js", () => ({
   updateItem:     jest.fn().mockResolvedValue(undefined),
@@ -73,9 +74,15 @@ items:
 
 describe("dispatcher Authorization header", () => {
   const originalToken = process.env.TESTPASS_TOKEN;
+  const originalVercelBypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  const originalTargetVercelBypass = process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
   afterEach(() => {
     if (originalToken === undefined) delete process.env.TESTPASS_TOKEN;
     else process.env.TESTPASS_TOKEN = originalToken;
+    if (originalVercelBypass === undefined) delete process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+    else process.env.VERCEL_AUTOMATION_BYPASS_SECRET = originalVercelBypass;
+    if (originalTargetVercelBypass === undefined) delete process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+    else process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = originalTargetVercelBypass;
   });
 
   it("deterministic runner sends Bearer token when TESTPASS_TOKEN is set", async () => {
@@ -119,5 +126,14 @@ describe("dispatcher Authorization header", () => {
     } finally {
       srv.close();
     }
+  });
+
+  it("adds the Vercel bypass header only for protected Vercel preview targets", () => {
+    process.env.VERCEL_AUTOMATION_BYPASS_SECRET = "vercel-bypass-secret";
+
+    expect(buildMcpHeaders("https://example.com/api/mcp")["x-vercel-protection-bypass"]).toBeUndefined();
+    expect(buildMcpHeaders("https://unclick-agent-native-endpoints-test.vercel.app/api/mcp")).toEqual(
+      expect.objectContaining({ "x-vercel-protection-bypass": "vercel-bypass-secret" }),
+    );
   });
 });

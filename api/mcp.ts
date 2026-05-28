@@ -378,8 +378,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     sessionIdGenerator: undefined, // stateless mode - no sessions in serverless
   });
 
-  const server = await createServer();
-
   // Normalize the Accept header before delegating to the SDK. The SDK's
   // Streamable HTTP transport bounces requests that lack both
   // "application/json" and "text/event-stream" with HTTP 406 + -32000 +
@@ -391,7 +389,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // permissive than the SDK here is safe.
   normalizeAcceptHeader(req);
 
+  let server: Awaited<ReturnType<typeof createServer>> | null = null;
   try {
+    server = await createServer();
     await server.connect(transport);
     // Vercel parses the body automatically; pass it through to avoid re-parsing
     await transport.handleRequest(req, res, req.body);
@@ -407,6 +407,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } finally {
     // Clean up after the response is sent
-    server.close().catch(() => {});
+    server?.close().catch(() => {});
   }
 }
