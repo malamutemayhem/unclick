@@ -20,6 +20,18 @@ describe("PinballWake XPass Gate Room", () => {
     assert.deepEqual(selected, ["uxpass", "sloppass"]);
   });
 
+  it("does not route backend memory-admin mentions to UXPass", () => {
+    const selected = checks({
+      title: "Runner memory-admin queue fallback",
+      description: "Use the memory-admin endpoint when MCP queue reads fail.",
+      changed_files: ["scripts/pinballwake-autonomous-runner.mjs"],
+    });
+
+    assert.equal(selected.includes("uxpass"), false);
+    assert.ok(selected.includes("testpass"));
+    assert.ok(selected.includes("sloppass"));
+  });
+
   it("routes MCP/tool changes to TestPass and SlopPass", () => {
     const selected = checks({
       title: "Add connector tool",
