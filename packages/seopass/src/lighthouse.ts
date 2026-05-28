@@ -17,8 +17,8 @@ export function buildLighthousePlan(pack: SeoPassPack): LighthousePluginPlan {
     categories: pack.lighthouse.categories,
     output: ["json"],
     notes: [
-      "Chunk 1 scaffold only: this builds the Lighthouse execution plan.",
-      "A later chip will execute Lighthouse, persist runs, and emit findings.",
+      "This builds the heavier Lighthouse execution plan for SEOPass.",
+      "seopass_run already emits a live-readonly deterministic verdict; this lane is for full Lighthouse evidence when available.",
     ],
   };
 }

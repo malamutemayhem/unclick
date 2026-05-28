@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "dev:api": "npm run dev --workspace=apps/api",
-    "build": "vite build",
+    "build": "npm run build --workspace=@unclick/commonsensepass && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",

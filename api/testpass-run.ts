@@ -307,6 +307,37 @@ function queryString(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+export function resolveTestPassTargetToken(params: {
+  incomingToken: string;
+  isCron: boolean;
+  configuredToken?: string;
+}): string | undefined {
+  const configured = params.configuredToken?.trim();
+  const incoming = params.incomingToken.trim();
+  if (!params.isCron && incoming.startsWith("uc_")) return incoming;
+  return configured || undefined;
+}
+
+export async function withTestPassTargetToken<T>(
+  targetToken: string | undefined,
+  work: () => Promise<T>,
+): Promise<T> {
+  const token = targetToken?.trim();
+  if (!token) return work();
+
+  const previous = process.env.TESTPASS_TOKEN;
+  process.env.TESTPASS_TOKEN = token;
+  try {
+    return await work();
+  } finally {
+    if (previous === undefined) {
+      delete process.env.TESTPASS_TOKEN;
+    } else {
+      process.env.TESTPASS_TOKEN = previous;
+    }
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") return json(res, 204, {});
 
@@ -403,6 +434,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const target: RunTarget = { type: "url", url: input.server_url ?? "" };
   const packName = input.pack_name ?? pack.name ?? packSlug;
+  const targetToken = resolveTestPassTargetToken({
+    incomingToken: token,
+    isCron,
+    configuredToken: process.env.TESTPASS_TOKEN,
+  });
 
   const { id: runId, was_duplicate } = await createRun(config, {
     packId: packRow.id,
@@ -426,53 +462,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const runWork = async () => {
-    let evidenceRef: string | undefined;
-    if (target.url) {
-      try {
-        const probeResult = await probeServer(target.url, { timeoutMs: 12_000 });
-        evidenceRef = await createEvidence(config, { kind: "tool_list", payload: probeResult });
-      } catch (err) {
-        console.error(`testpass-run probe failed for ${runId}:`, (err as Error).message);
+    return withTestPassTargetToken(targetToken, async () => {
+      let evidenceRef: string | undefined;
+      if (target.url) {
+        try {
+          const probeResult = await probeServer(target.url, { timeoutMs: 12_000 });
+          evidenceRef = await createEvidence(config, { kind: "tool_list", payload: probeResult });
+        } catch (err) {
+          console.error(`testpass-run probe failed for ${runId}:`, (err as Error).message);
+        }
       }
-    }
 
-    await seedPendingItems(config, runId, pack, profile, evidenceRef);
+      await seedPendingItems(config, runId, pack, profile, evidenceRef);
 
-    if (target.url) {
-      try {
-        await runDeterministicChecks(config, runId, target.url, pack, profile);
-      } catch (err) {
-        console.error(`testpass-run deterministic failed for ${runId}:`, (err as Error).message);
+      if (target.url) {
+        try {
+          await runDeterministicChecks(config, runId, target.url, pack, profile);
+        } catch (err) {
+          console.error(`testpass-run deterministic failed for ${runId}:`, (err as Error).message);
+        }
+        try {
+          await runAgentChecks(config, runId, target.url, pack, profile, evidenceRef);
+        } catch (err) {
+          console.error(`testpass-run agent failed for ${runId}:`, (err as Error).message);
+        }
       }
-      try {
-        await runAgentChecks(config, runId, target.url, pack, profile, evidenceRef);
-      } catch (err) {
-        console.error(`testpass-run agent failed for ${runId}:`, (err as Error).message);
-      }
-    }
 
-    const summary = await computeVerdictSummary(config, runId);
-    const isDone = summary.pending === 0;
-    const status = isDone ? (summary.fail > 0 ? "failed" : "complete") : "running";
-    await updateRunStatus(
-      config,
-      runId,
-      status,
-      summary,
-    );
-    if (shouldEmitScheduledSignal(input.source)) {
-      emitScheduledRunSignal({
-        apiKeyHash,
+      const summary = await computeVerdictSummary(config, runId);
+      const isDone = summary.pending === 0;
+      const status = isDone ? (summary.fail > 0 ? "failed" : "complete") : "running";
+      await updateRunStatus(
+        config,
         runId,
-        packSlug,
-        packName,
-        profile,
-        target,
         status,
         summary,
-      });
-    }
-    return summary;
+      );
+      if (shouldEmitScheduledSignal(input.source)) {
+        emitScheduledRunSignal({
+          apiKeyHash,
+          runId,
+          packSlug,
+          packName,
+          profile,
+          target,
+          status,
+          summary,
+        });
+      }
+      return summary;
+    });
   };
 
   if (profile === "smoke") {
