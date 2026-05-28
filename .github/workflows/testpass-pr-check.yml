@@ -54,7 +54,7 @@ jobs:
         uses: actions/github-script@v9
         env:
           VERCEL_STATUS_CONTEXT: Vercel
-          VERCEL_WAIT_SECONDS: "120"
+          VERCEL_WAIT_SECONDS: "600"
           VERCEL_WAIT_INTERVAL_SECONDS: "10"
         with:
           script: |
@@ -377,6 +377,13 @@ jobs:
                 body,
               });
             }
+
+      - name: Fail while Vercel preview is pending
+        if: ${{ always() && github.event_name == 'pull_request' && steps.token.outputs.has_token == 'true' && steps.vercel.outputs.ready == 'false' }}
+        shell: bash
+        run: |
+          echo "::error::Vercel preview is still pending; TestPass did not run and must be retried after Vercel is green."
+          exit 1
 
       - name: Explain Dependabot TestPass skip
         if: ${{ always() && github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' && steps.token.outputs.has_token != 'true' }}
