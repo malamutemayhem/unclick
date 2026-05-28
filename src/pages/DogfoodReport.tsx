@@ -115,16 +115,16 @@ export default function DogfoodReportPage() {
           </FadeIn>
 
           <FadeIn delay={0.05}>
-            <div className="mt-6 grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
-              <div>
+            <div className="mt-6 grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-end">
+              <div className="min-w-0">
                 <h1
-                  className="text-4xl font-semibold !leading-[1.15] text-heading sm:text-5xl"
+                  className="max-w-full break-words text-3xl font-semibold !leading-[1.15] text-heading sm:text-5xl"
                   aria-label={report.headline}
                   title={report.headline}
                 >
                   {report.headline}
                 </h1>
-                <p className="mt-4 max-w-2xl text-lg leading-relaxed text-body">
+                <p className="mt-4 max-w-2xl break-words text-lg leading-relaxed text-body">
                   This page shows the latest Pass-family receipt evidence from checks running
                   against UnClick itself.
                 </p>

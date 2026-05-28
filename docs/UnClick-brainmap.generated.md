@@ -103,7 +103,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Developers.tsx | 9657fd564797 | 19123 |
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
-| src/pages/DogfoodReport.tsx | 475957fc3a6b | 16469 |
+| src/pages/DogfoodReport.tsx | 16909fd44b92 | 16552 |
 | src/pages/FAQPage.tsx | c3c95c39e56f | 723 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 70f86c37110a | 34772 |
