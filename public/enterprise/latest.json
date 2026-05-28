@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-28T03:30:09.225Z",
-  "valid_until": "2026-06-04T03:30:09.225Z",
+  "generated_at": "2026-05-28T10:17:09.994Z",
+  "valid_until": "2026-06-04T10:17:09.994Z",
   "source": "local deterministic repo/docs scan",
   "product": "CompliancePass",
   "legacy_aliases": [
@@ -639,7 +639,7 @@
           "title": "Docs reference evidence and proof",
           "status": "pass",
           "score": 100,
-          "summary": "2672 evidence/proof references were found.",
+          "summary": "2686 evidence/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -979,7 +979,7 @@
           "title": "Audit trail and proof language exists",
           "status": "pass",
           "score": 100,
-          "summary": "3180 audit/proof references were found.",
+          "summary": "3194 audit/proof references were found.",
           "evidence": [
             {
               "type": "doc",
