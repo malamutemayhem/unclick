@@ -208,6 +208,42 @@ function CopyableBlock({ label, text }: { label: string; text: string }) {
   );
 }
 
+function RunColumn({ mode }: { mode: "off" | "on" }) {
+  const on = mode === "on";
+  const accent = on ? TEAL : "#888";
+  return (
+    <div
+      className="rounded-xl border p-4"
+      style={{
+        borderColor: on ? `${TEAL}33` : "rgba(255,255,255,0.06)",
+        background: on ? `${TEAL}0a` : "rgba(0,0,0,0.2)",
+      }}
+    >
+      <div className="mb-3 flex items-center gap-2">
+        <span className="h-2.5 w-2.5 rounded-full" style={{ background: accent }} />
+        <span className="text-sm font-semibold text-white">
+          {on ? "With UnClick" : "Without UnClick"}
+        </span>
+      </div>
+
+      <p className="mb-1.5 text-[11px] leading-relaxed text-[#999]">
+        Step 1. Open a fresh Code session with UnClick{" "}
+        <span className="font-semibold" style={{ color: accent }}>{on ? "ON" : "OFF"}</span>.
+      </p>
+      <p className="mb-1.5 text-[11px] leading-relaxed text-[#999]">
+        Step 2. Paste the main test, let it answer, grade it.
+      </p>
+      <CopyableBlock label="Main test (Prompt 1)" text={MASTER_PROMPT} />
+
+      <p className="mb-1.5 mt-3 text-[11px] leading-relaxed text-[#999]">
+        Step 3. Open a brand-new session (same UnClick {on ? "ON" : "OFF"}), paste the recall, grade the
+        memory answers.
+      </p>
+      <CopyableBlock label="Memory recall (Prompt 2)" text={MEMORY_RECALL_PROMPT} />
+    </div>
+  );
+}
+
 function HowToRun() {
   const [open, setOpen] = useState(true);
   return (
@@ -219,77 +255,30 @@ function HowToRun() {
       </button>
 
       {open && (
-        <div className="mt-4 space-y-5">
+        <div className="mt-4 space-y-4">
           <p className="text-xs leading-relaxed text-[#aaa]">
-            You run the <span className="text-[#ddd]">same prompt</span> in{" "}
-            <span className="text-[#ddd]">four separate sessions</span>. The only thing that changes
-            between them is whether UnClick is connected. That is the whole experiment: change one
-            thing, watch the score move. (A different prompt for the UnClick runs would change two
-            things at once, so you could not tell what caused the difference.)
+            Run the left column, then the right column. Do that once in{" "}
+            <span className="text-[#ddd]">Claude</span> and once in <span className="text-[#ddd]">Codex</span>{" "}
+            = your <span className="text-[#ddd]">four contestants</span>.
           </p>
 
-          {/* The four sessions, as a clear 2-column matrix */}
-          <div>
-            <p className="mb-2 text-[11px] uppercase tracking-wide text-[#666]">The four sessions</p>
-            <div className="grid grid-cols-[auto_1fr_1fr] gap-2 text-xs">
-              <div />
-              <div className="rounded-md bg-white/[0.03] px-3 py-2 text-center font-medium text-[#999]">
-                Without UnClick
-              </div>
-              <div
-                className="rounded-md px-3 py-2 text-center font-medium"
-                style={{ background: `${TEAL}14`, color: TEAL }}
-              >
-                With UnClick
-              </div>
-
-              <div className="flex items-center px-1 font-medium text-[#999]">Claude</div>
-              <div className="rounded-md border border-white/[0.06] bg-black/20 px-3 py-2 text-[#bbb]">
-                Session 1<div className="text-[10px] text-[#666]">Claude alone</div>
-              </div>
-              <div className="rounded-md border border-white/[0.06] bg-black/20 px-3 py-2 text-[#bbb]">
-                Session 2<div className="text-[10px] text-[#666]">Claude + UnClick</div>
-              </div>
-
-              <div className="flex items-center px-1 font-medium text-[#999]">Codex</div>
-              <div className="rounded-md border border-white/[0.06] bg-black/20 px-3 py-2 text-[#bbb]">
-                Session 3<div className="text-[10px] text-[#666]">Codex alone</div>
-              </div>
-              <div className="rounded-md border border-white/[0.06] bg-black/20 px-3 py-2 text-[#bbb]">
-                Session 4<div className="text-[10px] text-[#666]">Codex + UnClick</div>
-              </div>
-            </div>
-            <p className="mt-2 text-[11px] text-[#666]">
-              All four sessions get the identical Prompt 1 below. Use a fresh <span className="text-[#999]">Code</span>{" "}
-              session each time (Claude Code or Codex CLI). Not Chat, not a fleet session.
-            </p>
+          <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-[11px] leading-relaxed text-[#999]">
+            <span className="text-[#ddd]">Note:</span> the prompt text is identical in both columns on
+            purpose. The only difference is whether UnClick is connected. The separate boxes just let you
+            work straight down one column. (Prompt 2 is in its own box because memory must be tested in a
+            brand-new session - inside one session even a plain model "remembers", so it would prove
+            nothing.)
           </div>
 
-          {/* Why memory is a second part */}
-          <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-            <p className="text-xs font-medium text-[#ccc]">Each session has two parts</p>
-            <ul className="mt-1.5 space-y-1 text-[11px] leading-relaxed text-[#999]">
-              <li>
-                <span className="text-[#ddd]">Part A - main test:</span> run Prompt 1. It also plants
-                three facts to remember.
-              </li>
-              <li>
-                <span className="text-[#ddd]">Part B - memory recall:</span> close that session, open a
-                brand-new one, and run Prompt 2. This is the only fair way to test memory that survives
-                between sessions. Inside one session even a plain model "remembers" what you just said,
-                so it would prove nothing. In the new session UnClick recalls the facts; a raw model
-                answers "unknown".
-              </li>
-            </ul>
+          <div className="grid gap-4 md:grid-cols-2">
+            <RunColumn mode="off" />
+            <RunColumn mode="on" />
           </div>
-
-          <CopyableBlock label="Prompt 1 - Main test (run first, in each of the 4 sessions)" text={MASTER_PROMPT} />
-          <CopyableBlock label="Prompt 2 - Memory recall (run second, in a fresh session for each)" text={MEMORY_RECALL_PROMPT} />
 
           <p className="text-[11px] leading-relaxed text-[#666]">
-            Then grade each category out of 100 against your private answer key and record the run. This
-            is a starting reference - edit it as the benchmark evolves, and keep the answer key private
-            so the agent under test cannot read it.
+            Grade each category out of 100 against your private answer key, then record the run. This is a
+            starting reference - edit it as the benchmark evolves, and keep the answer key private so the
+            agent under test cannot read it.
           </p>
         </div>
       )}
