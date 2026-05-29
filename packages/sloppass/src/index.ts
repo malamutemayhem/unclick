@@ -1,6 +1,7 @@
 export * from "./categories.js";
 export * from "./disclaimer.js";
 export * from "./diff.js";
+export * from "./lenses/stale-overwrite.js";
 export * from "./reporter.js";
 export * from "./runner/index.js";
 export * from "./schema.js";

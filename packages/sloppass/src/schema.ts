@@ -15,6 +15,7 @@ export const SlopPassCategorySchema = z.enum([
   "test_proof_theatre",
   "slopocalypse_failure_mode",
   "maintenance_change_risk",
+  "vcs_integration_risk",
 ]);
 
 export const SlopPassTargetSchema = z.object({
@@ -40,6 +41,18 @@ export const SlopPassFindingSchema = z.object({
   confidence_note: z.string().optional(),
   file: z.string().optional(),
   line: z.number().int().positive().optional(),
+  cross_branch_evidence: z
+    .object({
+      base_sha: z.string().min(1),
+      head_sha: z.string().min(1),
+      overwritten_commits: z.array(z.string().min(1)).optional(),
+      file: z.string().min(1),
+      line_range: z.tuple([
+        z.number().int().positive(),
+        z.number().int().positive(),
+      ]),
+    })
+    .optional(),
 });
 
 export const SlopPassVerdictSchema = z.enum(["pass", "warn", "fail", "unknown"]);
@@ -67,6 +80,18 @@ export const SlopPassDisclaimerSchema = z.object({
   compact: z.string().min(1),
 });
 
+export const SlopPassGitContextSchema = z.object({
+  base_sha: z.string().min(1),
+  head_sha: z.string().min(1),
+  files: z.record(
+    z.object({
+      base_blob: z.string().max(SLOPPASS_LIMITS.maxFileBytes),
+      main_blob: z.string().max(SLOPPASS_LIMITS.maxFileBytes),
+      pr_head_blob: z.string().max(SLOPPASS_LIMITS.maxFileBytes),
+    }),
+  ),
+});
+
 export const SlopPassResultSchema = z.object({
   target: SlopPassTargetSchema,
   scope: SlopPassScopeSchema,
@@ -82,16 +107,18 @@ export const SlopPassRunInputSchema = z
     target: SlopPassTargetSchema,
     files: z.array(SlopPassSourceFileSchema).max(SLOPPASS_LIMITS.maxFiles).optional(),
     diff: z.string().max(SLOPPASS_LIMITS.maxDiffBytes).optional(),
+    git_context: SlopPassGitContextSchema.optional(),
     checks: z.array(SlopPassCategorySchema).min(1).optional(),
     provider: z.enum(["openai", "anthropic", "google", "ollama", "http"]).default("http"),
   })
   .superRefine((value, ctx) => {
     if (value.files?.some((file) => file.content.trim().length > 0)) return;
     if (typeof value.diff === "string" && value.diff.trim()) return;
+    if (Object.keys(value.git_context?.files ?? {}).length > 0) return;
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["files"],
-      message: "SlopPass requires at least one source file or a unified diff.",
+      message: "SlopPass requires at least one source file, unified diff, or git_context file.",
     });
   });
 
