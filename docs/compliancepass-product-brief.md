@@ -59,9 +59,9 @@ Every report includes:
 6. Exclusions.
 7. Disclaimer.
 
-## Relationship To Other XPass Products
+## Relationship To Other Pass-Family Products
 
-CompliancePass should not duplicate the specialist logic of other XPass products. It should collect, summarize, and cross-reference their evidence.
+CompliancePass should not duplicate the specialist logic of other Pass-family products. It should collect, summarize, and cross-reference their evidence. XPass is the conductor that orchestrates Pass-family checks; CompliancePass is one of the underlying readiness checks XPass can route to.
 
 | Product | CompliancePass Uses It For |
 | --- | --- |

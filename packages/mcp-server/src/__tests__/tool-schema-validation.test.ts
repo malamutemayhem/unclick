@@ -41,6 +41,14 @@ describe("runtime tool schema validation", () => {
         bogus_field: "should reject",
       },
     },
+    {
+      name: "release_claim",
+      args: {
+        agent_id: "strict-probe",
+        todo_id: "11111111-1111-4111-8111-111111111111",
+        bogus_field: "should reject",
+      },
+    },
     { name: "stripe_customers", args: { secret_key: "sk_test_dummy", action: "X", bogus_field: "should reject" } },
     { name: "stripe_charges", args: { secret_key: "sk_test_dummy", action: "X", bogus_field: "should reject" } },
     {
@@ -133,6 +141,10 @@ describe("runtime tool schema validation", () => {
       eta: "next cycle",
       blocker: "none",
     })).toBeNull();
+    expect(validateToolArgumentsForRuntime("release_claim", {
+      agent_id: "strict-probe",
+      todo_id: "11111111-1111-4111-8111-111111111111",
+    })).toBeNull();
     expect(validateToolArgumentsForRuntime("unclick_call", {
       endpoint_id: "memory.search_memory",
       params: { query: "strict schema probe" },
@@ -191,5 +203,11 @@ describe("runtime tool schema validation", () => {
     for (const tool of AUTOPILOT_VISIBLE_TOOLS) {
       expect(advertisedNames.has(tool.name), tool.name).toBe(true);
     }
+  });
+
+  it("advertises the guarded Boardroom release tool", () => {
+    const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
+
+    expect(advertisedNames.has("release_claim")).toBe(true);
   });
 });

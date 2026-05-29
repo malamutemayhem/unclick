@@ -86,6 +86,37 @@ describe("Fishbowl job pipeline inference", () => {
     });
   });
 
+  it("lets same-comment missing live proof override green CI progress", () => {
+    expect(
+      inferFishbowlJobPipeline(
+        {
+          title: "FidelityCopy: deterministic non-AI copy engine for FidelityPass",
+          status: "in_progress",
+        },
+        [
+          {
+            text: "PR #997 FidelityCopy owner-lift completed: merged at 94c3b93 and main CI passed.",
+            created_at: "2026-05-22T06:43:59Z",
+          },
+          {
+            text: "CI update for draft PR #1005: GitHub checks are green. No DONE move; FidelityCopy still needs @unclick/mcp-server publish/tool-discovery/live receipt proof.",
+            created_at: "2026-05-22T07:43:38Z",
+          },
+        ],
+      ),
+    ).toEqual({
+      pipeline_stage_count: 1,
+      pipeline_progress: 10,
+      pipeline_source: "proof: missing",
+      pipeline_evidence: ["proof_missing"],
+      proof_state: "missing",
+      proof_state_reason: "Proof is recorded as missing.",
+      effective_status: "in_progress",
+      release_blocked: false,
+      release_block_reason: null,
+    });
+  });
+
   it("lets newer proof move a reopened job forward again", () => {
     expect(
       inferFishbowlJobPipeline(
@@ -130,10 +161,32 @@ describe("Fishbowl job pipeline inference", () => {
         ["PR #999 checks green.", "BLOCKER: missing authenticated screenshot proof for /admin/memory?tab=recall-check."],
       ),
     ).toMatchObject({
-      pipeline_stage_count: 3,
-      pipeline_progress: 70,
-      pipeline_source: "receipt: proof",
-      pipeline_evidence: ["build", "proof"],
+      pipeline_stage_count: 1,
+      pipeline_progress: 10,
+      pipeline_source: "proof: missing",
+      pipeline_evidence: ["proof_missing"],
+      proof_state: "missing_ui_proof",
+      proof_state_reason: "UI or browser proof is still missing.",
+    });
+  });
+
+  it("resets UI proof warnings when proof is still missing after a green PR", () => {
+    expect(
+      inferFishbowlJobPipeline(
+        {
+          title: "Proof Ledger v2",
+          status: "done",
+        },
+        [
+          "PR #1003 checks green.",
+          "BLOCKER: authenticated /admin/jobs browser screenshot proof is still missing.",
+        ],
+      ),
+    ).toEqual({
+      pipeline_stage_count: 1,
+      pipeline_progress: 10,
+      pipeline_source: "proof: missing",
+      pipeline_evidence: ["proof_missing"],
       proof_state: "missing_ui_proof",
       proof_state_reason: "UI or browser proof is still missing.",
       effective_status: "needs_proof",

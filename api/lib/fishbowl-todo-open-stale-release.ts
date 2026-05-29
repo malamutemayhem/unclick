@@ -1,12 +1,12 @@
 // WriterLane Slice 2a: pure release-decision helper for stale, human-assigned
 // OPEN todos.
 //
-// Dead code for now. Nothing in this repo wires it yet; the watcher integration
-// lands in Slice 2b. The helper is pure: it classifies via the Slice 1
-// classifyTodoActionability helper and returns a release plan, with no DB, no
-// LLM, no NudgeOnly, and no imports from api/fishbowl-watcher.ts. Protection and
-// the owner-liveness inputs are passed in by the caller rather than recomputed
-// here, so the function stays clock/math only.
+// Wired by the watcher and the Boardroom release_claim mutation. The helper is
+// pure: it classifies via the Slice 1 classifyTodoActionability helper and
+// returns a release plan, with no DB, no LLM, no NudgeOnly, and no imports from
+// api/fishbowl-watcher.ts. Protection and the owner-liveness inputs are passed
+// in by the caller rather than recomputed here, so the function stays clock/math
+// only.
 
 import {
   classifyTodoActionability,

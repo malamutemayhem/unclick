@@ -62,7 +62,7 @@ Do not structurally rename database tables, MCP tools, GitHub labels, or worker 
 
 ## XPass Gate
 
-Autopilot should dogfood UnClick with UnClick. XPass is the conductor for that proof: it chooses the relevant Pass-family checks for a target and returns one combined receipt. It should not blindly run every Pass on every change.
+Autopilot should dogfood UnClick with UnClick. XPass is the conductor for that proof: it chooses the relevant XPass product checks for a target and returns one combined receipt. It should not blindly run every Pass on every change.
 
 Selection defaults:
 
@@ -70,11 +70,14 @@ Selection defaults:
 - Tool, connector, MCP, and native endpoint changes select TestPass.
 - Auth, keys, tokens, redaction, and security-sensitive changes select SecurityPass.
 - Public wording, docs, and claims select CopyPass.
+- Exact 1:1 copy, transcription, mirroring, source preservation, and byte-level fidelity work selects CopyRoom plus FidelityPass. CopyPass still checks wording quality; FidelityPass verifies exact-copy proof.
 - Public pages, metadata, sitemap, and discoverability changes select SEOPass.
 - Legal, pricing, billing copy, privacy, terms, and compliance-sensitive wording select LegalPass.
+- Compliance, audit, enterprise-readiness, procurement, policy, and evidence-packaging work selects CompliancePass. EnterprisePass is historical wording only.
+- Healthy, quiet, PASS, no-work, done, merge-ready, duplicate-wake, and stale-proof claims select CommonSensePass before the system trusts the claim.
 - Code changes select SlopPass when a quality/smell receipt is useful.
 
-The gate may run in advisory mode while Pass-family coverage is still catching up. Enforcement should only turn on after the relevant Pass has a stable runner, clear receipt shape, and enough dogfood proof to avoid noisy false blockers.
+The gate may run in advisory mode while XPass product coverage is still catching up. Enforcement should only turn on after the relevant Pass has a stable runner, clear receipt shape, and enough dogfood proof to avoid noisy false blockers.
 
 ## Continuous QC Project
 
@@ -84,6 +87,8 @@ Operating shape:
 
 - XPass Gate runs first in advisory mode and names the checks a change should receive.
 - Missing Passes are recorded as missing or skipped, never treated as PASS.
+- Every XPass receipt should include a full checklist row for each known XPass product: PASS, BLOCKER, MISSING, NOT RUN, or N/A.
+- XPass emits improvement signals when a Pass misses a real issue, blocks noisily, cannot explain its verdict, lacks a runner, lacks proof freshness, or needs a new rule or fixture.
 - Continuous Improvement owns repeated QC friction and turns it into front-of-line build chips.
 - Dogfood Room owns realistic user journeys, not just isolated component checks.
 - Ledger should receive receipts for meaningful QC outcomes as the receipt surface matures.
@@ -93,8 +98,10 @@ Priority order:
 1. Finish UXPass enough to support visual/site sweeps, screenshot evidence, console errors, obvious layout problems, navigation confusion, and mobile/desktop checks.
 2. Finish SlopPass enough to catch messy AI-build risks, weak abstractions, brittle tests, and obvious maintainability problems.
 3. Finish CopyPass enough to catch unclear product wording, old names, mixed metaphors, and overcomplicated user-facing copy.
-4. Harden SecurityPass for auth, keys, sessions, redaction, permissions, browser extension, OAuth, API keys, and Password Bridge surfaces.
-5. Add SEOPass and LegalPass when public, pricing, docs, legal, privacy, or compliance surfaces change.
+4. Finish FidelityPass as the XPass wrapper around CopyRoom receipts, with N/A when no exact-copy work is in scope.
+5. Finish CommonSensePass enough to catch false healthy, false done, false quiet, duplicate wake, stale proof, and rubber-stamp claims.
+6. Harden SecurityPass for auth, keys, sessions, redaction, permissions, browser extension, OAuth, API keys, and Password Bridge surfaces.
+7. Add SEOPass, LegalPass, and CompliancePass when public, pricing, docs, legal, privacy, audit, procurement, or compliance surfaces change.
 
 Enforcement path:
 

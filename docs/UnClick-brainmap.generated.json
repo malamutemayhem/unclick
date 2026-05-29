@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 525,
+    "inventory": 526,
     "source_manifest": 189,
     "pages": 81,
     "tools": 187,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 15
+      "count": 16
     },
     {
       "id": "wrappers-and-protocols",
@@ -2558,6 +2558,16 @@
       "kind": "pass",
       "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
       "source": "api/lib/testpass-boundary.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-pass-testpass-edit-guard-api-lib-testpass-edit-guard-ts-no-route",
+      "division": "Passes and gates",
+      "name": "testpass edit guard",
+      "kind": "pass",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/testpass-edit-guard.ts",
       "route": "",
       "tags": []
     },
@@ -7047,11 +7057,15 @@
     ],
     [
       "test",
-      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run"
+      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run && npm run test:api-lib-esm-extension"
     ],
     [
       "test:api",
       "npm run test --workspace=apps/api"
+    ],
+    [
+      "test:api-lib-esm-extension",
+      "node --test scripts/api-lib-esm-extension-guard.test.mjs"
     ],
     [
       "test:brainmap",
@@ -7081,18 +7095,18 @@
   "source_manifest": [
     {
       "source": "AUTOPILOT.md",
-      "hash": "486b704a6072",
-      "bytes": 16305
+      "hash": "5b6b2c21c91d",
+      "bytes": 17427
     },
     {
       "source": "FLEET_SYNC.md",
-      "hash": "41ebcbca94b0",
-      "bytes": 13200
+      "hash": "83bbf1598b48",
+      "bytes": 14705
     },
     {
       "source": "docs/unclick-context-boot-packet.md",
-      "hash": "fc8064c5874f",
-      "bytes": 4804
+      "hash": "259a136f762b",
+      "bytes": 6132
     },
     {
       "source": "docs/agent-observability.md",
@@ -7166,8 +7180,8 @@
     },
     {
       "source": "package.json",
-      "hash": "bbceabab4654",
-      "bytes": 6285
+      "hash": "82100008ad1b",
+      "bytes": 6417
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7306,8 +7320,8 @@
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "b045ed683458",
-      "bytes": 13590
+      "hash": "3a9b7643c7fc",
+      "bytes": 13854
     },
     {
       "source": "src/pages/admin/Fishbowl.tsx",
@@ -7736,8 +7750,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "51c7580b8abf",
-      "bytes": 28631
+      "hash": "0483d0717e07",
+      "bytes": 32407
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",

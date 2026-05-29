@@ -12172,7 +12172,7 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "testpass_edit_item",
-    description: "Override the verdict and optional notes for a single check item in a TestPass run.",
+    description: "Override the verdict and notes for a single check item in a TestPass run. Fail-to-pass edits are flagged in mc_signals.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,

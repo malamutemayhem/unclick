@@ -932,6 +932,21 @@ export const VISIBLE_TOOLS = [
     },
   },
   {
+    name: "release_claim",
+    title: "Release a stale Boardroom claim",
+    description:
+      "Safely releases a stale open Boardroom todo from its current assignee so another worker can claim it. The server refuses fresh owners, protected human/manual work, in-progress work, unassigned work, capped reclaim attempts, and rows that changed during release. agent_id required.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        agent_id: { type: "string", description: "Stable identifier for the calling agent." },
+        todo_id: { type: "string", description: "UUID of the stale open todo claim to release" },
+      },
+      required: ["agent_id", "todo_id"],
+    },
+  },
+  {
     name: "complete_todo",
     title: "Mark a Boardroom todo done",
     description:
@@ -2071,6 +2086,7 @@ export function createServer(): Server {
         promote_expressroom_draft: "expressroom_promote_to_todo",
         create_todo: "fishbowl_create_todo",
         update_todo: "fishbowl_update_todo",
+        release_claim: "fishbowl_release_claim",
         complete_todo: "fishbowl_complete_todo",
         drop_todo: "fishbowl_drop_todo",
         delete_todo: "fishbowl_delete_todo",
