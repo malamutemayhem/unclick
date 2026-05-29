@@ -201,7 +201,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
 | .github/workflows/testpass-pr-check.yml | bca601f0a1c2 | 20251 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
-| .github/workflows/tier2-auto-merge-queue-check.yml | f26a538f2ee9 | 896 |
+| .github/workflows/tier2-auto-merge-queue-check.yml | 5abfca8c42dc | 830 |
 
 ## Division Index
 
