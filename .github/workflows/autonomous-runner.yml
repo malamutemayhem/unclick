@@ -103,7 +103,7 @@ jobs:
       - name: Restore execute canary daily cap
         id: canary-cap
         if: ${{ github.event_name == 'schedule' && vars.AUTONOMOUS_RUNNER_SCHEDULED_EXECUTE_CANARY == 'true' }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: .pinballwake/canary-daily-cap
           key: autopilot-execute-canary-${{ steps.canary-day.outputs.day }}
@@ -281,7 +281,7 @@ jobs:
 
       - name: Save execute canary daily cap
         if: ${{ steps.runner-plan.outputs.canary_execute == 'true' && success() }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: .pinballwake/canary-daily-cap
           key: autopilot-execute-canary-${{ steps.canary-day.outputs.day }}
