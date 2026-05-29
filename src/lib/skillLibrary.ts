@@ -1,3 +1,5 @@
+import { load as loadYaml } from "js-yaml";
+
 export type SkillRiskClass = "low" | "medium" | "high" | "rejected";
 export type SkillReviewState = "quarantined" | "needs_review" | "reviewed" | "native-ready";
 export type SkillInstallability = "preview-only" | "forkable" | "native-ready" | "blocked";
@@ -29,6 +31,25 @@ export interface SkillRiskDraft {
   reasons: string[];
 }
 
+export interface SkillRequirementDraft {
+  envVars: string[];
+  optionalEnvVars: string[];
+  primaryEnv: string | null;
+  bins: string[];
+  anyBins: string[];
+  configPaths: string[];
+  installSpecs: string[];
+  operatingSystems: string[];
+}
+
+export interface SkillPermissionReceipt {
+  status: "preview-only" | "blocked";
+  summary: string;
+  grants: string[];
+  requirements: string[];
+  reviewWarnings: string[];
+}
+
 export interface SkillValidationIssue {
   code: string;
   message: string;
@@ -46,6 +67,8 @@ export interface SkillSpecDraft {
   requestedDomains: string[];
   requestedPaths: string[];
   dependencies: string[];
+  requirements: SkillRequirementDraft;
+  permissionReceipt: SkillPermissionReceipt;
   risk: SkillRiskDraft;
   reviewState: SkillReviewState;
   installability: SkillInstallability;
@@ -59,8 +82,7 @@ export interface SkillParseResult {
   issues: SkillValidationIssue[];
 }
 
-type FrontmatterValue = string | string[];
-type Frontmatter = Record<string, FrontmatterValue>;
+type Frontmatter = Record<string, unknown>;
 
 const PERMISSION_RULES: Array<{ permission: string; pattern: RegExp }> = [
   { permission: "browser", pattern: /\bbrowser\b|\bweb\s+page\b|\bdom\b/i },
@@ -101,16 +123,22 @@ const WARNING_RULES: Array<{ code: string; reason: string; pattern: RegExp }> = 
 export function parseSkillMarkdown(markdown: string, metadata: SkillSourceMetadata = {}): SkillParseResult {
   const normalizedMarkdown = normalizeLineEndings(markdown);
   const { frontmatter, body } = readFrontmatter(normalizedMarkdown);
+  const openclawMetadata = readOpenClawMetadata(frontmatter);
   const combinedText = `${serializeFrontmatter(frontmatter)}\n${body}`;
   const name = firstString(frontmatter.name, frontmatter.title) ?? extractHeading(body) ?? "";
   const description = firstString(frontmatter.description, frontmatter.summary) ?? extractFirstParagraph(body, name) ?? "";
   const licenseValue = firstString(frontmatter.license, metadata.license);
   const risk = classifySkillRisk(combinedText);
   const source = buildSourceDraft(frontmatter, metadata);
+  const requirements = buildRequirementDraft(frontmatter, openclawMetadata);
   const declaredPermissions = uniqueStrings([
     ...readStringList(frontmatter.permissions),
     ...readStringList(frontmatter.scopes),
+    ...readStringList(readValue(openclawMetadata, "permissions")),
+    ...readStringList(readValue(openclawMetadata, "scopes")),
     ...detectPermissions(combinedText),
+    ...requirements.envVars.map((envVar) => `env:${envVar}`),
+    ...requirements.bins.map((bin) => `bin:${bin}`),
   ]);
   const spec: SkillSpecDraft = {
     name,
@@ -125,27 +153,41 @@ export function parseSkillMarkdown(markdown: string, metadata: SkillSourceMetada
     declaredPermissions,
     requestedDomains: uniqueStrings([
       ...readStringList(frontmatter.domains),
+      ...readStringList(readValue(openclawMetadata, "domains")),
       ...extractDomains(combinedText),
     ]),
     requestedPaths: uniqueStrings([
       ...readStringList(frontmatter.paths),
+      ...requirements.configPaths,
       ...extractPaths(combinedText),
     ]),
     dependencies: uniqueStrings([
       ...readStringList(frontmatter.dependencies),
       ...readStringList(frontmatter.packages),
       ...readStringList(frontmatter.tools),
+      ...requirements.bins,
+      ...requirements.anyBins,
+      ...requirements.installSpecs,
     ]),
+    requirements,
+    permissionReceipt: {
+      status: "preview-only",
+      summary: "",
+      grants: [],
+      requirements: [],
+      reviewWarnings: [],
+    },
     risk,
     reviewState: "quarantined",
     installability: risk.class === "rejected" ? "blocked" : "preview-only",
     contentOnly: true,
     validationIssues: [],
   };
-  const validationIssues = validateSkillSpecDraft(spec);
+  const validationIssues = [...buildFrontmatterIssues(frontmatter), ...validateSkillSpecDraft(spec)];
   spec.validationIssues = validationIssues;
   spec.installability = validationIssues.some((issue) => issue.severity === "error") ? "blocked" : spec.installability;
   spec.reviewState = validationIssues.length > 0 && risk.class !== "rejected" ? "needs_review" : spec.reviewState;
+  spec.permissionReceipt = buildPermissionReceipt(spec);
 
   return {
     ok: !validationIssues.some((issue) => issue.severity === "error"),
@@ -185,6 +227,22 @@ export function validateSkillSpecDraft(spec: SkillSpecDraft): SkillValidationIss
     issues.push({
       code: "unknown_source",
       message: "Source origin is unknown, so provenance needs review.",
+      severity: "warning",
+    });
+  }
+
+  if (spec.source.repoUrl && !spec.source.commit) {
+    issues.push({
+      code: "missing_source_commit",
+      message: "Source commit is missing, so the skill cannot be promoted beyond preview/fork without provenance review.",
+      severity: "warning",
+    });
+  }
+
+  if (spec.requirements.installSpecs.length > 0) {
+    issues.push({
+      code: "dependency_install_review",
+      message: "Dependency install metadata is present and must stay quarantined until reviewed.",
       severity: "warning",
     });
   }
@@ -243,12 +301,45 @@ export function createSkillContentHash(markdown: string): string {
   return `skill-fnv1a-${(hash >>> 0).toString(16).padStart(8, "0")}`;
 }
 
+export function buildPermissionReceipt(spec: SkillSpecDraft): SkillPermissionReceipt {
+  const grants = uniqueStrings([
+    ...spec.declaredPermissions,
+    ...spec.requestedDomains.map((domain) => `domain:${domain}`),
+  ]);
+  const requirements = uniqueStrings([
+    ...spec.requirements.envVars.map((envVar) => `env:${envVar}`),
+    ...spec.requirements.optionalEnvVars.map((envVar) => `optional-env:${envVar}`),
+    ...spec.requirements.bins.map((bin) => `bin:${bin}`),
+    ...spec.requirements.anyBins.map((bin) => `any-bin:${bin}`),
+    ...spec.requirements.configPaths.map((path) => `config:${path}`),
+    ...spec.requirements.installSpecs.map((installSpec) => `install:${installSpec}`),
+    ...spec.requirements.operatingSystems.map((os) => `os:${os}`),
+  ]);
+  const reviewWarnings = uniqueStrings([
+    ...spec.validationIssues.map((issue) => issue.code),
+    ...spec.risk.reasons,
+  ]);
+  const status = spec.installability === "blocked" || spec.risk.class === "rejected" ? "blocked" : "preview-only";
+  const summary =
+    status === "blocked"
+      ? "Blocked before install. External skills never receive runtime authority until risk and provenance are cleared."
+      : "Preview only. This import can be inspected or forked, but it grants no browser, OAuth, shell, or tool access.";
+
+  return {
+    status,
+    summary,
+    grants,
+    requirements,
+    reviewWarnings,
+  };
+}
+
 function buildSourceDraft(frontmatter: Frontmatter, metadata: SkillSourceMetadata): SkillSourceDraft {
   return {
     origin: firstString(frontmatter.origin, frontmatter.source, metadata.origin) ?? "unknown",
     repoUrl: firstString(frontmatter.repo, frontmatter.repository, frontmatter.repoUrl, metadata.repoUrl),
     path: firstString(frontmatter.path, metadata.path),
-    commit: firstString(frontmatter.commit, metadata.commit),
+    commit: firstString(frontmatter.commit, frontmatter.sourceCommit, metadata.commit),
   };
 }
 
@@ -258,50 +349,106 @@ function readFrontmatter(markdown: string): { frontmatter: Frontmatter; body: st
     return { frontmatter: {}, body: markdown };
   }
   return {
-    frontmatter: parseYamlishFrontmatter(match[1]),
+    frontmatter: parseYamlFrontmatter(match[1]),
     body: markdown.slice(match[0].length),
   };
 }
 
-function parseYamlishFrontmatter(source: string): Frontmatter {
-  const data: Frontmatter = {};
-  const lines = source.split("\n");
-  for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i];
-    const match = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
-    if (!match) continue;
-    const key = match[1];
-    const rest = match[2].trim();
-    if (rest) {
-      data[key] = parseScalarOrInlineList(rest);
-      continue;
+function parseYamlFrontmatter(source: string): Frontmatter {
+  try {
+    const parsed = loadYaml(source);
+    if (!isRecord(parsed)) {
+      return {};
     }
-    const values: string[] = [];
-    let cursor = i + 1;
-    while (cursor < lines.length) {
-      const listMatch = lines[cursor].match(/^\s*-\s*(.+)$/);
-      if (!listMatch) break;
-      values.push(stripQuotes(listMatch[1].trim()));
-      cursor += 1;
-    }
-    if (values.length > 0) {
-      data[key] = values;
-      i = cursor - 1;
-    }
+    return parsed;
+  } catch {
+    return { __frontmatterError: "invalid_yaml" };
   }
-  return data;
 }
 
-function parseScalarOrInlineList(value: string): FrontmatterValue {
-  const trimmed = value.trim();
-  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-    return trimmed
-      .slice(1, -1)
-      .split(",")
-      .map((item) => stripQuotes(item.trim()))
-      .filter(Boolean);
+function buildFrontmatterIssues(frontmatter: Frontmatter): SkillValidationIssue[] {
+  if (frontmatter.__frontmatterError !== "invalid_yaml") {
+    return [];
   }
-  return stripQuotes(trimmed);
+  return [
+    {
+      code: "invalid_frontmatter",
+      message: "SKILL.md frontmatter could not be parsed as YAML.",
+      severity: "error",
+    },
+  ];
+}
+
+function readOpenClawMetadata(frontmatter: Frontmatter): Record<string, unknown> {
+  const metadata = readObjectValue(frontmatter, "metadata");
+  const openclawMetadata =
+    readObjectValue(metadata, "openclaw") ??
+    readObjectValue(metadata, "clawdbot") ??
+    readObjectValue(metadata, "clawdis");
+  return openclawMetadata ?? {};
+}
+
+function buildRequirementDraft(frontmatter: Frontmatter, openclawMetadata: Record<string, unknown>): SkillRequirementDraft {
+  const requires = readObjectValue(openclawMetadata, "requires") ?? {};
+  const envVarDeclarations = readEnvVarDeclarations(readValue(openclawMetadata, "envVars"));
+  const requiredEnvVars = uniqueStrings([
+    ...readStringList(readValue(requires, "env")),
+    ...readStringList(readValue(frontmatter, "env")),
+    ...envVarDeclarations.required,
+    ...readStringList(readValue(openclawMetadata, "primaryEnv")),
+  ]);
+  const optionalEnvVars = uniqueStrings(envVarDeclarations.optional.filter((envVar) => !requiredEnvVars.includes(envVar)));
+  const installSpecs = readInstallSpecs(readValue(openclawMetadata, "install"));
+
+  return {
+    envVars: requiredEnvVars,
+    optionalEnvVars,
+    primaryEnv: firstString(readValue(openclawMetadata, "primaryEnv")),
+    bins: uniqueStrings(readStringList(readValue(requires, "bins"))),
+    anyBins: uniqueStrings(readStringList(readValue(requires, "anyBins"))),
+    configPaths: uniqueStrings(readStringList(readValue(requires, "config"))),
+    installSpecs,
+    operatingSystems: uniqueStrings(readStringList(readValue(openclawMetadata, "os"))),
+  };
+}
+
+function readEnvVarDeclarations(value: unknown): { required: string[]; optional: string[] } {
+  if (!Array.isArray(value)) {
+    return { required: [], optional: [] };
+  }
+  const required: string[] = [];
+  const optional: string[] = [];
+  for (const item of value) {
+    if (!isRecord(item)) continue;
+    const name = firstString(item.name);
+    if (!name) continue;
+    if (item.required === false) {
+      optional.push(name);
+    } else {
+      required.push(name);
+    }
+  }
+  return {
+    required: uniqueStrings(required),
+    optional: uniqueStrings(optional),
+  };
+}
+
+function readInstallSpecs(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const specs: string[] = [];
+  for (const item of value) {
+    if (!isRecord(item)) continue;
+    const kind = firstString(item.kind) ?? "unknown";
+    const packageName =
+      firstString(item.package, item.formula, item.module, item.name, item.path) ??
+      readStringList(item.bins)[0] ??
+      "unknown";
+    specs.push(`${kind}:${packageName}`);
+  }
+  return uniqueStrings(specs);
 }
 
 function stripQuotes(value: string): string {
@@ -315,20 +462,31 @@ function stripQuotes(value: string): string {
   return trimmed;
 }
 
-function firstString(...values: Array<FrontmatterValue | string | undefined>): string | null {
+function firstString(...values: unknown[]): string | null {
   for (const value of values) {
     if (typeof value === "string" && value.trim()) return value.trim();
-    if (Array.isArray(value) && value.length > 0 && value[0].trim()) return value[0].trim();
+    if (Array.isArray(value) && value.length > 0) {
+      const first = firstString(value[0]);
+      if (first) return first;
+    }
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
   }
   return null;
 }
 
-function readStringList(value: FrontmatterValue | undefined): string[] {
+function readStringList(value: unknown): string[] {
   if (!value) return [];
-  if (Array.isArray(value)) return value.map((item) => item.trim()).filter(Boolean);
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => firstString(item))
+      .filter((item): item is string => Boolean(item));
+  }
+  if (typeof value !== "string") {
+    return [];
+  }
   return value
     .split(",")
-    .map((item) => item.trim())
+    .map((item) => stripQuotes(item.trim()))
     .filter(Boolean);
 }
 
@@ -370,9 +528,7 @@ function extractPaths(text: string): string[] {
 }
 
 function serializeFrontmatter(frontmatter: Frontmatter): string {
-  return Object.entries(frontmatter)
-    .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : value}`)
-    .join("\n");
+  return JSON.stringify(frontmatter);
 }
 
 function uniqueStrings(values: string[]): string[] {
@@ -381,4 +537,18 @@ function uniqueStrings(values: string[]): string[] {
 
 function normalizeLineEndings(value: string): string {
   return value.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+}
+
+function readObjectValue(source: unknown, key: string): Record<string, unknown> | undefined {
+  const value = readValue(source, key);
+  return isRecord(value) ? value : undefined;
+}
+
+function readValue(source: unknown, key: string): unknown {
+  if (!isRecord(source)) return undefined;
+  return source[key];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

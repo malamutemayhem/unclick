@@ -58,9 +58,11 @@ describe("AdminTools", () => {
     expect(screen.getByText(/OpenClaw and similar ecosystems are discovery inputs/i)).toBeInTheDocument();
     expect(screen.getByText("OpenClaw compatibility input")).toBeInTheDocument();
     expect(screen.getByText("Quarantined")).toBeInTheDocument();
-    expect(screen.getByText("License review required")).toBeInTheDocument();
-    expect(screen.getByText("upstream preview")).toBeInTheDocument();
-    expect(screen.getByText(/No credential access/i)).toBeInTheDocument();
+    expect(screen.getByText("MIT-0")).toBeInTheDocument();
+    expect(screen.getByText("1.2.0")).toBeInTheDocument();
+    expect(screen.getByText(/GitHub read after approval/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/grants no browser, OAuth, shell, or tool access/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/install:node:@example\/pr-monitor/i)).toBeInTheDocument();
   });
 
   it("keeps preview and fork affordances disabled until install execution exists", async () => {

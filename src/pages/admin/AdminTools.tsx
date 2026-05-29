@@ -99,6 +99,20 @@ function SkillsLibraryPreview() {
                 <dt className="font-medium text-white/60">Permissions</dt>
                 <dd>{skill.permissions.join(", ")}</dd>
               </div>
+              <div>
+                <dt className="font-medium text-white/60">Receipt</dt>
+                <dd>{skill.receiptSummary}</dd>
+              </div>
+              <div>
+                <dt className="font-medium text-white/60">Requirements</dt>
+                <dd>{skill.requirements.length > 0 ? skill.requirements.join(", ") : "No external requirements"}</dd>
+              </div>
+              {skill.reviewWarnings.length > 0 ? (
+                <div>
+                  <dt className="font-medium text-white/60">Review Flags</dt>
+                  <dd>{skill.reviewWarnings.join(", ")}</dd>
+                </div>
+              ) : null}
             </dl>
 
             <div className="mt-4 flex flex-wrap gap-2">
