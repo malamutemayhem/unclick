@@ -21,6 +21,7 @@ import brainmapMarkdown from "../../../docs/UnClick-brainmap.generated.md?raw";
 import brainmapDataRaw from "../../../docs/UnClick-brainmap.generated.json?raw";
 
 const OWNER_EMAIL = "creativelead@malamutemayhem.com";
+const MAX_VISUAL_ITEMS_PER_DIVISION = 24;
 const sectionCount = (brainmapMarkdown.match(/^## /gm) || []).length;
 const sourceCount = (brainmapMarkdown.match(/^\| .* \| [a-f0-9]{12} \| \d+ \|$/gm) || []).length;
 
@@ -232,23 +233,15 @@ const markdownComponents = {
 export default function AdminBrainmap() {
   const { session, user, loading } = useSession();
   const directOwner = normalizeEmail(user?.email) === OWNER_EMAIL;
-  const [ownerStatus, setOwnerStatus] = useState<"checking" | "owner" | "denied">("checking");
+  const token = session?.access_token || "";
+  const [profileAccess, setProfileAccess] = useState<{ token: string; status: "owner" | "denied" } | null>(null);
   const [query, setQuery] = useState("");
   const [activeDivision, setActiveDivision] = useState("All");
   const [showSource, setShowSource] = useState(false);
   const [showRawGenerated, setShowRawGenerated] = useState(false);
 
   useEffect(() => {
-    if (directOwner) {
-      setOwnerStatus("owner");
-      return;
-    }
-
-    const token = session?.access_token;
-    if (!token) {
-      if (!loading) setOwnerStatus("denied");
-      return;
-    }
+    if (directOwner || !token) return;
 
     let cancelled = false;
     fetch("/api/memory-admin?action=admin_profile", {
@@ -257,28 +250,46 @@ export default function AdminBrainmap() {
       .then((res) => (res.ok ? res.json() : null))
       .then((body) => {
         if (cancelled) return;
-        setOwnerStatus(normalizeEmail(body?.email) === OWNER_EMAIL ? "owner" : "denied");
+        setProfileAccess({
+          token,
+          status: normalizeEmail(body?.email) === OWNER_EMAIL ? "owner" : "denied",
+        });
       })
       .catch(() => {
-        if (!cancelled) setOwnerStatus("denied");
+        if (!cancelled) setProfileAccess({ token, status: "denied" });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [directOwner, loading, session?.access_token]);
+  }, [directOwner, token]);
 
-  const visibleAsOwner = directOwner || ownerStatus === "owner";
+  const ownerStatus = directOwner
+    ? "owner"
+    : loading
+      ? "checking"
+      : !token
+        ? "denied"
+        : profileAccess?.token === token
+          ? profileAccess.status
+          : "checking";
+  const visibleAsOwner = ownerStatus === "owner";
 
   const filteredGroups = useMemo(() => {
     return brainmapData.divisions
       .filter((division) => activeDivision === "All" || division.name === activeDivision)
-      .map((division) => ({
-        ...division,
-        items: brainmapData.inventory.filter(
+      .map((division) => {
+        const matchingItems = brainmapData.inventory.filter(
           (item) => item.division === division.name && itemMatchesQuery(item, query),
-        ),
-      }))
+        );
+        const items = query ? matchingItems : matchingItems.slice(0, MAX_VISUAL_ITEMS_PER_DIVISION);
+        return {
+          ...division,
+          hiddenCount: matchingItems.length - items.length,
+          items,
+          matchingCount: matchingItems.length,
+        };
+      })
       .filter((division) => division.items.length > 0);
   }, [activeDivision, query]);
 
@@ -367,7 +378,7 @@ export default function AdminBrainmap() {
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-white/55">Tool and worker tree</h2>
             <p className="mt-1 text-sm text-white/45">
-              {shownCount} of {brainmapData.counts.inventory} items shown from {brainmapData.schema_version}.
+              {shownCount} of {brainmapData.counts.inventory} items visible from {brainmapData.schema_version}.
             </p>
           </div>
 
@@ -413,7 +424,7 @@ export default function AdminBrainmap() {
                   <p className="mt-1 text-xs leading-5 text-white/45">{division.meaning}</p>
                 </div>
                 <span className="w-fit rounded-md bg-white/[0.05] px-2 py-1 font-mono text-xs text-white/45">
-                  {division.items.length}
+                  {division.hiddenCount > 0 ? `${division.items.length}/${division.matchingCount}` : division.items.length}
                 </span>
               </div>
 
@@ -467,23 +478,12 @@ export default function AdminBrainmap() {
         </div>
 
         {showSource && (
-          <div className="mt-4 rounded-lg border border-white/[0.06] bg-[#111] p-4">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                h1: ({ children }) => <h2 className="mb-3 text-xl font-semibold text-white">{children}</h2>,
-                h2: ({ children }) => <h3 className="mt-8 border-t border-white/[0.06] pt-5 text-lg font-semibold text-white">{children}</h3>,
-                p: ({ children }) => <p className="my-3 max-w-4xl text-sm leading-6 text-white/65">{children}</p>,
-                ul: ({ children }) => <ul className="my-3 list-disc space-y-1 pl-5 text-sm leading-6 text-white/65">{children}</ul>,
-                code: ({ children }) => <code className="rounded bg-white/[0.06] px-1 py-0.5 font-mono text-xs text-[#E2B93B]">{children}</code>,
-                table: ({ children }) => <div className="my-4 overflow-x-auto rounded-lg border border-white/[0.06]"><table className="min-w-full text-left text-xs">{children}</table></div>,
-                th: ({ children }) => <th className="border-b border-white/[0.08] bg-white/[0.04] px-3 py-2 font-semibold text-white/70">{children}</th>,
-                td: ({ children }) => <td className="border-b border-white/[0.04] px-3 py-2 align-top text-white/60">{children}</td>,
-              }}
-            >
-              {brainmapMarkdown}
-            </ReactMarkdown>
-          </div>
+          <pre
+            aria-label="Generated Brainmap markdown source"
+            className="mt-4 max-h-[28rem] overflow-auto whitespace-pre-wrap rounded-lg border border-white/[0.06] bg-[#0B0B0B] p-4 font-mono text-xs leading-5 text-white/60"
+          >
+            {brainmapMarkdown}
+          </pre>
         )}
       </section>
 

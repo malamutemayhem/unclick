@@ -7,8 +7,10 @@ type CopyPassCheckId =
   | "value-prop-clarity"
   | "cta-presence"
   | "proof-trust-gap"
+  | "testimonial-proof-gap"
   | "unsupported-superiority"
   | "detector-evasion-claim"
+  | "authorship-transparency"
   | "placeholder-copy"
   | "risky-guarantee-language"
   | "internal-consistency"
@@ -170,8 +172,10 @@ const COPYPASS_CHECK_IDS: CopyPassCheckId[] = [
   "value-prop-clarity",
   "cta-presence",
   "proof-trust-gap",
+  "testimonial-proof-gap",
   "unsupported-superiority",
   "detector-evasion-claim",
+  "authorship-transparency",
   "placeholder-copy",
   "risky-guarantee-language",
   "internal-consistency",
@@ -214,10 +218,13 @@ const VAGUE_TERMS = [
 
 const CTA_TERMS = ["book", "connect", "create", "get", "join", "open", "run", "scan", "start", "try"];
 const PROOF_TERMS = ["audit", "case study", "check", "checked", "checks", "customer", "evidence", "privacy", "proof", "receipt", "receipts", "safety", "security", "trusted", "verified"];
-const SUPERIORITY_TERMS = ["#1", "best", "industry leading", "leading", "most advanced", "number one", "revolutionary", "ultimate"];
+const SOCIAL_PROOF_TERMS = ["as seen in", "customers love", "endorsed by", "featured in", "five-star", "loved by", "rated", "recommended by", "trusted by", "users love", "5-star"];
+const SOCIAL_PROOF_EVIDENCE_TERMS = ["case study", "customer quote", "evidence", "public proof", "receipt", "review", "source", "testimonial", "verified"];
+const SUPERIORITY_TERMS = ["#1", "best", "better than", "industry leading", "leading", "most advanced", "number one", "outperforms", "revolutionary", "safer than", "smarter than", "ultimate"];
 const PLACEHOLDER_TERMS = ["coming soon", "copy goes here", "insert copy", "lorem ipsum"];
 const GUARANTEE_TERMS = ["100%", "always", "compliance guaranteed", "guaranteed", "instant revenue", "never fail", "rank #1", "risk-free"];
 const DETECTOR_EVASION_TERMS = ["ai detection bypass", "bypass ai detection", "bypass ai detector", "beat ai detection", "beat ai detector", "evade ai detection", "evade detection", "gptzero safe", "pass gptzero", "pass turnitin", "turnitin safe", "turnitin-safe", "undetectable ai"];
+const AUTHORSHIP_TRANSPARENCY_TERMS = ["100% human", "ai-free", "human written", "human-written", "no ai generated", "no ai-generated", "not ai generated", "not ai-generated", "written by humans"];
 const AI_SLOP_TERMS = ["delve", "elevate", "game changing", "game-changing", "in today's digital landscape", "leverage", "not just", "revolutionize", "seamless", "tapestry", "transform your", "unlock", "whether you're"];
 const URGENCY_TERMS = ["act now", "before it's gone", "don't miss out", "last chance", "limited time", "only today"];
 const UI_AUTOMATION_TERMS = ["autopilot", "automatic", "automatically", "automated", "done for you", "fully built", "hands-off", "zero touch"];
@@ -317,6 +324,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
   const normalized = normalizeCopy(copyText);
   const findings: CopyFinding[] = [];
   const channel = normalizeCopy(run.target.channel ?? "");
+  const isPolicyExample = isPolicyExampleCatalog(normalized, channel);
 
   if (containsAny(normalized, VAGUE_TERMS) && !containsAny(normalized, VALUE_TERMS)) {
     findings.push(
@@ -357,7 +365,11 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if (containsAny(normalized, SUPERIORITY_TERMS) && !containsAny(normalized, PROOF_TERMS)) {
+  if (
+    !isPolicyExample &&
+    containsAny(normalized, SUPERIORITY_TERMS) &&
+    !containsAny(normalized, PROOF_TERMS)
+  ) {
     findings.push(
       createCopyFinding(
         "unsupported-superiority",
@@ -365,6 +377,23 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
         "high",
         "The copy uses an absolute or superiority phrase without a nearby proof signal.",
         "Replace the absolute claim with a qualified claim, or attach public proof in nearby copy.",
+        copyText,
+      ),
+    );
+  }
+
+  if (
+    !isPolicyExample &&
+    containsAny(normalized, SOCIAL_PROOF_TERMS) &&
+    !containsAny(normalized, SOCIAL_PROOF_EVIDENCE_TERMS)
+  ) {
+    findings.push(
+      createCopyFinding(
+        "testimonial-proof-gap",
+        "Social-proof claim needs evidence",
+        "medium",
+        "The copy uses a testimonial, rating, endorsement, or trusted-by claim without a visible source.",
+        "Attach a public source, review, testimonial, case study, or receipt before using the social-proof claim.",
         copyText,
       ),
     );
@@ -383,7 +412,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if (hasRiskyGuarantee(normalized)) {
+  if (!isPolicyExample && hasRiskyGuarantee(normalized)) {
     findings.push(
       createCopyFinding(
         "risky-guarantee-language",
@@ -396,7 +425,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if (containsAny(normalized, DETECTOR_EVASION_TERMS)) {
+  if (!isPolicyExample && containsAny(normalized, DETECTOR_EVASION_TERMS)) {
     findings.push(
       createCopyFinding(
         "detector-evasion-claim",
@@ -409,10 +438,23 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
+  if (!isPolicyExample && containsAny(normalized, AUTHORSHIP_TRANSPARENCY_TERMS)) {
+    findings.push(
+      createCopyFinding(
+        "authorship-transparency",
+        "Human-authorship claim needs support",
+        "high",
+        "The copy implies the text is fully human-written or AI-free, which can be misleading without proof.",
+        "Remove human-written or AI-free claims unless they are true and supported, or reframe around human review.",
+        copyText,
+      ),
+    );
+  }
+
   const matchedPair = CONSISTENCY_PAIRS.find(([left, right]) =>
     containsAny(normalized, [left]) && containsAny(normalized, [right])
   );
-  if (matchedPair) {
+  if (!isPolicyExample && matchedPair) {
     findings.push(
       createCopyFinding(
         "internal-consistency",
@@ -441,7 +483,10 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if (containsAny(normalized, AI_SLOP_TERMS) || /[\u2013\u2014]/u.test(copyText)) {
+  if (
+    !isPolicyExample &&
+    (containsAny(normalized, AI_SLOP_TERMS) || /[\u2013\u2014]/u.test(copyText))
+  ) {
     findings.push(
       createCopyFinding(
         "ai-slop-language",
@@ -454,7 +499,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
     );
   }
 
-  if (containsAny(normalized, URGENCY_TERMS) && !hasUrgencySupport(normalized)) {
+  if (!isPolicyExample && containsAny(normalized, URGENCY_TERMS) && !hasUrgencySupport(normalized)) {
     findings.push(
       createCopyFinding(
         "misleading-urgency",
@@ -468,6 +513,7 @@ function detectCopyPassFindings(copyText: string, run: CopyRunRecord): CopyFindi
   }
 
   if (
+    !isPolicyExample &&
     containsAny(normalized, UI_AUTOMATION_TERMS) &&
     !containsAny(normalized, PROOF_TERMS) &&
     !containsAny(normalized, ["beta", "manual review", "preview", "when safe"])
@@ -571,6 +617,50 @@ function normalizeCopy(value: string): string {
 
 function containsAny(value: string, terms: string[]): boolean {
   return terms.some((term) => containsTerm(value, term));
+}
+
+function isPolicyExampleCatalog(normalized: string, channel: string): boolean {
+  if (!containsAny(channel, ["doc", "docs", "policy", "guardrail", "linter", "audit"])) {
+    return false;
+  }
+
+  const catalogContext = `${channel} ${normalized}`;
+  const hasGuardrailContext = containsAny(catalogContext, [
+    "banned",
+    "forbidden",
+    "blocked",
+    "disallowed",
+    "do not use",
+    "guardrail",
+    "linter",
+    "marketing copy audit",
+    "passguard",
+    "policy",
+  ]);
+  const hasExampleContext = containsAny(catalogContext, [
+    "allowed framing",
+    "banned phrase",
+    "banned phrases",
+    "example",
+    "examples",
+    "phrase",
+    "phrases",
+    "term",
+    "terms",
+    "wording",
+  ]);
+  const hasRiskTerm = containsAny(normalized, [
+    ...SUPERIORITY_TERMS,
+    ...SOCIAL_PROOF_TERMS,
+    ...GUARANTEE_TERMS,
+    ...DETECTOR_EVASION_TERMS,
+    ...AUTHORSHIP_TRANSPARENCY_TERMS,
+    ...AI_SLOP_TERMS,
+    ...URGENCY_TERMS,
+    ...UI_AUTOMATION_TERMS,
+  ]);
+
+  return hasGuardrailContext && hasExampleContext && hasRiskTerm;
 }
 
 function containsTerm(value: string, term: string): boolean {

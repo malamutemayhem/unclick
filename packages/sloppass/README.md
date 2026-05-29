@@ -10,6 +10,7 @@ This package is a deliberately small promptfoo-derived engine. It keeps the usef
 - report surface
 - a small provider set
 - unified-diff input with file and line evidence
+- optional 3-way git context for stale-checkout overwrite detection
 - markdown build-fix prompts an agent can paste back into its work loop
 - supply-chain and security-bypass review triggers for generated code that added dependency, package-hook, or transport-risk surface
 

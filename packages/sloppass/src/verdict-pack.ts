@@ -89,6 +89,10 @@ function createNotChecked(checks: SlopPassCategory[], reason: string) {
   }));
 }
 
+function sourceOnlyChecks(checks: SlopPassCategory[]): SlopPassCategory[] {
+  return checks.filter((check) => check !== "vcs_integration_risk");
+}
+
 function uniquePaths(files: Array<{ path: string }>): string[] {
   return Array.from(new Set(files.map((file) => file.path)));
 }
@@ -191,30 +195,40 @@ export function createProvidedSourceSlopPassReport(
   input: CreateProvidedSourceSlopPassReportInput,
 ): SlopPassVerdictPack {
   const checks = parseChecks(input.checks);
+  const attemptedChecks = sourceOnlyChecks(checks);
   const parsed = SlopPassRunInputSchema.parse({ target: input.target, files: input.files, checks });
   const files = (parsed.files ?? [])
     .filter((file) => file.content.trim().length > 0)
     .map((file) => SlopPassSourceFileSchema.parse(file));
   const findings = detectSlopSmells(files).filter((finding) =>
-    checks.includes(finding.category),
+    attemptedChecks.includes(finding.category),
   );
   const counts = countFindings(findings);
+  const noAttemptedChecks = attemptedChecks.length === 0;
+  const notChecked = createNotChecked(
+    checks,
+    "Check was not requested for this provided-source run.",
+  );
+  if (checks.includes("vcs_integration_risk")) {
+    notChecked.push({
+      label: "stale-overwrite-detector",
+      reason: "git_context not provided for this provided-source run.",
+    });
+  }
   const result = SlopPassResultSchema.parse({
     target: SlopPassTargetSchema.parse(input.target),
     scope: {
-      checks_attempted: checks,
+      checks_attempted: attemptedChecks,
       files_reviewed: uniquePaths(files),
       provider: "provided-source",
     },
-    verdict: toSlopPassVerdict(counts),
+    verdict: noAttemptedChecks ? "unknown" : toSlopPassVerdict(counts),
     findings,
-    not_checked: createNotChecked(
-      checks,
-      "Check was not requested for this provided-source run.",
-    ),
+    not_checked: notChecked,
     summary: {
-      posture:
-        findings.length > 0
+      posture: noAttemptedChecks
+        ? "SlopPass did not run the requested check because required context was missing."
+        : findings.length > 0
           ? "SlopPass found deterministic slop signals in the inspected source."
           : "SlopPass found no deterministic slop signals in the inspected source.",
       counts_by_severity: counts,

@@ -17,10 +17,17 @@ on:
         description: Optional target MCP server URL.
         required: false
         default: https://unclick.world/api/mcp
+      api_url:
+        description: Optional TestPass API URL. Use a protected Vercel preview URL for branch dogfood reruns.
+        required: false
+        default: https://unclick.world/api/testpass-run
 
 permissions:
   contents: read
+  deployments: read
+  issues: write
   pull-requests: write
+  statuses: read
 
 jobs:
   testpass:
@@ -42,9 +49,224 @@ jobs:
             echo "has_token=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Wait for Vercel preview
+        id: vercel
+        if: ${{ github.event_name == 'pull_request' && steps.token.outputs.has_token == 'true' }}
+        uses: actions/github-script@v9
+        env:
+          VERCEL_STATUS_CONTEXT: Vercel
+          VERCEL_WAIT_SECONDS: "600"
+          VERCEL_WAIT_INTERVAL_SECONDS: "10"
+        with:
+          script: |
+            const { pathToFileURL } = require('node:url');
+            const helperUrl = pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/testpass-pr-target.mjs`).href;
+            const { selectLatestStatusContext } = await import(helperUrl);
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const ref = context.payload.pull_request?.head?.sha || context.sha;
+            const statusContext = process.env.VERCEL_STATUS_CONTEXT || 'Vercel';
+            const timeoutMs = Math.max(1, Number(process.env.VERCEL_WAIT_SECONDS || 900)) * 1000;
+            const intervalMs = Math.max(1, Number(process.env.VERCEL_WAIT_INTERVAL_SECONDS || 10)) * 1000;
+            const startedAt = Date.now();
+
+            while (true) {
+              let data = { statuses: [] };
+              try {
+                const response = await github.rest.repos.getCombinedStatusForRef({
+                  owner,
+                  repo,
+                  ref,
+                });
+                data = response.data || data;
+              } catch (error) {
+                core.warning(`Could not read ${statusContext} status for ${ref}: ${error.status || 'error'} ${error.message}`);
+                core.setOutput('ready', 'unknown');
+                return;
+              }
+              const status = selectLatestStatusContext(data.statuses || [], statusContext);
+              const state = status?.state || 'missing';
+              core.notice(`${statusContext} status for ${ref}: ${state}`);
+
+              if (state === 'success') {
+                core.notice(`${statusContext} preview is ready: ${status.target_url || '(no target URL)'}`);
+                core.setOutput('ready', 'true');
+                return;
+              }
+              if (state === 'failure' || state === 'error') {
+                throw new Error(`${statusContext} preview is ${state}. TestPass will not run against a failed preview.`);
+              }
+              if (Date.now() - startedAt >= timeoutMs) {
+                core.warning(`${statusContext} preview is still ${state}; TestPass will wait for a ready preview instead of testing a stale target.`);
+                core.setOutput('ready', 'false');
+                return;
+              }
+
+              await new Promise((resolve) => setTimeout(resolve, intervalMs));
+            }
+
+      - name: Resolve TestPass target
+        id: target
+        if: ${{ steps.token.outputs.has_token == 'true' && steps.vercel.outputs.ready != 'false' }}
+        uses: actions/github-script@v9
+        env:
+          DISPATCH_SERVER_URL: ${{ inputs.server_url || 'https://unclick.world/api/mcp' }}
+          DISPATCH_API_URL: ${{ inputs.api_url || 'https://unclick.world/api/testpass-run' }}
+          REQUESTED_SERVER_URL: ${{ inputs.server_url || '' }}
+          DEFAULT_SERVER_URL: https://unclick.world/api/mcp
+        with:
+          script: |
+            const { pathToFileURL } = require('node:url');
+            const helperUrl = pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/testpass-pr-target.mjs`).href;
+            const { hasSuccessfulVercelStatus, resolveTestPassPrTarget } = await import(helperUrl);
+
+            const trim = (value) => String(value || '').replace(/\/+$/, '');
+            const defaultApiUrl = 'https://unclick.world/api/testpass-run';
+            const toApiUrl = (serverUrl) => {
+              try {
+                const parsed = new URL(serverUrl);
+                parsed.pathname = '/api/testpass-run';
+                parsed.search = '';
+                parsed.hash = '';
+                return parsed.toString().replace(/\/$/, '');
+              } catch {
+                return process.env.DISPATCH_API_URL || defaultApiUrl;
+              }
+            };
+            const setTarget = ({ serverUrl, apiUrl, source }) => {
+              core.setOutput('server_url', serverUrl);
+              core.setOutput('api_url', apiUrl || toApiUrl(serverUrl));
+              core.setOutput('source', source);
+              core.notice(`TestPass target source: ${source}`);
+              core.notice(`TestPass target: ${serverUrl}`);
+            };
+
+            if (context.eventName !== 'pull_request') {
+              setTarget({
+                serverUrl: process.env.DISPATCH_SERVER_URL || 'https://unclick.world/api/mcp',
+                apiUrl: process.env.DISPATCH_API_URL || defaultApiUrl,
+                source: 'workflow_input',
+              });
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const headSha = context.payload.pull_request.head.sha;
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+            let comments = [];
+            try {
+              comments = await github.paginate(github.rest.issues.listComments, {
+                owner,
+                repo,
+                issue_number: context.issue.number,
+                per_page: 100,
+              });
+            } catch (error) {
+              core.warning(`Could not read PR comments for TestPass preview fallback: ${error.status || 'error'} ${error.message}`);
+            }
+            const fallback = resolveTestPassPrTarget({
+              requestedServerUrl: process.env.REQUESTED_SERVER_URL,
+              defaultServerUrl: process.env.DEFAULT_SERVER_URL,
+              comments,
+            });
+
+            if (fallback.source === 'workflow_input') {
+              setTarget({
+                serverUrl: fallback.serverUrl,
+                apiUrl: toApiUrl(fallback.serverUrl),
+                source: fallback.source,
+              });
+              return;
+            }
+
+            for (let attempt = 1; attempt <= 40; attempt++) {
+              let deployments = [];
+              try {
+                deployments = await github.paginate(github.rest.repos.listDeployments, {
+                  owner,
+                  repo,
+                  sha: headSha,
+                  environment: 'Preview',
+                  per_page: 100,
+                });
+              } catch (error) {
+                core.warning(`Could not list Vercel deployments for ${headSha}: ${error.status || 'error'} ${error.message}`);
+              }
+
+              deployments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+              for (const deployment of deployments) {
+                let statuses = [];
+                try {
+                  statuses = await github.paginate(github.rest.repos.listDeploymentStatuses, {
+                    owner,
+                    repo,
+                    deployment_id: deployment.id,
+                    per_page: 100,
+                  });
+                } catch (error) {
+                  core.warning(`Could not list Vercel deployment statuses for ${deployment.id}: ${error.status || 'error'} ${error.message}`);
+                  continue;
+                }
+                const ready = statuses.find((status) =>
+                  status.state === 'success' && (status.environment_url || status.target_url)
+                );
+                if (ready) {
+                  const baseUrl = trim(ready.environment_url || ready.target_url);
+                  core.info(`Resolved Vercel preview deployment for ${headSha}: ${baseUrl}`);
+                  setTarget({
+                    serverUrl: `${baseUrl}/api/mcp`,
+                    apiUrl: `${baseUrl}/api/testpass-run`,
+                    source: 'vercel_preview_deployment',
+                  });
+                  return;
+                }
+              }
+
+              if (fallback.source === 'vercel_preview_comment') {
+                let combinedStatus = { statuses: [] };
+                let statusReadError = false;
+                try {
+                  const response = await github.rest.repos.getCombinedStatusForRef({
+                    owner,
+                    repo,
+                    ref: headSha,
+                  });
+                  combinedStatus = response.data || combinedStatus;
+                } catch (error) {
+                  statusReadError = true;
+                  core.warning(`Could not read ${headSha} commit statuses for preview-comment fallback: ${error.status || 'error'} ${error.message}`);
+                }
+                if (statusReadError || hasSuccessfulVercelStatus(combinedStatus.statuses || [])) {
+                  const sourceLabel = statusReadError ? 'after commit status read fallback' : 'after green Vercel status';
+                  core.info(`Resolved Vercel preview comment ${sourceLabel} for ${headSha}: ${fallback.serverUrl}`);
+                  setTarget({
+                    serverUrl: fallback.serverUrl,
+                    apiUrl: fallback.apiUrl || toApiUrl(fallback.serverUrl),
+                    source: statusReadError ? 'vercel_preview_comment_status_unread' : 'vercel_preview_comment_status',
+                  });
+                  return;
+                }
+              }
+
+              core.info(`Waiting for Vercel preview deployment for ${headSha} (${attempt}/40)...`);
+              await sleep(15000);
+            }
+
+            if (fallback.source === 'default') {
+              core.warning(`Could not find a successful Vercel preview deployment or comment for ${headSha}; falling back to ${fallback.serverUrl}.`);
+            }
+            setTarget({
+              serverUrl: fallback.serverUrl,
+              apiUrl: toApiUrl(fallback.serverUrl),
+              source: fallback.source,
+            });
+
       - name: Run TestPass
         id: testpass
-        if: ${{ steps.token.outputs.has_token == 'true' }}
+        if: ${{ steps.token.outputs.has_token == 'true' && steps.vercel.outputs.ready != 'false' }}
         # Don't abort the workflow on infra failures - we still want to post a
         # PR comment that explains what happened so reviewers can tell infra
         # noise (stale token, transport blip) from a real product regression.
@@ -54,12 +276,15 @@ jobs:
           token: ${{ secrets.TESTPASS_TOKEN }}
           pack_id: ${{ inputs.pack_id || 'testpass-core' }}
           profile: ${{ inputs.profile || 'smoke' }}
-          server_url: ${{ inputs.server_url || 'https://unclick.world/api/mcp' }}
+          server_url: ${{ steps.target.outputs.server_url || inputs.server_url || 'https://unclick.world/api/mcp' }}
+          api_url: ${{ steps.target.outputs.api_url || inputs.api_url || 'https://unclick.world/api/testpass-run' }}
+          vercel_bypass_secret: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          target_vercel_bypass_secret: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Post PR comment
         # Run regardless of TestPass step outcome - infra failures still need a
         # human-readable comment so the PR doesn't look mysteriously broken.
-        if: ${{ always() && github.event_name == 'pull_request' && steps.token.outputs.has_token == 'true' }}
+        if: ${{ always() && github.event_name == 'pull_request' && steps.token.outputs.has_token == 'true' && steps.vercel.outputs.ready != 'false' }}
         uses: actions/github-script@v9
         env:
           RUN_ID: ${{ steps.testpass.outputs.run_id }}
@@ -139,6 +364,61 @@ jobs:
               body,
             });
 
+      - name: Post Vercel pending TestPass comment
+        if: ${{ always() && github.event_name == 'pull_request' && steps.token.outputs.has_token == 'true' && steps.vercel.outputs.ready == 'false' }}
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { pathToFileURL } = require('node:url');
+            const helperUrl = pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/testpass-pr-comment.mjs`).href;
+            const {
+              selectExistingTestPassComment,
+              TESTPASS_PR_COMMENT_MARKER,
+            } = await import(helperUrl);
+
+            const body = [
+              TESTPASS_PR_COMMENT_MARKER,
+              '### TestPass: :hourglass_flowing_sand: waiting on Vercel',
+              '',
+              'The Vercel preview is still pending, so TestPass did not run against a stale or protected preview URL.',
+              '',
+              '_Re-run TestPass after Vercel is green, or push a fresh commit to trigger it again._',
+            ].join('\n');
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = selectExistingTestPassComment(comments);
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
+
+      - name: Fail while Vercel preview is pending
+        if: ${{ always() && github.event_name == 'pull_request' && steps.token.outputs.has_token == 'true' && steps.vercel.outputs.ready == 'false' }}
+        shell: bash
+        run: |
+          echo "::error::Vercel preview is still pending; TestPass did not run and must be retried after Vercel is green."
+          exit 1
+
       - name: Explain Dependabot TestPass skip
         if: ${{ always() && github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' && steps.token.outputs.has_token != 'true' }}
         uses: actions/github-script@v9
@@ -168,7 +448,7 @@ jobs:
         # Keep PR trust fail-closed: only a complete TestPass run with zero
         # failed checks is green. Running, unknown, and infra states must stay
         # visible/retryable instead of looking like evaluated product passes.
-        if: ${{ always() && steps.token.outputs.has_token == 'true' && (steps.testpass.outputs.status != 'complete' || steps.testpass.outputs.fail_count != '0') }}
+        if: ${{ always() && steps.token.outputs.has_token == 'true' && steps.vercel.outputs.ready != 'false' && (steps.testpass.outputs.status != 'complete' || steps.testpass.outputs.fail_count != '0') }}
         shell: bash
         env:
           STATUS: ${{ steps.testpass.outputs.status }}

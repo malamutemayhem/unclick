@@ -32,6 +32,14 @@ export const DEFAULT_COPYPASS_CHECKS: CopyPassCheckDefinition[] = [
       "Add a concrete receipt, customer proof, safety note, privacy note, or public evidence signal.",
   },
   {
+    id: "testimonial-proof-gap",
+    label: "Social proof needs evidence",
+    goal: "Testimonials, ratings, endorsements, and trusted-by claims should point to evidence.",
+    severity: "medium",
+    recommended_fix:
+      "Attach a public source, review, testimonial, case study, or receipt before using the social-proof claim.",
+  },
+  {
     id: "unsupported-superiority",
     label: "Unsupported superiority",
     goal: "Absolute or superiority claims should have public proof before they ship.",
@@ -46,6 +54,14 @@ export const DEFAULT_COPYPASS_CHECKS: CopyPassCheckDefinition[] = [
     severity: "high",
     recommended_fix:
       "Reposition the copy around quality, clarity, editing, and evidence instead of detector bypass claims.",
+  },
+  {
+    id: "authorship-transparency",
+    label: "Authorship transparency",
+    goal: "AI-generated copy should not imply it is fully human-written or AI-free unless that is externally true.",
+    severity: "high",
+    recommended_fix:
+      "Remove human-written or AI-free claims unless they are true and supported, or reframe around human review.",
   },
   {
     id: "placeholder-copy",
@@ -167,14 +183,44 @@ const PROOF_TERMS = [
   "verified",
 ];
 
+const SOCIAL_PROOF_TERMS = [
+  "as seen in",
+  "customers love",
+  "endorsed by",
+  "featured in",
+  "five-star",
+  "loved by",
+  "rated",
+  "recommended by",
+  "trusted by",
+  "users love",
+  "5-star",
+];
+
+const SOCIAL_PROOF_EVIDENCE_TERMS = [
+  "case study",
+  "customer quote",
+  "evidence",
+  "public proof",
+  "receipt",
+  "review",
+  "source",
+  "testimonial",
+  "verified",
+];
+
 const SUPERIORITY_TERMS = [
   "#1",
   "best",
+  "better than",
   "industry leading",
   "leading",
   "most advanced",
   "number one",
+  "outperforms",
   "revolutionary",
+  "safer than",
+  "smarter than",
   "ultimate",
 ];
 
@@ -210,6 +256,18 @@ const DETECTOR_EVASION_TERMS = [
   "turnitin safe",
   "turnitin-safe",
   "undetectable ai",
+];
+
+const AUTHORSHIP_TRANSPARENCY_TERMS = [
+  "100% human",
+  "ai-free",
+  "human written",
+  "human-written",
+  "no ai generated",
+  "no ai-generated",
+  "not ai generated",
+  "not ai-generated",
+  "written by humans",
 ];
 
 const AI_SLOP_TERMS = [
@@ -285,6 +343,7 @@ export function detectCopyPassFindings(
 
   const blockFindings = blocks.flatMap((block) => {
     const normalized = normalizeCopy(block.text);
+    const isPolicyExample = isPolicyExampleCatalog(block, normalized);
     const findings: CopyPassFinding[] = [];
 
     if (
@@ -335,6 +394,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "unsupported-superiority") &&
+      !isPolicyExample &&
       containsAny(normalized, SUPERIORITY_TERMS) &&
       !containsAny(normalized, PROOF_TERMS)
     ) {
@@ -344,6 +404,22 @@ export function detectCopyPassFindings(
           requireCheck(checkById, "unsupported-superiority"),
           "Superiority claim needs proof",
           "The copy uses an absolute or superiority phrase without a nearby proof signal.",
+        ),
+      );
+    }
+
+    if (
+      isActive(activeCheckIds, "testimonial-proof-gap") &&
+      !isPolicyExample &&
+      containsAny(normalized, SOCIAL_PROOF_TERMS) &&
+      !containsAny(normalized, SOCIAL_PROOF_EVIDENCE_TERMS)
+    ) {
+      findings.push(
+        createFinding(
+          block,
+          requireCheck(checkById, "testimonial-proof-gap"),
+          "Social-proof claim needs evidence",
+          "The copy uses a testimonial, rating, endorsement, or trusted-by claim without a visible source.",
         ),
       );
     }
@@ -364,6 +440,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "risky-guarantee-language") &&
+      !isPolicyExample &&
       hasRiskyGuarantee(normalized)
     ) {
       findings.push(
@@ -378,6 +455,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "detector-evasion-claim") &&
+      !isPolicyExample &&
       containsAny(normalized, DETECTOR_EVASION_TERMS)
     ) {
       findings.push(
@@ -391,7 +469,23 @@ export function detectCopyPassFindings(
     }
 
     if (
+      isActive(activeCheckIds, "authorship-transparency") &&
+      !isPolicyExample &&
+      containsAny(normalized, AUTHORSHIP_TRANSPARENCY_TERMS)
+    ) {
+      findings.push(
+        createFinding(
+          block,
+          requireCheck(checkById, "authorship-transparency"),
+          "Human-authorship claim needs support",
+          "The copy implies the text is fully human-written or AI-free, which can be misleading without proof.",
+        ),
+      );
+    }
+
+    if (
       isActive(activeCheckIds, "ai-slop-language") &&
+      !isPolicyExample &&
       (containsAny(normalized, AI_SLOP_TERMS) || hasEmDash(block.text))
     ) {
       findings.push(
@@ -421,6 +515,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "misleading-urgency") &&
+      !isPolicyExample &&
       containsAny(normalized, URGENCY_TERMS) &&
       !hasUrgencySupport(normalized)
     ) {
@@ -436,6 +531,7 @@ export function detectCopyPassFindings(
 
     if (
       isActive(activeCheckIds, "ui-honesty-gap") &&
+      !isPolicyExample &&
       containsAny(normalized, UI_AUTOMATION_TERMS) &&
       !containsAny(normalized, PROOF_TERMS) &&
       !containsAny(normalized, ["beta", "when safe", "preview", "manual review"])
@@ -455,7 +551,11 @@ export function detectCopyPassFindings(
 
   return [
     ...blockFindings,
-    ...detectInternalConsistencyFindings(blocks, activeCheckIds, checkById),
+    ...detectInternalConsistencyFindings(
+      blocks.filter((block) => !isPolicyExampleCatalog(block, normalizeCopy(block.text))),
+      activeCheckIds,
+      checkById,
+    ),
   ];
 }
 
@@ -465,6 +565,56 @@ export function normalizeCopy(value: string): string {
 
 function isPrimaryBlock(block: CopyPassCopyBlock): boolean {
   return block.kind === "hero" || block.kind === "headline";
+}
+
+function isPolicyExampleCatalog(block: CopyPassCopyBlock, normalized: string): boolean {
+  if (block.kind !== "doc") return false;
+
+  const sourceContext = normalizeCopy(
+    [
+      block.label ?? "",
+      block.source_path ?? "",
+      block.source_url ?? "",
+    ].join(" "),
+  );
+  const catalogContext = `${sourceContext} ${normalized}`;
+
+  const hasGuardrailContext = containsAny(catalogContext, [
+    "banned",
+    "forbidden",
+    "blocked",
+    "disallowed",
+    "do not use",
+    "guardrail",
+    "linter",
+    "marketing copy audit",
+    "passguard",
+    "policy",
+  ]);
+  const hasExampleContext = containsAny(catalogContext, [
+    "allowed framing",
+    "banned phrase",
+    "banned phrases",
+    "example",
+    "examples",
+    "phrase",
+    "phrases",
+    "term",
+    "terms",
+    "wording",
+  ]);
+  const hasRiskTerm = containsAny(normalized, [
+    ...SUPERIORITY_TERMS,
+    ...SOCIAL_PROOF_TERMS,
+    ...GUARANTEE_TERMS,
+    ...DETECTOR_EVASION_TERMS,
+    ...AUTHORSHIP_TRANSPARENCY_TERMS,
+    ...AI_SLOP_TERMS,
+    ...URGENCY_TERMS,
+    ...UI_AUTOMATION_TERMS,
+  ]);
+
+  return hasGuardrailContext && hasExampleContext && hasRiskTerm;
 }
 
 function isActive(activeCheckIds: Set<CopyPassCheckId>, checkId: CopyPassCheckId): boolean {

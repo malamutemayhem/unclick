@@ -37,9 +37,12 @@ export function createQrRouter(_db: Db) {
           width: size,
           margin,
         });
-        c.header('Content-Type', 'image/png');
-        c.header('Content-Length', String(buffer.length));
-        return c.body(buffer);
+        return new Response(new Uint8Array(buffer), {
+          headers: {
+            'Content-Type': 'image/png',
+            'Content-Length': String(buffer.length),
+          },
+        });
       }
     } catch {
       throw Errors.internal('Failed to generate QR code');

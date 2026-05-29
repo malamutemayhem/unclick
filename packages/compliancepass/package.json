@@ -1,0 +1,29 @@
+{
+  "name": "@unclick/compliancepass",
+  "version": "0.1.0",
+  "description": "CompliancePass - evidence-backed readiness reporting without certification claims.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./schema": "./dist/schema.js",
+    "./runner": "./dist/runner.js",
+    "./reporter": "./dist/reporter.js"
+  },
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "tsc --project tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
+  }
+}

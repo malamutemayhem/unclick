@@ -68,12 +68,9 @@ function parseGitStatusEntries(output) {
     .filter((entry) => entry.path);
 }
 
-function isGeneratedRunnerLedgerPath(path) {
+function isGeneratedRunnerArtifactPath(path) {
   const normalized = normalizePath(path).replace(/\/+$/, "");
-  return (
-    normalized === ".pinballwake" ||
-    normalized === ".pinballwake/coding-room-ledger.json"
-  );
+  return normalized === ".pinballwake" || normalized.startsWith(".pinballwake/");
 }
 
 function normalizeList(values) {
@@ -113,6 +110,35 @@ function commandFailureReason(command, args = []) {
   }
   const action = actionParts.join("_");
   return `${command}_${safeSlug(action, "command")}_failed`;
+}
+
+function resolveJobTodoId(job = {}) {
+  return String(
+    job?.todo_id ||
+      job?.todoId ||
+      job?.id ||
+      job?.source_state?.todo_id ||
+      job?.sourceState?.todo_id ||
+      "",
+  ).trim();
+}
+
+function parseExistingPr(stdout = "") {
+  const text = String(stdout || "").trim();
+  if (!text) return null;
+  if (/^https?:\/\//i.test(text)) return { url: text, headRefOid: null };
+  try {
+    const entries = JSON.parse(text);
+    const first = Array.isArray(entries) ? entries[0] : entries;
+    const url = String(first?.url || "").trim();
+    if (!url) return null;
+    return {
+      url,
+      headRefOid: String(first?.headRefOid || first?.head_sha_after || "").trim() || null,
+    };
+  } catch {
+    return { url: text, headRefOid: null };
+  }
 }
 
 function scopedPushArgs(branch) {
@@ -515,7 +541,7 @@ async function cleanPreappliedOwnedPatch({
   if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
 
   let dirtyEntries = parseGitStatusEntries(status.stdout);
-  let blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
+  let blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerArtifactPath(entry.path));
   if (blockingDirtyEntries.length) {
     const changedSet = new Set((changedFiles || []).map(normalizePath));
     const unrelatedDirtyEntries = blockingDirtyEntries.filter((entry) => !changedSet.has(entry.path));
@@ -544,7 +570,7 @@ async function cleanPreappliedOwnedPatch({
     status = await runProcess("git", ["status", "--porcelain"], { cwd, env });
     if (!status.ok) return { ok: false, reason: "git_status_failed", output: status.output };
     dirtyEntries = parseGitStatusEntries(status.stdout);
-    blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerLedgerPath(entry.path));
+    blockingDirtyEntries = dirtyEntries.filter((entry) => !isGeneratedRunnerArtifactPath(entry.path));
   }
 
   const blockingDirtyFiles = blockingDirtyEntries.map((entry) => entry.path);
@@ -624,20 +650,21 @@ export function createSafeCodeRoomSubmitter({
     });
     if (!clean.ok) return clean;
 
-    const todoId = safeSlug(job?.todo_id || job?.id || job?.job_id || safeStamp(now));
+    const displayTodoId = resolveJobTodoId(job);
+    const todoId = safeSlug(job?.todo_id || job?.id || job?.job_id || displayTodoId || safeStamp(now));
     const branch = branchName || `${DEFAULT_SUBMITTER_BRANCH_PREFIX}-${todoId}`;
     const existing = await runProcess(
       "gh",
-      ["pr", "list", "--head", branch, "--state", "open", "--json", "url", "--jq", ".[0].url // \"\""],
+      ["pr", "list", "--head", branch, "--state", "open", "--json", "url,headRefOid"],
       { cwd, env: submitterEnv },
     );
     if (!existing.ok) return { ok: false, reason: "gh_pr_list_failed", output: existing.output };
-    const existingUrl = existing.stdout.trim();
-    if (existingUrl) {
+    const existingPr = parseExistingPr(existing.stdout);
+    if (existingPr?.url) {
       return {
         ok: true,
-        pr_url: existingUrl,
-        head_sha_after: null,
+        pr_url: existingPr.url,
+        head_sha_after: existingPr.headRefOid,
         test_run_id: testRunId || null,
         test_exit_code: 0,
         status: "existing_pr",
@@ -651,7 +678,7 @@ export function createSafeCodeRoomSubmitter({
       [
         "OpenHands CodeRoom submitter PR.",
         "",
-        `Todo: ${job?.todo_id || job?.id || "unknown"}`,
+        `Todo: ${displayTodoId || "unknown"}`,
         `Summary: ${summary || "OpenHands produced a scoped patch."}`,
         `Test run: ${testRunId || "not supplied"}`,
         "",

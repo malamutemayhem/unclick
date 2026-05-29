@@ -13,23 +13,24 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 486b704a6072 | 16305 |
-| FLEET_SYNC.md | 41ebcbca94b0 | 13200 |
-| docs/unclick-context-boot-packet.md | 7cf131cf22e0 | 4785 |
+| AUTOPILOT.md | 5b6b2c21c91d | 17427 |
+| FLEET_SYNC.md | 83bbf1598b48 | 14705 |
+| docs/unclick-context-boot-packet.md | 259a136f762b | 6132 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
 | docs/pinballwake-nudgeonly-api.md | e056b727ce53 | 7559 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
-| docs/fleet-worker-roles.md | ed620f347d4f | 4873 |
+| docs/fleet-worker-roles.md | a8f64d0da135 | 4873 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 7bd815c57de3 | 13446 |
-| src/pages/admin/AdminShell.tsx | d0ad42350797 | 19229 |
+| src/App.tsx | 1aa898894c02 | 13811 |
+| src/pages/admin/AdminShell.tsx | 1509360c4bfa | 19341 |
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
-| .github/workflows/ci.yml | b0a209c9c627 | 1559 |
+| .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
-| package.json | f416df3bc693 | 4434 |
+| .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
+| package.json | 82100008ad1b | 6417 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -50,27 +51,27 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/tester-proof-plan.skill.md | d8c55bf6329a | 1153 |
 | seed/skills/watcher-heartbeat-tether.skill.md | 28acf3324343 | 1057 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
-| src/pages/Index.tsx | 27da391f9555 | 1292 |
+| src/pages/Index.tsx | 87bc594da785 | 1598 |
 | src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | 9c138bfc810d | 11515 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
 | src/pages/admin/AdminAnalytics.tsx | 8e3ab82ef00f | 10336 |
 | src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
-| src/pages/admin/AdminEcosystemPages.tsx | b045ed683458 | 13590 |
+| src/pages/admin/AdminEcosystemPages.tsx | 3a9b7643c7fc | 13854 |
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
-| src/pages/admin/AdminBrainmap.tsx | 21baca89f0d0 | 27078 |
+| src/pages/admin/AdminBrainmap.tsx | c764ced96836 | 26511 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
-| src/pages/admin/copypass/CopyPassCatalog.tsx | ecfffa28e759 | 7258 |
+| src/pages/admin/copypass/CopyPassCatalog.tsx | a7d741e75c78 | 7306 |
 | src/pages/admin/crews/CrewComposer.tsx | f3afb17bb001 | 13909 |
 | src/pages/admin/crews/CrewRun.tsx | 8a458cc0c629 | 8427 |
 | src/pages/admin/crews/CrewsRuns.tsx | b77175f114bf | 4094 |
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 089b6c00af2e | 5949 |
 | src/pages/admin/AdminDashboard.tsx | 437a146a3d78 | 5259 |
-| src/pages/admin/AdminJobs.tsx | d4782e020bb5 | 59940 |
+| src/pages/admin/AdminJobs.tsx | ea5ff201abd2 | 60846 |
 | src/pages/admin/AdminJobsmith.tsx | 34ba72c04cb2 | 54660 |
-| src/pages/admin/AdminKeychain.tsx | 885131936227 | 77036 |
+| src/pages/admin/AdminKeychain.tsx | 0c355d737922 | 77124 |
 | src/pages/admin/AdminMemory.tsx | f001b0a54b31 | 9731 |
 | src/pages/admin/AdminModeration.tsx | c81500ffb43d | 880 |
 | src/pages/admin/AdminOrchestrator.tsx | 4741f71afba9 | 94705 |
@@ -94,24 +95,23 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/arena/ArenaHome.tsx | 7674a937b45c | 10180 |
 | src/pages/AuthCallback.tsx | 41644ade9f97 | 5284 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/BuildDesk.tsx | 36cf3e2985ba | 4474 |
-| src/pages/Connect.tsx | ec4230e130ef | 29356 |
-| src/pages/Crews.tsx | 1cdeaee2ae36 | 17586 |
+| src/pages/Connect.tsx | ebf2c68ad6c3 | 29590 |
+| src/pages/Crews.tsx | 9b4b9dfca188 | 18784 |
 | src/pages/DeveloperDocs.tsx | 339b3a5c60ae | 23490 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | e09d777363c0 | 8012 |
 | src/pages/Developers.tsx | 9657fd564797 | 19123 |
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
-| src/pages/DogfoodReport.tsx | 10f4bfd44859 | 16045 |
-| src/pages/FAQPage.tsx | c3c95c39e56f | 723 |
+| src/pages/DogfoodReport.tsx | 16909fd44b92 | 16552 |
+| src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
-| src/pages/Jobsmith.tsx | 70f86c37110a | 34772 |
+| src/pages/Jobsmith.tsx | 08e9c9874c22 | 61541 |
 | src/pages/Login.tsx | 0cfc79660be5 | 8862 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
-| src/pages/Memory.tsx | 41c34c866a1a | 16588 |
-| src/pages/NewToAI.tsx | 93d855b0a2d8 | 15863 |
+| src/pages/Memory.tsx | cf7f06bacc89 | 18641 |
+| src/pages/NewToAI.tsx | a28cb1d9ece8 | 12559 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
@@ -121,16 +121,16 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/LinkInBio.tsx | 4f20852d63d4 | 7831 |
 | src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
-| src/pages/Tools.tsx | 156bda80eaa2 | 22001 |
+| src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
 | scripts/pinballwake-coding-room.mjs | 9fa5689c555e | 25310 |
-| scripts/pinballwake-continuous-improvement-room.mjs | 8c23d67cad4e | 14869 |
+| scripts/pinballwake-continuous-improvement-room.mjs | 51ca5eb8745b | 14894 |
 | scripts/pinballwake-dogfood-room.mjs | d161028d1382 | 2782 |
 | scripts/pinballwake-event-ledger-room.mjs | e8f8f9f84123 | 16104 |
 | scripts/pinballwake-jobs-room.mjs | c77c394081c2 | 14217 |
-| scripts/pinballwake-launchpad-room.mjs | 64cc89cd3253 | 12693 |
+| scripts/pinballwake-launchpad-room.mjs | 9ee3556460d0 | 20544 |
 | scripts/pinballwake-merge-room.mjs | 3645da5c0c93 | 8431 |
 | scripts/pinballwake-overlap-resolver-room.mjs | 14d03ef6acd3 | 6787 |
 | scripts/pinballwake-personality-room.mjs | c1ca769346f1 | 9644 |
@@ -144,7 +144,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 8f56bcf4cb09 | 17833 |
+| scripts/pinballwake-xpass-gate-room.mjs | 0483d0717e07 | 32407 |
 | packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |
@@ -171,9 +171,10 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/coingecko-tool.ts | e7d8c7535112 | 6827 |
 | packages/mcp-server/src/coinmarketcap-tool.ts | b1c5fd280acb | 6892 |
 | packages/mcp-server/src/color-tool.ts | f9aa9c0fec6e | 13643 |
-| packages/mcp-server/src/commonsensepass-tool.ts | 02d0d82630d7 | 1991 |
+| packages/mcp-server/src/commonsensepass-tool.ts | bad23b55ea01 | 1995 |
+| packages/mcp-server/src/compliancepass-tool.ts | 13242448457f | 3202 |
 | packages/mcp-server/src/convertkit-tool.ts | 2f77303a3441 | 8498 |
-| packages/mcp-server/src/copypass-tool.ts | 4debe88f6f2f | 28450 |
+| packages/mcp-server/src/copypass-tool.ts | 70d540c397a5 | 31503 |
 | packages/mcp-server/src/crews-tool.ts | 111454c76c0a | 13547 |
 | packages/mcp-server/src/csuite-tool.ts | 0ab5af89bb49 | 70236 |
 | packages/mcp-server/src/datadog-tool.ts | 802b808614cd | 5556 |
@@ -184,13 +185,12 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/discord-tool.ts | c70b8ac42f28 | 8191 |
 | packages/mcp-server/src/domain-tool.ts | 1beecc106e80 | 6076 |
 | packages/mcp-server/src/ebay-tool.ts | 10dffe36315f | 7595 |
-| packages/mcp-server/src/ebird-tool.ts | 3deedf3fde19 | 6262 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | a1280cfec46b | 15338 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
 | .github/workflows/dirty-branch-hygiene.yml | 9d192a7da041 | 2190 |
-| .github/workflows/dogfood-report.yml | d485b8d37111 | 3987 |
+| .github/workflows/dogfood-report.yml | 65897c4393aa | 6605 |
 | .github/workflows/event-wake-router.yml | bfd53e324bb4 | 1453 |
 | .github/workflows/fleet-throughput-watch.yml | c5a08f4edf9b | 930 |
 | .github/workflows/openhands-test-mode.yml | 3bd5d5f48573 | 1137 |
@@ -199,7 +199,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | 06c30cc187e8 | 7414 |
+| .github/workflows/testpass-pr-check.yml | bca601f0a1c2 | 20251 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | f26a538f2ee9 | 896 |
 
@@ -208,22 +208,23 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 46 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
-| Tools | MCP and gateway capabilities available to seats. | 185 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 35 |
+| Tools | MCP and gateway capabilities available to seats. | 187 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
-| Passes and gates | Quality, proof, safety, and fidelity checks. | 14 |
+| Passes and gates | Quality, proof, safety, and fidelity checks. | 16 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 115 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 118 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 61 |
-| Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 4 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 66 |
+| Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 5 |
 
 ## UnClick Structure
 
 - UnClick is the platform: tools, memory, agents, proof, and admin surfaces.
 - Launchpad is the control hub for Autopilot work.
+- Crews Council induction is a Launchpad prompt, not a new Pass product; it uses Council Lite for light dissent and asks for full Crews only when judgement is needed.
 - Rooms are the operational stages that route work through research, planning, build, proof, review, safety, merge, publish, repair, and improvement.
 - Heartbeat Master at `/admin/agents/heartbeat` teaches scheduled AI seats how to pulse safely.
 - Heartbeat policy changes must update the `/admin/agents/heartbeat` source and verify the MASTER induction text. Memory and Brainmap entries are pointers, not the runtime MASTER.
@@ -240,9 +241,10 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | 3 | Open Boardroom Jobs | Use Jobs as the source of truth for active work, proof state, blockers, and safe next action. | Boardroom Jobs | /admin/jobs |
 | 4 | Pass through Brainmap | Use the generated ecosystem map to find current routes, tools, rooms, workers, aliases, and safety gates. | Ecosystem Brainmap | /admin/brainmap |
 | 5 | Choose the Launchpad lane | Route the work through the safest current Autopilot lane before acting or handing off. | Launchpad | /admin/pinballwake |
-| 6 | Check proof gates | Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing. | Proof Ledger | docs/agent-observability.md |
-| 7 | Dogtest the outcome | Run the focused local tests and browser or live proof that match the touched surface. | XPass and CI | package.json |
-| 8 | Reply and log proof | End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step. | Boardroom and Orchestrator | /admin/jobs |
+| 6 | Ask Crews Council if needed | Run Council Lite on material work, then prompt full Crews Council for launch, risk, mixed proof, or broad XPass evidence. | Crews Council | scripts/pinballwake-launchpad-room.mjs |
+| 7 | Check proof gates | Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing. | Proof Ledger | docs/agent-observability.md |
+| 8 | Dogtest the outcome | Run the focused local tests and browser or live proof that match the touched surface. | XPass and CI | package.json |
+| 9 | Reply and log proof | End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step. | Boardroom and Orchestrator | /admin/jobs |
 
 ## Pages and Meaning
 
@@ -301,7 +303,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /arena | Arena Home | Arena page for Arena Home. | src/pages/arena/ArenaHome.tsx |
 | /auth/callback | Auth Callback | User-facing page for Auth Callback. | src/pages/AuthCallback.tsx |
 | /auth/verify-mfa | Verify Mfa | User-facing page for Verify Mfa. | src/pages/VerifyMfa.tsx |
-| /build | Build Desk | Build and project work surface. | src/pages/BuildDesk.tsx |
 | /connect/:platform | Connect | User-facing page for Connect. | src/pages/Connect.tsx |
 | /crews | Crews | Public Crews explanation and entry point. | src/pages/Crews.tsx |
 | /developers/docs | Developer Docs | Developer documentation. | src/pages/DeveloperDocs.tsx |
@@ -362,6 +363,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | coinmarketcap | coinmarketcap MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/coinmarketcap-tool.ts |
 | color | color MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/color-tool.ts |
 | commonsensepass | commonsensepass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/commonsensepass-tool.ts |
+| compliancepass | compliancepass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/compliancepass-tool.ts |
 | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/convertkit-tool.ts |
 | copypass | copypass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/copypass-tool.ts |
 | crews | crews MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/crews-tool.ts |
@@ -384,6 +386,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | feedly | feedly MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/feedly-tool.ts |
 | fidelitycopy | fidelitycopy MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fidelitycopy-tool.ts |
 | figma | figma MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/figma-tool.ts |
+| flowpass | flowpass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/flowpass-tool.ts |
 | flyio | flyio MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/flyio-tool.ts |
 | foursquare | foursquare MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/foursquare-tool.ts |
 | fpl | fpl MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fpl-tool.ts |
@@ -602,6 +605,8 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | script | pinballwake commonsense pass.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-commonsense-pass.test.mjs |
 | Automations | script | pinballwake continuous improvement room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-room.mjs |
 | Automations | script | pinballwake continuous improvement room.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-room.test.mjs |
+| Automations | script | pinballwake continuous improvement watch | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-watch.mjs |
+| Automations | script | pinballwake continuous improvement watch.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-continuous-improvement-watch.test.mjs |
 | Automations | script | pinballwake dogfood room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-dogfood-room.mjs |
 | Automations | script | pinballwake dogfood room.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-dogfood-room.test.mjs |
 | Automations | script | pinballwake event ledger room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-event-ledger-room.mjs |
@@ -673,6 +678,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | workflow | brainmap auto update.yml | Scheduled workflow that regenerates the ecosystem Brainmap. | - | .github/workflows/brainmap-auto-update.yml |
 | Automations | workflow | ci.yml | Continuous integration checks for build, tests, and proof safety. | - | .github/workflows/ci.yml |
 | Automations | workflow | claude.yml | claude GitHub automation workflow. | - | .github/workflows/claude.yml |
+| Automations | workflow | continuous improvement watch.yml | continuous improvement watch GitHub automation workflow. | - | .github/workflows/continuous-improvement-watch.yml |
 | Automations | workflow | dirty branch hygiene.yml | dirty branch hygiene GitHub automation workflow. | - | .github/workflows/dirty-branch-hygiene.yml |
 | Automations | workflow | dogfood report.yml | dogfood report GitHub automation workflow. | - | .github/workflows/dogfood-report.yml |
 | Automations | workflow | event wake router.yml | GitHub-triggered wake and routing workflow. | - | .github/workflows/event-wake-router.yml |
@@ -687,6 +693,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | workflow | testpass scheduled smoke.yml | testpass scheduled smoke GitHub automation workflow. | - | .github/workflows/testpass-scheduled-smoke.yml |
 | Automations | workflow | tier2 auto merge queue check.yml | tier2 auto merge queue check GitHub automation workflow. | - | .github/workflows/tier2-auto-merge-queue-check.yml |
 | Launch and onboarding | brainmap source | Un Click brainmap | Un Click brainmap UnClick module. | - | scripts/UnClick-brainmap.mjs |
+| Launch and onboarding | judgement prompt | Crews Council Induction | Launchpad prompt that runs Council Lite on material work and asks for a full Crews Council only when launch, risk, mixed proof, or broad XPass evidence needs judgement. | /admin/pinballwake | scripts/pinballwake-launchpad-room.mjs |
 | Launch and onboarding | map | Ecosystem Brainmap | Generated sitemap and system map that teaches seats what UnClick contains. | /admin/brainmap | src/pages/admin/AdminBrainmap.tsx |
 | Launch and onboarding | policy | Heartbeat Master | Canonical schedule prompt and procedure for safe heartbeat seats. | /admin/agents/heartbeat | src/pages/admin/AdminSeatHeartbeat.tsx |
 | Launch and onboarding | route | Launchpad | Control hub that points seats to the next safe operating lane. | /admin/pinballwake | scripts/pinballwake-launchpad-room.mjs |
@@ -696,6 +703,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Ledgers and proof | proof module | pinballwake openhands proof runner | pinballwake openhands proof runner UnClick module. | - | scripts/pinballwake-openhands-proof-runner.mjs |
 | Ledgers and proof | proof module | pinballwake proof executor | pinballwake proof executor UnClick module. | - | scripts/pinballwake-proof-executor.mjs |
 | Ledgers and proof | proof module | pinballwake quiet window proof | pinballwake quiet window proof UnClick module. | - | scripts/pinballwake-quiet-window-proof.mjs |
+| Modules and apps | app module | app Log Store | app Log Store shared frontend logic. | - | src/lib/jobsmith/appLogStore.ts |
+| Modules and apps | app module | build Browser Corpus | build Browser Corpus shared frontend logic. | - | src/lib/jobsmith/buildBrowserCorpus.ts |
+| Modules and apps | app module | parse Pdf Browser | parse Pdf Browser shared frontend logic. | - | src/lib/jobsmith/parsePdfBrowser.ts |
 | Modules and apps | app | api | package UnClick module. | - | apps/api/package.json |
 | Modules and apps | app | jobsmith | JobSmith application module for CV, checklist, and rule-pack work. | - | apps/jobsmith/package.json |
 | Modules and apps | app | JobSmith | CV, cover-letter, job application, and rules/checklist engine. | /admin/jobsmith | apps/jobsmith/package.json |
@@ -703,6 +713,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Admin Settings | Account and admin configuration. | - | src/pages/AdminSettings.tsx |
 | Modules and apps | component | Backstage Pass | User-facing page for Backstage Pass. | - | src/pages/BackstagePass.tsx |
 | Modules and apps | component | Brain Map | Legacy Memory Brain Map component kept distinct from ecosystem Brainmap. | - | src/pages/admin/BrainMap.tsx |
+| Modules and apps | component | Build Desk | Build and project work surface. | - | src/pages/BuildDesk.tsx |
 | Modules and apps | component | Comments | Admin surface for Comments. | - | src/pages/admin/fishbowl/Comments.tsx |
 | Modules and apps | component | Connected Services | Tool page for Connected Services. | - | src/pages/admin/tools/ConnectedServices.tsx |
 | Modules and apps | component | Context Tab | Memory admin panel for Context Tab. | - | src/pages/admin/memory/ContextTab.tsx |
@@ -723,6 +734,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Un Click Tools | Tool page for Un Click Tools. | - | src/pages/admin/tools/UnClickTools.tsx |
 | Modules and apps | package | channel plugin | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/channel-plugin/package.json |
 | Modules and apps | package | commonsensepass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/commonsensepass/package.json |
+| Modules and apps | package | compliancepass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/compliancepass/package.json |
 | Modules and apps | package | copypass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/copypass/package.json |
 | Modules and apps | package | core | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/core/package.json |
 | Modules and apps | package | flowpass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/flowpass/package.json |
@@ -763,7 +775,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Passes and gates | pass | testpass | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/testpass.ts |
 | Passes and gates | pass | testpass background handoff | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-background-handoff.ts |
 | Passes and gates | pass | testpass boundary | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-boundary.ts |
+| Passes and gates | pass | testpass edit guard | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/testpass-edit-guard.ts |
 | Passes and gates | pass | testpass pr comment | testpass pr comment UnClick module. | - | scripts/testpass-pr-comment.mjs |
+| Passes and gates | pass | testpass pr target | testpass pr target UnClick module. | - | scripts/testpass-pr-target.mjs |
 | Passes and gates | pass | testpass run | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/testpass-run.ts |
 | Passes and gates | pass | uxpass | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/uxpass.ts |
 | Passes and gates | pass | uxpass run | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/uxpass-run.ts |
@@ -776,7 +790,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Arena Problem | Arena page for Arena Problem. | /arena/:id | src/pages/arena/ArenaProblem.tsx |
 | Public surfaces | public page | Arena Submit Problem | Arena page for Arena Submit Problem. | /arena/submit | src/pages/arena/ArenaSubmitProblem.tsx |
 | Public surfaces | public page | Auth Callback | User-facing page for Auth Callback. | /auth/callback | src/pages/AuthCallback.tsx |
-| Public surfaces | public page | Build Desk | Build and project work surface. | /build | src/pages/BuildDesk.tsx |
 | Public surfaces | public page | Connect | User-facing page for Connect. | /connect/:platform | src/pages/Connect.tsx |
 | Public surfaces | public page | Crews | Public Crews explanation and entry point. | /crews | src/pages/Crews.tsx |
 | Public surfaces | public page | Developer Docs | Developer documentation. | /developers/docs | src/pages/DeveloperDocs.tsx |
@@ -867,6 +880,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | coinmarketcap | coinmarketcap MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/coinmarketcap-tool.ts |
 | Tools | MCP tool | color | color MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/color-tool.ts |
 | Tools | MCP tool | commonsensepass | commonsensepass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/commonsensepass-tool.ts |
+| Tools | MCP tool | compliancepass | compliancepass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/compliancepass-tool.ts |
 | Tools | MCP tool | convertkit | convertkit MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/convertkit-tool.ts |
 | Tools | MCP tool | copypass | copypass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/copypass-tool.ts |
 | Tools | MCP tool | crews | crews MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/crews-tool.ts |
@@ -889,6 +903,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | feedly | feedly MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/feedly-tool.ts |
 | Tools | MCP tool | fidelitycopy | fidelitycopy MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fidelitycopy-tool.ts |
 | Tools | MCP tool | figma | figma MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/figma-tool.ts |
+| Tools | MCP tool | flowpass | flowpass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/flowpass-tool.ts |
 | Tools | MCP tool | flyio | flyio MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/flyio-tool.ts |
 | Tools | MCP tool | foursquare | foursquare MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/foursquare-tool.ts |
 | Tools | MCP tool | fpl | fpl MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fpl-tool.ts |
@@ -1106,6 +1121,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 ## Launchpad Route
 
 - Launchpad routes work from Coordinator to Builder, Tester, Reviewer, Safety Checker, and Ledger PASS.
+- Launchpad checks Council induction so Council Lite is always visible on material work, and full Crews appears when launch, risk, mixed XPass proof, or broad evidence needs judgement.
 - Launchpad readiness is represented in `scripts/pinballwake-launchpad-room.mjs` and related tests.
 - User-facing control lives in Autopilot admin surfaces, with worker discussion in Boardroom.
 
@@ -1122,12 +1138,16 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | --- | --- |
 | brainmap:check | node scripts/UnClick-brainmap.mjs --check |
 | brainmap:generate | node scripts/UnClick-brainmap.mjs |
-| build | npm run build --workspace=@unclick/commonsensepass && vite build |
+| build | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build |
 | build:dev | vite build --mode development |
+| compliancepass:report | npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs |
 | lint | eslint . |
-| test | vitest run |
+| test | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run && npm run test:api-lib-esm-extension |
 | test:api | npm run test --workspace=apps/api |
+| test:api-lib-esm-extension | node --test scripts/api-lib-esm-extension-guard.test.mjs |
 | test:brainmap | node --test scripts/UnClick-brainmap.test.mjs |
+| test:compliancepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
+| test:continuous-improvement-watch | node --test scripts/pinballwake-continuous-improvement-watch.test.mjs |
 | test:enterprisepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
 | test:rotatepass-redaction | node --test scripts/rotatepass-redaction-guard.test.mjs |
 | test:watch | vitest |

@@ -108,7 +108,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { evaluateFishbowlCompletionPolicy } from "./lib/fishbowl-completion-policy.js";
 import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
-import { buildRecallFactSections } from "./lib/memory-recall-sections.js";
+import { buildRecallFactSections, isRecallVisibleFact } from "./lib/memory-recall-sections.js";
 import {
   buildOrchestratorContext,
   mergeOrchestratorTodoRows,
@@ -150,7 +150,15 @@ import {
   buildFishbowlTodoHandoffDispatchRow,
   planFishbowlTodoHandoff,
 } from "./lib/fishbowl-todo-handoff.js";
+import {
+  buildFishbowlPrMergeProofComment,
+  buildFishbowlPrMergeVerifierAgentId,
+  hasFishbowlPrMergeProofComment,
+  parseFishbowlMergedPullRequest,
+} from "./lib/fishbowl-pr-merge-reconcile.js";
 import { classifyTodoActionability } from "./lib/fishbowl-todo-actionability.js";
+import { planOpenStaleTodoRelease } from "./lib/fishbowl-todo-open-stale-release.js";
+import { fishbowlTodoReleaseProtectedReason } from "./lib/fishbowl-todo-release-protection.js";
 import {
   planFishbowlPostLedgerEvent,
   planTodoLedgerEvents,
@@ -446,16 +454,21 @@ async function readAdminLibraryTaxonomySources(
 ): Promise<MemoryTaxonomySnapshotSource[]> {
   const factLimit = Math.max(1, Math.min(250, maxSources));
   const sessionLimit = Math.max(1, Math.floor(factLimit / 2));
+  const candidateLimit = Math.min(250, Math.max(factLimit * 3, factLimit));
+  const asOf = new Date();
+  const asOfIso = asOf.toISOString();
   const [factsRes, sessionsRes] = await Promise.all([
     supabase
       .from("mc_extracted_facts")
-      .select("id, fact, category, confidence, created_at, updated_at, valid_from")
+      .select("id, fact, category, confidence, created_at, updated_at, valid_from, valid_to, invalidated_at, source_type, startup_fact_kind, status")
       .eq("api_key_hash", apiKeyHash)
       .eq("status", "active")
       .is("invalidated_at", null)
+      .lte("valid_from", asOfIso)
+      .or(`valid_to.is.null,valid_to.gt.${asOfIso}`)
       .order("confidence", { ascending: false })
       .order("updated_at", { ascending: false })
-      .limit(factLimit),
+      .limit(candidateLimit),
     supabase
       .from("mc_session_summaries")
       .select("id, summary, topics, created_at")
@@ -473,7 +486,12 @@ async function readAdminLibraryTaxonomySources(
     confidence?: number | null;
     created_at?: string | null;
     updated_at?: string | null;
+    valid_to?: string | null;
     valid_from?: string | null;
+    invalidated_at?: string | null;
+    source_type?: string | null;
+    startup_fact_kind?: string | null;
+    status?: string | null;
   };
   type SessionRow = {
     id: string;
@@ -482,16 +500,19 @@ async function readAdminLibraryTaxonomySources(
     created_at?: string | null;
   };
 
-  const factSources: MemoryTaxonomySnapshotSource[] = ((factsRes.data ?? []) as FactRow[]).map((row) => ({
-    id: row.id,
-    kind: "fact",
-    text: row.fact,
-    category: row.category ?? undefined,
-    confidence: row.confidence ?? null,
-    created_at: row.created_at ?? null,
-    updated_at: row.updated_at ?? null,
-    valid_from: row.valid_from ?? null,
-  }));
+  const factSources: MemoryTaxonomySnapshotSource[] = ((factsRes.data ?? []) as FactRow[])
+    .filter((row) => isRecallVisibleFact(row, asOf))
+    .slice(0, factLimit)
+    .map((row) => ({
+      id: row.id,
+      kind: "fact",
+      text: row.fact,
+      category: row.category ?? undefined,
+      confidence: row.confidence ?? null,
+      created_at: row.created_at ?? null,
+      updated_at: row.updated_at ?? null,
+      valid_from: row.valid_from ?? null,
+    }));
   const sessionSources: MemoryTaxonomySnapshotSource[] = ((sessionsRes.data ?? []) as SessionRow[]).map((row) => ({
     id: row.id,
     kind: "session",
@@ -4220,14 +4241,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (method === "history") {
           const slug = (req.body?.slug ?? req.query.slug) as string;
           if (!slug) return res.status(400).json({ error: "slug required" });
+          const { data: doc, error: docError } = await supabase
+            .from("mc_knowledge_library")
+            .select("id, slug")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("slug", slug)
+            .maybeSingle();
+          if (docError) throw docError;
+          if (!doc) return res.status(200).json({ data: [] });
+
           const { data, error } = await supabase
             .from("mc_knowledge_library_history")
             .select("*")
             .eq("api_key_hash", apiKeyHash)
-            .eq("slug", slug)
+            .eq("library_id", doc.id)
             .order("version", { ascending: false });
           if (error) throw error;
-          return res.status(200).json({ data: data ?? [] });
+          return res.status(200).json({
+            data: (data ?? []).map((row) => ({
+              ...row,
+              slug: doc.slug,
+              created_at: row.changed_at,
+            })),
+          });
         }
 
         // list
@@ -4278,26 +4314,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .limit(20);
 
         const topFactsLimit = getClampedLimit(req.query.top_facts_limit, 10, 110);
+        const activityAsOf = new Date().toISOString();
 
         // Most Accessed stays the raw inspectable debug list. Top of Mind
         // inspects a broader pool so static startup facts cannot crowd out
         // useful current facts before the background-heavy filter runs.
         const topOfMindCandidateLimit = Math.max(topFactsLimit, TOP_OF_MIND_CANDIDATE_LIMIT);
+        const rawCandidateLimit = Math.min(250, Math.max(topOfMindCandidateLimit * 3, topOfMindCandidateLimit));
         const [topFactsResult, topOfMindCandidateResult] = await Promise.all([
           supabase
             .from("mc_extracted_facts")
-            .select("id, fact, category, access_count, decay_tier")
+            .select("id, fact, category, access_count, decay_tier, status, source_type, startup_fact_kind, invalidated_at, valid_from, valid_to")
             .eq("api_key_hash", apiKeyHash)
             .eq("status", "active")
+            .is("invalidated_at", null)
+            .lte("valid_from", activityAsOf)
+            .or(`valid_to.is.null,valid_to.gt.${activityAsOf}`)
             .order("access_count", { ascending: false })
             .limit(topFactsLimit),
           supabase
             .from("mc_extracted_facts")
-            .select("id, fact, category, access_count, decay_tier")
+            .select("id, fact, category, access_count, decay_tier, status, source_type, startup_fact_kind, invalidated_at, valid_from, valid_to")
             .eq("api_key_hash", apiKeyHash)
             .eq("status", "active")
+            .is("invalidated_at", null)
+            .lte("valid_from", activityAsOf)
+            .or(`valid_to.is.null,valid_to.gt.${activityAsOf}`)
             .order("access_count", { ascending: false })
-            .limit(topOfMindCandidateLimit),
+            .limit(rawCandidateLimit),
         ]);
         if (topFactsResult.error) throw topFactsResult.error;
         if (topOfMindCandidateResult.error) throw topOfMindCandidateResult.error;
@@ -5099,22 +5143,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // their AI actually sees at the start of every session.
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
         if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const previewAsOf = new Date();
+        const previewAsOfIso = previewAsOf.toISOString();
 
         const [ctxRes, factsRes, sessionsRes] = await Promise.all([
           supabase
             .from("mc_business_context")
             .select("category, key, value, priority")
             .eq("api_key_hash", apiKeyHash)
-            .order("priority", { ascending: true }),
+            .order("priority", { ascending: false }),
           supabase
             .from("mc_extracted_facts")
-            .select("id, fact, category, confidence, decay_tier, created_at")
+            .select("id, fact, category, confidence, decay_tier, created_at, status, source_type, startup_fact_kind, invalidated_at, valid_from, valid_to")
             .eq("api_key_hash", apiKeyHash)
             .eq("status", "active")
             .eq("decay_tier", "hot")
+            .is("invalidated_at", null)
+            .lte("valid_from", previewAsOfIso)
+            .or(`valid_to.is.null,valid_to.gt.${previewAsOfIso}`)
             .order("confidence", { ascending: false })
             .order("created_at", { ascending: false })
-            .limit(10),
+            .limit(50),
           supabase
             .from("mc_session_summaries")
             .select("id, summary, topics, created_at, platform")
@@ -5125,7 +5174,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         return res.status(200).json({
           identity: ctxRes.data ?? [],
-          hot_facts: factsRes.data ?? [],
+          hot_facts: ((factsRes.data ?? []) as Array<Record<string, unknown>>)
+            .filter((row) => isRecallVisibleFact(row, previewAsOf))
+            .slice(0, 10),
           recent_sessions: sessionsRes.data ?? [],
         });
       }
@@ -9211,7 +9262,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .limit(smallerLimit);
         if (turnSearchFilter) chatMessagesQuery = chatMessagesQuery.or(turnSearchFilter);
 
-        let autopilotEventsQuery = supabase
+        const autopilotEventsQuery = supabase
           .from("mc_autopilot_events")
           .select("event_type, actor_agent_id, ref_kind, ref_id, payload, created_at")
           .eq("api_key_hash", apiKeyHash)
@@ -9349,7 +9400,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // ─── Fishbowl Todos + Ideas v1 ────────────────────────────────────────
       //
-      // All thirteen handlers below share the same shape:
+      // These handlers share the same shape:
       //   1. Require POST.
       //   2. Resolve api_key_hash.
       //   3. Validate agent_id (<= 128 chars).
@@ -9366,7 +9417,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "fishbowl_create_todo":
       case "fishbowl_update_todo":
+      case "fishbowl_release_claim":
       case "fishbowl_complete_todo":
+      case "fishbowl_reconcile_merged_pr":
       case "fishbowl_drop_todo":
       case "fishbowl_delete_todo":
       case "fishbowl_list_todos":
@@ -9443,8 +9496,199 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           low: 0,
         };
         const DONE_TODO_ARCHIVE_WINDOW_MS = 12 * 60 * 60 * 1000;
+        const nonEmptyTodoField = (raw: unknown): string | null => {
+          if (typeof raw !== "string") return null;
+          const trimmed = raw.trim();
+          return trimmed ? trimmed : null;
+        };
 
         // ── Todos ──────────────────────────────────────────────────────────
+
+        if (action === "fishbowl_reconcile_merged_pr") {
+          const parsed = parseFishbowlMergedPullRequest(body);
+          if (parsed.error || !parsed.pr) {
+            return res.status(400).json({
+              error: parsed.error ?? "pull_request payload required",
+              how_to_fix:
+                "Send a GitHub pull_request payload, or { pr_number, pr_url, merged, merged_at, merge_commit_sha }.",
+            });
+          }
+
+          const pr = parsed.pr;
+          if (!pr.merged) {
+            return res.status(200).json({
+              closed: 0,
+              skipped: [{ reason: "pull_request_not_merged" }],
+              pr: { number: pr.number, url: pr.url },
+            });
+          }
+          if (!pr.mergeCommitSha) {
+            return res.status(409).json({
+              error: "merge_commit_sha required",
+              how_to_fix: "Pass the merged PR merge_commit_sha so the todo gets durable Git proof.",
+            });
+          }
+          if (pr.linkedTodoIds.length === 0) {
+            return res.status(200).json({
+              closed: 0,
+              skipped: [{ reason: "no_linked_todos" }],
+              pr: { number: pr.number, url: pr.url, merge_commit_sha: pr.mergeCommitSha },
+            });
+          }
+
+          const { data: todoRows, error: todoErr } = await supabase
+            .from("mc_fishbowl_todos")
+            .select("id,title,description,status,created_by_agent_id,assigned_to_agent_id,priority")
+            .eq("api_key_hash", apiKeyHash)
+            .in("id", pr.linkedTodoIds);
+          if (todoErr) throw todoErr;
+
+          const todosById = new Map((todoRows ?? []).map((todo) => [String(todo.id), todo]));
+          const foundTodoIds = (todoRows ?? []).map((todo) => String(todo.id));
+          let commentsByTodoId = new Map<string, Array<{ author_agent_id: string | null; text: string | null; created_at: string | null }>>();
+          if (foundTodoIds.length > 0) {
+            const { data: comments, error: commentErr } = await supabase
+              .from("mc_fishbowl_comments")
+              .select("target_id,author_agent_id,text,created_at")
+              .eq("api_key_hash", apiKeyHash)
+              .eq("target_kind", "todo")
+              .in("target_id", foundTodoIds)
+              .order("created_at", { ascending: true });
+            if (commentErr) throw commentErr;
+            commentsByTodoId = (comments ?? []).reduce<typeof commentsByTodoId>((acc, comment) => {
+              const targetId = String(comment.target_id);
+              acc.set(targetId, [
+                ...(acc.get(targetId) ?? []),
+                {
+                  author_agent_id: typeof comment.author_agent_id === "string" ? comment.author_agent_id : null,
+                  text: typeof comment.text === "string" ? comment.text : null,
+                  created_at: typeof comment.created_at === "string" ? comment.created_at : null,
+                },
+              ]);
+              return acc;
+            }, new Map());
+          }
+
+          const nowIso = new Date().toISOString();
+          const proofAgentId = buildFishbowlPrMergeVerifierAgentId(agentId);
+          const closed: Array<{ todo_id: string; title: string | null; merge_commit_sha: string }> = [];
+          const skipped: Array<{ todo_id?: string; reason: string; code?: string; how_to_fix?: string }> = [];
+
+          for (const todoId of pr.linkedTodoIds) {
+            const beforeTodo = todosById.get(todoId);
+            if (!beforeTodo) {
+              skipped.push({ todo_id: todoId, reason: "todo_not_found" });
+              continue;
+            }
+
+            const status = String(beforeTodo.status ?? "");
+            if (status === "done") {
+              skipped.push({ todo_id: todoId, reason: "already_done" });
+              continue;
+            }
+            if (status === "dropped") {
+              skipped.push({ todo_id: todoId, reason: "todo_dropped" });
+              continue;
+            }
+
+            const existingComments = commentsByTodoId.get(todoId) ?? [];
+            let gateComments = existingComments;
+            if (!hasFishbowlPrMergeProofComment(existingComments, pr)) {
+              const proofText = buildFishbowlPrMergeProofComment({ pr, todoId });
+              const { error: proofErr } = await supabase.from("mc_fishbowl_comments").insert({
+                api_key_hash: apiKeyHash,
+                target_kind: "todo",
+                target_id: todoId,
+                author_agent_id: proofAgentId,
+                text: proofText,
+              });
+              if (proofErr) throw proofErr;
+              gateComments = [
+                ...existingComments,
+                {
+                  author_agent_id: proofAgentId,
+                  text: proofText,
+                  created_at: nowIso,
+                },
+              ];
+              commentsByTodoId.set(todoId, gateComments);
+            }
+
+            const completionGate = evaluateFishbowlCompletionPolicy({
+              todo: {
+                id: String(beforeTodo.id),
+                title: typeof beforeTodo.title === "string" ? beforeTodo.title : null,
+                description: typeof beforeTodo.description === "string" ? beforeTodo.description : null,
+                created_by_agent_id:
+                  typeof beforeTodo.created_by_agent_id === "string" ? beforeTodo.created_by_agent_id : null,
+              },
+              comments: gateComments,
+              closerAgentId: agentId,
+            });
+            if (!completionGate.allowed) {
+              skipped.push({
+                todo_id: todoId,
+                reason: "completion_gate_failed",
+                code: completionGate.code,
+                how_to_fix: completionGate.how_to_fix,
+              });
+              continue;
+            }
+
+            const { data: updatedTodo, error: updateErr } = await supabase
+              .from("mc_fishbowl_todos")
+              .update({ status: "done", completed_at: nowIso, updated_at: nowIso })
+              .eq("api_key_hash", apiKeyHash)
+              .eq("id", todoId)
+              .in("status", ["open", "in_progress"])
+              .select("*")
+              .maybeSingle();
+            if (updateErr) throw updateErr;
+            if (!updatedTodo) {
+              skipped.push({ todo_id: todoId, reason: "todo_changed_before_close" });
+              continue;
+            }
+
+            await recordAutopilotEvents(
+              supabase,
+              apiKeyHash,
+              planTodoLedgerEvents({
+                todoId: updatedTodo.id,
+                actorAgentId: agentId,
+                before: beforeTodo,
+                after: updatedTodo,
+              }),
+            );
+
+            void postFishbowlEvent(
+              supabase,
+              apiKeyHash,
+              agentId,
+              "todo-completed",
+              `Todo done: ${updatedTodo.title}`,
+            );
+            closed.push({
+              todo_id: String(updatedTodo.id),
+              title: typeof updatedTodo.title === "string" ? updatedTodo.title : null,
+              merge_commit_sha: pr.mergeCommitSha,
+            });
+          }
+
+          return res.status(200).json({
+            closed: closed.length,
+            closed_todos: closed,
+            skipped,
+            linked_todo_ids: pr.linkedTodoIds,
+            pr: {
+              number: pr.number,
+              url: pr.url,
+              repository_full_name: pr.repositoryFullName,
+              merged_at: pr.mergedAt,
+              merge_commit_sha: pr.mergeCommitSha,
+            },
+            proof_agent_id: proofAgentId,
+          });
+        }
 
         if (action === "fishbowl_create_todo") {
           const titleRes = validateTitle(body.title);
@@ -9720,6 +9964,132 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }),
           );
           return res.status(200).json({ todo: data, lane_check: laneCheck });
+        }
+
+        if (action === "fishbowl_release_claim") {
+          const idRes = validateUuid(body.todo_id, "todo_id");
+          if (typeof idRes !== "string") return res.status(400).json(idRes);
+
+          const nowMs = Date.now();
+          const { data: beforeTodo, error: beforeErr } = await supabase
+            .from("mc_fishbowl_todos")
+            .select("id,title,description,status,priority,created_by_agent_id,assigned_to_agent_id,lease_token,lease_expires_at,reclaim_count,updated_at,created_at")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", idRes)
+            .maybeSingle();
+          if (beforeErr) throw beforeErr;
+          if (!beforeTodo) return res.status(404).json({ error: "todo not found" });
+
+          const previousAssignee = nonEmptyTodoField(beforeTodo.assigned_to_agent_id);
+          const { data: ownerProfile, error: ownerProfileErr } = previousAssignee
+            ? await supabase
+                .from("mc_fishbowl_profiles")
+                .select("agent_id,last_seen_at")
+                .eq("api_key_hash", apiKeyHash)
+                .eq("agent_id", previousAssignee)
+                .maybeSingle()
+            : { data: null, error: null };
+          if (ownerProfileErr) throw ownerProfileErr;
+
+          const ownerLastSeenAt =
+            typeof ownerProfile?.last_seen_at === "string" ? ownerProfile.last_seen_at : null;
+          const protectedReason = fishbowlTodoReleaseProtectedReason(beforeTodo);
+          const classification = classifyTodoActionability({
+            status: beforeTodo.status,
+            assignedToAgentId: beforeTodo.assigned_to_agent_id,
+            updatedAt: beforeTodo.updated_at,
+            createdAt: beforeTodo.created_at,
+            ownerLastSeenAt,
+            nowMs,
+          });
+          const releasePlan = planOpenStaleTodoRelease({
+            status: beforeTodo.status,
+            assignedToAgentId: beforeTodo.assigned_to_agent_id,
+            updatedAt: beforeTodo.updated_at,
+            createdAt: beforeTodo.created_at,
+            ownerLastSeenAt,
+            reclaimCount: beforeTodo.reclaim_count,
+            isProtected: protectedReason !== null,
+            nowMs,
+          });
+
+          if (!releasePlan) {
+            return res.status(409).json({
+              error: "claim is not releasable",
+              code: protectedReason ? "claim_protected" : "claim_not_stale",
+              how_to_fix:
+                "Use release_claim only for stale open Boardroom jobs. Fresh, protected, in-progress, unassigned, and capped jobs need an explicit update_todo decision instead.",
+              actionability_reason: classification,
+              protected_reason: protectedReason,
+              assigned_to_agent_id: previousAssignee,
+              owner_last_seen_at: ownerLastSeenAt,
+              reclaim_count: beforeTodo.reclaim_count ?? null,
+            });
+          }
+
+          let releaseQuery = supabase
+            .from("mc_fishbowl_todos")
+            .update(releasePlan.update)
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", idRes)
+            .eq("status", String(beforeTodo.status ?? ""));
+
+          releaseQuery = previousAssignee
+            ? releaseQuery.eq("assigned_to_agent_id", previousAssignee)
+            : releaseQuery.is("assigned_to_agent_id", null);
+
+          const leaseToken = nonEmptyTodoField(beforeTodo.lease_token);
+          releaseQuery = leaseToken
+            ? releaseQuery.eq("lease_token", leaseToken)
+            : releaseQuery.is("lease_token", null);
+
+          const leaseExpiresAt = nonEmptyTodoField(beforeTodo.lease_expires_at);
+          releaseQuery = leaseExpiresAt
+            ? releaseQuery.eq("lease_expires_at", leaseExpiresAt)
+            : releaseQuery.is("lease_expires_at", null);
+
+          releaseQuery = beforeTodo.reclaim_count == null
+            ? releaseQuery.is("reclaim_count", null)
+            : releaseQuery.eq("reclaim_count", beforeTodo.reclaim_count);
+
+          const { data, error } = await releaseQuery.select("*").maybeSingle();
+          if (error) throw error;
+          if (!data) {
+            return res.status(409).json({
+              error: "claim changed before release",
+              code: "claim_changed",
+              how_to_fix:
+                "Reload the Boardroom todo and re-run release_claim only if it is still stale and still has the same owner.",
+            });
+          }
+
+          await recordAutopilotEvents(
+            supabase,
+            apiKeyHash,
+            planTodoLedgerEvents({
+              todoId: data.id,
+              actorAgentId: agentId,
+              before: beforeTodo,
+              after: data,
+            }),
+          );
+
+          void postFishbowlEvent(
+            supabase,
+            apiKeyHash,
+            agentId,
+            "todo-claim-released",
+            `Released stale todo claim from ${previousAssignee}: ${String(data.title ?? data.id)}`,
+          );
+
+          return res.status(200).json({
+            todo: data,
+            released: true,
+            actionability_reason: releasePlan.classification,
+            released_assigned_to_agent_id: previousAssignee,
+            owner_last_seen_at: ownerLastSeenAt,
+            reclaim_count: releasePlan.update.reclaim_count,
+          });
         }
 
         if (action === "fishbowl_complete_todo") {

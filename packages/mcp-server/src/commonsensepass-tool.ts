@@ -6,7 +6,7 @@ import {
   type ClaimInput,
   type ClaimKind,
   type CommonSensePassResult,
-} from "@unclick/commonsensepass";
+} from "./commonsensepass-runtime.js";
 
 export const COMMONSENSEPASS_CLAIM_KINDS = [
   "healthy",

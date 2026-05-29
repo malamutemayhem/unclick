@@ -31,16 +31,22 @@ import {
   type MemoryTypedLinkSearchResult,
   type MemoryTypedLinkStoredRow,
 } from "./typed-links.js";
-import { writeMemoryTaxonomySnapshotsToLibrary } from "./supabase.js";
+import {
+  scoreLocalMemoryContent,
+  tokenizeLocalMemoryQuery,
+  writeMemoryTaxonomySnapshotsToLibrary,
+} from "./supabase.js";
 
-const DATA_DIR = path.join(os.homedir(), ".unclick", "memory");
+function dataDir(): string {
+  return process.env.MEMORY_LOCAL_DATA_DIR || path.join(os.homedir(), ".unclick", "memory");
+}
 
 function ensureDir(): void {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(dataDir(), { recursive: true });
 }
 
 function tablePath(name: string): string {
-  return path.join(DATA_DIR, `${name}.json`);
+  return path.join(dataDir(), `${name}.json`);
 }
 
 function readTable<T>(name: string): T[] {
@@ -134,9 +140,14 @@ interface FactRow {
   startup_fact_kind: "durable" | "operational" | "excluded" | "legacy_unspecified";
   status: string;
   superseded_by?: string;
+  invalidated_at?: string;
+  invalidation_reason?: string;
+  invalidated_by_session_id?: string;
   access_count: number;
   last_accessed: string;
   decay_tier: string;
+  valid_from?: string;
+  valid_to?: string;
   created_at: string;
   updated_at: string;
   commit_sha?: string;
@@ -177,12 +188,68 @@ interface CodeRow {
   created_at: string;
 }
 
+function parsedTime(value: string | undefined): number | null {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function factVisibleAt(fact: FactRow, asOf?: string): boolean {
+  const point = parsedTime(asOf) ?? Date.now();
+  const validFrom = parsedTime(fact.valid_from ?? fact.created_at);
+  if (validFrom !== null && validFrom > point) return false;
+
+  const validTo = parsedTime(fact.valid_to);
+  if (validTo !== null && validTo <= point) return false;
+
+  const invalidatedAt = parsedTime(fact.invalidated_at);
+  if (invalidatedAt !== null && invalidatedAt <= point) return false;
+
+  return true;
+}
+
+function operationalTextSignal(...values: Array<string | undefined>): boolean {
+  const text = values.filter(Boolean).join(" ").toLowerCase();
+  if (!text) return false;
+  if (text.includes("heartbeat")) return true;
+  if (text.includes("self-report") || text.includes("self report")) return true;
+  if (text.includes("testpass_cron_user_id")) return true;
+  if (text.includes("cron") && text.includes("resolved")) return true;
+  if (text.includes("signal") && text.includes("blocked")) return true;
+  return /\b(self[_ -]?report|cron|system|heartbeat)\b/.test(text);
+}
+
+function startupFactPenalty(fact: FactRow): number {
+  const kind = fact.startup_fact_kind ?? "legacy_unspecified";
+  if (kind === "operational" || kind === "excluded") return 2;
+  if (operationalTextSignal(fact.source_type, fact.category, fact.fact)) return 2;
+  return kind === "durable" ? 0 : 1;
+}
+
+function isRecallVisibleFact(fact: FactRow, asOf?: string): boolean {
+  return fact.status === "active" &&
+    factVisibleAt(fact, asOf) &&
+    startupFactPenalty(fact) < 2;
+}
+
+function isStartupFact(fact: FactRow): boolean {
+  return isRecallVisibleFact(fact) &&
+    fact.decay_tier === "hot";
+}
+
+function sessionVisibleAt(row: { created_at: string }, asOf?: string): boolean {
+  const point = parsedTime(asOf);
+  if (point === null) return true;
+  const created = parsedTime(row.created_at);
+  return created === null || created <= point;
+}
+
 // --- Backend Implementation ---
 
 export class LocalBackend implements MemoryBackend {
   constructor() {
     ensureDir();
-    console.error(`UnClick Memory: local mode (data at ${DATA_DIR})`);
+    console.error(`UnClick Memory: local mode (data at ${dataDir()})`);
   }
 
   async getStartupContext(numSessions: number): Promise<unknown> {
@@ -194,9 +261,14 @@ export class LocalBackend implements MemoryBackend {
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, numSessions);
 
-    const facts = readTable<FactRow>("extracted_facts")
-      .filter((f) => f.status === "active" && f.decay_tier === "hot")
-      .sort((a, b) => b.confidence - a.confidence || new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    const allFacts = readTable<FactRow>("extracted_facts");
+    const facts = allFacts
+      .filter(isStartupFact)
+      .sort((a, b) => {
+        const penalty = startupFactPenalty(a) - startupFactPenalty(b);
+        if (penalty !== 0) return penalty;
+        return b.confidence - a.confidence || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      })
       .slice(0, 50);
 
     const library = readTable<KnowledgeRow>("knowledge_library")
@@ -213,6 +285,17 @@ export class LocalBackend implements MemoryBackend {
       }
     }
     writeTable("business_context", allBc);
+
+    const surfacedFactIds = new Set(facts.map((fact) => fact.id));
+    if (surfacedFactIds.size > 0) {
+      for (const fact of allFacts) {
+        if (!surfacedFactIds.has(fact.id)) continue;
+        fact.access_count = (fact.access_count ?? 0) + 1;
+        fact.last_accessed = now();
+        fact.updated_at = now();
+      }
+      writeTable("extracted_facts", allFacts);
+    }
 
     return {
       agent_instructions: [
@@ -235,17 +318,94 @@ export class LocalBackend implements MemoryBackend {
     };
   }
 
-  async searchMemory(query: string, maxResults: number): Promise<unknown> {
-    return readTable<ConversationRow>("conversation_log")
-      .filter((r) => matches(r.content, query))
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, maxResults)
-      .map((r) => ({ id: r.id, session_id: r.session_id, role: r.role, content: r.content, created_at: r.created_at }));
+  async searchMemory(query: string, maxResults: number, asOf?: string): Promise<unknown> {
+    const tokens = tokenizeLocalMemoryQuery(query);
+    if (tokens.length === 0) return [];
+
+    const facts = readTable<FactRow>("extracted_facts")
+      .filter((fact) => isRecallVisibleFact(fact, asOf))
+      .map((fact) => {
+        const score = scoreLocalMemoryContent({
+          query,
+          tokens,
+          text: fact.fact,
+          confidence: fact.confidence,
+          source: "fact",
+        });
+        return {
+          id: fact.id,
+          source: "fact",
+          content: fact.fact,
+          category: fact.category,
+          confidence: fact.confidence,
+          created_at: fact.created_at,
+          final_score: score.finalScore,
+          rrf_score: 0,
+          kw_score: score.matchedTokenCount,
+          cosine_score: 0,
+        };
+      });
+
+    const sessions = readTable<SessionRow>("session_summaries")
+      .filter((session) => sessionVisibleAt(session, asOf))
+      .map((session) => {
+        const score = scoreLocalMemoryContent({
+          query,
+          tokens,
+          text: session.summary,
+          confidence: 1,
+          source: "session",
+        });
+        return {
+          id: session.id,
+          source: "session",
+          content: session.summary,
+          category: "session",
+          confidence: 1,
+          created_at: session.created_at,
+          final_score: score.finalScore,
+          rrf_score: 0,
+          kw_score: score.matchedTokenCount,
+          cosine_score: 0,
+        };
+      });
+
+    const conversations = readTable<ConversationRow>("conversation_log")
+      .filter((row) => sessionVisibleAt(row, asOf))
+      .map((row) => {
+        const score = scoreLocalMemoryContent({
+          query,
+          tokens,
+          text: row.content,
+          confidence: 0.5,
+          source: "session",
+        });
+        return {
+          id: row.id,
+          source: "conversation",
+          content: row.content,
+          category: row.role,
+          confidence: 0.5,
+          created_at: row.created_at,
+          final_score: score.finalScore,
+          rrf_score: 0,
+          kw_score: score.matchedTokenCount,
+          cosine_score: 0,
+        };
+      });
+
+    return [...facts, ...sessions, ...conversations]
+      .filter((row) => row.final_score > 0)
+      .sort((a, b) => {
+        const scoreDiff = b.final_score - a.final_score;
+        return scoreDiff !== 0 ? scoreDiff : b.created_at.localeCompare(a.created_at);
+      })
+      .slice(0, maxResults);
   }
 
   async searchFacts(query: string): Promise<unknown> {
     return readTable<FactRow>("extracted_facts")
-      .filter((f) => f.status === "active" && matches(f.fact, query))
+      .filter((f) => isRecallVisibleFact(f) && matches(f.fact, query))
       .sort((a, b) => b.confidence - a.confidence)
       .slice(0, 20)
       .map((f) => ({ id: f.id, fact: f.fact, category: f.category, confidence: f.confidence, status: f.status, created_at: f.created_at }));
@@ -317,6 +477,8 @@ export class LocalBackend implements MemoryBackend {
       access_count: 0,
       last_accessed: now(),
       decay_tier: "hot",
+      valid_from: data.valid_from ?? now(),
+      valid_to: undefined,
       created_at: now(),
       updated_at: now(),
       commit_sha: data.commit_sha,
@@ -334,6 +496,7 @@ export class LocalBackend implements MemoryBackend {
     const newId = uuid();
     old.status = "superseded";
     old.superseded_by = newId;
+    old.valid_to = now();
     old.updated_at = now();
 
     rows.push({
@@ -349,6 +512,8 @@ export class LocalBackend implements MemoryBackend {
       access_count: 0,
       last_accessed: now(),
       decay_tier: "hot",
+      valid_from: now(),
+      valid_to: undefined,
       created_at: now(),
       updated_at: now(),
     });
@@ -522,7 +687,7 @@ export class LocalBackend implements MemoryBackend {
   ): Promise<MemoryTaxonomySnapshotWriteResult> {
     const maxSources = Math.max(1, Math.min(250, options.max_sources ?? 80));
     const facts: MemoryTaxonomySnapshotSource[] = readTable<FactRow>("extracted_facts")
-      .filter((fact) => fact.status === "active")
+      .filter((fact) => fact.status === "active" && factVisibleAt(fact) && startupFactPenalty(fact) < 2)
       .sort((a, b) => b.confidence - a.confidence || new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
       .slice(0, maxSources)
       .map((fact) => ({
@@ -617,14 +782,25 @@ export class LocalBackend implements MemoryBackend {
 
     return {
       mode: "local",
-      data_dir: DATA_DIR,
+      data_dir: dataDir(),
       table_counts: counts,
       fact_decay_tiers: tiers,
     };
   }
 
   async invalidateFact(_input: InvalidateFactInput): Promise<{ invalidated_at: string }> {
-    throw new Error("invalidate_fact is not supported in local (zero-config) mode. Connect to Supabase to use this feature.");
+    const rows = readTable<FactRow>("extracted_facts");
+    const fact = rows.find((row) => row.id === _input.fact_id);
+    if (!fact) throw new Error(`Fact ${_input.fact_id} not found`);
+
+    const invalidatedAt = now();
+    fact.invalidated_at = invalidatedAt;
+    fact.valid_to = invalidatedAt;
+    fact.invalidation_reason = _input.reason;
+    fact.invalidated_by_session_id = _input.session_id;
+    fact.updated_at = invalidatedAt;
+    writeTable("extracted_facts", rows);
+    return { invalidated_at: invalidatedAt };
   }
 }
 

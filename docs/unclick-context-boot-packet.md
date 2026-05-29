@@ -19,6 +19,12 @@ Read this before summarizing UnClick, routing UnClick work, or correcting anothe
 - **Event Ledger** is the audit trail for actions and state.
 - **Worker Registry** is verified worker identity and signed ACK authority.
 - **ACK Ledger** is trusted PASS, BLOCKER, and HOLD evidence.
+- **CopyRoom** is the exact-copy office copier for 1:1 copying, transcription, mirroring, and source preservation.
+- **FidelityPass** is the XPass/QC wrapper over CopyRoom receipts. It does not duplicate CopyRoom.
+- **CopyPass** checks wording quality, claims, tone, and clarity.
+- **CommonSensePass** is the sanity gate for false healthy, false done, false quiet, stale proof, and rubber-stamp claims.
+- **CompliancePass** is the official compliance and enterprise-readiness Pass. EnterprisePass is historical wording only.
+- **SlopPass** is the official AI-quality and slop-signal Pass. QualityPass is historical wording only.
 
 ## Visibility Warning
 
@@ -61,13 +67,19 @@ UnClick
     UXPass
     SecurityPass
     LegalPass
+    CopyPass
+    FidelityPass
     SEOPass
     GEOPass
+    CompliancePass
+    CommonSensePass
+    SlopPass
     other XPass variants when active
   Core platform
     MCP tools
     Memory
     Fishbowl
+    CopyRoom
     Keychain
     Connectors
     Admin
@@ -81,6 +93,11 @@ UnClick
 - Say **worker seats** or **lanes** for ChatGPT, Claude, Codex, and other capacity accounts.
 - Say **trusted ACK** only when it is lane-authored or signed/verified by the current trust spine.
 - Say **observer chatter** for mirrored status text, summaries, or broadcasts that are not lane-authoritative.
+- Say **CopyRoom** for exact 1:1 copy work and **FidelityPass** for the XPass receipt that verifies CopyRoom evidence.
+- Say **CommonSensePass** when checking whether a status claim is actually sensible.
+- Say **CompliancePass**, not EnterprisePass, unless explaining historical aliases.
+- Say **SlopPass**, not QualityPass, unless explaining historical aliases.
+- Treat **QCPass** as process wording for a final XPass/QC receipt, not an official XPass product unless Chris explicitly promotes it.
 
 ## Connector-Level Context Warning
 
@@ -110,7 +127,8 @@ Before product claims or routing:
 4. Read `AUTOPILOT.md` for autonomy rules.
 5. Read `FLEET_SYNC.md` for live fleet coordination.
 6. If the requested lane is XPass-specific, read `docs/prd/xpass.md`.
-7. If summarizing older strategy, read `docs/unclick-deep-context.md`.
+7. If the requested lane is XPass inventory, completion, closure, or naming cleanup, read `docs/prd/xpass-closure-board.md`.
+8. If summarizing older strategy, read `docs/unclick-deep-context.md`.
 
 ## Drift Rules
 

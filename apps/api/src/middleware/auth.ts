@@ -43,12 +43,13 @@ export function createAuthMiddleware(db: Db) {
     }
 
     // Parse scopes (stored as JSON string)
-    let scopes: string[] = [];
-    try {
-      scopes = JSON.parse(row.scopes ?? '[]');
-    } catch {
-      scopes = [];
-    }
+    const scopes: string[] = (() => {
+      try {
+        return JSON.parse(row.scopes ?? '[]');
+      } catch {
+        return [];
+      }
+    })();
 
     c.set('org', {
       orgId: row.orgId,

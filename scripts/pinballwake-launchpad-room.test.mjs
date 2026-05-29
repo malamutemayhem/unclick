@@ -49,6 +49,8 @@ describe("PinballWake Launchpad Room", () => {
     assert.equal(result.result, "ready");
     assert.equal(result.single_heartbeat.ready, true);
     assert.equal(result.orchestrator_control.result, "single_active_orchestrator");
+    assert.equal(result.council_induction.status, "not_checked");
+    assert.equal(result.council_induction.lite_check.needed, false);
     assert.deepEqual(result.room_coverage.map((room) => room.covered), [true, true, true, true, true, true, true]);
     assert.equal(result.setup_steps.length, 0);
   });
@@ -66,6 +68,7 @@ describe("PinballWake Launchpad Room", () => {
     assert.match(result.single_heartbeat.prompt, /recurring heartbeat every 17 minutes/);
     assert.equal(result.setup_steps[0].kind, "create_single_master_heartbeat");
     assert.equal(result.wizard_packet.worker, "master");
+    assert.match(result.single_heartbeat.prompt, /Launchpad Council induction/);
   });
 
   it("treats accounts as capacity and chooses the best available seat per room", () => {
@@ -200,7 +203,68 @@ describe("PinballWake Launchpad Room", () => {
 
     assert.match(prompt, /Launchpad Wizard/);
     assert.match(prompt, /one master chat only/);
+    assert.match(prompt, /Launchpad Council induction/);
+    assert.match(prompt, /Council Lite anti-rubber-stamp/);
+    assert.match(prompt, /Crews is recommended/);
     assert.match(prompt, /Do not directly spam every worker/);
     assert.match(prompt, /No secrets/);
+  });
+
+  it("prompts a Crews Council for launch work that needs judgement", () => {
+    const result = evaluateLaunchpadRoom({
+      masterHeartbeat: { enabled: true, target: "launchpad" },
+      orchestrator: activeOrchestrator(),
+      seats: [
+        seat({ id: "builder", capabilities: ["implementation", "proof", "status_relay"] }),
+        seat({ id: "reviewer", capabilities: ["qc_review", "release_safety", "research", "planning"] }),
+      ],
+      rooms: ["build", "proof", "qc", "safety", "research", "planning", "status"],
+      title: "Launch pricing and compliance readiness decision",
+      context: "Need a go/no-go judgement before this public enterprise page ships.",
+      changed_files: [
+        "docs/enterprisepass-product-brief.md",
+        "docs/legal/pricing-claims.md",
+        "src/pages/Enterprise.tsx",
+      ],
+    });
+
+    assert.equal(result.result, "setup_needed");
+    assert.equal(result.council_induction.needed, true);
+    assert.equal(result.council_induction.status, "recommended");
+    assert.equal(result.council_induction.lite_check.needed, true);
+    assert.equal(result.council_induction.lite_check.mode, "anti_rubber_stamp");
+    assert.ok(result.council_induction.lite_check.questions.length >= 4);
+    assert.match(result.council_induction.prompt, /start_crew_run/);
+    assert.ok(result.setup_steps.some((step) => step.kind === "prompt_crews_council"));
+    assert.match(result.wizard_packet.expected_proof, /Council Lite status/);
+  });
+
+  it("accepts a completed Crews Council run as launch induction proof", () => {
+    const result = evaluateLaunchpadRoom({
+      masterHeartbeat: { enabled: true, target: "launchpad" },
+      orchestrator: activeOrchestrator(),
+      seats: [
+        seat({ id: "builder", capabilities: ["implementation", "proof", "status_relay"] }),
+        seat({ id: "reviewer", capabilities: ["qc_review", "release_safety", "research", "planning"] }),
+      ],
+      rooms: ["build", "proof", "qc", "safety", "research", "planning", "status"],
+      xpassGate: {
+        crews_council: {
+          needed: true,
+          status: "recommended",
+          trigger_score: 82,
+          suggested_template: "Council",
+          suggested_tool: "start_crew_run",
+          reasons: ["Pass evidence is mixed."],
+        },
+      },
+      crewsCouncilRun: { id: "crew-run-1", status: "complete" },
+    });
+
+    assert.equal(result.result, "ready");
+    assert.equal(result.council_induction.status, "completed");
+    assert.equal(result.council_induction.lite_check.needed, true);
+    assert.equal(result.council_induction.council_run.run_id, "crew-run-1");
+    assert.ok(!result.setup_steps.some((step) => step.kind === "prompt_crews_council"));
   });
 });

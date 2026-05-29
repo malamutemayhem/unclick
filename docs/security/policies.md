@@ -1,7 +1,7 @@
 # UnClick Security Policies
 
 **Baseline**: PR #128 ground-floor QC audit (2026-04-24, commit `4f655f2`).
-**Fixes applied**: PR #129 (open) closes C1 (RLS on `memory_configs` + new `mc_admin_audit` table), C2 (audit log before destructive admin actions: `admin_clear_all`, `reset_api_key`, `admin_agent_delete`), C3 (confirmed `platform_connectors` is global-public by design, added explicit scope comments, verified `platform_credentials` and `memory_configs` are correctly tenant-scoped), and C4 in part (32 -> 19 npm vulnerabilities via `npm audit fix`; remaining 9 high are in `undici` via `@vercel/node@^3` and require an approved major bump).
+**Fixes applied**: PR #129 (open) closes C1 (RLS on `memory_configs` + new `mc_admin_audit` table), C2 (audit log before destructive admin actions: `admin_clear_all`, `reset_api_key`, `admin_agent_delete`), and C3 (confirmed `platform_connectors` is global-public by design, added explicit scope comments, verified `platform_credentials` and `memory_configs` are correctly tenant-scoped). The 2026-05-28 CompliancePass dependency pass clears the old C4 High/Critical audit blocker: current audit is 4 Moderate, 0 High, 0 Critical.
 
 These policies codify the operating rules. Every engineer and agent working on UnClick follows them.
 
@@ -74,7 +74,7 @@ These policies codify the operating rules. Every engineer and agent working on U
 
 - `npm audit` runs weekly (nightly pipeline, see target-state section 8.1). High/Critical findings are triaged within 72 hours.
 - Triage outcomes: (a) apply `npm audit fix` and merge, (b) pin to a safe version with a rationale, (c) file a tracking issue if no fix exists and document the residual risk in `docs/security/current-posture.md`.
-- Major-version dependency bumps require an approving review from Chris. Example: the `@vercel/node@^3` to `@vercel/node@^5` bump needed to close the remaining undici CVEs is queued and awaits approval.
+- Major-version dependency bumps require an approving review from Chris. Example: the remaining Drizzle Kit development-tooling chain must be reviewed deliberately because the package manager's forced fix is a risky downgrade, and the tested `1.0.0-rc.3` path failed CLI/API compatibility checks.
 - Transitive dependency risk is monitored via the lockfile. Lockfile diffs on PRs are reviewed as part of the security pass.
 - Dependencies that carry High CVEs known at install time are not added. The exception is a written rationale in the PR description.
 
@@ -87,7 +87,7 @@ These are the critical findings from Phase 1 and the current status after PR #12
 - **C1 (closed by PR #129)**: `memory_configs` and `memory_devices` have no RLS enabled. `memory_configs` holds AES-256-GCM encrypted Supabase service-role keys per user. Status: PR #129 enables RLS with `service_role`-only policy on `memory_configs` and adds the `mc_admin_audit` table. `memory_devices` RLS closure remains a Phase 3 item.
 - **C2 (closed by PR #129)**: `admin_clear_all` nuked user memory with no audit log before the cascade. Status: PR #129 adds pre-op audit rows to `mc_admin_audit` for `admin_clear_all`, `reset_api_key`, and `admin_agent_delete`. Additional destructive actions (`delete_fact`, `delete_session`, `delete_crew`, `update_business_context`, `admin_update_fact`) remain Phase 3.
 - **C3 (closed by PR #129)**: `admin_tools` read `platform_connectors` with no tenant filter. Status: PR #129 confirms `platform_connectors` is a global connector catalog with an explicit `anon_read_connectors` RLS policy allowing public read by design. Explicit comments added. Per-tenant scoping was already correct on `platform_credentials` and `memory_configs`.
-- **C4 (partially closed by PR #129)**: 32 npm vulnerabilities, 18 High. Status: PR #129 ran `npm audit fix` (no `--force`), reducing to 19 vulnerabilities (9 High). The remaining 9 High are in `undici` pulled transitively via `@vercel/node@^3` and require a major bump to `@vercel/node@^5`, which is queued for a follow-up PR after Chris approves the `vercel.json` runtime migration.
+- **C4 (High/Critical blocker cleared by the 2026-05-28 CompliancePass dependency pass)**: earlier audit notes recorded 32 npm vulnerabilities, 18 High, then 19 vulnerabilities with 9 High after PR #129. Current status is 4 Moderate, 0 High, 0 Critical after targeted upgrades, Vercel transitive overrides, and API build/test verification. The remaining Moderate items are in the Drizzle Kit development-tooling chain and are tracked in `docs/compliancepass-dependency-audit-notes.md`; a tested release-candidate upgrade was rejected because it broke compatibility checks.
 
 Residual items to close in Phase 3 per `docs/security/current-posture.md` and `docs/security/threat-model.md`:
 
@@ -95,7 +95,7 @@ Residual items to close in Phase 3 per `docs/security/current-posture.md` and `d
 - Remove `?api_key=...` query-string auth from `setup_status`, `conflict_check`, `health_summary`.
 - Add security headers (CSP, X-Frame-Options, X-Content-Type-Options, HSTS, Referrer-Policy, Permissions-Policy).
 - Land application-level rate limiting on the Vercel surface.
-- Complete the `@vercel/node@^5` major bump to close the remaining 9 undici High CVEs.
+- Keep the remaining Moderate Drizzle Kit development-tooling chain routed to SecurityPass or the dependency-upgrade lane.
 - Promote `backstagepass_audit` and similar into a unified `audit_events` table with read-optimised views.
 
 ---

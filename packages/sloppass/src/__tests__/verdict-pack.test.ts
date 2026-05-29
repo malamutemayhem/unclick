@@ -99,6 +99,21 @@ describe("SlopPass verdict pack", () => {
     expect(pack.scope.provider).toBe("provided-source");
   });
 
+  it("does not turn a git-context-only request green when only source was provided", () => {
+    const pack = createProvidedSourceSlopPassReport({
+      target: { kind: "files", label: "stale overwrite", files: ["src/routes.ts"] },
+      files: [{ path: "src/routes.ts", content: "export const ok = true;" }],
+      checks: ["vcs_integration_risk"],
+    });
+
+    expect(pack.scope.checks_attempted).toEqual([]);
+    expect(pack.verdict).toBe("unknown");
+    expect(pack.not_checked).toContainEqual({
+      label: "stale-overwrite-detector",
+      reason: "git_context not provided for this provided-source run.",
+    });
+  });
+
   it("keeps secret-looking provided-source evidence redacted", () => {
     const pack = createProvidedSourceSlopPassReport({
       target: { kind: "files", label: "secret source", files: ["src/config.ts"] },
