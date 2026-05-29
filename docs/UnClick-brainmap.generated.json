@@ -7982,8 +7982,8 @@
     },
     {
       "source": ".github/workflows/publish-mcp-package.yml",
-      "hash": "9ab3fed97fef",
-      "bytes": 5749
+      "hash": "c029877aab11",
+      "bytes": 6427
     },
     {
       "source": ".github/workflows/review-enforcement-warning.yml",
