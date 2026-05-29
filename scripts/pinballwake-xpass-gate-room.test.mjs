@@ -119,6 +119,17 @@ describe("PinballWake XPass Gate Room", () => {
     assert.deepEqual(selected, ["copypass"]);
   });
 
+  it("routes exact-copy work to FidelityPass instead of generic CopyPass", () => {
+    const selected = checks({
+      title: "Copy this source packet exactly",
+      description: "Need a 1:1 verbatim copy receipt from CopyRoom.",
+      changed_files: ["docs/source-packet.md"],
+    });
+
+    assert.ok(selected.includes("fidelitypass"));
+    assert.equal(selected.includes("copypass"), false);
+  });
+
   it("does not recommend a Crews Council for a tiny single-pass wording change", () => {
     const result = evaluateXPassGate({
       title: "FAQ wording cleanup",
@@ -144,6 +155,9 @@ describe("PinballWake XPass Gate Room", () => {
     assert.equal(result.result, "xpass_needed");
     assert.deepEqual(result.missing_checks, ["uxpass", "flowpass", "sloppass"]);
     assert.equal(result.receipt.action_needed.length, 3);
+    assert.equal(result.receipt.full_checklist.length >= result.selected_checks.length, true);
+    assert.ok(result.receipt.full_checklist.some((item) => item.check === "fidelitypass" && item.status === "N/A"));
+    assert.ok(result.receipt.improvement_signals.some((item) => item.signal === "selected_check_missing_receipt"));
   });
 
   it("blocks missing receipts in enforce mode", () => {
@@ -226,7 +240,7 @@ describe("PinballWake XPass Gate Room", () => {
     assert.deepEqual(result.blocked_checks, ["uxpass"]);
   });
 
-  it("records unavailable pass-family checks as explicit skips", () => {
+  it("records unavailable XPass product checks as explicit skips", () => {
     const result = evaluateXPassGate({
       mode: "enforce",
       target: { type: "pr", id: 547, sha: "abc123" },
@@ -243,6 +257,8 @@ describe("PinballWake XPass Gate Room", () => {
       { check: "flowpass", name: "FlowPass", reason: "pass_not_available" },
       { check: "sloppass", name: "SlopPass", reason: "pass_not_available" },
     ]);
+    assert.ok(result.receipt.improvement_signals.some((item) => item.signal === "pass_not_available"));
+    assert.ok(result.receipt.full_checklist.some((item) => item.check === "flowpass" && item.status === "NOT RUN"));
   });
 
   it("normalizes old QualityPass receipts into SlopPass", () => {
@@ -260,7 +276,7 @@ describe("PinballWake XPass Gate Room", () => {
     assert.equal(result.receipt.evidence[0].name, "SlopPass");
   });
 
-  it("dogfoods Pass product package changes through their own specialist check", () => {
+  it("dogfoods XPass product package changes through their own specialist check", () => {
     const selected = checks({
       title: "Tighten SEOPass robots scanner",
       changed_files: ["packages/seopass/src/robots.ts"],
@@ -294,7 +310,7 @@ describe("PinballWake XPass Gate Room", () => {
     assert.ok(selected.includes("sloppass"));
   });
 
-  it("routes EnterprisePass and CompliancePass readiness work through cross-pass evidence checks", () => {
+  it("routes CompliancePass readiness work through cross-pass evidence checks", () => {
     const selected = checks({
       title: "CompliancePass enterprise readiness evidence runner",
       changed_files: [
@@ -309,7 +325,7 @@ describe("PinballWake XPass Gate Room", () => {
     assert.ok(selected.includes("copypass"));
     assert.ok(selected.includes("seopass"));
     assert.ok(selected.includes("legalpass"));
-    assert.ok(selected.includes("enterprisepass"));
+    assert.ok(selected.includes("compliancepass"));
     assert.ok(selected.includes("sloppass"));
   });
 
@@ -390,14 +406,14 @@ describe("PinballWake XPass Gate Room", () => {
     assert.ok(selected.includes("copypass"));
   });
 
-  it("routes dependency and lockfile changes through SecurityPass and EnterprisePass", () => {
+  it("routes dependency and lockfile changes through SecurityPass and CompliancePass", () => {
     const selected = checks({
       title: "Dependency audit lockfile refresh",
       changed_files: ["package-lock.json"],
     });
 
     assert.ok(selected.includes("securitypass"));
-    assert.ok(selected.includes("enterprisepass"));
+    assert.ok(selected.includes("compliancepass"));
     assert.ok(selected.includes("sloppass"));
   });
 
@@ -412,30 +428,30 @@ describe("PinballWake XPass Gate Room", () => {
     assert.ok(selected.includes("sloppass"));
   });
 
-  it("routes compliance and audit evidence through EnterprisePass", () => {
+  it("routes compliance and audit evidence through CompliancePass", () => {
     const selected = checks({
       title: "CompliancePass audit receipt update",
       changed_files: ["public/enterprise/latest.json", "docs/enterprisepass-product-brief.md", "docs/legal/dpa.md"],
     });
 
-    assert.ok(selected.includes("enterprisepass"));
+    assert.ok(selected.includes("compliancepass"));
     assert.ok(selected.includes("copypass"));
     assert.ok(selected.includes("legalpass"));
   });
 
-  it("normalizes CompliancePass receipts into EnterprisePass", () => {
+  it("normalizes old EnterprisePass receipts into CompliancePass", () => {
     const result = evaluateXPassGate({
       mode: "enforce",
       target: { type: "pr", id: 548, sha: "def456" },
       changed_files: ["public/enterprise/latest.json"],
-      available_checks: ["enterprisepass"],
+      available_checks: ["compliancepass"],
       pass_results: [
-        { check: "CompliancePass", status: "passed", run_id: "compliance-1", target_sha: "def456" },
+        { check: "EnterprisePass", status: "passed", run_id: "enterprise-1", target_sha: "def456" },
       ],
     });
 
     assert.equal(result.ok, true);
-    assert.equal(result.receipt.evidence[0].check, "enterprisepass");
-    assert.equal(result.receipt.evidence[0].name, "EnterprisePass");
+    assert.equal(result.receipt.evidence[0].check, "compliancepass");
+    assert.equal(result.receipt.evidence[0].name, "CompliancePass");
   });
 });
