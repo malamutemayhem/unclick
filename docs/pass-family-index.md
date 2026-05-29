@@ -1,8 +1,8 @@
-# Pass-family index
+# XPass product index
 
-**Status**: Canonical lookup for every Pass-family product. Aligns with the locked naming contract in [`docs/prd/xpass.md`](./prd/xpass.md).
+**Status**: Canonical lookup for every XPass product. Aligns with the locked naming contract in [`docs/prd/xpass.md`](./prd/xpass.md). File path is retained for link stability.
 **Last updated**: 2026-05-29.
-**Owner**: Product and Pass-family maintainers.
+**Owner**: Product and XPass maintainers.
 
 ## How to read this
 
@@ -29,6 +29,7 @@ These have shipped product packages and MCP tools. They get promoted to the dogf
 | SecurityPass | [`docs/securitypass-product-brief.md`](./securitypass-product-brief.md), [`docs/prd/securitypass-chunk2.md`](./prd/securitypass-chunk2.md) | scheduled package sweep, scope-gated probes | the target is in declared scope and the run is either static evidence or an explicitly authorised active probe |
 | SEOPass | [`docs/seopass-product-brief.md`](./seopass-product-brief.md) | scheduled package sweep | the target is a public URL or a site sweep entry asking for search-readiness evidence |
 | CopyPass | [`docs/copypass-product-brief.md`](./copypass-product-brief.md), [`docs/prd/copypass-chunk2.md`](./prd/copypass-chunk2.md) | scheduled package sweep | the target is a copy block (hero, pricing, ad, email, legal, or product copy) supplied by the caller or by a CopyRoom packet |
+| FidelityPass | [`docs/prd/xpass-closure-board.md`](./prd/xpass-closure-board.md) | CopyRoom receipt wrapper | the target includes exact 1:1 copying, transcription, mirroring, or preservation that needs copy-fidelity proof |
 | LegalPass | [`docs/legalpass-product-brief.md`](./legalpass-product-brief.md) | scheduled package sweep | the target is a privacy policy, ToS, OSS licence text, or an issue-spotter request scoped to phase-one hats |
 | FlowPass | [`docs/flowpass-product-brief.md`](./flowpass-product-brief.md) | scheduled package sweep | the target is a user-flow fixture or a public journey with safe fixture evidence |
 | GEOPass | [`docs/geopass-product-brief.md`](./geopass-product-brief.md) | scheduled package sweep | the target is a public URL and the question is "is this readable by AI answer engines" |
@@ -50,13 +51,15 @@ These cannot dogfood in public the same way. They use the boundary sweep, which 
 ## Legacy naming pointers
 
 - **EnterprisePass** is the old internal name for CompliancePass. Existing receipts under `public/enterprise/` keep the legacy path for link stability; the `product` field inside the JSON is `CompliancePass`.
+- **QualityPass** is retired wording for SlopPass.
+- **QCPass** is process wording for a final XPass/QC receipt, not an official XPass product unless Chris explicitly promotes it.
 
 ## Maintenance rule
 
 When a Pass moves tiers, the PR that moves it must update three places in the same change:
 
 1. this file (tier column and routing rule)
-2. [`docs/prd/xpass.md`](./prd/xpass.md) family map and, if needed, the promotion ladder
+2. [`docs/prd/xpass.md`](./prd/xpass.md) XPass product map and, if needed, the promotion ladder
 3. the dogfood index and any BrainMap entry that mentions the Pass
 
 Silent tier changes are not allowed. The Closure Board green chip depends on these three places agreeing.

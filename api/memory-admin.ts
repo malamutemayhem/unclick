@@ -157,6 +157,8 @@ import {
   parseFishbowlMergedPullRequest,
 } from "./lib/fishbowl-pr-merge-reconcile.js";
 import { classifyTodoActionability } from "./lib/fishbowl-todo-actionability.js";
+import { planOpenStaleTodoRelease } from "./lib/fishbowl-todo-open-stale-release.js";
+import { fishbowlTodoReleaseProtectedReason } from "./lib/fishbowl-todo-release-protection.js";
 import {
   planFishbowlPostLedgerEvent,
   planTodoLedgerEvents,
@@ -9415,6 +9417,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "fishbowl_create_todo":
       case "fishbowl_update_todo":
+      case "fishbowl_release_claim":
       case "fishbowl_complete_todo":
       case "fishbowl_reconcile_merged_pr":
       case "fishbowl_drop_todo":
@@ -9493,6 +9496,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           low: 0,
         };
         const DONE_TODO_ARCHIVE_WINDOW_MS = 12 * 60 * 60 * 1000;
+        const nonEmptyTodoField = (raw: unknown): string | null => {
+          if (typeof raw !== "string") return null;
+          const trimmed = raw.trim();
+          return trimmed ? trimmed : null;
+        };
 
         // ── Todos ──────────────────────────────────────────────────────────
 
@@ -9956,6 +9964,132 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }),
           );
           return res.status(200).json({ todo: data, lane_check: laneCheck });
+        }
+
+        if (action === "fishbowl_release_claim") {
+          const idRes = validateUuid(body.todo_id, "todo_id");
+          if (typeof idRes !== "string") return res.status(400).json(idRes);
+
+          const nowMs = Date.now();
+          const { data: beforeTodo, error: beforeErr } = await supabase
+            .from("mc_fishbowl_todos")
+            .select("id,title,description,status,priority,created_by_agent_id,assigned_to_agent_id,lease_token,lease_expires_at,reclaim_count,updated_at,created_at")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", idRes)
+            .maybeSingle();
+          if (beforeErr) throw beforeErr;
+          if (!beforeTodo) return res.status(404).json({ error: "todo not found" });
+
+          const previousAssignee = nonEmptyTodoField(beforeTodo.assigned_to_agent_id);
+          const { data: ownerProfile, error: ownerProfileErr } = previousAssignee
+            ? await supabase
+                .from("mc_fishbowl_profiles")
+                .select("agent_id,last_seen_at")
+                .eq("api_key_hash", apiKeyHash)
+                .eq("agent_id", previousAssignee)
+                .maybeSingle()
+            : { data: null, error: null };
+          if (ownerProfileErr) throw ownerProfileErr;
+
+          const ownerLastSeenAt =
+            typeof ownerProfile?.last_seen_at === "string" ? ownerProfile.last_seen_at : null;
+          const protectedReason = fishbowlTodoReleaseProtectedReason(beforeTodo);
+          const classification = classifyTodoActionability({
+            status: beforeTodo.status,
+            assignedToAgentId: beforeTodo.assigned_to_agent_id,
+            updatedAt: beforeTodo.updated_at,
+            createdAt: beforeTodo.created_at,
+            ownerLastSeenAt,
+            nowMs,
+          });
+          const releasePlan = planOpenStaleTodoRelease({
+            status: beforeTodo.status,
+            assignedToAgentId: beforeTodo.assigned_to_agent_id,
+            updatedAt: beforeTodo.updated_at,
+            createdAt: beforeTodo.created_at,
+            ownerLastSeenAt,
+            reclaimCount: beforeTodo.reclaim_count,
+            isProtected: protectedReason !== null,
+            nowMs,
+          });
+
+          if (!releasePlan) {
+            return res.status(409).json({
+              error: "claim is not releasable",
+              code: protectedReason ? "claim_protected" : "claim_not_stale",
+              how_to_fix:
+                "Use release_claim only for stale open Boardroom jobs. Fresh, protected, in-progress, unassigned, and capped jobs need an explicit update_todo decision instead.",
+              actionability_reason: classification,
+              protected_reason: protectedReason,
+              assigned_to_agent_id: previousAssignee,
+              owner_last_seen_at: ownerLastSeenAt,
+              reclaim_count: beforeTodo.reclaim_count ?? null,
+            });
+          }
+
+          let releaseQuery = supabase
+            .from("mc_fishbowl_todos")
+            .update(releasePlan.update)
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", idRes)
+            .eq("status", String(beforeTodo.status ?? ""));
+
+          releaseQuery = previousAssignee
+            ? releaseQuery.eq("assigned_to_agent_id", previousAssignee)
+            : releaseQuery.is("assigned_to_agent_id", null);
+
+          const leaseToken = nonEmptyTodoField(beforeTodo.lease_token);
+          releaseQuery = leaseToken
+            ? releaseQuery.eq("lease_token", leaseToken)
+            : releaseQuery.is("lease_token", null);
+
+          const leaseExpiresAt = nonEmptyTodoField(beforeTodo.lease_expires_at);
+          releaseQuery = leaseExpiresAt
+            ? releaseQuery.eq("lease_expires_at", leaseExpiresAt)
+            : releaseQuery.is("lease_expires_at", null);
+
+          releaseQuery = beforeTodo.reclaim_count == null
+            ? releaseQuery.is("reclaim_count", null)
+            : releaseQuery.eq("reclaim_count", beforeTodo.reclaim_count);
+
+          const { data, error } = await releaseQuery.select("*").maybeSingle();
+          if (error) throw error;
+          if (!data) {
+            return res.status(409).json({
+              error: "claim changed before release",
+              code: "claim_changed",
+              how_to_fix:
+                "Reload the Boardroom todo and re-run release_claim only if it is still stale and still has the same owner.",
+            });
+          }
+
+          await recordAutopilotEvents(
+            supabase,
+            apiKeyHash,
+            planTodoLedgerEvents({
+              todoId: data.id,
+              actorAgentId: agentId,
+              before: beforeTodo,
+              after: data,
+            }),
+          );
+
+          void postFishbowlEvent(
+            supabase,
+            apiKeyHash,
+            agentId,
+            "todo-claim-released",
+            `Released stale todo claim from ${previousAssignee}: ${String(data.title ?? data.id)}`,
+          );
+
+          return res.status(200).json({
+            todo: data,
+            released: true,
+            actionability_reason: releasePlan.classification,
+            released_assigned_to_agent_id: previousAssignee,
+            owner_last_seen_at: ownerLastSeenAt,
+            reclaim_count: releasePlan.update.reclaim_count,
+          });
         }
 
         if (action === "fishbowl_complete_todo") {
