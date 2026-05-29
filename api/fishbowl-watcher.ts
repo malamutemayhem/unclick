@@ -35,6 +35,10 @@ import {
   STALE_OPEN_ASSIGNED_MS,
 } from "./lib/fishbowl-todo-actionability.js";
 import { planOpenStaleTodoRelease } from "./lib/fishbowl-todo-open-stale-release.js";
+import {
+  FISHBOWL_TODO_RELEASE_PROTECTED_IDS,
+  fishbowlTodoReleaseProtectedReason,
+} from "./lib/fishbowl-todo-release-protection.js";
 
 export interface ProfileRow {
   api_key_hash: string;
@@ -104,9 +108,7 @@ export const WAKEPASS_REROUTE_LEASE_SECONDS = 600;
 //   The seed must stay assigned/open during a runner outage so AFK detection
 //   keeps working; releasing it would trip the runner's assigned_canary_seed_missing
 //   check.
-export const WORKER_SELF_HEALING_PROTECTED_TODO_IDS = new Set<string>([
-  "8719dc4f-1650-4ea9-bca8-e92a9819f0ba",
-]);
+export const WORKER_SELF_HEALING_PROTECTED_TODO_IDS = FISHBOWL_TODO_RELEASE_PROTECTED_IDS;
 
 interface WakepassRerouteTarget {
   agentId: string;
@@ -838,28 +840,7 @@ function nonEmptyString(value: unknown): string | null {
 }
 
 export function workerSelfHealingProtectedReason(todo: WorkerSelfHealingTodoState): string | null {
-  const todoId = nonEmptyString(todo.id)?.toLowerCase();
-  if (todoId && WORKER_SELF_HEALING_PROTECTED_TODO_IDS.has(todoId)) {
-    return "canary_seed_protected";
-  }
-
-  const status = normalizeToken(todo.status);
-  if (status === "human_blocker") return "human_blocker_protected";
-  if (status === "manual_only") return "manual_only_protected";
-
-  const owner = nonEmptyString(todo.assigned_to_agent_id) ?? nonEmptyString(todo.created_by_agent_id);
-  if (owner?.startsWith("human-")) return "human_owned_work_protected";
-
-  const text = [
-    todo.title,
-    todo.description,
-    todo.priority,
-  ].map((value) => String(value ?? "").toLowerCase()).join("\n");
-  if (/\bhuman[_ -]?blocker\b/.test(text)) return "human_blocker_protected";
-  if (/\bmanual[_ -]?only\b/.test(text)) return "manual_only_protected";
-  if (/\bhuman[_ -]?owned\b/.test(text)) return "human_owned_work_protected";
-
-  return null;
+  return fishbowlTodoReleaseProtectedReason(todo);
 }
 
 function workerMovementProtectedDecisionReason(reason: unknown): string | null {
