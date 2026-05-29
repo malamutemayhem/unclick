@@ -30,6 +30,15 @@ import {
   type AgentDispatch,
   type DispatchSource,
 } from "../packages/mcp-server/src/reliability.js";
+import {
+  classifyTodoActionability,
+  STALE_OPEN_ASSIGNED_MS,
+} from "./lib/fishbowl-todo-actionability.js";
+import { planOpenStaleTodoRelease } from "./lib/fishbowl-todo-open-stale-release.js";
+import {
+  FISHBOWL_TODO_RELEASE_PROTECTED_IDS,
+  fishbowlTodoReleaseProtectedReason,
+} from "./lib/fishbowl-todo-release-protection.js";
 
 export interface ProfileRow {
   api_key_hash: string;
@@ -85,6 +94,21 @@ const STALE_DISPATCH_RECLAIM_LIMIT = 50;
 const WORKER_SELF_HEALING_TODO_SWEEP_LIMIT = 50;
 export const WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT = 3;
 export const WAKEPASS_REROUTE_LEASE_SECONDS = 600;
+
+// Specific Boardroom todo ids that the self-healing watcher must NEVER release,
+// regardless of age or owner liveness. This is a precise, per-seed allowlist:
+// it protects ONLY these exact todo rows from the release/reclaim paths and does
+// NOT protect their owner agents in general (legitimate stale runner-owned jobs
+// must still be releasable). It only gates the watcher's release/decision/proof
+// paths (workerSelfHealingProtectedReason); the runner's claim/build/complete
+// flow is a separate code path and is unaffected.
+//
+// - 8719dc4f-1650-4ea9-bca8-e92a9819f0ba: AFK canary proof-fixture seed
+//   (docs-only OpenHands proof fixture), assigned to pinballwake-autonomous-runner.
+//   The seed must stay assigned/open during a runner outage so AFK detection
+//   keeps working; releasing it would trip the runner's assigned_canary_seed_missing
+//   check.
+export const WORKER_SELF_HEALING_PROTECTED_TODO_IDS = FISHBOWL_TODO_RELEASE_PROTECTED_IDS;
 
 interface WakepassRerouteTarget {
   agentId: string;
@@ -530,6 +554,85 @@ export function planWorkerSelfHealingTodoRelease(params: {
   };
 }
 
+// WriterLane Slice 2b: route a stale, human-assigned OPEN todo (no active lease)
+// through the pure planOpenStaleTodoRelease helper and, when it returns a plan,
+// wrap it as a WorkerSelfHealingTodoReleasePlan so the existing CAS applier
+// (releaseWorkerSelfHealingTodoOwnership) and signal insert path are reused
+// unchanged. Clock/math gating lives entirely in the pure helper/classifier:
+// protection, owner-liveness (real ownerLastSeenAt), the 6h age threshold, and
+// the reclaim cap. This function adds no new gating of its own.
+export function buildOpenStaleTodoReleasePlan(params: {
+  apiKeyHash: string;
+  todo: WorkerSelfHealingTodoState & { updated_at?: unknown; created_at?: unknown };
+  ownerLastSeenAt: string | null;
+  isProtected: boolean;
+  releasedAt: string;
+  nowMs: number;
+}): WorkerSelfHealingTodoReleasePlan | null {
+  const apiKeyHash = nonEmptyString(params.apiKeyHash);
+  const releasedAt = nonEmptyString(params.releasedAt);
+  if (!apiKeyHash || !releasedAt) return null;
+
+  const plan = planOpenStaleTodoRelease({
+    status: params.todo.status,
+    assignedToAgentId: params.todo.assigned_to_agent_id,
+    updatedAt: params.todo.updated_at,
+    createdAt: params.todo.created_at,
+    ownerLastSeenAt: params.ownerLastSeenAt,
+    reclaimCount: params.todo.reclaim_count,
+    isProtected: params.isProtected,
+    nowMs: params.nowMs,
+  });
+  if (!plan) return null;
+
+  const previousAssignee = nonEmptyString(params.todo.assigned_to_agent_id);
+  const reclaimCountRaw = Number(params.todo.reclaim_count ?? 0);
+  const reclaimCount = Number.isFinite(reclaimCountRaw)
+    ? Math.max(0, Math.trunc(reclaimCountRaw))
+    : 0;
+  const payload: Record<string, unknown> = {
+    todo_id: params.todo.id,
+    assigned_to_agent_id: previousAssignee,
+    has_lease_token: false,
+    lease_expires_at: null,
+    classification: plan.classification,
+    owner_last_seen_at: params.ownerLastSeenAt,
+    reclaim_count: reclaimCount,
+    next_reclaim_count: plan.update.reclaim_count,
+    previous_status: params.todo.status,
+    previous_assigned_to_agent_id: previousAssignee,
+    next_status: "open",
+    released_stale_owner: true,
+    released_at: releasedAt,
+    bonded_handoff_required: true,
+    bonded_handoff_rule:
+      "Next worker must make a fresh claim and leave proof before moving the job.",
+    reassignment_attempts_capped_at: WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT,
+  };
+  const signal: WorkerSelfHealingSignal = {
+    action: "worker_self_healing_stale_owner_released",
+    severity: "info",
+    summary: `SeatRelay released stale open-todo owner ${
+      previousAssignee ?? "unknown"
+    } from todo ${params.todo.id}.`,
+    payload,
+  };
+
+  return {
+    signal,
+    insert: {
+      api_key_hash: apiKeyHash,
+      tool: "fishbowl",
+      action: signal.action,
+      severity: signal.severity,
+      summary: signal.summary,
+      deep_link: `/admin/jobs#todo-${params.todo.id}`,
+      payload,
+    },
+    update: plan.update,
+  };
+}
+
 export function hasRecentWorkerSelfHealingTodoSignal(
   signals: Array<{ action: string; payload: Record<string, unknown> | null }>,
   plan: WorkerSelfHealingTodoSignalPlan,
@@ -736,24 +839,8 @@ function nonEmptyString(value: unknown): string | null {
   return trimmed ? trimmed : null;
 }
 
-function workerSelfHealingProtectedReason(todo: WorkerSelfHealingTodoState): string | null {
-  const status = normalizeToken(todo.status);
-  if (status === "human_blocker") return "human_blocker_protected";
-  if (status === "manual_only") return "manual_only_protected";
-
-  const owner = nonEmptyString(todo.assigned_to_agent_id) ?? nonEmptyString(todo.created_by_agent_id);
-  if (owner?.startsWith("human-")) return "human_owned_work_protected";
-
-  const text = [
-    todo.title,
-    todo.description,
-    todo.priority,
-  ].map((value) => String(value ?? "").toLowerCase()).join("\n");
-  if (/\bhuman[_ -]?blocker\b/.test(text)) return "human_blocker_protected";
-  if (/\bmanual[_ -]?only\b/.test(text)) return "manual_only_protected";
-  if (/\bhuman[_ -]?owned\b/.test(text)) return "human_owned_work_protected";
-
-  return null;
+export function workerSelfHealingProtectedReason(todo: WorkerSelfHealingTodoState): string | null {
+  return fishbowlTodoReleaseProtectedReason(todo);
 }
 
 function workerMovementProtectedDecisionReason(reason: unknown): string | null {
@@ -1280,6 +1367,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let workerSelfHealingSignalsEmitted = 0;
   let workerSelfHealingSignalsDeduped = 0;
   let workerSelfHealingTodosReleased = 0;
+  let workerSelfHealingOpenStaleCandidates = 0;
+  let workerSelfHealingOpenStaleReleased = 0;
   let digestSignalsEmitted = 0;
   let staleStatusesCleared = 0;
 
@@ -1639,6 +1728,96 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // 3b. WriterLane Slice 2b: release stale, human-assigned OPEN todos that have
+  // no active lease. The existing sweep above never fetches this shape (the
+  // lease sweep requires a non-null lease; the owner sweep requires
+  // in_progress), so today these aged open todos are detected by the
+  // list-actionable endpoint but never released. This sweep fetches only
+  // open + assigned + unleased rows aged past the classifier's 6h threshold,
+  // resolves the owner's real last_seen_at the same way the list endpoint does
+  // (mc_fishbowl_profiles join), and routes each candidate through the pure
+  // classifier-gated planOpenStaleTodoRelease helper. Protection, owner
+  // liveness, age, and the reclaim cap are decided in the helper. The existing
+  // CAS applier is reused unchanged so the release is idempotent: once an owner
+  // is cleared the row no longer matches this fetch, and a concurrent change
+  // makes the optimistic update a zero-row no-op.
+  const openStaleTodoCutoff = new Date(nowMs - STALE_OPEN_ASSIGNED_MS).toISOString();
+  const { data: staleOpenAssignedRows, error: staleOpenAssignedErr } = await supabase
+    .from("mc_fishbowl_todos")
+    .select("id, api_key_hash, title, description, status, priority, created_by_agent_id, assigned_to_agent_id, lease_token, lease_expires_at, reclaim_count, updated_at, created_at")
+    .eq("status", "open")
+    .not("assigned_to_agent_id", "is", null)
+    .is("lease_expires_at", null)
+    .lt("updated_at", openStaleTodoCutoff)
+    .order("updated_at", { ascending: true })
+    .limit(WORKER_SELF_HEALING_TODO_SWEEP_LIMIT);
+
+  if (staleOpenAssignedErr) {
+    console.error(
+      "[fishbowl-watcher] worker self-healing open-stale fetch error:",
+      staleOpenAssignedErr.message,
+    );
+    return res.status(500).json({ error: staleOpenAssignedErr.message });
+  }
+
+  type OpenStaleTodoSweepRow = WorkerSelfHealingTodoSweepRow & {
+    updated_at?: string | null;
+    created_at?: string | null;
+  };
+
+  for (const todo of (staleOpenAssignedRows ?? []) as OpenStaleTodoSweepRow[]) {
+    let profiles = profileCache.get(todo.api_key_hash);
+    if (!profiles) {
+      profiles = await listProfilesForTenant(supabase, todo.api_key_hash);
+      profileCache.set(todo.api_key_hash, profiles);
+    }
+    const ownerProfile = findWorkerSelfHealingProfileForTodo(profiles, todo);
+    const ownerLastSeenAt = ownerProfile?.last_seen_at ?? null;
+
+    const classification = classifyTodoActionability({
+      status: todo.status,
+      assignedToAgentId: todo.assigned_to_agent_id,
+      updatedAt: todo.updated_at,
+      createdAt: todo.created_at,
+      ownerLastSeenAt,
+      nowMs,
+    });
+    if (classification === "stale_assigned_open") {
+      workerSelfHealingOpenStaleCandidates++;
+    }
+
+    const isProtected = workerSelfHealingProtectedReason(todo) !== null;
+    const releasePlan = buildOpenStaleTodoReleasePlan({
+      apiKeyHash: todo.api_key_hash,
+      todo,
+      ownerLastSeenAt,
+      isProtected,
+      releasedAt: nowIso,
+      nowMs,
+    });
+    if (!releasePlan) continue;
+
+    const released = await releaseWorkerSelfHealingTodoOwnership(
+      supabase,
+      todo,
+      releasePlan,
+    );
+    if (!released) continue;
+    workerSelfHealingOpenStaleReleased++;
+
+    const { error: openStaleSignalErr } = await supabase
+      .from("mc_signals")
+      .insert(releasePlan.insert);
+    if (openStaleSignalErr) {
+      console.error(
+        "[fishbowl-watcher] worker self-healing open-stale signal insert error:",
+        openStaleSignalErr.message,
+      );
+    } else {
+      workerSelfHealingSignalsEmitted++;
+    }
+  }
+
   // ── 4. Unread mention digest ────────────────────────────────────────────
   const mentionAgeCutoff = new Date(nowMs - MENTION_AGE_THRESHOLD_MS).toISOString();
   const { data: unreadMentions } = await supabase
@@ -1738,6 +1917,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     worker_self_healing_signals_emitted: workerSelfHealingSignalsEmitted,
     worker_self_healing_signals_deduped: workerSelfHealingSignalsDeduped,
     worker_self_healing_todos_released: workerSelfHealingTodosReleased,
+    worker_self_healing_open_stale_candidates: workerSelfHealingOpenStaleCandidates,
+    worker_self_healing_open_stale_released: workerSelfHealingOpenStaleReleased,
     digest_signals_emitted: digestSignalsEmitted,
     stale_statuses_cleared: staleStatusesCleared,
     overdue_candidates: candidates.length,

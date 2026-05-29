@@ -9,6 +9,7 @@ import {
 import { CATALOG, TOOL_MAP, ENDPOINT_MAP, type ToolDef } from "./catalog.js";
 import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
+import { crewsStartRun } from "./crews-tool.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
 import { markContextLoaded, recordToolCall } from "./memory/session-state.js";
@@ -50,6 +51,35 @@ function trackToolCall(toolName: string): void {
   } catch {
     // swallow synchronous errors (e.g. malformed env)
   }
+}
+
+function samplingText(result: unknown): string {
+  const content = result && typeof result === "object"
+    ? (result as { content?: unknown }).content
+    : null;
+  if (content && typeof content === "object" && !Array.isArray(content)) {
+    const block = content as { type?: unknown; text?: unknown };
+    if (block.type === "text" && typeof block.text === "string") {
+      return block.text.trim();
+    }
+  }
+  if (Array.isArray(content)) {
+    return content
+      .map((block) => {
+        if (block && typeof block === "object" && (block as { type?: unknown }).type === "text") {
+          return String((block as { text?: unknown }).text ?? "");
+        }
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n\n")
+      .trim();
+  }
+  return "";
+}
+
+function estimateSamplingTokens(text: string): number {
+  return Math.max(1, Math.ceil(text.length / 4));
 }
 
 function currentApiKeyHash(): string | null {
@@ -902,6 +932,21 @@ export const VISIBLE_TOOLS = [
     },
   },
   {
+    name: "release_claim",
+    title: "Release a stale Boardroom claim",
+    description:
+      "Safely releases a stale open Boardroom todo from its current assignee so another worker can claim it. The server refuses fresh owners, protected human/manual work, in-progress work, unassigned work, capped reclaim attempts, and rows that changed during release. agent_id required.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        agent_id: { type: "string", description: "Stable identifier for the calling agent." },
+        todo_id: { type: "string", description: "UUID of the stale open todo claim to release" },
+      },
+      required: ["agent_id", "todo_id"],
+    },
+  },
+  {
     name: "complete_todo",
     title: "Mark a Boardroom todo done",
     description:
@@ -1172,7 +1217,7 @@ const DIRECT_TOOLS = [
       properties: {
         text: { type: "string", description: "Text or URL to encode in the QR code" },
         format: { type: "string", enum: ["png", "svg"], default: "png" },
-        size: { type: "number", description: "Image size in pixels (100–1000)", default: 300 },
+        size: { type: "number", description: "Image size in pixels (100-1000)", default: 300 },
       },
       required: ["text"],
     },
@@ -2041,6 +2086,7 @@ export function createServer(): Server {
         promote_expressroom_draft: "expressroom_promote_to_todo",
         create_todo: "fishbowl_create_todo",
         update_todo: "fishbowl_update_todo",
+        release_claim: "fishbowl_release_claim",
         complete_todo: "fishbowl_complete_todo",
         drop_todo: "fishbowl_drop_todo",
         delete_todo: "fishbowl_delete_todo",
@@ -2345,6 +2391,46 @@ export function createServer(): Server {
         const client = createClient();
         const result = await handler(client, args);
         signalToolFailure(name, result);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      if (name === "start_crew_run") {
+        const supportsSampling = Boolean(server.getClientCapabilities()?.sampling);
+        const result = await crewsStartRun(args, {
+          supportsSampling,
+          sample: async ({ system, user, maxTokens }) => {
+            const response = await server.createMessage({
+              messages: [
+                {
+                  role: "user",
+                  content: {
+                    type: "text",
+                    text: user,
+                  },
+                },
+              ],
+              systemPrompt: system,
+              includeContext: "none",
+              temperature: 0.2,
+              maxTokens,
+            });
+            const content = samplingText(response);
+            if (!content) throw new Error("sampling_response_not_text");
+            return {
+              content,
+              tokensIn: estimateSamplingTokens(`${system}\n${user}`),
+              tokensOut: estimateSamplingTokens(content),
+            };
+          },
+        });
+        signalToolFailure(name, result, args);
         return {
           content: [
             {

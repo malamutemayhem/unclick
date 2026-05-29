@@ -9,20 +9,30 @@ import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
-import VantaWavesBackground from "@/components/VantaWavesBackground";
+import { presets } from "@/lib/design-system";
 
+/**
+ * Index (Apple-inspired polish pass, 2026-05-28).
+ *
+ *  - Dropped VantaWavesBackground from the page wrap. The single soft halo
+ *    inside Hero is the only ambient effect on the homepage.
+ *  - All sections inherit the design tokens from src/index.css.
+ *  - Meta tags updated to match the new positioning.
+ */
 const Index = () => {
   useCanonical("/");
   useMetaTags({
-    title: "UnClick - Agent rails for apps, memory, and proof",
-    description: "One connection gives your AI agent apps, memory, Passport permissions, Autopilot orchestration, and XPass proof.",
-    ogTitle: "UnClick - Agent rails for apps, memory, and proof",
-    ogDescription: "Apps, memory, Passport, Autopilot, and XPass checks for AI agents.",
+    title: "UnClick. The universal remote for AI.",
+    description:
+      "One install gives your AI agent every tool, memory that remembers, signed permissions, and built-in proof the work was done right.",
+    ogTitle: "UnClick. The universal remote for AI.",
+    ogDescription:
+      "Every tool. Persistent memory. Signed permissions. Built-in proof. One install.",
     ogUrl: "https://unclick.world/",
   });
 
   return (
-    <VantaWavesBackground>
+    <div className={presets.page}>
       <Navbar />
       <Hero />
       <Problem />
@@ -32,7 +42,7 @@ const Index = () => {
       <FinalCTA />
       <FAQ />
       <Footer />
-    </VantaWavesBackground>
+    </div>
   );
 };
 

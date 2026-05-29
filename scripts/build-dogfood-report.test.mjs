@@ -7,9 +7,41 @@ import path from "node:path";
 import { test } from "node:test";
 import { promisify } from "node:util";
 
-const execFileAsync = promisify(execFile);
+import { CROSS_PASS_MATRIX, PASS_PACKAGES } from "./build-xpass-package-sweep.mjs";
 
-test("dogfood receipt marks SecurityPass as blocked with a reason", async () => {
+const execFileAsync = promisify(execFile);
+const packageReadySweepIds = [
+  "sloppass",
+  "copypass",
+  "legalpass",
+  "commonsensepass",
+  "flowpass",
+  "geopass",
+];
+
+function passingSweepPackageRows() {
+  return PASS_PACKAGES.map((pkg) => ({
+    id: pkg.id,
+    name: pkg.name,
+    status: "passing",
+    command: ["npm", "run", "test", `--workspace=${pkg.workspace}`],
+  }));
+}
+
+function passingSweepMatrixRows() {
+  const packageNameById = new Map(PASS_PACKAGES.map((pkg) => [pkg.id, pkg.name]));
+  return CROSS_PASS_MATRIX.map((entry) => ({
+    target_id: entry.targetId,
+    status: "passing",
+    reviewers: entry.reviewers.map((reviewer) => ({
+      id: reviewer.id,
+      name: packageNameById.get(reviewer.id) || reviewer.id,
+      status: "passing",
+    })),
+  }));
+}
+
+test("dogfood receipt includes a safe SecurityPass proof without active probes", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
   const output = path.join(dir, "latest.json");
 
@@ -22,31 +54,59 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
     ]);
 
     const report = JSON.parse(await fs.readFile(output, "utf8"));
+    const testpass = report.results.find((result) => result.id === "testpass");
+    const uxpass = report.results.find((result) => result.id === "uxpass");
     const securitypass = report.results.find((result) => result.id === "securitypass");
+    const compliancepass = report.results.find((result) => result.id === "compliancepass");
+    const copypass = report.results.find((result) => result.id === "copypass");
+    const legalpass = report.results.find((result) => result.id === "legalpass");
     const enterprisepass = report.results.find((result) => result.id === "enterprisepass");
 
-    assert.equal(securitypass?.status, "blocked");
-    assert.match(securitypass?.blockedReason ?? "", /scope-gated/i);
-    assert.equal(securitypass?.reasonCode, "scope_gate");
-    assert.match(securitypass?.nextProof ?? "", /safe recurring SecurityPass runner receipt/i);
-    assert.equal(enterprisepass?.status, "pending");
-    assert.equal(enterprisepass?.reasonCode, "planned_runner");
-    assert.match(enterprisepass?.nextProof ?? "", /automated evidence checks/i);
-    assert.deepEqual(enterprisepass?.proof, {
-      kind: "planned",
-      targetUrl: "/enterprise/latest.json",
-    });
-    assert.equal(report.status, "blocked");
-    assert.match(report.statusLegend.blocked, /action is needed/i);
-    assert.match(report.statusLegend.pending, /live proof is not available yet/i);
-    assert.match(report.proofPolicy, /passing only when a live check actually ran/i);
-    assert.match(report.lastActionableFailure.detail, /Blocked reason:/);
+    assert.equal(testpass?.status, "pending");
+    assert.equal(testpass?.reasonCode, "dry_run_only");
+    assert.equal(uxpass?.status, "pending");
+    assert.equal(uxpass?.reasonCode, "dry_run_only");
+    assert.equal(securitypass?.status, "passing");
+    assert.match(securitypass?.summary ?? "", /deny-by-default/i);
+    assert.equal(securitypass?.proof?.kind, "securitypass_safe_static_proof");
+    assert.equal(securitypass?.proof?.activeProbesRun, false);
+    assert.equal(
+      securitypass?.proof?.checks.every((check) => check.ok),
+      true,
+    );
+    assert.match(securitypass?.nextProof ?? "", /scoped active-runner receipt/i);
+    assert.equal(compliancepass?.status, "passing");
+    assert.equal(compliancepass?.reasonCode, "public_receipt_complete");
+    assert.equal(compliancepass?.proof?.kind, "compliancepass_report");
+    assert.equal(compliancepass?.proof?.targetUrl, "/enterprise/latest.json");
+    assert.ok(compliancepass?.proof?.checksTotal > 0);
+    assert.equal(compliancepass?.proof?.highSeverityGaps, undefined);
+    assert.equal(copypass?.status, "pending");
+    assert.equal(copypass?.reasonCode, "package_ready_needs_scheduled_receipt");
+    assert.equal(copypass?.proof?.kind, "package_ready");
+    assert.equal(legalpass?.status, "pending");
+    assert.equal(legalpass?.reasonCode, "package_ready_needs_scheduled_receipt");
+    assert.equal(legalpass?.proof?.kind, "package_ready");
+    assert.equal(enterprisepass, undefined);
+    assert.equal(report.status, "pending");
+    assert.match(report.statusLegend.blocked, /needs action|action is needed/i);
+    assert.match(report.statusLegend.pending, /scheduled proof is not available yet/i);
+    assert.match(report.proofPolicy, /live check or scheduled package sweep actually ran/i);
+    assert.match(report.lastActionableFailure.title, /No actionable dogfood failure/i);
     assert.equal(report.xpassIndex.find((entry) => entry.id === "testpass")?.stage, "live_gate");
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "securitypass")?.stage, "safe_proof");
     assert.match(
       report.xpassIndex.find((entry) => entry.id === "testpass")?.mentionProfile ?? "",
       /protects merges/i,
     );
-    assert.equal(report.xpassIndex.find((entry) => entry.id === "enterprisepass")?.stage, "guidance");
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "compliancepass")?.stage, "live_dogfood");
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "copypass")?.stage, "package_ready");
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "legalpass")?.stage, "package_ready");
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "commonsensepass")?.stage, "live_gate");
+    assert.match(
+      report.xpassIndex.find((entry) => entry.id === "geopass")?.nextStep ?? "",
+      /answer-engine/i,
+    );
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }
@@ -112,9 +172,23 @@ test("dogfood receipt includes structured proof for live TestPass and UXPass run
     const testpassRequest = requests.find((request) => request.url === "/api/testpass-run");
     const uxpassRequest = requests.find((request) => request.url === "/api/uxpass-run");
 
-    assert.match(report.statusLegend.passing, /live check ran/i);
+    assert.match(report.statusLegend.passing, /live check or scheduled package sweep ran/i);
     assert.match(report.proofPolicy, /Blocked and pending are honest product states/i);
-    assert.equal(report.xpassIndex.length, 7);
+    assert.deepEqual(report.xpassIndex.map((entry) => entry.id), [
+      "testpass",
+      "uxpass",
+      "securitypass",
+      "sloppass",
+      "seopass",
+      "copypass",
+      "legalpass",
+      "commonsensepass",
+      "flowpass",
+      "geopass",
+      "rotatepass",
+      "wakepass",
+      "compliancepass",
+    ]);
 
     assert.equal(testpassRequest.body.source, "scheduled");
     assert.equal(testpass.runId, "testpass-run-123");
@@ -165,6 +239,340 @@ test("dogfood receipt uses structured missing-credential proof for blocked UXPas
     assert.equal(uxpass?.status, "blocked");
     assert.equal(uxpass?.reasonCode, "missing_credential");
     assert.match(uxpass?.nextProof ?? "", /rerun the dogfood report workflow/i);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("dogfood blocks stale CompliancePass receipts", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
+  const output = path.join(dir, "latest.json");
+  const receiptPath = path.join(dir, "enterprise-latest.json");
+
+  try {
+    await fs.writeFile(receiptPath, JSON.stringify({
+      schema_version: "1.0",
+      generated_at: "2026-01-01T00:00:00.000Z",
+      valid_until: "2026-01-08T00:00:00.000Z",
+      product: "CompliancePass",
+      status: "complete",
+      readiness_band: "green",
+      readiness_score: { value: 100, band: "green" },
+      summary: {
+        checks_total: 25,
+        checks_pending: 0,
+        blocking_gap_count: 0,
+      },
+      gaps: [],
+    }));
+
+    await execFileAsync(process.execPath, [
+      "scripts/build-dogfood-report.mjs",
+      "--dry-run",
+      "--output",
+      output,
+      "--compliancepass-receipt",
+      receiptPath,
+      "--max-compliancepass-age-hours",
+      "1",
+    ]);
+
+    const report = JSON.parse(await fs.readFile(output, "utf8"));
+    const compliancepass = report.results.find((result) => result.id === "compliancepass");
+
+    assert.equal(compliancepass?.status, "blocked");
+    assert.equal(compliancepass?.reasonCode, "stale_receipt");
+    assert.match(compliancepass?.blockedReason ?? "", /older than 1 hour/i);
+    assert.equal(compliancepass?.proof?.kind, "compliancepass_report");
+    assert.equal(compliancepass?.proof?.generatedAt, "2026-01-01T00:00:00.000Z");
+    assert.equal(compliancepass?.proof?.maxAgeHours, 1);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("dogfood keeps the CompliancePass freshness gate when max age config is invalid", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
+  const output = path.join(dir, "latest.json");
+  const receiptPath = path.join(dir, "enterprise-latest.json");
+
+  try {
+    await fs.writeFile(receiptPath, JSON.stringify({
+      schema_version: "1.0",
+      generated_at: "2026-01-01T00:00:00.000Z",
+      valid_until: "2026-01-08T00:00:00.000Z",
+      product: "CompliancePass",
+      status: "complete",
+      readiness_band: "green",
+      readiness_score: { value: 100, band: "green" },
+      summary: {
+        checks_total: 25,
+        checks_pending: 0,
+        blocking_gap_count: 0,
+      },
+      gaps: [],
+    }));
+
+    await execFileAsync(process.execPath, [
+      "scripts/build-dogfood-report.mjs",
+      "--dry-run",
+      "--output",
+      output,
+      "--compliancepass-receipt",
+      receiptPath,
+      "--max-compliancepass-age-hours",
+      "not-a-number",
+    ]);
+
+    const report = JSON.parse(await fs.readFile(output, "utf8"));
+    const compliancepass = report.results.find((result) => result.id === "compliancepass");
+
+    assert.equal(compliancepass?.status, "blocked");
+    assert.equal(compliancepass?.reasonCode, "stale_receipt");
+    assert.equal(compliancepass?.proof?.maxAgeHours, 168);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("dogfood receipt promotes package-ready passes from a fresh XPass sweep receipt", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
+  const output = path.join(dir, "latest.json");
+  const sweepPath = path.join(dir, "xpass-package-sweep.json");
+  const packageRows = passingSweepPackageRows();
+
+  try {
+    await fs.writeFile(sweepPath, JSON.stringify({
+      kind: "xpass_package_sweep_receipt_v1",
+      run_id: "xpass-package-sweep-123",
+      target_sha: "abc123",
+      status: "passing",
+      scope: "full",
+      package_count: PASS_PACKAGES.length,
+      expected_package_count: PASS_PACKAGES.length,
+      selected_package_ids: PASS_PACKAGES.map((pkg) => pkg.id),
+      expected_package_ids: PASS_PACKAGES.map((pkg) => pkg.id),
+      unknown_package_ids: [],
+      packages: packageRows,
+      cross_pass_matrix: passingSweepMatrixRows(),
+    }));
+
+    await execFileAsync(process.execPath, [
+      "scripts/build-dogfood-report.mjs",
+      "--output",
+      output,
+    ], {
+      env: {
+        ...process.env,
+        TESTPASS_TOKEN: "",
+        DOGFOOD_TESTPASS_TOKEN: "",
+        UXPASS_TOKEN: "",
+        DOGFOOD_UXPASS_TOKEN: "",
+        CRON_SECRET: "",
+        DOGFOOD_TARGET_SHA: "abc123",
+        DOGFOOD_XPASS_PACKAGE_SWEEP_PATH: sweepPath,
+      },
+    });
+
+    const report = JSON.parse(await fs.readFile(output, "utf8"));
+    const sloppass = report.results.find((result) => result.id === "sloppass");
+    const geopass = report.results.find((result) => result.id === "geopass");
+    const seopass = report.results.find((result) => result.id === "seopass");
+    const securitypass = report.results.find((result) => result.id === "securitypass");
+
+    for (const pkg of packageRows.filter((row) => packageReadySweepIds.includes(row.id))) {
+      const result = report.results.find((entry) => entry.id === pkg.id);
+      assert.equal(result?.status, "passing", `${pkg.name} should promote from a fresh full XPass sweep`);
+      assert.equal(result?.runId, "xpass-package-sweep-123");
+      assert.equal(result?.proof?.kind, "xpass_package_sweep");
+      assert.equal(result?.proof?.packageId, pkg.id);
+    }
+    assert.equal(sloppass?.status, "passing");
+    assert.equal(sloppass?.runId, "xpass-package-sweep-123");
+    assert.equal(sloppass?.proof?.kind, "xpass_package_sweep");
+    assert.equal(sloppass?.proof?.targetSha, "abc123");
+    assert.equal(sloppass?.proof?.packageId, "sloppass");
+    assert.equal(geopass?.status, "passing");
+    assert.equal(geopass?.proof?.kind, "xpass_package_sweep");
+    assert.equal(seopass?.status, "passing");
+    assert.equal(seopass?.proof?.kind, "seopass_run");
+    assert.equal(securitypass?.status, "passing");
+    assert.equal(securitypass?.proof?.kind, "securitypass_safe_static_proof");
+    assert.equal(securitypass?.proof?.activeProbesRun, false);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("dogfood receipt promotes public-safe boundary products from a fresh XPass boundary sweep receipt", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
+  const output = path.join(dir, "latest.json");
+  const boundarySweepPath = path.join(dir, "xpass-boundary-sweep.json");
+  const productRows = [
+    {
+      id: "rotatepass",
+      name: "RotatePass",
+      status: "passing",
+      command: ["node", "--test", "scripts/rotatepass-redaction-guard.test.mjs"],
+    },
+    {
+      id: "wakepass",
+      name: "WakePass",
+      status: "passing",
+      command: ["node", "--test", "scripts/event-wake-router.test.mjs"],
+    },
+  ];
+
+  try {
+    await fs.writeFile(boundarySweepPath, JSON.stringify({
+      kind: "xpass_boundary_sweep_receipt_v1",
+      run_id: "xpass-boundary-sweep-123",
+      target_sha: "abc123",
+      status: "passing",
+      products: productRows,
+      cross_pass_matrix: productRows.map((product) => ({
+        target_id: product.id,
+        status: "passing",
+        reviewers: [
+          { id: "commonsensepass", name: "CommonSensePass", status: "passing" },
+          { id: "testpass", name: "TestPass", status: "passing" },
+        ],
+      })),
+    }));
+
+    await execFileAsync(process.execPath, [
+      "scripts/build-dogfood-report.mjs",
+      "--output",
+      output,
+    ], {
+      env: {
+        ...process.env,
+        TESTPASS_TOKEN: "",
+        DOGFOOD_TESTPASS_TOKEN: "",
+        UXPASS_TOKEN: "",
+        DOGFOOD_UXPASS_TOKEN: "",
+        CRON_SECRET: "",
+        DOGFOOD_TARGET_SHA: "abc123",
+        DOGFOOD_XPASS_BOUNDARY_SWEEP_PATH: boundarySweepPath,
+      },
+    });
+
+    const report = JSON.parse(await fs.readFile(output, "utf8"));
+    for (const product of productRows) {
+      const result = report.results.find((entry) => entry.id === product.id);
+      assert.equal(result?.status, "passing", `${product.name} should promote from a fresh boundary sweep`);
+      assert.equal(result?.runId, "xpass-boundary-sweep-123");
+      assert.equal(result?.proof?.kind, "xpass_boundary_sweep");
+      assert.equal(result?.proof?.productId, product.id);
+      assert.equal(result?.proof?.targetSha, "abc123");
+    }
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("dogfood receipt rejects a stale XPass sweep receipt", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
+  const output = path.join(dir, "latest.json");
+  const sweepPath = path.join(dir, "xpass-package-sweep.json");
+
+  try {
+    await fs.writeFile(sweepPath, JSON.stringify({
+      kind: "xpass_package_sweep_receipt_v1",
+      run_id: "xpass-package-sweep-old",
+      target_sha: "oldsha",
+      status: "passing",
+      packages: [
+        { id: "sloppass", name: "SlopPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/sloppass"] },
+      ],
+      cross_pass_matrix: [],
+    }));
+
+    await execFileAsync(process.execPath, [
+      "scripts/build-dogfood-report.mjs",
+      "--output",
+      output,
+    ], {
+      env: {
+        ...process.env,
+        TESTPASS_TOKEN: "",
+        DOGFOOD_TESTPASS_TOKEN: "",
+        UXPASS_TOKEN: "",
+        DOGFOOD_UXPASS_TOKEN: "",
+        CRON_SECRET: "",
+        DOGFOOD_TARGET_SHA: "newsha",
+        DOGFOOD_XPASS_PACKAGE_SWEEP_PATH: sweepPath,
+      },
+    });
+
+    const report = JSON.parse(await fs.readFile(output, "utf8"));
+    const sloppass = report.results.find((result) => result.id === "sloppass");
+
+    assert.equal(sloppass?.status, "pending");
+    assert.equal(sloppass?.reasonCode, "package_ready_needs_scheduled_receipt");
+    assert.equal(sloppass?.proof?.kind, "package_ready");
+    assert.match(sloppass?.nextProof ?? "", /Regenerate/);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("dogfood receipt rejects partial XPass sweep receipts before promotion", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "dogfood-report-"));
+  const output = path.join(dir, "latest.json");
+  const sweepPath = path.join(dir, "xpass-package-sweep.json");
+
+  try {
+    await fs.writeFile(sweepPath, JSON.stringify({
+      kind: "xpass_package_sweep_receipt_v1",
+      run_id: "xpass-package-sweep-partial",
+      target_sha: "abc123",
+      status: "passing",
+      scope: "partial",
+      package_count: 1,
+      expected_package_count: PASS_PACKAGES.length,
+      selected_package_ids: ["legalpass"],
+      expected_package_ids: PASS_PACKAGES.map((pkg) => pkg.id),
+      unknown_package_ids: [],
+      packages: [
+        { id: "legalpass", name: "LegalPass", status: "passing", command: ["npm", "run", "test", "--workspace=@unclick/legalpass"] },
+      ],
+      cross_pass_matrix: [
+        {
+          target_id: "legalpass",
+          status: "passing",
+          reviewers: [
+            { id: "copypass", name: "CopyPass", status: "passing" },
+            { id: "securitypass", name: "SecurityPass", status: "passing" },
+          ],
+        },
+      ],
+    }));
+
+    await execFileAsync(process.execPath, [
+      "scripts/build-dogfood-report.mjs",
+      "--output",
+      output,
+    ], {
+      env: {
+        ...process.env,
+        TESTPASS_TOKEN: "",
+        DOGFOOD_TESTPASS_TOKEN: "",
+        UXPASS_TOKEN: "",
+        DOGFOOD_UXPASS_TOKEN: "",
+        CRON_SECRET: "",
+        DOGFOOD_TARGET_SHA: "abc123",
+        DOGFOOD_XPASS_PACKAGE_SWEEP_PATH: sweepPath,
+      },
+    });
+
+    const report = JSON.parse(await fs.readFile(output, "utf8"));
+    const legalpass = report.results.find((result) => result.id === "legalpass");
+
+    assert.equal(legalpass?.status, "pending");
+    assert.equal(legalpass?.reasonCode, "package_ready_needs_scheduled_receipt");
+    assert.equal(legalpass?.proof?.kind, "package_ready");
+    assert.match(legalpass?.nextProof ?? "", /full current XPass package sweep/i);
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }

@@ -22,14 +22,18 @@ const CORE_SOURCES = [
   "docs/adr/0006-orchestrator-is-user-chat.md",
   "src/App.tsx",
   "src/pages/admin/AdminShell.tsx",
+  "src/pages/admin/AdminSkills.tsx",
+  "src/lib/skillLibrary.ts",
+  "src/lib/skillLibrarySeeds.ts",
   ".github/workflows/ci.yml",
   ".github/workflows/brainmap-auto-update.yml",
+  ".github/workflows/continuous-improvement-watch.yml",
   "package.json",
 ];
 
 const ALIASES = [
   ["EnterprisePass", "CompliancePass", "Enterprise readiness checks need a public-safe product name."],
-  ["SlopPass", "QualityPass", "Roughness and polish checks should be framed constructively."],
+  ["QualityPass", "SlopPass", "Old QualityPass references now resolve to SlopPass."],
   ["Fishbowl", "Boardroom", "Internal worker discussion becomes a user-facing room name."],
   ["To-Do List", "Jobs", "Task queue language maps to the current admin Jobs surface."],
   ["Heartbeat", "Heartbeat Master", "The copy policy that teaches scheduled seats how to pulse."],
@@ -46,6 +50,74 @@ const WORKERS = [
   ["Ledger", "Records proof, receipts, approvals, and rollback evidence."],
   ["Publisher", "Moves approved work toward deployment and public proof."],
   ["Improver", "Turns repeated pain into system improvements."],
+];
+
+const ROUTE_WRAPPER_COMPONENTS = new Set(["Navigate", "RequireAdmin", "RequireAuth"]);
+
+const SEAT_INDUCTION = [
+  [
+    "1",
+    "Load UnClick Memory",
+    "Read standing rules, recent facts, and source-linked context before interpreting the work.",
+    "UnClick Memory",
+    "mcp__unclick__.load_memory",
+  ],
+  [
+    "2",
+    "Log, then read Orchestrator",
+    "Save the accepted turn, read Orchestrator continuity, and treat it as context rather than queue authority.",
+    "Orchestrator",
+    "/admin/orchestrator",
+  ],
+  [
+    "3",
+    "Open Boardroom Jobs",
+    "Use Jobs as the source of truth for active work, proof state, blockers, and safe next action.",
+    "Boardroom Jobs",
+    "/admin/jobs",
+  ],
+  [
+    "4",
+    "Pass through Brainmap",
+    "Use the generated ecosystem map to find current routes, tools, rooms, workers, aliases, and safety gates.",
+    "Ecosystem Brainmap",
+    "/admin/brainmap",
+  ],
+  [
+    "5",
+    "Choose the Launchpad lane",
+    "Route the work through the safest current Autopilot lane before acting or handing off.",
+    "Launchpad",
+    "/admin/pinballwake",
+  ],
+  [
+    "6",
+    "Ask Crews Council if needed",
+    "Run Council Lite on material work, then prompt full Crews Council for launch, risk, mixed proof, or broad XPass evidence.",
+    "Crews Council",
+    "scripts/pinballwake-launchpad-room.mjs",
+  ],
+  [
+    "7",
+    "Check proof gates",
+    "Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing.",
+    "Proof Ledger",
+    "docs/agent-observability.md",
+  ],
+  [
+    "8",
+    "Dogtest the outcome",
+    "Run the focused local tests and browser or live proof that match the touched surface.",
+    "XPass and CI",
+    "package.json",
+  ],
+  [
+    "9",
+    "Reply and log proof",
+    "End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step.",
+    "Boardroom and Orchestrator",
+    "/admin/jobs",
+  ],
 ];
 
 const DIVISIONS = [
@@ -65,6 +137,7 @@ const DIVISIONS = [
 
 const STATIC_SYSTEMS = [
   ["Launch and onboarding", "Launchpad", "route", "Control hub that points seats to the next safe operating lane.", "scripts/pinballwake-launchpad-room.mjs", "/admin/pinballwake"],
+  ["Launch and onboarding", "Crews Council Induction", "judgement prompt", "Launchpad prompt that runs Council Lite on material work and asks for a full Crews Council only when launch, risk, mixed proof, or broad XPass evidence needs judgement.", "scripts/pinballwake-launchpad-room.mjs", "/admin/pinballwake"],
   ["Launch and onboarding", "Heartbeat Master", "policy", "Canonical schedule prompt and procedure for safe heartbeat seats.", "src/pages/admin/AdminSeatHeartbeat.tsx", "/admin/agents/heartbeat"],
   ["Launch and onboarding", "Ecosystem Brainmap", "map", "Generated sitemap and system map that teaches seats what UnClick contains.", "src/pages/admin/AdminBrainmap.tsx", "/admin/brainmap"],
   ["Source of truth", "Boardroom Jobs", "queue", "Primary work source for open, in-progress, done, and dropped chips.", "src/pages/admin/AdminJobs.tsx", "/admin/jobs"],
@@ -78,6 +151,7 @@ const STATIC_SYSTEMS = [
   ["Wrappers and protocols", "IgniteOnly", "bridge", "Verified worker wake packets only, never build, merge, or completion state.", "docs/pinballwake-igniteonly-api.md", ""],
   ["Wrappers and protocols", "SeatRelay", "claim lifecycle", "Stale release, smart reassignment, and bonded handoff for stuck worker claims.", "docs/UnClick-brainmap.generated.md", ""],
   ["Ledgers and proof", "Proof Ledger", "ledger", "Structured evidence, proof freshness, receipts, and DONE trust surface.", "docs/agent-observability.md", ""],
+  ["Modules and apps", "Skills Library", "skill library", "Read-only starter pack of UnClick-native skills, hardwired rails, hybrid workflows, and portable skill packages.", "src/pages/admin/AdminSkills.tsx", "/admin/skills"],
   ["Modules and apps", "JobSmith", "app", "CV, cover-letter, job application, and rules/checklist engine.", "apps/jobsmith/package.json", "/admin/jobsmith"],
   ["Modules and apps", "AutoPilotKit", "automation module", "Internal automation bolt-on for proof-first work motion.", "AUTOPILOT.md", ""],
   ["Workers and seats", "Cursor Builder Seat", "seat", "External builder lane used for scoped code work and PRs.", "docs/fleet-worker-roles.md", ""],
@@ -99,6 +173,7 @@ const PAGE_MEANINGS = {
   AdminSeatHeartbeat: "Master heartbeat copy policy for scheduled AI seats.",
   AdminSettings: "Account and admin configuration.",
   AdminSystemHealth: "Health checks and operational status.",
+  AdminSkills: "Read-only starter pack of UnClick-native skills, native rails, and portable SKILL.md packages.",
   AdminTools: "Apps, tools, and connector capability surface.",
   AdminUsers: "Internal user management.",
   AdminYou: "Personal account, identity, and access panel.",
@@ -152,6 +227,20 @@ function meaningForPage(file) {
   return `User-facing page for ${titleFromName(base)}.`;
 }
 
+function meaningForComponent(component, file) {
+  if (PAGE_MEANINGS[component]) return PAGE_MEANINGS[component];
+  if (PUBLIC_PAGE_MEANINGS[component]) return PUBLIC_PAGE_MEANINGS[component];
+  return meaningForPage(file);
+}
+
+function displayPageName(component, file) {
+  const sourceBase = path.basename(file, path.extname(file));
+  if (component.endsWith("Page") && (PAGE_MEANINGS[sourceBase] || PUBLIC_PAGE_MEANINGS[sourceBase])) {
+    return titleFromName(sourceBase);
+  }
+  return titleFromName(component.replace(/Page$/, ""));
+}
+
 function meaningForTool(file) {
   const base = path.basename(file, ".ts").replace(/-tool$/, "");
   const name = titleFromName(base);
@@ -169,6 +258,56 @@ function displayToolName(file) {
   if (base === "igniteonly") return "IgniteOnly";
   if (base === "heartbeat-protocol") return "Heartbeat Protocol";
   return titleFromName(base);
+}
+
+function resolveImportPath(importPath) {
+  if (!importPath.startsWith(".")) return null;
+  const normalized = path.posix.normalize(path.posix.join("src", importPath));
+  return normalized.replace(/^\.\//, "");
+}
+
+function parseRouteEntries(appSource) {
+  const imports = new Map();
+  const defaultImportPattern = /import\s+([A-Za-z_$][\w$]*)\s+from\s+"([^"]+)"/g;
+  for (const match of appSource.matchAll(defaultImportPattern)) {
+    const resolved = resolveImportPath(match[2]);
+    if (resolved) imports.set(match[1], resolved);
+  }
+
+  const namedImportPattern = /import\s+\{([^}]+)\}\s+from\s+"([^"]+)"/g;
+  for (const match of appSource.matchAll(namedImportPattern)) {
+    const resolved = resolveImportPath(match[2]);
+    if (!resolved) continue;
+    for (const rawName of match[1].split(",")) {
+      const [imported, alias] = rawName.trim().split(/\s+as\s+/);
+      const name = (alias || imported || "").trim();
+      if (name) imports.set(name, resolved);
+    }
+  }
+
+  const entries = [];
+  const routePattern = /<Route\s+path="([^"]+)"[\s\S]*?element=\{([\s\S]*?)\}\s*\/?>/g;
+  for (const match of appSource.matchAll(routePattern)) {
+    const rawPath = match[1];
+    if (!rawPath || rawPath === "*") continue;
+    const components = [...match[2].matchAll(/<([A-Z][A-Za-z0-9_]*)\b/g)]
+      .map((componentMatch) => componentMatch[1])
+      .filter((component) => !ROUTE_WRAPPER_COMPONENTS.has(component));
+    const component = components[0];
+    if (!component) continue;
+    const source = imports.get(component);
+    if (!source) continue;
+    const route = rawPath.startsWith("/") ? rawPath : `/admin/${rawPath}`;
+    entries.push({ route, component, source });
+  }
+
+  return entries
+    .filter((entry) => !entry.source.includes("/components/"))
+    .sort((a, b) => `${a.route}|${a.component}`.localeCompare(`${b.route}|${b.component}`));
+}
+
+async function collectRouteEntries(root) {
+  return parseRouteEntries(await readText(root, "src/App.tsx"));
 }
 
 async function walk(root, start, predicate) {
@@ -243,7 +382,7 @@ function uniqueRows(rows) {
   const seen = new Set();
   const out = [];
   for (const row of rows) {
-    const key = [row.division, row.kind, row.name, row.source].join("|");
+    const key = [row.division, row.kind, row.name, row.source, row.route || ""].join("|");
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(row);
@@ -255,7 +394,7 @@ function uniqueRows(rows) {
 
 function inventoryItem(division, name, kind, meaning, source, route = "", tags = []) {
   return {
-    id: normalizeId(`${division}-${kind}-${name}-${source}`),
+    id: normalizeId(`${division}-${kind}-${name}-${source}-${route || "no-route"}`),
     division,
     name,
     kind,
@@ -309,8 +448,9 @@ function classifyConceptFile(file) {
 
 async function collectBrainmapModel(root) {
   const pages = await walk(root, "src/pages", (file) => file.endsWith(".tsx") && !file.endsWith(".test.tsx"));
-  const adminPages = pages.filter((file) => file.startsWith("src/pages/admin/"));
-  const publicPages = pages.filter((file) => !file.startsWith("src/pages/admin/"));
+  const routeEntries = await collectRouteEntries(root);
+  const routedSources = new Set(routeEntries.map((entry) => entry.source));
+  const componentPages = pages.filter((file) => !routedSources.has(file));
   const toolFiles = await walk(root, "packages/mcp-server/src", (file) => file.endsWith("-tool.ts") || file.endsWith("heartbeat-protocol.ts"));
   const roomScripts = await walk(root, "scripts", (file) => /pinballwake-.*-room\.mjs$/.test(file));
   const workflowFiles = await walk(root, ".github/workflows", (file) => /\.(yml|yaml)$/.test(file));
@@ -319,17 +459,27 @@ async function collectBrainmapModel(root) {
   const packageFiles = await walk(root, "packages", (file) => file.endsWith("package.json"));
   const apiFiles = await walk(root, "api", (file) => /\.(ts|js)$/.test(file) && !file.endsWith(".test.ts"));
   const srcLibFiles = await walk(root, "src/lib", (file) => /\.(ts|tsx)$/.test(file) && !file.endsWith(".test.ts"));
+  const skillFiles = await walk(root, "seed/skills", (file) => file.endsWith(".skill.md"));
   const packageJson = JSON.parse(await readText(root, "package.json") || "{}");
   const packageScripts = Object.entries(packageJson.scripts || {}).sort();
   const conceptFiles = [...new Set([...scriptFiles, ...apiFiles, ...srcLibFiles])];
-  const sourceFiles = [...new Set([...CORE_SOURCES, ...roomScripts, ...toolFiles.slice(0, 40), ...workflowFiles])];
+  const sourceFiles = [
+    ...new Set([
+      ...CORE_SOURCES,
+      ...skillFiles,
+      ...routeEntries.map((entry) => entry.source),
+      ...roomScripts,
+      ...toolFiles.slice(0, 40),
+      ...workflowFiles,
+    ]),
+  ];
   const manifest = await manifestRows(root, sourceFiles);
 
-  const pageRows = [...adminPages, ...publicPages].map((file) => [
-    routeForPage(file),
-    titleFromName(path.basename(file)),
-    sentence(meaningForPage(file)),
-    file,
+  const pageRows = routeEntries.map(({ route, component, source }) => [
+    route,
+    displayPageName(component, source),
+    sentence(meaningForComponent(component, source)),
+    source,
   ]);
 
   const toolRows = toolFiles.map((file) => [
@@ -352,11 +502,18 @@ async function collectBrainmapModel(root) {
     ...STATIC_SYSTEMS.map(([division, name, kind, meaning, source, route]) =>
       inventoryItem(division, name, kind, meaning, source, route),
     ),
-    ...adminPages.map((file) =>
-      inventoryItem("Admin surfaces", titleFromName(path.basename(file)), "admin page", meaningForPage(file), file, routeForPage(file)),
+    ...routeEntries.map(({ route, component, source }) =>
+      inventoryItem(
+        route.startsWith("/admin/") || route === "/admin" ? "Admin surfaces" : "Public surfaces",
+        displayPageName(component, source),
+        route.startsWith("/admin/") || route === "/admin" ? "admin page" : "public page",
+        meaningForComponent(component, source),
+        source,
+        route,
+      ),
     ),
-    ...publicPages.map((file) =>
-      inventoryItem("Public surfaces", titleFromName(path.basename(file)), "public page", meaningForPage(file), file, routeForPage(file)),
+    ...componentPages.map((file) =>
+      inventoryItem("Modules and apps", titleFromName(path.basename(file)), "component", meaningForPage(file), file),
     ),
     ...toolFiles.map((file) =>
       inventoryItem("Tools", displayToolName(file), "MCP tool", meaningForTool(file), file),
@@ -378,6 +535,16 @@ async function collectBrainmapModel(root) {
     ),
     ...packageFiles.map((file) =>
       inventoryItem("Modules and apps", titleFromName(path.dirname(file).split("/").at(-1)), "package", meaningForModule(file), file),
+    ),
+    ...skillFiles.map((file) =>
+      inventoryItem(
+        "Modules and apps",
+        titleFromName(path.basename(file).replace(/\.skill\.md$/, "")),
+        "skill package",
+        "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
+        file,
+        "/admin/skills",
+      ),
     ),
     ...conceptFiles
       .map((file) => {
@@ -417,6 +584,7 @@ async function collectBrainmapModel(root) {
     })),
     inventory,
     pageRows,
+    inductionRows: SEAT_INDUCTION,
     toolRows,
     roomRows,
     workerRows: WORKERS,
@@ -474,10 +642,17 @@ export async function generateBrainmap({ root = process.cwd() } = {}) {
     "",
     "- UnClick is the platform: tools, memory, agents, proof, and admin surfaces.",
     "- Launchpad is the control hub for Autopilot work.",
+    "- Crews Council induction is a Launchpad prompt, not a new Pass product; it uses Council Lite for light dissent and asks for full Crews only when judgement is needed.",
     "- Rooms are the operational stages that route work through research, planning, build, proof, review, safety, merge, publish, repair, and improvement.",
     "- Heartbeat Master at `/admin/agents/heartbeat` teaches scheduled AI seats how to pulse safely.",
     "- Heartbeat policy changes must update the `/admin/agents/heartbeat` source and verify the MASTER induction text. Memory and Brainmap entries are pointers, not the runtime MASTER.",
     "- Ecosystem Brainmap at `/admin/brainmap` teaches seats what the system is and what each surface means.",
+    "",
+    "## Seat Induction Path",
+    "",
+    "Every seat should pass through this path before acting on UnClick work. It keeps Brainmap complementary to Launchpad induction: Brainmap explains the map, Launchpad chooses the lane, and Jobs/proof decide what can move.",
+    "",
+    table(["Step", "Action", "Why it matters", "Surface", "Pointer"], model.inductionRows),
     "",
     "## Pages and Meaning",
     "",
@@ -516,6 +691,7 @@ export async function generateBrainmap({ root = process.cwd() } = {}) {
     "## Launchpad Route",
     "",
     "- Launchpad routes work from Coordinator to Builder, Tester, Reviewer, Safety Checker, and Ledger PASS.",
+    "- Launchpad checks Council induction so Council Lite is always visible on material work, and full Crews appears when launch, risk, mixed XPass proof, or broad evidence needs judgement.",
     "- Launchpad readiness is represented in `scripts/pinballwake-launchpad-room.mjs` and related tests.",
     "- User-facing control lives in Autopilot admin surfaces, with worker discussion in Boardroom.",
     "",

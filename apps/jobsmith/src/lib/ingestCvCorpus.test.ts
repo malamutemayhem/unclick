@@ -10,6 +10,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 
 import { ingestCvCorpus, type Corpus } from "./ingestCvCorpus";
+import { makeMinimalPdf } from "../test/makePdf";
 
 let tmpRoot: string;
 
@@ -76,12 +77,23 @@ describe("ingestCvCorpus", () => {
     expect(declined).toBeTruthy();
   });
 
-  test("does not parse PDF/INDD content in v0", async () => {
+  test("parses PDF cover letter text content", async () => {
     const corpus = await ingestCvCorpus(tmpRoot);
-    const pdfLetter = corpus.coverLetters.find((c) => c.format === "pdf");
-    if (pdfLetter) {
-      expect(pdfLetter.textContent).toBeNull();
-    }
+    const pdfLetter = corpus.coverLetters.find(
+      (c) => c.format === "pdf" && c.fileName.includes("Ampersand International"),
+    );
+    expect(pdfLetter).toBeTruthy();
+    expect(pdfLetter!.textContent).toMatch(/interest in the Digital Media Designer role/);
+  });
+
+  test("yields null text content for an unreadable PDF, not a throw", async () => {
+    const corpus = await ingestCvCorpus(tmpRoot);
+    const corrupt = corpus.coverLetters.find((c) =>
+      c.fileName.includes("Corrupt Sample"),
+    );
+    expect(corrupt).toBeTruthy();
+    expect(corrupt!.format).toBe("pdf");
+    expect(corrupt!.textContent).toBeNull();
   });
 });
 
@@ -98,11 +110,19 @@ async function buildFixture(root: string): Promise<void> {
   await fs.mkdir(cl, { recursive: true });
   await fs.writeFile(
     path.join(cl, "20240212 Cover Letter - Ampersand International, Christopher Byrne.pdf"),
-    "fake pdf bytes",
+    makeMinimalPdf([
+      "Dear Hiring Manager,",
+      "I am writing to express my interest in the Digital Media Designer role.",
+      "Sincerely, Christopher Byrne",
+    ]),
   );
   await fs.writeFile(
     path.join(cl, "20240212 Cover Letter - Ampersand International, Christopher Byrne.indd"),
     "fake indd bytes",
+  );
+  await fs.writeFile(
+    path.join(cl, "20240101 Cover Letter - Corrupt Sample, Christopher Byrne.pdf"),
+    "not a real pdf payload",
   );
   await fs.writeFile(
     path.join(cl, "Cover Letter1.txt"),

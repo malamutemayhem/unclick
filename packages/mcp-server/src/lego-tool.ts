@@ -60,7 +60,10 @@ export async function legoSearchSets(
   const params: Record<string, string> = {};
   if (args.search) params.search = String(args.search);
   if (args.theme_id) params.theme_id = String(args.theme_id);
-  if (args.year) params.min_year = String(args.year), params.max_year = String(args.year);
+  if (args.year) {
+    params.min_year = String(args.year);
+    params.max_year = String(args.year);
+  }
 
   const data = await rebrickableFetch<Record<string, unknown>>(
     "/sets/",

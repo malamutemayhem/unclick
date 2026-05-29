@@ -27,6 +27,8 @@ describe("runtime tool schema validation", () => {
     { name: "read_orchestrator_context", args: { q: "strict schema probe", bogus_field: "should reject" } },
     { name: "heartbeat_protocol", args: { bogus_field: "should reject" } },
     { name: "commonsensepass_protocol", args: { bogus_field: "should reject" } },
+    { name: "commonsensepass_check", args: { claim: "quiet", context: { now_ms: 1 }, bogus_field: "should reject" } },
+    { name: "commonsensepass_rules", args: { include_fixtures: false, bogus_field: "should reject" } },
     { name: "list_expressroom_drafts", args: { agent_id: "strict-probe", bogus_field: "should reject" } },
     {
       name: "ack_handoff",
@@ -36,6 +38,14 @@ describe("runtime tool schema validation", () => {
         current_chip: "Build B probe",
         next_action: "ack the handoff",
         eta: "next cycle",
+        bogus_field: "should reject",
+      },
+    },
+    {
+      name: "release_claim",
+      args: {
+        agent_id: "strict-probe",
+        todo_id: "11111111-1111-4111-8111-111111111111",
         bogus_field: "should reject",
       },
     },
@@ -109,6 +119,13 @@ describe("runtime tool schema validation", () => {
     })).toBeNull();
     expect(validateToolArgumentsForRuntime("heartbeat_protocol", {})).toBeNull();
     expect(validateToolArgumentsForRuntime("commonsensepass_protocol", {})).toBeNull();
+    expect(validateToolArgumentsForRuntime("commonsensepass_check", {
+      claim: "quiet",
+      context: { now_ms: 1, active_jobs: 0, todos: [] },
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("commonsensepass_rules", {
+      include_fixtures: false,
+    })).toBeNull();
     expect(validateToolArgumentsForRuntime("list_expressroom_drafts", {
       agent_id: "strict-probe",
       official_todo_id: "11111111-1111-4111-8111-111111111111",
@@ -123,6 +140,10 @@ describe("runtime tool schema validation", () => {
       next_action: "ack the handoff",
       eta: "next cycle",
       blocker: "none",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("release_claim", {
+      agent_id: "strict-probe",
+      todo_id: "11111111-1111-4111-8111-111111111111",
     })).toBeNull();
     expect(validateToolArgumentsForRuntime("unclick_call", {
       endpoint_id: "memory.search_memory",
@@ -182,5 +203,11 @@ describe("runtime tool schema validation", () => {
     for (const tool of AUTOPILOT_VISIBLE_TOOLS) {
       expect(advertisedNames.has(tool.name), tool.name).toBe(true);
     }
+  });
+
+  it("advertises the guarded Boardroom release tool", () => {
+    const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
+
+    expect(advertisedNames.has("release_claim")).toBe(true);
   });
 });

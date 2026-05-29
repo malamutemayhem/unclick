@@ -87,7 +87,7 @@ export async function createRun(
     // If a runner is ever made async, add a `last_heartbeat`-based stale-run gate here
     // before returning was_duplicate=true on a still-running task_id.
     const lookup = await fetch(
-      `${config.supabaseUrl}/rest/v1/testpass_runs?task_id=eq.${encodeURIComponent(params.taskId)}&actor_user_id=eq.${params.actorUserId}&select=id&limit=1`,
+      `${config.supabaseUrl}/rest/v1/testpass_runs?task_id=eq.${encodeURIComponent(params.taskId)}&actor_user_id=eq.${encodeURIComponent(params.actorUserId)}&select=id&limit=1`,
       {
         headers: {
           apikey: config.serviceRoleKey,
@@ -117,7 +117,7 @@ export async function updateRunStatus(
   const patch: Record<string, unknown> = { status };
   if (status !== "running") patch.completed_at = new Date().toISOString();
   if (summary) patch.verdict_summary = summary;
-  await supaFetch(config, `testpass_runs?id=eq.${runId}`, "PATCH", patch);
+  await supaFetch(config, `testpass_runs?id=eq.${encodeURIComponent(runId)}`, "PATCH", patch);
 }
 
 export async function createEvidence(
@@ -175,7 +175,7 @@ export async function updateItem(
 ): Promise<void> {
   await supaFetch(
     config,
-    `testpass_items?run_id=eq.${runId}&check_id=eq.${encodeURIComponent(checkId)}`,
+    `testpass_items?run_id=eq.${encodeURIComponent(runId)}&check_id=eq.${encodeURIComponent(checkId)}`,
     "PATCH",
     update
   );
@@ -187,7 +187,7 @@ export async function computeVerdictSummary(
 ): Promise<VerdictSummary> {
   const items = (await supaFetch(
     config,
-    `testpass_items?run_id=eq.${runId}&select=verdict`,
+    `testpass_items?run_id=eq.${encodeURIComponent(runId)}&select=verdict`,
     "GET"
   )) as Array<{ verdict: string }>;
 

@@ -50,6 +50,7 @@ import AdminYou from "./pages/admin/AdminYou.tsx";
 import AdminMemory from "./pages/admin/AdminMemory.tsx";
 import AdminKeychain from "./pages/admin/AdminKeychain.tsx";
 import AdminTools from "./pages/admin/AdminTools.tsx";
+import AdminSkills from "./pages/admin/AdminSkills.tsx";
 import AdminActivity from "./pages/admin/AdminActivity.tsx";
 import AdminSettings from "./pages/admin/AdminSettings.tsx";
 import AdminAgentsPage from "./pages/admin/AdminAgents.tsx";
@@ -88,7 +89,7 @@ import {
 import SignalsCatalog from "./pages/admin/signals/SignalsCatalog.tsx";
 import SignalsSettings from "./pages/admin/signals/SignalsSettings.tsx";
 import Fishbowl from "./pages/admin/Fishbowl.tsx";
-import BuildDeskPage from "./pages/BuildDesk.tsx";
+// BuildDeskPage import removed 2026-05-28 — page hidden per Chris (developer marketplace paused). File retained at src/pages/BuildDesk.tsx; /build route redirects to /.
 import { trackPageView } from "./lib/analytics.ts";
 
 const queryClient = new QueryClient();
@@ -138,6 +139,7 @@ const App = () => (
           <Route path="/backstagepass" element={<Navigate to="/admin/keychain" replace />} />
           {/* Core product pages */}
           <Route path="/tools" element={<ToolsPage />} />
+          <Route path="/skills" element={<Navigate to="/admin/skills" replace />} />
           <Route path="/jobsmith" element={<JobsmithPage />} />
           <Route path="/memory" element={<MemoryPage />} />
           {/* /memory/admin redirects to the new admin shell */}
@@ -162,6 +164,7 @@ const App = () => (
             <Route path="memory" element={<AdminMemory />} />
             <Route path="keychain" element={<AdminKeychain />} />
             <Route path="tools" element={<AdminTools />} />
+            <Route path="skills" element={<AdminSkills />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="projects" element={<AdminProjects />} />
@@ -216,7 +219,10 @@ const App = () => (
           <Route path="/dispatch" element={<DispatchPage />} />
           <Route path="/crews" element={<CrewsPage />} />
           <Route path="/dogfood" element={<DogfoodReportPage />} />
-          <Route path="/build" element={<BuildDeskPage />} />
+          {/* BuildDesk: hidden per Chris 2026-05-28. Developer dispatch surface
+              for AI coding workers, paused until the developer marketplace
+              chapter is ready. Page component retained; route redirected. */}
+          <Route path="/build" element={<Navigate to="/" replace />} />
           <Route path="/new-to-ai" element={<NewToAIPage />} />
           <Route path="/smarthome" element={<SmartHomePage />} />
           <Route path="/pricing" element={<PricingPage />} />

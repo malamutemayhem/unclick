@@ -1,8 +1,35 @@
 import { z } from "zod";
 import {
-  JurisdictionCodeSchema,
+  JurisdictionListSchema,
   SeveritySchema,
 } from "./pack-schema.js";
+
+const HttpUrlSchema = z.string().url().refine((value) => {
+  const url = new URL(value);
+  return url.protocol === "http:" || url.protocol === "https:";
+}, "must be an http(s) URL");
+
+function addDuplicateObjectKeyIssues<T extends Record<string, unknown>>(
+  values: T[],
+  key: keyof T,
+  ctx: z.RefinementCtx,
+  message: string,
+): void {
+  const seen = new Set<string>();
+  values.forEach((value, index) => {
+    const raw = value[key];
+    if (typeof raw !== "string") return;
+    if (seen.has(raw)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message,
+        path: [index, String(key)],
+      });
+      return;
+    }
+    seen.add(raw);
+  });
+}
 
 export const LegalPassPhaseOneHatIdSchema = z.enum([
   "privacy-policy",
@@ -54,13 +81,13 @@ export const LegalPassModeSchema = z.enum([
 
 export const LegalPassTargetSchema = z.object({
   name: z.string().min(1),
-  url: z.string().url().optional(),
+  url: HttpUrlSchema.optional(),
 });
 
 export const LegalPassEvidenceSchema = z.object({
   kind: LegalPassEvidenceKindSchema,
   label: z.string().min(1),
-  source_url: z.string().url().optional(),
+  source_url: HttpUrlSchema.optional(),
   summary: z.string().min(1),
 });
 
@@ -68,7 +95,7 @@ export const LegalPassDocumentSchema = z.object({
   id: z.string().min(1),
   kind: LegalPassDocumentKindSchema,
   title: z.string().min(1),
-  source_url: z.string().url().optional(),
+  source_url: HttpUrlSchema.optional(),
   content_ref: z.string().min(1).optional(),
   public_only: z.boolean().default(true),
 });
@@ -83,7 +110,7 @@ export const LegalPassFindingSchema = z.object({
   severity: SeveritySchema,
   title: z.string().min(1),
   summary: z.string().min(1),
-  evidence: z.array(LegalPassEvidenceSchema).default([]),
+  evidence: z.array(LegalPassEvidenceSchema).min(1),
   issue_spotting_note: z.string().min(1).optional(),
   practitioner_review_flag: z.boolean().default(false),
 });
@@ -102,8 +129,13 @@ export const LegalPassHatDefinitionSchema = z.object({
   label: z.string().min(1),
   summary: z.string().min(1),
   target_documents: z.array(LegalPassDocumentKindSchema).min(1),
-  jurisdictions: z.array(JurisdictionCodeSchema).min(1),
-  checks: z.array(LegalPassHatCheckSchema).min(1),
+  jurisdictions: JurisdictionListSchema,
+  checks: z
+    .array(LegalPassHatCheckSchema)
+    .min(1)
+    .superRefine((values, ctx) => {
+      addDuplicateObjectKeyIssues(values, "id", ctx, "hat check ids must be unique");
+    }),
 });
 
 export const LegalPassHatResultSchema = z.object({
@@ -111,14 +143,19 @@ export const LegalPassHatResultSchema = z.object({
   label: z.string().min(1),
   score: z.number().min(0).max(100),
   verdict: LegalPassHatVerdictSchema,
-  findings: z.array(LegalPassFindingSchema).default([]),
+  findings: z
+    .array(LegalPassFindingSchema)
+    .default([])
+    .superRefine((values, ctx) => {
+      addDuplicateObjectKeyIssues(values, "id", ctx, "finding ids must be unique");
+    }),
   comments: z.array(z.string().min(1)).default([]),
 });
 
 export const LegalPassScannerSourceSchema = z.object({
   kind: z.enum(["geopass-plan", "fixture", "manual"]),
   mode: LegalPassModeSchema.default("plan-only"),
-  target_url: z.string().url().optional(),
+  target_url: HttpUrlSchema.optional(),
   shared_check_ids: z.array(z.string().min(1)).default([]),
 });
 
@@ -126,10 +163,15 @@ export const LegalPassReportSchema = z.object({
   target: LegalPassTargetSchema,
   generated_at: z.string().datetime(),
   mode: LegalPassModeSchema.default("plan-only"),
-  jurisdictions: z.array(JurisdictionCodeSchema).min(1),
+  jurisdictions: JurisdictionListSchema,
   overall_score: z.number().min(0).max(100),
   verdict: LegalPassReportVerdictSchema,
-  hats: z.array(LegalPassHatResultSchema).min(1),
+  hats: z
+    .array(LegalPassHatResultSchema)
+    .min(1)
+    .superRefine((values, ctx) => {
+      addDuplicateObjectKeyIssues(values, "hat_id", ctx, "report hat ids must be unique");
+    }),
   scanner_source: LegalPassScannerSourceSchema,
   disclaimers: z.array(z.string().min(1)).min(1),
   notes: z.array(z.string().min(1)).default([]),
@@ -137,7 +179,7 @@ export const LegalPassReportSchema = z.object({
 
 export const LegalPassGeoPassAdapterSchema = z.object({
   source: z.literal("geopass"),
-  target_url: z.string().url(),
+  target_url: HttpUrlSchema,
   mode: LegalPassModeSchema.optional(),
   shared_check_ids: z.array(z.string().min(1)).default([]),
 });

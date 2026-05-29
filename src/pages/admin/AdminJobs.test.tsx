@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import AdminJobs from "./AdminJobs";
+import AdminJobs, { JOBS_REFRESH_INTERVAL_MS } from "./AdminJobs";
 
 vi.mock("@/lib/auth", () => ({
   useSession: () => ({
@@ -128,6 +128,9 @@ describe("AdminJobs", () => {
     render(React.createElement(AdminJobs));
 
     expect(await screen.findByText("No jobs are being worked while backlog is waiting.")).toBeInTheDocument();
+    expect(screen.getByText("Traffic light")).toBeInTheDocument();
+    expect(screen.getByText("No active owner")).toBeInTheDocument();
+    expect(screen.getByText("Claim one waiting job")).toBeInTheDocument();
     expect(screen.getByText("Open backlog")).toBeInTheDocument();
     const alertsCard = screen.getByText("Alerts").closest("div");
     expect(alertsCard).not.toBeNull();
@@ -210,5 +213,41 @@ describe("AdminJobs", () => {
     expect(completedSection).not.toBeNull();
     expect(within(nextSection as HTMLElement).getByText("Reopened truth job")).toBeInTheDocument();
     expect(within(completedSection as HTMLElement).queryByText("Reopened truth job")).not.toBeInTheDocument();
+  });
+
+  it("polls the jobs API on a quieter 60-second cadence", async () => {
+    const intervalSpy = vi.spyOn(globalThis, "setInterval");
+
+    render(React.createElement(AdminJobs));
+
+    await screen.findByText("Alpha ready job");
+    expect(intervalSpy).toHaveBeenCalledWith(expect.any(Function), JOBS_REFRESH_INTERVAL_MS);
+    expect(JOBS_REFRESH_INTERVAL_MS).toBe(60_000);
+    expect(screen.getByText("Refreshes every 60s")).toBeInTheDocument();
+  });
+
+  it("loads jobs with a safe read identity when the admin profile claim fails", async () => {
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("fishbowl_admin_claim")) {
+        return Promise.resolve({
+          ok: false,
+          json: () => Promise.resolve({ error: "claim unavailable" }),
+        } as Response);
+      }
+      if (url.includes("fishbowl_list_todos")) {
+        expect(JSON.parse(String(init?.body))).toMatchObject({
+          agent_id: "admin-jobs-ui",
+          include_description: true,
+        });
+        return jsonResponse({ todos: currentJobs });
+      }
+      return jsonResponse({});
+    });
+
+    render(React.createElement(AdminJobs));
+
+    expect(await screen.findByText("Alpha ready job")).toBeInTheDocument();
+    expect(screen.getByText("Jobs are visible, but posting comments is waiting for the admin profile.")).toBeInTheDocument();
   });
 });

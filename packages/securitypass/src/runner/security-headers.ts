@@ -41,9 +41,9 @@ const SEVERITY_BY_HEADER: Record<BaselineHeader, Severity> = {
 
 export interface ProbeOptions {
   timeoutMs?: number;
-  // TODO(securitypass-runner): swap to Stagehand when full E2E browser
-  // context is needed (CSP nonces, JS-injected headers, frame ancestors
-  // verification). For Chunk 1, `fetch` is enough to read response headers.
+  // Future browser pass: use Stagehand when full E2E browser context is
+  // needed, such as CSP nonces, JS-injected headers, or frame ancestors.
+  // The shared runner still records unwired browser probes as not_checked.
   fetchImpl?: typeof fetch;
 }
 
