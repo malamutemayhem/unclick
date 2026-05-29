@@ -506,6 +506,14 @@ function ManagedRunReport({
                 )}
               </dd>
             </div>
+            <div>
+              <dt className="font-semibold text-white/45">Proof summary</dt>
+              <dd className="mt-1 text-white/70">
+                {report.proof.length > 0
+                  ? `${report.proof.length} receipt(s) attached for this run.`
+                  : "No receipts attached for this run yet."}
+              </dd>
+            </div>
           </dl>
         </div>
       </div>

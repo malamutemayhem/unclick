@@ -150,6 +150,8 @@ describe("JobsmithPage", () => {
     const managedRunReport = screen.getByRole("region", { name: "Jobsmith managed run report" });
     expect(managedRunReport).toHaveTextContent("Browser-local cover letter draft: Ready");
     expect(managedRunReport).toHaveTextContent("Managed run report UI");
+    expect(managedRunReport).toHaveTextContent("Proof summary");
+    expect(managedRunReport).toHaveTextContent("2 receipt(s) attached for this run.");
   });
 
   it("logs an application and persists it across a remount", async () => {
