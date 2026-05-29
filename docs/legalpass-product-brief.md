@@ -6,8 +6,9 @@
 
 ## 1. Positioning
 
-LegalPass is the **6th Pass family product** alongside TestPass, UXPass,
-FlowPass, SecurityPass, and BackstagePass.
+LegalPass is the legal-review member of the Pass family. The canonical
+family list lives in [`docs/pass-family-index.md`](./pass-family-index.md)
+and is conducted by XPass per [`docs/prd/xpass.md`](./prd/xpass.md).
 
 - **Hero:** *The legal pass for AI-native teams. Twelve checks. One verdict. Plain English.*
 - **Slogan:** *Twelve hats. One verdict.*
