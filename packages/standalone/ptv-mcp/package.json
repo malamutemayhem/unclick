@@ -1,0 +1,44 @@
+{
+  "name": "@unclick/ptv-mcp",
+  "version": "0.1.0",
+  "mcpName": "io.github.malamutemayhem/ptv",
+  "description": "Melbourne / Victoria public transport timetables, departures, and disruptions (PTV).",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ptv",
+    "public-transport",
+    "melbourne",
+    "victoria",
+    "australia"
+  ],
+  "type": "module",
+  "bin": {
+    "ptv-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "server.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "directory": "packages/standalone/ptv-mcp"
+  },
+  "homepage": "https://unclick.world"
+}

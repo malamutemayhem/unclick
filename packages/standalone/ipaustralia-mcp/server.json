@@ -1,0 +1,23 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.malamutemayhem/ipaustralia",
+  "title": "IP Australia MCP",
+  "description": "Australian trademark and patent search via IP Australia.",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "source": "github",
+    "subfolder": "packages/standalone/ipaustralia-mcp"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@unclick/ipaustralia-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

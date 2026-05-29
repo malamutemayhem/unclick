@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 527,
+    "inventory": 537,
     "source_manifest": 186,
     "pages": 78,
     "tools": 187,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 70
+      "count": 80
     },
     {
       "id": "launch-and-onboarding",
@@ -2182,6 +2182,36 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-amber-mcp-packages-standalone-amber-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "amber mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/amber-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-australiapost-mcp-packages-standalone-australiapost-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "australiapost mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/australiapost-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-bgg-mcp-packages-standalone-bgg-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "bgg mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/bgg-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-channel-plugin-packages-channel-plugin-package-json-no-route",
       "division": "Modules and apps",
       "name": "channel plugin",
@@ -2232,6 +2262,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-domain-mcp-packages-standalone-domain-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "domain mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/domain-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-flowpass-packages-flowpass-package-json-no-route",
       "division": "Modules and apps",
       "name": "flowpass",
@@ -2248,6 +2288,16 @@
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/geopass/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-ipaustralia-mcp-packages-standalone-ipaustralia-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "ipaustralia mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/ipaustralia-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2282,12 +2332,32 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-ptv-mcp-packages-standalone-ptv-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "ptv mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/ptv-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-securitypass-packages-securitypass-package-json-no-route",
       "division": "Modules and apps",
       "name": "securitypass",
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/securitypass/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-sendle-mcp-packages-standalone-sendle-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "sendle mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/sendle-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2322,12 +2392,42 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-thelott-mcp-packages-standalone-thelott-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "thelott mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/thelott-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-untappd-mcp-packages-standalone-untappd-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "untappd mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/untappd-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-uxpass-packages-uxpass-package-json-no-route",
       "division": "Modules and apps",
       "name": "uxpass",
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/uxpass/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-willyweather-mcp-packages-standalone-willyweather-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "willyweather mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/willyweather-mcp/package.json",
       "route": "",
       "tags": []
     },

@@ -1,0 +1,43 @@
+{
+  "name": "@unclick/amber-mcp",
+  "version": "0.1.0",
+  "mcpName": "io.github.malamutemayhem/amber",
+  "description": "Real-time Australian electricity spot prices and renewables data from Amber Electric.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "amber",
+    "electricity",
+    "energy",
+    "australia"
+  ],
+  "type": "module",
+  "bin": {
+    "amber-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "server.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "directory": "packages/standalone/amber-mcp"
+  },
+  "homepage": "https://unclick.world"
+}

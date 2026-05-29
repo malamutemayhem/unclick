@@ -214,7 +214,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 118 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 70 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 80 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 5 |
 
 ## UnClick Structure
@@ -731,21 +731,31 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Storage Bar | Memory admin panel for Storage Bar. | - | src/pages/admin/memory/StorageBar.tsx |
 | Modules and apps | component | Todos | Admin surface for Todos. | - | src/pages/admin/fishbowl/Todos.tsx |
 | Modules and apps | component | Un Click Tools | Tool page for Un Click Tools. | - | src/pages/admin/tools/UnClickTools.tsx |
+| Modules and apps | package | amber mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/amber-mcp/package.json |
+| Modules and apps | package | australiapost mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/australiapost-mcp/package.json |
+| Modules and apps | package | bgg mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/bgg-mcp/package.json |
 | Modules and apps | package | channel plugin | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/channel-plugin/package.json |
 | Modules and apps | package | commonsensepass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/commonsensepass/package.json |
 | Modules and apps | package | compliancepass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/compliancepass/package.json |
 | Modules and apps | package | copypass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/copypass/package.json |
 | Modules and apps | package | core | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/core/package.json |
+| Modules and apps | package | domain mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/domain-mcp/package.json |
 | Modules and apps | package | flowpass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/flowpass/package.json |
 | Modules and apps | package | geopass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/geopass/package.json |
+| Modules and apps | package | ipaustralia mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/ipaustralia-mcp/package.json |
 | Modules and apps | package | legalpass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/legalpass/package.json |
 | Modules and apps | package | mcp server | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/mcp-server/package.json |
 | Modules and apps | package | memory mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/memory-mcp/package.json |
+| Modules and apps | package | ptv mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/ptv-mcp/package.json |
 | Modules and apps | package | securitypass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/securitypass/package.json |
+| Modules and apps | package | sendle mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/sendle-mcp/package.json |
 | Modules and apps | package | seopass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/seopass/package.json |
 | Modules and apps | package | sloppass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/sloppass/package.json |
 | Modules and apps | package | testpass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/testpass/package.json |
+| Modules and apps | package | thelott mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/thelott-mcp/package.json |
+| Modules and apps | package | untappd mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/untappd-mcp/package.json |
 | Modules and apps | package | uxpass | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/uxpass/package.json |
+| Modules and apps | package | willyweather mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/willyweather-mcp/package.json |
 | Modules and apps | package | wizard | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/wizard/package.json |
 | Modules and apps | skill library | Skills Library | Read-only starter pack of UnClick-native skills, hardwired rails, hybrid workflows, and portable skill packages. | /admin/skills | src/pages/admin/AdminSkills.tsx |
 | Modules and apps | skill package | agent handoff packet writer | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/agent-handoff-packet-writer.skill.md |

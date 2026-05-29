@@ -1,0 +1,23 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.malamutemayhem/ptv",
+  "title": "PTV MCP",
+  "description": "Melbourne / Victoria public transport timetables, departures, and disruptions (PTV).",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "source": "github",
+    "subfolder": "packages/standalone/ptv-mcp"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@unclick/ptv-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

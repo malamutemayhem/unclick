@@ -1,0 +1,23 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.malamutemayhem/australiapost",
+  "title": "Australia Post MCP",
+  "description": "Australia Post parcel tracking, postcode lookup, and delivery times.",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "source": "github",
+    "subfolder": "packages/standalone/australiapost-mcp"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@unclick/australiapost-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
