@@ -22,8 +22,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | a8f64d0da135 | 4873 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 7bd815c57de3 | 13446 |
-| src/pages/admin/AdminShell.tsx | d0ad42350797 | 19229 |
+| src/App.tsx | 1aa898894c02 | 13811 |
+| src/pages/admin/AdminShell.tsx | 1509360c4bfa | 19341 |
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
@@ -51,7 +51,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/tester-proof-plan.skill.md | d8c55bf6329a | 1153 |
 | seed/skills/watcher-heartbeat-tether.skill.md | 28acf3324343 | 1057 |
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
-| src/pages/Index.tsx | 27da391f9555 | 1292 |
+| src/pages/Index.tsx | 87bc594da785 | 1598 |
 | src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | 9c138bfc810d | 11515 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
@@ -95,8 +95,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/arena/ArenaHome.tsx | 7674a937b45c | 10180 |
 | src/pages/AuthCallback.tsx | 41644ade9f97 | 5284 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/BuildDesk.tsx | 36cf3e2985ba | 4474 |
-| src/pages/Connect.tsx | ec4230e130ef | 29356 |
+| src/pages/Connect.tsx | ebf2c68ad6c3 | 29590 |
 | src/pages/Crews.tsx | 9b4b9dfca188 | 18784 |
 | src/pages/DeveloperDocs.tsx | 339b3a5c60ae | 23490 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
@@ -105,14 +104,14 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
 | src/pages/DogfoodReport.tsx | 16909fd44b92 | 16552 |
-| src/pages/FAQPage.tsx | c3c95c39e56f | 723 |
+| src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 08e9c9874c22 | 61541 |
 | src/pages/Login.tsx | 0cfc79660be5 | 8862 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
-| src/pages/Memory.tsx | 41c34c866a1a | 16588 |
-| src/pages/NewToAI.tsx | 93d855b0a2d8 | 15863 |
+| src/pages/Memory.tsx | cf7f06bacc89 | 18641 |
+| src/pages/NewToAI.tsx | a28cb1d9ece8 | 12559 |
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
@@ -122,7 +121,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/LinkInBio.tsx | 4f20852d63d4 | 7831 |
 | src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
-| src/pages/Tools.tsx | 156bda80eaa2 | 22001 |
+| src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
@@ -209,7 +208,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 46 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 36 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 35 |
 | Tools | MCP and gateway capabilities available to seats. | 187 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -218,7 +217,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 118 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 65 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 66 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 5 |
 
 ## UnClick Structure
@@ -304,7 +303,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /arena | Arena Home | Arena page for Arena Home. | src/pages/arena/ArenaHome.tsx |
 | /auth/callback | Auth Callback | User-facing page for Auth Callback. | src/pages/AuthCallback.tsx |
 | /auth/verify-mfa | Verify Mfa | User-facing page for Verify Mfa. | src/pages/VerifyMfa.tsx |
-| /build | Build Desk | Build and project work surface. | src/pages/BuildDesk.tsx |
 | /connect/:platform | Connect | User-facing page for Connect. | src/pages/Connect.tsx |
 | /crews | Crews | Public Crews explanation and entry point. | src/pages/Crews.tsx |
 | /developers/docs | Developer Docs | Developer documentation. | src/pages/DeveloperDocs.tsx |
@@ -715,6 +713,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Admin Settings | Account and admin configuration. | - | src/pages/AdminSettings.tsx |
 | Modules and apps | component | Backstage Pass | User-facing page for Backstage Pass. | - | src/pages/BackstagePass.tsx |
 | Modules and apps | component | Brain Map | Legacy Memory Brain Map component kept distinct from ecosystem Brainmap. | - | src/pages/admin/BrainMap.tsx |
+| Modules and apps | component | Build Desk | Build and project work surface. | - | src/pages/BuildDesk.tsx |
 | Modules and apps | component | Comments | Admin surface for Comments. | - | src/pages/admin/fishbowl/Comments.tsx |
 | Modules and apps | component | Connected Services | Tool page for Connected Services. | - | src/pages/admin/tools/ConnectedServices.tsx |
 | Modules and apps | component | Context Tab | Memory admin panel for Context Tab. | - | src/pages/admin/memory/ContextTab.tsx |
@@ -791,7 +790,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Arena Problem | Arena page for Arena Problem. | /arena/:id | src/pages/arena/ArenaProblem.tsx |
 | Public surfaces | public page | Arena Submit Problem | Arena page for Arena Submit Problem. | /arena/submit | src/pages/arena/ArenaSubmitProblem.tsx |
 | Public surfaces | public page | Auth Callback | User-facing page for Auth Callback. | /auth/callback | src/pages/AuthCallback.tsx |
-| Public surfaces | public page | Build Desk | Build and project work surface. | /build | src/pages/BuildDesk.tsx |
 | Public surfaces | public page | Connect | User-facing page for Connect. | /connect/:platform | src/pages/Connect.tsx |
 | Public surfaces | public page | Crews | Public Crews explanation and entry point. | /crews | src/pages/Crews.tsx |
 | Public surfaces | public page | Developer Docs | Developer documentation. | /developers/docs | src/pages/DeveloperDocs.tsx |
