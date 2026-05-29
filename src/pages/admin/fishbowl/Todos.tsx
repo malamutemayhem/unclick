@@ -191,17 +191,26 @@ function TodoCard({
   const [draftTitle, setDraftTitle] = useState(todo.title);
   const [draftDesc, setDraftDesc] = useState(todo.description ?? "");
   const [draftPriority, setDraftPriority] = useState<Todo["priority"]>(todo.priority);
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   const callMutation = async (action: string, payload: Record<string, unknown>) => {
     if (!humanAgentId) return;
     setBusy(true);
+    setMutationError(null);
     try {
-      await fetch(`/api/memory-admin?action=${action}`, {
+      const res = await fetch(`/api/memory-admin?action=${action}`, {
         method: "POST",
         headers: { ...authHeader, "Content-Type": "application/json" },
         body: JSON.stringify({ agent_id: humanAgentId, ...payload }),
       });
+      const body = (await res.json().catch(() => ({}))) as { error?: string; how_to_fix?: string };
+      if (!res.ok) {
+        const detail = body.how_to_fix ? `${body.error ?? "Action blocked"} ${body.how_to_fix}` : body.error;
+        throw new Error(detail ?? "Action failed");
+      }
       onMutated();
+    } catch (e) {
+      setMutationError(e instanceof Error ? e.message : "Action failed");
     } finally {
       setBusy(false);
     }
@@ -363,6 +372,12 @@ function TodoCard({
                 Delete
               </button>
             </div>
+          )}
+
+          {mutationError && (
+            <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+              {mutationError}
+            </p>
           )}
 
           <Comments

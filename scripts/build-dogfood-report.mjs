@@ -82,8 +82,8 @@ const xpassIndex = [
     nextStep: "Keep guidance-only until legal review boundaries are explicit.",
   },
   {
-    id: "enterprisepass",
-    name: "EnterprisePass",
+    id: "compliancepass",
+    name: "CompliancePass",
     stage: "guidance",
     label: "Guidance report",
     automation: "Receipt guard and readiness report boundary",
@@ -375,9 +375,9 @@ const results = [
     { nextProof: "Add a recurring LegalPass receipt before moving this out of pending." },
   ),
   pendingResult(
-    "enterprisepass",
-    "EnterprisePass",
-    "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
+    "compliancepass",
+    "CompliancePass",
+    "Seed compliance-readiness report is published; automated evidence checks are not live yet.",
     "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
     {
       proof: { kind: "planned", targetUrl: "/enterprise/latest.json" },

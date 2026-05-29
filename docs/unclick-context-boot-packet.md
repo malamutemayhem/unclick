@@ -19,6 +19,11 @@ Read this before summarizing UnClick, routing UnClick work, or correcting anothe
 - **Event Ledger** is the audit trail for actions and state.
 - **Worker Registry** is verified worker identity and signed ACK authority.
 - **ACK Ledger** is trusted PASS, BLOCKER, and HOLD evidence.
+- **CopyRoom** is the exact-copy room. Use it like the office photocopier: whenever a worker is asked to copy anything 1:1, it must preserve the source exactly and return a CopyRoom receipt.
+- **FidelityPass** is the XPass/QC wrapper for exact-copy proof. It should verify or wrap CopyRoom receipts rather than rebuilding a second exact-copy engine.
+- **CommonSensePass** is the XPass sanity gate for claims that sound complete but may contradict the evidence. Use it before trusted healthy, quiet, PASS, no-work, done, merge-ready, or duplicate-wake claims.
+- **CompliancePass** is the official compliance/readiness product name. EnterprisePass is historical wording only.
+- **SlopPass** is the official code-quality and AI-output roughness product name. QualityPass is historical wording only.
 
 ## Visibility Warning
 
@@ -63,10 +68,15 @@ UnClick
     LegalPass
     SEOPass
     GEOPass
+    CopyPass
+    FidelityPass
+    CommonSensePass
+    SlopPass
     other XPass variants when active
   Core platform
     MCP tools
     Memory
+    CopyRoom
     Fishbowl
     Keychain
     Connectors
@@ -81,6 +91,11 @@ UnClick
 - Say **worker seats** or **lanes** for ChatGPT, Claude, Codex, and other capacity accounts.
 - Say **trusted ACK** only when it is lane-authored or signed/verified by the current trust spine.
 - Say **observer chatter** for mirrored status text, summaries, or broadcasts that are not lane-authoritative.
+- Say **CopyRoom** for exact 1:1 copying. Do not route exact-copy work to CopyPass. CopyPass reviews writing quality, claims, tone, and clarity. CopyRoom verifies exact reproduction.
+- Say **FidelityPass** when an XPass run needs to QC exact-copy fidelity. FidelityPass must reuse, verify, or wrap CopyRoom receipts. Do not build a second fidelity engine beside CopyRoom.
+- Say **CommonSensePass** when a worker needs to sanity-check a status claim before saying healthy, quiet, PASS, no-work, done, merge-ready, or duplicate-wake.
+- Say **CompliancePass**, not EnterprisePass, for compliance and enterprise-readiness checks.
+- Say **SlopPass**, not QualityPass, for sloppy code, AI-output roughness, and maintainability checks.
 
 ## Connector-Level Context Warning
 
@@ -110,7 +125,8 @@ Before product claims or routing:
 4. Read `AUTOPILOT.md` for autonomy rules.
 5. Read `FLEET_SYNC.md` for live fleet coordination.
 6. If the requested lane is XPass-specific, read `docs/prd/xpass.md`.
-7. If summarizing older strategy, read `docs/unclick-deep-context.md`.
+7. If the requested lane is XPass inventory, completion, or naming cleanup, read `docs/prd/xpass-closure-board.md`.
+8. If summarizing older strategy, read `docs/unclick-deep-context.md`.
 
 ## Drift Rules
 

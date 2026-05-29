@@ -7,9 +7,12 @@ const CHECK_ORDER = [
   "uxpass",
   "securitypass",
   "copypass",
+  "fidelitypass",
   "seopass",
   "legalpass",
-  "qualitypass",
+  "commonsensepass",
+  "sloppass",
+  "compliancepass",
 ];
 
 const CHECK_LABELS = {
@@ -17,9 +20,12 @@ const CHECK_LABELS = {
   uxpass: "UXPass",
   securitypass: "SecurityPass",
   copypass: "CopyPass",
+  fidelitypass: "FidelityPass",
   seopass: "SEOPass",
   legalpass: "LegalPass",
-  qualitypass: "QualityPass",
+  commonsensepass: "CommonSensePass",
+  sloppass: "SlopPass",
+  compliancepass: "CompliancePass",
 };
 
 const PASS_STATUS = new Set(["pass", "passed", "success", "green", "ok"]);
@@ -59,6 +65,10 @@ function uniq(values) {
 
 function hasAny(text, terms) {
   return terms.some((term) => new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(text));
+}
+
+function exactCopyRequest(text) {
+  return /(\b1:1\b|\bone-to-one\b|\bexact copy\b|\bcopy exactly\b|\bcopy this without changing\b|\bverbatim\b|\bword-for-word\b|\bbyte-level\b|\btranscribe\b|\bmirror\b|\bpreserve exactly\b)/i.test(text);
 }
 
 function codeFile(path) {
@@ -106,6 +116,7 @@ export function selectXPassChecks(input = {}) {
   const text = targetText(input);
   const reasons = new Map();
   const allText = `${text} ${files.join(" ")}`;
+  const needsExactCopyProof = exactCopyRequest(allText);
 
   for (const path of files) {
     const pathWords = path.replace(/[\/_.-]+/g, " ");
@@ -190,7 +201,7 @@ export function selectXPassChecks(input = {}) {
     }
 
     if (codeFile(path) && !testFile(path)) {
-      addReason(reasons, "qualitypass", `code quality surface: ${path}`);
+      addReason(reasons, "sloppass", `code quality surface: ${path}`);
     }
   }
 
@@ -203,8 +214,11 @@ export function selectXPassChecks(input = {}) {
   if (hasAny(allText, ["security", "auth", "oauth", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "password", "redaction"])) {
     addReason(reasons, "securitypass", "target text mentions security/auth/keys");
   }
-  if (hasAny(allText, ["copy", "wording", "homepage", "landing", "docs", "faq", "marketing", "public claim", "public claims"])) {
+  if (hasAny(allText, ["copy", "wording", "homepage", "landing", "docs", "faq", "marketing", "public claim", "public claims"]) && !needsExactCopyProof) {
     addReason(reasons, "copypass", "target text mentions copy/docs/claims");
+  }
+  if (needsExactCopyProof) {
+    addReason(reasons, "fidelitypass", "target text asks for exact 1:1 copy proof");
   }
   if (hasAny(allText, ["seo", "search", "meta", "sitemap", "robots"])) {
     addReason(reasons, "seopass", "target text mentions SEO");
@@ -212,8 +226,14 @@ export function selectXPassChecks(input = {}) {
   if (hasAny(allText, ["legal", "privacy", "terms", "license", "pricing", "billing", "invoice", "subprocessor", "compliance"])) {
     addReason(reasons, "legalpass", "target text mentions legal/commercial risk");
   }
+  if (hasAny(allText, ["compliance", "enterprise", "audit", "auditor", "procurement", "soc", "iso", "policy", "readiness"])) {
+    addReason(reasons, "compliancepass", "target text mentions compliance or enterprise readiness");
+  }
+  if (hasAny(allText, ["healthy", "quiet", "pass claim", "no work", "no-work", "done", "merge-ready", "merge ready", "duplicate wake", "duplicate-wake"])) {
+    addReason(reasons, "commonsensepass", "target text mentions a trusted status claim");
+  }
   if (hasAny(allText, ["quality", "slop", "refactor", "code smell", "bug", "bugfix"])) {
-    addReason(reasons, "qualitypass", "target text mentions quality or code risk");
+    addReason(reasons, "sloppass", "target text mentions quality or code risk");
   }
 
   return CHECK_ORDER
@@ -227,8 +247,10 @@ export function selectXPassChecks(input = {}) {
 
 function normalizeCheckName(value) {
   const key = normalize(value).replace(/[\s_-]+/g, "");
-  if (key === "sloppass") return "qualitypass";
-  if (key === "quality") return "qualitypass";
+  if (key === "qualitypass") return "sloppass";
+  if (key === "quality") return "sloppass";
+  if (key === "enterprisepass") return "compliancepass";
+  if (key === "enterprise") return "compliancepass";
   return CHECK_ORDER.find((check) => check === key || CHECK_LABELS[check].toLowerCase() === key) || key;
 }
 
@@ -298,16 +320,119 @@ function makeReceipt({
   skipped,
   now,
 }) {
+  const selectedByCheck = new Map(selected.map((check) => [check.check, check]));
+  const providedByCheck = new Map(provided.map((result) => [result.check, result]));
+  const missingSet = new Set(missing);
+  const blockerSet = new Set(blockers.map((result) => result.check));
+  const skippedByCheck = new Map(skipped.map((item) => [item.check, item]));
+  const improvementSignals = [
+    ...missing.map((check) => ({
+      check,
+      name: CHECK_LABELS[check] || check,
+      signal: "selected_check_missing_receipt",
+      action: "Add or rerun the receipt, then decide whether the pass needs a stronger runner or worker reminder.",
+    })),
+    ...blockers.map((result) => ({
+      check: result.check,
+      name: result.name,
+      signal: "pass_returned_blocker",
+      action: "Fix the target or improve the pass rule if this blocker is noisy.",
+    })),
+    ...stale.map((result) => ({
+      check: result.check,
+      name: result.name,
+      signal: "stale_receipt",
+      action: "Tighten receipt freshness or rerun behavior for this pass.",
+    })),
+    ...unscoped.map((result) => ({
+      check: result.check,
+      name: result.name,
+      signal: "unscoped_receipt",
+      action: "Teach the pass to bind evidence to the target SHA, URL, or artifact.",
+    })),
+    ...skipped
+      .filter((item) => item.reason === "pass_not_available")
+      .map((item) => ({
+        check: item.check,
+        name: item.name,
+        signal: "pass_not_available",
+        action: "Create a closure-board job if this pass should be available for this target class.",
+      })),
+  ];
+  const fullChecklist = CHECK_ORDER.map((check) => {
+    const selectedCheck = selectedByCheck.get(check);
+    if (!selectedCheck) {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "not_applicable",
+        reason: "not_selected_for_target",
+      };
+    }
+
+    const skippedCheck = skippedByCheck.get(check);
+    if (skippedCheck) {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "not_run",
+        reason: skippedCheck.reason,
+      };
+    }
+
+    const result = providedByCheck.get(check);
+    if (blockerSet.has(check)) {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "blocker",
+        reason: result?.summary || "pass_result_blocker",
+      };
+    }
+    if (result?.status === "passed") {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "pass",
+        reason: "receipt_green",
+      };
+    }
+    if (result?.status === "skipped") {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "not_applicable",
+        reason: result.summary || "pass_result_skipped",
+      };
+    }
+    if (missingSet.has(check)) {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "missing",
+        reason: "selected_but_no_receipt",
+      };
+    }
+    return {
+      check,
+      name: CHECK_LABELS[check],
+      status: "not_run",
+      reason: "selected_without_receipt",
+    };
+  });
+
   return {
     kind: "xpass_receipt",
     generated_at: now,
     target: inspectedTarget,
+    full_checklist: fullChecklist,
     checks_selected: selected.map((check) => ({
       check: check.check,
       name: check.name,
       reasons: check.reasons,
     })),
     checks_skipped: skipped,
+    improvement_signals: improvementSignals,
     evidence: provided.map((result) => ({
       check: result.check,
       name: result.name,

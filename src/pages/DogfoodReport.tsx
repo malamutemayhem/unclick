@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Activity, AlertTriangle, CheckCircle2, Clock3, ExternalLink } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import PageShell from "@/components/PageShell";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
+import { presets } from "@/lib/design-system";
 import {
   dogfoodReport as fallbackReport,
   type DogfoodPassResult,
@@ -22,6 +22,11 @@ type DogfoodReportData = Omit<typeof fallbackReport, "results" | "trend"> & {
   xpassIndex?: XPassIndexEntry[];
 };
 
+/**
+ * Status colours stay semantic. Pass/fail/blocked/pending are scannable signals
+ * users need to read at a glance, so the colour is functional, not decorative.
+ * Everything else is monochrome teal on neutral, per the design system.
+ */
 const STATUS_STYLES: Record<DogfoodStatus, { label: string; badge: string; icon: typeof CheckCircle2 }> = {
   passing: {
     label: "Passing",
@@ -45,12 +50,17 @@ const STATUS_STYLES: Record<DogfoodStatus, { label: string; badge: string; icon:
   },
 };
 
+/**
+ * XPass stage labels used to be rainbow. Now they share one calm vocabulary:
+ * live work in teal, future work in muted neutral. Stage is communicated by the
+ * label itself, not by a colour assignment.
+ */
 const XPASS_STAGE_STYLES: Record<XPassIndexEntry["stage"], string> = {
-  live_gate: "border-emerald-400/20 bg-emerald-400/10 text-emerald-200",
-  live_dogfood: "border-cyan-400/20 bg-cyan-400/10 text-cyan-200",
-  scope_gated: "border-sky-400/25 bg-sky-400/10 text-sky-200",
-  planned: "border-amber-400/20 bg-amber-400/10 text-amber-200",
-  guidance: "border-violet-400/20 bg-violet-400/10 text-violet-200",
+  live_gate: "border-primary/30 bg-primary/10 text-primary",
+  live_dogfood: "border-primary/30 bg-primary/10 text-primary",
+  scope_gated: "border-border/60 bg-card/60 text-heading",
+  planned: "border-border/60 bg-card/40 text-muted-foreground",
+  guidance: "border-border/60 bg-card/40 text-muted-foreground",
 };
 
 function countByStatus(results: DogfoodPassResult[], status: DogfoodStatus): number {
@@ -75,10 +85,12 @@ export default function DogfoodReportPage() {
 
   useCanonical("/dogfood");
   useMetaTags({
-    title: "UnClick Dogfood Report - We Run UnClick on UnClick",
-    description: "Public dogfood receipt for UnClick Pass-family checks running against UnClick itself.",
+    title: "Dogfood report - We run UnClick on UnClick",
+    description:
+      "Public dogfood receipt for the XPass family of checks running against UnClick itself.",
     ogTitle: "UnClick Dogfood Report",
-    ogDescription: "We dogfood UnClick on UnClick. Public Pass-family quality receipts.",
+    ogDescription:
+      "We dogfood UnClick on UnClick. Public XPass quality receipts.",
     ogUrl: "https://unclick.world/dogfood",
   });
 
@@ -100,82 +112,85 @@ export default function DogfoodReportPage() {
   const xpassIndex = report.xpassIndex?.length ? report.xpassIndex : fallbackReport.xpassIndex;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-
-      <main className="px-6 pt-28 pb-16">
-        <section className="mx-auto max-w-5xl">
+    <PageShell
+      eyebrow="Public receipt"
+      title="We run UnClick on UnClick."
+      lede="The XPass family of quality checks runs against this site every day. The receipts live here. Nothing hidden."
+    >
+      {/* Latest receipt summary */}
+      <section className="px-6 pb-4">
+        <div className="mx-auto max-w-5xl">
           <FadeIn>
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
-              <Activity className="h-3.5 w-3.5" />
-              Public dogfood receipt
-            </div>
-          </FadeIn>
-
-          <FadeIn delay={0.05}>
-            <div className="mt-6 grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
-              <div>
-                <h1 className="text-4xl font-semibold tracking-tight text-heading sm:text-5xl">
-                  {report.headline}
-                </h1>
-                <p className="mt-4 max-w-2xl text-lg leading-relaxed text-body">
-                  This page shows the latest Pass-family receipt evidence from checks running
-                  against UnClick itself.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-border/70 bg-card/60 p-5 shadow-lg shadow-black/10">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
-                  Latest receipt
-                </p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${receiptStatus.badge}`}>
-                    <ReceiptIcon className="h-3.5 w-3.5" />
-                    {receiptStatus.label}
-                  </span>
-                  <span className="text-xs text-muted-custom">{report.source}</span>
+            <div className="rounded-2xl border border-border/70 bg-card/60 p-6 backdrop-blur-sm">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="space-y-2">
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
+                    Latest receipt
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${receiptStatus.badge}`}>
+                      <ReceiptIcon className="h-3.5 w-3.5" />
+                      {receiptStatus.label}
+                    </span>
+                    <span className="text-xs text-muted-custom">{report.source}</span>
+                  </div>
+                  <p className="text-sm text-heading">
+                    Last run: {formatDate(report.lastRunAt || report.generatedAt)}
+                  </p>
                 </div>
-                <p className="mt-3 text-sm text-heading">Last run: {formatDate(report.lastRunAt || report.generatedAt)}</p>
-                <p className="mt-3 text-xs leading-relaxed text-body">{report.nextAutomation}</p>
+                <div className="max-w-md text-right">
+                  <Activity className="ml-auto mb-2 h-4 w-4 text-primary" />
+                  <p className="text-xs leading-relaxed text-body">
+                    {report.nextAutomation}
+                  </p>
+                </div>
               </div>
             </div>
           </FadeIn>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-4">
+      {/* Stat counts */}
+      <section className="px-6 py-6">
+        <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-4">
           {([
-            ["Passing", counts.passing, "text-emerald-200"],
-            ["Needs action", counts.failing, "text-red-200"],
-            ["Blocked", counts.blocked, "text-sky-200"],
-            ["Pending automation", counts.pending, "text-amber-200"],
-          ] as const).map(([label, value, className]) => (
+            ["Passing", counts.passing],
+            ["Needs action", counts.failing],
+            ["Blocked", counts.blocked],
+            ["Pending", counts.pending],
+          ] as const).map(([label, value]) => (
             <FadeIn key={label} delay={0.08}>
               <div className="rounded-2xl border border-border/70 bg-card/40 p-5">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">{label}</p>
-                <p className={`mt-2 text-4xl font-semibold ${className}`}>{value}</p>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
+                  {label}
+                </p>
+                <p className="mt-2 text-4xl font-semibold text-heading">{value}</p>
               </div>
             </FadeIn>
           ))}
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto mt-10 max-w-5xl">
+      {/* XPass family index */}
+      <section className="px-6 py-6">
+        <div className="mx-auto max-w-5xl">
           <FadeIn delay={0.09}>
-            <div className="rounded-2xl border border-border/70 bg-card/40 p-5">
+            <div className="rounded-2xl border border-border/70 bg-card/40 p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
-                    XPass family index
+                    XPass family
                   </p>
                   <h2 className="mt-2 text-xl font-semibold text-heading">
-                    TestPass is loud because it is the live gate.
+                    What gates, what watches, what is on the way.
                   </h2>
                 </div>
                 <p className="max-w-md text-xs leading-relaxed text-muted-custom">
-                  This index shows which Pass products are live gates, dogfood lanes, scope-gated,
-                  planned, or guidance-only so the whole family stays visible.
+                  Live gates block bad work. Dogfood lanes report receipts without
+                  blocking. Planned and guidance stages are still maturing.
                 </p>
               </div>
-              <div className="mt-5 grid gap-3 md:grid-cols-2">
+              <div className="mt-6 grid gap-3 md:grid-cols-2">
                 {xpassIndex.map((entry) => (
                   <div key={entry.id} className="rounded-xl border border-border/50 bg-background/40 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -203,16 +218,19 @@ export default function DogfoodReportPage() {
               </div>
             </div>
           </FadeIn>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto mt-10 max-w-5xl">
+      {/* Proof policy + status legend */}
+      <section className="px-6 py-6">
+        <div className="mx-auto max-w-5xl">
           <FadeIn delay={0.1}>
-            <div className="rounded-2xl border border-border/70 bg-card/40 p-5">
+            <div className="rounded-2xl border border-border/70 bg-card/40 p-6">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
                 Proof policy
               </p>
               <p className="mt-3 text-sm leading-relaxed text-body">{report.proofPolicy}</p>
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
                 {(Object.keys(report.statusLegend) as DogfoodStatus[]).map((statusKey) => {
                   const status = STATUS_STYLES[statusKey];
                   const Icon = status.icon;
@@ -232,9 +250,12 @@ export default function DogfoodReportPage() {
               </div>
             </div>
           </FadeIn>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto mt-10 max-w-5xl">
+      {/* Individual pass results */}
+      <section className="px-6 py-6">
+        <div className="mx-auto max-w-5xl">
           <div className="grid gap-4 md:grid-cols-2">
             {report.results.map((result, index) => {
               const status = STATUS_STYLES[result.status];
@@ -298,11 +319,14 @@ export default function DogfoodReportPage() {
               );
             })}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto mt-10 grid max-w-5xl gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+      {/* Last failure + trend */}
+      <section className="px-6 py-6">
+        <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[0.9fr_1.1fr]">
           <FadeIn>
-            <div className="rounded-2xl border border-border/70 bg-card/40 p-5">
+            <div className="rounded-2xl border border-border/70 bg-card/40 p-6">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">
                 Last actionable failure
               </p>
@@ -313,7 +337,7 @@ export default function DogfoodReportPage() {
           </FadeIn>
 
           <FadeIn delay={0.05}>
-            <div className="rounded-2xl border border-border/70 bg-card/40 p-5">
+            <div className="rounded-2xl border border-border/70 bg-card/40 p-6">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-custom">Receipt trend</p>
               <div className="mt-4 overflow-x-auto rounded-xl border border-border/60">
                 {report.trend.map((point) => (
@@ -328,9 +352,12 @@ export default function DogfoodReportPage() {
               </div>
             </div>
           </FadeIn>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto mt-10 max-w-5xl">
+      {/* Public JSON link */}
+      <section className="px-6 py-10">
+        <div className="mx-auto max-w-5xl">
           <a
             href="/dogfood/latest.json"
             className="inline-flex items-center gap-2 text-sm font-medium text-primary transition-opacity hover:opacity-80"
@@ -338,10 +365,8 @@ export default function DogfoodReportPage() {
             View public JSON receipt
             <ExternalLink className="h-4 w-4" />
           </a>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
+        </div>
+      </section>
+    </PageShell>
   );
 }

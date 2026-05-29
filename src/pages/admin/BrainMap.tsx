@@ -128,9 +128,11 @@ const TREE: Node[] = [
       { label: "SecurityPass", note: "security proof" },
       { label: "LegalPass", note: "legal proof" },
       { label: "CopyPass", note: "writing proof" },
+      { label: "FidelityPass", note: "exact-copy proof over CopyRoom" },
       { label: "SEOPass", note: "search proof" },
-      { label: "QualityPass", note: "public name for SlopPass-style checks" },
-      { label: "CompliancePass", note: "public name for EnterprisePass" },
+      { label: "CommonSensePass", note: "sanity proof before trusted status claims" },
+      { label: "SlopPass", note: "AI/code quality proof" },
+      { label: "CompliancePass", note: "compliance and enterprise-readiness proof" },
       { label: "RotatePass", note: "likely folded into SecurityPass later" },
     ],
   },
@@ -171,10 +173,7 @@ const INTERNAL_ADMIN = [
   "Brainmap",
 ];
 
-const PUBLIC_ALIASES = [
-  ["EnterprisePass", "CompliancePass"],
-  ["SlopPass", "QualityPass"],
-];
+const PUBLIC_ALIASES: [string, string][] = [];
 
 const ICONS = [
   LayoutDashboard,

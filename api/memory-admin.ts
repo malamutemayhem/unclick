@@ -103,6 +103,8 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { evaluateFishbowlCompletionPolicy } from "./lib/fishbowl-completion-policy.js";
+import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
 import {
   buildOrchestratorContext,
@@ -8198,6 +8200,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           low: 0,
         };
         const DONE_TODO_ARCHIVE_WINDOW_MS = 12 * 60 * 60 * 1000;
+        const loadCompletionComments = async (todoId: string) => {
+          const { data, error } = await supabase
+            .from("mc_fishbowl_comments")
+            .select("author_agent_id,text")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("target_kind", "todo")
+            .eq("target_id", todoId);
+          if (error) throw error;
+          return (data ?? []).map((comment) => ({
+            author_agent_id: typeof comment.author_agent_id === "string" ? comment.author_agent_id : null,
+            text: typeof comment.text === "string" ? comment.text : null,
+          }));
+        };
 
         // ── Todos ──────────────────────────────────────────────────────────
 
@@ -8309,7 +8324,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
           const { data: beforeTodo, error: beforeErr } = await supabase
             .from("mc_fishbowl_todos")
-            .select("id,title,status,assigned_to_agent_id,priority")
+            .select("id,title,description,status,assigned_to_agent_id,priority,created_by_agent_id")
             .eq("api_key_hash", apiKeyHash)
             .eq("id", idRes)
             .maybeSingle();
@@ -8345,6 +8360,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const a = String(body.assigned_to_agent_id ?? "").trim();
             if (a.length > 128) return res.status(400).json({ error: "assigned_to_agent_id must be at most 128 characters" });
             update.assigned_to_agent_id = a.length === 0 ? null : a;
+          }
+
+          if (update.status === "done") {
+            if (!beforeTodo) return res.status(404).json({ error: "todo not found" });
+            const policy = evaluateFishbowlCompletionPolicy({
+              todo: {
+                id: String(beforeTodo.id),
+                title: typeof update.title === "string" ? update.title : beforeTodo.title,
+                description: typeof update.description === "string" || update.description === null
+                  ? update.description
+                  : beforeTodo.description,
+                created_by_agent_id: beforeTodo.created_by_agent_id,
+              },
+              comments: await loadCompletionComments(idRes),
+              closerAgentId: agentId,
+              isAdminCaller,
+            });
+            if (!policy.allowed) {
+              return res.status(409).json({
+                error: policy.reason,
+                code: policy.code,
+                how_to_fix: policy.how_to_fix,
+                completion_policy: policy,
+              });
+            }
           }
 
           let laneCheck: {
@@ -8442,11 +8482,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (typeof idRes !== "string") return res.status(400).json(idRes);
           const { data: beforeTodo, error: beforeErr } = await supabase
             .from("mc_fishbowl_todos")
-            .select("id,title,status,assigned_to_agent_id,priority")
+            .select("id,title,description,status,assigned_to_agent_id,priority,created_by_agent_id")
             .eq("api_key_hash", apiKeyHash)
             .eq("id", idRes)
             .maybeSingle();
           if (beforeErr) throw beforeErr;
+          if (!beforeTodo) return res.status(404).json({ error: "todo not found" });
+          const policy = evaluateFishbowlCompletionPolicy({
+            todo: {
+              id: String(beforeTodo.id),
+              title: beforeTodo.title,
+              description: beforeTodo.description,
+              created_by_agent_id: beforeTodo.created_by_agent_id,
+            },
+            comments: await loadCompletionComments(idRes),
+            closerAgentId: agentId,
+            isAdminCaller,
+          });
+          if (!policy.allowed) {
+            return res.status(409).json({
+              error: policy.reason,
+              code: policy.code,
+              how_to_fix: policy.how_to_fix,
+              completion_policy: policy,
+            });
+          }
           const nowIso = new Date().toISOString();
           const { data, error } = await supabase
             .from("mc_fishbowl_todos")
@@ -8562,92 +8622,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (!includeArchivedDone && body.status == null) {
             q = q.or(`status.neq.done,completed_at.is.null,completed_at.gte.${doneArchiveCutoff}`);
           }
+          // before_created_at cursor: keyset pagination for "Show more"
+          // batches on the AdminJobs completed history. Strictly less-than
+          // so consecutive calls do not duplicate the last row.
+          if (body.before_created_at != null) {
+            const cursor = String(body.before_created_at);
+            // Loose ISO check: must parse to a valid date.
+            if (Number.isNaN(Date.parse(cursor))) {
+              return res.status(400).json({ error: "before_created_at must be an ISO timestamp" });
+            }
+            q = q.lt("created_at", cursor);
+          }
           const { data, error } = await q;
           if (error) throw error;
-
-          const stageRank = {
-            brief: 1,
-            build: 2,
-            proof: 3,
-            review: 4,
-            ship: 5,
-          } as const;
-          const stageProgress: Record<number, number> = {
-            1: 10,
-            2: 55,
-            3: 70,
-            4: 85,
-            5: 100,
-          };
-          function positiveStageHit(text: string, positive: RegExp, negative?: RegExp): boolean {
-            if (!positive.test(text)) return false;
-            return negative ? !negative.test(text) : true;
-          }
-          function inferJobPipeline(todo: Record<string, unknown>, commentTexts: string[]) {
-            const corpus = [
-              todo.title,
-              todo.description,
-              ...commentTexts,
-            ]
-              .filter((value) => typeof value === "string" && value.trim().length > 0)
-              .join("\n")
-              .toLowerCase();
-            const status = String(todo.status ?? "");
-            let activeCount = status === "done" ? stageRank.ship : status === "in_progress" ? stageRank.build : 1;
-            let source = status === "done" ? "status: done" : status === "in_progress" ? "status: active" : "status: open";
-            const evidence: string[] = [];
-
-            if (
-              positiveStageHit(
-                corpus,
-                /\b(implemented|built|build complete|patch applied|changes applied|pr\s*#?\d+|branch ready|commit(?:ted)?|ready for proof)\b/i,
-              )
-            ) {
-              activeCount = Math.max(activeCount, stageRank.build);
-              evidence.push("build");
-              source = "receipt: build";
-            }
-            if (
-              positiveStageHit(
-                corpus,
-                /\b(build passed|checks? (?:passed|green)|tests? passed|proof (?:passed|complete|attached|submitted|recorded|current|clean)|verification (?:passed|complete)|ci passed|npm run build passed)\b/i,
-                /\b(no|missing|needs?|needed|waiting for|without|incomplete|stale)\s+(?:live\s+)?proof\b|\bproof\s+(?:missing|needed|incomplete|stale|not available)\b/i,
-              )
-            ) {
-              activeCount = Math.max(activeCount, stageRank.proof);
-              evidence.push("proof");
-              source = "receipt: proof";
-            }
-            if (
-              positiveStageHit(
-                corpus,
-                /\b(qc pass|review(?:ed)?|reviewer pass|gatekeeper pass|safety pass|approved|ack:\s*pass|pass on #\d+|ready for review)\b/i,
-                /\b(no|missing|needs?|needed|waiting for|without|incomplete)\s+(?:qc|review|pass)\b|\b(blocker|hold|do not merge|do not lift)\b/i,
-              )
-            ) {
-              activeCount = Math.max(activeCount, stageRank.review);
-              evidence.push("review");
-              source = "receipt: review";
-            }
-            if (
-              positiveStageHit(
-                corpus,
-                /\b(pr\s*#?\d+\s+merged|merged\s+#?\d+|merged into main|deployed|published|shipped|live on production|production live)\b/i,
-                /\b(not merged|unmerged|do not merge|blocked from merge|merge blocked)\b/i,
-              )
-            ) {
-              activeCount = Math.max(activeCount, stageRank.ship);
-              evidence.push("ship");
-              source = "receipt: ship";
-            }
-
-            return {
-              pipeline_stage_count: activeCount,
-              pipeline_progress: stageProgress[activeCount] ?? 10,
-              pipeline_source: source,
-              pipeline_evidence: evidence,
-            };
-          }
 
           // Decorate with comment_count and stage evidence for the jobs board.
           const todos = data ?? [];
@@ -8679,7 +8666,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return {
               ...t,
               comment_count: countMap[id] ?? 0,
-              ...inferJobPipeline(t, textMap[id] ?? []),
+              ...inferFishbowlJobPipeline(t, textMap[id] ?? []),
             };
           });
           const compactTodos = decorated.map((t) => ({

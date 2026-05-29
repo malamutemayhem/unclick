@@ -70,9 +70,12 @@ Selection defaults:
 - Tool, connector, MCP, and native endpoint changes select TestPass.
 - Auth, keys, tokens, redaction, and security-sensitive changes select SecurityPass.
 - Public wording, docs, and claims select CopyPass.
+- Exact 1:1 copy, transcription, source mirroring, or "copy this without changing it" selects CopyRoom for the work and FidelityPass for XPass/QC proof. CopyRoom must preserve the source and return a receipt or an explicit unverifiable state. FidelityPass must wrap or verify that receipt, not rebuild CopyRoom.
 - Public pages, metadata, sitemap, and discoverability changes select SEOPass.
 - Legal, pricing, billing copy, privacy, terms, and compliance-sensitive wording select LegalPass.
-- Code changes select QualityPass when a quality/smell receipt is useful.
+- Code changes select SlopPass when a quality/smell receipt is useful.
+- Healthy, quiet, PASS, no-work, done, merge-ready, and duplicate-wake claims select CommonSensePass before they become trusted status.
+- Compliance, audit, procurement, enterprise-readiness, policy, or evidence-packaging work selects CompliancePass when that product surface is available.
 
 The gate may run in advisory mode while Pass-family coverage is still catching up. Enforcement should only turn on after the relevant Pass has a stable runner, clear receipt shape, and enough dogfood proof to avoid noisy false blockers.
 
@@ -85,16 +88,19 @@ Operating shape:
 - XPass Gate runs first in advisory mode and names the checks a change should receive.
 - Missing Passes are recorded as missing or skipped, never treated as PASS.
 - Continuous Improvement owns repeated QC friction and turns it into front-of-line build chips.
+- XPass receipts should emit improvement signals when a pass misses a real issue, blocks noisily, cannot explain its verdict, lacks a runner, or needs a new rule/fixture.
 - Dogfood Room owns realistic user journeys, not just isolated component checks.
 - Ledger should receive receipts for meaningful QC outcomes as the receipt surface matures.
 
 Priority order:
 
 1. Finish UXPass enough to support visual/site sweeps, screenshot evidence, console errors, obvious layout problems, navigation confusion, and mobile/desktop checks.
-2. Finish QualityPass enough to catch messy AI-build risks, weak abstractions, brittle tests, and obvious maintainability problems.
+2. Finish SlopPass enough to catch messy AI-build risks, weak abstractions, brittle tests, and obvious maintainability problems.
 3. Finish CopyPass enough to catch unclear product wording, old names, mixed metaphors, and overcomplicated user-facing copy.
-4. Harden SecurityPass for auth, keys, sessions, redaction, permissions, browser extension, OAuth, API keys, and Password Bridge surfaces.
-5. Add SEOPass and LegalPass when public, pricing, docs, legal, privacy, or compliance surfaces change.
+4. Finish FidelityPass as the wrapper over CopyRoom receipts, including honest `N/A` when no exact-copy work is in scope.
+5. Finish CommonSensePass adoption enough that trusted status claims cannot skip the sanity gate.
+6. Harden SecurityPass for auth, keys, sessions, redaction, permissions, browser extension, OAuth, API keys, and Password Bridge surfaces.
+7. Add SEOPass, LegalPass, and CompliancePass when public, pricing, docs, legal, privacy, compliance, or enterprise-readiness surfaces change.
 
 Enforcement path:
 

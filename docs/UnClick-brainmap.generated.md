@@ -6,20 +6,20 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 562ec208aa54 | 16311 |
-| FLEET_SYNC.md | 41ebcbca94b0 | 13200 |
-| docs/unclick-context-boot-packet.md | 7cf131cf22e0 | 4785 |
+| AUTOPILOT.md | c4008a876d6e | 17166 |
+| FLEET_SYNC.md | 5f986e95c4af | 14837 |
+| docs/unclick-context-boot-packet.md | 5d9036e01487 | 6502 |
 | docs/agent-observability.md | 88a4c8391ee3 | 3046 |
 | docs/pinballwake-nudgeonly-api.md | 901e39017aa9 | 6910 |
 | docs/pinballwake-igniteonly-api.md | ba632ad8bce3 | 4292 |
-| docs/fleet-worker-roles.md | de6d70d0d55a | 3662 |
+| docs/fleet-worker-roles.md | 8073235d9f44 | 3656 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 5a1598baa2a8 | 12717 |
-| src/pages/admin/AdminShell.tsx | 9cb148b69bc1 | 17456 |
+| src/App.tsx | 6e4522b7ad77 | 13172 |
+| src/pages/admin/AdminShell.tsx | efdb1596630c | 17591 |
 | .github/workflows/ci.yml | 79e43dd8e26c | 1608 |
 | .github/workflows/brainmap-auto-update.yml | 7e8b08eb16aa | 1137 |
-| package.json | 9b0180a6b2f9 | 4175 |
+| package.json | 06dcec8c82b2 | 4175 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
 | scripts/pinballwake-coding-room.mjs | 4a48ded33a31 | 25453 |
@@ -41,7 +41,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | 5911ee03a039 | 16190 |
-| scripts/pinballwake-xpass-gate-room.mjs | 44b7d10cddc2 | 14430 |
+| scripts/pinballwake-xpass-gate-room.mjs | e24c4d38aa53 | 17466 |
 | packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |
@@ -378,8 +378,6 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Internal name | Public name | Meaning |
 | --- | --- | --- |
-| EnterprisePass | CompliancePass | Enterprise readiness checks need a public-safe product name. |
-| SlopPass | QualityPass | Roughness and polish checks should be framed constructively. |
 | Fishbowl | Boardroom | Internal worker discussion becomes a user-facing room name. |
 | To-Do List | Jobs | Task queue language maps to the current admin Jobs surface. |
 | Heartbeat | Heartbeat Master | The copy policy that teaches scheduled seats how to pulse. |
@@ -460,7 +458,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | test | vitest run |
 | test:api | npm run test --workspace=apps/api |
 | test:brainmap | node --test scripts/UnClick-brainmap.test.mjs |
-| test:enterprisepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
+| test:compliancepass-receipt | node --test scripts/compliancepass-receipt-guard.test.mjs |
 | test:rotatepass-redaction | node --test scripts/rotatepass-redaction-guard.test.mjs |
 | test:watch | vitest |
 

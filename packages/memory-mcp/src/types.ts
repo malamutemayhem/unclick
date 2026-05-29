@@ -42,6 +42,20 @@ export interface LibraryDocInput {
   tags: string[];
 }
 
+export type {
+  MemoryGovernorCandidate,
+  MemoryGovernorScore,
+  RealityClaimAssessment,
+  RealityClaimStatus,
+  RealityEdge,
+  RealityEdgeKind,
+  RealityGraph,
+  RealityNode,
+  RealityNodeKind,
+  RealityProofStrength,
+  RealitySourceReceipt,
+} from "./reality-graph.js";
+
 export interface MemoryBackend {
   /** Load startup context (business context + recent sessions + hot facts). */
   getStartupContext(numSessions: number): Promise<unknown>;

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildOrchestratorContext,
   compactText,
+  computeActiveJobsCount,
   isHeartbeatAutomationText,
   redactSensitive,
 } from "./lib/orchestrator-context";
@@ -138,6 +139,11 @@ describe("orchestrator context", () => {
 
     expect(context.version).toBe("orchestrator-context-v1");
     expect(context.current_state_card.active_todo_count).toBe(1);
+    // active_jobs is the v9-pinned strict count: in_progress + owner_last_seen <= 24h.
+    // The codex-seat owner here was last seen 5 minutes before generatedAt, so the
+    // single in_progress todo counts as active. Stays in lock-step with heartbeat
+    // step 5 so PASS/BLOCKER never oscillates on identical state (todo a4cd5229).
+    expect(context.current_state_card.active_jobs).toBe(1);
     expect(context.current_state_card.active_seat_count).toBe(1);
     expect(context.current_state_card.blocker_count).toBe(1);
     expect(context.current_state_card.next_actions[0]).toContain("Orchestrator context layer");
@@ -603,5 +609,222 @@ describe("orchestrator context", () => {
     expect(context.seat_handshake.source_pointers.map((pointer) => pointer.source_id)).toEqual(
       expect.arrayContaining(["session-orchestrator-fallback", "todo-active", "msg-proof"]),
     );
+  });
+});
+
+// active_jobs v9 definition pinned by todo a4cd5229 + Heartbeat step 5:
+//   active_jobs = COUNT(todos WHERE status='in_progress' AND owner_last_seen <= 24h)
+// These tests lock that contract so the Heartbeat and the Orchestrator
+// state_card never disagree on identical input.
+describe("computeActiveJobsCount (v9 definition)", () => {
+  const NOW_MS = Date.parse("2026-05-12T00:00:00.000Z");
+  const HOUR_MS = 60 * 60 * 1000;
+
+  it("counts an in_progress todo whose owner was seen in the last 24h", () => {
+    const count = computeActiveJobsCount(
+      [
+        {
+          id: "todo-active",
+          title: "Active build",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "watcher",
+          assigned_to_agent_id: "builder-fresh",
+          created_at: "2026-05-11T00:00:00.000Z",
+        },
+      ],
+      [
+        {
+          agent_id: "builder-fresh",
+          last_seen_at: new Date(NOW_MS - 2 * HOUR_MS).toISOString(),
+        },
+      ],
+      NOW_MS,
+    );
+    expect(count).toBe(1);
+  });
+
+  it("excludes an in_progress todo whose owner has been dormant more than 24h", () => {
+    const count = computeActiveJobsCount(
+      [
+        {
+          id: "todo-dormant",
+          title: "Dormant owner",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "watcher",
+          assigned_to_agent_id: "builder-stale",
+          created_at: "2026-05-08T00:00:00.000Z",
+        },
+      ],
+      [
+        {
+          agent_id: "builder-stale",
+          // 6 days ago. The exact case Chris hit earlier today (todo e9e308cd
+          // assigned to "master" who hadn't been seen in 6 days but was
+          // still counted as an active job).
+          last_seen_at: new Date(NOW_MS - 6 * 24 * HOUR_MS).toISOString(),
+        },
+      ],
+      NOW_MS,
+    );
+    expect(count).toBe(0);
+  });
+
+  it("does not count open todos even when the owner is fresh", () => {
+    const count = computeActiveJobsCount(
+      [
+        {
+          id: "todo-open",
+          title: "Open todo",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "watcher",
+          assigned_to_agent_id: "builder-fresh",
+          created_at: "2026-05-11T00:00:00.000Z",
+        },
+      ],
+      [
+        {
+          agent_id: "builder-fresh",
+          last_seen_at: new Date(NOW_MS - 10 * 60 * 1000).toISOString(),
+        },
+      ],
+      NOW_MS,
+    );
+    expect(count).toBe(0);
+  });
+
+  it("does not count an in_progress todo with no assigned owner", () => {
+    const count = computeActiveJobsCount(
+      [
+        {
+          id: "todo-unowned",
+          title: "Unowned in_progress",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "watcher",
+          assigned_to_agent_id: null,
+          created_at: "2026-05-11T00:00:00.000Z",
+        },
+      ],
+      [],
+      NOW_MS,
+    );
+    expect(count).toBe(0);
+  });
+
+  it("does not count an in_progress todo whose owner has no profile row", () => {
+    // Owner string exists on the todo, but the profile is missing entirely.
+    // This protects against a "ghost owner" where reclaim_count or a
+    // historical lease left the assigned_to_agent_id non-empty but the
+    // worker has never been seen at all.
+    const count = computeActiveJobsCount(
+      [
+        {
+          id: "todo-ghost",
+          title: "Ghost owner",
+          status: "in_progress",
+          priority: "high",
+          created_by_agent_id: "watcher",
+          assigned_to_agent_id: "builder-ghost",
+          created_at: "2026-05-11T00:00:00.000Z",
+        },
+      ],
+      [],
+      NOW_MS,
+    );
+    expect(count).toBe(0);
+  });
+
+  it("returns the identical count on identical input (no oscillation)", () => {
+    // Acceptance criterion: heartbeat PASS/BLOCKER stops oscillating on
+    // identical state. Same input must always produce the same count.
+    const todos = [
+      {
+        id: "todo-a",
+        title: "A",
+        status: "in_progress",
+        priority: "urgent",
+        created_by_agent_id: "watcher",
+        assigned_to_agent_id: "builder-1",
+        created_at: "2026-05-11T00:00:00.000Z",
+      },
+      {
+        id: "todo-b",
+        title: "B",
+        status: "in_progress",
+        priority: "high",
+        created_by_agent_id: "watcher",
+        assigned_to_agent_id: "builder-2",
+        created_at: "2026-05-11T00:00:00.000Z",
+      },
+    ];
+    const profiles = [
+      { agent_id: "builder-1", last_seen_at: new Date(NOW_MS - HOUR_MS).toISOString() },
+      { agent_id: "builder-2", last_seen_at: new Date(NOW_MS - 3 * 24 * HOUR_MS).toISOString() },
+    ];
+    const first = computeActiveJobsCount(todos, profiles, NOW_MS);
+    const second = computeActiveJobsCount(todos, profiles, NOW_MS);
+    const third = computeActiveJobsCount(todos, profiles, NOW_MS);
+    expect(first).toBe(1);
+    expect(second).toBe(first);
+    expect(third).toBe(first);
+  });
+
+  it("current_state_card.active_jobs matches computeActiveJobsCount for the same inputs", () => {
+    // Acceptance criterion: orchestrator state_card matches list_todos query.
+    // The state_card builder MUST delegate to the same computeActiveJobsCount
+    // function used by Heartbeat step 5, so an external caller asking
+    // list_todos.filter(status=in_progress, fresh_owner) gets the same N.
+    const todos = [
+      {
+        id: "todo-fresh",
+        title: "Fresh",
+        status: "in_progress",
+        priority: "urgent",
+        created_by_agent_id: "watcher",
+        assigned_to_agent_id: "builder-fresh",
+        created_at: "2026-05-11T00:00:00.000Z",
+      },
+      {
+        id: "todo-stale",
+        title: "Stale",
+        status: "in_progress",
+        priority: "urgent",
+        created_by_agent_id: "watcher",
+        assigned_to_agent_id: "builder-stale",
+        created_at: "2026-05-08T00:00:00.000Z",
+      },
+      {
+        id: "todo-open",
+        title: "Open",
+        status: "open",
+        priority: "urgent",
+        created_by_agent_id: "watcher",
+        assigned_to_agent_id: null,
+        created_at: "2026-05-11T00:00:00.000Z",
+      },
+    ];
+    const profiles = [
+      { agent_id: "builder-fresh", last_seen_at: new Date(NOW_MS - 30 * 60 * 1000).toISOString() },
+      { agent_id: "builder-stale", last_seen_at: new Date(NOW_MS - 5 * 24 * HOUR_MS).toISOString() },
+    ];
+    const directCount = computeActiveJobsCount(todos, profiles, NOW_MS);
+    const context = buildOrchestratorContext({
+      generatedAt: new Date(NOW_MS).toISOString(),
+      profiles,
+      messages: [],
+      todos,
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+    expect(directCount).toBe(1);
+    expect(context.current_state_card.active_jobs).toBe(directCount);
   });
 });

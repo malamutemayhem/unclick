@@ -27,8 +27,6 @@ const CORE_SOURCES = [
 ];
 
 const ALIASES = [
-  ["EnterprisePass", "CompliancePass", "Enterprise readiness checks need a public-safe product name."],
-  ["SlopPass", "QualityPass", "Roughness and polish checks should be framed constructively."],
   ["Fishbowl", "Boardroom", "Internal worker discussion becomes a user-facing room name."],
   ["To-Do List", "Jobs", "Task queue language maps to the current admin Jobs surface."],
   ["Heartbeat", "Heartbeat Master", "The copy policy that teaches scheduled seats how to pulse."],

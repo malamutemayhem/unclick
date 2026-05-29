@@ -71,9 +71,9 @@ function findForbiddenSecretKeys(value) {
     .map(({ path }) => path);
 }
 
-describe("EnterprisePass public receipt guard", () => {
-  it("keeps EnterprisePass positioned as readiness guidance, not certification", () => {
-    assert.equal(receipt.product, "EnterprisePass");
+describe("CompliancePass public receipt guard", () => {
+  it("keeps CompliancePass positioned as readiness guidance, not certification", () => {
+    assert.equal(receipt.product, "CompliancePass");
     assert.match(receipt.headline, /readiness/i);
     assert.match(receipt.wording_notice, /not a compliance certification/i);
     assert.match(receipt.wording_notice, /not.*SOC/i);

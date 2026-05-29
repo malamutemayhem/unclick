@@ -23,7 +23,7 @@ import DeveloperSubmitPage from "./pages/DeveloperSubmit.tsx";
 import VibeCodingPage from "./pages/VibeCoding.tsx";
 import TermsPage from "./pages/Terms.tsx";
 import PrivacyPage from "./pages/Privacy.tsx";
-import BackstagePassPage from "./pages/BackstagePass.tsx";
+// BackstagePassPage import removed 2026-05-28 — page hidden per Chris (legal review). File retained at src/pages/BackstagePass.tsx; /backstagepass route still redirects to /admin/keychain.
 import MemoryPage from "./pages/Memory.tsx";
 import MemorySetupPage from "./pages/MemorySetup.tsx";
 import MemoryConnectPage from "./pages/MemoryConnect.tsx";
@@ -86,7 +86,7 @@ import {
 import SignalsCatalog from "./pages/admin/signals/SignalsCatalog.tsx";
 import SignalsSettings from "./pages/admin/signals/SignalsSettings.tsx";
 import Fishbowl from "./pages/admin/Fishbowl.tsx";
-import BuildDeskPage from "./pages/BuildDesk.tsx";
+// BuildDeskPage import removed 2026-05-28 — page hidden per Chris. File retained at src/pages/BuildDesk.tsx for future revival.
 import { trackPageView } from "./lib/analytics.ts";
 
 const queryClient = new QueryClient();
@@ -209,7 +209,10 @@ const App = () => (
           <Route path="/dispatch" element={<DispatchPage />} />
           <Route path="/crews" element={<CrewsPage />} />
           <Route path="/dogfood" element={<DogfoodReportPage />} />
-          <Route path="/build" element={<BuildDeskPage />} />
+          {/* BuildDesk: hidden per Chris 2026-05-28. Developer dispatch surface
+              for AI coding workers, paused until the developer marketplace
+              chapter is ready. Page component retained; route redirected. */}
+          <Route path="/build" element={<Navigate to="/" replace />} />
           <Route path="/new-to-ai" element={<NewToAIPage />} />
           <Route path="/smarthome" element={<SmartHomePage />} />
           <Route path="/pricing" element={<PricingPage />} />

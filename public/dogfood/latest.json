@@ -69,8 +69,8 @@
       "nextStep": "Keep guidance-only until legal review boundaries are explicit."
     },
     {
-      "id": "enterprisepass",
-      "name": "EnterprisePass",
+      "id": "compliancepass",
+      "name": "CompliancePass",
       "stage": "guidance",
       "label": "Guidance report",
       "automation": "Receipt guard and readiness report boundary",
@@ -147,10 +147,10 @@
       "nextProof": "Add a recurring LegalPass receipt before moving this out of pending."
     },
     {
-      "id": "enterprisepass",
-      "name": "EnterprisePass",
+      "id": "compliancepass",
+      "name": "CompliancePass",
       "status": "pending",
-      "summary": "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
+      "summary": "Seed compliance-readiness report is published; automated evidence checks are not live yet.",
       "evidence": "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
       "checkedAt": "2026-05-10T17:15:01.089Z",
       "reasonCode": "planned_runner",

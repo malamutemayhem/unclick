@@ -20,11 +20,11 @@ describe("Dogfood report proof policy", () => {
 
   it("keeps the XPass family maturity index visible", () => {
     const testpass = dogfoodReport.xpassIndex.find((entry) => entry.id === "testpass");
-    const enterprisepass = dogfoodReport.xpassIndex.find((entry) => entry.id === "enterprisepass");
+    const compliancepass = dogfoodReport.xpassIndex.find((entry) => entry.id === "compliancepass");
 
     expect(testpass?.stage).toBe("live_gate");
     expect(testpass?.mentionProfile).toMatch(/protects merges/i);
-    expect(enterprisepass?.stage).toBe("guidance");
-    expect(enterprisepass?.nextStep).toMatch(/without claiming compliance certification/i);
+    expect(compliancepass?.stage).toBe("guidance");
+    expect(compliancepass?.nextStep).toMatch(/without claiming compliance certification/i);
   });
 });

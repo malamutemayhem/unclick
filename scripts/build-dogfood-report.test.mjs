@@ -23,16 +23,16 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
 
     const report = JSON.parse(await fs.readFile(output, "utf8"));
     const securitypass = report.results.find((result) => result.id === "securitypass");
-    const enterprisepass = report.results.find((result) => result.id === "enterprisepass");
+    const compliancepass = report.results.find((result) => result.id === "compliancepass");
 
     assert.equal(securitypass?.status, "blocked");
     assert.match(securitypass?.blockedReason ?? "", /scope-gated/i);
     assert.equal(securitypass?.reasonCode, "scope_gate");
     assert.match(securitypass?.nextProof ?? "", /safe recurring SecurityPass runner receipt/i);
-    assert.equal(enterprisepass?.status, "pending");
-    assert.equal(enterprisepass?.reasonCode, "planned_runner");
-    assert.match(enterprisepass?.nextProof ?? "", /automated evidence checks/i);
-    assert.deepEqual(enterprisepass?.proof, {
+    assert.equal(compliancepass?.status, "pending");
+    assert.equal(compliancepass?.reasonCode, "planned_runner");
+    assert.match(compliancepass?.nextProof ?? "", /automated evidence checks/i);
+    assert.deepEqual(compliancepass?.proof, {
       kind: "planned",
       targetUrl: "/enterprise/latest.json",
     });
@@ -46,7 +46,7 @@ test("dogfood receipt marks SecurityPass as blocked with a reason", async () => 
       report.xpassIndex.find((entry) => entry.id === "testpass")?.mentionProfile ?? "",
       /protects merges/i,
     );
-    assert.equal(report.xpassIndex.find((entry) => entry.id === "enterprisepass")?.stage, "guidance");
+    assert.equal(report.xpassIndex.find((entry) => entry.id === "compliancepass")?.stage, "guidance");
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }

@@ -369,6 +369,51 @@ describe("PinballWake autonomous Runner seat", () => {
     );
   });
 
+  it("claims an unassigned urgent orchestrator-lane ScopePack with owner_hint=live_builder_or_orchestrator_seat", () => {
+    // Regression for the live e9e308cd shape that the GROUP BROADCAST flagged
+    // as "Runner sees work but does not think it is allowed to claim it."
+    // The ScopePack only carries lane + owner_hint (no worker/role tokens),
+    // and the todo has no top-level lane field. The current eligibility logic
+    // bypasses role gating when no role tokens are found, so this shape MUST
+    // be claimable today. If a future change reintroduces a role gate that
+    // also blocks empty-role todos, this test fails and surfaces the regression.
+    const e9e308cdShape = {
+      id: "e9e308cd-7711-4f30-8ebd-d5402fefd205",
+      title: "Orchestrator continuity wiring: plug missing source-kinds into Orchestrator + add per-channel visibility toggles",
+      status: "open",
+      priority: "urgent",
+      assigned_to_agent_id: null,
+      actionability_reason: "unassigned_open",
+      scope_pack: {
+        todo_id: "e9e308cd-7711-4f30-8ebd-d5402fefd205",
+        lane: "orchestrator",
+        owner_hint: "live_builder_or_orchestrator_seat",
+        status: "ready_for_focused_pr",
+        build_goal: "Plug missing Orchestrator source-kind ingestion gaps and add per-channel visibility toggles.",
+        owned_surfaces: ["Orchestrator pointer-index hooks for missing source kinds"],
+        smallest_safe_step: "Find the existing Orchestrator continuity hook pattern.",
+        constraints: ["Pointer-only design: do not copy raw rows."],
+        acceptance: ["At least one previously missing source kind is indexed."],
+        verification: ["Run focused Orchestrator/channel tests."],
+        non_overlap: ["No Passport rename work."],
+      },
+    };
+
+    const eligibility = evaluateBoardroomTodoAutoClaimEligibility(e9e308cdShape);
+    assert.equal(eligibility.ok, true);
+    assert.equal(eligibility.reason, "boardroom_todo_claim_eligible");
+
+    // And the job that gets constructed from this todo must also pass the
+    // protected-surface safety check. The job context/title/files do not
+    // include the description body, so the "auth/secrets/session" keywords
+    // that appear in the description ("No secrets, auth, billing, DNS,
+    // migrations of source tables.") do NOT leak into the safety search.
+    const job = createCodingRoomJobFromBoardroomTodo(e9e308cdShape);
+    const safety = inspectAutonomousRunnerJobSafety(job);
+    assert.equal(safety.ok, true, `safety blocked unexpectedly: ${safety.reason}`);
+    assert.equal(safety.reason, "safe_for_autonomous_runner");
+  });
+
   it("does not pretend the queue is empty when UnClick queue auth is missing", async () => {
     const dir = await mkdtemp(join(tmpdir(), "autonomous-runner-"));
     const ledgerPath = join(dir, "ledger.json");

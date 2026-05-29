@@ -40,6 +40,12 @@ describe("heartbeat_protocol payload", () => {
     expect(protocol.procedure[3]).toContain("job hunt");
     expect(protocol.procedure[4]).toContain("0 active jobs");
     expect(protocol.procedure[4]).toContain("queue hydration failure");
+    // active_jobs definition is pinned in step 5 (procedure[4]) so the
+    // Heartbeat and Orchestrator state_card use the identical query.
+    // Stops PASS/BLOCKER from oscillating on identical state (todo a4cd5229).
+    expect(protocol.procedure[4]).toContain("status='in_progress'");
+    expect(protocol.procedure[4]).toContain("owner_last_seen <= 24h");
+    expect(protocol.procedure[4]).toContain("current_state_card.active_jobs");
     expect(protocol.procedure[5]).toContain("PinballWake JobHunt Mirror");
     expect(protocol.procedure[5]).toContain("Job Worker");
     expect(protocol.procedure[5]).toContain("free API classifiers may only classify or nudge");
@@ -76,9 +82,9 @@ describe("heartbeat_protocol payload", () => {
       procedure: [...protocol.procedure, "new instruction"],
     };
 
-    expect(formatHeartbeatProtocolVersion(9)).toBe("2026-05-07.v9");
-    expect(protocol.version).toBe("2026-05-07.v9");
-    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("2fffabe70d5b31e2");
+    expect(formatHeartbeatProtocolVersion(10)).toBe("2026-05-12.v10");
+    expect(protocol.version).toBe("2026-05-12.v10");
+    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("a589b15dfc093012");
     expect(heartbeatProtocolContentFingerprint(changed)).not.toBe(
       heartbeatProtocolContentFingerprint(protocol),
     );

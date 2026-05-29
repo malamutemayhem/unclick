@@ -737,7 +737,7 @@ export const VISIBLE_TOOLS = [
     name: "update_todo",
     title: "Update a Boardroom todo",
     description:
-      "Update a todo's title, description, priority, status, or assignee. Use when scope changes, ownership shifts, or you move it between kanban columns ('open', 'in_progress', 'done', 'dropped'). agent_id required for attribution.",
+      "Update a todo's title, description, priority, status, or assignee. Use when scope changes, ownership shifts, or you move it between kanban columns ('open', 'in_progress', 'done', 'dropped'). Done requires a real proof comment first; UI/UX jobs require screenshot proof; non-admin AI closes require proof from a different UnClick agent_id. The different reviewer agent may use the same AI subscription seat. agent_id required for attribution.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -757,7 +757,7 @@ export const VISIBLE_TOOLS = [
     name: "complete_todo",
     title: "Mark a Boardroom todo done",
     description:
-      "Shortcut for marking a todo as done. Sets status='done' and stamps completed_at. Posts a 'todo-completed' Boardroom event. agent_id required.",
+      "Shortcut for marking a todo as done. Requires a real proof comment first; UI/UX jobs require screenshot proof; non-admin AI closes require proof from a different UnClick agent_id. The different reviewer agent may use the same AI subscription seat. Sets status='done' and stamps completed_at only after the proof gate passes. agent_id required.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,

@@ -1,22 +1,22 @@
-# EnterprisePass Product Brief
+# CompliancePass Product Brief
 
 ## Positioning
 
-EnterprisePass is the enterprise-readiness report for early software teams.
+CompliancePass is the compliance and enterprise-readiness report for early software teams.
 
 It helps a founder, builder, investor, or future enterprise buyer answer:
 
 > Are we building in a way that will age well, or are we creating avoidable regret?
 
-EnterprisePass is not a compliance certificate, SOC report, ISO audit, legal opinion, or substitute for a qualified auditor. It is a guidance and evidence layer that points teams toward better foundations before those foundations become expensive to change.
+CompliancePass is not a compliance certificate, SOC report, ISO audit, legal opinion, or substitute for a qualified auditor. It is a guidance and evidence layer that points teams toward better foundations before those foundations become expensive to change.
 
 ## Short Definition
 
-EnterprisePass scans a product, repo, and operating surface, then produces an evidence-backed readiness report with traffic-light findings, plain-English risk notes, and practical next steps.
+CompliancePass scans a product, repo, and operating surface, then produces an evidence-backed readiness report with traffic-light findings, plain-English risk notes, and practical next steps.
 
 ## Core Promise
 
-EnterprisePass should help a team avoid six-year regret.
+CompliancePass should help a team avoid six-year regret.
 
 Examples:
 
@@ -41,11 +41,11 @@ Secondary users:
 - external consultants
 - future auditors
 
-EnterprisePass should be useful to auditors, but it does not replace them.
+CompliancePass should be useful to auditors, but it does not replace them.
 
 ## Report Shape
 
-Every EnterprisePass report should include:
+Every CompliancePass report should include:
 
 1. **Readiness score**
    A directional score with a traffic-light band.
@@ -78,11 +78,11 @@ Phase 0 should stay small and evidence-led:
 
 ## Relationship To Other Passes
 
-EnterprisePass should not duplicate the domain logic of the other Pass products.
+CompliancePass should not duplicate the domain logic of the other XPass products.
 
 It should collect, summarize, and cross-reference their evidence.
 
-| Product | EnterprisePass Uses It For |
+| Product | CompliancePass Uses It For |
 | --- | --- |
 | TestPass | proof that checks actually run |
 | SecurityPass | security hygiene findings and scope-gated security evidence |
@@ -92,14 +92,14 @@ It should collect, summarize, and cross-reference their evidence.
 | WakePass | action-needed handoffs for failed or stale evidence |
 | XPass | combined run receipt when multiple Pass checks are needed |
 
-EnterprisePass is the board report. The other Passes are the specialist evidence sources.
+CompliancePass is the board report. The other XPass products are the specialist evidence sources.
 
 ## Naming Guardrail
 
 Use:
 
-- EnterprisePass
-- EnterprisePass report
+- CompliancePass
+- CompliancePass report
 - enterprise-readiness report
 - readiness indicator
 - evidence alignment
@@ -117,11 +117,11 @@ Do not use:
 
 Allowed phrasing:
 
-> EnterprisePass highlights enterprise-readiness gaps and evidence.
+> CompliancePass highlights compliance and enterprise-readiness gaps and evidence.
 
 Disallowed phrasing:
 
-> EnterprisePass certifies your startup is enterprise compliant.
+> CompliancePass certifies your startup is compliant.
 
 ## Phase 0 Scope
 
@@ -147,7 +147,7 @@ Phase 0 should avoid:
 - automated customer-facing claims
 - pretending unknown evidence is a pass
 
-## Low-Hanging Fruit EnterprisePass Can Recommend
+## Low-Hanging Fruit CompliancePass Can Recommend
 
 These are safe early recommendations:
 
@@ -163,7 +163,7 @@ These are safe early recommendations:
 
 ## Product Tone
 
-EnterprisePass should feel:
+CompliancePass should feel:
 
 - calm
 - conservative
@@ -195,5 +195,5 @@ And a rendered view that says:
 - what to do next
 - what evidence backs the answer
 
-That is enough to start dogfooding EnterprisePass without overbuilding it.
+That is enough to start dogfooding CompliancePass without overbuilding it.
 

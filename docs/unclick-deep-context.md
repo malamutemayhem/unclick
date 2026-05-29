@@ -23,7 +23,7 @@ These are moving now or recently active:
 - System Credentials - metadata-only health surface for keys and env-backed services.
 - Dogfood Report - public and internal proof that UnClick tests itself.
 - Fleet Sync - multi-machine, multi-worker operating rules.
-- EnterprisePass - proposed readiness lane for corporate, investor, and audit-style review.
+- CompliancePass - readiness lane for corporate, investor, compliance, and audit-style review.
 
 ## Original Product DNA
 
@@ -70,7 +70,7 @@ Active, shipped, early, parked, or discontinued product names may all matter whe
 - Connectors - external service setup and status surface.
 - RotatePass - credential health, rotation impact, and safe key metadata.
 - Dogfood Report - proof that UnClick tests itself.
-- EnterprisePass - corporate/investor/auditor readiness concept.
+- CompliancePass - corporate/investor/auditor readiness concept.
 - BackstagePass - discontinued as an active product name, but plumbing remains.
 - LegalPass - legal-style verdict and disclaimer proof concept.
 - SecurityPass - scanner and security proof concept, early or parked.

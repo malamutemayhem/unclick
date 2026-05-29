@@ -286,13 +286,32 @@ Browser or local extension ideas remain Phase 0 until explicitly promoted.
 
 XPass work should prove UnClick is using itself.
 
+Copy fidelity rule:
+
+- **CopyPass** reviews wording quality, claims, tone, clarity, and product copy risks.
+- **CopyRoom** is the mandatory exact-copy room for any 1:1 copying, transcription, mirroring, or preservation request.
+- **FidelityPass** is the XPass/QC wrapper over CopyRoom evidence. It verifies or includes CopyRoom receipts in a broader XPass run.
+- Do not build two exact-copy engines. If a worker needs byte-level or word-for-word proof, route the copy action through CopyRoom and the QC receipt through FidelityPass.
+- If exact-copy proof is not possible, the worker must say `CopyRoom receipt: unavailable` with the reason instead of silently treating the copy as verified.
+- If no exact-copy work is in scope, FidelityPass should be recorded as `N/A`, not forced, skipped silently, or treated as PASS.
+
+Checklist rule:
+
+- XPass is allowed to be a giant checklist. Every run should consider the full XPass family and record each check as passed, blocked, missing, not applicable, or not run yet.
+- Do not confuse the checklist with expensive execution. A lightweight applicability pass can mark irrelevant checks `N/A`; only in-scope checks need deep runners.
+- CommonSensePass is the sanity gate before trusted healthy, quiet, PASS, no-work, done, merge-ready, or duplicate-wake claims.
+- SlopPass is the official AI/code quality check. Do not introduce or revive QualityPass as a separate product.
+- CompliancePass is the official compliance and readiness check. Do not introduce or revive EnterprisePass as a separate product.
+- If an XPass row misses a real defect, blocks noisily, lacks proof, or has no mature runner, emit an improvement signal for Continuous Improver instead of treating the weakness as normal.
+
 Priority order:
 
 1. TestPass trust gate and scheduled proof.
 2. UXPass stuck or failed run clarity.
-3. SecurityPass dogfood receipt clarity.
-4. Public dogfood report accuracy.
-5. New XPass product expansion only after foundation lanes are stable.
+3. SlopPass, CopyPass, FidelityPass, and CommonSensePass adoption in the main checklist.
+4. SecurityPass dogfood receipt clarity.
+5. Public dogfood report accuracy.
+6. New XPass product expansion only after foundation lanes are stable.
 
 Do not weaken fail-closed checks to make CI green. Fix the blocker or report it.
 
