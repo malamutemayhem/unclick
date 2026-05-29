@@ -7,6 +7,7 @@ export const SLOPPASS_CATEGORIES: Record<SlopPassCategory, string> = {
   test_proof_theatre: "Test and proof theatre",
   slopocalypse_failure_mode: "Karpathy-style slopocalypse failure modes",
   maintenance_change_risk: "Maintenance and change-risk signals",
+  vcs_integration_risk: "Version-control integration risk",
 };
 
 export const DEFAULT_CHECKS = Object.keys(SLOPPASS_CATEGORIES) as SlopPassCategory[];
