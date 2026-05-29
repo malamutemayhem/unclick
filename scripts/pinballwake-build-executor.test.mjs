@@ -15,6 +15,7 @@ import {
   executeCodingRoomBuildLedgerJob,
   runGitApplyPatch,
   validateCodingRoomBuildPatch,
+  validateExecutorPacket,
 } from "./pinballwake-build-executor.mjs";
 
 const runner = {
@@ -34,7 +35,7 @@ function patchFor(file = "scripts/example.mjs") {
 }
 
 function buildJob(input = {}) {
-  return claimCodingRoomJob({
+  const claimed = claimCodingRoomJob({
     runner,
     job: createCodingRoomJob({
       jobId: input.jobId || "coding-room:build:test",
@@ -43,6 +44,7 @@ function buildJob(input = {}) {
       files: input.files || ["scripts/example.mjs"],
       build: {
         patch: input.patch || patchFor(),
+        executor_packet: input.executorPacket,
       },
       expectedProof: {
         requiresPr: false,
@@ -54,6 +56,25 @@ function buildJob(input = {}) {
     }),
     now: "2026-05-04T00:00:00.000Z",
   }).job;
+  if (input.executorPacket) {
+    claimed.build.executor_packet = input.executorPacket;
+  }
+  return claimed;
+}
+
+function executorPacket(input = {}) {
+  return {
+    repo: "malamutemayhem/unclick",
+    branch_or_worktree: "codex/example",
+    owned_files: ["scripts/example.mjs"],
+    acceptance: ["owned file patch is checked before apply"],
+    verification: ["node --test scripts/example.test.mjs"],
+    stop_conditions: ["No merge, deploy, schedule, secret, billing, DNS, data deletion, or force push authority."],
+    proof_required: ["build_attempt", "proof_packet"],
+    commonsensepass_result: { verdict: "PASS" },
+    authority: "build_only_no_merge_no_deploy",
+    ...input,
+  };
 }
 
 describe("PinballWake build executor", () => {
@@ -160,6 +181,48 @@ deleted file mode 100644
     }
   });
 
+  it("validates executor packets before real execution expansion", () => {
+    const result = validateExecutorPacket(executorPacket(), {
+      jobOwnedFiles: ["scripts/example.mjs"],
+    });
+
+    assert.equal(result.ok, true);
+    assert.deepEqual(result.owned_files, ["scripts/example.mjs"]);
+    assert.deepEqual(result.verification, ["node --test scripts/example.test.mjs"]);
+
+    const missing = { ...executorPacket() };
+    delete missing.proof_required;
+    assert.deepEqual(validateExecutorPacket(missing), {
+      ok: false,
+      reason: "missing_required_field",
+      field: "proof_required",
+    });
+
+    assert.equal(validateExecutorPacket(executorPacket({ owned_files: ["../outside.mjs"] })).reason, "unsafe_owned_file");
+    assert.equal(
+      validateExecutorPacket(executorPacket({ owned_files: ["api/unowned.ts"] }), {
+        jobOwnedFiles: ["scripts/example.mjs"],
+      }).reason,
+      "packet_file_outside_job_ownership",
+    );
+  });
+
+  it("rejects unsafe executor packet authority and verification commands", () => {
+    assert.equal(
+      validateExecutorPacket(executorPacket({ authority: "merge the PR after tests pass" })).reason,
+      "unsafe_authority_request",
+    );
+    assert.equal(
+      validateExecutorPacket(executorPacket({ verification: ["node --test scripts/example.test.mjs && gh pr merge 1"] }))
+        .reason,
+      "unbounded_verification_command",
+    );
+    assert.equal(
+      validateExecutorPacket(executorPacket({ commonsensepass_result: { verdict: "BLOCKER" } })).reason,
+      "commonsensepass_not_passed",
+    );
+  });
+
   it("applies a checked owned-file patch and moves the job to testing", async () => {
     const calls = [];
     const result = await executeCodingRoomBuildJob({
@@ -177,6 +240,41 @@ deleted file mode 100644
     assert.equal(result.job.status, "testing");
     assert.deepEqual(result.job.build_result.changed_files, ["scripts/example.mjs"]);
     assert.equal(result.job.proof, null);
+  });
+
+  it("gates build execution on a valid executor packet when present", async () => {
+    const calls = [];
+    const result = await executeCodingRoomBuildJob({
+      job: buildJob({
+        executorPacket: executorPacket(),
+      }),
+      applyPatch: async (_patch, options) => {
+        calls.push(options.check ? "check" : "apply");
+        return { ok: true, exit_code: 0, output: "" };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.result, "done");
+    assert.deepEqual(calls, ["check", "apply"]);
+  });
+
+  it("records a blocker before patch checks when the executor packet is unsafe", async () => {
+    const calls = [];
+    const result = await executeCodingRoomBuildJob({
+      job: buildJob({
+        executorPacket: executorPacket({ authority: "deploy to production" }),
+      }),
+      applyPatch: async () => {
+        calls.push("apply");
+        return { ok: true, exit_code: 0, output: "" };
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.result, "blocker");
+    assert.match(result.job.build_result.blocker, /Executor packet rejected: unsafe_authority_request/);
+    assert.deepEqual(calls, []);
   });
 
   it("checks and applies a real patch without shell expansion", async () => {

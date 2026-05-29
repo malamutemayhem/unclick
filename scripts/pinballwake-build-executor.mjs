@@ -57,6 +57,171 @@ function parseDiffPath(value) {
   return normalizePath(raw.replace(/^[ab]\//, "").split(/\s+/)[0]);
 }
 
+const REQUIRED_EXECUTOR_PACKET_FIELDS = [
+  "repo",
+  "branch_or_worktree",
+  "owned_files",
+  "acceptance",
+  "verification",
+  "stop_conditions",
+  "proof_required",
+  "commonsensepass_result",
+];
+
+function hasText(value) {
+  return String(value ?? "").trim().length > 0;
+}
+
+function hasListItems(value) {
+  return Array.isArray(value) && value.some((item) => hasText(item));
+}
+
+function hasProofRequirement(value) {
+  if (hasText(value) && typeof value !== "object") {
+    return true;
+  }
+
+  if (Array.isArray(value)) {
+    return hasListItems(value);
+  }
+
+  return value && typeof value === "object" && Object.keys(value).length > 0;
+}
+
+function readCommonSensePassVerdict(value) {
+  if (value === true) return "pass";
+  if (typeof value === "string") return value.trim().toLowerCase();
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "";
+
+  for (const key of ["verdict", "result", "decision", "status", "outcome"]) {
+    if (hasText(value[key])) {
+      return String(value[key]).trim().toLowerCase();
+    }
+  }
+
+  if (value.ok === true || value.allowed === true || value.safe === true) {
+    return "pass";
+  }
+
+  return "";
+}
+
+function isCommonSensePassAllowed(value) {
+  return ["pass", "passed", "allow", "allowed", "approved", "safe", "ok"].includes(readCommonSensePassVerdict(value));
+}
+
+function unsafeAuthorityReason(value) {
+  const text = String(value ?? "").toLowerCase();
+  if (!text.trim()) return "";
+
+  const guarded = /\b(no|not|never|without|disallow|disallowed|reject|refuse|blocked|block)\b.{0,30}\b(merge|deploy|schedule|workflow|secret|billing|dns|delete|destructive|force push|force-push|production)\b/.test(text);
+  if (guarded) return "";
+
+  if (/\b(merge|auto-merge|approve|mark done|complete todo|close todo|deploy|production deploy|schedule|workflow edit|secret|billing|dns|delete data|data deletion|force push|force-push|migration)\b/.test(text)) {
+    return "unsafe_authority_request";
+  }
+
+  return "";
+}
+
+function dangerousVerificationReason(value) {
+  const command = String(value ?? "").trim();
+  if (!command) return "missing_verification_command";
+
+  if (/[;&|<>`]/.test(command)) {
+    return "unbounded_verification_command";
+  }
+
+  if (/\b(rm\s+-rf|git\s+reset\s+--hard|git\s+push\s+--force|gh\s+pr\s+merge|npm\s+publish|vercel\s+--prod)\b/i.test(command)) {
+    return "unsafe_verification_command";
+  }
+
+  return "";
+}
+
+function getExecutorPacket(job) {
+  return job?.build?.executor_packet ?? job?.build?.executorPacket ?? job?.executor_packet ?? job?.execution_packet ?? null;
+}
+
+export function validateExecutorPacket(packet, { jobOwnedFiles = [] } = {}) {
+  if (!packet || typeof packet !== "object" || Array.isArray(packet)) {
+    return { ok: false, reason: "missing_executor_packet" };
+  }
+
+  for (const field of REQUIRED_EXECUTOR_PACKET_FIELDS) {
+    if (!(field in packet)) {
+      return { ok: false, reason: "missing_required_field", field };
+    }
+  }
+
+  if (!hasText(packet.repo)) {
+    return { ok: false, reason: "missing_repo" };
+  }
+
+  if (!hasText(packet.branch_or_worktree)) {
+    return { ok: false, reason: "missing_branch_or_worktree" };
+  }
+
+  if (!hasListItems(packet.owned_files)) {
+    return { ok: false, reason: "missing_owned_files" };
+  }
+
+  const ownedFiles = packet.owned_files.map(normalizePath);
+  const unsafeFile = ownedFiles.find((file) => isUnsafePath(file));
+  if (unsafeFile) {
+    return { ok: false, reason: "unsafe_owned_file", file: unsafeFile };
+  }
+
+  const jobOwned = new Set((jobOwnedFiles || []).map(normalizePath));
+  if (jobOwned.size > 0) {
+    const outside = ownedFiles.find((file) => !jobOwned.has(file));
+    if (outside) {
+      return { ok: false, reason: "packet_file_outside_job_ownership", file: outside };
+    }
+  }
+
+  if (!hasListItems(packet.acceptance)) {
+    return { ok: false, reason: "missing_acceptance" };
+  }
+
+  if (!hasListItems(packet.verification)) {
+    return { ok: false, reason: "missing_verification" };
+  }
+
+  const unsafeVerification = packet.verification
+    .map((command) => ({ command: String(command ?? ""), reason: dangerousVerificationReason(command) }))
+    .find((item) => item.reason);
+  if (unsafeVerification) {
+    return { ok: false, reason: unsafeVerification.reason, command: unsafeVerification.command };
+  }
+
+  if (!hasListItems(packet.stop_conditions)) {
+    return { ok: false, reason: "missing_stop_conditions" };
+  }
+
+  if (!hasProofRequirement(packet.proof_required)) {
+    return { ok: false, reason: "missing_proof_required" };
+  }
+
+  if (!isCommonSensePassAllowed(packet.commonsensepass_result)) {
+    return { ok: false, reason: "commonsensepass_not_passed" };
+  }
+
+  for (const field of ["authority", "requested_authority", "permissions", "allowed_actions", "actions", "next_action"]) {
+    const values = Array.isArray(packet[field]) ? packet[field] : [packet[field]];
+    const unsafe = values.find((value) => unsafeAuthorityReason(value));
+    if (unsafe) {
+      return { ok: false, reason: unsafeAuthorityReason(unsafe), field };
+    }
+  }
+
+  return {
+    ok: true,
+    owned_files: ownedFiles,
+    verification: packet.verification.map((item) => String(item).trim()).filter(Boolean),
+  };
+}
+
 export function validateCodingRoomBuildPatch({ patch, ownedFiles = [], maxBytes = DEFAULT_PATCH_MAX_BYTES } = {}) {
   const text = String(patch ?? "");
   if (!text.trim()) {
@@ -203,6 +368,20 @@ export async function executeCodingRoomBuildJob({
 
   if (job.status !== "claimed" && job.status !== "building") {
     return { ok: false, reason: "job_not_claimed" };
+  }
+
+  const executorPacket = getExecutorPacket(job);
+  if (executorPacket) {
+    const packetValidation = validateExecutorPacket(executorPacket, {
+      jobOwnedFiles: job.owned_files || [],
+    });
+    if (!packetValidation.ok) {
+      return buildBlocker({
+        job,
+        blocker: `Executor packet rejected: ${packetValidation.reason}${packetValidation.field ? ` (${packetValidation.field})` : ""}${packetValidation.file ? ` (${packetValidation.file})` : ""}`,
+        now,
+      });
+    }
   }
 
   const patch = job.build?.patch || "";
