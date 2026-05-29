@@ -91,8 +91,11 @@ Boundary or guidance:
 
 - RotatePass
 - CompliancePass / EnterprisePass readiness surface
+- WakePass
+- EnterprisePass
 
 Public dogfood receipts stay conservative: a Pass can be package-ready and useful in XPass routing while the public dogfood result remains pending until a recurring receipt has actually run.
+Package-backed products promote through the scheduled XPass package sweep. Boundary or guidance products promote only through a public-safe boundary sweep that does not touch secrets, live queues, unsafe security probes, or compliance-certification claims.
 
 Archived or parked:
 

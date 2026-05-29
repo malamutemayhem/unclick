@@ -5,20 +5,23 @@ import { dogfoodReport } from "@/data/dogfoodReport";
 describe("Dogfood report proof policy", () => {
   it("keeps public status wording honest in the fallback receipt", () => {
     expect(dogfoodReport.statusLegend.passing).toMatch(/live check or scheduled package sweep ran/i);
-    expect(dogfoodReport.statusLegend.blocked).toMatch(/needs action/i);
+    expect(dogfoodReport.statusLegend.passing).toMatch(/scheduled boundary sweep ran/i);
+    expect(dogfoodReport.statusLegend.blocked).toMatch(/needs action|action is needed/i);
     expect(dogfoodReport.statusLegend.pending).toMatch(/scheduled proof is not available yet/i);
     expect(dogfoodReport.proofPolicy).toMatch(/live check or scheduled package sweep actually ran/i);
+    expect(dogfoodReport.proofPolicy).toMatch(/scheduled boundary sweep actually ran/i);
 
     const uxpass = dogfoodReport.results.find((result) => result.id === "uxpass");
     const securitypass = dogfoodReport.results.find((result) => result.id === "securitypass");
     const copypass = dogfoodReport.results.find((result) => result.id === "copypass");
+    const enterprisepass = dogfoodReport.results.find((result) => result.id === "enterprisepass");
     const seopass = dogfoodReport.results.find((result) => result.id === "seopass");
 
     expect(uxpass?.status).toBe("pending");
     expect(uxpass?.reasonCode).toBe("dry_run_only");
     expect(uxpass?.summary).toMatch(/validated the UXPass result shape/i);
-    expect(securitypass?.reasonCode).toBe("scope_gate");
-    expect(securitypass?.nextProof).toMatch(/before marking this passing/i);
+    expect(securitypass?.status).toBe("passing");
+    expect(securitypass?.proof?.kind).toBe("securitypass_safe_static_proof");
 
     const compliancepass = dogfoodReport.results.find((result) => result.id === "compliancepass");
     expect(compliancepass?.status).toBe("passing");
@@ -26,6 +29,8 @@ describe("Dogfood report proof policy", () => {
     expect(compliancepass?.summary).toMatch(/99\.3\/100/i);
     expect(copypass?.reasonCode).toBe("package_ready_needs_scheduled_receipt");
     expect(copypass?.proof?.kind).toBe("package_ready");
+    expect(enterprisepass?.reasonCode).toBe("boundary_needs_runner");
+    expect(enterprisepass?.proof?.kind).toBe("boundary");
     expect(seopass?.proof?.kind).toBe("seopass_run");
     expect(seopass?.evidence).not.toMatch(/scaffold-only/i);
   });
@@ -38,7 +43,7 @@ describe("Dogfood report proof policy", () => {
     const wakepass = dogfoodReport.xpassIndex.find((entry) => entry.id === "wakepass");
     const seopass = dogfoodReport.xpassIndex.find((entry) => entry.id === "seopass");
 
-    expect(dogfoodReport.xpassIndex).toHaveLength(13);
+    expect(dogfoodReport.xpassIndex).toHaveLength(14);
     expect(testpass?.stage).toBe("live_gate");
     expect(testpass?.mentionProfile).toMatch(/protects merges/i);
     expect(compliancepass?.stage).toBe("live_dogfood");

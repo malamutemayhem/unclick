@@ -22,7 +22,11 @@ inputs:
     required: false
     default: https://unclick.world/api/testpass-run
   vercel_bypass_secret:
-    description: Optional Vercel Deployment Protection bypass secret for protected preview API calls.
+    description: Optional Vercel Protection Bypass for Automation secret used when the TestPass API is on a protected preview deployment.
+    required: false
+    default: ""
+  target_vercel_bypass_secret:
+    description: Optional Vercel Protection Bypass for Automation secret passed to the TestPass API for protected preview MCP targets.
     required: false
     default: ""
   source:
@@ -68,35 +72,45 @@ runs:
         SERVER_URL: ${{ inputs.server_url }}
         API_URL: ${{ inputs.api_url }}
         VERCEL_BYPASS_SECRET: ${{ inputs.vercel_bypass_secret }}
+        TARGET_VERCEL_BYPASS_SECRET: ${{ inputs.target_vercel_bypass_secret }}
         SOURCE: ${{ inputs.source }}
       run: |
         # Note: -e intentionally omitted so curl/jq failures don't abort
         # before outputs are written. We classify failures explicitly below.
         set -uo pipefail
 
+        target_vercel_bypass_secret=""
+        if [[ "$SERVER_URL" == *".vercel.app"* ]]; then
+          target_vercel_bypass_secret="${TARGET_VERCEL_BYPASS_SECRET:-}"
+        fi
+
         payload=$(jq -n \
           --arg pack_id "$PACK_ID" \
           --arg profile "$PROFILE" \
           --arg server_url "$SERVER_URL" \
+          --arg target_vercel_bypass_secret "$target_vercel_bypass_secret" \
           --arg source "$SOURCE" \
-          '{pack_id: $pack_id, profile: $profile, source: $source} + (if $server_url == "" then {} else {server_url: $server_url} end)')
+          '{pack_id: $pack_id, profile: $profile, source: $source}
+            + (if $server_url == "" then {} else {server_url: $server_url} end)
+            + (if $target_vercel_bypass_secret == "" then {} else {target_vercel_bypass_secret: $target_vercel_bypass_secret} end)')
 
         # Capture curl transport exit code separately from HTTP status.
         # curl exits non-zero on DNS failure, connection refused, timeout, etc.
         curl_exit=0
-        curl_headers=(
+        curl_args=(
+          -sS
+          -o response.json
+          -w "%{http_code}"
+          --connect-timeout 10
+          --max-time 60
+          -X POST "$API_URL"
           -H "Authorization: Bearer $TESTPASS_TOKEN"
           -H "Content-Type: application/json"
         )
-        if [ -n "${VERCEL_BYPASS_SECRET:-}" ]; then
-          curl_headers+=(-H "x-vercel-protection-bypass: $VERCEL_BYPASS_SECRET")
+        if [ -n "${VERCEL_BYPASS_SECRET:-}" ] && [[ "$API_URL" == *".vercel.app"* ]]; then
+          curl_args+=(-H "x-vercel-protection-bypass: $VERCEL_BYPASS_SECRET")
         fi
-
-        http_code=$(curl -sS -o response.json -w "%{http_code}" \
-          --connect-timeout 10 \
-          --max-time 60 \
-          -X POST "$API_URL" \
-          "${curl_headers[@]}" \
+        http_code=$(curl "${curl_args[@]}" \
           -d "$payload") || curl_exit=$?
         http_code="${http_code:-000}"
 

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-05-28T10:23:23.539Z",
-  "valid_until": "2026-06-04T10:23:23.539Z",
+  "generated_at": "2026-05-28T11:08:34.905Z",
+  "valid_until": "2026-06-04T11:08:34.905Z",
   "source": "local deterministic repo/docs scan",
   "product": "CompliancePass",
   "legacy_aliases": [
@@ -147,7 +147,7 @@
           "title": "Automated test files are present",
           "status": "pass",
           "score": 100,
-          "summary": "298 test files were found.",
+          "summary": "301 test files were found.",
           "evidence": [
             {
               "type": "file",
@@ -413,7 +413,7 @@
               "label": "packages/securitypass/src/probes/gitleaks.ts",
               "summary": "command: \"gitleaks\",",
               "confidence": "high",
-              "line": 15
+              "line": 17
             }
           ],
           "findings": []
@@ -552,7 +552,7 @@
           "title": "Docs reference evidence and proof",
           "status": "pass",
           "score": 100,
-          "summary": "2695 evidence/proof references were found.",
+          "summary": "2813 evidence/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -795,7 +795,7 @@
           "title": "Rotation and staleness evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "377 rotation/staleness references were found.",
+          "summary": "393 rotation/staleness references were found.",
           "evidence": [
             {
               "type": "file",
@@ -892,7 +892,7 @@
           "title": "Audit trail and proof language exists",
           "status": "pass",
           "score": 100,
-          "summary": "3198 audit/proof references were found.",
+          "summary": "3309 audit/proof references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1029,7 +1029,7 @@
           "title": "AI oversight and review evidence exists",
           "status": "pass",
           "score": 100,
-          "summary": "2821 oversight/review references were found.",
+          "summary": "2833 oversight/review references were found.",
           "evidence": [
             {
               "type": "doc",
@@ -1080,7 +1080,7 @@
           "title": "AI data/source notes exist",
           "status": "pass",
           "score": 100,
-          "summary": "1797 AI data/source references were found.",
+          "summary": "1798 AI data/source references were found.",
           "evidence": [
             {
               "type": "doc",
