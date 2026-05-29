@@ -13,7 +13,7 @@
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz"]
     }
   }
 }
@@ -23,7 +23,7 @@ Add this to your `claude_desktop_config.json` (or equivalent for Cursor, Windsur
 
 **Or install globally from GitHub:**
 ```bash
-npm install -g https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz
+npm install -g https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz
 ```
 
 ## Operational Notes
@@ -99,7 +99,7 @@ Or pass it via the MCP config:
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz"],
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz"],
       "env": {
         "UNCLICK_API_KEY": "your_key_here"
       }
