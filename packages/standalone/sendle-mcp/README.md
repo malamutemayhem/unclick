@@ -1,8 +1,8 @@
-# Sendle MCP
+# Sendle MCP by UnClick
 
 Sendle shipping quotes, orders, and parcel tracking.
 
-> Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world
+> By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 
 ## Install
 

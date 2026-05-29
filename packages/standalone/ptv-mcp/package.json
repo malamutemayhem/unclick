@@ -2,16 +2,18 @@
   "name": "@unclick/ptv-mcp",
   "version": "0.1.0",
   "mcpName": "io.github.malamutemayhem/ptv",
-  "description": "Melbourne / Victoria public transport timetables, departures, and disruptions (PTV).",
+  "description": "Melbourne / Victoria public transport timetables, departures, and disruptions (PTV). By UnClick (https://unclick.world).",
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "unclick",
     "ptv",
     "public-transport",
     "melbourne",
     "victoria",
     "australia"
   ],
+  "author": "UnClick (https://unclick.world)",
   "type": "module",
   "bin": {
     "ptv-mcp": "./dist/index.js"

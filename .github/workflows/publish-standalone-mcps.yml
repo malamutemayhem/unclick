@@ -1,0 +1,70 @@
+name: Publish standalone MCPs
+
+# Auto-publishes the standalone niche MCP servers in packages/standalone/*-mcp
+# to npm and the official MCP registry. No manual clicking: it runs whenever
+# changes to those packages land on main. To release a new version, bump the
+# package's "version" and merge; this publishes it. It is idempotent, so a
+# version already on npm is skipped (re-running is safe).
+#
+# One-time setup (unavoidable, security): add repo secret NPM_TOKEN, an npm
+# automation token with publish access to the @unclick scope. After that,
+# publishing is fully hands-off. The MCP registry login uses GitHub OIDC, so it
+# needs no stored secret.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/standalone/**"
+      - ".github/workflows/publish-standalone-mcps.yml"
+  workflow_dispatch: {}   # optional manual re-run; not required for normal use
+
+permissions:
+  contents: read
+  id-token: write   # OIDC: MCP registry login + npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Install mcp-publisher
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" \
+            | tar xz mcp-publisher
+          sudo mv mcp-publisher /usr/local/bin/mcp-publisher
+
+      - name: Login to MCP registry (GitHub OIDC)
+        run: mcp-publisher login github-oidc
+
+      - name: Build and publish changed/new versions
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          published=0; skipped=0
+          for dir in packages/standalone/*-mcp; do
+            [ -d "$dir" ] || continue
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            echo "::group::$name@$version"
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "already on npm, skipping"; skipped=$((skipped+1)); echo "::endgroup::"; continue
+            fi
+            (
+              cd "$dir"
+              npm install --no-audit --no-fund
+              npm run build
+              npm publish --access public --provenance
+              mcp-publisher publish
+            )
+            published=$((published+1))
+            echo "::endgroup::"
+          done
+          echo "Published: $published  Skipped (already live): $skipped"

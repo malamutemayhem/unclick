@@ -1,8 +1,8 @@
-# IP Australia MCP
+# IP Australia MCP by UnClick
 
 Australian trademark and patent search via IP Australia.
 
-> Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world
+> By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 
 ## Install
 

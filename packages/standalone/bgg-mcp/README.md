@@ -1,8 +1,8 @@
-# BoardGameGeek MCP
+# BoardGameGeek MCP by UnClick
 
 BoardGameGeek search, game details, rankings, and collections.
 
-> Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world
+> By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 
 ## Install
 

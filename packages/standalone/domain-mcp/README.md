@@ -1,8 +1,8 @@
-# Domain MCP
+# Domain MCP by UnClick
 
 Australian property listings, prices, and suburb stats from Domain.
 
-> Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world
+> By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 
 ## Install
 

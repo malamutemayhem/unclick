@@ -1,8 +1,8 @@
-# PTV MCP
+# PTV MCP by UnClick
 
 Melbourne / Victoria public transport timetables, departures, and disruptions (PTV).
 
-> Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world
+> By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 
 ## Install
 

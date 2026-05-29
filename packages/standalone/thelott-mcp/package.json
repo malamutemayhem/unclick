@@ -2,15 +2,17 @@
   "name": "@unclick/thelott-mcp",
   "version": "0.1.0",
   "mcpName": "io.github.malamutemayhem/thelott",
-  "description": "Australian lottery results and jackpots from The Lott.",
+  "description": "Australian lottery results and jackpots from The Lott. By UnClick (https://unclick.world).",
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "unclick",
     "the-lott",
     "lottery",
     "lotto",
     "australia"
   ],
+  "author": "UnClick (https://unclick.world)",
   "type": "module",
   "bin": {
     "thelott-mcp": "./dist/index.js"

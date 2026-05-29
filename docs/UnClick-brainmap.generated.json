@@ -9,8 +9,8 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 537,
-    "source_manifest": 186,
+    "inventory": 538,
+    "source_manifest": 187,
     "pages": 78,
     "tools": 187,
     "rooms": 23,
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 118
+      "count": 119
     },
     {
       "id": "ledgers-and-proof",
@@ -1678,6 +1678,16 @@
       "kind": "workflow",
       "meaning": "publish mcp package GitHub automation workflow.",
       "source": ".github/workflows/publish-mcp-package.yml",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-workflow-publish-standalone-mcps-yml-github-workflows-publish-standalone-mcps-yml-no-route",
+      "division": "Automations",
+      "name": "publish standalone mcps.yml",
+      "kind": "workflow",
+      "meaning": "publish standalone mcps GitHub automation workflow.",
+      "source": ".github/workflows/publish-standalone-mcps.yml",
       "route": "",
       "tags": []
     },
@@ -8084,6 +8094,11 @@
       "source": ".github/workflows/publish-mcp-package.yml",
       "hash": "c029877aab11",
       "bytes": 6427
+    },
+    {
+      "source": ".github/workflows/publish-standalone-mcps.yml",
+      "hash": "1a31fecedba9",
+      "bytes": 2588
     },
     {
       "source": ".github/workflows/review-enforcement-warning.yml",

@@ -2,16 +2,18 @@
   "name": "@unclick/willyweather-mcp",
   "version": "0.1.0",
   "mcpName": "io.github.malamutemayhem/willyweather",
-  "description": "Australian weather, surf, and tide forecasts from WillyWeather.",
+  "description": "Australian weather, surf, and tide forecasts from WillyWeather. By UnClick (https://unclick.world).",
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "unclick",
     "willyweather",
     "weather",
     "surf",
     "tide",
     "australia"
   ],
+  "author": "UnClick (https://unclick.world)",
   "type": "module",
   "bin": {
     "willyweather-mcp": "./dist/index.js"

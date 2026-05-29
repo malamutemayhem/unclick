@@ -2,14 +2,16 @@
   "name": "@unclick/untappd-mcp",
   "version": "0.1.0",
   "mcpName": "io.github.malamutemayhem/untappd",
-  "description": "Untappd beer and brewery search, details, and activity.",
+  "description": "Untappd beer and brewery search, details, and activity. By UnClick (https://unclick.world).",
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "unclick",
     "untappd",
     "beer",
     "brewery"
   ],
+  "author": "UnClick (https://unclick.world)",
   "type": "module",
   "bin": {
     "untappd-mcp": "./dist/index.js"

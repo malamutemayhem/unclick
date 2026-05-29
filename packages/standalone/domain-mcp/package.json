@@ -2,15 +2,17 @@
   "name": "@unclick/domain-mcp",
   "version": "0.1.0",
   "mcpName": "io.github.malamutemayhem/domain",
-  "description": "Australian property listings, prices, and suburb stats from Domain.",
+  "description": "Australian property listings, prices, and suburb stats from Domain. By UnClick (https://unclick.world).",
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "unclick",
     "domain",
     "property",
     "real-estate",
     "australia"
   ],
+  "author": "UnClick (https://unclick.world)",
   "type": "module",
   "bin": {
     "domain-mcp": "./dist/index.js"

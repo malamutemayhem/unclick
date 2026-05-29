@@ -1,8 +1,8 @@
-# The Lott MCP
+# The Lott MCP by UnClick
 
 Australian lottery results and jackpots from The Lott.
 
-> Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world
+> By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 
 ## Install
 

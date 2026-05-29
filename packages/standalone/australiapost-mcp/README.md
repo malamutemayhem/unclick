@@ -1,8 +1,8 @@
-# Australia Post MCP
+# Australia Post MCP by UnClick
 
 Australia Post parcel tracking, postcode lookup, and delivery times.
 
-> Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world
+> By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 
 ## Install
 

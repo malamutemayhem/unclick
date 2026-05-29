@@ -1,8 +1,8 @@
-# WillyWeather MCP
+# WillyWeather MCP by UnClick
 
 Australian weather, surf, and tide forecasts from WillyWeather.
 
-> Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world
+> By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 
 ## Install
 

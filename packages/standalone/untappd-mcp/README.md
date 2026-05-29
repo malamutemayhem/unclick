@@ -1,8 +1,8 @@
-# Untappd MCP
+# Untappd MCP by UnClick
 
 Untappd beer and brewery search, details, and activity.
 
-> Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world
+> By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 
 ## Install
 

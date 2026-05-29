@@ -2,15 +2,17 @@
   "name": "@unclick/amber-mcp",
   "version": "0.1.0",
   "mcpName": "io.github.malamutemayhem/amber",
-  "description": "Real-time Australian electricity spot prices and renewables data from Amber Electric.",
+  "description": "Real-time Australian electricity spot prices and renewables data from Amber Electric. By UnClick (https://unclick.world).",
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "unclick",
     "amber",
     "electricity",
     "energy",
     "australia"
   ],
+  "author": "UnClick (https://unclick.world)",
   "type": "module",
   "bin": {
     "amber-mcp": "./dist/index.js"

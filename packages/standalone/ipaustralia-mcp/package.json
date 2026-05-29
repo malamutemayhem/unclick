@@ -2,15 +2,17 @@
   "name": "@unclick/ipaustralia-mcp",
   "version": "0.1.0",
   "mcpName": "io.github.malamutemayhem/ipaustralia",
-  "description": "Australian trademark and patent search via IP Australia.",
+  "description": "Australian trademark and patent search via IP Australia. By UnClick (https://unclick.world).",
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "unclick",
     "ip-australia",
     "trademark",
     "patent",
     "australia"
   ],
+  "author": "UnClick (https://unclick.world)",
   "type": "module",
   "bin": {
     "ipaustralia-mcp": "./dist/index.js"

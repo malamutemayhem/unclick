@@ -2,16 +2,18 @@
   "name": "@unclick/australiapost-mcp",
   "version": "0.1.0",
   "mcpName": "io.github.malamutemayhem/australiapost",
-  "description": "Australia Post parcel tracking, postcode lookup, and delivery times.",
+  "description": "Australia Post parcel tracking, postcode lookup, and delivery times. By UnClick (https://unclick.world).",
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "unclick",
     "australia-post",
     "auspost",
     "parcel-tracking",
     "shipping",
     "australia"
   ],
+  "author": "UnClick (https://unclick.world)",
   "type": "module",
   "bin": {
     "australiapost-mcp": "./dist/index.js"

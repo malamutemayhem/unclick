@@ -1,8 +1,8 @@
-# Amber Electric MCP
+# Amber Electric MCP by UnClick
 
 Real-time Australian electricity spot prices and renewables data from Amber Electric.
 
-> Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world
+> By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 
 ## Install
 

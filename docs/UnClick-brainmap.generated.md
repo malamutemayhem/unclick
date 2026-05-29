@@ -193,6 +193,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/openhands-test-mode.yml | 9aaef5273976 | 1137 |
 | .github/workflows/publish-channel-package.yml | 5c9197848ca9 | 8046 |
 | .github/workflows/publish-mcp-package.yml | c029877aab11 | 6427 |
+| .github/workflows/publish-standalone-mcps.yml | 1a31fecedba9 | 2588 |
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
@@ -211,7 +212,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 16 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 118 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 119 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 80 |
@@ -681,6 +682,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | workflow | openhands test mode.yml | openhands test mode GitHub automation workflow. | - | .github/workflows/openhands-test-mode.yml |
 | Automations | workflow | publish channel package.yml | publish channel package GitHub automation workflow. | - | .github/workflows/publish-channel-package.yml |
 | Automations | workflow | publish mcp package.yml | publish mcp package GitHub automation workflow. | - | .github/workflows/publish-mcp-package.yml |
+| Automations | workflow | publish standalone mcps.yml | publish standalone mcps GitHub automation workflow. | - | .github/workflows/publish-standalone-mcps.yml |
 | Automations | workflow | review enforcement warning.yml | review enforcement warning GitHub automation workflow. | - | .github/workflows/review-enforcement-warning.yml |
 | Automations | workflow | scheduled build self test.yml | scheduled build self test GitHub automation workflow. | - | .github/workflows/scheduled-build-self-test.yml |
 | Automations | workflow | seed vault.yml | seed vault GitHub automation workflow. | - | .github/workflows/seed-vault.yml |

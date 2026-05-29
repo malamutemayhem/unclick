@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Domain MCP — standalone MCP server.
-// Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world
+// Domain MCP. Standalone MCP server by UnClick.
+// By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 //
 // Generated from the UnClick connector by scripts/generate-standalone-mcp.mjs.
 // Edit the connector in the UnClick monorepo, not here.

@@ -2,15 +2,17 @@
   "name": "@unclick/sendle-mcp",
   "version": "0.1.0",
   "mcpName": "io.github.malamutemayhem/sendle",
-  "description": "Sendle shipping quotes, orders, and parcel tracking.",
+  "description": "Sendle shipping quotes, orders, and parcel tracking. By UnClick (https://unclick.world).",
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "unclick",
     "sendle",
     "shipping",
     "parcel",
     "australia"
   ],
+  "author": "UnClick (https://unclick.world)",
   "type": "module",
   "bin": {
     "sendle-mcp": "./dist/index.js"

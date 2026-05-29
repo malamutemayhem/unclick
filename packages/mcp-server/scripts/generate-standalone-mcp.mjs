@@ -29,7 +29,8 @@ const SRC = path.join(PKG, "src");
 const OUT_ROOT = path.resolve(PKG, "../standalone"); // packages/standalone
 const NAMESPACE = "io.github.malamutemayhem";        // verified registry namespace
 const VERSION = "0.1.0";
-const FUNNEL = "Part of UnClick — 180+ tools plus persistent agent memory in one install. https://unclick.world";
+const FUNNEL = "By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world";
+const ICON = "https://unclick.world/favicon.png";
 
 // ─── The top-10 must-have standalones (open niches, we are first) ──────────────
 // keywords feed the registry/README so the server is found for its own term.
@@ -122,7 +123,7 @@ function generate(slug) {
 
   // index.ts — a minimal MCP stdio server exposing just this connector
   const index = `#!/usr/bin/env node
-// ${cfg.title} — standalone MCP server.
+// ${cfg.title}. Standalone MCP server by UnClick.
 // ${FUNNEL}
 //
 // Generated from the UnClick connector by scripts/generate-standalone-mcp.mjs.
@@ -182,8 +183,9 @@ main().catch((err) => {
     name: pkgName,
     version: VERSION,
     mcpName: regName,
-    description: cfg.blurb,
-    keywords: ["mcp", "model-context-protocol", ...cfg.keywords],
+    description: `${cfg.blurb} By UnClick (https://unclick.world).`,
+    keywords: ["mcp", "model-context-protocol", "unclick", ...cfg.keywords],
+    author: "UnClick (https://unclick.world)",
     type: "module",
     bin: { [`${slug}-mcp`]: "./dist/index.js" },
     main: "./dist/index.js",
@@ -208,9 +210,11 @@ main().catch((err) => {
   const serverJson = {
     $schema: "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
     name: regName,
-    title: cfg.title,
-    description: cfg.blurb,
+    title: `${cfg.title} by UnClick`,
+    description: `${cfg.blurb} By UnClick (https://unclick.world).`,
     version: VERSION,
+    websiteUrl: "https://unclick.world",
+    icons: [{ src: ICON, mimeType: "image/png", sizes: ["512x512"] }],
     repository: { url: "https://github.com/malamutemayhem/unclick.git", source: "github", subfolder: `packages/standalone/${slug}-mcp` },
     packages: [{
       registryType: "npm",
@@ -221,7 +225,7 @@ main().catch((err) => {
     }],
   };
 
-  const readme = `# ${cfg.title}
+  const readme = `# ${cfg.title} by UnClick
 
 ${cfg.blurb}
 
