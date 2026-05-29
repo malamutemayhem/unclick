@@ -26,7 +26,11 @@ import {
   BookOpen,
   Wrench,
   Database,
+  Copy,
+  Check,
+  ListChecks,
 } from "lucide-react";
+import { MASTER_PROMPT, MEMORY_RECALL_PROMPT } from "@/lib/benchmarkPrompt";
 import {
   CONTESTANT_LABEL,
   ORIGIN_LABEL,
@@ -170,6 +174,68 @@ function EmptyCard({ label }: { label: string }) {
     <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.01] p-5">
       <p className="text-xs text-[#555] capitalize">{label}</p>
       <p className="mt-2 text-sm text-[#444]">No score recorded</p>
+    </div>
+  );
+}
+
+function CopyableBlock({ label, text }: { label: string; text: string }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  }
+  return (
+    <div className="rounded-lg border border-white/[0.06] bg-black/30">
+      <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
+        <span className="text-[11px] font-medium text-[#999]">{label}</span>
+        <button
+          onClick={copy}
+          className="flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-[11px] text-[#aaa] transition-colors hover:bg-white/[0.08] hover:text-white"
+        >
+          {copied ? <Check className="h-3 w-3 text-emerald-300" /> : <Copy className="h-3 w-3" />}
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <pre className="max-h-72 overflow-auto whitespace-pre-wrap px-3 py-3 text-[11px] leading-relaxed text-[#bbb]">
+        {text}
+      </pre>
+    </div>
+  );
+}
+
+function HowToRun() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-5">
+      <button onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-2 text-left">
+        <ListChecks className="h-4 w-4" style={{ color: TEAL }} />
+        <span className="text-sm font-semibold text-white">How to run a benchmark</span>
+        <span className="ml-auto text-[11px] text-[#666]">{open ? "Hide" : "Show"}</span>
+      </button>
+
+      {open && (
+        <div className="mt-4 space-y-4">
+          <ol className="space-y-1.5 text-xs leading-relaxed text-[#aaa]">
+            <li>1. Open a fresh <span className="text-[#ddd]">Code</span> session (Claude Code or Codex CLI). Not Chat, not a fleet session.</li>
+            <li>2. Run the same <span className="text-[#ddd]">master prompt</span> below in all four: Claude alone, Claude + UnClick, Codex alone, Codex + UnClick. The only difference between sessions is whether UnClick is connected.</li>
+            <li>3. For the Memory score, close the session and run the <span className="text-[#ddd]">recall prompt</span> in a brand-new session.</li>
+            <li>4. Grade each category out of 100 against your private answer key, then record the run (helper: <code className="text-[#888]">scripts/benchmark-record.mjs</code>, or ask your agent to record it).</li>
+          </ol>
+
+          <CopyableBlock label="Master prompt (paste into each of the four sessions)" text={MASTER_PROMPT} />
+          <CopyableBlock label="Memory recall prompt (run in a separate fresh session)" text={MEMORY_RECALL_PROMPT} />
+
+          <p className="text-[11px] leading-relaxed text-[#666]">
+            This is a starting reference. Edit it as the benchmark evolves. Keep the answer key private so
+            the agent under test cannot read it.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -471,6 +537,10 @@ export default function AdminBenchmarks() {
           UnClick attached. The score is out of 100 (higher is better). The green number shows how many
           points UnClick adds. Watch the dated history below to see progress over time.
         </p>
+      </div>
+
+      <div className="mb-6">
+        <HowToRun />
       </div>
 
       {suite && categories.length > 0 && (
