@@ -6,12 +6,14 @@ Australian property listings, prices, and suburb stats from Domain.
 
 ## Install
 
+Installs straight from GitHub, no npm account needed.
+
 ```json
 {
   "mcpServers": {
     "domain": {
       "command": "npx",
-      "args": ["-y", "@unclick/domain-mcp"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/download/standalone-mcps-latest/domain.tgz"]
     }
   }
 }

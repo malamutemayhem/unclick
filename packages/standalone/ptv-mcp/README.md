@@ -6,12 +6,14 @@ Melbourne / Victoria public transport timetables, departures, and disruptions (P
 
 ## Install
 
+Installs straight from GitHub, no npm account needed.
+
 ```json
 {
   "mcpServers": {
     "ptv": {
       "command": "npx",
-      "args": ["-y", "@unclick/ptv-mcp"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/download/standalone-mcps-latest/ptv.tgz"]
     }
   }
 }

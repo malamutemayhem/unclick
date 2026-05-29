@@ -6,12 +6,14 @@ Australia Post parcel tracking, postcode lookup, and delivery times.
 
 ## Install
 
+Installs straight from GitHub, no npm account needed.
+
 ```json
 {
   "mcpServers": {
     "australiapost": {
       "command": "npx",
-      "args": ["-y", "@unclick/australiapost-mcp"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/download/standalone-mcps-latest/australiapost.tgz"]
     }
   }
 }

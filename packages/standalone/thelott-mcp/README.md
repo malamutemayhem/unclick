@@ -6,12 +6,14 @@ Australian lottery results and jackpots from The Lott.
 
 ## Install
 
+Installs straight from GitHub, no npm account needed.
+
 ```json
 {
   "mcpServers": {
     "thelott": {
       "command": "npx",
-      "args": ["-y", "@unclick/thelott-mcp"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/download/standalone-mcps-latest/thelott.tgz"]
     }
   }
 }

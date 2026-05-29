@@ -6,12 +6,14 @@ Sendle shipping quotes, orders, and parcel tracking.
 
 ## Install
 
+Installs straight from GitHub, no npm account needed.
+
 ```json
 {
   "mcpServers": {
     "sendle": {
       "command": "npx",
-      "args": ["-y", "@unclick/sendle-mcp"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/download/standalone-mcps-latest/sendle.tgz"]
     }
   }
 }

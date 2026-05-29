@@ -6,12 +6,14 @@ Australian weather, surf, and tide forecasts from WillyWeather.
 
 ## Install
 
+Installs straight from GitHub, no npm account needed.
+
 ```json
 {
   "mcpServers": {
     "willyweather": {
       "command": "npx",
-      "args": ["-y", "@unclick/willyweather-mcp"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/download/standalone-mcps-latest/willyweather.tgz"]
     }
   }
 }

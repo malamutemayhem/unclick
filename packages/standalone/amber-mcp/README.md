@@ -6,12 +6,14 @@ Real-time Australian electricity spot prices and renewables data from Amber Elec
 
 ## Install
 
+Installs straight from GitHub, no npm account needed.
+
 ```json
 {
   "mcpServers": {
     "amber": {
       "command": "npx",
-      "args": ["-y", "@unclick/amber-mcp"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/download/standalone-mcps-latest/amber.tgz"]
     }
   }
 }

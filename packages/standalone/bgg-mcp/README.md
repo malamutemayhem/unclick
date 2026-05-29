@@ -6,12 +6,14 @@ BoardGameGeek search, game details, rankings, and collections.
 
 ## Install
 
+Installs straight from GitHub, no npm account needed.
+
 ```json
 {
   "mcpServers": {
     "bgg": {
       "command": "npx",
-      "args": ["-y", "@unclick/bgg-mcp"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/download/standalone-mcps-latest/bgg.tgz"]
     }
   }
 }

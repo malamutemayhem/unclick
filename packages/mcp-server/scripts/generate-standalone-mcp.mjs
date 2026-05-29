@@ -225,6 +225,7 @@ main().catch((err) => {
     }],
   };
 
+  const tarballUrl = `https://github.com/malamutemayhem/unclick/releases/download/standalone-mcps-latest/${slug}.tgz`;
   const readme = `# ${cfg.title} by UnClick
 
 ${cfg.blurb}
@@ -233,12 +234,14 @@ ${cfg.blurb}
 
 ## Install
 
+Installs straight from GitHub, no npm account needed.
+
 \`\`\`json
 {
   "mcpServers": {
     "${slug}": {
       "command": "npx",
-      "args": ["-y", "${pkgName}"]
+      "args": ["-y", "${tarballUrl}"]
     }
   }
 }

@@ -1,15 +1,15 @@
 name: Publish standalone MCPs
 
-# Auto-publishes the standalone niche MCP servers in packages/standalone/*-mcp
-# to npm and the official MCP registry. No manual clicking: it runs whenever
-# changes to those packages land on main. To release a new version, bump the
-# package's "version" and merge; this publishes it. It is idempotent, so a
-# version already on npm is skipped (re-running is safe).
+# Builds the standalone niche MCP servers in packages/standalone/*-mcp and
+# publishes them as GitHub release tarballs (the same npm-free distribution
+# UnClick itself uses). No npm account, no NPM_TOKEN: GITHUB_TOKEN only.
 #
-# One-time setup (unavoidable, security): add repo secret NPM_TOKEN, an npm
-# automation token with publish access to the @unclick scope. After that,
-# publishing is fully hands-off. The MCP registry login uses GitHub OIDC, so it
-# needs no stored secret.
+# Runs automatically when packages/standalone/** lands on main. Each <slug>.tgz
+# is uploaded to a rolling release so install URLs are stable:
+#   npx -y https://github.com/<owner>/<repo>/releases/download/standalone-mcps-latest/<slug>.tgz
+#
+# Install needs no npm login either: npx fetches the tarball from GitHub and pulls
+# its public dependencies from the npm registry read-only.
 
 on:
   push:
@@ -17,54 +17,58 @@ on:
     paths:
       - "packages/standalone/**"
       - ".github/workflows/publish-standalone-mcps.yml"
-  workflow_dispatch: {}   # optional manual re-run; not required for normal use
+  workflow_dispatch: {}
 
 permissions:
-  contents: read
-  id-token: write   # OIDC: MCP registry login + npm provenance
+  contents: write   # create/update the rolling GitHub release
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ROLLING_TAG: standalone-mcps-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org
 
-      - name: Install mcp-publisher
-        run: |
-          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" \
-            | tar xz mcp-publisher
-          sudo mv mcp-publisher /usr/local/bin/mcp-publisher
-
-      - name: Login to MCP registry (GitHub OIDC)
-        run: mcp-publisher login github-oidc
-
-      - name: Build and publish changed/new versions
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Build and pack each standalone
         run: |
           set -euo pipefail
-          published=0; skipped=0
+          mkdir -p ../release-artifacts
+          rm -f ../release-artifacts/*.tgz || true
           for dir in packages/standalone/*-mcp; do
             [ -d "$dir" ] || continue
-            name=$(node -p "require('./$dir/package.json').name")
-            version=$(node -p "require('./$dir/package.json').version")
-            echo "::group::$name@$version"
-            if npm view "$name@$version" version >/dev/null 2>&1; then
-              echo "already on npm, skipping"; skipped=$((skipped+1)); echo "::endgroup::"; continue
-            fi
+            slug=$(basename "$dir" | sed 's/-mcp$//')
+            echo "::group::$slug"
             (
               cd "$dir"
               npm install --no-audit --no-fund
               npm run build
-              npm publish --access public --provenance
-              mcp-publisher publish
+              packed=$(npm pack --pack-destination "$GITHUB_WORKSPACE/../release-artifacts")
+              cp "$GITHUB_WORKSPACE/../release-artifacts/$packed" "$GITHUB_WORKSPACE/../release-artifacts/$slug.tgz"
             )
-            published=$((published+1))
             echo "::endgroup::"
           done
-          echo "Published: $published  Skipped (already live): $skipped"
+          echo "Packed:"; ls -1 ../release-artifacts/*.tgz
+
+      - name: Upload to rolling GitHub release
+        run: |
+          set -euo pipefail
+          title="UnClick standalone MCPs"
+          notes="Rolling release of standalone niche MCP servers. Install any with: npx -y https://github.com/${GITHUB_REPOSITORY}/releases/download/${ROLLING_TAG}/<slug>.tgz"
+          if ! gh release view "$ROLLING_TAG" >/dev/null 2>&1; then
+            gh release create "$ROLLING_TAG" --target "$(git rev-parse HEAD)" --title "$title" --notes "$notes" || true
+          fi
+          # upload only the friendly <slug>.tgz assets, clobbering previous versions
+          for f in ../release-artifacts/*.tgz; do
+            case "$(basename "$f")" in
+              unclick-*) continue ;;  # skip the raw npm-pack name, keep only <slug>.tgz
+            esac
+            gh release upload "$ROLLING_TAG" "$f" --clobber
+          done
+          gh release edit "$ROLLING_TAG" --title "$title" --notes "$notes"
+          echo "Published tarballs to release ${ROLLING_TAG}."

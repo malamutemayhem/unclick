@@ -6,12 +6,14 @@ Australian trademark and patent search via IP Australia.
 
 ## Install
 
+Installs straight from GitHub, no npm account needed.
+
 ```json
 {
   "mcpServers": {
     "ipaustralia": {
       "command": "npx",
-      "args": ["-y", "@unclick/ipaustralia-mcp"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/download/standalone-mcps-latest/ipaustralia.tgz"]
     }
   }
 }

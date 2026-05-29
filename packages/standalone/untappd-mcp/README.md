@@ -6,12 +6,14 @@ Untappd beer and brewery search, details, and activity.
 
 ## Install
 
+Installs straight from GitHub, no npm account needed.
+
 ```json
 {
   "mcpServers": {
     "untappd": {
       "command": "npx",
-      "args": ["-y", "@unclick/untappd-mcp"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/download/standalone-mcps-latest/untappd.tgz"]
     }
   }
 }
