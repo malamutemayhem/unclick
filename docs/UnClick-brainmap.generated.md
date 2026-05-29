@@ -13,9 +13,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 486b704a6072 | 16305 |
-| FLEET_SYNC.md | 41ebcbca94b0 | 13200 |
-| docs/unclick-context-boot-packet.md | fc8064c5874f | 4804 |
+| AUTOPILOT.md | 5b6b2c21c91d | 17427 |
+| FLEET_SYNC.md | 83bbf1598b48 | 14705 |
+| docs/unclick-context-boot-packet.md | 259a136f762b | 6132 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
 | docs/pinballwake-nudgeonly-api.md | e056b727ce53 | 7559 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
@@ -58,7 +58,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAnalytics.tsx | 8e3ab82ef00f | 10336 |
 | src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
-| src/pages/admin/AdminEcosystemPages.tsx | b045ed683458 | 13590 |
+| src/pages/admin/AdminEcosystemPages.tsx | 3a9b7643c7fc | 13854 |
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
 | src/pages/admin/AdminBrainmap.tsx | c764ced96836 | 26511 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
@@ -145,7 +145,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 51c7580b8abf | 28631 |
+| scripts/pinballwake-xpass-gate-room.mjs | 0483d0717e07 | 32407 |
 | packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |
