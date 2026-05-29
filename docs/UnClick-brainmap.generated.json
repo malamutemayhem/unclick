@@ -10,8 +10,8 @@
   "counts": {
     "divisions": 12,
     "inventory": 526,
-    "source_manifest": 190,
-    "pages": 82,
+    "source_manifest": 189,
+    "pages": 81,
     "tools": 187,
     "rooms": 23,
     "workers": 8
@@ -27,7 +27,7 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 36
+      "count": 35
     },
     {
       "id": "tools",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 65
+      "count": 66
     },
     {
       "id": "launch-and-onboarding",
@@ -1942,6 +1942,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-component-build-desk-src-pages-builddesk-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Build Desk",
+      "kind": "component",
+      "meaning": "Build and project work surface.",
+      "source": "src/pages/BuildDesk.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-component-comments-src-pages-admin-fishbowl-comments-tsx-no-route",
       "division": "Modules and apps",
       "name": "Comments",
@@ -2699,16 +2709,6 @@
       "meaning": "User-facing page for Auth Callback.",
       "source": "src/pages/AuthCallback.tsx",
       "route": "/auth/callback",
-      "tags": []
-    },
-    {
-      "id": "public-surfaces-public-page-build-desk-src-pages-builddesk-tsx-build",
-      "division": "Public surfaces",
-      "name": "Build Desk",
-      "kind": "public page",
-      "meaning": "Build and project work surface.",
-      "source": "src/pages/BuildDesk.tsx",
-      "route": "/build",
       "tags": []
     },
     {
@@ -5672,12 +5672,6 @@
       "src/pages/VerifyMfa.tsx"
     ],
     [
-      "/build",
-      "Build Desk",
-      "Build and project work surface.",
-      "src/pages/BuildDesk.tsx"
-    ],
-    [
       "/connect/:platform",
       "Connect",
       "User-facing page for Connect.",
@@ -7146,13 +7140,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "7bd815c57de3",
-      "bytes": 13446
+      "hash": "1aa898894c02",
+      "bytes": 13811
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "d0ad42350797",
-      "bytes": 19229
+      "hash": "1509360c4bfa",
+      "bytes": 19341
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -7291,8 +7285,8 @@
     },
     {
       "source": "src/pages/Index.tsx",
-      "hash": "27da391f9555",
-      "bytes": 1292
+      "hash": "87bc594da785",
+      "bytes": 1598
     },
     {
       "source": "src/pages/admin/AdminActivity.tsx",
@@ -7510,14 +7504,9 @@
       "bytes": 6545
     },
     {
-      "source": "src/pages/BuildDesk.tsx",
-      "hash": "36cf3e2985ba",
-      "bytes": 4474
-    },
-    {
       "source": "src/pages/Connect.tsx",
-      "hash": "ec4230e130ef",
-      "bytes": 29356
+      "hash": "ebf2c68ad6c3",
+      "bytes": 29590
     },
     {
       "source": "src/pages/Crews.tsx",
@@ -7561,8 +7550,8 @@
     },
     {
       "source": "src/pages/FAQPage.tsx",
-      "hash": "c3c95c39e56f",
-      "bytes": 723
+      "hash": "507e1ed5789c",
+      "bytes": 712
     },
     {
       "source": "src/pages/InstallRecover.tsx",
@@ -7591,13 +7580,13 @@
     },
     {
       "source": "src/pages/Memory.tsx",
-      "hash": "41c34c866a1a",
-      "bytes": 16588
+      "hash": "cf7f06bacc89",
+      "bytes": 18641
     },
     {
       "source": "src/pages/NewToAI.tsx",
-      "hash": "93d855b0a2d8",
-      "bytes": 15863
+      "hash": "a28cb1d9ece8",
+      "bytes": 12559
     },
     {
       "source": "src/pages/Organiser.tsx",
@@ -7646,8 +7635,8 @@
     },
     {
       "source": "src/pages/Tools.tsx",
-      "hash": "156bda80eaa2",
-      "bytes": 22001
+      "hash": "1b9bc9d666a7",
+      "bytes": 15377
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",
