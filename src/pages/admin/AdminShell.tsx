@@ -60,6 +60,7 @@ import {
   FileStack,
   FileCode2,
   SlidersHorizontal,
+  Trophy,
 } from "lucide-react";
 
 function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
@@ -161,6 +162,7 @@ const ADMIN_SUBMENU = [
   { path: "/admin/moderation",    label: "Marketplace Moderation", icon: ShieldCheck },
   { path: "/admin/audit-log",     label: "Audit Log",             icon: ScrollText  },
   { path: "/admin/brainmap",      label: "Ecosystem Brainmap",    icon: Sparkles    },
+  { path: "/admin/benchmarks",    label: "Benchmarks",            icon: Trophy      },
 ] as const;
 
 function AdminSubmenu({ onLinkClick }: { onLinkClick?: () => void }) {

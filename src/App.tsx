@@ -11,10 +11,12 @@ import DocsPage from "./pages/Docs.tsx";
 import LinkInBioPage from "./pages/tools/LinkInBio.tsx";
 import SchedulingPage from "./pages/tools/Scheduling.tsx";
 import SolvePage from "./pages/tools/Solve.tsx";
-import ArenaHome from "./pages/arena/ArenaHome.tsx";
-import ArenaProblem from "./pages/arena/ArenaProblem.tsx";
-import ArenaLeaderboard from "./pages/arena/ArenaLeaderboard.tsx";
-import ArenaSubmitProblem from "./pages/arena/ArenaSubmitProblem.tsx";
+// Arena is hidden for now (not deleted). Its pages, components, and API
+// remain in the codebase; only the public routes are turned off below.
+// import ArenaHome from "./pages/arena/ArenaHome.tsx";
+// import ArenaProblem from "./pages/arena/ArenaProblem.tsx";
+// import ArenaLeaderboard from "./pages/arena/ArenaLeaderboard.tsx";
+// import ArenaSubmitProblem from "./pages/arena/ArenaSubmitProblem.tsx";
 import FAQPage from "./pages/FAQPage.tsx";
 import ConnectPage from "./pages/Connect.tsx";
 import DevelopersPage from "./pages/Developers.tsx";
@@ -77,6 +79,7 @@ import AdminAuditLog from "./pages/admin/AdminAuditLog.tsx";
 import AdminBrainmap from "./pages/admin/AdminBrainmap.tsx";
 import AdminJobs from "./pages/admin/AdminJobs.tsx";
 import AdminJobsmith from "./pages/admin/AdminJobsmith.tsx";
+import AdminBenchmarks from "./pages/admin/AdminBenchmarks.tsx";
 import AdminExpressBuild from "./pages/admin/AdminExpressBuild.tsx";
 import {
   AdminAutopilot,
@@ -120,11 +123,12 @@ const App = () => (
           <Route path="/tools/link-in-bio" element={<LinkInBioPage />} />
           <Route path="/tools/scheduling" element={<SchedulingPage />} />
           <Route path="/tools/solve" element={<SolvePage />} />
-          {/* Arena - AI agent problem board with 6 viral features */}
-          <Route path="/arena" element={<ArenaHome />} />
-          <Route path="/arena/leaderboard" element={<ArenaLeaderboard />} />
-          <Route path="/arena/submit" element={<ArenaSubmitProblem />} />
-          <Route path="/arena/:id" element={<ArenaProblem />} />
+          {/* Arena - hidden for now (not deleted). Routes redirect home so the
+              pages are not reachable; components and API are retained. */}
+          <Route path="/arena" element={<Navigate to="/" replace />} />
+          <Route path="/arena/leaderboard" element={<Navigate to="/" replace />} />
+          <Route path="/arena/submit" element={<Navigate to="/" replace />} />
+          <Route path="/arena/:id" element={<Navigate to="/" replace />} />
           <Route path="/developers" element={<DevelopersPage />} />
           <Route path="/developers/docs" element={<DeveloperDocsPage />} />
           <Route path="/developers/submit" element={<DeveloperSubmitPage />} />
@@ -205,6 +209,7 @@ const App = () => (
             <Route path="moderation"     element={<RequireAdmin><AdminModeration /></RequireAdmin>} />
             <Route path="audit-log"      element={<RequireAdmin><AdminAuditLog /></RequireAdmin>} />
             <Route path="brainmap"       element={<RequireAdmin><AdminBrainmap /></RequireAdmin>} />
+            <Route path="benchmarks"     element={<RequireAdmin><AdminBenchmarks /></RequireAdmin>} />
             <Route path="signals"          element={<SignalsCatalog />} />
             <Route path="signals/settings" element={<SignalsSettings />} />
             <Route path="boardroom"        element={<Fishbowl />} />
