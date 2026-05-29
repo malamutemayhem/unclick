@@ -1,60 +1,24 @@
 /**
  * crews-tool - MCP handlers for the Crews Council Orchestrator Wizard.
  *
- * All three tools return a ConversationalCard so the calling agent can surface
- * status in plain prose without parsing raw run JSON. LLM traffic for user
- * facing runs flows via MCP sampling, not via server side Anthropic calls.
+ * Returns ConversationalCards so the calling agent can surface state in plain
+ * prose without parsing raw run JSON. As of Crews v1, the inline-loop engine
+ * replaces the broken MCP-sampling path: the user's chat model handles all
+ * cognition (hats + synthesis), and UnClick orchestrates and persists.
+ *
+ * crewsStartRun is preserved as a thin shim around the API's start_crew_run
+ * action, which now forwards to the same internal logic as crew_begin.
  */
 
 import { buildCard, type ConversationalCard } from "./cards/card.js";
-
-const API_BASE = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
-
-function getApiKey(): string {
-  const key = process.env.UNCLICK_API_KEY?.trim();
-  if (!key) {
-    throw new Error("UNCLICK_API_KEY env var is not set. Get your install config at https://unclick.world");
-  }
-  return key;
-}
-
-async function adminCall(
-  action: string,
-  body: Record<string, unknown> | null,
-  method: "GET" | "POST",
-  query?: Record<string, string>,
-): Promise<{ ok: boolean; status: number; json: unknown }> {
-  const apiKey = getApiKey();
-  const qs = new URLSearchParams({ action, ...(query ?? {}) }).toString();
-  const url = `${API_BASE}/api/memory-admin?${qs}`;
-  const init: RequestInit = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-  };
-  if (method === "POST" && body) init.body = JSON.stringify(body);
-  const res = await fetch(url, init);
-  const text = await res.text();
-  let json: unknown = text;
-  try { json = text ? JSON.parse(text) : null; } catch { /* keep text */ }
-  return { ok: res.ok, status: res.status, json };
-}
-
-type AdminCard = {
-  card?: ConversationalCard;
-  error?: string;
-  message?: string;
-  run_id?: string;
-  was_duplicate?: boolean;
-};
+import { adminCall, type AdminCard } from "./crews/api-client.js";
 
 export async function crewsStartRun(args: Record<string, unknown>): Promise<ConversationalCard> {
   const crewId = String(args.crew_id ?? "").trim();
-  const taskPrompt = String(args.task_prompt ?? "").trim();
+  const taskPrompt = String(args.task_prompt ?? args.user_goal ?? "").trim();
   const tokenBudget = typeof args.token_budget === "number" ? args.token_budget : undefined;
   const taskId = typeof args.task_id === "string" && args.task_id ? args.task_id : undefined;
+  const context = typeof args.context === "string" && args.context.trim() ? args.context : undefined;
   if (!crewId) {
     return buildCard({
       headline: "start_crew_run needs a crew_id",
@@ -74,6 +38,7 @@ export async function crewsStartRun(args: Record<string, unknown>): Promise<Conv
   const body: Record<string, unknown> = { crew_id: crewId, task_prompt: taskPrompt };
   if (tokenBudget) body.token_budget = tokenBudget;
   if (taskId) body.task_id = taskId;
+  if (context) body.context = context;
   const { ok, status, json } = await adminCall("start_crew_run", body, "POST");
   const payload = (json ?? {}) as AdminCard;
   if (payload.card) return payload.card;
@@ -88,16 +53,20 @@ export async function crewsStartRun(args: Record<string, unknown>): Promise<Conv
       nextActions: ["Check Vercel logs", "Confirm your UNCLICK_API_KEY is valid"],
     });
   }
+  // The API returns a card on the success path; this branch is a safety net
+  // for the unlikely shape where ok=true but card is absent.
   return buildCard({
     headline: payload.was_duplicate ? "Crews run already exists" : "Crews run accepted",
     summary: payload.was_duplicate
       ? "A run with this task_id already exists for your tenant. Returning the original run_id; no new row was created."
-      : "The run row was created. Poll get_run to follow progress.",
+      : "The run row was created. Use crew_get_next_hat to fetch the next hat persona prompt.",
     keyFacts: [
       ...(payload.run_id ? [`run_id: ${payload.run_id}`] : []),
       ...(payload.was_duplicate ? ["was_duplicate: true"] : []),
     ],
-    nextActions: ["Call get_run with the run_id to check status"],
+    nextActions: [
+      `Call crew_get_next_hat with the run_id to fetch the next hat`,
+    ],
     deepLink: payload.run_id ? `/admin/crews/runs/${payload.run_id}` : undefined,
   });
 }
@@ -112,12 +81,7 @@ export async function crewsGetRun(args: Record<string, unknown>): Promise<Conver
       nextActions: ["Call list_runs to find recent run ids"],
     });
   }
-  const { ok, status, json } = await adminCall(
-    "get_run",
-    null,
-    "GET",
-    { run_id: runId },
-  );
+  const { ok, status, json } = await adminCall("get_run", null, "GET", { run_id: runId });
   const payload = (json ?? {}) as AdminCard;
   if (payload.card) return payload.card;
   return buildCard({

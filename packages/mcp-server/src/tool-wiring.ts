@@ -762,6 +762,15 @@ import {
 
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
+import {
+  crewBegin,
+  crewGetNextHat,
+  crewRecordHatResponse,
+  crewGetSynthesisBrief,
+  crewRecordSynthesis,
+  crewStatus,
+  crewCapabilityProbe,
+} from "./crews-engine.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ADDITIONAL_TOOLS
@@ -11210,13 +11219,13 @@ export const ADDITIONAL_TOOLS = [
   // ── crews-tool.ts (Orchestrator Wizard) ──────────────────────────────────────
   {
     name: "start_crew_run",
-    description: "Call this tool when the user wants to start a Crews Council run. Creates the run row on the UnClick API and returns a ConversationalCard with next actions. LLM turns are expected to flow through MCP sampling; if the Orchestrator does not support sampling the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
+    description: "Legacy entry point for the Crews Council Orchestrator. As of Crews v1, this is an alias for crew_begin -- it forwards to the same inline-loop engine and returns the first hat persona prompt as a ConversationalCard. The user's chat model handles all cognition (hats + synthesis); UnClick orchestrates and persists. Prefer crew_begin for new integrations. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
     inputSchema: {
       type: "object" as const,
       properties: {
         crew_id: { type: "string", description: "The UUID of the Crew to run" },
-        task_prompt: { type: "string", description: "The task the Council should deliberate on" },
-        token_budget: { type: "number", description: "Optional token budget (default 150000)" },
+        task_prompt: { type: "string", description: "The task the Council should deliberate on (alias for user_goal)" },
+        token_budget: { type: "number", description: "Optional token budget hint stored on the run row (default 150000)" },
         task_id: {
           type: "string",
           description: "Client-generated idempotency key (UUIDv5 from thread_id + prompt_hash + time_bucket recommended). Required for safe retry. If omitted, the server creates a fresh row and you lose retry safety; sending the same task_id twice returns the original run_id with was_duplicate=true instead of creating a duplicate.",
@@ -11227,11 +11236,11 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "get_run",
-    description: "Call this tool when the user wants the status of a specific Crews run. Returns a ConversationalCard summarising stage progress, token usage, and any failure artifact.",
+    description: "Call this tool when the user wants the status of a specific Crews run. Returns a ConversationalCard summarising stage progress, token usage, and any failure artifact. For the v1 inline-loop engine state, prefer crew_status which returns hat counts and synthesis state.",
     inputSchema: {
       type: "object" as const,
       properties: {
-        run_id: { type: "string", description: "The run_id returned by start_crew_run" },
+        run_id: { type: "string", description: "The run_id returned by crew_begin or start_crew_run" },
       },
       required: ["run_id"],
     },
@@ -11244,6 +11253,106 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         crew_id: { type: "string", description: "Optional: filter to one crew" },
         limit: { type: "number", description: "Optional: max rows to return (default 50, capped at 100)" },
+      },
+    },
+  },
+
+  // ── crews-engine.ts (Crews v1 inline-loop engine) ────────────────────────────
+  // The user's chat model handles all cognition; UnClick orchestrates the run,
+  // persists structured turns, and serves the next prompt or synthesis brief.
+  {
+    name: "crew_begin",
+    description: "Start a Crews Council deliberation. Creates a run, snapshots the crew's hats, and returns the first hat persona prompt as a ConversationalCard. The card's summary contains the prompt the chat model should respond to; once the model has its HatTurnV1 JSON ready, it must call crew_record_hat_response with the run_id and hat_index from the keyFacts. The card also includes a quality_note advising on which chat models produce the best deliberations.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        crew_id: { type: "string", description: "The UUID of the Crew to run" },
+        user_goal: { type: "string", description: "The user's goal for this deliberation (one sentence is fine)" },
+        context: { type: "string", description: "Optional additional context to thread through every hat prompt" },
+        token_budget: { type: "number", description: "Optional token budget hint stored on the run row (default 150000)" },
+        task_id: {
+          type: "string",
+          description: "Client-generated idempotency key (UUIDv5 from thread_id + prompt_hash + time_bucket recommended). Same task_id resumes the existing run with was_duplicate=true rather than creating a new row.",
+        },
+      },
+      required: ["crew_id", "user_goal"],
+    },
+  },
+  {
+    name: "crew_get_next_hat",
+    description: "Fetch the next hat persona prompt for an in-progress Crews run, or the synthesis brief if every hat has already been recorded. Returns a ConversationalCard whose summary is the prompt the chat model should respond to next. Use this after the user's chat model has produced a HatTurnV1 (or SynthesisV1) and you want to advance the deliberation.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        run_id: { type: "string", description: "The run_id returned by crew_begin" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "crew_record_hat_response",
+    description: "Persist the chat model's HatTurnV1 JSON for the current hat. Validates against the HatTurnV1 schema; on a parse failure the run is granted ONE retry (the validator error is appended to the next prompt) and a second failure marks the run incomplete. On success, current_hat_index advances and the response card carries either the next hat prompt or the synthesis brief.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        run_id: { type: "string", description: "The run_id returned by crew_begin" },
+        hat_index: { type: "number", description: "Index of the hat being recorded; must match the run's current_hat_index" },
+        response_json: {
+          type: "object",
+          description: "The HatTurnV1 JSON object the chat model produced. Required keys: hat_id (string), hat_name (string), key_points (string[]), confidence ('low'|'medium'|'high'), risks (string[]), dissent (string|null).",
+        },
+      },
+      required: ["run_id", "hat_index", "response_json"],
+    },
+  },
+  {
+    name: "crew_get_synthesis_brief",
+    description: "Fetch the synthesizer prompt + recorded hat responses for a run that has finished its hats but has not yet recorded a synthesis. Returns a ConversationalCard whose summary is the SynthesisV1 brief (matching Chris's locked spec: strongest agreement, sharpest disagreement, risks, unknowns, recommendation). The chat model should produce a SynthesisV1 JSON object and call crew_record_synthesis.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        run_id: { type: "string", description: "The run_id returned by crew_begin" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "crew_record_synthesis",
+    description: "Persist the chat model's SynthesisV1 JSON as the run's final verdict and mark the run complete. Validates against the SynthesisV1 schema; one retry on parse failure (validator error appended to the next prompt) before marking the run incomplete. On success, the run state transitions to 'complete' and the audit trail is finalised.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        run_id: { type: "string", description: "The run_id returned by crew_begin" },
+        verdict_json: {
+          type: "object",
+          description: "The SynthesisV1 JSON object the chat model produced. Required keys: verdict, key_decision, strongest_agreement, sharpest_disagreement, risks (string[]), unknowns (string[]), recommendation, hats_consulted (string[]).",
+        },
+      },
+      required: ["run_id", "verdict_json"],
+    },
+  },
+  {
+    name: "crew_status",
+    description: "Read the live state of a Crews run: state ('in_progress'|'awaiting_synthesis'|'complete'|'incomplete'), current_hat_index, total_hats, hats_done, synthesis_recorded, and -- if complete -- the synthesis_verdict. Use this to poll a run without advancing it.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        run_id: { type: "string", description: "The run_id returned by crew_begin" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "crew_capability_probe",
+    description: "Capability handshake. Returns the server's capability advertisement (Crews v1 inline-loop, schema names, schema version) and optionally records the client's capabilities on the caller's fishbowl profile. Future chips can use the recorded client_capabilities to opportunistically enable sampling-based or elicitation-based features on capable clients without inferring from brand. Safe to call once on first connect.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        agent_id: { type: "string", description: "Optional: the caller's Fishbowl agent_id; required to persist client_capabilities" },
+        client_capabilities: {
+          type: "object",
+          description: "Optional: a free-form JSON object describing the client's capabilities (e.g. { sampling: true, elicitation: false, model_family: 'claude-sonnet' }). Persisted to mc_fishbowl_profiles.client_capabilities when agent_id is provided.",
+        },
       },
     },
   },
@@ -12374,5 +12483,14 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   start_crew_run: (args) => crewsStartRun(args),
   get_run:        (args) => crewsGetRun(args),
   list_runs:      (args) => crewsListRuns(args),
+
+  // crews-engine.ts (Crews v1 inline-loop engine)
+  crew_begin:                 (args) => crewBegin(args),
+  crew_get_next_hat:          (args) => crewGetNextHat(args),
+  crew_record_hat_response:   (args) => crewRecordHatResponse(args),
+  crew_get_synthesis_brief:   (args) => crewGetSynthesisBrief(args),
+  crew_record_synthesis:      (args) => crewRecordSynthesis(args),
+  crew_status:                (args) => crewStatus(args),
+  crew_capability_probe:      (args) => crewCapabilityProbe(args),
 };
 

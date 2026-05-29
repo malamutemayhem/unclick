@@ -95,6 +95,12 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { buildCard, type ConversationalCard } from "../packages/mcp-server/src/cards/card.js";
 import { emitSignal } from "../packages/mcp-server/src/signals/emit.js";
+import {
+  parseHatTurn,
+  parseSynthesis,
+  type HatTurnV1,
+  type SynthesisV1,
+} from "../packages/mcp-server/src/crews/schemas.js";
 import { streamText, tool, stepCountIs, convertToModelMessages, type UIMessage, type ModelMessage } from "ai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
@@ -237,6 +243,347 @@ async function ensureStarterCrews(
     ignoreDuplicates: true,
   });
   if (error) throw error;
+}
+
+// ─── Crews v1 inline-loop engine helpers ───────────────────────────────────
+//
+// The user's chat model owns all cognition (hats + synthesis). UnClick owns
+// orchestration: it builds persona prompts, persists structured turns, and
+// returns the next prompt or the synthesis brief. Server-side LLM calls are
+// out of scope for v1.
+
+const CREW_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const CREW_QUALITY_NOTE =
+  "Crews quality depends on the model you are using in your chat client. " +
+  "For deeper decisions, use Claude Sonnet 4.6, GPT-5, or Gemini 2.5 Pro. " +
+  "On smaller models, synthesis may be rougher.";
+
+const CREW_STATES = ["in_progress", "awaiting_synthesis", "complete", "incomplete"] as const;
+type CrewState = (typeof CREW_STATES)[number];
+
+type CrewHat = {
+  hat_id: string;
+  hat_name: string;
+  hat_slug: string;
+  persona_seed: string;
+  hook: string;
+};
+
+type CrewRunRow = {
+  id: string;
+  api_key_hash: string;
+  crew_id: string | null;
+  task_prompt: string;
+  status: string;
+  state: CrewState;
+  current_hat_index: number;
+  total_hats: number;
+  hat_responses: Array<Record<string, unknown>>;
+  synthesis_recorded: boolean;
+  synthesis_verdict: Record<string, unknown> | null;
+  result_artifact: Record<string, unknown> | null;
+  task_id: string | null;
+  created_at: string;
+  completed_at: string | null;
+};
+
+async function loadCrewRun(
+  supabase: SupabaseClient,
+  apiKeyHash: string,
+  runId: string,
+): Promise<CrewRunRow | null> {
+  const { data, error } = await supabase
+    .from("mc_crew_runs")
+    .select("*")
+    .eq("id", runId)
+    .eq("api_key_hash", apiKeyHash)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return data as CrewRunRow;
+}
+
+async function resolveCrewHats(
+  supabase: SupabaseClient,
+  crewId: string,
+  apiKeyHash: string,
+): Promise<CrewHat[]> {
+  const { data: crew, error: crewErr } = await supabase
+    .from("mc_crews")
+    .select("agent_ids")
+    .eq("id", crewId)
+    .eq("api_key_hash", apiKeyHash)
+    .maybeSingle();
+  if (crewErr) throw crewErr;
+  const agentIds = ((crew as { agent_ids?: string[] } | null)?.agent_ids ?? []).filter(Boolean);
+  if (agentIds.length === 0) return [];
+  const { data: agents, error: agentErr } = await supabase
+    .from("mc_agents")
+    .select("id,slug,name,seed_prompt,hook")
+    .in("id", agentIds);
+  if (agentErr) throw agentErr;
+  const byId = new Map<string, { id: string; slug: string; name: string; seed_prompt: string | null; hook: string }>();
+  for (const row of (agents ?? []) as Array<{ id: string; slug: string; name: string; seed_prompt: string | null; hook: string }>) {
+    byId.set(row.id, row);
+  }
+  // Preserve the order the user composed the crew in. Skip any agent_id
+  // that no longer resolves (e.g. system agent removed).
+  const ordered: CrewHat[] = [];
+  for (const id of agentIds) {
+    const a = byId.get(id);
+    if (!a) continue;
+    ordered.push({
+      hat_id: a.id,
+      hat_name: a.name,
+      hat_slug: a.slug,
+      persona_seed: (a.seed_prompt ?? "").trim(),
+      hook: (a.hook ?? "").trim(),
+    });
+  }
+  return ordered;
+}
+
+function buildHatPersonaPrompt(
+  hat: CrewHat,
+  opts: {
+    user_goal: string;
+    hat_index: number;
+    total_hats: number;
+    run_id: string;
+    retry_error?: string | null;
+    context?: string | null;
+  },
+): string {
+  const persona = hat.persona_seed
+    ? hat.persona_seed
+    : `${hat.hook} Voice the ${hat.hat_name} perspective faithfully and stay in character.`;
+  const lines: string[] = [
+    `You are wearing the ${hat.hat_name} hat for a Crews Council deliberation.`,
+    `This is hat ${opts.hat_index + 1} of ${opts.total_hats}.`,
+    "",
+    "Persona:",
+    persona,
+    "",
+    "User's goal:",
+    opts.user_goal,
+  ];
+  if (opts.context && opts.context.trim()) {
+    lines.push("", "Additional context:", opts.context.trim());
+  }
+  lines.push(
+    "",
+    "Speak from this persona's perspective. Stay in character. Be specific.",
+    "",
+    "Reply with a JSON object that matches this schema (HatTurnV1):",
+    "{",
+    `  "hat_id": "${hat.hat_id}",`,
+    `  "hat_name": ${JSON.stringify(hat.hat_name)},`,
+    '  "key_points": ["...", "..."],   // at least one short statement',
+    '  "confidence": "low" | "medium" | "high",',
+    '  "risks": ["..."],                // may be empty array',
+    '  "dissent": "..." | null          // strongest counter from this hat, or null',
+    "}",
+    "",
+    `Then call crew_record_hat_response with run_id="${opts.run_id}", hat_index=${opts.hat_index}, response_json=<the JSON object above>.`,
+  );
+  if (opts.retry_error) {
+    lines.push(
+      "",
+      "Your previous response failed validation. Validator error:",
+      opts.retry_error,
+      "Fix the error and submit a single, complete JSON object that matches the schema. This is your only retry; a second failure marks the run incomplete.",
+    );
+  }
+  return lines.join("\n");
+}
+
+function buildSynthesisBrief(opts: {
+  user_goal: string;
+  hat_responses: Array<Record<string, unknown>>;
+  hat_names: string[];
+  run_id: string;
+  retry_error?: string | null;
+}): string {
+  const lines: string[] = [
+    "You are now the synthesizer for this Crews Council deliberation.",
+    "",
+    "Original user goal:",
+    opts.user_goal,
+    "",
+    "Recorded hat responses (use ONLY these; do NOT invent new facts):",
+    JSON.stringify(opts.hat_responses, null, 2),
+    "",
+    "Tasks:",
+    "- Name the strongest agreement across hats",
+    "- Name the sharpest disagreement across hats",
+    "- Call out risks and unknowns",
+    "- Give a final recommendation",
+    "- Do not invent facts",
+    "",
+    "Reply with a JSON object that matches this schema (SynthesisV1):",
+    "{",
+    '  "verdict": "...",',
+    '  "key_decision": "...",',
+    '  "strongest_agreement": "...",',
+    '  "sharpest_disagreement": "...",',
+    '  "risks": ["..."],',
+    '  "unknowns": ["..."],',
+    '  "recommendation": "...",',
+    `  "hats_consulted": ${JSON.stringify(opts.hat_names)}`,
+    "}",
+    "",
+    `Then call crew_record_synthesis with run_id="${opts.run_id}", verdict_json=<the JSON object above>.`,
+  ];
+  if (opts.retry_error) {
+    lines.push(
+      "",
+      "Your previous synthesis failed validation. Validator error:",
+      opts.retry_error,
+      "Fix the error and submit a single, complete JSON object that matches the schema. This is your only retry; a second failure marks the run incomplete.",
+    );
+  }
+  return lines.join("\n");
+}
+
+// Per-slot retry counter, tracked in result_artifact so we don't add columns.
+// Slot key is "hat:{n}" for hat parses or "synthesis" for synthesis parses.
+function getCrewRetryCount(run: CrewRunRow, slot: string): number {
+  const failures = (run.result_artifact?.parse_failures ?? {}) as Record<string, number>;
+  const n = failures[slot];
+  return typeof n === "number" && Number.isFinite(n) ? n : 0;
+}
+
+function bumpedParseFailures(run: CrewRunRow, slot: string): Record<string, unknown> {
+  const prev = (run.result_artifact ?? {}) as Record<string, unknown>;
+  const failures = { ...((prev.parse_failures ?? {}) as Record<string, number>) };
+  failures[slot] = (failures[slot] ?? 0) + 1;
+  return { ...prev, parse_failures: failures };
+}
+
+function buildCrewHatCard(opts: {
+  run_id: string;
+  was_duplicate?: boolean;
+  hat_index: number;
+  total_hats: number;
+  hat_name: string;
+  prompt: string;
+  retry?: boolean;
+}): ConversationalCard {
+  const headlineBase = opts.was_duplicate
+    ? "Crews run resumed (duplicate task_id)"
+    : opts.retry
+      ? `Hat ${opts.hat_index + 1}/${opts.total_hats} — retry required`
+      : opts.hat_index === 0
+        ? `Crews run started — hat 1/${opts.total_hats}`
+        : `Hat ${opts.hat_index + 1}/${opts.total_hats}: ${opts.hat_name}`;
+  return buildCard({
+    headline: headlineBase,
+    summary: opts.prompt,
+    keyFacts: [
+      `run_id: ${opts.run_id}`,
+      `hat_index: ${opts.hat_index}`,
+      `hat_name: ${opts.hat_name}`,
+      `total_hats: ${opts.total_hats}`,
+      ...(opts.was_duplicate ? ["was_duplicate: true"] : []),
+      ...(opts.retry ? ["retry: true"] : []),
+    ],
+    nextActions: [
+      `Compose the JSON HatTurnV1 response shown in the summary, then call crew_record_hat_response with run_id="${opts.run_id}", hat_index=${opts.hat_index}.`,
+    ],
+    deepLink: `/admin/crews/runs/${opts.run_id}`,
+    quality_note: CREW_QUALITY_NOTE,
+  });
+}
+
+function buildCrewSynthesisCard(opts: {
+  run_id: string;
+  brief: string;
+  total_hats: number;
+  retry?: boolean;
+}): ConversationalCard {
+  return buildCard({
+    headline: opts.retry
+      ? "Synthesis retry required"
+      : "Synthesis brief ready — produce the final verdict",
+    summary: opts.brief,
+    keyFacts: [
+      `run_id: ${opts.run_id}`,
+      `total_hats: ${opts.total_hats}`,
+      `state: awaiting_synthesis`,
+      ...(opts.retry ? ["retry: true"] : []),
+    ],
+    nextActions: [
+      `Compose the JSON SynthesisV1 verdict shown in the summary, then call crew_record_synthesis with run_id="${opts.run_id}".`,
+    ],
+    deepLink: `/admin/crews/runs/${opts.run_id}`,
+    quality_note: CREW_QUALITY_NOTE,
+  });
+}
+
+function buildCrewCompleteCard(run: CrewRunRow, hatNames: string[]): ConversationalCard {
+  return buildCard({
+    headline: "Crews deliberation complete",
+    summary:
+      "All hats have been recorded and the synthesizer's verdict has been persisted. The audit trail is on the run page.",
+    keyFacts: [
+      `run_id: ${run.id}`,
+      `state: complete`,
+      `hats_consulted: ${hatNames.join(", ")}`,
+    ],
+    nextActions: [
+      "Open the admin run page to review the verdict and audit trail",
+      "Call crew_status to fetch the verdict programmatically",
+    ],
+    deepLink: `/admin/crews/runs/${run.id}`,
+    quality_note: CREW_QUALITY_NOTE,
+  });
+}
+
+function buildCrewIncompleteCard(run: CrewRunRow, reason: string): ConversationalCard {
+  return buildCard({
+    headline: "Crews run marked incomplete",
+    summary: `The run was halted because ${reason}.`,
+    keyFacts: [
+      `run_id: ${run.id}`,
+      `state: incomplete`,
+      `current_hat_index: ${run.current_hat_index}`,
+      `hats_recorded: ${run.hat_responses.length}/${run.total_hats}`,
+    ],
+    nextActions: [
+      "Inspect the run on the admin page",
+      "Start a fresh run with crew_begin once the issue is understood",
+    ],
+    deepLink: `/admin/crews/runs/${run.id}`,
+    quality_note: CREW_QUALITY_NOTE,
+  });
+}
+
+function deriveCrewHatsFromArtifact(run: CrewRunRow): CrewHat[] {
+  const stored = run.result_artifact?.hats;
+  if (!Array.isArray(stored)) return [];
+  return stored
+    .filter((h): h is Record<string, unknown> => h !== null && typeof h === "object")
+    .map((h) => ({
+      hat_id: String(h.hat_id ?? ""),
+      hat_name: String(h.hat_name ?? ""),
+      hat_slug: String(h.hat_slug ?? ""),
+      persona_seed: String(h.persona_seed ?? ""),
+      hook: String(h.hook ?? ""),
+    }))
+    .filter((h) => h.hat_id && h.hat_name);
+}
+
+function deriveCrewGoal(run: CrewRunRow): string {
+  const stored = run.result_artifact?.user_goal;
+  if (typeof stored === "string" && stored.trim()) return stored.trim();
+  return run.task_prompt;
+}
+
+function deriveCrewContext(run: CrewRunRow): string | null {
+  const stored = run.result_artifact?.context;
+  if (typeof stored === "string" && stored.trim()) return stored.trim();
+  return null;
 }
 
 function deriveKey(apiKey: string, salt: Buffer): Buffer {
@@ -5232,123 +5579,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       // ─── Phase C: Crew run actions ─────────────────────────────────────────
-
-      case "start_crew_run": {
-        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
-        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
-        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
-        await ensureStarterCrews(supabase, apiKeyHash);
-        const { crew_id, task_prompt, token_budget, task_id } = (req.body ?? {}) as {
-          crew_id?: string;
-          task_prompt?: string;
-          token_budget?: number;
-          task_id?: string;
-        };
-        if (!crew_id || !task_prompt?.trim()) {
-          return res.status(400).json({ error: "crew_id and task_prompt required" });
-        }
-        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        let normalizedTaskId: string | undefined;
-        if (task_id !== undefined && task_id !== null && task_id !== "") {
-          if (typeof task_id !== "string" || !UUID_RE.test(task_id)) {
-            return res.status(400).json({ error: "task_id must be a UUID (v1-v5, recommended v5)" });
-          }
-          normalizedTaskId = task_id.toLowerCase();
-        }
-        const { data: crewRow, error: crewErr } = await supabase
-          .from("mc_crews")
-          .select("id")
-          .eq("id", crew_id)
-          .eq("api_key_hash", apiKeyHash)
-          .maybeSingle();
-        if (crewErr) throw crewErr;
-        if (!crewRow) {
-          return res.status(404).json({ error: "crew_id not found for tenant" });
-        }
-        // User-facing runs now route LLM traffic through MCP sampling. The HTTP
-        // path cannot do bidirectional sampling, so we create the run row for
-        // bookkeeping and return a card asking the caller to re-run via MCP.
-        const insertPayload: Record<string, unknown> = {
-          api_key_hash: apiKeyHash,
-          crew_id,
-          task_prompt: task_prompt.trim(),
-          token_budget: token_budget ?? 150000,
-          status: "failed",
-          result_artifact: {
-            error: "SAMPLING_NOT_SUPPORTED",
-            message:
-              "Orchestrator does not support sampling. Use Claude Desktop or another sampling-capable client.",
-          },
-          completed_at: new Date().toISOString(),
-        };
-        if (normalizedTaskId) insertPayload.task_id = normalizedTaskId;
-        const { data: runRow, error: runErr } = await supabase
-          .from("mc_crew_runs")
-          .insert(insertPayload)
-          .select()
-          .single();
-        // 23505 = unique_violation against (api_key_hash, task_id) partial index.
-        // Look up the original row, return it with was_duplicate=true so the
-        // caller can short-circuit duplicate dispatch (MCP SEP-1686).
-        let resolvedRunId: string;
-        let wasDuplicate = false;
-        if (runErr) {
-          const errCode = (runErr as { code?: string }).code;
-          if (normalizedTaskId && errCode === "23505") {
-            // STALE_RUN check intentionally omitted — relies on synchronous handler invariant.
-            // If a runner is ever made async, add a `last_heartbeat`-based stale-run gate here
-            // before returning was_duplicate=true on a still-running task_id.
-            const { data: existing } = await supabase
-              .from("mc_crew_runs")
-              .select("id")
-              .eq("api_key_hash", apiKeyHash)
-              .eq("task_id", normalizedTaskId)
-              .maybeSingle();
-            if (existing?.id) {
-              console.log(
-                `[duplicate_dispatch_avoided] table=mc_crew_runs task_id=${normalizedTaskId} run_id=${existing.id}`,
-              );
-              resolvedRunId = existing.id;
-              wasDuplicate = true;
-            } else {
-              throw runErr;
-            }
-          } else {
-            throw runErr;
-          }
-        } else {
-          resolvedRunId = runRow.id;
-        }
-        const card: ConversationalCard = buildCard({
-          headline: wasDuplicate
-            ? "Crews Council run already created"
-            : "Crews Council run needs MCP sampling",
-          summary: wasDuplicate
-            ? "A run with this task_id already exists for your tenant. Returning the original run_id; no new row was created."
-            : "This HTTP endpoint cannot run a Council round because LLM traffic now flows through MCP sampling. Start the run from a sampling-capable client (e.g. Claude Desktop) using the start_crew_run MCP tool.",
-          keyFacts: [
-            `run_id: ${resolvedRunId}`,
-            `crew_id: ${crew_id}`,
-            ...(wasDuplicate
-              ? ["was_duplicate: true"]
-              : ["status: failed (SAMPLING_NOT_SUPPORTED)"]),
-          ],
-          nextActions: wasDuplicate
-            ? ["Call get_run with the run_id to inspect the original run"]
-            : [
-                "Install the UnClick MCP server in a sampling-capable client",
-                "Call the start_crew_run MCP tool with the same crew_id and task_prompt",
-              ],
-          deepLink: `/admin/crews/runs/${resolvedRunId}`,
-        });
-        return res.status(wasDuplicate ? 200 : 409).json({
-          error: wasDuplicate ? undefined : "SAMPLING_NOT_SUPPORTED",
-          run_id: resolvedRunId,
-          was_duplicate: wasDuplicate,
-          task_id: normalizedTaskId ?? null,
-          card,
-        });
-      }
+      // start_crew_run shares its body with crew_begin via the case fall-through
+      // below. The case label is preserved for backwards compatibility with the
+      // pre-v1 SAMPLING_NOT_SUPPORTED stub.
 
       case "get_run": {
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
@@ -5495,14 +5728,812 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ],
           nextActions:
             rows.length === 0
-              ? ["Call start_crew_run via MCP to kick off your first run"]
+              ? ["Call crew_begin to kick off your first run"]
               : [
                   "Call get_run with a run_id to inspect a specific run",
-                  "Call start_crew_run via MCP to start a new one",
+                  "Call crew_begin to start a new one",
                 ],
           deepLink: "/admin/crews/runs",
         });
         return res.status(200).json({ data: rows, card });
+      }
+
+      // ─── Crews v1 inline-loop engine actions ────────────────────────────
+      //
+      // The user's chat model handles all cognition. UnClick orchestrates,
+      // persists structured turns, and serves the next prompt. No server-side
+      // LLM calls. crew_begin and start_crew_run share the same body via case
+      // fall-through; the legacy tool name is preserved for backwards compat.
+
+      case "crew_begin":
+      case "start_crew_run": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        await ensureStarterCrews(supabase, apiKeyHash);
+        const reqBody = (req.body ?? {}) as {
+          crew_id?: string;
+          task_prompt?: string;
+          user_goal?: string;
+          context?: string;
+          token_budget?: number;
+          task_id?: string;
+        };
+        const crewId = String(reqBody.crew_id ?? "").trim();
+        const goal = String(reqBody.user_goal ?? reqBody.task_prompt ?? "").trim();
+        const context =
+          reqBody.context && String(reqBody.context).trim()
+            ? String(reqBody.context).trim()
+            : null;
+        if (!crewId) return res.status(400).json({ error: "crew_id required" });
+        if (!goal) return res.status(400).json({ error: "user_goal (or task_prompt) required" });
+
+        let normalizedTaskId: string | undefined;
+        if (reqBody.task_id !== undefined && reqBody.task_id !== null && reqBody.task_id !== "") {
+          if (typeof reqBody.task_id !== "string" || !CREW_UUID_RE.test(reqBody.task_id)) {
+            return res
+              .status(400)
+              .json({ error: "task_id must be a UUID (v1-v5, recommended v5)" });
+          }
+          normalizedTaskId = reqBody.task_id.toLowerCase();
+        }
+
+        // Idempotency lookup before insert: resume the existing run rather than
+        // racing to a 23505 on the partial unique index.
+        if (normalizedTaskId) {
+          const { data: existing } = await supabase
+            .from("mc_crew_runs")
+            .select("*")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("task_id", normalizedTaskId)
+            .maybeSingle();
+          if (existing) {
+            const existingRow = existing as CrewRunRow;
+            const existingHats = deriveCrewHatsFromArtifact(existingRow);
+            if (existingRow.state === "complete") {
+              return res.status(200).json({
+                run_id: existingRow.id,
+                was_duplicate: true,
+                state: existingRow.state,
+                card: buildCrewCompleteCard(
+                  existingRow,
+                  existingHats.map((h) => h.hat_name),
+                ),
+              });
+            }
+            if (existingRow.state === "incomplete") {
+              return res.status(200).json({
+                run_id: existingRow.id,
+                was_duplicate: true,
+                state: existingRow.state,
+                card: buildCrewIncompleteCard(existingRow, "the run was previously halted"),
+              });
+            }
+            if (
+              existingRow.state === "awaiting_synthesis" ||
+              existingRow.current_hat_index >= existingRow.total_hats
+            ) {
+              const brief = buildSynthesisBrief({
+                user_goal: deriveCrewGoal(existingRow),
+                hat_responses: existingRow.hat_responses,
+                hat_names: existingHats.map((h) => h.hat_name),
+                run_id: existingRow.id,
+              });
+              return res.status(200).json({
+                run_id: existingRow.id,
+                was_duplicate: true,
+                state: "awaiting_synthesis",
+                card: buildCrewSynthesisCard({
+                  run_id: existingRow.id,
+                  brief,
+                  total_hats: existingRow.total_hats,
+                }),
+              });
+            }
+            const resumeHat = existingHats[existingRow.current_hat_index];
+            if (resumeHat) {
+              const prompt = buildHatPersonaPrompt(resumeHat, {
+                user_goal: deriveCrewGoal(existingRow),
+                hat_index: existingRow.current_hat_index,
+                total_hats: existingRow.total_hats,
+                run_id: existingRow.id,
+                context: deriveCrewContext(existingRow),
+              });
+              return res.status(200).json({
+                run_id: existingRow.id,
+                was_duplicate: true,
+                state: existingRow.state,
+                card: buildCrewHatCard({
+                  run_id: existingRow.id,
+                  was_duplicate: true,
+                  hat_index: existingRow.current_hat_index,
+                  total_hats: existingRow.total_hats,
+                  hat_name: resumeHat.hat_name,
+                  prompt,
+                }),
+              });
+            }
+            return res.status(200).json({
+              run_id: existingRow.id,
+              was_duplicate: true,
+              state: existingRow.state,
+              card: buildCrewIncompleteCard(
+                existingRow,
+                "the crew's hats could no longer be resolved",
+              ),
+            });
+          }
+        }
+
+        const { data: crewRow, error: crewErr } = await supabase
+          .from("mc_crews")
+          .select("id")
+          .eq("id", crewId)
+          .eq("api_key_hash", apiKeyHash)
+          .maybeSingle();
+        if (crewErr) throw crewErr;
+        if (!crewRow) {
+          return res.status(404).json({ error: "crew_id not found for tenant" });
+        }
+
+        const hats = await resolveCrewHats(supabase, crewId, apiKeyHash);
+        if (hats.length === 0) {
+          return res.status(400).json({
+            error:
+              "Crew has no resolvable hats (agents). Add at least one agent before starting a run.",
+          });
+        }
+
+        const tokenBudget =
+          typeof reqBody.token_budget === "number" ? reqBody.token_budget : 150000;
+        const insertPayload: Record<string, unknown> = {
+          api_key_hash: apiKeyHash,
+          crew_id: crewId,
+          task_prompt: goal,
+          status: "running",
+          state: "in_progress",
+          token_budget: tokenBudget,
+          current_hat_index: 0,
+          total_hats: hats.length,
+          hat_responses: [],
+          synthesis_recorded: false,
+          started_at: new Date().toISOString(),
+          result_artifact: {
+            engine: "crews_v1_inline_loop",
+            user_goal: goal,
+            context,
+            hats: hats.map((h) => ({
+              hat_id: h.hat_id,
+              hat_name: h.hat_name,
+              hat_slug: h.hat_slug,
+              persona_seed: h.persona_seed,
+              hook: h.hook,
+            })),
+            parse_failures: {},
+          },
+        };
+        if (normalizedTaskId) insertPayload.task_id = normalizedTaskId;
+
+        const { data: runRow, error: runErr } = await supabase
+          .from("mc_crew_runs")
+          .insert(insertPayload)
+          .select()
+          .single();
+
+        let resolvedRow: CrewRunRow;
+        let wasDuplicate = false;
+        if (runErr) {
+          const errCode = (runErr as { code?: string }).code;
+          if (normalizedTaskId && errCode === "23505") {
+            const { data: existing } = await supabase
+              .from("mc_crew_runs")
+              .select("*")
+              .eq("api_key_hash", apiKeyHash)
+              .eq("task_id", normalizedTaskId)
+              .maybeSingle();
+            if (!existing) throw runErr;
+            console.log(
+              `[duplicate_dispatch_avoided] table=mc_crew_runs task_id=${normalizedTaskId} run_id=${(existing as { id: string }).id}`,
+            );
+            resolvedRow = existing as CrewRunRow;
+            wasDuplicate = true;
+          } else {
+            throw runErr;
+          }
+        } else {
+          resolvedRow = runRow as CrewRunRow;
+        }
+
+        const startingHats = wasDuplicate ? deriveCrewHatsFromArtifact(resolvedRow) : hats;
+        const startingHat =
+          startingHats[resolvedRow.current_hat_index] ?? startingHats[0] ?? hats[0];
+        const totalHats = resolvedRow.total_hats || hats.length;
+        const prompt = buildHatPersonaPrompt(startingHat, {
+          user_goal: goal,
+          hat_index: resolvedRow.current_hat_index,
+          total_hats: totalHats,
+          run_id: resolvedRow.id,
+          context,
+        });
+        return res.status(200).json({
+          run_id: resolvedRow.id,
+          was_duplicate: wasDuplicate,
+          state: resolvedRow.state,
+          total_hats: totalHats,
+          hat_index: resolvedRow.current_hat_index,
+          task_id: normalizedTaskId ?? null,
+          card: buildCrewHatCard({
+            run_id: resolvedRow.id,
+            was_duplicate: wasDuplicate,
+            hat_index: resolvedRow.current_hat_index,
+            total_hats: totalHats,
+            hat_name: startingHat.hat_name,
+            prompt,
+          }),
+        });
+      }
+
+      case "crew_get_next_hat": {
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const runId = String(
+          req.query.run_id ?? (req.body as { run_id?: string })?.run_id ?? "",
+        ).trim();
+        if (!runId) return res.status(400).json({ error: "run_id required" });
+        const run = await loadCrewRun(supabase, apiKeyHash, runId);
+        if (!run) return res.status(404).json({ error: "run not found for tenant" });
+
+        const hats = deriveCrewHatsFromArtifact(run);
+        if (run.state === "complete") {
+          return res.status(200).json({
+            run_id: run.id,
+            state: run.state,
+            card: buildCrewCompleteCard(run, hats.map((h) => h.hat_name)),
+          });
+        }
+        if (run.state === "incomplete") {
+          return res.status(200).json({
+            run_id: run.id,
+            state: run.state,
+            card: buildCrewIncompleteCard(run, "the run was previously halted"),
+          });
+        }
+        if (
+          run.state === "awaiting_synthesis" ||
+          run.current_hat_index >= run.total_hats
+        ) {
+          const brief = buildSynthesisBrief({
+            user_goal: deriveCrewGoal(run),
+            hat_responses: run.hat_responses,
+            hat_names: hats.map((h) => h.hat_name),
+            run_id: run.id,
+          });
+          return res.status(200).json({
+            run_id: run.id,
+            state: "awaiting_synthesis",
+            total_hats: run.total_hats,
+            card: buildCrewSynthesisCard({
+              run_id: run.id,
+              brief,
+              total_hats: run.total_hats,
+            }),
+          });
+        }
+        const hat = hats[run.current_hat_index];
+        if (!hat) {
+          return res
+            .status(500)
+            .json({ error: "hat snapshot missing for current_hat_index; run may be corrupt" });
+        }
+        const prompt = buildHatPersonaPrompt(hat, {
+          user_goal: deriveCrewGoal(run),
+          hat_index: run.current_hat_index,
+          total_hats: run.total_hats,
+          run_id: run.id,
+          context: deriveCrewContext(run),
+        });
+        return res.status(200).json({
+          run_id: run.id,
+          state: run.state,
+          hat_index: run.current_hat_index,
+          total_hats: run.total_hats,
+          card: buildCrewHatCard({
+            run_id: run.id,
+            hat_index: run.current_hat_index,
+            total_hats: run.total_hats,
+            hat_name: hat.hat_name,
+            prompt,
+          }),
+        });
+      }
+
+      case "crew_record_hat_response": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const reqBody = (req.body ?? {}) as {
+          run_id?: string;
+          hat_index?: number;
+          response_json?: unknown;
+        };
+        const runId = String(reqBody.run_id ?? "").trim();
+        if (!runId) return res.status(400).json({ error: "run_id required" });
+        const hatIndex = Number(reqBody.hat_index);
+        if (!Number.isInteger(hatIndex) || hatIndex < 0) {
+          return res.status(400).json({ error: "hat_index must be a non-negative integer" });
+        }
+        if (reqBody.response_json === undefined) {
+          return res.status(400).json({ error: "response_json required" });
+        }
+
+        const run = await loadCrewRun(supabase, apiKeyHash, runId);
+        if (!run) return res.status(404).json({ error: "run not found for tenant" });
+        if (run.state === "complete" || run.state === "incomplete") {
+          return res.status(409).json({
+            error: `cannot record hat response when run state is ${run.state}`,
+            state: run.state,
+          });
+        }
+        if (hatIndex !== run.current_hat_index) {
+          return res.status(409).json({
+            error: `hat_index ${hatIndex} does not match current_hat_index ${run.current_hat_index}`,
+            expected_hat_index: run.current_hat_index,
+          });
+        }
+
+        const hats = deriveCrewHatsFromArtifact(run);
+        const slot = `hat:${hatIndex}`;
+        const parsed = parseHatTurn(reqBody.response_json);
+
+        if (!parsed.ok) {
+          const prevRetries = getCrewRetryCount(run, slot);
+          const newArtifactBase = bumpedParseFailures(run, slot);
+          if (prevRetries >= 1) {
+            const { error: updErr } = await supabase
+              .from("mc_crew_runs")
+              .update({
+                state: "incomplete",
+                status: "failed",
+                completed_at: new Date().toISOString(),
+                result_artifact: { ...newArtifactBase, last_parse_error: parsed.error },
+              })
+              .eq("id", run.id)
+              .eq("api_key_hash", apiKeyHash);
+            if (updErr) throw updErr;
+            const halted: CrewRunRow = { ...run, state: "incomplete" };
+            return res.status(200).json({
+              run_id: run.id,
+              state: "incomplete",
+              parse_error: parsed.error,
+              card: buildCrewIncompleteCard(
+                halted,
+                `validation failed twice for hat ${hatIndex} (${parsed.error})`,
+              ),
+            });
+          }
+          const { error: updErr } = await supabase
+            .from("mc_crew_runs")
+            .update({
+              result_artifact: { ...newArtifactBase, last_parse_error: parsed.error },
+            })
+            .eq("id", run.id)
+            .eq("api_key_hash", apiKeyHash);
+          if (updErr) throw updErr;
+          const hat = hats[hatIndex];
+          if (!hat) {
+            return res
+              .status(500)
+              .json({ error: "hat snapshot missing for current_hat_index; run may be corrupt" });
+          }
+          const prompt = buildHatPersonaPrompt(hat, {
+            user_goal: deriveCrewGoal(run),
+            hat_index: hatIndex,
+            total_hats: run.total_hats,
+            run_id: run.id,
+            context: deriveCrewContext(run),
+            retry_error: parsed.error,
+          });
+          return res.status(400).json({
+            run_id: run.id,
+            state: run.state,
+            parse_error: parsed.error,
+            card: buildCrewHatCard({
+              run_id: run.id,
+              hat_index: hatIndex,
+              total_hats: run.total_hats,
+              hat_name: hat.hat_name,
+              prompt,
+              retry: true,
+            }),
+          });
+        }
+
+        const validatedTurn: HatTurnV1 = parsed.value;
+        const updatedHatResponses = [
+          ...run.hat_responses,
+          validatedTurn as unknown as Record<string, unknown>,
+        ];
+        const nextIndex = run.current_hat_index + 1;
+        const isFinalHat = nextIndex >= run.total_hats;
+        const newState: CrewState = isFinalHat ? "awaiting_synthesis" : "in_progress";
+
+        const newArtifact: Record<string, unknown> = {
+          ...((run.result_artifact ?? {}) as Record<string, unknown>),
+        };
+        if (newArtifact.parse_failures && typeof newArtifact.parse_failures === "object") {
+          const failures = { ...(newArtifact.parse_failures as Record<string, number>) };
+          delete failures[slot];
+          newArtifact.parse_failures = failures;
+        }
+        delete newArtifact.last_parse_error;
+
+        const { data: updated, error: updErr } = await supabase
+          .from("mc_crew_runs")
+          .update({
+            hat_responses: updatedHatResponses,
+            current_hat_index: nextIndex,
+            state: newState,
+            result_artifact: newArtifact,
+          })
+          .eq("id", run.id)
+          .eq("api_key_hash", apiKeyHash)
+          .select()
+          .single();
+        if (updErr) throw updErr;
+        const refreshed = updated as CrewRunRow;
+
+        if (isFinalHat) {
+          const brief = buildSynthesisBrief({
+            user_goal: deriveCrewGoal(refreshed),
+            hat_responses: refreshed.hat_responses,
+            hat_names: hats.map((h) => h.hat_name),
+            run_id: refreshed.id,
+          });
+          return res.status(200).json({
+            run_id: refreshed.id,
+            state: refreshed.state,
+            hat_index: refreshed.current_hat_index,
+            total_hats: refreshed.total_hats,
+            hats_done: refreshed.hat_responses.length,
+            card: buildCrewSynthesisCard({
+              run_id: refreshed.id,
+              brief,
+              total_hats: refreshed.total_hats,
+            }),
+          });
+        }
+
+        const nextHat = hats[nextIndex];
+        if (!nextHat) {
+          return res
+            .status(500)
+            .json({ error: "hat snapshot missing for next_hat_index; run may be corrupt" });
+        }
+        const prompt = buildHatPersonaPrompt(nextHat, {
+          user_goal: deriveCrewGoal(refreshed),
+          hat_index: nextIndex,
+          total_hats: refreshed.total_hats,
+          run_id: refreshed.id,
+          context: deriveCrewContext(refreshed),
+        });
+        return res.status(200).json({
+          run_id: refreshed.id,
+          state: refreshed.state,
+          hat_index: refreshed.current_hat_index,
+          total_hats: refreshed.total_hats,
+          hats_done: refreshed.hat_responses.length,
+          card: buildCrewHatCard({
+            run_id: refreshed.id,
+            hat_index: refreshed.current_hat_index,
+            total_hats: refreshed.total_hats,
+            hat_name: nextHat.hat_name,
+            prompt,
+          }),
+        });
+      }
+
+      case "crew_get_synthesis_brief": {
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const runId = String(
+          req.query.run_id ?? (req.body as { run_id?: string })?.run_id ?? "",
+        ).trim();
+        if (!runId) return res.status(400).json({ error: "run_id required" });
+        const run = await loadCrewRun(supabase, apiKeyHash, runId);
+        if (!run) return res.status(404).json({ error: "run not found for tenant" });
+
+        const hats = deriveCrewHatsFromArtifact(run);
+        if (run.state === "complete") {
+          return res.status(200).json({
+            run_id: run.id,
+            state: run.state,
+            card: buildCrewCompleteCard(run, hats.map((h) => h.hat_name)),
+          });
+        }
+        if (run.state === "incomplete") {
+          return res.status(200).json({
+            run_id: run.id,
+            state: run.state,
+            card: buildCrewIncompleteCard(run, "the run was previously halted"),
+          });
+        }
+        if (run.hat_responses.length < run.total_hats) {
+          return res.status(409).json({
+            error: `not all hats have been recorded (${run.hat_responses.length}/${run.total_hats}); call crew_get_next_hat to fetch the next hat prompt`,
+            hats_done: run.hat_responses.length,
+            total_hats: run.total_hats,
+          });
+        }
+        const brief = buildSynthesisBrief({
+          user_goal: deriveCrewGoal(run),
+          hat_responses: run.hat_responses,
+          hat_names: hats.map((h) => h.hat_name),
+          run_id: run.id,
+        });
+        return res.status(200).json({
+          run_id: run.id,
+          state: "awaiting_synthesis",
+          total_hats: run.total_hats,
+          card: buildCrewSynthesisCard({
+            run_id: run.id,
+            brief,
+            total_hats: run.total_hats,
+          }),
+        });
+      }
+
+      case "crew_record_synthesis": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const reqBody = (req.body ?? {}) as { run_id?: string; verdict_json?: unknown };
+        const runId = String(reqBody.run_id ?? "").trim();
+        if (!runId) return res.status(400).json({ error: "run_id required" });
+        if (reqBody.verdict_json === undefined) {
+          return res.status(400).json({ error: "verdict_json required" });
+        }
+
+        const run = await loadCrewRun(supabase, apiKeyHash, runId);
+        if (!run) return res.status(404).json({ error: "run not found for tenant" });
+        if (run.state === "complete") {
+          return res.status(409).json({
+            error: "synthesis already recorded for this run",
+            state: run.state,
+          });
+        }
+        if (run.state === "incomplete") {
+          return res.status(409).json({
+            error: "run is incomplete; cannot record synthesis",
+            state: run.state,
+          });
+        }
+        if (
+          run.hat_responses.length < run.total_hats ||
+          run.state !== "awaiting_synthesis"
+        ) {
+          return res.status(409).json({
+            error: `synthesis can only be recorded when all hats are done and state is awaiting_synthesis (current state: ${run.state})`,
+            hats_done: run.hat_responses.length,
+            total_hats: run.total_hats,
+          });
+        }
+
+        const slot = "synthesis";
+        const parsed = parseSynthesis(reqBody.verdict_json);
+        if (!parsed.ok) {
+          const prevRetries = getCrewRetryCount(run, slot);
+          const newArtifactBase = bumpedParseFailures(run, slot);
+          if (prevRetries >= 1) {
+            const { error: updErr } = await supabase
+              .from("mc_crew_runs")
+              .update({
+                state: "incomplete",
+                status: "failed",
+                completed_at: new Date().toISOString(),
+                result_artifact: { ...newArtifactBase, last_parse_error: parsed.error },
+              })
+              .eq("id", run.id)
+              .eq("api_key_hash", apiKeyHash);
+            if (updErr) throw updErr;
+            const halted: CrewRunRow = { ...run, state: "incomplete" };
+            return res.status(200).json({
+              run_id: run.id,
+              state: "incomplete",
+              parse_error: parsed.error,
+              card: buildCrewIncompleteCard(
+                halted,
+                `synthesis validation failed twice (${parsed.error})`,
+              ),
+            });
+          }
+          const { error: updErr } = await supabase
+            .from("mc_crew_runs")
+            .update({
+              result_artifact: { ...newArtifactBase, last_parse_error: parsed.error },
+            })
+            .eq("id", run.id)
+            .eq("api_key_hash", apiKeyHash);
+          if (updErr) throw updErr;
+          const hats = deriveCrewHatsFromArtifact(run);
+          const brief = buildSynthesisBrief({
+            user_goal: deriveCrewGoal(run),
+            hat_responses: run.hat_responses,
+            hat_names: hats.map((h) => h.hat_name),
+            run_id: run.id,
+            retry_error: parsed.error,
+          });
+          return res.status(400).json({
+            run_id: run.id,
+            state: run.state,
+            parse_error: parsed.error,
+            card: buildCrewSynthesisCard({
+              run_id: run.id,
+              brief,
+              total_hats: run.total_hats,
+              retry: true,
+            }),
+          });
+        }
+
+        const verdict: SynthesisV1 = parsed.value;
+        const newArtifact: Record<string, unknown> = {
+          ...((run.result_artifact ?? {}) as Record<string, unknown>),
+        };
+        if (newArtifact.parse_failures && typeof newArtifact.parse_failures === "object") {
+          const failures = { ...(newArtifact.parse_failures as Record<string, number>) };
+          delete failures[slot];
+          newArtifact.parse_failures = failures;
+        }
+        delete newArtifact.last_parse_error;
+
+        const { data: updated, error: updErr } = await supabase
+          .from("mc_crew_runs")
+          .update({
+            state: "complete",
+            status: "complete",
+            synthesis_recorded: true,
+            synthesis_verdict: verdict as unknown as Record<string, unknown>,
+            completed_at: new Date().toISOString(),
+            result_artifact: newArtifact,
+          })
+          .eq("id", run.id)
+          .eq("api_key_hash", apiKeyHash)
+          .select()
+          .single();
+        if (updErr) throw updErr;
+        const refreshed = updated as CrewRunRow;
+        const hats = deriveCrewHatsFromArtifact(refreshed);
+        return res.status(200).json({
+          run_id: refreshed.id,
+          state: refreshed.state,
+          synthesis_verdict: refreshed.synthesis_verdict,
+          hats_consulted: hats.map((h) => h.hat_name),
+          card: buildCrewCompleteCard(refreshed, hats.map((h) => h.hat_name)),
+        });
+      }
+
+      case "crew_status": {
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const runId = String(
+          req.query.run_id ?? (req.body as { run_id?: string })?.run_id ?? "",
+        ).trim();
+        if (!runId) return res.status(400).json({ error: "run_id required" });
+        const run = await loadCrewRun(supabase, apiKeyHash, runId);
+        if (!run) return res.status(404).json({ error: "run not found for tenant" });
+        const hats = deriveCrewHatsFromArtifact(run);
+        const card: ConversationalCard = buildCard({
+          headline: `Crews run state: ${run.state}`,
+          summary: deriveCrewGoal(run).slice(0, 240),
+          keyFacts: [
+            `run_id: ${run.id}`,
+            `state: ${run.state}`,
+            `current_hat_index: ${run.current_hat_index}`,
+            `total_hats: ${run.total_hats}`,
+            `hats_done: ${run.hat_responses.length}`,
+            `synthesis_recorded: ${run.synthesis_recorded}`,
+            ...(run.task_id ? [`task_id: ${run.task_id}`] : []),
+          ],
+          nextActions:
+            run.state === "complete"
+              ? ["Open the admin run page to review the verdict"]
+              : run.state === "incomplete"
+                ? [
+                    "Inspect the run on the admin page",
+                    "Start a fresh run with crew_begin",
+                  ]
+                : run.state === "awaiting_synthesis"
+                  ? [
+                      "Call crew_get_synthesis_brief to fetch the synthesizer prompt",
+                    ]
+                  : [
+                      "Call crew_get_next_hat to fetch the next hat persona prompt",
+                    ],
+          deepLink: `/admin/crews/runs/${run.id}`,
+          quality_note: CREW_QUALITY_NOTE,
+        });
+        return res.status(200).json({
+          run_id: run.id,
+          state: run.state,
+          current_hat_index: run.current_hat_index,
+          total_hats: run.total_hats,
+          hats_done: run.hat_responses.length,
+          synthesis_recorded: run.synthesis_recorded,
+          synthesis_verdict: run.synthesis_verdict,
+          hats: hats.map((h) => ({
+            hat_id: h.hat_id,
+            hat_name: h.hat_name,
+            hat_slug: h.hat_slug,
+          })),
+          card,
+        });
+      }
+
+      case "crew_capability_probe": {
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const reqBody = (req.body ?? {}) as {
+          agent_id?: string;
+          client_capabilities?: Record<string, unknown>;
+        };
+        const server_capabilities = {
+          crews_v1_inline_loop: true,
+          sampling_fallback: false,
+          elicitation_fallback: false,
+          hat_turn_schema: "HatTurnV1",
+          synthesis_schema: "SynthesisV1",
+          schema_version: 1,
+        };
+        let recorded: Record<string, unknown> | null = null;
+        if (
+          reqBody.client_capabilities &&
+          typeof reqBody.client_capabilities === "object" &&
+          reqBody.agent_id &&
+          typeof reqBody.agent_id === "string"
+        ) {
+          const agentId = reqBody.agent_id.trim();
+          if (agentId) {
+            const { data: profile, error: profErr } = await supabase
+              .from("mc_fishbowl_profiles")
+              .select("id")
+              .eq("api_key_hash", apiKeyHash)
+              .eq("agent_id", agentId)
+              .maybeSingle();
+            if (profErr) throw profErr;
+            if (profile?.id) {
+              const { error: updErr } = await supabase
+                .from("mc_fishbowl_profiles")
+                .update({
+                  client_capabilities: reqBody.client_capabilities,
+                  last_seen_at: new Date().toISOString(),
+                })
+                .eq("id", (profile as { id: string }).id);
+              if (updErr) throw updErr;
+              recorded = reqBody.client_capabilities;
+            }
+          }
+        }
+        const card = buildCard({
+          headline: "Capability probe",
+          summary:
+            "Server advertises Crews v1 inline-loop support. The chat agent (your model) does all cognition; UnClick orchestrates and persists.",
+          keyFacts: [
+            "crews_v1_inline_loop: true",
+            "sampling_fallback: false",
+            "hat_turn_schema: HatTurnV1",
+            "synthesis_schema: SynthesisV1",
+            ...(recorded ? ["client_capabilities: recorded"] : []),
+          ],
+          nextActions: [
+            "Optionally pass agent_id and client_capabilities (an arbitrary JSON object describing your client's features) to persist them on your fishbowl profile",
+            "Begin a Crews run with crew_begin",
+          ],
+        });
+        return res.status(200).json({
+          server_capabilities,
+          client_capabilities: recorded,
+          card,
+        });
       }
 
       // ─── TestPass run management (Phase 9A visual UI) ─────────────────────
