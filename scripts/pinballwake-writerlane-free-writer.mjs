@@ -60,6 +60,8 @@ export const WRITERLANE_EMPTY_COMPLETION = "writerlane_empty_completion";
 export const WRITERLANE_NO_FILE_CONTENTS = "writerlane_no_file_contents";
 export const WRITERLANE_NO_FREE_MODELS = "writerlane_no_free_models";
 export const WRITERLANE_FREE_CHAIN_EXHAUSTED = "writerlane_free_chain_exhausted";
+export const WRITERLANE_PATCH_APPLY_CHECK_FAILED = "writerlane_patch_apply_check_failed";
+export const WRITERLANE_PATCH_APPLY_FAILED = "writerlane_patch_apply_failed";
 
 export function createWriterLaneFreeWriterRunner({
   env = process.env,
@@ -147,73 +149,72 @@ export function createWriterLaneFreeWriterRunner({
       }
 
       const files = parseFileBlocks(completion.content, ownedFiles);
-      if (files.length === 0) {
-        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: WRITERLANE_NO_FILE_CONTENTS });
-        continue;
-      }
-
-      for (const file of files) {
-        await writeFileImpl({ cwd, path: file.path, content: ensureTrailingNewline(file.content) });
-      }
-
-      // REAL scoped test-run: after writing, before capture (capture reverts).
-      let testsPassed;
-      let testRunId;
-      let testExitCode = 0;
-      if (verification.length > 0) {
-        const testRun = await runScopedTests({ runProcess, cwd, env: safeEnv, commands: verification, timeoutMs: effectiveTimeout });
-        testsPassed = testRun.ok === true;
-        testRunId = testRun.test_run_id;
-        testExitCode = testRun.exit_code;
+      if (files.length > 0) {
+        for (const file of files) {
+          await writeFileImpl({ cwd, path: file.path, content: ensureTrailingNewline(file.content) });
+        }
       } else {
-        testsPassed = allowMissingTests === true;
-        testRunId = `writerlane-no-tests-${model.id}`;
-        testExitCode = allowMissingTests === true ? 0 : 1;
+        const modelPatch = extractUnifiedDiff(completion.content);
+        if (!modelPatch) {
+          attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: WRITERLANE_NO_FILE_CONTENTS });
+          continue;
+        }
+        const modelPatchGate = gateWriterLaneDiff({
+          patch: modelPatch,
+          ownedFiles,
+          declaredFiles: [],
+          prompt: "",
+          maxPatchBytes,
+          proofMode: "model_patch_preflight",
+        });
+        if (!modelPatchGate.ok) {
+          attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: modelPatchGate.reason });
+          continue;
+        }
+        const applied = await applyUnifiedDiffToWorktree({
+          cwd,
+          env: safeEnv,
+          patch: modelPatchGate.patch,
+          runProcess,
+          timeoutMs: effectiveTimeout,
+        });
+        if (!applied.ok) {
+          attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: applied.reason });
+          continue;
+        }
       }
 
-      const cap = await captureDiff({ cwd, env: safeEnv, ownedFiles, runProcess });
-      if (!cap || cap.ok !== true) {
-        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: cap?.reason || "writerlane_capture_failed" });
-        continue;
-      }
-
-      const gate = gateWriterLaneDiff({
-        patch: cap.patch,
+      const proven = await proveCapturedWorktreePatch({
+        cwd,
+        env: safeEnv,
         ownedFiles,
-        declaredFiles: cap.changed_files || [],
+        verification,
+        allowMissingTests,
+        model,
         prompt,
+        runProcess,
+        captureDiff,
         maxPatchBytes,
         proofMode,
+        diffBudget,
+        timeoutMs: effectiveTimeout,
       });
-      if (!gate.ok) {
-        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: gate.reason });
-        continue;
-      }
-
-      const wlResult = {
-        ok: true,
-        patch: gate.patch,
-        changedFiles: gate.changedFiles,
-        proof: { autonomyProof: gate.autonomyProof },
-      };
-      const validation = buildValidationFromPatch(gate.patch, testsPassed, diffBudget);
-      const verdict = validateAutonomyProof(wlResult, proofMode, validation);
-      if (!verdict.ok) {
-        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: verdict.reason });
+      if (!proven.ok) {
+        attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: false, reason: proven.reason });
         continue;
       }
 
       attempts.push({ modelId: model.id, openRouterModel: model.openRouterModel, status, ok: true });
       return {
         ok: true,
-        patch: gate.patch,
-        changed_files: gate.changedFiles,
+        patch: proven.gate.patch,
+        changed_files: proven.gate.changedFiles,
         summary: `WriterLane free writer ${model.id} (${model.openRouterModel}) produced a validated patch.`,
-        test_run_id: testRunId,
-        test_exit_code: testExitCode,
+        test_run_id: proven.testRunId,
+        test_exit_code: proven.testExitCode,
         diff_source: "worktree",
         model: model.id,
-        validation,
+        validation: proven.validation,
         attempts,
       };
     }
@@ -302,6 +303,92 @@ async function runScopedTests({ runProcess, cwd, env, commands, timeoutMs }) {
   return { ok: true, exit_code: 0, test_run_id: ran.join(" && ") || "writerlane-tests" };
 }
 
+async function applyUnifiedDiffToWorktree({ cwd, env, patch, runProcess, timeoutMs }) {
+  const check = await runProcess("git", ["apply", "--check", "--whitespace=error", "-"], {
+    cwd,
+    env,
+    stdin: patch,
+    timeoutMs,
+  });
+  if (!check || check.ok !== true) {
+    return { ok: false, reason: WRITERLANE_PATCH_APPLY_CHECK_FAILED };
+  }
+
+  const applied = await runProcess("git", ["apply", "--whitespace=nowarn", "-"], {
+    cwd,
+    env,
+    stdin: patch,
+    timeoutMs,
+  });
+  if (!applied || applied.ok !== true) {
+    return { ok: false, reason: WRITERLANE_PATCH_APPLY_FAILED };
+  }
+
+  return { ok: true };
+}
+
+async function proveCapturedWorktreePatch({
+  cwd,
+  env,
+  ownedFiles,
+  verification,
+  allowMissingTests,
+  model,
+  prompt,
+  runProcess,
+  captureDiff,
+  maxPatchBytes,
+  proofMode,
+  diffBudget,
+  timeoutMs,
+}) {
+  // REAL scoped test-run: after writing/applying, before capture (capture reverts).
+  let testsPassed;
+  let testRunId;
+  let testExitCode = 0;
+  if (verification.length > 0) {
+    const testRun = await runScopedTests({ runProcess, cwd, env, commands: verification, timeoutMs });
+    testsPassed = testRun.ok === true;
+    testRunId = testRun.test_run_id;
+    testExitCode = testRun.exit_code;
+  } else {
+    testsPassed = allowMissingTests === true;
+    testRunId = `writerlane-no-tests-${model.id}`;
+    testExitCode = allowMissingTests === true ? 0 : 1;
+  }
+
+  const cap = await captureDiff({ cwd, env, ownedFiles, runProcess });
+  if (!cap || cap.ok !== true) {
+    return { ok: false, reason: cap?.reason || "writerlane_capture_failed" };
+  }
+
+  const gate = gateWriterLaneDiff({
+    patch: cap.patch,
+    ownedFiles,
+    declaredFiles: cap.changed_files || [],
+    prompt,
+    maxPatchBytes,
+    proofMode,
+  });
+  if (!gate.ok) {
+    return { ok: false, reason: gate.reason };
+  }
+
+  const wlResult = {
+    ok: true,
+    patch: gate.patch,
+    changedFiles: gate.changedFiles,
+    proof: { autonomyProof: gate.autonomyProof },
+  };
+  const validation = buildValidationFromPatch(gate.patch, testsPassed, diffBudget);
+  const verdict = validateAutonomyProof(wlResult, proofMode, validation);
+  if (!verdict.ok) {
+    return { ok: false, reason: verdict.reason };
+  }
+
+  return { ok: true, gate, validation, testRunId, testExitCode };
+}
+
 function splitArgsSafe(command) {
   try {
     return splitArgs(command);
@@ -319,6 +406,8 @@ export function buildFullContentsPrompt({ ownedFiles = [], scopePack = {}, model
     "You are an UnClick WriterLane free-model writer running AFK.",
     "Implement the requested change by returning the FULL new contents of each owned file.",
     "For EACH owned file, output a line exactly `FILE: <path>` followed by a fenced code block containing the complete new file contents.",
+    "WriterLane output format wins even if the runner task prompt mentions unified diffs or patches.",
+    "Do not return a unified diff unless you cannot follow the FILE block format.",
     "Change only the owned files. Do not commit, push, merge, deploy, or touch anything outside them.",
     "Use the current file contents below as the source of truth. Preserve unrelated code.",
     `Model: ${model.openRouterModel || "unknown"}`,
@@ -390,6 +479,14 @@ export function parseFileBlocks(content, ownedFiles) {
     }
   }
   return [];
+}
+
+export function extractUnifiedDiff(content) {
+  const text = String(content ?? "");
+  const fenced = text.match(/```(?:diff|patch)?\s*([\s\S]*?diff --git[\s\S]*?)```/i);
+  if (fenced) return fenced[1].trim();
+  const index = text.indexOf("diff --git ");
+  return index === -1 ? "" : text.slice(index).trim();
 }
 
 function dedupeByPath(blocks) {
