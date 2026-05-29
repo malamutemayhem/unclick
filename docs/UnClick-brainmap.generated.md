@@ -22,8 +22,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | a8f64d0da135 | 4873 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 1aa898894c02 | 13811 |
-| src/pages/admin/AdminShell.tsx | 1509360c4bfa | 19341 |
+| src/App.tsx | 26405e588808 | 14258 |
+| src/pages/admin/AdminShell.tsx | a5993008255d | 19438 |
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
@@ -59,6 +59,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
 | src/pages/admin/AdminEcosystemPages.tsx | 3a9b7643c7fc | 13854 |
+| src/pages/admin/AdminBenchmarks.tsx | 2ba65d4943e0 | 20931 |
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
 | src/pages/admin/AdminBrainmap.tsx | c764ced96836 | 26511 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
@@ -89,10 +90,6 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminTools.tsx | 8544965a0043 | 8530 |
 | src/pages/admin/AdminUsers.tsx | 701e7da2f201 | 863 |
 | src/pages/admin/AdminYou.tsx | 394d65c7aabb | 37346 |
-| src/pages/arena/ArenaProblem.tsx | 11869f637abe | 15032 |
-| src/pages/arena/ArenaLeaderboard.tsx | af62b63a8204 | 5299 |
-| src/pages/arena/ArenaSubmitProblem.tsx | 06f3f416155c | 6899 |
-| src/pages/arena/ArenaHome.tsx | 7674a937b45c | 10180 |
 | src/pages/AuthCallback.tsx | 41644ade9f97 | 5284 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
 | src/pages/Connect.tsx | ebf2c68ad6c3 | 29590 |
@@ -207,8 +204,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 46 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 35 |
+| Admin surfaces | Private operator views and internal control panels. | 47 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 31 |
 | Tools | MCP and gateway capabilities available to seats. | 187 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -217,7 +214,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 118 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 66 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 70 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 5 |
 
 ## UnClick Structure
@@ -258,6 +255,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/audit-log | Admin Audit Log | Internal audit trail for sensitive admin actions. | src/pages/admin/AdminAuditLog.tsx |
 | /admin/autopilot/expressbuild | Admin Express Build | Admin surface for Admin Express Build. | src/pages/admin/AdminExpressBuild.tsx |
 | /admin/autopilot | Admin Autopilot | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
+| /admin/benchmarks | Admin Benchmarks | Admin surface for Admin Benchmarks. | src/pages/admin/AdminBenchmarks.tsx |
 | /admin/billing | Admin Billing | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/boardroom | Fishbowl | Boardroom discussion surface for worker coordination. | src/pages/admin/Fishbowl.tsx |
 | /admin/brainmap | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | src/pages/admin/AdminBrainmap.tsx |
@@ -297,10 +295,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/workers | Admin Workers | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/you | Admin You | Personal account, identity, and access panel. | src/pages/admin/AdminYou.tsx |
 | /admin | Admin Shell | Admin surface for Admin Shell. | src/pages/admin/AdminShell.tsx |
-| /arena/:id | Arena Problem | Arena page for Arena Problem. | src/pages/arena/ArenaProblem.tsx |
-| /arena/leaderboard | Arena Leaderboard | Arena page for Arena Leaderboard. | src/pages/arena/ArenaLeaderboard.tsx |
-| /arena/submit | Arena Submit Problem | Arena page for Arena Submit Problem. | src/pages/arena/ArenaSubmitProblem.tsx |
-| /arena | Arena Home | Arena page for Arena Home. | src/pages/arena/ArenaHome.tsx |
 | /auth/callback | Auth Callback | User-facing page for Auth Callback. | src/pages/AuthCallback.tsx |
 | /auth/verify-mfa | Verify Mfa | User-facing page for Verify Mfa. | src/pages/VerifyMfa.tsx |
 | /connect/:platform | Connect | User-facing page for Connect. | src/pages/Connect.tsx |
@@ -533,6 +527,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Analytics | Internal analytics view for platform signals and usage. | /admin/analytics | src/pages/admin/AdminAnalytics.tsx |
 | Admin surfaces | admin page | Admin Audit Log | Internal audit trail for sensitive admin actions. | /admin/audit-log | src/pages/admin/AdminAuditLog.tsx |
 | Admin surfaces | admin page | Admin Autopilot | Admin surface for Admin Ecosystem Pages. | /admin/autopilot | src/pages/admin/AdminEcosystemPages.tsx |
+| Admin surfaces | admin page | Admin Benchmarks | Admin surface for Admin Benchmarks. | /admin/benchmarks | src/pages/admin/AdminBenchmarks.tsx |
 | Admin surfaces | admin page | Admin Billing | Admin surface for Admin Ecosystem Pages. | /admin/billing | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | /admin/brainmap | src/pages/admin/AdminBrainmap.tsx |
 | Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks | src/pages/admin/AdminEcosystemPages.tsx |
@@ -711,6 +706,10 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | app | JobSmith | CV, cover-letter, job application, and rules/checklist engine. | /admin/jobsmith | apps/jobsmith/package.json |
 | Modules and apps | automation module | AutoPilotKit | Internal automation bolt-on for proof-first work motion. | - | AUTOPILOT.md |
 | Modules and apps | component | Admin Settings | Account and admin configuration. | - | src/pages/AdminSettings.tsx |
+| Modules and apps | component | Arena Home | Arena page for Arena Home. | - | src/pages/arena/ArenaHome.tsx |
+| Modules and apps | component | Arena Leaderboard | Arena page for Arena Leaderboard. | - | src/pages/arena/ArenaLeaderboard.tsx |
+| Modules and apps | component | Arena Problem | Arena page for Arena Problem. | - | src/pages/arena/ArenaProblem.tsx |
+| Modules and apps | component | Arena Submit Problem | Arena page for Arena Submit Problem. | - | src/pages/arena/ArenaSubmitProblem.tsx |
 | Modules and apps | component | Backstage Pass | User-facing page for Backstage Pass. | - | src/pages/BackstagePass.tsx |
 | Modules and apps | component | Brain Map | Legacy Memory Brain Map component kept distinct from ecosystem Brainmap. | - | src/pages/admin/BrainMap.tsx |
 | Modules and apps | component | Build Desk | Build and project work surface. | - | src/pages/BuildDesk.tsx |
@@ -785,10 +784,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Passes and gates | pass | uxpass site sweep | uxpass site sweep UnClick module. | - | scripts/uxpass-site-sweep.mjs |
 | Passes and gates | pass | uxpass visual audit | uxpass visual audit UnClick module. | - | scripts/uxpass-visual-audit.mjs |
 | Passes and gates | wake gate | WakePass | Verifies ACKs, stale handoffs, and worker wake requests before motion claims. | - | docs/pinballwake-igniteonly-api.md |
-| Public surfaces | public page | Arena Home | Arena page for Arena Home. | /arena | src/pages/arena/ArenaHome.tsx |
-| Public surfaces | public page | Arena Leaderboard | Arena page for Arena Leaderboard. | /arena/leaderboard | src/pages/arena/ArenaLeaderboard.tsx |
-| Public surfaces | public page | Arena Problem | Arena page for Arena Problem. | /arena/:id | src/pages/arena/ArenaProblem.tsx |
-| Public surfaces | public page | Arena Submit Problem | Arena page for Arena Submit Problem. | /arena/submit | src/pages/arena/ArenaSubmitProblem.tsx |
 | Public surfaces | public page | Auth Callback | User-facing page for Auth Callback. | /auth/callback | src/pages/AuthCallback.tsx |
 | Public surfaces | public page | Connect | User-facing page for Connect. | /connect/:platform | src/pages/Connect.tsx |
 | Public surfaces | public page | Crews | Public Crews explanation and entry point. | /crews | src/pages/Crews.tsx |
