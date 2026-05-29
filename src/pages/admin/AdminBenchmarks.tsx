@@ -208,8 +208,44 @@ function CopyableBlock({ label, text }: { label: string; text: string }) {
   );
 }
 
+function RunColumn({ mode }: { mode: "off" | "on" }) {
+  const on = mode === "on";
+  const accent = on ? TEAL : "#888";
+  return (
+    <div
+      className="rounded-xl border p-4"
+      style={{
+        borderColor: on ? `${TEAL}33` : "rgba(255,255,255,0.06)",
+        background: on ? `${TEAL}0a` : "rgba(0,0,0,0.2)",
+      }}
+    >
+      <div className="mb-3 flex items-center gap-2">
+        <span className="h-2.5 w-2.5 rounded-full" style={{ background: accent }} />
+        <span className="text-sm font-semibold text-white">
+          {on ? "With UnClick" : "Without UnClick"}
+        </span>
+      </div>
+
+      <p className="mb-1.5 text-[11px] leading-relaxed text-[#999]">
+        Step 1. Open a fresh Code session with UnClick{" "}
+        <span className="font-semibold" style={{ color: accent }}>{on ? "ON" : "OFF"}</span>.
+      </p>
+      <p className="mb-1.5 text-[11px] leading-relaxed text-[#999]">
+        Step 2. Paste the main test, let it answer, grade it.
+      </p>
+      <CopyableBlock label="Main test (Prompt 1)" text={MASTER_PROMPT} />
+
+      <p className="mb-1.5 mt-3 text-[11px] leading-relaxed text-[#999]">
+        Step 3. Open a brand-new session (same UnClick {on ? "ON" : "OFF"}), paste the recall, grade the
+        memory answers.
+      </p>
+      <CopyableBlock label="Memory recall (Prompt 2)" text={MEMORY_RECALL_PROMPT} />
+    </div>
+  );
+}
+
 function HowToRun() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   return (
     <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-5">
       <button onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-2 text-left">
@@ -220,19 +256,29 @@ function HowToRun() {
 
       {open && (
         <div className="mt-4 space-y-4">
-          <ol className="space-y-1.5 text-xs leading-relaxed text-[#aaa]">
-            <li>1. Open a fresh <span className="text-[#ddd]">Code</span> session (Claude Code or Codex CLI). Not Chat, not a fleet session.</li>
-            <li>2. Run the same <span className="text-[#ddd]">master prompt</span> below in all four: Claude alone, Claude + UnClick, Codex alone, Codex + UnClick. The only difference between sessions is whether UnClick is connected.</li>
-            <li>3. For the Memory score, close the session and run the <span className="text-[#ddd]">recall prompt</span> in a brand-new session.</li>
-            <li>4. Grade each category out of 100 against your private answer key, then record the run (helper: <code className="text-[#888]">scripts/benchmark-record.mjs</code>, or ask your agent to record it).</li>
-          </ol>
+          <p className="text-xs leading-relaxed text-[#aaa]">
+            Run the left column, then the right column. Do that once in{" "}
+            <span className="text-[#ddd]">Claude</span> and once in <span className="text-[#ddd]">Codex</span>{" "}
+            = your <span className="text-[#ddd]">four contestants</span>.
+          </p>
 
-          <CopyableBlock label="Master prompt (paste into each of the four sessions)" text={MASTER_PROMPT} />
-          <CopyableBlock label="Memory recall prompt (run in a separate fresh session)" text={MEMORY_RECALL_PROMPT} />
+          <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-[11px] leading-relaxed text-[#999]">
+            <span className="text-[#ddd]">Note:</span> the prompt text is identical in both columns on
+            purpose. The only difference is whether UnClick is connected. The separate boxes just let you
+            work straight down one column. (Prompt 2 is in its own box because memory must be tested in a
+            brand-new session - inside one session even a plain model "remembers", so it would prove
+            nothing.)
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <RunColumn mode="off" />
+            <RunColumn mode="on" />
+          </div>
 
           <p className="text-[11px] leading-relaxed text-[#666]">
-            This is a starting reference. Edit it as the benchmark evolves. Keep the answer key private so
-            the agent under test cannot read it.
+            Grade each category out of 100 against your private answer key, then record the run. This is a
+            starting reference - edit it as the benchmark evolves, and keep the answer key private so the
+            agent under test cannot read it.
           </p>
         </div>
       )}
