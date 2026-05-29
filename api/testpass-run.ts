@@ -5,7 +5,7 @@
  * or an UnClick API key (uc_...). Runs a named pack against a target MCP
  * server without going through MCP.
  *
- * Body/query: { pack_id: string, pack_name?: string, profile?: "smoke"|"standard"|"deep", server_url?: string }
+ * Body/query: { pack_id: string, pack_name?: string, profile?: "smoke"|"standard"|"deep", server_url?: string, target_vercel_bypass_secret?: string }
  * Returns: { run_id: string, status: RunStatus, verdict_summary?: VerdictSummary }
  *
  * Smoke profile runs synchronously and returns the final verdict.
@@ -338,6 +338,37 @@ export async function withTestPassTargetToken<T>(
   }
 }
 
+export function resolveTestPassTargetVercelBypassSecret(params: {
+  inputSecret?: string;
+  configuredSecret?: string;
+  vercelAutomationSecret?: string;
+}): string | undefined {
+  return params.inputSecret?.trim()
+    || params.configuredSecret?.trim()
+    || params.vercelAutomationSecret?.trim()
+    || undefined;
+}
+
+export async function withTestPassTargetVercelBypassSecret<T>(
+  secret: string | undefined,
+  work: () => Promise<T>,
+): Promise<T> {
+  const value = secret?.trim();
+  if (!value) return work();
+
+  const previous = process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+  process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = value;
+  try {
+    return await work();
+  } finally {
+    if (previous === undefined) {
+      delete process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+    } else {
+      process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = previous;
+    }
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") return json(res, 204, {});
 
@@ -362,6 +393,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         pack_name: queryString(req.query.pack_name),
         profile: queryString(req.query.profile) as RunProfile | undefined,
         server_url: queryString(req.query.server_url),
+        target_vercel_bypass_secret: undefined,
         task_id: queryString(req.query.task_id),
         source: queryString(req.query.source),
       }
@@ -370,6 +402,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         pack_name?: string;
         profile?: RunProfile;
         server_url?: string;
+        target_vercel_bypass_secret?: string;
         task_id?: string;
         source?: string;
       });
@@ -439,6 +472,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     isCron,
     configuredToken: process.env.TESTPASS_TOKEN,
   });
+  const targetVercelBypassSecret = resolveTestPassTargetVercelBypassSecret({
+    inputSecret: input.target_vercel_bypass_secret,
+    configuredSecret: process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET,
+    vercelAutomationSecret: process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+  });
 
   const { id: runId, was_duplicate } = await createRun(config, {
     packId: packRow.id,
@@ -463,53 +501,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const runWork = async () => {
     return withTestPassTargetToken(targetToken, async () => {
-      let evidenceRef: string | undefined;
-      if (target.url) {
-        try {
-          const probeResult = await probeServer(target.url, { timeoutMs: 12_000 });
-          evidenceRef = await createEvidence(config, { kind: "tool_list", payload: probeResult });
-        } catch (err) {
-          console.error(`testpass-run probe failed for ${runId}:`, (err as Error).message);
+      return withTestPassTargetVercelBypassSecret(targetVercelBypassSecret, async () => {
+        let evidenceRef: string | undefined;
+        if (target.url) {
+          try {
+            const probeResult = await probeServer(target.url, { timeoutMs: 12_000 });
+            evidenceRef = await createEvidence(config, { kind: "tool_list", payload: probeResult });
+          } catch (err) {
+            console.error(`testpass-run probe failed for ${runId}:`, (err as Error).message);
+          }
         }
-      }
 
-      await seedPendingItems(config, runId, pack, profile, evidenceRef);
+        await seedPendingItems(config, runId, pack, profile, evidenceRef);
 
-      if (target.url) {
-        try {
-          await runDeterministicChecks(config, runId, target.url, pack, profile);
-        } catch (err) {
-          console.error(`testpass-run deterministic failed for ${runId}:`, (err as Error).message);
+        if (target.url) {
+          try {
+            await runDeterministicChecks(config, runId, target.url, pack, profile);
+          } catch (err) {
+            console.error(`testpass-run deterministic failed for ${runId}:`, (err as Error).message);
+          }
+          try {
+            await runAgentChecks(config, runId, target.url, pack, profile, evidenceRef);
+          } catch (err) {
+            console.error(`testpass-run agent failed for ${runId}:`, (err as Error).message);
+          }
         }
-        try {
-          await runAgentChecks(config, runId, target.url, pack, profile, evidenceRef);
-        } catch (err) {
-          console.error(`testpass-run agent failed for ${runId}:`, (err as Error).message);
-        }
-      }
 
-      const summary = await computeVerdictSummary(config, runId);
-      const isDone = summary.pending === 0;
-      const status = isDone ? (summary.fail > 0 ? "failed" : "complete") : "running";
-      await updateRunStatus(
-        config,
-        runId,
-        status,
-        summary,
-      );
-      if (shouldEmitScheduledSignal(input.source)) {
-        emitScheduledRunSignal({
-          apiKeyHash,
+        const summary = await computeVerdictSummary(config, runId);
+        const isDone = summary.pending === 0;
+        const status = isDone ? (summary.fail > 0 ? "failed" : "complete") : "running";
+        await updateRunStatus(
+          config,
           runId,
-          packSlug,
-          packName,
-          profile,
-          target,
           status,
           summary,
-        });
-      }
-      return summary;
+        );
+        if (shouldEmitScheduledSignal(input.source)) {
+          emitScheduledRunSignal({
+            apiKeyHash,
+            runId,
+            packSlug,
+            packName,
+            profile,
+            target,
+            status,
+            summary,
+          });
+        }
+        return summary;
+      });
     });
   };
 

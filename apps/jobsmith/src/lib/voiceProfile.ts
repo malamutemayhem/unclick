@@ -78,13 +78,13 @@ const STOPWORD_SET = new Set([
 ]);
 
 export function buildVoiceProfile(corpus: Corpus): VoiceProfile {
-  const txtLetters = corpus.coverLetters.filter(
-    (cl) => cl.format === "txt" && cl.textContent,
+  const parsedLetters = corpus.coverLetters.filter(
+    (cl) => cl.textContent,
   ) as Array<CoverLetter & { textContent: string }>;
 
   const promptText = corpus.promptTemplate ?? "";
   const combinedTexts: string[] = [
-    ...txtLetters.map((cl) => cl.textContent),
+    ...parsedLetters.map((cl) => cl.textContent),
     promptText,
   ].filter((t) => t && t.length > 0);
 

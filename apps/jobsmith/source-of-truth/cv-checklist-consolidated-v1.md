@@ -6,11 +6,11 @@ This file consolidates the five source checklists into one duplicate-reduced lis
 
 Sources:
 
-- [1] `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\cv-checklists_1.md`
-- [1a] `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\cv-checklists_1a.md`
-- [1b] `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\cv-checklists_1b.md`
-- [2] `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\cv-checklists_2.md`
-- [3] `C:\G\MalamuteMayhem\Jobs\UnClick\Context\Deep Researches\cv-checklists_3.md`
+- [1] Private research packet `cv-checklists_1.md`
+- [1a] Private research packet `cv-checklists_1a.md`
+- [1b] Private research packet `cv-checklists_1b.md`
+- [2] Private research packet `cv-checklists_2.md`
+- [3] Private research packet `cv-checklists_3.md`
 
 ## Single Consolidated List
 

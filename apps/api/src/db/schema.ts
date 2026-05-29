@@ -83,6 +83,7 @@ export const links = pgTable('links', {
   abTestId: text('ab_test_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (t) => [
   index('links_page_idx').on(t.pageId, t.position),
   index('links_org_idx').on(t.orgId),

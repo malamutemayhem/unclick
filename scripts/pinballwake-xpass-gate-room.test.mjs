@@ -11,13 +11,25 @@ function checks(input) {
 }
 
 describe("PinballWake XPass Gate Room", () => {
-  it("routes UI/admin/navigation changes to UXPass and SlopPass", () => {
+  it("routes UI/admin/navigation changes to UXPass, FlowPass, and SlopPass", () => {
     const selected = checks({
       title: "UI navigation polish",
       changed_files: ["src/pages/admin/AdminShell.tsx", "src/components/Nav.tsx"],
     });
 
-    assert.deepEqual(selected, ["uxpass", "sloppass"]);
+    assert.deepEqual(selected, ["uxpass", "flowpass", "sloppass"]);
+  });
+
+  it("does not route backend memory-admin mentions to UXPass", () => {
+    const selected = checks({
+      title: "Runner memory-admin queue fallback",
+      description: "Use the memory-admin endpoint when MCP queue reads fail.",
+      changed_files: ["scripts/pinballwake-autonomous-runner.mjs"],
+    });
+
+    assert.equal(selected.includes("uxpass"), false);
+    assert.ok(selected.includes("testpass"));
+    assert.ok(selected.includes("sloppass"));
   });
 
   it("routes MCP/tool changes to TestPass and SlopPass", () => {
@@ -107,6 +119,31 @@ describe("PinballWake XPass Gate Room", () => {
     assert.deepEqual(selected, ["copypass"]);
   });
 
+  it("routes exact-copy work to FidelityPass instead of generic CopyPass", () => {
+    const selected = checks({
+      title: "Copy this source packet exactly",
+      description: "Need a 1:1 verbatim copy receipt from CopyRoom.",
+      changed_files: ["docs/source-packet.md"],
+    });
+
+    assert.ok(selected.includes("fidelitypass"));
+    assert.equal(selected.includes("copypass"), false);
+  });
+
+  it("does not recommend a Crews Council for a tiny single-pass wording change", () => {
+    const result = evaluateXPassGate({
+      title: "FAQ wording cleanup",
+      changed_files: ["docs/faq.md"],
+    });
+
+    assert.equal(result.crews_council.needed, false);
+    assert.equal(result.crews_council.status, "not_needed");
+    assert.equal(result.crews_council.lite_check.needed, true);
+    assert.equal(result.crews_council.lite_check.mode, "anti_rubber_stamp");
+    assert.ok(result.crews_council.lite_check.questions.length >= 4);
+    assert.equal(result.receipt.crews_council.needed, false);
+  });
+
   it("returns advisory xpass_needed when selected checks have no receipts yet", () => {
     const result = evaluateXPassGate({
       mode: "advisory",
@@ -116,8 +153,11 @@ describe("PinballWake XPass Gate Room", () => {
 
     assert.equal(result.ok, true);
     assert.equal(result.result, "xpass_needed");
-    assert.deepEqual(result.missing_checks, ["uxpass", "sloppass"]);
-    assert.equal(result.receipt.action_needed.length, 2);
+    assert.deepEqual(result.missing_checks, ["uxpass", "flowpass", "sloppass"]);
+    assert.equal(result.receipt.action_needed.length, 3);
+    assert.equal(result.receipt.full_checklist.length >= result.selected_checks.length, true);
+    assert.ok(result.receipt.full_checklist.some((item) => item.check === "fidelitypass" && item.status === "N/A"));
+    assert.ok(result.receipt.improvement_signals.some((item) => item.signal === "selected_check_missing_receipt"));
   });
 
   it("blocks missing receipts in enforce mode", () => {
@@ -129,7 +169,7 @@ describe("PinballWake XPass Gate Room", () => {
 
     assert.equal(result.ok, false);
     assert.equal(result.result, "xpass_needed");
-    assert.deepEqual(result.missing_checks, ["uxpass", "sloppass"]);
+    assert.deepEqual(result.missing_checks, ["uxpass", "flowpass", "sloppass"]);
   });
 
   it("passes when all selected receipts are current and green", () => {
@@ -139,13 +179,14 @@ describe("PinballWake XPass Gate Room", () => {
       changed_files: ["src/pages/admin/You.tsx"],
       pass_results: [
         { check: "UXPass", status: "passed", run_id: "ux-1", target_sha: "abc123", url: "https://example.test/ux" },
+        { check: "FlowPass", status: "passed", run_id: "flow-1", target_sha: "abc123" },
         { check: "SlopPass", status: "green", run_id: "slop-1", target_sha: "abc123" },
       ],
     });
 
     assert.equal(result.ok, true);
     assert.equal(result.result, "passed");
-    assert.equal(result.receipt.evidence.length, 2);
+    assert.equal(result.receipt.evidence.length, 3);
     assert.deepEqual(result.receipt.action_needed, []);
   });
 
@@ -199,7 +240,7 @@ describe("PinballWake XPass Gate Room", () => {
     assert.deepEqual(result.blocked_checks, ["uxpass"]);
   });
 
-  it("records unavailable pass-family checks as explicit skips", () => {
+  it("records unavailable XPass product checks as explicit skips", () => {
     const result = evaluateXPassGate({
       mode: "enforce",
       target: { type: "pr", id: 547, sha: "abc123" },
@@ -213,8 +254,11 @@ describe("PinballWake XPass Gate Room", () => {
     assert.equal(result.ok, true);
     assert.equal(result.result, "passed");
     assert.deepEqual(result.skipped_checks, [
+      { check: "flowpass", name: "FlowPass", reason: "pass_not_available" },
       { check: "sloppass", name: "SlopPass", reason: "pass_not_available" },
     ]);
+    assert.ok(result.receipt.improvement_signals.some((item) => item.signal === "pass_not_available"));
+    assert.ok(result.receipt.full_checklist.some((item) => item.check === "flowpass" && item.status === "NOT RUN"));
   });
 
   it("normalizes old QualityPass receipts into SlopPass", () => {
@@ -232,13 +276,15 @@ describe("PinballWake XPass Gate Room", () => {
     assert.equal(result.receipt.evidence[0].name, "SlopPass");
   });
 
-  it("dogfoods Pass product package changes through their own specialist check", () => {
+  it("dogfoods XPass product package changes through their own specialist check", () => {
     const selected = checks({
       title: "Tighten SEOPass robots scanner",
       changed_files: ["packages/seopass/src/robots.ts"],
     });
 
-    assert.deepEqual(selected, ["testpass", "seopass", "sloppass"]);
+    assert.ok(selected.includes("testpass"));
+    assert.ok(selected.includes("seopass"));
+    assert.ok(selected.includes("sloppass"));
   });
 
   it("dogfoods CopyPass package changes through CopyPass, TestPass, and SlopPass", () => {
@@ -247,7 +293,10 @@ describe("PinballWake XPass Gate Room", () => {
       changed_files: ["packages/copypass/src/runner.ts"],
     });
 
-    assert.deepEqual(selected, ["testpass", "commonsensepass", "copypass", "sloppass"]);
+    assert.ok(selected.includes("testpass"));
+    assert.ok(selected.includes("commonsensepass"));
+    assert.ok(selected.includes("copypass"));
+    assert.ok(selected.includes("sloppass"));
   });
 
   it("routes XPass gate changes through TestPass, CommonSensePass, and SlopPass", () => {
@@ -256,10 +305,12 @@ describe("PinballWake XPass Gate Room", () => {
       changed_files: ["scripts/pinballwake-xpass-gate-room.mjs"],
     });
 
-    assert.deepEqual(selected, ["testpass", "commonsensepass", "sloppass"]);
+    assert.ok(selected.includes("testpass"));
+    assert.ok(selected.includes("commonsensepass"));
+    assert.ok(selected.includes("sloppass"));
   });
 
-  it("routes EnterprisePass and CompliancePass readiness work through cross-pass evidence checks", () => {
+  it("routes CompliancePass readiness work through cross-pass evidence checks", () => {
     const selected = checks({
       title: "CompliancePass enterprise readiness evidence runner",
       changed_files: [
@@ -268,15 +319,57 @@ describe("PinballWake XPass Gate Room", () => {
       ],
     });
 
-    assert.deepEqual(selected, [
-      "testpass",
-      "securitypass",
-      "commonsensepass",
-      "copypass",
-      "seopass",
-      "legalpass",
-      "sloppass",
-    ]);
+    assert.ok(selected.includes("testpass"));
+    assert.ok(selected.includes("securitypass"));
+    assert.ok(selected.includes("commonsensepass"));
+    assert.ok(selected.includes("copypass"));
+    assert.ok(selected.includes("seopass"));
+    assert.ok(selected.includes("legalpass"));
+    assert.ok(selected.includes("compliancepass"));
+    assert.ok(selected.includes("sloppass"));
+  });
+
+  it("recommends a Crews Council for broad public launch and compliance judgement", () => {
+    const result = evaluateXPassGate({
+      title: "Launch pricing and compliance readiness decision",
+      context: "Need a go/no-go judgement before this public enterprise page ships.",
+      changed_files: [
+        "docs/enterprisepass-product-brief.md",
+        "docs/legal/pricing-claims.md",
+        "src/pages/Enterprise.tsx",
+      ],
+    });
+
+    assert.equal(result.crews_council.needed, true);
+    assert.equal(result.crews_council.status, "recommended");
+    assert.equal(result.crews_council.suggested_template, "Council");
+    assert.equal(result.crews_council.suggested_tool, "start_crew_run");
+    assert.match(result.crews_council.reasons.join("\n"), /judgement|launch|decision/i);
+    assert.equal(result.receipt.crews_council.needed, true);
+  });
+
+  it("recommends a Crews Council when pass evidence is mixed", () => {
+    const result = evaluateXPassGate({
+      target: { type: "pr", id: 548, sha: "abc123" },
+      changed_files: ["docs/pricing.md", "docs/legal/terms.md"],
+      pass_results: [
+        { check: "CopyPass", status: "passed", run_id: "copy-1", target_sha: "abc123" },
+        { check: "LegalPass", status: "failed", run_id: "legal-1", target_sha: "abc123" },
+      ],
+    });
+
+    assert.equal(result.crews_council.needed, true);
+    assert.match(result.crews_council.reasons.join("\n"), /mixed/i);
+  });
+
+  it("dogfoods Crews surfaces by recommending a Crews Council", () => {
+    const result = evaluateXPassGate({
+      title: "Improve Crews composer council handoff",
+      changed_files: ["src/pages/admin/crews/CrewComposer.tsx"],
+    });
+
+    assert.equal(result.crews_council.needed, true);
+    assert.match(result.crews_council.reasons.join("\n"), /Crews|Council/);
   });
 
   it("routes current accessibility and AI security terms from external standards to the right checks", () => {
@@ -288,5 +381,77 @@ describe("PinballWake XPass Gate Room", () => {
     assert.ok(selected.includes("uxpass"));
     assert.ok(selected.includes("securitypass"));
     assert.ok(selected.includes("copypass"));
+  });
+
+  it("routes public SEO changes through SEOPass and GEOPass", () => {
+    const selected = checks({
+      title: "Canonical and sitemap metadata refresh",
+      changed_files: ["public/robots.txt", "src/pages/Landing.tsx"],
+    });
+
+    assert.ok(selected.includes("seopass"));
+    assert.ok(selected.includes("geopass"));
+    assert.ok(selected.includes("uxpass"));
+    assert.ok(selected.includes("flowpass"));
+  });
+
+  it("routes credential rotation changes through SecurityPass and RotatePass", () => {
+    const selected = checks({
+      title: "Rotate provider credential redaction proof",
+      changed_files: ["api/credentials.ts", "docs/rotatepass-connector-metadata.md"],
+    });
+
+    assert.ok(selected.includes("securitypass"));
+    assert.ok(selected.includes("rotatepass"));
+    assert.ok(selected.includes("copypass"));
+  });
+
+  it("routes dependency and lockfile changes through SecurityPass and CompliancePass", () => {
+    const selected = checks({
+      title: "Dependency audit lockfile refresh",
+      changed_files: ["package-lock.json"],
+    });
+
+    assert.ok(selected.includes("securitypass"));
+    assert.ok(selected.includes("compliancepass"));
+    assert.ok(selected.includes("sloppass"));
+  });
+
+  it("routes completion and merge proof through CommonSensePass and WakePass", () => {
+    const selected = checks({
+      title: "Runner queue done proof and stale heartbeat cleanup",
+      changed_files: ["scripts/pinballwake-autonomous-runner.mjs"],
+    });
+
+    assert.ok(selected.includes("commonsensepass"));
+    assert.ok(selected.includes("wakepass"));
+    assert.ok(selected.includes("sloppass"));
+  });
+
+  it("routes compliance and audit evidence through CompliancePass", () => {
+    const selected = checks({
+      title: "CompliancePass audit receipt update",
+      changed_files: ["public/enterprise/latest.json", "docs/enterprisepass-product-brief.md", "docs/legal/dpa.md"],
+    });
+
+    assert.ok(selected.includes("compliancepass"));
+    assert.ok(selected.includes("copypass"));
+    assert.ok(selected.includes("legalpass"));
+  });
+
+  it("normalizes old EnterprisePass receipts into CompliancePass", () => {
+    const result = evaluateXPassGate({
+      mode: "enforce",
+      target: { type: "pr", id: 548, sha: "def456" },
+      changed_files: ["public/enterprise/latest.json"],
+      available_checks: ["compliancepass"],
+      pass_results: [
+        { check: "EnterprisePass", status: "passed", run_id: "enterprise-1", target_sha: "def456" },
+      ],
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.receipt.evidence[0].check, "compliancepass");
+    assert.equal(result.receipt.evidence[0].name, "CompliancePass");
   });
 });

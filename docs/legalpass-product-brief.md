@@ -6,8 +6,9 @@
 
 ## 1. Positioning
 
-LegalPass is the **6th Pass family product** alongside TestPass, UXPass,
-FlowPass, SecurityPass, and BackstagePass.
+LegalPass is the legal-review member of the Pass family. The canonical
+family list lives in [`docs/pass-family-index.md`](./pass-family-index.md)
+and is conducted by XPass per [`docs/prd/xpass.md`](./prd/xpass.md).
 
 - **Hero:** *The legal pass for AI-native teams. Twelve checks. One verdict. Plain English.*
 - **Slogan:** *Twelve hats. One verdict.*
@@ -47,23 +48,11 @@ national bar rules. The mitigation is architectural, not marketing.
 This rule is enforced at three layers:
 
 1. **Verdict-linter** at render time (`packages/legalpass/src/passguard/verdict-linter.ts`)
-   bans directive verbs in any verdict text: `should`, `must`, `you need to`,
-   `you have to`, `you are obligated`, `do this`,
-   `ask a qualified lawyer`, `ask a qualified practitioner`,
-   `talk to a qualified lawyer`, `get advice from a lawyer`,
-   `you may want to review with a lawyer`, `we recommend`,
-   `the right thing to do is`, `this is illegal`, `this is enforceable`,
-   `this is unenforceable`, `this is lawful`, `this is compliant`,
-   `legally compliant`, `complies with law`, `complies with the law`,
-   `safe to sign`, `safe to publish`, `safe to rely on`,
-   `ready to sign`, `ready to publish`, `approved for signing`,
-   `approved for publication`, `legally safe`, `no legal risk`,
-   `no legal issues`, `zero legal risk`, `risk free`, `risk-free`,
-   `you will win`, `you will lose`, plus
-   substitute-lawyer and unsupported compliance claims such as `robot lawyer`,
-   `AI lawyer`, `replace your lawyer`, `automatic compliance`,
-   `certified compliant`, `compliance certified`, `guaranteed compliant`,
-   `fully compliant`, `we represent you`, and `100% compliant`.
+   blocks directive action language, substitute-practitioner claims,
+   certification-style compliance claims, outcome guarantees, and
+   assurance language that could make a verdict look like legal advice.
+   The exact denylist lives in code and tests so product docs do not
+   repeat unsafe public wording while describing the guardrail.
    Allowed framing includes `appears`, `seems`, `may`, `might`, `could`,
    `consider`, `in similar contracts`, `in comparable agreements`,
    `is unusual`, `is common`, `is typical`, `is standard`,
@@ -71,11 +60,10 @@ This rule is enforced at three layers:
    `qualified practitioner review may be warranted`.
 2. **Disclaimer banner** present in three render contexts (chat / results / ToS).
 3. **Marketing copy audit** (`qc_copy_audit`, lives outside this PR) bans the
-   words `lawyer`, `attorney`, `counsel`, `legal advice`, `legal opinion`,
-   `legal representation`, `robot lawyer`, `AI lawyer`, `law firm`, `client`,
-   `attorney-client privilege`, `we will defend you`, `sue`, `guarantee compliance`,
-   `100% compliant`. The disclaimer-banner module is exempt (it must use the
-   word "lawyer" to disclaim being one).
+   same substitute-practitioner, advice, representation, privileged-relationship,
+   litigation, and compliance-guarantee claim families in public marketing
+   copy. The disclaimer-banner module is exempt when it needs practitioner
+   wording to state the product boundary clearly.
 
 ## 4. The 12-hat panel
 

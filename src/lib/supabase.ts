@@ -3,12 +3,37 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
+type SupabaseAuthLock = <R>(
+  name: string,
+  acquireTimeout: number,
+  fn: () => Promise<R>,
+) => Promise<R>;
+
+let browserAuthLockTail = Promise.resolve();
+
+const browserLocalAuthLock: SupabaseAuthLock = async (_name, _acquireTimeout, fn) => {
+  const run = browserAuthLockTail.then(fn, fn);
+  browserAuthLockTail = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+};
+
 // Fall back to harmless placeholders so the module doesn't throw at load time
 // on preview deploys that don't have the env vars set. Any runtime call will
 // still fail, but it'll fail where it can be caught instead of blanking the app.
 export const supabase = createClient(
   supabaseUrl || "https://placeholder.supabase.co",
   supabaseAnonKey || "placeholder-anon-key",
+  {
+    auth: {
+      // The admin app is a single-page control room. A local queue avoids the
+      // browser Web Locks path that can leave gotrue auth locked after React
+      // Strict Mode remounts, while still serialising auth calls in this tab.
+      lock: browserLocalAuthLock,
+    },
+  },
 );
 
 // ─────────────────────────────────────────────────────────────────────────────

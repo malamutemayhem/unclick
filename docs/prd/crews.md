@@ -61,6 +61,36 @@ Recommended use:
 
 The practical mental model: XPass is the checklist and evidence ledger; Crews is the council table where specialists argue over what that evidence means.
 
+## Auto-trigger contract
+
+Crews should not run on every conversation and should not run on every XPass receipt. It should be surfaced when there is a real judgement call.
+
+The XPass gate may recommend a Crews Council when any of these are true:
+
+- the request asks for a decision, launch call, go/no-go, tradeoff, opinion, taste call, or risk acceptance
+- four or more XPass checks are selected for one target
+- legal, security, credential, or common-sense checks overlap with public copy, UX, SEO, pricing, enterprise, or compliance work
+- Pass evidence is mixed, such as one check passing while another blocks
+- a multi-pass target skipped a relevant check and needs a recorded accepted exclusion
+- Crews or Council itself changed and should dogfood its own judgement layer
+
+This trigger is a recommendation, not a token-spending autopilot. The receipt should say whether a Council is `not_needed`, `consider`, or `recommended`, include a trigger score, and point to `start_crew_run` only when a Council would add useful judgement.
+
+Do not create a separate `CouncilPass` product. "Pass" means proof/check. Council is a Crews template/mode that XPass can call when proof needs interpretation.
+
+## Council Lite
+
+Crews should also provide a low-friction anti-rubber-stamp layer. This is not a full multi-agent run and should not spend tokens by default.
+
+Council Lite asks four questions on material work:
+
+- what would make this answer or change wrong?
+- what evidence is missing, stale, or too weak?
+- who would object: user, maintainer, reviewer, legal, security, or operator?
+- what is the smallest proof needed before saying ready?
+
+If Council Lite exposes real uncertainty, Launchpad or XPass should escalate to a full Crews Council. If it does not, the work can proceed through the normal proof gates without bloating every run.
+
 ## Platform philosophy alignment
 
 - **Idiot-proof UX.** The Crew Composer uses plain-language role names (Writer, Researcher, Critic) and a card-based builder. No YAML, no prompt templates, no orchestration glossary.

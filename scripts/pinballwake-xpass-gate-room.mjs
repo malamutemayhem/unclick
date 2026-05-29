@@ -5,38 +5,45 @@ import { readFile } from "node:fs/promises";
 const CHECK_ORDER = [
   "testpass",
   "uxpass",
-  "securitypass",
-  "commonsensepass",
   "flowpass",
-  "geopass",
+  "securitypass",
   "rotatepass",
   "copypass",
+  "fidelitypass",
   "seopass",
+  "geopass",
   "legalpass",
-  "sloppass",
+  "compliancepass",
+  "commonsensepass",
   "wakepass",
+  "sloppass",
 ];
 
 const CHECK_LABELS = {
   testpass: "TestPass",
   uxpass: "UXPass",
-  securitypass: "SecurityPass",
-  commonsensepass: "CommonSensePass",
   flowpass: "FlowPass",
-  geopass: "GEOPass",
+  securitypass: "SecurityPass",
   rotatepass: "RotatePass",
   copypass: "CopyPass",
+  fidelitypass: "FidelityPass",
   seopass: "SEOPass",
+  geopass: "GEOPass",
   legalpass: "LegalPass",
-  sloppass: "SlopPass",
+  compliancepass: "CompliancePass",
+  commonsensepass: "CommonSensePass",
   wakepass: "WakePass",
+  sloppass: "SlopPass",
 };
 
 const PASS_PRODUCT_CHECKS = new Map([
   ["commonsensepass", "commonsensepass"],
   ["copypass", "copypass"],
+  ["fidelitypass", "fidelitypass"],
   ["flowpass", "flowpass"],
   ["geopass", "geopass"],
+  ["enterprisepass", "compliancepass"],
+  ["compliancepass", "compliancepass"],
   ["legalpass", "legalpass"],
   ["securitypass", "securitypass"],
   ["seopass", "seopass"],
@@ -56,6 +63,47 @@ const ENTERPRISE_READINESS_TERMS = [
   "model inventory",
   "technical documentation",
   "training data",
+];
+
+const COUNCIL_TRIGGER_TERMS = [
+  "ambiguous",
+  "council",
+  "crew",
+  "crews",
+  "debate",
+  "decide",
+  "decision",
+  "dissent",
+  "good enough",
+  "go no go",
+  "go/no-go",
+  "judgement",
+  "judgment",
+  "launch",
+  "opinion",
+  "opinions",
+  "positioning",
+  "ready to ship",
+  "risk acceptance",
+  "strategy",
+  "taste",
+  "trade-off",
+  "tradeoff",
+  "unclear",
+];
+
+const COUNCIL_HIGH_JUDGMENT_CHECKS = new Set([
+  "securitypass",
+  "legalpass",
+  "commonsensepass",
+  "rotatepass",
+]);
+
+const COUNCIL_LITE_QUESTIONS = [
+  "What would make this answer or change wrong?",
+  "What evidence is missing, stale, or too weak?",
+  "Who would object: user, maintainer, reviewer, legal, security, or operator?",
+  "What is the smallest proof needed before saying ready?",
 ];
 
 const PASS_STATUS = new Set(["pass", "passed", "success", "green", "ok"]);
@@ -95,6 +143,10 @@ function uniq(values) {
 
 function hasAny(text, terms) {
   return terms.some((term) => new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(text));
+}
+
+function exactCopyRequest(text) {
+  return /(\b1:1\b|\b1 for 1\b|\bone-to-one\b|\bone for one\b|\bexact copy\b|\bcopy exactly\b|\bcopy this without changing\b|\bexactly as source\b|\bverbatim\b|\bword-for-word\b|\bbyte-level\b|\btranscribe\b|\bmirror\b|\bpreserve exactly\b)/i.test(text);
 }
 
 function codeFile(path) {
@@ -164,6 +216,7 @@ export function selectXPassChecks(input = {}) {
   const text = targetText(input);
   const reasons = new Map();
   const allText = `${text} ${files.join(" ")}`;
+  const needsExactCopyProof = exactCopyRequest(allText);
 
   for (const path of files) {
     const pathWords = path.replace(/[\/_.-]+/g, " ");
@@ -220,6 +273,23 @@ export function selectXPassChecks(input = {}) {
     }
 
     if (
+      path.includes("flowpass") ||
+      path.includes("onboarding") ||
+      path.includes("checkout") ||
+      path.includes("signup") ||
+      path.includes("sign-up") ||
+      path.includes("login") ||
+      path.includes("handoff") ||
+      path.includes("navigation") ||
+      path.includes("journey") ||
+      path.includes("funnel") ||
+      path.includes("route") ||
+      path.startsWith("src/pages/")
+    ) {
+      addReason(reasons, "flowpass", `journey or route surface: ${path}`);
+    }
+
+    if (
       path.startsWith("public/") ||
       path === "index.html" ||
       path.includes("landing") ||
@@ -227,7 +297,7 @@ export function selectXPassChecks(input = {}) {
       path.includes("geopass") ||
       path.includes("llms.txt") ||
       path.includes("schema.org") ||
-      hasAny(pathWords, ["seo", "meta", "sitemap", "robots"])
+      hasAny(pathWords, ["seo", "meta", "sitemap", "robots", "canonical", "schema"])
     ) {
       addReason(reasons, "seopass", `public/SEO surface: ${path}`);
     }
@@ -236,9 +306,27 @@ export function selectXPassChecks(input = {}) {
       path.includes("geopass") ||
       path.includes("llms.txt") ||
       path.includes("schema.org") ||
-      hasAny(pathWords, ["geo", "ai", "answer", "engine", "gptbot", "claudebot", "perplexitybot", "wikidata"])
+      path.includes("common-crawl") ||
+      path.includes("wikidata") ||
+      path.includes("structured-data") ||
+      hasAny(pathWords, [
+        "geo",
+        "generative",
+        "engine",
+        "ai",
+        "answer",
+        "crawlability",
+        "sitemap",
+        "robots",
+        "canonical",
+        "schema",
+        "gptbot",
+        "claudebot",
+        "perplexitybot",
+        "wikidata",
+      ])
     ) {
-      addReason(reasons, "geopass", `AI answer-engine readiness surface: ${path}`);
+      addReason(reasons, "geopass", `AI discovery/readiness surface: ${path}`);
     }
 
     if (
@@ -256,7 +344,9 @@ export function selectXPassChecks(input = {}) {
       path.includes("pricing") ||
       path.includes("docs/")
     ) {
-      addReason(reasons, "copypass", `copy or docs surface: ${path}`);
+      if (!needsExactCopyProof) {
+        addReason(reasons, "copypass", `copy or docs surface: ${path}`);
+      }
     }
 
     if (
@@ -270,6 +360,24 @@ export function selectXPassChecks(input = {}) {
       path.includes("dpa")
     ) {
       addReason(reasons, "legalpass", `legal or commercial surface: ${path}`);
+    }
+
+    if (
+      path.includes("enterprise") ||
+      path.includes("compliance") ||
+      path.includes("audit") ||
+      path.includes("evidence") ||
+      path.includes("receipt") ||
+      path.includes("policy") ||
+      path.includes("ruleset") ||
+      path.includes("secret-scanning") ||
+      path.endsWith("package-lock.json") ||
+      path.endsWith("pnpm-lock.yaml") ||
+      path.endsWith("yarn.lock") ||
+      path.includes("dependabot") ||
+      hasAny(pathWords, ["soc", "iso", "gdpr", "dpa"])
+    ) {
+      addReason(reasons, "compliancepass", `enterprise/compliance evidence surface: ${path}`);
     }
 
     if (
@@ -289,7 +397,12 @@ export function selectXPassChecks(input = {}) {
       path.includes("csrf") ||
       path.includes("csp") ||
       path.includes("rls") ||
-      path.includes("supabase/migrations")
+      path.includes("supabase/migrations") ||
+      path.endsWith("package.json") ||
+      path.endsWith("package-lock.json") ||
+      path.endsWith("pnpm-lock.yaml") ||
+      path.endsWith("yarn.lock") ||
+      path.includes("dependabot")
     ) {
       addReason(reasons, "securitypass", `security-sensitive surface: ${path}`);
     }
@@ -298,13 +411,19 @@ export function selectXPassChecks(input = {}) {
       path.includes("rotatepass") ||
       path.includes("credential") ||
       path.includes("credentials") ||
-      path.includes("keychain") ||
       path.includes("revocation") ||
       path.includes("local-session") ||
       path.includes("browser-profile") ||
-      path.includes("password")
+      path.includes("token") ||
+      path.includes("secret") ||
+      path.includes("keychain") ||
+      path.includes("password") ||
+      path.includes("redaction") ||
+      path.includes("system-credentials") ||
+      path.includes("provider-response") ||
+      path.includes("rotation")
     ) {
-      addReason(reasons, "rotatepass", `credential lifecycle surface: ${path}`);
+      addReason(reasons, "rotatepass", `credential rotation/redaction surface: ${path}`);
     }
 
     if (
@@ -312,25 +431,34 @@ export function selectXPassChecks(input = {}) {
       path.includes("orchestrator") ||
       path.includes("heartbeat") ||
       path.includes("runner") ||
+      path.includes("queue") ||
+      path.includes("boardroom") ||
       path.includes("claim") ||
       path.includes("proof") ||
-      path.includes("queue") ||
-      path.includes("done") ||
-      path.includes("merge-ready")
+      path.includes("receipt") ||
+      path.includes("merge-ready") ||
+      path.includes("no-work") ||
+      path.includes("done")
     ) {
-      addReason(reasons, "commonsensepass", `worker claim/proof surface: ${path}`);
+      addReason(reasons, "commonsensepass", `claim/proof sanity surface: ${path}`);
     }
 
     if (
       path.includes("wakepass") ||
+      path.includes("pinballwake") ||
+      path.startsWith(".github/workflows/") ||
+      path.includes("workflow") ||
       path.includes("heartbeat") ||
+      path.includes("dispatch") ||
+      hasAny(pathWords, ["ack"]) ||
       path.includes("scheduled") ||
       path.includes("cron") ||
       path.includes("stale") ||
-      path.includes("dispatch") ||
-      hasAny(pathWords, ["ack"])
+      path.includes("lease") ||
+      path.includes("runner") ||
+      path.includes("queue")
     ) {
-      addReason(reasons, "wakepass", `wake or dispatch surface: ${path}`);
+      addReason(reasons, "wakepass", `wake/runner reliability surface: ${path}`);
     }
 
     if (codeFile(path) && !testFile(path)) {
@@ -341,35 +469,41 @@ export function selectXPassChecks(input = {}) {
   if (hasAny(allText, ["mcp", "tool", "tools", "connector", "connectors", "api endpoint", "native endpoint"])) {
     addReason(reasons, "testpass", "target text mentions tools/connectors/MCP");
   }
-  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
+  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
     addReason(reasons, "uxpass", "target text mentions UI/UX/visual changes");
+  }
+  if (hasAny(allText, ["flow", "journey", "path", "route", "checkout", "signup", "sign up", "onboarding", "handoff", "navigation", "funnel", "success state", "failure state"])) {
+    addReason(reasons, "flowpass", "target text mentions journey/flow completion");
   }
   if (hasAny(allText, ["security", "auth", "oauth", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "password", "redaction", "prompt injection", "insecure output", "llm", "model output", "sandbox"])) {
     addReason(reasons, "securitypass", "target text mentions security/auth/keys");
   }
-  if (hasAny(allText, ["common sense", "commonsense", "false done", "no work", "healthy", "merge ready", "claim", "claims", "proof", "receipt", "queue", "orchestrator", "heartbeat"])) {
-    addReason(reasons, "commonsensepass", "target text mentions worker claims or proof sanity");
+  if (hasAny(allText, ["rotatepass", "rotation", "rotate", "revocation", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "redaction", "system credentials", "local session", "browser profile", "password"])) {
+    addReason(reasons, "rotatepass", "target text mentions credential rotation/redaction");
   }
-  if (hasAny(allText, ["flow", "journey", "onboarding", "checkout", "signup", "handoff", "end to end", "e2e", "cta", "form", "success state", "failure state"])) {
-    addReason(reasons, "flowpass", "target text mentions product journey or end-to-end flow");
-  }
-  if (hasAny(allText, ["geo", "generative engine", "answer engine", "ai overview", "ai mode", "gptbot", "claudebot", "perplexity", "llms.txt", "wikidata", "schema.org"])) {
-    addReason(reasons, "geopass", "target text mentions AI answer-engine readiness");
-  }
-  if (hasAny(allText, ["rotate", "rotation", "revocation", "credential", "credentials", "keychain", "local session", "browser profile", "password"])) {
-    addReason(reasons, "rotatepass", "target text mentions credential lifecycle");
-  }
-  if (hasAny(allText, ["wake", "wakepass", "ack", "missed ack", "stale", "heartbeat", "cron", "schedule", "scheduled", "dispatch"])) {
-    addReason(reasons, "wakepass", "target text mentions wakes, stale work, or schedules");
-  }
-  if (hasAny(allText, ["copy", "wording", "homepage", "landing", "docs", "faq", "marketing", "public claim", "public claims"])) {
+  if (hasAny(allText, ["copy", "wording", "homepage", "landing", "docs", "faq", "marketing", "public claim", "public claims"]) && !needsExactCopyProof) {
     addReason(reasons, "copypass", "target text mentions copy/docs/claims");
   }
-  if (hasAny(allText, ["seo", "search", "meta", "sitemap", "robots"])) {
+  if (needsExactCopyProof) {
+    addReason(reasons, "fidelitypass", "target text asks for exact 1:1 copy proof");
+  }
+  if (hasAny(allText, ["seo", "search", "meta", "sitemap", "robots", "canonical", "schema", "structured data"])) {
     addReason(reasons, "seopass", "target text mentions SEO");
+  }
+  if (hasAny(allText, ["geo", "geopass", "generative engine", "ai discovery", "ai citation", "llms", "crawlability", "common crawl", "wikidata", "brand mention", "answer engine"])) {
+    addReason(reasons, "geopass", "target text mentions generative-engine readiness");
   }
   if (hasAny(allText, ["legal", "privacy", "terms", "license", "pricing", "billing", "invoice", "subprocessor", "compliance"])) {
     addReason(reasons, "legalpass", "target text mentions legal/commercial risk");
+  }
+  if (hasAny(allText, ["enterprise", "enterprisepass", "compliancepass", "compliance", "audit", "evidence", "receipt", "policy", "soc", "iso", "gdpr", "dpa", "secret scanning", "push protection"])) {
+    addReason(reasons, "compliancepass", "target text mentions enterprise/compliance evidence");
+  }
+  if (hasAny(allText, ["commonsensepass", "common sense", "healthy", "quiet", "no work", "no_work", "done", "merge ready", "merge_ready", "stale proof", "green chip", "claim", "completion proof"])) {
+    addReason(reasons, "commonsensepass", "target text mentions claim/proof sanity");
+  }
+  if (hasAny(allText, ["wakepass", "pinballwake", "wake", "heartbeat", "dispatch", "ack", "lease", "stale check", "scheduled", "cron", "runner", "queue", "job claim"])) {
+    addReason(reasons, "wakepass", "target text mentions wake/runner reliability");
   }
   if (hasAny(allText, ["quality", "slop", "refactor", "code smell", "bug", "bugfix"])) {
     addReason(reasons, "sloppass", "target text mentions quality or code risk");
@@ -388,6 +522,9 @@ function normalizeCheckName(value) {
   const key = normalize(value).replace(/[\s_-]+/g, "");
   if (key === "qualitypass") return "sloppass";
   if (key === "quality") return "sloppass";
+  if (key === "enterprisepass") return "compliancepass";
+  if (key === "compliance") return "compliancepass";
+  if (key === "enterprise") return "compliancepass";
   return CHECK_ORDER.find((check) => check === key || CHECK_LABELS[check].toLowerCase() === key) || key;
 }
 
@@ -446,6 +583,82 @@ function isUnscopedForTarget(result, inspectedTarget) {
   return Boolean(result && inspectedTarget?.sha && !result.target_sha);
 }
 
+export function selectCrewsCouncilTrigger(input = {}, selected = selectXPassChecks(input), results = resultMap(input.pass_results || input.passResults || input.results)) {
+  const files = changedFiles(input);
+  const text = targetText(input);
+  const allText = `${text} ${files.join(" ")}`;
+  const selectedChecks = selected.map((check) => check.check);
+  const selectedSet = new Set(selectedChecks);
+  const providedResults = [...results.values()];
+  const passedResults = providedResults.filter((result) => result.status === "passed");
+  const blockerResults = providedResults.filter((result) => result.status === "blocker");
+  const skippedResults = providedResults.filter((result) => result.status === "skipped");
+  const highJudgmentChecks = selectedChecks.filter((check) => COUNCIL_HIGH_JUDGMENT_CHECKS.has(check));
+  const reasons = new Set();
+
+  if (input.require_council === true || input.requireCouncil === true || input.force_council === true || input.forceCouncil === true) {
+    reasons.add("Council explicitly requested for this target.");
+  }
+
+  if (hasAny(allText, COUNCIL_TRIGGER_TERMS)) {
+    reasons.add("Target language asks for judgement, debate, launch readiness, or a decision.");
+  }
+
+  if (files.some((path) => path.includes("/crews/") || path.includes("crews") || path.includes("council"))) {
+    reasons.add("Crews or Council surface changed; dogfood Crews with its own Council judgement.");
+  }
+
+  if (selectedChecks.length >= 4) {
+    reasons.add(`Broad XPass surface selected ${selectedChecks.length} checks; use a Council to interpret the combined evidence.`);
+  }
+
+  if (highJudgmentChecks.length >= 2) {
+    reasons.add(`High-judgement checks overlap: ${highJudgmentChecks.map((check) => CHECK_LABELS[check]).join(", ")}.`);
+  }
+
+  if (
+    (selectedSet.has("legalpass") || selectedSet.has("securitypass")) &&
+    (selectedSet.has("copypass") || selectedSet.has("uxpass") || selectedSet.has("seopass")) &&
+    hasAny(allText, ["public", "publish", "release", "launch", "pricing", "homepage", "landing", "claims", "enterprise", "compliance"])
+  ) {
+    reasons.add("Public, commercial, legal, or security evidence needs a named final judgement before release.");
+  }
+
+  if (blockerResults.length > 0 && passedResults.length > 0) {
+    reasons.add("Pass evidence is mixed; a Council should decide what the blockers mean before owners treat the target as ready.");
+  }
+
+  if (skippedResults.length > 0 && selectedChecks.length >= 3) {
+    reasons.add("Some checks were skipped on a multi-pass target; use a Council to record accepted exclusions.");
+  }
+
+  const triggerScore = Math.min(100, (reasons.size * 22) + Math.min(30, selectedChecks.length * 5));
+  const needed = reasons.size > 0;
+  const liteNeeded = Boolean(files.length || text || selectedChecks.length || providedResults.length);
+
+  return {
+    needed,
+    status: needed ? (triggerScore >= 55 ? "recommended" : "consider") : "not_needed",
+    trigger_score: triggerScore,
+    suggested_template: needed ? "Council" : null,
+    suggested_tool: needed ? "start_crew_run" : null,
+    reasons: [...reasons],
+    note: needed
+      ? "Crews should interpret the evidence; XPass still owns the checks and receipts."
+      : "XPass can handle this without a Crews Council.",
+    lite_check: {
+      needed: liteNeeded,
+      status: liteNeeded ? "baseline" : "not_needed",
+      suggested_template: liteNeeded ? "Council Lite" : null,
+      mode: "anti_rubber_stamp",
+      questions: liteNeeded ? COUNCIL_LITE_QUESTIONS : [],
+      note: liteNeeded
+        ? "Use this tiny dissent check before treating the answer as ready; escalate to full Council only when the recommendation says consider or recommended."
+        : "No meaningful target was supplied for a light Crews check.",
+    },
+  };
+}
+
 function makeReceipt({
   inspectedTarget,
   selected,
@@ -455,18 +668,122 @@ function makeReceipt({
   stale,
   unscoped,
   skipped,
+  council,
   now,
 }) {
+  const selectedByCheck = new Map(selected.map((check) => [check.check, check]));
+  const providedByCheck = new Map(provided.map((result) => [result.check, result]));
+  const missingSet = new Set(missing);
+  const blockerSet = new Set(blockers.map((result) => result.check));
+  const skippedByCheck = new Map(skipped.map((item) => [item.check, item]));
+  const improvementSignals = [
+    ...missing.map((check) => ({
+      check,
+      name: CHECK_LABELS[check] || check,
+      signal: "selected_check_missing_receipt",
+      action: "Add or rerun the receipt, then decide whether the pass needs a stronger runner or worker reminder.",
+    })),
+    ...blockers.map((result) => ({
+      check: result.check,
+      name: result.name,
+      signal: "pass_returned_blocker",
+      action: "Fix the target or improve the pass rule if this blocker is noisy.",
+    })),
+    ...stale.map((result) => ({
+      check: result.check,
+      name: result.name,
+      signal: "stale_receipt",
+      action: "Tighten receipt freshness or rerun behavior for this pass.",
+    })),
+    ...unscoped.map((result) => ({
+      check: result.check,
+      name: result.name,
+      signal: "unscoped_receipt",
+      action: "Teach the pass to bind evidence to the target SHA, URL, or artifact.",
+    })),
+    ...skipped
+      .filter((item) => item.reason === "pass_not_available")
+      .map((item) => ({
+        check: item.check,
+        name: item.name,
+        signal: "pass_not_available",
+        action: "Create a closure-board job if this pass should be available for this target class.",
+      })),
+  ];
+  const fullChecklist = CHECK_ORDER.map((check) => {
+    const selectedCheck = selectedByCheck.get(check);
+    if (!selectedCheck) {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "N/A",
+        reason: "not_selected_for_target",
+      };
+    }
+
+    const skippedCheck = skippedByCheck.get(check);
+    if (skippedCheck) {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "NOT RUN",
+        reason: skippedCheck.reason,
+      };
+    }
+
+    const result = providedByCheck.get(check);
+    if (blockerSet.has(check)) {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "BLOCKER",
+        reason: result?.summary || "pass_result_blocker",
+      };
+    }
+    if (result?.status === "passed") {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "PASS",
+        reason: "receipt_green",
+      };
+    }
+    if (result?.status === "skipped") {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "N/A",
+        reason: result.summary || "pass_result_skipped",
+      };
+    }
+    if (missingSet.has(check)) {
+      return {
+        check,
+        name: CHECK_LABELS[check],
+        status: "MISSING",
+        reason: "selected_but_no_receipt",
+      };
+    }
+    return {
+      check,
+      name: CHECK_LABELS[check],
+      status: "NOT RUN",
+      reason: "selected_without_receipt",
+    };
+  });
+
   return {
     kind: "xpass_receipt",
     generated_at: now,
     target: inspectedTarget,
+    full_checklist: fullChecklist,
     checks_selected: selected.map((check) => ({
       check: check.check,
       name: check.name,
       reasons: check.reasons,
     })),
     checks_skipped: skipped,
+    improvement_signals: improvementSignals,
     evidence: provided.map((result) => ({
       check: result.check,
       name: result.name,
@@ -487,6 +804,7 @@ function makeReceipt({
       unscoped_checks: unscoped.map((result) => result.check),
       target_sha: inspectedTarget.sha || null,
     },
+    crews_council: council,
   };
 }
 
@@ -500,6 +818,7 @@ export function evaluateXPassGate(input = {}) {
   const available = new Set(safeList(input.available_checks || input.availableChecks).map(normalizeCheckName));
   const hasAvailability = available.size > 0;
   const results = resultMap(input.pass_results || input.passResults || input.results);
+  const council = selectCrewsCouncilTrigger(input, selected, results);
 
   const skipped = [];
   const missing = [];
@@ -547,6 +866,7 @@ export function evaluateXPassGate(input = {}) {
     stale,
     unscoped,
     skipped,
+    council,
     now,
   });
 
@@ -568,7 +888,7 @@ export function evaluateXPassGate(input = {}) {
     mode: enforce ? "enforce" : "advisory",
     result,
     reason: selected.length === 0
-      ? "no_relevant_pass_family_checks"
+      ? "no_relevant_xpass_product_checks"
       : result === "passed"
         ? "xpass_receipt_green"
         : result === "xpass_needed"
@@ -585,6 +905,7 @@ export function evaluateXPassGate(input = {}) {
     stale_checks: stale.map((result) => result.check),
     unscoped_checks: unscoped.map((result) => result.check),
     skipped_checks: skipped,
+    crews_council: council,
     receipt,
   };
 }

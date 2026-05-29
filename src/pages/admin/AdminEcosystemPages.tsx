@@ -208,7 +208,7 @@ export function AdminChecks() {
     <PageShell
       kicker="Proof and quality checks"
       title="XPass"
-      subtitle="XPass is the check family. It proves work with receipts instead of relying on a worker saying 'done'."
+      subtitle="XPass is the proof product line. It proves work with receipts instead of relying on a worker saying 'done'."
     >
       <TileGrid
         items={[
@@ -217,9 +217,11 @@ export function AdminChecks() {
           { title: "SecurityPass", body: "Security and protected-surface checks.", icon: ShieldCheck },
           { title: "LegalPass", body: "Legal/compliance wording and risk checks.", icon: FileText },
           { title: "CopyPass", body: "Writing, messaging, and copy quality checks.", icon: FileText, href: "/admin/copypass" },
+          { title: "FidelityPass", body: "Exact-copy proof wrapper for CopyRoom receipts.", icon: ClipboardCheck },
           { title: "SEOPass", body: "Search visibility and metadata checks.", icon: SearchCheck },
           { title: "SlopPass", body: "AI-code quality, slop signals, and maintainability checks.", icon: BadgeCheck },
-          { title: "CompliancePass", body: "Public name for EnterprisePass.", icon: ShieldCheck },
+          { title: "CommonSensePass", body: "Sanity checks for status, proof, and readiness claims.", icon: BadgeCheck },
+          { title: "CompliancePass", body: "Compliance posture and enterprise-readiness checks.", icon: ShieldCheck },
           { title: "RotatePass", body: "Passport rotation checks, likely folding into SecurityPass later.", icon: KeyRound },
         ]}
       />

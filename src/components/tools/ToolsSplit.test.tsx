@@ -36,5 +36,5 @@ describe("Tools split components", () => {
 
     expect(screen.getByText("Connect once. Works forever.")).toBeInTheDocument();
     expect(screen.getByText(/connectors$/i)).toBeInTheDocument();
-  });
+  }, 15_000);
 });

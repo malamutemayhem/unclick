@@ -3,13 +3,21 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const args = new Set(process.argv.slice(2));
+import { PASS_PACKAGES } from "./build-xpass-package-sweep.mjs";
+
+const rawArgs = process.argv.slice(2);
+const args = new Set(rawArgs);
 const dryRun = args.has("--dry-run") || process.env.DOGFOOD_DRY_RUN === "1";
-const outputIndex = process.argv.indexOf("--output");
-const outputPath =
-  outputIndex >= 0 && process.argv[outputIndex + 1]
-    ? process.argv[outputIndex + 1]
-    : "public/dogfood/latest.json";
+const outputPath = argValue("--output", "public/dogfood/latest.json");
+const compliancepassReceiptPath = argValue("--compliancepass-receipt", "public/enterprise/latest.json");
+const requestedMaxCompliancepassAgeHours = Number(argValue(
+  "--max-compliancepass-age-hours",
+  process.env.DOGFOOD_COMPLIANCEPASS_MAX_AGE_HOURS || "168",
+));
+const maxCompliancepassAgeHours =
+  Number.isFinite(requestedMaxCompliancepassAgeHours) && requestedMaxCompliancepassAgeHours > 0
+    ? requestedMaxCompliancepassAgeHours
+    : 168;
 
 const apiBase = trimTrailingSlash(process.env.DOGFOOD_API_BASE || "https://unclick.world");
 const publicUrl = process.env.DOGFOOD_PUBLIC_URL || "https://unclick.world";
@@ -17,17 +25,25 @@ const mcpUrl = process.env.DOGFOOD_MCP_URL || "https://unclick.world/api/mcp";
 const generatedAt = new Date().toISOString();
 const targetSha = process.env.DOGFOOD_TARGET_SHA || process.env.GITHUB_SHA || process.env.VERCEL_GIT_COMMIT_SHA || "";
 const packageSweepPath = process.env.DOGFOOD_XPASS_PACKAGE_SWEEP_PATH || "public/dogfood/xpass-package-sweep.json";
+const boundarySweepPath = process.env.DOGFOOD_XPASS_BOUNDARY_SWEEP_PATH || "public/dogfood/xpass-boundary-sweep.json";
 let packageSweepState = null;
+let boundarySweepState = null;
+const requiredSweepPackageIds = PASS_PACKAGES.map((pkg) => pkg.id);
+
+function argValue(name, fallback) {
+  const index = rawArgs.indexOf(name);
+  return index >= 0 && rawArgs[index + 1] ? rawArgs[index + 1] : fallback;
+}
 
 const statusLegend = {
-  passing: "A live check or scheduled package sweep ran and returned a passing result.",
+  passing: "A live check or scheduled package sweep ran and returned a passing result, or a scheduled boundary sweep ran and returned a passing result.",
   failing: "A live check or scheduled package sweep ran and returned a failing result.",
-  blocked: "The check could not run because an action is needed, such as a missing credential or scope gate.",
+  blocked: "The check needs action before it can be marked passing, such as a missing credential, scope gate, or high-severity readiness gap.",
   pending: "The check is planned, package-ready, or scaffolded, but scheduled proof is not available yet.",
 };
 
 const proofPolicy =
-  "Public dogfood receipts mark passing only when a live check or scheduled package sweep actually ran. Blocked and pending are honest product states, not failures to hide.";
+  "Public dogfood receipts mark passing only when a live check or scheduled package sweep actually ran, or a scheduled boundary sweep actually ran. Blocked and pending are honest product states, not failures to hide.";
 
 const xpassIndex = [
   {
@@ -51,11 +67,11 @@ const xpassIndex = [
   {
     id: "securitypass",
     name: "SecurityPass",
-    stage: "scope_gated",
-    label: "Scope-gated",
-    automation: "Blocked public receipt until safe recurring proof exists",
+    stage: "safe_proof",
+    label: "Safe proof live",
+    automation: "Recurring static safety proof; active probes remain scope-gated",
     mentionProfile: "Low mention volume by design because unsafe probes stay disabled.",
-    nextStep: "Add a deny-by-default recurring runner proof before live security checks.",
+    nextStep: "Add a deny-by-default recurring active-runner proof before live security checks.",
   },
   {
     id: "sloppass",
@@ -139,13 +155,13 @@ const xpassIndex = [
     nextStep: "Expose a public-safe stale-work receipt for dogfood runs.",
   },
   {
-    id: "enterprisepass",
-    name: "EnterprisePass",
-    stage: "guidance",
-    label: "Guidance report",
-    automation: "Receipt guard and readiness report boundary",
-    mentionProfile: "Low mention volume while it remains a guidance layer, not certification.",
-    nextStep: "Add low-risk readiness checks without claiming compliance certification.",
+    id: "compliancepass",
+    name: "CompliancePass",
+    stage: "live_dogfood",
+    label: "Readiness evidence",
+    automation: "Local deterministic scanner and public readiness receipt",
+    mentionProfile: "Low mention volume unless readiness evidence, claims, or docs drift.",
+    nextStep: "Keep report language conservative and link more XPass receipts as they mature.",
   },
 ];
 
@@ -221,7 +237,7 @@ function packageReadyResult(id, name, summary, evidence, targetUrl, nextProof) {
   const sweepNextProof = sweep && sweep.package.status === "passing" && !sweep.matrix
     ? `Regenerate ${packageSweepPath} with a cross-pass matrix row for ${name} before marking this passing.`
     : packageSweepState?.stale
-      ? `Regenerate ${packageSweepPath} for ${targetSha || "the current commit"} before marking this passing.`
+      ? `Regenerate ${packageSweepPath} as a full current XPass package sweep for ${targetSha || "the current commit"} before marking this passing.`
       : nextProof;
   return pendingResult(id, name, summary, evidence, {
     reasonCode: "package_ready_needs_scheduled_receipt",
@@ -232,11 +248,63 @@ function packageReadyResult(id, name, summary, evidence, targetUrl, nextProof) {
 }
 
 function boundaryResult(id, name, summary, evidence, targetUrl, nextProof) {
+  const sweep = boundarySweepProof(id);
+  if (sweep) {
+    if (sweep.product.status === "passing" && sweep.matrix?.status === "passing") {
+      return passResult(
+        id,
+        name,
+        `Scheduled XPass boundary sweep passed ${name}.`,
+        `Receipt ${sweep.runId} ran ${sweep.commandText}; cross-checked by ${sweep.reviewerNames || "boundary proof"}.`,
+        {
+          runId: sweep.runId,
+          targetUrl,
+          proof: {
+            kind: "xpass_boundary_sweep",
+            runId: sweep.runId,
+            productId: id,
+            targetUrl,
+            targetSha: sweep.targetSha || undefined,
+            receiptPath: boundarySweepPath,
+            reviewers: sweep.reviewers,
+          },
+        },
+      );
+    }
+
+    if (sweep.product.status === "failing" || sweep.matrix?.status === "failing") {
+      return failureResult(
+        id,
+        name,
+        `Scheduled XPass boundary sweep failed ${name}.`,
+        sweep.product.failure_hint || sweep.matrix?.summary || `Receipt ${sweep.runId} reported a failing boundary proof.`,
+        {
+          runId: sweep.runId,
+          targetUrl,
+          proof: {
+            kind: "xpass_boundary_sweep",
+            runId: sweep.runId,
+            productId: id,
+            targetUrl,
+            targetSha: sweep.targetSha || undefined,
+            receiptPath: boundarySweepPath,
+            reviewers: sweep.reviewers,
+          },
+        },
+      );
+    }
+  }
+
+  const sweepNextProof = sweep && sweep.product.status === "passing" && !sweep.matrix
+    ? `Regenerate ${boundarySweepPath} with a cross-pass matrix row for ${name} before marking this passing.`
+    : boundarySweepState?.stale
+      ? `Regenerate ${boundarySweepPath} for ${targetSha || "the current commit"} before marking this passing.`
+      : nextProof;
   return pendingResult(id, name, summary, evidence, {
     reasonCode: "boundary_needs_runner",
     proof: { kind: "boundary", targetUrl },
     targetUrl,
-    nextProof,
+    nextProof: sweepNextProof,
   });
 }
 
@@ -246,6 +314,12 @@ function blockedResult(id, name, summary, evidence, blockedReason, details = {})
 
 function failureResult(id, name, summary, evidence, details = {}) {
   return result(id, name, "failing", summary, evidence, details);
+}
+
+function ageHoursSince(isoTimestamp) {
+  const timestamp = Date.parse(isoTimestamp);
+  if (!Number.isFinite(timestamp)) return Number.POSITIVE_INFINITY;
+  return Math.max(0, (Date.parse(generatedAt) - timestamp) / (60 * 60 * 1000));
 }
 
 function passResult(id, name, summary, evidence, details = {}) {
@@ -271,6 +345,15 @@ async function readPackageSweepReceipt() {
         actualSha: receipt.target_sha || "",
       };
     }
+    const validation = validatePackageSweepReceipt(receipt);
+    if (!validation.ok) {
+      return {
+        receipt,
+        stale: true,
+        reason: validation.reason,
+        validation,
+      };
+    }
     return { receipt, stale: false, reason: "fresh" };
   } catch (err) {
     if (err?.code === "ENOENT") {
@@ -283,6 +366,79 @@ async function readPackageSweepReceipt() {
       error: err instanceof Error ? err.message : String(err),
     };
   }
+}
+
+async function readBoundarySweepReceipt() {
+  if (dryRun) {
+    return { receipt: null, stale: false, reason: "dry_run" };
+  }
+
+  try {
+    const receipt = JSON.parse(await fs.readFile(boundarySweepPath, "utf8"));
+    if (receipt?.kind !== "xpass_boundary_sweep_receipt_v1") {
+      return { receipt: null, stale: false, reason: "invalid_kind" };
+    }
+    if (targetSha && receipt.target_sha !== targetSha) {
+      return {
+        receipt,
+        stale: true,
+        reason: "target_sha_mismatch",
+        expectedSha: targetSha,
+        actualSha: receipt.target_sha || "",
+      };
+    }
+    return { receipt, stale: false, reason: "fresh" };
+  } catch (err) {
+    if (err?.code === "ENOENT") {
+      return { receipt: null, stale: false, reason: "missing" };
+    }
+    return {
+      receipt: null,
+      stale: false,
+      reason: "unreadable",
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+function normalizedIdSet(values) {
+  return new Set((Array.isArray(values) ? values : [])
+    .map((value) => String(value ?? "").trim().toLowerCase())
+    .filter(Boolean));
+}
+
+function hasExactRequiredPackageIds(values) {
+  const ids = normalizedIdSet(values);
+  return ids.size === requiredSweepPackageIds.length
+    && requiredSweepPackageIds.every((id) => ids.has(id));
+}
+
+function validatePackageSweepReceipt(receipt) {
+  if (receipt?.status !== "passing") {
+    return { ok: false, reason: "xpass_sweep_not_passing" };
+  }
+  if (receipt?.scope !== "full") {
+    return { ok: false, reason: "xpass_sweep_not_full_scope" };
+  }
+  if (receipt?.expected_package_count !== requiredSweepPackageIds.length) {
+    return { ok: false, reason: "xpass_sweep_expected_count_mismatch" };
+  }
+  if (!hasExactRequiredPackageIds(receipt?.expected_package_ids)) {
+    return { ok: false, reason: "xpass_sweep_expected_ids_mismatch" };
+  }
+  if (!hasExactRequiredPackageIds(receipt?.selected_package_ids)) {
+    return { ok: false, reason: "xpass_sweep_selected_ids_mismatch" };
+  }
+  if (normalizedIdSet(receipt?.unknown_package_ids).size > 0) {
+    return { ok: false, reason: "xpass_sweep_unknown_package_ids" };
+  }
+  if (!hasExactRequiredPackageIds((receipt?.packages || []).map((pkg) => pkg.id))) {
+    return { ok: false, reason: "xpass_sweep_package_rows_mismatch" };
+  }
+  if (!hasExactRequiredPackageIds((receipt?.cross_pass_matrix || []).map((row) => row.target_id))) {
+    return { ok: false, reason: "xpass_sweep_matrix_rows_mismatch" };
+  }
+  return { ok: true, reason: "fresh_full_scope" };
 }
 
 function packageSweepProof(id) {
@@ -306,6 +462,30 @@ function packageSweepProof(id) {
     reviewers,
     reviewerNames,
     commandText: Array.isArray(packageResult.command) ? packageResult.command.join(" ") : "the package test command",
+  };
+}
+
+function boundarySweepProof(id) {
+  const receipt = boundarySweepState?.receipt;
+  if (!receipt || boundarySweepState.stale) return null;
+  const productResult = Array.isArray(receipt.products)
+    ? receipt.products.find((product) => product.id === id)
+    : null;
+  if (!productResult) return null;
+
+  const matrix = Array.isArray(receipt.cross_pass_matrix)
+    ? receipt.cross_pass_matrix.find((row) => row.target_id === id)
+    : null;
+  const reviewers = Array.isArray(matrix?.reviewers) ? matrix.reviewers : [];
+  const reviewerNames = reviewers.map((reviewer) => reviewer.name || reviewer.id).filter(Boolean).join(", ");
+  return {
+    runId: receipt.run_id || "unknown",
+    targetSha: receipt.target_sha || "",
+    product: productResult,
+    matrix,
+    reviewers,
+    reviewerNames,
+    commandText: Array.isArray(productResult.command) ? productResult.command.join(" ") : "the public-safe boundary test command",
   };
 }
 
@@ -496,13 +676,140 @@ async function runUXPass() {
   }
 }
 
+async function runCompliancePassReceipt() {
+  const receiptPath = compliancepassReceiptPath;
+  try {
+    const receipt = JSON.parse(await fs.readFile(receiptPath, "utf8"));
+    const complete =
+      receipt.product === "CompliancePass" &&
+      receipt.status === "complete" &&
+      receipt.summary?.checks_pending === 0 &&
+      typeof receipt.readiness_score?.value === "number";
+
+    if (!complete) {
+      return pendingResult(
+        "compliancepass",
+        "CompliancePass",
+        "CompliancePass public receipt exists but is not complete yet.",
+        "See /enterprise/latest.json for the readiness-report boundary and current category map.",
+        {
+          proof: { kind: "public_receipt", targetUrl: "/enterprise/latest.json" },
+          nextProof: "Run npm run compliancepass:report after building @unclick/compliancepass.",
+        },
+      );
+    }
+
+    const receiptAgeHours = ageHoursSince(receipt.generated_at);
+    if (!Number.isFinite(receiptAgeHours) || receiptAgeHours > maxCompliancepassAgeHours) {
+      return blockedResult(
+        "compliancepass",
+        "CompliancePass",
+        "CompliancePass public receipt exists but is stale.",
+        "See /enterprise/latest.json for the readiness-report boundary and current category map.",
+        `CompliancePass receipt is older than ${maxCompliancepassAgeHours} hour(s).`,
+        {
+          reasonCode: "stale_receipt",
+          score: receipt.readiness_score.value,
+          band: receipt.readiness_band,
+          proof: {
+            kind: "compliancepass_report",
+            targetUrl: "/enterprise/latest.json",
+            checksTotal: receipt.summary.checks_total,
+            highSeverityGaps: typeof receipt.summary?.blocking_gap_count === "number"
+              ? receipt.summary.blocking_gap_count
+              : 0,
+            generatedAt: receipt.generated_at,
+            ageHours: Math.round(receiptAgeHours * 10) / 10,
+            maxAgeHours: maxCompliancepassAgeHours,
+          },
+          nextProof: "Regenerate /enterprise/latest.json with npm run compliancepass:report, then rerun dogfood.",
+        },
+      );
+    }
+
+    const highSeverityGaps = Array.isArray(receipt.gaps)
+      ? receipt.gaps.filter((gap) => gap?.severity === "critical" || gap?.severity === "high")
+      : [];
+    const blockingGapCount = typeof receipt.summary?.blocking_gap_count === "number"
+      ? receipt.summary.blocking_gap_count
+      : highSeverityGaps.length;
+    if (receipt.readiness_band !== "green" || blockingGapCount > 0) {
+      return blockedResult(
+        "compliancepass",
+        "CompliancePass",
+        `CompliancePass scanned ${receipt.summary.checks_total} readiness checks and scored ${receipt.readiness_score.value}/100, but the receipt is ${receipt.readiness_band}.`,
+        "See /enterprise/latest.json for the evidence-backed readiness report and remaining gaps.",
+        `CompliancePass readiness is ${receipt.readiness_band}; ${blockingGapCount} high/critical gap(s) remain.`,
+        {
+          reasonCode: "readiness_gap",
+          score: receipt.readiness_score.value,
+          band: receipt.readiness_band,
+          proof: {
+            kind: "compliancepass_report",
+            targetUrl: "/enterprise/latest.json",
+            checksTotal: receipt.summary.checks_total,
+            highSeverityGaps: blockingGapCount,
+          },
+          nextProof: "Resolve or explicitly route high/critical CompliancePass gaps, then regenerate /enterprise/latest.json.",
+        },
+      );
+    }
+
+    return passResult(
+      "compliancepass",
+      "CompliancePass",
+      `CompliancePass scanned ${receipt.summary.checks_total} readiness checks and scored ${receipt.readiness_score.value}/100.`,
+      "See /enterprise/latest.json for the evidence-backed readiness report.",
+      {
+        reasonCode: "public_receipt_complete",
+        score: receipt.readiness_score.value,
+        band: receipt.readiness_band,
+        proof: {
+          kind: "compliancepass_report",
+          targetUrl: "/enterprise/latest.json",
+          checksTotal: receipt.summary.checks_total,
+        },
+      },
+    );
+  } catch (err) {
+    return pendingResult(
+      "compliancepass",
+      "CompliancePass",
+      "CompliancePass public receipt could not be read.",
+      "Generate public/enterprise/latest.json before publishing the dogfood receipt.",
+      {
+        proof: { kind: "missing", targetUrl: "/enterprise/latest.json" },
+        nextProof: `Run npm run compliancepass:report. Last error: ${err instanceof Error ? err.message : String(err)}`,
+      },
+    );
+  }
+}
+
 async function runSEOPass() {
   if (dryRun) {
-    return passResult(
+    const runId = "seopass-dry-run-shape";
+    return pendingResult(
       "seopass",
       "SEOPass",
       "Dry-run receipt builder validated the SEOPass result shape.",
       "Dry run only. Live workflow fetches public HTML, robots.txt, sitemap.xml, and llms.txt.",
+      {
+        reasonCode: "dry_run_only",
+        runId,
+        targetUrl: publicUrl,
+        proof: {
+          kind: "seopass_run",
+          runId,
+          targetUrl: publicUrl,
+          sourceUrls: [
+            publicUrl,
+            `${trimTrailingSlash(publicUrl)}/robots.txt`,
+            `${trimTrailingSlash(publicUrl)}/sitemap.xml`,
+            `${trimTrailingSlash(publicUrl)}/llms.txt`,
+          ],
+        },
+        nextProof: "Run the dogfood report without --dry-run so SEOPass can fetch the public SEO surfaces before marking it passing.",
+      },
     );
   }
 
@@ -622,6 +929,107 @@ function extractSitemapUrls(body) {
   return Array.from(body.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)).map((match) => match[1] || "").filter(Boolean);
 }
 
+async function runSecurityPassSafeProof() {
+  const proofFiles = {
+    runner: "packages/securitypass/src/runner/index.ts",
+    gitleaks: "packages/securitypass/src/probes/gitleaks.ts",
+    osv: "packages/securitypass/src/probes/osv-scanner.ts",
+  };
+
+  try {
+    const [runner, gitleaks, osv] = await Promise.all([
+      fs.readFile(proofFiles.runner, "utf8"),
+      fs.readFile(proofFiles.gitleaks, "utf8"),
+      fs.readFile(proofFiles.osv, "utf8"),
+    ]);
+
+    const skeletonStart = runner.indexOf("export async function runSkeletonScan");
+    const skeletonVerify = runner.indexOf("await verifyScopeOrThrow(target, opts);", skeletonStart);
+    const skeletonCreateRun = runner.indexOf("const run = createRun", skeletonStart);
+    const skeletonHeaderProbe = runner.indexOf("checkSecurityHeaders(url", skeletonStart);
+    const packStart = runner.indexOf("export async function runSecurityPack");
+    const packDeclaredScope = runner.indexOf("assertTargetWithinDeclaredScope(pack, target);", packStart);
+    const packVerify = runner.indexOf("const scopeProof = await verifyScopeOrThrow", packStart);
+
+    const checks = [
+      {
+        name: "runSkeletonScan verifies scope before creating a run.",
+        ok: skeletonStart >= 0 && skeletonVerify > skeletonStart && skeletonCreateRun > skeletonVerify,
+      },
+      {
+        name: "runSkeletonScan verifies scope before fetching security headers.",
+        ok: skeletonStart >= 0 && skeletonVerify > skeletonStart && skeletonHeaderProbe > skeletonVerify,
+      },
+      {
+        name: "runSecurityPack checks declared in-scope/out-of-scope assets before proof verification.",
+        ok: packStart >= 0 && packDeclaredScope > packStart && packVerify > packDeclaredScope,
+      },
+      {
+        name: "Gitleaks uses the current git scan command with scanner-side redaction.",
+        ok: /args:\s*\[\s*"git"/.test(gitleaks) && gitleaks.includes('"--redact=100"'),
+      },
+      {
+        name: "OSV-Scanner uses the v2 source scan command and keeps source-path evidence.",
+        ok: /args:\s*\[\s*"scan",\s*"source"/.test(osv) && osv.includes("source_path"),
+      },
+      {
+        name: "OSV-Scanner keeps Rust call analysis explicitly disabled for safe source scans.",
+        ok: osv.includes('"--no-call-analysis=rust"'),
+      },
+      {
+        name: "OSV-Scanner evidence keeps fixed-version and call-analysis context.",
+        ok: osv.includes("fixed_versions") && osv.includes("call_analysis"),
+      },
+      {
+        name: "OSV-Scanner scores official CVSS vector evidence instead of defaulting it low.",
+        ok: osv.includes("cvss_scores") && osv.includes("cvssV3Score") && osv.includes("cvssV2Score"),
+      },
+    ];
+
+    const failedChecks = checks.filter((check) => !check.ok);
+    const proof = {
+      kind: "securitypass_safe_static_proof",
+      files: proofFiles,
+      checks,
+      activeProbesRun: false,
+    };
+
+    if (failedChecks.length > 0) {
+      return failureResult(
+        "securitypass",
+        "SecurityPass",
+        `SecurityPass safe proof failed ${failedChecks.length} static check(s).`,
+        failedChecks.map((check) => check.name).join(" "),
+        {
+          reasonCode: "safe_proof_failed",
+          proof,
+        },
+      );
+    }
+
+    return passResult(
+      "securitypass",
+      "SecurityPass",
+      "Safe recurring proof verified SecurityPass remains deny-by-default before active probes.",
+      "Static proof checked the runner scope gate plus scanner wrapper safety settings; no active probes were run.",
+      {
+        proof,
+        nextProof: "Add a scoped active-runner receipt before marking live security probes as passing.",
+      },
+    );
+  } catch (err) {
+    return failureResult(
+      "securitypass",
+      "SecurityPass",
+      "SecurityPass safe proof could not read the expected source files.",
+      err instanceof Error ? err.message : String(err),
+      {
+        reasonCode: "safe_proof_unreadable",
+      },
+    );
+  }
+}
+
 function buildTrend(results) {
   const today = generatedAt.slice(0, 10);
   return [{
@@ -658,21 +1066,12 @@ function buildLastActionableFailure(results) {
 }
 
 packageSweepState = await readPackageSweepReceipt();
+boundarySweepState = await readBoundarySweepReceipt();
 
 const results = [
   await runTestPass(),
   await runUXPass(),
-  blockedResult(
-    "securitypass",
-    "SecurityPass",
-    "SecurityPass is blocked until the recurring runner proof is ready.",
-    "SecurityPass remains scope-gated; the public dogfood receipt does not run security probes yet.",
-    "SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
-    {
-      reasonCode: "scope_gate",
-      nextProof: "Land a safe recurring SecurityPass runner receipt before marking this passing.",
-    },
-  ),
+  await runSecurityPassSafeProof(),
   packageReadyResult(
     "sloppass",
     "SlopPass",
@@ -738,16 +1137,7 @@ const results = [
     "docs/prd/wakepass.md",
     "Add a public-safe WakePass receipt for stale scheduled work and reclaim visibility.",
   ),
-  pendingResult(
-    "enterprisepass",
-    "EnterprisePass",
-    "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
-    "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
-    {
-      proof: { kind: "planned", targetUrl: "/enterprise/latest.json" },
-      nextProof: "Wire automated evidence checks before moving this beyond readiness guidance.",
-    },
-  ),
+  await runCompliancePassReceipt(),
 ];
 
 const report = {
@@ -757,7 +1147,7 @@ const report = {
   source: dryRun ? "dogfood receipt dry run" : "nightly dogfood workflow",
   headline: "We dogfood UnClick on UnClick.",
   target: "UnClick public and agent-facing product surfaces",
-  nextAutomation: "Nightly dogfood receipts refresh this board with live checks and scheduled XPass package proof.",
+  nextAutomation: "Nightly dogfood receipts refresh this board with live checks, scheduled XPass package proof, and scheduled public-safe boundary proof.",
   statusLegend,
   proofPolicy,
   xpassIndex,

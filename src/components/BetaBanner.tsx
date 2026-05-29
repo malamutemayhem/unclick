@@ -43,20 +43,23 @@ export default function BetaBanner() {
 
   return (
     <div
-      className="fixed inset-x-0 top-0 z-[70] flex items-center justify-center gap-2 border-b border-[#61C1C4]/20 bg-[#0D1A1A] px-4"
+      className="fixed inset-x-0 top-0 z-[70] flex items-center justify-center gap-2 border-b border-[#61C1C4]/20 bg-[#0D1A1A] px-10 sm:px-12"
       style={{ height: BANNER_H_PX }}
     >
-      <p className="text-[12px] leading-none text-[#999]">
+      <p className="flex min-w-0 flex-wrap items-center justify-center gap-x-1 text-center text-[12px] leading-tight text-[#999]">
         <span className="mr-1" aria-hidden>&#9889;</span>
         <span className="font-medium text-[#ccc]">UnClick is in Beta.</span>
-        {" Free to try while we polish. "}
-        <Link to={ctaHref} className="text-[#61C1C4] transition-colors hover:text-[#7dd4d7]">
+        <span className="hidden sm:inline">Free to try while we polish.</span>
+        <Link
+          to={ctaHref}
+          className="inline-flex min-h-6 items-center rounded px-1 text-[#61C1C4] transition-colors hover:text-[#7dd4d7]"
+        >
           {ctaLabel}
         </Link>
-        {". Spotted a bug? "}
+        <span className="hidden sm:inline">Spotted a bug?</span>
         <a
           href="mailto:bugs@unclick.world?subject=UnClick%20Beta%20Bug%20Report"
-          className="text-[#61C1C4] transition-colors hover:text-[#7dd4d7]"
+          className="inline-flex min-h-6 items-center rounded px-1 text-[#61C1C4] transition-colors hover:text-[#7dd4d7]"
         >
           Tell us.
         </a>
@@ -65,9 +68,9 @@ export default function BetaBanner() {
       <button
         onClick={dismiss}
         aria-label="Dismiss beta banner"
-        className="absolute right-3 rounded p-1 text-[#555] transition-colors hover:text-[#999]"
+        className="absolute right-3 flex h-6 w-6 items-center justify-center rounded text-[#555] transition-colors hover:text-[#999]"
       >
-        <X className="h-3 w-3" />
+        <X className="h-3.5 w-3.5" />
       </button>
     </div>
   );

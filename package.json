@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malamutemayhem/unclick.git"
+  },
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -10,13 +14,17 @@
   "scripts": {
     "dev": "vite",
     "dev:api": "npm run dev --workspace=apps/api",
-    "build": "npm run build --workspace=@unclick/commonsensepass && vite build",
+    "build": "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run && npm run test:api-lib-esm-extension",
+    "compliancepass:report": "npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs",
+    "test:compliancepass-receipt": "node --test scripts/enterprisepass-receipt-guard.test.mjs",
+    "test:continuous-improvement-watch": "node --test scripts/pinballwake-continuous-improvement-watch.test.mjs",
     "test:enterprisepass-receipt": "node --test scripts/enterprisepass-receipt-guard.test.mjs",
     "test:rotatepass-redaction": "node --test scripts/rotatepass-redaction-guard.test.mjs",
+    "test:api-lib-esm-extension": "node --test scripts/api-lib-esm-extension-guard.test.mjs",
     "test:watch": "vitest",
     "test:api": "npm run test --workspace=apps/api",
     "review:dry-run": "node scripts/review-dry-run.mjs",
@@ -31,7 +39,7 @@
     "@ai-sdk/google": "^3.0.64",
     "@ai-sdk/openai": "^3.0.53",
     "@ai-sdk/react": "^3.0.170",
-    "@anthropic-ai/sdk": "^0.90.0",
+    "@anthropic-ai/sdk": "^0.99.0",
     "@codemirror/lang-yaml": "^6.1.1",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.1",
@@ -72,12 +80,15 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "docx": "^9.6.1",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^11.0.0",
     "input-otp": "^1.4.2",
     "js-yaml": "^4.1.0",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.4.6",
+    "pdf-parse": "^2.4.5",
+    "pdfjs-dist": "^5.7.284",
     "posthog-js": "^1.369.5",
     "posthog-node": "^5.29.3",
     "react": "^18.3.1",
@@ -108,19 +119,73 @@
     "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
-    "@vercel/node": "^3.2.29",
+    "@vercel/node": "^5.8.5",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
+    "brace-expansion": "^1.1.15",
+    "esbuild": "^0.27.7",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "jsdom": "^29.1.1",
+    "minimatch": "^3.1.5",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.3",
-    "vite": "^5.4.19",
+    "vite": "^6.4.2",
     "vitest": "^4.1.6"
+  },
+  "overrides": {
+    "@protobufjs/utf8": "^1.1.1",
+    "semver": "^7.7.3",
+    "tar": "^7.5.15",
+    "fast-uri": "^3.1.2",
+    "fast-xml-builder": "^1.2.0",
+    "fast-xml-parser": "^5.8.0",
+    "hono": "^4.12.23",
+    "protobufjs": "^7.6.1",
+    "ip-address": "^10.2.0",
+    "qs": "^6.15.2",
+    "ws": "^8.21.0",
+    "flatted": "^3.4.2",
+    "picomatch": "^2.3.2",
+    "glob@7": {
+      "minimatch": "^3.1.5"
+    },
+    "glob@10": {
+      "minimatch": "^9.0.9"
+    },
+    "sucrase": {
+      "glob": "^10.5.0"
+    },
+    "minimatch@9": {
+      "brace-expansion": "^2.0.3"
+    },
+    "minimatch@10": {
+      "brace-expansion": "^5.0.6"
+    },
+    "@ts-morph/common": {
+      "minimatch": "^3.1.5"
+    },
+    "test-exclude": {
+      "minimatch": "^3.1.5"
+    },
+    "@esbuild-kit/core-utils": {
+      ".": "3.3.2",
+      "esbuild": "^0.28.0"
+    },
+    "@vercel/node": {
+      "path-to-regexp": "^6.3.0",
+      "undici": "^6.26.0"
+    },
+    "@vercel/python-analysis": {
+      "minimatch": "^10.2.5",
+      "smol-toml": "^1.6.1"
+    },
+    "@vercel/static-config": {
+      "ajv": "^8.20.0"
+    }
   }
 }

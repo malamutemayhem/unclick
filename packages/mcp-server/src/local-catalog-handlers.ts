@@ -48,7 +48,7 @@ function rgbToHsl({ r, g, b }: RGB): HSL {
   if (max === min) return { h: 0, s: 0, l: Math.round(l * 100) };
   const d = max - min;
   const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-  let h = 0;
+  let h: number;
   if (max === rr) h = ((gg - bb) / d + (gg < bb ? 6 : 0)) / 6;
   else if (max === gg) h = ((bb - rr) / d + 2) / 6;
   else h = ((rr - gg) / d + 4) / 6;
@@ -377,10 +377,10 @@ export const LOCAL_CATALOG_HANDLERS: Record<string, LocalHandler> = {
       lower: (s) => s.toLowerCase(),
       title: (s) => s.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()),
       sentence: (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(),
-      camel: (s) => { const ws = s.split(/[\s_\-]+/); return ws[0].toLowerCase() + ws.slice(1).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(""); },
-      snake: (s) => s.replace(/([a-z])([A-Z])/g, "$1_$2").replace(/[\s\-]+/g, "_").replace(/[^a-zA-Z0-9_]/g, "").toLowerCase(),
-      kebab: (s) => s.replace(/([a-z])([A-Z])/g, "$1-$2").replace(/[\s_]+/g, "-").replace(/[^a-zA-Z0-9\-]/g, "").toLowerCase(),
-      pascal: (s) => s.split(/[\s_\-]+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(""),
+      camel: (s) => { const ws = s.split(/[\s_-]+/); return ws[0].toLowerCase() + ws.slice(1).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(""); },
+      snake: (s) => s.replace(/([a-z])([A-Z])/g, "$1_$2").replace(/[\s-]+/g, "_").replace(/[^a-zA-Z0-9_]/g, "").toLowerCase(),
+      kebab: (s) => s.replace(/([a-z])([A-Z])/g, "$1-$2").replace(/[\s_]+/g, "-").replace(/[^a-zA-Z0-9-]/g, "").toLowerCase(),
+      pascal: (s) => s.split(/[\s_-]+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(""),
     };
     const fn = transforms[to];
     if (!fn) return { error: `Unknown case "${to}". Use: upper, lower, title, sentence, camel, snake, kebab, pascal` };
@@ -389,7 +389,7 @@ export const LOCAL_CATALOG_HANDLERS: Record<string, LocalHandler> = {
 
   "transform.slug": (args) => {
     const text = String(args.text ?? "");
-    const slug = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s\-]/g, "").trim().replace(/[\s\-]+/g, "-");
+    const slug = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s-]/g, "").trim().replace(/[\s-]+/g, "-");
     return { input: text, slug };
   },
 
@@ -574,7 +574,7 @@ export const LOCAL_CATALOG_HANDLERS: Record<string, LocalHandler> = {
       const m = line.match(/^(#{1,6})\s+(.+)/);
       if (m) {
         const text = m[2].trim();
-        const anchor = text.toLowerCase().replace(/[^a-z0-9\s\-]/g, "").replace(/\s+/g, "-");
+        const anchor = text.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
         headings.push({ level: m[1].length, text, anchor });
       }
     }
@@ -791,7 +791,7 @@ export const LOCAL_CATALOG_HANDLERS: Record<string, LocalHandler> = {
 
   "validate.email": (args) => {
     const email = String(args.email ?? "");
-    const valid = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email);
+    const valid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
     return { email, valid };
   },
 
@@ -803,8 +803,8 @@ export const LOCAL_CATALOG_HANDLERS: Record<string, LocalHandler> = {
 
   "validate.phone": (args) => {
     const phone = String(args.phone ?? "");
-    const digits = phone.replace(/[\s()\-+.]/g, "");
-    const valid = /^\+?[1-9]\d{6,14}$/.test(phone.replace(/[\s()\-.]/g, ""));
+    const digits = phone.replace(/[\s()+.-]/g, "");
+    const valid = /^\+?[1-9]\d{6,14}$/.test(phone.replace(/[\s().-]/g, ""));
     return { phone, valid, digits_only: digits };
   },
 
@@ -815,7 +815,7 @@ export const LOCAL_CATALOG_HANDLERS: Record<string, LocalHandler> = {
   },
 
   "validate.credit-card": (args) => {
-    const number = String(args.number ?? "").replace(/[\s\-]/g, "");
+    const number = String(args.number ?? "").replace(/[\s-]/g, "");
     let sum = 0, alt = false;
     for (let i = number.length - 1; i >= 0; i--) {
       let n = parseInt(number[i]);
@@ -860,7 +860,7 @@ export const LOCAL_CATALOG_HANDLERS: Record<string, LocalHandler> = {
     if (!rgb) return { error: `Cannot parse color: "${args.color}"` };
     const hsl = rgbToHsl(rgb);
     const type = String(args.type ?? "complementary");
-    let palette: HSL[] = [];
+    let palette: HSL[];
     if (type === "complementary") palette = [hsl, { h: (hsl.h + 180) % 360, s: hsl.s, l: hsl.l }];
     else if (type === "analogous") palette = [{ h: (hsl.h - 30 + 360) % 360, s: hsl.s, l: hsl.l }, hsl, { h: (hsl.h + 30) % 360, s: hsl.s, l: hsl.l }];
     else if (type === "triadic") palette = [hsl, { h: (hsl.h + 120) % 360, s: hsl.s, l: hsl.l }, { h: (hsl.h + 240) % 360, s: hsl.s, l: hsl.l }];
