@@ -59,7 +59,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
 | src/pages/admin/AdminEcosystemPages.tsx | 3a9b7643c7fc | 13854 |
-| src/pages/admin/AdminBenchmarks.tsx | a22439f75761 | 24203 |
+| src/pages/admin/AdminBenchmarks.tsx | c870452753e8 | 27046 |
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
 | src/pages/admin/AdminBrainmap.tsx | c764ced96836 | 26511 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
