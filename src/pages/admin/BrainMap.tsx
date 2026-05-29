@@ -128,9 +128,11 @@ const TREE: Node[] = [
       { label: "SecurityPass", note: "security proof" },
       { label: "LegalPass", note: "legal proof" },
       { label: "CopyPass", note: "writing proof" },
+      { label: "FidelityPass", note: "CopyRoom exact-copy proof wrapper" },
       { label: "SEOPass", note: "search proof" },
       { label: "SlopPass", note: "AI-code quality and slop-signal checks" },
-      { label: "CompliancePass", note: "public name for EnterprisePass" },
+      { label: "CommonSensePass", note: "status and proof sanity checks" },
+      { label: "CompliancePass", note: "compliance posture and enterprise-readiness checks" },
       { label: "RotatePass", note: "likely folded into SecurityPass later" },
     ],
   },
@@ -171,9 +173,10 @@ const INTERNAL_ADMIN = [
   "Brainmap",
 ];
 
-const PUBLIC_ALIASES = [
+const HISTORICAL_NAMES: [string, string][] = [
   ["EnterprisePass", "CompliancePass"],
   ["QualityPass", "SlopPass"],
+  ["QCPass", "XPass final QC receipt"],
 ];
 
 const ICONS = [
@@ -230,12 +233,12 @@ export default function BrainMap() {
           </section>
 
           <section className="rounded-2xl border border-white/[0.06] bg-[#111] p-5">
-            <h2 className="text-sm font-semibold text-white">Alias table</h2>
+            <h2 className="text-sm font-semibold text-white">Historical names</h2>
             <p className="mt-1 text-xs leading-5 text-white/45">
-              Public names are labels over existing automation plumbing, not destructive renames.
+              These names may appear in older receipts or notes; current work should use the official names.
             </p>
             <div className="mt-4 space-y-2">
-              {PUBLIC_ALIASES.map(([internal, publicName]) => (
+              {HISTORICAL_NAMES.map(([internal, publicName]) => (
                 <div key={internal} className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.03] px-3 py-2 text-xs">
                   <span className="font-mono text-white/35">{internal}</span>
                   <span className="text-[#61C1C4]">{publicName}</span>

@@ -286,13 +286,30 @@ Browser or local extension ideas remain Phase 0 until explicitly promoted.
 
 XPass work should prove UnClick is using itself.
 
+XPass is a checklist system, not a vibe check. A combined XPass receipt should show every known XPass product as PASS, BLOCKER, MISSING, N/A, or NOT RUN. Lightweight applicability can run for every target; expensive specialist runners only run when selected or available.
+
+Copy lanes:
+
+- CopyPass checks wording, claims, tone, clarity, and product copy quality.
+- CopyRoom is the exact-copy room. Use it whenever a worker must copy, transcribe, mirror, preserve, or compare something 1:1.
+- FidelityPass is the XPass wrapper around CopyRoom evidence. It verifies the CopyRoom receipt and returns N/A when no exact-copy work is in scope.
+- Do not build a second exact-copy engine under FidelityPass. If exact-copy proof is required but unavailable, report `CopyRoom receipt: unavailable` with the reason.
+
+Canonical names:
+
+- CompliancePass is the official compliance and enterprise-readiness Pass. EnterprisePass is historical wording only.
+- SlopPass is the official AI-quality and slop-signal Pass. QualityPass is historical wording only.
+- CommonSensePass is the sanity gate before trusting healthy, quiet, PASS, no-work, done, merge-ready, duplicate-wake, or stale-proof claims.
+- If an XPass row misses a real issue, blocks noisily, cannot explain its verdict, lacks proof, or lacks a runner, emit an improvement signal for Continuous Improvement instead of pretending the checklist is complete.
+
 Priority order:
 
 1. TestPass trust gate and scheduled proof.
 2. UXPass stuck or failed run clarity.
-3. SecurityPass dogfood receipt clarity.
-4. Public dogfood report accuracy.
-5. New XPass product expansion only after foundation lanes are stable.
+3. SlopPass, CopyPass, FidelityPass, and CommonSensePass adoption where they prevent false green work.
+4. SecurityPass dogfood receipt clarity.
+5. Public dogfood report accuracy.
+6. New XPass product expansion only after foundation lanes are stable.
 
 Do not weaken fail-closed checks to make CI green. Fix the blocker or report it.
 
