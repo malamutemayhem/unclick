@@ -116,7 +116,7 @@ Analytics belongs near:
 - RotatePass/System Credentials for credential health and ownership.
 - UXPass for user friction and flow evidence.
 - Dogfood Report for public/internal proof receipts.
-- EnterprisePass later, but only as evidence of product observability hygiene, not compliance certification.
+- CompliancePass later, but only as evidence of product observability hygiene, not compliance certification.
 
 ## Recommended next chip
 

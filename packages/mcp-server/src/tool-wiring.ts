@@ -761,10 +761,13 @@ import {
 
 // ─── TestPass ─────────────────────────────────────────────────────────────────
 import {
+  testpassListPacks,
   testpassRun,
   testpassStatus,
   testpassSavePack,
   testpassEditItem,
+  testpassEvidence,
+  testpassFixList,
   testpassReportHtml,
   testpassReportJson,
   testpassReportMd,
@@ -772,7 +775,10 @@ import {
 
 // ─── LegalPass (issue-spotting guardrails) ───────────────────────────────────
 import {
+  legalpassEditItem,
   legalpassRun,
+  legalpassSavePack,
+  legalpassStatus,
   legalpassVerdict,
 } from "./legalpass-tool.js";
 
@@ -794,17 +800,46 @@ import {
   seopassLighthousePlan,
 } from "./seopass-tool.js";
 
+// ─── CompliancePass (public name for EnterprisePass readiness) ───────────────
+import {
+  compliancepassRun,
+  compliancepassStatus,
+  compliancepassReportJson,
+  compliancepassReportMd,
+} from "./compliancepass-tool.js";
+
+// ─── FlowPass (journey completion QC, sister to UXPass) ─────────────────────
+import {
+  flowpassDisagreementQueue,
+  flowpassQuarantine,
+  flowpassRecord,
+  flowpassRegisterPack,
+  flowpassReport,
+  flowpassRun,
+  flowpassStatus,
+} from "./flowpass-tool.js";
+
 // ─── CopyPass (copy quality QC, sister to SecurityPass) ─────────────────────
 import {
   copypassRun,
   copypassStatus,
 } from "./copypass-tool.js";
 
+// ─── SlopPass (AI-code quality and slop-signal QC) ─────────────────────────
+import { sloppassRun } from "./sloppass-tool.js";
+
 // --- FidelityCopy / FidelityPass (deterministic preserve-lane receipts) ------
 import {
   fidelitycopyCopy,
   fidelitypassVerifyCopy,
 } from "./fidelitycopy-tool.js";
+
+// --- CommonSensePass (worker sanity-gate verdicts) ---------------------------
+import {
+  commonsensepassCheckTool,
+  commonsensepassRulesTool,
+  COMMONSENSEPASS_CLAIM_KINDS,
+} from "./commonsensepass-tool.js";
 
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
@@ -12047,7 +12082,51 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // -- commonsensepass-tool.ts (worker sanity-gate verdicts) ------------------
+  {
+    name: "commonsensepass_check",
+    description: "Run the verdict-only CommonSensePass sanity gate before a worker claims healthy, quiet, no_work, pass, done, merge_ready, duplicate_wake, or route.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        claim: { type: "string", enum: [...COMMONSENSEPASS_CLAIM_KINDS], description: "Worker claim to sanity-check." },
+        context: {
+          type: "object",
+          additionalProperties: true,
+          description: "Evidence packet for the claim, such as todos, active_jobs, PR state, wake state, SHAs, or lane evidence.",
+        },
+        evidence: {
+          type: "array",
+          items: { type: "object", additionalProperties: true },
+          description: "Optional evidence entries to echo when no rule-specific evidence is available.",
+        },
+      },
+      required: ["claim", "context"],
+    },
+  },
+  {
+    name: "commonsensepass_rules",
+    description: "Return the worker-readable CommonSensePass rules, verdict vocabulary, and fixture ids. Set include_fixtures=true for full example packets.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        include_fixtures: { type: "boolean", default: false, description: "Include full deterministic worker fixture packets." },
+      },
+    },
+  },
+
   // ── testpass-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "testpass_list_packs",
+    description: "List TestPass packs available to the caller, including system packs and the caller's custom packs.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
   {
     name: "testpass_run",
     description: "Start a TestPass run against an MCP server. Seeds deterministic and agent checks from the given pack and returns the run id plus an initial verdict summary. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
@@ -12093,17 +12172,31 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "testpass_edit_item",
-    description: "Override the verdict and optional notes for a single check item in a TestPass run.",
+    description: "Override the verdict and notes for a single check item in a TestPass run. Fail-to-pass edits are flagged in mc_signals.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
         run_id: { type: "string", description: "The run the item belongs to" },
         item_id: { type: "string", description: "The testpass_items row id (uuid)" },
-        verdict: { type: "string", enum: ["pass", "fail", "na"], description: "New verdict" },
-        notes: { type: "string", description: "Optional reviewer notes" },
+        verdict: { type: "string", enum: ["pass", "fail", "na", "other"], description: "New verdict" },
+        notes: { type: "string", description: "Required reviewer note explaining the manual verdict edit" },
       },
-      required: ["run_id", "item_id", "verdict"],
+      required: ["run_id", "item_id", "verdict", "notes"],
+    },
+  },
+  {
+    name: "testpass_evidence",
+    description: "Fetch one TestPass item and its attached evidence by item_id or check_id. Use this when a chat agent needs proof for a specific checklist item.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The run id returned by testpass_run" },
+        item_id: { type: "string", description: "Optional testpass_items row id" },
+        check_id: { type: "string", description: "Optional checklist id such as RPC-001 or MCP-007" },
+      },
+      required: ["run_id"],
     },
   },
   {
@@ -12142,16 +12235,33 @@ export const ADDITIONAL_TOOLS = [
       required: ["run_id"],
     },
   },
-
-  // ── legalpass-tool.ts ──────────────────────────────────────────────────────
   {
-    name: "legalpass_run",
-    description: "Plan a LegalPass issue-spotting run against a URL, contract upload, or repo. Scaffold-only: exposes LegalPass guardrails and the safe run envelope while full 12-hat execution lands in a later engine chip.",
+    name: "testpass_fix_list",
+    description: "Get the Markdown fix-list for a TestPass run. This is an explicit alias for the markdown report so agents can discover the copy-paste repair artifact directly.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
+        run_id: { type: "string", description: "The run id returned by testpass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+
+  // ── legalpass-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "legalpass_run",
+    description: "Run a LegalPass issue-spotting pass against a URL, contract upload, or repo. With fixture_text, returns deterministic public evidence; without it, returns the guarded run plan.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["target"] },
+        { required: ["target_url"] },
+      ],
+      properties: {
         pack_id: { type: "string", description: "LegalPass pack slug (default: legalpass-mvp-v0)" },
+        target_url: { type: "string", description: "URL target shortcut for TestPass-style callers" },
         target: {
           type: "object",
           additionalProperties: false,
@@ -12167,8 +12277,57 @@ export const ADDITIONAL_TOOLS = [
         },
         profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Run profile (default: smoke)" },
         jurisdictions: { type: "array", items: { type: "string" }, description: "Optional jurisdiction routing hints" },
+        fixture_text: { type: "string", description: "Public text to check deterministically for dogfood or local proof" },
       },
-      required: ["target"],
+    },
+  },
+  {
+    name: "legalpass_status",
+    description: "Fetch the stored LegalPass run result and audit log for a run started through legalpass_run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The LegalPass run id returned by legalpass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "legalpass_save_pack",
+    description: "Save or update a LegalPass custom playbook pack. Requires an enabled citation_verifier hat.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["pack"] },
+        { required: ["yaml"] },
+      ],
+      properties: {
+        pack_id: { type: "string", description: "Optional pack id override for YAML payloads" },
+        pack: { type: "object", description: "LegalPass pack object" },
+        yaml: { type: "string", description: "LegalPass pack YAML" },
+        overwrite: { type: "boolean", description: "Allow replacing an existing pack id" },
+      },
+    },
+  },
+  {
+    name: "legalpass_edit_item",
+    description: "Apply a human reviewer override to a LegalPass item and return an audit entry with before/after state.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The LegalPass run id returned by legalpass_run" },
+        item_id: { type: "string", description: "The LegalPass item id to edit" },
+        verdict: { type: "string", enum: ["check", "fail", "na", "other", "pending"], description: "Reviewer override verdict" },
+        finding: { type: "string", description: "Replacement finding text, linted by PassGuard" },
+        on_fail_comment: { type: "string", description: "Replacement fail comment, linted by PassGuard" },
+        reviewer_note: { type: "string", description: "Human reviewer note for the audit trail, linted by PassGuard" },
+        notes: { type: "string", description: "Alias for reviewer_note, for TestPass-style callers" },
+        actor_user_id: { type: "string", description: "Optional actor id for the override audit entry" },
+      },
+      required: ["run_id", "item_id"],
     },
   },
   {
@@ -12270,24 +12429,24 @@ export const ADDITIONAL_TOOLS = [
   // ── seopass-tool.ts (search visibility QC, sister to UXPass) ────────────────
   {
     name: "seopass_run",
-    description: "Plan a SEOPass run against a URL or registered pack. Chunk 1 returns the crawl and Lighthouse execution plan without persisting results.",
+    description: "Run SEOPass against a public URL or registered pack. Returns a live-readonly SEO verdict, score, findings, fix prompts, and an in-session run id.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        url: { type: "string", description: "Target URL for a one-off SEOPass plan" },
+        url: { type: "string", description: "Target URL for a one-off SEOPass read-only run" },
         pack_name: { type: "string", description: "Name of a registered SEOPass pack; the pack URL is used as the target" },
       },
     },
   },
   {
     name: "seopass_status",
-    description: "Fetch the status for a SEOPass run. Chunk 1 reserves the tool shape; persistence lands later.",
+    description: "Fetch the stored in-session status and report for a SEOPass run.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        run_id: { type: "string", description: "The SEOPass run id returned by a future seopass_run execution path" },
+        run_id: { type: "string", description: "The SEOPass run id returned by seopass_run" },
       },
       required: ["run_id"],
     },
@@ -12306,7 +12465,7 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "seopass_lighthouse_plan",
-    description: "Build the Lighthouse execution plan for a SEOPass target URL. Execution and persistence land in a later chunk.",
+    description: "Build the heavier Lighthouse execution plan for a SEOPass target URL. seopass_run already emits a lightweight live-readonly verdict.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12319,10 +12478,275 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── flowpass-tool.ts (end-to-end journey QC with fixture proof) ────────────
+  {
+    name: "flowpass_run",
+    description: "Run FlowPass against a public fixture or registered pack. Returns journey readiness, step verdicts, hat outputs, exclusions, and a stored report. Without fixture proof, returns a plan-only receipt instead of pretending a live journey ran.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        target_url: { type: "string", description: "Target URL for a one-off FlowPass run" },
+        url: { type: "string", description: "Alias for target_url" },
+        pack_id: { type: "string", description: "Registered FlowPass pack id" },
+        pack_name: { type: "string", description: "Registered FlowPass pack name" },
+        pack_yaml: { type: "string", description: "FlowPass YAML pack using plain-English steps" },
+        pack: { type: "object", description: "FlowPass pack object" },
+        fixture: {
+          type: "object",
+          description: "Public fixture evidence for route, CTA, form, success, failure, navigation, handoff, side channels, timing, and accessibility.",
+        },
+        profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Run profile label. Defaults to smoke." },
+        journey_id: { type: "string", description: "Optional journey id override" },
+        journey_name: { type: "string", description: "Optional journey name override" },
+        journey_kind: { type: "string", enum: ["signup", "auth", "checkout", "onboarding", "support", "custom"] },
+        generated_at: { type: "string", description: "Optional ISO timestamp for reproducible fixture tests" },
+      },
+    },
+  },
+  {
+    name: "flowpass_status",
+    description: "Fetch the stored FlowPass run status, score, summary, and open disagreement queue entries for a run started in this MCP session.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The FlowPass run id returned by flowpass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "flowpass_report",
+    description: "Fetch a FlowPass report in json, markdown, html, or fix_prompt format for a run started in this MCP session.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The FlowPass run id returned by flowpass_run" },
+        format: { type: "string", enum: ["json", "markdown", "html", "fix_prompt"], description: "Report format. Defaults to json." },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "flowpass_register_pack",
+    description: "Register a FlowPass pack from YAML or an object. Validates plain-English steps, hats, assertions, and optional fixture evidence.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["pack_yaml"] },
+        { required: ["pack"] },
+      ],
+      properties: {
+        pack_yaml: { type: "string", description: "FlowPass YAML pack" },
+        pack: { type: "object", description: "FlowPass pack object" },
+        overwrite: { type: "boolean", description: "Allow replacing an existing pack id" },
+      },
+    },
+  },
+  {
+    name: "flowpass_record",
+    description: "Convert supplied rrweb or structured session events into a draft FlowPass pack. This safe MCP surface does not start a live browser recording by itself.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        target_url: { type: "string", description: "Target URL the recording or session events came from" },
+        session_events: { type: "array", items: { type: "string" }, description: "Structured event summaries or pre-captured rrweb-derived step labels" },
+      },
+      required: ["target_url"],
+    },
+  },
+  {
+    name: "flowpass_quarantine",
+    description: "List, add, or resolve FlowPass quarantines for flows that should not be trusted as gates.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        action: { type: "string", enum: ["list", "add", "resolve"], description: "Defaults to list" },
+        flow_id: { type: "string", description: "Flow id for add or resolve" },
+        reason: { type: "string", description: "Reason when adding a quarantine" },
+      },
+    },
+  },
+  {
+    name: "flowpass_disagreement_queue",
+    description: "List or resolve FlowPass Driver versus Verifier disagreements.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        action: { type: "string", enum: ["list", "resolve"], description: "Defaults to list" },
+        run_id: { type: "string", description: "Optional FlowPass run id to filter" },
+        disagreement_id: { type: "string", description: "Disagreement id for resolve" },
+        reviewer_note: { type: "string", description: "Human note for disagreement resolution" },
+      },
+    },
+  },
+
+  // ── sloppass-tool.ts (AI-code quality QC and diff review) ────────────────
+  {
+    name: "sloppass_run",
+    description: "Run SlopPass against caller-provided source files or a unified diff. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, read repositories, persist source content, or make paid model calls by default.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [{ required: ["files"] }, { required: ["diff"] }],
+      properties: {
+        target: {
+          type: "object",
+          additionalProperties: false,
+          description: "Target being inspected.",
+          properties: {
+            kind: { type: "string", enum: ["repo", "branch", "diff", "files", "pr", "artifact"] },
+            label: { type: "string", minLength: 1 },
+            files: { type: "array", items: { type: "string", minLength: 1 } },
+            ref: { type: "string" },
+          },
+          required: ["kind", "label"],
+        },
+        files: {
+          type: "array",
+          minItems: 1,
+          description: "Source files to inspect. Use this for scoped local artifacts or paste-backed code review.",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              path: { type: "string", minLength: 1 },
+              content: { type: "string" },
+              start_line: { type: "number", description: "Optional starting line for a diff hunk or sliced file." },
+            },
+            required: ["path", "content"],
+          },
+        },
+        diff: { type: "string", description: "Unified diff text to inspect. Added lines are converted into scoped file evidence." },
+        checks: {
+          type: "array",
+          minItems: 1,
+          description: "Optional SlopPass check categories to run. Defaults to all built-in categories.",
+          items: {
+            type: "string",
+            enum: [
+              "grounding_api_reality",
+              "logic_plausibility",
+              "scaffold_without_substance",
+              "test_proof_theatre",
+              "slopocalypse_failure_mode",
+              "maintenance_change_risk",
+            ],
+          },
+        },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks." },
+        provider: {
+          type: "string",
+          enum: ["http", "openai", "anthropic", "google", "ollama"],
+          description: "Provider mode to record in the receipt. Defaults to http and does not call a model.",
+        },
+      },
+      required: ["target"],
+    },
+  },
+
+  // ── compliancepass-tool.ts (evidence-backed readiness guidance) ───────────
+  {
+    name: "compliancepass_run",
+    description: "Run CompliancePass against a local repo path. Returns evidence-backed readiness guidance, gaps, next actions, and an in-session run id. Historical EnterprisePass references are treated as this same product.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        repo_path: { type: "string", description: "Local repository path to scan. Defaults to the MCP server working directory." },
+        target_name: { type: "string", description: "Human-readable target name for the report. Defaults to UnClick." },
+      },
+    },
+  },
+  {
+    name: "compliancepass_status",
+    description: "Fetch the stored in-session status and summary for a CompliancePass run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The CompliancePass run id returned by compliancepass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "compliancepass_report_json",
+    description: "Fetch the full JSON CompliancePass readiness report for a completed in-session run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The CompliancePass run id returned by compliancepass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "compliancepass_report_md",
+    description: "Fetch a Markdown CompliancePass readiness report for a completed in-session run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The CompliancePass run id returned by compliancepass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+
   // ── copypass-tool.ts (copy quality QC with CopyRoom receipt support) ─────
   {
     name: "copypass_run",
-    description: "Start a CopyPass run for AI-generated copy. When exact fidelity matters, set copyroom_required=true and pass copyroom_source_packet so the run attaches a CopyRoom receipt instead of relying on retyped source text.",
+    description: "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, and optional CopyRoom exact-copy receipt.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12349,14 +12773,14 @@ export const ADDITIONAL_TOOLS = [
         channel: { type: "string", description: "Optional surface label such as homepage_hero, pricing_section, or onboarding_email." },
         audience: { type: "string", description: "Optional intended audience for the copy." },
         goal: { type: "string", description: "Optional goal for the copy, such as clarity, conversion, or trust." },
-        profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Reserved for later evaluator depth. Defaults to smoke." },
+        profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Review depth label for this scoped run. Defaults to smoke." },
       },
       required: [],
     },
   },
   {
     name: "copypass_status",
-    description: "Fetch the current status, notes, and scaffold finding count for a CopyPass run started in this MCP session.",
+    description: "Fetch the current status, notes, deterministic findings, disclaimer, and CopyRoom receipt for a CopyPass run started in this MCP session.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12379,6 +12803,19 @@ export const ADDITIONAL_TOOLS = [
         source_text: { type: "string", description: "Exact source text to copy. Mutually exclusive with source_base64." },
         source_base64: { type: "string", description: "Exact source bytes as base64. Mutually exclusive with source_text." },
         source_ref: { type: "string", description: "Source pointer used in the receipt." },
+        copyroom_source_packet: {
+          type: "object",
+          additionalProperties: false,
+          description: "CopyRoom source packet used as the source of truth. Mutually exclusive with source_text/source_base64.",
+          properties: {
+            source_id: { type: "string", description: "Stable CopyRoom source id." },
+            source_pointer: { type: "string", description: "Pointer to the CopyRoom/source location." },
+            text: { type: "string", description: "Exact source text to copy." },
+            encoding: { type: "string", enum: ["utf8"], description: "CopyRoom v1 encoding. Defaults to utf8." },
+            newline_policy: { type: "string", enum: ["preserve"], description: "CopyRoom v1 newline policy. Defaults to preserve." },
+          },
+          required: ["source_id", "source_pointer", "text"],
+        },
         destination_label: { type: "string", description: "Human label for the output destination when output_ref is not supplied." },
         output_ref: { type: "string", description: "Output pointer used in the receipt." },
         output_text: { type: "string", description: "Output text for approved_transform mode." },
@@ -12407,6 +12844,19 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         source_text: { type: "string", description: "Exact source text to verify. Mutually exclusive with source_base64." },
         source_base64: { type: "string", description: "Exact source bytes as base64. Mutually exclusive with source_text." },
+        copyroom_source_packet: {
+          type: "object",
+          additionalProperties: false,
+          description: "CopyRoom source packet used as the source of truth. Mutually exclusive with source_text/source_base64.",
+          properties: {
+            source_id: { type: "string", description: "Stable CopyRoom source id." },
+            source_pointer: { type: "string", description: "Pointer to the CopyRoom/source location." },
+            text: { type: "string", description: "Exact source text to verify." },
+            encoding: { type: "string", enum: ["utf8"], description: "CopyRoom v1 encoding. Defaults to utf8." },
+            newline_policy: { type: "string", enum: ["preserve"], description: "CopyRoom v1 newline policy. Defaults to preserve." },
+          },
+          required: ["source_id", "source_pointer", "text"],
+        },
         output_text: { type: "string", description: "Exact output text to verify. Mutually exclusive with output_base64." },
         output_base64: { type: "string", description: "Exact output bytes as base64. Mutually exclusive with output_text." },
         source_ref: { type: "string", description: "Source pointer used in the recomputed receipt." },
@@ -12432,7 +12882,7 @@ export const ADDITIONAL_TOOLS = [
   // ── crews-tool.ts (Orchestrator Wizard) ──────────────────────────────────────
   {
     name: "start_crew_run",
-    description: "Call this tool when the user wants to start a Crews Council run. Creates the run row on the UnClick API and returns a ConversationalCard with next actions. LLM turns are expected to flow through MCP sampling; if the Orchestrator does not support sampling the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
+    description: "Call this tool when the user wants to start a Crews Council run. In a sampling-capable MCP client, it prepares the run, asks advisors for opinions, runs peer review, persists the Chairman synthesis, and returns a ConversationalCard. If sampling is unavailable, the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -13597,17 +14047,27 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   togetherai_list_models:     (args) => togetherai_list_models(args),
 
   // testpass-tool.ts
+  testpass_list_packs:  () => testpassListPacks(),
   testpass_run:         (args) => testpassRun(args),
   testpass_status:      (args) => testpassStatus(args),
   testpass_save_pack:   (args) => testpassSavePack(args),
   testpass_edit_item:   (args) => testpassEditItem(args),
+  testpass_evidence:    (args) => testpassEvidence(args),
   testpass_report_html: (args) => testpassReportHtml(args),
   testpass_report_json: (args) => testpassReportJson(args),
   testpass_report_md:   (args) => testpassReportMd(args),
+  testpass_fix_list:    (args) => testpassFixList(args),
+
+  // commonsensepass-tool.ts
+  commonsensepass_check: (args) => commonsensepassCheckTool(args),
+  commonsensepass_rules: (args) => commonsensepassRulesTool(args),
 
   // legalpass-tool.ts
-  legalpass_run:     (args) => legalpassRun(args),
-  legalpass_verdict: (args) => legalpassVerdict(args),
+  legalpass_run:       (args) => legalpassRun(args),
+  legalpass_status:    (args) => legalpassStatus(args),
+  legalpass_save_pack: (args) => legalpassSavePack(args),
+  legalpass_edit_item: (args) => legalpassEditItem(args),
+  legalpass_verdict:   (args) => legalpassVerdict(args),
 
   // uxpass-tool.ts
   uxpass_run:           (args) => uxpassRun(args),
@@ -13623,9 +14083,27 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   seopass_register_pack:   (args) => seopassRegisterPack(args),
   seopass_lighthouse_plan: (args) => seopassLighthousePlan(args),
 
+  // compliancepass-tool.ts
+  compliancepass_run:         (args) => compliancepassRun(args),
+  compliancepass_status:      (args) => compliancepassStatus(args),
+  compliancepass_report_json: (args) => compliancepassReportJson(args),
+  compliancepass_report_md:   (args) => compliancepassReportMd(args),
+
+  // flowpass-tool.ts
+  flowpass_run:                (args) => flowpassRun(args),
+  flowpass_status:             (args) => flowpassStatus(args),
+  flowpass_report:             (args) => flowpassReport(args),
+  flowpass_register_pack:      (args) => flowpassRegisterPack(args),
+  flowpass_record:             (args) => flowpassRecord(args),
+  flowpass_quarantine:         (args) => flowpassQuarantine(args),
+  flowpass_disagreement_queue: (args) => flowpassDisagreementQueue(args),
+
   // copypass-tool.ts
   copypass_run:            (args) => copypassRun(args),
   copypass_status:         (args) => copypassStatus(args),
+
+  // sloppass-tool.ts
+  sloppass_run:            (args) => sloppassRun(args),
 
   // fidelitycopy-tool.ts
   fidelitycopy_copy:       (args) => fidelitycopyCopy(args),

@@ -41,16 +41,22 @@ describe("AdminBrainmap", () => {
     expect(screen.getByText("Private Yellow Admin")).toBeInTheDocument();
     expect(screen.getByText("Internal admin only")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Human orientation" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Launchpad induction path" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Core admin surfaces" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Worker tree" })).toBeInTheDocument();
     expect(screen.getByText("AI seat packet")).toBeInTheDocument();
+    expect(screen.getByText("Pass through Brainmap")).toBeInTheDocument();
+    expect(screen.getByText("Choose the Launchpad lane")).toBeInTheDocument();
     expect(screen.getAllByText("/admin/jobs").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("/admin/boardroom").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("/admin/pinballwake").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("/admin/testpass").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Operational job and task queue.").length).toBeGreaterThan(0);
     expect(screen.getByText("Raw generated Brainmap")).toBeInTheDocument();
     expect(screen.getByText("Tool and worker tree")).toBeInTheDocument();
     expect(screen.getByText("SeatRelay")).toBeInTheDocument();
     expect(screen.getByText("CopyRoom")).toBeInTheDocument();
-    expect(screen.getByText("Proof Ledger")).toBeInTheDocument();
+    expect(screen.getAllByText("Proof Ledger").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Source of truth").length).toBeGreaterThan(0);
     expect(screen.getByText(/brainmap-v2/i)).toBeInTheDocument();
   });
@@ -72,8 +78,9 @@ describe("AdminBrainmap", () => {
 
     expect(screen.queryByText("Pages and Meaning")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Show source" }));
-    expect(screen.getAllByText("Pages and Meaning").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Tool and Worker Tree").length).toBeGreaterThan(0);
+    const source = screen.getByLabelText("Generated Brainmap markdown source");
+    expect(source).toHaveTextContent("Pages and Meaning");
+    expect(source).toHaveTextContent("Tool and Worker Tree");
   });
 
   it("blocks the private view for non-owner admins", async () => {

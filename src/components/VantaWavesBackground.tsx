@@ -4,11 +4,24 @@ interface Props {
   children?: ReactNode;
 }
 
+type VantaEffect = {
+  destroy: () => void;
+};
+
+type VantaFactory = (options: Record<string, unknown>) => VantaEffect;
+type VantaModule = VantaFactory | { default?: VantaFactory };
+
+declare global {
+  interface Window {
+    THREE?: unknown;
+  }
+}
+
 const STATIC_BG = 'bg-[#0a0a0a]';
 
 export default function VantaWavesBackground({ children }: Props) {
   const vantaRef = useRef<HTMLDivElement>(null);
-  const vantaEffect = useRef<any>(null);
+  const vantaEffect = useRef<VantaEffect | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -27,8 +40,9 @@ export default function VantaWavesBackground({ children }: Props) {
       import('vanta/dist/vanta.waves.min'),
     ]).then(([THREE, VANTA_MOD]) => {
       if (cancelled || !vantaRef.current) return;
-      const VANTA = (VANTA_MOD as any).default ?? VANTA_MOD;
-      // @ts-ignore
+      const vantaModule = VANTA_MOD as VantaModule;
+      const VANTA = typeof vantaModule === "function" ? vantaModule : vantaModule.default;
+      if (!VANTA) return;
       window.THREE = THREE;
       vantaEffect.current = VANTA({
         el: vantaRef.current,

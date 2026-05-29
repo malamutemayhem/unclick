@@ -1,7 +1,7 @@
 # Active Facts Contract V1
 
 **Status**: Draft  
-**Last updated**: 2026-04-29  
+**Last updated**: 2026-05-27
 **Owner**: `🦾`  
 **Purpose**: Pre-work contract draft for Cluster A before Chris's design call
 
@@ -291,6 +291,24 @@ If any local path cannot bump metrics yet, it MUST still:
 - return the same surfaced set it would have returned under parity
 - avoid bumping hidden facts
 - document the temporary gap as an implementation limitation rather than a different contract
+
+## Recall Check presentation contract
+
+The admin Recall Check view has two related but different surfaces:
+
+- `top_facts`: the raw Most Accessed debug list
+- `top_of_mind_facts`: the human-facing list of currently useful facts
+
+These surfaces MUST NOT be collapsed into the same trimmed candidate set.
+
+Most Accessed should remain inspectable so background-heavy rows can be audited.
+Top of Mind should inspect a broader candidate pool before filtering, so repeated startup or heartbeat reads of static identity/profile facts cannot crowd out lower-count but more useful current facts before the background-heavy filter runs.
+
+The Recall Check API should expose diagnostics for both inspected pools:
+
+- raw Most Accessed rows inspected
+- broader Top of Mind candidates inspected
+- background-heavy rows found in each pool
 
 ## Recommended V1 rule summary
 

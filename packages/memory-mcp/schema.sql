@@ -45,6 +45,11 @@ CREATE TABLE IF NOT EXISTS knowledge_library (
   access_count INTEGER DEFAULT 0,
   last_accessed TIMESTAMPTZ DEFAULT now(),
   decay_tier TEXT DEFAULT 'hot' CHECK (decay_tier IN ('hot', 'warm', 'cold')),
+  valid_from TIMESTAMPTZ NOT NULL DEFAULT now(),
+  valid_to TIMESTAMPTZ,
+  invalidated_at TIMESTAMPTZ,
+  startup_fact_kind TEXT NOT NULL DEFAULT 'legacy_unspecified'
+    CHECK (startup_fact_kind IN ('durable', 'operational', 'excluded', 'legacy_unspecified')),
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -132,6 +137,7 @@ CREATE INDEX IF NOT EXISTS idx_ef_category ON extracted_facts(category);
 CREATE INDEX IF NOT EXISTS idx_ef_decay_tier ON extracted_facts(decay_tier);
 CREATE INDEX IF NOT EXISTS idx_ef_created_at ON extracted_facts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ef_source_session ON extracted_facts(source_session_id);
+CREATE INDEX IF NOT EXISTS idx_ef_valid_window ON extracted_facts(valid_from, valid_to, invalidated_at);
 
 -- ============================================================
 -- LAYER 5: Conversation Log (Full verbatim, searchable)
@@ -345,6 +351,20 @@ BEGIN
   FROM extracted_facts ef
   WHERE ef.fact ILIKE '%' || search_query || '%'
     AND ef.status = 'active'
+    AND ef.invalidated_at IS NULL
+    AND ef.valid_from <= now()
+    AND (ef.valid_to IS NULL OR ef.valid_to > now())
+    AND COALESCE(ef.startup_fact_kind, 'legacy_unspecified') NOT IN ('operational', 'excluded')
+    AND NOT (
+      lower(COALESCE(ef.source_type, '')) ~ '(heartbeat|self[-_ ]?report|cron|system)'
+      OR lower(COALESCE(ef.category, '')) ~ '(heartbeat|self[-_ ]?report|cron|system)'
+      OR lower(COALESCE(ef.fact, '')) LIKE '%heartbeat%'
+      OR lower(COALESCE(ef.fact, '')) LIKE '%self-report%'
+      OR lower(COALESCE(ef.fact, '')) LIKE '%self report%'
+      OR lower(COALESCE(ef.fact, '')) LIKE '%testpass_cron_user_id%'
+      OR (lower(COALESCE(ef.fact, '')) LIKE '%cron%' AND lower(COALESCE(ef.fact, '')) LIKE '%resolved%')
+      OR (lower(COALESCE(ef.fact, '')) LIKE '%signal%' AND lower(COALESCE(ef.fact, '')) LIKE '%blocked%')
+    )
   ORDER BY ef.confidence DESC, ef.created_at DESC
   LIMIT max_results;
 END;

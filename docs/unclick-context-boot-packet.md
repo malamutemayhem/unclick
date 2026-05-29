@@ -63,6 +63,7 @@ UnClick
     LegalPass
     SEOPass
     GEOPass
+    CompliancePass
     other XPass variants when active
   Core platform
     MCP tools

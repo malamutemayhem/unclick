@@ -3,6 +3,7 @@ import { SLOPPASS_DISCLAIMER } from "./disclaimer.js";
 import {
   SlopPassCategorySchema,
   SlopPassResultSchema,
+  SlopPassRunInputSchema,
   SlopPassSourceFileSchema,
   SlopPassTargetSchema,
 } from "./schema.js";
@@ -20,10 +21,10 @@ import type {
   SlopPassVerdict,
 } from "./types.js";
 
-export type SlopPassVerdictPackMode = "plan-only" | "fixture";
+export type SlopPassVerdictPackMode = "plan-only" | "provided-source";
 
 export interface SlopPassScannerSource {
-  kind: "manual" | "fixture" | "shared-scanner" | "geopass-plan";
+  kind: "manual" | "provided-source" | "shared-scanner" | "geopass-plan";
   mode: SlopPassVerdictPackMode;
   label?: string;
   source_id?: string;
@@ -39,10 +40,12 @@ export interface CreateSlopPassVerdictPackInput {
   notes?: string[];
 }
 
-export interface CreateFixtureSlopPassReportInput
+export interface CreateProvidedSourceSlopPassReportInput
   extends CreateSlopPassVerdictPackInput {
   files: SlopPassSourceFile[];
 }
+
+export type CreateFixtureSlopPassReportInput = CreateProvidedSourceSlopPassReportInput;
 
 export interface SlopPassVerdictPack extends SlopPassResult {
   mode: SlopPassVerdictPackMode;
@@ -86,6 +89,14 @@ function createNotChecked(checks: SlopPassCategory[], reason: string) {
   }));
 }
 
+function sourceOnlyChecks(checks: SlopPassCategory[]): SlopPassCategory[] {
+  return checks.filter((check) => check !== "vcs_integration_risk");
+}
+
+function uniquePaths(files: Array<{ path: string }>): string[] {
+  return Array.from(new Set(files.map((file) => file.path)));
+}
+
 function smellCheckMetadata(checks: SlopPassCategory[]) {
   const requested = new Set(checks);
   return DEFAULT_SLOPPASS_SMELL_CHECKS.filter((check) =>
@@ -107,7 +118,7 @@ function baseScannerSource(
   scanner_source?: SlopPassScannerSource,
 ): SlopPassScannerSource {
   return {
-    kind: scanner_source?.kind ?? (mode === "fixture" ? "fixture" : "manual"),
+    kind: scanner_source?.kind ?? (mode === "provided-source" ? "provided-source" : "manual"),
     mode,
     label: scanner_source?.label,
     source_id: scanner_source?.source_id,
@@ -139,7 +150,7 @@ function createPack(
     notes:
       input.notes ??
       [
-        "SlopPass chunk-1 is deterministic and fixture-only. No untrusted code execution, production scans, paid calls, or credentials are used.",
+        "SlopPass is deterministic for provided source or diff text. No untrusted code execution, production scans, paid calls, or credentials are used.",
       ],
   };
 }
@@ -154,16 +165,16 @@ export function createSlopPassVerdictPack(
     scope: {
       checks_attempted: [],
       files_reviewed: target.files ?? [],
-      provider: "fixture-only",
+      provider: "plan-only",
     },
     verdict: "unknown",
     findings: [],
     not_checked: DEFAULT_CHECKS.map((category) => ({
       label: category,
-      reason: "Plan-only pack. Run fixture evidence in a later chip.",
+      reason: "Plan-only pack. Run provided source or diff evidence before treating this as a verdict.",
     })),
     summary: {
-      posture: "SlopPass plan-only pack is configured for deterministic fixture review.",
+      posture: "SlopPass plan-only pack is configured for deterministic source or diff review.",
       counts_by_severity: emptyCounts(),
       coverage_note:
         "No source content was inspected. This pack only declares the static review plan.",
@@ -180,45 +191,64 @@ export function createSlopPassVerdictPack(
   });
 }
 
-export function createFixtureSlopPassReport(
-  input: CreateFixtureSlopPassReportInput,
+export function createProvidedSourceSlopPassReport(
+  input: CreateProvidedSourceSlopPassReportInput,
 ): SlopPassVerdictPack {
   const checks = parseChecks(input.checks);
-  const files = input.files.map((file) => SlopPassSourceFileSchema.parse(file));
+  const attemptedChecks = sourceOnlyChecks(checks);
+  const parsed = SlopPassRunInputSchema.parse({ target: input.target, files: input.files, checks });
+  const files = (parsed.files ?? [])
+    .filter((file) => file.content.trim().length > 0)
+    .map((file) => SlopPassSourceFileSchema.parse(file));
   const findings = detectSlopSmells(files).filter((finding) =>
-    checks.includes(finding.category),
+    attemptedChecks.includes(finding.category),
   );
   const counts = countFindings(findings);
+  const noAttemptedChecks = attemptedChecks.length === 0;
+  const notChecked = createNotChecked(
+    checks,
+    "Check was not requested for this provided-source run.",
+  );
+  if (checks.includes("vcs_integration_risk")) {
+    notChecked.push({
+      label: "stale-overwrite-detector",
+      reason: "git_context not provided for this provided-source run.",
+    });
+  }
   const result = SlopPassResultSchema.parse({
     target: SlopPassTargetSchema.parse(input.target),
     scope: {
-      checks_attempted: checks,
-      files_reviewed: files.map((file) => file.path),
-      provider: "fixture-only",
+      checks_attempted: attemptedChecks,
+      files_reviewed: uniquePaths(files),
+      provider: "provided-source",
     },
-    verdict: toSlopPassVerdict(counts),
+    verdict: noAttemptedChecks ? "unknown" : toSlopPassVerdict(counts),
     findings,
-    not_checked: createNotChecked(
-      checks,
-      "Check was not requested for this fixture-only run.",
-    ),
+    not_checked: notChecked,
     summary: {
-      posture:
-        findings.length > 0
-          ? "SlopPass found deterministic slop signals in the inspected fixtures."
-          : "SlopPass found no deterministic slop signals in the inspected fixtures.",
+      posture: noAttemptedChecks
+        ? "SlopPass did not run the requested check because required context was missing."
+        : findings.length > 0
+          ? "SlopPass found deterministic slop signals in the inspected source."
+          : "SlopPass found no deterministic slop signals in the inspected source.",
       counts_by_severity: counts,
       coverage_note:
-        "This result only covers the provided fixture files and requested static checks.",
+        "This result only covers the provided source files and requested static checks.",
     },
     disclaimer: SLOPPASS_DISCLAIMER,
   });
 
   return createPack(result, {
-    mode: "fixture",
+    mode: "provided-source",
     generated_at: input.generated_at,
     scanner_source: input.scanner_source,
     smell_checks: smellCheckMetadata(checks),
     notes: input.notes,
   });
+}
+
+export function createFixtureSlopPassReport(
+  input: CreateFixtureSlopPassReportInput,
+): SlopPassVerdictPack {
+  return createProvidedSourceSlopPassReport(input);
 }

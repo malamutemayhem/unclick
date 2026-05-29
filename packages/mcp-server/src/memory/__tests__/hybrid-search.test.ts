@@ -241,6 +241,7 @@ class FakeQuery {
   ilike(...args: unknown[]) { return this.call("ilike", args); }
   or(...args: unknown[]) { return this.call("or", args); }
   lte(...args: unknown[]) { return this.call("lte", args); }
+  in(...args: unknown[]) { return this.call("in", args); }
   order(...args: unknown[]) { return this.call("order", args); }
   limit(...args: unknown[]) { return this.call("limit", args); }
 
@@ -293,6 +294,46 @@ class FakeDataClient {
 }
 
 describe("keyword fallback asOf cutoff", () => {
+  test("filters fallback facts by the current valid window when asOf is omitted", async () => {
+    const { SupabaseBackend } = await import("../supabase.js");
+    const client = new FakeClient();
+    const backend = Object.create(SupabaseBackend.prototype) as {
+      client: FakeClient;
+      tenancy: { mode: "byod" };
+      tables: { extracted_facts: string; session_summaries: string };
+      keywordFallback: (query: string, maxResults: number, asOf?: string) => Promise<unknown[]>;
+    };
+    backend.client = client;
+    backend.tenancy = { mode: "byod" };
+    backend.tables = {
+      extracted_facts: "extracted_facts",
+      session_summaries: "session_summaries",
+    };
+
+    const results = await backend.keywordFallback("UnClick", 3);
+    assert.deepEqual(results, []);
+
+    const factQuery = client.queries.find((q) => q.table === "extracted_facts");
+    const sessionQuery = client.queries.find((q) => q.table === "session_summaries");
+    assert.ok(factQuery, "facts query should run");
+    assert.ok(sessionQuery, "session query should run");
+
+    const validFromCall = factQuery.calls.find(
+      (c) => c.method === "lte" && c.args[0] === "valid_from"
+    );
+    assert.equal(typeof validFromCall?.args[1], "string");
+    assert.ok(
+      factQuery.calls.some(
+        (c) => c.method === "or" && String(c.args[0]).startsWith("valid_to.is.null,valid_to.gt.")
+      ),
+      "facts fallback should honor valid_to by default"
+    );
+    assert.ok(
+      sessionQuery.calls.some((c) => c.method === "lte" && c.args[0] === "created_at"),
+      "sessions fallback should not return future summaries by default"
+    );
+  });
+
   test("filters fallback facts by valid time and sessions by created_at", async () => {
     const { SupabaseBackend } = await import("../supabase.js");
     const client = new FakeClient();
@@ -331,6 +372,131 @@ describe("keyword fallback asOf cutoff", () => {
       sessionQuery.calls.some((c) => c.method === "lte" && c.args[0] === "created_at" && c.args[1] === asOf),
       "session fallback should not return summaries created after asOf"
     );
+  });
+
+  test("filters operational and future facts from fallback results", async () => {
+    const { SupabaseBackend } = await import("../supabase.js");
+    const client = new FakeDataClient({
+      extracted_facts: [
+        {
+          id: "durable-memory-fact",
+          fact: "Durable Memory fact should be recall visible.",
+          category: "technical",
+          confidence: 0.95,
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2026-05-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "manual",
+          startup_fact_kind: "durable",
+        },
+        {
+          id: "operational-memory-fact",
+          fact: "heartbeat self-report Memory note should stay hidden.",
+          category: "system",
+          confidence: 1,
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2026-05-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "heartbeat",
+          startup_fact_kind: "operational",
+        },
+        {
+          id: "future-memory-fact",
+          fact: "Future Memory fact should wait for its valid window.",
+          category: "technical",
+          confidence: 1,
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2099-01-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "manual",
+          startup_fact_kind: "durable",
+        },
+      ],
+      session_summaries: [],
+    });
+    const backend = Object.create(SupabaseBackend.prototype) as {
+      client: FakeDataClient;
+      tenancy: { mode: "byod" };
+      tables: { extracted_facts: string; session_summaries: string };
+      keywordFallback: (query: string, maxResults: number, asOf?: string) => Promise<Array<{ id: string }>>;
+    };
+    backend.client = client;
+    backend.tenancy = { mode: "byod" };
+    backend.tables = {
+      extracted_facts: "extracted_facts",
+      session_summaries: "session_summaries",
+    };
+
+    const results = await backend.keywordFallback("Memory", 10, "2026-05-28T00:00:00Z");
+    assert.deepEqual(results.map((row) => row.id), ["durable-memory-fact"]);
+  });
+
+  test("filters operational and future facts from hybrid results", async () => {
+    const { SupabaseBackend } = await import("../supabase.js");
+    const client = new FakeDataClient({
+      extracted_facts: [
+        {
+          id: "durable-memory-fact",
+          fact: "Durable Memory fact should be recall visible.",
+          category: "technical",
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2026-05-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "manual",
+          startup_fact_kind: "durable",
+        },
+        {
+          id: "operational-memory-fact",
+          fact: "heartbeat self-report Memory note should stay hidden.",
+          category: "system",
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2026-05-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "heartbeat",
+          startup_fact_kind: "operational",
+        },
+        {
+          id: "future-memory-fact",
+          fact: "Future Memory fact should wait for its valid window.",
+          category: "technical",
+          created_at: "2026-05-01T00:00:00Z",
+          valid_from: "2099-01-01T00:00:00Z",
+          valid_to: null,
+          invalidated_at: null,
+          source_type: "manual",
+          startup_fact_kind: "durable",
+        },
+      ],
+      session_summaries: [],
+    });
+    const backend = Object.create(SupabaseBackend.prototype) as {
+      client: FakeDataClient;
+      tenancy: { mode: "byod" };
+      tables: { extracted_facts: string; session_summaries: string };
+      filterRecallVisibleSearchResults: (results: unknown[], asOf: string) => Promise<Array<{ id: string }>>;
+    };
+    backend.client = client;
+    backend.tenancy = { mode: "byod" };
+    backend.tables = {
+      extracted_facts: "extracted_facts",
+      session_summaries: "session_summaries",
+    };
+
+    const results = await backend.filterRecallVisibleSearchResults(
+      [
+        { id: "durable-memory-fact", source: "fact", content: "Durable Memory fact should be recall visible." },
+        { id: "operational-memory-fact", source: "fact", content: "heartbeat self-report Memory note should stay hidden." },
+        { id: "future-memory-fact", source: "fact", content: "Future Memory fact should wait for its valid window." },
+        { id: "session-1", source: "session", content: "Session results pass through." },
+      ],
+      "2026-05-28T00:00:00Z"
+    );
+    assert.deepEqual(results.map((row) => row.id), ["durable-memory-fact", "session-1"]);
   });
 });
 

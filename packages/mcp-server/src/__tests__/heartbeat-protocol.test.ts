@@ -40,6 +40,7 @@ describe("heartbeat_protocol payload", () => {
     expect(protocol.procedure[3]).toContain("job hunt");
     expect(protocol.procedure[4]).toContain("0 active jobs");
     expect(protocol.procedure[4]).toContain("queue hydration failure");
+    expect(protocol.procedure[4]).toContain("commonsensepass_check");
     // active_jobs definition is pinned in step 5 (procedure[4]) so the
     // Heartbeat and Orchestrator state_card use the identical query.
     // Stops PASS/BLOCKER from oscillating on identical state (todo a4cd5229).
@@ -88,9 +89,9 @@ describe("heartbeat_protocol payload", () => {
       procedure: [...protocol.procedure, "new instruction"],
     };
 
-    expect(formatHeartbeatProtocolVersion(12)).toBe("2026-05-12.v12");
-    expect(protocol.version).toBe("2026-05-12.v12");
-    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("001d189e68fad33b");
+    expect(formatHeartbeatProtocolVersion(13)).toBe("2026-05-12.v13");
+    expect(protocol.version).toBe("2026-05-12.v13");
+    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("a30452dd99915a67");
     expect(heartbeatProtocolContentFingerprint(changed)).not.toBe(
       heartbeatProtocolContentFingerprint(protocol),
     );

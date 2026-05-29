@@ -29,6 +29,12 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import * as crypto from "node:crypto";
 import {
+  buildTestPassFailToPassOverrideSignal,
+  isTestPassFailToPassOverride,
+  type TestPassEditItemRow,
+  type TestPassOverrideSignal,
+} from "./lib/testpass-edit-guard.js";
+import {
   computeVerdictSummary,
   createEvidence,
   createRun,
@@ -36,6 +42,7 @@ import {
   generateJsonReport,
   generateMarkdownFixList,
   healFailedChecks,
+  packFromJsonb,
   loadPackFromFile,
   loadPackFromYaml,
   packToJsonb,
@@ -123,18 +130,89 @@ async function resolveActorUserId(
   return getActorUserId(supabaseUrl, token);
 }
 
-async function getPackIdBySlug(
+async function resolveApiKeyHashForSignal(
+  supabaseUrl: string,
+  serviceKey: string,
+  token: string,
+  actorUserId: string,
+): Promise<string | null> {
+  if (token.startsWith("uc_")) return sha256hex(token);
+
+  const r = await fetch(
+    `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(actorUserId)}&is_active=eq.true&select=key_hash&limit=1`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+  );
+  if (!r.ok) return null;
+  const rows = (await r.json()) as Array<{ key_hash: string | null }>;
+  return rows[0]?.key_hash ?? null;
+}
+
+async function insertTestPassOverrideSignal(
+  supabaseUrl: string,
+  serviceKey: string,
+  signal: TestPassOverrideSignal,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const r = await fetch(`${supabaseUrl}/rest/v1/mc_signals`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+    },
+    body: JSON.stringify(signal),
+  });
+  if (r.ok) return { ok: true };
+  return { ok: false, error: await r.text() };
+}
+
+interface TestPassPackRow {
+  id: string;
+  slug: string;
+  name: string;
+  owner_user_id: string | null;
+  yaml: unknown;
+}
+
+export function canUseTestPassPack(row: Pick<TestPassPackRow, "owner_user_id">, actorUserId: string): boolean {
+  return row.owner_user_id === null || row.owner_user_id === actorUserId;
+}
+
+export function testPassPackSaveConflict(
+  existing: Pick<TestPassPackRow, "owner_user_id" | "slug"> | null,
+  actorUserId: string,
+): string | null {
+  if (!existing || existing.owner_user_id === actorUserId) return null;
+  return existing.owner_user_id === null
+    ? `Pack slug '${existing.slug}' is reserved for a system pack`
+    : `Pack slug '${existing.slug}' is already owned by another user`;
+}
+
+async function getPackBySlug(
   supabaseUrl: string,
   serviceKey: string,
   slug: string
-): Promise<string | null> {
+): Promise<TestPassPackRow | null> {
   const r = await fetch(
-    `${supabaseUrl}/rest/v1/testpass_packs?slug=eq.${encodeURIComponent(slug)}&select=id&limit=1`,
+    `${supabaseUrl}/rest/v1/testpass_packs?slug=eq.${encodeURIComponent(slug)}&select=id,slug,name,owner_user_id,yaml&limit=1`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
   );
   if (!r.ok) return null;
-  const rows = (await r.json()) as Array<{ id: string }>;
-  return rows[0]?.id ?? null;
+  const rows = (await r.json()) as TestPassPackRow[];
+  return rows[0] ?? null;
+}
+
+async function getPackById(
+  supabaseUrl: string,
+  serviceKey: string,
+  packId: string,
+): Promise<TestPassPackRow | null> {
+  const r = await fetch(
+    `${supabaseUrl}/rest/v1/testpass_packs?id=eq.${encodeURIComponent(packId)}&select=id,slug,name,owner_user_id,yaml&limit=1`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+  );
+  if (!r.ok) return null;
+  const rows = (await r.json()) as TestPassPackRow[];
+  return rows[0] ?? null;
 }
 
 async function assertRunOwnership(
@@ -144,12 +222,32 @@ async function assertRunOwnership(
   actorUserId: string
 ): Promise<boolean> {
   const r = await fetch(
-    `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${runId}&actor_user_id=eq.${actorUserId}&select=id&limit=1`,
+    `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${encodeURIComponent(runId)}&actor_user_id=eq.${encodeURIComponent(actorUserId)}&select=id&limit=1`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
   );
   if (!r.ok) return false;
   const rows = (await r.json()) as Array<{ id: string }>;
   return rows.length > 0;
+}
+
+interface TestPassRunRow {
+  id: string;
+  pack_id: string | null;
+}
+
+async function getRunForActor(
+  supabaseUrl: string,
+  serviceKey: string,
+  runId: string,
+  actorUserId: string
+): Promise<TestPassRunRow | null> {
+  const r = await fetch(
+    `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${encodeURIComponent(runId)}&actor_user_id=eq.${encodeURIComponent(actorUserId)}&select=id,pack_id&limit=1`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+  );
+  if (!r.ok) return null;
+  const rows = (await r.json()) as TestPassRunRow[];
+  return rows[0] ?? null;
 }
 
 async function getRunWithItems(
@@ -160,11 +258,11 @@ async function getRunWithItems(
 ) {
   const [runRes, itemsRes] = await Promise.all([
     fetch(
-      `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${runId}&actor_user_id=eq.${actorUserId}&select=*&limit=1`,
+      `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${encodeURIComponent(runId)}&actor_user_id=eq.${encodeURIComponent(actorUserId)}&select=*&limit=1`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     ),
     fetch(
-      `${supabaseUrl}/rest/v1/testpass_items?run_id=eq.${runId}&select=*&order=created_at.asc`,
+      `${supabaseUrl}/rest/v1/testpass_items?run_id=eq.${encodeURIComponent(runId)}&select=*&order=created_at.asc`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     ),
   ]);
@@ -206,34 +304,39 @@ async function performStartRun(
   if (!body.target?.url) {
     return { status: 400, payload: { error: "target.url required" } };
   }
-  if (!body.pack_slug && !body.pack_id) {
-    return { status: 400, payload: { error: "pack_slug or pack_id required" } };
-  }
   const taskIdCheck = validateTaskId(body.task_id);
   if (taskIdCheck.error) return { status: 400, payload: { error: taskIdCheck.error } };
 
   const profile: RunProfile = body.profile ?? "standard";
-  const slug = body.pack_slug ?? "testpass-core";
+  const packIdLooksUuid = body.pack_id ? UUID_RE.test(body.pack_id) : false;
+  const requestedSlug = body.pack_slug ?? (body.pack_id && !packIdLooksUuid ? body.pack_id : "testpass-core");
+  const requestedLabel = body.pack_slug ?? body.pack_id ?? "testpass-core";
+  const packRow = packIdLooksUuid
+    ? await getPackById(ctx.supabaseUrl, ctx.serviceKey, body.pack_id as string)
+    : await getPackBySlug(ctx.supabaseUrl, ctx.serviceKey, requestedSlug);
+  if (!packRow || !canUseTestPassPack(packRow, ctx.actorUserId)) {
+    return { status: 404, payload: { error: `Pack '${requestedLabel}' not found` } };
+  }
+  if (body.pack_slug && packRow.slug !== body.pack_slug) {
+    return { status: 400, payload: { error: "pack_id does not match pack_slug" } };
+  }
 
-  const packId = body.pack_id ?? await getPackIdBySlug(ctx.supabaseUrl, ctx.serviceKey, slug);
-  if (!packId) return { status: 404, payload: { error: `Pack '${slug}' not found` } };
-
-  // Built-in packs ship as YAML on disk. User-saved packs could be loaded
-  // from testpass_packs.yaml jsonb once the runner learns that path; for
-  // now we require the YAML file so deterministic/agent runners can
-  // consume it directly.
-  const packPath = path.resolve(__dirname, `../packages/testpass/packs/${slug}.yaml`);
   let pack;
   try {
-    pack = loadPackFromFile(packPath);
-  } catch {
-    return { status: 422, payload: { error: `Pack YAML not found on server for '${slug}'` } };
+    if (packRow.owner_user_id === null) {
+      const packPath = path.resolve(__dirname, `../packages/testpass/packs/${packRow.slug}.yaml`);
+      pack = loadPackFromFile(packPath);
+    } else {
+      pack = packFromJsonb(packRow.yaml);
+    }
+  } catch (err) {
+    return { status: 422, payload: { error: `Pack '${packRow.slug}' could not be loaded: ${(err as Error).message}` } };
   }
 
   const config = { supabaseUrl: ctx.supabaseUrl, serviceRoleKey: ctx.serviceKey };
   const { id: runId, was_duplicate } = await createRun(config, {
-    packId,
-    packName: pack.name ?? slug,
+    packId: packRow.id,
+    packName: pack.name ?? packRow.slug,
     target: body.target,
     profile,
     actorUserId: ctx.actorUserId,
@@ -313,12 +416,29 @@ async function upsertPack(
   serviceKey: string,
   actorUserId: string,
   packYaml: string,
+  expectedPackId?: string,
 ): Promise<{ status: number; payload: Record<string, unknown> }> {
   let pack;
   try {
     pack = loadPackFromYaml(packYaml);
   } catch (err) {
     return { status: 422, payload: { error: (err as Error).message } };
+  }
+
+  if (expectedPackId && pack.id !== expectedPackId) {
+    return {
+      status: 400,
+      payload: { error: `pack_id '${expectedPackId}' must match YAML id '${pack.id}'` },
+    };
+  }
+
+  const existing = await getPackBySlug(supabaseUrl, serviceKey, pack.id);
+  const conflict = testPassPackSaveConflict(existing, actorUserId);
+  if (conflict) {
+    return {
+      status: 409,
+      payload: { error: conflict },
+    };
   }
 
   const body = {
@@ -331,40 +451,65 @@ async function upsertPack(
   };
 
   const res = await fetch(
-    `${supabaseUrl}/rest/v1/testpass_packs?on_conflict=slug`,
+    existing
+      ? `${supabaseUrl}/rest/v1/testpass_packs?id=eq.${encodeURIComponent(existing.id)}&owner_user_id=eq.${encodeURIComponent(actorUserId)}`
+      : `${supabaseUrl}/rest/v1/testpass_packs`,
     {
-      method:  "POST",
+      method:  existing ? "PATCH" : "POST",
       headers: {
         "Content-Type": "application/json",
         apikey:        serviceKey,
         Authorization: `Bearer ${serviceKey}`,
-        Prefer:        "resolution=merge-duplicates,return=representation",
+        Prefer:        "return=representation",
       },
       body: JSON.stringify(body),
     },
   );
   const text = await res.text();
   if (!res.ok) {
+    if (res.status === 409 || /duplicate key|23505/i.test(text)) {
+      return {
+        status: 409,
+        payload: { error: `Pack slug '${pack.id}' is already owned by another user` },
+      };
+    }
     return { status: 500, payload: { error: `Upsert failed: ${res.status} ${text}` } };
   }
   const rows = text ? (JSON.parse(text) as Array<Record<string, unknown>>) : [];
   return { status: 200, payload: { pack: rows[0] ?? null } };
 }
 
-function buildFixListMarkdown(
-  run: Record<string, unknown> | null,
-  items: Array<Record<string, unknown>>,
-): string {
-  const failItems = items.filter((i) => i.verdict === "fail");
-  const header = `# TestPass Fix List\n\nRun: \`${run?.id ?? "?"}\`  \nStatus: \`${run?.status ?? "?"}\`  \nFailing checks: ${failItems.length} of ${items.length}\n`;
-  if (failItems.length === 0) {
-    return `${header}\n_No failing checks._\n`;
+export function selectTestPassPackYaml(body: { pack_yaml?: unknown; yaml?: unknown } | null | undefined): string | null {
+  const candidate = body?.pack_yaml ?? body?.yaml;
+  return typeof candidate === "string" && candidate.trim() ? candidate : null;
+}
+
+export function normalizeTestPassEditVerdict(raw: unknown): "check" | "fail" | "na" | "other" | null {
+  if (typeof raw !== "string") return null;
+  const verdictMap: Record<string, "check" | "fail" | "na" | "other"> = {
+    pass: "check",
+    check: "check",
+    fail: "fail",
+    na: "na",
+    other: "other",
+  };
+  return verdictMap[raw.toLowerCase()] ?? null;
+}
+
+export function normalizeTestPassEditNotes(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (trimmed.length < 3) return null;
+  return trimmed.slice(0, 2000);
+}
+
+export function resolveTestPassAction(queryAction: unknown, body: unknown): string | undefined {
+  if (typeof queryAction === "string" && queryAction) return queryAction;
+  if (body && typeof body === "object" && "action" in body) {
+    const action = (body as { action?: unknown }).action;
+    return typeof action === "string" && action ? action : undefined;
   }
-  const lines = failItems.map((i) => {
-    const comment = i.on_fail_comment ? `\n  - ${String(i.on_fail_comment).trim()}` : "";
-    return `- [ ] **${i.check_id}** (${i.severity}, ${i.category}) - ${i.title}${comment}`;
-  });
-  return `${header}\n## Fixes\n\n${lines.join("\n")}\n`;
+  return undefined;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -382,7 +527,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const actorUserId = await resolveActorUserId(supabaseUrl, serviceKey, token);
   if (!actorUserId) return json(res, 401, { error: "Invalid session" });
 
-  const action = req.query.action as string;
+  const action = resolveTestPassAction(req.query.action, req.body);
   const config = { supabaseUrl, serviceRoleKey: serviceKey };
 
   if (req.method === "GET" && (action === "get_run" || action === "status")) {
@@ -414,13 +559,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET" && action === "report_md") {
     const runId = req.query.run_id as string;
     if (!runId) return json(res, 400, { error: "run_id required" });
-    const data = await getRunWithItems(supabaseUrl, serviceKey, runId, actorUserId);
-    if (!data.run) return json(res, 404, { error: "Run not found" });
-    const markdown = buildFixListMarkdown(
-      data.run as Record<string, unknown>,
-      data.items as Array<Record<string, unknown>>,
-    );
-    return json(res, 200, { markdown });
+    const owns = await assertRunOwnership(supabaseUrl, serviceKey, runId, actorUserId);
+    if (!owns) return json(res, 404, { error: "Run not found" });
+    try {
+      const markdown = await generateMarkdownFixList(config, runId);
+      return json(res, 200, { markdown });
+    } catch (err) {
+      return json(res, 500, { error: (err as Error).message });
+    }
   }
 
   if (req.method === "POST" && action === "start_run") {
@@ -451,9 +597,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === "POST" && action === "save_pack") {
-    const body = req.body as { pack_yaml?: string };
-    if (!body?.pack_yaml) return json(res, 400, { error: "pack_yaml required" });
-    const result = await upsertPack(supabaseUrl, serviceKey, actorUserId, body.pack_yaml);
+    const body = req.body as { pack_id?: string; pack_yaml?: string; yaml?: string };
+    const packYaml = selectTestPassPackYaml(body);
+    if (!packYaml) return json(res, 400, { error: "pack_yaml required" });
+    const result = await upsertPack(supabaseUrl, serviceKey, actorUserId, packYaml, body.pack_id);
     return json(res, result.status, result.payload);
   }
 
@@ -466,22 +613,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
     if (!body.run_id) return json(res, 400, { error: "run_id required" });
     if (!body.item_id) return json(res, 400, { error: "item_id required" });
-    const verdictMap: Record<string, string> = { pass: "check", fail: "fail", na: "na" };
-    const dbVerdict = verdictMap[body.verdict ?? ""];
-    if (!dbVerdict) return json(res, 400, { error: "verdict must be pass|fail|na" });
+    const dbVerdict = normalizeTestPassEditVerdict(body.verdict);
+    if (!dbVerdict) return json(res, 400, { error: "verdict must be pass|fail|na|other" });
+    const notes = normalizeTestPassEditNotes(body.notes);
+    if (!notes) return json(res, 400, { error: "notes are required for manual verdict edits" });
 
     const ownerCheck = await fetch(
-      `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${body.run_id}&actor_user_id=eq.${actorUserId}&select=id&limit=1`,
+      `${supabaseUrl}/rest/v1/testpass_runs?id=eq.${encodeURIComponent(body.run_id)}&actor_user_id=eq.${encodeURIComponent(actorUserId)}&select=id&limit=1`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     );
     const ownerRows = (await ownerCheck.json()) as Array<{ id: string }>;
     if (!ownerRows[0]) return json(res, 404, { error: "Run not found" });
 
-    const patch: Record<string, unknown> = { verdict: dbVerdict };
-    if (typeof body.notes === "string") patch.on_fail_comment = body.notes;
+    const itemBeforeRes = await fetch(
+      `${supabaseUrl}/rest/v1/testpass_items?id=eq.${encodeURIComponent(body.item_id)}&run_id=eq.${encodeURIComponent(body.run_id)}&select=id,run_id,check_id,title,verdict&limit=1`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+    );
+    if (!itemBeforeRes.ok) {
+      const text = await itemBeforeRes.text();
+      return json(res, 500, { error: `edit_item item lookup failed: ${text}` });
+    }
+    const itemBeforeRows = (await itemBeforeRes.json()) as TestPassEditItemRow[];
+    const itemBefore = itemBeforeRows[0];
+    if (!itemBefore) return json(res, 404, { error: "Item not found" });
+
+    let overrideSignal: TestPassOverrideSignal | null = null;
+    if (isTestPassFailToPassOverride(itemBefore.verdict, dbVerdict)) {
+      const apiKeyHash = await resolveApiKeyHashForSignal(supabaseUrl, serviceKey, token, actorUserId);
+      if (!apiKeyHash) {
+        return json(res, 409, {
+          error: "fail-to-pass overrides require an auditable mc_signals key",
+        });
+      }
+      overrideSignal = buildTestPassFailToPassOverrideSignal({
+        apiKeyHash,
+        actorUserId,
+        runId: body.run_id,
+        item: itemBefore,
+        notes,
+      });
+      const signalInsert = await insertTestPassOverrideSignal(supabaseUrl, serviceKey, overrideSignal);
+      if (!signalInsert.ok) {
+        return json(res, 500, { error: `fail-to-pass override signal failed: ${signalInsert.error}` });
+      }
+    }
+
+    const patch: Record<string, unknown> = { verdict: dbVerdict, on_fail_comment: notes };
 
     const upd = await fetch(
-      `${supabaseUrl}/rest/v1/testpass_items?id=eq.${body.item_id}&run_id=eq.${body.run_id}`,
+      `${supabaseUrl}/rest/v1/testpass_items?id=eq.${encodeURIComponent(body.item_id)}&run_id=eq.${encodeURIComponent(body.run_id)}`,
       {
         method: "PATCH",
         headers: {
@@ -500,20 +680,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const rows = (await upd.json()) as unknown[];
     const item = rows[0];
     if (!item) return json(res, 404, { error: "Item not found" });
-    return json(res, 200, { item });
+    const summary = await computeVerdictSummary(config, body.run_id);
+    const isDone = summary.pending === 0;
+    await updateRunStatus(config, body.run_id, isDone ? (summary.fail > 0 ? "failed" : "complete") : "running", summary);
+    return json(res, 200, {
+      item,
+      summary,
+      override_guard: overrideSignal
+        ? { fail_to_pass: true, signal_action: overrideSignal.action, signal_inserted: true }
+        : { fail_to_pass: false },
+    });
   }
 
   if (req.method === "POST" && action === "heal") {
     const body = req.body as { run_id?: string; pack_slug?: string };
     if (!body.run_id) return json(res, 400, { error: "run_id required" });
-    if (!body.pack_slug) return json(res, 400, { error: "pack_slug required" });
+    const run = await getRunForActor(supabaseUrl, serviceKey, body.run_id, actorUserId);
+    if (!run) return json(res, 404, { error: "Run not found" });
+    if (!run.pack_id) return json(res, 422, { error: "Run has no pack_id" });
+    const packRow = await getPackById(supabaseUrl, serviceKey, run.pack_id);
+    if (!packRow || !canUseTestPassPack(packRow, actorUserId)) {
+      return json(res, 404, { error: "Pack not found" });
+    }
+    if (body.pack_slug && packRow.slug !== body.pack_slug) {
+      return json(res, 400, { error: "pack_slug does not match run pack" });
+    }
 
-    const packPath = path.resolve(__dirname, `../packages/testpass/packs/${body.pack_slug}.yaml`);
     let pack;
     try {
-      pack = loadPackFromFile(packPath);
-    } catch {
-      return json(res, 422, { error: `Pack YAML not found on server for '${body.pack_slug}'` });
+      if (packRow.owner_user_id === null) {
+        const packPath = path.resolve(__dirname, `../packages/testpass/packs/${packRow.slug}.yaml`);
+        pack = loadPackFromFile(packPath);
+      } else {
+        pack = packFromJsonb(packRow.yaml);
+      }
+    } catch (err) {
+      return json(res, 422, { error: `Pack '${packRow.slug}' could not be loaded: ${(err as Error).message}` });
     }
 
     let healed = 0;
@@ -537,6 +739,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST" && action === "complete_run") {
     const body = req.body as { run_id?: string };
     if (!body.run_id) return json(res, 400, { error: "run_id required" });
+    const owns = await assertRunOwnership(supabaseUrl, serviceKey, body.run_id, actorUserId);
+    if (!owns) return json(res, 404, { error: "Run not found" });
     const summary = await computeVerdictSummary(config, body.run_id);
     const hasFailures = summary.fail > 0 || summary.pending > 0;
     await updateRunStatus(config, body.run_id, hasFailures ? "failed" : "complete", summary);

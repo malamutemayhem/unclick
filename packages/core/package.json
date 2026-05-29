@@ -11,17 +11,17 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "drizzle-orm": "^0.38.3",
-    "hono": "^4.6.3",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.23",
     "ulid": "^2.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "typescript": "^6.0.3",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "drizzle-orm": "^0.38.3",
-    "hono": "^4.6.3"
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.23"
   }
 }

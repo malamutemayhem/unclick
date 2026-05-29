@@ -5,7 +5,7 @@
  * or an UnClick API key (uc_...). Runs a named pack against a target MCP
  * server without going through MCP.
  *
- * Body/query: { pack_id: string, pack_name?: string, profile?: "smoke"|"standard"|"deep", server_url?: string }
+ * Body/query: { pack_id: string, pack_name?: string, profile?: "smoke"|"standard"|"deep", server_url?: string, target_vercel_bypass_secret?: string }
  * Returns: { run_id: string, status: RunStatus, verdict_summary?: VerdictSummary }
  *
  * Smoke profile runs synchronously and returns the final verdict.
@@ -17,6 +17,7 @@ import {
   computeVerdictSummary,
   createEvidence,
   createRun,
+  packFromJsonb,
   loadPackFromFile,
   probeServer,
   runAgentChecks,
@@ -37,6 +38,7 @@ import {
 } from "./lib/testpass-background-handoff.js";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -153,17 +155,43 @@ export async function resolveTestPassRunActor(
   return { ok: true, actorUserId, tokenKind: "session" };
 }
 
-async function getPackIdBySlug(
+interface TestPassRunPackRow {
+  id: string;
+  slug: string;
+  name: string | null;
+  owner_user_id: string | null;
+  yaml: unknown;
+}
+
+export function canUseTestPassRunPack(row: Pick<TestPassRunPackRow, "owner_user_id">, actorUserId: string): boolean {
+  return row.owner_user_id === null || row.owner_user_id === actorUserId;
+}
+
+async function getPackBySlug(
   supabaseUrl: string,
   serviceKey: string,
   slug: string,
-): Promise<{ id: string; owner_user_id: string } | null> {
+): Promise<TestPassRunPackRow | null> {
   const r = await fetch(
-    `${supabaseUrl}/rest/v1/testpass_packs?slug=eq.${encodeURIComponent(slug)}&select=id,owner_user_id&limit=1`,
+    `${supabaseUrl}/rest/v1/testpass_packs?slug=eq.${encodeURIComponent(slug)}&select=id,slug,name,owner_user_id,yaml&limit=1`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
   );
   if (!r.ok) return null;
-  const rows = (await r.json()) as Array<{ id: string; owner_user_id: string }>;
+  const rows = (await r.json()) as TestPassRunPackRow[];
+  return rows[0] ?? null;
+}
+
+async function getPackById(
+  supabaseUrl: string,
+  serviceKey: string,
+  packId: string,
+): Promise<TestPassRunPackRow | null> {
+  const r = await fetch(
+    `${supabaseUrl}/rest/v1/testpass_packs?id=eq.${encodeURIComponent(packId)}&select=id,slug,name,owner_user_id,yaml&limit=1`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+  );
+  if (!r.ok) return null;
+  const rows = (await r.json()) as TestPassRunPackRow[];
   return rows[0] ?? null;
 }
 
@@ -279,6 +307,68 @@ function queryString(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+export function resolveTestPassTargetToken(params: {
+  incomingToken: string;
+  isCron: boolean;
+  configuredToken?: string;
+}): string | undefined {
+  const configured = params.configuredToken?.trim();
+  const incoming = params.incomingToken.trim();
+  if (!params.isCron && incoming.startsWith("uc_")) return incoming;
+  return configured || undefined;
+}
+
+export async function withTestPassTargetToken<T>(
+  targetToken: string | undefined,
+  work: () => Promise<T>,
+): Promise<T> {
+  const token = targetToken?.trim();
+  if (!token) return work();
+
+  const previous = process.env.TESTPASS_TOKEN;
+  process.env.TESTPASS_TOKEN = token;
+  try {
+    return await work();
+  } finally {
+    if (previous === undefined) {
+      delete process.env.TESTPASS_TOKEN;
+    } else {
+      process.env.TESTPASS_TOKEN = previous;
+    }
+  }
+}
+
+export function resolveTestPassTargetVercelBypassSecret(params: {
+  inputSecret?: string;
+  configuredSecret?: string;
+  vercelAutomationSecret?: string;
+}): string | undefined {
+  return params.inputSecret?.trim()
+    || params.configuredSecret?.trim()
+    || params.vercelAutomationSecret?.trim()
+    || undefined;
+}
+
+export async function withTestPassTargetVercelBypassSecret<T>(
+  secret: string | undefined,
+  work: () => Promise<T>,
+): Promise<T> {
+  const value = secret?.trim();
+  if (!value) return work();
+
+  const previous = process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+  process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = value;
+  try {
+    return await work();
+  } finally {
+    if (previous === undefined) {
+      delete process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+    } else {
+      process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = previous;
+    }
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") return json(res, 204, {});
 
@@ -303,6 +393,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         pack_name: queryString(req.query.pack_name),
         profile: queryString(req.query.profile) as RunProfile | undefined,
         server_url: queryString(req.query.server_url),
+        target_vercel_bypass_secret: undefined,
         task_id: queryString(req.query.task_id),
         source: queryString(req.query.source),
       }
@@ -311,12 +402,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         pack_name?: string;
         profile?: RunProfile;
         server_url?: string;
+        target_vercel_bypass_secret?: string;
         task_id?: string;
         source?: string;
       });
 
   if (!input.pack_id) return json(res, 400, { error: "pack_id required" });
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (input.task_id !== undefined && input.task_id !== "" && !UUID_RE.test(input.task_id)) {
     return json(res, 400, { error: "task_id must be a UUID (v1-v5, recommended v5)" });
   }
@@ -328,10 +419,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const config = { supabaseUrl, serviceRoleKey: serviceKey };
-  const packSlug = input.pack_id;
+  const requestedPack = input.pack_id;
+  const requestedPackLooksUuid = UUID_RE.test(requestedPack);
 
-  const packRow = await getPackIdBySlug(supabaseUrl, serviceKey, packSlug);
-  if (!packRow) return json(res, 404, { error: `Pack '${packSlug}' not found` });
+  const packRow = requestedPackLooksUuid
+    ? await getPackById(supabaseUrl, serviceKey, requestedPack)
+    : await getPackBySlug(supabaseUrl, serviceKey, requestedPack);
+  if (!packRow) return json(res, 404, { error: `Pack '${requestedPack}' not found` });
+  const packSlug = packRow.slug;
 
   let actorUserId: string | null;
   if (isCron) {
@@ -352,6 +447,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
     actorUserId = actor.actorUserId;
+    if (!canUseTestPassRunPack(packRow, actorUserId)) {
+      return json(res, 404, { error: `Pack '${requestedPack}' not found` });
+    }
   }
   const apiKeyHash = shouldEmitScheduledSignal(input.source) || profile !== "smoke"
     ? await getApiKeyHashForUser(supabaseUrl, serviceKey, actorUserId)
@@ -360,13 +458,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const packPath = path.resolve(__dirname, `../packages/testpass/packs/${packSlug}.yaml`);
   let pack;
   try {
-    pack = loadPackFromFile(packPath);
-  } catch {
-    return json(res, 422, { error: `Pack YAML not found on server for '${packSlug}'` });
+    pack = packRow.owner_user_id === null
+      ? loadPackFromFile(packPath)
+      : packFromJsonb(packRow.yaml);
+  } catch (err) {
+    return json(res, 422, { error: `Pack '${packSlug}' could not be loaded: ${(err as Error).message}` });
   }
 
   const target: RunTarget = { type: "url", url: input.server_url ?? "" };
   const packName = input.pack_name ?? pack.name ?? packSlug;
+  const targetToken = resolveTestPassTargetToken({
+    incomingToken: token,
+    isCron,
+    configuredToken: process.env.TESTPASS_TOKEN,
+  });
+  const targetVercelBypassSecret = resolveTestPassTargetVercelBypassSecret({
+    inputSecret: input.target_vercel_bypass_secret,
+    configuredSecret: process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET,
+    vercelAutomationSecret: process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+  });
 
   const { id: runId, was_duplicate } = await createRun(config, {
     packId: packRow.id,
@@ -390,53 +500,57 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const runWork = async () => {
-    let evidenceRef: string | undefined;
-    if (target.url) {
-      try {
-        const probeResult = await probeServer(target.url, { timeoutMs: 12_000 });
-        evidenceRef = await createEvidence(config, { kind: "tool_list", payload: probeResult });
-      } catch (err) {
-        console.error(`testpass-run probe failed for ${runId}:`, (err as Error).message);
-      }
-    }
+    return withTestPassTargetToken(targetToken, async () => {
+      return withTestPassTargetVercelBypassSecret(targetVercelBypassSecret, async () => {
+        let evidenceRef: string | undefined;
+        if (target.url) {
+          try {
+            const probeResult = await probeServer(target.url, { timeoutMs: 12_000 });
+            evidenceRef = await createEvidence(config, { kind: "tool_list", payload: probeResult });
+          } catch (err) {
+            console.error(`testpass-run probe failed for ${runId}:`, (err as Error).message);
+          }
+        }
 
-    await seedPendingItems(config, runId, pack, profile, evidenceRef);
+        await seedPendingItems(config, runId, pack, profile, evidenceRef);
 
-    if (target.url) {
-      try {
-        await runDeterministicChecks(config, runId, target.url, pack, profile);
-      } catch (err) {
-        console.error(`testpass-run deterministic failed for ${runId}:`, (err as Error).message);
-      }
-      try {
-        await runAgentChecks(config, runId, target.url, pack, profile, evidenceRef);
-      } catch (err) {
-        console.error(`testpass-run agent failed for ${runId}:`, (err as Error).message);
-      }
-    }
+        if (target.url) {
+          try {
+            await runDeterministicChecks(config, runId, target.url, pack, profile);
+          } catch (err) {
+            console.error(`testpass-run deterministic failed for ${runId}:`, (err as Error).message);
+          }
+          try {
+            await runAgentChecks(config, runId, target.url, pack, profile, evidenceRef);
+          } catch (err) {
+            console.error(`testpass-run agent failed for ${runId}:`, (err as Error).message);
+          }
+        }
 
-    const summary = await computeVerdictSummary(config, runId);
-    const isDone = summary.pending === 0;
-    const status = isDone ? (summary.fail > 0 ? "failed" : "complete") : "running";
-    await updateRunStatus(
-      config,
-      runId,
-      status,
-      summary,
-    );
-    if (shouldEmitScheduledSignal(input.source)) {
-      emitScheduledRunSignal({
-        apiKeyHash,
-        runId,
-        packSlug,
-        packName,
-        profile,
-        target,
-        status,
-        summary,
+        const summary = await computeVerdictSummary(config, runId);
+        const isDone = summary.pending === 0;
+        const status = isDone ? (summary.fail > 0 ? "failed" : "complete") : "running";
+        await updateRunStatus(
+          config,
+          runId,
+          status,
+          summary,
+        );
+        if (shouldEmitScheduledSignal(input.source)) {
+          emitScheduledRunSignal({
+            apiKeyHash,
+            runId,
+            packSlug,
+            packName,
+            profile,
+            target,
+            status,
+            summary,
+          });
+        }
+        return summary;
       });
-    }
-    return summary;
+    });
   };
 
   if (profile === "smoke") {

@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { resolveTestPassRunActor } from "./testpass-run";
+import {
+  canUseTestPassRunPack,
+  resolveTestPassRunActor,
+  resolveTestPassTargetToken,
+  resolveTestPassTargetVercelBypassSecret,
+  withTestPassTargetToken,
+  withTestPassTargetVercelBypassSecret,
+} from "./testpass-run";
 
 const originalFetch = globalThis.fetch;
 
@@ -17,6 +24,12 @@ function mockJsonResponse(status: number, body: unknown): Response {
 }
 
 describe("resolveTestPassRunActor", () => {
+  it("scopes CI pack access to system packs or the actor's own packs", () => {
+    expect(canUseTestPassRunPack({ owner_user_id: null }, "user-1")).toBe(true);
+    expect(canUseTestPassRunPack({ owner_user_id: "user-1" }, "user-1")).toBe(true);
+    expect(canUseTestPassRunPack({ owner_user_id: "user-2" }, "user-1")).toBe(false);
+  });
+
   it("accepts active UnClick API keys linked to a user", async () => {
     const fetchMock = vi.fn(async () => mockJsonResponse(200, [
       { user_id: "user-123", is_active: true },
@@ -80,5 +93,85 @@ describe("resolveTestPassRunActor", () => {
     );
 
     expect(result).toEqual({ ok: true, actorUserId: "session-user", tokenKind: "session" });
+  });
+});
+
+describe("TestPass target token forwarding", () => {
+  const originalToken = process.env.TESTPASS_TOKEN;
+  const originalVercelBypass = process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+  const originalAutomationBypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+
+  afterEach(() => {
+    if (originalToken === undefined) delete process.env.TESTPASS_TOKEN;
+    else process.env.TESTPASS_TOKEN = originalToken;
+    if (originalVercelBypass === undefined) delete process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET;
+    else process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = originalVercelBypass;
+    if (originalAutomationBypass === undefined) delete process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+    else process.env.VERCEL_AUTOMATION_BYPASS_SECRET = originalAutomationBypass;
+  });
+
+  it("uses the inbound UnClick API key for PR smoke target calls", () => {
+    expect(resolveTestPassTargetToken({
+      incomingToken: "uc_ci_key",
+      isCron: false,
+      configuredToken: "uc_stale_env_key",
+    })).toBe("uc_ci_key");
+  });
+
+  it("does not treat cron secrets or browser sessions as MCP target API keys", () => {
+    expect(resolveTestPassTargetToken({
+      incomingToken: "cron-secret",
+      isCron: true,
+      configuredToken: "uc_configured_target_key",
+    })).toBe("uc_configured_target_key");
+
+    expect(resolveTestPassTargetToken({
+      incomingToken: "supabase.jwt.token",
+      isCron: false,
+      configuredToken: "uc_configured_target_key",
+    })).toBe("uc_configured_target_key");
+  });
+
+  it("temporarily exposes the selected token to the TestPass dispatcher and restores it", async () => {
+    process.env.TESTPASS_TOKEN = "uc_previous";
+
+    const seen = await withTestPassTargetToken("uc_current", async () => process.env.TESTPASS_TOKEN);
+
+    expect(seen).toBe("uc_current");
+    expect(process.env.TESTPASS_TOKEN).toBe("uc_previous");
+  });
+
+  it("uses the explicit preview bypass secret before env fallbacks", () => {
+    expect(resolveTestPassTargetVercelBypassSecret({
+      inputSecret: " input-bypass ",
+      configuredSecret: "configured-bypass",
+      vercelAutomationSecret: "automation-bypass",
+    })).toBe("input-bypass");
+  });
+
+  it("falls back to configured preview bypass secrets", () => {
+    expect(resolveTestPassTargetVercelBypassSecret({
+      inputSecret: "",
+      configuredSecret: " configured-bypass ",
+      vercelAutomationSecret: "automation-bypass",
+    })).toBe("configured-bypass");
+
+    expect(resolveTestPassTargetVercelBypassSecret({
+      inputSecret: "",
+      configuredSecret: "",
+      vercelAutomationSecret: " automation-bypass ",
+    })).toBe("automation-bypass");
+  });
+
+  it("temporarily exposes the preview bypass secret to the TestPass dispatcher and restores it", async () => {
+    process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET = "previous-bypass";
+
+    const seen = await withTestPassTargetVercelBypassSecret(
+      "current-bypass",
+      async () => process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET,
+    );
+
+    expect(seen).toBe("current-bypass");
+    expect(process.env.TESTPASS_TARGET_VERCEL_BYPASS_SECRET).toBe("previous-bypass");
   });
 });
