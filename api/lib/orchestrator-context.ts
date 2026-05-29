@@ -1,6 +1,10 @@
 import {
   inspectOrchestratorActiveState,
 } from "./commonsensepass-bridge.js";
+import {
+  createAutopilotZeroTouchMetrics,
+  type AutopilotTouchMetricsRow,
+} from "./autopilot-control-ledger.js";
 import type { CommonSensePassResult } from "../../packages/commonsensepass/src/index.js";
 
 export interface OrchestratorProfileRow {
@@ -158,6 +162,7 @@ export interface BuildOrchestratorContextInput {
   library: OrchestratorLibraryRow[];
   businessContext: OrchestratorBusinessContextRow[];
   conversationTurns: OrchestratorConversationTurnRow[];
+  autopilotEvents?: AutopilotTouchMetricsRow[];
 }
 
 export interface OrchestratorSourceLink {
@@ -233,6 +238,19 @@ export interface OrchestratorRollingSnapshot {
   source_pointers: OrchestratorSourceLink[];
 }
 
+export interface OrchestratorZeroTouchScoreboard {
+  events_scanned: number;
+  total_refs: number;
+  zero_touch_refs: number;
+  human_touched_refs: number;
+  human_touch_count: number;
+  automation_event_count: number;
+  top_human_touch_reason: string | null;
+  top_human_touch_count: number;
+  touch_reason_counts: Record<string, number>;
+  summary: string;
+}
+
 export interface OrchestratorSeatHandshake {
   mode: "fresh-seat-pickup";
   summary: string;
@@ -281,9 +299,11 @@ export interface OrchestratorContext {
       library: number;
       business_context: number;
       conversation_turns: number;
+      autopilot_events: number;
     };
     next_actions: string[];
     blockers: string[];
+    zero_touch_scoreboard: OrchestratorZeroTouchScoreboard;
     // health_verdict (added 2026-05-12 by PR #746): CommonSensePass R1
     // verdict computed from the same todos+profiles input used to derive
     // active_jobs. Any seat reading the state card can use this as the
@@ -295,9 +315,14 @@ export interface OrchestratorContext {
     harness_card: {
       source_of_truth: "Boardroom Jobs";
       queue_state: "active_work" | "needs_claim" | "quiet";
+      gate_status: "green" | "amber" | "red";
+      gate_reason: string;
       queue_truth: string;
       allowed_actions: string[];
       required_proof: string[];
+      readiness_audit: HarnessReadinessAudit;
+      copyroom_rule: string;
+      test_runner_rule: string;
       cleanup_rule: string;
       recovery_path: string;
     };
@@ -322,6 +347,28 @@ export interface OrchestratorContext {
     library_snapshots_available: number;
     library_snapshots_truncated: boolean;
   };
+}
+
+export interface HarnessReadinessAuditItem {
+  key:
+    | "scoped_task"
+    | "source_of_truth"
+    | "allowed_actions"
+    | "forbidden_surfaces"
+    | "proof_required"
+    | "cleanup_rule"
+    | "recovery_path"
+    | "owner"
+    | "next_checkin";
+  status: "pass" | "warn" | "fail";
+  proof: string;
+  action: string;
+}
+
+export interface HarnessReadinessAudit {
+  status: "ready" | "watch" | "blocked";
+  score: number;
+  items: HarnessReadinessAuditItem[];
 }
 
 const ACTIVE_WINDOW_MS = 30 * 60 * 1000;
@@ -405,6 +452,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   const profiles = compact ? allProfiles.slice(0, maxSummaries) : allProfiles;
   const activeSeatCount = allProfiles.filter((profile) => isFresh(profile.last_seen_at, nowMs)).length;
   const humanOperatorTime = buildOperatorTimeContext(input.businessContext, input.generatedAt);
+  const zeroTouchScoreboard = buildZeroTouchScoreboard(input.autopilotEvents ?? []);
 
   const activeTodoRows = input.todos
     .filter((todo) => todo.status === "open" || todo.status === "in_progress")
@@ -412,12 +460,16 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   const queuedTodoCount = input.todos.filter((todo) => todo.status === "open").length;
   const inProgressTodoCount = input.todos.filter((todo) => todo.status === "in_progress").length;
   const activeTodos = activeTodoRows.slice(0, 8);
+  const profileLastSeenByAgent = buildProfileLastSeenByAgent(input.profiles);
   // active_jobs (v9 definition pinned by todo a4cd5229): strict
   // in_progress + owner_last_seen <= 24h. Heartbeat step 5 uses the same
   // formula so state_card and PASS/BLOCKER never disagree on identical
   // input. Computed over the full input.todos array, NOT the sliced
   // activeTodos, so the count is deterministic regardless of UI cap.
   const activeJobsCount = computeActiveJobsCount(input.todos, input.profiles, nowMs);
+  const activeJobTodos = input.todos
+    .filter((todo) => isFreshlyOwnedInProgressTodo(todo, profileLastSeenByAgent, nowMs))
+    .sort(compareTodoPriorityThenUpdated);
 
   // CommonSensePass R1 verdict (added by PR #746). The orchestrator
   // context publishes an implicit "healthy" / "quiet" claim whenever
@@ -460,7 +512,7 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     .map((event) => (compact ? compactContinuityEvent(event) : event));
 
   const blockers = continuityEvents
-    .filter((event) => isActiveBlockerEvent(event, activeTodos, nowMs))
+    .filter((event) => isActiveBlockerEvent(event, activeTodos, nowMs, profileLastSeenByAgent))
     .map((event) => event.summary)
     .slice(0, 5);
 
@@ -500,8 +552,12 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
     nowMs,
     newestActivityAt,
     activeTodos,
+    activeJobTodos,
+    activeJobsCount,
+    queuedTodoCount,
     continuityEvents,
     blockers,
+    profileLastSeenByAgent,
   });
   const seatHandshake = buildSeatHandshake({
     profiles,
@@ -543,9 +599,11 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
         library: input.library.length,
         business_context: input.businessContext.length,
         conversation_turns: input.conversationTurns.length,
+        autopilot_events: input.autopilotEvents?.length ?? 0,
       },
       next_actions: nextActions,
       blockers,
+      zero_touch_scoreboard: zeroTouchScoreboard,
       health_verdict: healthVerdict,
       harness_card: buildHarnessCard({
         activeJobsCount,
@@ -576,6 +634,36 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
   };
 }
 
+function buildZeroTouchScoreboard(rows: AutopilotTouchMetricsRow[]): OrchestratorZeroTouchScoreboard {
+  const metrics = createAutopilotZeroTouchMetrics(rows);
+  const topHumanTouch = Object.entries(metrics.touch_reason_counts).sort(
+    ([leftReason, leftCount], [rightReason, rightCount]) =>
+      rightCount - leftCount || leftReason.localeCompare(rightReason),
+  )[0];
+  const topReason = topHumanTouch?.[0] ?? null;
+  const topCount = topHumanTouch?.[1] ?? 0;
+  const summary =
+    metrics.total_refs === 0
+      ? "No AutoPilot ledger refs scanned yet."
+      : compactText(
+          `${metrics.zero_touch_refs} zero-touch refs, ${metrics.human_touched_refs} human-touched refs, ${metrics.human_touch_count} human touch${metrics.human_touch_count === 1 ? "" : "es"}. Top leak: ${topReason ?? "none"}.`,
+          180,
+        );
+
+  return {
+    events_scanned: rows.length,
+    total_refs: metrics.total_refs,
+    zero_touch_refs: metrics.zero_touch_refs,
+    human_touched_refs: metrics.human_touched_refs,
+    human_touch_count: metrics.human_touch_count,
+    automation_event_count: metrics.automation_event_count,
+    top_human_touch_reason: topReason,
+    top_human_touch_count: topCount,
+    touch_reason_counts: metrics.touch_reason_counts,
+    summary,
+  };
+}
+
 function buildHarnessCard({
   activeJobsCount,
   queuedTodoCount,
@@ -587,28 +675,189 @@ function buildHarnessCard({
 }): OrchestratorContext["current_state_card"]["harness_card"] {
   const queueState =
     activeJobsCount > 0 ? "active_work" : queuedTodoCount > 0 ? "needs_claim" : "quiet";
+  const gateStatus =
+    healthVerdict.verdict === "BLOCKER" || queueState === "needs_claim"
+      ? "red"
+      : queueState === "active_work"
+        ? "amber"
+        : "green";
+  const gateReason =
+    queuedTodoCount > 0 && activeJobsCount > 0
+      ? "Fresh active work exists, but open backlog is still waiting. Do not call the queue healthy; claim a non-overlapping queued slice or post the exact blocker."
+      : queueState === "needs_claim"
+      ? "Open Boardroom work has no fresh active owner. Claim one scoped job or post the exact blocker."
+      : queueState === "active_work"
+        ? "Fresh active work exists. Support with proof, review, tests, or a non-overlapping scoped patch."
+        : "No open Boardroom work is visible in this snapshot.";
+  const queueTruth =
+    queuedTodoCount > 0
+      ? `active_jobs=${activeJobsCount}; queued_todo_count=${queuedTodoCount}. Open backlog with active_jobs=${activeJobsCount} needs claim/proof work and is red, not healthy.`
+      : activeJobsCount > 0
+        ? `active_jobs=${activeJobsCount}; queued_todo_count=0. Fresh active work exists; support it with proof, review, tests, or a non-overlapping scoped patch.`
+        : "active_jobs=0; queued_todo_count=0. No open Boardroom work is visible in this snapshot.";
+  const proofRules = [...requiredProofRules, `health verdict is ${healthVerdict.verdict}`];
 
   return {
     source_of_truth: "Boardroom Jobs",
     queue_state: queueState,
-    queue_truth:
-      "active_jobs counts in_progress work with a fresh owner; queued_todo_count is open backlog. Open backlog with active_jobs=0 needs claim/proof work and must not be treated as healthy.",
-    allowed_actions: [
-      "claim one unowned scoped job",
-      "verify proof on a completed-looking job",
-      "patch a narrow owned file slice",
-      "post BLOCKER with exact missing proof",
-    ],
-    required_proof: [
-      "coding jobs need PR, commit, deploy, or explicit NO_CODE_NEEDED proof",
-      "tests or CI must be named when code changed",
-      "UI/UX jobs need screenshot proof",
-      `health verdict is ${healthVerdict.verdict}`,
-    ],
-    cleanup_rule: "Do not mark DONE from green chips or stale receipts; close only after required proof is observable.",
-    recovery_path:
-      "If the queue is blocked or scope is unclear, add a narrow ScopePack or proof comment instead of posting a status-only wake.",
+    gate_status: gateStatus,
+    gate_reason: gateReason,
+    queue_truth: queueTruth,
+    allowed_actions: allowedActions,
+    required_proof: proofRules,
+    readiness_audit: buildHarnessReadinessAudit({
+      activeJobsCount,
+      queuedTodoCount,
+      queueState,
+      gateStatus,
+      allowedActions,
+      requiredProof: proofRules,
+      cleanupRule,
+      recoveryPath,
+    }),
+    copyroom_rule:
+      "When exact source text, code, tables, prompts, labels, or data are provided, workers copy from CopyRoom/source packets and leave a copy receipt instead of retyping from memory.",
+    test_runner_rule:
+      "Test-only runner packets do not create active work claims unless they include build proof and a Boardroom receipt.",
+    cleanup_rule: cleanupRule,
+    recovery_path: recoveryPath,
   };
+}
+
+const allowedActions = [
+  "claim one unowned scoped job",
+  "verify proof on a completed-looking job",
+  "patch a narrow owned file slice",
+  "open a draft PR for one ScopePack slice",
+  "post BLOCKER with exact missing proof",
+];
+
+const requiredProofRules = [
+  "coding jobs need PR, commit, deploy, or explicit NO_CODE_NEEDED proof",
+  "tests or CI must be named when code changed",
+  "UI/UX jobs need screenshot proof",
+  "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
+  "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
+  "healthy/no_work/PASS needs queued_todo_count=0 or a fresh claim/blocker proof",
+];
+
+const cleanupRule =
+  "Do not mark DONE from green chips or stale receipts; close only after required proof is observable.";
+
+const recoveryPath =
+  "If the queue is blocked or scope is unclear, add a narrow ScopePack or proof comment instead of posting a status-only wake.";
+
+function buildHarnessReadinessAudit({
+  activeJobsCount,
+  queuedTodoCount,
+  queueState,
+  gateStatus,
+  allowedActions,
+  requiredProof,
+  cleanupRule,
+  recoveryPath,
+}: {
+  activeJobsCount: number;
+  queuedTodoCount: number;
+  queueState: "active_work" | "needs_claim" | "quiet";
+  gateStatus: "green" | "amber" | "red";
+  allowedActions: string[];
+  requiredProof: string[];
+  cleanupRule: string;
+  recoveryPath: string;
+}): HarnessReadinessAudit {
+  const items: HarnessReadinessAuditItem[] = [
+    {
+      key: "scoped_task",
+      status: "pass",
+      proof:
+        queueState === "quiet"
+          ? "No visible Boardroom job needs a ScopePack in this snapshot."
+          : "Current state publishes Boardroom queue counts and next_actions.",
+      action: queueState === "quiet" ? "Stay quiet unless new work arrives." : "Use one next_action or a Boardroom ScopePack.",
+    },
+    {
+      key: "source_of_truth",
+      status: "pass",
+      proof: "source_of_truth=Boardroom Jobs",
+      action: "Read Boardroom Jobs before acting.",
+    },
+    {
+      key: "allowed_actions",
+      status: allowedActions.length > 0 ? "pass" : "fail",
+      proof: `${allowedActions.length} allowed action(s) are declared.`,
+      action: "Stay within the declared action list.",
+    },
+    {
+      key: "forbidden_surfaces",
+      status: "pass",
+      proof: "Allowed actions exclude secrets, billing, DNS, production data, force push, and hard reset.",
+      action: "Post BLOCKER before touching a forbidden surface.",
+    },
+    {
+      key: "proof_required",
+      status: requiredProof.length > 0 ? "pass" : "fail",
+      proof: `${requiredProof.length} proof rule(s) are declared.`,
+      action: "Do not close without observable proof.",
+    },
+    {
+      key: "cleanup_rule",
+      status: cleanupRule ? "pass" : "fail",
+      proof: cleanupRule,
+      action: "Treat stale receipts and green chips as hints only.",
+    },
+    {
+      key: "recovery_path",
+      status: recoveryPath ? "pass" : "fail",
+      proof: recoveryPath,
+      action: "If blocked, add the smallest missing ScopePack or proof comment.",
+    },
+    {
+      key: "owner",
+      status: queuedTodoCount > 0 && activeJobsCount === 0 ? "fail" : queuedTodoCount > 0 ? "warn" : "pass",
+      proof:
+        queuedTodoCount > 0 && activeJobsCount === 0
+          ? "Open Boardroom work has no fresh active owner."
+          : queuedTodoCount > 0
+            ? "Fresh active work exists, but queued backlog still needs owners."
+            : "No queued Boardroom work is waiting for an owner.",
+      action:
+        queuedTodoCount > 0 && activeJobsCount === 0
+          ? "Claim one scoped job or post the exact blocker."
+          : queuedTodoCount > 0
+            ? "Support active work or claim a non-overlapping queued slice."
+            : "No owner action needed.",
+    },
+    {
+      key: "next_checkin",
+      status: queuedTodoCount > 0 && activeJobsCount === 0 ? "fail" : activeJobsCount > 0 ? "warn" : "pass",
+      proof:
+        queuedTodoCount > 0 && activeJobsCount === 0
+          ? "No fresh owner means no reliable next check-in for queued work."
+          : activeJobsCount > 0
+            ? "Fresh active work should keep a proof/check-in trail."
+            : "Quiet snapshot has no active check-in requirement.",
+      action:
+        queuedTodoCount > 0 && activeJobsCount === 0
+          ? "Claim with ETA before starting."
+          : activeJobsCount > 0
+            ? "Keep proof/check-ins current."
+            : "Stay quiet until work appears.",
+    },
+  ];
+  const rawScore = items.reduce((total, item) => {
+    if (item.status === "pass") return total + 1;
+    if (item.status === "warn") return total + 0.5;
+    return total;
+  }, 0);
+  const score = Math.round((rawScore / items.length) * 100);
+  const status =
+    gateStatus === "red" || items.some((item) => item.status === "fail")
+      ? "blocked"
+      : gateStatus === "amber" || items.some((item) => item.status === "warn")
+        ? "watch"
+        : "ready";
+  return { status, score, items };
 }
 
 function normalizeSummaryLimit(value: unknown): number {
@@ -638,12 +887,19 @@ function buildSeatHandshake({
   const usefulEvents = continuityEvents.filter((event) => !isSnapshotNoise(event));
   const recentProof = usefulEvents.find((event) => event.kind === "proof") ?? null;
   const decision = rollingSnapshot.promoted_decisions[0] ?? null;
-  const job = rollingSnapshot.active_jobs[0] ?? null;
+  const activeJob = rollingSnapshot.active_jobs[0] ?? null;
+  const queuedJob = activeJob
+    ? null
+    : rollingSnapshot.recent_continuity.find(
+        (item) => item.source_kind === "todo" && (item.tags ?? []).includes("open"),
+      ) ?? null;
+  const job = activeJob ?? queuedJob;
+  const jobIsQueued = !activeJob && !!queuedJob;
   const blocker = rollingSnapshot.active_blockers[0] ?? null;
   const activeDecision =
     decision?.summary ??
     (job
-      ? `Continue current priority job: ${job.summary}`
+      ? `${jobIsQueued ? "Claim current priority queued job" : "Continue current active job"}: ${job.summary}`
       : recentProof
         ? `Continue from latest proof: ${recentProof.summary}`
         : blocker
@@ -677,7 +933,7 @@ function buildSeatHandshake({
       320,
     ),
     active_decision: activeDecision,
-    active_job: job?.summary ?? null,
+    active_job: job ? `${jobIsQueued ? "Queued job needs claim: " : ""}${job.summary}` : null,
     recent_proof: recentProof?.summary ?? null,
     active_blocker: blocker?.summary ?? null,
     seat_freshness: seatFreshness,
@@ -733,15 +989,23 @@ function buildRollingSnapshot({
   nowMs,
   newestActivityAt,
   activeTodos,
+  activeJobTodos,
+  activeJobsCount,
+  queuedTodoCount,
   continuityEvents,
   blockers,
+  profileLastSeenByAgent,
 }: {
   generatedAt: string;
   nowMs: number;
   newestActivityAt: string | null;
   activeTodos: OrchestratorTodoRow[];
+  activeJobTodos: OrchestratorTodoRow[];
+  activeJobsCount: number;
+  queuedTodoCount: number;
   continuityEvents: OrchestratorContinuityEvent[];
   blockers: string[];
+  profileLastSeenByAgent: Map<string, string | null>;
 }): OrchestratorRollingSnapshot {
   const snapshotEvents = continuityEvents.filter((event) => !isSnapshotNoise(event));
   const promotedDecisions = snapshotEvents
@@ -749,10 +1013,10 @@ function buildRollingSnapshot({
     .slice(0, 5)
     .map((event) => eventToSnapshotItem(event, "decision"));
   const activeBlockers = snapshotEvents
-    .filter((event) => isActiveBlockerEvent(event, activeTodos, nowMs))
+    .filter((event) => isActiveBlockerEvent(event, activeTodos, nowMs, profileLastSeenByAgent))
     .slice(0, 5)
     .map((event) => eventToSnapshotItem(event, "blocker"));
-  const activeJobs = activeTodos.slice(0, 6).map((todo) => ({
+  const activeJobs = activeJobTodos.slice(0, 6).map((todo) => ({
     source_kind: "todo" as const,
     source_id: todo.id,
     deep_link: `/admin/jobs#todo-${todo.id}`,
@@ -777,7 +1041,11 @@ function buildRollingSnapshot({
     mode: "read-plan",
     summary: compactText(
       [
-        `${activeJobs.length} active job${activeJobs.length === 1 ? "" : "s"}`,
+        activeJobsCount > 0
+          ? `${activeJobsCount} fresh active job${activeJobsCount === 1 ? "" : "s"}`
+          : queuedTodoCount > 0
+            ? `0 fresh active jobs, ${queuedTodoCount} queued job${queuedTodoCount === 1 ? "" : "s"} needing claim`
+            : "0 fresh active jobs, 0 queued jobs",
         `${promotedDecisions.length} promoted decision${promotedDecisions.length === 1 ? "" : "s"}`,
         `${activeBlockers.length || blockers.length} blocker signal${(activeBlockers.length || blockers.length) === 1 ? "" : "s"}`,
       ].join(", "),
@@ -788,7 +1056,7 @@ function buildRollingSnapshot({
     persistence_plan: {
       recommended_key: "orchestrator:rolling-current-state:v1",
       retention: "Keep compact rolling snapshots and source pointers; refresh from live sources instead of storing duplicate raw rows.",
-      compaction: "Promote decisions, blockers, active jobs, and recent non-noise continuity only.",
+      compaction: "Promote decisions, blockers, queued or active job pointers, and recent non-noise continuity only.",
       raw_transcript_policy: "Do not persist raw transcripts, heartbeat noise, secret-shaped text, or bulk pasted content in the snapshot.",
     },
     promoted_decisions: promotedDecisions,
@@ -803,12 +1071,47 @@ function isActiveBlockerEvent(
   event: OrchestratorContinuityEvent,
   activeTodos: OrchestratorTodoRow[],
   nowMs: number,
+  profileLastSeenByAgent: Map<string, string | null>,
 ): boolean {
   if (event.kind !== "blocker") return false;
   if (isWakeIssueCommentStale(event, activeTodos)) return false;
   if (isSuppressedWakePassStatusDispatch(event)) return false;
+  if (isSupersededMissedCheckinDispatch(event, profileLastSeenByAgent, nowMs)) return false;
   if (!isHistoricalWakeOrFishbowlStale(event, activeTodos, nowMs)) return true;
   return false;
+}
+
+function isSupersededMissedCheckinDispatch(
+  event: OrchestratorContinuityEvent,
+  profileLastSeenByAgent: Map<string, string | null>,
+  nowMs: number,
+): boolean {
+  if (event.source_kind !== "dispatch") return false;
+
+  const tags = (event.tags ?? []).map((tag) => tag.toLowerCase());
+  const summary = event.summary.toLowerCase();
+  const text = `${summary} ${tags.join(" ")}`;
+  const isStale = tags.includes("stale") || /\bstale\b/.test(text);
+  if (!isStale || !text.includes("fishbowl-checkin:")) return false;
+
+  const agentId = extractMissedCheckinAgentId(event);
+  if (!agentId) return false;
+
+  const lastSeenMs = Date.parse(profileLastSeenByAgent.get(agentId) ?? "");
+  const eventMs = Date.parse(event.created_at ?? "");
+  if (!Number.isFinite(lastSeenMs) || !Number.isFinite(eventMs) || !Number.isFinite(nowMs)) {
+    return false;
+  }
+
+  return lastSeenMs > eventMs && lastSeenMs <= nowMs + 60_000;
+}
+
+function extractMissedCheckinAgentId(event: OrchestratorContinuityEvent): string | null {
+  const match = event.summary.match(/\bfishbowl-checkin:([^:\s{]+):/i);
+  if (match?.[1]) return match[1];
+  return event.actor_agent_id && !/^\p{Emoji_Presentation}$/u.test(event.actor_agent_id)
+    ? event.actor_agent_id
+    : null;
 }
 
 function isWakeIssueCommentStale(
@@ -1380,6 +1683,15 @@ function isFresh(iso: string | null | undefined, nowMs: number): boolean {
   return Number.isFinite(seenMs) && Number.isFinite(nowMs) && nowMs - seenMs <= ACTIVE_WINDOW_MS;
 }
 
+function buildProfileLastSeenByAgent(profiles: OrchestratorProfileRow[]): Map<string, string | null> {
+  const lastSeen = new Map<string, string | null>();
+  for (const profile of profiles) {
+    if (!profile.agent_id) continue;
+    lastSeen.set(profile.agent_id, profile.last_seen_at ?? profile.created_at ?? null);
+  }
+  return lastSeen;
+}
+
 // Owner-freshness gate for current_state_card.active_jobs. Mirrors the
 // Heartbeat step 5 definition: active_jobs = COUNT(todos WHERE
 // status='in_progress' AND owner_last_seen <= 24h). Keeps state_card and
@@ -1388,6 +1700,17 @@ function isOwnerFresh(iso: string | null | undefined, nowMs: number): boolean {
   if (!iso) return false;
   const seenMs = Date.parse(iso);
   return Number.isFinite(seenMs) && Number.isFinite(nowMs) && nowMs - seenMs <= OWNER_FRESH_WINDOW_MS;
+}
+
+function isFreshlyOwnedInProgressTodo(
+  todo: OrchestratorTodoRow,
+  ownerLastSeen: Map<string, string | null>,
+  nowMs: number,
+): boolean {
+  if (todo.status !== "in_progress") return false;
+  const owner = todo.assigned_to_agent_id;
+  if (!owner) return false;
+  return isOwnerFresh(ownerLastSeen.get(owner), nowMs);
 }
 
 export function computeActiveJobsCount(
@@ -1402,10 +1725,7 @@ export function computeActiveJobsCount(
     }
   }
   return todos.filter((todo) => {
-    if (todo.status !== "in_progress") return false;
-    const owner = todo.assigned_to_agent_id;
-    if (!owner) return false;
-    return isOwnerFresh(ownerLastSeen.get(owner), nowMs);
+    return isFreshlyOwnedInProgressTodo(todo, ownerLastSeen, nowMs);
   }).length;
 }
 

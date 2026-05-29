@@ -9,10 +9,10 @@ What's automated, what secrets are required, and what to do when something goes 
 | `ci.yml` | PRs + push to main | Lint + build the website, typecheck + build the MCP server |
 | `testpass-pr-check.yml` | PRs | Runs the shared TestPass action against the MCP endpoint under test and posts a receipt summary |
 | `testpass-scheduled-smoke.yml` | Every 5 minutes + manual dispatch | Runs scheduled TestPass smoke with explicit token precedence and fail-closed infra reporting |
-| `dogfood-report.yml` | Nightly schedule + manual dispatch | Rebuilds `public/dogfood/latest.json` with honest passing / blocked / pending proof status |
+| `dogfood-report.yml` | Nightly schedule + manual dispatch | Rebuilds `public/dogfood/latest.json`, `public/dogfood/xpass-package-sweep.json`, `public/dogfood/xpass-boundary-sweep.json`, and `public/dogfood/uxpass-site-sweep.json` with honest passing / blocked / pending proof status |
 | `event-wake-router.yml` | `issue_comment` + workflow fan-in | Routes ready-work wake events without waking healthy quiet cycles |
 | `auto-close-fishbowl-todo.yml` | PR merge hooks | Closes linked Fishbowl todos when a merged PR satisfies them |
-| `publish-mcp-package.yml` | Push to main touching `packages/mcp-server/**` | Bumps patch version, publishes `@unclick/mcp-server` to npm, tags the commit |
+| `publish-mcp-package.yml` | Push to main touching `packages/mcp-server/**` | Bumps patch version and publishes the MCP server GitHub Release tarball |
 | `apply-migrations.yml` | Push to main touching `supabase/migrations/**` | Runs `supabase db push` against production |
 | `dependabot.yml` | Weekly schedule | Opens PRs for npm + GH Actions updates, grouped sensibly |
 
@@ -24,11 +24,10 @@ Set these at **Settings → Secrets and variables → Actions → Repository sec
 
 | Secret | Used by | Where to get it |
 |---|---|---|
-| `TESTPASS_TOKEN` | `testpass-pr-check.yml`, `dogfood-report.yml` TestPass proof | Active TestPass bearer for `/api/testpass-run` |
+| `TESTPASS_TOKEN` | `testpass-pr-check.yml`, `dogfood-report.yml` TestPass proof | Active `uc_` UnClick API key for `/api/testpass-run`; PR smoke also forwards this key to the target MCP probe |
 | `TESTPASS_CRON_SECRET` | `testpass-scheduled-smoke.yml` first-choice token | Optional dedicated scheduled-smoke bearer for `/api/testpass-run` |
 | `UXPASS_TOKEN` | `dogfood-report.yml` UXPass proof | Active UXPass bearer for `/api/uxpass-run` |
 | `CRON_SECRET` | `testpass-scheduled-smoke.yml` fallback, `dogfood-report.yml` UXPass fallback | Shared cron bearer when a dedicated pass token is not set |
-| `NPM_TOKEN` | `publish-mcp-package.yml` | npm → Account → Access Tokens → Create Automation token (Bypass 2FA) |
 | `SUPABASE_ACCESS_TOKEN` | `apply-migrations.yml` | https://supabase.com/dashboard/account/tokens |
 | `SUPABASE_PROJECT_REF` | `apply-migrations.yml` | The subdomain from `xxxxx.supabase.co` |
 | `SUPABASE_DB_PASSWORD` | `apply-migrations.yml` | Supabase dashboard → Settings → Database |
@@ -60,12 +59,26 @@ Nightly dogfood splits the proof lanes on purpose:
 |---|---|---|
 | TestPass | `TESTPASS_TOKEN` | Exported into the script as `DOGFOOD_TESTPASS_TOKEN`; no cron fallback in the current workflow |
 | UXPass | `UXPASS_TOKEN`, then `CRON_SECRET` | Exported into the script as `DOGFOOD_UXPASS_TOKEN`; a blocked receipt is expected if neither secret exists |
+| XPass package sweep | none | Runs local package tests for TestPass, UXPass, SecurityPass, SlopPass, SEOPass, CopyPass, LegalPass, CommonSensePass, FlowPass, and GEOPass before `latest.json` is built |
+| XPass boundary sweep | none | Runs public-safe local boundary tests for RotatePass, WakePass, and EnterprisePass after the package sweep, then requires package-backed cross-pass reviewers before `latest.json` can mark those products passing |
 
 The public receipt at `public/dogfood/latest.json` should stay honest:
 
-- `passing` only when the live scheduled check actually completed.
+- `passing` only when the live scheduled check or scheduled XPass package sweep actually completed.
 - `blocked` when the workflow cannot run because a secret path is missing.
 - `pending` for proof families that are intentionally scaffolded but not live yet.
+
+`public/dogfood/xpass-package-sweep.json` is deliberately public-safe. It stores package names, commands, statuses,
+run IDs, and cross-pass reviewers, but not raw command output or secrets. SecurityPass can pass its local package proof
+while still staying `blocked` in `latest.json` until safe recurring security probes exist.
+
+`public/dogfood/xpass-boundary-sweep.json` is also public-safe. It proves boundary products without touching real
+credentials, live stale-work queues, or compliance certification claims. RotatePass, WakePass, and EnterprisePass only
+promote in `latest.json` when their local boundary tests and their package-backed XPass reviewers are fresh and green.
+
+Because `main` requires pull requests, the dogfood workflow pushes changed receipt files to
+`automation/dogfood-public-receipt` and opens or updates a public receipt PR when the token is allowed. If GitHub
+Actions cannot create PRs in this repository, the workflow leaves the branch ready for a human or agent-created PR.
 
 ## Runtime env vars
 
@@ -105,13 +118,19 @@ workflow:
 2. Runs `npm pack --dry-run` so `files:` errors surface before publish.
 3. Bumps patch (`0.3.0 → 0.3.1`), pushes the bump commit + tag with
    `[skip ci]` so it doesn't loop.
-4. `npm publish --access public`.
-5. Polls `npm view` to confirm propagation.
+4. Packs `unclick-mcp-server.tgz`.
+5. Creates a GitHub Release tagged `mcp-server-v<version>` and uploads the tarball.
+6. Confirms the release asset exists.
 
 To cut a minor or major release, bump manually in `packages/mcp-server/package.json`
-and push, the workflow will still publish (its `npm version patch` becomes a
-no-op if the working tree is dirty, but simpler: just skip the workflow by
-including `[skip ci]` in your message and running `npm publish` locally).
+and push. The workflow still produces the GitHub Release tarball. No npm
+registry account or `NPM_TOKEN` is required.
+
+Latest install URL:
+
+```bash
+npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz
+```
 
 ## When CI goes red
 
@@ -121,11 +140,13 @@ including `[skip ci]` in your message and running `npm publish` locally).
    - Do not patch around this by loosening CI from `npm ci` to `npm install`.
 2. **`testpass-pr-check.yml` or `testpass-scheduled-smoke.yml` 401/403** - token precedence resolved to an expired or wrong bearer.
    - Scheduled smoke checks `TESTPASS_CRON_SECRET`, then `CRON_SECRET`, then `TESTPASS_TOKEN`.
+   - PR smoke should use a `uc_` UnClick API key so `/api/testpass-run` can authenticate the run and forward the same tenant key into the MCP target probe.
    - Dogfood TestPass uses `TESTPASS_TOKEN`.
    - Dogfood UXPass uses `UXPASS_TOKEN` first, then `CRON_SECRET`.
    - If `public/dogfood/latest.json` flips to `blocked`, treat that as honest evidence and refresh the missing secret instead of forcing a green status.
-3. **`publish-mcp-package.yml` 401/403** - `NPM_TOKEN` expired or wrong type.
-   Generate a new **Automation** token (not Classic) and update the secret.
+3. **`publish-mcp-package.yml` release failure** - open the run logs and check
+   whether the version bump pushed, the tag already exists, or the release
+   asset upload failed. The workflow uses only `GITHUB_TOKEN`.
 4. **`apply-migrations.yml` link failure** - the access token may have been
    rotated. Regenerate at https://supabase.com/dashboard/account/tokens.
 5. **`apply-migrations.yml` migration error** - open the run logs. If it's a

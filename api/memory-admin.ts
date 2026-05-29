@@ -82,6 +82,8 @@
  *                      memory row scoped to the user's api_key_hash.
  *   - orchestrator_context_read: GET/POST read-only compact cross-seat state
  *                                from Memory, Boardroom, dispatches, signals.
+ *   - autopilot_zero_touch_metrics: GET/POST grouped human-touch metrics from
+ *                                  the AutoPilot control ledger.
  *
  * Conflict detection actions (competing memory tools):
  *   - conflict_detect: POST with Bearer + { tool, platform? } -- log detection,
@@ -106,6 +108,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { evaluateFishbowlCompletionPolicy } from "./lib/fishbowl-completion-policy.js";
 import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
+import { buildRecallFactSections, isRecallVisibleFact } from "./lib/memory-recall-sections.js";
 import {
   buildOrchestratorContext,
   mergeOrchestratorTodoRows,
@@ -140,12 +143,26 @@ import {
   planFishbowlIdeaCouncilHandoffs,
 } from "./lib/fishbowl-idea-council.js";
 import {
+  findExpressRoomDraftsByMirror,
+  type ExpressRoomDraftQuery,
+} from "./lib/expressroom-draft-search.js";
+import {
   buildFishbowlTodoHandoffDispatchRow,
   planFishbowlTodoHandoff,
 } from "./lib/fishbowl-todo-handoff.js";
 import {
+  buildFishbowlPrMergeProofComment,
+  buildFishbowlPrMergeVerifierAgentId,
+  hasFishbowlPrMergeProofComment,
+  parseFishbowlMergedPullRequest,
+} from "./lib/fishbowl-pr-merge-reconcile.js";
+import { classifyTodoActionability } from "./lib/fishbowl-todo-actionability.js";
+import { planOpenStaleTodoRelease } from "./lib/fishbowl-todo-open-stale-release.js";
+import { fishbowlTodoReleaseProtectedReason } from "./lib/fishbowl-todo-release-protection.js";
+import {
   planFishbowlPostLedgerEvent,
   planTodoLedgerEvents,
+  createAutopilotZeroTouchMetrics,
   recordAutopilotEvent,
   recordAutopilotEvents,
 } from "./lib/autopilot-control-ledger.js";
@@ -184,6 +201,16 @@ import {
   effectiveMemoryTier,
   isMemoryQuotaExemptEmail,
 } from "../packages/mcp-server/src/memory/quota-policy.js";
+import {
+  isSensitiveMemorySnapshotText,
+  writeMemoryTaxonomySnapshotsToLibrary,
+} from "../packages/mcp-server/src/memory/supabase.js";
+import type {
+  LibraryDocInput,
+  MemoryTaxonomySnapshotSource,
+  MemoryTaxonomySnapshotWriteOptions,
+  MemoryTaxonomySnapshotWriteResult,
+} from "../packages/mcp-server/src/memory/types.js";
 import { streamText, tool, stepCountIs, convertToModelMessages, type UIMessage, type ModelMessage } from "ai";
 import { z } from "zod";
 import * as crypto from "crypto";
@@ -342,31 +369,213 @@ function getClampedLimit(value: unknown, fallback = 50, max = 200): number {
   return Math.min(Math.floor(parsed), max);
 }
 
-const BACKGROUND_RECALL_CATEGORIES = new Set(["identity", "preference", "standing_rule"]);
-const BACKGROUND_RECALL_PATTERNS = [
-  /^chris('s)?\s/i,
-  /^user\s/i,
-  /should always/i,
-  /never use/i,
-  /operator timezone/i,
-  /standing rule/i,
-  /profile/i,
-  /preference/i,
-];
+function firstRequestValue(value: unknown): unknown {
+  return Array.isArray(value) ? value[0] : value;
+}
 
-function annotateRecallFact<T extends { category?: string | null; fact?: string | null; access_count?: number | null }>(fact: T) {
-  const category = String(fact.category ?? "").toLowerCase();
-  const text = String(fact.fact ?? "");
-  const accessCount = Number(fact.access_count ?? 0);
-  const looksStatic = BACKGROUND_RECALL_CATEGORIES.has(category) || BACKGROUND_RECALL_PATTERNS.some((pattern) => pattern.test(text));
-  const isBackgroundHeavy = accessCount >= 100 && looksStatic;
+function parseBooleanRequestValue(value: unknown, fallback: boolean): boolean {
+  const first = firstRequestValue(value);
+  if (typeof first === "boolean") return first;
+  if (typeof first === "number") return first !== 0;
+  if (typeof first !== "string") return fallback;
+  const normalized = first.trim().toLowerCase();
+  if (["1", "true", "yes", "y", "on"].includes(normalized)) return true;
+  if (["0", "false", "no", "n", "off"].includes(normalized)) return false;
+  return fallback;
+}
+
+export interface AdminLibraryRefreshParseResult {
+  commit: boolean;
+  options: MemoryTaxonomySnapshotWriteOptions;
+  error?: string;
+}
+
+export function parseAdminLibraryRefreshOptions(
+  body: Record<string, unknown> = {},
+  query: Record<string, unknown> = {},
+): AdminLibraryRefreshParseResult {
+  const rawCommit = body.commit ?? query.commit;
+  const rawDryRun = body.dry_run ?? query.dry_run;
+  const commit = parseBooleanRequestValue(rawCommit, false);
+  const dryRun = rawDryRun === undefined
+    ? !commit
+    : parseBooleanRequestValue(rawDryRun, true);
+
+  if (commit && dryRun) {
+    return {
+      commit,
+      options: { dry_run: dryRun },
+      error: "commit=true conflicts with dry_run=true",
+    };
+  }
+  if (!dryRun && !commit) {
+    return {
+      commit,
+      options: { dry_run: dryRun },
+      error: "commit=true is required when dry_run=false",
+    };
+  }
 
   return {
-    ...fact,
-    recall_signal: isBackgroundHeavy ? "background-heavy" : "top-of-mind",
-    recall_note: isBackgroundHeavy ? "Startup or heartbeat reads" : "Human-facing recall",
+    commit,
+    options: {
+      dry_run: dryRun,
+      max_sources: getClampedLimit(body.max_sources ?? query.max_sources, 80, 250),
+      max_snapshots: getClampedLimit(body.max_snapshots ?? query.max_snapshots, 12, 30),
+      max_sources_per_snapshot: getClampedLimit(
+        body.max_sources_per_snapshot ?? query.max_sources_per_snapshot,
+        8,
+        25,
+      ),
+    },
   };
 }
+
+type AdminLibraryRefreshPayload = MemoryTaxonomySnapshotWriteResult & {
+  planned_snapshot_count: number;
+  skipped_secret_count: number;
+};
+
+export function buildAdminLibraryRefreshPayload(
+  result: MemoryTaxonomySnapshotWriteResult,
+  skippedSecretCount: number,
+): AdminLibraryRefreshPayload {
+  return {
+    ...result,
+    planned_snapshot_count: result.snapshot_count,
+    skipped_secret_count: skippedSecretCount,
+  };
+}
+
+async function readAdminLibraryTaxonomySources(
+  supabase: SupabaseClient,
+  apiKeyHash: string,
+  maxSources: number,
+): Promise<MemoryTaxonomySnapshotSource[]> {
+  const factLimit = Math.max(1, Math.min(250, maxSources));
+  const sessionLimit = Math.max(1, Math.floor(factLimit / 2));
+  const candidateLimit = Math.min(250, Math.max(factLimit * 3, factLimit));
+  const asOf = new Date();
+  const asOfIso = asOf.toISOString();
+  const [factsRes, sessionsRes] = await Promise.all([
+    supabase
+      .from("mc_extracted_facts")
+      .select("id, fact, category, confidence, created_at, updated_at, valid_from, valid_to, invalidated_at, source_type, startup_fact_kind, status")
+      .eq("api_key_hash", apiKeyHash)
+      .eq("status", "active")
+      .is("invalidated_at", null)
+      .lte("valid_from", asOfIso)
+      .or(`valid_to.is.null,valid_to.gt.${asOfIso}`)
+      .order("confidence", { ascending: false })
+      .order("updated_at", { ascending: false })
+      .limit(candidateLimit),
+    supabase
+      .from("mc_session_summaries")
+      .select("id, summary, topics, created_at")
+      .eq("api_key_hash", apiKeyHash)
+      .order("created_at", { ascending: false })
+      .limit(sessionLimit),
+  ]);
+  if (factsRes.error) throw factsRes.error;
+  if (sessionsRes.error) throw sessionsRes.error;
+
+  type FactRow = {
+    id: string;
+    fact: string;
+    category?: string | null;
+    confidence?: number | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+    valid_to?: string | null;
+    valid_from?: string | null;
+    invalidated_at?: string | null;
+    source_type?: string | null;
+    startup_fact_kind?: string | null;
+    status?: string | null;
+  };
+  type SessionRow = {
+    id: string;
+    summary: string;
+    topics?: string[] | null;
+    created_at?: string | null;
+  };
+
+  const factSources: MemoryTaxonomySnapshotSource[] = ((factsRes.data ?? []) as FactRow[])
+    .filter((row) => isRecallVisibleFact(row, asOf))
+    .slice(0, factLimit)
+    .map((row) => ({
+      id: row.id,
+      kind: "fact",
+      text: row.fact,
+      category: row.category ?? undefined,
+      confidence: row.confidence ?? null,
+      created_at: row.created_at ?? null,
+      updated_at: row.updated_at ?? null,
+      valid_from: row.valid_from ?? null,
+    }));
+  const sessionSources: MemoryTaxonomySnapshotSource[] = ((sessionsRes.data ?? []) as SessionRow[]).map((row) => ({
+    id: row.id,
+    kind: "session",
+    text: row.summary,
+    category: Array.isArray(row.topics) && row.topics.length > 0 ? row.topics.join(" ") : "session",
+    confidence: 0.75,
+    created_at: row.created_at ?? null,
+    updated_at: row.created_at ?? null,
+    valid_from: row.created_at ?? null,
+  }));
+
+  return [...factSources, ...sessionSources];
+}
+
+async function upsertAdminLibraryDoc(
+  supabase: SupabaseClient,
+  apiKeyHash: string,
+  data: LibraryDocInput,
+): Promise<string> {
+  const { data: existing, error: existingError } = await supabase
+    .from("mc_knowledge_library")
+    .select("id, version")
+    .eq("api_key_hash", apiKeyHash)
+    .eq("slug", data.slug)
+    .maybeSingle();
+  if (existingError) throw existingError;
+
+  if (existing) {
+    const nextVersion = Number(existing.version ?? 1) + 1;
+    const { error } = await supabase
+      .from("mc_knowledge_library")
+      .update({
+        title: data.title,
+        category: data.category,
+        content: data.content,
+        tags: data.tags,
+        last_accessed: new Date().toISOString(),
+        decay_tier: "hot",
+      })
+      .eq("api_key_hash", apiKeyHash)
+      .eq("id", existing.id);
+    if (error) throw error;
+    return `Library doc updated: "${data.title}" (v${nextVersion})`;
+  }
+
+  const { error } = await supabase
+    .from("mc_knowledge_library")
+    .insert({
+      api_key_hash: apiKeyHash,
+      slug: data.slug,
+      title: data.title,
+      category: data.category,
+      content: data.content,
+      tags: data.tags,
+      version: 1,
+      decay_tier: "hot",
+      last_accessed: new Date().toISOString(),
+    });
+  if (error) throw error;
+  return `Library doc created: "${data.title}" (v1)`;
+}
+
+const TOP_OF_MIND_CANDIDATE_LIMIT = 110;
 
 function getRequestBaseUrl(req: VercelRequest): string | null {
   const explicit = process.env.EMBED_API_URL?.replace(/\/$/, "");
@@ -508,6 +717,188 @@ async function ensureStarterCrews(
     ignoreDuplicates: true,
   });
   if (error) throw error;
+}
+
+type CrewAgentRow = {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  hook?: string | null;
+  description?: string | null;
+  tool_tags?: string[] | null;
+  icon?: string | null;
+  colour_token?: string | null;
+  seed_prompt?: string | null;
+  memory_scope_shared?: string[] | null;
+  memory_scope_private?: string[] | null;
+  subspecialty_tags?: string[] | null;
+  disclaimer?: string | null;
+  is_system?: boolean | null;
+  source_agent_id?: string | null;
+  api_key_hash?: string | null;
+};
+
+type CrewRunContext = {
+  crew: {
+    id: string;
+    name?: string | null;
+    description?: string | null;
+    template?: string | null;
+    agent_ids: string[];
+  };
+  agents: CrewAgentRow[];
+  advisors: CrewAgentRow[];
+  chairman: CrewAgentRow;
+  relevantFacts: string[];
+  templateKey: string | null;
+  templateVersion: string | null;
+  resolvedAgentIds: string[];
+  configHash: string;
+};
+
+function orderedRowsByIds<T extends { id: string }>(
+  storedIds: readonly string[],
+  rows: readonly T[],
+): T[] {
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return storedIds.flatMap((id) => {
+    const row = byId.get(id);
+    return row ? [row] : [];
+  });
+}
+
+function computeCrewConfigHash(input: {
+  templateKey: string | null;
+  templateVersion: string | null;
+  resolvedAgentIds: readonly string[];
+}): string {
+  return sha256hex(JSON.stringify({
+    template_key: input.templateKey,
+    template_version: input.templateVersion,
+    resolved_agent_ids: input.resolvedAgentIds,
+  }));
+}
+
+const CREW_AGENT_SELECT = [
+  "id",
+  "slug",
+  "name",
+  "category",
+  "hook",
+  "description",
+  "tool_tags",
+  "icon",
+  "colour_token",
+  "seed_prompt",
+  "memory_scope_shared",
+  "memory_scope_private",
+  "subspecialty_tags",
+  "disclaimer",
+  "is_system",
+  "source_agent_id",
+  "api_key_hash",
+].join(",");
+
+async function loadCrewRunContext(
+  supabase: SupabaseClient,
+  apiKeyHash: string,
+  crewId: string,
+  taskPrompt: string,
+  templateVersion: string | null,
+): Promise<CrewRunContext | null> {
+  const { data: crewRow, error: crewErr } = await supabase
+    .from("mc_crews")
+    .select("id,name,description,template,agent_ids")
+    .eq("id", crewId)
+    .eq("api_key_hash", apiKeyHash)
+    .maybeSingle();
+  if (crewErr) throw crewErr;
+  if (!crewRow) return null;
+
+  const crew = crewRow as {
+    id: string;
+    name?: string | null;
+    description?: string | null;
+    template?: string | null;
+    agent_ids?: unknown;
+  };
+  const agentIds = Array.isArray(crew.agent_ids)
+    ? crew.agent_ids.filter((id): id is string => typeof id === "string" && id.length > 0)
+    : [];
+
+  let agents: CrewAgentRow[] = [];
+  if (agentIds.length > 0) {
+    const { data: rawAgents, error: agentErr } = await supabase
+      .from("mc_agents")
+      .select(CREW_AGENT_SELECT)
+      .in("id", agentIds)
+      .or(`is_system.eq.true,api_key_hash.eq.${apiKeyHash}`);
+    if (agentErr) throw agentErr;
+    agents = orderedRowsByIds(agentIds, (rawAgents ?? []) as CrewAgentRow[]);
+  }
+
+  let chairman = agents.find((agent) => agent.slug === "chairman") ?? null;
+  if (!chairman) {
+    const { data: chairRow, error: chairErr } = await supabase
+      .from("mc_agents")
+      .select(CREW_AGENT_SELECT)
+      .eq("slug", "chairman")
+      .eq("is_system", true)
+      .maybeSingle();
+    if (chairErr) throw chairErr;
+    chairman = (chairRow as CrewAgentRow | null) ?? null;
+    if (chairman) agents = [...agents, chairman];
+  }
+  if (!chairman) {
+    throw new Error("Crews requires the system Chairman agent before a Council run can start");
+  }
+
+  const advisors = agents.filter((agent) => agent.category !== "meta");
+  if (advisors.length === 0) {
+    throw new Error("Crews requires at least one non-meta advisor");
+  }
+
+  const { data: factRows, error: factsErr } = await supabase
+    .from("mc_extracted_facts")
+    .select("fact")
+    .eq("api_key_hash", apiKeyHash)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (factsErr) throw factsErr;
+
+  const words = taskPrompt.toLowerCase().split(/\W+/).filter((word) => word.length > 4);
+  const relevantFacts = ((factRows ?? []) as Array<{ fact?: string }>)
+    .filter((row) => typeof row.fact === "string" && words.some((word) => row.fact!.toLowerCase().includes(word)))
+    .slice(0, 5)
+    .map((row) => row.fact as string);
+
+  const resolvedAgentIds = agents.map((agent) => agent.id);
+  const templateKey = crew.template ?? null;
+  const configHash = computeCrewConfigHash({
+    templateKey,
+    templateVersion,
+    resolvedAgentIds,
+  });
+
+  return {
+    crew: {
+      id: crew.id,
+      name: crew.name ?? null,
+      description: crew.description ?? null,
+      template: crew.template ?? null,
+      agent_ids: agentIds,
+    },
+    agents,
+    advisors,
+    chairman,
+    relevantFacts,
+    templateKey,
+    templateVersion,
+    resolvedAgentIds,
+    configHash,
+  };
 }
 
 function deriveKey(apiKey: string, salt: Buffer): Buffer {
@@ -3809,6 +4200,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
         const method = (req.body?.method ?? req.query.method ?? "list") as string;
 
+        if (method === "refresh" || method === "refresh_taxonomy_snapshots") {
+          if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+          const parsed = parseAdminLibraryRefreshOptions(req.body ?? {}, req.query as Record<string, unknown>);
+          if (parsed.error) return res.status(400).json({ error: parsed.error });
+
+          const sources = await readAdminLibraryTaxonomySources(
+            supabase,
+            apiKeyHash,
+            parsed.options.max_sources ?? 80,
+          );
+          const skippedSecretCount = sources.filter((source) =>
+            isSensitiveMemorySnapshotText(String(source.text ?? ""))
+          ).length;
+          const result = await writeMemoryTaxonomySnapshotsToLibrary({
+            sources,
+            options: parsed.options,
+            upsertLibraryDoc: (doc) => upsertAdminLibraryDoc(supabase, apiKeyHash, doc),
+          });
+
+          return res.status(200).json({
+            success: true,
+            data: buildAdminLibraryRefreshPayload(result, skippedSecretCount),
+          });
+        }
+
         if (method === "view") {
           const docId = req.body?.id ?? req.query.id;
           if (!docId) return res.status(400).json({ error: "id required" });
@@ -3825,14 +4241,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (method === "history") {
           const slug = (req.body?.slug ?? req.query.slug) as string;
           if (!slug) return res.status(400).json({ error: "slug required" });
+          const { data: doc, error: docError } = await supabase
+            .from("mc_knowledge_library")
+            .select("id, slug")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("slug", slug)
+            .maybeSingle();
+          if (docError) throw docError;
+          if (!doc) return res.status(200).json({ data: [] });
+
           const { data, error } = await supabase
             .from("mc_knowledge_library_history")
             .select("*")
             .eq("api_key_hash", apiKeyHash)
-            .eq("slug", slug)
+            .eq("library_id", doc.id)
             .order("version", { ascending: false });
           if (error) throw error;
-          return res.status(200).json({ data: data ?? [] });
+          return res.status(200).json({
+            data: (data ?? []).map((row) => ({
+              ...row,
+              slug: doc.slug,
+              created_at: row.changed_at,
+            })),
+          });
         }
 
         // list
@@ -3883,20 +4314,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .limit(20);
 
         const topFactsLimit = getClampedLimit(req.query.top_facts_limit, 10, 110);
+        const activityAsOf = new Date().toISOString();
 
-        // Most accessed facts
-        const { data: topFacts } = await supabase
-          .from("mc_extracted_facts")
-          .select("id, fact, category, access_count, decay_tier")
-          .eq("api_key_hash", apiKeyHash)
-          .eq("status", "active")
-          .order("access_count", { ascending: false })
-          .limit(topFactsLimit);
-        const annotatedTopFacts = (topFacts ?? []).map(annotateRecallFact);
-        const topOfMindFacts = annotatedTopFacts
-          .filter((fact) => fact.recall_signal === "top-of-mind")
-          .slice(0, 10);
-        const backgroundHeavyCount = annotatedTopFacts.filter((fact) => fact.recall_signal === "background-heavy").length;
+        // Most Accessed stays the raw inspectable debug list. Top of Mind
+        // inspects a broader pool so static startup facts cannot crowd out
+        // useful current facts before the background-heavy filter runs.
+        const topOfMindCandidateLimit = Math.max(topFactsLimit, TOP_OF_MIND_CANDIDATE_LIMIT);
+        const rawCandidateLimit = Math.min(250, Math.max(topOfMindCandidateLimit * 3, topOfMindCandidateLimit));
+        const [topFactsResult, topOfMindCandidateResult] = await Promise.all([
+          supabase
+            .from("mc_extracted_facts")
+            .select("id, fact, category, access_count, decay_tier, status, source_type, startup_fact_kind, invalidated_at, valid_from, valid_to")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "active")
+            .is("invalidated_at", null)
+            .lte("valid_from", activityAsOf)
+            .or(`valid_to.is.null,valid_to.gt.${activityAsOf}`)
+            .order("access_count", { ascending: false })
+            .limit(topFactsLimit),
+          supabase
+            .from("mc_extracted_facts")
+            .select("id, fact, category, access_count, decay_tier, status, source_type, startup_fact_kind, invalidated_at, valid_from, valid_to")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "active")
+            .is("invalidated_at", null)
+            .lte("valid_from", activityAsOf)
+            .or(`valid_to.is.null,valid_to.gt.${activityAsOf}`)
+            .order("access_count", { ascending: false })
+            .limit(rawCandidateLimit),
+        ]);
+        if (topFactsResult.error) throw topFactsResult.error;
+        if (topOfMindCandidateResult.error) throw topOfMindCandidateResult.error;
+
+        const recallSections = buildRecallFactSections(topFactsResult.data ?? [], topOfMindCandidateResult.data ?? []);
 
         return res.status(200).json({
           facts_by_day: factsByDay,
@@ -3911,13 +4361,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                    (facts.count ?? 0) + (convos.count ?? 0) + (code.count ?? 0),
           },
           top_facts_limit: topFactsLimit,
-          recall_diagnostics: {
-            inspected_top_facts: annotatedTopFacts.length,
-            background_heavy_count: backgroundHeavyCount,
-          },
+          recall_diagnostics: recallSections.recall_diagnostics,
           recent_decay: recentDecay ?? [],
-          top_of_mind_facts: topOfMindFacts,
-          top_facts: annotatedTopFacts,
+          top_of_mind_facts: recallSections.top_of_mind_facts,
+          top_facts: recallSections.top_facts,
         });
       }
 
@@ -4696,22 +5143,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // their AI actually sees at the start of every session.
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
         if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const previewAsOf = new Date();
+        const previewAsOfIso = previewAsOf.toISOString();
 
         const [ctxRes, factsRes, sessionsRes] = await Promise.all([
           supabase
             .from("mc_business_context")
             .select("category, key, value, priority")
             .eq("api_key_hash", apiKeyHash)
-            .order("priority", { ascending: true }),
+            .order("priority", { ascending: false }),
           supabase
             .from("mc_extracted_facts")
-            .select("id, fact, category, confidence, decay_tier, created_at")
+            .select("id, fact, category, confidence, decay_tier, created_at, status, source_type, startup_fact_kind, invalidated_at, valid_from, valid_to")
             .eq("api_key_hash", apiKeyHash)
             .eq("status", "active")
             .eq("decay_tier", "hot")
+            .is("invalidated_at", null)
+            .lte("valid_from", previewAsOfIso)
+            .or(`valid_to.is.null,valid_to.gt.${previewAsOfIso}`)
             .order("confidence", { ascending: false })
             .order("created_at", { ascending: false })
-            .limit(10),
+            .limit(50),
           supabase
             .from("mc_session_summaries")
             .select("id, summary, topics, created_at, platform")
@@ -4722,7 +5174,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         return res.status(200).json({
           identity: ctxRes.data ?? [],
-          hot_facts: factsRes.data ?? [],
+          hot_facts: ((factsRes.data ?? []) as Array<Record<string, unknown>>)
+            .filter((row) => isRecallVisibleFact(row, previewAsOf))
+            .slice(0, 10),
           recent_sessions: sessionsRes.data ?? [],
         });
       }
@@ -6415,7 +6869,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         let q = supabase
           .from("mc_agents")
-          .select("id,slug,name,category,hook,description,tool_tags,icon,colour_token,is_system,source_agent_id,api_key_hash")
+          .select(CREW_AGENT_SELECT)
           .or(`is_system.eq.true,api_key_hash.eq.${apiKeyHash}`)
           .order("is_system", { ascending: false })
           .order("name");
@@ -6620,15 +7074,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
         if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
         await ensureStarterCrews(supabase, apiKeyHash);
-        const { crew_id, task_prompt, token_budget, task_id } = (req.body ?? {}) as {
+        const { crew_id, task_prompt, token_budget, task_id, execution_mode, template_version } = (req.body ?? {}) as {
           crew_id?: string;
           task_prompt?: string;
           token_budget?: number;
           task_id?: string;
+          execution_mode?: string;
+          template_version?: string | null;
         };
         if (!crew_id || !task_prompt?.trim()) {
           return res.status(400).json({ error: "crew_id and task_prompt required" });
         }
+        const trimmedPrompt = task_prompt.trim();
+        const isMcpSampling = execution_mode === "mcp_sampling";
+        const templateVersion =
+          typeof template_version === "string" && template_version.trim()
+            ? template_version.trim()
+            : null;
         const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         let normalizedTaskId: string | undefined;
         if (task_id !== undefined && task_id !== null && task_id !== "") {
@@ -6637,32 +7099,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
           normalizedTaskId = task_id.toLowerCase();
         }
-        const { data: crewRow, error: crewErr } = await supabase
-          .from("mc_crews")
-          .select("id")
-          .eq("id", crew_id)
-          .eq("api_key_hash", apiKeyHash)
-          .maybeSingle();
-        if (crewErr) throw crewErr;
-        if (!crewRow) {
+        const crewContext = await loadCrewRunContext(
+          supabase,
+          apiKeyHash,
+          crew_id,
+          trimmedPrompt,
+          templateVersion,
+        );
+        if (!crewContext) {
           return res.status(404).json({ error: "crew_id not found for tenant" });
         }
-        // User-facing runs now route LLM traffic through MCP sampling. The HTTP
-        // path cannot do bidirectional sampling, so we create the run row for
-        // bookkeeping and return a card asking the caller to re-run via MCP.
+        const now = new Date().toISOString();
         const insertPayload: Record<string, unknown> = {
           api_key_hash: apiKeyHash,
           crew_id,
-          task_prompt: task_prompt.trim(),
+          task_prompt: trimmedPrompt,
           token_budget: token_budget ?? 150000,
-          status: "failed",
-          result_artifact: {
+          status: isMcpSampling ? "running" : "failed",
+          template_key: crewContext.templateKey,
+          template_version: crewContext.templateVersion,
+          resolved_agent_ids: crewContext.resolvedAgentIds,
+          config_hash: crewContext.configHash,
+        };
+        if (isMcpSampling) {
+          insertPayload.started_at = now;
+          insertPayload.result_artifact = {
+            status: "prepared_for_mcp_sampling",
+            message: "Run prepared. The MCP client must persist opinions, reviews, and synthesis.",
+          };
+        } else {
+          insertPayload.result_artifact = {
             error: "SAMPLING_NOT_SUPPORTED",
             message:
               "Orchestrator does not support sampling. Use Claude Desktop or another sampling-capable client.",
-          },
-          completed_at: new Date().toISOString(),
-        };
+          };
+          insertPayload.completed_at = now;
+        }
         if (normalizedTaskId) insertPayload.task_id = normalizedTaskId;
         const { data: runRow, error: runErr } = await supabase
           .from("mc_crew_runs")
@@ -6677,12 +7149,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (runErr) {
           const errCode = (runErr as { code?: string }).code;
           if (normalizedTaskId && errCode === "23505") {
-            // STALE_RUN check intentionally omitted — relies on synchronous handler invariant.
+            // STALE_RUN check intentionally omitted - relies on synchronous handler invariant.
             // If a runner is ever made async, add a `last_heartbeat`-based stale-run gate here
             // before returning was_duplicate=true on a still-running task_id.
             const { data: existing } = await supabase
               .from("mc_crew_runs")
-              .select("id")
+              .select("id,status")
               .eq("api_key_hash", apiKeyHash)
               .eq("task_id", normalizedTaskId)
               .maybeSingle();
@@ -6704,30 +7176,186 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const card: ConversationalCard = buildCard({
           headline: wasDuplicate
             ? "Crews Council run already created"
-            : "Crews Council run needs MCP sampling",
+            : isMcpSampling
+              ? "Crews Council run prepared"
+              : "Crews Council run needs MCP sampling",
           summary: wasDuplicate
             ? "A run with this task_id already exists for your tenant. Returning the original run_id; no new row was created."
-            : "This HTTP endpoint cannot run a Council round because LLM traffic now flows through MCP sampling. Start the run from a sampling-capable client (e.g. Claude Desktop) using the start_crew_run MCP tool.",
+            : isMcpSampling
+              ? "The run row is ready. The MCP client should now ask each advisor, collect peer reviews, and persist the Chairman synthesis."
+              : "This HTTP endpoint cannot run a Council round because LLM traffic now flows through MCP sampling. Start the run from a sampling-capable client such as Claude Desktop using the start_crew_run MCP tool.",
           keyFacts: [
             `run_id: ${resolvedRunId}`,
             `crew_id: ${crew_id}`,
+            `agents: ${crewContext.agents.map((agent) => agent.name).join(", ")}`,
             ...(wasDuplicate
               ? ["was_duplicate: true"]
-              : ["status: failed (SAMPLING_NOT_SUPPORTED)"]),
+              : isMcpSampling
+                ? ["status: running", `config_hash: ${crewContext.configHash}`]
+                : ["status: failed (SAMPLING_NOT_SUPPORTED)"]),
           ],
           nextActions: wasDuplicate
             ? ["Call get_run with the run_id to inspect the original run"]
-            : [
-                "Install the UnClick MCP server in a sampling-capable client",
-                "Call the start_crew_run MCP tool with the same crew_id and task_prompt",
-              ],
+            : isMcpSampling
+              ? ["Run advisor opinions", "Run peer review", "Persist the Chairman synthesis with finish_crew_run"]
+              : [
+                  "Install the UnClick MCP server in a sampling-capable client",
+                  "Call the start_crew_run MCP tool with the same crew_id and task_prompt",
+                ],
           deepLink: `/admin/crews/runs/${resolvedRunId}`,
         });
-        return res.status(wasDuplicate ? 200 : 409).json({
-          error: wasDuplicate ? undefined : "SAMPLING_NOT_SUPPORTED",
+        return res.status(wasDuplicate ? 200 : isMcpSampling ? 202 : 409).json({
+          error: wasDuplicate || isMcpSampling ? undefined : "SAMPLING_NOT_SUPPORTED",
           run_id: resolvedRunId,
           was_duplicate: wasDuplicate,
           task_id: normalizedTaskId ?? null,
+          run: wasDuplicate ? null : runRow,
+          crew: crewContext.crew,
+          agents: crewContext.agents,
+          relevant_facts: crewContext.relevantFacts,
+          card,
+        });
+      }
+
+      case "finish_crew_run": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const { run_id, status, messages, tokens_used, result_artifact } = (req.body ?? {}) as {
+          run_id?: string;
+          status?: string;
+          messages?: unknown;
+          tokens_used?: number;
+          result_artifact?: Record<string, unknown> | null;
+        };
+        const runId = String(run_id ?? "").trim();
+        if (!runId) return res.status(400).json({ error: "run_id required" });
+        const finalStatus = status === "complete" || status === "failed" ? status : null;
+        if (!finalStatus) return res.status(400).json({ error: "status must be complete or failed" });
+
+        const { data: existingRun, error: existingErr } = await supabase
+          .from("mc_crew_runs")
+          .select("id,status,task_prompt,tokens_used")
+          .eq("id", runId)
+          .eq("api_key_hash", apiKeyHash)
+          .maybeSingle();
+        if (existingErr) throw existingErr;
+        if (!existingRun) return res.status(404).json({ error: "Run not found" });
+
+        const { count: existingMessageCount, error: countErr } = await supabase
+          .from("mc_run_messages")
+          .select("id", { count: "exact", head: true })
+          .eq("run_id", runId)
+          .eq("api_key_hash", apiKeyHash);
+        if (countErr) throw countErr;
+
+        if (
+          (existingRun as { status?: string }).status !== "running" &&
+          (existingRun as { status?: string }).status !== "pending" &&
+          (existingMessageCount ?? 0) > 0
+        ) {
+          const card: ConversationalCard = buildCard({
+            headline: `Crews run already ${String((existingRun as { status?: string }).status ?? "finished")}`,
+            summary: "The run is already terminal and has persisted messages, so finish_crew_run did not write duplicates.",
+            keyFacts: [
+              `run_id: ${runId}`,
+              `status: ${String((existingRun as { status?: string }).status ?? "unknown")}`,
+              `messages: ${existingMessageCount ?? 0}`,
+            ],
+            nextActions: ["Call get_run with the run_id to inspect the persisted Council output"],
+            deepLink: `/admin/crews/runs/${runId}`,
+          });
+          return res.status(200).json({ run_id: runId, was_duplicate: true, card });
+        }
+
+        const inputMessages = Array.isArray(messages) ? messages : [];
+        const rows = inputMessages.map((raw) => {
+          const item = isRecord(raw) ? raw : {};
+          const content = typeof item.content === "string" ? item.content : "";
+          return {
+            api_key_hash: apiKeyHash,
+            run_id: runId,
+            agent_id: typeof item.agent_id === "string" && item.agent_id ? item.agent_id : null,
+            role: typeof item.role === "string" && item.role ? item.role.slice(0, 64) : "advisor",
+            stage: typeof item.stage === "string" && item.stage ? item.stage.slice(0, 64) : "unknown",
+            content,
+            tokens_in: Number.isFinite(Number(item.tokens_in)) ? Math.max(0, Math.floor(Number(item.tokens_in))) : 0,
+            tokens_out: Number.isFinite(Number(item.tokens_out)) ? Math.max(0, Math.floor(Number(item.tokens_out))) : 0,
+          };
+        }).filter((row) => row.content.trim().length > 0);
+
+        const { error: deleteErr } = await supabase
+          .from("mc_run_messages")
+          .delete()
+          .eq("run_id", runId)
+          .eq("api_key_hash", apiKeyHash);
+        if (deleteErr) throw deleteErr;
+        if (rows.length > 0) {
+          const { error: insertErr } = await supabase.from("mc_run_messages").insert(rows);
+          if (insertErr) throw insertErr;
+        }
+
+        const stageCounts = rows.reduce<Record<string, number>>((acc, row) => {
+          acc[row.stage] = (acc[row.stage] ?? 0) + 1;
+          return acc;
+        }, {});
+        const computedTokens = rows.reduce((sum, row) => sum + row.tokens_in + row.tokens_out, 0);
+        const tokensUsed = Number.isFinite(Number(tokens_used))
+          ? Math.max(0, Math.floor(Number(tokens_used)))
+          : computedTokens;
+        const artifact = result_artifact ?? (
+          finalStatus === "complete"
+            ? {
+                status: "complete",
+                stage_counts: stageCounts,
+                message_count: rows.length,
+              }
+            : {
+                error: "CREW_RUN_FAILED",
+                stage_counts: stageCounts,
+                message_count: rows.length,
+              }
+        );
+
+        const { data: updatedRun, error: updateErr } = await supabase
+          .from("mc_crew_runs")
+          .update({
+            status: finalStatus,
+            completed_at: new Date().toISOString(),
+            tokens_used: tokensUsed,
+            result_artifact: artifact,
+          })
+          .eq("id", runId)
+          .eq("api_key_hash", apiKeyHash)
+          .select()
+          .single();
+        if (updateErr) throw updateErr;
+
+        const stageSummary = Object.entries(stageCounts)
+          .map(([stage, count]) => `${stage}: ${count}`)
+          .join(", ") || "none";
+        const card: ConversationalCard = buildCard({
+          headline: `Crews run ${finalStatus}`,
+          summary: finalStatus === "complete"
+            ? "The Council opinions, peer reviews, and Chairman synthesis were persisted."
+            : "The run was marked failed and any partial Council messages were persisted for inspection.",
+          keyFacts: [
+            `run_id: ${runId}`,
+            `status: ${finalStatus}`,
+            `tokens_used: ${tokensUsed}`,
+            `messages: ${rows.length}`,
+            `stages: ${stageSummary}`,
+          ],
+          nextActions: finalStatus === "complete"
+            ? ["Open the admin run page to review the Council verdict"]
+            : ["Inspect result_artifact for the failure reason", "Start a new run via MCP sampling"],
+          deepLink: `/admin/crews/runs/${runId}`,
+        });
+        return res.status(200).json({
+          run_id: runId,
+          run: updatedRun,
+          message_count: rows.length,
+          stage_counts: stageCounts,
           card,
         });
       }
@@ -6790,15 +7418,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (agentIds.length > 0) {
             const { data: agentRows } = await supabase
               .from("mc_agents")
-              .select("id,slug,name,category,colour_token")
-              .in("id", agentIds);
-            agents = agentRows ?? [];
+              .select(CREW_AGENT_SELECT)
+              .in("id", agentIds)
+              .or(`is_system.eq.true,api_key_hash.eq.${apiKeyHash}`);
+            agents = orderedRowsByIds(agentIds, (agentRows ?? []) as CrewAgentRow[]);
           }
           const hasChairman = (agents as { slug?: string }[]).some((a) => a.slug === "chairman");
           if (!hasChairman) {
             const { data: chairRow } = await supabase
               .from("mc_agents")
-              .select("id,slug,name,category,colour_token")
+              .select(CREW_AGENT_SELECT)
               .eq("slug", "chairman")
               .eq("is_system", true)
               .maybeSingle();
@@ -6911,7 +7540,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!user) return res.status(401).json({ error: "Authorization header required" });
         const { data, error } = await supabase
           .from("testpass_packs")
-          .select("id, slug, name, version, description, yaml")
+          .select("id, slug, name, version, description, yaml, owner_user_id")
           .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
           .order("created_at", { ascending: true });
         if (error) throw error;
@@ -6926,10 +7555,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             description: p.description,
             check_count: items.length,
             category,
-            is_system: !p.yaml || Object.keys(p.yaml as object).length === 0,
+            is_system: p.owner_user_id === null,
           };
         });
         return res.status(200).json({ packs });
+      }
+
+      case "get_testpass_pack": {
+        const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        if (!user) return res.status(401).json({ error: "Authorization header required" });
+        const packId = (req.query.pack_id ?? req.body?.pack_id ?? "") as string;
+        if (!packId) return res.status(400).json({ error: "pack_id required" });
+        const { data, error } = await supabase
+          .from("testpass_packs")
+          .select("id, slug, name, version, description, yaml, owner_user_id")
+          .eq("id", packId)
+          .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) return res.status(404).json({ error: "Pack not found" });
+        return res.status(200).json({
+          pack: {
+            id: data.id,
+            slug: data.slug,
+            name: data.name,
+            version: data.version,
+            description: data.description,
+            yaml: data.yaml,
+            is_system: data.owner_user_id === null,
+          },
+        });
       }
 
       case "get_testpass_run": {
@@ -6953,7 +7608,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (runRes.error) throw runRes.error;
         if (!runRes.data) return res.status(404).json({ error: "Run not found" });
         if (itemsRes.error) throw itemsRes.error;
-        return res.status(200).json({ run: runRes.data, items: itemsRes.data ?? [] });
+        const items = (itemsRes.data ?? []) as Array<Record<string, unknown>>;
+        const evidenceRefs = Array.from(new Set(
+          items
+            .map((item) => item.evidence_ref)
+            .filter((value): value is string => typeof value === "string" && value.length > 0),
+        ));
+        let evidenceById = new Map<string, { id: string; kind: string | null; payload: unknown }>();
+        if (evidenceRefs.length > 0) {
+          const { data: evidenceRows, error: evidenceError } = await supabase
+            .from("testpass_evidence")
+            .select("id, kind, payload")
+            .in("id", evidenceRefs);
+          if (evidenceError) throw evidenceError;
+          evidenceById = new Map(
+            (evidenceRows ?? []).map((row) => [
+              row.id as string,
+              { id: row.id as string, kind: row.kind as string | null, payload: row.payload },
+            ]),
+          );
+        }
+        const itemsWithEvidence = items.map((item) => {
+          const ref = typeof item.evidence_ref === "string" ? item.evidence_ref : "";
+          const evidence = ref ? evidenceById.get(ref) : undefined;
+          return evidence ? { ...item, evidence, evidence_json: evidence.payload } : item;
+        });
+        return res.status(200).json({ run: runRes.data, items: itemsWithEvidence });
       }
 
       case "start_testpass_run": {
@@ -6970,8 +7650,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const profile = (["smoke", "standard", "deep"].includes(depth ?? "") ? depth : "standard") as string;
         const { data: pack } = await supabase
           .from("testpass_packs")
-          .select("slug, name")
+          .select("slug, name, owner_user_id")
           .eq("id", pack_id)
+          .or(`owner_user_id.is.null,owner_user_id.eq.${user.id}`)
           .maybeSingle();
         if (!pack) return res.status(404).json({ error: "Pack not found" });
 
@@ -7436,6 +8117,345 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // ─── Fishbowl Phase 1: agent group chat ───────────────────────────────
 
+      case "expressroom_create_draft":
+      case "expressroom_list_drafts":
+      case "expressroom_update_draft":
+      case "expressroom_promote_to_todo": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) {
+          return res.status(401).json({
+            error: "Authorization header required",
+            how_to_fix: "Sign in to the admin UI or pass your UnClick API key as 'Authorization: Bearer <api_key>'.",
+          });
+        }
+
+        const body = (req.body ?? {}) as Record<string, unknown>;
+        const sessionUser = await resolveSessionUser(req, supabaseUrl, supabaseKey);
+        const actorAgentId = (() => {
+          const raw = String(body.agent_id ?? "").trim();
+          if (raw) return raw;
+          if (sessionUser?.id) return `human-${sessionUser.id}`;
+          return "";
+        })();
+        if (!actorAgentId) return res.status(400).json({ error: "agent_id required" });
+        if (actorAgentId.length > 128) return res.status(400).json({ error: "agent_id must be at most 128 characters" });
+        if (actorAgentId.startsWith("human-") && !sessionUser) {
+          return res.status(403).json({ error: "human-* agent_id is reserved for the admin UI" });
+        }
+
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const textField = (field: string, max: number, required = true): string | { error: string } => {
+          const value = typeof body[field] === "string" ? String(body[field]).trim() : "";
+          if (required && !value) return { error: `${field} required` };
+          if (value.length > max) return { error: `${field} must be at most ${max} characters` };
+          return value;
+        };
+        const optionalUuid = (field: string): string | null | { error: string } => {
+          const value = typeof body[field] === "string" ? String(body[field]).trim() : "";
+          if (!value) return null;
+          if (!UUID_RE.test(value)) return { error: `${field} must be a uuid` };
+          return value;
+        };
+        const draftId = (): string | { error: string } => {
+          const id = typeof body.draft_id === "string" ? body.draft_id.trim() : "";
+          if (!id) return { error: "draft_id required" };
+          if (!UUID_RE.test(id)) return { error: "draft_id must be a uuid" };
+          return id;
+        };
+        const validCodeStatus = (value: unknown): "not_supplied" | "partial" | "complete" | "unknown" | { error: string } => {
+          const status = String(value ?? "not_supplied");
+          if (!["not_supplied", "partial", "complete", "unknown"].includes(status)) {
+            return { error: "supplied_code_status must be not_supplied|partial|complete|unknown" };
+          }
+          return status as "not_supplied" | "partial" | "complete" | "unknown";
+        };
+        const validExpressStatus = (value: unknown): "draft" | "inserted" | "archived" | { error: string } => {
+          const status = String(value ?? "draft");
+          if (!["draft", "inserted", "archived"].includes(status)) {
+            return { error: "express_status must be draft|inserted|archived" };
+          }
+          return status as "draft" | "inserted" | "archived";
+        };
+        const codeStatusLabel = (status: string) => ({
+          not_supplied: "Not supplied",
+          partial: "Partial",
+          complete: "Complete",
+          unknown: "Unknown",
+        }[status] ?? "Unknown");
+        const draftStatusLabel = (status: string) => ({
+          draft: "Manual draft",
+          inserted: "Inserted into Jobs",
+          archived: "Archived",
+        }[status] ?? "Manual draft");
+        const buildOfficialDescription = (draft: Record<string, unknown>): string => {
+          const suppliedCode = String(draft.supplied_code ?? "").trim();
+          const codePreview = suppliedCode ? suppliedCode.slice(0, 1600) : "No code supplied yet.";
+          return [
+            "Manual DraftRoom import.",
+            "",
+            `DraftRoom draft: ${draft.id}`,
+            `Draft status: ${draftStatusLabel(String(draft.express_status ?? "draft"))}`,
+            `Supplied code status: ${codeStatusLabel(String(draft.supplied_code_status ?? "unknown"))}`,
+            "",
+            "Short description:",
+            String(draft.short_description ?? "").trim(),
+            "",
+            "Detailed brief MD:",
+            String(draft.brief_markdown ?? "").trim(),
+            "",
+            "Supplied code preview:",
+            codePreview,
+            "",
+            "Insertion rule:",
+            "This is a Manual draft, not finished work. Fit it into the repo, run checks, create PR or commit proof, then use the normal UnClick review and proof gates before any DONE claim.",
+            "",
+            "Alarm bells:",
+            "- Manual DraftRoom code is untrusted until fitted into the repo.",
+            "- Do not mark this official job done from the draft alone.",
+            "- Require normal tests, PR or commit proof, review, and product proof where relevant.",
+          ].join("\n");
+        };
+        const verifyTodoMirror = async (todoId: string): Promise<boolean> => {
+          const { data } = await supabase
+            .from("mc_fishbowl_todos")
+            .select("id")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", todoId)
+            .maybeSingle();
+          return Boolean(data);
+        };
+        const postTodoMirrorComment = async (todoId: string, draft: Record<string, unknown>): Promise<void> => {
+          const text = [
+            "Manual DraftRoom mirror attached.",
+            "",
+            `DraftRoom draft: ${draft.id}`,
+            `Code state: ${codeStatusLabel(String(draft.supplied_code_status ?? "unknown"))}`,
+            "",
+            "Alarm bell: this is Manual draft material only. Do not mark the official job done from this draft. Fit it into the repo, test it, review it, and record proof first.",
+          ].join("\n");
+          await supabase.from("mc_fishbowl_comments").insert({
+            api_key_hash: apiKeyHash,
+            target_kind: "todo",
+            target_id: todoId,
+            author_agent_id: actorAgentId,
+            text,
+          });
+        };
+
+        if (action === "expressroom_list_drafts") {
+          const statusRaw = typeof body.express_status === "string" ? body.express_status : "";
+          const officialTodoId = optionalUuid("official_todo_id");
+          if (officialTodoId && typeof officialTodoId === "object") return res.status(400).json(officialTodoId);
+          const officialJobMirror = textField("official_job_mirror", 500, false);
+          if (typeof officialJobMirror !== "string") return res.status(400).json(officialJobMirror);
+          const publicLimit = Math.max(1, Math.min(Number(body.limit ?? 100), 200));
+          const expressStatus = statusRaw ? validExpressStatus(statusRaw) : null;
+          if (expressStatus && typeof expressStatus !== "string") return res.status(400).json(expressStatus);
+          const createDraftQuery = (): ExpressRoomDraftQuery => (
+            supabase
+              .from("mc_expressroom_drafts")
+              .select("*")
+              .eq("api_key_hash", apiKeyHash) as unknown as ExpressRoomDraftQuery
+          );
+          if (officialJobMirror.trim()) {
+            const drafts = await findExpressRoomDraftsByMirror({
+              createQuery: createDraftQuery,
+              expressStatus,
+              officialJobMirror,
+              officialTodoId,
+              limit: publicLimit,
+            });
+            return res.status(200).json({ drafts });
+          }
+          let query = createDraftQuery()
+            .order("updated_at", { ascending: false });
+          if (expressStatus) query = query.eq("express_status", expressStatus);
+          if (officialTodoId) {
+            query = query.eq("official_todo_id", officialTodoId);
+          }
+          const { data, error } = await query.limit(publicLimit);
+          if (error) throw error;
+          return res.status(200).json({ drafts: data ?? [] });
+        }
+
+        if (action === "expressroom_create_draft") {
+          const jobName = textField("job_name_mirror", 200);
+          if (typeof jobName !== "string") return res.status(400).json(jobName);
+          const shortDescription = textField("short_description", 1000);
+          if (typeof shortDescription !== "string") return res.status(400).json(shortDescription);
+          const briefMarkdown = textField("brief_markdown", 30000);
+          if (typeof briefMarkdown !== "string") return res.status(400).json(briefMarkdown);
+          const suppliedCode = textField("supplied_code", 100000, false);
+          if (typeof suppliedCode !== "string") return res.status(400).json(suppliedCode);
+          const suppliedCodeStatus = validCodeStatus(body.supplied_code_status);
+          if (typeof suppliedCodeStatus !== "string") return res.status(400).json(suppliedCodeStatus);
+          const officialTodoId = optionalUuid("official_todo_id");
+          if (officialTodoId && typeof officialTodoId === "object") return res.status(400).json(officialTodoId);
+          if (officialTodoId && !(await verifyTodoMirror(officialTodoId))) {
+            return res.status(404).json({ error: "official_todo_id not found" });
+          }
+          const sourceChatSessionId = textField("source_chat_session_id", 200, false);
+          if (typeof sourceChatSessionId !== "string") return res.status(400).json(sourceChatSessionId);
+
+          const { data, error } = await supabase
+            .from("mc_expressroom_drafts")
+            .insert({
+              api_key_hash: apiKeyHash,
+              job_name_mirror: jobName,
+              official_todo_id: officialTodoId,
+              short_description: shortDescription,
+              brief_markdown: briefMarkdown,
+              supplied_code: suppliedCode,
+              supplied_code_status: suppliedCodeStatus,
+              express_status: "draft",
+              created_by_agent_id: actorAgentId,
+              source_chat_session_id: sourceChatSessionId || null,
+            })
+            .select("*")
+            .single();
+          if (error) throw error;
+
+          if (officialTodoId) {
+            await postTodoMirrorComment(officialTodoId, data);
+          }
+
+          void postFishbowlEvent(
+            supabase,
+            apiKeyHash,
+            actorAgentId,
+            "expressroom-created",
+            `Manual DraftRoom draft created: ${jobName}`,
+          );
+
+          return res.status(200).json({ draft: data });
+        }
+
+        if (action === "expressroom_update_draft") {
+          const id = draftId();
+          if (typeof id !== "string") return res.status(400).json(id);
+          const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+          const fieldSpecs: Array<[string, number, boolean]> = [
+            ["job_name_mirror", 200, true],
+            ["short_description", 1000, true],
+            ["brief_markdown", 30000, true],
+            ["supplied_code", 100000, false],
+            ["source_chat_session_id", 200, false],
+          ];
+          for (const [field, max, required] of fieldSpecs) {
+            if (body[field] !== undefined) {
+              const value = textField(field, max, required);
+              if (typeof value !== "string") return res.status(400).json(value);
+              update[field] = field === "source_chat_session_id" && !value ? null : value;
+            }
+          }
+          if (body.official_todo_id !== undefined) {
+            const officialTodoId = optionalUuid("official_todo_id");
+            if (officialTodoId && typeof officialTodoId === "object") return res.status(400).json(officialTodoId);
+            if (officialTodoId && !(await verifyTodoMirror(officialTodoId))) {
+              return res.status(404).json({ error: "official_todo_id not found" });
+            }
+            update.official_todo_id = officialTodoId;
+          }
+          if (body.supplied_code_status !== undefined) {
+            const status = validCodeStatus(body.supplied_code_status);
+            if (typeof status !== "string") return res.status(400).json(status);
+            update.supplied_code_status = status;
+          }
+          if (body.express_status !== undefined) {
+            const status = validExpressStatus(body.express_status);
+            if (typeof status !== "string") return res.status(400).json(status);
+            update.express_status = status;
+          }
+
+          const { data, error } = await supabase
+            .from("mc_expressroom_drafts")
+            .update(update)
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", id)
+            .select("*")
+            .single();
+          if (error) throw error;
+          return res.status(200).json({ draft: data });
+        }
+
+        if (action === "expressroom_promote_to_todo") {
+          const id = draftId();
+          if (typeof id !== "string") return res.status(400).json(id);
+          const priority = String(body.priority ?? "normal");
+          if (!["low", "normal", "high", "urgent"].includes(priority)) {
+            return res.status(400).json({ error: "priority must be low|normal|high|urgent" });
+          }
+          const { data: draft, error: draftErr } = await supabase
+            .from("mc_expressroom_drafts")
+            .select("*")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", id)
+            .maybeSingle();
+          if (draftErr) throw draftErr;
+          if (!draft) return res.status(404).json({ error: "DraftRoom draft not found" });
+          if (draft.official_todo_id && body.force_new !== true) {
+            await postTodoMirrorComment(String(draft.official_todo_id), draft);
+            return res.status(200).json({ draft, todo: null, reused: true });
+          }
+
+          const title = `Manual DraftRoom integration: ${String(draft.job_name_mirror).trim()}`.slice(0, 200);
+          const description = buildOfficialDescription(draft);
+          const { data: todo, error: todoErr } = await supabase
+            .from("mc_fishbowl_todos")
+            .insert({
+              api_key_hash: apiKeyHash,
+              title,
+              description,
+              priority,
+              status: "open",
+              created_by_agent_id: actorAgentId,
+              assigned_to_agent_id: null,
+            })
+            .select("*")
+            .single();
+          if (todoErr) throw todoErr;
+
+          await recordAutopilotEvents(
+            supabase,
+            apiKeyHash,
+            planTodoLedgerEvents({
+              todoId: todo.id,
+              actorAgentId,
+              before: null,
+              after: todo,
+            }),
+          );
+
+          const { data: updatedDraft, error: updateErr } = await supabase
+            .from("mc_expressroom_drafts")
+            .update({
+              official_todo_id: todo.id,
+              express_status: "inserted",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", id)
+            .select("*")
+            .single();
+          if (updateErr) throw updateErr;
+
+          await postTodoMirrorComment(todo.id, updatedDraft);
+
+          void postFishbowlEvent(
+            supabase,
+            apiKeyHash,
+            actorAgentId,
+            "expressroom-inserted",
+            `Manual DraftRoom draft inserted into official Jobs: ${title}`,
+          );
+
+          return res.status(200).json({ draft: updatedDraft, todo, reused: false });
+        }
+
+        return res.status(400).json({ error: `Unhandled DraftRoom action: ${action}` });
+      }
+
       case "fishbowl_admin_claim": {
         // Web-UI-only action. Auto-creates (or refreshes) a profile for the
         // signed-in human admin so they can post into the Fishbowl as
@@ -7700,6 +8720,54 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
         if (!result.ok) return res.status(400).json({ error: result.error });
         return res.status(200).json({ ok: true });
+      }
+
+      case "autopilot_zero_touch_metrics": {
+        if (req.method !== "GET" && req.method !== "POST") {
+          return res.status(405).json({ error: "GET or POST required" });
+        }
+        const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
+        if (!apiKeyHash) {
+          return res.status(401).json({
+            error: "Authorization header required",
+            how_to_fix: "Pass your UnClick API key as 'Authorization: Bearer <api_key>'.",
+          });
+        }
+        const body = (req.body ?? {}) as {
+          limit?: unknown;
+          ref_kind?: unknown;
+          ref_id?: unknown;
+        };
+        const limit = getClampedLimit(req.query.limit ?? body.limit, 250, 1000);
+        const refKindFilter = parseOptionalFilterToken(req.query.ref_kind ?? body.ref_kind, "ref_kind", 64);
+        if (refKindFilter.error) return res.status(400).json({ error: refKindFilter.error });
+        const refIdFilter = parseOptionalFilterToken(req.query.ref_id ?? body.ref_id, "ref_id", 160);
+        if (refIdFilter.error) return res.status(400).json({ error: refIdFilter.error });
+
+        let query = supabase
+          .from("mc_autopilot_events")
+          .select("event_type, actor_agent_id, ref_kind, ref_id, payload, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+
+        if (refKindFilter.value) query = query.eq("ref_kind", refKindFilter.value);
+        if (refIdFilter.value) query = query.eq("ref_id", refIdFilter.value);
+
+        const { data, error } = await query;
+        if (error) throw error;
+        const rows = (data ?? []) as Array<{
+          event_type: string;
+          actor_agent_id: string;
+          ref_kind: string;
+          ref_id: string;
+          payload: Record<string, unknown> | null;
+          created_at: string;
+        }>;
+        return res.status(200).json({
+          events_scanned: rows.length,
+          metrics: createAutopilotZeroTouchMetrics(rows),
+        });
       }
 
       case "fishbowl_post": {
@@ -8194,6 +9262,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .limit(smallerLimit);
         if (turnSearchFilter) chatMessagesQuery = chatMessagesQuery.or(turnSearchFilter);
 
+        const autopilotEventsQuery = supabase
+          .from("mc_autopilot_events")
+          .select("event_type, actor_agent_id, ref_kind, ref_id, payload, created_at")
+          .eq("api_key_hash", apiKeyHash)
+          .order("created_at", { ascending: false })
+          .limit(Math.min(smallerLimit, 500));
+        // The zero-touch scoreboard is a safety surface, not a search result.
+        // Keep recent ledger rows visible even when callers pass q=... for
+        // narrowing messages, todos, comments, or turns.
+
         const [
           profilesResult,
           messagesResult,
@@ -8207,6 +9285,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           businessContextResult,
           conversationTurnsResult,
           chatMessagesResult,
+          autopilotEventsResult,
         ] = await Promise.all([
           supabase
             .from("mc_fishbowl_profiles")
@@ -8240,6 +9319,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .limit(16),
           conversationTurnsQuery,
           chatMessagesQuery,
+          autopilotEventsQuery,
         ]);
 
         const errors = [
@@ -8255,6 +9335,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           businessContextResult.error,
           conversationTurnsResult.error,
           chatMessagesResult.error,
+          autopilotEventsResult.error,
         ].filter(Boolean);
         if (errors.length > 0) throw errors[0];
 
@@ -8305,13 +9386,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             library: (libraryResult.data ?? []) as OrchestratorLibraryRow[],
             businessContext: (businessContextResult.data ?? []) as OrchestratorBusinessContextRow[],
             conversationTurns,
+            autopilotEvents: (autopilotEventsResult.data ?? []) as Array<{
+              event_type: string;
+              actor_agent_id: string;
+              ref_kind: string;
+              ref_id: string;
+              payload: Record<string, unknown> | null;
+              created_at: string;
+            }>,
           }),
         });
       }
 
       // ─── Fishbowl Todos + Ideas v1 ────────────────────────────────────────
       //
-      // All thirteen handlers below share the same shape:
+      // These handlers share the same shape:
       //   1. Require POST.
       //   2. Resolve api_key_hash.
       //   3. Validate agent_id (<= 128 chars).
@@ -8328,7 +9417,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "fishbowl_create_todo":
       case "fishbowl_update_todo":
+      case "fishbowl_release_claim":
       case "fishbowl_complete_todo":
+      case "fishbowl_reconcile_merged_pr":
       case "fishbowl_drop_todo":
       case "fishbowl_delete_todo":
       case "fishbowl_list_todos":
@@ -8405,8 +9496,199 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           low: 0,
         };
         const DONE_TODO_ARCHIVE_WINDOW_MS = 12 * 60 * 60 * 1000;
+        const nonEmptyTodoField = (raw: unknown): string | null => {
+          if (typeof raw !== "string") return null;
+          const trimmed = raw.trim();
+          return trimmed ? trimmed : null;
+        };
 
         // ── Todos ──────────────────────────────────────────────────────────
+
+        if (action === "fishbowl_reconcile_merged_pr") {
+          const parsed = parseFishbowlMergedPullRequest(body);
+          if (parsed.error || !parsed.pr) {
+            return res.status(400).json({
+              error: parsed.error ?? "pull_request payload required",
+              how_to_fix:
+                "Send a GitHub pull_request payload, or { pr_number, pr_url, merged, merged_at, merge_commit_sha }.",
+            });
+          }
+
+          const pr = parsed.pr;
+          if (!pr.merged) {
+            return res.status(200).json({
+              closed: 0,
+              skipped: [{ reason: "pull_request_not_merged" }],
+              pr: { number: pr.number, url: pr.url },
+            });
+          }
+          if (!pr.mergeCommitSha) {
+            return res.status(409).json({
+              error: "merge_commit_sha required",
+              how_to_fix: "Pass the merged PR merge_commit_sha so the todo gets durable Git proof.",
+            });
+          }
+          if (pr.linkedTodoIds.length === 0) {
+            return res.status(200).json({
+              closed: 0,
+              skipped: [{ reason: "no_linked_todos" }],
+              pr: { number: pr.number, url: pr.url, merge_commit_sha: pr.mergeCommitSha },
+            });
+          }
+
+          const { data: todoRows, error: todoErr } = await supabase
+            .from("mc_fishbowl_todos")
+            .select("id,title,description,status,created_by_agent_id,assigned_to_agent_id,priority")
+            .eq("api_key_hash", apiKeyHash)
+            .in("id", pr.linkedTodoIds);
+          if (todoErr) throw todoErr;
+
+          const todosById = new Map((todoRows ?? []).map((todo) => [String(todo.id), todo]));
+          const foundTodoIds = (todoRows ?? []).map((todo) => String(todo.id));
+          let commentsByTodoId = new Map<string, Array<{ author_agent_id: string | null; text: string | null; created_at: string | null }>>();
+          if (foundTodoIds.length > 0) {
+            const { data: comments, error: commentErr } = await supabase
+              .from("mc_fishbowl_comments")
+              .select("target_id,author_agent_id,text,created_at")
+              .eq("api_key_hash", apiKeyHash)
+              .eq("target_kind", "todo")
+              .in("target_id", foundTodoIds)
+              .order("created_at", { ascending: true });
+            if (commentErr) throw commentErr;
+            commentsByTodoId = (comments ?? []).reduce<typeof commentsByTodoId>((acc, comment) => {
+              const targetId = String(comment.target_id);
+              acc.set(targetId, [
+                ...(acc.get(targetId) ?? []),
+                {
+                  author_agent_id: typeof comment.author_agent_id === "string" ? comment.author_agent_id : null,
+                  text: typeof comment.text === "string" ? comment.text : null,
+                  created_at: typeof comment.created_at === "string" ? comment.created_at : null,
+                },
+              ]);
+              return acc;
+            }, new Map());
+          }
+
+          const nowIso = new Date().toISOString();
+          const proofAgentId = buildFishbowlPrMergeVerifierAgentId(agentId);
+          const closed: Array<{ todo_id: string; title: string | null; merge_commit_sha: string }> = [];
+          const skipped: Array<{ todo_id?: string; reason: string; code?: string; how_to_fix?: string }> = [];
+
+          for (const todoId of pr.linkedTodoIds) {
+            const beforeTodo = todosById.get(todoId);
+            if (!beforeTodo) {
+              skipped.push({ todo_id: todoId, reason: "todo_not_found" });
+              continue;
+            }
+
+            const status = String(beforeTodo.status ?? "");
+            if (status === "done") {
+              skipped.push({ todo_id: todoId, reason: "already_done" });
+              continue;
+            }
+            if (status === "dropped") {
+              skipped.push({ todo_id: todoId, reason: "todo_dropped" });
+              continue;
+            }
+
+            const existingComments = commentsByTodoId.get(todoId) ?? [];
+            let gateComments = existingComments;
+            if (!hasFishbowlPrMergeProofComment(existingComments, pr)) {
+              const proofText = buildFishbowlPrMergeProofComment({ pr, todoId });
+              const { error: proofErr } = await supabase.from("mc_fishbowl_comments").insert({
+                api_key_hash: apiKeyHash,
+                target_kind: "todo",
+                target_id: todoId,
+                author_agent_id: proofAgentId,
+                text: proofText,
+              });
+              if (proofErr) throw proofErr;
+              gateComments = [
+                ...existingComments,
+                {
+                  author_agent_id: proofAgentId,
+                  text: proofText,
+                  created_at: nowIso,
+                },
+              ];
+              commentsByTodoId.set(todoId, gateComments);
+            }
+
+            const completionGate = evaluateFishbowlCompletionPolicy({
+              todo: {
+                id: String(beforeTodo.id),
+                title: typeof beforeTodo.title === "string" ? beforeTodo.title : null,
+                description: typeof beforeTodo.description === "string" ? beforeTodo.description : null,
+                created_by_agent_id:
+                  typeof beforeTodo.created_by_agent_id === "string" ? beforeTodo.created_by_agent_id : null,
+              },
+              comments: gateComments,
+              closerAgentId: agentId,
+            });
+            if (!completionGate.allowed) {
+              skipped.push({
+                todo_id: todoId,
+                reason: "completion_gate_failed",
+                code: completionGate.code,
+                how_to_fix: completionGate.how_to_fix,
+              });
+              continue;
+            }
+
+            const { data: updatedTodo, error: updateErr } = await supabase
+              .from("mc_fishbowl_todos")
+              .update({ status: "done", completed_at: nowIso, updated_at: nowIso })
+              .eq("api_key_hash", apiKeyHash)
+              .eq("id", todoId)
+              .in("status", ["open", "in_progress"])
+              .select("*")
+              .maybeSingle();
+            if (updateErr) throw updateErr;
+            if (!updatedTodo) {
+              skipped.push({ todo_id: todoId, reason: "todo_changed_before_close" });
+              continue;
+            }
+
+            await recordAutopilotEvents(
+              supabase,
+              apiKeyHash,
+              planTodoLedgerEvents({
+                todoId: updatedTodo.id,
+                actorAgentId: agentId,
+                before: beforeTodo,
+                after: updatedTodo,
+              }),
+            );
+
+            void postFishbowlEvent(
+              supabase,
+              apiKeyHash,
+              agentId,
+              "todo-completed",
+              `Todo done: ${updatedTodo.title}`,
+            );
+            closed.push({
+              todo_id: String(updatedTodo.id),
+              title: typeof updatedTodo.title === "string" ? updatedTodo.title : null,
+              merge_commit_sha: pr.mergeCommitSha,
+            });
+          }
+
+          return res.status(200).json({
+            closed: closed.length,
+            closed_todos: closed,
+            skipped,
+            linked_todo_ids: pr.linkedTodoIds,
+            pr: {
+              number: pr.number,
+              url: pr.url,
+              repository_full_name: pr.repositoryFullName,
+              merged_at: pr.mergedAt,
+              merge_commit_sha: pr.mergeCommitSha,
+            },
+            proof_agent_id: proofAgentId,
+          });
+        }
 
         if (action === "fishbowl_create_todo") {
           const titleRes = validateTitle(body.title);
@@ -8558,7 +9840,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (update.status === "done" && beforeTodo) {
             const { data: proofComments, error: proofErr } = await supabase
               .from("mc_fishbowl_comments")
-              .select("author_agent_id,text")
+              .select("author_agent_id,text,created_at")
               .eq("api_key_hash", apiKeyHash)
               .eq("target_kind", "todo")
               .eq("target_id", idRes);
@@ -8581,6 +9863,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 author_agent_id:
                   typeof comment.author_agent_id === "string" ? comment.author_agent_id : null,
                 text: typeof comment.text === "string" ? comment.text : null,
+                created_at: typeof comment.created_at === "string" ? comment.created_at : null,
               })),
               closerAgentId: agentId,
             });
@@ -8683,6 +9966,132 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(200).json({ todo: data, lane_check: laneCheck });
         }
 
+        if (action === "fishbowl_release_claim") {
+          const idRes = validateUuid(body.todo_id, "todo_id");
+          if (typeof idRes !== "string") return res.status(400).json(idRes);
+
+          const nowMs = Date.now();
+          const { data: beforeTodo, error: beforeErr } = await supabase
+            .from("mc_fishbowl_todos")
+            .select("id,title,description,status,priority,created_by_agent_id,assigned_to_agent_id,lease_token,lease_expires_at,reclaim_count,updated_at,created_at")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", idRes)
+            .maybeSingle();
+          if (beforeErr) throw beforeErr;
+          if (!beforeTodo) return res.status(404).json({ error: "todo not found" });
+
+          const previousAssignee = nonEmptyTodoField(beforeTodo.assigned_to_agent_id);
+          const { data: ownerProfile, error: ownerProfileErr } = previousAssignee
+            ? await supabase
+                .from("mc_fishbowl_profiles")
+                .select("agent_id,last_seen_at")
+                .eq("api_key_hash", apiKeyHash)
+                .eq("agent_id", previousAssignee)
+                .maybeSingle()
+            : { data: null, error: null };
+          if (ownerProfileErr) throw ownerProfileErr;
+
+          const ownerLastSeenAt =
+            typeof ownerProfile?.last_seen_at === "string" ? ownerProfile.last_seen_at : null;
+          const protectedReason = fishbowlTodoReleaseProtectedReason(beforeTodo);
+          const classification = classifyTodoActionability({
+            status: beforeTodo.status,
+            assignedToAgentId: beforeTodo.assigned_to_agent_id,
+            updatedAt: beforeTodo.updated_at,
+            createdAt: beforeTodo.created_at,
+            ownerLastSeenAt,
+            nowMs,
+          });
+          const releasePlan = planOpenStaleTodoRelease({
+            status: beforeTodo.status,
+            assignedToAgentId: beforeTodo.assigned_to_agent_id,
+            updatedAt: beforeTodo.updated_at,
+            createdAt: beforeTodo.created_at,
+            ownerLastSeenAt,
+            reclaimCount: beforeTodo.reclaim_count,
+            isProtected: protectedReason !== null,
+            nowMs,
+          });
+
+          if (!releasePlan) {
+            return res.status(409).json({
+              error: "claim is not releasable",
+              code: protectedReason ? "claim_protected" : "claim_not_stale",
+              how_to_fix:
+                "Use release_claim only for stale open Boardroom jobs. Fresh, protected, in-progress, unassigned, and capped jobs need an explicit update_todo decision instead.",
+              actionability_reason: classification,
+              protected_reason: protectedReason,
+              assigned_to_agent_id: previousAssignee,
+              owner_last_seen_at: ownerLastSeenAt,
+              reclaim_count: beforeTodo.reclaim_count ?? null,
+            });
+          }
+
+          let releaseQuery = supabase
+            .from("mc_fishbowl_todos")
+            .update(releasePlan.update)
+            .eq("api_key_hash", apiKeyHash)
+            .eq("id", idRes)
+            .eq("status", String(beforeTodo.status ?? ""));
+
+          releaseQuery = previousAssignee
+            ? releaseQuery.eq("assigned_to_agent_id", previousAssignee)
+            : releaseQuery.is("assigned_to_agent_id", null);
+
+          const leaseToken = nonEmptyTodoField(beforeTodo.lease_token);
+          releaseQuery = leaseToken
+            ? releaseQuery.eq("lease_token", leaseToken)
+            : releaseQuery.is("lease_token", null);
+
+          const leaseExpiresAt = nonEmptyTodoField(beforeTodo.lease_expires_at);
+          releaseQuery = leaseExpiresAt
+            ? releaseQuery.eq("lease_expires_at", leaseExpiresAt)
+            : releaseQuery.is("lease_expires_at", null);
+
+          releaseQuery = beforeTodo.reclaim_count == null
+            ? releaseQuery.is("reclaim_count", null)
+            : releaseQuery.eq("reclaim_count", beforeTodo.reclaim_count);
+
+          const { data, error } = await releaseQuery.select("*").maybeSingle();
+          if (error) throw error;
+          if (!data) {
+            return res.status(409).json({
+              error: "claim changed before release",
+              code: "claim_changed",
+              how_to_fix:
+                "Reload the Boardroom todo and re-run release_claim only if it is still stale and still has the same owner.",
+            });
+          }
+
+          await recordAutopilotEvents(
+            supabase,
+            apiKeyHash,
+            planTodoLedgerEvents({
+              todoId: data.id,
+              actorAgentId: agentId,
+              before: beforeTodo,
+              after: data,
+            }),
+          );
+
+          void postFishbowlEvent(
+            supabase,
+            apiKeyHash,
+            agentId,
+            "todo-claim-released",
+            `Released stale todo claim from ${previousAssignee}: ${String(data.title ?? data.id)}`,
+          );
+
+          return res.status(200).json({
+            todo: data,
+            released: true,
+            actionability_reason: releasePlan.classification,
+            released_assigned_to_agent_id: previousAssignee,
+            owner_last_seen_at: ownerLastSeenAt,
+            reclaim_count: releasePlan.update.reclaim_count,
+          });
+        }
+
         if (action === "fishbowl_complete_todo") {
           const idRes = validateUuid(body.todo_id, "todo_id");
           if (typeof idRes !== "string") return res.status(400).json(idRes);
@@ -8696,7 +10105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (beforeTodo) {
             const { data: proofComments, error: proofErr } = await supabase
               .from("mc_fishbowl_comments")
-              .select("author_agent_id,text")
+              .select("author_agent_id,text,created_at")
               .eq("api_key_hash", apiKeyHash)
               .eq("target_kind", "todo")
               .eq("target_id", idRes);
@@ -8714,6 +10123,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 author_agent_id:
                   typeof comment.author_agent_id === "string" ? comment.author_agent_id : null,
                 text: typeof comment.text === "string" ? comment.text : null,
+                created_at: typeof comment.created_at === "string" ? comment.created_at : null,
               })),
               closerAgentId: agentId,
             });
@@ -8894,10 +10304,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               ...inferFishbowlJobPipeline(t, textMap[id] ?? []),
             };
           });
+          const effectiveMetrics = decorated.reduce(
+            (acc, t) => {
+              const effective = String(t.effective_status ?? t.status);
+              if (effective === "needs_proof") acc.needs_proof += 1;
+              if (effective === "done") acc.done_clean += 1;
+              if (effective === "in_progress" || effective === "needs_proof") acc.active_effective += 1;
+              return acc;
+            },
+            { active_effective: 0, done_clean: 0, needs_proof: 0 },
+          );
           const compactTodos = decorated.map((t) => ({
             id: t.id,
             title: t.title,
             status: t.status,
+            effective_status: t.effective_status,
             priority: t.priority,
             assigned_to_agent_id: t.assigned_to_agent_id,
             created_by_agent_id: t.created_by_agent_id,
@@ -8909,16 +10330,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             pipeline_progress: t.pipeline_progress,
             pipeline_source: t.pipeline_source,
             pipeline_evidence: t.pipeline_evidence,
+            proof_state: t.proof_state,
+            proof_state_reason: t.proof_state_reason,
+            release_blocked: t.release_blocked,
+            release_block_reason: t.release_block_reason,
           }));
           return res.status(200).json({
             todos: includeDescription ? decorated : compactTodos,
             queue_metrics: {
               active: activeCount,
+              active_effective_returned: effectiveMetrics.active_effective,
               open_backlog: openBacklogCount,
               done: doneCount,
+              done_clean_returned: effectiveMetrics.done_clean,
+              needs_proof_returned: effectiveMetrics.needs_proof,
               dropped: droppedCount,
               legacy_queued_equals: "open_backlog",
-              note: "Open backlog is not the runnable queue; active is in_progress work.",
+              note: "Open backlog is not the runnable queue; active is in_progress work. active_effective_returned also includes returned done rows blocked by proof.",
             },
             response_bounds: {
               compact: !includeDescription,
@@ -8934,34 +10362,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const limit = Math.min(Math.max(Number(body.limit ?? 10) || 10, 1), 50);
           const includeDescription = body.include_description === true || body.includeDescription === true;
           const nowMs = Date.now();
-          const staleOpenAssignedMs = 6 * 60 * 60 * 1000;
-          const staleInProgressMs = 6 * 60 * 60 * 1000;
-          const liveOwnerMs = 60 * 60 * 1000;
-          const roleAssignees = new Set([
-            "master",
-            "coordinator",
-            "builder",
-            "reviewer",
-            "watcher",
-            "planner",
-            "tester",
-            "safety",
-            "messenger",
-            "pinballwake-job-runner",
-          ]);
-          const isRoleAssignee = (raw: unknown): boolean => {
-            const value = String(raw ?? "").trim().toLowerCase();
-            return (
-              roleAssignees.has(value) ||
-              value.startsWith("codex-forge-") ||
-              value.startsWith("claude-pc-tether-") ||
-              value.startsWith("claude-code-pc-tether-")
-            );
-          };
-          const ageMs = (raw: unknown): number => {
-            const ms = Date.parse(String(raw ?? ""));
-            return Number.isFinite(ms) ? Math.max(0, nowMs - ms) : Number.POSITIVE_INFINITY;
-          };
 
           const { data, error } = await supabase
             .from("mc_fishbowl_todos")
@@ -9002,19 +10402,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
 
           const actionabilityFor = (todo: Record<string, unknown>): string | null => {
-            const status = String(todo.status ?? "");
             const assignee = String(todo.assigned_to_agent_id ?? "").trim();
-            const todoAge = ageMs(todo.updated_at ?? todo.created_at);
             const ownerLastSeen = assignee ? lastSeenByAgent.get(assignee) ?? null : null;
-            const ownerAge = ownerLastSeen ? ageMs(ownerLastSeen) : Number.POSITIVE_INFINITY;
-            const ownerLooksDormant = !assignee || isRoleAssignee(assignee) || ownerAge > liveOwnerMs;
-
-            if (status === "open" && !assignee) return "unassigned_open";
-            if (status === "open" && isRoleAssignee(assignee)) return "role_assigned_open";
-            if (status === "open" && todoAge > staleOpenAssignedMs && ownerLooksDormant) return "stale_assigned_open";
-            if (status === "in_progress" && todoAge > staleInProgressMs && ownerLooksDormant) return "stale_in_progress";
-
-            return null;
+            const reason = classifyTodoActionability({
+              status: todo.status,
+              assignedToAgentId: todo.assigned_to_agent_id,
+              updatedAt: todo.updated_at,
+              createdAt: todo.created_at,
+              ownerLastSeenAt: ownerLastSeen,
+              nowMs,
+            });
+            return reason === "fresh_owner_do_not_touch" ? null : reason;
           };
 
           const actionable = (data ?? [])

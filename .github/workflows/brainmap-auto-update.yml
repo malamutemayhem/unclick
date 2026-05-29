@@ -31,12 +31,12 @@ jobs:
         run: npm run test:brainmap
       - name: Commit generated Brainmap
         run: |
-          if git diff --quiet -- docs/UnClick-brainmap.generated.md; then
+          if git diff --quiet -- docs/UnClick-brainmap.generated.md docs/UnClick-brainmap.generated.json; then
             echo "Brainmap already current."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/UnClick-brainmap.generated.md
+          git add docs/UnClick-brainmap.generated.md docs/UnClick-brainmap.generated.json
           git commit -m "docs: auto-update ecosystem brainmap"
           git push

@@ -1,12 +1,11 @@
 import type { ToolDescriptor } from "./index.js";
 import type { RunResult } from "../types.js";
+import { getRun } from "./store.js";
 
 export interface LegalpassStatusArgs {
   run_id: string;
 }
 
-// Stub: real implementation will look up an in-flight or completed run
-// and return its current status + verdict summary.
 export const legalpassStatusTool: ToolDescriptor<LegalpassStatusArgs, RunResult> = {
   name: "legalpass_status",
   description:
@@ -19,7 +18,12 @@ export const legalpassStatusTool: ToolDescriptor<LegalpassStatusArgs, RunResult>
       run_id: { type: "string", minLength: 1 },
     },
   },
-  handler: async (_args) => {
-    throw new Error("legalpass_status: not yet implemented (Chunk 1 stub)");
+  handler: async (args) => {
+    const result = getRun(args.run_id);
+    if (!result) {
+      throw new Error(`legalpass_status: run '${args.run_id}' was not found`);
+    }
+
+    return result;
   },
 };

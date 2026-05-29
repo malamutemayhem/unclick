@@ -53,6 +53,18 @@ export interface PackItemResult {
   on_fail_comment?: string;
 }
 
+export interface LegalPassAuditEntry {
+  event: string;
+  run_id: string;
+  item_id?: string;
+  actor_user_id?: string;
+  edited_at?: string;
+  before?: Pick<PackItemResult, "verdict" | "finding" | "on_fail_comment">;
+  after?: Pick<PackItemResult, "verdict" | "finding" | "on_fail_comment">;
+  reviewer_note?: string;
+  [key: string]: unknown;
+}
+
 export interface RunResult {
   run_id: string;
   pack_id: string;
@@ -62,6 +74,7 @@ export interface RunResult {
   summary: VerdictSummary;
   items: PackItemResult[];
   vetoed_items?: string[];
+  audit_log: LegalPassAuditEntry[];
   created_at: string;
   completed_at: string | null;
 }

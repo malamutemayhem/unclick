@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.0",
@@ -41,6 +41,12 @@
           "useESM": true
         }
       ]
-    }
+    },
+    "testMatch": [
+      "<rootDir>/src/**/*.test.ts"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/dist/"
+    ]
   }
 }

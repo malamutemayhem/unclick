@@ -1,11 +1,12 @@
 name: CI
 
 # Runs on every PR and on push to main. Catches broken builds, type errors,
-# and lint regressions before they ship. Non-blocking for unit tests since
-# the suite is still young, but they run so failures are visible.
+# and lint regressions before they ship. Unit tests are blocking because this
+# workflow is a required merge rail for unattended automation.
 
 on:
   pull_request:
+  merge_group:
   push:
     branches: [main]
 
@@ -35,11 +36,12 @@ jobs:
           npm run test:brainmap
       - name: Tests
         run: npm test --if-present
-        continue-on-error: true
+      - name: Continuous Improvement watch guard
+        run: npm run test:continuous-improvement-watch
       - name: RotatePass redaction guard
         run: npm run test:rotatepass-redaction
-      - name: EnterprisePass receipt guard
-        run: npm run test:enterprisepass-receipt
+      - name: CompliancePass receipt guard
+        run: npm run test:compliancepass-receipt
 
   mcp-server:
     name: MCP server package
@@ -59,4 +61,3 @@ jobs:
         run: npm run build
       - name: Tests
         run: npm test
-        continue-on-error: true

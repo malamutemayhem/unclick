@@ -19,7 +19,11 @@ import {
 } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import Comments from "./fishbowl/Comments";
-import { buildJobGithubSyncSignal, type JobGithubSyncSignal } from "./jobsGithubSync";
+import {
+  buildJobGithubSyncSignal,
+  type JobGithubSyncSignal,
+  type JobProofState,
+} from "./jobsGithubSync";
 import { highlightSearchText } from "./searchHighlight";
 
 interface FishbowlProfile {
@@ -39,6 +43,7 @@ interface JobTodo {
   title: string;
   description?: string | null;
   status: "open" | "in_progress" | "done" | "dropped";
+  effective_status?: DisplayStatus;
   priority: "low" | "normal" | "high" | "urgent";
   created_by_agent_id: string;
   assigned_to_agent_id: string | null;
@@ -51,11 +56,16 @@ interface JobTodo {
   pipeline_progress?: number;
   pipeline_source?: string;
   pipeline_evidence?: string[];
+  proof_state?: JobProofState;
+  proof_state_reason?: string;
+  release_blocked?: boolean;
+  release_block_reason?: string | null;
 }
 
 type JobSectionKey = "active" | "next" | "inline" | "done";
 type SortKey = "queue" | "title" | "status" | "priority" | "worker" | "live" | "progress" | "notes" | "updated";
 type SortDirection = "asc" | "desc";
+type DisplayStatus = JobTodo["status"] | "needs_proof";
 
 const SECTION_LABELS: Record<JobSectionKey, string> = {
   active: "Active",
@@ -73,11 +83,14 @@ type SectionPreferences = {
 const ORDER_STORAGE_KEY = "unclick_jobs_manual_order_v1";
 const SECTION_PREF_STORAGE_KEY = "unclick_jobs_section_preferences_v1";
 const SECTION_PAGE_SIZE = 10;
+export const JOBS_REFRESH_INTERVAL_MS = 60_000;
+const JOBS_REFRESH_LABEL = `${Math.round(JOBS_REFRESH_INTERVAL_MS / 1000)}s`;
 // Completed section uses bigger batches: 50 visible by default, +100 per "Show more"
 // click. Server-side completed history is fetched in matching batches via the
 // `before_created_at` cursor until exhausted.
 const COMPLETED_INITIAL_VISIBLE = 50;
 const COMPLETED_PAGE_SIZE = 100;
+const ADMIN_JOBS_READ_AGENT_ID = "admin-jobs-ui";
 const EMPTY_MANUAL_ORDER: ManualOrder = {
   active: [],
   next: [],
@@ -103,11 +116,12 @@ const PRIORITY_STYLE: Record<JobTodo["priority"], string> = {
   low: "border-white/[0.06] bg-white/[0.02] text-white/40",
 };
 
-const STATUS_STYLE: Record<JobTodo["status"], string> = {
+const STATUS_STYLE: Record<DisplayStatus, string> = {
   open: "border-white/10 bg-white/[0.035] text-white/60",
   in_progress: "border-[#E2B93B]/35 bg-[#E2B93B]/10 text-[#E2B93B]",
   done: "border-green-400/25 bg-green-400/10 text-green-300",
   dropped: "border-white/[0.06] bg-white/[0.02] text-white/35",
+  needs_proof: "border-red-300/35 bg-red-500/10 text-red-200",
 };
 
 const ACTION_BUTTONS = {
@@ -254,25 +268,65 @@ function ownerLabel(todo: JobTodo): string {
     .replace(/\bAi\b/g, "AI");
 }
 
-function statusLabel(status: JobTodo["status"]): string {
+function statusLabel(status: DisplayStatus): string {
+  if (status === "needs_proof") return "needs proof";
   if (status === "in_progress") return "active";
   return status.replace("_", " ");
 }
 
-function progressFor(todo: JobTodo): number {
-  if (Number.isFinite(todo.pipeline_progress)) return Number(todo.pipeline_progress);
-  if (todo.status === "done") return 100;
-  if (todo.status === "in_progress") return 55;
+function syncSignalFor(todo: JobTodo): JobGithubSyncSignal {
+  return buildJobGithubSyncSignal(todo);
+}
+
+function backendDisplayStatusFor(todo: JobTodo): DisplayStatus | null {
+  const status = todo.effective_status;
+  return status === "open" ||
+    status === "in_progress" ||
+    status === "done" ||
+    status === "dropped" ||
+    status === "needs_proof"
+    ? status
+    : null;
+}
+
+function needsProofAfterDone(todo: JobTodo): boolean {
+  const backendStatus = backendDisplayStatusFor(todo);
+  if (backendStatus) return backendStatus === "needs_proof";
+  return todo.status === "done" && syncSignalFor(todo).tone === "alert";
+}
+
+function displayStatusFor(todo: JobTodo): DisplayStatus {
+  return backendDisplayStatusFor(todo) ?? (needsProofAfterDone(todo) ? "needs_proof" : todo.status);
+}
+
+function hasReopenedCompletionState(todo: JobTodo): boolean {
+  const displayStatus = displayStatusFor(todo);
+  return todo.status === "done" && displayStatus !== "done" && displayStatus !== "needs_proof";
+}
+
+function defaultProgressForStatus(todo: JobTodo, displayStatus = displayStatusFor(todo)): number {
+  if (displayStatus === "done") return 100;
+  if (displayStatus === "in_progress") return 55;
   if (todo.assigned_to_agent_id) return 25;
   return 10;
 }
 
+function progressFor(todo: JobTodo): number {
+  if (hasReopenedCompletionState(todo)) return defaultProgressForStatus(todo);
+  if (Number.isFinite(todo.pipeline_progress)) return Number(todo.pipeline_progress);
+  return defaultProgressForStatus(todo);
+}
+
 function activeStageCount(todo: JobTodo): number {
+  if (hasReopenedCompletionState(todo)) {
+    return displayStatusFor(todo) === "in_progress" ? 2 : 1;
+  }
   if (Number.isFinite(todo.pipeline_stage_count)) {
     return Math.min(Math.max(Number(todo.pipeline_stage_count), 1), STAGES.length);
   }
-  if (todo.status === "done") return STAGES.length;
-  if (todo.status === "in_progress") return 2;
+  const displayStatus = displayStatusFor(todo);
+  if (displayStatus === "done") return STAGES.length;
+  if (displayStatus === "in_progress") return 2;
   if (todo.assigned_to_agent_id) return 1;
   return 1;
 }
@@ -281,6 +335,7 @@ function StageStrip({ todo }: { todo: JobTodo }) {
   const active = activeStageCount(todo);
   const progress = progressFor(todo);
   const source = todo.pipeline_source ?? "estimated from todo status";
+  const displayStatus = displayStatusFor(todo);
   return (
     <div className="flex min-w-[200px] items-center gap-1" aria-label="Assembly line progress" title={source}>
       <span className="w-7 shrink-0 text-right text-[10px] font-semibold text-white/55">
@@ -293,7 +348,9 @@ function StageStrip({ todo }: { todo: JobTodo }) {
             title={stage}
             className={`flex h-4 min-w-0 items-center justify-center text-[7px] font-semibold uppercase ${
               index < active
-                ? todo.status === "done"
+                ? displayStatus === "needs_proof"
+                  ? "bg-red-300/85 text-black/70"
+                  : displayStatus === "done"
                   ? "bg-green-400/85 text-black/70"
                   : "bg-[#61C1C4]/90 text-black/70"
                 : "bg-white/[0.08] text-white/30"
@@ -322,7 +379,7 @@ function SyncSignalPill({ signal }: { signal: JobGithubSyncSignal }) {
       {signal.href && <ExternalLink className="h-2.5 w-2.5 shrink-0 opacity-70" aria-hidden="true" />}
     </>
   );
-  const className = `inline-flex max-w-[78px] items-center gap-1 rounded-[4px] border px-1 py-px text-[9px] font-semibold ${SYNC_SIGNAL_STYLE[signal.tone]}`;
+  const className = `inline-flex max-w-[78px] shrink-0 items-center gap-1 whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold ${SYNC_SIGNAL_STYLE[signal.tone]}`;
 
   if (signal.href) {
     return (
@@ -427,7 +484,7 @@ function matchesJobSearch(todo: JobTodo, query: string): boolean {
 }
 
 function isStaleActive(todo: JobTodo): boolean {
-  if (todo.status !== "in_progress") return false;
+  if (displayStatusFor(todo) !== "in_progress") return false;
   const updated = new Date(todo.updated_at).getTime();
   if (!Number.isFinite(updated)) return false;
   return Date.now() - updated > 12 * 60 * 60 * 1000;
@@ -479,7 +536,7 @@ function compareSortedJobs(
       result = compareText(a.title, b.title);
       break;
     case "status":
-      result = compareText(statusLabel(a.status), statusLabel(b.status));
+      result = compareText(statusLabel(displayStatusFor(a)), statusLabel(displayStatusFor(b)));
       break;
     case "priority":
       result = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
@@ -536,12 +593,15 @@ function SortHeader({
 }
 
 function groupJobs(todos: JobTodo[]): Record<JobSectionKey, JobTodo[]> {
-  const active = todos.filter((todo) => todo.status === "in_progress").sort(sortJobs);
-  const open = todos.filter((todo) => todo.status === "open").sort(sortJobs);
+  const active = todos.filter((todo) => {
+    const displayStatus = displayStatusFor(todo);
+    return displayStatus === "in_progress" || displayStatus === "needs_proof";
+  }).sort(sortJobs);
+  const open = todos.filter((todo) => displayStatusFor(todo) === "open").sort(sortJobs);
   const next = open.filter((todo) => todo.priority === "urgent" || todo.priority === "high");
   const inline = open.filter((todo) => todo.priority === "normal" || todo.priority === "low");
   const done = todos
-    .filter((todo) => todo.status === "done")
+    .filter((todo) => displayStatusFor(todo) === "done")
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
   return { active, next, inline, done };
 }
@@ -627,7 +687,8 @@ function JobRow({
   const alert = attention ? attentionCopy(todo) : null;
   const emoji = ownerEmoji(todo);
   const displayCopy = displayCopyFor(todo);
-  const syncSignal = buildJobGithubSyncSignal(todo);
+  const syncSignal = syncSignalFor(todo);
+  const displayStatus = displayStatusFor(todo);
 
   return (
     <li
@@ -691,7 +752,9 @@ function JobRow({
           title={todo.title}
         >
           <p
-            className={`truncate text-[11px] font-semibold leading-4 hover:text-white ${todo.status === "done" ? "text-white/35 line-through" : "text-white/85"}`}
+            className={`truncate text-[11px] font-semibold leading-4 hover:text-white ${
+              displayStatus === "done" ? "text-white/35 line-through" : "text-white/85"
+            }`}
             data-testid="job-row-title"
           >
             {highlightSearchText(displayCopy.title, searchQuery)}
@@ -703,9 +766,9 @@ function JobRow({
 
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 md:contents">
           <span
-            className={`inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold uppercase ${STATUS_STYLE[todo.status]}`}
+            className={`inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold uppercase ${STATUS_STYLE[displayStatus]}`}
           >
-            {statusLabel(todo.status)}
+            {statusLabel(displayStatus)}
           </span>
           <span
             className={`inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-1 py-px text-[9px] font-semibold uppercase ${PRIORITY_STYLE[todo.priority]}`}
@@ -722,9 +785,11 @@ function JobRow({
           </span>
           <span className="flex items-center gap-1 text-[11px] text-white/45">
             <span
-              className={`h-1.5 w-1.5 rounded-full ${isStaleActive(todo) ? "bg-red-300" : todo.status === "done" ? "bg-green-300" : "bg-green-400"}`}
+              className={`h-1.5 w-1.5 rounded-full ${
+                displayStatus === "needs_proof" || isStaleActive(todo) ? "bg-red-300" : displayStatus === "done" ? "bg-green-300" : "bg-green-400"
+              }`}
             />
-            {todo.status === "done" ? "ship" : isStaleActive(todo) ? "stale" : "live"}
+            {displayStatus === "needs_proof" ? "proof" : displayStatus === "done" ? "ship" : isStaleActive(todo) ? "stale" : "live"}
           </span>
           <span className="text-[11px] font-medium text-white/55">
             <StageStrip todo={todo} />
@@ -1011,6 +1076,97 @@ function JobSection({
   );
 }
 
+function BoardPulse({
+  activeCount,
+  queueCount,
+  alertCount,
+  queueHydrationBlocked,
+  initialLoading,
+}: {
+  activeCount: number;
+  queueCount: number;
+  alertCount: number;
+  queueHydrationBlocked: boolean;
+  initialLoading: boolean;
+}) {
+  const tone = queueHydrationBlocked || alertCount > 0 ? "red" : queueCount > 0 ? "amber" : "green";
+  const toneStyles = {
+    red: {
+      frame: "border-red-300/25 bg-red-500/[0.08]",
+      dot: "bg-red-300 shadow-[0_0_18px_rgba(252,165,165,0.45)]",
+      text: "text-red-100",
+      muted: "text-red-100/60",
+      icon: "text-red-200",
+    },
+    amber: {
+      frame: "border-[#E2B93B]/25 bg-[#E2B93B]/[0.08]",
+      dot: "bg-[#E2B93B] shadow-[0_0_18px_rgba(226,185,59,0.35)]",
+      text: "text-[#F6D773]",
+      muted: "text-[#F6D773]/60",
+      icon: "text-[#E2B93B]",
+    },
+    green: {
+      frame: "border-green-300/25 bg-green-400/[0.08]",
+      dot: "bg-green-300 shadow-[0_0_18px_rgba(134,239,172,0.35)]",
+      text: "text-green-100",
+      muted: "text-green-100/60",
+      icon: "text-green-200",
+    },
+  }[tone];
+  const statusCopy = queueHydrationBlocked
+    ? "No active owner"
+    : alertCount > 0
+      ? "Needs proof"
+      : queueCount > 0
+        ? "Moving"
+        : "Clear";
+  const nextMove = queueHydrationBlocked
+    ? "Claim one waiting job"
+    : alertCount > 0
+      ? "Resolve the top alert"
+      : queueCount > 0
+        ? "Keep the active lane fresh"
+        : "Watch for new work";
+
+  return (
+    <section className={`overflow-hidden rounded-lg border ${toneStyles.frame}`}>
+      <div className="grid gap-0 md:grid-cols-[minmax(260px,1.1fr)_minmax(180px,0.7fr)_minmax(180px,0.7fr)]">
+        <div className="flex min-w-0 items-start gap-3 p-4">
+          <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ${toneStyles.dot}`} aria-hidden="true" />
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase text-white/35">Traffic light</p>
+            <p className={`mt-1 text-lg font-semibold ${toneStyles.text}`}>
+              {initialLoading ? "Loading board" : statusCopy}
+            </p>
+            <p className={`mt-1 max-w-xl text-sm leading-5 ${toneStyles.muted}`}>
+              {initialLoading
+                ? "Reading Boardroom before any proof claim."
+                : `${activeCount} active, ${queueCount} waiting, ${alertCount} alert${alertCount === 1 ? "" : "s"}.`}
+            </p>
+          </div>
+        </div>
+        <div className="border-t border-white/[0.06] p-4 md:border-l md:border-t-0">
+          <p className="text-[11px] font-semibold uppercase text-white/35">Next move</p>
+          <p className="mt-1 text-sm font-medium text-white/80">{nextMove}</p>
+          <p className="mt-1 text-xs leading-5 text-white/45">One owner, one proof path, no green chips without evidence.</p>
+        </div>
+        <div className="border-t border-white/[0.06] p-4 md:border-l md:border-t-0">
+          <p className="text-[11px] font-semibold uppercase text-white/35">Proof gate</p>
+          <p className="mt-1 flex items-center gap-2 text-sm font-medium text-white/80">
+            {alertCount > 0 ? (
+              <AlertTriangle className={`h-4 w-4 ${toneStyles.icon}`} aria-hidden="true" />
+            ) : (
+              <CheckCircle2 className={`h-4 w-4 ${toneStyles.icon}`} aria-hidden="true" />
+            )}
+            {alertCount > 0 ? "Review before DONE" : "Receipts required"}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-white/45">Screenshots for UI work, PRs and tests for code.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function AdminJobs() {
   const { session } = useSession();
   const token = session?.access_token;
@@ -1033,14 +1189,22 @@ export default function AdminJobs() {
   const [loading, setLoading] = useState(false);
   const [firstLoadDone, setFirstLoadDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileClaimError, setProfileClaimError] = useState<string | null>(null);
   const [pollSeq, setPollSeq] = useState(0);
   const [manualOrder, setManualOrder] = useState<ManualOrder>(() => loadManualOrder());
   const [sectionPrefs, setSectionPrefs] = useState<SectionPreferences>(() => loadSectionPreferences());
   const [searchQuery, setSearchQuery] = useState("");
+  const jobsReadAgentId = humanAgentId ?? (token ? ADMIN_JOBS_READ_AGENT_ID : null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setHumanAgentId(null);
+      setProfileClaimError(null);
+      return;
+    }
     let cancelled = false;
+    setHumanAgentId(null);
+    setProfileClaimError(null);
 
     async function claim() {
       try {
@@ -1051,12 +1215,19 @@ export default function AdminJobs() {
         });
         const body = (await res.json().catch(() => ({}))) as {
           profile?: FishbowlProfile;
+          error?: string;
         };
         if (!cancelled && res.ok && body.profile) {
           setHumanAgentId(body.profile.agent_id);
+          setProfileClaimError(null);
+        } else if (!cancelled) {
+          setProfileClaimError(body.error ?? "Admin profile claim failed");
         }
       } catch {
-        if (!cancelled) setHumanAgentId(null);
+        if (!cancelled) {
+          setHumanAgentId(null);
+          setProfileClaimError("Admin profile claim failed");
+        }
       }
     }
 
@@ -1067,7 +1238,7 @@ export default function AdminJobs() {
   }, [authHeader, token]);
 
   useEffect(() => {
-    if (!humanAgentId) return;
+    if (!jobsReadAgentId) return;
     let cancelled = false;
 
     async function loadJobs() {
@@ -1077,7 +1248,7 @@ export default function AdminJobs() {
           method: "POST",
           headers: { ...authHeader, "Content-Type": "application/json" },
           body: JSON.stringify({
-            agent_id: humanAgentId,
+            agent_id: jobsReadAgentId,
             include_description: true,
             limit: 200,
           }),
@@ -1105,12 +1276,12 @@ export default function AdminJobs() {
     const id = setInterval(() => {
       void loadJobs();
       setPollSeq((s) => s + 1);
-    }, 10_000);
+    }, JOBS_REFRESH_INTERVAL_MS);
     return () => {
       cancelled = true;
       clearInterval(id);
     };
-  }, [authHeader, humanAgentId]);
+  }, [authHeader, jobsReadAgentId]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1202,7 +1373,7 @@ export default function AdminJobs() {
   // the visible count on the client via SectionPreferences. When server
   // cursor support lands, this becomes a paged loop.
   const fetchCompletedBatch = useCallback(async () => {
-    if (!humanAgentId) return;
+    if (!jobsReadAgentId) return;
     setCompletedHistoryLoading(true);
     try {
       const requestLimit = 200;
@@ -1210,7 +1381,7 @@ export default function AdminJobs() {
         method: "POST",
         headers: { ...authHeader, "Content-Type": "application/json" },
         body: JSON.stringify({
-          agent_id: humanAgentId,
+          agent_id: jobsReadAgentId,
           include_description: true,
           status: "done",
           limit: requestLimit,
@@ -1231,19 +1402,19 @@ export default function AdminJobs() {
     } finally {
       setCompletedHistoryLoading(false);
     }
-  }, [authHeader, humanAgentId]);
+  }, [authHeader, jobsReadAgentId]);
 
   // Auto-load the first batch as soon as the agent id is known. Replaces the
   // old "Show completed history" first-click gate; users now see the last
   // 50 completed without any extra action.
   useEffect(() => {
-    if (!humanAgentId) return;
+    if (!jobsReadAgentId) return;
     if (completedHistoryLoaded || completedHistoryLoading) return;
     void fetchCompletedBatch();
-  }, [humanAgentId, completedHistoryLoaded, completedHistoryLoading, fetchCompletedBatch]);
+  }, [jobsReadAgentId, completedHistoryLoaded, completedHistoryLoading, fetchCompletedBatch]);
 
   const loadCompletedHistory = async () => {
-    if (!humanAgentId || completedHistoryLoading) return;
+    if (!jobsReadAgentId || completedHistoryLoading) return;
     if (!completedHistoryLoaded) {
       // Edge case: button clicked before the auto-load finished.
       await fetchCompletedBatch();
@@ -1288,6 +1459,14 @@ export default function AdminJobs() {
         </div>
       </header>
 
+      <BoardPulse
+        activeCount={activeCount}
+        queueCount={queueCount}
+        alertCount={alertCount}
+        queueHydrationBlocked={queueHydrationBlocked}
+        initialLoading={initialLoading}
+      />
+
       {queueHydrationBlocked && (
         <div className="flex items-start gap-3 rounded-lg border border-red-300/25 bg-red-500/10 px-4 py-3 text-sm text-red-100">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-200" aria-hidden="true" />
@@ -1303,6 +1482,12 @@ export default function AdminJobs() {
       {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {error}
+        </div>
+      )}
+
+      {profileClaimError && firstLoadDone && (
+        <div className="rounded-lg border border-[#E2B93B]/25 bg-[#E2B93B]/10 px-4 py-3 text-sm text-[#F6D773]">
+          Jobs are visible, but posting comments is waiting for the admin profile.
         </div>
       )}
 
@@ -1340,7 +1525,7 @@ export default function AdminJobs() {
         </span>
         <span className="inline-flex items-center gap-1.5">
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          Refreshes every 10s
+          Refreshes every {JOBS_REFRESH_LABEL}
         </span>
       </div>
 

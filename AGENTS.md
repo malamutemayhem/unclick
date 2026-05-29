@@ -21,6 +21,30 @@ Use this as the short start ritual before any edit, branch, or PR action:
 3. Confirm the files you want are not already owned by another active PR or worker.
 4. Claim one small chip, post status in Fishbowl, and default to a draft PR first when risk is unclear.
 
+## Local-minimal / cloud-first mode
+
+Local worker seats must not create approval fatigue. Default to narrow local proof, then push and let GitHub Actions, Vercel, and QueuePush run the broad checks.
+
+Allowed local work:
+
+- Read repo files.
+- Make narrow edits inside the current worktree.
+- Run focused tests for touched files or packages.
+- Check `git status`, `git diff`, `git log`, and PR/check status.
+- Commit, push, and open or update one scoped branch.
+
+Do not run broad local sweeps by default:
+
+- No full repo dogfood loops.
+- No repeated full build/test loops.
+- No browser/Vite cache dogtests unless the user asked for UI proof.
+- No AppData, Temp, global filesystem, or outside-repo temp work unless explicitly required.
+- No parallel local builder work unless Chris assigned it.
+
+If temporary files are needed, put them under `.codex-tmp/<job-name>` in the current worktree and clean them before finishing.
+
+If a local command needs approval, ask once only. Include the exact reason, why cloud checks cannot do it, exact files or folders touched, and expected duration. If approval is not granted, report `BLOCKER: APPROVAL_NEEDED` with the progress so far and the exact cloud alternative.
+
 ## Monorepo structure
 
 ```

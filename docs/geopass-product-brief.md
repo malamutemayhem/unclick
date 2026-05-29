@@ -29,3 +29,29 @@ GEOPass owns the shared scanner contract for the Pass family. SEOPass should bec
 - No paid API calls.
 - No credentials, auth, billing, domains, migrations, or production database writes.
 - Source-linked public evidence only.
+
+## 2026 research refresh: Google AI features
+
+Google Search Central's current AI features guidance says the same foundational SEO best practices still apply to AI Overviews and AI Mode. There are no extra technical requirements or special "GEO hacks" for inclusion. A page needs to be indexed, eligible to appear in Google Search with a snippet, technically accessible, policy-compliant, and useful to people.
+
+GEOPass should therefore score readiness, not promise placement. The product should reward:
+
+- crawlable public pages with index/snippet eligibility
+- helpful, reliable, people-first content
+- visible source evidence, author/entity clarity, and clean internal linking
+- structured data that truthfully represents visible page content
+- topical coverage that survives query fan-out across related subtopics
+
+GEOPass should penalize:
+
+- hidden, misleading, or irrelevant schema
+- scaled AI pages with little added value
+- scraped or stitched content with no original usefulness
+- "guaranteed AI citation", "ranked in AI Mode", or similar unverifiable claims
+
+Reference sources:
+
+- https://developers.google.com/search/docs/appearance/ai-features
+- https://developers.google.com/search/docs/fundamentals/creating-helpful-content
+- https://developers.google.com/search/docs/appearance/structured-data/sd-policies
+- https://developers.google.com/search/docs/essentials/spam-policies

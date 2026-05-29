@@ -51,25 +51,22 @@ describe("AdminTools", () => {
     vi.restoreAllMocks();
   });
 
-  it("shows the curated Skills Library preview with provenance and risk state", async () => {
+  it("shows the Skills Library starter pack preview with native boundaries", async () => {
     await renderAdminTools();
 
     expect(screen.getByRole("heading", { name: "Skills Library" })).toBeInTheDocument();
-    expect(screen.getByText(/OpenClaw and similar ecosystems are discovery inputs/i)).toBeInTheDocument();
-    expect(screen.getByText("OpenClaw compatibility input")).toBeInTheDocument();
-    expect(screen.getByText("Quarantined")).toBeInTheDocument();
-    expect(screen.getByText("License review required")).toBeInTheDocument();
-    expect(screen.getByText("upstream preview")).toBeInTheDocument();
-    expect(screen.getByText(/No credential access/i)).toBeInTheDocument();
+    expect(screen.getByText(/A curated starter pack of 20/i)).toBeInTheDocument();
+    expect(screen.getByText("7 hardwired")).toBeInTheDocument();
+    expect(screen.getByText("7 hybrid")).toBeInTheDocument();
+    expect(screen.getByText("6 optional")).toBeInTheDocument();
+    expect(screen.getByText("Coordinator router")).toBeInTheDocument();
+    expect(screen.getAllByText(/Hardwire into UnClick/i).length).toBeGreaterThan(0);
   });
 
-  it("keeps preview and fork affordances disabled until install execution exists", async () => {
+  it("links to the full Skills Library instead of offering live install execution", async () => {
     await renderAdminTools();
 
-    expect(screen.getByRole("button", { name: "Preview PR Monitor and Reviewer" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Install PR Monitor and Reviewer" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Fork Research Pack" })).toBeDisabled();
-    expect(screen.getByText("Preview only, no live install or execution")).toBeInTheDocument();
-    expect(screen.getByText("Forkable draft, reversible copy path")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Skills Library" })).toHaveAttribute("href", "/admin/skills");
+    expect(screen.queryByRole("button", { name: /Install/i })).not.toBeInTheDocument();
   });
 });

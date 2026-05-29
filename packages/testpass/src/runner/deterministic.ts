@@ -45,7 +45,7 @@ async function send(
   const start      = Date.now();
   const controller = new AbortController();
   const tid        = setTimeout(() => controller.abort(), timeoutMs);
-  const headers = buildMcpHeaders();
+  const headers = buildMcpHeaders(url);
   try {
     const res = await fetch(url, {
       method:  "POST",
@@ -87,6 +87,73 @@ async function runGitStatusPorcelain(
 // ─── Check handlers ────────────────────────────────────────────────
 
 type CheckHandler = (targetUrl: string, config: RunManagerConfig) => Promise<CheckOutcome>;
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function responseResult(responseBody: unknown): Record<string, unknown> | null {
+  return asRecord(asRecord(responseBody)?.result);
+}
+
+function toolListFromResult(result: Record<string, unknown> | null): Array<Record<string, unknown>> | null {
+  const tools = result?.tools;
+  if (!Array.isArray(tools)) return null;
+  const records = tools.map(asRecord);
+  return records.every(Boolean) ? records as Array<Record<string, unknown>> : null;
+}
+
+async function initializeThenListTools(
+  url: string,
+  baseId: number,
+  timeoutMs = 10_000,
+): Promise<{ traces: HttpTrace[]; tools: Array<Record<string, unknown>> | null; failure?: string }> {
+  const initReq = rpcReq("initialize", {
+    protocolVersion: "2024-11-05",
+    clientInfo: { name: "testpass-runner", version: "0.1.0" },
+    capabilities: {},
+  }, baseId);
+  const notifReq = { jsonrpc: "2.0", method: "notifications/initialized", params: {} };
+  const toolsReq = rpcReq("tools/list", {}, baseId + 1);
+
+  const initR = await send(url, initReq, timeoutMs);
+  const notifR = await send(url, notifReq, timeoutMs);
+  const toolsR = await send(url, toolsReq, timeoutMs);
+  const traces: HttpTrace[] = [
+    { request: { url, body: initReq }, response: initR },
+    { request: { url, body: notifReq }, response: notifR },
+    { request: { url, body: toolsReq }, response: toolsR },
+  ];
+
+  const initResult = responseResult(initR.body);
+  if (!initResult) return { traces, tools: null, failure: `initialize did not return a result: ${JSON.stringify(initR.body)}` };
+
+  const toolsBody = asRecord(toolsR.body);
+  const toolsError = asRecord(toolsBody?.error);
+  if (toolsError) return { traces, tools: null, failure: `tools/list returned error: ${JSON.stringify(toolsError)}` };
+
+  const toolsResult = responseResult(toolsR.body);
+  const tools = toolListFromResult(toolsResult);
+  if (!tools) return { traces, tools: null, failure: `tools/list did not return a tools array: ${JSON.stringify(toolsResult)}` };
+  return { traces, tools };
+}
+
+function missingToolShapeFields(tool: Record<string, unknown>): string[] {
+  const missing: string[] = [];
+  if (typeof tool.name !== "string" || tool.name.trim() === "") missing.push("name");
+  if (typeof tool.description !== "string" || tool.description.trim() === "") missing.push("description");
+  if (!asRecord(tool.inputSchema)) missing.push("inputSchema");
+  return missing;
+}
+
+function missingToolAnnotationFields(tool: Record<string, unknown>): string[] {
+  const annotations = asRecord(tool.annotations);
+  const required = ["readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"];
+  if (!annotations) return required;
+  return required.filter((field) => typeof annotations[field] !== "boolean");
+}
 
 function apiKeyHash(): string | null {
   const token = process.env.TESTPASS_TOKEN?.trim();
@@ -322,6 +389,52 @@ const HANDLERS: Record<string, CheckHandler> = {
     if (err?.code === -32601) return { verdict: "check", traces: [trace] };
     if (err) return { verdict: "fail", note: `Expected error.code -32601, got ${JSON.stringify(err.code)}`, traces: [trace] };
     return { verdict: "fail", note: `Unknown method must return error, got ${JSON.stringify(body)}`, traces: [trace] };
+  },
+
+  // MCP-007: tools/list must expose renderable tool definitions.
+  "MCP-007": async (url) => {
+    const { traces, tools, failure } = await initializeThenListTools(url, 360);
+    if (failure) return { verdict: "fail", note: failure, traces };
+    if (!tools || tools.length === 0) {
+      return { verdict: "fail", note: "tools/list returned no tools.", traces };
+    }
+
+    const badTools = tools
+      .map((tool) => ({ name: String(tool.name ?? "<unnamed>"), missing: missingToolShapeFields(tool) }))
+      .filter((tool) => tool.missing.length > 0);
+    if (badTools.length === 0) return { verdict: "check", traces };
+
+    return {
+      verdict: "fail",
+      note: `Tool definitions missing required fields: ${badTools
+        .slice(0, 8)
+        .map((tool) => `${tool.name}(${tool.missing.join(",")})`)
+        .join("; ")}`,
+      traces,
+    };
+  },
+
+  // TOOL-META-001: first-class tools should declare MCP risk annotations.
+  "TOOL-META-001": async (url) => {
+    const { traces, tools, failure } = await initializeThenListTools(url, 380);
+    if (failure) return { verdict: "fail", note: failure, traces };
+    if (!tools || tools.length === 0) {
+      return { verdict: "fail", note: "tools/list returned no tools to inspect for annotations.", traces };
+    }
+
+    const badTools = tools
+      .map((tool) => ({ name: String(tool.name ?? "<unnamed>"), missing: missingToolAnnotationFields(tool) }))
+      .filter((tool) => tool.missing.length > 0);
+    if (badTools.length === 0) return { verdict: "check", traces };
+
+    return {
+      verdict: "fail",
+      note: `MCP tool annotations missing or not boolean: ${badTools
+        .slice(0, 8)
+        .map((tool) => `${tool.name}(${tool.missing.join(",")})`)
+        .join("; ")}`,
+      traces,
+    };
   },
 
   // FB-010: github_action failures must create tenant-scoped Signals with

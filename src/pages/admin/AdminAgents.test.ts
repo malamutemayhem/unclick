@@ -5,6 +5,7 @@ import AdminAgentsPage from "./AdminAgents";
 import {
   AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY,
   buildSeatOverrideStoragePayload,
+  buildSeatPerformanceScores,
   latestProfileCheckInAt,
   loadSeatOverridesFromStorage,
   mapProfilesToSeats,
@@ -57,6 +58,7 @@ describe("AdminAgents seat check-ins", () => {
 
     expect(screen.getByRole("heading", { name: "Seats" })).toBeInTheDocument();
     expect(screen.getByText("AI Seats")).toBeInTheDocument();
+    expect(screen.getByText("Performance monitor")).toBeInTheDocument();
     expect(screen.getByText("Cycle share")).toBeInTheDocument();
     expect(screen.getByText("Fungible mode")).toBeInTheDocument();
     expect(screen.queryByText("UnClick Workers")).not.toBeInTheDocument();
@@ -170,5 +172,37 @@ describe("AdminAgents seat check-ins", () => {
     );
 
     expect(ranked.map((item) => item.id)).toEqual(["preferred", "busy"]);
+  });
+
+  it("scores seat performance from check-in freshness, missed tethers, load, and routing policy", () => {
+    const now = Date.parse("2026-05-09T04:10:00.000Z");
+    const scores = buildSeatPerformanceScores(
+      [
+        seat({ id: "live", name: "Live seat", load: 20, routingPolicy: "prefer" }),
+        seat({ id: "missed", name: "Missed seat", load: 90, routingPolicy: "auto" }),
+        seat({ id: "blocked", name: "Blocked seat", load: 10, routingPolicy: "blocked" }),
+      ],
+      [
+        profile({
+          agent_id: "live",
+          display_name: "Live seat",
+          last_seen_at: "2026-05-09T04:05:00.000Z",
+          current_status: "Building one safe slice.",
+        }),
+        profile({
+          agent_id: "missed",
+          display_name: "Missed seat",
+          last_seen_at: "2026-05-09T03:00:00.000Z",
+          next_checkin_at: "2026-05-09T03:20:00.000Z",
+        }),
+      ],
+      now,
+    );
+
+    expect(scores.map((item) => item.id)).toEqual(["live", "missed", "blocked"]);
+    expect(scores[0].score).toBeGreaterThan(scores[1].score);
+    expect(scores[1].reasons).toContain("missed check-in");
+    expect(scores[2].status).toBe("blocked");
+    expect(scores[2].reasons).toContain("blocked for routing");
   });
 });

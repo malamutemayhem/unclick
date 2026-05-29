@@ -15,9 +15,10 @@ export type ClaimKind =
   | "pass"
   | "done"
   | "merge_ready"
-  | "duplicate_wake";
+  | "duplicate_wake"
+  | "route";
 
-export type RuleId = "R1" | "R2" | "R3" | "R4" | "R5";
+export type RuleId = "R1" | "R2" | "R3" | "R4" | "R5" | "R6";
 
 export interface Evidence {
   kind: string;
@@ -93,6 +94,12 @@ export interface ClaimContext {
   current_wake?: WakeSnapshot;
   /** Target todo id for done/merge_ready claims; if absent, first todo is used. */
   subject_todo_id?: string;
+  /** Worker or lane currently trying to handle the claim. */
+  current_lane?: string;
+  /** Canonical lane required by the evidence or ScopePack. */
+  required_lane?: string;
+  /** Optional explicit destination when the claim should be routed elsewhere. */
+  route_to?: string;
 }
 
 export interface ClaimInput {

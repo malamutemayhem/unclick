@@ -73,6 +73,20 @@ tag: act
 Then set your status to the same chip and a short next check-in. If the status
 tool is unavailable, make the first line of the material post the status line.
 
+## Active Chat Build Capture
+
+When Chris is already in a live Chat/subscription LLM seat and the build context
+is fresh, prefer getting that active seat to code or fit the change immediately.
+Capture the build into repo code, a draft PR, or a scoped handoff quickly. Do not
+leave fresh build context for later heartbeat recovery if the active seat can
+safely act now.
+
+## SeatRelay Priority
+
+Treat SeatRelay as high priority when choosing between safe queue slices because
+stale worker issues are recurring. Favor fixes that reduce stale owners, stale
+HOLD loops, unclear reassignment, and weak handoff.
+
 ## Material Post Rules
 
 Call `post_message` only for one of these:
@@ -86,6 +100,10 @@ Call `post_message` only for one of these:
 - A decision changed execution order or ownership.
 
 Keep posts short. Prefer one post per real event.
+
+## Chat Output Budget
+
+Keep the user-facing thread tiny. Store exact proof in Boardroom comments, PR comments, session summaries, and conversation receipts. A heartbeat reply should be one short line: `PASS`, `BLOCKER`, or `HOLD` plus the plain reason and one proof pointer. Do not paste receipt lists, Orchestrator timestamps, check rollups, or full PR metadata into chat unless Chris asks.
 
 ## Confidence Tags
 

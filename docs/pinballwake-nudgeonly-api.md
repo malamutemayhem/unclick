@@ -70,6 +70,14 @@ Flow:
 4. WakePass or another deterministic verifier checks the ACK/proof.
 5. If ACK/proof is still missing after the TTL, the bridge emits an escalation request.
 
+Owner silence rule:
+
+`owner_last_seen_at` or `owner_silent_minutes` past the TTL is deterministic evidence that the ownership lease expired. NudgeOnly may carry that evidence, but it does not get to veto it. Route expired owner leases as `unclear_owner` to Job Manager for release/requeue proof.
+
+Execution rule:
+
+NudgeOnly does not execute by itself. A `receipt_request` or `escalation_request` must be consumed by IgniteOnly, then PushOnly, then the Action Heartbeat or builder tether must either do one safe runnable step or post the exact executor blocker. A NudgeOnly bridge ID alone is evidence of a stuck handoff, not proof that work moved.
+
 Receipt line shape:
 
 `worker -> target -> painpoint -> expected receipt -> verifier`

@@ -9,6 +9,7 @@ import {
 import { CATALOG, TOOL_MAP, ENDPOINT_MAP, type ToolDef } from "./catalog.js";
 import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
+import { crewsStartRun } from "./crews-tool.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
 import { markContextLoaded, recordToolCall } from "./memory/session-state.js";
@@ -50,6 +51,35 @@ function trackToolCall(toolName: string): void {
   } catch {
     // swallow synchronous errors (e.g. malformed env)
   }
+}
+
+function samplingText(result: unknown): string {
+  const content = result && typeof result === "object"
+    ? (result as { content?: unknown }).content
+    : null;
+  if (content && typeof content === "object" && !Array.isArray(content)) {
+    const block = content as { type?: unknown; text?: unknown };
+    if (block.type === "text" && typeof block.text === "string") {
+      return block.text.trim();
+    }
+  }
+  if (Array.isArray(content)) {
+    return content
+      .map((block) => {
+        if (block && typeof block === "object" && (block as { type?: unknown }).type === "text") {
+          return String((block as { text?: unknown }).text ?? "");
+        }
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n\n")
+      .trim();
+  }
+  return "";
+}
+
+function estimateSamplingTokens(text: string): number {
+  return Math.max(1, Math.ceil(text.length / 4));
 }
 
 function currentApiKeyHash(): string | null {
@@ -821,6 +851,67 @@ export const VISIBLE_TOOLS = [
     },
   },
   {
+    name: "create_expressroom_draft",
+    title: "Create a DraftRoom Manual draft",
+    description:
+      "Creates a Manual DraftRoom draft. Use this when a chat seat has built a visible first draft while context is fresh and needs to store the brief, job mirror, short description, and supplied draft code. " +
+      "Alarm bell: this does not mark official work done. It stores untrusted draft material so it can later enter the official Jobs Board conveyor belt, then be integrated, tested, reviewed, and proved.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        agent_id: { type: "string", description: "Stable identifier for the calling agent." },
+        job_name_mirror: { type: "string", description: "The official job name or intended official job name." },
+        official_todo_id: { type: "string", description: "Optional existing Jobs Board todo id to mirror." },
+        short_description: { type: "string", description: "Quick read of the draft job." },
+        brief_markdown: { type: "string", description: "Detailed intake brief from the chat." },
+        supplied_code: { type: "string", description: "Draft code, patch notes, file contents, pseudocode, or test outline supplied by the chat-first builder." },
+        supplied_code_status: { type: "string", enum: ["not_supplied", "partial", "complete", "unknown"], default: "not_supplied" },
+        source_chat_session_id: { type: "string", description: "Optional source chat/session id." },
+      },
+      required: ["agent_id", "job_name_mirror", "short_description", "brief_markdown", "supplied_code", "supplied_code_status"],
+    },
+  },
+  {
+    name: "list_expressroom_drafts",
+    title: "List DraftRoom Manual drafts",
+    description:
+      "Lists Manual DraftRoom drafts. These are draft-only records until promoted into official Jobs. " +
+      "Use official_todo_id or official_job_mirror to find drafts linked to a Jobs Board card, PR number, PR URL, or mirrored job name.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        agent_id: { type: "string", description: "Stable identifier for the calling agent." },
+        express_status: { type: "string", enum: ["draft", "inserted", "archived"], description: "Optional status filter." },
+        official_todo_id: { type: "string", description: "Optional exact Jobs Board todo UUID mirror." },
+        official_job_mirror: {
+          type: "string",
+          description: "Optional fuzzy mirror search text, such as job name, PR number, PR URL, or todo id.",
+        },
+        limit: { type: "number", minimum: 1, maximum: 200, default: 100 },
+      },
+      required: ["agent_id"],
+    },
+  },
+  {
+    name: "promote_expressroom_draft",
+    title: "Insert DraftRoom draft into Jobs",
+    description:
+      "Creates an official Boardroom job from a Manual DraftRoom draft and links the two records. The new job still needs normal UnClick integration, tests, PR or commit proof, and review.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        agent_id: { type: "string", description: "Stable identifier for the calling agent." },
+        draft_id: { type: "string", description: "DraftRoom draft id." },
+        priority: { type: "string", enum: ["low", "normal", "high", "urgent"], default: "normal" },
+        force_new: { type: "boolean", description: "Create a new job even if this draft already has a linked official job." },
+      },
+      required: ["agent_id", "draft_id"],
+    },
+  },
+  {
     name: "update_todo",
     title: "Update a Boardroom todo",
     description:
@@ -836,6 +927,21 @@ export const VISIBLE_TOOLS = [
         status: { type: "string", enum: ["open", "in_progress", "done", "dropped"] },
         priority: { type: "string", enum: ["low", "normal", "high", "urgent"] },
         assigned_to_agent_id: { type: "string", description: "Pass empty string to unassign" },
+      },
+      required: ["agent_id", "todo_id"],
+    },
+  },
+  {
+    name: "release_claim",
+    title: "Release a stale Boardroom claim",
+    description:
+      "Safely releases a stale open Boardroom todo from its current assignee so another worker can claim it. The server refuses fresh owners, protected human/manual work, in-progress work, unassigned work, capped reclaim attempts, and rows that changed during release. agent_id required.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        agent_id: { type: "string", description: "Stable identifier for the calling agent." },
+        todo_id: { type: "string", description: "UUID of the stale open todo claim to release" },
       },
       required: ["agent_id", "todo_id"],
     },
@@ -1111,7 +1217,7 @@ const DIRECT_TOOLS = [
       properties: {
         text: { type: "string", description: "Text or URL to encode in the QR code" },
         format: { type: "string", enum: ["png", "svg"], default: "png" },
-        size: { type: "number", description: "Image size in pixels (100–1000)", default: 300 },
+        size: { type: "number", description: "Image size in pixels (100-1000)", default: 300 },
       },
       required: ["text"],
     },
@@ -1481,6 +1587,122 @@ for (const tool of [...INTERNAL_TOOLS, ...VISIBLE_TOOLS, ...DIRECT_TOOLS, ...ADD
   registerToolInputSchema(tool);
 }
 
+export const EXPRESSROOM_VISIBLE_TOOL_NAMES = [
+  "create_expressroom_draft",
+  "list_expressroom_drafts",
+  "promote_expressroom_draft",
+] as const;
+
+export const AUTOPILOT_VISIBLE_TOOLS = [
+  {
+    name: "autopilot_record_event",
+    title: "Record AutoPilot ledger event",
+    description:
+      "Writes one sanitized AutoPilot proof event to the tenant ledger. Use this for claim, check, merge, close, proof, and blocker receipts before claiming zero-touch proof.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        event_type: {
+          type: "string",
+          enum: [
+            "claim",
+            "lease_grant",
+            "lease_refresh",
+            "lease_expired",
+            "lane_check",
+            "lane_violation",
+            "release",
+            "build_start",
+            "build_end",
+            "proof_request",
+            "proof_result",
+            "ack",
+            "blocker",
+            "merge_decision",
+            "watch_start",
+            "watch_end",
+            "dispatch",
+            "pick",
+            "todo_state_change",
+          ],
+          description: "Typed ledger event. Use proof_result for check results and todo_state_change for close.",
+        },
+        actor_agent_id: {
+          type: "string",
+          minLength: 1,
+          maxLength: 128,
+          description: "Automation seat or App identity that performed the action.",
+        },
+        ref_kind: {
+          type: "string",
+          enum: ["todo", "pr", "dispatch", "agent", "run"],
+          description: "Stable object type this event proves.",
+        },
+        ref_id: {
+          type: "string",
+          minLength: 1,
+          maxLength: 160,
+          description: "Stable object id, such as a PR number, todo UUID, dispatch id, or run id.",
+        },
+        payload: {
+          type: "object",
+          description: "Non-secret proof details. Secret-looking keys or values are rejected by the API.",
+          default: {},
+        },
+      },
+      required: ["event_type", "actor_agent_id", "ref_kind", "ref_id"],
+    },
+  },
+  {
+    name: "autopilot_zero_touch_metrics",
+    title: "Read AutoPilot zero-touch metrics",
+    description:
+      "Reads AutoPilot ledger rows and returns zero-touch scoring. Use before closing a canary or claiming human_touch_count=0.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        limit: {
+          type: "number",
+          minimum: 1,
+          maximum: 1000,
+          default: 250,
+          description: "Maximum recent ledger rows to scan.",
+        },
+        ref_kind: {
+          type: "string",
+          enum: ["todo", "pr", "dispatch", "agent", "run"],
+          description: "Optional object type filter.",
+        },
+        ref_id: {
+          type: "string",
+          minLength: 1,
+          maxLength: 160,
+          description: "Optional object id filter.",
+        },
+      },
+    },
+  },
+] as const;
+
+for (const tool of AUTOPILOT_VISIBLE_TOOLS) {
+  registerToolInputSchema(tool);
+}
+
+// DraftRoom needs friendly connected-agent tools, while the rest of the
+// internal meta layer stays hidden from tools/list.
+const EXPRESSROOM_VISIBLE_TOOLS = INTERNAL_TOOLS.filter((tool) =>
+  (EXPRESSROOM_VISIBLE_TOOL_NAMES as readonly string[]).includes(tool.name),
+);
+
+export const ADVERTISED_TOOLS = [
+  ...VISIBLE_TOOLS,
+  ...EXPRESSROOM_VISIBLE_TOOLS,
+  ...AUTOPILOT_VISIBLE_TOOLS,
+  ...ADDITIONAL_TOOLS,
+];
+
 // Backwards-compatible memory tool names still dispatch directly, so they need
 // the same runtime guard as the newer visible names.
 for (const [alias, canonical] of Object.entries(MEMORY_TOOL_ALIASES)) {
@@ -1638,15 +1860,14 @@ export function createServer(): Server {
     }
   );
 
-  // LIST TOOLS: advertise the core memory tools PLUS every product + marketplace
-  // tool registered in ADDITIONAL_TOOLS (TestPass, Crews, and all third-party
-  // integrations from tool-wiring.ts). Internal meta tools (unclick_search,
-  // unclick_browse, unclick_tool_info, unclick_call) and the small DIRECT_TOOLS
-  // utility set remain callable for backwards compatibility but stay hidden
-  // from tools/list to avoid duplicating what native chat clients already
-  // discover.
+  // LIST TOOLS: advertise the core memory tools, the friendly DraftRoom
+  // bridge tools, plus every product + marketplace tool registered in
+  // ADDITIONAL_TOOLS (TestPass, Crews, and third-party integrations from
+  // tool-wiring.ts). Internal meta tools (unclick_search, unclick_browse,
+  // unclick_tool_info, unclick_call) and the small DIRECT_TOOLS utility set
+  // remain callable for backwards compatibility but stay hidden from tools/list.
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: [...VISIBLE_TOOLS, ...ADDITIONAL_TOOLS] };
+    return { tools: ADVERTISED_TOOLS };
   });
 
   // CALL TOOL
@@ -1860,8 +2081,12 @@ export function createServer(): Server {
         post_message: "fishbowl_post",
         read_messages: "fishbowl_read",
         set_my_status: "fishbowl_set_status",
+        create_expressroom_draft: "expressroom_create_draft",
+        list_expressroom_drafts: "expressroom_list_drafts",
+        promote_expressroom_draft: "expressroom_promote_to_todo",
         create_todo: "fishbowl_create_todo",
         update_todo: "fishbowl_update_todo",
+        release_claim: "fishbowl_release_claim",
         complete_todo: "fishbowl_complete_todo",
         drop_todo: "fishbowl_drop_todo",
         delete_todo: "fishbowl_delete_todo",
@@ -1875,6 +2100,42 @@ export function createServer(): Server {
         comment_on: "fishbowl_comment_on",
         list_comments: "fishbowl_list_comments",
       };
+
+      const AUTOPILOT_TOOL_ACTIONS: Record<string, string> = {
+        autopilot_record_event: "autopilot_record_event",
+        autopilot_zero_touch_metrics: "autopilot_zero_touch_metrics",
+      };
+
+      if (AUTOPILOT_TOOL_ACTIONS[name]) {
+        const apiKey = process.env.UNCLICK_API_KEY;
+        const base =
+          process.env.UNCLICK_MEMORY_BASE_URL ||
+          process.env.UNCLICK_SITE_URL ||
+          "https://unclick.world";
+        if (!apiKey) {
+          return {
+            content: [
+              { type: "text", text: "AutoPilot ledger unavailable: no UNCLICK_API_KEY configured. Run the UnClick setup wizard." },
+            ],
+            isError: true,
+          };
+        }
+        const action = AUTOPILOT_TOOL_ACTIONS[name];
+        const resp = await fetch(`${base}/api/memory-admin?action=${action}`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(args),
+        });
+        const respBody = await resp.json().catch(() => ({}));
+        return {
+          content: [{ type: "text", text: JSON.stringify(respBody, null, 2) }],
+          isError: !resp.ok,
+        };
+      }
+
       if (FISHBOWL_TOOL_ACTIONS[name]) {
         const apiKey = process.env.UNCLICK_API_KEY;
         const base =
@@ -2130,6 +2391,46 @@ export function createServer(): Server {
         const client = createClient();
         const result = await handler(client, args);
         signalToolFailure(name, result);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      if (name === "start_crew_run") {
+        const supportsSampling = Boolean(server.getClientCapabilities()?.sampling);
+        const result = await crewsStartRun(args, {
+          supportsSampling,
+          sample: async ({ system, user, maxTokens }) => {
+            const response = await server.createMessage({
+              messages: [
+                {
+                  role: "user",
+                  content: {
+                    type: "text",
+                    text: user,
+                  },
+                },
+              ],
+              systemPrompt: system,
+              includeContext: "none",
+              temperature: 0.2,
+              maxTokens,
+            });
+            const content = samplingText(response);
+            if (!content) throw new Error("sampling_response_not_text");
+            return {
+              content,
+              tokensIn: estimateSamplingTokens(`${system}\n${user}`),
+              tokensOut: estimateSamplingTokens(content),
+            };
+          },
+        });
+        signalToolFailure(name, result, args);
         return {
           content: [
             {

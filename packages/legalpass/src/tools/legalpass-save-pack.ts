@@ -1,5 +1,6 @@
 import type { ToolDescriptor } from "./index.js";
 import type { PackInput } from "../pack-schema.js";
+import { savePack } from "./store.js";
 
 export interface LegalpassSavePackArgs {
   pack: PackInput;
@@ -9,18 +10,18 @@ export interface LegalpassSavePackArgs {
 export interface LegalpassSavePackResult {
   pack_id: string;
   saved: boolean;
+  item_count: number;
+  hat_count: number;
 }
 
-// Stub: real implementation will validate the pack with PackSchema,
-// persist it, and return the saved pack id.
 export const legalpassSavePackTool: ToolDescriptor<
   LegalpassSavePackArgs,
   LegalpassSavePackResult
 > = {
   name: "legalpass_save_pack",
   description:
-    "Save or update a LegalPass pack definition (12-hat roster, " +
-    "jurisdictions, items). Validates against the Pack schema before persisting.",
+    "Save or update a LegalPass pack definition (hat roster, jurisdictions, " +
+    "items). Validates against the Pack schema before persisting.",
   inputSchema: {
     type: "object",
     required: ["pack"],
@@ -29,7 +30,13 @@ export const legalpassSavePackTool: ToolDescriptor<
       overwrite: { type: "boolean", default: false },
     },
   },
-  handler: async (_args) => {
-    throw new Error("legalpass_save_pack: not yet implemented (Chunk 1 stub)");
+  handler: async (args) => {
+    const pack = savePack(args.pack, args.overwrite ?? false);
+    return {
+      pack_id: pack.id,
+      saved: true,
+      item_count: pack.items.length,
+      hat_count: pack.hats.length,
+    };
   },
 };

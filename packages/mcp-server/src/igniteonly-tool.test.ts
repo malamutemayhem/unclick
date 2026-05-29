@@ -135,6 +135,45 @@ describe("IgniteOnlyAPI policy", () => {
     });
   });
 
+  it("routes verified duplicate WakePass cleanup requests to the registered cleanup worker", async () => {
+    await expect(igniteonlyReceiptConsumer({
+      nudge_bridge_result: {
+        bridge_id: "nudgebridge_duplicate_pr_981",
+        bridge_status: "escalation_request",
+        painpoint_detected: true,
+        painpoint_type: "duplicate_wake",
+        request: {
+          worker: "wakepass-cleanup-worker",
+          target: "PR #981 stale WakePass blocker",
+          expected_receipt: "Duplicate wake suppressed, resolved, or routed with superseding proof.",
+          verifier: "Compare source PR state, superseding PR proof, and WakePass dispatch timestamp.",
+        },
+        evidence: {
+          source_id: "wake-pull_request-pr-981-bbbaa2b37720",
+          source_url: "https://github.com/malamutemayhem/unclick/pull/981?token=secret-token",
+          nudge_trace_id: "nudgeonly_duplicate_pr_981",
+          verifier_required: true,
+        },
+      },
+      verifier_status: "proof_checked",
+    })).resolves.toMatchObject({
+      ignite_status: "escalation_wake_request",
+      painpoint_type: "duplicate_wake",
+      wake_packet: {
+        action: "wake_worker_and_escalate",
+        worker: "wakepass-cleanup-worker",
+        target: "PR #981 stale WakePass blocker",
+        painpoint_type: "duplicate_wake",
+        source_id: "wake-pull_request-pr-981-bbbaa2b37720",
+        source_url: "https://github.com/malamutemayhem/unclick/pull/981?token=<redacted>",
+        public_fields_only: true,
+      },
+      proof: {
+        receipt_line: expect.stringContaining("wakepass-cleanup-worker -> PR #981 stale WakePass blocker -> duplicate_wake"),
+      },
+    });
+  });
+
   it("escalates when the bridge is an escalation request", async () => {
     await expect(igniteonlyReceiptConsumer({
       bridge_id: "nudgebridge_stale",

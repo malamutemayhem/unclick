@@ -2,6 +2,8 @@
 
 import { readFile } from "node:fs/promises";
 
+import { evaluateXPassGate } from "./pinballwake-xpass-gate-room.mjs";
+
 function getArg(name, fallback = "") {
   const prefix = `--${name}=`;
   const found = process.argv.find((arg) => arg.startsWith(prefix));
@@ -81,6 +83,13 @@ const ROOM_REQUIREMENTS = {
 };
 
 const DEFAULT_ROOMS = ["build", "proof", "qc", "safety", "research", "planning", "status"];
+
+const LAUNCHPAD_COUNCIL_LITE_QUESTIONS = [
+  "What would make this answer or change wrong?",
+  "What evidence is missing, stale, or too weak?",
+  "Who would object: user, maintainer, reviewer, legal, security, or operator?",
+  "What is the smallest proof needed before saying ready?",
+];
 
 function capabilityMatches(seat, room) {
   const needed = ROOM_REQUIREMENTS[room] || [room];
@@ -194,6 +203,150 @@ function evaluateOrchestratorControl({
   };
 }
 
+function firstValue(...values) {
+  return values.find((value) => value !== undefined && value !== null && value !== "");
+}
+
+function launchpadWorkInput(input = {}) {
+  const work = input.work || input.work_item || input.workItem || input.launch || {};
+  const target = input.target || work.target || {};
+  return {
+    title: firstValue(input.title, work.title, target.title),
+    description: firstValue(input.description, work.description, target.description),
+    context: firstValue(input.context, work.context, input.body, work.body),
+    summary: firstValue(input.summary, work.summary),
+    tags: firstValue(input.tags, work.tags),
+    changed_files: firstValue(
+      input.changed_files,
+      input.changedFiles,
+      input.files,
+      work.changed_files,
+      work.changedFiles,
+      work.files,
+      target.changed_files,
+      target.files,
+    ),
+    pass_results: firstValue(input.pass_results, input.passResults, input.results, work.pass_results, work.passResults, work.results),
+    available_checks: firstValue(input.available_checks, input.availableChecks, work.available_checks, work.availableChecks),
+    target: {
+      type: firstValue(target.type, input.target_type, input.targetType, work.target_type, "launch"),
+      id: firstValue(target.id, input.id, input.pr_number, input.prNumber, work.id, work.pr_number),
+      sha: firstValue(target.sha, input.sha, input.head_sha, input.headSha, work.sha, work.head_sha),
+      url: firstValue(target.url, input.url, work.url),
+      title: firstValue(target.title, input.title, work.title),
+      description: firstValue(target.description, input.description, work.description),
+      changed_files: firstValue(target.changed_files, target.files, input.changed_files, input.files, work.changed_files),
+    },
+  };
+}
+
+function hasCouncilSignal(workInput = {}) {
+  return Boolean(
+    workInput.title ||
+    workInput.description ||
+    workInput.context ||
+    workInput.summary ||
+    safeList(workInput.tags).length ||
+    safeList(workInput.changed_files).length ||
+    safeList(workInput.pass_results).length ||
+    workInput.target?.url ||
+    workInput.target?.id,
+  );
+}
+
+function normalizeCouncilRun(value = {}) {
+  const status = normalize(value.status || value.result || value.state);
+  const complete = ["complete", "completed", "passed", "green", "done"].includes(status);
+  return {
+    run_id: compactText(value.run_id || value.runId || value.id || "", 120),
+    status: status || "missing",
+    complete,
+    url: compactText(value.url || value.details_url || value.detailsUrl || "", 500),
+  };
+}
+
+function normalizeCouncilLite(value = {}, fallbackNeeded = false) {
+  const needed = value.needed === true || fallbackNeeded;
+  return {
+    needed,
+    status: value.status || (needed ? "baseline" : "not_needed"),
+    suggested_template: value.suggested_template || value.suggestedTemplate || (needed ? "Council Lite" : null),
+    mode: value.mode || (needed ? "anti_rubber_stamp" : null),
+    questions: needed
+      ? (safeList(value.questions).length ? safeList(value.questions) : LAUNCHPAD_COUNCIL_LITE_QUESTIONS).map((question) => compactText(question, 220))
+      : [],
+    note: compactText(value.note || (needed ? "Use the light dissent questions before ready claims; escalate only if they expose real uncertainty." : ""), 300),
+  };
+}
+
+function normalizeCouncilRecommendation(value = {}) {
+  const deepNeeded = value.needed === true;
+  const liteFallback = deepNeeded || value.status === "consider" || value.status === "recommended";
+  return {
+    needed: deepNeeded,
+    status: value.status || (deepNeeded ? "consider" : "not_needed"),
+    trigger_score: Number.isFinite(value.trigger_score) ? value.trigger_score : Number.parseInt(String(value.triggerScore ?? 0), 10) || 0,
+    suggested_template: value.suggested_template || value.suggestedTemplate || (deepNeeded ? "Council" : null),
+    suggested_tool: value.suggested_tool || value.suggestedTool || (deepNeeded ? "start_crew_run" : null),
+    reasons: safeList(value.reasons).map((reason) => compactText(reason, 240)),
+    note: compactText(value.note || "", 300),
+    lite_check: normalizeCouncilLite(value.lite_check || value.liteCheck || {}, liteFallback),
+  };
+}
+
+function createCouncilPrompt(recommendation, workInput = {}) {
+  const reasons = safeList(recommendation.reasons);
+  const reasonText = reasons.length ? reasons.map((reason) => `- ${reason}`).join("\n") : "- Launchpad needs a judgement check before final ready.";
+  const targetLine = compactText(workInput.title || workInput.target?.title || workInput.target?.url || workInput.target?.id || "this launch target", 240);
+  return `Launchpad Council check:
+Use Crews only if this needs judgement, debate, or a launch decision.
+
+Target:
+${targetLine}
+
+Why Launchpad is asking:
+${reasonText}
+
+Next action:
+Call start_crew_run with the Council template, include the XPass receipt/evidence, then record the Council run id before treating this as launch-ready.`;
+}
+
+function evaluateCouncilInduction(input = {}) {
+  const provided = input.councilRecommendation || input.council_recommendation || input.xpassGate?.crews_council || input.xpass_gate?.crews_council;
+  const workInput = launchpadWorkInput(input);
+  const recommendation = provided
+    ? normalizeCouncilRecommendation(provided)
+    : hasCouncilSignal(workInput)
+      ? normalizeCouncilRecommendation(evaluateXPassGate(workInput).crews_council)
+      : {
+          needed: false,
+          status: "not_checked",
+          trigger_score: 0,
+          suggested_template: null,
+          suggested_tool: null,
+          reasons: ["No launch target or XPass receipt supplied yet."],
+          note: "Before launch-ready claims, Launchpad should ask XPass whether a Crews Council is needed.",
+          lite_check: normalizeCouncilLite({}, false),
+        };
+  const councilRun = normalizeCouncilRun(input.crewsCouncilRun || input.crews_council_run || input.councilRun || input.council_run || {});
+  const completed = recommendation.needed && councilRun.complete;
+  const prompt = recommendation.needed && !completed ? createCouncilPrompt(recommendation, workInput) : null;
+
+  return {
+    source: "launchpad_council_induction",
+    needed: recommendation.needed,
+    status: completed ? "completed" : recommendation.status,
+    trigger_score: recommendation.trigger_score,
+    suggested_template: recommendation.suggested_template,
+    suggested_tool: recommendation.suggested_tool,
+    reasons: recommendation.reasons,
+    note: recommendation.note,
+    lite_check: recommendation.lite_check,
+    prompt,
+    council_run: councilRun.run_id || councilRun.status !== "missing" ? councilRun : null,
+  };
+}
+
 export function createLaunchpadHeartbeatPrompt({
   minutes = 15,
   name = "UnClick Launchpad Autopilot heartbeat",
@@ -206,9 +359,10 @@ I am the UnClick Launchpad Wizard. My job is to wake one master chat only, then 
 On each heartbeat:
 1. Open Launchpad Room.
 2. Refresh worker seats, account capacity, active jobs, PRs/checks, Fishbowl/Coding Room ledgers, and stale work.
-3. Decide one next safe action: stay quiet, create/update one job, route one worker packet, call one blocker, or ask Master for a merge/lift decision.
-4. Do not directly spam every worker. Use UnClick rooms and delivery adapters.
-5. Report to Chris only when material changed or Chris action is needed.
+3. Check Launchpad Council induction. Use Council Lite anti-rubber-stamp questions on material work; if XPass says Crews is recommended, prompt a Council run before any launch-ready claim.
+4. Decide one next safe action: stay quiet, create/update one job, route one worker packet, call one blocker, or ask Master for a merge/lift decision.
+5. Do not directly spam every worker. Use UnClick rooms and delivery adapters.
+6. Report to Chris only when material changed or Chris action is needed.
 
 Safety:
 No secrets, auth, billing, DNS/domains, migrations, raw keys, destructive cleanup, force-pushes, or draft/HOLD/DIRTY merges.
@@ -230,11 +384,13 @@ export function evaluateLaunchpadRoom({
   legacyWorkerSchedules = [],
   heartbeatMinutes = 15,
   now = new Date().toISOString(),
+  ...councilInput
 } = {}) {
   const normalizedSeats = safeList(seats).map(normalizeSeat);
   const wantedRooms = safeList(rooms).length ? safeList(rooms).map(normalize) : DEFAULT_ROOMS;
   const setup = [];
   const orchestratorControl = evaluateOrchestratorControl({ orchestrator, orchestrators, now });
+  const councilInduction = evaluateCouncilInduction(councilInput);
 
   if (!orchestratorControl.ready) {
     setup.push(setupStep(
@@ -251,6 +407,15 @@ export function evaluateLaunchpadRoom({
   const legacy = safeList(legacyWorkerSchedules).filter((schedule) => normalize(schedule.status || "enabled") !== "disabled");
   if (legacy.length > 0) {
     setup.push(setupStep("consolidate_worker_schedules", `Consolidate ${legacy.length} worker schedules into Launchpad-managed routing.`, 85));
+  }
+
+  if (councilInduction.needed && councilInduction.status !== "completed") {
+    const priority = councilInduction.status === "recommended" ? 82 : 65;
+    setup.push(setupStep(
+      "prompt_crews_council",
+      `Launchpad should prompt a Crews Council before final readiness: ${councilInduction.reasons[0] || "Council judgement recommended."}`,
+      priority,
+    ));
   }
 
   for (const seat of normalizedSeats) {
@@ -292,6 +457,7 @@ export function evaluateLaunchpadRoom({
       recommended_minutes: heartbeatMinutes,
       prompt: heartbeatReady(masterHeartbeat) ? null : createLaunchpadHeartbeatPrompt({ minutes: heartbeatMinutes }),
     },
+    council_induction: councilInduction,
     orchestrator_control: orchestratorControl,
     seats: normalizedSeats,
     room_coverage: roomCoverage,
@@ -304,8 +470,8 @@ export function evaluateLaunchpadRoom({
     wizard_packet: {
       worker: "master",
       chip: "Launchpad onboarding wizard",
-      context: "Register accounts/PCs as worker seats, consolidate worker schedules, and run one master heartbeat into Launchpad Room.",
-      expected_proof: "Post seat registry, heartbeat status, missing adapters, and next safe setup step.",
+      context: "Register accounts/PCs as worker seats, consolidate worker schedules, run one master heartbeat into Launchpad Room, and check Council Lite or deeper Crews Council before launch-ready claims.",
+      expected_proof: "Post seat registry, heartbeat status, missing adapters, Council Lite status, Council induction status, and next safe setup step.",
       deadline: "next setup pulse",
       ack: "done/blocker",
     },

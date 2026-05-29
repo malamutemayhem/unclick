@@ -3,7 +3,7 @@
 **Status:** Watch / parking-lot note
 **Last updated:** 2026-05-02
 **Owner:** Connectors / RotatePass
-**Related products:** Connections, RotatePass, EnterprisePass, WakePass, future AdPass
+**Related products:** Connections, RotatePass, CompliancePass, WakePass, future AdPass
 
 ## Intent
 
@@ -74,7 +74,7 @@ These fit existing UnClick rails:
 - **Connections** shows whether the ad platform is connected.
 - **RotatePass** shows credential health, owner, last checked, and rotation notes.
 - **WakePass** alerts a worker or human when spend or tracking breaks.
-- **EnterprisePass** checks whether approval and audit trails exist.
+- **CompliancePass** checks whether approval and audit trails exist.
 - **XPass** can later include ad-account readiness as one selected check.
 
 ## Write-action rules
