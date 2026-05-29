@@ -1703,6 +1703,34 @@ export const ADVERTISED_TOOLS = [
   ...ADDITIONAL_TOOLS,
 ];
 
+/** Combinators the Anthropic API rejects at the TOP level of a tool schema. */
+const TOP_LEVEL_SCHEMA_COMBINATORS = ["anyOf", "oneOf", "allOf"] as const;
+
+/**
+ * Return an advertise-safe copy of a tool. The Anthropic API rejects a custom
+ * tool input_schema that has anyOf/oneOf/allOf at the TOP level: it 400s the
+ * whole request ("input_schema does not support oneOf/allOf/anyOf at the top
+ * level"), which breaks every connected Claude session before it can call a
+ * single tool. A few catalog tools (legalpass_run, legalpass_save_pack,
+ * flowpass_register_pack, sloppass_run) use a top-level anyOf to mean "require
+ * one of these fields". We strip that combinator from the ADVERTISED copy only.
+ * Runtime argument validation uses TOOL_INPUT_SCHEMAS (the original schemas), so
+ * the constraint is still enforced when the tool is actually called. Nested
+ * combinators inside properties are valid and left untouched.
+ */
+export function advertiseToolSchema<T extends { inputSchema?: unknown }>(tool: T): T {
+  const schema = tool.inputSchema as Record<string, unknown> | undefined;
+  if (!schema || typeof schema !== "object") return tool;
+  const hasTopLevel = TOP_LEVEL_SCHEMA_COMBINATORS.some((k) => k in schema);
+  if (!hasTopLevel) return tool;
+  const copy = structuredClone(schema);
+  for (const k of TOP_LEVEL_SCHEMA_COMBINATORS) delete copy[k];
+  return { ...tool, inputSchema: copy };
+}
+
+/** The advertise-safe tool list actually sent in tools/list responses. */
+export const ADVERTISED_TOOLS_SAFE = ADVERTISED_TOOLS.map(advertiseToolSchema);
+
 // Backwards-compatible memory tool names still dispatch directly, so they need
 // the same runtime guard as the newer visible names.
 for (const [alias, canonical] of Object.entries(MEMORY_TOOL_ALIASES)) {
@@ -1867,7 +1895,7 @@ export function createServer(): Server {
   // unclick_tool_info, unclick_call) and the small DIRECT_TOOLS utility set
   // remain callable for backwards compatibility but stay hidden from tools/list.
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: ADVERTISED_TOOLS };
+    return { tools: ADVERTISED_TOOLS_SAFE };
   });
 
   // CALL TOOL
