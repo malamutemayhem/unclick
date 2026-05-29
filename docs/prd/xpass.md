@@ -77,6 +77,7 @@ Working or exposed:
 - SEOPass
 - CopyPass
 - LegalPass
+- CommonSensePass
 
 In build or scoped:
 
@@ -87,6 +88,8 @@ In build or scoped:
 - RotatePass
 - EnterprisePass
 - WakePass
+
+CommonSensePass is the worker sanity gate in the family. It checks whether a worker claim like healthy, no work, done, merge-ready, or duplicate wake is backed by visible evidence before XPass or a worker treats that claim as trusted.
 
 Archived or parked:
 

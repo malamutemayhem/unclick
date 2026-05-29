@@ -46,6 +46,15 @@ const xpassIndex = [
     nextStep: "Promote to scheduled proof once the credential path is consistently healthy.",
   },
   {
+    id: "commonsensepass",
+    name: "CommonSensePass",
+    stage: "live_gate",
+    label: "Live worker sanity gate",
+    automation: "MCP verdict tool for heartbeat, no-work, done, merge-ready, and duplicate-wake claims",
+    mentionProfile: "Rising mention volume because it catches false quiet, stale proof, and duplicate wake claims.",
+    nextStep: "Make worker protocols call it before trusted PASS, DONE, READY, or quiet claims.",
+  },
+  {
     id: "securitypass",
     name: "SecurityPass",
     stage: "scope_gated",
@@ -342,6 +351,13 @@ function buildLastActionableFailure(results) {
 const results = [
   await runTestPass(),
   await runUXPass(),
+  pendingResult(
+    "commonsensepass",
+    "CommonSensePass",
+    "MCP verdict tool is wired for worker sanity checks; public dogfood still needs a live receipt.",
+    "commonsensepass_check exposes deterministic evidence-bound verdicts for worker state claims.",
+    { nextProof: "Run commonsensepass_check in the dogfood workflow before marking this passing." },
+  ),
   blockedResult(
     "securitypass",
     "SecurityPass",

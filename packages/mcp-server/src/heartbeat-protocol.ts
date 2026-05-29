@@ -23,7 +23,7 @@ export type HeartbeatProtocol = {
 };
 
 export const HEARTBEAT_PROTOCOL_DATE = "2026-05-12";
-export const HEARTBEAT_PROTOCOL_REVISION = 10;
+export const HEARTBEAT_PROTOCOL_REVISION = 11;
 
 export function formatHeartbeatProtocolVersion(revision: number): string {
   return `${HEARTBEAT_PROTOCOL_DATE}.v${revision}`;
@@ -36,6 +36,7 @@ const HEARTBEAT_PROTOCOL: HeartbeatProtocol = {
     "This heartbeat is explicitly authorized to write Orchestrator continuity receipts for the wake and the final PASS/BLOCKER result.",
     "Use stable session_id='unclick-heartbeat-seat' for every scheduled heartbeat run so Orchestrator can thread receipts across isolated scheduler sessions.",
     "Call UnClick check_signals first, then always do a compact job hunt before declaring health: read_orchestrator_context if available, list_actionable_todos, list_todos for open or in_progress work, recent dispatches, and recent Boardroom messages. Cap to the most recent items UnClick returns.",
+    "Before emitting a healthy, quiet, PASS, no-work, done, merge-ready, or duplicate-wake claim, call commonsensepass_check when available with the matching claim_type and compact evidence from authoritative tools. For heartbeat health, pass claim_type='heartbeat_health' and evidence including active_jobs, visible_backlog or actionable_todos, held_backlog, recent_claim_attempt, and source pointers. Treat CommonSensePass BLOCKER or HOLD as the heartbeat verdict. Treat SUPPRESS as a no-notify duplicate only when the claim is a wake.",
     "Pinned v9 definition: active_jobs = COUNT(todos WHERE status='in_progress' AND owner_last_seen <= 24h). Orchestrator current_state_card.active_jobs uses the same query, so PASS/BLOCKER does not oscillate on identical state. Treat '0 active jobs' as PASS only when actionable_todos is also 0 (or every backlog item is explicitly held with a stated reason in the last 24h). If active_jobs is 0 while unheld actionable backlog exists, this is BLOCKER: queue hydration failure.",
     "Use PinballWake JobHunt Mirror as the fallback path for that failure: mirror compact backlog counts and source pointers into NudgeOnly first, then IgniteOnly only after verifier-backed receipt_bridge output requests a worker wake, then PushOnly only after IgniteOnly emits a verified public wake packet. Target the existing Job Worker as executor when it is registered; free API classifiers may only classify or nudge. The mirror may request a wake and PushOnly may emit a worker push envelope, but both must not create duplicate jobs, assign ownership, mark done, merge, close, or edit source state.",
     "After check_signals, call save_conversation_turn with session_id='unclick-heartbeat-seat', role='assistant', and content containing the safe alert lines plus a brief progress summary and proof id if available.",

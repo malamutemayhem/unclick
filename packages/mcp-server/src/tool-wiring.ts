@@ -800,6 +800,12 @@ import {
   copypassStatus,
 } from "./copypass-tool.js";
 
+// ─── CommonSensePass (worker sanity verdicts) ────────────────────────────────
+import {
+  commonsensepassCheck,
+  commonsensepassRules,
+} from "./commonsensepass-tool.js";
+
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
 
@@ -12340,6 +12346,46 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── commonsensepass-tool.ts (worker sanity verdicts) ───────────────────────
+  {
+    name: "commonsensepass_check",
+    description: "Check an AI worker claim against visible evidence before it is trusted. Verdict-only: PASS, BLOCKER, HOLD, SUPPRESS, or ROUTE. It cannot build, merge, close, assign, or mark done.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        claim_type: {
+          type: "string",
+          enum: ["heartbeat_health", "queuepush_wake", "runner_no_work", "merge_ready", "done_claim", "generic_state"],
+          description: "Claim family to check. Defaults to generic_state if omitted.",
+        },
+        claim: { type: "string", description: "Plain-English worker claim, such as all quiet, no work, merge-ready, or done." },
+        target: { type: "string", description: "Optional target label, such as a todo id, PR, dispatch, or heartbeat run." },
+        worker_id: { type: "string", description: "Optional worker or seat id making the claim." },
+        source: {
+          type: "object",
+          additionalProperties: true,
+          description: "Optional compact source pointer, such as source_kind, source_id, deep_link, or fetched_at.",
+        },
+        evidence: {
+          type: "object",
+          additionalProperties: true,
+          description: "Evidence object from authoritative tools. Common fields include active_jobs, visible_backlog, actionable_todos, current_head_sha, checks_status, reviewer_pass_current, safety_pass_current, todo_status, and proof_refs.",
+        },
+      },
+      required: ["evidence"],
+    },
+  },
+  {
+    name: "commonsensepass_rules",
+    description: "Return the CommonSensePass MVP rule pack and verdict-only authority boundaries for workers.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+
   // ── crews-tool.ts (Orchestrator Wizard) ──────────────────────────────────────
   {
     name: "start_crew_run",
@@ -13537,6 +13583,10 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   // copypass-tool.ts
   copypass_run:            (args) => copypassRun(args),
   copypass_status:         (args) => copypassStatus(args),
+
+  // commonsensepass-tool.ts
+  commonsensepass_check:    (args) => commonsensepassCheck(args),
+  commonsensepass_rules:    (args) => commonsensepassRules(),
 
   // crews-tool.ts
   start_crew_run: (args) => crewsStartRun(args),

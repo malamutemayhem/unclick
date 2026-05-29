@@ -276,11 +276,6 @@ BEGIN
     LIMIT 50
   ) hot_facts;
 
-  UPDATE extracted_facts
-  SET access_count = access_count + 1,
-      last_accessed = now()
-  WHERE status = 'active' AND decay_tier = 'hot';
-
   result := jsonb_build_object(
     'business_context', ctx,
     'knowledge_library_index', lib,

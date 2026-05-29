@@ -74,6 +74,15 @@ export const dogfoodReport = {
       nextStep: "Promote to scheduled proof once the credential path is consistently healthy.",
     },
     {
+      id: "commonsensepass",
+      name: "CommonSensePass",
+      stage: "live_gate",
+      label: "Live worker sanity gate",
+      automation: "MCP verdict tool for heartbeat, no-work, done, merge-ready, and duplicate-wake claims",
+      mentionProfile: "Rising mention volume because it catches false quiet, stale proof, and duplicate wake claims.",
+      nextStep: "Make worker protocols call it before trusted PASS, DONE, READY, or quiet claims.",
+    },
+    {
       id: "securitypass",
       name: "SecurityPass",
       stage: "scope_gated",
@@ -147,6 +156,16 @@ export const dogfoodReport = {
       nextProof: "Set one UXPass workflow secret, then rerun the dogfood report workflow.",
     },
     {
+      id: "commonsensepass",
+      name: "CommonSensePass",
+      status: "pending",
+      summary: "MCP verdict tool is wired for worker sanity checks; public dogfood still needs a live receipt.",
+      evidence: "commonsensepass_check exposes deterministic evidence-bound verdicts for worker state claims.",
+      checkedAt: "2026-05-01T17:16:13.158Z",
+      reasonCode: "planned_runner",
+      nextProof: "Run commonsensepass_check in the dogfood workflow before marking this passing.",
+    },
+    {
       id: "securitypass",
       name: "SecurityPass",
       status: "blocked",
@@ -200,7 +219,7 @@ export const dogfoodReport = {
     },
   ] satisfies DogfoodPassResult[],
   trend: [
-    { date: "2026-05-01", passing: 1, failing: 0, blocked: 2, pending: 4 },
+    { date: "2026-05-01", passing: 1, failing: 0, blocked: 2, pending: 5 },
   ] satisfies DogfoodTrendPoint[],
   lastActionableFailure: {
     title: "UXPass needs attention",

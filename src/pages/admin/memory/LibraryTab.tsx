@@ -1,8 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
-import { ChevronDown, ChevronRight, BookOpen, History } from "lucide-react";
+import { ChevronDown, ChevronRight, BookOpen, History, Layers } from "lucide-react";
 import EmptyState from "./EmptyState";
 
-interface LibraryDoc {
+export interface LibrarySourceRef {
+  kind: string;
+  id: string;
+}
+
+export interface LibraryDoc {
   id: string;
   slug: string;
   title: string;
@@ -12,6 +17,11 @@ interface LibraryDoc {
   updated_at: string;
   decay_tier?: string;
   content?: string;
+  primary_category?: string | null;
+  secondary_categories?: string[];
+  source_refs?: LibrarySourceRef[];
+  source_count?: number;
+  summary?: string | null;
 }
 
 interface HistoryEntry {
@@ -31,6 +41,39 @@ const DECAY_COLORS: Record<string, string> = {
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function shelfSortKey(label: string): string {
+  const match = label.match(/^(\d{2})\s/);
+  return match ? match[1] : `99-${label.toLowerCase()}`;
+}
+
+export interface LibraryShelfGroup {
+  label: string;
+  docs: LibraryDoc[];
+}
+
+export function shelfLabelForDoc(doc: LibraryDoc): string {
+  return doc.primary_category || doc.category || "Unfiled";
+}
+
+export function groupLibraryDocsByShelf(docs: LibraryDoc[]): LibraryShelfGroup[] {
+  const groups = new Map<string, LibraryDoc[]>();
+  for (const doc of docs) {
+    const label = shelfLabelForDoc(doc);
+    groups.set(label, [...(groups.get(label) ?? []), doc]);
+  }
+  return Array.from(groups.entries())
+    .map(([label, shelfDocs]) => ({
+      label,
+      docs: [...shelfDocs].sort((a, b) => b.updated_at.localeCompare(a.updated_at)),
+    }))
+    .sort((a, b) => shelfSortKey(a.label).localeCompare(shelfSortKey(b.label)));
+}
+
+function sourceLabel(source: LibrarySourceRef): string {
+  const shortId = source.id.length > 10 ? source.id.slice(0, 10) : source.id;
+  return `${source.kind}:${shortId}`;
 }
 
 export default function LibraryTab({ apiKey }: { apiKey: string }) {
@@ -65,6 +108,7 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
       return;
     }
     setExpandedId(doc.id);
+    setDocContent(null);
     setDocLoading(true);
     setHistorySlug(null);
     try {
@@ -121,91 +165,133 @@ export default function LibraryTab({ apiKey }: { apiKey: string }) {
     );
   }
 
+  const shelfGroups = groupLibraryDocsByShelf(docs);
+
   return (
-    <div className="space-y-3">
-      {docs.map((doc) => {
-        const isExpanded = expandedId === doc.id;
-        const showingHistory = historySlug === doc.slug;
+    <div className="space-y-5">
+      {shelfGroups.map((group) => (
+        <section key={group.label} className="space-y-2">
+          <div className="flex items-center justify-between gap-3 px-1">
+            <h3 className="flex min-w-0 items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/45">
+              <Layers className="h-3.5 w-3.5 shrink-0 text-[#61C1C4]/70" />
+              <span className="truncate">{group.label}</span>
+            </h3>
+            <span className="shrink-0 text-[10px] text-white/25">{group.docs.length} snapshot{group.docs.length === 1 ? "" : "s"}</span>
+          </div>
 
-        return (
-          <div key={doc.id} className="rounded-lg border border-white/[0.06] bg-white/[0.03] overflow-hidden">
-            <button
-              onClick={() => viewDoc(doc)}
-              className="flex w-full items-start gap-3 p-4 text-left hover:bg-white/[0.02] transition-colors"
-            >
-              {isExpanded
-                ? <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-white/30" />
-                : <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-white/30" />
-              }
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm text-white">{doc.title}</span>
-                  {doc.decay_tier && (
-                    <span className="flex items-center gap-1 text-[10px] text-white/30">
-                      <span className={`inline-block h-1.5 w-1.5 rounded-full ${DECAY_COLORS[doc.decay_tier] ?? "bg-gray-500"}`} />
-                      {doc.decay_tier}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-1 flex items-center gap-2 text-[10px] text-white/30">
-                  <code className="font-mono text-white/40">{doc.slug}</code>
-                  <span>v{doc.version}</span>
-                  <span>updated {formatDate(doc.updated_at)}</span>
-                </div>
-                {(doc.tags ?? []).length > 0 && (
-                  <div className="mt-1.5 flex flex-wrap gap-1">
-                    {doc.tags!.map((t) => (
-                      <span key={t} className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-white/40">{t}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </button>
+          {group.docs.map((doc) => {
+            const isExpanded = expandedId === doc.id;
+            const showingHistory = historySlug === doc.slug;
 
-            {isExpanded && (
-              <div className="border-t border-white/[0.06] p-4 space-y-3">
-                {docLoading ? (
-                  <p className="text-xs text-white/30">Loading snapshot...</p>
-                ) : docContent ? (
-                  <pre className="max-h-96 overflow-auto rounded-lg bg-white/[0.02] p-4 text-xs text-white/60 whitespace-pre-wrap font-mono">
-                    {docContent}
-                  </pre>
-                ) : (
-                  <p className="text-xs text-white/30">No content available.</p>
-                )}
-
+            return (
+              <div key={doc.id} className="overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.03]">
                 <button
-                  onClick={() => viewHistory(doc.slug)}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.06] px-3 py-1.5 text-xs text-white/50 hover:bg-white/[0.04] hover:text-white transition-colors"
+                  onClick={() => viewDoc(doc)}
+                  className="flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-white/[0.02]"
                 >
-                  <History className="h-3 w-3" />
-                  {showingHistory ? "Hide History" : "Snapshot History"}
+                  {isExpanded
+                    ? <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-white/30" />
+                    : <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-white/30" />
+                  }
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-sm text-white">{doc.title}</span>
+                      {doc.source_count ? (
+                        <span className="rounded bg-[#61C1C4]/10 px-1.5 py-0.5 text-[10px] text-[#61C1C4]/80">
+                          {doc.source_count} source{doc.source_count === 1 ? "" : "s"}
+                        </span>
+                      ) : null}
+                      {doc.decay_tier && (
+                        <span className="flex items-center gap-1 text-[10px] text-white/30">
+                          <span className={`inline-block h-1.5 w-1.5 rounded-full ${DECAY_COLORS[doc.decay_tier] ?? "bg-gray-500"}`} />
+                          {doc.decay_tier}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-white/30">
+                      <code className="font-mono text-white/40">{doc.slug}</code>
+                      <span>v{doc.version}</span>
+                      <span>updated {formatDate(doc.updated_at)}</span>
+                    </div>
+                    {doc.summary && (
+                      <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-white/45">{doc.summary}</p>
+                    )}
+                    {(doc.tags ?? []).length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {doc.tags!.map((t) => (
+                          <span key={t} className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-white/40">{t}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </button>
 
-                {showingHistory && (
-                  <div className="space-y-2">
-                    {historyLoading ? (
-                      <p className="text-xs text-white/30">Loading history...</p>
-                    ) : history.length === 0 ? (
-                      <p className="text-xs text-white/30">No version history found.</p>
+                {isExpanded && (
+                  <div className="space-y-3 border-t border-white/[0.06] p-4">
+                    {(doc.secondary_categories ?? []).length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {doc.secondary_categories!.map((category) => (
+                          <span key={category} className="rounded bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-white/35">
+                            {category}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {docLoading ? (
+                      <p className="text-xs text-white/30">Loading snapshot...</p>
+                    ) : docContent ? (
+                      <pre className="max-h-96 overflow-auto rounded-lg bg-white/[0.02] p-4 text-xs text-white/60 whitespace-pre-wrap font-mono">
+                        {docContent}
+                      </pre>
                     ) : (
-                      history.map((h) => (
-                        <div key={h.id} className="rounded border border-white/[0.04] bg-white/[0.01] p-3">
-                          <div className="flex items-center gap-2 text-[10px] text-white/30">
-                            <span className="font-semibold text-white/50">v{h.version}</span>
-                            <span>{formatDate(h.created_at)}</span>
-                          </div>
-                          <p className="mt-1 text-xs text-white/40 line-clamp-3">{h.content}</p>
-                        </div>
-                      ))
+                      <p className="text-xs text-white/30">No content available.</p>
+                    )}
+
+                    {(doc.source_refs ?? []).length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {doc.source_refs!.map((source) => (
+                          <span key={`${source.kind}:${source.id}`} className="rounded border border-white/[0.06] px-1.5 py-0.5 text-[10px] text-white/35">
+                            {sourceLabel(source)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => viewHistory(doc.slug)}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.06] px-3 py-1.5 text-xs text-white/50 transition-colors hover:bg-white/[0.04] hover:text-white"
+                    >
+                      <History className="h-3 w-3" />
+                      {showingHistory ? "Hide History" : "Snapshot History"}
+                    </button>
+
+                    {showingHistory && (
+                      <div className="space-y-2">
+                        {historyLoading ? (
+                          <p className="text-xs text-white/30">Loading history...</p>
+                        ) : history.length === 0 ? (
+                          <p className="text-xs text-white/30">No version history found.</p>
+                        ) : (
+                          history.map((h) => (
+                            <div key={h.id} className="rounded border border-white/[0.04] bg-white/[0.01] p-3">
+                              <div className="flex items-center gap-2 text-[10px] text-white/30">
+                                <span className="font-semibold text-white/50">v{h.version}</span>
+                                <span>{formatDate(h.created_at)}</span>
+                              </div>
+                              <p className="mt-1 text-xs text-white/40 line-clamp-3">{h.content}</p>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        );
-      })}
+            );
+          })}
+        </section>
+      ))}
     </div>
   );
 }

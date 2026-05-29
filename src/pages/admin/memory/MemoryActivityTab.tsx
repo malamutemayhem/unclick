@@ -26,7 +26,12 @@ interface ActivityData {
     category: string;
     access_count: number;
     decay_tier: string;
+    confidence?: number;
+    created_at?: string;
+    last_accessed?: string;
   }>;
+  top_facts_limit?: number;
+  top_facts_total?: number;
 }
 
 const DECAY_COLORS: Record<string, string> = {
@@ -39,13 +44,22 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+export function nextTopFactLimit(current: number, total: number, step = 100, max = 250): number {
+  return Math.min(Math.max(current + step, step), Math.max(total, current), max);
+}
+
 export default function MemoryActivityTab({ apiKey }: { apiKey: string }) {
   const [data, setData] = useState<ActivityData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [topFactLimit, setTopFactLimit] = useState(10);
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/memory-admin?action=admin_memory_activity", {
+      const params = new URLSearchParams({
+        action: "admin_memory_activity",
+        top_facts_limit: String(topFactLimit),
+      });
+      const res = await fetch(`/api/memory-admin?${params.toString()}`, {
         headers: { Authorization: `Bearer ${apiKey}` },
       });
       if (res.ok) {
@@ -54,7 +68,7 @@ export default function MemoryActivityTab({ apiKey }: { apiKey: string }) {
     } finally {
       setLoading(false);
     }
-  }, [apiKey]);
+  }, [apiKey, topFactLimit]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -74,6 +88,8 @@ export default function MemoryActivityTab({ apiKey }: { apiKey: string }) {
 
   const sortedDays = Object.entries(data.facts_by_day).sort(([a], [b]) => a.localeCompare(b));
   const maxCount = Math.max(1, ...sortedDays.map(([, c]) => c));
+  const topFactsTotal = data.top_facts_total ?? data.top_facts.length;
+  const canShowMoreTopFacts = data.top_facts.length < topFactsTotal;
 
   return (
     <div className="space-y-6">
@@ -104,29 +120,51 @@ export default function MemoryActivityTab({ apiKey }: { apiKey: string }) {
       {/* Top accessed facts */}
       {data.top_facts.length > 0 && (
         <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">
-          <h3 className="flex items-center gap-2 text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
-            <Zap className="h-3.5 w-3.5" />
-            Most Accessed Facts
-          </h3>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h3 className="flex items-center gap-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
+              <Zap className="h-3.5 w-3.5" />
+              Top of Mind Facts
+            </h3>
+            <span className="text-[10px] text-white/30">
+              Showing {data.top_facts.length} of {topFactsTotal}
+            </span>
+          </div>
           <div className="space-y-2">
             {data.top_facts.map((f) => (
               <div key={f.id} className="flex items-start gap-3">
                 <span className="shrink-0 rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-mono text-white/40">
-                  {f.access_count}x
+                  {f.confidence !== undefined ? `${Math.round(f.confidence * 100)}%` : "fact"}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-white/60 line-clamp-1">{f.fact}</p>
                   <div className="mt-0.5 flex items-center gap-2">
                     <span className="text-[10px] text-white/25">{f.category}</span>
+                    {f.created_at && (
+                      <span className="text-[10px] text-white/25">{formatDate(f.created_at)}</span>
+                    )}
                     <span className="flex items-center gap-1 text-[10px] text-white/25">
                       <span className={`inline-block h-1.5 w-1.5 rounded-full ${DECAY_COLORS[f.decay_tier] ?? "bg-gray-500"}`} />
                       {f.decay_tier}
                     </span>
+                    {f.access_count > 0 && (
+                      <span className="text-[10px] text-white/20">{f.access_count} legacy reads</span>
+                    )}
                   </div>
                 </div>
               </div>
             ))}
           </div>
+          {canShowMoreTopFacts && (
+            <div className="mt-4 border-t border-white/[0.06] pt-3">
+              <button
+                type="button"
+                onClick={() => setTopFactLimit((current) => nextTopFactLimit(current, topFactsTotal))}
+                className="rounded-md border border-white/[0.08] px-3 py-1.5 text-xs text-white/60 transition-colors hover:bg-white/[0.04] hover:text-white"
+              >
+                Show 100 more
+              </button>
+            </div>
+          )}
         </div>
       )}
 

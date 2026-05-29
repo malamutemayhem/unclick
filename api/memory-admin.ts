@@ -339,6 +339,75 @@ function getClampedLimit(value: unknown, fallback = 50, max = 200): number {
   return Math.min(Math.floor(parsed), max);
 }
 
+type LibrarySourceRef = {
+  kind: string;
+  id: string;
+};
+
+type LibrarySnapshotMetadata = {
+  primary_category: string | null;
+  secondary_categories: string[];
+  source_refs: LibrarySourceRef[];
+  source_count: number;
+  summary: string | null;
+};
+
+type LibraryMetadataRow = {
+  slug?: string | null;
+  category?: string | null;
+  content?: string | null;
+};
+
+function parseSnapshotLine(content: string | null | undefined, label: string): string | null {
+  if (!content) return null;
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = content.match(new RegExp(`^${escaped}:\\s*(.+)$`, "im"));
+  return match?.[1]?.trim() || null;
+}
+
+function parseCsvSnapshotLine(content: string | null | undefined, label: string): string[] {
+  const line = parseSnapshotLine(content, label);
+  if (!line) return [];
+  return line
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseLibrarySourceRefs(content: string | null | undefined): LibrarySourceRef[] {
+  return parseCsvSnapshotLine(content, "Sources")
+    .map((raw) => {
+      const idx = raw.indexOf(":");
+      if (idx <= 0 || idx === raw.length - 1) return null;
+      return { kind: raw.slice(0, idx).trim(), id: raw.slice(idx + 1).trim() };
+    })
+    .filter((source): source is LibrarySourceRef => Boolean(source?.kind && source.id));
+}
+
+function deriveLibrarySnapshotMetadata(row: LibraryMetadataRow): LibrarySnapshotMetadata {
+  const content = row.content ?? "";
+  const category = row.category?.trim() || null;
+  const primary = parseSnapshotLine(content, "Primary category") ?? (category && /^\d{2}\s/.test(category) ? category : null);
+  const primaryMarker = content.search(/^Primary category:\s*/im);
+  const bodyBeforeMetadata = primaryMarker >= 0 ? content.slice(0, primaryMarker) : content;
+  const summary = bodyBeforeMetadata
+    .replace(/^#\s+.+$/m, "")
+    .trim()
+    .slice(0, 1200) || null;
+  const sourceRefs = parseLibrarySourceRefs(content);
+  return {
+    primary_category: primary,
+    secondary_categories: parseCsvSnapshotLine(content, "Secondary categories"),
+    source_refs: sourceRefs,
+    source_count: sourceRefs.length,
+    summary,
+  };
+}
+
+function withLibrarySnapshotMetadata<T extends LibraryMetadataRow>(row: T): T & LibrarySnapshotMetadata {
+  return { ...row, ...deriveLibrarySnapshotMetadata(row) };
+}
+
 function getRequestBaseUrl(req: VercelRequest): string | null {
   const explicit = process.env.EMBED_API_URL?.replace(/\/$/, "");
   if (explicit) return explicit;
@@ -3719,7 +3788,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .eq("id", docId)
             .single();
           if (error) throw error;
-          return res.status(200).json({ data });
+          return res.status(200).json({ data: data ? withLibrarySnapshotMetadata(data) : data });
         }
 
         if (method === "history") {
@@ -3738,11 +3807,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // list
         const { data, error } = await supabase
           .from("mc_knowledge_library")
-          .select("id, slug, title, updated_at, version, decay_tier, category, tags")
+          .select("id, slug, title, updated_at, version, decay_tier, category, tags, content")
           .eq("api_key_hash", apiKeyHash)
           .order("updated_at", { ascending: false });
         if (error) throw error;
-        return res.status(200).json({ data: data ?? [] });
+        return res.status(200).json({
+          data: (data ?? []).map((row) => {
+            const enriched = withLibrarySnapshotMetadata(row);
+            const listRow = { ...enriched };
+            delete (listRow as { content?: unknown }).content;
+            return listRow;
+          }),
+        });
       }
 
       case "admin_memory_activity": {
@@ -3782,14 +3858,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .order("updated_at", { ascending: false })
           .limit(20);
 
-        // Most accessed facts
-        const { data: topFacts } = await supabase
+        const topFactLimit = getClampedLimit(
+          req.query.top_facts_limit ?? req.body?.top_facts_limit,
+          10,
+          250
+        );
+
+        // Top-of-mind facts. This intentionally uses creation recency rather
+        // than access_count because startup memory loads used to inflate that
+        // counter in the background.
+        const { data: topFacts, count: topFactsTotal } = await supabase
           .from("mc_extracted_facts")
-          .select("id, fact, category, access_count, decay_tier")
+          .select("id, fact, category, access_count, decay_tier, confidence, created_at, last_accessed", {
+            count: "exact",
+          })
           .eq("api_key_hash", apiKeyHash)
           .eq("status", "active")
-          .order("access_count", { ascending: false })
-          .limit(10);
+          .is("invalidated_at", null)
+          .order("created_at", { ascending: false })
+          .order("confidence", { ascending: false })
+          .limit(topFactLimit);
 
         return res.status(200).json({
           facts_by_day: factsByDay,
@@ -3805,6 +3893,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           },
           recent_decay: recentDecay ?? [],
           top_facts: topFacts ?? [],
+          top_facts_limit: topFactLimit,
+          top_facts_total: topFactsTotal ?? (topFacts ?? []).length,
         });
       }
 
@@ -6515,7 +6605,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (runErr) {
           const errCode = (runErr as { code?: string }).code;
           if (normalizedTaskId && errCode === "23505") {
-            // STALE_RUN check intentionally omitted — relies on synchronous handler invariant.
+            // STALE_RUN check intentionally omitted, relies on synchronous handler invariant.
             // If a runner is ever made async, add a `last_heartbeat`-based stale-run gate here
             // before returning was_duplicate=true on a still-running task_id.
             const { data: existing } = await supabase
