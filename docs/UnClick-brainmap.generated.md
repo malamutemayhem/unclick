@@ -13,7 +13,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 562ec208aa54 | 16311 |
+| AUTOPILOT.md | 486b704a6072 | 16305 |
 | FLEET_SYNC.md | 41ebcbca94b0 | 13200 |
 | docs/unclick-context-boot-packet.md | 7cf131cf22e0 | 4785 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
@@ -31,7 +31,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
 | scripts/pinballwake-coding-room.mjs | 9fa5689c555e | 25310 |
-| scripts/pinballwake-continuous-improvement-room.mjs | c41cf0bacf97 | 14872 |
+| scripts/pinballwake-continuous-improvement-room.mjs | 3c29a5066e56 | 20270 |
 | scripts/pinballwake-dogfood-room.mjs | d161028d1382 | 2782 |
 | scripts/pinballwake-event-ledger-room.mjs | e8f8f9f84123 | 16104 |
 | scripts/pinballwake-jobs-room.mjs | c77c394081c2 | 14217 |
@@ -102,7 +102,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/publish-channel-package.yml | 5c9197848ca9 | 8046 |
 | .github/workflows/publish-mcp-package.yml | 9ab3fed97fef | 5749 |
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
-| .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
+| .github/workflows/scheduled-build-self-test.yml | 3860af89599b | 1213 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
 | .github/workflows/testpass-pr-check.yml | 398a44d83549 | 9548 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |

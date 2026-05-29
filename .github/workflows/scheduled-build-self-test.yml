@@ -46,3 +46,6 @@ jobs:
 
       - name: PinballWake proof-runner smoke
         run: node --test scripts/pinballwake-openhands-proof-runner.test.mjs
+
+      - name: PinballWake continuous improvement smoke
+        run: node --test scripts/pinballwake-continuous-improvement-room.test.mjs scripts/pinballwake-autopilot-master-loop.test.mjs

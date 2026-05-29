@@ -6612,8 +6612,8 @@
   "source_manifest": [
     {
       "source": "AUTOPILOT.md",
-      "hash": "562ec208aa54",
-      "bytes": 16311
+      "hash": "486b704a6072",
+      "bytes": 16305
     },
     {
       "source": "FLEET_SYNC.md",
@@ -6702,8 +6702,8 @@
     },
     {
       "source": "scripts/pinballwake-continuous-improvement-room.mjs",
-      "hash": "c41cf0bacf97",
-      "bytes": 14872
+      "hash": "3c29a5066e56",
+      "bytes": 20270
     },
     {
       "source": "scripts/pinballwake-dogfood-room.mjs",
@@ -7057,8 +7057,8 @@
     },
     {
       "source": ".github/workflows/scheduled-build-self-test.yml",
-      "hash": "1362b535ff33",
-      "bytes": 1024
+      "hash": "3860af89599b",
+      "bytes": 1213
     },
     {
       "source": ".github/workflows/seed-vault.yml",

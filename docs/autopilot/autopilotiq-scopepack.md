@@ -195,6 +195,44 @@ Required fields:
 | 5 | Gated learner | Acts only on pre-approved low-risk chip classes with kill switch. | PR, gate audit, rollback test, kill-switch test. |
 | 6 | Human feedback loop | Chris corrections become labeled signals visible in score and replay. | PR, sample feedback round trip, ingestion tests. |
 
+## Current Autopilot Wiring
+
+The existing `scripts/pinballwake-continuous-improvement-room.mjs` is the
+safe v0 bridge. It runs before normal Jobs work in the Autopilot Master Loop,
+scores repeated resistance, and can promote the highest-value signal into a
+front-of-line Coding Room job.
+
+As of this scopepack update, that bridge recognizes three AutopilotIQ-relevant
+signal families:
+
+- repeated operational friction, such as stale proof, duplicate claims, missing ACKs, and queue stalls
+- outcome learning signals, such as reward score, penalty score, replay lesson, success/failure rate, and next policy hint
+- AutopilotIQ Invent signals, such as market gaps, unique UnClick differentiators, creative product ideas, and safe experiment candidates
+
+This is still shadow-first. The bridge may create a scoped build or research
+job with proof requirements. It must not directly change production policy,
+mark work DONE, merge PRs, or ship a speculative product lane.
+
+## AutopilotIQ Invent
+
+AutopilotIQ Invent is the creative discovery sub-layer under AutopilotIQ. Its
+job is to notice unusual opportunities, market gaps, and UnClick-specific
+advantages, then turn the strongest ones into research-backed ScopePacks.
+
+Invent is allowed to:
+
+- collect source-linked ideas and gap signals
+- compare an idea against existing tools or product behavior
+- name the smallest safe experiment
+- route research and planning chips through the Continuous Improvement room
+
+Invent is not allowed to:
+
+- launch a new product lane directly
+- treat brainstorming as proof
+- bypass CopyRoom, ProofTruth, Boardroom source truth, or reviewer independence
+- use paid APIs, secrets, billing, DNS, legal/public claims, or production data without explicit approval
+
 ## Phase 1 Scope
 
 Build the recorder first. Do not build the learner first.

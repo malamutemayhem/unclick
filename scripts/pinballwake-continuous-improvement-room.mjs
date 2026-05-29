@@ -49,10 +49,12 @@ function coverageReasonKey(coverage) {
 function xpassAdvisoryFor(kind) {
   const advisory = ["CommonSensePass"];
   if (kind === "protected_surface_safeguard") advisory.push("SecurityPass");
+  else if (kind === "outcome_learning") advisory.push("TestPass", "SlopPass");
+  else if (kind === "invent_loop") advisory.push("CopyPass", "SEOPass");
   else if (kind === "proof_flow") advisory.push("ProofPass");
   else if (kind === "launchpad_routing") advisory.push("FlowPass");
   else if (kind === "merge_flow") advisory.push("MergePass");
-  else advisory.push("QualityPass");
+  else advisory.push("SlopPass");
   return advisory;
 }
 
@@ -68,17 +70,95 @@ function evidenceFor(top) {
   return evidence;
 }
 
+function numericSignalField(signal = {}, ...names) {
+  for (const name of names) {
+    const raw = signal[name];
+    if (raw === null || raw === undefined || raw === "") continue;
+    const value = Number(raw);
+    if (Number.isFinite(value)) return value;
+  }
+  return null;
+}
+
+function outcomeKindFor(signal = {}) {
+  const text = normalize(signalText(signal));
+  const success = signal.success === true || /\b(success|passed|green|merged|proof landed|checks passed|rescued|finished cleanly)\b/.test(text);
+  const failure = signal.failure === true || /\b(fail|failed|failure|blocked|false done|missing proof|duplicate claim|stale owner|wrong tool|wrong worker|unclear handoff)\b/.test(text);
+  if (success && failure) return "mixed";
+  if (success) return "success";
+  if (failure) return "failure";
+  return "unknown";
+}
+
+function scorecardFor(top = {}) {
+  const signal = top.signal || {};
+  const text = normalize(signalText(signal));
+  let rewardScore = numericSignalField(signal, "reward_score", "rewardScore") ?? 0;
+  let penaltyScore = numericSignalField(signal, "penalty_score", "penaltyScore") ?? 0;
+
+  if (/\b(proof landed|checks passed|screenshot proof|stale job rescued|correct worker|correct tool|finished cleanly)\b/.test(text)) {
+    rewardScore += 4;
+  }
+  if (/\b(chris not bothered|no human touch|zero touch|clear handoff)\b/.test(text)) {
+    rewardScore += 2;
+  }
+  if (/\b(false done|fake done|missing proof|duplicate claim|stale owner)\b/.test(text)) {
+    penaltyScore += 8;
+  }
+  if (/\b(failed ci|wrong tool|wrong worker|unclear handoff|unnecessary chris interruption)\b/.test(text)) {
+    penaltyScore += 5;
+  }
+
+  return {
+    outcome_kind: outcomeKindFor(signal),
+    reward_score: Math.max(0, rewardScore),
+    penalty_score: Math.max(0, penaltyScore),
+    net_score: Math.max(0, rewardScore) - Math.max(0, penaltyScore),
+    friction_score: top.score ?? 0,
+    scoring_mode: "shadow_only",
+  };
+}
+
+function shadowPolicyHintFor(top = {}) {
+  if (top.kind === "outcome_learning") {
+    return "Record the outcome, reward/penalty score, replay lesson, and next policy hint before allowing any gated learner action.";
+  }
+  if (top.kind === "invent_loop") {
+    return "Turn the idea into a research-backed ScopePack before implementation; do not ship a speculative product lane directly.";
+  }
+  if (top.kind === "proof_flow") {
+    return "Prefer proof-first repair over status updates; missing proof is the lesson, not a PASS.";
+  }
+  return "Create the smallest reversible improvement chip and keep the recommendation shadow-only until proof exists.";
+}
+
+function creativeDiscoveryFor(top = {}) {
+  if (top.kind !== "invent_loop") return null;
+  const signal = top.signal || {};
+  const text = normalize(signalText(signal));
+  return {
+    discovery_type: "autopilotiq_invent",
+    market_gap_signal: /\b(market gap|white space|unmet need|competitor gap|category empty)\b/.test(text),
+    uniqueness_signal: /\b(unique|differentiator|moat|only unclick|agent-native|proof-bound|copyroom|xpass|boardroom)\b/.test(text),
+    next_step: "Research the gap, compare existing tools, and produce one safe ScopePack with proof requirements.",
+  };
+}
+
 function proofRequiredFor(tests = []) {
   const testText = tests.length ? tests.join("; ") : "the smallest focused check for the touched files";
   return `Patch, non-overlap note, Boardroom proof, and tests: ${testText}`;
 }
 
 function nativeImproverReceipt({ top, job, tests, now, source, commonsensepass }) {
+  const creativeDiscovery = creativeDiscoveryFor(top);
   return {
     receipt_type: "native_improver_opportunity",
     emitted_at: now,
     source,
     commonsensepass,
+    autopilotiq_scorecard: scorecardFor(top),
+    shadow_policy_hint: shadowPolicyHintFor(top),
+    ...(creativeDiscovery ? { creative_discovery: creativeDiscovery } : {}),
     improvement_kind: top.kind,
     score: top.score,
     evidence: evidenceFor(top),
@@ -89,11 +169,15 @@ function nativeImproverReceipt({ top, job, tests, now, source, commonsensepass }
 }
 
 function nativeImproverHoldReceipt({ top, now, source, commonsensepass }) {
+  const creativeDiscovery = creativeDiscoveryFor(top);
   return {
     receipt_type: "native_improver_hold",
     emitted_at: now,
     source,
     commonsensepass,
+    autopilotiq_scorecard: scorecardFor(top),
+    shadow_policy_hint: shadowPolicyHintFor(top),
+    ...(creativeDiscovery ? { creative_discovery: creativeDiscovery } : {}),
     improvement_kind: top.kind,
     score: top.score,
     evidence: evidenceFor(top),
@@ -137,6 +221,8 @@ function frictionScore(signal = {}) {
   if (/(blocker|blocked|hold|failed|failure|error|unsafe|stale proof)/.test(text)) score += 25;
   if (/(stuck|resistance|manual|nudge|dormant|silent|no-op|idle|waiting|handoff|mirror|missing ack)/.test(text)) score += 18;
   if (/(merge|lift|draft|ack|review|qc|gatekeeper|popcorn|forge)/.test(text)) score += 10;
+  if (/(autopilotiq|scoreboard|reward|penalty|replay|lesson|feedback|outcome|success rate|failure rate|shadow recommendation|policy hint)/.test(text)) score += 22;
+  if (/(invent|market gap|white space|unmet need|competitor gap|unique to unclick|differentiator|moat|creative idea|product idea)/.test(text)) score += 22;
   if (/(security|secret|credential|token|payment|billing|auth|dns|migration|destructive)/.test(text)) score += 30;
   if (signal.resolved === true || /resolved|merged|fixed|closed/.test(text)) score -= 45;
 
@@ -147,6 +233,12 @@ function classifyImprovement(signal = {}) {
   const text = normalize(signalText(signal));
   if (/(security|secret|credential|token|payment|billing|auth|dns|migration|destructive)/.test(text)) {
     return "protected_surface_safeguard";
+  }
+  if (/(autopilotiq|scoreboard|reward|penalty|replay|lesson|feedback|outcome|success rate|failure rate|shadow recommendation|policy hint|policy tweak|learned threshold)/.test(text)) {
+    return "outcome_learning";
+  }
+  if (/(invent|market gap|white space|unmet need|competitor gap|unique to unclick|differentiator|moat|creative idea|product idea|new angle|category empty)/.test(text)) {
+    return "invent_loop";
   }
   if (/(ack|pass|blocker|review|gatekeeper|popcorn|forge|handoff|mirror)/.test(text)) {
     return "ack_handoff";
@@ -221,6 +313,26 @@ function ownedFilesFor(kind) {
       "scripts/pinballwake-autopilot-triage.test.mjs",
     ];
   }
+  if (kind === "outcome_learning") {
+    return [
+      "scripts/pinballwake-continuous-improvement-room.mjs",
+      "scripts/pinballwake-continuous-improvement-room.test.mjs",
+      "docs/autopilot/autopilotiq-scopepack.md",
+      "outputs/autopilotiq-canonical-spec.md",
+    ];
+  }
+  if (kind === "invent_loop") {
+    return [
+      "scripts/pinballwake-continuous-improvement-room.mjs",
+      "scripts/pinballwake-continuous-improvement-room.test.mjs",
+      "scripts/pinballwake-research-room.mjs",
+      "scripts/pinballwake-research-room.test.mjs",
+      "scripts/pinballwake-planning-room.mjs",
+      "scripts/pinballwake-planning-room.test.mjs",
+      "docs/autopilot/autopilotiq-scopepack.md",
+      "outputs/autopilotiq-canonical-spec.md",
+    ];
+  }
   return [
     "scripts/pinballwake-continuous-improvement-room.mjs",
     "scripts/pinballwake-continuous-improvement-room.test.mjs",
@@ -281,6 +393,8 @@ function chipFor(kind, signal = {}) {
     queue_flow: "Improve queue flow",
     proof_flow: "Improve proof/build flow",
     protected_surface_safeguard: "Improve protected-surface safeguard",
+    outcome_learning: "Improve AutopilotIQ learning loop",
+    invent_loop: "Explore AutopilotIQ Invent opportunity",
     general_improvement: "Improve Autopilot friction",
   }[kind];
   return `${prefix}: ${title || "captured resistance"}`;

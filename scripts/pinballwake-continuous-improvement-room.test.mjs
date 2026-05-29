@@ -115,6 +115,58 @@ describe("PinballWake Continuous Improvement Room", () => {
     assert(result.job.owned_files.includes("scripts/pinballwake-planning-room.mjs"));
   });
 
+  it("routes success and failure measurement gaps into the AutopilotIQ learning loop", () => {
+    const result = evaluateContinuousImprovementRoom({
+      now: "2026-05-19T01:00:00.000Z",
+      signals: [
+        {
+          type: "learning_gap",
+          title: "Outcome scoreboard is missing reward and penalty rows",
+          detail: "Success and failure outcomes need reward score, penalty score, replay lesson, and next policy hint.",
+          severity: "high",
+          count: 2,
+          reward_score: 4,
+          penalty_score: 8,
+        },
+      ],
+    });
+
+    assert.equal(result.result, "front_of_line_build");
+    assert.equal(result.improvement_kind, "outcome_learning");
+    assert(result.job.owned_files.includes("docs/autopilot/autopilotiq-scopepack.md"));
+    assert(result.job.owned_files.includes("outputs/autopilotiq-canonical-spec.md"));
+    assert.equal(result.receipt.autopilotiq_scorecard.outcome_kind, "mixed");
+    assert.equal(result.receipt.autopilotiq_scorecard.scoring_mode, "shadow_only");
+    assert(result.receipt.autopilotiq_scorecard.penalty_score >= result.receipt.autopilotiq_scorecard.reward_score);
+    assert.match(result.receipt.shadow_policy_hint, /reward\/penalty score/);
+    assert(result.receipt.xpass_advisory.includes("SlopPass"));
+  });
+
+  it("routes creative market-gap signals into AutopilotIQ Invent research", () => {
+    const result = evaluateContinuousImprovementRoom({
+      now: "2026-05-19T01:00:00.000Z",
+      signals: [
+        {
+          type: "invent",
+          title: "Market gap: proof-bound CopyRoom receipts for agents",
+          detail: "Creative idea unique to UnClick: agent-native fidelity receipts could become a differentiator and a safe ScopePack.",
+          severity: "medium",
+          count: 3,
+        },
+      ],
+    });
+
+    assert.equal(result.result, "front_of_line_build");
+    assert.equal(result.improvement_kind, "invent_loop");
+    assert.match(result.job.chip, /AutopilotIQ Invent/);
+    assert(result.job.owned_files.includes("scripts/pinballwake-research-room.mjs"));
+    assert(result.job.owned_files.includes("scripts/pinballwake-planning-room.mjs"));
+    assert.equal(result.receipt.creative_discovery.discovery_type, "autopilotiq_invent");
+    assert.equal(result.receipt.creative_discovery.market_gap_signal, true);
+    assert.equal(result.receipt.creative_discovery.uniqueness_signal, true);
+    assert.match(result.receipt.shadow_policy_hint, /research-backed ScopePack/);
+  });
+
   it("does not turn a resolved issue into a new build", () => {
     const result = evaluateContinuousImprovementRoom({
       signals: [
