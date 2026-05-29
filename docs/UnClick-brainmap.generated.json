@@ -7063,11 +7063,15 @@
     ],
     [
       "test",
-      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run"
+      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run && npm run test:api-lib-esm-extension"
     ],
     [
       "test:api",
       "npm run test --workspace=apps/api"
+    ],
+    [
+      "test:api-lib-esm-extension",
+      "node --test scripts/api-lib-esm-extension-guard.test.mjs"
     ],
     [
       "test:brainmap",
@@ -7182,8 +7186,8 @@
     },
     {
       "source": "package.json",
-      "hash": "bbceabab4654",
-      "bytes": 6285
+      "hash": "82100008ad1b",
+      "bytes": 6417
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",

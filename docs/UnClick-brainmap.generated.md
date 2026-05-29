@@ -30,7 +30,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | bbceabab4654 | 6285 |
+| package.json | 82100008ad1b | 6417 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -1144,8 +1144,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | build:dev | vite build --mode development |
 | compliancepass:report | npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs |
 | lint | eslint . |
-| test | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run |
+| test | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run && npm run test:api-lib-esm-extension |
 | test:api | npm run test --workspace=apps/api |
+| test:api-lib-esm-extension | node --test scripts/api-lib-esm-extension-guard.test.mjs |
 | test:brainmap | node --test scripts/UnClick-brainmap.test.mjs |
 | test:compliancepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
 | test:continuous-improvement-watch | node --test scripts/pinballwake-continuous-improvement-watch.test.mjs |
