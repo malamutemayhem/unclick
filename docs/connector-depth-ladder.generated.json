@@ -1,0 +1,2256 @@
+[
+  {
+    "app": "abn",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "algolia",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "alphavantage",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "amazon",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "anthropic",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "assemblyai",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "bandsintown",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "bluesky",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "bungie",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "carboninterface",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "chessdotcom",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "circleci",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "cohere",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "coinmarketcap",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "convertkit",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "datadog",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "deepl",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "deezer",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "discogs",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "discord",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "ebird",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "elevenlabs",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "email",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "espn",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "eventbrite",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "figma",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "flyio",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "foursquare",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "fpl",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "gdelt",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "genius",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "groq",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "guardian",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "gumroad",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "hackernews",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "heygen",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "higgsfield",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "instapaper",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "ipapi",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "kling",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "lastfm",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "lego",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "lemonsqueezy",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "lichess",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "line",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "mailchimp",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "mapbox",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": true,
+      "agentic": false
+    }
+  },
+  {
+    "app": "mastodon",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "meal",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true
+    }
+  },
+  {
+    "app": "mistral",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "mixpanel",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "musicbrainz",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "nasa",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "neon",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "newsapi",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "omdb",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "openai",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "openaq",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "openexchangerates",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "openf1",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "openfoodfacts",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "openlibrary",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "openmeteo",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "pagerduty",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "pandascore",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "pika",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "pinecone",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "podcastindex",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "postmark",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "ptv",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": true,
+      "proactive": true,
+      "agentic": false
+    }
+  },
+  {
+    "app": "pushover",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "radiobrowser",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "rawg",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "render",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "replicate",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "restcountries",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "riot",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "runway",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "seatgeek",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "segment",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "sendgrid",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "setlistfm",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "sleeper",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "spotify",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "stability",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "supercell",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "telegram",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "ticketmaster",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "tmdb",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "togetherai",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "tomorrowio",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "turso",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "twilio",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "twitch",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "untappd",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "upstash",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "usgs",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "whatsapp",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "wise",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "yelp",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "youtube",
+    "level": 1,
+    "levelName": "Wrapper",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": false,
+      "resilient": false,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "abuseipdb",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "airtable",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "amber",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "asana",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "australiapost",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "bgg",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "calendly",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "clickup",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "clockify",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "coingecko",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "domain",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "ebay",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "etsy",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "exchangerate",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "feedly",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "github",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "gitlab",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "haveibeenpwned",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "hunter",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "igdb",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "ipaustralia",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "linear",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "monday",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "monica",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "notion",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "nvd",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "paypal",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "perplexity",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": false,
+      "tested": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "pinterest",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "plaid",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "postman",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "quickbooks",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "raindrop",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "readwise",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "reddit",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "resend",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "sendle",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "sentry",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "shodan",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "shopify",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "slack",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "speedrun",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "splitwise",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "square",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "steam",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "stripe",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "tab",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "thelott",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "tiktok",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "toggl",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "toilets",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "trello",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "trivia",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "trove",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "urlscan",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "vercel",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "virustotal",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "willyweather",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "woocommerce",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  },
+  {
+    "app": "xero",
+    "level": 2,
+    "levelName": "Reliable",
+    "signals": {
+      "callsApi": true,
+      "handlesErrors": true,
+      "resilient": true,
+      "tested": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false
+    }
+  }
+]
