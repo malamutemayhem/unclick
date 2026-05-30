@@ -1,0 +1,33 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.malamutemayhem/spotify",
+  "title": "Spotify MCP by UnClick",
+  "description": "Search Spotify for tracks, artists, albums, and playlists, with audio features and recommendations. By UnClick (https://unclick.world).",
+  "version": "0.1.0",
+  "websiteUrl": "https://unclick.world",
+  "icons": [
+    {
+      "src": "https://unclick.world/favicon.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "source": "github",
+    "subfolder": "packages/standalone/spotify-mcp"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@unclick/spotify-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
