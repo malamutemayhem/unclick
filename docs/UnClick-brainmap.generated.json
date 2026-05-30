@@ -8327,8 +8327,8 @@
     },
     {
       "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "70d540c397a5",
-      "bytes": 31503
+      "hash": "3cbadbc448a0",
+      "bytes": 33377
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",

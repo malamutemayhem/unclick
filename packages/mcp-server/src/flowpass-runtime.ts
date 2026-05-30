@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment, no-var */
 // @ts-nocheck
 /* Generated from @unclick/flowpass source so Vercel bundles FlowPass with the MCP function. */
 
