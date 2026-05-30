@@ -29,6 +29,7 @@ describe("runtime tool schema validation", () => {
     { name: "commonsensepass_protocol", args: { bogus_field: "should reject" } },
     { name: "commonsensepass_check", args: { claim: "quiet", context: { now_ms: 1 }, bogus_field: "should reject" } },
     { name: "commonsensepass_rules", args: { include_fixtures: false, bogus_field: "should reject" } },
+    { name: "fidelitypass_verify_copy", args: { copy_scope: "not_applicable", bogus_field: "should reject" } },
     { name: "list_expressroom_drafts", args: { agent_id: "strict-probe", bogus_field: "should reject" } },
     {
       name: "ack_handoff",
@@ -125,6 +126,20 @@ describe("runtime tool schema validation", () => {
     })).toBeNull();
     expect(validateToolArgumentsForRuntime("commonsensepass_rules", {
       include_fixtures: false,
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("fidelitypass_verify_copy", {
+      copy_scope: "not_applicable",
+      scope_reason: "No exact copy is in scope for this target.",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("fidelitypass_verify_copy", {
+      copy_scope: "exact_copy",
+      copyroom_source_packet: {
+        source_id: "source-1",
+        source_pointer: "copyroom://source-1",
+        text: "Exact source",
+      },
+      output_text: "Exact source",
+      mode: "text_exact",
     })).toBeNull();
     expect(validateToolArgumentsForRuntime("list_expressroom_drafts", {
       agent_id: "strict-probe",

@@ -12839,11 +12839,24 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "fidelitypass_verify_copy",
     description:
-      "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes. Missing bytes, stale metadata, or prose-only AI proof cannot PASS.",
+      "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes, or return N/A when no exact 1:1 copy is in scope. Missing bytes, stale metadata, or prose-only AI proof cannot PASS.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
+        exact_copy_required: {
+          type: "boolean",
+          description: "Set false only when the target has no exact 1:1 copy, transcription, mirroring, or preservation scope. Returns N/A.",
+        },
+        copy_scope: {
+          type: "string",
+          enum: ["exact_copy", "not_applicable"],
+          description: "Explicit FidelityPass scope. Use not_applicable to record the XPass N/A row when no exact copy is in scope.",
+        },
+        scope_reason: {
+          type: "string",
+          description: "Reason why FidelityPass is N/A for this target. Used only when exact_copy_required=false or copy_scope=not_applicable.",
+        },
         source_text: { type: "string", description: "Exact source text to verify. Mutually exclusive with source_base64." },
         source_base64: { type: "string", description: "Exact source bytes as base64. Mutually exclusive with source_text." },
         copyroom_source_packet: {
