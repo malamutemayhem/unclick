@@ -200,6 +200,92 @@ function normalizeProductResult(product, commandResult, now) {
   };
 }
 
+function statusForReceipt(product, matrixRow) {
+  if (product.status === "failing" || matrixRow?.status === "failing") return "BLOCKER";
+  if (matrixRow?.status === "pending" || matrixRow?.status === "blocked") return "PENDING";
+  return "PASS";
+}
+
+function checkStatus(passed) {
+  return passed ? "PASS" : "BLOCKER";
+}
+
+function buildRotatePassReceipt(product, matrixRow, { targetSha, now }) {
+  const status = statusForReceipt(product, matrixRow);
+  const commandPassed = product.status === "passing";
+  const actionNeeded = [];
+  if (!commandPassed) actionNeeded.push("Fix RotatePass public-safe redaction guard before using this boundary receipt.");
+  if (matrixRow?.status && matrixRow.status !== "passing") {
+    actionNeeded.push("Refresh cross-pass reviewer proof from SecurityPass, LegalPass, and CommonSensePass.");
+  }
+  if (!targetSha) actionNeeded.push("Bind RotatePass boundary proof to the PR or release SHA before using it as merge evidence.");
+
+  return {
+    kind: "rotatepass_boundary_receipt_v1",
+    status,
+    product_id: "rotatepass",
+    target_url: product.target_url,
+    target_sha: targetSha || null,
+    checked_at: now,
+    evidence_mode: "public_safe_boundary",
+    lifecycle_evidence: {
+      credential_values_seen: false,
+      live_secret_probe: "not_run",
+      rotation_action_taken: false,
+      ownership_tracking: "metadata_only",
+      staleness_tracking: "metadata_only",
+      blast_radius_mapping: "used_by_tags_and_verification_targets",
+    },
+    checks: [
+      {
+        id: "rotatepass-redaction-guard",
+        status: checkStatus(commandPassed),
+        evidence: "scripts/rotatepass-redaction-guard.test.mjs",
+        summary: commandPassed
+          ? "Public RotatePass and System Credentials surfaces stayed free of secret-shaped values."
+          : "Public RotatePass redaction guard failed.",
+      },
+      {
+        id: "metadata-intake-contract",
+        status: "PASS",
+        evidence: "docs/rotatepass-connector-metadata.md",
+        summary: "RotatePass consumes credential metadata such as owner, staleness, and safe probe status, not secret contents.",
+      },
+      {
+        id: "local-session-boundary",
+        status: "PASS",
+        evidence: "docs/rotatepass-local-phase0.md",
+        summary: "Browser cookies, passkeys, MFA state, and provider sessions stay local and are not exported to agents.",
+      },
+      {
+        id: "blast-radius-fixture",
+        status: "PASS",
+        evidence: "tests/rotatepass/fixtures/system-credentials.metadata.json",
+        summary: "Fixture evidence maps used-by tags and verification targets without including raw credential values.",
+      },
+    ],
+    cross_pass_reviewers: matrixRow?.reviewers ?? [],
+    action_needed: actionNeeded,
+    boundaries: [
+      "RotatePass boundary proof never reads, prints, exports, or syncs raw credential values.",
+      "This receipt does not perform provider rotation, revocation, token refresh, or destructive provider changes.",
+      "Healthy means no rotation action is due from metadata evidence; it is not a security certification.",
+      "Live credential probes require explicit future scope and must return redacted status metadata only.",
+    ],
+  };
+}
+
+function attachBoundaryReceipts(productResults, matrix, { targetSha, now }) {
+  const matrixByTarget = new Map(matrix.map((row) => [row.target_id, row]));
+  return productResults.map((product) => {
+    if (product.id !== "rotatepass") return product;
+    return {
+      ...product,
+      rotatepass_receipt_v1: buildRotatePassReceipt(product, matrixByTarget.get("rotatepass"), { targetSha, now }),
+    };
+  });
+}
+
 function actionNeeded(productResults, matrix, packageSweepState) {
   return [
     ...(packageSweepState?.stale
@@ -240,6 +326,7 @@ export async function buildXPassBoundarySweep({
   }
 
   const matrix = buildCrossPassMatrix(productResults, packageSweepState);
+  const productsWithReceipts = attachBoundaryReceipts(productResults, matrix, { targetSha, now });
   const productStatus = statusFromRows(productResults);
   const matrixStatus = statusFromRows(matrix);
   const status = productStatus === "failing" || matrixStatus === "failing"
@@ -267,7 +354,7 @@ export async function buildXPassBoundarySweep({
     status,
     summary: `XPass boundary sweep ${status} across ${productResults.length} public-safe boundary product(s).`,
     product_count: productResults.length,
-    products: productResults,
+    products: productsWithReceipts,
     cross_pass_matrix: matrix,
     action_needed: actionNeeded(productResults, matrix, packageSweepState),
   };

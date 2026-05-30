@@ -57,6 +57,24 @@ test("XPass boundary sweep records public-safe boundary and cross-pass proof", a
     assert.equal(rotatepass?.status, "passing");
     assert.equal(rotatepass?.proof.kind, "public_safe_boundary_test");
     assert.match(rotatepass?.summary ?? "", /public-safe boundary tests passed/i);
+    assert.equal(rotatepass?.rotatepass_receipt_v1?.kind, "rotatepass_boundary_receipt_v1");
+    assert.equal(rotatepass?.rotatepass_receipt_v1?.status, "PASS");
+    assert.equal(rotatepass?.rotatepass_receipt_v1?.lifecycle_evidence.credential_values_seen, false);
+    assert.equal(rotatepass?.rotatepass_receipt_v1?.lifecycle_evidence.live_secret_probe, "not_run");
+    assert.equal(rotatepass?.rotatepass_receipt_v1?.lifecycle_evidence.blast_radius_mapping, "used_by_tags_and_verification_targets");
+    assert.deepEqual(
+      rotatepass?.rotatepass_receipt_v1?.checks.map((check) => check.id),
+      [
+        "rotatepass-redaction-guard",
+        "metadata-intake-contract",
+        "local-session-boundary",
+        "blast-radius-fixture",
+      ],
+    );
+    assert.match(
+      rotatepass?.rotatepass_receipt_v1?.boundaries.join("\n") ?? "",
+      /never reads, prints, exports, or syncs raw credential values/i,
+    );
     assert.equal(wakepass?.status, "passing");
     assert.equal(enterprisepass, undefined);
 
@@ -82,6 +100,10 @@ test("XPass boundary sweep stays pending without fresh package reviewer proof", 
 
   assert.equal(receipt.status, "pending");
   assert.match(receipt.action_needed.join("\n"), /package reviewer proof is missing/i);
+  assert.equal(
+    receipt.products.find((product) => product.id === "rotatepass")?.rotatepass_receipt_v1?.status,
+    "PENDING",
+  );
   assert.equal(
     receipt.cross_pass_matrix.find((row) => row.target_id === "wakepass")?.status,
     "pending",
