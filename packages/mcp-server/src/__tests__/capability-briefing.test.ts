@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { buildCapabilityBriefing, searchToolIndex } from "../memory/tool-awareness.js";
 import { TOOL_INDEX } from "../memory/tool-index.generated.js";
-import { ptvSearch } from "../ptv-tool.js";
+import { ptvDepartures, ptvSearch } from "../ptv-tool.js";
 
 describe("generated tool index", () => {
   it("is populated with apps and tools", () => {
@@ -43,7 +43,10 @@ describe("inward capability briefing", () => {
 });
 
 describe("ptv_search schema/impl alignment", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
 
   it("errors on the advertised arg name when nothing is provided", async () => {
     const res = await ptvSearch({});
@@ -63,5 +66,26 @@ describe("ptv_search schema/impl alignment", () => {
     vi.stubGlobal("fetch", fetchMock);
     await ptvSearch({ query: "Flinders Street" });
     expect(String(fetchMock.mock.calls[0][0])).toContain("Flinders%20Street");
+  });
+
+  it("uses env defaults for standalone departures and stamps source metadata", async () => {
+    vi.stubEnv("PTV_HOME_STOP_ID", "12345");
+    vi.stubEnv("PTV_HOME_ROUTE_TYPE", "0");
+    const fetchMock = vi.fn(async (..._args: unknown[]) => ({
+      ok: true,
+      json: async () => ({ departures: [] }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await ptvDepartures({});
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/v3/departures/route_type/0/stop/12345");
+    expect(result).toMatchObject({
+      departures: [],
+      unclick_meta: {
+        source: "PTV Timetable API v3",
+        defaults_used: ["PTV_HOME_STOP_ID", "PTV_HOME_ROUTE_TYPE"],
+      },
+    });
   });
 });

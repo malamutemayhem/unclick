@@ -99,4 +99,4 @@ function main() {
   console.log(`${index.length} apps, ${toolCount} tools indexed.`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+if (path.resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) main();
