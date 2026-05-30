@@ -118,8 +118,8 @@ workflow:
 2. Runs `npm pack --dry-run` so `files:` errors surface before publish.
 3. Bumps patch (`0.3.0 → 0.3.1`), pushes the bump commit + tag with
    `[skip ci]` so it doesn't loop.
-4. Packs `unclick-mcp-server.tgz`.
-5. Creates a GitHub Release tagged `mcp-server-v<version>` and uploads the tarball.
+4. Packs `unclick.tgz` (primary) plus `unclick-mcp-server.tgz` (backwards-compatible fallback).
+5. Creates a GitHub Release tagged `mcp-server-v<version>` and uploads both tarballs.
 6. Confirms the release asset exists.
 
 To cut a minor or major release, bump manually in `packages/mcp-server/package.json`
@@ -129,7 +129,7 @@ registry account or `NPM_TOKEN` is required.
 Latest install URL:
 
 ```bash
-npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz
+npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz
 ```
 
 ## When CI goes red
