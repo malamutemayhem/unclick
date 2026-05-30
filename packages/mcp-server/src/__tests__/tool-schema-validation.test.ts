@@ -49,6 +49,13 @@ describe("runtime tool schema validation", () => {
         bogus_field: "should reject",
       },
     },
+    {
+      name: "copypass_run",
+      args: {
+        copy_text: "Try UnClick with proof receipts.",
+        bogus_field: "should reject",
+      },
+    },
     { name: "stripe_customers", args: { secret_key: "sk_test_dummy", action: "X", bogus_field: "should reject" } },
     { name: "stripe_charges", args: { secret_key: "sk_test_dummy", action: "X", bogus_field: "should reject" } },
     {
@@ -144,6 +151,14 @@ describe("runtime tool schema validation", () => {
     expect(validateToolArgumentsForRuntime("release_claim", {
       agent_id: "strict-probe",
       todo_id: "11111111-1111-4111-8111-111111111111",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("copypass_run", {
+      copy_text: "UnClick helps teams review AI work with shared context, public proof, and green checks.",
+      channel: "homepage_hero",
+      profile: "smoke",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("copypass_status", {
+      run_id: "copy-run-123",
     })).toBeNull();
     expect(validateToolArgumentsForRuntime("unclick_call", {
       endpoint_id: "memory.search_memory",

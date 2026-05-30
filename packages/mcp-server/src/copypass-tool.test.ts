@@ -42,6 +42,17 @@ describe("copypass-tool", () => {
       summary?: { counts_by_severity?: { high?: number; info?: number }; coverage_note?: string };
       verdict_summary?: { fail?: number };
       findings?: Array<{ check_id?: string }>;
+      receipt?: {
+        kind?: string;
+        pass?: string;
+        status?: string;
+        run_id?: string;
+        receipt_id?: string;
+        finding_count?: number;
+        action_needed?: string[];
+        evidence?: { source?: string; copyroom_receipt_attached?: boolean };
+        boundaries?: string[];
+      };
     };
 
     expect(run.status).toBe("complete");
@@ -55,6 +66,17 @@ describe("copypass-tool", () => {
     expect(run.verdict_summary?.fail).toBeGreaterThan(0);
     expect(run.findings?.map((finding) => finding.check_id)).toContain("unsupported-superiority");
     expect(run.run_id).toBeTruthy();
+    expect(run.receipt).toMatchObject({
+      kind: "copypass_receipt_v1",
+      pass: "copypass",
+      status: "FAIL",
+      run_id: run.run_id,
+      receipt_id: `copypass:${run.run_id}`,
+      finding_count: run.finding_count,
+      evidence: { source: "caller_provided_copy", copyroom_receipt_attached: false },
+    });
+    expect(run.receipt?.action_needed?.some((item) => item.includes("unsupported-superiority"))).toBe(true);
+    expect(run.receipt?.boundaries?.some((item) => item.includes("Legal, brand, or factual approval"))).toBe(true);
 
     const status = (await copypassStatus({
       run_id: run.run_id,
@@ -66,6 +88,7 @@ describe("copypass-tool", () => {
       summary?: { posture?: string };
       target?: { channel?: string };
       findings?: Array<{ check_id?: string }>;
+      receipt?: { kind?: string; status?: string; run_id?: string; receipt_id?: string };
     };
 
     expect(status.run_id).toBe(run.run_id);
@@ -75,6 +98,12 @@ describe("copypass-tool", () => {
     expect(status.summary?.posture).toContain("copy risks");
     expect(status.target?.channel).toBe("homepage_hero");
     expect(status.findings?.map((finding) => finding.check_id)).toContain("placeholder-copy");
+    expect(status.receipt).toMatchObject({
+      kind: "copypass_receipt_v1",
+      status: "FAIL",
+      run_id: run.run_id,
+      receipt_id: `copypass:${run.run_id}`,
+    });
   });
 
   it("detects MCP parity checks for tone fit and internal consistency", async () => {
@@ -114,6 +143,7 @@ describe("copypass-tool", () => {
       overall_score?: number;
       disclaimer?: { compact?: string };
       not_checked?: Array<{ label?: string }>;
+      receipt?: { status?: string; action_needed?: string[]; boundaries?: string[] };
     };
 
     expect(run.status).toBe("complete");
@@ -125,6 +155,9 @@ describe("copypass-tool", () => {
     expect(run.not_checked?.map((item) => item.label)).toContain(
       "Humaniser, template, or voice-profile rewrite",
     );
+    expect(run.receipt?.status).toBe("PASS");
+    expect(run.receipt?.action_needed).toEqual([]);
+    expect(run.receipt?.boundaries?.some((item) => item.includes("Detector-evasion guarantee"))).toBe(true);
   });
 
   it("flags detector-evasion claims in MCP runs", async () => {
@@ -251,6 +284,7 @@ describe("copypass-tool", () => {
         output_character_count?: number;
         newline_style?: string;
       };
+      receipt?: { evidence?: { source?: string; copyroom_receipt_attached?: boolean } };
     };
 
     expect(run.status).toBe("complete");
@@ -266,13 +300,21 @@ describe("copypass-tool", () => {
     expect(run.copyroom_receipt?.character_count).toBe(Array.from(sourceText).length);
     expect(run.copyroom_receipt?.output_character_count).toBe(run.copyroom_receipt?.character_count);
     expect(run.copyroom_receipt?.newline_style).toBe("crlf");
+    expect(run.receipt?.evidence).toMatchObject({
+      source: "copyroom_source_packet",
+      copyroom_receipt_attached: true,
+    });
 
     const status = (await copypassStatus({
       run_id: run.run_id,
-    })) as { copyroom_receipt?: { status?: string; source_sha256?: string; output_sha256?: string } };
+    })) as {
+      copyroom_receipt?: { status?: string; source_sha256?: string; output_sha256?: string };
+      receipt?: { evidence?: { copyroom_receipt_attached?: boolean } };
+    };
 
     expect(status.copyroom_receipt?.status).toBe("pass");
     expect(status.copyroom_receipt?.source_sha256).toBe(status.copyroom_receipt?.output_sha256);
+    expect(status.receipt?.evidence?.copyroom_receipt_attached).toBe(true);
   });
 
   it("blocks required CopyRoom receipt runs when the source packet is missing", async () => {
