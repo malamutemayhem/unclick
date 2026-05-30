@@ -6,4 +6,4 @@ export {
   securitypassVerifyScope,
   securitypassDisclosureStatus,
   securitypassFindingDetail,
-} from "@unclick/securitypass/mcp";
+} from "./securitypass-runtime.js";
