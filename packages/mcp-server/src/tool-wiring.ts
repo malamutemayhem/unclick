@@ -12280,6 +12280,7 @@ export const ADDITIONAL_TOOLS = [
         profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Run profile (default: smoke)" },
         jurisdictions: { type: "array", items: { type: "string" }, description: "Optional jurisdiction routing hints" },
         fixture_text: { type: "string", description: "Public text to check deterministically for dogfood or local proof" },
+        target_sha: { type: "string", description: "Optional commit or target evidence SHA to bind the LegalPass receipt to a specific target version" },
       },
     },
   },
