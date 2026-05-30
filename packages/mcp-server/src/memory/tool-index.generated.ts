@@ -3289,7 +3289,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "sloppass_run",
-        "description": "Run SlopPass against caller-provided source files or a unified diff. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, read repositories, persist source content, or make paid model calls by default."
+        "description": "Run SlopPass against caller-provided source files, a unified diff, or a GitHub PR target whose public .diff should be fetched. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, clone repositories, persist source content, or make paid model calls by default."
       }
     ]
   },
