@@ -4286,6 +4286,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "xpass-aggregated-verdict",
+    "category": "XPass (conductor receipt across product checks)",
+    "tools": [
+      {
+        "name": "xpass_aggregated_verdict",
+        "description": "Return one XPass conductor verdict for a target PR/change at a specific commit SHA. Selected PASS receipts must name the same head SHA; stale, unscoped, missing, or blocker receipts cannot produce a green verdict."
+      }
+    ]
+  },
+  {
     "app": "yelp",
     "category": "AI",
     "tools": [
