@@ -200,6 +200,100 @@ function normalizeProductResult(product, commandResult, now) {
   };
 }
 
+function statusForReceipt(product, matrixRow) {
+  if (product.status === "failing" || matrixRow?.status === "failing") return "BLOCKER";
+  if (matrixRow?.status === "pending" || matrixRow?.status === "blocked") return "PENDING";
+  return "PASS";
+}
+
+function checkStatus(passed) {
+  return passed ? "PASS" : "BLOCKER";
+}
+
+function buildWakePassReceipt(product, matrixRow, { targetSha, now }) {
+  const status = statusForReceipt(product, matrixRow);
+  const commandPassed = product.status === "passing";
+  const actionNeeded = [];
+  if (!commandPassed) actionNeeded.push("Fix WakePass public-safe ACK, stale reclaim, and liveness guards before using this boundary receipt.");
+  if (matrixRow?.status && matrixRow.status !== "passing") {
+    actionNeeded.push("Refresh cross-pass reviewer proof from TestPass, CommonSensePass, and FlowPass.");
+  }
+  if (!targetSha) actionNeeded.push("Bind WakePass boundary proof to the PR or release SHA before using it as merge evidence.");
+
+  return {
+    kind: "wakepass_boundary_receipt_v1",
+    status,
+    product_id: "wakepass",
+    target_url: product.target_url,
+    target_sha: targetSha || null,
+    checked_at: now,
+    evidence_mode: "public_safe_boundary",
+    lifecycle_evidence: {
+      live_queue_touched: false,
+      live_worker_woken: false,
+      notification_sent: false,
+      route_delivery_attempted: false,
+      secret_values_seen: false,
+      ack_tracking: "fixture_and_schema_only",
+      stale_reclaim_tracking: "fixture_and_schema_only",
+      liveness_tracking: "fixture_and_schema_only",
+    },
+    checks: [
+      {
+        id: "event-wake-router",
+        status: checkStatus(commandPassed),
+        evidence: "scripts/event-wake-router.test.mjs",
+        summary: commandPassed
+          ? "Wake handoffs are classified as ACK-required dispatches with bounded routing metadata."
+          : "Wake event routing boundary failed.",
+      },
+      {
+        id: "pinballwake-ack-ledger",
+        status: checkStatus(commandPassed),
+        evidence: "scripts/pinballwake-ack-ledger-room.test.mjs",
+        summary: commandPassed
+          ? "ACK ledger fixtures keep accepted, blocked, and completed worker states visible."
+          : "ACK ledger boundary failed.",
+      },
+      {
+        id: "pinballwake-stale-reclaim",
+        status: checkStatus(commandPassed),
+        evidence: "scripts/pinballwake-stale-room.test.mjs",
+        summary: commandPassed
+          ? "Stale work fixtures produce explicit reclaim evidence instead of silent healthy claims."
+          : "Stale reclaim boundary failed.",
+      },
+      {
+        id: "worker-liveness-watchdog",
+        status: checkStatus(commandPassed),
+        evidence: "scripts/worker-liveness-watchdog.test.mjs",
+        summary: commandPassed
+          ? "Worker liveness fixtures surface missed check-ins without touching live workers."
+          : "Worker liveness watchdog boundary failed.",
+      },
+    ],
+    cross_pass_reviewers: matrixRow?.reviewers ?? [],
+    action_needed: actionNeeded,
+    boundaries: [
+      "WakePass boundary proof does not touch live queues, wake live workers, send notifications, or call route adapters.",
+      "This receipt uses public-safe fixtures and schemas for ACK, stale reclaim, and liveness evidence.",
+      "Healthy means the boundary fixtures passed; it is not proof that every live worker is awake.",
+      "Live wake attempts require explicit future scope, idempotency keys, rate limits, and redacted route metadata only.",
+    ],
+  };
+}
+
+function attachBoundaryReceipts(productResults, matrix, { targetSha, now }) {
+  const matrixByTarget = new Map(matrix.map((row) => [row.target_id, row]));
+  return productResults.map((product) => {
+    if (product.id !== "wakepass") return product;
+    return {
+      ...product,
+      wakepass_receipt_v1: buildWakePassReceipt(product, matrixByTarget.get("wakepass"), { targetSha, now }),
+    };
+  });
+}
+
 function actionNeeded(productResults, matrix, packageSweepState) {
   return [
     ...(packageSweepState?.stale
@@ -240,6 +334,7 @@ export async function buildXPassBoundarySweep({
   }
 
   const matrix = buildCrossPassMatrix(productResults, packageSweepState);
+  const productsWithReceipts = attachBoundaryReceipts(productResults, matrix, { targetSha, now });
   const productStatus = statusFromRows(productResults);
   const matrixStatus = statusFromRows(matrix);
   const status = productStatus === "failing" || matrixStatus === "failing"
@@ -267,7 +362,7 @@ export async function buildXPassBoundarySweep({
     status,
     summary: `XPass boundary sweep ${status} across ${productResults.length} public-safe boundary product(s).`,
     product_count: productResults.length,
-    products: productResults,
+    products: productsWithReceipts,
     cross_pass_matrix: matrix,
     action_needed: actionNeeded(productResults, matrix, packageSweepState),
   };
