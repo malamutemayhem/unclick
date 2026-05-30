@@ -3050,6 +3050,40 @@
     ]
   },
   {
+    "app": "securitypass",
+    "category": "SecurityPass (scope-gated security receipts)",
+    "tools": [
+      {
+        "name": "securitypass_run",
+        "description": "Start a scope-gated SecurityPass scan against a registered pack or target URL. Returns a safe securitypass_receipt_v1 proof envelope without raw secrets or PoC payloads."
+      },
+      {
+        "name": "securitypass_status",
+        "description": "Poll the state of a SecurityPass run. Returns status, verdict summary, counts, and a safe securitypass_receipt_v1 proof envelope."
+      },
+      {
+        "name": "securitypass_report",
+        "description": "Fetch the synthesised report for a completed run (executive narrative + findings). format=json|markdown|html."
+      },
+      {
+        "name": "securitypass_register_pack",
+        "description": "Save a SecurityPack YAML for the calling tenant. Validates against the schema."
+      },
+      {
+        "name": "securitypass_verify_scope",
+        "description": "Verify scope authorisation for a target via DNS TXT or /.well-known proof. Required before any active probe runs."
+      },
+      {
+        "name": "securitypass_disclosure_status",
+        "description": "Check the 90+30 responsible-disclosure timer state for a finding (notified, acked, extended, public, withdrawn)."
+      },
+      {
+        "name": "securitypass_finding_detail",
+        "description": "Fetch a single finding including PoC payload (curl / prompt / payload) and remediation. PoC is generated, never auto-fired."
+      }
+    ]
+  },
+  {
     "app": "segment",
     "category": "Monitoring / CI / CDP / Email / Commerce / Inference",
     "tools": [

@@ -29,6 +29,8 @@ describe("runtime tool schema validation", () => {
     { name: "commonsensepass_protocol", args: { bogus_field: "should reject" } },
     { name: "commonsensepass_check", args: { claim: "quiet", context: { now_ms: 1 }, bogus_field: "should reject" } },
     { name: "commonsensepass_rules", args: { include_fixtures: false, bogus_field: "should reject" } },
+    { name: "securitypass_run", args: { target_url: "https://example.com", bogus_field: "should reject" } },
+    { name: "securitypass_status", args: { run_id: "securitypass-run-id", bogus_field: "should reject" } },
     { name: "list_expressroom_drafts", args: { agent_id: "strict-probe", bogus_field: "should reject" } },
     {
       name: "ack_handoff",
@@ -126,6 +128,15 @@ describe("runtime tool schema validation", () => {
     expect(validateToolArgumentsForRuntime("commonsensepass_rules", {
       include_fixtures: false,
     })).toBeNull();
+    expect(validateToolArgumentsForRuntime("securitypass_run", {
+      target_url: "https://example.com",
+      proof_method: "signed_email",
+      contract_id: "scope-contract",
+      expected_token: "signed-token",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("securitypass_status", {
+      run_id: "securitypass-run-id",
+    })).toBeNull();
     expect(validateToolArgumentsForRuntime("list_expressroom_drafts", {
       agent_id: "strict-probe",
       official_todo_id: "11111111-1111-4111-8111-111111111111",
@@ -209,5 +220,13 @@ describe("runtime tool schema validation", () => {
     const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
 
     expect(advertisedNames.has("release_claim")).toBe(true);
+  });
+
+  it("advertises SecurityPass as a scope-gated receipt surface", () => {
+    const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
+
+    expect(advertisedNames.has("securitypass_run")).toBe(true);
+    expect(advertisedNames.has("securitypass_status")).toBe(true);
+    expect(advertisedNames.has("securitypass_verify_scope")).toBe(true);
   });
 });

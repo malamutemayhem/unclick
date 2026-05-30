@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 572,
+    "inventory": 573,
     "source_manifest": 187,
     "pages": 78,
-    "tools": 187,
+    "tools": 188,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 187
+      "count": 188
     },
     {
       "id": "rooms",
@@ -5142,6 +5142,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-securitypass-packages-mcp-server-src-securitypass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "securitypass",
+      "kind": "MCP tool",
+      "meaning": "securitypass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/securitypass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-segment-packages-mcp-server-src-segment-tool-ts-no-route",
       "division": "Tools",
       "name": "segment",
@@ -7019,6 +7029,11 @@
       "packages/mcp-server/src/seatgeek-tool.ts"
     ],
     [
+      "securitypass",
+      "securitypass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/securitypass-tool.ts"
+    ],
+    [
       "segment",
       "segment MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/segment-tool.ts"
@@ -7499,7 +7514,7 @@
     ],
     [
       "test",
-      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run && npm run test:api-lib-esm-extension"
+      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && vitest run && npm run test:api-lib-esm-extension"
     ],
     [
       "test:api",
@@ -7622,8 +7637,8 @@
     },
     {
       "source": "package.json",
-      "hash": "82100008ad1b",
-      "bytes": 6417
+      "hash": "80d780561f43",
+      "bytes": 6468
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
