@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 548,
+    "inventory": 549,
     "source_manifest": 187,
     "pages": 78,
-    "tools": 187,
+    "tools": 188,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 187
+      "count": 188
     },
     {
       "id": "rooms",
@@ -5412,6 +5412,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-xpass-aggregated-verdict-packages-mcp-server-src-xpass-aggregated-verdict-tool-ts-no-route",
+      "division": "Tools",
+      "name": "xpass aggregated verdict",
+      "kind": "MCP tool",
+      "meaning": "xpass aggregated verdict MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/xpass-aggregated-verdict-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-yelp-packages-mcp-server-src-yelp-tool-ts-no-route",
       "division": "Tools",
       "name": "yelp",
@@ -7032,6 +7042,11 @@
       "xero",
       "xero MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/xero-tool.ts"
+    ],
+    [
+      "xpass aggregated verdict",
+      "xpass aggregated verdict MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/xpass-aggregated-verdict-tool.ts"
     ],
     [
       "yelp",

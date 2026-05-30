@@ -458,7 +458,7 @@ function selectXPassChecks(input: Record<string, unknown> = {}): SelectedCheck[]
   const needsExactCopyProof = exactCopyRequest(allText);
 
   for (const path of files) {
-    const pathWords = path.replace(/[\/_.-]+/g, " ");
+    const pathWords = path.replace(/[/_.-]+/g, " ");
     const passProduct = passProductForPath(path);
 
     if (passProduct) {
