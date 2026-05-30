@@ -8097,8 +8097,8 @@
     },
     {
       "source": ".github/workflows/publish-standalone-mcps.yml",
-      "hash": "e74692ae4b5e",
-      "bytes": 3753
+      "hash": "397d720ec57d",
+      "bytes": 4007
     },
     {
       "source": ".github/workflows/review-enforcement-warning.yml",
