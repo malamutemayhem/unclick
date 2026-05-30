@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 560,
+    "inventory": 572,
     "source_manifest": 187,
     "pages": 78,
     "tools": 187,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 102
+      "count": 114
     },
     {
       "id": "launch-and-onboarding",
@@ -2192,6 +2192,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-abn-mcp-packages-standalone-abn-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "abn mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/abn-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-amber-mcp-packages-standalone-amber-mcp-package-json-no-route",
       "division": "Modules and apps",
       "name": "amber mcp",
@@ -2228,6 +2238,16 @@
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/channel-plugin/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-chessdotcom-mcp-packages-standalone-chessdotcom-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "chessdotcom mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/chessdotcom-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2282,6 +2302,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-deezer-mcp-packages-standalone-deezer-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "deezer mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/deezer-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-domain-mcp-packages-standalone-domain-mcp-package-json-no-route",
       "division": "Modules and apps",
       "name": "domain mcp",
@@ -2318,6 +2348,26 @@
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/flowpass/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-fpl-mcp-packages-standalone-fpl-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "fpl mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/fpl-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-gdelt-mcp-packages-standalone-gdelt-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "gdelt mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/gdelt-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2362,6 +2412,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-ipapi-mcp-packages-standalone-ipapi-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "ipapi mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/ipapi-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-ipaustralia-mcp-packages-standalone-ipaustralia-mcp-package-json-no-route",
       "division": "Modules and apps",
       "name": "ipaustralia mcp",
@@ -2388,6 +2448,16 @@
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/legalpass/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-lichess-mcp-packages-standalone-lichess-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "lichess mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/lichess-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2462,6 +2532,26 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-openf1-mcp-packages-standalone-openf1-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "openf1 mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/openf1-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-openfoodfacts-mcp-packages-standalone-openfoodfacts-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "openfoodfacts mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/openfoodfacts-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-openlibrary-mcp-packages-standalone-openlibrary-mcp-package-json-no-route",
       "division": "Modules and apps",
       "name": "openlibrary mcp",
@@ -2488,6 +2578,16 @@
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/standalone/ptv-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-radiobrowser-mcp-packages-standalone-radiobrowser-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "radiobrowser mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/radiobrowser-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2552,12 +2652,32 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-sleeper-mcp-packages-standalone-sleeper-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "sleeper mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/sleeper-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-sloppass-packages-sloppass-package-json-no-route",
       "division": "Modules and apps",
       "name": "sloppass",
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/sloppass/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-speedrun-mcp-packages-standalone-speedrun-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "speedrun mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/speedrun-mcp/package.json",
       "route": "",
       "tags": []
     },
