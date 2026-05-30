@@ -5,9 +5,9 @@
     "levelName": "Agentic",
     "hardened": false,
     "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": false,

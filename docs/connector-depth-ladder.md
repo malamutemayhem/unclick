@@ -30,13 +30,13 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 
 These reached L3+ capability but have not met the L2 reliability bar. Hardening them is the highest-leverage next pass.
 
-- `ptv` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-test
+- `ptv` (L5 Agentic): not-hardened
 
 ## Per-connector, highest rung first
 
 | Level | Connector | Hardened | Memory | Proactive | Agentic | Source-stamp | Gaps |
 |:-----:|-----------|:--------:|:------:|:---------:|:-------:|:------------:|------|
-| L5 Agentic | `ptv` | - | Yes | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-test |
+| L5 Agentic | `ptv` | - | Yes | - | Yes | Yes | not-hardened |
 | L1 Wrapper | `abn` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `abuseipdb` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `airtable` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
