@@ -10,6 +10,8 @@
  * gently nudge users to simplify their setup or remove conflicting tools.
  */
 
+import { TOOL_INDEX, type ToolIndexEntry } from "./tool-index.generated.js";
+
 export type ToolClassification = "replaceable" | "conflicting" | "compatible";
 
 export interface ToolAwarenessEntry {
@@ -382,41 +384,78 @@ export async function reportToolDetections(
 // -> PTV) instead of falling back to web search. Hardwired into the package, so
 // every install and every account gets the same routing awareness at boot.
 
-export interface CapabilityArea {
-  /** The kind of question / intent this covers. */
+// Curated intent labels with match keywords. The labels are stable and rarely
+// change; the apps under each are derived LIVE from the generated TOOL_INDEX by
+// keyword match, so new tools appear automatically with no manual upkeep.
+interface IntentArea {
   area: string;
-  /** UnClick apps that serve it. */
-  apps: string;
+  keywords: string[];
 }
 
-export const UNCLICK_CAPABILITY_MAP: CapabilityArea[] = [
-  { area: "Public transport, trains, trams, departures, disruptions (Melbourne / Victoria)", apps: "PTV" },
-  { area: "Weather, forecasts, surf, tide, air quality", apps: "Open-Meteo, WillyWeather, Tomorrow.io, OpenAQ" },
-  { area: "Crypto prices and markets", apps: "CoinGecko, CoinMarketCap" },
-  { area: "Stocks, currency and exchange rates", apps: "Alpha Vantage, Open Exchange Rates, ExchangeRate" },
-  { area: "Payments, invoices, subscriptions, accounting", apps: "Stripe, PayPal, Square, QuickBooks, Xero, Wise" },
-  { area: "Send and read email", apps: "Email (Gmail/IMAP), SendGrid, Postmark, Resend, Mailchimp" },
-  { area: "Messaging, SMS, chat", apps: "Slack, Discord, Telegram, WhatsApp, LINE, Twilio" },
-  { area: "Social posting and reading", apps: "Reddit, Mastodon, Bluesky, Twitch, Pinterest, TikTok" },
-  { area: "News and headlines", apps: "NewsAPI, The Guardian, Hacker News, GDELT" },
-  { area: "Movies and TV", apps: "TMDB, OMDb" },
-  { area: "Music, lyrics, discographies", apps: "Spotify, Deezer, Last.fm, MusicBrainz, Genius, Discogs" },
-  { area: "Video games and board games", apps: "RAWG, IGDB, Steam, Speedrun, BoardGameGeek" },
-  { area: "Sports scores, F1, fantasy", apps: "ESPN, OpenF1, Fantasy Premier League, Sleeper" },
-  { area: "Events and tickets", apps: "Ticketmaster, SeatGeek, Eventbrite, Bandsintown" },
-  { area: "Maps, places, business reviews", apps: "Mapbox, Yelp, Foursquare" },
-  { area: "Countries, geography, books", apps: "REST Countries, Open Library, Trove" },
-  { area: "Food, recipes, nutrition, beer", apps: "TheMealDB, OpenFoodFacts, Untappd" },
-  { area: "Shopping and e-commerce", apps: "Amazon, eBay, Etsy, Shopify, WooCommerce" },
-  { area: "Code, deploys, infra, monitoring", apps: "GitHub, GitLab, Vercel, Render, Fly.io, CircleCI, Datadog, Sentry, PagerDuty" },
-  { area: "Databases, cache, vectors", apps: "Neon, Turso, Upstash, Pinecone" },
-  { area: "AI models, transcription, translation", apps: "OpenAI, Anthropic, Cohere, Mistral, Groq, Perplexity, ElevenLabs, DeepL" },
-  { area: "Security, threat intel, breaches, CVEs", apps: "VirusTotal, Shodan, HaveIBeenPwned, AbuseIPDB, urlscan, NVD" },
-  { area: "Project management and productivity", apps: "Asana, Monday, ClickUp, Trello, Linear, Notion, Calendly, Toggl" },
-  { area: "Space and science", apps: "NASA, USGS earthquakes, eBird" },
-  { area: "Australian services", apps: "PTV, Amber Electric, Australia Post, Domain, The Lott, IP Australia, Sendle, TAB" },
-  { area: "Trivia, random, calculations, units, dates, text, color", apps: "Trivia, plus built-in utilities" },
+const INTENT_AREAS: IntentArea[] = [
+  { area: "Public transport, trains, trams, departures (Melbourne / Victoria)", keywords: ["ptv_", "ptv"] },
+  { area: "Weather, forecasts, surf, tide, air quality", keywords: ["weather_", "willyweather", "tomorrow_", "surf", "tide", "openaq", "air quality"] },
+  { area: "Crypto prices and markets", keywords: ["crypto_", "coingecko", "cmc_", "coinmarketcap"] },
+  { area: "Stocks, currency and exchange rates", keywords: ["stock_", "forex_", "exchangerate", "exchange rate", "alphavantage"] },
+  { area: "Payments, invoices, subscriptions, accounting, banking", keywords: ["stripe_", "paypal_", "square_", "quickbooks", "xero_", "wise_", "plaid_", "invoice", "subscription"] },
+  { area: "Send and read email", keywords: ["email_", "sendgrid_", "postmark_", "resend_", "mailchimp_", "convertkit", "ck_"] },
+  { area: "Messaging, SMS, chat", keywords: ["slack_", "discord_", "telegram_", "whatsapp_", "line_", "twilio_", "sms"] },
+  { area: "Social posting and reading", keywords: ["reddit_", "mastodon", "bluesky", "twitch_", "pinterest", "tiktok"] },
+  { area: "News and headlines", keywords: ["news_", "guardian_", "hn_", "gdelt", "headline"] },
+  { area: "Movies and TV", keywords: ["tmdb_", "omdb_", "movie"] },
+  { area: "Music, lyrics, discographies", keywords: ["spotify_", "deezer_", "lastfm_", "mb_", "musicbrainz", "genius_", "discogs", "setlist", "lyric"] },
+  { area: "Video games and board games", keywords: ["rawg_", "igdb_", "steam_", "speedrun", "bgg_", "boardgame", "riot_", "bungie_", "esports"] },
+  { area: "Sports scores, F1, fantasy", keywords: ["espn_", "f1_", "openf1", "fpl_", "sleeper_", "score"] },
+  { area: "Events and tickets", keywords: ["tm_", "ticketmaster", "seatgeek", "eventbrite", "bandsintown", "ticket"] },
+  { area: "Maps, places, business reviews", keywords: ["mapbox", "yelp_", "foursquare", "geocode"] },
+  { area: "Countries, geography, books", keywords: ["country_", "restcountries", "openlibrary", "trove", "book"] },
+  { area: "Food, recipes, nutrition, beer", keywords: ["meal_", "food_", "untappd", "recipe", "beer"] },
+  { area: "Shopping and e-commerce", keywords: ["amazon_", "ebay_", "etsy_", "shopify_", "woo_", "gumroad", "ls_"] },
+  { area: "Code, deploys, infra, monitoring", keywords: ["github_", "gitlab_", "vercel_", "render_", "fly_", "circleci", "datadog", "sentry", "pagerduty", "deploy"] },
+  { area: "Databases, cache, vectors", keywords: ["neon_", "turso_", "upstash", "pinecone", "redis"] },
+  { area: "AI models, transcription, translation", keywords: ["openai_", "anthropic_", "cohere_", "mistral_", "groq_", "perplexity", "togetherai", "replicate", "elevenlabs", "deepl", "assemblyai", "embedding"] },
+  { area: "AI image and video generation", keywords: ["stability_", "heygen", "higgsfield", "kling", "pika", "runway", "generate_image", "generate_video"] },
+  { area: "Security, threat intel, breaches, CVEs", keywords: ["virustotal", "shodan", "hibp", "abuseipdb", "urlscan", "cve", "breach"] },
+  { area: "Project management and productivity", keywords: ["asana", "monday", "clickup", "trello", "linear_", "notion", "calendly", "toggl", "clockify"] },
+  { area: "Space and science", keywords: ["nasa_", "usgs", "earthquake", "ebird"] },
+  { area: "Australian services", keywords: ["ptv_", "amber_", "auspost", "australiapost", "domain_", "lott_", "ipaustralia", "trademark", "sendle", "tab_", "abn"] },
+  { area: "Calculations, units, time, text, color, random, trivia", keywords: ["calc_", "convert_", "datetime_", "number_", "random_", "text_", "color_", "trivia"] },
 ];
+
+const APP_DISPLAY_NAMES: Record<string, string> = {
+  ptv: "PTV", bgg: "BoardGameGeek", tmdb: "TMDB", omdb: "OMDb", igdb: "IGDB",
+  nasa: "NASA", usgs: "USGS", openaq: "OpenAQ", openmeteo: "Open-Meteo",
+  willyweather: "WillyWeather", tomorrowio: "Tomorrow.io", coingecko: "CoinGecko",
+  coinmarketcap: "CoinMarketCap", hackernews: "Hacker News", newsapi: "NewsAPI",
+  restcountries: "REST Countries", openlibrary: "Open Library", musicbrainz: "MusicBrainz",
+  lastfm: "Last.fm", openfoodfacts: "OpenFoodFacts", ipaustralia: "IP Australia",
+  australiapost: "Australia Post", thelott: "The Lott", openexchangerates: "Open Exchange Rates",
+  alphavantage: "Alpha Vantage", fpl: "Fantasy Premier League", openf1: "OpenF1",
+  pandascore: "PandaScore (esports)", supercell: "Supercell", elevenlabs: "ElevenLabs",
+  togetherai: "Together AI", woocommerce: "WooCommerce", lemonsqueezy: "Lemon Squeezy",
+};
+
+function displayApp(slug: string): string {
+  if (APP_DISPLAY_NAMES[slug]) return APP_DISPLAY_NAMES[slug];
+  return slug.charAt(0).toUpperCase() + slug.slice(1);
+}
+
+/**
+ * Precise keyword match against an app. Keywords ending in "_" match a tool-name
+ * prefix (so "ck_" matches convertkit's ck_* tools, not "stock_"); other keywords
+ * match the app slug or a tool name. Descriptions are intentionally excluded here
+ * to avoid noise like "surf" matching "surface".
+ */
+function appMatchesKeywords(entry: ToolIndexEntry, keywords: string[]): boolean {
+  return keywords.some((k) => {
+    if (k.endsWith("_")) return entry.tools.some((t) => t.name.toLowerCase().startsWith(k));
+    return entry.app.includes(k) || entry.tools.some((t) => t.name.toLowerCase().includes(k));
+  });
+}
+
+function appsForIntent(intent: IntentArea): string[] {
+  return TOOL_INDEX.filter((e) => appMatchesKeywords(e, intent.keywords)).map((e) => e.app);
+}
 
 export interface CapabilityBriefing {
   instruction: string;
@@ -425,15 +464,84 @@ export interface CapabilityBriefing {
 }
 
 /**
- * Compact, hardwired "what UnClick can do" briefing for the startup payload.
- * Nudges the agent to route real-world questions to an UnClick tool instead of
- * defaulting to web search.
+ * Compact "what UnClick can do" briefing for the startup payload, derived live
+ * from the generated tool index. Nudges the agent to route real-world questions
+ * to an UnClick tool instead of defaulting to web search. Self-updating: adding
+ * a tool to the index makes it show up here automatically.
  */
 export function buildCapabilityBriefing(): CapabilityBriefing {
+  const matchedApps = new Set<string>();
+  const areas: string[] = [];
+
+  for (const intent of INTENT_AREAS) {
+    const apps = appsForIntent(intent);
+    if (apps.length === 0) continue;
+    apps.forEach((a) => matchedApps.add(a));
+    areas.push(`${intent.area} -> ${apps.map(displayApp).join(", ")}`);
+  }
+
+  const otherCount = TOOL_INDEX.filter((e) => !matchedApps.has(e.app)).length;
+  if (otherCount > 0) {
+    areas.push(`Plus ${otherCount} more apps not listed above -> discover with unclick_search`);
+  }
+
   return {
     instruction:
       "Before answering anything that needs live, current, or external data (prices, weather, transport, sports, news, lookups, sending messages, etc.), first check whether UnClick already has a tool for it and prefer it over web search or guessing.",
     how: 'Find the exact tool with unclick_search("<topic>") then run it with unclick_call. UnClick can act in these areas:',
-    areas: UNCLICK_CAPABILITY_MAP.map((c) => `${c.area} -> ${c.apps}`),
+    areas,
   };
+}
+
+export interface ToolSearchHit {
+  app: string;
+  name: string;
+  description: string;
+}
+
+/**
+ * Lightweight relevance search over the generated tool index, for routing a
+ * question to the right tool (the spine for unclick_search ranking).
+ */
+const SEARCH_STOPWORDS = new Set([
+  "the", "and", "for", "from", "with", "next", "what", "when", "where", "your",
+  "you", "please", "near", "has", "have", "this", "that", "get", "find", "show",
+  "list", "all", "any", "about", "into", "out", "now", "today", "tell",
+]);
+
+export function searchToolIndex(query: string, limit = 8): ToolSearchHit[] {
+  const terms = query
+    .toLowerCase()
+    .split(/\W+/)
+    .filter((t) => t.length > 2 && !SEARCH_STOPWORDS.has(t));
+  if (terms.length === 0) return [];
+
+  // Intent routing: if the query matches an intent's label or keywords, boost
+  // that intent's apps. This is the alias layer, so "next train" reaches PTV even
+  // though PTV's own descriptions say "stops/routes", not "train".
+  const boosted = new Set<string>();
+  for (const intent of INTENT_AREAS) {
+    const label = intent.area.toLowerCase();
+    const kwords = intent.keywords.map((k) => k.replace(/_$/, "")).filter((k) => k.length > 2);
+    const matched = terms.some((t) => label.includes(t) || kwords.some((k) => k === t || k.includes(t) || t.includes(k)));
+    if (matched) appsForIntent(intent).forEach((a) => boosted.add(a));
+  }
+
+  const scored: Array<{ hit: ToolSearchHit; score: number }> = [];
+  for (const entry of TOOL_INDEX) {
+    const appBoost = boosted.has(entry.app) ? 2 : 0;
+    // Naming the app explicitly (e.g. "slack") wins over apps that merely have a
+    // matching verb in a tool name (e.g. line_send_message).
+    const appNameBoost = terms.some((t) => entry.app === t || (t.length >= 4 && entry.app.startsWith(t))) ? 4 : 0;
+    for (const tool of entry.tools) {
+      const hay = `${tool.name} ${tool.description}`.toLowerCase();
+      let score = appBoost + appNameBoost;
+      for (const t of terms) {
+        if (tool.name.toLowerCase().includes(t)) score += 3;
+        else if (hay.includes(t)) score += 1;
+      }
+      if (score > 0) scored.push({ hit: { app: entry.app, name: tool.name, description: tool.description }, score });
+    }
+  }
+  return scored.sort((a, b) => b.score - a.score).slice(0, limit).map((s) => s.hit);
 }

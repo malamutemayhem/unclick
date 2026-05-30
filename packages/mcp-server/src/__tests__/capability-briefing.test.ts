@@ -1,7 +1,32 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { buildCapabilityBriefing } from "../memory/tool-awareness.js";
+import { buildCapabilityBriefing, searchToolIndex } from "../memory/tool-awareness.js";
+import { TOOL_INDEX } from "../memory/tool-index.generated.js";
 import { ptvSearch } from "../ptv-tool.js";
+
+describe("generated tool index", () => {
+  it("is populated with apps and tools", () => {
+    expect(TOOL_INDEX.length).toBeGreaterThan(100);
+    expect(TOOL_INDEX.every((e) => e.tools.length > 0)).toBe(true);
+  });
+
+  it("includes PTV with its search tool", () => {
+    const ptv = TOOL_INDEX.find((e) => e.app === "ptv");
+    expect(ptv?.tools.some((t) => t.name === "ptv_search")).toBe(true);
+  });
+});
+
+describe("searchToolIndex routing", () => {
+  it("routes a train question to PTV tools", () => {
+    const hits = searchToolIndex("next train departures station");
+    expect(hits.some((h) => h.name.startsWith("ptv_"))).toBe(true);
+  });
+
+  it("routes a price question to a crypto tool", () => {
+    const hits = searchToolIndex("bitcoin price");
+    expect(hits.some((h) => h.name.includes("crypto"))).toBe(true);
+  });
+});
 
 describe("inward capability briefing", () => {
   it("nudges agents to prefer an UnClick tool over web search", () => {
