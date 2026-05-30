@@ -13,6 +13,7 @@ import { crewsStartRun } from "./crews-tool.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
 import { markContextLoaded, recordToolCall } from "./memory/session-state.js";
+import { searchToolIndex } from "./memory/tool-awareness.js";
 import { emitSignal } from "./signals/emit.js";
 import { getHeartbeatProtocol } from "./heartbeat-protocol.js";
 import { getCommonSensePassProtocol } from "./commonsensepass-protocol.js";
@@ -2250,26 +2251,38 @@ export function createServer(): Server {
 
       // ── Meta tools ──────────────────────────────────────────────
       if (name === "unclick_search") {
-        const results = searchTools(
-          String(args.query ?? ""),
-          args.category as string | undefined
-        );
-        if (results.length === 0) {
+        const query = String(args.query ?? "");
+        const results = searchTools(query, args.category as string | undefined);
+        // Also search the full integration surface (803+ tools) with intent/alias
+        // routing, so "next train" finds ptv_search, "bitcoin price" finds crypto.
+        const toolHits = query ? searchToolIndex(query, 10) : [];
+
+        if (results.length === 0 && toolHits.length === 0) {
           return {
             content: [
               {
                 type: "text",
-                text: `No tools found matching "${args.query}". Try unclick_browse to see all available tools.`,
+                text: `No tools found matching "${query}". Try unclick_browse to see all available tools.`,
               },
             ],
           };
         }
-        const text = results.map(formatToolSummary).join("\n\n---\n\n");
+
+        const sections: string[] = [];
+        if (toolHits.length > 0) {
+          const lines = toolHits
+            .map((h) => `- **${h.name}** (${h.app}) -- ${h.description}`)
+            .join("\n");
+          sections.push(`Integration tools (call directly by name, or via unclick_call):\n${lines}`);
+        }
+        if (results.length > 0) {
+          sections.push(`Built-in catalog tools:\n\n${results.map(formatToolSummary).join("\n\n---\n\n")}`);
+        }
         return {
           content: [
             {
               type: "text",
-              text: `Found ${results.length} tool(s) matching "${args.query}":\n\n${text}`,
+              text: `Found ${toolHits.length + results.length} tool(s) matching "${query}":\n\n${sections.join("\n\n")}`,
             },
           ],
         };
