@@ -63,6 +63,7 @@ const ReportBugSchema = z.object({
   expected_behavior: z.string().max(2000).optional(),
   severity: z.enum(SEVERITY_VALUES).optional(),
   agent_context: z.record(z.unknown()).optional(),
+  notify: z.boolean().optional().default(true),
 });
 
 // ---------------------------------------------------------------------------
@@ -146,14 +147,16 @@ export function createReportBugRouter(db: Db) {
     const createdAt = (report.createdAt as Date).toISOString();
 
     // Fire-and-forget email - don't block the response
-    sendBugEmail({
-      tool_name: report.toolName,
-      error_message: report.errorMessage,
-      severity,
-      expected_behavior: report.expectedBehavior,
-      agent_context: report.agentContext,
-      created_at: createdAt,
-    });
+    if (body.notify !== false) {
+      sendBugEmail({
+        tool_name: report.toolName,
+        error_message: report.errorMessage,
+        severity,
+        expected_behavior: report.expectedBehavior,
+        agent_context: report.agentContext,
+        created_at: createdAt,
+      });
+    }
 
     return created(c, {
       report_id: report.id,

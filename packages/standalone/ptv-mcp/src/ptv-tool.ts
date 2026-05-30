@@ -46,8 +46,9 @@ async function ptvFetch(path: string, params: Record<string, string> = {}): Prom
 // GET /v3/search/{query}
 
 export async function ptvSearch(args: Record<string, unknown>): Promise<unknown> {
-  const query = String(args.query ?? "").trim();
-  if (!query) return { error: "query is required." };
+  // Schema advertises `search_term`; accept `query` as an alias for back-compat.
+  const query = String(args.search_term ?? args.query ?? "").trim();
+  if (!query) return { error: "search_term is required." };
 
   return ptvFetch(`/v3/search/${encodeURIComponent(query)}`);
 }
