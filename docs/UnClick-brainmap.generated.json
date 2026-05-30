@@ -8212,8 +8212,8 @@
     },
     {
       "source": "packages/mcp-server/src/amber-tool.ts",
-      "hash": "6d020b798469",
-      "bytes": 4138
+      "hash": "06b9b05ffc91",
+      "bytes": 4840
     },
     {
       "source": "packages/mcp-server/src/anthropic-tool.ts",

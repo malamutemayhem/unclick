@@ -148,7 +148,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/algolia-tool.ts | 8eb0992500f1 | 4924 |
 | packages/mcp-server/src/alphavantage-tool.ts | 98a37153078d | 7591 |
 | packages/mcp-server/src/amazon-tool.ts | fb1e936b7c9a | 14913 |
-| packages/mcp-server/src/amber-tool.ts | 6d020b798469 | 4138 |
+| packages/mcp-server/src/amber-tool.ts | 06b9b05ffc91 | 4840 |
 | packages/mcp-server/src/anthropic-tool.ts | fd197643eefb | 7766 |
 | packages/mcp-server/src/asana-tool.ts | 3f5d880c119d | 8078 |
 | packages/mcp-server/src/assemblyai-tool.ts | fdc9c929ba6f | 9625 |
