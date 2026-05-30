@@ -77,7 +77,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminModeration.tsx | c81500ffb43d | 880 |
 | src/pages/admin/AdminOrchestrator.tsx | 4741f71afba9 | 94705 |
 | src/pages/admin/AdminPinballWake.tsx | 1b09a0b4c1b4 | 21751 |
-| src/pages/admin/AdminSettings.tsx | ede6df5d0e86 | 38095 |
+| src/pages/admin/AdminSettings.tsx | cce2a4ca6248 | 40580 |
 | src/pages/MemorySetupGuide.tsx | 79f83645f7c9 | 10264 |
 | src/pages/admin/signals/SignalsSettings.tsx | 791cd433a5b0 | 9837 |
 | src/pages/admin/signals/SignalsCatalog.tsx | 7baa82ac0d7f | 10835 |

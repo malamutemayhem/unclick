@@ -14,6 +14,8 @@ import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
 import { markContextLoaded, recordToolCall } from "./memory/session-state.js";
 import { searchToolIndex } from "./memory/tool-awareness.js";
+import { classifyFailure } from "./tool-failure-class.js";
+import { reportToolFailureBug } from "./tool-failure-report.js";
 import { emitSignal } from "./signals/emit.js";
 import { getHeartbeatProtocol } from "./heartbeat-protocol.js";
 import { getCommonSensePassProtocol } from "./commonsensepass-protocol.js";
@@ -183,14 +185,20 @@ function signalToolFailure(toolName: string, result: unknown, args?: unknown): v
   const apiKeyHash = currentApiKeyHash();
   const summary = failureSummary(toolName, result);
   if (!apiKeyHash || !summary) return;
+  const cls = classifyFailure(summary);
+  reportToolFailureBug(toolName, summary, cls, args);
   void emitSignal({
     apiKeyHash,
     tool: toolName,
     action: "failed",
-    severity: "action_needed",
+    severity: cls.severity,
     summary: summary.slice(0, 500),
-    deepLink: signalDeepLink(toolName),
-    payload: signalPayload(toolName, args),
+    deepLink: cls.ownerActionable ? "/admin/settings#bugs" : signalDeepLink(toolName),
+    payload: {
+      ...signalPayload(toolName, args),
+      failure_class: cls.failureClass,
+      owner_actionable: cls.ownerActionable,
+    },
   });
 }
 
@@ -2373,6 +2381,7 @@ export function createServer(): Server {
           if (memHandler) {
             recordToolCall(op);
             const result = await memHandler(params);
+            signalToolFailure(endpointId, result, params);
             return {
               content: [{ type: "text", text: memoryToolText(op, result) }],
             };
@@ -2383,6 +2392,7 @@ export function createServer(): Server {
         const localHandler = LOCAL_CATALOG_HANDLERS[endpointId];
         if (localHandler) {
           const result = await localHandler(params);
+          signalToolFailure(endpointId, result, params);
           return {
             content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
           };
@@ -2518,15 +2528,22 @@ export function createServer(): Server {
         message = String(err);
       }
       const apiKeyHash = currentApiKeyHash();
+      const summary = `${name}: ${message}`;
       if (apiKeyHash) {
+        const cls = classifyFailure(summary);
+        reportToolFailureBug(name, summary, cls, args);
         void emitSignal({
           apiKeyHash,
           tool: name,
           action: "exception",
-          severity: "action_needed",
-          summary: `${name}: ${message}`.slice(0, 500),
-          deepLink: signalDeepLink(name),
-          payload: signalPayload(name, args),
+          severity: cls.severity,
+          summary: summary.slice(0, 500),
+          deepLink: cls.ownerActionable ? "/admin/settings#bugs" : signalDeepLink(name),
+          payload: {
+            ...signalPayload(name, args),
+            failure_class: cls.failureClass,
+            owner_actionable: cls.ownerActionable,
+          },
         });
       }
       return {
