@@ -1,0 +1,33 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.malamutemayhem/openaq",
+  "title": "OpenAQ Air Quality MCP by UnClick",
+  "description": "Global air quality measurements by location and country from OpenAQ. No API key. By UnClick (https://unclick.world).",
+  "version": "0.1.0",
+  "websiteUrl": "https://unclick.world",
+  "icons": [
+    {
+      "src": "https://unclick.world/favicon.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "source": "github",
+    "subfolder": "packages/standalone/openaq-mcp"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@unclick/openaq-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 548,
+    "inventory": 560,
     "source_manifest": 187,
     "pages": 78,
     "tools": 187,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 90
+      "count": 102
     },
     {
       "id": "launch-and-onboarding",
@@ -2292,12 +2292,42 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-espn-mcp-packages-standalone-espn-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "espn mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/espn-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-exchangerate-mcp-packages-standalone-exchangerate-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "exchangerate mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/exchangerate-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-flowpass-packages-flowpass-package-json-no-route",
       "division": "Modules and apps",
       "name": "flowpass",
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/flowpass/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-genius-mcp-packages-standalone-genius-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "genius mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/genius-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2322,12 +2352,32 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-igdb-mcp-packages-standalone-igdb-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "igdb mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/igdb-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-ipaustralia-mcp-packages-standalone-ipaustralia-mcp-package-json-no-route",
       "division": "Modules and apps",
       "name": "ipaustralia mcp",
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/standalone/ipaustralia-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-lastfm-mcp-packages-standalone-lastfm-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "lastfm mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/lastfm-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2352,6 +2402,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-meal-mcp-packages-standalone-meal-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "meal mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/meal-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-memory-mcp-packages-memory-mcp-package-json-no-route",
       "division": "Modules and apps",
       "name": "memory mcp",
@@ -2362,12 +2422,42 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-musicbrainz-mcp-packages-standalone-musicbrainz-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "musicbrainz mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/musicbrainz-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-nasa-mcp-packages-standalone-nasa-mcp-package-json-no-route",
       "division": "Modules and apps",
       "name": "nasa mcp",
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/standalone/nasa-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-omdb-mcp-packages-standalone-omdb-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "omdb mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/omdb-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-openaq-mcp-packages-standalone-openaq-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "openaq mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/openaq-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2398,6 +2488,16 @@
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/standalone/ptv-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-rawg-mcp-packages-standalone-rawg-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "rawg mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/rawg-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2502,12 +2602,32 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-trivia-mcp-packages-standalone-trivia-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "trivia mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/trivia-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-untappd-mcp-packages-standalone-untappd-mcp-package-json-no-route",
       "division": "Modules and apps",
       "name": "untappd mcp",
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/standalone/untappd-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-usgs-mcp-packages-standalone-usgs-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "usgs mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/usgs-mcp/package.json",
       "route": "",
       "tags": []
     },

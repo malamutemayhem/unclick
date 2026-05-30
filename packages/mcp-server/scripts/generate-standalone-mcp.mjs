@@ -57,6 +57,19 @@ const CONFIG = {
   spotify:       { title: "Spotify MCP",         blurb: "Search Spotify for tracks, artists, albums, and playlists, with audio features and recommendations.", keywords: ["spotify", "music", "playlists", "tracks"] },
   youtube:       { title: "YouTube MCP",         blurb: "Search YouTube and get video, channel, playlist, and caption details.", keywords: ["youtube", "video", "search", "captions"] },
   reddit:        { title: "Reddit MCP",          blurb: "Search, read, and post across Reddit: posts, comments, subreddits, and users.", keywords: ["reddit", "social", "forums", "subreddit"] },
+  // ── batch 3 ──
+  espn:          { title: "ESPN Sports MCP",     blurb: "Live scores, news, and team info across NFL, NBA, MLB, NHL, and soccer from ESPN. No API key.", keywords: ["sports", "scores", "espn", "nfl", "nba"] },
+  trivia:        { title: "Trivia MCP",          blurb: "Trivia questions across categories and difficulties from the Open Trivia Database. No API key.", keywords: ["trivia", "quiz", "questions"] },
+  meal:          { title: "Recipes MCP",         blurb: "Search recipes by name, ingredient, category, or area, with full instructions, from TheMealDB. No API key.", keywords: ["recipes", "meals", "cooking", "food"] },
+  musicbrainz:   { title: "MusicBrainz MCP",     blurb: "Open music metadata: artists, releases, and recordings from MusicBrainz. No API key.", keywords: ["music", "musicbrainz", "metadata"] },
+  lastfm:        { title: "Last.fm MCP",         blurb: "Music charts, artist info, similar artists, and top tracks from Last.fm.", keywords: ["lastfm", "music", "charts"] },
+  usgs:          { title: "USGS Earthquakes MCP", blurb: "Recent earthquakes worldwide and by region, with detail, from USGS. No API key.", keywords: ["earthquakes", "usgs", "seismic"] },
+  openaq:        { title: "OpenAQ Air Quality MCP", blurb: "Global air quality measurements by location and country from OpenAQ. No API key.", keywords: ["air-quality", "openaq", "pollution"] },
+  omdb:          { title: "OMDb Movies MCP",     blurb: "Search movies and shows and get details by title or IMDb ID from the Open Movie Database.", keywords: ["movies", "omdb", "imdb", "film"] },
+  exchangerate:  { title: "Exchange Rates MCP",  blurb: "Currency conversion plus latest and historical exchange rates.", keywords: ["currency", "forex", "exchange-rate"] },
+  rawg:          { title: "RAWG Games MCP",      blurb: "Search video games with detail, screenshots, genres, and upcoming releases from RAWG.", keywords: ["games", "rawg", "video-games"] },
+  igdb:          { title: "IGDB Games MCP",      blurb: "Video game database: search games, companies, genres, and platforms via IGDB.", keywords: ["games", "igdb", "video-games"] },
+  genius:        { title: "Genius Lyrics MCP",   blurb: "Search songs and artists and get song and artist detail from Genius.", keywords: ["genius", "lyrics", "songs", "music"] },
 };
 
 // ─── Parse tool-wiring.ts ──────────────────────────────────────────────────────
