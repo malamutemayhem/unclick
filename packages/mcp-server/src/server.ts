@@ -14,6 +14,7 @@ import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
 import { markContextLoaded, recordToolCall } from "./memory/session-state.js";
 import { searchToolIndex } from "./memory/tool-awareness.js";
+import { classifyFailure } from "./tool-failure-class.js";
 import { emitSignal } from "./signals/emit.js";
 import { getHeartbeatProtocol } from "./heartbeat-protocol.js";
 import { getCommonSensePassProtocol } from "./commonsensepass-protocol.js";
@@ -183,14 +184,19 @@ function signalToolFailure(toolName: string, result: unknown, args?: unknown): v
   const apiKeyHash = currentApiKeyHash();
   const summary = failureSummary(toolName, result);
   if (!apiKeyHash || !summary) return;
+  const cls = classifyFailure(summary);
   void emitSignal({
     apiKeyHash,
     tool: toolName,
     action: "failed",
-    severity: "action_needed",
+    severity: cls.severity,
     summary: summary.slice(0, 500),
     deepLink: signalDeepLink(toolName),
-    payload: signalPayload(toolName, args),
+    payload: {
+      ...signalPayload(toolName, args),
+      failure_class: cls.failureClass,
+      owner_actionable: cls.ownerActionable,
+    },
   });
 }
 
