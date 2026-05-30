@@ -207,7 +207,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 47 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 31 |
-| Tools | MCP and gateway capabilities available to seats. | 187 |
+| Tools | MCP and gateway capabilities available to seats. | 188 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 16 |
@@ -387,6 +387,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | fpl | fpl MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fpl-tool.ts |
 | gdelt | gdelt MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gdelt-tool.ts |
 | genius | genius MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/genius-tool.ts |
+| geopass | geopass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/geopass-tool.ts |
 | github | github MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/github-tool.ts |
 | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gitlab-tool.ts |
 | groq | groq MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/groq-tool.ts |
@@ -950,6 +951,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | fpl | fpl MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fpl-tool.ts |
 | Tools | MCP tool | gdelt | gdelt MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gdelt-tool.ts |
 | Tools | MCP tool | genius | genius MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/genius-tool.ts |
+| Tools | MCP tool | geopass | geopass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/geopass-tool.ts |
 | Tools | MCP tool | github | github MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/github-tool.ts |
 | Tools | MCP tool | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gitlab-tool.ts |
 | Tools | MCP tool | groq | groq MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/groq-tool.ts |

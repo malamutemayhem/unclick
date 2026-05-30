@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 572,
+    "inventory": 573,
     "source_manifest": 187,
     "pages": 78,
-    "tools": 187,
+    "tools": 188,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 187
+      "count": 188
     },
     {
       "id": "rooms",
@@ -4362,6 +4362,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-geopass-packages-mcp-server-src-geopass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "geopass",
+      "kind": "MCP tool",
+      "meaning": "geopass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/geopass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-github-packages-mcp-server-src-github-tool-ts-no-route",
       "division": "Tools",
       "name": "github",
@@ -6627,6 +6637,11 @@
       "genius",
       "genius MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/genius-tool.ts"
+    ],
+    [
+      "geopass",
+      "geopass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/geopass-tool.ts"
     ],
     [
       "github",

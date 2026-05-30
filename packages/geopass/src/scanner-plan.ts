@@ -64,6 +64,46 @@ export const DEFAULT_GEOPASS_SCANNER_STEPS: GeoPassScannerStep[] = [
     sharedWith: ["seopass", "sloppass"],
   },
   {
+    id: "answer-extractability",
+    label: "Answer extractability",
+    purpose:
+      "Check whether public page copy contains direct, reusable answers rather than only abstract marketing claims.",
+    evidenceKinds: ["html", "content"],
+    sharedWith: ["seopass", "uxpass"],
+  },
+  {
+    id: "entity-clarity",
+    label: "Entity clarity",
+    purpose:
+      "Check whether the page names the organization, product, or author clearly enough for answer engines to ground summaries.",
+    evidenceKinds: ["html", "schema-org"],
+    sharedWith: ["seopass", "legalpass"],
+  },
+  {
+    id: "citation-readiness",
+    label: "Citation and sourceability readiness",
+    purpose:
+      "Check whether visible sources, support links, statistics, or evidence cues make claims easier to cite accurately.",
+    evidenceKinds: ["external-link", "content", "schema-org"],
+    sharedWith: ["seopass", "legalpass", "sloppass"],
+  },
+  {
+    id: "freshness-cues",
+    label: "Freshness and update cues",
+    purpose:
+      "Check whether visible publication or update signals help answer engines avoid stale summaries.",
+    evidenceKinds: ["date", "html"],
+    sharedWith: ["seopass"],
+  },
+  {
+    id: "content-structure",
+    label: "AI-readable content structure",
+    purpose:
+      "Check heading, list, paragraph, and FAQ-style structure that helps AI systems extract reliable answers.",
+    evidenceKinds: ["html", "content"],
+    sharedWith: ["seopass", "flowpass", "uxpass"],
+  },
+  {
     id: "schema-org-citation-grade",
     label: "schema.org citation-grade validation",
     purpose:
@@ -110,7 +150,7 @@ const DISALLOWED_ACTIONS = [
   "paid API calls",
   "credential access",
   "production database writes",
-  "citation guarantees",
+  "guaranteed citations",
 ];
 
 export function createGeoPassScannerPlan(input: {

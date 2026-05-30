@@ -800,6 +800,12 @@ import {
   seopassLighthousePlan,
 } from "./seopass-tool.js";
 
+// --- GEOPass (AI answer-engine readiness QC, sister to SEOPass) -------------
+import {
+  geopassRun,
+  geopassStatus,
+} from "./geopass-tool.js";
+
 // ─── CompliancePass (public name for EnterprisePass readiness) ───────────────
 import {
   compliancepassRun,
@@ -12480,6 +12486,67 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // -- geopass-tool.ts (AI answer-engine readiness QC, sister to SEOPass) ----
+  {
+    name: "geopass_run",
+    description: "Run GEOPass against a public URL. Returns a live-readonly AI answer-engine readiness receipt covering answer extractability, entity clarity, citation/sourceability, freshness cues, content structure, llms.txt, and AI bot visibility. GEOPass reports readiness only and does not guarantee rankings or citations.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        url: { type: "string", description: "Target public http(s) URL for a one-off GEOPass read-only run" },
+        target_url: { type: "string", description: "Alias for url" },
+        checks: {
+          type: "array",
+          minItems: 1,
+          description: "Optional GEOPass check ids. Defaults to the public-safe live checklist.",
+          items: {
+            type: "string",
+            enum: [
+              "ai-bot-crawlability",
+              "llms-txt",
+              "answer-extractability",
+              "entity-clarity",
+              "citation-readiness",
+              "freshness-cues",
+              "content-structure",
+              "schema-org-citation-grade",
+              "brand-mention-readiness",
+              "wikidata-presence",
+              "common-crawl-presence",
+              "aggregate-ai-engine-readiness",
+            ],
+          },
+        },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks." },
+      },
+    },
+  },
+  {
+    name: "geopass_status",
+    description: "Fetch the stored in-session GEOPass report and geopass_receipt_v1 envelope for a run started through geopass_run.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The GEOPass run id returned by geopass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+
   // ── flowpass-tool.ts (end-to-end journey QC with fixture proof) ────────────
   {
     name: "flowpass_run",
@@ -14084,6 +14151,10 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   seopass_status:          (args) => seopassStatus(args),
   seopass_register_pack:   (args) => seopassRegisterPack(args),
   seopass_lighthouse_plan: (args) => seopassLighthousePlan(args),
+
+  // geopass-tool.ts
+  geopass_run:             (args) => geopassRun(args),
+  geopass_status:          (args) => geopassStatus(args),
 
   // compliancepass-tool.ts
   compliancepass_run:         (args) => compliancepassRun(args),
