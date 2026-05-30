@@ -26,7 +26,7 @@ describe("ptv_search schema/impl alignment", () => {
   });
 
   it("reads the advertised `search_term` argument", async () => {
-    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ stops: [] }) }));
+    const fetchMock = vi.fn(async (..._args: unknown[]) => ({ ok: true, json: async () => ({ stops: [] }) }));
     vi.stubGlobal("fetch", fetchMock);
     await ptvSearch({ search_term: "Brighton Beach" });
     expect(fetchMock).toHaveBeenCalled();
@@ -34,7 +34,7 @@ describe("ptv_search schema/impl alignment", () => {
   });
 
   it("still accepts the legacy `query` alias", async () => {
-    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ stops: [] }) }));
+    const fetchMock = vi.fn(async (..._args: unknown[]) => ({ ok: true, json: async () => ({ stops: [] }) }));
     vi.stubGlobal("fetch", fetchMock);
     await ptvSearch({ query: "Flinders Street" });
     expect(String(fetchMock.mock.calls[0][0])).toContain("Flinders%20Street");
