@@ -70,9 +70,9 @@ const TOOLS = [
 ];
 
 const HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-  domain_search_listings: (args) => searchDomainListings(args),
-  domain_get_property: (args) => getDomainProperty(args),
-  domain_suburb_stats: (args) => getDomainSuburbStats(args),
+  domain_search_listings: (args) => searchDomainListings(args as unknown as Parameters<typeof searchDomainListings>[0]),
+  domain_get_property: (args) => getDomainProperty(args as unknown as Parameters<typeof getDomainProperty>[0]),
+  domain_suburb_stats: (args) => getDomainSuburbStats(args as unknown as Parameters<typeof getDomainSuburbStats>[0]),
 };
 
 const server = new Server(

@@ -31,6 +31,7 @@ const NAMESPACE = "io.github.malamutemayhem";        // verified registry namesp
 const VERSION = "0.1.0";
 const FUNNEL = "By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world";
 const ICON = "https://unclick.world/favicon.png";
+const MAX_REGISTRY_DESCRIPTION = 100;
 
 // ─── The top-10 must-have standalones (open niches, we are first) ──────────────
 // keywords feed the registry/README so the server is found for its own term.
@@ -125,6 +126,22 @@ function write(file, content) {
   fs.writeFileSync(file, content);
 }
 
+function trimRegistryDescription(cfg) {
+  const title = cfg.title.replace(/\s+MCP$/i, "");
+  const keywordText = cfg.keywords.slice(0, 3).join(", ");
+  const candidates = [
+    `${cfg.blurb} By UnClick.`,
+    `${title} tools for ${keywordText} by UnClick.`,
+    `${title} MCP by UnClick.`,
+  ].map((text) => text.replace(/\s+/g, " ").trim());
+
+  const fit = candidates.find((text) => text.length <= MAX_REGISTRY_DESCRIPTION);
+  if (fit) return fit;
+
+  const fallback = candidates.at(-1) ?? "Standalone MCP by UnClick.";
+  return fallback.slice(0, MAX_REGISTRY_DESCRIPTION - 3).replace(/\s+\S*$/, "") + "...";
+}
+
 function generate(slug) {
   const cfg = CONFIG[slug];
   if (!cfg) throw new Error(`no config for slug: ${slug}`);
@@ -144,6 +161,7 @@ function generate(slug) {
   const outDir = path.join(OUT_ROOT, `${slug}-mcp`);
   const regName = `${NAMESPACE}/${slug}`;
   const pkgName = `@unclick/${slug}-mcp`;
+  const registryDescription = trimRegistryDescription(cfg);
 
   // index.ts — a minimal MCP stdio server exposing just this connector
   const index = `#!/usr/bin/env node
@@ -235,7 +253,7 @@ main().catch((err) => {
     $schema: "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
     name: regName,
     title: `${cfg.title} by UnClick`,
-    description: `${cfg.blurb} By UnClick (https://unclick.world).`,
+    description: registryDescription,
     version: VERSION,
     websiteUrl: "https://unclick.world",
     icons: [{ src: ICON, mimeType: "image/png", sizes: ["512x512"] }],

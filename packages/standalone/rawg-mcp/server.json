@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.malamutemayhem/rawg",
   "title": "RAWG Games MCP by UnClick",
-  "description": "Search video games with detail, screenshots, genres, and upcoming releases from RAWG. By UnClick (https://unclick.world).",
+  "description": "Search video games with detail, screenshots, genres, and upcoming releases from RAWG. By UnClick.",
   "version": "0.1.0",
   "websiteUrl": "https://unclick.world",
   "icons": [

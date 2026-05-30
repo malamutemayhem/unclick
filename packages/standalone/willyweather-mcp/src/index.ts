@@ -63,9 +63,9 @@ const TOOLS = [
 ];
 
 const HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-  willyweather_forecast: (args) => getWillyweatherForecast(args),
-  willyweather_surf: (args) => getWillyweatherSurf(args),
-  willyweather_tide: (args) => getWillyweatherTide(args),
+  willyweather_forecast: (args) => getWillyweatherForecast(args as unknown as Parameters<typeof getWillyweatherForecast>[0]),
+  willyweather_surf: (args) => getWillyweatherSurf(args as unknown as Parameters<typeof getWillyweatherSurf>[0]),
+  willyweather_tide: (args) => getWillyweatherTide(args as unknown as Parameters<typeof getWillyweatherTide>[0]),
 };
 
 const server = new Server(
