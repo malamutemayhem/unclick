@@ -46,6 +46,17 @@ const CONFIG = {
   sendle:        { title: "Sendle MCP",          blurb: "Sendle shipping quotes, orders, and parcel tracking.", keywords: ["sendle", "shipping", "parcel", "australia"] },
   untappd:       { title: "Untappd MCP",         blurb: "Untappd beer and brewery search, details, and activity.", keywords: ["untappd", "beer", "brewery"] },
   bgg:           { title: "BoardGameGeek MCP",   blurb: "BoardGameGeek search, game details, rankings, and collections.", keywords: ["boardgamegeek", "bgg", "board-games"] },
+  // ── popular batch ──
+  openmeteo:     { title: "Open-Meteo Weather MCP", blurb: "Free global weather: current conditions, hourly and daily forecasts from Open-Meteo. No API key.", keywords: ["weather", "forecast", "open-meteo", "climate"] },
+  coingecko:     { title: "CoinGecko MCP",       blurb: "Live cryptocurrency prices, market data, history, and trending coins from CoinGecko. No API key.", keywords: ["crypto", "coingecko", "bitcoin", "prices"] },
+  hackernews:    { title: "Hacker News MCP",     blurb: "Search and read Hacker News stories, comments, users, Ask HN and Show HN. No API key.", keywords: ["hacker-news", "hn", "tech-news"] },
+  tmdb:          { title: "TMDB MCP",            blurb: "Search movies and TV, with details, trending, now-playing, and recommendations from The Movie Database.", keywords: ["tmdb", "movies", "tv", "film"] },
+  nasa:          { title: "NASA MCP",            blurb: "NASA imagery and data: astronomy picture of the day, Mars rover photos, asteroids, and Earth imagery.", keywords: ["nasa", "space", "astronomy", "mars"] },
+  restcountries: { title: "REST Countries MCP",  blurb: "Country data: flags, currencies, languages, regions, capitals, and more. No API key.", keywords: ["countries", "geography", "restcountries"] },
+  openlibrary:   { title: "Open Library MCP",    blurb: "Search books, authors, and editions, with trending titles, from Open Library. No API key.", keywords: ["books", "openlibrary", "library", "authors"] },
+  spotify:       { title: "Spotify MCP",         blurb: "Search Spotify for tracks, artists, albums, and playlists, with audio features and recommendations.", keywords: ["spotify", "music", "playlists", "tracks"] },
+  youtube:       { title: "YouTube MCP",         blurb: "Search YouTube and get video, channel, playlist, and caption details.", keywords: ["youtube", "video", "search", "captions"] },
+  reddit:        { title: "Reddit MCP",          blurb: "Search, read, and post across Reddit: posts, comments, subreddits, and users.", keywords: ["reddit", "social", "forums", "subreddit"] },
 };
 
 // ─── Parse tool-wiring.ts ──────────────────────────────────────────────────────
@@ -89,7 +100,7 @@ function handlersFor(slug) {
   const nm = nextHeader.exec(handlersBody);
   const to = nm ? nm.index : handlersBody.length;
   const chunk = handlersBody.slice(from, to);
-  const entries = [...chunk.matchAll(/^\s*([a-z0-9_]+):\s*\(args\)\s*=>\s*([a-zA-Z0-9_]+)\(args\),/gm)]
+  const entries = [...chunk.matchAll(/^\s*([a-z0-9_]+):\s*\(args\)\s*=>\s*([a-zA-Z0-9_]+)\(/gm)]
     .map((x) => ({ tool: x[1], fn: x[2] }));
   return entries.length ? entries : null;
 }
@@ -144,7 +155,7 @@ ${defs}
 ];
 
 const HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-${handlers.map((h) => `  ${h.tool}: (args) => ${h.fn}(args),`).join("\n")}
+${handlers.map((h) => `  ${h.tool}: (args) => ${h.fn}(args as unknown as Parameters<typeof ${h.fn}>[0]),`).join("\n")}
 };
 
 const server = new Server(

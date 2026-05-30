@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 538,
+    "inventory": 548,
     "source_manifest": 187,
     "pages": 78,
     "tools": 187,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 80
+      "count": 90
     },
     {
       "id": "launch-and-onboarding",
@@ -2232,6 +2232,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-coingecko-mcp-packages-standalone-coingecko-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "coingecko mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/coingecko-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-commonsensepass-packages-commonsensepass-package-json-no-route",
       "division": "Modules and apps",
       "name": "commonsensepass",
@@ -2302,6 +2312,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-hackernews-mcp-packages-standalone-hackernews-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "hackernews mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/hackernews-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-ipaustralia-mcp-packages-standalone-ipaustralia-mcp-package-json-no-route",
       "division": "Modules and apps",
       "name": "ipaustralia mcp",
@@ -2342,12 +2362,62 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-nasa-mcp-packages-standalone-nasa-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "nasa mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/nasa-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-openlibrary-mcp-packages-standalone-openlibrary-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "openlibrary mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/openlibrary-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-openmeteo-mcp-packages-standalone-openmeteo-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "openmeteo mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/openmeteo-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-ptv-mcp-packages-standalone-ptv-mcp-package-json-no-route",
       "division": "Modules and apps",
       "name": "ptv mcp",
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/standalone/ptv-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-reddit-mcp-packages-standalone-reddit-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "reddit mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/reddit-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-restcountries-mcp-packages-standalone-restcountries-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "restcountries mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/restcountries-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2392,6 +2462,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-package-spotify-mcp-packages-standalone-spotify-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "spotify mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/spotify-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-package-testpass-packages-testpass-package-json-no-route",
       "division": "Modules and apps",
       "name": "testpass",
@@ -2408,6 +2488,16 @@
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/standalone/thelott-mcp/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-tmdb-mcp-packages-standalone-tmdb-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "tmdb mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/tmdb-mcp/package.json",
       "route": "",
       "tags": []
     },
@@ -2448,6 +2538,16 @@
       "kind": "package",
       "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
       "source": "packages/wizard/package.json",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-package-youtube-mcp-packages-standalone-youtube-mcp-package-json-no-route",
+      "division": "Modules and apps",
+      "name": "youtube mcp",
+      "kind": "package",
+      "meaning": "Shared package used by UnClick tools, MCP, or worker lanes.",
+      "source": "packages/standalone/youtube-mcp/package.json",
       "route": "",
       "tags": []
     },
