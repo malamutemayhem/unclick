@@ -4,7 +4,10 @@
 // Auth: WILLYWEATHER_KEY env var (passed as key query param in base URL).
 // Base URL: https://api.willyweather.com.au/v2/{key}/
 
+import { timeoutFetch, memoryDefault, stamp } from "./connector-kit.js";
+
 const WILLY_BASE = "https://api.willyweather.com.au/v2";
+const WILLY_SOURCE = "WillyWeather API v2";
 
 function getApiKey(args: Record<string, unknown>): string {
   const key = String(args.api_key ?? process.env.WILLYWEATHER_KEY ?? "").trim();
@@ -12,14 +15,20 @@ function getApiKey(args: Record<string, unknown>): string {
   return key;
 }
 
+/** Resolve the location query from args, falling back to WILLYWEATHER_HOME_LOCATION. */
+function resolveLocation(args: Record<string, unknown>, defaultsUsed: string[]): string {
+  const explicit = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
+  if (explicit) return explicit;
+  return memoryDefault(args, "__never", "WILLYWEATHER_HOME_LOCATION", defaultsUsed);
+}
+
 async function willyGet(apiKey: string, path: string, params?: Record<string, string>): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${WILLY_BASE}/${apiKey}${path}${qs}`, {
+  const res = await timeoutFetch("WillyWeather", `${WILLY_BASE}/${apiKey}${path}${qs}`, {
     headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
   });
   if (res.status === 401 || res.status === 403) throw new Error("Invalid WillyWeather API key.");
   if (res.status === 404) throw new Error("Location not found.");
-  if (res.status === 429) throw new Error("WillyWeather API rate limit exceeded.");
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`WillyWeather HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
@@ -44,8 +53,9 @@ async function searchLocation(apiKey: string, query: string): Promise<{ id: numb
 export async function getWillyweatherForecast(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
-    const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
-    if (!query) return { error: "location is required (suburb name or postcode)." };
+    const defaultsUsed: string[] = [];
+    const query = resolveLocation(args, defaultsUsed);
+    if (!query) return { error: "location is required (suburb name or postcode), or set WILLYWEATHER_HOME_LOCATION." };
 
     const loc = await searchLocation(apiKey, query);
     if (!loc) return { error: `Location "${query}" not found in WillyWeather.` };
@@ -58,7 +68,7 @@ export async function getWillyweatherForecast(args: Record<string, unknown>): Pr
 
     const forecasts = data["forecasts"] as Record<string, unknown> | undefined;
 
-    return {
+    return stamp({
       location: `${loc.name}, ${loc.state}`,
       location_id: loc.id,
       days_requested: days,
@@ -67,7 +77,7 @@ export async function getWillyweatherForecast(args: Record<string, unknown>): Pr
       rainfall: forecasts?.["rainfall"],
       wind: forecasts?.["wind"],
       sunrise_sunset: forecasts?.["sunrisesunset"],
-    };
+    }, { source: WILLY_SOURCE, defaultsUsed, nextSteps: ["Use get_willyweather_surf or get_willyweather_tide for the same location."] });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -78,8 +88,9 @@ export async function getWillyweatherForecast(args: Record<string, unknown>): Pr
 export async function getWillyweatherSurf(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
-    const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
-    if (!query) return { error: "location is required (suburb name or postcode)." };
+    const defaultsUsed: string[] = [];
+    const query = resolveLocation(args, defaultsUsed);
+    if (!query) return { error: "location is required (suburb name or postcode), or set WILLYWEATHER_HOME_LOCATION." };
 
     const loc = await searchLocation(apiKey, query);
     if (!loc) return { error: `Location "${query}" not found in WillyWeather.` };
@@ -92,13 +103,13 @@ export async function getWillyweatherSurf(args: Record<string, unknown>): Promis
 
     const forecasts = data["forecasts"] as Record<string, unknown> | undefined;
 
-    return {
+    return stamp({
       location: `${loc.name}, ${loc.state}`,
       location_id: loc.id,
       days_requested: days,
       swell: forecasts?.["swell"],
       surf_conditions: forecasts?.["surfConditions"],
-    };
+    }, { source: WILLY_SOURCE, defaultsUsed, nextSteps: ["Use get_willyweather_tide for tide times at the same spot."] });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -109,8 +120,9 @@ export async function getWillyweatherSurf(args: Record<string, unknown>): Promis
 export async function getWillyweatherTide(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
-    const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
-    if (!query) return { error: "location is required (suburb name or postcode)." };
+    const defaultsUsed: string[] = [];
+    const query = resolveLocation(args, defaultsUsed);
+    if (!query) return { error: "location is required (suburb name or postcode), or set WILLYWEATHER_HOME_LOCATION." };
 
     const loc = await searchLocation(apiKey, query);
     if (!loc) return { error: `Location "${query}" not found in WillyWeather.` };
@@ -123,12 +135,12 @@ export async function getWillyweatherTide(args: Record<string, unknown>): Promis
 
     const forecasts = data["forecasts"] as Record<string, unknown> | undefined;
 
-    return {
+    return stamp({
       location: `${loc.name}, ${loc.state}`,
       location_id: loc.id,
       days_requested: days,
       tides: forecasts?.["tides"],
-    };
+    }, { source: WILLY_SOURCE, defaultsUsed, nextSteps: ["Use get_willyweather_forecast for the broader weather outlook."] });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
