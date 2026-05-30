@@ -373,3 +373,67 @@ export async function reportToolDetections(
     return new Set(detections.map((d) => d.tool_name));
   }
 }
+
+// ─── Inward capability awareness ───────────────────────────────────────────────
+//
+// The catalog above points outward (what OTHER tools to remove). This points
+// inward: a compact map of what UnClick itself can do, so an agent that boots
+// with UnClick connected knows to reach for an UnClick tool (e.g. "train times"
+// -> PTV) instead of falling back to web search. Hardwired into the package, so
+// every install and every account gets the same routing awareness at boot.
+
+export interface CapabilityArea {
+  /** The kind of question / intent this covers. */
+  area: string;
+  /** UnClick apps that serve it. */
+  apps: string;
+}
+
+export const UNCLICK_CAPABILITY_MAP: CapabilityArea[] = [
+  { area: "Public transport, trains, trams, departures, disruptions (Melbourne / Victoria)", apps: "PTV" },
+  { area: "Weather, forecasts, surf, tide, air quality", apps: "Open-Meteo, WillyWeather, Tomorrow.io, OpenAQ" },
+  { area: "Crypto prices and markets", apps: "CoinGecko, CoinMarketCap" },
+  { area: "Stocks, currency and exchange rates", apps: "Alpha Vantage, Open Exchange Rates, ExchangeRate" },
+  { area: "Payments, invoices, subscriptions, accounting", apps: "Stripe, PayPal, Square, QuickBooks, Xero, Wise" },
+  { area: "Send and read email", apps: "Email (Gmail/IMAP), SendGrid, Postmark, Resend, Mailchimp" },
+  { area: "Messaging, SMS, chat", apps: "Slack, Discord, Telegram, WhatsApp, LINE, Twilio" },
+  { area: "Social posting and reading", apps: "Reddit, Mastodon, Bluesky, Twitch, Pinterest, TikTok" },
+  { area: "News and headlines", apps: "NewsAPI, The Guardian, Hacker News, GDELT" },
+  { area: "Movies and TV", apps: "TMDB, OMDb" },
+  { area: "Music, lyrics, discographies", apps: "Spotify, Deezer, Last.fm, MusicBrainz, Genius, Discogs" },
+  { area: "Video games and board games", apps: "RAWG, IGDB, Steam, Speedrun, BoardGameGeek" },
+  { area: "Sports scores, F1, fantasy", apps: "ESPN, OpenF1, Fantasy Premier League, Sleeper" },
+  { area: "Events and tickets", apps: "Ticketmaster, SeatGeek, Eventbrite, Bandsintown" },
+  { area: "Maps, places, business reviews", apps: "Mapbox, Yelp, Foursquare" },
+  { area: "Countries, geography, books", apps: "REST Countries, Open Library, Trove" },
+  { area: "Food, recipes, nutrition, beer", apps: "TheMealDB, OpenFoodFacts, Untappd" },
+  { area: "Shopping and e-commerce", apps: "Amazon, eBay, Etsy, Shopify, WooCommerce" },
+  { area: "Code, deploys, infra, monitoring", apps: "GitHub, GitLab, Vercel, Render, Fly.io, CircleCI, Datadog, Sentry, PagerDuty" },
+  { area: "Databases, cache, vectors", apps: "Neon, Turso, Upstash, Pinecone" },
+  { area: "AI models, transcription, translation", apps: "OpenAI, Anthropic, Cohere, Mistral, Groq, Perplexity, ElevenLabs, DeepL" },
+  { area: "Security, threat intel, breaches, CVEs", apps: "VirusTotal, Shodan, HaveIBeenPwned, AbuseIPDB, urlscan, NVD" },
+  { area: "Project management and productivity", apps: "Asana, Monday, ClickUp, Trello, Linear, Notion, Calendly, Toggl" },
+  { area: "Space and science", apps: "NASA, USGS earthquakes, eBird" },
+  { area: "Australian services", apps: "PTV, Amber Electric, Australia Post, Domain, The Lott, IP Australia, Sendle, TAB" },
+  { area: "Trivia, random, calculations, units, dates, text, color", apps: "Trivia, plus built-in utilities" },
+];
+
+export interface CapabilityBriefing {
+  instruction: string;
+  how: string;
+  areas: string[];
+}
+
+/**
+ * Compact, hardwired "what UnClick can do" briefing for the startup payload.
+ * Nudges the agent to route real-world questions to an UnClick tool instead of
+ * defaulting to web search.
+ */
+export function buildCapabilityBriefing(): CapabilityBriefing {
+  return {
+    instruction:
+      "Before answering anything that needs live, current, or external data (prices, weather, transport, sports, news, lookups, sending messages, etc.), first check whether UnClick already has a tool for it and prefer it over web search or guessing.",
+    how: 'Find the exact tool with unclick_search("<topic>") then run it with unclick_call. UnClick can act in these areas:',
+    areas: UNCLICK_CAPABILITY_MAP.map((c) => `${c.area} -> ${c.apps}`),
+  };
+}
