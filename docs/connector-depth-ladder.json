@@ -1,0 +1,2900 @@
+[
+  {
+    "connector": "ptv",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": true,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "abn",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "abuseipdb",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "airtable",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "algolia",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "alphavantage",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "amazon",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "amber",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "anthropic",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "asana",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "assemblyai",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "australiapost",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "bandsintown",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "bgg",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "bluesky",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "bungie",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "calendly",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "carboninterface",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "chessdotcom",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "circleci",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "clickup",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "clockify",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "cohere",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "coingecko",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "coinmarketcap",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "convertkit",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "datadog",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "deepl",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "deezer",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "discogs",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "discord",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "domain",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "ebay",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "ebird",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "elevenlabs",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "email",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "espn",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "etsy",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "eventbrite",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "exchangerate",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "feedly",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "figma",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "flyio",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "foursquare",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "fpl",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "gdelt",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "genius",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "github",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "gitlab",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "groq",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "guardian",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "gumroad",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "hackernews",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "haveibeenpwned",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "heygen",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "higgsfield",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "hunter",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "igdb",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "instapaper",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "ipapi",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "ipaustralia",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "kling",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "lastfm",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "lego",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "lemonsqueezy",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "lichess",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "line",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "linear",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "mailchimp",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "mapbox",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "mastodon",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "meal",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "mistral",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "mixpanel",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "monday",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "monica",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "musicbrainz",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "nasa",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "neon",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "newsapi",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "notion",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "nvd",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "omdb",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "openai",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 3,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "openaq",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "openexchangerates",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "openf1",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "openfoodfacts",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "openlibrary",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "openmeteo",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "pagerduty",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 4,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "pandascore",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "paypal",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "perplexity",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "pika",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "pinecone",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 3,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "pinterest",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "plaid",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "podcastindex",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "postman",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "postmark",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "pushover",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 3,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "quickbooks",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "radiobrowser",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "raindrop",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "rawg",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "readwise",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "reddit",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "render",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "replicate",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "resend",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "restcountries",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "riot",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "runway",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "seatgeek",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "segment",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "sendgrid",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "sendle",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "sentry",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "setlistfm",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "shodan",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "shopify",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "slack",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "sleeper",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "speedrun",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "splitwise",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "spotify",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "square",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "stability",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 3,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "steam",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "stripe",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "supercell",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "tab",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "telegram",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "thelott",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "ticketmaster",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "tiktok",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "tmdb",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "togetherai",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 2,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "toggl",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "toilets",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "tomorrowio",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "trello",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "trivia",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "trove",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "turso",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "twilio",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 3,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "twitch",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "untappd",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "upstash",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "urlscan",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "usgs",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "vercel",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "virustotal",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "whatsapp",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 3,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "willyweather",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "wise",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "woocommerce",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "xero",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "yelp",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": false,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "youtube",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 1,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  }
+]
