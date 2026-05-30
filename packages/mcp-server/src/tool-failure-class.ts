@@ -16,7 +16,8 @@ export interface FailureClassification {
   failureClass: FailureClass;
   /** True when this is UnClick's problem to fix or monitor (surface to the owner). */
   ownerActionable: boolean;
-  severity: "info" | "warning" | "action_needed" | "critical";
+  /** Matches the signal system's severity enum. */
+  severity: "info" | "action_needed" | "critical";
 }
 
 export function classifyFailure(summary: string): FailureClassification {
@@ -36,7 +37,7 @@ export function classifyFailure(summary: string): FailureClassification {
 
   // upstream: the external API is down or erroring server-side
   if (/\b(500|502|503|504|bad gateway|service unavailable|upstream|server error)\b/.test(s)) {
-    return { failureClass: "upstream", ownerActionable: true, severity: "warning" };
+    return { failureClass: "upstream", ownerActionable: true, severity: "action_needed" };
   }
 
   // tool_bug: signs our own code broke
@@ -49,5 +50,5 @@ export function classifyFailure(summary: string): FailureClassification {
     return { failureClass: "usage", ownerActionable: false, severity: "action_needed" };
   }
 
-  return { failureClass: "unknown", ownerActionable: true, severity: "warning" };
+  return { failureClass: "unknown", ownerActionable: true, severity: "action_needed" };
 }
