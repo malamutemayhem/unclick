@@ -71,6 +71,19 @@ const CONFIG = {
   rawg:          { title: "RAWG Games MCP",      blurb: "Search video games with detail, screenshots, genres, and upcoming releases from RAWG.", keywords: ["games", "rawg", "video-games"] },
   igdb:          { title: "IGDB Games MCP",      blurb: "Video game database: search games, companies, genres, and platforms via IGDB.", keywords: ["games", "igdb", "video-games"] },
   genius:        { title: "Genius Lyrics MCP",   blurb: "Search songs and artists and get song and artist detail from Genius.", keywords: ["genius", "lyrics", "songs", "music"] },
+  // -- batch 4 --
+  abn:           { title: "ABN Lookup MCP",       blurb: "Australian Business Number lookup and business name search.", keywords: ["abn", "business", "australia"] },
+  chessdotcom:   { title: "Chess.com MCP",        blurb: "Chess.com player profiles, stats, games, puzzles, and leaderboards. No API key.", keywords: ["chess", "chess.com", "games"] },
+  openf1:        { title: "OpenF1 MCP",           blurb: "Formula 1 sessions, drivers, positions, laps, pit stops, car data, radio, and weather.", keywords: ["formula-1", "f1", "racing"] },
+  openfoodfacts: { title: "Open Food Facts MCP",  blurb: "Search food products, ingredients, nutrition, brands, and categories. No API key.", keywords: ["food", "nutrition", "open-food-facts"] },
+  lichess:       { title: "Lichess MCP",          blurb: "Lichess player profiles, games, daily puzzle, top players, and tournaments.", keywords: ["lichess", "chess", "games"] },
+  radiobrowser:  { title: "Radio Browser MCP",    blurb: "Search internet radio stations by country, tag, popularity, and votes. No API key.", keywords: ["radio", "stations", "music"] },
+  speedrun:      { title: "Speedrun.com MCP",     blurb: "Speedrun.com games, leaderboards, runs, and users. No API key.", keywords: ["speedrun", "games", "leaderboards"] },
+  ipapi:         { title: "IP Geolocation MCP",   blurb: "IP address geolocation and batch lookup with country, city, region, ISP, and timezone.", keywords: ["ip", "geolocation", "network"] },
+  fpl:           { title: "Fantasy Premier League MCP", blurb: "Fantasy Premier League teams, fixtures, players, standings, and league data.", keywords: ["fpl", "football", "fantasy"] },
+  deezer:        { title: "Deezer MCP",           blurb: "Search Deezer tracks, artists, albums, playlists, charts, and podcasts. No API key.", keywords: ["deezer", "music", "podcasts"] },
+  gdelt:         { title: "GDELT News MCP",       blurb: "Global news search, events, tone, themes, and geographic signals from GDELT.", keywords: ["gdelt", "news", "events"] },
+  sleeper:       { title: "Sleeper Fantasy MCP",  blurb: "Sleeper fantasy football users, leagues, rosters, drafts, players, and matchups.", keywords: ["sleeper", "fantasy", "football"] },
 };
 
 // ─── Parse tool-wiring.ts ──────────────────────────────────────────────────────

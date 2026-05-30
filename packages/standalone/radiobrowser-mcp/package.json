@@ -1,0 +1,44 @@
+{
+  "name": "@unclick/radiobrowser-mcp",
+  "version": "0.1.0",
+  "mcpName": "io.github.malamutemayhem/radiobrowser",
+  "description": "Search internet radio stations by country, tag, popularity, and votes. No API key. By UnClick (https://unclick.world).",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "unclick",
+    "radio",
+    "stations",
+    "music"
+  ],
+  "author": "UnClick (https://unclick.world)",
+  "type": "module",
+  "bin": {
+    "radiobrowser-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "server.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "directory": "packages/standalone/radiobrowser-mcp"
+  },
+  "homepage": "https://unclick.world"
+}
