@@ -1,15 +1,13 @@
 name: Publish standalone MCPs
 
-# Builds the standalone niche MCP servers in packages/standalone/*-mcp and
-# publishes them as GitHub release tarballs (the same npm-free distribution
-# UnClick itself uses). No npm account, no NPM_TOKEN: GITHUB_TOKEN only.
+# Publishes the standalone niche MCP servers in packages/standalone/*-mcp two ways:
+#   1. GitHub release tarballs (always; npm-free, GITHUB_TOKEN only).
+#   2. npm packages (only if the NPM_TOKEN secret is set; skipped otherwise).
+# Both are idempotent: a version already published is skipped, so re-runs are safe.
 #
-# Runs automatically when packages/standalone/** lands on main. Each <slug>.tgz
-# is uploaded to a rolling release so install URLs are stable:
-#   npx -y https://github.com/<owner>/<repo>/releases/download/standalone-mcps-latest/<slug>.tgz
-#
-# Install needs no npm login either: npx fetches the tarball from GitHub and pulls
-# its public dependencies from the npm registry read-only.
+# Runs automatically when packages/standalone/** lands on main. To publish to npm,
+# add repo secret NPM_TOKEN (a granular automation token with write access to the
+# @unclick scope). No secret = tarball-only, still fully working.
 
 on:
   push:
@@ -21,6 +19,7 @@ on:
 
 permissions:
   contents: write   # create/update the rolling GitHub release
+  id-token: write   # reserved for npm provenance / OIDC
 
 jobs:
   publish:
@@ -34,28 +33,46 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: https://registry.npmjs.org
 
-      - name: Build and pack each standalone
+      - name: Build, pack, and (if NPM_TOKEN set) publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
           mkdir -p ../release-artifacts
           rm -f ../release-artifacts/*.tgz || true
+          npm_published=0; npm_skipped=0
           for dir in packages/standalone/*-mcp; do
             [ -d "$dir" ] || continue
             slug=$(basename "$dir" | sed 's/-mcp$//')
-            echo "::group::$slug"
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            echo "::group::$slug ($name@$version)"
             (
               cd "$dir"
               npm install --no-audit --no-fund
               npm run build
+              # 1) tarball for the GitHub release (npm-free path)
               packed=$(npm pack --pack-destination "$GITHUB_WORKSPACE/../release-artifacts")
               cp "$GITHUB_WORKSPACE/../release-artifacts/$packed" "$GITHUB_WORKSPACE/../release-artifacts/$slug.tgz"
+              # 2) npm publish, only when a token is present and version is new
+              if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
+                if npm view "$name@$version" version >/dev/null 2>&1; then
+                  echo "npm: $name@$version already published, skipping"
+                else
+                  npm publish --access public
+                  echo "npm: published $name@$version"
+                fi
+              else
+                echo "npm: NPM_TOKEN not set, skipping npm (tarball still published)"
+              fi
             )
             echo "::endgroup::"
           done
-          echo "Packed:"; ls -1 ../release-artifacts/*.tgz
+          echo "Packed tarballs:"; ls -1 ../release-artifacts/*.tgz
 
-      - name: Upload to rolling GitHub release
+      - name: Upload tarballs to rolling GitHub release
         run: |
           set -euo pipefail
           title="UnClick standalone MCPs"
@@ -63,10 +80,9 @@ jobs:
           if ! gh release view "$ROLLING_TAG" >/dev/null 2>&1; then
             gh release create "$ROLLING_TAG" --target "$(git rev-parse HEAD)" --title "$title" --notes "$notes" || true
           fi
-          # upload only the friendly <slug>.tgz assets, clobbering previous versions
           for f in ../release-artifacts/*.tgz; do
             case "$(basename "$f")" in
-              unclick-*) continue ;;  # skip the raw npm-pack name, keep only <slug>.tgz
+              unclick-*) continue ;;
             esac
             gh release upload "$ROLLING_TAG" "$f" --clobber
           done
