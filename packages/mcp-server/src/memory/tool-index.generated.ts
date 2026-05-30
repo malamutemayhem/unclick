@@ -2629,7 +2629,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "ptv_departures",
-        "description": "Get PTV departures for a stop."
+        "description": "Get PTV departures for a stop. In full UnClick, stop_id can be filled from saved Memory defaults."
       },
       {
         "name": "ptv_disruptions",

@@ -14,6 +14,7 @@ import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
 import { markContextLoaded, recordToolCall } from "./memory/session-state.js";
 import { searchToolIndex } from "./memory/tool-awareness.js";
+import { applyToolMemoryDefaults } from "./tool-memory-defaults.js";
 import { classifyFailure } from "./tool-failure-class.js";
 import { reportToolFailureBug } from "./tool-failure-report.js";
 import { emitSignal } from "./signals/emit.js";
@@ -2415,8 +2416,9 @@ export function createServer(): Server {
         const handlerKey = endpointId.replace(/\./g, "_");
         const additionalHandler = ADDITIONAL_HANDLERS[handlerKey];
         if (additionalHandler) {
-          const result = await additionalHandler(params);
-          signalToolFailure(handlerKey, result, params);
+          const { args: handlerArgs } = await applyToolMemoryDefaults(handlerKey, params);
+          const result = await additionalHandler(handlerArgs);
+          signalToolFailure(handlerKey, result, handlerArgs);
           return {
             content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
           };
@@ -2495,8 +2497,9 @@ export function createServer(): Server {
       // ── Additional tools (third-party integrations) ───────────────
       const additionalHandler = ADDITIONAL_HANDLERS[name];
       if (additionalHandler) {
-        const result = await additionalHandler(args);
-        signalToolFailure(name, result, args);
+        const { args: handlerArgs } = await applyToolMemoryDefaults(name, args);
+        const result = await additionalHandler(handlerArgs);
+        signalToolFailure(name, result, handlerArgs);
         return {
           content: [
             {

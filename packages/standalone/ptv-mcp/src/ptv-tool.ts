@@ -6,6 +6,8 @@
 import { createHmac } from "node:crypto";
 
 const PTV_BASE = "https://timetableapi.ptv.vic.gov.au";
+const PTV_ATTRIBUTION =
+  "Source: Licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence.";
 
 // ─── Signature helper ─────────────────────────────────────────────────────────
 
@@ -39,6 +41,35 @@ async function ptvFetch(path: string, params: Record<string, string> = {}): Prom
   return res.json() as Promise<unknown>;
 }
 
+function stringArg(args: Record<string, unknown>, key: string, envKey?: string): string {
+  const value = args[key] ?? (envKey ? process.env[envKey] : undefined);
+  return String(value ?? "").trim();
+}
+
+function numberArg(args: Record<string, unknown>, key: string, envKey: string, fallback: number): number {
+  const value = args[key] ?? process.env[envKey];
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function addPtvMeta(result: unknown, tool: string, defaultsUsed: string[]): unknown {
+  const meta = {
+    source: "PTV Timetable API v3",
+    attribution: PTV_ATTRIBUTION,
+    fetched_at: new Date().toISOString(),
+    defaults_used: defaultsUsed,
+    next_steps:
+      tool === "ptv_search"
+        ? ["Use a returned stop_id with ptv_departures."]
+        : ["Use ptv_disruptions to check service disruptions for the same route type."],
+  };
+
+  if (result && typeof result === "object" && !Array.isArray(result)) {
+    return { ...(result as Record<string, unknown>), unclick_meta: meta };
+  }
+  return { data: result, unclick_meta: meta };
+}
+
 // Route type codes
 // 0 = Train (metro), 1 = Tram, 2 = Bus, 3 = Vline (regional train), 4 = Night Bus
 
@@ -50,26 +81,46 @@ export async function ptvSearch(args: Record<string, unknown>): Promise<unknown>
   const query = String(args.search_term ?? args.query ?? "").trim();
   if (!query) return { error: "search_term is required." };
 
-  return ptvFetch(`/v3/search/${encodeURIComponent(query)}`);
+  const result = await ptvFetch(`/v3/search/${encodeURIComponent(query)}`);
+  return addPtvMeta(result, "ptv_search", []);
 }
 
 // ─── ptv_departures ───────────────────────────────────────────────────────────
 // GET /v3/departures/route_type/{route_type}/stop/{stop_id}
 
 export async function ptvDepartures(args: Record<string, unknown>): Promise<unknown> {
-  const stopId = String(args.stop_id ?? "").trim();
+  const stopId = stringArg(args, "stop_id", "PTV_HOME_STOP_ID");
   if (!stopId) return { error: "stop_id is required." };
 
-  const routeType = Number(args.route_type ?? 0);
+  const defaultsUsed = Array.isArray(args.__unclick_memory_defaults)
+    ? args.__unclick_memory_defaults.filter((value): value is string => typeof value === "string")
+    : [];
+  if (args.stop_id === undefined && process.env.PTV_HOME_STOP_ID) defaultsUsed.push("PTV_HOME_STOP_ID");
+
+  const routeType = numberArg(args, "route_type", "PTV_HOME_ROUTE_TYPE", 0);
+  if (args.route_type === undefined && process.env.PTV_HOME_ROUTE_TYPE) defaultsUsed.push("PTV_HOME_ROUTE_TYPE");
   const params: Record<string, string> = {};
 
-  if (args.max_results) params["max_results"] = String(Math.min(20, Number(args.max_results)));
-  if (args.route_id) params["route_id"] = String(args.route_id);
-  if (args.direction_id) params["direction_id"] = String(args.direction_id);
+  const maxResults = numberArg(args, "max_results", "PTV_DEFAULT_MAX_RESULTS", 5);
+  if (maxResults > 0) params["max_results"] = String(Math.min(20, maxResults));
+
+  const routeId = stringArg(args, "route_id", "PTV_HOME_ROUTE_ID");
+  if (routeId) {
+    params["route_id"] = routeId;
+    if (args.route_id === undefined && process.env.PTV_HOME_ROUTE_ID) defaultsUsed.push("PTV_HOME_ROUTE_ID");
+  }
+
+  const directionId = stringArg(args, "direction_id", "PTV_HOME_DIRECTION_ID");
+  if (directionId) {
+    params["direction_id"] = directionId;
+    if (args.direction_id === undefined && process.env.PTV_HOME_DIRECTION_ID) defaultsUsed.push("PTV_HOME_DIRECTION_ID");
+  }
+
   if (args.look_backwards === true) params["look_backwards"] = "true";
   if (args.include_cancelled === true) params["include_cancelled"] = "true";
 
-  return ptvFetch(`/v3/departures/route_type/${routeType}/stop/${stopId}`, params);
+  const result = await ptvFetch(`/v3/departures/route_type/${routeType}/stop/${stopId}`, params);
+  return addPtvMeta(result, "ptv_departures", defaultsUsed);
 }
 
 // ─── ptv_disruptions ──────────────────────────────────────────────────────────
