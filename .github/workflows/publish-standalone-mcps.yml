@@ -61,8 +61,12 @@ jobs:
                 if npm view "$name@$version" version >/dev/null 2>&1; then
                   echo "npm: $name@$version already published, skipping"
                 else
-                  npm publish --access public
-                  echo "npm: published $name@$version"
+                  # Non-fatal: a token/2FA problem must not block the tarball path.
+                  if npm publish --access public; then
+                    echo "npm: published $name@$version"
+                  else
+                    echo "::warning::npm publish failed for $name@$version (token/2FA?). Tarball still published."
+                  fi
                 fi
               else
                 echo "npm: NPM_TOKEN not set, skipping npm (tarball still published)"
