@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.malamutemayhem/omdb",
   "title": "OMDb Movies MCP by UnClick",
-  "description": "Search movies and shows and get details by title or IMDb ID from the Open Movie Database. By UnClick (https://unclick.world).",
+  "description": "OMDb Movies tools for movies, omdb, imdb by UnClick.",
   "version": "0.1.0",
   "websiteUrl": "https://unclick.world",
   "icons": [

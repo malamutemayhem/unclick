@@ -193,7 +193,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/openhands-test-mode.yml | 9aaef5273976 | 1137 |
 | .github/workflows/publish-channel-package.yml | 5c9197848ca9 | 8046 |
 | .github/workflows/publish-mcp-package.yml | c029877aab11 | 6427 |
-| .github/workflows/publish-standalone-mcps.yml | af5014743384 | 5953 |
+| .github/workflows/publish-standalone-mcps.yml | ddd200e03a08 | 7228 |
 | .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
 | .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
 | .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |

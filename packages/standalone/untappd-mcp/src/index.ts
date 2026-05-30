@@ -90,11 +90,11 @@ const TOOLS = [
 ];
 
 const HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-  untappd_search_beer: (args) => untappdSearchBeer(args),
-  untappd_get_beer: (args) => untappdGetBeer(args),
-  untappd_get_brewery: (args) => untappdGetBrewery(args),
-  untappd_search_brewery: (args) => untappdSearchBrewery(args),
-  untappd_beer_activities: (args) => untappdBeerActivities(args),
+  untappd_search_beer: (args) => untappdSearchBeer(args as unknown as Parameters<typeof untappdSearchBeer>[0]),
+  untappd_get_beer: (args) => untappdGetBeer(args as unknown as Parameters<typeof untappdGetBeer>[0]),
+  untappd_get_brewery: (args) => untappdGetBrewery(args as unknown as Parameters<typeof untappdGetBrewery>[0]),
+  untappd_search_brewery: (args) => untappdSearchBrewery(args as unknown as Parameters<typeof untappdSearchBrewery>[0]),
+  untappd_beer_activities: (args) => untappdBeerActivities(args as unknown as Parameters<typeof untappdBeerActivities>[0]),
 };
 
 const server = new Server(

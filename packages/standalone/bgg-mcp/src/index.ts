@@ -85,11 +85,11 @@ const TOOLS = [
 ];
 
 const HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-  bgg_search: (args) => bggSearch(args),
-  bgg_game_details: (args) => bggGameDetails(args),
-  bgg_user_collection: (args) => bggUserCollection(args),
-  bgg_top_games: (args) => bggTopGames(args),
-  bgg_game_reviews: (args) => bggGameReviews(args),
+  bgg_search: (args) => bggSearch(args as unknown as Parameters<typeof bggSearch>[0]),
+  bgg_game_details: (args) => bggGameDetails(args as unknown as Parameters<typeof bggGameDetails>[0]),
+  bgg_user_collection: (args) => bggUserCollection(args as unknown as Parameters<typeof bggUserCollection>[0]),
+  bgg_top_games: (args) => bggTopGames(args as unknown as Parameters<typeof bggTopGames>[0]),
+  bgg_game_reviews: (args) => bggGameReviews(args as unknown as Parameters<typeof bggGameReviews>[0]),
 };
 
 const server = new Server(

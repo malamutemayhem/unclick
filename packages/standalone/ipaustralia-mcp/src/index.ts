@@ -63,9 +63,9 @@ const TOOLS = [
 ];
 
 const HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-  search_trademarks: (args) => searchTrademarks(args),
-  get_trademark_details: (args) => getTrademarkDetails(args),
-  search_patents: (args) => searchPatents(args),
+  search_trademarks: (args) => searchTrademarks(args as unknown as Parameters<typeof searchTrademarks>[0]),
+  get_trademark_details: (args) => getTrademarkDetails(args as unknown as Parameters<typeof getTrademarkDetails>[0]),
+  search_patents: (args) => searchPatents(args as unknown as Parameters<typeof searchPatents>[0]),
 };
 
 const server = new Server(

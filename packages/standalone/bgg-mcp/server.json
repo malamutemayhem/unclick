@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.malamutemayhem/bgg",
   "title": "BoardGameGeek MCP by UnClick",
-  "description": "BoardGameGeek search, game details, rankings, and collections. By UnClick (https://unclick.world).",
+  "description": "BoardGameGeek search, game details, rankings, and collections. By UnClick.",
   "version": "0.1.0",
   "websiteUrl": "https://unclick.world",
   "icons": [
