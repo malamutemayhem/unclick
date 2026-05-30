@@ -12705,6 +12705,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         repo_path: { type: "string", description: "Local repository path to scan. Defaults to the MCP server working directory." },
         target_name: { type: "string", description: "Human-readable target name for the report. Defaults to UnClick." },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks" },
       },
     },
   },

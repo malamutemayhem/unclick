@@ -169,7 +169,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/coinmarketcap-tool.ts | b1c5fd280acb | 6892 |
 | packages/mcp-server/src/color-tool.ts | f9aa9c0fec6e | 13643 |
 | packages/mcp-server/src/commonsensepass-tool.ts | bad23b55ea01 | 1995 |
-| packages/mcp-server/src/compliancepass-tool.ts | 13242448457f | 3202 |
+| packages/mcp-server/src/compliancepass-tool.ts | bedf85b00baa | 7342 |
 | packages/mcp-server/src/convertkit-tool.ts | 2f77303a3441 | 8498 |
 | packages/mcp-server/src/copypass-tool.ts | 70d540c397a5 | 31503 |
 | packages/mcp-server/src/crews-tool.ts | 111454c76c0a | 13547 |
