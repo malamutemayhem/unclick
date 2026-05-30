@@ -29,11 +29,30 @@ function buildPtvUrl(path: string, params: Record<string, string>): string {
   return `${PTV_BASE}${path}?${querystring}&signature=${signature}`;
 }
 
+const PTV_TIMEOUT_MS = Number(process.env.PTV_TIMEOUT_MS) || 10000;
+
 async function ptvFetch(path: string, params: Record<string, string> = {}): Promise<unknown> {
   const url = buildPtvUrl(path, params);
-  const res = await fetch(url, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PTV_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`PTV API request timed out after ${PTV_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`PTV API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`PTV API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`PTV API HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
