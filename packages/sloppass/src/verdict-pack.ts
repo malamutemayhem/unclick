@@ -81,7 +81,7 @@ function parseChecks(checks?: SlopPassCategory[]): SlopPassCategory[] {
   return (checks ?? DEFAULT_CHECKS).map((check) => SlopPassCategorySchema.parse(check));
 }
 
-function createNotChecked(checks: SlopPassCategory[], reason: string) {
+function createNotChecked(checks: SlopPassCategory[], reason: string): Array<{ label: string; reason: string }> {
   const requested = new Set(checks);
   return DEFAULT_CHECKS.filter((category) => !requested.has(category)).map((category) => ({
     label: category,

@@ -12729,21 +12729,44 @@ export const ADDITIONAL_TOOLS = [
   // ── sloppass-tool.ts (AI-code quality QC and diff review) ────────────────
   {
     name: "sloppass_run",
-    description: "Run SlopPass against caller-provided source files or a unified diff. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, read repositories, persist source content, or make paid model calls by default.",
+    description: "Run SlopPass against caller-provided source files, a unified diff, or a GitHub PR target whose public .diff should be fetched. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, clone repositories, persist source content, or make paid model calls by default.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
-      anyOf: [{ required: ["files"] }, { required: ["diff"] }],
+      anyOf: [
+        { required: ["files"] },
+        { required: ["diff"] },
+        {
+          required: ["target"],
+          properties: {
+            target: {
+              type: "object",
+              required: ["kind"],
+              properties: { kind: { type: "string", enum: ["pr"] } },
+            },
+          },
+        },
+      ],
       properties: {
         target: {
           type: "object",
           additionalProperties: false,
-          description: "Target being inspected.",
+          description: "Target being inspected. For live GitHub PR review, use kind=pr with repo plus number, or url/pr_url.",
           properties: {
             kind: { type: "string", enum: ["repo", "branch", "diff", "files", "pr", "artifact"] },
             label: { type: "string", minLength: 1 },
             files: { type: "array", items: { type: "string", minLength: 1 } },
             ref: { type: "string" },
+            repo: { type: "string", pattern: "^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}$", description: "GitHub repo in owner/name form for kind=pr." },
+            number: {
+              oneOf: [
+                { type: "integer", minimum: 1 },
+                { type: "string", pattern: "^[1-9][0-9]*$" },
+              ],
+              description: "GitHub pull request number for kind=pr.",
+            },
+            url: { type: "string", description: "GitHub pull request URL for kind=pr." },
+            pr_url: { type: "string", description: "GitHub pull request URL for kind=pr." },
           },
           required: ["kind", "label"],
         },
@@ -12776,6 +12799,7 @@ export const ADDITIONAL_TOOLS = [
               "test_proof_theatre",
               "slopocalypse_failure_mode",
               "maintenance_change_risk",
+              "vcs_integration_risk",
             ],
           },
         },

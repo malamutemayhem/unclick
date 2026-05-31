@@ -51,6 +51,13 @@ describe("runtime tool schema validation", () => {
         bogus_field: "should reject",
       },
     },
+    {
+      name: "sloppass_run",
+      args: {
+        target: { kind: "pr", label: "PR #1200", repo: "malamutemayhem/unclick", number: 1200 },
+        bogus_field: "should reject",
+      },
+    },
     { name: "stripe_customers", args: { secret_key: "sk_test_dummy", action: "X", bogus_field: "should reject" } },
     { name: "stripe_charges", args: { secret_key: "sk_test_dummy", action: "X", bogus_field: "should reject" } },
     {
@@ -170,6 +177,10 @@ describe("runtime tool schema validation", () => {
     expect(validateToolArgumentsForRuntime("release_claim", {
       agent_id: "strict-probe",
       todo_id: "11111111-1111-4111-8111-111111111111",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("sloppass_run", {
+      target: { kind: "pr", label: "PR #1200", repo: "malamutemayhem/unclick", number: 1200 },
+      checks: ["vcs_integration_risk"],
     })).toBeNull();
     expect(validateToolArgumentsForRuntime("unclick_call", {
       endpoint_id: "memory.search_memory",
