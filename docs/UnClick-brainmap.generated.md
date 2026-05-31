@@ -142,7 +142,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
 | scripts/pinballwake-xpass-gate-room.mjs | 0483d0717e07 | 32407 |
-| packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
+| packages/mcp-server/src/abn-tool.ts | a24bc4729b72 | 4433 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |
 | packages/mcp-server/src/algolia-tool.ts | 8eb0992500f1 | 4924 |

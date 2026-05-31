@@ -3,13 +3,31 @@
 // Base URL: https://abr.business.gov.au/json/
 
 const ABN_BASE = "https://abr.business.gov.au/json";
+const ABN_TIMEOUT_MS = Number(process.env.ABN_TIMEOUT_MS) || 10000;
 
 // ─── JSONP helper ─────────────────────────────────────────────────────────────
 
 async function fetchJsonp(url: string): Promise<unknown> {
-  const res = await fetch(url, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ABN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ABR API request timed out after ${ABN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ABR API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`ABR API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     throw new Error(`ABR API HTTP ${res.status}`);
   }

@@ -16,6 +16,8 @@ function requireKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const TMDB_TIMEOUT_MS = Number(process.env.TMDB_TIMEOUT_MS) || 10000;
+
 async function tmdbFetch<T>(
   path: string,
   apiKey: string,
@@ -26,8 +28,24 @@ async function tmdbFetch<T>(
   for (const [k, v] of Object.entries(extra)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
-  const res = await fetch(url.toString());
-  const body = (await res.json()) as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TMDB_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`TMDB API request timed out after ${TMDB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`TMDB API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`TMDB API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {
     throw new Error(
       `TMDB API HTTP ${res.status}: ${String(body.status_message ?? "Unknown error")}`
