@@ -4,7 +4,8 @@
 // Base URL: https://api.stripe.com/v1
 // No external dependencies - native fetch only.
 
-import { notConnected, type NotConnectedResult } from "./connection-help.js";
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 
 const STRIPE_BASE = "https://api.stripe.com/v1";
 
@@ -17,18 +18,8 @@ interface StripeConfig {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function requireConfig(args: Record<string, unknown>): StripeConfig | NotConnectedResult {
-  const secret_key = String(args.secret_key ?? process.env.STRIPE_SECRET_KEY ?? "").trim();
-  if (!secret_key) {
-    return notConnected({
-      connector:   "stripe",
-      displayName: "Stripe",
-      credential:  "secret key",
-      arg:         "secret_key",
-      envVar:      "STRIPE_SECRET_KEY",
-      setupUrl:    "https://dashboard.stripe.com/apikeys",
-      note:        "The Stripe secret key starts with sk_live_ or sk_test_.",
-    });
-  }
+  const secret_key = requireCredential("stripe", args);
+  if (typeof secret_key !== "string") return secret_key;
   return { secret_key };
 }
 

@@ -4,7 +4,8 @@
 // Base URL: https://openapi.etsy.com/v3
 // No external dependencies - native fetch only.
 
-import { notConnected, type NotConnectedResult } from "./connection-help.js";
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 
 const ETSY_BASE = "https://openapi.etsy.com/v3";
 
@@ -17,17 +18,8 @@ interface EtsyConfig {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function requireConfig(args: Record<string, unknown>): EtsyConfig | NotConnectedResult {
-  const api_key = String(args.api_key ?? process.env.ETSY_API_KEY ?? "").trim();
-  if (!api_key) {
-    return notConnected({
-      connector:   "etsy",
-      displayName: "Etsy",
-      credential:  "API key",
-      arg:         "api_key",
-      envVar:      "ETSY_API_KEY",
-      setupUrl:    "https://www.etsy.com/developers/your-apps",
-    });
-  }
+  const api_key = requireCredential("etsy", args);
+  if (typeof api_key !== "string") return api_key;
   return { api_key };
 }
 
