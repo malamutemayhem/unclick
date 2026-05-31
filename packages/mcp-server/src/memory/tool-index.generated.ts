@@ -1314,6 +1314,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "geopass",
+    "category": "GEOPass (AI answer-engine readiness QC, sister to SEOPass)",
+    "tools": [
+      {
+        "name": "geopass_run",
+        "description": "Run GEOPass against a public URL. Returns a live-readonly AI answer-engine readiness receipt covering answer extractability, entity clarity, citation/sourceability, freshness cues, content structure, llms.txt, and AI bot visibility. GEOPass reports readiness only and does not guarantee rankings or citations."
+      },
+      {
+        "name": "geopass_status",
+        "description": "Fetch the stored in-session GEOPass report and geopass_receipt_v1 envelope for a run started through geopass_run."
+      }
+    ]
+  },
+  {
     "app": "github",
     "category": "Developer / Productivity",
     "tools": [

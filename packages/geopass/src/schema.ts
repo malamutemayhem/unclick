@@ -38,6 +38,11 @@ export const GeoPassBotIdSchema = z.enum([
 export const GeoPassCheckIdSchema = z.enum([
   "ai-bot-crawlability",
   "llms-txt",
+  "answer-extractability",
+  "entity-clarity",
+  "citation-readiness",
+  "freshness-cues",
+  "content-structure",
   "schema-org-citation-grade",
   "brand-mention-readiness",
   "wikidata-presence",
@@ -50,6 +55,11 @@ export const GeoPassEvidenceSchema = z.object({
     "robots-txt",
     "llms-txt",
     "schema-org",
+    "html",
+    "http",
+    "content",
+    "date",
+    "external-link",
     "wikidata",
     "common-crawl",
     "brand-query",
@@ -97,6 +107,28 @@ export const GeoPassReportSchema = z.object({
   notes: z.array(z.string().min(1)).default([]),
 });
 
+export const GeoPassReceiptSchema = z.object({
+  kind: z.literal("geopass_receipt_v1"),
+  status: z.enum(["PASS", "WARN", "BLOCKER"]),
+  run_id: z.string().min(1),
+  target_url: z.string().url(),
+  generated_at: z.string().datetime(),
+  mode: z.literal("live-readonly"),
+  target_sha: z.string().min(1).optional(),
+  score: z.number().min(0).max(100),
+  verdict: GeoPassVerdictSchema,
+  checked: z.object({
+    total: z.number().int().min(0),
+    ready: z.number().int().min(0),
+    needs_work: z.number().int().min(0),
+    blocked: z.number().int().min(0),
+    unknown: z.number().int().min(0),
+  }),
+  evidence_sources: z.array(GeoPassEvidenceSchema).default([]),
+  action_needed: z.array(z.string().min(1)).default([]),
+  boundaries: z.array(z.string().min(1)),
+});
+
 export type GeoPassSeverity = z.infer<typeof GeoPassSeveritySchema>;
 export type GeoPassVerdict = z.infer<typeof GeoPassVerdictSchema>;
 export type GeoPassEngineId = z.infer<typeof GeoPassEngineIdSchema>;
@@ -107,3 +139,4 @@ export type GeoPassFinding = z.infer<typeof GeoPassFindingSchema>;
 export type GeoPassCheckResult = z.infer<typeof GeoPassCheckResultSchema>;
 export type GeoPassCrossPassSignal = z.infer<typeof GeoPassCrossPassSignalSchema>;
 export type GeoPassReport = z.infer<typeof GeoPassReportSchema>;
+export type GeoPassReceipt = z.infer<typeof GeoPassReceiptSchema>;
