@@ -3,12 +3,13 @@
 // Auth: ASANA_API_KEY (Personal Access Token, Bearer)
 // Base: https://app.asana.com/api/1.0
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const ASANA_BASE = "https://app.asana.com/api/1.0";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.ASANA_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set ASANA_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("asana", args);
 }
 
 async function asanaGet(
@@ -97,6 +98,7 @@ async function asanaPost(
 export async function listAsanaWorkspaces(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const json = await asanaGet(apiKey, "/workspaces") as Record<string, unknown>;
     const data = (json.data ?? []) as Array<Record<string, unknown>>;
     return {
@@ -112,6 +114,7 @@ export async function listAsanaWorkspaces(args: Record<string, unknown>): Promis
 export async function listAsanaProjects(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const workspaceGid = String(args.workspace_gid ?? "").trim();
     if (!workspaceGid) return { error: "workspace_gid is required." };
     const params: Record<string, string> = {
@@ -132,6 +135,7 @@ export async function listAsanaProjects(args: Record<string, unknown>): Promise<
 export async function listAsanaTasks(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const projectGid = String(args.project_gid ?? "").trim();
     if (!projectGid) return { error: "project_gid is required." };
     const params: Record<string, string> = {
@@ -152,6 +156,7 @@ export async function listAsanaTasks(args: Record<string, unknown>): Promise<unk
 export async function createAsanaTask(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const name = String(args.name ?? "").trim();
     if (!name) return { error: "name is required." };
     const workspaceGid = String(args.workspace_gid ?? "").trim();
@@ -174,6 +179,7 @@ export async function createAsanaTask(args: Record<string, unknown>): Promise<un
 export async function updateAsanaTask(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const taskGid = String(args.task_gid ?? "").trim();
     if (!taskGid) return { error: "task_gid is required." };
 
@@ -195,6 +201,7 @@ export async function updateAsanaTask(args: Record<string, unknown>): Promise<un
 export async function getAsanaTask(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const taskGid = String(args.task_gid ?? "").trim();
     if (!taskGid) return { error: "task_gid is required." };
     const json = await asanaGet(apiKey, `/tasks/${taskGid}`, {
@@ -210,6 +217,7 @@ export async function getAsanaTask(args: Record<string, unknown>): Promise<unkno
 export async function searchAsanaTasks(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const workspaceGid = String(args.workspace_gid ?? "").trim();
     if (!workspaceGid) return { error: "workspace_gid is required." };
     const text = String(args.text ?? "").trim();
