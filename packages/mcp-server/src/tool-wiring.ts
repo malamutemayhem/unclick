@@ -819,6 +819,17 @@ import {
   flowpassStatus,
 } from "./flowpass-tool.js";
 
+// ─── SecurityPass (scope-gated security receipts) ───────────────────────────
+import {
+  securitypassDisclosureStatus,
+  securitypassFindingDetail,
+  securitypassRegisterPack,
+  securitypassReport,
+  securitypassRun,
+  securitypassStatus,
+  securitypassVerifyScope,
+} from "./securitypass-tool.js";
+
 // ─── CopyPass (copy quality QC, sister to SecurityPass) ─────────────────────
 import {
   copypassRun,
@@ -12726,6 +12737,107 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── securitypass-tool.ts (scope-gated security receipts) ─────────────────
+  {
+    name: "securitypass_run",
+    description: "Start a scope-gated SecurityPass scan against a registered pack or target URL. Returns a safe securitypass_receipt_v1 proof envelope without raw secrets or PoC payloads.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        pack_id: { type: "string", description: "Pack id, e.g. 'securitypass-web-baseline'" },
+        pack_yaml: { type: "string", description: "Optional pack YAML to validate and run without prior registration" },
+        target_id: { type: "string", description: "Target id inside the SecurityPass pack" },
+        target_url: { type: "string", description: "Target URL (must be in pack scope)" },
+        contract_id: { type: "string", description: "Scope contract id for skeleton URL scans" },
+        proof_method: { type: "string", enum: ["dns_txt", "well_known", "bug_bounty_program", "signed_email"] },
+        expected_token: { type: "string", description: "Expected scope proof token" },
+        proof_timeout_ms: { type: "number", description: "Optional timeout for well-known proof fetches" },
+        profile: { type: "string", enum: ["smoke", "standard", "deep"], default: "smoke" },
+      },
+    },
+  },
+  {
+    name: "securitypass_status",
+    description: "Poll the state of a SecurityPass run. Returns status, verdict summary, counts, and a safe securitypass_receipt_v1 proof envelope.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The run id returned by securitypass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "securitypass_report",
+    description: "Fetch the synthesised report for a completed run (executive narrative + findings). format=json|markdown|html.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string" },
+        format: { type: "string", enum: ["json", "markdown", "html"], default: "json" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "securitypass_register_pack",
+    description: "Save a SecurityPack YAML for the calling tenant. Validates against the schema.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        pack_id: { type: "string" },
+        yaml: { type: "string", description: "Pack contents as YAML" },
+      },
+      required: ["pack_id", "yaml"],
+    },
+  },
+  {
+    name: "securitypass_verify_scope",
+    description: "Verify scope authorisation for a target via DNS TXT or /.well-known proof. Required before any active probe runs.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        target_type: { type: "string", enum: ["url", "git", "mcp", "api"] },
+        target_url: { type: "string" },
+        target_repo: { type: "string" },
+        proof_method: { type: "string", enum: ["dns_txt", "well_known", "bug_bounty_program", "signed_email"] },
+        contract_id: { type: "string", description: "Signed scope contract id" },
+        expected_token: { type: "string", description: "Token to look for in DNS TXT or /.well-known" },
+        proof_timeout_ms: { type: "number", description: "Optional timeout for well-known proof fetches" },
+      },
+      required: ["proof_method"],
+    },
+  },
+  {
+    name: "securitypass_disclosure_status",
+    description: "Check the 90+30 responsible-disclosure timer state for a finding (notified, acked, extended, public, withdrawn).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        finding_id: { type: "string" },
+      },
+      required: ["finding_id"],
+    },
+  },
+  {
+    name: "securitypass_finding_detail",
+    description: "Fetch a single finding including PoC payload (curl / prompt / payload) and remediation. PoC is generated, never auto-fired.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        finding_id: { type: "string" },
+      },
+      required: ["finding_id"],
+    },
+  },
+
   // ── sloppass-tool.ts (AI-code quality QC and diff review) ────────────────
   {
     name: "sloppass_run",
@@ -14234,6 +14346,15 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   flowpass_record:             (args) => flowpassRecord(args),
   flowpass_quarantine:         (args) => flowpassQuarantine(args),
   flowpass_disagreement_queue: (args) => flowpassDisagreementQueue(args),
+
+  // securitypass-tool.ts
+  securitypass_run:               (args) => securitypassRun(args),
+  securitypass_status:            (args) => securitypassStatus(args),
+  securitypass_report:            (args) => securitypassReport(args),
+  securitypass_register_pack:     (args) => securitypassRegisterPack(args),
+  securitypass_verify_scope:      (args) => securitypassVerifyScope(args),
+  securitypass_disclosure_status: (args) => securitypassDisclosureStatus(args),
+  securitypass_finding_detail:    (args) => securitypassFindingDetail(args),
 
   // copypass-tool.ts
   copypass_run:            (args) => copypassRun(args),
