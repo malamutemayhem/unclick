@@ -3,17 +3,35 @@
 // Base URL: https://de1.api.radio-browser.info/json/
 
 const RADIO_BASE = "https://de1.api.radio-browser.info/json";
+const RADIO_TIMEOUT_MS = Number(process.env.RADIOBROWSER_TIMEOUT_MS) || 10000;
 
 // ─── API helper ───────────────────────────────────────────────────────────────
 
 async function radioFetch(path: string, params?: URLSearchParams): Promise<unknown> {
   const url = params ? `${RADIO_BASE}${path}?${params}` : `${RADIO_BASE}${path}`;
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-      "Accept": "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RADIO_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: {
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+        "Accept": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Radio Browser API request timed out after ${RADIO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Radio Browser API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Radio Browser API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) throw new Error(`Radio Browser API HTTP ${res.status}`);
   return res.json() as Promise<unknown>;
 }

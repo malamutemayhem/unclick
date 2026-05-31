@@ -3,16 +3,34 @@
 // Documentation: https://fantasy.premierleague.com/api/
 
 const FPL_BASE = "https://fantasy.premierleague.com/api";
+const FPL_TIMEOUT_MS = Number(process.env.FPL_TIMEOUT_MS) || 10000;
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
 async function fplFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${FPL_BASE}${path}`, {
-    headers: {
-      "User-Agent": "UnClick MCP Server",
-      Accept: "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FPL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${FPL_BASE}${path}`, {
+      headers: {
+        "User-Agent": "UnClick MCP Server",
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`FPL API request timed out after ${FPL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`FPL API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`FPL API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     throw new Error(`FPL API HTTP ${res.status} for ${path}`);
   }
