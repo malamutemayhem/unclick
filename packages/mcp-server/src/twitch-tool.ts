@@ -3,6 +3,9 @@
 // Authenticates with app access tokens via Client Credentials grant.
 // Env vars: TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const TWITCH_API = "https://api.twitch.tv/helix";
 const TWITCH_AUTH = "https://id.twitch.tv/oauth2/token";
 
@@ -79,11 +82,10 @@ async function twitchGet(
   return res.json() as Promise<Record<string, unknown>>;
 }
 
-function getCredentials(args: Record<string, unknown>): { clientId: string; clientSecret: string } {
+function getCredentials(args: Record<string, unknown>): { clientId: string; clientSecret: string } | NotConnectedResult {
   const clientId = String(args.client_id ?? process.env.TWITCH_CLIENT_ID ?? "").trim();
   const clientSecret = String(args.client_secret ?? process.env.TWITCH_CLIENT_SECRET ?? "").trim();
-  if (!clientId) throw new Error("client_id is required (or set TWITCH_CLIENT_ID env var).");
-  if (!clientSecret) throw new Error("client_secret is required (or set TWITCH_CLIENT_SECRET env var).");
+  if (!clientId || !clientSecret) return notConnectedFor("twitch");
   return { clientId, clientSecret };
 }
 
@@ -91,7 +93,9 @@ function getCredentials(args: Record<string, unknown>): { clientId: string; clie
 
 export async function twitchSearchStreams(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getAppToken(clientId, clientSecret);
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
@@ -107,7 +111,9 @@ export async function twitchSearchStreams(args: Record<string, unknown>): Promis
 
 export async function twitchGetStream(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getAppToken(clientId, clientSecret);
     const channel = String(args.channel ?? "").trim();
     if (!channel) return { error: "channel (login name) is required." };
@@ -122,7 +128,9 @@ export async function twitchGetStream(args: Record<string, unknown>): Promise<un
 
 export async function twitchSearchGames(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getAppToken(clientId, clientSecret);
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
@@ -137,7 +145,9 @@ export async function twitchSearchGames(args: Record<string, unknown>): Promise<
 
 export async function twitchGetTopGames(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getAppToken(clientId, clientSecret);
     const params: Record<string, string | number> = {};
     if (args.first) params.first = Number(args.first);
@@ -151,7 +161,9 @@ export async function twitchGetTopGames(args: Record<string, unknown>): Promise<
 
 export async function twitchGetClips(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getAppToken(clientId, clientSecret);
     const channel = String(args.channel ?? "").trim();
     if (!channel) return { error: "channel (login name) is required." };
@@ -172,7 +184,9 @@ export async function twitchGetClips(args: Record<string, unknown>): Promise<unk
 
 export async function twitchGetChannelInfo(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getAppToken(clientId, clientSecret);
     const channel = String(args.channel ?? "").trim();
     if (!channel) return { error: "channel (login name) is required." };
@@ -190,7 +204,9 @@ export async function twitchGetChannelInfo(args: Record<string, unknown>): Promi
 
 export async function twitchGetSchedule(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getAppToken(clientId, clientSecret);
     const channel = String(args.channel ?? "").trim();
     if (!channel) return { error: "channel (login name) is required." };

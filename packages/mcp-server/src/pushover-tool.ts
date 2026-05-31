@@ -169,8 +169,8 @@ export async function pushoverSendNotification(args: Record<string, unknown>): P
 }
 
 export async function pushoverGetReceipt(args: Record<string, unknown>): Promise<unknown> {
-  const token = String(args.app_token ?? "").trim();
-  if (!token) throw new Error("app_token is required.");
+  const token = String(args.app_token ?? process.env.PUSHOVER_APP_TOKEN ?? "").trim();
+  if (!token) return notConnectedFor("pushover");
   const receipt = String(args.receipt ?? "").trim();
   if (!receipt) throw new Error("receipt is required (returned from an emergency notification).");
 
@@ -229,8 +229,8 @@ export async function pushoverCancelEmergency(args: Record<string, unknown>): Pr
 }
 
 export async function pushoverListSounds(args: Record<string, unknown>): Promise<unknown> {
-  const token = String(args.app_token ?? "").trim();
-  if (!token) throw new Error("app_token is required.");
+  const token = String(args.app_token ?? process.env.PUSHOVER_APP_TOKEN ?? "").trim();
+  if (!token) return notConnectedFor("pushover");
 
   const result = await pushoverGet<PushoverSoundsResponse>("/sounds", { token });
   const sounds = Object.entries(result.sounds).map(([id, name]) => ({ id, name }));

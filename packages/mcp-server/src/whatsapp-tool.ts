@@ -213,8 +213,8 @@ export async function whatsappSendMedia(args: Record<string, unknown>): Promise<
 }
 
 export async function whatsappGetMedia(args: Record<string, unknown>): Promise<unknown> {
-  const token = String(args.bearer_token ?? "").trim();
-  if (!token) throw new Error("bearer_token is required.");
+  const token = String(args.bearer_token ?? process.env.WHATSAPP_BEARER_TOKEN ?? "").trim();
+  if (!token) return notConnectedFor("whatsapp");
   const mediaId = String(args.media_id ?? "").trim();
   if (!mediaId) throw new Error("media_id is required.");
 
