@@ -3,12 +3,16 @@
 // Auth: MONDAY_API_KEY (Bearer token)
 // Base: https://api.monday.com/v2 (GraphQL)
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const MONDAY_BASE = "https://api.monday.com/v2";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.MONDAY_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set MONDAY_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("monday", args);
 }
 
 async function mondayQuery(
@@ -56,7 +60,8 @@ async function mondayQuery(
 // list_monday_boards
 export async function listMondayBoards(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const limit = Number(args.limit ?? 25);
     const query = `
       query($limit: Int) {
@@ -77,7 +82,8 @@ export async function listMondayBoards(args: Record<string, unknown>): Promise<u
 // get_monday_board
 export async function getMondayBoard(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const boardId = String(args.board_id ?? "").trim();
     if (!boardId) return { error: "board_id is required." };
     const query = `
@@ -100,7 +106,8 @@ export async function getMondayBoard(args: Record<string, unknown>): Promise<unk
 // list_monday_items
 export async function listMondayItems(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const boardId = String(args.board_id ?? "").trim();
     if (!boardId) return { error: "board_id is required." };
     const limit = Number(args.limit ?? 50);
@@ -130,7 +137,8 @@ export async function listMondayItems(args: Record<string, unknown>): Promise<un
 // create_monday_item
 export async function createMondayItem(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const boardId = String(args.board_id ?? "").trim();
     if (!boardId) return { error: "board_id is required." };
     const itemName = String(args.item_name ?? "").trim();
@@ -159,7 +167,8 @@ export async function createMondayItem(args: Record<string, unknown>): Promise<u
 // update_monday_item
 export async function updateMondayItem(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const boardId = String(args.board_id ?? "").trim();
     if (!boardId) return { error: "board_id is required." };
     const itemId = String(args.item_id ?? "").trim();
@@ -191,7 +200,8 @@ export async function updateMondayItem(args: Record<string, unknown>): Promise<u
 // search_monday_items
 export async function searchMondayItems(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const boardId = String(args.board_id ?? "").trim();
     if (!boardId) return { error: "board_id is required." };
     const query_text = String(args.query ?? "").trim();

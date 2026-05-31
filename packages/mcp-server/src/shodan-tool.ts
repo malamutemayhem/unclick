@@ -3,12 +3,16 @@
 // Auth: SHODAN_API_KEY (key query param)
 // Base: https://api.shodan.io/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const SHODAN_BASE = "https://api.shodan.io";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.SHODAN_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set SHODAN_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("shodan", args);
 }
 
 const SHODAN_TIMEOUT_MS = Number(process.env.SHODAN_TIMEOUT_MS) || 15000;
@@ -50,7 +54,8 @@ async function shodanGet(
 // search_shodan
 export async function searchShodan(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required (e.g. 'port:22 country:US', 'product:nginx')." };
     const params: Record<string, string> = { query };
@@ -87,7 +92,8 @@ export async function searchShodan(args: Record<string, unknown>): Promise<unkno
 // get_host_info
 export async function getHostInfo(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const ip = String(args.ip ?? "").trim();
     if (!ip) return { error: "ip is required." };
     const params: Record<string, string> = {};
@@ -126,7 +132,8 @@ export async function getHostInfo(args: Record<string, unknown>): Promise<unknow
 // get_shodan_stats
 export async function getShodanStats(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string> = { query };

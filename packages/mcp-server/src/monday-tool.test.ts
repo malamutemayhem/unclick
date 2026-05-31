@@ -24,9 +24,12 @@ describe("monday connector resilience (L2)", () => {
     expect(String(result.error)).toMatch(/timed out/i);
   });
 
-  it("validates required params before calling the API", async () => {
+  it("returns a guided not-connected card when the API key is missing", async () => {
     const result = await listMondayBoards({}) as Record<string, unknown>;
-    expect(String(result.error)).toMatch(/api_key is required/i);
+    expect(result.not_connected).toBe(true);
+    expect(result.connector).toBe("monday");
+    expect(String(result.error)).toMatch(/not connected to monday/i);
+    expect(Array.isArray(result.how_to_connect)).toBe(true);
   });
 
   it("passes through successful board listings", async () => {

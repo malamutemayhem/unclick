@@ -3,12 +3,16 @@
 // Auth: VIRUSTOTAL_API_KEY (x-apikey header)
 // Base: https://www.virustotal.com/api/v3/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const VT_BASE = "https://www.virustotal.com/api/v3";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.VIRUSTOTAL_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set VIRUSTOTAL_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("virustotal", args);
 }
 
 const VIRUSTOTAL_TIMEOUT_MS = Number(process.env.VIRUSTOTAL_TIMEOUT_MS) || 15000;
@@ -93,7 +97,8 @@ function extractStats(data: Record<string, unknown>): Record<string, unknown> {
 // scan_url_virustotal
 export async function scanUrlVirustotal(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const url = String(args.url ?? "").trim();
     if (!url) return { error: "url is required." };
     const body = new URLSearchParams({ url });
@@ -112,7 +117,8 @@ export async function scanUrlVirustotal(args: Record<string, unknown>): Promise<
 // get_url_report
 export async function getUrlReport(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const url = String(args.url ?? "").trim();
     if (!url) return { error: "url is required." };
     // Encode to base64url without padding
@@ -137,7 +143,8 @@ export async function getUrlReport(args: Record<string, unknown>): Promise<unkno
 // scan_ip_virustotal
 export async function scanIpVirustotal(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const ip = String(args.ip ?? "").trim();
     if (!ip) return { error: "ip is required." };
     const data = await vtGet(apiKey, `/ip_addresses/${ip}`);
@@ -160,7 +167,8 @@ export async function scanIpVirustotal(args: Record<string, unknown>): Promise<u
 // scan_domain_virustotal
 export async function scanDomainVirustotal(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const domain = String(args.domain ?? "").trim();
     if (!domain) return { error: "domain is required." };
     const data = await vtGet(apiKey, `/domains/${domain}`);

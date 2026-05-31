@@ -4,12 +4,16 @@
 // Auth: HUNTER_API_KEY env var (api_key query param).
 // Base URL: https://api.hunter.io/v2/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const HUNTER_BASE = "https://api.hunter.io/v2";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.HUNTER_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set HUNTER_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("hunter", args);
 }
 
 const HUNTER_TIMEOUT_MS = Number(process.env.HUNTER_TIMEOUT_MS) || 10000;
@@ -51,7 +55,8 @@ async function hunterGet(apiKey: string, path: string, params: Record<string, st
 
 export async function findEmail(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const domain = String(args.domain ?? "").trim().toLowerCase();
     if (!domain) return { error: "domain is required (e.g. stripe.com)." };
 
@@ -103,7 +108,8 @@ export async function findEmail(args: Record<string, unknown>): Promise<unknown>
 
 export async function verifyEmail(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const email = String(args.email ?? "").trim().toLowerCase();
     if (!email) return { error: "email is required." };
 
@@ -134,7 +140,8 @@ export async function verifyEmail(args: Record<string, unknown>): Promise<unknow
 
 export async function getDomainInfo(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const domain = String(args.domain ?? "").trim().toLowerCase();
     if (!domain) return { error: "domain is required (e.g. stripe.com)." };
 

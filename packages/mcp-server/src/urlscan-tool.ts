@@ -3,12 +3,16 @@
 // Auth: URLSCAN_API_KEY (API-Key header)
 // Base: https://urlscan.io/api/v1/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const URLSCAN_BASE = "https://urlscan.io/api/v1";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.URLSCAN_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set URLSCAN_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("urlscan", args);
 }
 
 async function urlscanPost(
@@ -82,7 +86,8 @@ async function urlscanGet(
 // scan_url_urlscan
 export async function scanUrlUrlscan(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const url = String(args.url ?? "").trim();
     if (!url) return { error: "url is required." };
     const body: Record<string, unknown> = { url };

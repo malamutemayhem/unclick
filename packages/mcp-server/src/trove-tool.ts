@@ -4,12 +4,16 @@
 // Auth: TROVE_API_KEY env var (key query param).
 // Base URL: https://api.trove.nla.gov.au/v3/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const TROVE_BASE = "https://api.trove.nla.gov.au/v3";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.TROVE_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set TROVE_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("trove", args);
 }
 
 async function troveGet(
@@ -49,7 +53,8 @@ async function troveGet(
 
 export async function searchTrove(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? args.q ?? "").trim();
     if (!query) return { error: "query is required." };
 
@@ -91,7 +96,8 @@ export async function searchTrove(args: Record<string, unknown>): Promise<unknow
 
 export async function getTroveWork(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
 
@@ -110,7 +116,8 @@ export async function getTroveWork(args: Record<string, unknown>): Promise<unkno
 
 export async function getTroveNewspaperArticle(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required (Trove newspaper article ID)." };
 

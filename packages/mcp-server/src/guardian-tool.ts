@@ -3,6 +3,9 @@
 // Docs: https://open-platform.theguardian.com/documentation/
 // Env var: GUARDIAN_API_KEY
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const GUARDIAN_BASE = "https://content.guardianapis.com";
 
 const GUARDIAN_TIMEOUT_MS = Number(process.env.GUARDIAN_TIMEOUT_MS) || 10000;
@@ -41,17 +44,19 @@ async function guardianGet(
   return json.response;
 }
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.GUARDIAN_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set GUARDIAN_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("guardian", args);
 }
 
 // ── Tool functions ─────────────────────────────────────────────────────────────
 
 export async function guardianSearchArticles(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = {
@@ -78,7 +83,8 @@ export async function guardianSearchArticles(args: Record<string, unknown>): Pro
 
 export async function guardianGetArticle(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required (e.g. 'world/2024/jan/01/article-slug')." };
     const data = await guardianGet(apiKey, `/${id}`, { "show-fields": "all" });
@@ -90,7 +96,8 @@ export async function guardianGetArticle(args: Record<string, unknown>): Promise
 
 export async function guardianGetSections(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string> = {};
     if (args.query) params.q = String(args.query);
     const data = await guardianGet(apiKey, "/sections", params);
@@ -102,7 +109,8 @@ export async function guardianGetSections(args: Record<string, unknown>): Promis
 
 export async function guardianGetTags(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { q: query };
@@ -118,7 +126,8 @@ export async function guardianGetTags(args: Record<string, unknown>): Promise<un
 
 export async function guardianGetEdition(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const edition = String(args.edition ?? "uk").trim().toLowerCase();
     // Edition IDs: uk, us, au
     const data = await guardianGet(apiKey, "/editions", {});
