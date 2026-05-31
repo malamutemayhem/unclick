@@ -8,6 +8,7 @@ import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
 
 const AMBER_BASE = "https://api.amber.com.au/v1";
+const AMBER_TIMEOUT_MS = Number(process.env.AMBER_TIMEOUT_MS) || 10000;
 
 function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
   return requireCredential("amber", args);
@@ -15,15 +16,31 @@ function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
 
 async function amberGet(apiKey: string, path: string, params?: Record<string, string>): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${AMBER_BASE}${path}${qs}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AMBER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${AMBER_BASE}${path}${qs}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Amber API request timed out after ${AMBER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Amber API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Amber API key.");
   if (res.status === 404) throw new Error("Resource not found.");
-  if (res.status === 429) throw new Error("Amber API rate limit exceeded.");
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Amber API rate limit exceeded (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Amber API HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
