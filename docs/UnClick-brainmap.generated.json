@@ -8297,8 +8297,8 @@
     },
     {
       "source": "packages/mcp-server/src/coingecko-tool.ts",
-      "hash": "e7d8c7535112",
-      "bytes": 6827
+      "hash": "6d6a16d83f9f",
+      "bytes": 7635
     },
     {
       "source": "packages/mcp-server/src/coinmarketcap-tool.ts",

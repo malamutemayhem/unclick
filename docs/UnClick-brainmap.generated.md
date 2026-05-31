@@ -165,7 +165,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/clickup-tool.ts | 3f9127777b87 | 6316 |
 | packages/mcp-server/src/clockify-tool.ts | 058798077459 | 6790 |
 | packages/mcp-server/src/cohere-tool.ts | 9ca27e0737f8 | 9207 |
-| packages/mcp-server/src/coingecko-tool.ts | e7d8c7535112 | 6827 |
+| packages/mcp-server/src/coingecko-tool.ts | 6d6a16d83f9f | 7635 |
 | packages/mcp-server/src/coinmarketcap-tool.ts | b1c5fd280acb | 6892 |
 | packages/mcp-server/src/color-tool.ts | f9aa9c0fec6e | 13643 |
 | packages/mcp-server/src/commonsensepass-tool.ts | bad23b55ea01 | 1995 |
