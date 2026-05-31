@@ -18,10 +18,27 @@ async function oxrFetch(path: string, params: Record<string, string> = {}): Prom
   url.searchParams.set("app_id", app_id);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
-  const response = await fetch(url.toString());
+  const OPENEXCHANGERATES_TIMEOUT_MS = Number(process.env.OPENEXCHANGERATES_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPENEXCHANGERATES_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Open Exchange Rates request timed out after ${OPENEXCHANGERATES_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Open Exchange Rates network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    throw new Error("Open Exchange Rates rate limit reached (HTTP 429). Check your plan's request limit.");
+  }
   if (!response.ok) {
     const text = await response.text().catch(() => "");
-    throw new Error(`HTTP ${response.status} from Open Exchange Rates API${text ? `: ${text}` : ""}`);
+    throw new Error(`Open Exchange Rates API error (HTTP ${response.status})${text ? `: ${text}` : ""}`);
   }
 
   const data = await response.json() as Record<string, unknown>;

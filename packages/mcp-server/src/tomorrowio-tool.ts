@@ -32,10 +32,29 @@ async function tioFetch(
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url.toString(), options);
+  const TOMORROWIO_TIMEOUT_MS = Number(process.env.TOMORROWIO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOMORROWIO_TIMEOUT_MS);
+  options.signal = controller.signal;
+
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), options);
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Tomorrow.io request timed out after ${TOMORROWIO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Tomorrow.io network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    throw new Error("Tomorrow.io rate limit reached (HTTP 429). Check your plan's request limit.");
+  }
   if (!response.ok) {
     const text = await response.text().catch(() => "");
-    throw new Error(`HTTP ${response.status} from Tomorrow.io API${text ? `: ${text}` : ""}`);
+    throw new Error(`Tomorrow.io API error (HTTP ${response.status})${text ? `: ${text}` : ""}`);
   }
 
   return response.json();

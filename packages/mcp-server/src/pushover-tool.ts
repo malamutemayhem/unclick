@@ -56,15 +56,33 @@ function requireAuth(args: Record<string, unknown>): { token: string; user: stri
 // ─── API helper ───────────────────────────────────────────────────────────────
 
 async function pushoverPost<T>(path: string, params: Record<string, string | number>): Promise<T> {
-  const res = await fetch(`${PUSHOVER_API_BASE}${path}.json`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
-  });
+  const PUSHOVER_TIMEOUT_MS = Number(process.env.PUSHOVER_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PUSHOVER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${PUSHOVER_API_BASE}${path}.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pushover request timed out after ${PUSHOVER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pushover network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    throw new Error("Pushover rate limit reached (HTTP 429). Check your monthly message limit.");
+  }
 
   const data = await res.json() as Record<string, unknown>;
   if ((data.status as number) !== 1) {
-    const errors = Array.isArray(data.errors) ? (data.errors as string[]).join("; ") : `HTTP ${res.status}`;
+    const errors = Array.isArray(data.errors) ? (data.errors as string[]).join("; ") : `status ${res.status}`;
     throw new Error(`Pushover error: ${errors}`);
   }
   return data as T;
@@ -72,13 +90,31 @@ async function pushoverPost<T>(path: string, params: Record<string, string | num
 
 async function pushoverGet<T>(path: string, query: Record<string, string> = {}): Promise<T> {
   const qs = new URLSearchParams(query).toString();
-  const res = await fetch(`${PUSHOVER_API_BASE}${path}.json${qs ? `?${qs}` : ""}`, {
-    headers: { "Content-Type": "application/json" },
-  });
+  const PUSHOVER_TIMEOUT_MS = Number(process.env.PUSHOVER_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PUSHOVER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${PUSHOVER_API_BASE}${path}.json${qs ? `?${qs}` : ""}`, {
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pushover request timed out after ${PUSHOVER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pushover network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    throw new Error("Pushover rate limit reached (HTTP 429). Check your monthly message limit.");
+  }
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok && (data.status as number) !== 1) {
-    const errors = Array.isArray(data.errors) ? (data.errors as string[]).join("; ") : `HTTP ${res.status}`;
+    const errors = Array.isArray(data.errors) ? (data.errors as string[]).join("; ") : `status ${res.status}`;
     throw new Error(`Pushover error: ${errors}`);
   }
   return data as T;
@@ -154,15 +190,33 @@ export async function pushoverCancelEmergency(args: Record<string, unknown>): Pr
   const receipt = String(args.receipt ?? "").trim();
   if (!receipt) throw new Error("receipt is required (returned from an emergency notification).");
 
-  const res = await fetch(`${PUSHOVER_API_BASE}/receipts/${encodeURIComponent(receipt)}/cancel.json`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token }),
-  });
+  const PUSHOVER_TIMEOUT_MS = Number(process.env.PUSHOVER_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PUSHOVER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${PUSHOVER_API_BASE}/receipts/${encodeURIComponent(receipt)}/cancel.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pushover request timed out after ${PUSHOVER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pushover network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    throw new Error("Pushover rate limit reached (HTTP 429). Check your monthly message limit.");
+  }
 
   const data = await res.json() as Record<string, unknown>;
   if ((data.status as number) !== 1) {
-    const errors = Array.isArray(data.errors) ? (data.errors as string[]).join("; ") : `HTTP ${res.status}`;
+    const errors = Array.isArray(data.errors) ? (data.errors as string[]).join("; ") : `status ${res.status}`;
     throw new Error(`Pushover error: ${errors}`);
   }
   return { success: true, receipt, cancelled: true };

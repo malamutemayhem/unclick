@@ -13,7 +13,20 @@ async function nvdGet(params: Record<string, string>, apiKey?: string): Promise<
   };
   if (apiKey) headers["apiKey"] = apiKey;
 
-  const res = await fetch(`${NVD_BASE}?${qs}`, { headers });
+  const NVD_TIMEOUT_MS = Number(process.env.NVD_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NVD_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${NVD_BASE}?${qs}`, { headers, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`NVD API request timed out after ${NVD_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`NVD API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 403) throw new Error("Invalid NVD API key.");
   if (res.status === 404) throw new Error("CVE not found.");
   if (res.status === 429) throw new Error("NVD API rate limit exceeded. Consider providing an NVD_API_KEY for higher limits.");
