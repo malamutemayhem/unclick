@@ -43,6 +43,7 @@ import { blueskyConnector }  from "./bluesky.js";
 import { mastodonConnector } from "./mastodon.js";
 import { lineConnector }     from "./line.js";
 import { figmaConnector }    from "./figma.js";
+import { splitwiseConnector } from "./splitwise.js";
 
 export {
   xeroConnector,
@@ -55,6 +56,7 @@ export {
   mastodonConnector,
   lineConnector,
   figmaConnector,
+  splitwiseConnector,
 };
 
 export const CONNECTORS: Record<string, ConnectorConfig> = {
@@ -68,4 +70,5 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
   mastodon: mastodonConnector,
   line:     lineConnector,
   figma:    figmaConnector,
+  splitwise: splitwiseConnector,
 };

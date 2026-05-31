@@ -31,15 +31,32 @@ async function wiseFetch(
     "Content-Type": "application/json",
   };
 
-  const options: RequestInit = { method, headers };
+  const WISE_TIMEOUT_MS = Number(process.env.WISE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), WISE_TIMEOUT_MS);
+  const options: RequestInit = { method, headers, signal: controller.signal };
   if (method === "POST" && body !== undefined) {
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url.toString(), options);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), options);
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Wise API request timed out after ${WISE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Wise API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(`Wise API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!response.ok) {
     const text = await response.text().catch(() => "");
-    throw new Error(`HTTP ${response.status} from Wise API${text ? `: ${text}` : ""}`);
+    throw new Error(`Wise API HTTP ${response.status}${text ? `: ${text}` : ""}`);
   }
 
   return response.json();

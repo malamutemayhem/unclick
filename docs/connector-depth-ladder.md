@@ -21,10 +21,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 | Agentic | 1 | 1% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 71 | 44% |
-| L1 | Wrapper | 89 | 55% |
+| L2 | Reliable | 76 | 47% |
+| L1 | Wrapper | 84 | 52% |
 
-**Hardened (reliability bar met): 72 of 161 (45%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 77 of 161 (48%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ## Per-connector, highest rung first
 
@@ -79,8 +79,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `openfoodfacts` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `openlibrary` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `openmeteo` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `paypal` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `perplexity` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `postmark` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `quickbooks` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `radiobrowser` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `rawg` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `replicate` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -92,6 +94,8 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `shodan` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `sleeper` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `speedrun` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `splitwise` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `square` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `thelott` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `tmdb` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `togetherai` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -101,6 +105,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `usgs` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `virustotal` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `willyweather` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `wise` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `yelp` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L1 Wrapper | `abuseipdb` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `airtable` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
@@ -145,7 +150,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `openf1` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `pagerduty` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 4x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `pandascore` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `paypal` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `pika` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `pinecone` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 3x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `pinterest` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
@@ -153,7 +157,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `podcastindex` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `postman` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `pushover` | - | - | - | - | - | not-hardened, no-timeout, no-test, 3x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `quickbooks` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `raindrop` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `readwise` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `reddit` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
@@ -165,9 +168,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `setlistfm` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `shopify` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `slack` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `splitwise` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `spotify` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `square` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `stability` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, 3x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `steam` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `stripe` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
@@ -187,7 +188,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `urlscan` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `vercel` | - | - | - | - | - | not-hardened, no-timeout, no-memory, no-source-stamp |
 | L1 Wrapper | `whatsapp` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 3x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `wise` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `woocommerce` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `xero` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `youtube` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
