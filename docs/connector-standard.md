@@ -28,10 +28,13 @@ So the rule is: steal the idea, ship it better, keep it in our style.
 - **Credentials from a documented environment variable** (for example
   `PTV_API_KEY`). Never hardcode a key in source. A real key once shipped inside
   a public tarball because it was a hardcoded fallback; that must not recur.
-- **One error style.** Return a structured object `{ error: "<plain message>" }`.
-  Never throw a bare error, and never emit `HTTP ${status}` with no body. Read
-  the upstream error body and surface the useful part, plus the fix when known
-  (for example "set SPOTIFY_CLIENT_ID").
+- **Informative errors, two clear lanes.** Throw an informative `Error` for
+  transport and upstream failures (timeout, network, non-2xx with the response
+  body) - the dispatcher catches and classifies these via the bug pipeline - and
+  `return { error: "<plain message>" }` for input validation. Never throw a bare
+  error or emit `HTTP ${status}` with no body. Read the upstream error body and
+  surface the useful part, plus the fix when known (for example
+  "set SPOTIFY_CLIENT_ID"). PTV (`ptv-tool.ts`) is the reference.
 - **Every network call has a timeout** (`AbortController`) and **handles rate
   limits** (`429`) with a clear message or a bounded retry / backoff.
 - **Every connector has a colocated test.**
@@ -48,14 +51,14 @@ reference implementation to copy the pattern from.
 A callable endpoint, nothing more. The starting point for all 180.
 
 ### L2 Reliable (the hardening bar)
-Requirement: timeout + rate-limit/retry handling + one clean error style + no
-bare status errors + a test.
+Requirement: timeout + rate-limit/retry handling + informative error handling +
+no bare status errors + a test.
 
 | Need | Marker the ladder looks for |
 |------|------------------------------|
 | Timeout | `AbortController` / `AbortSignal` / `signal:` / `setTimeout` |
 | Rate limits | `429` or `rate limit`, or `retry` / `backoff` |
-| Clean errors | exactly one of `throw new Error` or `return { error:` (not both, not neither) |
+| Error handling | throws an `Error` and/or returns `{ error: ... }` (the two-lane pattern; both is fine) |
 | No bare errors | zero occurrences of `` `HTTP ${...}` `` |
 | Test | a colocated `*-tool.test.ts` (or in `__tests__`) |
 

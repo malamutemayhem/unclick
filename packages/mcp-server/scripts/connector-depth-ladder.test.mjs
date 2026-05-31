@@ -33,7 +33,14 @@ test("detects the PTV value-add markers (memory, agentic, source stamp)", () => 
   assert.equal(assignLevel(s, false), 5);
 });
 
-test("hardening requires timeout + rate-limit/retry + test + one clean error style + no bare errors", () => {
+test("the two-lane error pattern (throw for transport + return {error} for validation) is accepted", () => {
+  const src = `if (!name) return { error: "name is required" }; const r = await fetch(u); if (!r.ok) throw new Error("PTV API status " + r.status + ": " + await r.text());`;
+  const s = detectSignals(src);
+  assert.equal(s.errorStyleClean, true); // both lanes present is fine, not penalized
+  assert.equal(s.bareStatusErrors, 0);
+});
+
+test("hardening requires timeout + rate-limit/retry + test + informative errors + no bare errors", () => {
   const hardenedSrc = `
     const c = new AbortController();
     const r = await fetch(url, { signal: c.signal });

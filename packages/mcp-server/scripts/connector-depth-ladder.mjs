@@ -57,7 +57,10 @@ export function classify(base) {
 export function detectSignals(source) {
   const throws = (source.match(/throw new Error/g) || []).length;
   const returnsErrObj = (source.match(/return\s*\{\s*error:/g) || []).length;
-  const errorStyleClean = (throws > 0) !== (returnsErrObj > 0); // exactly one style, not both, not neither
+  // Informative error handling: throws for transport/upstream and/or returns
+  // { error } for validation (the two-lane reference pattern). Both is fine; the
+  // real anti-pattern (bare `HTTP ${status}`) is the separate bareStatusErrors signal.
+  const errorStyleClean = throws > 0 || returnsErrObj > 0;
 
   return {
     // reliability axis
@@ -186,7 +189,7 @@ export function render(rows) {
   md += `| Level | Name | What it means |\n`;
   md += `|:-----:|------|---------------|\n`;
   md += `| L1 | Wrapper | A callable endpoint, nothing more. |\n`;
-  md += `| L2 | Reliable | Request timeout, rate-limit or retry handling, one clean error style, and a test. |\n`;
+  md += `| L2 | Reliable | Request timeout, rate-limit or retry handling, informative error handling, and a test. |\n`;
   md += `| L3 | Memory-aware | Fills missing args from UnClick memory defaults (the PTV pattern). |\n`;
   md += `| L4 | Proactive | Can emit a signal or wake, not only answer on demand. |\n`;
   md += `| L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |\n\n`;

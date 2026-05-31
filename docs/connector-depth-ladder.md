@@ -9,7 +9,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | Level | Name | What it means |
 |:-----:|------|---------------|
 | L1 | Wrapper | A callable endpoint, nothing more. |
-| L2 | Reliable | Request timeout, rate-limit or retry handling, one clean error style, and a test. |
+| L2 | Reliable | Request timeout, rate-limit or retry handling, informative error handling, and a test. |
 | L3 | Memory-aware | Fills missing args from UnClick memory defaults (the PTV pattern). |
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
@@ -24,19 +24,13 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 | Reliable | 0 | 0% |
 | L1 | Wrapper | 160 | 99% |
 
-**Hardened (reliability bar met): 0 of 161 (0%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
-
-### Climbed in depth but not yet hardened
-
-These reached L3+ capability but have not met the L2 reliability bar. Hardening them is the highest-leverage next pass.
-
-- `ptv` (L5 Agentic): not-hardened
+**Hardened (reliability bar met): 1 of 161 (1%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ## Per-connector, highest rung first
 
 | Level | Connector | Hardened | Memory | Proactive | Agentic | Source-stamp | Gaps |
 |:-----:|-----------|:--------:|:------:|:---------:|:-------:|:------------:|------|
-| L5 Agentic | `ptv` | - | Yes | - | Yes | Yes | not-hardened |
+| L5 Agentic | `ptv` | Yes | Yes | - | Yes | Yes |  |
 | L1 Wrapper | `abn` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `abuseipdb` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `airtable` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
