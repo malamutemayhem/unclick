@@ -177,7 +177,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/datadog-tool.ts | 802b808614cd | 5556 |
 | packages/mcp-server/src/datetime-tool.ts | 19075fddbc55 | 10618 |
 | packages/mcp-server/src/deepl-tool.ts | 3c88cc9c44bf | 5695 |
-| packages/mcp-server/src/deezer-tool.ts | 227805914d67 | 7257 |
+| packages/mcp-server/src/deezer-tool.ts | 784d0608dda2 | 8130 |
 | packages/mcp-server/src/discogs-tool.ts | 547892efce07 | 4956 |
 | packages/mcp-server/src/discord-tool.ts | c70b8ac42f28 | 8191 |
 | packages/mcp-server/src/domain-tool.ts | 1beecc106e80 | 6076 |

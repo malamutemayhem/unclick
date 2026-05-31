@@ -8357,8 +8357,8 @@
     },
     {
       "source": "packages/mcp-server/src/deezer-tool.ts",
-      "hash": "227805914d67",
-      "bytes": 7257
+      "hash": "784d0608dda2",
+      "bytes": 8130
     },
     {
       "source": "packages/mcp-server/src/discogs-tool.ts",
