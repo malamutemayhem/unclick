@@ -12,13 +12,31 @@ function requireToken(args: Record<string, unknown>): string {
   return token;
 }
 
+const MAPBOX_TIMEOUT_MS = Number(process.env.MAPBOX_TIMEOUT_MS) || 10000;
+
 async function mbFetch<T>(path: string, params: Record<string, string>): Promise<T> {
   const url = new URL(`${MB_BASE}${path}`);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MAPBOX_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Mapbox request timed out after ${MAPBOX_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Mapbox network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Mapbox rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`Mapbox error (${res.status}): ${msg}`);
   }
   return data as T;

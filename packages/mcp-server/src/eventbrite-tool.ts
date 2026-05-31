@@ -16,6 +16,8 @@ function getToken(args: Record<string, unknown>): string | null {
   );
 }
 
+const EVENTBRITE_TIMEOUT_MS = Number(process.env.EVENTBRITE_TIMEOUT_MS) || 10000;
+
 async function ebFetch(
   path: string,
   token: string,
@@ -31,6 +33,8 @@ async function ebFetch(
     }
   }
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), EVENTBRITE_TIMEOUT_MS);
   const init: RequestInit = {
     method: method ?? "GET",
     headers: {
@@ -39,26 +43,37 @@ async function ebFetch(
       ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
     },
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    signal: controller.signal,
   };
 
   let response: Response;
   try {
     response = await fetch(url.toString(), init);
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Eventbrite request timed out after ${EVENTBRITE_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    return { error: `Eventbrite rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`, status: 429 };
   }
 
   let data: unknown;
   try {
     data = await response.json();
   } catch {
-    return { error: `Non-JSON response (HTTP ${response.status})`, status: response.status };
+    return { error: `Non-JSON response (status ${response.status})`, status: response.status };
   }
 
   if (!response.ok) {
     const e = data as Record<string, unknown>;
     return {
-      error: e.error_description ?? e.error ?? `HTTP ${response.status}`,
+      error: e.error_description ?? e.error ?? `status ${response.status}`,
       status: response.status,
     };
   }

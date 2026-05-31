@@ -11,6 +11,8 @@ function getApiKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const CALENDLY_TIMEOUT_MS = Number(process.env.CALENDLY_TIMEOUT_MS) || 10000;
+
 async function calendlyGet(
   apiKey: string,
   path: string,
@@ -22,12 +24,25 @@ async function calendlyGet(
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CALENDLY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Calendly request timed out after ${CALENDLY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Calendly network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Calendly API key.");
   if (res.status === 403) throw new Error("Calendly: access forbidden.");
   if (res.status === 404) throw new Error(`Calendly: resource not found at ${path}.`);

@@ -17,6 +17,8 @@ function getAppId(args: Record<string, unknown>): string {
   );
 }
 
+const BANDSINTOWN_TIMEOUT_MS = Number(process.env.BANDSINTOWN_TIMEOUT_MS) || 10000;
+
 async function bitFetch(
   path: string,
   appId: string,
@@ -31,25 +33,38 @@ async function bitFetch(
     }
   }
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), BANDSINTOWN_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       headers: { Accept: "application/json" },
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Bandsintown request timed out after ${BANDSINTOWN_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    return { error: `Bandsintown rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.` };
   }
 
   let data: unknown;
   try {
     data = await response.json();
   } catch {
-    return { error: `Non-JSON response (HTTP ${response.status})`, status: response.status };
+    return { error: `Non-JSON response (status ${response.status})`, status: response.status };
   }
 
   if (!response.ok) {
     const e = data as Record<string, unknown>;
-    return { error: (e.message ?? `HTTP ${response.status}`), status: response.status };
+    return { error: (e.message ?? `status ${response.status}`), status: response.status };
   }
 
   return data;
