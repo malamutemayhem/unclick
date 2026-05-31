@@ -152,7 +152,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/anthropic-tool.ts | fd197643eefb | 7766 |
 | packages/mcp-server/src/asana-tool.ts | 3f5d880c119d | 8078 |
 | packages/mcp-server/src/assemblyai-tool.ts | fdc9c929ba6f | 9625 |
-| packages/mcp-server/src/australiapost-tool.ts | 6fc5a927873d | 5148 |
+| packages/mcp-server/src/australiapost-tool.ts | 012cc850af83 | 5743 |
 | packages/mcp-server/src/bandsintown-tool.ts | 0ded8aafcfb2 | 3829 |
 | packages/mcp-server/src/bgg-tool.ts | 5078cb1ae404 | 10461 |
 | packages/mcp-server/src/bluesky-tool.ts | 89b5739acca5 | 14208 |

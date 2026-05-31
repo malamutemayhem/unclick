@@ -11,13 +11,27 @@ function getApiKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const SHODAN_TIMEOUT_MS = Number(process.env.SHODAN_TIMEOUT_MS) || 15000;
+
 async function shodanGet(
   apiKey: string,
   path: string,
   params?: Record<string, string>
 ): Promise<Record<string, unknown>> {
   const qs = new URLSearchParams({ key: apiKey, ...(params ?? {}) });
-  const res = await fetch(`${SHODAN_BASE}${path}?${qs}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SHODAN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SHODAN_BASE}${path}?${qs}`, { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Shodan request timed out after ${SHODAN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Shodan network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Shodan API key.");
   if (res.status === 404) throw new Error("Shodan: resource not found.");
   if (res.status === 429) throw new Error("Shodan rate limit exceeded.");

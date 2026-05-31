@@ -14,14 +14,29 @@ function getApiKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const HIBP_TIMEOUT_MS = Number(process.env.HIBP_TIMEOUT_MS) || 15000;
+
 async function hibpGet(apiKey: string, path: string, params?: Record<string, string>): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${HIBP_BASE}${path}${qs}`, {
-    headers: {
-      "hibp-api-key": apiKey,
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HIBP_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${HIBP_BASE}${path}${qs}`, {
+      headers: {
+        "hibp-api-key": apiKey,
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`HIBP request timed out after ${HIBP_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`HIBP network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid HIBP API key.");
   if (res.status === 403) throw new Error("HIBP API key does not have permission for this endpoint.");
   if (res.status === 404) return null;
@@ -134,12 +149,28 @@ export async function checkPassword(args: Record<string, unknown>): Promise<unkn
     const prefix = hashHex.slice(0, 5);
     const suffix = hashHex.slice(5);
 
-    const res = await fetch(`${HIBP_PASS_BASE}/range/${prefix}`, {
-      headers: {
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-        "Add-Padding": "true",
-      },
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), HIBP_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(`${HIBP_PASS_BASE}/range/${prefix}`, {
+        headers: {
+          "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+          "Add-Padding": "true",
+        },
+        signal: controller.signal,
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new Error(`HIBP password API request timed out after ${HIBP_TIMEOUT_MS}ms.`);
+      }
+      throw new Error(`HIBP password API network error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      clearTimeout(timer);
+    }
+    if (res.status === 429) {
+      throw new Error(`HIBP password API rate limit exceeded.`);
+    }
     if (!res.ok) {
       throw new Error(`HIBP password API HTTP ${res.status}`);
     }

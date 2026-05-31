@@ -12,18 +12,33 @@ function getApiKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const IPAUSTRALIA_TIMEOUT_MS = Number(process.env.IPAUSTRALIA_TIMEOUT_MS) || 15000;
+
 async function ipauGet(
   apiKey: string,
   path: string,
   params?: Record<string, string>
 ): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${IPAU_BASE}${path}${qs}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), IPAUSTRALIA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${IPAU_BASE}${path}${qs}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`IP Australia API request timed out after ${IPAUSTRALIA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`IP Australia API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid IP Australia API key.");
   if (res.status === 404) throw new Error("Resource not found.");
   if (res.status === 429) throw new Error("IP Australia API rate limit exceeded.");

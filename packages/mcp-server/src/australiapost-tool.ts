@@ -12,14 +12,29 @@ function getApiKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const AUSPOST_TIMEOUT_MS = Number(process.env.AUSPOST_TIMEOUT_MS) || 15000;
+
 async function auspostGet(apiKey: string, path: string, params?: Record<string, string>): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${AUSPOST_BASE}${path}${qs}`, {
-    headers: {
-      "AUTH-KEY": apiKey,
-      Accept: "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AUSPOST_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${AUSPOST_BASE}${path}${qs}`, {
+      headers: {
+        "AUTH-KEY": apiKey,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Australia Post API request timed out after ${AUSPOST_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Australia Post API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid Australia Post API key.");
   if (res.status === 404) throw new Error("Resource not found.");
   if (res.status === 429) throw new Error("Australia Post API rate limit exceeded.");

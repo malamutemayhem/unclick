@@ -11,15 +11,30 @@ function getApiKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const VIRUSTOTAL_TIMEOUT_MS = Number(process.env.VIRUSTOTAL_TIMEOUT_MS) || 15000;
+
 async function vtGet(
   apiKey: string,
   path: string,
   params?: Record<string, string>
 ): Promise<Record<string, unknown>> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${VT_BASE}${path}${qs}`, {
-    headers: { "x-apikey": apiKey },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), VIRUSTOTAL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${VT_BASE}${path}${qs}`, {
+      headers: { "x-apikey": apiKey },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`VirusTotal request timed out after ${VIRUSTOTAL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`VirusTotal network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid VirusTotal API key.");
   if (res.status === 404) throw new Error(`VirusTotal: resource not found at ${path}.`);
   if (res.status === 429) throw new Error("VirusTotal rate limit exceeded. Wait and retry.");
@@ -35,14 +50,27 @@ async function vtPost(
   path: string,
   body: URLSearchParams
 ): Promise<Record<string, unknown>> {
-  const res = await fetch(`${VT_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "x-apikey": apiKey,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: body.toString(),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), VIRUSTOTAL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${VT_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "x-apikey": apiKey,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: body.toString(),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`VirusTotal request timed out after ${VIRUSTOTAL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`VirusTotal network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid VirusTotal API key.");
   if (res.status === 429) throw new Error("VirusTotal rate limit exceeded. Wait and retry.");
   if (!res.ok) {
