@@ -182,6 +182,7 @@ const App = () => (
             <Route path="jobsmith" element={<AdminJobsmith />} />
             <Route path="todos" element={<Navigate to="/admin/jobs" replace />} />
             <Route path="checks" element={<AdminChecks />} />
+            <Route path="checks/:productId" element={<AdminChecks />} />
             <Route path="ledger" element={<AdminLedger />} />
             <Route path="billing" element={<AdminBilling />} />
             <Route path="testpass"              element={<TestPassCatalog />} />

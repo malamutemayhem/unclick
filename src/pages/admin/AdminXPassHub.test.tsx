@@ -1,56 +1,48 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import AdminXPassHub from "./AdminXPassHub";
 
-function renderHub() {
+function renderHub(path = "/admin/checks") {
   render(
-    <MemoryRouter>
-      <AdminXPassHub />
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path="/admin/checks" element={<AdminXPassHub />} />
+        <Route path="/admin/checks/:productId" element={<AdminXPassHub />} />
+      </Routes>
     </MemoryRouter>,
   );
 }
 
 describe("AdminXPassHub", () => {
-  it("shows the suite landing page with checklist and reports", () => {
+  it("shows a simple XPass family card grid", () => {
     renderHub();
 
-    expect(screen.getByRole("heading", { name: "XPass Report" })).toBeInTheDocument();
-    expect(screen.getByText(/AutoPilot's roadworthy checklist/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Reports" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Start a report" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Checklist" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /All XPass/i })).toBeInTheDocument();
-    expect(screen.getAllByText("FidelityPass").length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: "XPass" })).toBeInTheDocument();
+    expect(screen.getByText(/roadworthy inspection/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "XPass family" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /TestPass/i })).toHaveAttribute("href", "/admin/checks/testpass");
+    expect(screen.getByRole("link", { name: /SecurityPass/i })).toHaveAttribute("href", "/admin/checks/securitypass");
+    expect(screen.getByText("Was it copied exactly?")).toBeInTheDocument();
   });
 
-  it("filters the checklist to one product", () => {
-    renderHub();
+  it("shows a product report with recent reports and thin checklist rows", () => {
+    renderHub("/admin/checks/securitypass");
 
-    fireEvent.click(screen.getByRole("button", { name: /CopyPass/i }));
-
-    expect(screen.getAllByText("Is the wording clear?").length).toBeGreaterThan(0);
-    expect(screen.getByText(/Use on hero copy/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Open CopyPass/i })).toHaveAttribute("href", "/admin/copypass");
+    expect(screen.getByRole("heading", { name: "SecurityPass" })).toBeInTheDocument();
+    expect(screen.getByText("Is it safe enough?")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Recent reports" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Roadworthy checks" })).toBeInTheDocument();
+    expect(screen.getByText("Scope is clear")).toBeInTheDocument();
+    expect(screen.getByText(/plain comment any person can understand/i)).toBeInTheDocument();
+    expect(screen.getAllByText("PASS").length).toBeGreaterThan(0);
   });
 
-  it("switches report context from the report ledger", () => {
-    renderHub();
+  it("marks FidelityPass exact-copy scope as N/A when source copy is not in scope", () => {
+    renderHub("/admin/checks/fidelitypass");
 
-    fireEvent.click(screen.getByRole("button", { name: /Exact copy check/i }));
-
-    expect(screen.getByText(/Use this only when wording/i)).toBeInTheDocument();
-    expect(screen.getAllByText("Exact copy check").length).toBeGreaterThan(0);
-  });
-
-  it("guides a run from a plain-English target", () => {
-    renderHub();
-
-    fireEvent.click(screen.getByRole("button", { name: /Screen or journey/i }));
-
-    expect(screen.getByText(/Capture desktop and mobile proof/i)).toBeInTheDocument();
-    expect(screen.getAllByText("UXPass").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("FlowPass").length).toBeGreaterThan(0);
-    expect(screen.getByText(/N\/A means the check was considered and does not fit this job/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "FidelityPass" })).toBeInTheDocument();
+    expect(screen.getByText(/N\/A is correct when no exact source copy is in scope/i)).toBeInTheDocument();
+    expect(screen.getAllByText("N/A").length).toBeGreaterThan(0);
   });
 });
