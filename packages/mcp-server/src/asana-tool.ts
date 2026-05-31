@@ -22,12 +22,26 @@ async function asanaGet(
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-    },
-  });
+  const ASANA_TIMEOUT_MS = Number(process.env.ASANA_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ASANA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Asana request timed out after ${ASANA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Asana network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Asana API key.");
   if (res.status === 403) throw new Error("Asana: access forbidden.");
   if (res.status === 404) throw new Error(`Asana: resource not found at ${path}.`);
@@ -45,15 +59,29 @@ async function asanaPost(
   body: Record<string, unknown>,
   method: "POST" | "PUT" = "POST"
 ): Promise<unknown> {
-  const res = await fetch(`${ASANA_BASE}${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({ data: body }),
-  });
+  const ASANA_TIMEOUT_MS = Number(process.env.ASANA_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ASANA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${ASANA_BASE}${path}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ data: body }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Asana request timed out after ${ASANA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Asana network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Asana API key.");
   if (res.status === 403) throw new Error("Asana: access forbidden.");
   if (res.status === 404) throw new Error(`Asana: resource not found at ${path}.`);

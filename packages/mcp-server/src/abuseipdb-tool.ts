@@ -17,12 +17,26 @@ async function abuseGet(
   params: Record<string, string>
 ): Promise<Record<string, unknown>> {
   const qs = new URLSearchParams(params);
-  const res = await fetch(`${ABUSEIPDB_BASE}${path}?${qs}`, {
-    headers: {
-      Key: apiKey,
-      Accept: "application/json",
-    },
-  });
+  const ABUSEIPDB_TIMEOUT_MS = Number(process.env.ABUSEIPDB_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ABUSEIPDB_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${ABUSEIPDB_BASE}${path}?${qs}`, {
+      headers: {
+        Key: apiKey,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`AbuseIPDB request timed out after ${ABUSEIPDB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`AbuseIPDB network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid AbuseIPDB API key.");
   if (res.status === 429) throw new Error("AbuseIPDB rate limit exceeded. Upgrade your plan or wait.");
   if (!res.ok) {
@@ -38,15 +52,29 @@ async function abusePost(
   params: Record<string, string>
 ): Promise<Record<string, unknown>> {
   const body = new URLSearchParams(params);
-  const res = await fetch(`${ABUSEIPDB_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Key: apiKey,
-      Accept: "application/json",
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: body.toString(),
-  });
+  const ABUSEIPDB_TIMEOUT_MS = Number(process.env.ABUSEIPDB_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ABUSEIPDB_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${ABUSEIPDB_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Key: apiKey,
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: body.toString(),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`AbuseIPDB request timed out after ${ABUSEIPDB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`AbuseIPDB network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid AbuseIPDB API key.");
   if (res.status === 429) throw new Error("AbuseIPDB rate limit exceeded.");
   if (!res.ok) {

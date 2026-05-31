@@ -21,10 +21,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 | Agentic | 1 | 1% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 76 | 47% |
-| L1 | Wrapper | 84 | 52% |
+| L2 | Reliable | 84 | 52% |
+| L1 | Wrapper | 76 | 47% |
 
-**Hardened (reliability bar met): 77 of 161 (48%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 85 of 161 (53%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ## Per-connector, highest rung first
 
@@ -32,13 +32,21 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 |:-----:|-----------|:--------:|:------:|:---------:|:-------:|:------------:|------|
 | L5 Agentic | `ptv` | Yes | Yes | - | Yes | Yes |  |
 | L2 Reliable | `abn` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `abuseipdb` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `airtable` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `algolia` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `alphavantage` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `anthropic` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `asana` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `assemblyai` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `australiapost` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `bandsintown` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `bgg` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `calendly` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `carboninterface` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `chessdotcom` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `circleci` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `clickup` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `cohere` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `coingecko` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `coinmarketcap` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -107,18 +115,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `willyweather` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `wise` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `yelp` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L1 Wrapper | `abuseipdb` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `airtable` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `algolia` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `amazon` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `amber` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `asana` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `assemblyai` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, 2x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `bgg` | - | - | - | - | - | not-hardened, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `bluesky` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `bungie` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `circleci` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `clickup` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `clockify` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `datadog` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `discord` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |

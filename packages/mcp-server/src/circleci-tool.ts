@@ -18,32 +18,68 @@ async function ccGet<T>(apiKey: string, path: string, query?: Record<string, str
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      "Circle-Token": apiKey,
-      "Content-Type": "application/json",
-    },
-  });
+  const CIRCLECI_TIMEOUT_MS = Number(process.env.CIRCLECI_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CIRCLECI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        "Circle-Token": apiKey,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`CircleCI request timed out after ${CIRCLECI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`CircleCI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`CircleCI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`CircleCI error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function ccPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${CIRCLECI_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "Circle-Token": apiKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const CIRCLECI_TIMEOUT_MS = Number(process.env.CIRCLECI_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CIRCLECI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${CIRCLECI_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "Circle-Token": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`CircleCI request timed out after ${CIRCLECI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`CircleCI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`CircleCI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`CircleCI error (${res.status}): ${msg}`);
   }
   return data as T;

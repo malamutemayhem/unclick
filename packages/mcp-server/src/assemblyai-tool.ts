@@ -104,26 +104,62 @@ function requireKey(args: Record<string, unknown>): string {
 async function aaiGet<T>(apiKey: string, path: string, params?: Record<string, string>): Promise<T> {
   const url = new URL(`${AAI_BASE}${path}`);
   if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: apiKey },
-  });
+  const ASSEMBLYAI_TIMEOUT_MS = Number(process.env.ASSEMBLYAI_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ASSEMBLYAI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Authorization: apiKey },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`AssemblyAI request timed out after ${ASSEMBLYAI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`AssemblyAI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`AssemblyAI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.error as string) ?? `status ${res.status}`;
     throw new Error(`AssemblyAI error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function aaiPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${AAI_BASE}${path}`, {
-    method: "POST",
-    headers: { Authorization: apiKey, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const ASSEMBLYAI_TIMEOUT_MS = Number(process.env.ASSEMBLYAI_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ASSEMBLYAI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${AAI_BASE}${path}`, {
+      method: "POST",
+      headers: { Authorization: apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`AssemblyAI request timed out after ${ASSEMBLYAI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`AssemblyAI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`AssemblyAI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.error as string) ?? `status ${res.status}`;
     throw new Error(`AssemblyAI error (${res.status}): ${msg}`);
   }
   return data as T;
