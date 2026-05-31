@@ -21,10 +21,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 | Agentic | 1 | 1% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 5 | 3% |
-| L1 | Wrapper | 155 | 96% |
+| L2 | Reliable | 7 | 4% |
+| L1 | Wrapper | 153 | 95% |
 
-**Hardened (reliability bar met): 6 of 161 (4%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 8 of 161 (5%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ## Per-connector, highest rung first
 
@@ -33,6 +33,8 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `ptv` | Yes | Yes | - | Yes | Yes |  |
 | L2 Reliable | `hackernews` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `meal` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `musicbrainz` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `openlibrary` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `restcountries` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `trivia` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `usgs` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -109,7 +111,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `mixpanel` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `monday` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `monica` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `musicbrainz` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `nasa` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `neon` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `newsapi` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
@@ -121,7 +122,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `openexchangerates` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `openf1` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `openfoodfacts` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `openlibrary` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `openmeteo` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `pagerduty` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 4x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `pandascore` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
