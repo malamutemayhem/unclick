@@ -12684,6 +12684,7 @@ export const ADDITIONAL_TOOLS = [
         journey_name: { type: "string", description: "Optional journey name override" },
         journey_kind: { type: "string", enum: ["signup", "auth", "checkout", "onboarding", "support", "custom"] },
         generated_at: { type: "string", description: "Optional ISO timestamp for reproducible fixture tests" },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks" },
       },
     },
   },

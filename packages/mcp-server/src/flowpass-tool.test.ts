@@ -50,6 +50,7 @@ describe("flowpass-tool", () => {
   it("runs deterministic fixture checks and exposes reports", async () => {
     const run = await flowpassRun({
       target_url: "https://example.com/signup",
+      target_sha: "flow-sha-123",
       generated_at: "2026-05-28T00:00:00.000Z",
       journey_id: "signup",
       journey_name: "Signup journey",
@@ -75,10 +76,26 @@ describe("flowpass-tool", () => {
       pass: "flowpass",
       verdict: "ready",
       journey_readiness_score: 100,
+      target_sha: "flow-sha-123",
+      flowpass_receipt_v1: {
+        kind: "flowpass_receipt_v1",
+        status: "PASS",
+        target_sha: "flow-sha-123",
+        mode: "fixture",
+        score: 100,
+        checked: { fail: 0, unknown: 0 },
+        action_needed: [],
+      },
     });
+    expect(String((run.flowpass_receipt_v1 as Record<string, unknown>).boundaries)).toContain("does not drive live auth");
 
     const status = await flowpassStatus({ run_id: run.run_id }) as Record<string, unknown>;
-    expect(status).toMatchObject({ verdict: "ready", journey_readiness_score: 100 });
+    expect(status).toMatchObject({
+      verdict: "ready",
+      journey_readiness_score: 100,
+      target_sha: "flow-sha-123",
+      flowpass_receipt_v1: { target_sha: "flow-sha-123", status: "PASS" },
+    });
 
     const markdown = await flowpassReport({
       run_id: run.run_id,
@@ -105,7 +122,20 @@ describe("flowpass-tool", () => {
       status: "planned",
       mode: "plan-only",
       verdict: "unknown",
+      flowpass_receipt_v1: {
+        kind: "flowpass_receipt_v1",
+        status: "PENDING",
+        mode: "plan-only",
+      },
     });
+    expect(String((run.flowpass_receipt_v1 as Record<string, unknown>).action_needed)).toContain("fixture proof");
+  });
+
+  it("rejects blank target SHA values", async () => {
+    await expect(flowpassRun({
+      target_url: "https://example.com/signup",
+      target_sha: " ",
+    })).resolves.toMatchObject({ error: "target_sha must be a non-empty string when provided" });
   });
 
   it("registers YAML packs and can run them with a fixture", async () => {
