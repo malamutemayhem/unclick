@@ -21,16 +21,18 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 | Agentic | 1 | 1% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 0 | 0% |
-| L1 | Wrapper | 160 | 99% |
+| L2 | Reliable | 2 | 1% |
+| L1 | Wrapper | 158 | 98% |
 
-**Hardened (reliability bar met): 1 of 161 (1%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 3 of 161 (2%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ## Per-connector, highest rung first
 
 | Level | Connector | Hardened | Memory | Proactive | Agentic | Source-stamp | Gaps |
 |:-----:|-----------|:--------:|:------:|:---------:|:-------:|:------------:|------|
 | L5 Agentic | `ptv` | Yes | Yes | - | Yes | Yes |  |
+| L2 Reliable | `hackernews` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `restcountries` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L1 Wrapper | `abn` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `abuseipdb` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `airtable` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
@@ -82,7 +84,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `groq` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `guardian` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `gumroad` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `hackernews` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `haveibeenpwned` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `heygen` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `higgsfield` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
@@ -141,7 +142,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `render` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `replicate` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `resend` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `restcountries` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `riot` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `runway` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `seatgeek` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
