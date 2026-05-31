@@ -176,6 +176,36 @@ export const FlowPassReportSchema = z.object({
   notes: z.array(z.string().min(1)).default([]),
 });
 
+export const FlowPassReceiptSchema = z.object({
+  kind: z.literal("flowpass_receipt_v1"),
+  status: z.enum(["PASS", "WARN", "BLOCKER", "PENDING"]),
+  run_id: z.string().min(1),
+  target_url: z.string().url(),
+  target_sha: z.string().min(1).optional(),
+  generated_at: z.string().datetime(),
+  mode: z.enum(["plan-only", "fixture", "live-readonly"]),
+  profile: FlowPassProfileSchema,
+  journey: z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    kind: FlowPassJourneyKindSchema,
+  }),
+  score: z.number().min(0).max(100),
+  verdict: FlowPassReportVerdictSchema,
+  checked: z.object({
+    total: z.number().int().min(0),
+    pass: z.number().int().min(0),
+    warn: z.number().int().min(0),
+    fail: z.number().int().min(0),
+    unknown: z.number().int().min(0),
+  }),
+  evidence_sources: z.array(FlowPassEvidenceSchema).default([]),
+  not_checked: z.array(FlowPassNotCheckedSchema).default([]),
+  disagreements_open: z.number().int().min(0),
+  action_needed: z.array(z.string().min(1)).default([]),
+  boundaries: z.array(z.string().min(1)).min(1),
+});
+
 export const FlowPassFixtureLinkSchema = z.object({
   label: z.string().min(1),
   href: z.string().min(1).optional(),
@@ -308,6 +338,7 @@ export type FlowPassHatOutput = z.infer<typeof FlowPassHatOutputSchema>;
 export type FlowPassNotChecked = z.infer<typeof FlowPassNotCheckedSchema>;
 export type FlowPassDisagreement = z.infer<typeof FlowPassDisagreementSchema>;
 export type FlowPassReport = z.infer<typeof FlowPassReportSchema>;
+export type FlowPassReceipt = z.infer<typeof FlowPassReceiptSchema>;
 export type FlowPassFixture = z.infer<typeof FlowPassFixtureSchema>;
 export type FlowPassPack = z.infer<typeof FlowPassPackSchema>;
 export type FlowPassUserPack = z.infer<typeof FlowPassUserPackSchema>;

@@ -122,11 +122,77 @@ const AUTOPILOT_LINKS = [
   { path: "/admin/autopilot/expressbuild", label: "DraftRoom", icon: FileCode2 },
   { path: "/admin/boardroom", label: "Boardroom", icon: MessagesSquare },
   { path: "/admin/jobs", label: "Jobs", icon: ListTodo },
-  { path: "/admin/checks", label: "XPass", icon: ClipboardCheck },
+  { path: "/admin/checks", label: "XPass", icon: ClipboardCheck, hasChildren: true },
   { path: "/admin/projects", label: "Projects", icon: FolderKanban },
   { path: "/admin/ledger", label: "Ledger", icon: ReceiptText },
   { path: "/admin/workers", label: "Workers", icon: Bot },
 ] as const;
+
+const XPASS_LINKS = [
+  { path: "/admin/checks/testpass", label: "TestPass" },
+  { path: "/admin/checks/uxpass", label: "UXPass" },
+  { path: "/admin/checks/securitypass", label: "SecurityPass" },
+  { path: "/admin/checks/copypass", label: "CopyPass" },
+  { path: "/admin/checks/fidelitypass", label: "FidelityPass" },
+  { path: "/admin/checks/legalpass", label: "LegalPass" },
+  { path: "/admin/checks/sloppass", label: "SlopPass" },
+  { path: "/admin/checks/commonsensepass", label: "CommonSensePass" },
+  { path: "/admin/checks/seopass", label: "SEOPass" },
+  { path: "/admin/checks/geopass", label: "GEOPass" },
+  { path: "/admin/checks/flowpass", label: "FlowPass" },
+  { path: "/admin/checks/rotatepass", label: "RotatePass" },
+  { path: "/admin/checks/wakepass", label: "WakePass" },
+  { path: "/admin/checks/compliancepass", label: "CompliancePass" },
+] as const;
+
+function XPassNavItem({ onClick }: { onClick?: () => void }) {
+  const location = useLocation();
+  const isXPass = location.pathname === "/admin/checks" || location.pathname.startsWith("/admin/checks/");
+
+  return (
+    <div>
+      <NavLink
+        to="/admin/checks"
+        onClick={onClick}
+        className={() =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isXPass
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <ClipboardCheck className="h-4 w-4 shrink-0" />
+        <span className="flex-1">XPass</span>
+        {isXPass
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
+      {isXPass && (
+        <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
+          {XPASS_LINKS.map(({ path, label }) => {
+            const active = location.pathname === path;
+
+            return (
+              <Link
+                key={path}
+                to={path}
+                onClick={onClick}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-card/40 hover:text-body"
+                }`}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
   const location = useLocation();
@@ -139,13 +205,17 @@ function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
       {open && (
         <div className="mt-1 space-y-0.5 border-l border-primary/20 pl-3">
           {AUTOPILOT_LINKS.map((item) => (
-            <SurfaceLink
-              key={item.path}
-              path={item.path}
-              label={item.label}
-              icon={item.icon}
-              onClick={onLinkClick}
-            />
+            item.hasChildren ? (
+              <XPassNavItem key={item.path} onClick={onLinkClick} />
+            ) : (
+              <SurfaceLink
+                key={item.path}
+                path={item.path}
+                label={item.label}
+                icon={item.icon}
+                onClick={onLinkClick}
+              />
+            )
           ))}
         </div>
       )}

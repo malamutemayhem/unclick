@@ -17,6 +17,7 @@ import {
 
 type ReportFormat = "json" | "markdown" | "html" | "fix_prompt";
 type FlowPassFixture = Record<string, unknown>;
+type FlowPassReceiptStatus = "PASS" | "WARN" | "BLOCKER" | "PENDING";
 
 interface FlowPassJourney {
   id: string;
@@ -38,21 +39,76 @@ interface FlowPassNormalizedPack {
 
 interface FlowPassReport {
   run_id?: string;
-  mode: string;
-  verdict: string;
+  mode: "plan-only" | "fixture" | "live-readonly";
+  profile: "smoke" | "standard" | "deep";
+  verdict: "ready" | "needs-work" | "blocked" | "unknown";
   journey_readiness_score: number;
   target_url: string;
   journey: FlowPassJourney;
-  summary?: unknown;
-  disagreements: Array<{ id: string } & Record<string, unknown>>;
+  summary?: {
+    counts_by_verdict?: Partial<Record<"pass" | "warn" | "fail" | "unknown", number>>;
+  } & Record<string, unknown>;
+  steps: Array<{
+    step_id: string;
+    label: string;
+    score: number;
+    verdict: "pass" | "warn" | "fail" | "unknown";
+    evidence?: FlowPassReceiptEvidence[];
+    findings?: FlowPassReceiptFinding[];
+  }>;
+  disagreements: Array<{ id: string; summary?: string } & Record<string, unknown>>;
+  not_checked: Array<{ label: string; reason: string }>;
+  notes: string[];
   generated_at: string;
+}
+
+interface FlowPassReceiptEvidence {
+  kind: string;
+  label: string;
+  source_url?: string;
+  summary: string;
+}
+
+interface FlowPassReceiptFinding {
+  id: string;
+  recommendation?: string;
+  title?: string;
+  evidence?: FlowPassReceiptEvidence[];
+}
+
+interface FlowPassMcpReceipt {
+  kind: "flowpass_receipt_v1";
+  status: FlowPassReceiptStatus;
+  run_id: string;
+  target_url: string;
+  target_sha?: string;
+  generated_at: string;
+  mode: FlowPassReport["mode"];
+  profile: FlowPassReport["profile"];
+  journey: FlowPassJourney;
+  score: number;
+  verdict: FlowPassReport["verdict"];
+  checked: {
+    total: number;
+    pass: number;
+    warn: number;
+    fail: number;
+    unknown: number;
+  };
+  evidence_sources: FlowPassReceiptEvidence[];
+  not_checked: Array<{ label: string; reason: string }>;
+  disagreements_open: number;
+  action_needed: string[];
+  boundaries: string[];
 }
 
 interface FlowPassRunRecord {
   run_id: string;
   status: "planned" | "complete";
   pack_id?: string;
+  target_sha?: string;
   report: FlowPassReport;
+  receipt: FlowPassMcpReceipt;
   reports: {
     json: object;
     markdown: string;
@@ -117,13 +173,119 @@ function resolvePack(args: Record<string, unknown>): FlowPassNormalizedPack | un
   return undefined;
 }
 
-function storeRun(report: FlowPassReport, pack?: FlowPassNormalizedPack): FlowPassRunRecord {
+function buildFlowPassReceipt(
+  report: FlowPassReport,
+  runId: string,
+  targetSha?: string,
+): FlowPassMcpReceipt {
+  const checked = checkedCounts(report);
+  const openDisagreements = report.disagreements.filter((item) => !RESOLVED_DISAGREEMENTS.has(item.id));
+  return {
+    kind: "flowpass_receipt_v1",
+    status: receiptStatus(report, checked, openDisagreements.length),
+    run_id: runId,
+    target_url: report.target_url,
+    ...(targetSha ? { target_sha: targetSha } : {}),
+    generated_at: report.generated_at,
+    mode: report.mode,
+    profile: report.profile,
+    journey: report.journey,
+    score: report.journey_readiness_score,
+    verdict: report.verdict,
+    checked,
+    evidence_sources: receiptEvidence(report),
+    not_checked: report.not_checked,
+    disagreements_open: openDisagreements.length,
+    action_needed: receiptActions(report, openDisagreements),
+    boundaries: [
+      "FlowPass uses provided public fixture evidence from this MCP surface.",
+      "FlowPass does not drive live auth, checkout, billing, email, production data, or destructive submissions.",
+      "Plan-only results are not PASS receipts until fixture or live read-only proof is supplied.",
+    ],
+  };
+}
+
+function checkedCounts(report: FlowPassReport): FlowPassMcpReceipt["checked"] {
+  const summary = report.summary?.counts_by_verdict;
+  return {
+    total: report.steps.length,
+    pass: summary?.pass ?? report.steps.filter((step) => step.verdict === "pass").length,
+    warn: summary?.warn ?? report.steps.filter((step) => step.verdict === "warn").length,
+    fail: summary?.fail ?? report.steps.filter((step) => step.verdict === "fail").length,
+    unknown: summary?.unknown ?? report.steps.filter((step) => step.verdict === "unknown").length,
+  };
+}
+
+function receiptStatus(
+  report: FlowPassReport,
+  checked: FlowPassMcpReceipt["checked"],
+  disagreementsOpen: number,
+): FlowPassReceiptStatus {
+  if (report.mode === "plan-only" || report.verdict === "unknown" || checked.unknown > 0) return "PENDING";
+  if (report.verdict === "blocked" || checked.fail > 0) return "BLOCKER";
+  if (report.verdict === "needs-work" || checked.warn > 0 || disagreementsOpen > 0) {
+    return "WARN";
+  }
+  return "PASS";
+}
+
+function receiptEvidence(report: FlowPassReport): FlowPassReceiptEvidence[] {
+  const evidence = report.steps.flatMap((step) => [
+    ...(step.evidence ?? []),
+    ...((step.findings ?? []).flatMap((finding) => finding.evidence ?? [])),
+  ]);
+  const normalized = evidence.length > 0
+    ? evidence
+    : [{
+        kind: "manual-note",
+        label: "Plan-only note",
+        source_url: report.target_url,
+        summary: "Fixture proof is still required before FlowPass can act as a PASS receipt.",
+      }];
+  const seen = new Set<string>();
+  return normalized.filter((item) => {
+    const key = [item.kind, item.label, item.source_url ?? "", item.summary].join("\u0000");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 20);
+}
+
+function receiptActions(
+  report: FlowPassReport,
+  openDisagreements: Array<{ id: string; summary?: string }>,
+): string[] {
+  const actions = [
+    ...(report.mode === "plan-only"
+      ? ["Provide fixture proof before using this as a PASS receipt."]
+      : []),
+    ...openDisagreements.map((item) => `Resolve disagreement ${item.id}: ${item.summary ?? "review the open driver/verifier mismatch"}`),
+    ...report.steps.flatMap((step) =>
+      (step.findings ?? []).flatMap((finding) =>
+        finding.recommendation ? [`${finding.id}: ${finding.recommendation}`] : [],
+      ),
+    ),
+  ];
+  return Array.from(new Set(actions)).slice(0, 12);
+}
+
+function parseTargetSha(value: unknown): string | undefined | { error: string } {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return { error: "target_sha must be a non-empty string when provided" };
+  }
+  return value.trim();
+}
+
+function storeRun(report: FlowPassReport, pack?: FlowPassNormalizedPack, targetSha?: string): FlowPassRunRecord {
   const runId = report.run_id ?? `flowpass_plan_${RUNS.size + 1}`;
   const record: FlowPassRunRecord = {
     run_id: runId,
     status: report.mode === "fixture" ? "complete" : "planned",
     pack_id: pack?.id,
+    target_sha: targetSha,
     report,
+    receipt: buildFlowPassReceipt(report, runId, targetSha),
     reports: {
       json: generateFlowPassJsonReport(report),
       markdown: generateFlowPassMarkdownReport(report),
@@ -137,6 +299,8 @@ function storeRun(report: FlowPassReport, pack?: FlowPassNormalizedPack): FlowPa
 
 export async function flowpassRun(args: Record<string, unknown>): Promise<unknown> {
   try {
+    const targetSha = parseTargetSha(args.target_sha);
+    if (isRecord(targetSha)) return targetSha;
     const pack = resolvePack(args);
     const targetUrl =
       (typeof args.target_url === "string" && args.target_url.trim()) ||
@@ -180,12 +344,13 @@ export async function flowpassRun(args: Record<string, unknown>): Promise<unknow
         ...(pack ? [`Registered pack ${pack.id} supplied ${pack.plainEnglishSteps.length} plain-English step(s).`] : []),
       ],
     });
-    const record = storeRun(report, pack);
+    const record = storeRun(report, pack, targetSha);
     return {
       run_id: record.run_id,
       status: record.status,
       pass: "flowpass",
       pack_id: record.pack_id,
+      target_sha: record.target_sha,
       target_url: report.target_url,
       journey: report.journey,
       mode: report.mode,
@@ -197,6 +362,7 @@ export async function flowpassRun(args: Record<string, unknown>): Promise<unknow
       disagreements: report.disagreements,
       not_checked: report.not_checked,
       notes: report.notes,
+      flowpass_receipt_v1: record.receipt,
     };
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };
@@ -212,6 +378,7 @@ export async function flowpassStatus(args: Record<string, unknown>): Promise<unk
     run_id: record.run_id,
     status: record.status,
     pack_id: record.pack_id,
+    target_sha: record.target_sha,
     verdict: record.report.verdict,
     journey_readiness_score: record.report.journey_readiness_score,
     target_url: record.report.target_url,
@@ -221,6 +388,12 @@ export async function flowpassStatus(args: Record<string, unknown>): Promise<unk
       (item) => !RESOLVED_DISAGREEMENTS.has(item.id),
     ),
     completed_at: record.report.generated_at,
+    flowpass_receipt_v1: {
+      ...record.receipt,
+      disagreements_open: record.report.disagreements.filter(
+        (item) => !RESOLVED_DISAGREEMENTS.has(item.id),
+      ).length,
+    },
   };
 }
 

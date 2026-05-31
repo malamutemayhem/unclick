@@ -1,7 +1,7 @@
 # XPass product index
 
 **Status**: Canonical lookup for every XPass product. Aligns with the locked naming contract in [`docs/prd/xpass.md`](./prd/xpass.md). File path is retained for link stability.
-**Last updated**: 2026-05-29.
+**Last updated**: 2026-05-30.
 **Owner**: Product and XPass maintainers.
 
 ## How to read this
@@ -10,6 +10,8 @@ Each row names a Pass, its current promotion tier, the brief that owns the scope
 
 If a row here disagrees with the locked PRD, the PRD wins. If a row here disagrees with an individual brief, the brief wins for scope details and this file wins for tier and routing.
 
+Status note: the 2026-05-30 XPass completion run produced cloud-green PRs for the receipt surfaces listed in [`docs/prd/xpass-closure-board.md`](./prd/xpass-closure-board.md). Until those PRs are merged, treat those rows as PR-ready and cloud-dogfooded rather than already landed on `main`.
+
 ## Live gates or public dogfood
 
 | Pass | Brief | Dogfood surface | XPass routes here when |
@@ -17,7 +19,7 @@ If a row here disagrees with the locked PRD, the PRD wins. If a row here disagre
 | TestPass | [`docs/prd/testpass.md`](./prd/testpass.md), [`docs/testpass-phase-9a-visual-brief.md`](./testpass-phase-9a-visual-brief.md) | `public/testpass/` recurring runs and `/admin/testpass` | the target is an MCP server, marketplace submission, or a PR that touches a tool wiring |
 | UXPass | [`docs/uxpass-product-brief.md`](./uxpass-product-brief.md) | `public/uxpass/site-sweep.json` and `/admin/uxpass` | the target is a public URL, an admin page, or a PR that changes user-facing UI |
 | CommonSensePass | [`docs/commonsensepass-rule-matrix.md`](./commonsensepass-rule-matrix.md) | embedded checks under the dogfood index | the target is automation, orchestration logic, or anywhere a "no green chip without evidence" rule applies |
-| WakePass | [`docs/prd/wakepass.md`](./prd/wakepass.md) | action-needed feed on the admin jobs page | a Pass result needs an owner to act, a scheduled check missed its ACK, or a receipt has gone stale |
+| WakePass | [`docs/prd/wakepass.md`](./prd/wakepass.md) | action-needed feed on the admin jobs page and public-safe boundary sweep | a Pass result needs an owner to act, a scheduled check missed its ACK, or a receipt has gone stale |
 
 ## Package-ready
 

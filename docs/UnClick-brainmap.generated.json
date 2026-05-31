@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 574,
+    "inventory": 578,
     "source_manifest": 188,
-    "pages": 79,
-    "tools": 187,
+    "pages": 80,
+    "tools": 190,
     "rooms": 23,
     "workers": 8
   },
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 47
+      "count": 48
     },
     {
       "id": "public-surfaces",
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 187
+      "count": 190
     },
     {
       "id": "rooms",
@@ -169,6 +169,16 @@
       "meaning": "Generated ecosystem map that teaches seats what UnClick is.",
       "source": "src/pages/admin/AdminBrainmap.tsx",
       "route": "/admin/brainmap",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-checks-src-pages-admin-adminecosystempages-tsx-admin-checks-productid",
+      "division": "Admin surfaces",
+      "name": "Admin Checks",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Ecosystem Pages.",
+      "source": "src/pages/admin/AdminEcosystemPages.tsx",
+      "route": "/admin/checks/:productId",
       "tags": []
     },
     {
@@ -4382,6 +4392,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-geopass-packages-mcp-server-src-geopass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "geopass",
+      "kind": "MCP tool",
+      "meaning": "geopass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/geopass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-github-packages-mcp-server-src-github-tool-ts-no-route",
       "division": "Tools",
       "name": "github",
@@ -5162,6 +5182,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-securitypass-packages-mcp-server-src-securitypass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "securitypass",
+      "kind": "MCP tool",
+      "meaning": "securitypass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/securitypass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-segment-packages-mcp-server-src-segment-tool-ts-no-route",
       "division": "Tools",
       "name": "segment",
@@ -5672,6 +5702,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-xpass-aggregated-verdict-packages-mcp-server-src-xpass-aggregated-verdict-tool-ts-no-route",
+      "division": "Tools",
+      "name": "xpass aggregated verdict",
+      "kind": "MCP tool",
+      "meaning": "xpass aggregated verdict MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/xpass-aggregated-verdict-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-yelp-packages-mcp-server-src-yelp-tool-ts-no-route",
       "division": "Tools",
       "name": "yelp",
@@ -5904,6 +5944,12 @@
       "Admin Brainmap",
       "Generated ecosystem map that teaches seats what UnClick is.",
       "src/pages/admin/AdminBrainmap.tsx"
+    ],
+    [
+      "/admin/checks/:productId",
+      "Admin Checks",
+      "Admin surface for Admin Ecosystem Pages.",
+      "src/pages/admin/AdminEcosystemPages.tsx"
     ],
     [
       "/admin/checks",
@@ -6655,6 +6701,11 @@
       "packages/mcp-server/src/genius-tool.ts"
     ],
     [
+      "geopass",
+      "geopass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/geopass-tool.ts"
+    ],
+    [
       "github",
       "github MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/github-tool.ts"
@@ -7045,6 +7096,11 @@
       "packages/mcp-server/src/seatgeek-tool.ts"
     ],
     [
+      "securitypass",
+      "securitypass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/securitypass-tool.ts"
+    ],
+    [
       "segment",
       "segment MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/segment-tool.ts"
@@ -7300,6 +7356,11 @@
       "packages/mcp-server/src/xero-tool.ts"
     ],
     [
+      "xpass aggregated verdict",
+      "xpass aggregated verdict MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/xpass-aggregated-verdict-tool.ts"
+    ],
+    [
       "yelp",
       "yelp MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/yelp-tool.ts"
@@ -7525,7 +7586,7 @@
     ],
     [
       "test",
-      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run && npm run test:api-lib-esm-extension"
+      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && vitest run && npm run test:api-lib-esm-extension"
     ],
     [
       "test:api",
@@ -7608,13 +7669,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "4347f236822f",
-      "bytes": 14359
+      "hash": "2cffedbf2fb0",
+      "bytes": 14432
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "a5993008255d",
-      "bytes": 19438
+      "hash": "cd267dabfd21",
+      "bytes": 22038
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -7648,8 +7709,8 @@
     },
     {
       "source": "package.json",
-      "hash": "82100008ad1b",
-      "bytes": 6417
+      "hash": "80d780561f43",
+      "bytes": 6468
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -8348,8 +8409,8 @@
     },
     {
       "source": "packages/mcp-server/src/compliancepass-tool.ts",
-      "hash": "13242448457f",
-      "bytes": 3202
+      "hash": "bedf85b00baa",
+      "bytes": 7342
     },
     {
       "source": "packages/mcp-server/src/convertkit-tool.ts",
@@ -8358,8 +8419,8 @@
     },
     {
       "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "70d540c397a5",
-      "bytes": 31503
+      "hash": "3cbadbc448a0",
+      "bytes": 33377
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",
