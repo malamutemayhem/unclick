@@ -7,6 +7,9 @@
 // BrickSet: https://brickset.com/api/v3.asmx
 //   Env var: BRICKSET_API_KEY
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const REBRICKABLE_BASE = "https://rebrickable.com/api/v3/lego";
 const BRICKSET_BASE = "https://brickset.com/api/v3.asmx";
 
@@ -226,16 +229,8 @@ export async function legoThemes(
 
 // ─── BrickSet helpers ─────────────────────────────────────────────────────────
 
-function requireBricksetKey(args: Record<string, unknown>): string {
-  const key = String(
-    args.brickset_api_key ?? process.env.BRICKSET_API_KEY ?? ""
-  ).trim();
-  if (!key) {
-    throw new Error(
-      "BRICKSET_API_KEY is required. Register at https://brickset.com/tools/webservices/requestkey"
-    );
-  }
-  return key;
+function requireBricksetKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("brickset", args);
 }
 
 const BRICKSET_TIMEOUT_MS = Number(process.env.BRICKSET_TIMEOUT_MS) || 10000;
@@ -318,6 +313,7 @@ export async function bricksetSearch(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireBricksetKey(args);
+  if (typeof key !== "string") return key;
   const query = String(args.query ?? "").trim();
   if (!query) return { error: "query is required." };
 
@@ -341,6 +337,7 @@ export async function bricksetGetSet(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireBricksetKey(args);
+  if (typeof key !== "string") return key;
   const setNumber = String(args.setNumber ?? "").trim();
   if (!setNumber) return { error: "setNumber is required (e.g. 75192-1)." };
 
