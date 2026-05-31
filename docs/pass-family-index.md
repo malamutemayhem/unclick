@@ -1,7 +1,7 @@
 # XPass product index
 
 **Status**: Canonical lookup for every XPass product. Aligns with the locked naming contract in [`docs/prd/xpass.md`](./prd/xpass.md). File path is retained for link stability.
-**Last updated**: 2026-05-30.
+**Last updated**: 2026-05-31.
 **Owner**: Product and XPass maintainers.
 
 ## How to read this
@@ -10,7 +10,7 @@ Each row names a Pass, its current promotion tier, the brief that owns the scope
 
 If a row here disagrees with the locked PRD, the PRD wins. If a row here disagrees with an individual brief, the brief wins for scope details and this file wins for tier and routing.
 
-Status note: the 2026-05-30 XPass completion run produced cloud-green PRs for the receipt surfaces listed in [`docs/prd/xpass-closure-board.md`](./prd/xpass-closure-board.md). Until those PRs are merged, treat those rows as PR-ready and cloud-dogfooded rather than already landed on `main`.
+Status note: PR #1219 merged the 2026-05-30 XPass receipt surfaces into `main`. The current correction is presentation and checklist depth: each Pass should expose a large product-specific QC checklist, not only a small receipt summary.
 
 ## Live gates or public dogfood
 

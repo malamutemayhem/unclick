@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import {
+  AlertTriangle,
   BadgeCheck,
   CheckCircle2,
   CircleMinus,
@@ -9,6 +10,7 @@ import {
   FileText,
   KeyRound,
   LayoutGrid,
+  ListChecks,
   MessagesSquare,
   SearchCheck,
   ShieldCheck,
@@ -19,27 +21,17 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { dogfoodReport, type DogfoodStatus } from "@/data/dogfoodReport";
-
-type ProductId =
-  | "testpass"
-  | "uxpass"
-  | "securitypass"
-  | "copypass"
-  | "fidelitypass"
-  | "legalpass"
-  | "sloppass"
-  | "commonsensepass"
-  | "seopass"
-  | "geopass"
-  | "flowpass"
-  | "rotatepass"
-  | "wakepass"
-  | "compliancepass";
-
-type RowStatus = "PASS" | "FAIL" | "N/A" | "WARNING" | "WAITING";
+import {
+  countChecklistGroups,
+  countChecklistRows,
+  XPASS_PRODUCT_CHECKLISTS,
+  type XPassChecklistGroup,
+  type XPassProductId,
+  type XPassRowStatus,
+} from "./xpassChecklistCatalog";
 
 type XPassProduct = {
-  id: ProductId;
+  id: XPassProductId;
   name: string;
   subtitle: string;
   description: string;
@@ -50,18 +42,7 @@ type XPassProduct = {
 type RecentReport = {
   date: string;
   title: string;
-  status: RowStatus;
-};
-
-type ChecklistRow = {
-  title: string;
-  comment: string;
-  status: RowStatus;
-};
-
-type ChecklistGroup = {
-  title: string;
-  rows: ChecklistRow[];
+  status: XPassRowStatus;
 };
 
 const PRODUCTS: XPassProduct[] = [
@@ -167,7 +148,7 @@ const PRODUCTS: XPassProduct[] = [
   },
 ];
 
-const STATUS_STYLE: Record<RowStatus, { label: string; className: string; icon: LucideIcon }> = {
+const STATUS_STYLE: Record<XPassRowStatus, { label: string; className: string; icon: LucideIcon }> = {
   PASS: {
     label: "PASS",
     className: "bg-[#46c76f] text-black",
@@ -188,6 +169,11 @@ const STATUS_STYLE: Record<RowStatus, { label: string; className: string; icon: 
     className: "bg-[#E2B93B] text-black",
     icon: Clock3,
   },
+  ALERT: {
+    label: "Alert",
+    className: "bg-[#FF8A3D] text-black",
+    icon: AlertTriangle,
+  },
   WAITING: {
     label: "Waiting",
     className: "bg-white/12 text-white/70",
@@ -195,7 +181,9 @@ const STATUS_STYLE: Record<RowStatus, { label: string; className: string; icon: 
   },
 };
 
-function dogfoodToRowStatus(status?: DogfoodStatus): RowStatus {
+const STATUS_LEGEND: XPassRowStatus[] = ["PASS", "FAIL", "ALERT", "WARNING", "N/A", "WAITING"];
+
+function dogfoodToRowStatus(status?: DogfoodStatus): XPassRowStatus {
   if (status === "passing") return "PASS";
   if (status === "failing" || status === "blocked") return "FAIL";
   return "WAITING";
@@ -205,7 +193,7 @@ function productById(id?: string): XPassProduct | undefined {
   return PRODUCTS.find((product) => product.id === id);
 }
 
-function resultFor(id: ProductId) {
+function resultFor(id: XPassProductId) {
   return dogfoodReport.results.find((result) => result.id === id);
 }
 
@@ -232,68 +220,46 @@ function reportsFor(product: XPassProduct): RecentReport[] {
   ];
 }
 
-function checklistFor(product: XPassProduct): ChecklistGroup[] {
+function checklistFor(product: XPassProduct): XPassChecklistGroup[] {
   const result = resultFor(product.id);
   const currentStatus = dogfoodToRowStatus(result?.status);
-  const exactCopy = product.id === "fidelitypass";
 
   return [
     {
-      title: "Roadworthy checks",
+      title: "Current run gate",
       rows: [
         {
-          title: "Scope is clear",
-          comment: `This report knows when to use ${product.name}.`,
-          status: "PASS",
+          title: "Build request selected",
+          comment: `Pick or generate a report so ${product.name} can score every relevant checklist row.`,
+          status: "WAITING",
         },
         {
-          title: "Evidence is available",
-          comment: result?.summary ?? "The product exists, but this public report has not run it yet.",
+          title: "Latest receipt evidence",
+          comment: result?.summary ?? "No live receipt has been selected for this checklist view yet.",
           status: currentStatus,
         },
         {
-          title: "Result is easy to explain",
-          comment: "The row must have a short plain comment any person can understand.",
-          status: "PASS",
+          title: "Loop until green",
+          comment: "The report must keep working through failures until every relevant row is PASS or N/A.",
+          status: "WAITING",
         },
         {
-          title: "Skipped work is honest",
-          comment: exactCopy
-            ? "N/A is correct when no exact source copy is in scope."
-            : "If this check does not apply, XPass must say why.",
-          status: exactCopy ? "N/A" : "PASS",
+          title: "N/A is explained",
+          comment: "A skipped row is only N/A when the comment explains why the check does not apply.",
+          status: "WAITING",
         },
         {
-          title: "Needs owner action",
-          comment: currentStatus === "FAIL" ? "Someone needs to fix this before the report is green." : "No blocker in the current report.",
-          status: currentStatus === "FAIL" ? "FAIL" : "PASS",
+          title: "Owner action is clear",
+          comment: "Any FAIL, ALERT, or Warning row must say who or what fixes it next.",
+          status: currentStatus === "FAIL" ? "FAIL" : "WAITING",
         },
       ],
     },
-    {
-      title: "Continuous improvement",
-      rows: [
-        {
-          title: "Weak comments get improved",
-          comment: "If a result is vague, XPass should improve the checklist for next time.",
-          status: "PASS",
-        },
-        {
-          title: "Repeated misses create a job",
-          comment: "Real misses should feed the improvement queue instead of being forgotten.",
-          status: "PASS",
-        },
-        {
-          title: "Internal proof stays available",
-          comment: "Technical receipts exist behind the report, but do not clutter the main view.",
-          status: "PASS",
-        },
-      ],
-    },
+    ...XPASS_PRODUCT_CHECKLISTS[product.id],
   ];
 }
 
-function StatusBadge({ status }: { status: RowStatus }) {
+function StatusBadge({ status }: { status: XPassRowStatus }) {
   const style = STATUS_STYLE[status];
   const Icon = style.icon;
 
@@ -307,6 +273,8 @@ function StatusBadge({ status }: { status: RowStatus }) {
 
 function ProductCard({ product }: { product: XPassProduct }) {
   const Icon = product.icon;
+  const checkCount = countChecklistRows(product.id);
+  const groupCount = countChecklistGroups(product.id);
 
   return (
     <Link
@@ -323,10 +291,22 @@ function ProductCard({ product }: { product: XPassProduct }) {
         </div>
       </div>
       <p className="mt-3 line-clamp-3 text-xs leading-5 text-white/55">{product.description}</p>
-      <div className="mt-3 flex justify-end text-[#61C1C4]">
-        <ExternalLink className="h-3.5 w-3.5" />
+      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-white/45">
+        <span>{checkCount} checks</span>
+        <span>{groupCount} groups</span>
+        <ExternalLink className="h-3.5 w-3.5 text-[#61C1C4]" />
       </div>
     </Link>
+  );
+}
+
+function StatusLegend() {
+  return (
+    <div className="mt-3 flex flex-wrap gap-2" aria-label="XPass status legend">
+      {STATUS_LEGEND.map((status) => (
+        <StatusBadge key={status} status={status} />
+      ))}
+    </div>
   );
 }
 
@@ -356,19 +336,24 @@ function RecentReports({ product }: { product: XPassProduct }) {
   );
 }
 
-function ChecklistGroupView({ group }: { group: ChecklistGroup }) {
+function ChecklistGroupView({ group }: { group: XPassChecklistGroup }) {
   return (
     <section className="rounded-lg border border-white/[0.08] bg-[#111] p-4">
-      <h2 className="text-sm font-semibold text-white">{group.title}</h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-white">{group.title}</h2>
+        <span className="text-[11px] font-medium text-white/40">{group.rows.length} checks</span>
+      </div>
       <div className="mt-3 overflow-hidden rounded-md border border-white/[0.08]">
-        {group.rows.map((row) => (
+        {group.rows.map((row, index) => (
           <div
             key={`${group.title}-${row.title}`}
-            className="grid min-h-9 grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-white/[0.06] bg-black/20 px-3 py-2 last:border-b-0 md:grid-cols-[220px_minmax(0,1fr)_90px] md:items-center"
+            data-testid="xpass-check-row"
+            className="grid min-h-9 grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-white/[0.06] bg-black/20 px-3 py-2 last:border-b-0 md:grid-cols-[34px_220px_minmax(0,1fr)_90px] md:items-center"
           >
+            <p className="hidden text-[11px] font-semibold text-white/35 md:block">{index + 1}</p>
             <p className="truncate text-xs font-semibold text-white">{row.title}</p>
             <p className="col-span-2 text-xs leading-5 text-white/55 md:col-span-1">{row.comment}</p>
-            <StatusBadge status={row.status} />
+            <StatusBadge status={row.status ?? "WAITING"} />
           </div>
         ))}
       </div>
@@ -388,8 +373,8 @@ function XPassHome() {
             <p className="text-xs font-medium text-[#61C1C4]">AutoPilot / XPass</p>
             <h1 className="mt-2 text-2xl font-semibold text-white">XPass</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-white/60">
-              XPass is the roadworthy inspection for UnClick work. Each Pass checks one part of the job, then leaves
-              a simple result and a plain comment.
+              XPass is the quality-control checklist for UnClick work. Each Pass owns a large set of checks, scores
+              every relevant row, explains every result, and keeps looping until the non-N/A rows are green.
             </p>
           </div>
         </div>
@@ -397,7 +382,7 @@ function XPassHome() {
 
       <section>
         <h2 className="text-sm font-semibold text-white">XPass family</h2>
-        <p className="mt-1 text-xs text-white/45">Pick a Pass to see its report, recent runs, and checklist.</p>
+        <p className="mt-1 text-xs text-white/45">Pick a Pass to see its product-specific checklist and recent reports.</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {PRODUCTS.map((product) => (
             <ProductCard key={product.id} product={product} />
@@ -410,6 +395,8 @@ function XPassHome() {
 
 function XPassProductReport({ product }: { product: XPassProduct }) {
   const Icon = product.icon;
+  const checkCount = countChecklistRows(product.id) + 5;
+  const groupCount = countChecklistGroups(product.id) + 1;
 
   return (
     <div className="space-y-6">
@@ -426,6 +413,19 @@ function XPassProductReport({ product }: { product: XPassProduct }) {
             <h1 className="text-2xl font-semibold text-white">{product.name}</h1>
             <p className="mt-1 text-sm font-semibold text-white/70">{product.subtitle}</p>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-white/60">{product.description}</p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/55">
+              <span className="inline-flex min-h-7 items-center gap-1.5 rounded-md border border-white/[0.08] bg-black/25 px-2.5">
+                <ListChecks className="h-3.5 w-3.5 text-[#61C1C4]" />
+                {checkCount} checklist rows
+              </span>
+              <span className="inline-flex min-h-7 items-center rounded-md border border-white/[0.08] bg-black/25 px-2.5">
+                {groupCount} groups
+              </span>
+              <span className="inline-flex min-h-7 items-center rounded-md border border-white/[0.08] bg-black/25 px-2.5">
+                Green only when every relevant row is PASS or N/A
+              </span>
+            </div>
+            <StatusLegend />
             {product.externalHref ? (
               <Link
                 to={product.externalHref}

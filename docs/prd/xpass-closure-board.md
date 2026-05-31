@@ -1,12 +1,12 @@
 # XPass Closure Board
 
 **Status:** working inventory and completion board  
-**Last truth refresh:** 2026-05-30 Australia/Sydney. Open PRs listed below are PR-ready and cloud-green, not claimed as merged until GitHub shows them merged.
+**Last truth refresh:** 2026-05-31 Australia/Sydney. PR #1219 merged the family reconciliation to `main`; this follow-up corrects the Admin UI from a tiny receipt wrapper into the intended large QC checklist view.
 **Purpose:** keep the XPass product family honest until every check is either complete, deliberately parked, or clearly not applicable for a run.
 
 ## Operating Model
 
-XPass should be a full checklist.
+XPass should be a full QC checklist system.
 
 That means every XPass run considers the whole family and records each row as one of:
 
@@ -17,27 +17,27 @@ That means every XPass run considers the whole family and records each row as on
 | ✗ | not built enough to count |
 | N/A | not applicable to this target or request |
 
-This does not mean every expensive runner executes every time. The lightweight checklist always runs. Deep runners only run when the row applies.
+This does not mean every expensive runner executes every time. The lightweight checklist always considers the whole product family and every product-specific row. Deep runners only run when the row applies.
 
 ## Current Completion Board
 
 | XPass product | Keep? | Complete? | Current truth | To close the loop |
 | --- | --- | --- | --- | --- |
 | TestPass | Yes | ✓ | Strongest XPass product today. Package exists, tests exist, live MCP proof and dogfood receipt exist. TestPass PR smoke is the standing cloud gate for the suite. | Keep as default trust gate and make sure receipts stay scoped to the target. |
-| UXPass | Yes | ✓ | Annotated visual evidence receipt is PR-ready and cloud-green in PR #1212. Fetch-only runs warn when screenshot/mobile/desktop proof is missing. | Keep improving visual critique quality beyond accessibility and fixture checks. |
-| SecurityPass | Yes | ✓ | Safe receipt surface is PR-ready and cloud-green in PR #1204. It exposes redacted SecurityPass run/status proof without leaking secrets. | Keep deny-by-default scope gates, and only add active probes with explicit future authorisation. |
-| CopyPass | Yes | ✓ | Live receipt envelope is PR-ready and cloud-green in PR #1203. It separates copy-quality proof from exact 1:1 fidelity. | Keep CopyPass for wording, claims, tone, clarity, and product-copy risk. |
-| FidelityPass | Yes | ✓ | CopyRoom wrapper with explicit `N/A` behavior is PR-ready and cloud-green in PR #1200. It does not duplicate CopyRoom. | Use FidelityPass only when exact 1:1 copying, transcription, mirroring, or preservation is in scope. |
+| UXPass | Yes | ✓ | Annotated visual evidence receipt landed through PR #1219. Fetch-only runs warn when screenshot/mobile/desktop proof is missing. | Keep improving visual critique quality beyond accessibility and fixture checks. |
+| SecurityPass | Yes | ✓ | Safe receipt surface landed through PR #1219. It exposes redacted SecurityPass run/status proof without leaking secrets. | Keep deny-by-default scope gates, and only add active probes with explicit future authorisation. |
+| CopyPass | Yes | ✓ | Live receipt envelope landed through PR #1219. It separates copy-quality proof from exact 1:1 fidelity. | Keep CopyPass for wording, claims, tone, clarity, and product-copy risk. |
+| FidelityPass | Yes | ✓ | CopyRoom wrapper with explicit `N/A` behavior landed through PR #1219. It does not duplicate CopyRoom. | Use FidelityPass only when exact 1:1 copying, transcription, mirroring, or preservation is in scope. |
 | CopyRoom | Adjacent | ✓ | Official exact-copy room remains the source of truth for 1:1 copy receipts. FidelityPass wraps it rather than replacing it. | Require a CopyRoom receipt whenever exact copying is requested. |
-| LegalPass | Yes | ✓ | Scoped receipt surface is PR-ready and cloud-green in PR #1207 with clear guidance-only and "not legal advice" boundaries. | Keep policy checks scoped and avoid certification or legal-advice claims. |
-| SlopPass | Yes | ✓ | Live PR diff support is PR-ready and cloud-green in PR #1201. SlopPass is the public code-quality name; QualityPass stays retired. | Keep PR diff receipts target-SHA scoped and avoid forked quality-brand names. |
+| LegalPass | Yes | ✓ | Scoped receipt surface landed through PR #1219 with clear guidance-only and "not legal advice" boundaries. | Keep policy checks scoped and avoid certification or legal-advice claims. |
+| SlopPass | Yes | ✓ | Live PR diff support landed through PR #1219. SlopPass is the public code-quality name; QualityPass stays retired. | Keep PR diff receipts target-SHA scoped and avoid forked quality-brand names. |
 | CommonSensePass | Yes | ✓ | Worker-available tools, protocol playbook, fixture pack, and dogfood receipt were verified as no-code-needed and Boardroom-closed on 2026-05-30. | Enforce it before healthy, quiet, PASS, no-work, done, merge-ready, or duplicate-wake claims. |
-| SEOPass | Yes | ✓ | Live metadata/search-readiness receipt is PR-ready and cloud-green in PR #1209. | Keep public-page, sitemap, robots, canonical, and search-readiness receipts current. |
-| GEOPass | Yes | ✓ | Live AI-answer/readability receipt is PR-ready and cloud-green in PR #1206. | Feed shared answer-engine evidence back to SEOPass where useful. |
-| FlowPass | Yes | ✓ | Live journey receipt envelope is PR-ready and cloud-green in PR #1210. | Keep journey evidence scoped to route, task, console, screenshot, and completion proof. |
-| RotatePass | Yes | ✓ | Boundary receipt is PR-ready and cloud-green in PR #1213. It records credential ownership, staleness, blast-radius, and no-live-secret boundaries. | Keep proof public-safe: no raw credential values, no live secret probes, no destructive provider action. |
-| WakePass | Yes | ✓ | Boundary receipt is PR-ready and cloud-green in PR #1214. It records ACK, stale reclaim, liveness, and no-live-wake boundaries. | Keep proof public-safe: no live queue touch, no live workers, no notifications, no route adapter calls. |
-| CompliancePass | Yes | ✓ | Readiness receipt envelope is PR-ready and cloud-green in PR #1211 with "not certification" language. | Keep automated evidence checks readiness-only and cross-reference other Pass receipts. |
+| SEOPass | Yes | ✓ | Live metadata/search-readiness receipt landed through PR #1219. | Keep public-page, sitemap, robots, canonical, and search-readiness receipts current. |
+| GEOPass | Yes | ✓ | Live AI-answer/readability receipt landed through PR #1219. | Feed shared answer-engine evidence back to SEOPass where useful. |
+| FlowPass | Yes | ✓ | Live journey receipt envelope landed through PR #1219. | Keep journey evidence scoped to route, task, console, screenshot, and completion proof. |
+| RotatePass | Yes | ✓ | Boundary receipt landed through PR #1219. It records credential ownership, staleness, blast-radius, and no-live-secret boundaries. | Keep proof public-safe: no raw credential values, no live secret probes, no destructive provider action. |
+| WakePass | Yes | ✓ | Boundary receipt landed through PR #1219. It records ACK, stale reclaim, liveness, and no-live-wake boundaries. | Keep proof public-safe: no live queue touch, no live workers, no notifications, no route adapter calls. |
+| CompliancePass | Yes | ✓ | Readiness receipt envelope landed through PR #1219 with "not certification" language. | Keep automated evidence checks readiness-only and cross-reference other Pass receipts. |
 
 ## 2026-05-30 Proof Snapshot
 
@@ -62,13 +62,14 @@ These rows were closed or verified during the 2026-05-30 XPass completion run:
 
 ## Admin Presentation Rule
 
-The Admin XPass page should feel like a roadworthy inspection, not an engineering dashboard.
+The Admin XPass page should feel like a large QC checklist, not an engineering dashboard and not a tiny receipt wrapper.
 
-1. The XPass home shows a plain product card grid.
-2. Each product card opens a simple report page for that Pass.
-3. Each report page shows a short title, plain description, recent reports, and grouped thin checklist rows.
-4. Each checklist row uses simple marks: `PASS`, `FAIL`, `N/A`, `WARNING`, or `WAITING`, with a short comment.
-5. PR numbers, hashes, and internal proof details stay behind the report, unless an operator deliberately opens evidence.
+1. The XPass home shows a plain product card grid with the number of checklist rows per Pass.
+2. Each product card opens that Pass's full QC checklist, not a five-row meta summary.
+3. Each Pass owns product-specific groups. Example: CopyPass checks wording, claims, tone, source-copy, and AI-slop risk. SecurityPass checks secrets, auth, tenant scope, safe errors, and destructive-action gates.
+4. Each checklist row uses simple marks: `PASS`, `FAIL`, `N/A`, `WARNING`, `ALERT`, or `WAITING`, with a short comment.
+5. A report is green only when every relevant row is `PASS` or `N/A`.
+6. PR numbers, hashes, and internal proof details stay behind the report, unless an operator deliberately opens evidence.
 
 ## Retired Or Historical Names
 
@@ -84,8 +85,8 @@ The Admin XPass page should feel like a roadworthy inspection, not an engineerin
 Every XPass receipt should show:
 
 1. target inspected
-2. full checklist row list
-3. row status: `PASS`, `BLOCKER`, `MISSING`, `N/A`, or `NOT RUN`
+2. full product-specific checklist row list
+3. row status: `PASS`, `FAIL`, `ALERT`, `WARNING`, `N/A`, or `WAITING`
 4. evidence link or reason
 5. owner action if blocked or missing
 6. staleness or target SHA when relevant
@@ -110,8 +111,8 @@ This keeps the XPass range agile. The checklist does not just judge the product.
 
 ## Next Closure Order
 
-1. Merge or rebase the cloud-green PRs in an order that avoids one-file conflicts, especially the boundary-sweep updates.
-2. Run `xpass_aggregated_verdict` again after the PRs land so the final suite proof is bound to the current main SHA.
+1. Ship the large per-Pass checklist catalog and Admin UI so operators see the real QC lists.
+2. Wire future live XPass runs to populate each checklist row with real `PASS`, `FAIL`, `ALERT`, `WARNING`, or `N/A` results.
 3. Keep UXPass improving toward real visual critique, not only accessibility or fixture checks.
-4. Keep scheduled package and boundary sweeps target-SHA scoped; stale receipts must stay `PENDING`, not green.
+4. Keep scheduled package and boundary sweeps target-SHA scoped; stale receipts must stay `WAITING`, not green.
 5. When a Pass emits weak, noisy, or missing evidence, create a focused Continuous Improver job instead of marking the suite healthy by vibes.

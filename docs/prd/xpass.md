@@ -184,7 +184,7 @@ XPass should recommend full Crews only for judgement-heavy targets. It should no
 
 For material targets, XPass may also attach `lite_check` anti-rubber-stamp questions. Council Lite is a prompt/checklist, not a full Crews run. It keeps dissent visible without bloating every proof run.
 
-An XPass receipt should behave like a complete checklist: every known XPass product should appear as `PASS`, `BLOCKER`, `MISSING`, `N/A`, or `NOT RUN`. `N/A` is the correct result when a check was considered and does not apply to the target.
+An XPass receipt should behave like a complete QC checklist: every known XPass product should appear, and every product should expose its own large row list. Rows use `PASS`, `FAIL`, `ALERT`, `WARNING`, `N/A`, or `WAITING`. `N/A` is the correct result when a check was considered and does not apply to the target. The run is green only when every relevant row is `PASS` or `N/A`.
 
 ### Receipt schema sketch
 
@@ -213,8 +213,13 @@ interface XPassReceipt {
   }>;
   full_checklist: Array<{
     pass: XPassProductId;
-    status: 'PASS' | 'BLOCKER' | 'MISSING' | 'NOT RUN' | 'N/A';
-    reason: string;
+    group: string;
+    row_id: string;
+    title: string;
+    status: 'PASS' | 'FAIL' | 'ALERT' | 'WARNING' | 'WAITING' | 'N/A';
+    comment: string;
+    evidence_ref?: string;
+    owner_action?: string;
   }>;
   verdict: 'pass' | 'warn' | 'fail' | 'pending';
   action_needed?: Array<{

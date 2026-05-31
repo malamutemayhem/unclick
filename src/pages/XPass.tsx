@@ -82,10 +82,10 @@ function StatusTag({ status }: { status: string }) {
 export default function XPassPage() {
   useCanonical("/xpass");
   useMetaTags({
-    title: "UnClick XPass - AutoPilot's Roadworthy Checklist",
-    description: "XPass is the simple UnClick checklist that proves AI work before it ships.",
+    title: "UnClick XPass - AutoPilot's QC Checklist",
+    description: "XPass is the UnClick quality-control checklist system that proves AI work before it ships.",
     ogTitle: "UnClick XPass",
-    ogDescription: "AutoPilot uses XPass like a roadworthy checklist for AI work.",
+    ogDescription: "AutoPilot uses XPass as a large QC checklist for AI work.",
     ogUrl: "https://unclick.world/xpass",
   });
 
@@ -110,8 +110,8 @@ export default function XPassPage() {
                 XPass
               </h1>
               <p className="mt-5 max-w-3xl text-lg leading-8 text-body sm:text-xl">
-                XPass is AutoPilot's roadworthy checklist for AI work. It checks the work, records what passed,
-                explains what did not apply, and keeps the proof easy to read.
+                XPass is AutoPilot's quality-control checklist for AI work. Each Pass owns a large list of checks,
+                records PASS, FAIL, Warning, Alert, or N/A with comments, and keeps looping until the relevant rows are green.
               </p>
             </FadeIn>
 
@@ -160,7 +160,7 @@ export default function XPassPage() {
               </div>
               <p className="mt-3 text-sm leading-7 text-body">
                 XPass does not ask people to remember every product name. Tell AutoPilot what the work is, and XPass
-                decides which checks belong in the receipt.
+                decides which checklist rows belong in the report.
               </p>
             </div>
 
@@ -185,7 +185,7 @@ export default function XPassPage() {
                   <h2 className="text-sm font-semibold text-heading">XPass family</h2>
                 </div>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-body">
-                  Each product owns one kind of check. XPass ties them together into one readable receipt.
+                  Each product owns one kind of checklist. XPass ties them together into one readable report.
                 </p>
               </div>
               <Link
