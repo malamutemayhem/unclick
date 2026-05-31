@@ -347,6 +347,7 @@ export default function AdminYou() {
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
   const [keyRevealed, setKeyRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [mcpCopied, setMcpCopied] = useState(false);
   const revealTimerRef = useRef<number | null>(null);
   const [reissuing, setReissuing] = useState(false);
   const [reissueError, setReissueError] = useState<string | null>(null);
@@ -499,6 +500,17 @@ export default function AdminYou() {
       await navigator.clipboard.writeText(generatedKey);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2_000);
+    } catch {
+      // Browser can block clipboard writes in some contexts; fail silent.
+    }
+  }
+
+  async function handleCopyMcpUrl() {
+    if (!generatedKey) return;
+    try {
+      await navigator.clipboard.writeText(`https://unclick.world/api/mcp?key=${generatedKey}`);
+      setMcpCopied(true);
+      window.setTimeout(() => setMcpCopied(false), 2_000);
     } catch {
       // Browser can block clipboard writes in some contexts; fail silent.
     }
@@ -868,15 +880,15 @@ export default function AdminYou() {
                 <div className="rounded-lg border border-[#E2B93B]/30 bg-[#E2B93B]/5 p-3">
                   <div className="flex items-start gap-2 text-xs text-[#E2B93B]">
                     <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    <span>Your UnClick API key. Click the eye to reveal, then copy it into your MCP client. The revealed view auto-hides after 60 seconds; click the eye again to re-reveal. Signing out clears the local copy.</span>
+                    <span>Your UnClick API key. Copy it now or copy the ready-made MCP URL below. Revealing the key is optional and auto-hides after 60 seconds. Signing out clears this local copy.</span>
                   </div>
-                  <div className="mt-2 flex items-center gap-2">
+                  <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
                     <code className="min-w-0 flex-1 truncate rounded bg-[#0A0A0A] px-3 py-2 font-mono text-xs text-white">
                       {keyRevealed ? generatedKey : maskValue(generatedKey)}
                     </code>
                     <button
                       onClick={() => setKeyRevealed((v) => !v)}
-                      className="shrink-0 rounded-md border border-white/[0.08] bg-white/[0.04] p-2 text-white transition-colors hover:bg-white/[0.08]"
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/[0.08]"
                       title={keyRevealed ? "Hide key" : "Reveal key"}
                     >
                       {keyRevealed ? (
@@ -884,10 +896,11 @@ export default function AdminYou() {
                       ) : (
                         <Eye className="h-3.5 w-3.5" />
                       )}
+                      {keyRevealed ? "Hide" : "Reveal"}
                     </button>
                     <button
                       onClick={handleCopyKey}
-                      className="shrink-0 rounded-md border border-white/[0.08] bg-white/[0.04] p-2 text-white transition-colors hover:bg-white/[0.08]"
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-[#61C1C4]/35 bg-[#61C1C4]/10 px-3 py-2 text-xs font-semibold text-[#9edfe1] transition-colors hover:bg-[#61C1C4]/15"
                       title="Copy key to clipboard"
                     >
                       {copied ? (
@@ -895,15 +908,31 @@ export default function AdminYou() {
                       ) : (
                         <Copy className="h-3.5 w-3.5" />
                       )}
+                      {copied ? "Copied" : "Copy API key"}
                     </button>
                   </div>
                 </div>
                 <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-4 mt-4">
-                  <h3 className="text-sm font-medium text-white/70 mb-2">You're almost set up</h3>
-                  <p className="text-sm text-white/50 mb-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-white/70">You're almost set up</h3>
+                      <p className="mt-2 text-sm text-white/50">
                     Connect UnClick to your AI agent. Go to your agent's MCP settings and add this as a Remote MCP Server:
-                  </p>
-                  <code className="block bg-black/30 rounded px-3 py-2 text-xs text-white/60 break-all">
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleCopyMcpUrl}
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/80 transition-colors hover:bg-white/[0.08]"
+                    >
+                      {mcpCopied ? (
+                        <Check className="h-3.5 w-3.5 text-green-400" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                      {mcpCopied ? "Copied" : "Copy MCP URL"}
+                    </button>
+                  </div>
+                  <code className="mt-3 block bg-black/30 rounded px-3 py-2 text-xs text-white/60 break-all">
                     https://unclick.world/api/mcp?key={keyRevealed ? generatedKey : maskValue(generatedKey)}
                   </code>
                   <p className="text-xs text-white/40 mt-2">
@@ -947,14 +976,16 @@ export default function AdminYou() {
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-3">
                   <p className="max-w-xl text-[11px] text-[#666]">
-                    Key not visible? Your browser may have cleared it. Re-issuing generates a new key and invalidates the old one - saved Connections may need to be reconnected or re-saved.
+                    For security, UnClick stores only a hash after setup, not the old raw key. If this browser lost the
+                    copyable value, create a new copyable key. The old key is invalidated, and saved Connections may need
+                    to be reconnected or re-saved.
                   </p>
                   <button
                     onClick={handleReissueKey}
                     disabled={reissuing}
                     className="shrink-0 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs text-white transition-colors hover:bg-white/[0.08] disabled:opacity-50"
                   >
-                    {reissuing ? "Re-issuing..." : "Re-issue API Key"}
+                    {reissuing ? "Creating..." : "Create new copyable key"}
                   </button>
                 </div>
                 {reissueError && (

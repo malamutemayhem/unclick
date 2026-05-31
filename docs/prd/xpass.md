@@ -22,6 +22,22 @@ It prevents three sources of drift:
 
 XPass is the conductor that chooses and runs the relevant scoped XPass product checks for a target, then returns one combined receipt with evidence and exclusions.
 
+## Worker default
+
+When an AI worker is building with UnClick, XPass should be top of mind by default. The worker does not wait for the user to name every Pass. It looks at the target, considers the full XPass family, runs every applicable lightweight check, and records every non-applicable product as `N/A` with a plain reason.
+
+If the user names a specific Pass, route directly to that product first. For example, "use CopyPass on this wording" means run CopyPass on the supplied wording. "XPass this PR" means run the XPass conductor and include the full checklist.
+
+Use this simple rule:
+
+1. Building or changing code: consider TestPass, SlopPass, SecurityPass, CommonSensePass, and WakePass.
+2. Changing a screen or user journey: add UXPass and FlowPass.
+3. Changing public pages or product copy: add CopyPass, SEOPass, GEOPass, and LegalPass when claims or policy language are involved.
+4. Copying exact source material: require CopyRoom evidence and wrap it with FidelityPass.
+5. Touching credentials, connectors, compliance posture, or stale ownership: consider RotatePass, CompliancePass, and WakePass.
+
+The goal is not to run expensive checks every time. The goal is that the checklist is always considered, cheap checks run when useful, skipped checks are honest, and improvement signals feed Continuous Improver when the checklist is weak.
+
 ## Naming contract
 
 Use:

@@ -22,7 +22,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | a8f64d0da135 | 4873 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 26405e588808 | 14258 |
+| src/App.tsx | 4347f236822f | 14359 |
 | src/pages/admin/AdminShell.tsx | a5993008255d | 19438 |
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
@@ -58,7 +58,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAnalytics.tsx | 8e3ab82ef00f | 10336 |
 | src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
-| src/pages/admin/AdminEcosystemPages.tsx | 3a9b7643c7fc | 13854 |
+| src/pages/admin/AdminEcosystemPages.tsx | badf018e0064 | 12371 |
 | src/pages/admin/AdminBenchmarks.tsx | 69eb15aaf438 | 25684 |
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
 | src/pages/admin/AdminBrainmap.tsx | c764ced96836 | 26511 |
@@ -89,7 +89,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/testpass/TestPassCatalog.tsx | 8fc76ddd8d3f | 21847 |
 | src/pages/admin/AdminTools.tsx | 8544965a0043 | 8530 |
 | src/pages/admin/AdminUsers.tsx | 701e7da2f201 | 863 |
-| src/pages/admin/AdminYou.tsx | b30c93d0430b | 49401 |
+| src/pages/admin/AdminYou.tsx | 3d0240411971 | 51024 |
 | src/pages/AuthCallback.tsx | 41644ade9f97 | 5284 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
 | src/pages/Connect.tsx | ebf2c68ad6c3 | 29590 |
@@ -100,7 +100,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Developers.tsx | 9657fd564797 | 19123 |
 | src/pages/Dispatch.tsx | 2cac7e8758d3 | 15470 |
 | src/pages/Docs.tsx | 490548492455 | 18580 |
-| src/pages/DogfoodReport.tsx | 16909fd44b92 | 16552 |
+| src/pages/DogfoodReport.tsx | 4103b5e68d6c | 16693 |
 | src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 08e9c9874c22 | 61541 |
@@ -119,6 +119,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
+| src/pages/XPass.tsx | 96f38c4d74a7 | 8617 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
@@ -206,7 +207,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 47 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 31 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 32 |
 | Tools | MCP and gateway capabilities available to seats. | 187 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -215,7 +216,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 119 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 114 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 115 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 5 |
 
 ## UnClick Structure
@@ -326,6 +327,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /tools/scheduling | Scheduling | Tool page for Scheduling. | src/pages/tools/Scheduling.tsx |
 | /tools/solve | Solve | Tool page for Solve. | src/pages/tools/Solve.tsx |
 | /tools | Tools | Public tools marketplace entry point. | src/pages/Tools.tsx |
+| /xpass | XPass | User-facing page for XPass. | src/pages/XPass.tsx |
 
 ## Tool Families and Meaning
 
@@ -708,6 +710,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | app | JobSmith | CV, cover-letter, job application, and rules/checklist engine. | /admin/jobsmith | apps/jobsmith/package.json |
 | Modules and apps | automation module | AutoPilotKit | Internal automation bolt-on for proof-first work motion. | - | AUTOPILOT.md |
 | Modules and apps | component | Admin Settings | Account and admin configuration. | - | src/pages/AdminSettings.tsx |
+| Modules and apps | component | Admin XPass Hub | Admin surface for Admin XPass Hub. | - | src/pages/admin/AdminXPassHub.tsx |
 | Modules and apps | component | Arena Home | Arena page for Arena Home. | - | src/pages/arena/ArenaHome.tsx |
 | Modules and apps | component | Arena Leaderboard | Arena page for Arena Leaderboard. | - | src/pages/arena/ArenaLeaderboard.tsx |
 | Modules and apps | component | Arena Problem | Arena page for Arena Problem. | - | src/pages/arena/ArenaProblem.tsx |
@@ -861,6 +864,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Tools | Public tools marketplace entry point. | /tools | src/pages/Tools.tsx |
 | Public surfaces | public page | Verify Mfa | User-facing page for Verify Mfa. | /auth/verify-mfa | src/pages/VerifyMfa.tsx |
 | Public surfaces | public page | Vibe Coding | User-facing page for Vibe Coding. | /developers/vibe-coding | src/pages/VibeCoding.tsx |
+| Public surfaces | public page | XPass | User-facing page for XPass. | /xpass | src/pages/XPass.tsx |
 | Rooms | PinballWake room | ack ledger | PinballWake room logic generated from scripts/pinballwake-ack-ledger-room.mjs. | - | scripts/pinballwake-ack-ledger-room.mjs |
 | Rooms | PinballWake room | buildbait | PinballWake room logic generated from scripts/pinballwake-buildbait-room.mjs. | - | scripts/pinballwake-buildbait-room.mjs |
 | Rooms | PinballWake room | close supersede | PinballWake room logic generated from scripts/pinballwake-close-supersede-room.mjs. | - | scripts/pinballwake-close-supersede-room.mjs |

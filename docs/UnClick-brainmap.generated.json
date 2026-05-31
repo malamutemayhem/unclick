@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 572,
-    "source_manifest": 187,
-    "pages": 78,
+    "inventory": 574,
+    "source_manifest": 188,
+    "pages": 79,
     "tools": 187,
     "rooms": 23,
     "workers": 8
@@ -27,7 +27,7 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 31
+      "count": 32
     },
     {
       "id": "tools",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 114
+      "count": 115
     },
     {
       "id": "launch-and-onboarding",
@@ -1942,6 +1942,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-component-admin-xpass-hub-src-pages-admin-adminxpasshub-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin XPass Hub",
+      "kind": "component",
+      "meaning": "Admin surface for Admin XPass Hub.",
+      "source": "src/pages/admin/AdminXPassHub.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-component-arena-home-src-pages-arena-arenahome-tsx-no-route",
       "division": "Modules and apps",
       "name": "Arena Home",
@@ -3469,6 +3479,16 @@
       "meaning": "User-facing page for Vibe Coding.",
       "source": "src/pages/VibeCoding.tsx",
       "route": "/developers/vibe-coding",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-xpass-src-pages-xpass-tsx-xpass",
+      "division": "Public surfaces",
+      "name": "XPass",
+      "kind": "public page",
+      "meaning": "User-facing page for XPass.",
+      "source": "src/pages/XPass.tsx",
+      "route": "/xpass",
       "tags": []
     },
     {
@@ -6280,6 +6300,12 @@
       "Tools",
       "Public tools marketplace entry point.",
       "src/pages/Tools.tsx"
+    ],
+    [
+      "/xpass",
+      "XPass",
+      "User-facing page for XPass.",
+      "src/pages/XPass.tsx"
     ]
   ],
   "inductionRows": [
@@ -7582,8 +7608,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "26405e588808",
-      "bytes": 14258
+      "hash": "4347f236822f",
+      "bytes": 14359
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -7762,8 +7788,8 @@
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "3a9b7643c7fc",
-      "bytes": 13854
+      "hash": "badf018e0064",
+      "bytes": 12371
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
@@ -7917,8 +7943,8 @@
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "b30c93d0430b",
-      "bytes": 49401
+      "hash": "3d0240411971",
+      "bytes": 51024
     },
     {
       "source": "src/pages/AuthCallback.tsx",
@@ -7972,8 +7998,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "16909fd44b92",
-      "bytes": 16552
+      "hash": "4103b5e68d6c",
+      "bytes": 16693
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -8064,6 +8090,11 @@
       "source": "src/pages/Tools.tsx",
       "hash": "1b9bc9d666a7",
       "bytes": 15377
+    },
+    {
+      "source": "src/pages/XPass.tsx",
+      "hash": "96f38c4d74a7",
+      "bytes": 8617
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",
