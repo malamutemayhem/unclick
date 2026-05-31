@@ -8207,8 +8207,8 @@
     },
     {
       "source": "packages/mcp-server/src/amazon-tool.ts",
-      "hash": "fb1e936b7c9a",
-      "bytes": 14913
+      "hash": "d458cb6792e6",
+      "bytes": 15616
     },
     {
       "source": "packages/mcp-server/src/amber-tool.ts",
@@ -8377,8 +8377,8 @@
     },
     {
       "source": "packages/mcp-server/src/ebay-tool.ts",
-      "hash": "10dffe36315f",
-      "bytes": 7595
+      "hash": "dc4a5c9e2db6",
+      "bytes": 8434
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

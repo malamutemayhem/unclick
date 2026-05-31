@@ -34,19 +34,34 @@ function requireAuth(args: Record<string, unknown>): { token: string; phoneNumbe
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 async function waPost<T>(token: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${WA_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const WHATSAPP_TIMEOUT_MS = Number(process.env.WHATSAPP_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), WHATSAPP_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${WA_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`WhatsApp request timed out after ${WHATSAPP_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`WhatsApp network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("WhatsApp rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = err?.message ?? `HTTP ${res.status}`;
+    const msg = err?.message ?? `status ${res.status}`;
     const code = err?.code ? ` (code ${err.code})` : "";
     throw new Error(`WhatsApp API error${code}: ${msg}`);
   }
@@ -54,14 +69,29 @@ async function waPost<T>(token: string, path: string, body: unknown): Promise<T>
 }
 
 async function waGet<T>(token: string, path: string): Promise<T> {
-  const res = await fetch(`${WA_API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const WHATSAPP_TIMEOUT_MS = Number(process.env.WHATSAPP_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), WHATSAPP_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${WA_API_BASE}${path}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`WhatsApp request timed out after ${WHATSAPP_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`WhatsApp network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("WhatsApp rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = err?.message ?? `HTTP ${res.status}`;
+    const msg = err?.message ?? `status ${res.status}`;
     throw new Error(`WhatsApp API error: ${msg}`);
   }
   return data as T;
@@ -197,8 +227,22 @@ export async function whatsappUploadMedia(args: Record<string, unknown>): Promis
   if (!mediaUrl) throw new Error("media_url is required (URL to fetch the media from).");
   if (!mimeType) throw new Error("mime_type is required (e.g. image/jpeg, video/mp4).");
 
+  const WHATSAPP_TIMEOUT_MS = Number(process.env.WHATSAPP_TIMEOUT_MS) || 15000;
+
   // Fetch the media and upload it as a blob
-  const mediaRes = await fetch(mediaUrl);
+  const mediaController = new AbortController();
+  const mediaTimer = setTimeout(() => mediaController.abort(), WHATSAPP_TIMEOUT_MS);
+  let mediaRes: Response;
+  try {
+    mediaRes = await fetch(mediaUrl, { signal: mediaController.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`WhatsApp media download timed out after ${WHATSAPP_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`WhatsApp media download network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(mediaTimer);
+  }
   if (!mediaRes.ok) throw new Error(`Failed to fetch media from URL: HTTP ${mediaRes.status}`);
   const mediaBlob = await mediaRes.blob();
 
@@ -207,16 +251,30 @@ export async function whatsappUploadMedia(args: Record<string, unknown>): Promis
   form.append("type", mimeType);
   form.append("file", mediaBlob, args.filename ? String(args.filename) : "upload");
 
-  const res = await fetch(`${WA_API_BASE}/${phoneNumberId}/media`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: form,
-  });
+  const uploadController = new AbortController();
+  const uploadTimer = setTimeout(() => uploadController.abort(), WHATSAPP_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${WA_API_BASE}/${phoneNumberId}/media`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+      signal: uploadController.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`WhatsApp upload timed out after ${WHATSAPP_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`WhatsApp upload network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(uploadTimer);
+  }
+  if (res.status === 429) throw new Error("WhatsApp rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    throw new Error(`WhatsApp upload error: ${err?.message ?? `HTTP ${res.status}`}`);
+    throw new Error(`WhatsApp upload error: ${err?.message ?? `status ${res.status}`}`);
   }
   return {
     success: true,

@@ -22,12 +22,26 @@ async function tiktokGet(
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const TIKTOK_TIMEOUT_MS = Number(process.env.TIKTOK_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIKTOK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`TikTok request timed out after ${TIKTOK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`TikTok network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid TikTok access token or token has expired. Re-authenticate via OAuth.");
   if (res.status === 403) throw new Error("TikTok: access forbidden. Ensure your app has the required scopes.");
   if (res.status === 429) throw new Error("TikTok rate limit exceeded.");
@@ -51,14 +65,28 @@ async function tiktokPost(
 ): Promise<unknown> {
   const url = new URL(`${TIKTOK_BASE}${path}`);
   if (fields) url.searchParams.set("fields", fields);
-  const res = await fetch(url.toString(), {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const TIKTOK_TIMEOUT_MS = Number(process.env.TIKTOK_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIKTOK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`TikTok request timed out after ${TIKTOK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`TikTok network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid TikTok access token or token has expired.");
   if (res.status === 403) throw new Error("TikTok: access forbidden.");
   if (res.status === 429) throw new Error("TikTok rate limit exceeded.");

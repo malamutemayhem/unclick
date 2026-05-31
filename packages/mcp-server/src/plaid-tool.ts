@@ -35,6 +35,9 @@ async function plaidFetch(
 ): Promise<unknown> {
   const url = `https://${cfg.environment}.plaid.com${path}`;
 
+  const PLAID_TIMEOUT_MS = Number(process.env.PLAID_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PLAID_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url, {
@@ -48,9 +51,15 @@ async function plaidFetch(
         secret:    cfg.secret,
         ...body,
       }),
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Plaid request timed out after ${PLAID_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 429) {

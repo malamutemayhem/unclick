@@ -57,14 +57,29 @@ async function figmaGet<T>(
     url += `?${qs}`;
   }
 
-  const res = await fetch(url, {
-    headers: { "X-Figma-Token": token },
-  });
+  const FIGMA_TIMEOUT_MS = Number(process.env.FIGMA_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FIGMA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "X-Figma-Token": token },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Figma request timed out after ${FIGMA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Figma network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Figma rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = (await res.json()) as Record<string, unknown>;
 
   if (!res.ok) {
-    const msg = (data.err as string) ?? (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.err as string) ?? (data.message as string) ?? `status ${res.status}`;
     const status = (data.status as number) ?? res.status;
     throw new Error(`Figma API error (${status}): ${msg}`);
   }
@@ -77,19 +92,34 @@ async function figmaPost<T>(
   path: string,
   body: Record<string, unknown>
 ): Promise<T> {
-  const res = await fetch(`${FIGMA_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "X-Figma-Token": token,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const FIGMA_TIMEOUT_MS = Number(process.env.FIGMA_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FIGMA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${FIGMA_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "X-Figma-Token": token,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Figma request timed out after ${FIGMA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Figma network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Figma rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = (await res.json()) as Record<string, unknown>;
 
   if (!res.ok) {
-    const msg = (data.err as string) ?? (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.err as string) ?? (data.message as string) ?? `status ${res.status}`;
     const status = (data.status as number) ?? res.status;
     throw new Error(`Figma API error (${status}): ${msg}`);
   }

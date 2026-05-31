@@ -147,7 +147,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/airtable-tool.ts | 4fa96c2691ce | 7560 |
 | packages/mcp-server/src/algolia-tool.ts | 1ec3c336988a | 6484 |
 | packages/mcp-server/src/alphavantage-tool.ts | c39cdb9bae44 | 8414 |
-| packages/mcp-server/src/amazon-tool.ts | fb1e936b7c9a | 14913 |
+| packages/mcp-server/src/amazon-tool.ts | d458cb6792e6 | 15616 |
 | packages/mcp-server/src/amber-tool.ts | 6d020b798469 | 4138 |
 | packages/mcp-server/src/anthropic-tool.ts | 2d1635148638 | 9331 |
 | packages/mcp-server/src/asana-tool.ts | ba96b18e214f | 9208 |
@@ -181,7 +181,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/discogs-tool.ts | 4c3c38f44cbe | 5743 |
 | packages/mcp-server/src/discord-tool.ts | 875644df6fbf | 8894 |
 | packages/mcp-server/src/domain-tool.ts | 2ae91d6d6a0d | 6657 |
-| packages/mcp-server/src/ebay-tool.ts | 10dffe36315f | 7595 |
+| packages/mcp-server/src/ebay-tool.ts | dc4a5c9e2db6 | 8434 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
 | .github/workflows/autonomous-runner.yml | a8c83efde889 | 15338 |

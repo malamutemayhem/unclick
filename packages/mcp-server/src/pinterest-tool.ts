@@ -22,12 +22,26 @@ async function pinterestGet(
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const PINTEREST_TIMEOUT_MS = Number(process.env.PINTEREST_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PINTEREST_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pinterest request timed out after ${PINTEREST_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pinterest network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Pinterest access token.");
   if (res.status === 403) throw new Error("Pinterest: access forbidden. Ensure your token has the required scopes.");
   if (res.status === 404) throw new Error(`Pinterest: resource not found at ${path}.`);
@@ -44,14 +58,28 @@ async function pinterestPost(
   path: string,
   body: Record<string, unknown>
 ): Promise<unknown> {
-  const res = await fetch(`${PINTEREST_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const PINTEREST_TIMEOUT_MS = Number(process.env.PINTEREST_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PINTEREST_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${PINTEREST_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pinterest request timed out after ${PINTEREST_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pinterest network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Pinterest access token.");
   if (res.status === 403) throw new Error("Pinterest: access forbidden.");
   if (res.status === 429) throw new Error("Pinterest rate limit exceeded.");
