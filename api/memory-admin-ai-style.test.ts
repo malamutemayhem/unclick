@@ -6,7 +6,8 @@ describe("AI style preferences", () => {
     const value = normalizeAiStyleValue({});
     expect(value).toMatchObject({
       response_length: "medium",
-      complexity: "analogies",
+      complexity: "simple",
+      analogies: "on",
       format: "prose",
       emoji_level: "light",
       custom_instructions: "",
@@ -21,11 +22,13 @@ describe("AI style preferences", () => {
     const value = normalizeAiStyleValue({
       response_length: "epic",
       complexity: 42,
+      analogies: "MAYBE",
       format: "interpretive-dance",
       emoji_level: "MAXIMUM",
     });
     expect(value.response_length).toBe("medium");
-    expect(value.complexity).toBe("analogies");
+    expect(value.complexity).toBe("simple");
+    expect(value.analogies).toBe("on");
     expect(value.format).toBe("prose");
     expect(value.emoji_level).toBe("light");
   });
@@ -33,16 +36,32 @@ describe("AI style preferences", () => {
   it("preserves valid selections", () => {
     const value = normalizeAiStyleValue({
       response_length: "brief",
-      complexity: "simple",
+      complexity: "technical",
+      analogies: "off",
       format: "visual",
       emoji_level: "none",
     });
     expect(value).toMatchObject({
       response_length: "brief",
-      complexity: "simple",
+      complexity: "technical",
+      analogies: "off",
       format: "visual",
       emoji_level: "none",
     });
+  });
+
+  it("migrates the legacy `complexity: analogies` value to simple + analogies on", () => {
+    // Old saved rows used a single "analogies" complexity value. Reading level
+    // and the analogies technique are now separate, so the legacy value maps to
+    // plain English with analogies switched on.
+    const migrated = normalizeAiStyleValue({ complexity: "analogies" });
+    expect(migrated.complexity).toBe("simple");
+    expect(migrated.analogies).toBe("on");
+
+    // An explicit analogies field always wins over the legacy inference.
+    const explicit = normalizeAiStyleValue({ complexity: "analogies", analogies: "off" });
+    expect(explicit.complexity).toBe("simple");
+    expect(explicit.analogies).toBe("off");
   });
 
   it("sanitizes custom instructions (collapses whitespace, caps length)", () => {
@@ -67,22 +86,37 @@ describe("AI style preferences", () => {
     const directive = buildAiStyleDirective({
       response_length: "brief",
       complexity: "simple",
+      analogies: "on",
       format: "visual",
       emoji_level: "none",
       custom_instructions: "Australian spelling",
     });
     expect(directive).toContain("brief");
     expect(directive).toContain("plain English");
+    expect(directive).toContain("analogies");
     expect(directive).toContain("visuals");
     expect(directive).toContain("no emoji");
     expect(directive).toContain("Australian spelling");
     expect(directive.toLowerCase()).toContain("always honor");
   });
 
+  it("omits the analogies clause when analogies are off", () => {
+    const directive = buildAiStyleDirective({
+      response_length: "medium",
+      complexity: "technical",
+      analogies: "off",
+      format: "prose",
+      emoji_level: "light",
+      custom_instructions: "",
+    });
+    expect(directive).not.toContain("analogies");
+  });
+
   it("caps an overlong directive so it cannot bloat the startup payload", () => {
     const directive = buildAiStyleDirective({
       response_length: "detailed",
       complexity: "technical",
+      analogies: "on",
       format: "bullets",
       emoji_level: "expressive",
       custom_instructions: "y".repeat(500),
