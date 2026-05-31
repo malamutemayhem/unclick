@@ -20,9 +20,23 @@ async function steamGet(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
-  const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
-  });
+  const STEAM_TIMEOUT_MS = Number(process.env.STEAM_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), STEAM_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Steam request timed out after ${STEAM_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Steam network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid Steam API key.");
   if (res.status === 429) throw new Error("Steam rate limit exceeded.");
   if (!res.ok) {
@@ -40,9 +54,24 @@ async function steamStoreGet(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
-  const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
-  });
+  const STEAM_TIMEOUT_MS = Number(process.env.STEAM_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), STEAM_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Steam Store request timed out after ${STEAM_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Steam Store network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Steam Store rate limit exceeded.");
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Steam Store HTTP ${res.status}: ${body || res.statusText}`);

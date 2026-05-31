@@ -43,12 +43,29 @@ async function piCall(
     }
   }
 
-  const response = await fetch(url.toString(), {
-    headers: buildAuthHeaders(),
-  });
+  const PODCASTINDEX_TIMEOUT_MS = Number(process.env.PODCASTINDEX_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PODCASTINDEX_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), {
+      headers: buildAuthHeaders(),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Podcast Index request timed out after ${PODCASTINDEX_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Podcast Index network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
+  if (response.status === 429) {
+    throw new Error("Podcast Index rate limit exceeded. Please wait and retry.");
+  }
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} from Podcast Index API`);
+    throw new Error(`Podcast Index API HTTP ${response.status}`);
   }
 
   const data = (await response.json()) as Record<string, unknown>;

@@ -14,9 +14,24 @@ async function openf1Fetch<T>(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, String(v));
   }
-  const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
-  });
+  const OPENF1_TIMEOUT_MS = Number(process.env.OPENF1_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPENF1_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`OpenF1 request timed out after ${OPENF1_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`OpenF1 network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("OpenF1 rate limit exceeded. Please wait and retry.");
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`OpenF1 API HTTP ${res.status}: ${text.slice(0, 200)}`);

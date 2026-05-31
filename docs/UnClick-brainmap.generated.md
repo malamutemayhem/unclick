@@ -174,7 +174,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/copypass-tool.ts | 70d540c397a5 | 31503 |
 | packages/mcp-server/src/crews-tool.ts | 111454c76c0a | 13547 |
 | packages/mcp-server/src/csuite-tool.ts | 0ab5af89bb49 | 70236 |
-| packages/mcp-server/src/datadog-tool.ts | 802b808614cd | 5556 |
+| packages/mcp-server/src/datadog-tool.ts | b22fe27148e8 | 6924 |
 | packages/mcp-server/src/datetime-tool.ts | 19075fddbc55 | 10618 |
 | packages/mcp-server/src/deepl-tool.ts | b32abdc9d2fd | 7180 |
 | packages/mcp-server/src/deezer-tool.ts | 784d0608dda2 | 8130 |

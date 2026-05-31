@@ -26,7 +26,21 @@ async function vercelRequest(
     headers["Content-Type"] = "application/json";
     init.body = JSON.stringify(opts.body);
   }
-  const res = await fetch(`${VERCEL_BASE}${path}${qs}`, init);
+  const VERCEL_TIMEOUT_MS = Number(process.env.VERCEL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), VERCEL_TIMEOUT_MS);
+  init.signal = controller.signal;
+  let res: Response;
+  try {
+    res = await fetch(`${VERCEL_BASE}${path}${qs}`, init);
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Vercel request timed out after ${VERCEL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Vercel network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Vercel token.");
   if (res.status === 403) throw new Error("Vercel: access forbidden. Check token scopes.");
   if (res.status === 404) throw new Error(`Vercel: resource not found at ${path}.`);

@@ -81,19 +81,34 @@ async function twilioPost<T>(
   const url = `${TWILIO_API_BASE}/Accounts/${accountSid}${path}.json`;
   const body = new URLSearchParams(params).toString();
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: basicAuth(accountSid, authToken),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
-  });
+  const TWILIO_TIMEOUT_MS = Number(process.env.TWILIO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TWILIO_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: basicAuth(accountSid, authToken),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Twilio request timed out after ${TWILIO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Twilio network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Twilio rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const code = data.code ? ` (code ${data.code})` : "";
-    throw new Error(`Twilio error${code}: ${data.message ?? `HTTP ${res.status}`}`);
+    throw new Error(`Twilio error${code}: ${data.message ?? `status ${res.status}`}`);
   }
   return data as T;
 }
@@ -107,14 +122,29 @@ async function twilioGet<T>(
   const qs = new URLSearchParams(query).toString();
   const url = `${TWILIO_API_BASE}/Accounts/${accountSid}${path}.json${qs ? `?${qs}` : ""}`;
 
-  const res = await fetch(url, {
-    headers: { Authorization: basicAuth(accountSid, authToken) },
-  });
+  const TWILIO_TIMEOUT_MS = Number(process.env.TWILIO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TWILIO_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { Authorization: basicAuth(accountSid, authToken) },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Twilio request timed out after ${TWILIO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Twilio network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Twilio rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const code = data.code ? ` (code ${data.code})` : "";
-    throw new Error(`Twilio error${code}: ${data.message ?? `HTTP ${res.status}`}`);
+    throw new Error(`Twilio error${code}: ${data.message ?? `status ${res.status}`}`);
   }
   return data as T;
 }
@@ -128,19 +158,34 @@ async function twilioVerifyPost<T>(
   const url = `https://verify.twilio.com/v2${path}`;
   const body = new URLSearchParams(params).toString();
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: basicAuth(accountSid, authToken),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
-  });
+  const TWILIO_TIMEOUT_MS = Number(process.env.TWILIO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TWILIO_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: basicAuth(accountSid, authToken),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Twilio Verify request timed out after ${TWILIO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Twilio Verify network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Twilio rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const code = data.code ? ` (code ${data.code})` : "";
-    throw new Error(`Twilio Verify error${code}: ${data.message ?? `HTTP ${res.status}`}`);
+    throw new Error(`Twilio Verify error${code}: ${data.message ?? `status ${res.status}`}`);
   }
   return data as T;
 }

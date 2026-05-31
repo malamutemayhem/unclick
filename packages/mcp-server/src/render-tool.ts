@@ -47,19 +47,30 @@ async function renderFetch(
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
+  const RENDER_TIMEOUT_MS = Number(process.env.RENDER_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RENDER_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Render API request timed out after ${RENDER_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Render API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   // 204 No Content
   if (response.status === 204) return { success: true };
+
+  if (response.status === 429) return { error: "Render API rate limit exceeded. Please wait and retry.", status: 429 };
 
   const text = await response.text();
   let data: unknown;
