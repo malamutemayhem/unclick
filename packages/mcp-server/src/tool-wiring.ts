@@ -12867,7 +12867,7 @@ export const ADDITIONAL_TOOLS = [
   // ── copypass-tool.ts (copy quality QC with CopyRoom receipt support) ─────
   {
     name: "copypass_run",
-    description: "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, and optional CopyRoom exact-copy receipt.",
+    description: "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, a structured copypass_receipt_v1 proof envelope, and optional CopyRoom exact-copy receipt.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12901,7 +12901,7 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "copypass_status",
-    description: "Fetch the current status, notes, deterministic findings, disclaimer, and CopyRoom receipt for a CopyPass run started in this MCP session.",
+    description: "Fetch the current status, notes, deterministic findings, disclaimer, copypass_receipt_v1 proof envelope, and CopyRoom receipt for a CopyPass run started in this MCP session.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
