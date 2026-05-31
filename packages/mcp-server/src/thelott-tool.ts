@@ -17,14 +17,29 @@ const GAME_SLUGS: Record<string, string> = {
   "wednesday-lotto": "wednesday-lotto",
 };
 
+const LOTT_TIMEOUT_MS = Number(process.env.LOTT_TIMEOUT_MS) || 10000;
+
 async function lottGet(path: string, params?: Record<string, string>): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${LOTT_BASE}${path}${qs}`, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LOTT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${LOTT_BASE}${path}${qs}`, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`The Lott API request timed out after ${LOTT_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`The Lott API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 404) throw new Error("Game or draw not found.");
   if (res.status === 429) throw new Error("The Lott API rate limit exceeded.");
   if (!res.ok) {

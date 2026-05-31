@@ -12,11 +12,26 @@ function getApiKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const WILLYWEATHER_TIMEOUT_MS = Number(process.env.WILLYWEATHER_TIMEOUT_MS) || 10000;
+
 async function willyGet(apiKey: string, path: string, params?: Record<string, string>): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${WILLY_BASE}/${apiKey}${path}${qs}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), WILLYWEATHER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${WILLY_BASE}/${apiKey}${path}${qs}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`WillyWeather request timed out after ${WILLYWEATHER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`WillyWeather network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid WillyWeather API key.");
   if (res.status === 404) throw new Error("Location not found.");
   if (res.status === 429) throw new Error("WillyWeather API rate limit exceeded.");

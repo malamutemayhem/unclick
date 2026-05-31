@@ -23,21 +23,36 @@ function basicAuth(auth: SendleAuth): string {
   return "Basic " + Buffer.from(`${auth.id}:${auth.key}`).toString("base64");
 }
 
+const SENDLE_TIMEOUT_MS = Number(process.env.SENDLE_TIMEOUT_MS) || 10000;
+
 async function sendleFetch(
   auth: SendleAuth,
   path: string,
   method = "GET",
   body?: unknown
 ): Promise<unknown> {
-  const res = await fetch(`${SENDLE_BASE}${path}`, {
-    method,
-    headers: {
-      Authorization: basicAuth(auth),
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SENDLE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SENDLE_BASE}${path}`, {
+      method,
+      headers: {
+        Authorization: basicAuth(auth),
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Sendle API request timed out after ${SENDLE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Sendle API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid Sendle credentials.");
   if (res.status === 404) throw new Error("Resource not found.");
   if (res.status === 422) {
