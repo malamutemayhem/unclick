@@ -1111,7 +1111,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "fidelitypass_verify_copy",
-        "description": "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes. Missing bytes, stale metadata, or prose-only AI proof cannot PASS."
+        "description": "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes, or return N/A when no exact 1:1 copy is in scope. Missing bytes, stale metadata, or prose-only AI proof cannot PASS."
       }
     ]
   },

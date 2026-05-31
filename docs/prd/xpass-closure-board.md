@@ -26,7 +26,7 @@ This does not mean every expensive runner executes every time. The lightweight c
 | UXPass | Yes | ~ | Real package and runner exist, with visual audit work, viewport support, and dogfood fixtures. Still not enough to guarantee every mediocre UI becomes polished. | Finish annotated reports, stronger visual hierarchy checks, mobile and desktop evidence, and scheduled proof that does not clog the queue. |
 | SecurityPass | Yes | ~ | Real package and guardrails exist. Public dogfood is intentionally scope-gated until safe recurring proof exists. | Add deny-by-default recurring runner proof and make security receipts visible without exposing secrets. |
 | CopyPass | Yes | ~ | Real copy-quality package exists. It checks wording, claims, tone, clarity, and product copy risk. | Add recurring or on-demand live receipt surface and keep it separate from exact-copy fidelity. |
-| FidelityPass | Yes | ✗ | Official XPass/QC wrapper over CopyRoom, but not a separate completed engine yet. | Implement wrapper behavior over CopyRoom receipts, including `N/A` when no 1:1 copy is in scope. Do not duplicate CopyRoom. |
+| FidelityPass | Yes | ✓ | Official XPass/QC wrapper over CopyRoom/FidelityCopy receipts. It can verify exact-copy proof, suppress prose-only proof, and return explicit `N/A` when no 1:1 copy is in scope. | Keep it as a wrapper only. Do not duplicate CopyRoom. |
 | CopyRoom | Adjacent | ~ | Official exact-copy room. It is the office photocopier workers must use for 1:1 copying, transcription, mirroring, or preservation. | Reinforce worker usage and require a CopyRoom receipt whenever exact copying is requested. |
 | LegalPass | Yes | ~ | Package and guardrail library exist, but much of the deeper execution is still guidance or fixture-led. | Turn legal and policy checks into scoped receipts with clear "not legal advice" boundaries. |
 | SlopPass | Yes | ~ | Official AI/code quality product. Package, tests, product brief, and XPass selector wiring exist. | Finish live PR diff integration and make SlopPass the only public code-quality name. No QualityPass fork. |
@@ -78,7 +78,7 @@ This keeps the XPass range agile. The checklist does not just judge the product.
 
 ## Next Closure Order
 
-1. Finish FidelityPass wrapper over CopyRoom receipts, including `N/A`.
+1. Done: FidelityPass wrapper over CopyRoom receipts, including explicit `N/A`.
 2. Restore or expose CommonSensePass as a worker-available tool and enforce it before trusted status claims.
 3. Wire SlopPass into PR diff and code-quality receipts.
 4. Add recurring receipts for CopyPass, SecurityPass, LegalPass, SEOPass, FlowPass, and CompliancePass.
