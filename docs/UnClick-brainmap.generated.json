@@ -8202,8 +8202,8 @@
     },
     {
       "source": "packages/mcp-server/src/alphavantage-tool.ts",
-      "hash": "98a37153078d",
-      "bytes": 7591
+      "hash": "c39cdb9bae44",
+      "bytes": 8414
     },
     {
       "source": "packages/mcp-server/src/amazon-tool.ts",
@@ -8302,8 +8302,8 @@
     },
     {
       "source": "packages/mcp-server/src/coinmarketcap-tool.ts",
-      "hash": "b1c5fd280acb",
-      "bytes": 6892
+      "hash": "c931670eb0c8",
+      "bytes": 7714
     },
     {
       "source": "packages/mcp-server/src/color-tool.ts",
@@ -8362,8 +8362,8 @@
     },
     {
       "source": "packages/mcp-server/src/discogs-tool.ts",
-      "hash": "547892efce07",
-      "bytes": 4956
+      "hash": "4c3c38f44cbe",
+      "bytes": 5743
     },
     {
       "source": "packages/mcp-server/src/discord-tool.ts",

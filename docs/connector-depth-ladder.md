@@ -21,10 +21,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 | Agentic | 1 | 1% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 32 | 20% |
-| L1 | Wrapper | 128 | 80% |
+| L2 | Reliable | 37 | 23% |
+| L1 | Wrapper | 123 | 76% |
 
-**Hardened (reliability bar met): 33 of 161 (20%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 38 of 161 (24%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ## Per-connector, highest rung first
 
@@ -32,17 +32,22 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 |:-----:|-----------|:--------:|:------:|:---------:|:-------:|:------------:|------|
 | L5 Agentic | `ptv` | Yes | Yes | - | Yes | Yes |  |
 | L2 Reliable | `abn` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `alphavantage` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `coingecko` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `coinmarketcap` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `deezer` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `discogs` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `domain` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `espn` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `exchangerate` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `foursquare` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `fpl` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `gdelt` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `genius` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `guardian` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `hackernews` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `lastfm` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `lego` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `lichess` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `meal` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `musicbrainz` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -66,7 +71,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `abuseipdb` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `airtable` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `algolia` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `alphavantage` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `amazon` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `amber` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `anthropic` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, 2x-bare-error, no-memory, no-source-stamp |
@@ -84,11 +88,9 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `clickup` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `clockify` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `cohere` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `coinmarketcap` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `convertkit` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `datadog` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `deepl` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `discogs` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `discord` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `ebay` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `ebird` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
@@ -99,7 +101,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `feedly` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `figma` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `flyio` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `foursquare` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `github` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `gitlab` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `groq` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
@@ -113,7 +114,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `ipapi` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `ipaustralia` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `kling` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `lego` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `lemonsqueezy` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `line` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `linear` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |

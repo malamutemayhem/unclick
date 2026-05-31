@@ -12,21 +12,40 @@ function requireKey(): string {
   return key;
 }
 
+const CMC_TIMEOUT_MS = Number(process.env.COINMARKETCAP_TIMEOUT_MS) || 10000;
+
 async function cmcFetch(path: string, params: Record<string, string> = {}): Promise<unknown> {
   const apiKey = requireKey();
   const url = new URL(`${CMC_BASE}${path}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
-  const response = await fetch(url.toString(), {
-    headers: {
-      "X-CMC_PRO_API_KEY": apiKey,
-      "Accept": "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CMC_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), {
+      headers: {
+        "X-CMC_PRO_API_KEY": apiKey,
+        "Accept": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`CoinMarketCap API request timed out after ${CMC_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`CoinMarketCap API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(`CoinMarketCap API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!response.ok) {
     const text = await response.text().catch(() => "");
-    throw new Error(`HTTP ${response.status} from CoinMarketCap API${text ? `: ${text}` : ""}`);
+    throw new Error(`CoinMarketCap API HTTP ${response.status}${text ? `: ${text.slice(0, 200)}` : ""}`);
   }
 
   const data = await response.json() as Record<string, unknown>;

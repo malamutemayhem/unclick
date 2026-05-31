@@ -12,15 +12,33 @@ function requireKey(): string {
   return key;
 }
 
+const ALPHAVANTAGE_TIMEOUT_MS = Number(process.env.ALPHAVANTAGE_TIMEOUT_MS) || 10000;
+
 async function avFetch(params: Record<string, string>): Promise<unknown> {
   const apikey = requireKey();
   const url = new URL(ALPHAVANTAGE_BASE);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   url.searchParams.set("apikey", apikey);
 
-  const response = await fetch(url.toString());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ALPHAVANTAGE_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Alpha Vantage API request timed out after ${ALPHAVANTAGE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Alpha Vantage API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(`Alpha Vantage API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} from Alpha Vantage API`);
+    throw new Error(`Alpha Vantage API HTTP ${response.status}.`);
   }
 
   const data = await response.json();

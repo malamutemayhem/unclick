@@ -146,7 +146,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |
 | packages/mcp-server/src/algolia-tool.ts | 8eb0992500f1 | 4924 |
-| packages/mcp-server/src/alphavantage-tool.ts | 98a37153078d | 7591 |
+| packages/mcp-server/src/alphavantage-tool.ts | c39cdb9bae44 | 8414 |
 | packages/mcp-server/src/amazon-tool.ts | fb1e936b7c9a | 14913 |
 | packages/mcp-server/src/amber-tool.ts | 6d020b798469 | 4138 |
 | packages/mcp-server/src/anthropic-tool.ts | fd197643eefb | 7766 |
@@ -166,7 +166,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/clockify-tool.ts | 058798077459 | 6790 |
 | packages/mcp-server/src/cohere-tool.ts | 9ca27e0737f8 | 9207 |
 | packages/mcp-server/src/coingecko-tool.ts | 6d6a16d83f9f | 7635 |
-| packages/mcp-server/src/coinmarketcap-tool.ts | b1c5fd280acb | 6892 |
+| packages/mcp-server/src/coinmarketcap-tool.ts | c931670eb0c8 | 7714 |
 | packages/mcp-server/src/color-tool.ts | f9aa9c0fec6e | 13643 |
 | packages/mcp-server/src/commonsensepass-tool.ts | bad23b55ea01 | 1995 |
 | packages/mcp-server/src/compliancepass-tool.ts | 13242448457f | 3202 |
@@ -178,7 +178,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/datetime-tool.ts | 19075fddbc55 | 10618 |
 | packages/mcp-server/src/deepl-tool.ts | 3c88cc9c44bf | 5695 |
 | packages/mcp-server/src/deezer-tool.ts | 784d0608dda2 | 8130 |
-| packages/mcp-server/src/discogs-tool.ts | 547892efce07 | 4956 |
+| packages/mcp-server/src/discogs-tool.ts | 4c3c38f44cbe | 5743 |
 | packages/mcp-server/src/discord-tool.ts | c70b8ac42f28 | 8191 |
 | packages/mcp-server/src/domain-tool.ts | 2ae91d6d6a0d | 6657 |
 | packages/mcp-server/src/ebay-tool.ts | 10dffe36315f | 7595 |

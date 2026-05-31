@@ -4,6 +4,7 @@
 // Env var: DISCOGS_TOKEN
 
 const DISCOGS_BASE = "https://api.discogs.com";
+const DISCOGS_TIMEOUT_MS = Number(process.env.DISCOGS_TIMEOUT_MS) || 10000;
 
 async function discogsGet(
   token: string,
@@ -15,13 +16,30 @@ async function discogsGet(
     if (v !== undefined && v !== "") qs.set(k, String(v));
   }
   const url = `${DISCOGS_BASE}${path}${qs.toString() ? "?" + qs.toString() : ""}`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization:  `Discogs token=${token}`,
-      "User-Agent":   "UnClickMCP/1.0",
-      Accept:         "application/vnd.discogs.v2.discogs+json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DISCOGS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: {
+        Authorization:  `Discogs token=${token}`,
+        "User-Agent":   "UnClickMCP/1.0",
+        Accept:         "application/vnd.discogs.v2.discogs+json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Discogs API request timed out after ${DISCOGS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Discogs API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Discogs API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Discogs API HTTP ${res.status}: ${body || res.statusText}`);
