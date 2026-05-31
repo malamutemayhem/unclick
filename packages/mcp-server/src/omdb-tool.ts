@@ -3,6 +3,7 @@
 // Requires OMDB_API_KEY environment variable.
 
 const OMDB_BASE = "http://www.omdbapi.com/";
+const OMDB_TIMEOUT_MS = Number(process.env.OMDB_TIMEOUT_MS) || 10000;
 
 // ─── API helper ───────────────────────────────────────────────────────────────
 
@@ -23,9 +24,27 @@ async function omdbCall(params: Record<string, string | number | undefined>): Pr
     }
   }
 
-  const response = await fetch(url.toString());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OMDB_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`OMDB API request timed out after ${OMDB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`OMDB API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(`OMDB API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} from OMDB API`);
+    const body = await response.text().catch(() => "");
+    throw new Error(`OMDB API HTTP ${response.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
   }
 
   const data = (await response.json()) as Record<string, unknown>;

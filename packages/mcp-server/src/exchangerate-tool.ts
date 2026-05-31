@@ -6,15 +6,29 @@
 
 const EXCHANGERATE_BASE = "https://v6.exchangerate-api.com/v6";
 const EXCHANGERATE_FREE_BASE = "https://open.er-api.com/v6";
+const EXCHANGERATE_TIMEOUT_MS = Number(process.env.EXCHANGERATE_TIMEOUT_MS) || 10000;
 
 function getApiKey(args: Record<string, unknown>): string | null {
   return String(args.api_key ?? process.env.EXCHANGERATE_API_KEY ?? "").trim() || null;
 }
 
 async function erGet(path: string): Promise<Record<string, unknown>> {
-  const res = await fetch(path, {
-    headers: { Accept: "application/json" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), EXCHANGERATE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(path, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ExchangeRate-API request timed out after ${EXCHANGERATE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ExchangeRate-API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 403) throw new Error("Invalid ExchangeRate-API key.");
   if (res.status === 404) throw new Error("ExchangeRate-API: resource not found. Check your base currency code.");
   if (res.status === 429) throw new Error("ExchangeRate-API rate limit exceeded. Upgrade your plan or wait.");
