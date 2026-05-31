@@ -54,7 +54,7 @@ mechanism behind the word "evolving" done honestly.
 
 Successful trajectories get consolidated into reusable SKILL-style procedures.
 The system "learns" a routine for a recurring job. Real, but two hard limits:
-(1) quality is bounded by the base model's reasoning — a distilled skill cannot
+(1) quality is bounded by the base model's reasoning - a distilled skill cannot
 exceed what the model could already do, it just makes it reliable and cheap to
 repeat; (2) naive per-trajectory capture produces an overfit mess. The discipline
 is consolidation ACROSS many runs, not saving every success as a rule.
@@ -79,13 +79,13 @@ wins." The gate is what separates reinforcement from wishful thinking.
 Concretely, here is everything in UnClick that can change over time and be
 selected for fitness, from most to least real:
 
-- **Routing tables** (which arm wins per task type) — evolves fast, low risk.
-- **Prompts / instructions** (population search) — evolves in batch, gated.
-- **Skill / playbook library** (distilled routines) — grows with use, bounded.
-- **Memory** (facts, preferences, troubleshooting) — grows continuously.
-- **Fixture set** (every incident becomes a frozen test) — grows; this is the
+- **Routing tables** (which arm wins per task type) - evolves fast, low risk.
+- **Prompts / instructions** (population search) - evolves in batch, gated.
+- **Skill / playbook library** (distilled routines) - grows with use, bounded.
+- **Memory** (facts, preferences, troubleshooting) - grows continuously.
+- **Fixture set** (every incident becomes a frozen test) - grows; this is the
   system's accumulating "experience" and the moat that compounds.
-- **Receipt-acceptance / completion policy thresholds** — tunable, gated.
+- **Receipt-acceptance / completion policy thresholds** - tunable, gated.
 
 What does NOT evolve, no matter how much of the above you build:
 
@@ -123,7 +123,7 @@ a goal) reliable and SAFE, not inventing autonomy from scratch.
 Autonomy without a verified outcome signal is the dangerous combination: a system
 that acts on its own, learns from its own self-reports, and updates its own
 policies can confidently drift (reward hacking, error compounding across a
-chain — five 95% steps is ~77% end to end). The guardrails, all already implied
+chain - five 95% steps is ~77% end to end). The guardrails, all already implied
 by existing code:
 
 - **Proof-derived reward only.** Never let the agent grade itself; reward comes
