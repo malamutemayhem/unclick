@@ -47,13 +47,9 @@ async function resolveLocation(
     return { error: "Provide either (latitude + longitude) or city." };
   }
 
-  const res = await fetch(
-    `${GEO_BASE}/search?name=${encodeURIComponent(city)}&count=1&format=json`,
-    { headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" } }
-  );
-  if (!res.ok) throw new Error(`Geocoding API HTTP ${res.status}`);
-
-  const data = await res.json() as { results?: GeoResult[] };
+  const data = await omFetch(
+    `${GEO_BASE}/search?name=${encodeURIComponent(city)}&count=1&format=json`
+  ) as { results?: GeoResult[] };
   const place = data.results?.[0];
   if (!place) return { error: `City "${city}" not found.` };
 
@@ -64,16 +60,38 @@ async function resolveLocation(
   };
 }
 
-async function weatherFetch(params: URLSearchParams): Promise<unknown> {
-  const url = `${WEATHER_BASE}/forecast?${params}`;
-  const res = await fetch(url, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+const OPENMETEO_TIMEOUT_MS = Number(process.env.OPENMETEO_TIMEOUT_MS) || 10000;
+
+async function omFetch(url: string): Promise<unknown> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPENMETEO_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Open-Meteo request timed out after ${OPENMETEO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Open-Meteo network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Open-Meteo rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Open-Meteo HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
   }
   return res.json() as Promise<unknown>;
+}
+
+async function weatherFetch(params: URLSearchParams): Promise<unknown> {
+  return omFetch(`${WEATHER_BASE}/forecast?${params}`);
 }
 
 // ─── weather_current ──────────────────────────────────────────────────────────
