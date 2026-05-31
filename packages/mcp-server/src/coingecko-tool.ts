@@ -3,6 +3,7 @@
 // Uses the CoinGecko public REST API via fetch - no external dependencies.
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
+const COINGECKO_TIMEOUT_MS = Number(process.env.COINGECKO_TIMEOUT_MS) || 10000;
 
 // --- API helper ---
 
@@ -14,10 +15,27 @@ async function cgFetch(path: string, params: Record<string, string> = {}): Promi
   const apiKey = (process.env.COINGECKO_API_KEY ?? "").trim();
   if (apiKey) headers["x-cg-demo-api-key"] = apiKey;
 
-  const response = await fetch(url.toString(), { headers });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), COINGECKO_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), { headers, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`CoinGecko API request timed out after ${COINGECKO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`CoinGecko API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(`CoinGecko API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!response.ok) {
     const text = await response.text().catch(() => "");
-    throw new Error(`HTTP ${response.status} from CoinGecko API${text ? `: ${text}` : ""}`);
+    throw new Error(`CoinGecko API HTTP ${response.status}${text ? `: ${text.slice(0, 200)}` : ""}`);
   }
 
   return response.json();

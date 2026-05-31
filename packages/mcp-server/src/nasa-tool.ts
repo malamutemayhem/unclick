@@ -3,6 +3,7 @@
 // Get a free API key at https://api.nasa.gov/ or use DEMO_KEY for low-volume access.
 
 const NASA_BASE = "https://api.nasa.gov";
+const NASA_TIMEOUT_MS = Number(process.env.NASA_TIMEOUT_MS) || 10000;
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
@@ -20,7 +21,23 @@ async function nasaFetch<T>(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
-  const res = await fetch(url.toString());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NASA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`NASA API request timed out after ${NASA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`NASA API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`NASA API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({})) as Record<string, unknown>;
     const errMsg = (body.error as Record<string, unknown> | undefined)?.message ?? body.msg ?? "Unknown error";
