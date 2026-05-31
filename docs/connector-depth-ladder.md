@@ -21,10 +21,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 | Agentic | 1 | 1% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 158 | 98% |
-| L1 | Wrapper | 2 | 1% |
+| L2 | Reliable | 159 | 99% |
+| L1 | Wrapper | 1 | 1% |
 
-**Hardened (reliability bar met): 159 of 161 (99%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 160 of 161 (99%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ## Per-connector, highest rung first
 
@@ -64,6 +64,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `ebay` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `ebird` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `elevenlabs` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `email` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `espn` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `etsy` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `eventbrite` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -190,7 +191,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `yelp` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `youtube` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L1 Wrapper | `amber` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
-| L1 Wrapper | `email` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 
 Also present (graded separately, not part of the connector program): 16 internal products, 2 infra, 7 local utilities.
 

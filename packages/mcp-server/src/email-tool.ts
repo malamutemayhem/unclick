@@ -202,11 +202,19 @@ export async function sendEmail(args: Record<string, unknown>): Promise<unknown>
   if (!subject) throw new Error("subject is required.");
   if (!body)    throw new Error("body is required.");
 
+  // SMTP has no HTTP 429, but servers throttle with 4xx greeting/socket
+  // timeouts and "too many messages" replies. Cap the conversation with native
+  // nodemailer timeouts plus an overall send guard so a stalled SMTP session
+  // cannot hang the agent.
+  const EMAIL_TIMEOUT_MS = Number(process.env.EMAIL_TIMEOUT_MS) || 30000;
   const transporter = nodemailer.createTransport({
     host:   smtp_host,
     port:   smtp_port,
     secure: smtp_port === 465,
     auth:   { user: smtp_user, pass: smtp_pass },
+    connectionTimeout: EMAIL_TIMEOUT_MS,
+    greetingTimeout:   EMAIL_TIMEOUT_MS,
+    socketTimeout:     EMAIL_TIMEOUT_MS,
   });
 
   const mailOptions: nodemailer.SendMailOptions = {
@@ -227,7 +235,28 @@ export async function sendEmail(args: Record<string, unknown>): Promise<unknown>
       : String(args.bcc);
   }
 
-  const info = await transporter.sendMail(mailOptions);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error(`Email send timed out after ${EMAIL_TIMEOUT_MS}ms.`)),
+      EMAIL_TIMEOUT_MS,
+    );
+  });
+
+  let info: Awaited<ReturnType<typeof transporter.sendMail>>;
+  try {
+    info = await Promise.race([transporter.sendMail(mailOptions), timeout]);
+  } catch (err) {
+    // SMTP throttle/greylisting reply codes (rate limiting) map to a clean,
+    // actionable message rather than a raw socket error.
+    const code = (err as { responseCode?: number }).responseCode;
+    if (code === 421 || code === 450 || code === 451 || code === 452 || code === 454) {
+      throw new Error(`SMTP rate limit / throttled by the mail server (code ${code}). Please slow down and retry.`);
+    }
+    throw err instanceof Error ? err : new Error(String(err));
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 
   return {
     success:    true,
