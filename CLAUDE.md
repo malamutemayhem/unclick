@@ -10,6 +10,8 @@ Read `FLEET_SYNC.md` first when working as part of the multi-PC worker fleet. It
 
 If you are unsure which worker should own a handoff, review `docs/fleet-worker-roles.md` for the current emoji role map and routing guide.
 
+**Naming (Boardroom vs Fishbowl):** "Boardroom" is the user-facing name for the coordination room. "Fishbowl" is the legacy internal name still wired into the database tables, API routes, React route, and the room metadata returned by `read_messages` (which reports `name: "Fishbowl"`). Say **Boardroom** when talking to the user; expect to see **Fishbowl** in code and live metadata. Do NOT bulk-rename Fishbowl to Boardroom: per `AUTOPILOT.md` it is kept as the internal delivery address (an alias) until the automation substrate is explicitly migrated.
+
 ## Before you touch code
 
 Use this as the short start ritual before any edit, branch, or PR action:
