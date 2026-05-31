@@ -5,6 +5,8 @@
 
 const SPEEDRUN_BASE = "https://www.speedrun.com/api/v1";
 
+const SPEEDRUN_TIMEOUT_MS = Number(process.env.SPEEDRUN_TIMEOUT_MS) || 10000;
+
 async function speedrunGet(
   path: string,
   params?: Record<string, string>
@@ -15,11 +17,27 @@ async function speedrunGet(
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SPEEDRUN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Speedrun.com request timed out after ${SPEEDRUN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Speedrun.com network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 404) throw new Error(`Speedrun.com: resource not found at ${path}.`);
-  if (res.status === 420) throw new Error("Speedrun.com rate limit exceeded. Please wait before retrying.");
+  if (res.status === 429 || res.status === 420) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Speedrun.com rate limit reached (HTTP ${res.status})${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Speedrun.com HTTP ${res.status}: ${body || res.statusText}`);
