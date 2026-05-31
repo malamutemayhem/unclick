@@ -65,7 +65,7 @@ future local `*-tool.ts` handler a one-liner (`requireCredential("<id>", args)`)
 
 ---
 
-## Progress: 3/120 connectors on the registry (117 left)
+## Progress: 13/119 connectors on the registry (106 left)
 
 ## Checklist (credential-requiring connectors)
 
@@ -75,16 +75,16 @@ missing (cross-check `keychain_list_platforms`).
 - [x] stripe
 - [x] etsy
 - [x] foursquare
-- [ ] airtable
-- [ ] algolia
-- [ ] anthropic
-- [ ] assemblyai
-- [ ] abuseipdb
-- [ ] amber
-- [ ] asana
-- [ ] bandsintown
-- [ ] brickset
-- [ ] bungie
+- [x] airtable
+- [x] algolia
+- [x] anthropic
+- [x] assemblyai
+- [x] abuseipdb
+- [x] amber
+- [x] asana
+- [x] bandsintown
+- [x] brickset
+- [x] bungie
 - [ ] calendly
 - [ ] circleci
 - [ ] clickup
