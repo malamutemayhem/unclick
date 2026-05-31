@@ -12,6 +12,8 @@ function requireToken(): string {
   return token;
 }
 
+const GENIUS_TIMEOUT_MS = Number(process.env.GENIUS_TIMEOUT_MS) || 10000;
+
 async function geniusCall(
   path: string,
   params: Record<string, string | number | undefined> = {}
@@ -25,12 +27,30 @@ async function geniusCall(
     }
   }
 
-  const response = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), GENIUS_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Genius API request timed out after ${GENIUS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Genius API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(`Genius API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} from Genius API`);
+    const body = await response.text().catch(() => "");
+    throw new Error(`Genius API HTTP ${response.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
   }
 
   const data = (await response.json()) as { meta?: { status: number; message?: string }; response?: unknown };

@@ -21,10 +21,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 | Agentic | 1 | 1% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 19 | 12% |
-| L1 | Wrapper | 141 | 88% |
+| L2 | Reliable | 21 | 13% |
+| L1 | Wrapper | 139 | 86% |
 
-**Hardened (reliability bar met): 20 of 161 (12%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 22 of 161 (14%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ## Per-connector, highest rung first
 
@@ -36,7 +36,9 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `exchangerate` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `fpl` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `gdelt` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `genius` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `hackernews` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `lastfm` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `lichess` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `meal` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `musicbrainz` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -90,7 +92,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `figma` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `flyio` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `foursquare` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `genius` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `github` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `gitlab` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `groq` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
@@ -105,7 +106,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L1 Wrapper | `ipapi` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `ipaustralia` | - | - | - | - | - | not-hardened, no-timeout, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `kling` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |
-| L1 Wrapper | `lastfm` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `lego` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `lemonsqueezy` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 1x-bare-error, no-memory, no-source-stamp |
 | L1 Wrapper | `line` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, 2x-bare-error, no-memory, no-source-stamp |

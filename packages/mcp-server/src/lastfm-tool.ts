@@ -4,6 +4,7 @@
 // Env var: LASTFM_API_KEY
 
 const LASTFM_BASE = "https://ws.audioscrobbler.com/2.0";
+const LASTFM_TIMEOUT_MS = Number(process.env.LASTFM_TIMEOUT_MS) || 10000;
 
 async function lastfmGet(
   apiKey: string,
@@ -18,7 +19,23 @@ async function lastfmGet(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") qs.set(k, String(v));
   }
-  const res = await fetch(`${LASTFM_BASE}/?${qs}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LASTFM_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${LASTFM_BASE}/?${qs}`, { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Last.fm API request timed out after ${LASTFM_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Last.fm API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Last.fm API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) throw new Error(`Last.fm API HTTP ${res.status}: ${res.statusText}`);
   const json = await res.json() as Record<string, unknown>;
   if (json.error) throw new Error(`Last.fm error ${json.error}: ${json.message}`);

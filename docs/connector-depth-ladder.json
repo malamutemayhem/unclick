@@ -108,6 +108,24 @@
     }
   },
   {
+    "connector": "genius",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
     "connector": "hackernews",
     "level": 2,
     "levelName": "Reliable",
@@ -117,6 +135,24 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "lastfm",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1080,24 +1116,6 @@
     }
   },
   {
-    "connector": "genius",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 1,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "github",
     "level": 1,
     "levelName": "Wrapper",
@@ -1342,24 +1360,6 @@
       "hasRetry": false,
       "readsErrorBody": true,
       "bareStatusErrors": 2,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "lastfm",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
