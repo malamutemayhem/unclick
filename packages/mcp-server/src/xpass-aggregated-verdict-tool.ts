@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 const CHECK_ORDER = [
   "testpass",
+  "uipass",
   "uxpass",
   "flowpass",
   "securitypass",
@@ -55,6 +56,7 @@ interface SkippedCheck {
 
 const CHECK_LABELS: Record<XPassCheck, string> = {
   testpass: "TestPass",
+  uipass: "UIPass",
   uxpass: "UXPass",
   flowpass: "FlowPass",
   securitypass: "SecurityPass",
@@ -83,6 +85,7 @@ const PASS_PRODUCT_CHECKS = new Map<string, XPassCheck>([
   ["seopass", "seopass"],
   ["sloppass", "sloppass"],
   ["testpass", "testpass"],
+  ["uipass", "uipass"],
   ["uxpass", "uxpass"],
   ["wakepass", "wakepass"],
   ["rotatepass", "rotatepass"],
@@ -481,12 +484,13 @@ function selectXPassChecks(input: Record<string, unknown> = {}): SelectedCheck[]
       addReason(reasons, "commonsensepass", `multi-pass gate must avoid false green receipts: ${path}`);
     }
 
-    if (path.startsWith("packages/mcp-server/") || path.includes("/mcp") || path.endsWith("mcp.json") || path.includes("/tools/") || path.includes("connector") || path.includes("native-endpoints") || path.includes("testpass") || path.includes("uxpass") || path.includes("flowpass")) {
+    if (path.startsWith("packages/mcp-server/") || path.includes("/mcp") || path.endsWith("mcp.json") || path.includes("/tools/") || path.includes("connector") || path.includes("native-endpoints") || path.includes("testpass") || path.includes("uipass") || path.includes("uxpass") || path.includes("flowpass")) {
       addReason(reasons, "testpass", `tool or MCP surface: ${path}`);
     }
 
     if (path.startsWith("src/pages/") || path.startsWith("src/components/") || path.startsWith("src/layout") || path.startsWith("src/app") || /\.(tsx|jsx|css|scss|html)$/.test(path) || path === "index.html") {
-      addReason(reasons, "uxpass", `user interface surface: ${path}`);
+      addReason(reasons, "uipass", `visual interface surface: ${path}`);
+      addReason(reasons, "uxpass", `user-facing experience surface: ${path}`);
     }
 
     if (path.includes("flowpass") || path.includes("onboarding") || path.includes("checkout") || path.includes("signup") || path.includes("sign-up") || path.includes("login") || path.includes("handoff") || path.includes("navigation") || path.includes("journey") || path.includes("funnel") || path.includes("route") || path.startsWith("src/pages/")) {
@@ -537,7 +541,8 @@ function selectXPassChecks(input: Record<string, unknown> = {}): SelectedCheck[]
   }
 
   if (hasAny(allText, ["mcp", "tool", "tools", "connector", "connectors", "api endpoint", "native endpoint"])) addReason(reasons, "testpass", "target text mentions tools/connectors/MCP");
-  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) addReason(reasons, "uxpass", "target text mentions UI/UX/visual changes");
+  if (hasAny(allText, ["ui", "visual", "screen", "screenshots", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "layout", "spacing", "typography", "mobile", "responsive", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) addReason(reasons, "uipass", "target text mentions UI/visual changes");
+  if (hasAny(allText, ["ux", "usability", "easy to use", "journey", "navigation", "onboarding", "form", "forms", "feedback", "recovery", "confusion", "task completion", "user path"])) addReason(reasons, "uxpass", "target text mentions UX/journey changes");
   if (hasAny(allText, ["flow", "journey", "path", "route", "checkout", "signup", "sign up", "onboarding", "handoff", "navigation", "funnel", "success state", "failure state"])) addReason(reasons, "flowpass", "target text mentions journey/flow completion");
   if (hasAny(allText, ["security", "auth", "oauth", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "password", "redaction", "prompt injection", "insecure output", "llm", "model output", "sandbox"])) addReason(reasons, "securitypass", "target text mentions security/auth/keys");
   if (hasAny(allText, ["rotatepass", "rotation", "rotate", "revocation", "credential", "credentials", "token", "tokens", "secret", "secrets", "key", "keys", "redaction", "system credentials", "local session", "browser profile", "password"])) addReason(reasons, "rotatepass", "target text mentions credential rotation/redaction");

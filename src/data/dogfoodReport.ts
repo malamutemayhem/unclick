@@ -121,13 +121,22 @@ export const dogfoodReport = {
       "nextStep": "Keep it as the default proof gate while the rest of XPass catches up."
     },
     {
+      "id": "uipass",
+      "name": "UIPass",
+      "stage": "planned",
+      "label": "Interface checklist",
+      "automation": "Admin checklist surface first; visual runner can reuse UXPass screenshot proof until UIPass gets its own runner",
+      "mentionProfile": "Medium mention volume for layout, spacing, mobile fit, hierarchy, visual consistency, and polish.",
+      "nextStep": "Promote after the visual/interface checklist has a recurring screenshot receipt."
+    },
+    {
       "id": "uxpass",
       "name": "UXPass",
       "stage": "live_dogfood",
       "label": "Live dogfood lane",
       "automation": "Dogfood receipt and run endpoint",
-      "mentionProfile": "Medium mention volume when the dogfood receipt or runner needs attention.",
-      "nextStep": "Promote to scheduled proof once the credential path is consistently healthy."
+      "mentionProfile": "Medium mention volume for task journeys, forms, feedback, recovery, onboarding, and user completion paths.",
+      "nextStep": "Keep the existing runner live while the product scope narrows to journey and usability proof."
     },
     {
       "id": "securitypass",
@@ -164,6 +173,15 @@ export const dogfoodReport = {
       "automation": "Deterministic copy review, CopyRoom boundary, dogfood tests",
       "mentionProfile": "Medium mention volume for public wording, claims, docs, and source-copy risk.",
       "nextStep": "Add a recurring CopyPass receipt with CopyRoom/source-copy proof."
+    },
+    {
+      "id": "fidelitypass",
+      "name": "FidelityPass",
+      "stage": "package_ready",
+      "label": "Exact-copy wrapper",
+      "automation": "CopyRoom receipt wrapper with explicit N/A handling",
+      "mentionProfile": "Low mention volume unless exact 1:1 source copying, transcription, or preservation is requested.",
+      "nextStep": "Promote after recurring CopyRoom-backed fidelity receipts are published."
     },
     {
       "id": "legalpass",
@@ -239,6 +257,16 @@ export const dogfoodReport = {
       "checkedAt": "2026-05-28T11:40:19.980Z",
       "reasonCode": "dry_run_only",
       "nextProof": "Run the dogfood report without --dry-run and with a TestPass token before marking this passing."
+    },
+    {
+      "id": "uipass",
+      "name": "UIPass",
+      "status": "pending",
+      "summary": "UIPass split is tracked as the visual/interface checklist surface.",
+      "evidence": "Admin XPass family exposes UIPass separately from UXPass; recurring screenshot proof is the next promotion step.",
+      "checkedAt": "2026-05-31T11:59:00.000Z",
+      "reasonCode": "planned_runner",
+      "nextProof": "Add a recurring UIPass screenshot receipt before marking the visual/interface runner live."
     },
     {
       "id": "uxpass",
@@ -354,6 +382,21 @@ export const dogfoodReport = {
       },
       "targetUrl": "packages/copypass",
       "nextProof": "Add a recurring CopyPass receipt with CopyRoom/source-copy proof."
+    },
+    {
+      "id": "fidelitypass",
+      "name": "FidelityPass",
+      "status": "pending",
+      "summary": "FidelityPass exact-copy wrapper is package-ready with explicit N/A handling.",
+      "evidence": "CopyRoom remains the source of truth; FidelityPass wraps source and output proof when exact copy is in scope.",
+      "checkedAt": "2026-05-28T11:40:19.980Z",
+      "reasonCode": "package_ready_needs_scheduled_receipt",
+      "proof": {
+        "kind": "package_ready",
+        "targetUrl": "packages/mcp-server/src/fidelitypass-tool.ts"
+      },
+      "targetUrl": "packages/mcp-server/src/fidelitypass-tool.ts",
+      "nextProof": "Add a recurring CopyRoom-backed FidelityPass receipt before marking this public dogfood lane live."
     },
     {
       "id": "legalpass",

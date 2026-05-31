@@ -93,7 +93,7 @@ export const SeoPassScannerSourceSchema = z.object({
 });
 
 export const SeoPassCrossPassSignalSchema = z.object({
-  pass: z.enum(["geopass", "uxpass", "testpass", "flowpass", "securitypass"]),
+  pass: z.enum(["geopass", "uipass", "uxpass", "testpass", "flowpass", "securitypass"]),
   signal: z.string().min(1),
   source_check_id: SeoPassCheckIdSchema,
   score: z.number().min(0).max(100).optional(),

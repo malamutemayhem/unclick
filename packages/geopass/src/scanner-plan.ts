@@ -14,7 +14,7 @@ export type GeoPassScannerStep = {
   label: string;
   purpose: string;
   evidenceKinds: string[];
-  sharedWith: Array<"seopass" | "flowpass" | "legalpass" | "sloppass" | "uxpass">;
+  sharedWith: Array<"seopass" | "flowpass" | "legalpass" | "sloppass" | "uipass" | "uxpass">;
 };
 
 export type GeoPassScannerPlan = {
@@ -69,7 +69,7 @@ export const DEFAULT_GEOPASS_SCANNER_STEPS: GeoPassScannerStep[] = [
     purpose:
       "Check whether public page copy contains direct, reusable answers rather than only abstract marketing claims.",
     evidenceKinds: ["html", "content"],
-    sharedWith: ["seopass", "uxpass"],
+    sharedWith: ["seopass", "uipass", "uxpass"],
   },
   {
     id: "entity-clarity",
@@ -101,7 +101,7 @@ export const DEFAULT_GEOPASS_SCANNER_STEPS: GeoPassScannerStep[] = [
     purpose:
       "Check heading, list, paragraph, and FAQ-style structure that helps AI systems extract reliable answers.",
     evidenceKinds: ["html", "content"],
-    sharedWith: ["seopass", "flowpass", "uxpass"],
+    sharedWith: ["seopass", "flowpass", "uipass", "uxpass"],
   },
   {
     id: "schema-org-citation-grade",
@@ -117,7 +117,7 @@ export const DEFAULT_GEOPASS_SCANNER_STEPS: GeoPassScannerStep[] = [
     purpose:
       "Plan public-safe brand query fixtures without paid API calls or live prompts.",
     evidenceKinds: ["brand-query"],
-    sharedWith: ["seopass", "uxpass"],
+    sharedWith: ["seopass", "uipass", "uxpass"],
   },
   {
     id: "wikidata-presence",
@@ -141,7 +141,7 @@ export const DEFAULT_GEOPASS_SCANNER_STEPS: GeoPassScannerStep[] = [
     purpose:
       "Combine public diagnostics into one readiness score and shared pass signals.",
     evidenceKinds: ["lighthouse", "manual-note"],
-    sharedWith: ["seopass", "flowpass", "legalpass", "sloppass", "uxpass"],
+    sharedWith: ["seopass", "flowpass", "legalpass", "sloppass", "uipass", "uxpass"],
   },
 ];
 

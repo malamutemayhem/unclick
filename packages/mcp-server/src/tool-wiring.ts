@@ -782,7 +782,7 @@ import {
   legalpassVerdict,
 } from "./legalpass-tool.js";
 
-// ─── UXPass (sister to TestPass, UI/UX QC) ───────────────────────────────────
+// ─── UXPass (sister to TestPass, journey/usability QC) ───────────────────────
 import {
   uxpassRun,
   uxpassStatus,
@@ -12458,10 +12458,10 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
-  // ── uxpass-tool.ts (UI/UX QC, sister to TestPass) ──────────────────────────
+  // ── uxpass-tool.ts (journey/usability QC, sister to TestPass) ──────────────
   {
     name: "uxpass_run",
-    description: "Run a UI/UX quality check synchronously against a URL. Executes the deterministic uxpass-core check set (HTTP, HTML, accessibility, agent readability, performance, security) against the target and returns the run id, status, UX Score, summary, and uxpass_receipt_v1. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The receipt calls out when browser visual snapshots, screenshots, or mobile/desktop proof are missing. The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
+    description: "Run a UX journey/usability check synchronously against a URL. Executes the deterministic uxpass-core check set and returns the run id, status, UX Score, summary, and uxpass_receipt_v1. UIPass now owns visual/interface polish; this legacy UXPass runner still calls out when screenshots or mobile/desktop proof are missing for visible surfaces. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,

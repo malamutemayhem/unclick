@@ -703,7 +703,7 @@ function crossPassSignals(checks: GeoPassCheckResult[]): GeoPassCrossPassSignal[
   }
   const structure = byId.get("content-structure");
   if (structure && structure.verdict !== "ready") {
-    signals.push({ pass: "uxpass", signal: "thin public structure can make answer extraction and human scanning weaker", score: structure.score });
+    signals.push({ pass: "uipass", signal: "thin public structure can make answer extraction and human scanning weaker", score: structure.score });
   }
   const citation = byId.get("citation-readiness");
   if (citation && citation.verdict !== "ready") {

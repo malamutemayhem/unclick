@@ -90,7 +90,7 @@ export const GeoPassCheckResultSchema = z.object({
 });
 
 export const GeoPassCrossPassSignalSchema = z.object({
-  pass: z.enum(["seopass", "flowpass", "legalpass", "sloppass", "uxpass"]),
+  pass: z.enum(["seopass", "flowpass", "legalpass", "sloppass", "uipass", "uxpass"]),
   signal: z.string().min(1),
   score: z.number().min(0).max(100).optional(),
 });

@@ -130,6 +130,7 @@ const AUTOPILOT_LINKS = [
 
 const XPASS_LINKS = [
   { path: "/admin/checks/testpass", label: "TestPass" },
+  { path: "/admin/checks/uipass", label: "UIPass" },
   { path: "/admin/checks/uxpass", label: "UXPass" },
   { path: "/admin/checks/securitypass", label: "SecurityPass" },
   { path: "/admin/checks/copypass", label: "CopyPass" },

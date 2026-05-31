@@ -66,7 +66,7 @@ Autopilot should dogfood UnClick with UnClick. XPass is the conductor for that p
 
 Selection defaults:
 
-- UI, dashboard, navigation, and admin changes select UXPass, plus visual evidence where available.
+- UI, dashboard, and admin screen changes select UIPass for visible interface quality. User journeys, navigation paths, onboarding, forms, and recovery flows select UXPass and FlowPass, plus visual evidence where available.
 - Tool, connector, MCP, and native endpoint changes select TestPass.
 - Auth, keys, tokens, redaction, and security-sensitive changes select SecurityPass.
 - Public wording, docs, and claims select CopyPass.
@@ -95,7 +95,7 @@ Operating shape:
 
 Priority order:
 
-1. Finish UXPass enough to support visual/site sweeps, screenshot evidence, console errors, obvious layout problems, navigation confusion, and mobile/desktop checks.
+1. Keep UIPass and UXPass split: UIPass owns visual/interface checks, while UXPass owns journeys, navigation confusion, onboarding, forms, recovery, and completion paths.
 2. Finish SlopPass enough to catch messy AI-build risks, weak abstractions, brittle tests, and obvious maintainability problems.
 3. Finish CopyPass enough to catch unclear product wording, old names, mixed metaphors, and overcomplicated user-facing copy.
 4. Finish FidelityPass as the XPass wrapper around CopyRoom receipts, with N/A when no exact-copy work is in scope.

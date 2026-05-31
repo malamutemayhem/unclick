@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const CHECK_ORDER = [
   "testpass",
+  "uipass",
   "uxpass",
   "flowpass",
   "securitypass",
@@ -21,6 +22,7 @@ const CHECK_ORDER = [
 
 const CHECK_LABELS = {
   testpass: "TestPass",
+  uipass: "UIPass",
   uxpass: "UXPass",
   flowpass: "FlowPass",
   securitypass: "SecurityPass",
@@ -49,6 +51,7 @@ const PASS_PRODUCT_CHECKS = new Map([
   ["seopass", "seopass"],
   ["sloppass", "sloppass"],
   ["testpass", "testpass"],
+  ["uipass", "uipass"],
   ["uxpass", "uxpass"],
   ["wakepass", "wakepass"],
   ["rotatepass", "rotatepass"],
@@ -255,6 +258,7 @@ export function selectXPassChecks(input = {}) {
       path.includes("connector") ||
       path.includes("native-endpoints") ||
       path.includes("testpass") ||
+      path.includes("uipass") ||
       path.includes("uxpass") ||
       path.includes("flowpass")
     ) {
@@ -269,7 +273,8 @@ export function selectXPassChecks(input = {}) {
       /\.(tsx|jsx|css|scss|html)$/.test(path) ||
       path === "index.html"
     ) {
-      addReason(reasons, "uxpass", `user interface surface: ${path}`);
+      addReason(reasons, "uipass", `visual interface surface: ${path}`);
+      addReason(reasons, "uxpass", `user-facing experience surface: ${path}`);
     }
 
     if (
@@ -469,8 +474,11 @@ export function selectXPassChecks(input = {}) {
   if (hasAny(allText, ["mcp", "tool", "tools", "connector", "connectors", "api endpoint", "native endpoint"])) {
     addReason(reasons, "testpass", "target text mentions tools/connectors/MCP");
   }
-  if (hasAny(allText, ["ui", "ux", "visual", "screen", "screenshots", "navigation", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
-    addReason(reasons, "uxpass", "target text mentions UI/UX/visual changes");
+  if (hasAny(allText, ["ui", "visual", "screen", "screenshots", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "layout", "spacing", "typography", "mobile", "responsive", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) {
+    addReason(reasons, "uipass", "target text mentions UI/visual changes");
+  }
+  if (hasAny(allText, ["ux", "usability", "easy to use", "journey", "navigation", "onboarding", "form", "forms", "feedback", "recovery", "confusion", "task completion", "user path"])) {
+    addReason(reasons, "uxpass", "target text mentions UX/journey changes");
   }
   if (hasAny(allText, ["flow", "journey", "path", "route", "checkout", "signup", "sign up", "onboarding", "handoff", "navigation", "funnel", "success state", "failure state"])) {
     addReason(reasons, "flowpass", "target text mentions journey/flow completion");

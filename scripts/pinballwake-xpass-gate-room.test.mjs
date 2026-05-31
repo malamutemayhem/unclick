@@ -11,13 +11,13 @@ function checks(input) {
 }
 
 describe("PinballWake XPass Gate Room", () => {
-  it("routes UI/admin/navigation changes to UXPass, FlowPass, and SlopPass", () => {
+  it("routes UI/admin/navigation changes to UIPass, UXPass, FlowPass, and SlopPass", () => {
     const selected = checks({
       title: "UI navigation polish",
       changed_files: ["src/pages/admin/AdminShell.tsx", "src/components/Nav.tsx"],
     });
 
-    assert.deepEqual(selected, ["uxpass", "flowpass", "sloppass"]);
+    assert.deepEqual(selected, ["uipass", "uxpass", "flowpass", "sloppass"]);
   });
 
   it("does not route backend memory-admin mentions to UXPass", () => {
@@ -78,6 +78,7 @@ describe("PinballWake XPass Gate Room", () => {
     });
 
     assert.ok(selected.includes("flowpass"));
+    assert.ok(selected.includes("uipass"));
     assert.ok(selected.includes("uxpass"));
   });
 
@@ -153,8 +154,8 @@ describe("PinballWake XPass Gate Room", () => {
 
     assert.equal(result.ok, true);
     assert.equal(result.result, "xpass_needed");
-    assert.deepEqual(result.missing_checks, ["uxpass", "flowpass", "sloppass"]);
-    assert.equal(result.receipt.action_needed.length, 3);
+    assert.deepEqual(result.missing_checks, ["uipass", "uxpass", "flowpass", "sloppass"]);
+    assert.equal(result.receipt.action_needed.length, 4);
     assert.equal(result.receipt.full_checklist.length >= result.selected_checks.length, true);
     assert.ok(result.receipt.full_checklist.some((item) => item.check === "fidelitypass" && item.status === "N/A"));
     assert.ok(result.receipt.improvement_signals.some((item) => item.signal === "selected_check_missing_receipt"));
@@ -169,7 +170,7 @@ describe("PinballWake XPass Gate Room", () => {
 
     assert.equal(result.ok, false);
     assert.equal(result.result, "xpass_needed");
-    assert.deepEqual(result.missing_checks, ["uxpass", "flowpass", "sloppass"]);
+    assert.deepEqual(result.missing_checks, ["uipass", "uxpass", "flowpass", "sloppass"]);
   });
 
   it("passes when all selected receipts are current and green", () => {
@@ -178,6 +179,7 @@ describe("PinballWake XPass Gate Room", () => {
       target: { type: "pr", id: 547, sha: "abc123" },
       changed_files: ["src/pages/admin/You.tsx"],
       pass_results: [
+        { check: "UIPass", status: "passed", run_id: "ui-1", target_sha: "abc123", url: "https://example.test/ui" },
         { check: "UXPass", status: "passed", run_id: "ux-1", target_sha: "abc123", url: "https://example.test/ux" },
         { check: "FlowPass", status: "passed", run_id: "flow-1", target_sha: "abc123" },
         { check: "SlopPass", status: "green", run_id: "slop-1", target_sha: "abc123" },
@@ -186,7 +188,7 @@ describe("PinballWake XPass Gate Room", () => {
 
     assert.equal(result.ok, true);
     assert.equal(result.result, "passed");
-    assert.equal(result.receipt.evidence.length, 3);
+    assert.equal(result.receipt.evidence.length, 4);
     assert.deepEqual(result.receipt.action_needed, []);
   });
 
@@ -196,7 +198,9 @@ describe("PinballWake XPass Gate Room", () => {
       target: { type: "pr", id: 547, sha: "abc123" },
       changed_files: ["src/pages/admin/You.tsx"],
       pass_results: [
+        { check: "UIPass", status: "passed", run_id: "ui-1", target_sha: "abc123" },
         { check: "UXPass", status: "passed", run_id: "ux-1" },
+        { check: "FlowPass", status: "passed", run_id: "flow-1", target_sha: "abc123" },
         { check: "SlopPass", status: "passed", run_id: "slop-1", target_sha: "abc123" },
       ],
     });
@@ -215,7 +219,9 @@ describe("PinballWake XPass Gate Room", () => {
       target: { type: "pr", id: 547, sha: "new-head" },
       changed_files: ["src/pages/admin/You.tsx"],
       pass_results: [
+        { check: "UIPass", status: "passed", run_id: "ui-1", target_sha: "new-head" },
         { check: "UXPass", status: "passed", run_id: "ux-1", target_sha: "old-head" },
+        { check: "FlowPass", status: "passed", run_id: "flow-1", target_sha: "new-head" },
         { check: "SlopPass", status: "passed", run_id: "slop-1", target_sha: "new-head" },
       ],
     });
@@ -230,7 +236,9 @@ describe("PinballWake XPass Gate Room", () => {
       target: { type: "pr", id: 547, sha: "abc123" },
       changed_files: ["src/pages/admin/You.tsx"],
       pass_results: [
+        { check: "uipass", status: "passed", run_id: "ui-1", target_sha: "abc123" },
         { check: "uxpass", status: "failed", run_id: "ux-1", target_sha: "abc123" },
+        { check: "flowpass", status: "passed", run_id: "flow-1", target_sha: "abc123" },
         { check: "sloppass", status: "passed", run_id: "slop-1", target_sha: "abc123" },
       ],
     });
@@ -245,8 +253,9 @@ describe("PinballWake XPass Gate Room", () => {
       mode: "enforce",
       target: { type: "pr", id: 547, sha: "abc123" },
       changed_files: ["src/pages/admin/You.tsx"],
-      available_checks: ["uxpass"],
+      available_checks: ["uipass", "uxpass"],
       pass_results: [
+        { check: "uipass", status: "passed", run_id: "ui-1", target_sha: "abc123" },
         { check: "uxpass", status: "passed", run_id: "ux-1", target_sha: "abc123" },
       ],
     });
@@ -378,7 +387,7 @@ describe("PinballWake XPass Gate Room", () => {
       changed_files: ["docs/research/xpass-gap-notes.md"],
     });
 
-    assert.ok(selected.includes("uxpass"));
+    assert.ok(selected.includes("uipass"));
     assert.ok(selected.includes("securitypass"));
     assert.ok(selected.includes("copypass"));
   });
@@ -391,6 +400,7 @@ describe("PinballWake XPass Gate Room", () => {
 
     assert.ok(selected.includes("seopass"));
     assert.ok(selected.includes("geopass"));
+    assert.ok(selected.includes("uipass"));
     assert.ok(selected.includes("uxpass"));
     assert.ok(selected.includes("flowpass"));
   });
