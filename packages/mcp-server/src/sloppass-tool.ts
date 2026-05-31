@@ -6,24 +6,26 @@
  * content, or make paid model calls by default.
  */
 
+import { unclickNotConfigured, type NotConnectedResult } from "./connection-help.js";
+
 function getApiBase(): string {
   return (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
 }
 
-function getApiKey(): string {
+function getApiKey(): string | NotConnectedResult {
   const key = process.env.UNCLICK_API_KEY?.trim();
-  if (!key) {
-    throw new Error("UNCLICK_API_KEY env var is not set. Get your install config at https://unclick.world");
-  }
+  if (!key) return unclickNotConfigured();
   return key;
 }
 
 async function callApi(body: Record<string, unknown>): Promise<unknown> {
+  const apiKey = getApiKey();
+  if (typeof apiKey !== "string") return apiKey;
   const response = await fetch(`${getApiBase()}/api/sloppass?action=run`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${getApiKey()}`,
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(body),
   });

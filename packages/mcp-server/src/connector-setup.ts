@@ -170,6 +170,13 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     envVar:      "PERPLEXITY_API_KEY",
     setupUrl:    "https://www.perplexity.ai/settings/api",
   },
+  openrouter: {
+    displayName: "OpenRouter",
+    credential:  "API key",
+    arg:         "api_key",
+    envVar:      "OPENROUTER_API_KEY",
+    setupUrl:    "https://openrouter.ai/keys",
+  },
   togetherai: {
     displayName: "Together AI",
     credential:  "API key",

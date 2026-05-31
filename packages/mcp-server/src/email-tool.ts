@@ -4,6 +4,7 @@
 
 import nodemailer from "nodemailer";
 import Imap from "imap";
+import { type NotConnectedResult } from "./connection-help.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,30 +33,46 @@ interface EmailMessage {
   body?: string;
 }
 
+// ─── Connect helper ───────────────────────────────────────────────────────────
+// Email is a provider-agnostic, multi-value tool (SMTP for sending, IMAP for
+// reading) rather than a registered single-credential connector, so it carries
+// its own not-connected card. Returning it (instead of throwing) keeps a setup
+// gap distinguishable from a real mail-server fault.
+
+function emailNotConnected(transport: "SMTP" | "IMAP"): NotConnectedResult {
+  const lc = transport.toLowerCase();
+  const verb = transport === "SMTP" ? "sending" : "reading";
+  return {
+    error: `Email not configured: ${transport} (${verb}) needs a host, user, and password.`,
+    not_connected: true,
+    connector: "email",
+    how_to_connect: [
+      `Pass ${lc}_host, ${lc}_user, and ${lc}_pass for this call, or set the ${transport}_HOST, ${transport}_USER, and ${transport}_PASS environment variables.`,
+      `For providers like Gmail or Outlook, use an app-specific password rather than your account password.`,
+    ],
+  };
+}
+
 // ─── SMTP helpers ─────────────────────────────────────────────────────────────
 
-function getSmtpArgs(args: Record<string, unknown>): SmtpArgs {
+function getSmtpArgs(args: Record<string, unknown>): SmtpArgs | NotConnectedResult {
   const smtp_host = String(args.smtp_host ?? process.env.SMTP_HOST ?? "").trim();
   const smtp_user = String(args.smtp_user ?? process.env.SMTP_USER ?? "").trim();
   const smtp_pass = String(args.smtp_pass ?? process.env.SMTP_PASS ?? "").trim();
   const smtp_port = Number(args.smtp_port ?? process.env.SMTP_PORT ?? 587);
-  if (!smtp_host) throw new Error("smtp_host is required (or set SMTP_HOST env).");
-  if (!smtp_user) throw new Error("smtp_user is required (or set SMTP_USER env).");
-  if (!smtp_pass) throw new Error("smtp_pass is required (or set SMTP_PASS env).");
+  if (!smtp_host || !smtp_user || !smtp_pass) return emailNotConnected("SMTP");
   return { smtp_host, smtp_port, smtp_user, smtp_pass };
 }
 
 // ─── IMAP helpers ─────────────────────────────────────────────────────────────
 
-function getImapArgs(args: Record<string, unknown>): ImapArgs {
+function getImapArgs(args: Record<string, unknown>): ImapArgs | NotConnectedResult {
   const imap_host = String(args.imap_host ?? process.env.IMAP_HOST ?? "").trim();
   const imap_user = String(args.imap_user ?? process.env.IMAP_USER ?? "").trim();
   const imap_pass = String(args.imap_pass ?? process.env.IMAP_PASS ?? "").trim();
   const imap_port = Number(args.imap_port ?? process.env.IMAP_PORT ?? 993);
   const imap_tls  = args.imap_tls !== false; // default true
-  if (!imap_host) throw new Error("imap_host is required (or set IMAP_HOST env).");
-  if (!imap_user) throw new Error("imap_user is required (or set IMAP_USER env).");
-  if (!imap_pass) throw new Error("imap_pass is required (or set IMAP_PASS env).");
+  if (!imap_host || !imap_user || !imap_pass) return emailNotConnected("IMAP");
   return { imap_host, imap_user, imap_pass, imap_port, imap_tls };
 }
 
@@ -190,7 +207,9 @@ function imapMove(imap: Imap, uid: number, dest: string): Promise<void> {
 // ─── Operations ──────────────────────────────────────────────────────────────
 
 export async function sendEmail(args: Record<string, unknown>): Promise<unknown> {
-  const { smtp_host, smtp_port, smtp_user, smtp_pass } = getSmtpArgs(args);
+  const smtp = getSmtpArgs(args);
+  if ("not_connected" in smtp) return smtp;
+  const { smtp_host, smtp_port, smtp_user, smtp_pass } = smtp;
 
   const from    = String(args.from ?? smtp_user).trim();
   const to      = Array.isArray(args.to) ? args.to.map(String) : [String(args.to ?? "")];
@@ -268,6 +287,7 @@ export async function sendEmail(args: Record<string, unknown>): Promise<unknown>
 
 export async function readInbox(args: Record<string, unknown>): Promise<unknown> {
   const cfg    = getImapArgs(args);
+  if ("not_connected" in cfg) return cfg;
   const folder = String(args.folder ?? "INBOX");
   const limit  = Math.min(50, Math.max(1, Number(args.limit ?? 10)));
   const unreadOnly = args.unread_only === true;
@@ -304,6 +324,7 @@ export async function readInbox(args: Record<string, unknown>): Promise<unknown>
 
 export async function searchEmail(args: Record<string, unknown>): Promise<unknown> {
   const cfg   = getImapArgs(args);
+  if ("not_connected" in cfg) return cfg;
   const folder = String(args.folder ?? "INBOX");
   const query  = String(args.query ?? "").trim();
   if (!query) throw new Error("query is required.");
@@ -352,6 +373,7 @@ export async function searchEmail(args: Record<string, unknown>): Promise<unknow
 
 export async function getEmail(args: Record<string, unknown>): Promise<unknown> {
   const cfg = getImapArgs(args);
+  if ("not_connected" in cfg) return cfg;
   const uid = Number(args.uid);
   if (!uid) throw new Error("uid is required.");
   const folder = String(args.folder ?? "INBOX");
@@ -379,6 +401,7 @@ export async function getEmail(args: Record<string, unknown>): Promise<unknown> 
 
 export async function markRead(args: Record<string, unknown>): Promise<unknown> {
   const cfg = getImapArgs(args);
+  if ("not_connected" in cfg) return cfg;
   const uid = Number(args.uid);
   if (!uid) throw new Error("uid is required.");
   const folder = String(args.folder ?? "INBOX");
@@ -403,6 +426,7 @@ export async function deleteEmail(args: Record<string, unknown>): Promise<unknow
   }
 
   const cfg  = getImapArgs(args);
+  if ("not_connected" in cfg) return cfg;
   const uid  = Number(args.uid);
   if (!uid) throw new Error("uid is required.");
   const folder = String(args.folder ?? "INBOX");

@@ -72,15 +72,22 @@ future local `*-tool.ts` handler a one-liner (`requireCredential("<id>", args)`)
 
 ---
 
-## Progress: 136/136 connectors on the registry (0 left)
+## Progress: 137/137 connectors on the registry (0 left)
 
 The initial sweep landed every credential-requiring connector in one pass
 (arg names and env vars were harvested from each connector's *-tool.ts, not
 guessed). The list below is the live audit set. If a future connector is
-added, drop it in unchecked, give it a row, and bump the Progress line. The
-internal UnClick tools (keychain, crews, nudgeonly, sloppass, testpass,
-uxpass) authenticate with UNCLICK_API_KEY, not a connector credential, so
-they are intentionally excluded.
+added, drop it in unchecked, give it a row, and bump the Progress line.
+
+`openrouter` was added later: NudgeOnly's API path calls OpenRouter with an
+`OPENROUTER_API_KEY` (a real third-party credential), so it earns a registry
+row and uses `requireCredential("openrouter", args)`.
+
+The internal UnClick tools (keychain, crews, sloppass, testpass, uxpass)
+authenticate with UNCLICK_API_KEY, not a connector credential, so they stay
+out of the registry. They no longer throw on a missing key: they return the
+same structured not-connected shape via `unclickNotConfigured()` in
+`connection-help.ts`, so a setup gap is never mistaken for a tool fault.
 
 ## Checklist (credential-requiring connectors)
 
@@ -163,6 +170,7 @@ missing (cross-check `keychain_list_platforms`).
 - [x] openai
 - [x] openaq
 - [x] openexchangerates
+- [x] openrouter
 - [x] pagerduty
 - [x] paypal
 - [x] perplexity

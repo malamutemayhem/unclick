@@ -84,3 +84,25 @@ export function notConnected(opts: NotConnectedOptions): NotConnectedResult {
 
   return { error, not_connected: true, connector: opts.connector, how_to_connect: steps };
 }
+
+/**
+ * Not-connected result for tools that need the UnClick install key itself
+ * (UNCLICK_API_KEY) rather than a third-party connector credential. The keychain
+ * path does NOT apply here: this key IS the install config the keychain encrypts
+ * against, so it must be set as an environment variable. These internal tools
+ * (keychain, crews, sloppass, testpass, uxpass) sit outside the connector
+ * registry by design (see docs/connect-me-rollout.md); this helper lets them
+ * return the same structured shape instead of throwing, so a setup gap is never
+ * mistaken for a tool fault.
+ */
+export function unclickNotConfigured(): NotConnectedResult {
+  return {
+    error: "UNCLICK_API_KEY env var is not set. Get your install config at https://unclick.world",
+    not_connected: true,
+    connector: "unclick",
+    how_to_connect: [
+      "Set the UNCLICK_API_KEY environment variable to your UnClick install key.",
+      "Get your install config (which includes UNCLICK_API_KEY) at https://unclick.world",
+    ],
+  };
+}
