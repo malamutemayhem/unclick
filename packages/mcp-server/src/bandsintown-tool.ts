@@ -1,20 +1,18 @@
 // ─── Bandsintown API Tool ─────────────────────────────────────────────────────
 // Base URL: https://rest.bandsintown.com/
-// Auth: app_id query param (public identifier, not a secret key).
-// Uses "unclick" as app_id by default. Override via BANDSINTOWN_APP_ID env var.
+// Auth: API key sent as the app_id query parameter.
+// The app_id comes from args.app_id or BANDSINTOWN_APP_ID.
 // Docs: https://app.swaggerhub.com/apis/Bandsintown/PublicAPI/3.0.0
 // No external dependencies - native fetch only.
+
+import { requireCredential } from "./connector-setup.js";
 
 const BANDSINTOWN_BASE = "https://rest.bandsintown.com";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getAppId(args: Record<string, unknown>): string {
-  return (
-    String(args.app_id ?? "").trim() ||
-    (process.env.BANDSINTOWN_APP_ID ?? "").trim() ||
-    "unclick"
-  );
+function getAppId(args: Record<string, unknown>) {
+  return requireCredential("bandsintown", args);
 }
 
 const BANDSINTOWN_TIMEOUT_MS = Number(process.env.BANDSINTOWN_TIMEOUT_MS) || 10000;
@@ -74,6 +72,7 @@ async function bitFetch(
 
 export async function bandsintownArtist(args: Record<string, unknown>): Promise<unknown> {
   const appId = getAppId(args);
+  if (typeof appId !== "string") return appId;
 
   const artistName = String(args.artist_name ?? "").trim();
   if (!artistName) return { error: "artist_name is required." };
@@ -85,6 +84,7 @@ export async function bandsintownArtist(args: Record<string, unknown>): Promise<
 
 export async function bandsintownEvents(args: Record<string, unknown>): Promise<unknown> {
   const appId = getAppId(args);
+  if (typeof appId !== "string") return appId;
 
   const artistName = String(args.artist_name ?? "").trim();
   if (!artistName) return { error: "artist_name is required." };
@@ -98,6 +98,7 @@ export async function bandsintownEvents(args: Record<string, unknown>): Promise<
 
 export async function bandsintownRecommended(args: Record<string, unknown>): Promise<unknown> {
   const appId = getAppId(args);
+  if (typeof appId !== "string") return appId;
 
   const artistName = String(args.artist_name ?? "").trim();
   if (!artistName) return { error: "artist_name is required." };

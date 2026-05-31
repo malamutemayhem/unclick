@@ -2,13 +2,23 @@
 // Uses the Algolia REST API via fetch - no external dependencies.
 // Users must supply an Application ID and API Key from algolia.com.
 
+import { notConnectedFor, requireCredential } from "./connector-setup.js";
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireCreds(args: Record<string, unknown>): { appId: string; apiKey: string } {
-  const appId = String(args.app_id ?? "").trim();
-  const apiKey = String(args.api_key ?? "").trim();
-  if (!appId) throw new Error("app_id is required (Algolia Application ID from algolia.com).");
-  if (!apiKey) throw new Error("api_key is required (Algolia API Key from algolia.com).");
+function requireCreds(
+  args: Record<string, unknown>,
+): { appId: string; apiKey: string } | ReturnType<typeof notConnectedFor> {
+  const appId = String(args.app_id ?? process.env.ALGOLIA_APPLICATION_ID ?? "").trim();
+  const apiKey = requireCredential("algolia", args);
+  if (typeof apiKey !== "string") return apiKey;
+  if (!appId) {
+    return notConnectedFor("algolia", {
+      credential: "Application ID",
+      arg: "app_id",
+      envVar: "ALGOLIA_APPLICATION_ID",
+    });
+  }
   return { appId, apiKey };
 }
 
@@ -90,7 +100,9 @@ async function algoPost<T>(appId: string, apiKey: string, path: string, body: un
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function algoliaSearch(args: Record<string, unknown>): Promise<unknown> {
-  const { appId, apiKey } = requireCreds(args);
+  const creds = requireCreds(args);
+  if ("not_connected" in creds) return creds;
+  const { appId, apiKey } = creds;
   const index = String(args.index ?? "").trim();
   const query = String(args.query ?? "");
   if (!index) throw new Error("index is required (Algolia index name).");
@@ -117,7 +129,9 @@ export async function algoliaSearch(args: Record<string, unknown>): Promise<unkn
 }
 
 export async function algoliaGetObject(args: Record<string, unknown>): Promise<unknown> {
-  const { appId, apiKey } = requireCreds(args);
+  const creds = requireCreds(args);
+  if ("not_connected" in creds) return creds;
+  const { appId, apiKey } = creds;
   const index = String(args.index ?? "").trim();
   const objectId = String(args.object_id ?? "").trim();
   if (!index) throw new Error("index is required.");
@@ -126,7 +140,9 @@ export async function algoliaGetObject(args: Record<string, unknown>): Promise<u
 }
 
 export async function algoliaListIndices(args: Record<string, unknown>): Promise<unknown> {
-  const { appId, apiKey } = requireCreds(args);
+  const creds = requireCreds(args);
+  if ("not_connected" in creds) return creds;
+  const { appId, apiKey } = creds;
   const data = await algoGet<{ items: Array<{ name: string; entries: number; dataSize: number; fileSize: number; lastBuildTimeS: number; numberOfPendingTask: number }> }>(
     appId, apiKey, "/indexes"
   );
@@ -137,7 +153,9 @@ export async function algoliaListIndices(args: Record<string, unknown>): Promise
 }
 
 export async function algoliaBrowseIndex(args: Record<string, unknown>): Promise<unknown> {
-  const { appId, apiKey } = requireCreds(args);
+  const creds = requireCreds(args);
+  if ("not_connected" in creds) return creds;
+  const { appId, apiKey } = creds;
   const index = String(args.index ?? "").trim();
   if (!index) throw new Error("index is required.");
 

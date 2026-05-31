@@ -4,6 +4,8 @@
 // This tool is useful for agents that need to call Claude (or other models)
 // programmatically, compare model outputs, or chain model calls.
 
+import { requireCredential } from "./connector-setup.js";
+
 const ANTHROPIC_API_BASE = "https://api.anthropic.com/v1";
 const ANTHROPIC_VERSION = "2023-06-01";
 
@@ -115,10 +117,8 @@ function requireAnthropicSpendAllowed(operation: AnthropicToolOperation, model: 
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at console.anthropic.com/settings/keys.");
-  return key;
+function requireKey(args: Record<string, unknown>) {
+  return requireCredential("anthropic", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -201,6 +201,7 @@ async function anthropicGet<T>(apiKey: string, path: string): Promise<T> {
 
 export async function anthropicCreateMessage(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "claude-sonnet-4-6");
   const maxTokens = Math.min(8192, Math.max(1, Number(args.max_tokens ?? 1024)));
   requireAnthropicSpendAllowed("chat", model, apiKey);
@@ -255,6 +256,7 @@ export async function anthropicCreateMessage(args: Record<string, unknown>): Pro
 
 export async function anthropicListModels(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAnthropicSpendAllowed("model-listing", "Anthropic /models", apiKey);
   const data = await anthropicGet<{ data: AnthropicModel[]; has_more: boolean; first_id?: string; last_id?: string }>(
     apiKey, "/models"
