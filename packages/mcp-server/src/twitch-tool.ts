@@ -11,12 +11,26 @@ const TWITCH_AUTH = "https://id.twitch.tv/oauth2/token";
 let cachedToken: string | null = null;
 let tokenExpiry = 0;
 
+const TWITCH_TIMEOUT_MS = Number(process.env.TWITCH_TIMEOUT_MS) || 15000;
+
 async function getAppToken(clientId: string, clientSecret: string): Promise<string> {
   if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
-  const res = await fetch(
-    `${TWITCH_AUTH}?client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials`,
-    { method: "POST" }
-  );
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TWITCH_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(
+      `${TWITCH_AUTH}?client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials`,
+      { method: "POST", signal: controller.signal }
+    );
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Twitch auth request timed out after ${TWITCH_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Twitch auth network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (!res.ok) throw new Error(`Twitch auth HTTP ${res.status}: ${res.statusText}`);
   const data = (await res.json()) as { access_token: string; expires_in: number };
   cachedToken = data.access_token;
@@ -35,12 +49,29 @@ async function twitchGet(
     if (v !== undefined && v !== "") qs.append(k, String(v));
   }
   const url = `${TWITCH_API}${path}${qs.toString() ? "?" + qs.toString() : ""}`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Client-Id": clientId,
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TWITCH_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Client-Id": clientId,
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Twitch API request timed out after ${TWITCH_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Twitch API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Twitch API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Twitch API HTTP ${res.status}: ${body || res.statusText}`);

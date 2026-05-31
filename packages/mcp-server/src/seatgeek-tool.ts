@@ -5,6 +5,8 @@
 
 const SEATGEEK_BASE = "https://api.seatgeek.com/2";
 
+const SEATGEEK_TIMEOUT_MS = Number(process.env.SEATGEEK_TIMEOUT_MS) || 15000;
+
 async function seatgeekGet(
   clientId: string,
   path: string,
@@ -14,7 +16,23 @@ async function seatgeekGet(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") qs.set(k, String(v));
   }
-  const res = await fetch(`${SEATGEEK_BASE}${path}?${qs}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SEATGEEK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SEATGEEK_BASE}${path}?${qs}`, { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`SeatGeek API request timed out after ${SEATGEEK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`SeatGeek API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`SeatGeek API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`SeatGeek API HTTP ${res.status}: ${body || res.statusText}`);

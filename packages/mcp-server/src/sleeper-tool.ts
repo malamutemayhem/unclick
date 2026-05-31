@@ -4,10 +4,29 @@
 
 const SLEEPER_BASE = "https://api.sleeper.app/v1";
 
+const SLEEPER_TIMEOUT_MS = Number(process.env.SLEEPER_TIMEOUT_MS) || 15000;
+
 async function sleeperFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${SLEEPER_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SLEEPER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SLEEPER_BASE}${path}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Sleeper API request timed out after ${SLEEPER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Sleeper API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Sleeper API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) throw new Error(`Sleeper API HTTP ${res.status}`);
   return res.json() as Promise<T>;
 }
