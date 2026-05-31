@@ -2,6 +2,8 @@
 // Uses the HeyGen REST API via fetch - no external dependencies.
 // Users must supply an API key from app.heygen.com/settings.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const HG_API_BASE = "https://api.heygen.com";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -24,10 +26,8 @@ interface HeyGenVoice {
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.heygen.com/settings.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("heygen", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -100,6 +100,7 @@ async function hgPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function heygen_create_avatar_video(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const avatarId = String(args.avatar_id ?? "").trim();
   const script = String(args.script ?? "").trim();
   if (!avatarId) throw new Error("avatar_id is required.");
@@ -148,6 +149,7 @@ export async function heygen_create_avatar_video(args: Record<string, unknown>):
 
 export async function heygen_list_avatars(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await hgGet<{ data?: { avatars?: HeyGenAvatar[] } } & Record<string, unknown>>(
     apiKey, "/v2/avatars"
   );
@@ -166,6 +168,7 @@ export async function heygen_list_avatars(args: Record<string, unknown>): Promis
 
 export async function heygen_get_video_status(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const videoId = String(args.video_id ?? "").trim();
   if (!videoId) throw new Error("video_id is required.");
 
@@ -188,6 +191,7 @@ export async function heygen_get_video_status(args: Record<string, unknown>): Pr
 
 export async function heygen_list_voices(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await hgGet<{ data?: { voices?: HeyGenVoice[] } } & Record<string, unknown>>(
     apiKey, "/v2/voices"
   );

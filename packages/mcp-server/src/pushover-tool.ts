@@ -2,6 +2,9 @@
 // Uses the Pushover REST API via fetch - no external dependencies.
 // Users must supply an app token (from pushover.net/apps) and a user/group key.
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const PUSHOVER_API_BASE = "https://api.pushover.net/1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -45,11 +48,10 @@ interface PushoverValidateResponse {
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireAuth(args: Record<string, unknown>): { token: string; user: string } {
-  const token = String(args.app_token ?? "").trim();
-  const user = String(args.user_key ?? "").trim();
-  if (!token) throw new Error("app_token is required. Create an app at pushover.net/apps.");
-  if (!user) throw new Error("user_key is required. Find it on your Pushover dashboard.");
+function requireAuth(args: Record<string, unknown>): { token: string; user: string } | NotConnectedResult {
+  const token = String(args.app_token ?? process.env.PUSHOVER_APP_TOKEN ?? "").trim();
+  const user = String(args.user_key ?? process.env.PUSHOVER_USER_KEY ?? "").trim();
+  if (!token || !user) return notConnectedFor("pushover");
   return { token, user };
 }
 
@@ -123,7 +125,9 @@ async function pushoverGet<T>(path: string, query: Record<string, string> = {}):
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function pushoverSendNotification(args: Record<string, unknown>): Promise<unknown> {
-  const { token, user } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { token, user } = _auth;
   const message = String(args.message ?? "").trim();
   if (!message) throw new Error("message is required.");
 
@@ -186,7 +190,9 @@ export async function pushoverGetReceipt(args: Record<string, unknown>): Promise
 }
 
 export async function pushoverCancelEmergency(args: Record<string, unknown>): Promise<unknown> {
-  const { token } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { token } = _auth;
   const receipt = String(args.receipt ?? "").trim();
   if (!receipt) throw new Error("receipt is required (returned from an emergency notification).");
 
@@ -232,7 +238,9 @@ export async function pushoverListSounds(args: Record<string, unknown>): Promise
 }
 
 export async function pushoverValidateUser(args: Record<string, unknown>): Promise<unknown> {
-  const { token, user } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { token, user } = _auth;
   const params: Record<string, string | number> = { token, user };
   if (args.device) params.device = String(args.device);
 

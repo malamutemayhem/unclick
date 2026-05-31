@@ -4,18 +4,21 @@
 // Auth: write_key (Basic auth, base64 encoded) for tracking; api_token (Bearer) for management
 // Base: https://api.segment.io/v1 (tracking) / https://api.segmentapis.com (management)
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const SEGMENT_TRACK_BASE = "https://api.segment.io/v1";
 const SEGMENT_MGMT_BASE = "https://api.segmentapis.com";
 
-function requireWriteKey(args: Record<string, unknown>): string {
-  const key = String(args.write_key ?? args.api_key ?? "").trim();
-  if (!key) throw new Error("write_key is required. Get one from your Segment source settings.");
+function requireWriteKey(args: Record<string, unknown>): string | NotConnectedResult {
+  const key = String(args.write_key ?? args.api_key ?? process.env.SEGMENT_WRITE_KEY ?? "").trim();
+  if (!key) return requireCredential("segment", { ...args, write_key: "" });
   return key;
 }
 
-function requireApiToken(args: Record<string, unknown>): string {
-  const token = String(args.api_token ?? args.api_key ?? "").trim();
-  if (!token) throw new Error("api_token is required. Get one from app.segment.com/goto-my-workspace/settings/access-management.");
+function requireApiToken(args: Record<string, unknown>): string | NotConnectedResult {
+  const token = String(args.api_token ?? args.api_key ?? process.env.SEGMENT_API_TOKEN ?? "").trim();
+  if (!token) return requireCredential("segment", { ...args, api_key: "" });
   return token;
 }
 
@@ -96,6 +99,7 @@ async function segmentMgmtGet<T>(apiToken: string, path: string, query?: Record<
 
 export async function segment_track_event(args: Record<string, unknown>): Promise<unknown> {
   const writeKey = requireWriteKey(args);
+  if (typeof writeKey !== "string") return writeKey;
   const event = String(args.event ?? "").trim();
   const userId = String(args.user_id ?? "").trim();
   const anonymousId = String(args.anonymous_id ?? "").trim();
@@ -117,6 +121,7 @@ export async function segment_track_event(args: Record<string, unknown>): Promis
 
 export async function segment_identify_user(args: Record<string, unknown>): Promise<unknown> {
   const writeKey = requireWriteKey(args);
+  if (typeof writeKey !== "string") return writeKey;
   const userId = String(args.user_id ?? "").trim();
   const anonymousId = String(args.anonymous_id ?? "").trim();
   if (!userId && !anonymousId) throw new Error("user_id or anonymous_id is required.");
@@ -135,6 +140,7 @@ export async function segment_identify_user(args: Record<string, unknown>): Prom
 
 export async function segment_list_sources(args: Record<string, unknown>): Promise<unknown> {
   const apiToken = requireApiToken(args);
+  if (typeof apiToken !== "string") return apiToken;
   const workspaceId = String(args.workspace_id ?? "").trim();
   if (!workspaceId) throw new Error("workspace_id is required.");
 
@@ -147,6 +153,7 @@ export async function segment_list_sources(args: Record<string, unknown>): Promi
 
 export async function segment_list_destinations(args: Record<string, unknown>): Promise<unknown> {
   const apiToken = requireApiToken(args);
+  if (typeof apiToken !== "string") return apiToken;
   const sourceId = String(args.source_id ?? "").trim();
   if (!sourceId) throw new Error("source_id is required.");
 
@@ -159,6 +166,7 @@ export async function segment_list_destinations(args: Record<string, unknown>): 
 
 export async function segment_get_source(args: Record<string, unknown>): Promise<unknown> {
   const apiToken = requireApiToken(args);
+  if (typeof apiToken !== "string") return apiToken;
   const sourceId = String(args.source_id ?? "").trim();
   if (!sourceId) throw new Error("source_id is required.");
 

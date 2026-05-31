@@ -2,6 +2,8 @@
 // Uses the Lemon Squeezy REST API via fetch - no external dependencies.
 // Users must supply an API key from app.lemonsqueezy.com/settings/api.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const LS_API_BASE = "https://api.lemonsqueezy.com/v1";
 
 // --- Types -------------------------------------------------------------------
@@ -121,10 +123,8 @@ interface LsCustomer {
 
 // --- Auth validation ---------------------------------------------------------
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.lemonsqueezy.com/settings/api.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("lemonsqueezy", args);
 }
 
 // --- API helpers -------------------------------------------------------------
@@ -176,6 +176,7 @@ function buildQueryString(params: Record<string, string | undefined>): string {
 export async function lsListStores(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
       "page[number]": args["page[number]"] ? String(args["page[number]"]) : undefined,
       "page[size]": args["page[size]"] ? String(args["page[size]"]) : undefined,
@@ -205,6 +206,7 @@ export async function lsListStores(args: Record<string, unknown>): Promise<unkno
 export async function lsListProducts(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
       "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
       "page[number]": args["page[number]"] ? String(args["page[number]"]) : undefined,
@@ -235,6 +237,7 @@ export async function lsListProducts(args: Record<string, unknown>): Promise<unk
 export async function lsListOrders(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
       "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
       "filter[user_email]": args["filter[user_email]"] ? String(args["filter[user_email]"]) : undefined,
@@ -268,6 +271,7 @@ export async function lsListOrders(args: Record<string, unknown>): Promise<unkno
 export async function lsListSubscriptions(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
       "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
       "filter[order_id]": args["filter[order_id]"] ? String(args["filter[order_id]"]) : undefined,
@@ -304,6 +308,7 @@ export async function lsListSubscriptions(args: Record<string, unknown>): Promis
 export async function lsGetOrder(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const orderId = String(args.order_id ?? "").trim();
     if (!orderId) throw new Error("order_id is required.");
 
@@ -336,6 +341,7 @@ export async function lsGetOrder(args: Record<string, unknown>): Promise<unknown
 export async function lsListCustomers(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
       "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
       "filter[email]": args["filter[email]"] ? String(args["filter[email]"]) : undefined,

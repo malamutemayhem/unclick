@@ -4,17 +4,18 @@
 // Auth uses HMAC-SHA1: SHA1(api_key + api_secret + unix_timestamp).
 
 import { createHash } from "crypto";
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 
 const PI_BASE = "https://api.podcastindex.org/api/1.0";
 
 // ─── Auth helper ──────────────────────────────────────────────────────────────
 
-function buildAuthHeaders(): Record<string, string> {
-  const apiKey = process.env.PODCASTINDEX_API_KEY?.trim() ?? "";
-  const apiSecret = process.env.PODCASTINDEX_API_SECRET?.trim() ?? "";
+function buildAuthHeaders(args: Record<string, unknown>): Record<string, string> | NotConnectedResult {
+  const apiKey = String(args.api_key ?? process.env.PODCASTINDEX_API_KEY ?? "").trim();
+  const apiSecret = String(args.api_secret ?? process.env.PODCASTINDEX_API_SECRET ?? "").trim();
 
-  if (!apiKey) throw new Error("PODCASTINDEX_API_KEY environment variable is not set.");
-  if (!apiSecret) throw new Error("PODCASTINDEX_API_SECRET environment variable is not set.");
+  if (!apiKey || !apiSecret) return notConnectedFor("podcastindex");
 
   const timestamp = Math.floor(Date.now() / 1000);
   const hash = createHash("sha1")
@@ -32,9 +33,13 @@ function buildAuthHeaders(): Record<string, string> {
 // ─── API helper ───────────────────────────────────────────────────────────────
 
 async function piCall(
+  args: Record<string, unknown>,
   path: string,
   params: Record<string, string | number | undefined> = {}
 ): Promise<unknown> {
+  const headers = buildAuthHeaders(args);
+  if ("not_connected" in headers) return headers;
+
   const url = new URL(`${PI_BASE}${path}`);
 
   for (const [k, v] of Object.entries(params)) {
@@ -49,7 +54,7 @@ async function piCall(
   let response: Response;
   try {
     response = await fetch(url.toString(), {
-      headers: buildAuthHeaders(),
+      headers,
       signal: controller.signal,
     });
   } catch (err) {
@@ -84,13 +89,13 @@ export async function podcastSearch(args: Record<string, unknown>): Promise<unkn
   if (!q) throw new Error("q is required.");
   const params: Record<string, string | number | undefined> = { q };
   if (args.max) params.max = Number(args.max);
-  return piCall("/search/byterm", params);
+  return piCall(args, "/search/byterm", params);
 }
 
 export async function podcastGetByFeedUrl(args: Record<string, unknown>): Promise<unknown> {
   const url = String(args.url ?? "").trim();
   if (!url) throw new Error("url is required.");
-  return piCall("/podcasts/byfeedurl", { url });
+  return piCall(args, "/podcasts/byfeedurl", { url });
 }
 
 export async function podcastGetEpisodes(args: Record<string, unknown>): Promise<unknown> {
@@ -99,7 +104,7 @@ export async function podcastGetEpisodes(args: Record<string, unknown>): Promise
   const params: Record<string, string | number | undefined> = { id: Number(feedId) };
   if (args.max) params.max = Number(args.max);
   if (args.since) params.since = Number(args.since);
-  return piCall("/episodes/byfeedid", params);
+  return piCall(args, "/episodes/byfeedid", params);
 }
 
 export async function podcastSearchEpisodes(args: Record<string, unknown>): Promise<unknown> {
@@ -107,7 +112,7 @@ export async function podcastSearchEpisodes(args: Record<string, unknown>): Prom
   if (!q) throw new Error("q is required.");
   const params: Record<string, string | number | undefined> = { q };
   if (args.max) params.max = Number(args.max);
-  return piCall("/search/byterm", params);
+  return piCall(args, "/search/byterm", params);
 }
 
 export async function podcastTrending(args: Record<string, unknown>): Promise<unknown> {
@@ -115,11 +120,11 @@ export async function podcastTrending(args: Record<string, unknown>): Promise<un
   if (args.max) params.max = Number(args.max);
   if (args.lang) params.lang = String(args.lang);
   if (args.cat) params.cat = String(args.cat);
-  return piCall("/podcasts/trending", params);
+  return piCall(args, "/podcasts/trending", params);
 }
 
 export async function podcastRecentEpisodes(args: Record<string, unknown>): Promise<unknown> {
   const params: Record<string, string | number | undefined> = {};
   if (args.max) params.max = Number(args.max);
-  return piCall("/episodes/recent", params);
+  return piCall(args, "/episodes/recent", params);
 }

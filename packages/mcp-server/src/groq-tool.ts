@@ -2,6 +2,8 @@
 // Uses the Groq REST API via fetch - no external dependencies.
 // Compatible with OpenAI API format. Users must supply an API key from console.groq.com.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const GROQ_BASE = "https://api.groq.com/openai/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -44,10 +46,8 @@ interface GroqModel {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at console.groq.com/keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("groq", args);
 }
 
 const GROQ_TIMEOUT_MS = Number(process.env.GROQ_TIMEOUT_MS) || 30000;
@@ -121,6 +121,7 @@ async function groqGet<T>(apiKey: string, path: string): Promise<T> {
 
 export async function groqChatCompletion(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "llama-3.3-70b-versatile");
 
   let messages: GroqMessage[];
@@ -164,6 +165,7 @@ export async function groqChatCompletion(args: Record<string, unknown>): Promise
 
 export async function groqListModels(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await groqGet<{ data: GroqModel[] }>(apiKey, "/models");
   const models = (data.data ?? []).filter((m) => m.active !== false);
   models.sort((a, b) => b.created - a.created);

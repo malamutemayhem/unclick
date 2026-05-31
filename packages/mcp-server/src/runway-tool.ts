@@ -2,14 +2,14 @@
 // Uses the Runway REST API via fetch - no external dependencies.
 // Users must supply an API key from app.runwayml.com/account/api-keys.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const RW_API_BASE = "https://api.dev.runwayml.com/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.runwayml.com/account/api-keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("runway", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -84,6 +84,7 @@ async function rwPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function runway_generate_video(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const promptText = String(args.prompt ?? "").trim();
   const imageUrl = args.image_url ? String(args.image_url).trim() : undefined;
 
@@ -124,6 +125,7 @@ export async function runway_generate_video(args: Record<string, unknown>): Prom
 
 export async function runway_get_task(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const taskId = String(args.task_id ?? "").trim();
   if (!taskId) throw new Error("task_id is required.");
 
@@ -145,6 +147,7 @@ export async function runway_get_task(args: Record<string, unknown>): Promise<un
 
 export async function runway_list_models(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await rwGet<{ data?: unknown[]; models?: unknown[] } & Record<string, unknown>>(
     apiKey, "/models"
   );

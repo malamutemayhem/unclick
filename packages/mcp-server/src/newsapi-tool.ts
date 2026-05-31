@@ -3,6 +3,8 @@
 // Docs: https://newsapi.org/docs
 // Env var: NEWS_API_KEY
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const NEWSAPI_BASE = "https://newsapi.org/v2";
 
 async function newsGet(
@@ -44,10 +46,8 @@ async function newsGet(
   return json;
 }
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.NEWS_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set NEWS_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("newsapi", args);
 }
 
 // ── Tool functions ─────────────────────────────────────────────────────────────
@@ -55,6 +55,7 @@ function getApiKey(args: Record<string, unknown>): string {
 export async function newsGetTopHeadlines(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string | number> = {};
     if (args.country)  params.country  = String(args.country);
     if (args.category) params.category = String(args.category);
@@ -75,6 +76,7 @@ export async function newsGetTopHeadlines(args: Record<string, unknown>): Promis
 export async function newsSearchNews(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { q: query };
@@ -99,6 +101,7 @@ export async function newsSearchNews(args: Record<string, unknown>): Promise<unk
 export async function newsGetSources(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string> = {};
     if (args.category) params.category = String(args.category);
     if (args.language) params.language = String(args.language);

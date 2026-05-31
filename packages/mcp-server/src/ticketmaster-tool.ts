@@ -3,6 +3,8 @@
 // Free tier with API key auth.
 // Env var: TICKETMASTER_API_KEY
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const TM_BASE = "https://app.ticketmaster.com/discovery/v2";
 
 async function tmGet(
@@ -36,10 +38,8 @@ async function tmGet(
   return res.json() as Promise<Record<string, unknown>>;
 }
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.TICKETMASTER_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set TICKETMASTER_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("ticketmaster", args);
 }
 
 // ── Tool functions ─────────────────────────────────────────────────────────────
@@ -47,6 +47,7 @@ function getApiKey(args: Record<string, unknown>): string {
 export async function tmSearchEvents(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string | number> = {};
     if (args.keyword)    params.keyword    = String(args.keyword);
     if (args.city)       params.city       = String(args.city);
@@ -74,6 +75,7 @@ export async function tmSearchEvents(args: Record<string, unknown>): Promise<unk
 export async function tmGetEvent(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await tmGet(apiKey, `/events/${encodeURIComponent(id)}.json`, {});
@@ -86,6 +88,7 @@ export async function tmGetEvent(args: Record<string, unknown>): Promise<unknown
 export async function tmSearchVenues(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string | number> = {};
     if (args.keyword)  params.keyword   = String(args.keyword);
     if (args.city)     params.city      = String(args.city);
@@ -108,6 +111,7 @@ export async function tmSearchVenues(args: Record<string, unknown>): Promise<unk
 export async function tmGetVenue(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await tmGet(apiKey, `/venues/${encodeURIComponent(id)}.json`, {});
@@ -120,6 +124,7 @@ export async function tmGetVenue(args: Record<string, unknown>): Promise<unknown
 export async function tmSearchAttractions(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string | number> = {};
     if (args.keyword)        params.keyword        = String(args.keyword);
     if (args.classification) params.classificationName = String(args.classification);

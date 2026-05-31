@@ -38,6 +38,7 @@ describe("genius connector resilience (L2)", () => {
   });
 
   it("validates input before any network call", async () => {
+    vi.stubEnv("GENIUS_ACCESS_TOKEN", "t");
     await expect(geniusSearch({})).rejects.toThrow(/q is required/i);
   });
 

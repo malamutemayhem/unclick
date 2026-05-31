@@ -2,6 +2,8 @@
 // Uses the YouTube Data API via fetch - no external dependencies.
 // Users must supply an API key from Google Cloud Console.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const YT_API_BASE = "https://www.googleapis.com/youtube/v3";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -139,16 +141,15 @@ async function ytGet<T>(apiKey: string, endpoint: string, params: Record<string,
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Create one at console.cloud.google.com.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("youtube", args);
 }
 
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function youtubeSearch(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const q = String(args.query ?? "").trim();
   if (!q) throw new Error("query is required.");
   const maxResults = Math.min(50, Math.max(1, Number(args.max_results ?? 10)));
@@ -189,6 +190,7 @@ export async function youtubeSearch(args: Record<string, unknown>): Promise<unkn
 
 export async function youtubeGetVideo(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const videoId = String(args.video_id ?? "").trim();
   if (!videoId) throw new Error("video_id is required.");
 
@@ -218,6 +220,7 @@ export async function youtubeGetVideo(args: Record<string, unknown>): Promise<un
 
 export async function youtubeGetChannel(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const channelId = String(args.channel_id ?? "").trim();
   const forHandle = String(args.handle ?? "").trim();
   if (!channelId && !forHandle) throw new Error("Either channel_id or handle is required.");
@@ -244,6 +247,7 @@ export async function youtubeGetChannel(args: Record<string, unknown>): Promise<
 
 export async function youtubeListPlaylists(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const channelId = String(args.channel_id ?? "").trim();
   if (!channelId) throw new Error("channel_id is required.");
   const maxResults = Math.min(50, Math.max(1, Number(args.max_results ?? 20)));
@@ -276,6 +280,7 @@ export async function youtubeListPlaylists(args: Record<string, unknown>): Promi
 
 export async function youtubeListPlaylistItems(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const playlistId = String(args.playlist_id ?? "").trim();
   if (!playlistId) throw new Error("playlist_id is required.");
   const maxResults = Math.min(50, Math.max(1, Number(args.max_results ?? 20)));
@@ -306,6 +311,7 @@ export async function youtubeListPlaylistItems(args: Record<string, unknown>): P
 
 export async function youtubeGetCaptions(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const videoId = String(args.video_id ?? "").trim();
   if (!videoId) throw new Error("video_id is required.");
 

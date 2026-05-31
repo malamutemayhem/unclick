@@ -3,12 +3,12 @@
 // Auth: VERCEL_TOKEN (Bearer)
 // Base: https://api.vercel.com/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const VERCEL_BASE = "https://api.vercel.com";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.VERCEL_TOKEN ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set VERCEL_TOKEN env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("vercel", args);
 }
 
 async function vercelRequest(
@@ -71,6 +71,7 @@ async function vercelGet(
 export async function listVercelDeployments(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getApiKey(args);
+    if (typeof token !== "string") return token;
     const params: Record<string, string> = {};
     if (args.app) params.app = String(args.app);
     if (args.limit) params.limit = String(args.limit);
@@ -104,6 +105,7 @@ export async function listVercelDeployments(args: Record<string, unknown>): Prom
 export async function getVercelDeployment(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getApiKey(args);
+    if (typeof token !== "string") return token;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const params: Record<string, string> = {};
@@ -136,6 +138,7 @@ export async function getVercelDeployment(args: Record<string, unknown>): Promis
 export async function listVercelProjects(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getApiKey(args);
+    if (typeof token !== "string") return token;
     const params: Record<string, string> = {};
     if (args.limit) params.limit = String(args.limit);
     if (args.search) params.search = String(args.search);
@@ -169,6 +172,7 @@ export async function listVercelProjects(args: Record<string, unknown>): Promise
 export async function getVercelDomain(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getApiKey(args);
+    if (typeof token !== "string") return token;
     const domain = String(args.domain ?? "").trim();
     if (!domain) return { error: "domain is required." };
     const params: Record<string, string> = {};
@@ -200,6 +204,7 @@ export function vercelProjectIdArg(args: Record<string, unknown>): string {
 export async function getVercelEnv(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getApiKey(args);
+    if (typeof token !== "string") return token;
     const projectId = vercelProjectIdArg(args);
     if (!projectId) return { error: "project_id is required." };
     const params: Record<string, string> = {};
@@ -234,6 +239,7 @@ export async function getVercelEnv(args: Record<string, unknown>): Promise<unkno
 export async function createVercelEnv(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getApiKey(args);
+    if (typeof token !== "string") return token;
     const projectId = String(args.project_id ?? "").trim();
     const key = String(args.key ?? "").trim();
     const value = args.value === undefined ? "" : String(args.value);
@@ -294,6 +300,7 @@ export async function createVercelEnv(args: Record<string, unknown>): Promise<un
 export async function deleteVercelEnv(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getApiKey(args);
+    if (typeof token !== "string") return token;
     const projectId = String(args.project_id ?? "").trim();
     const envId = String(args.env_id ?? "").trim();
     if (!projectId) return { error: "project_id is required." };
@@ -323,6 +330,7 @@ export async function deleteVercelEnv(args: Record<string, unknown>): Promise<un
 export async function createVercelDeployment(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getApiKey(args);
+    if (typeof token !== "string") return token;
     const teamParam: Record<string, string> = {};
     if (args.team_id) teamParam.teamId = String(args.team_id);
     const forceNew = args.force_new === true || args.force_new === "true";

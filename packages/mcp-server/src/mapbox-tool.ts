@@ -2,14 +2,14 @@
 // Uses Mapbox REST APIs via fetch - no external dependencies.
 // Users must supply an access token from account.mapbox.com.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const MB_BASE = "https://api.mapbox.com";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireToken(args: Record<string, unknown>): string {
-  const token = String(args.access_token ?? "").trim();
-  if (!token) throw new Error("access_token is required. Get one at account.mapbox.com.");
-  return token;
+function requireToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("mapbox", args);
 }
 
 const MAPBOX_TIMEOUT_MS = Number(process.env.MAPBOX_TIMEOUT_MS) || 10000;
@@ -46,6 +46,7 @@ async function mbFetch<T>(path: string, params: Record<string, string>): Promise
 
 export async function mapboxGeocodeForward(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const query = String(args.query ?? "").trim();
   if (!query) throw new Error("query is required (address or place name to geocode).");
 
@@ -70,6 +71,7 @@ export async function mapboxGeocodeForward(args: Record<string, unknown>): Promi
 
 export async function mapboxGeocodeReverse(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const lng = Number(args.longitude ?? args.lng ?? NaN);
   const lat = Number(args.latitude ?? args.lat ?? NaN);
   if (isNaN(lng) || isNaN(lat)) throw new Error("longitude and latitude are required.");
@@ -87,6 +89,7 @@ export async function mapboxGeocodeReverse(args: Record<string, unknown>): Promi
 
 export async function mapboxGetDirections(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const coordinates = String(args.coordinates ?? "").trim();
   if (!coordinates) throw new Error("coordinates is required (semicolon-separated lng,lat pairs e.g. -122.4194,37.7749;-118.2437,34.0522).");
   const profile = String(args.profile ?? "mapbox/driving");
@@ -105,6 +108,7 @@ export async function mapboxGetDirections(args: Record<string, unknown>): Promis
 
 export async function mapboxGetStaticMap(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const lng = Number(args.longitude ?? args.lng ?? NaN);
   const lat = Number(args.latitude ?? args.lat ?? NaN);
   const zoom = Number(args.zoom ?? 12);
@@ -121,6 +125,7 @@ export async function mapboxGetStaticMap(args: Record<string, unknown>): Promise
 
 export async function mapboxListTilesets(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const username = String(args.username ?? "").trim();
   if (!username) throw new Error("username is required (your Mapbox username).");
 

@@ -3,14 +3,14 @@
 // Auth: CARBONINTERFACE_API_KEY env or api_key arg (Bearer token).
 // Docs: https://docs.carboninterface.com/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const CI_BASE = "https://www.carboninterface.com/api/v1";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
-function getKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.CARBONINTERFACE_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set CARBONINTERFACE_API_KEY env).");
-  return key;
+function getKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("carboninterface", args);
 }
 
 const CARBONINTERFACE_TIMEOUT_MS = Number(process.env.CARBONINTERFACE_TIMEOUT_MS) || 10000;
@@ -68,6 +68,7 @@ export async function estimateFlightEmissions(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const apiKey = getKey(args);
+  if (typeof apiKey !== "string") return apiKey;
 
   // legs: array of { departure_airport, destination_airport, cabin_class? }
   const legs = args.legs;
@@ -116,6 +117,7 @@ export async function estimateVehicleEmissions(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const apiKey = getKey(args);
+  if (typeof apiKey !== "string") return apiKey;
 
   const distanceValue = Number(args.distance_value ?? args.distance ?? 0);
   const distanceUnit  = String(args.distance_unit ?? "km").toLowerCase();
@@ -159,6 +161,7 @@ export async function estimateElectricityEmissions(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const apiKey = getKey(args);
+  if (typeof apiKey !== "string") return apiKey;
 
   const electricityValue = Number(args.electricity_value ?? args.kwh ?? 0);
   const electricityUnit  = String(args.electricity_unit ?? "kwh").toLowerCase();

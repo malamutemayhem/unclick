@@ -3,6 +3,8 @@
 // Docs: https://www.last.fm/api
 // Env var: LASTFM_API_KEY
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const LASTFM_BASE = "https://ws.audioscrobbler.com/2.0";
 const LASTFM_TIMEOUT_MS = Number(process.env.LASTFM_TIMEOUT_MS) || 10000;
 
@@ -42,10 +44,8 @@ async function lastfmGet(
   return json;
 }
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.LASTFM_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set LASTFM_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("lastfm", args);
 }
 
 // ── Tool functions ─────────────────────────────────────────────────────────────
@@ -53,6 +53,7 @@ function getApiKey(args: Record<string, unknown>): string {
 export async function lastfmGetArtistInfo(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const artist = String(args.artist ?? "").trim();
     if (!artist) return { error: "artist is required." };
     const params: Record<string, string | number> = { artist };
@@ -67,6 +68,7 @@ export async function lastfmGetArtistInfo(args: Record<string, unknown>): Promis
 export async function lastfmSearchArtists(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { artist: query };
@@ -87,6 +89,7 @@ export async function lastfmSearchArtists(args: Record<string, unknown>): Promis
 export async function lastfmGetTopTracks(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const artist = String(args.artist ?? "").trim();
     if (!artist) return { error: "artist is required." };
     const params: Record<string, string | number> = { artist };
@@ -106,6 +109,7 @@ export async function lastfmGetTopTracks(args: Record<string, unknown>): Promise
 export async function lastfmGetSimilarArtists(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const artist = String(args.artist ?? "").trim();
     if (!artist) return { error: "artist is required." };
     const params: Record<string, string | number> = { artist };
@@ -124,6 +128,7 @@ export async function lastfmGetSimilarArtists(args: Record<string, unknown>): Pr
 export async function lastfmGetChartTopArtists(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string | number> = {};
     if (args.limit) params.limit = Number(args.limit);
     if (args.page)  params.page  = Number(args.page);
@@ -141,6 +146,7 @@ export async function lastfmGetChartTopArtists(args: Record<string, unknown>): P
 export async function lastfmGetChartTopTracks(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string | number> = {};
     if (args.limit) params.limit = Number(args.limit);
     if (args.page)  params.page  = Number(args.page);
@@ -158,6 +164,7 @@ export async function lastfmGetChartTopTracks(args: Record<string, unknown>): Pr
 export async function lastfmGetAlbumInfo(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const artist = String(args.artist ?? "").trim();
     const album  = String(args.album  ?? "").trim();
     if (!artist) return { error: "artist is required." };

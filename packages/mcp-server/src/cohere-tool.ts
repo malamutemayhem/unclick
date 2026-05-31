@@ -2,6 +2,8 @@
 // Uses the Cohere REST API via fetch - no external dependencies.
 // Users must supply an API key from dashboard.cohere.com.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const COHERE_API_BASE = "https://api.cohere.com/v1";
 
 // --- Types -------------------------------------------------------------------
@@ -61,10 +63,8 @@ interface CohereModel {
 
 // --- Auth validation ---------------------------------------------------------
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at dashboard.cohere.com.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("cohere", args);
 }
 
 // --- API helpers -------------------------------------------------------------
@@ -154,6 +154,7 @@ function parseJsonOrArray<T>(value: unknown, fieldName: string): T[] {
 export async function cohereChat(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const message = String(args.message ?? "").trim();
     if (!message) throw new Error("message is required.");
 
@@ -192,6 +193,7 @@ export async function cohereChat(args: Record<string, unknown>): Promise<unknown
 export async function cohereGenerate(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const prompt = String(args.prompt ?? "").trim();
     if (!prompt) throw new Error("prompt is required.");
 
@@ -223,6 +225,7 @@ export async function cohereGenerate(args: Record<string, unknown>): Promise<unk
 export async function cohereEmbed(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const texts = parseJsonOrArray<string>(args.texts, "texts");
     const model = String(args.model ?? "embed-english-v3.0");
     const input_type = String(args.input_type ?? "search_document");
@@ -248,6 +251,7 @@ export async function cohereEmbed(args: Record<string, unknown>): Promise<unknow
 export async function cohereRerank(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? "").trim();
     if (!query) throw new Error("query is required.");
 
@@ -275,6 +279,7 @@ export async function cohereRerank(args: Record<string, unknown>): Promise<unkno
 export async function cohereClassify(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const inputs = parseJsonOrArray<string>(args.inputs, "inputs");
     const examples = parseJsonOrArray<{ text: string; label: string }>(args.examples, "examples");
     const model = String(args.model ?? "embed-english-v2.0");
@@ -300,6 +305,7 @@ export async function cohereClassify(args: Record<string, unknown>): Promise<unk
 export async function cohereListModels(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const data = await cohereGet<{ models: CohereModel[] }>(apiKey, "/models");
     const models = data.models ?? [];
 

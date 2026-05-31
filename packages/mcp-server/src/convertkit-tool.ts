@@ -3,6 +3,9 @@
 // Users must supply an api_key (read ops) and/or api_secret (subscriber management)
 // from app.convertkit.com/account_settings/advanced_settings.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const CK_API_BASE = "https://api.convertkit.com/v3";
 
 // --- Types -------------------------------------------------------------------
@@ -64,15 +67,13 @@ interface CkSubscribeResponse {
 
 // --- Auth validation ---------------------------------------------------------
 
-function requireApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Find it at app.convertkit.com/account_settings/advanced_settings.");
-  return key;
+function requireApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("convertkit", args);
 }
 
-function requireApiSecret(args: Record<string, unknown>): string {
-  const secret = String(args.api_secret ?? "").trim();
-  if (!secret) throw new Error("api_secret is required for subscriber management. Find it at app.convertkit.com/account_settings/advanced_settings.");
+function requireApiSecret(args: Record<string, unknown>): string | NotConnectedResult {
+  const secret = String(args.api_secret ?? process.env.CONVERTKIT_API_SECRET ?? "").trim();
+  if (!secret) return requireCredential("convertkit", { ...args, api_key: "" });
   return secret;
 }
 
@@ -156,6 +157,7 @@ async function ckPost<T>(path: string, body: Record<string, unknown>): Promise<T
 export async function ckListSubscribers(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiSecret = requireApiSecret(args);
+    if (typeof apiSecret !== "string") return apiSecret;
 
     const params: Record<string, string | undefined> = { api_secret: apiSecret };
     if (args.page) params.page = String(args.page);
@@ -189,6 +191,7 @@ export async function ckListSubscribers(args: Record<string, unknown>): Promise<
 export async function ckAddSubscriber(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const formId = String(args.form_id ?? "").trim();
     if (!formId) throw new Error("form_id is required.");
     const email = String(args.email ?? "").trim();
@@ -219,6 +222,7 @@ export async function ckAddSubscriber(args: Record<string, unknown>): Promise<un
 export async function ckListForms(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const result = await ckGet<{ forms: CkForm[] }>("/forms", { api_key: apiKey });
     const forms = result.forms ?? [];
     return {
@@ -241,6 +245,7 @@ export async function ckListForms(args: Record<string, unknown>): Promise<unknow
 export async function ckListSequences(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const result = await ckGet<{ courses: CkSequence[] }>("/sequences", { api_key: apiKey });
     const sequences = result.courses ?? [];
     return {
@@ -261,6 +266,7 @@ export async function ckListSequences(args: Record<string, unknown>): Promise<un
 export async function ckListTags(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const result = await ckGet<{ tags: CkTag[] }>("/tags", { api_key: apiKey });
     const tags = result.tags ?? [];
     return {
@@ -279,6 +285,7 @@ export async function ckListTags(args: Record<string, unknown>): Promise<unknown
 export async function ckTagSubscriber(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const tagId = String(args.tag_id ?? "").trim();
     if (!tagId) throw new Error("tag_id is required.");
     const email = String(args.email ?? "").trim();

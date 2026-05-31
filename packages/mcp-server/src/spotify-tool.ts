@@ -2,6 +2,8 @@
 // Uses the Spotify Web API via fetch - no external dependencies.
 // Users must supply a Bearer token (access token) from Spotify OAuth.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const SPOTIFY_API_BASE = "https://api.spotify.com/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -125,16 +127,15 @@ async function spotifyGet<T>(token: string, path: string, params: Record<string,
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireToken(args: Record<string, unknown>): string {
-  const token = String(args.bearer_token ?? "").trim();
-  if (!token) throw new Error("bearer_token is required. Obtain one via Spotify OAuth at developer.spotify.com.");
-  return token;
+function requireToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("spotify", args);
 }
 
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function spotifySearch(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const q = String(args.query ?? "").trim();
   if (!q) throw new Error("query is required.");
   const type = String(args.type ?? "track");
@@ -217,6 +218,7 @@ export async function spotifySearch(args: Record<string, unknown>): Promise<unkn
 
 export async function spotifyGetTrack(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const trackId = String(args.track_id ?? "").trim();
   if (!trackId) throw new Error("track_id is required.");
 
@@ -245,6 +247,7 @@ export async function spotifyGetTrack(args: Record<string, unknown>): Promise<un
 
 export async function spotifyGetAlbum(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const albumId = String(args.album_id ?? "").trim();
   if (!albumId) throw new Error("album_id is required.");
 
@@ -272,6 +275,7 @@ export async function spotifyGetAlbum(args: Record<string, unknown>): Promise<un
 
 export async function spotifyGetArtist(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const artistId = String(args.artist_id ?? "").trim();
   if (!artistId) throw new Error("artist_id is required.");
 
@@ -289,6 +293,7 @@ export async function spotifyGetArtist(args: Record<string, unknown>): Promise<u
 
 export async function spotifyGetPlaylist(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const playlistId = String(args.playlist_id ?? "").trim();
   if (!playlistId) throw new Error("playlist_id is required.");
 
@@ -319,6 +324,7 @@ export async function spotifyGetPlaylist(args: Record<string, unknown>): Promise
 
 export async function spotifyGetRecommendations(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const limit = Math.min(100, Math.max(1, Number(args.limit ?? 20)));
 
   const params: Record<string, string> = { limit: String(limit) };
@@ -361,6 +367,7 @@ export async function spotifyGetRecommendations(args: Record<string, unknown>): 
 
 export async function spotifyGetAudioFeatures(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const trackId = String(args.track_id ?? "").trim();
   if (!trackId) throw new Error("track_id is required.");
 

@@ -2,14 +2,14 @@
 // Uses the Kling AI REST API via fetch - no external dependencies.
 // Users must supply an API key from klingai.com (access_key format or pre-generated JWT).
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const KLING_API_BASE = "https://api.klingai.com/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at klingai.com.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("kling", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -82,6 +82,7 @@ async function klingPost<T>(apiKey: string, path: string, body: unknown): Promis
 
 export async function kling_generate_video(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
 
@@ -120,6 +121,7 @@ export async function kling_generate_video(args: Record<string, unknown>): Promi
 
 export async function kling_get_task(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const taskId = String(args.task_id ?? "").trim();
   if (!taskId) throw new Error("task_id is required.");
 

@@ -3,6 +3,9 @@
 // Docs: https://platform.seatgeek.com/
 // Env var: SEATGEEK_CLIENT_ID
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const SEATGEEK_BASE = "https://api.seatgeek.com/2";
 
 const SEATGEEK_TIMEOUT_MS = Number(process.env.SEATGEEK_TIMEOUT_MS) || 15000;
@@ -40,10 +43,8 @@ async function seatgeekGet(
   return res.json() as Promise<Record<string, unknown>>;
 }
 
-function getClientId(args: Record<string, unknown>): string {
-  const id = String(args.client_id ?? process.env.SEATGEEK_CLIENT_ID ?? "").trim();
-  if (!id) throw new Error("client_id is required (or set SEATGEEK_CLIENT_ID env var).");
-  return id;
+function getClientId(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("seatgeek", args);
 }
 
 // ── Tool functions ─────────────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ function getClientId(args: Record<string, unknown>): string {
 export async function seatgeekSearchEvents(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
+    if (typeof clientId !== "string") return clientId;
     const params: Record<string, string | number> = {};
     if (args.query)          params.q              = String(args.query);
     if (args.venue_id)       params["venue.id"]    = String(args.venue_id);
@@ -74,6 +76,7 @@ export async function seatgeekSearchEvents(args: Record<string, unknown>): Promi
 export async function seatgeekGetEvent(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
+    if (typeof clientId !== "string") return clientId;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await seatgeekGet(clientId, `/events/${encodeURIComponent(id)}`);
@@ -86,6 +89,7 @@ export async function seatgeekGetEvent(args: Record<string, unknown>): Promise<u
 export async function seatgeekSearchPerformers(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
+    if (typeof clientId !== "string") return clientId;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { q: query };
@@ -104,6 +108,7 @@ export async function seatgeekSearchPerformers(args: Record<string, unknown>): P
 export async function seatgeekGetPerformer(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
+    if (typeof clientId !== "string") return clientId;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await seatgeekGet(clientId, `/performers/${encodeURIComponent(id)}`);
@@ -116,6 +121,7 @@ export async function seatgeekGetPerformer(args: Record<string, unknown>): Promi
 export async function seatgeekSearchVenues(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
+    if (typeof clientId !== "string") return clientId;
     const params: Record<string, string | number> = {};
     if (args.query)   params.q                = String(args.query);
     if (args.city)    params["venue.city"]    = String(args.city);
@@ -136,6 +142,7 @@ export async function seatgeekSearchVenues(args: Record<string, unknown>): Promi
 export async function seatgeekGetVenue(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
+    if (typeof clientId !== "string") return clientId;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await seatgeekGet(clientId, `/venues/${encodeURIComponent(id)}`);

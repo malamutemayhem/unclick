@@ -3,13 +3,13 @@
 // Auth: TOGGL_API_KEY (HTTP Basic, key as username, "api_token" as password)
 // Base: https://api.track.toggl.com/api/v9/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const TOGGL_BASE = "https://api.track.toggl.com/api/v9";
 const TOGGL_REPORTS_BASE = "https://api.track.toggl.com/reports/api/v3";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.TOGGL_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set TOGGL_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("toggl", args);
 }
 
 function basicAuth(apiKey: string): string {
@@ -96,6 +96,7 @@ async function togglPost(
 export async function getTogglTimeEntries(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string> = {};
     if (args.start_date) params.start_date = String(args.start_date);
     if (args.end_date) params.end_date = String(args.end_date);
@@ -125,6 +126,7 @@ export async function getTogglTimeEntries(args: Record<string, unknown>): Promis
 export async function createTimeEntryToggl(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const workspaceId = String(args.workspace_id ?? "").trim();
     if (!workspaceId) return { error: "workspace_id is required." };
     const start = String(args.start ?? "").trim();
@@ -164,6 +166,7 @@ export async function createTimeEntryToggl(args: Record<string, unknown>): Promi
 export async function getTogglProjects(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const workspaceId = String(args.workspace_id ?? "").trim();
     if (!workspaceId) return { error: "workspace_id is required." };
     const params: Record<string, string> = {};
@@ -193,6 +196,7 @@ export async function getTogglProjects(args: Record<string, unknown>): Promise<u
 export async function getTogglSummary(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const workspaceId = String(args.workspace_id ?? "").trim();
     if (!workspaceId) return { error: "workspace_id is required." };
     const startDate = String(args.start_date ?? "").trim();

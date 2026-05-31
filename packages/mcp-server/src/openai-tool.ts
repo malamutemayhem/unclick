@@ -2,6 +2,8 @@
 // Uses the OpenAI REST API via fetch - no external dependencies.
 // Users must supply an API key from platform.openai.com.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const OPENAI_API_BASE = "https://api.openai.com/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -140,10 +142,8 @@ function requireOpenAiSpendAllowed(operation: OpenAiToolOperation, model: string
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at platform.openai.com/api-keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("openai", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -226,6 +226,7 @@ async function openaiGet<T>(apiKey: string, path: string): Promise<T> {
 
 export async function openaiChatCompletion(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "gpt-4o-mini");
   const orgId = args.org_id ? String(args.org_id) : undefined;
   requireOpenAiSpendAllowed("chat", model, apiKey);
@@ -275,6 +276,7 @@ export async function openaiChatCompletion(args: Record<string, unknown>): Promi
 
 export async function openaiCreateEmbedding(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "text-embedding-3-small");
   const orgId = args.org_id ? String(args.org_id) : undefined;
   requireOpenAiSpendAllowed("embedding", model, apiKey);
@@ -305,6 +307,7 @@ export async function openaiCreateEmbedding(args: Record<string, unknown>): Prom
 
 export async function openaiGenerateImage(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
   const model = String(args.model ?? "dall-e-3");
@@ -331,6 +334,7 @@ export async function openaiGenerateImage(args: Record<string, unknown>): Promis
 
 export async function openaiCreateTranscription(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const audioUrl = String(args.audio_url ?? "").trim();
   if (!audioUrl) throw new Error("audio_url is required (URL of the audio file to transcribe).");
   const model = String(args.model ?? "whisper-1");
@@ -384,6 +388,7 @@ export async function openaiCreateTranscription(args: Record<string, unknown>): 
 
 export async function openaiListModels(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireOpenAiSpendAllowed("model-listing", "OpenAI /models", apiKey);
   const data = await openaiGet<{ data: OpenAiModel[] }>(apiKey, "/models");
 

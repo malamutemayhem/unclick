@@ -2,14 +2,14 @@
 // Uses the Higgsfield REST API via fetch - no external dependencies.
 // Users must supply an API key from higgsfield.ai.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const HF_API_BASE = "https://api.higgsfield.ai/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at higgsfield.ai.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("higgsfield", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -82,6 +82,7 @@ async function hfPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function higgsfield_generate_video(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
 
@@ -105,6 +106,7 @@ export async function higgsfield_generate_video(args: Record<string, unknown>): 
 
 export async function higgsfield_generate_image(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
 
@@ -128,6 +130,7 @@ export async function higgsfield_generate_image(args: Record<string, unknown>): 
 
 export async function higgsfield_get_styles(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await hfGet<{ styles?: unknown[]; data?: unknown[] }>(apiKey, "/styles");
 
   const styles = data.styles ?? data.data ?? [];
@@ -139,6 +142,7 @@ export async function higgsfield_get_styles(args: Record<string, unknown>): Prom
 
 export async function higgsfield_get_status(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const generationId = String(args.generation_id ?? "").trim();
   if (!generationId) throw new Error("generation_id is required.");
 

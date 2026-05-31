@@ -3,12 +3,12 @@
 // Auth: Token token=API_KEY (Authorization header)
 // Base: https://api.pagerduty.com
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const PD_API_BASE = "https://api.pagerduty.com";
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.pagerduty.com/api_keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("pagerduty", args);
 }
 
 async function pdGet<T>(apiKey: string, path: string, query?: Record<string, string>): Promise<T> {
@@ -118,6 +118,7 @@ async function pdPut<T>(apiKey: string, path: string, body: unknown): Promise<T>
 
 export async function pagerduty_list_incidents(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const query: Record<string, string> = {};
   if (args.status) query["statuses[]"] = String(args.status);
   if (args.limit) query.limit = String(args.limit);
@@ -134,6 +135,7 @@ export async function pagerduty_list_incidents(args: Record<string, unknown>): P
 
 export async function pagerduty_get_incident(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const id = String(args.incident_id ?? "").trim();
   if (!id) throw new Error("incident_id is required.");
   const data = await pdGet<{ incident: unknown }>(apiKey, `/incidents/${id}`);
@@ -142,6 +144,7 @@ export async function pagerduty_get_incident(args: Record<string, unknown>): Pro
 
 export async function pagerduty_create_incident(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const title = String(args.title ?? "").trim();
   const serviceId = String(args.service_id ?? "").trim();
   if (!title) throw new Error("title is required.");
@@ -202,6 +205,7 @@ export async function pagerduty_create_incident(args: Record<string, unknown>): 
 
 export async function pagerduty_acknowledge_incident(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const id = String(args.incident_id ?? "").trim();
   if (!id) throw new Error("incident_id is required.");
 
@@ -212,6 +216,7 @@ export async function pagerduty_acknowledge_incident(args: Record<string, unknow
 
 export async function pagerduty_resolve_incident(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const id = String(args.incident_id ?? "").trim();
   if (!id) throw new Error("incident_id is required.");
 
@@ -222,6 +227,7 @@ export async function pagerduty_resolve_incident(args: Record<string, unknown>):
 
 export async function pagerduty_list_services(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const query: Record<string, string> = {};
   if (args.query) query.query = String(args.query);
   if (args.limit) query.limit = String(args.limit);
@@ -236,6 +242,7 @@ export async function pagerduty_list_services(args: Record<string, unknown>): Pr
 
 export async function pagerduty_list_oncalls(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const query: Record<string, string> = {};
   if (args.schedule_ids) query["schedule_ids[]"] = String(args.schedule_ids);
   if (args.user_ids) query["user_ids[]"] = String(args.user_ids);

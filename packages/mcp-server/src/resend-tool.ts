@@ -3,12 +3,12 @@
 // Auth: RESEND_API_KEY (Bearer token)
 // Base: https://api.resend.com/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const RESEND_BASE = "https://api.resend.com";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.RESEND_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set RESEND_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("resend", args);
 }
 
 const RESEND_TIMEOUT_MS = Number(process.env.RESEND_TIMEOUT_MS) || 15000;
@@ -88,6 +88,7 @@ async function resendPost(
 export async function sendEmailResend(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const from = String(args.from ?? "").trim();
     const to = args.to;
     const subject = String(args.subject ?? "").trim();
@@ -118,6 +119,7 @@ export async function sendEmailResend(args: Record<string, unknown>): Promise<un
 export async function getEmailResend(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await resendGet(apiKey, `/emails/${id}`);
@@ -138,6 +140,7 @@ export async function getEmailResend(args: Record<string, unknown>): Promise<unk
 export async function listDomainsResend(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const data = await resendGet(apiKey, "/domains");
     const domains = (data.data as Array<Record<string, unknown>>) ?? [];
     return {

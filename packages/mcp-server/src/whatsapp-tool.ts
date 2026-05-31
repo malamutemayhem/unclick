@@ -2,6 +2,9 @@
 // Uses the WhatsApp Cloud API via fetch - no external dependencies.
 // Users must supply a Bearer token and phone number ID from Meta for Developers.
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const WA_API_BASE = "https://graph.facebook.com/v19.0";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -23,11 +26,10 @@ interface WaMediaResponse {
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireAuth(args: Record<string, unknown>): { token: string; phoneNumberId: string } {
-  const token = String(args.bearer_token ?? "").trim();
-  const phoneNumberId = String(args.phone_number_id ?? "").trim();
-  if (!token) throw new Error("bearer_token is required. Get it from Meta for Developers.");
-  if (!phoneNumberId) throw new Error("phone_number_id is required. Find it in your Meta Business account.");
+function requireAuth(args: Record<string, unknown>): { token: string; phoneNumberId: string } | NotConnectedResult {
+  const token = String(args.bearer_token ?? process.env.WHATSAPP_BEARER_TOKEN ?? "").trim();
+  const phoneNumberId = String(args.phone_number_id ?? process.env.WHATSAPP_PHONE_NUMBER_ID ?? "").trim();
+  if (!token || !phoneNumberId) return notConnectedFor("whatsapp");
   return { token, phoneNumberId };
 }
 
@@ -100,7 +102,9 @@ async function waGet<T>(token: string, path: string): Promise<T> {
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function whatsappSendText(args: Record<string, unknown>): Promise<unknown> {
-  const { token, phoneNumberId } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { token, phoneNumberId } = _auth;
   const to = String(args.to ?? "").trim();
   const body = String(args.body ?? "").trim();
   if (!to) throw new Error("to is required (recipient phone number in E.164 format).");
@@ -124,7 +128,9 @@ export async function whatsappSendText(args: Record<string, unknown>): Promise<u
 }
 
 export async function whatsappSendTemplate(args: Record<string, unknown>): Promise<unknown> {
-  const { token, phoneNumberId } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { token, phoneNumberId } = _auth;
   const to = String(args.to ?? "").trim();
   const templateName = String(args.template_name ?? "").trim();
   const language = String(args.language ?? "en_US").trim();
@@ -163,7 +169,9 @@ export async function whatsappSendTemplate(args: Record<string, unknown>): Promi
 }
 
 export async function whatsappSendMedia(args: Record<string, unknown>): Promise<unknown> {
-  const { token, phoneNumberId } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { token, phoneNumberId } = _auth;
   const to = String(args.to ?? "").trim();
   const mediaType = String(args.media_type ?? "").toLowerCase().trim();
   if (!to) throw new Error("to is required.");
@@ -221,7 +229,9 @@ export async function whatsappGetMedia(args: Record<string, unknown>): Promise<u
 }
 
 export async function whatsappUploadMedia(args: Record<string, unknown>): Promise<unknown> {
-  const { token, phoneNumberId } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { token, phoneNumberId } = _auth;
   const mediaUrl = String(args.media_url ?? "").trim();
   const mimeType = String(args.mime_type ?? "").trim();
   if (!mediaUrl) throw new Error("media_url is required (URL to fetch the media from).");

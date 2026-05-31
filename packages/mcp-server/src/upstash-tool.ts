@@ -3,6 +3,9 @@
 // Auth: Basic auth (email:api_key base64 encoded).
 // Users must supply credentials from console.upstash.com.
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const UPSTASH_API_BASE = "https://api.upstash.com/v2";
 
 // ── Auth helper ───────────────────────────────────────────────────────────────
@@ -13,11 +16,10 @@ function buildBasicAuth(email: string, apiKey: string): string {
   return `Basic ${Buffer.from(credentials).toString("base64")}`;
 }
 
-function requireAuth(args: Record<string, unknown>): { email: string; apiKey: string } {
+function requireAuth(args: Record<string, unknown>): { email: string; apiKey: string } | NotConnectedResult {
   const apiKey = String(args.api_key ?? process.env.UPSTASH_API_KEY ?? "").trim();
-  if (!apiKey) throw new Error("api_key is required. Get one at console.upstash.com.");
   const email = String(args.email ?? process.env.UPSTASH_EMAIL ?? "").trim();
-  if (!email) throw new Error("email is required (your Upstash account email).");
+  if (!apiKey || !email) return notConnectedFor("upstash");
   return { email, apiKey };
 }
 
@@ -77,7 +79,9 @@ async function upstashFetch(
 
 export async function upstashRedisGet(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { email, apiKey } = requireAuth(args);
+    const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { email, apiKey } = _auth;
     const dbId = String(args.db_id ?? "").trim();
     if (!dbId) return { error: "db_id is required." };
     const key = String(args.key ?? "").trim();
@@ -92,7 +96,9 @@ export async function upstashRedisGet(args: Record<string, unknown>): Promise<un
 
 export async function upstashRedisSet(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { email, apiKey } = requireAuth(args);
+    const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { email, apiKey } = _auth;
     const dbId = String(args.db_id ?? "").trim();
     if (!dbId) return { error: "db_id is required." };
     const key = String(args.key ?? "").trim();
@@ -112,7 +118,9 @@ export async function upstashRedisSet(args: Record<string, unknown>): Promise<un
 
 export async function upstashRedisDel(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { email, apiKey } = requireAuth(args);
+    const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { email, apiKey } = _auth;
     const dbId = String(args.db_id ?? "").trim();
     if (!dbId) return { error: "db_id is required." };
     const key = String(args.key ?? "").trim();
@@ -127,7 +135,9 @@ export async function upstashRedisDel(args: Record<string, unknown>): Promise<un
 
 export async function upstashRedisListKeys(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { email, apiKey } = requireAuth(args);
+    const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { email, apiKey } = _auth;
     const dbId = String(args.db_id ?? "").trim();
     if (!dbId) return { error: "db_id is required." };
     const pattern = String(args.pattern ?? "*");
@@ -141,7 +151,9 @@ export async function upstashRedisListKeys(args: Record<string, unknown>): Promi
 
 export async function upstashRedisIncr(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { email, apiKey } = requireAuth(args);
+    const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { email, apiKey } = _auth;
     const dbId = String(args.db_id ?? "").trim();
     if (!dbId) return { error: "db_id is required." };
     const key = String(args.key ?? "").trim();
@@ -158,7 +170,9 @@ export async function upstashRedisIncr(args: Record<string, unknown>): Promise<u
 
 export async function upstashKafkaProduce(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { email, apiKey } = requireAuth(args);
+    const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { email, apiKey } = _auth;
     const clusterId = String(args.cluster_id ?? "").trim();
     if (!clusterId) return { error: "cluster_id is required." };
     const topic = String(args.topic ?? "").trim();
@@ -184,7 +198,9 @@ export async function upstashKafkaProduce(args: Record<string, unknown>): Promis
 
 export async function upstashKafkaListTopics(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { email, apiKey } = requireAuth(args);
+    const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { email, apiKey } = _auth;
     const clusterId = String(args.cluster_id ?? "").trim();
     if (!clusterId) return { error: "cluster_id is required." };
 

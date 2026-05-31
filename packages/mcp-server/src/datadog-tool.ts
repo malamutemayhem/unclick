@@ -2,15 +2,17 @@
 // Uses the Datadog REST API via fetch - no external dependencies.
 // Users must supply DD-API-KEY and DD-APPLICATION-KEY from app.datadoghq.com.
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const DD_BASE = "https://api.datadoghq.com/api/v1";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKeys(args: Record<string, unknown>): { apiKey: string; appKey: string } {
-  const apiKey = String(args.api_key ?? "").trim();
-  const appKey = String(args.app_key ?? "").trim();
-  if (!apiKey) throw new Error("api_key is required (DD-API-KEY from app.datadoghq.com/organization-settings/api-keys).");
-  if (!appKey) throw new Error("app_key is required (DD-APPLICATION-KEY from app.datadoghq.com/organization-settings/application-keys).");
+function requireKeys(args: Record<string, unknown>): { apiKey: string; appKey: string } | NotConnectedResult {
+  const apiKey = String(args.api_key ?? process.env.DD_API_KEY ?? "").trim();
+  const appKey = String(args.app_key ?? process.env.DD_APP_KEY ?? "").trim();
+  if (!apiKey || !appKey) return notConnectedFor("datadog");
   return { apiKey, appKey };
 }
 
@@ -79,7 +81,9 @@ async function ddPost<T>(apiKey: string, appKey: string, path: string, body: unk
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function datadogListMonitors(args: Record<string, unknown>): Promise<unknown> {
-  const { apiKey, appKey } = requireKeys(args);
+  const _keys = requireKeys(args);
+  if ("not_connected" in _keys) return _keys;
+  const { apiKey, appKey } = _keys;
   const params: Record<string, string> = {};
   if (args.name) params.name = String(args.name);
   if (args.tags) params.monitor_tags = String(args.tags);
@@ -90,14 +94,18 @@ export async function datadogListMonitors(args: Record<string, unknown>): Promis
 }
 
 export async function datadogGetMonitor(args: Record<string, unknown>): Promise<unknown> {
-  const { apiKey, appKey } = requireKeys(args);
+  const _keys = requireKeys(args);
+  if ("not_connected" in _keys) return _keys;
+  const { apiKey, appKey } = _keys;
   const id = String(args.monitor_id ?? "").trim();
   if (!id) throw new Error("monitor_id is required.");
   return ddGet(apiKey, appKey, `/monitor/${encodeURIComponent(id)}`);
 }
 
 export async function datadogCreateMonitor(args: Record<string, unknown>): Promise<unknown> {
-  const { apiKey, appKey } = requireKeys(args);
+  const _keys = requireKeys(args);
+  if ("not_connected" in _keys) return _keys;
+  const { apiKey, appKey } = _keys;
   const type = String(args.type ?? "metric alert");
   const query = String(args.query ?? "").trim();
   const name  = String(args.name ?? "").trim();
@@ -114,7 +122,9 @@ export async function datadogCreateMonitor(args: Record<string, unknown>): Promi
 }
 
 export async function datadogListDashboards(args: Record<string, unknown>): Promise<unknown> {
-  const { apiKey, appKey } = requireKeys(args);
+  const _keys = requireKeys(args);
+  if ("not_connected" in _keys) return _keys;
+  const { apiKey, appKey } = _keys;
   const params: Record<string, string> = {};
   if (args.filter_shared !== undefined) params.filter_shared = String(args.filter_shared);
   const data = await ddGet<{ dashboards: unknown[] }>(apiKey, appKey, "/dashboard", params);
@@ -122,7 +132,9 @@ export async function datadogListDashboards(args: Record<string, unknown>): Prom
 }
 
 export async function datadogQueryMetrics(args: Record<string, unknown>): Promise<unknown> {
-  const { apiKey, appKey } = requireKeys(args);
+  const _keys = requireKeys(args);
+  if ("not_connected" in _keys) return _keys;
+  const { apiKey, appKey } = _keys;
   const query = String(args.query ?? "").trim();
   if (!query) throw new Error("query is required (Datadog metric query e.g. avg:system.cpu.user{*}).");
 
@@ -134,7 +146,9 @@ export async function datadogQueryMetrics(args: Record<string, unknown>): Promis
 }
 
 export async function datadogListEvents(args: Record<string, unknown>): Promise<unknown> {
-  const { apiKey, appKey } = requireKeys(args);
+  const _keys = requireKeys(args);
+  if ("not_connected" in _keys) return _keys;
+  const { apiKey, appKey } = _keys;
   const now   = Math.floor(Date.now() / 1000);
   const start = Number(args.start ?? (now - 3600));
   const end   = Number(args.end ?? now);

@@ -3,12 +3,12 @@
 // Auth: Bearer token
 // Base: https://api.together.xyz/v1
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const TOGETHER_API_BASE = "https://api.together.xyz/v1";
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at api.together.ai/settings/api-keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("togetherai", args);
 }
 
 const TOGETHER_TIMEOUT_MS = Number(process.env.TOGETHERAI_TIMEOUT_MS) || 60000;
@@ -87,6 +87,7 @@ async function togetherGet<T>(apiKey: string, path: string): Promise<T> {
 
 export async function togetherai_chat_completion(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "meta-llama/Llama-3-8b-chat-hf").trim();
   const messages = args.messages;
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -115,6 +116,7 @@ export async function togetherai_chat_completion(args: Record<string, unknown>):
 
 export async function togetherai_completion(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "mistralai/Mistral-7B-v0.1").trim();
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
@@ -139,6 +141,7 @@ export async function togetherai_completion(args: Record<string, unknown>): Prom
 
 export async function togetherai_create_embedding(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "togethercomputer/m2-bert-80M-8k-retrieval").trim();
   const input = args.input;
   if (!input) throw new Error("input is required (string or array of strings).");
@@ -155,6 +158,7 @@ export async function togetherai_create_embedding(args: Record<string, unknown>)
 
 export async function togetherai_list_models(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await togetherGet<unknown[]>(apiKey, "/models");
   const models = Array.isArray(data) ? data : [];
   return {

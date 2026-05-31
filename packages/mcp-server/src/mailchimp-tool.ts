@@ -2,11 +2,14 @@
 // Uses the Mailchimp REST API via fetch - no external dependencies.
 // Users must supply an API key from mailchimp.com (format: key-dc e.g. abc123-us21).
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): { key: string; dc: string } {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at mailchimp.com/account/api-keys. Format: key-dc (e.g. abc123-us21).");
+function requireKey(args: Record<string, unknown>): { key: string; dc: string } | NotConnectedResult {
+  const key = String(args.api_key ?? process.env.MAILCHIMP_API_KEY ?? "").trim();
+  if (!key) return notConnectedFor("mailchimp");
   const dc = key.split("-").pop() ?? "";
   if (!dc || dc === key) throw new Error("api_key must include the datacenter suffix (e.g. abc123-us21).");
   return { key, dc };
@@ -89,14 +92,18 @@ async function mcPost<T>(key: string, dc: string, path: string, body: unknown): 
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function mailchimpListAudiences(args: Record<string, unknown>): Promise<unknown> {
-  const { key, dc } = requireKey(args);
+  const _creds = requireKey(args);
+  if (!("key" in _creds)) return _creds;
+  const { key, dc } = _creds;
   const count = String(Math.min(1000, Math.max(1, Number(args.count ?? 10))));
   const data = await mcGet<{ lists: unknown[]; total_items: number }>(key, dc, "/lists", { count, fields: "lists.id,lists.name,lists.stats,lists.status,total_items" });
   return { total: data.total_items, audiences: data.lists };
 }
 
 export async function mailchimpListCampaigns(args: Record<string, unknown>): Promise<unknown> {
-  const { key, dc } = requireKey(args);
+  const _creds = requireKey(args);
+  if (!("key" in _creds)) return _creds;
+  const { key, dc } = _creds;
   const count = String(Math.min(1000, Math.max(1, Number(args.count ?? 10))));
   const params: Record<string, string> = { count };
   if (args.status) params.status = String(args.status);
@@ -106,14 +113,18 @@ export async function mailchimpListCampaigns(args: Record<string, unknown>): Pro
 }
 
 export async function mailchimpGetCampaign(args: Record<string, unknown>): Promise<unknown> {
-  const { key, dc } = requireKey(args);
+  const _creds = requireKey(args);
+  if (!("key" in _creds)) return _creds;
+  const { key, dc } = _creds;
   const id = String(args.campaign_id ?? "").trim();
   if (!id) throw new Error("campaign_id is required.");
   return mcGet(key, dc, `/campaigns/${encodeURIComponent(id)}`);
 }
 
 export async function mailchimpCreateCampaign(args: Record<string, unknown>): Promise<unknown> {
-  const { key, dc } = requireKey(args);
+  const _creds = requireKey(args);
+  if (!("key" in _creds)) return _creds;
+  const { key, dc } = _creds;
   const type = String(args.type ?? "regular");
   const listId = String(args.list_id ?? "").trim();
   if (!listId) throw new Error("list_id is required.");
@@ -133,7 +144,9 @@ export async function mailchimpCreateCampaign(args: Record<string, unknown>): Pr
 }
 
 export async function mailchimpListMembers(args: Record<string, unknown>): Promise<unknown> {
-  const { key, dc } = requireKey(args);
+  const _creds = requireKey(args);
+  if (!("key" in _creds)) return _creds;
+  const { key, dc } = _creds;
   const listId = String(args.list_id ?? "").trim();
   if (!listId) throw new Error("list_id is required.");
   const count = String(Math.min(1000, Math.max(1, Number(args.count ?? 10))));
@@ -144,7 +157,9 @@ export async function mailchimpListMembers(args: Record<string, unknown>): Promi
 }
 
 export async function mailchimpAddMember(args: Record<string, unknown>): Promise<unknown> {
-  const { key, dc } = requireKey(args);
+  const _creds = requireKey(args);
+  if (!("key" in _creds)) return _creds;
+  const { key, dc } = _creds;
   const listId = String(args.list_id ?? "").trim();
   const email = String(args.email ?? "").trim();
   if (!listId) throw new Error("list_id is required.");
@@ -164,7 +179,9 @@ export async function mailchimpAddMember(args: Record<string, unknown>): Promise
 }
 
 export async function mailchimpSearchMembers(args: Record<string, unknown>): Promise<unknown> {
-  const { key, dc } = requireKey(args);
+  const _creds = requireKey(args);
+  if (!("key" in _creds)) return _creds;
+  const { key, dc } = _creds;
   const query = String(args.query ?? "").trim();
   if (!query) throw new Error("query is required.");
   const params: Record<string, string> = { query };

@@ -2,6 +2,9 @@
 // Uses the Twilio REST API via fetch - no external dependencies.
 // Users must supply their Account SID and Auth Token from the Twilio Console.
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const TWILIO_API_BASE = "https://api.twilio.com/2010-04-01";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -58,11 +61,10 @@ interface TwilioVerifyCheckResponse {
 
 // ─── Auth helper ──────────────────────────────────────────────────────────────
 
-function requireAuth(args: Record<string, unknown>): { accountSid: string; authToken: string } {
-  const accountSid = String(args.account_sid ?? "").trim();
-  const authToken = String(args.auth_token ?? "").trim();
-  if (!accountSid) throw new Error("account_sid is required. Find it at console.twilio.com.");
-  if (!authToken) throw new Error("auth_token is required. Find it at console.twilio.com.");
+function requireAuth(args: Record<string, unknown>): { accountSid: string; authToken: string } | NotConnectedResult {
+  const accountSid = String(args.account_sid ?? process.env.TWILIO_ACCOUNT_SID ?? "").trim();
+  const authToken = String(args.auth_token ?? process.env.TWILIO_AUTH_TOKEN ?? "").trim();
+  if (!accountSid || !authToken) return notConnectedFor("twilio");
   return { accountSid, authToken };
 }
 
@@ -193,7 +195,9 @@ async function twilioVerifyPost<T>(
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function twilioSendSms(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const to = String(args.to ?? "").trim();
   const from = String(args.from ?? "").trim();
   const body = String(args.body ?? "").trim();
@@ -217,7 +221,9 @@ export async function twilioSendSms(args: Record<string, unknown>): Promise<unkn
 }
 
 export async function twilioListMessages(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const query: Record<string, string> = {};
   if (args.to) query.To = String(args.to);
   if (args.from) query.From = String(args.from);
@@ -245,7 +251,9 @@ export async function twilioListMessages(args: Record<string, unknown>): Promise
 }
 
 export async function twilioGetMessage(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const messageSid = String(args.message_sid ?? "").trim();
   if (!messageSid) throw new Error("message_sid is required.");
 
@@ -267,7 +275,9 @@ export async function twilioGetMessage(args: Record<string, unknown>): Promise<u
 }
 
 export async function twilioMakeCall(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const to = String(args.to ?? "").trim();
   const from = String(args.from ?? "").trim();
   const twiml = String(args.twiml ?? "").trim();
@@ -293,7 +303,9 @@ export async function twilioMakeCall(args: Record<string, unknown>): Promise<unk
 }
 
 export async function twilioListCalls(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const query: Record<string, string> = {};
   if (args.to) query.To = String(args.to);
   if (args.from) query.From = String(args.from);
@@ -321,7 +333,9 @@ export async function twilioListCalls(args: Record<string, unknown>): Promise<un
 }
 
 export async function twilioSendVerify(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const serviceSid = String(args.service_sid ?? "").trim();
   const to = String(args.to ?? "").trim();
   const channel = String(args.channel ?? "sms").toLowerCase();
@@ -348,7 +362,9 @@ export async function twilioSendVerify(args: Record<string, unknown>): Promise<u
 }
 
 export async function twilioCheckVerify(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const serviceSid = String(args.service_sid ?? "").trim();
   const to = String(args.to ?? "").trim();
   const code = String(args.code ?? "").trim();

@@ -2,11 +2,14 @@
 // Uses the DeepL REST API via fetch - no external dependencies.
 // Users must supply an auth key from deepl.com. Free keys end with :fx.
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): { key: string; base: string } {
-  const key = String(args.auth_key ?? "").trim();
-  if (!key) throw new Error("auth_key is required. Get one at deepl.com/pro-api. Free keys end with :fx.");
+function requireKey(args: Record<string, unknown>): { key: string; base: string } | NotConnectedResult {
+  const key = String(args.auth_key ?? process.env.DEEPL_AUTH_KEY ?? "").trim();
+  if (!key) return notConnectedFor("deepl");
   // Free tier uses api-free.deepl.com, paid uses api.deepl.com
   const base = key.endsWith(":fx") ? "https://api-free.deepl.com/v2" : "https://api.deepl.com/v2";
   return { key, base };
@@ -85,7 +88,9 @@ async function dlGet<T>(key: string, base: string, path: string): Promise<T> {
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function deeplTranslateText(args: Record<string, unknown>): Promise<unknown> {
-  const { key, base } = requireKey(args);
+  const _creds = requireKey(args);
+  if (typeof _creds !== "object" || "not_connected" in _creds) return _creds as NotConnectedResult;
+  const { key, base } = _creds;
   const targetLang = String(args.target_lang ?? "").trim().toUpperCase();
   if (!targetLang) throw new Error("target_lang is required (e.g. EN-US, DE, FR, JA).");
 
@@ -119,12 +124,16 @@ export async function deeplTranslateText(args: Record<string, unknown>): Promise
 }
 
 export async function deeplGetUsage(args: Record<string, unknown>): Promise<unknown> {
-  const { key, base } = requireKey(args);
+  const _creds = requireKey(args);
+  if (typeof _creds !== "object" || "not_connected" in _creds) return _creds as NotConnectedResult;
+  const { key, base } = _creds;
   return dlGet(key, base, "/usage");
 }
 
 export async function deeplListLanguages(args: Record<string, unknown>): Promise<unknown> {
-  const { key, base } = requireKey(args);
+  const _creds = requireKey(args);
+  if (typeof _creds !== "object" || "not_connected" in _creds) return _creds as NotConnectedResult;
+  const { key, base } = _creds;
   const type = String(args.type ?? "target");
   const res = await fetch(`${base}/languages?type=${encodeURIComponent(type)}`, {
     headers: { "DeepL-Auth-Key": key },
@@ -135,7 +144,9 @@ export async function deeplListLanguages(args: Record<string, unknown>): Promise
 }
 
 export async function deeplTranslateDocument(args: Record<string, unknown>): Promise<unknown> {
-  const { key, base } = requireKey(args);
+  const _creds = requireKey(args);
+  if (typeof _creds !== "object" || "not_connected" in _creds) return _creds as NotConnectedResult;
+  const { key, base } = _creds;
   const documentUrl = String(args.document_url ?? "").trim();
   const targetLang  = String(args.target_lang ?? "").trim().toUpperCase();
   if (!documentUrl) throw new Error("document_url is required (publicly accessible URL of the document to translate).");

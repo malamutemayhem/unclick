@@ -27,6 +27,7 @@ describe("coinmarketcap connector resilience (L2)", () => {
   });
 
   it("validates input before any network call", async () => {
+    vi.stubEnv("COINMARKETCAP_API_KEY", "k");
     await expect(cmcQuotes({})).rejects.toThrow(/symbol or id is required/i);
   });
 

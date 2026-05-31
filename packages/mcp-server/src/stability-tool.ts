@@ -2,6 +2,8 @@
 // Uses the Stability AI REST API via fetch - no external dependencies.
 // Users must supply an API key from platform.stability.ai.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const STABILITY_API_BASE = "https://api.stability.ai";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -108,10 +110,8 @@ function requireStabilitySpendAllowed(operation: StabilityToolOperation, model: 
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at platform.stability.ai.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("stability", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -229,6 +229,7 @@ async function stabilityPostMultipart<T>(
 
 export async function stabilityTextToImage(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
   const engineId = String(args.engine_id ?? "stable-diffusion-xl-1024-v1-0");
@@ -275,6 +276,7 @@ export async function stabilityTextToImage(args: Record<string, unknown>): Promi
 
 export async function stabilityImageToImage(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   const imageUrl = String(args.image_url ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
@@ -325,6 +327,7 @@ export async function stabilityImageToImage(args: Record<string, unknown>): Prom
 
 export async function stabilityUpscale(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const imageUrl = String(args.image_url ?? "").trim();
   if (!imageUrl) throw new Error("image_url is required (URL of the image to upscale).");
   const width = Number(args.width ?? 2048);
@@ -358,6 +361,7 @@ export async function stabilityUpscale(args: Record<string, unknown>): Promise<u
 
 export async function stabilityListEngines(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireStabilitySpendAllowed("engine-listing", "Stability AI /v1/engines/list", apiKey);
   const engines = await stabilityGet<StabilityEngine[]>(apiKey, "/v1/engines/list");
 

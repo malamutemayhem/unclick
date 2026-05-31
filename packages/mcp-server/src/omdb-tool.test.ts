@@ -38,6 +38,7 @@ describe("omdb connector resilience (L2)", () => {
   });
 
   it("validates input before any network call", async () => {
+    vi.stubEnv("OMDB_API_KEY", "testkey");
     await expect(omdbSearch({})).rejects.toThrow(/search query.*required/i);
   });
 

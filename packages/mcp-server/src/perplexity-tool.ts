@@ -2,6 +2,8 @@
 // Uses the Perplexity REST API via fetch - no external dependencies.
 // Users must supply an API key from www.perplexity.ai/settings/api.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const PERPLEXITY_API_BASE = "https://api.perplexity.ai";
 
 // --- Types -------------------------------------------------------------------
@@ -99,10 +101,8 @@ function requirePerplexitySpendAllowed(operation: PerplexityToolOperation, model
 
 // --- Auth validation ---------------------------------------------------------
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at www.perplexity.ai/settings/api.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("perplexity", args);
 }
 
 // --- API helpers -------------------------------------------------------------
@@ -150,6 +150,7 @@ async function perplexityPost<T>(apiKey: string, path: string, body: unknown): P
 export async function perplexityChatCompletion(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const model = String(args.model ?? "sonar");
     requirePerplexitySpendAllowed("chat-completion", model, apiKey);
 

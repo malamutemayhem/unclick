@@ -3,12 +3,12 @@
 // Auth: PINTEREST_ACCESS_TOKEN (Bearer)
 // Base: https://api.pinterest.com/v5
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const PINTEREST_BASE = "https://api.pinterest.com/v5";
 
-function getToken(args: Record<string, unknown>): string {
-  const token = String(args.access_token ?? process.env.PINTEREST_ACCESS_TOKEN ?? "").trim();
-  if (!token) throw new Error("access_token is required (or set PINTEREST_ACCESS_TOKEN env var).");
-  return token;
+function getToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("pinterest", args);
 }
 
 async function pinterestGet(
@@ -94,6 +94,7 @@ async function pinterestPost(
 export async function listPinterestBoards(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getToken(args);
+    if (typeof token !== "string") return token;
     const params: Record<string, string> = {};
     if (args.page_size) params.page_size = String(args.page_size);
     if (args.bookmark) params.bookmark = String(args.bookmark);
@@ -124,6 +125,7 @@ export async function listPinterestBoards(args: Record<string, unknown>): Promis
 export async function getPinterestBoard(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getToken(args);
+    if (typeof token !== "string") return token;
     const boardId = String(args.board_id ?? "").trim();
     if (!boardId) return { error: "board_id is required." };
     return pinterestGet(token, `/boards/${boardId}`);
@@ -136,6 +138,7 @@ export async function getPinterestBoard(args: Record<string, unknown>): Promise<
 export async function listPinterestPins(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getToken(args);
+    if (typeof token !== "string") return token;
     const boardId = String(args.board_id ?? "").trim();
     if (!boardId) return { error: "board_id is required." };
     const params: Record<string, string> = {};
@@ -167,6 +170,7 @@ export async function listPinterestPins(args: Record<string, unknown>): Promise<
 export async function createPinterestPin(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getToken(args);
+    if (typeof token !== "string") return token;
     const boardId = String(args.board_id ?? "").trim();
     if (!boardId) return { error: "board_id is required." };
     const mediaSourceUrl = String(args.media_source_url ?? "").trim();
@@ -191,6 +195,7 @@ export async function createPinterestPin(args: Record<string, unknown>): Promise
 export async function searchPinterestPins(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getToken(args);
+    if (typeof token !== "string") return token;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string> = { query };
@@ -220,6 +225,7 @@ export async function searchPinterestPins(args: Record<string, unknown>): Promis
 export async function getPinterestUser(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getToken(args);
+    if (typeof token !== "string") return token;
     const json = await pinterestGet(token, "/user_account") as Record<string, unknown>;
     return {
       username: json.username,

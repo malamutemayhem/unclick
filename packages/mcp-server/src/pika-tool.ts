@@ -2,14 +2,14 @@
 // Uses the Pika REST API via fetch - no external dependencies.
 // Users must supply an API key from pika.art.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const PIKA_API_BASE = "https://api.pika.art/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at pika.art.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("pika", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -82,6 +82,7 @@ async function pikaPost<T>(apiKey: string, path: string, body: unknown): Promise
 
 export async function pika_generate_video(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
 
@@ -108,6 +109,7 @@ export async function pika_generate_video(args: Record<string, unknown>): Promis
 
 export async function pika_get_generation(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const generationId = String(args.generation_id ?? "").trim();
   if (!generationId) throw new Error("generation_id is required.");
 
@@ -129,6 +131,7 @@ export async function pika_get_generation(args: Record<string, unknown>): Promis
 
 export async function pika_list_styles(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await pikaGet<{ styles?: unknown[]; data?: unknown[] } & Record<string, unknown>>(
     apiKey, "/styles"
   );

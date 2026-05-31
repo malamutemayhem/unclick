@@ -2,14 +2,14 @@
 // Uses the Pinecone REST API via fetch - no external dependencies.
 // Users must supply an API key from app.pinecone.io.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const PINE_BASE = "https://api.pinecone.io";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.pinecone.io.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("pinecone", args);
 }
 
 async function pineGet<T>(apiKey: string, path: string): Promise<T> {
@@ -102,6 +102,7 @@ async function pineDel<T>(apiKey: string, path: string, body?: unknown, baseUrl?
 
 export async function pineconeListIndexes(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await pineGet<{ indexes?: Array<{ name: string; dimension: number; metric: string; status: unknown; host: string }> }>(apiKey, "/indexes");
   const indexes = data.indexes ?? [];
   return { count: indexes.length, indexes };
@@ -109,6 +110,7 @@ export async function pineconeListIndexes(args: Record<string, unknown>): Promis
 
 export async function pineconeDescribeIndex(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const name = String(args.index_name ?? "").trim();
   if (!name) throw new Error("index_name is required.");
   return pineGet(apiKey, `/indexes/${encodeURIComponent(name)}`);
@@ -116,6 +118,7 @@ export async function pineconeDescribeIndex(args: Record<string, unknown>): Prom
 
 export async function pineconeQueryVectors(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const indexHost = String(args.index_host ?? "").trim();
   if (!indexHost) throw new Error("index_host is required (the full host URL from describe_index, e.g. https://my-index-xxx.svc.pinecone.io).");
 
@@ -144,6 +147,7 @@ export async function pineconeQueryVectors(args: Record<string, unknown>): Promi
 
 export async function pineconeUpsertVectors(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const indexHost = String(args.index_host ?? "").trim();
   if (!indexHost) throw new Error("index_host is required.");
 
@@ -166,6 +170,7 @@ export async function pineconeUpsertVectors(args: Record<string, unknown>): Prom
 
 export async function pineconeDeleteVectors(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const indexHost = String(args.index_host ?? "").trim();
   if (!indexHost) throw new Error("index_host is required.");
 

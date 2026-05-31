@@ -3,12 +3,12 @@
 // Auth: access_token query param
 // Base: https://api.gumroad.com/v2
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const GUMROAD_API_BASE = "https://api.gumroad.com/v2";
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? args.access_token ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get your access token from app.gumroad.com/settings/advanced.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("gumroad", args);
 }
 
 const GUMROAD_TIMEOUT_MS = Number(process.env.GUMROAD_TIMEOUT_MS) || 10000;
@@ -53,6 +53,7 @@ async function grGet<T>(accessToken: string, path: string, query?: Record<string
 
 export async function gumroad_list_products(args: Record<string, unknown>): Promise<unknown> {
   const token = requireKey(args);
+  if (typeof token !== "string") return token;
   const data = await grGet<{ products: unknown[] }>(token, "/products");
   return {
     count: data.products?.length ?? 0,
@@ -62,6 +63,7 @@ export async function gumroad_list_products(args: Record<string, unknown>): Prom
 
 export async function gumroad_get_product(args: Record<string, unknown>): Promise<unknown> {
   const token = requireKey(args);
+  if (typeof token !== "string") return token;
   const id = String(args.product_id ?? "").trim();
   if (!id) throw new Error("product_id is required.");
   const data = await grGet<{ product: unknown }>(token, `/products/${encodeURIComponent(id)}`);
@@ -70,6 +72,7 @@ export async function gumroad_get_product(args: Record<string, unknown>): Promis
 
 export async function gumroad_list_sales(args: Record<string, unknown>): Promise<unknown> {
   const token = requireKey(args);
+  if (typeof token !== "string") return token;
   const query: Record<string, string> = {};
   if (args.product_id) query.product_id = String(args.product_id);
   if (args.email) query.email = String(args.email);
@@ -87,6 +90,7 @@ export async function gumroad_list_sales(args: Record<string, unknown>): Promise
 
 export async function gumroad_get_sale(args: Record<string, unknown>): Promise<unknown> {
   const token = requireKey(args);
+  if (typeof token !== "string") return token;
   const id = String(args.sale_id ?? "").trim();
   if (!id) throw new Error("sale_id is required.");
   const data = await grGet<{ sale: unknown }>(token, `/sales/${encodeURIComponent(id)}`);
@@ -95,6 +99,7 @@ export async function gumroad_get_sale(args: Record<string, unknown>): Promise<u
 
 export async function gumroad_list_subscribers(args: Record<string, unknown>): Promise<unknown> {
   const token = requireKey(args);
+  if (typeof token !== "string") return token;
   const productId = String(args.product_id ?? "").trim();
   if (!productId) throw new Error("product_id is required.");
   const query: Record<string, string> = {};

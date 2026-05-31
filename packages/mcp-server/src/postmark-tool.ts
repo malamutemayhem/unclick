@@ -3,12 +3,12 @@
 // Auth: X-Postmark-Server-Token header
 // Base: https://api.postmarkapp.com
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const POSTMARK_API_BASE = "https://api.postmarkapp.com";
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get your Server Token from account.postmarkapp.com.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("postmark", args);
 }
 
 const POSTMARK_TIMEOUT_MS = Number(process.env.POSTMARK_TIMEOUT_MS) || 15000;
@@ -91,6 +91,7 @@ async function pmPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function postmark_send_email(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const from = String(args.from ?? "").trim();
   const to = String(args.to ?? "").trim();
   const subject = String(args.subject ?? "").trim();
@@ -120,6 +121,7 @@ export async function postmark_send_email(args: Record<string, unknown>): Promis
 
 export async function postmark_send_batch(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const messages = args.messages;
   if (!Array.isArray(messages) || messages.length === 0) {
     throw new Error("messages must be a non-empty array of email objects.");
@@ -134,11 +136,13 @@ export async function postmark_send_batch(args: Record<string, unknown>): Promis
 
 export async function postmark_get_delivery_stats(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   return pmGet<unknown>(apiKey, "/deliverystats");
 }
 
 export async function postmark_list_templates(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const query: Record<string, string> = {};
   if (args.count) query.Count = String(args.count);
   if (args.offset) query.Offset = String(args.offset);
@@ -155,6 +159,7 @@ export async function postmark_list_templates(args: Record<string, unknown>): Pr
 
 export async function postmark_get_template(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const id = String(args.template_id ?? "").trim();
   if (!id) throw new Error("template_id is required.");
   return pmGet<unknown>(apiKey, `/templates/${id}`);
@@ -162,6 +167,7 @@ export async function postmark_get_template(args: Record<string, unknown>): Prom
 
 export async function postmark_search_messages(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const query: Record<string, string> = {};
   if (args.count) query.count = String(args.count);
   if (args.offset) query.offset = String(args.offset);

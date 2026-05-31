@@ -3,12 +3,12 @@
 // Auth: Circle-Token header
 // Base: https://circleci.com/api/v2
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const CIRCLECI_API_BASE = "https://circleci.com/api/v2";
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.circleci.com/settings/user/tokens.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("circleci", args);
 }
 
 async function ccGet<T>(apiKey: string, path: string, query?: Record<string, string>): Promise<T> {
@@ -89,6 +89,7 @@ async function ccPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function circleci_list_pipelines(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const slug = String(args.project_slug ?? "").trim();
   const query: Record<string, string> = {};
   if (args.page_token) query["page-token"] = String(args.page_token);
@@ -112,6 +113,7 @@ export async function circleci_list_pipelines(args: Record<string, unknown>): Pr
 
 export async function circleci_get_pipeline(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const id = String(args.pipeline_id ?? "").trim();
   if (!id) throw new Error("pipeline_id is required.");
   return ccGet<unknown>(apiKey, `/pipeline/${encodeURIComponent(id)}`);
@@ -119,6 +121,7 @@ export async function circleci_get_pipeline(args: Record<string, unknown>): Prom
 
 export async function circleci_list_workflows(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const pipelineId = String(args.pipeline_id ?? "").trim();
   if (!pipelineId) throw new Error("pipeline_id is required.");
 
@@ -134,6 +137,7 @@ export async function circleci_list_workflows(args: Record<string, unknown>): Pr
 
 export async function circleci_get_workflow(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const id = String(args.workflow_id ?? "").trim();
   if (!id) throw new Error("workflow_id is required.");
   return ccGet<unknown>(apiKey, `/workflow/${encodeURIComponent(id)}`);
@@ -141,6 +145,7 @@ export async function circleci_get_workflow(args: Record<string, unknown>): Prom
 
 export async function circleci_list_jobs(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const workflowId = String(args.workflow_id ?? "").trim();
   if (!workflowId) throw new Error("workflow_id is required.");
 
@@ -156,6 +161,7 @@ export async function circleci_list_jobs(args: Record<string, unknown>): Promise
 
 export async function circleci_trigger_pipeline(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const slug = String(args.project_slug ?? "").trim();
   if (!slug) throw new Error("project_slug is required (e.g. gh/MyOrg/my-repo).");
 

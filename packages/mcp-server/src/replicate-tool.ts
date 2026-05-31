@@ -2,6 +2,8 @@
 // Uses the Replicate REST API via fetch - no external dependencies.
 // Users must supply an API token from replicate.com/account/api-tokens.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const REPLICATE_API_BASE = "https://api.replicate.com/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -43,10 +45,8 @@ interface ReplicatePrediction {
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireToken(args: Record<string, unknown>): string {
-  const token = String(args.api_token ?? "").trim();
-  if (!token) throw new Error("api_token is required. Get one at replicate.com/account/api-tokens.");
-  return token;
+function requireToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("replicate", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -145,6 +145,7 @@ function normalizePrediction(p: ReplicatePrediction) {
 
 export async function replicateListModels(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const cursor = args.cursor ? `?cursor=${encodeURIComponent(String(args.cursor))}` : "";
   const data = await replicateGet<{ results: ReplicateModel[]; next?: string; previous?: string }>(
     token, `/models${cursor}`
@@ -166,6 +167,7 @@ export async function replicateListModels(args: Record<string, unknown>): Promis
 
 export async function replicateGetModel(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const owner = String(args.owner ?? "").trim();
   const name = String(args.model_name ?? "").trim();
   if (!owner) throw new Error("owner is required (the model owner's username).");
@@ -190,6 +192,7 @@ export async function replicateGetModel(args: Record<string, unknown>): Promise<
 
 export async function replicateCreatePrediction(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
 
   let input: Record<string, unknown>;
   if (typeof args.input === "string") {
@@ -225,6 +228,7 @@ export async function replicateCreatePrediction(args: Record<string, unknown>): 
 
 export async function replicateGetPrediction(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const predictionId = String(args.prediction_id ?? "").trim();
   if (!predictionId) throw new Error("prediction_id is required.");
 
@@ -234,6 +238,7 @@ export async function replicateGetPrediction(args: Record<string, unknown>): Pro
 
 export async function replicateListPredictions(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const cursor = args.cursor ? `?cursor=${encodeURIComponent(String(args.cursor))}` : "";
   const data = await replicateGet<{ results: ReplicatePrediction[]; next?: string; previous?: string }>(
     token, `/predictions${cursor}`
@@ -248,6 +253,7 @@ export async function replicateListPredictions(args: Record<string, unknown>): P
 
 export async function replicateCancelPrediction(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const predictionId = String(args.prediction_id ?? "").trim();
   if (!predictionId) throw new Error("prediction_id is required.");
 

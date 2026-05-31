@@ -4,12 +4,12 @@
 // Auth: WILLYWEATHER_KEY env var (passed as key query param in base URL).
 // Base URL: https://api.willyweather.com.au/v2/{key}/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const WILLY_BASE = "https://api.willyweather.com.au/v2";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.WILLYWEATHER_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set WILLYWEATHER_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("willyweather", args);
 }
 
 const WILLYWEATHER_TIMEOUT_MS = Number(process.env.WILLYWEATHER_TIMEOUT_MS) || 10000;
@@ -59,6 +59,7 @@ async function searchLocation(apiKey: string, query: string): Promise<{ id: numb
 export async function getWillyweatherForecast(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
     if (!query) return { error: "location is required (suburb name or postcode)." };
 
@@ -93,6 +94,7 @@ export async function getWillyweatherForecast(args: Record<string, unknown>): Pr
 export async function getWillyweatherSurf(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
     if (!query) return { error: "location is required (suburb name or postcode)." };
 
@@ -124,6 +126,7 @@ export async function getWillyweatherSurf(args: Record<string, unknown>): Promis
 export async function getWillyweatherTide(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
     if (!query) return { error: "location is required (suburb name or postcode)." };
 

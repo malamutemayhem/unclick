@@ -2,14 +2,14 @@
 // Uses the SendGrid REST API via fetch - no external dependencies.
 // Users must supply an API key from app.sendgrid.com.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const SG_BASE = "https://api.sendgrid.com/v3";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.sendgrid.com/settings/api-keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("sendgrid", args);
 }
 
 const SENDGRID_TIMEOUT_MS = Number(process.env.SENDGRID_TIMEOUT_MS) || 15000;
@@ -87,6 +87,7 @@ async function sgPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function sendgridSendEmail(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const to = String(args.to ?? "").trim();
   const from = String(args.from ?? "").trim();
   const subject = String(args.subject ?? "").trim();
@@ -113,6 +114,7 @@ export async function sendgridSendEmail(args: Record<string, unknown>): Promise<
 
 export async function sendgridListTemplates(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const params: Record<string, string> = { generations: "dynamic" };
   if (args.page_size) params.page_size = String(Math.min(200, Math.max(1, Number(args.page_size))));
   return sgGet(apiKey, "/templates", params);
@@ -120,6 +122,7 @@ export async function sendgridListTemplates(args: Record<string, unknown>): Prom
 
 export async function sendgridGetTemplate(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const id = String(args.template_id ?? "").trim();
   if (!id) throw new Error("template_id is required.");
   return sgGet(apiKey, `/templates/${encodeURIComponent(id)}`);
@@ -127,11 +130,13 @@ export async function sendgridGetTemplate(args: Record<string, unknown>): Promis
 
 export async function sendgridListContacts(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   return sgGet(apiKey, "/marketing/contacts");
 }
 
 export async function sendgridAddContact(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const email = String(args.email ?? "").trim();
   if (!email) throw new Error("email is required.");
 
@@ -148,6 +153,7 @@ export async function sendgridAddContact(args: Record<string, unknown>): Promise
 
 export async function sendgridGetStats(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const startDate = String(args.start_date ?? new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0]);
   const params: Record<string, string> = { start_date: startDate };
   if (args.end_date) params.end_date = String(args.end_date);

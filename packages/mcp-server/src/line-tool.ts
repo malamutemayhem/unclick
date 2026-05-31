@@ -2,6 +2,9 @@
 // Uses the official LINE Messaging API via fetch - no external dependencies.
 // Users must create a LINE channel and obtain a Channel Access Token.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const LINE_API_BASE = "https://api.line.me/v2/bot";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -109,16 +112,15 @@ async function lineGet<T>(
 
 // ─── Token validation ─────────────────────────────────────────────────────────
 
-function requireToken(token: unknown): string {
-  const t = String(token ?? "").trim();
-  if (!t) throw new Error("channel_access_token is required. Create a LINE channel at developers.line.biz.");
-  return t;
+function requireToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("line", args);
 }
 
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function lineSendMessage(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const to = String(args.to ?? "").trim();
   if (!to) throw new Error("to is required (user ID, group ID, or room ID).");
   const message = String(args.message ?? "").trim();
@@ -138,7 +140,8 @@ export async function lineSendMessage(args: Record<string, unknown>): Promise<un
 }
 
 export async function lineSendFlexMessage(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const to = String(args.to ?? "").trim();
   if (!to) throw new Error("to is required.");
   const altText = String(args.alt_text ?? "").trim();
@@ -168,7 +171,8 @@ export async function lineSendFlexMessage(args: Record<string, unknown>): Promis
 }
 
 export async function lineGetProfile(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const userId = String(args.user_id ?? "").trim();
   if (!userId) throw new Error("user_id is required.");
 
@@ -183,7 +187,8 @@ export async function lineGetProfile(args: Record<string, unknown>): Promise<unk
 }
 
 export async function lineGetGroupSummary(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const groupId = String(args.group_id ?? "").trim();
   if (!groupId) throw new Error("group_id is required.");
 
@@ -197,7 +202,8 @@ export async function lineGetGroupSummary(args: Record<string, unknown>): Promis
 }
 
 export async function lineReplyMessage(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const replyToken = String(args.reply_token ?? "").trim();
   if (!replyToken) throw new Error("reply_token is required (obtained from a webhook event).");
 
@@ -234,7 +240,8 @@ export async function lineReplyMessage(args: Record<string, unknown>): Promise<u
 }
 
 export async function lineBroadcast(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const message = String(args.message ?? "").trim();
   if (!message) throw new Error("message is required.");
 

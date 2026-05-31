@@ -2,6 +2,8 @@
 // Uses the Mistral REST API via fetch - no external dependencies.
 // Users must supply an API key from console.mistral.ai.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const MISTRAL_API_BASE = "https://api.mistral.ai/v1";
 
 // --- Types -------------------------------------------------------------------
@@ -52,10 +54,8 @@ interface MistralEmbeddingResponse {
 
 // --- Auth validation ---------------------------------------------------------
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at console.mistral.ai.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("mistral", args);
 }
 
 // --- API helpers -------------------------------------------------------------
@@ -132,6 +132,7 @@ async function mistralGet<T>(apiKey: string, path: string): Promise<T> {
 export async function mistralChatCompletion(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const model = String(args.model ?? "mistral-small-latest");
 
     // Parse messages
@@ -178,6 +179,7 @@ export async function mistralChatCompletion(args: Record<string, unknown>): Prom
 export async function mistralListModels(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const data = await mistralGet<{ data: MistralModel[] }>(apiKey, "/models");
     const models = data.data ?? [];
 
@@ -198,6 +200,7 @@ export async function mistralListModels(args: Record<string, unknown>): Promise<
 export async function mistralCreateEmbedding(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const model = String(args.model ?? "mistral-embed");
     const encodingFormat = String(args.encoding_format ?? "float");
 

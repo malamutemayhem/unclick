@@ -4,17 +4,19 @@
 // Base: https://api.igdb.com/v4
 // Token endpoint: https://id.twitch.tv/oauth2/token (client_credentials grant)
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const IGDB_BASE = "https://api.igdb.com/v4";
 const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
 
 // Simple in-process token cache (resets on restart)
 let cachedToken: { token: string; expires: number } | null = null;
 
-function getCredentials(args: Record<string, unknown>): { clientId: string; clientSecret: string } {
+function getCredentials(args: Record<string, unknown>): { clientId: string; clientSecret: string } | NotConnectedResult {
   const clientId = String(args.client_id ?? process.env.IGDB_CLIENT_ID ?? "").trim();
   const clientSecret = String(args.client_secret ?? process.env.IGDB_CLIENT_SECRET ?? "").trim();
-  if (!clientId) throw new Error("client_id is required (or set IGDB_CLIENT_ID env var).");
-  if (!clientSecret) throw new Error("client_secret is required (or set IGDB_CLIENT_SECRET env var).");
+  if (!clientId || !clientSecret) return notConnectedFor("igdb");
   return { clientId, clientSecret };
 }
 
@@ -98,7 +100,9 @@ async function igdbPost(
 // igdb_search_games
 export async function igdbSearchGames(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getTwitchToken(clientId, clientSecret);
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
@@ -114,7 +118,9 @@ export async function igdbSearchGames(args: Record<string, unknown>): Promise<un
 // igdb_get_game
 export async function igdbGetGame(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getTwitchToken(clientId, clientSecret);
     const gameId = String(args.game_id ?? "").trim();
     if (!gameId) return { error: "game_id is required." };
@@ -130,7 +136,9 @@ export async function igdbGetGame(args: Record<string, unknown>): Promise<unknow
 // igdb_list_platforms
 export async function igdbListPlatforms(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getTwitchToken(clientId, clientSecret);
     const limit = Math.min(Number(args.limit ?? 30), 500);
     const offset = Number(args.offset ?? 0);
@@ -145,7 +153,9 @@ export async function igdbListPlatforms(args: Record<string, unknown>): Promise<
 // igdb_list_genres
 export async function igdbListGenres(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getTwitchToken(clientId, clientSecret);
 
     const body = `fields id,name,slug,url; sort name asc; limit 50;`;
@@ -158,7 +168,9 @@ export async function igdbListGenres(args: Record<string, unknown>): Promise<unk
 // igdb_get_company
 export async function igdbGetCompany(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const { clientId, clientSecret } = getCredentials(args);
+    const _creds = getCredentials(args);
+    if ("not_connected" in _creds) return _creds;
+    const { clientId, clientSecret } = _creds;
     const token = await getTwitchToken(clientId, clientSecret);
     const name = String(args.name ?? "").trim();
     const companyId = String(args.company_id ?? "").trim();

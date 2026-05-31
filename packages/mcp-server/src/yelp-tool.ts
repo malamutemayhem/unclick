@@ -3,6 +3,8 @@
 // Docs: https://docs.developer.yelp.com/docs/fusion-intro
 // Env var: YELP_API_KEY
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const YELP_BASE = "https://api.yelp.com/v3";
 
 const YELP_TIMEOUT_MS = Number(process.env.YELP_TIMEOUT_MS) || 15000;
@@ -44,10 +46,8 @@ async function yelpGet(
   return res.json() as Promise<Record<string, unknown>>;
 }
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.YELP_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set YELP_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("yelp", args);
 }
 
 // ── Tool functions ─────────────────────────────────────────────────────────────
@@ -55,6 +55,7 @@ function getApiKey(args: Record<string, unknown>): string {
 export async function yelpSearchBusinesses(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const location = String(args.location ?? "").trim();
     if (!location) return { error: "location is required (e.g. 'San Francisco, CA')." };
     const params: Record<string, string | number> = { location };
@@ -79,6 +80,7 @@ export async function yelpSearchBusinesses(args: Record<string, unknown>): Promi
 export async function yelpGetBusiness(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required (Yelp business alias or ID)." };
     const data = await yelpGet(apiKey, `/businesses/${encodeURIComponent(id)}`);
@@ -91,6 +93,7 @@ export async function yelpGetBusiness(args: Record<string, unknown>): Promise<un
 export async function yelpGetReviews(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required (Yelp business alias or ID)." };
     const params: Record<string, string | number> = {};
@@ -111,6 +114,7 @@ export async function yelpGetReviews(args: Record<string, unknown>): Promise<unk
 export async function yelpSearchEvents(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string | number> = {};
     if (args.location)   params.location   = String(args.location);
     if (args.latitude)   params.latitude   = Number(args.latitude);
@@ -133,6 +137,7 @@ export async function yelpSearchEvents(args: Record<string, unknown>): Promise<u
 export async function yelpGetAutocomplete(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const text = String(args.text ?? "").trim();
     if (!text) return { error: "text is required." };
     const params: Record<string, string | number> = { text };

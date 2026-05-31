@@ -2,6 +2,9 @@
 // Uses the official Telegram Bot API via fetch - no external dependencies.
 // Users must create a bot via @BotFather on Telegram to get a token.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const TELEGRAM_API_BASE = "https://api.telegram.org";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -131,16 +134,15 @@ function normalizeMessage(msg: TelegramMessage) {
 
 // ─── Token validation ─────────────────────────────────────────────────────────
 
-function requireToken(token: unknown): string {
-  const t = String(token ?? "").trim();
-  if (!t) throw new Error("bot_token is required. Create a bot at @BotFather on Telegram.");
-  return t;
+function requireToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("telegram", args);
 }
 
 // ─── Operations ──────────────────────────────────────────────────────────────
 
 export async function telegramSend(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.bot_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const chatId = args.chat_id;
   if (!chatId) throw new Error("chat_id is required.");
   const text = String(args.text ?? "").trim();
@@ -175,7 +177,8 @@ export async function telegramSend(args: Record<string, unknown>): Promise<unkno
 }
 
 export async function telegramRead(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.bot_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const chatId = args.chat_id !== undefined ? String(args.chat_id) : null;
   const limit = Math.min(100, Math.max(1, Number(args.limit ?? 20)));
   const offset = args.offset !== undefined ? Number(args.offset) : undefined;
@@ -208,7 +211,8 @@ export async function telegramRead(args: Record<string, unknown>): Promise<unkno
 }
 
 export async function telegramSearch(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.bot_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const chatId = args.chat_id !== undefined ? String(args.chat_id) : null;
   const query = String(args.query ?? "").toLowerCase().trim();
   if (!query) throw new Error("query is required.");
@@ -246,7 +250,8 @@ export async function telegramSearch(args: Record<string, unknown>): Promise<unk
 }
 
 export async function telegramSendMedia(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.bot_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const chatId = args.chat_id;
   if (!chatId) throw new Error("chat_id is required.");
   const mediaType = String(args.media_type ?? "photo").toLowerCase();
@@ -292,7 +297,8 @@ export async function telegramSendMedia(args: Record<string, unknown>): Promise<
 }
 
 export async function telegramGetUpdates(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.bot_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const limit = Math.min(100, Math.max(1, Number(args.limit ?? 20)));
   const timeout = Math.min(30, Math.max(0, Number(args.timeout ?? 0)));
   const offset = args.offset !== undefined ? Number(args.offset) : undefined;
@@ -335,7 +341,8 @@ export async function telegramGetUpdates(args: Record<string, unknown>): Promise
 }
 
 export async function telegramManageChat(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.bot_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const action = String(args.action ?? "").trim();
   const chatId = args.chat_id;
   if (!chatId) throw new Error("chat_id is required.");

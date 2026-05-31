@@ -4,6 +4,9 @@
 // Auth: SENDLE_ID + SENDLE_API_KEY env vars (HTTP Basic Auth).
 // Base URL: https://api.sendle.com/api/
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const SENDLE_BASE = "https://api.sendle.com/api";
 
 interface SendleAuth {
@@ -11,11 +14,10 @@ interface SendleAuth {
   key: string;
 }
 
-function getAuth(args: Record<string, unknown>): SendleAuth {
+function getAuth(args: Record<string, unknown>): SendleAuth | NotConnectedResult {
   const id = String(args.sendle_id ?? process.env.SENDLE_ID ?? "").trim();
   const key = String(args.api_key ?? process.env.SENDLE_API_KEY ?? "").trim();
-  if (!id) throw new Error("sendle_id is required (or set SENDLE_ID env var).");
-  if (!key) throw new Error("api_key is required (or set SENDLE_API_KEY env var).");
+  if (!id || !key) return notConnectedFor("sendle");
   return { id, key };
 }
 
@@ -72,6 +74,7 @@ async function sendleFetch(
 export async function getSendleQuote(args: Record<string, unknown>): Promise<unknown> {
   try {
     const auth = getAuth(args);
+    if ("not_connected" in auth) return auth;
     const pickupPostcode = String(args.pickup_postcode ?? "").trim();
     const deliveryPostcode = String(args.delivery_postcode ?? "").trim();
     if (!pickupPostcode) return { error: "pickup_postcode is required." };
@@ -118,6 +121,7 @@ export async function getSendleQuote(args: Record<string, unknown>): Promise<unk
 export async function createSendleOrder(args: Record<string, unknown>): Promise<unknown> {
   try {
     const auth = getAuth(args);
+    if ("not_connected" in auth) return auth;
 
     const body: Record<string, unknown> = {
       pickup_date: args.pickup_date,
@@ -153,6 +157,7 @@ export async function createSendleOrder(args: Record<string, unknown>): Promise<
 export async function trackSendleParcel(args: Record<string, unknown>): Promise<unknown> {
   try {
     const auth = getAuth(args);
+    if ("not_connected" in auth) return auth;
     const ref = String(args.tracking_ref ?? args.sendle_reference ?? "").trim();
     if (!ref) return { error: "tracking_ref is required (Sendle reference number)." };
 

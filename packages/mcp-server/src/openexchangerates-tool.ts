@@ -2,18 +2,19 @@
 // Uses the Open Exchange Rates REST API via fetch - no external dependencies.
 // Users must register at openexchangerates.org to get a free App ID.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const OXR_BASE = "https://openexchangerates.org/api";
 
 // --- API helper ---
 
-function requireAppId(): string {
-  const id = (process.env.OPENEXCHANGERATES_APP_ID ?? "").trim();
-  if (!id) throw new Error("OPENEXCHANGERATES_APP_ID environment variable is required.");
-  return id;
+function requireAppId(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("openexchangerates", args);
 }
 
-async function oxrFetch(path: string, params: Record<string, string> = {}): Promise<unknown> {
-  const app_id = requireAppId();
+async function oxrFetch(app_id: string,
+  path: string, params: Record<string, string> = {}): Promise<unknown> {
   const url = new URL(`${OXR_BASE}${path}`);
   url.searchParams.set("app_id", app_id);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
@@ -53,6 +54,8 @@ async function oxrFetch(path: string, params: Record<string, string> = {}): Prom
 // --- Operations ---
 
 export async function forexLatest(args: Record<string, unknown>): Promise<unknown> {
+  const app_id = requireAppId(args);
+  if (typeof app_id !== "string") return app_id;
   const params: Record<string, string> = {};
   const base = String(args.base ?? "").trim().toUpperCase();
   const symbols = String(args.symbols ?? "").trim().toUpperCase();
@@ -61,7 +64,7 @@ export async function forexLatest(args: Record<string, unknown>): Promise<unknow
   if (base) params.base = base;
   if (symbols) params.symbols = symbols;
 
-  const data = await oxrFetch("/latest.json", params) as Record<string, unknown>;
+  const data = await oxrFetch(app_id, "/latest.json", params) as Record<string, unknown>;
 
   return {
     base: data.base,
@@ -72,6 +75,8 @@ export async function forexLatest(args: Record<string, unknown>): Promise<unknow
 }
 
 export async function forexHistorical(args: Record<string, unknown>): Promise<unknown> {
+  const app_id = requireAppId(args);
+  if (typeof app_id !== "string") return app_id;
   const date = String(args.date ?? "").trim();
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new Error("date is required in YYYY-MM-DD format.");
@@ -84,7 +89,7 @@ export async function forexHistorical(args: Record<string, unknown>): Promise<un
   if (base) params.base = base;
   if (symbols) params.symbols = symbols;
 
-  const data = await oxrFetch(`/historical/${date}.json`, params) as Record<string, unknown>;
+  const data = await oxrFetch(app_id, `/historical/${date}.json`, params) as Record<string, unknown>;
 
   return {
     base: data.base,
@@ -94,8 +99,10 @@ export async function forexHistorical(args: Record<string, unknown>): Promise<un
   };
 }
 
-export async function forexCurrencies(_args: Record<string, unknown>): Promise<unknown> {
-  const data = await oxrFetch("/currencies.json");
+export async function forexCurrencies(args: Record<string, unknown>): Promise<unknown> {
+  const app_id = requireAppId(args);
+  if (typeof app_id !== "string") return app_id;
+  const data = await oxrFetch(app_id, "/currencies.json");
   const currencies = data as Record<string, string>;
 
   return {
@@ -105,6 +112,8 @@ export async function forexCurrencies(_args: Record<string, unknown>): Promise<u
 }
 
 export async function forexConvert(args: Record<string, unknown>): Promise<unknown> {
+  const app_id = requireAppId(args);
+  if (typeof app_id !== "string") return app_id;
   const value = Number(args.value);
   if (!value || isNaN(value)) throw new Error("value is required and must be a number.");
   const from = String(args.from ?? "").trim().toUpperCase();
@@ -116,7 +125,7 @@ export async function forexConvert(args: Record<string, unknown>): Promise<unkno
   const date = String(args.date ?? "").trim();
   if (date) params.date = date;
 
-  const data = await oxrFetch(`/convert/${value}/${from}/${to}`, params) as Record<string, unknown>;
+  const data = await oxrFetch(app_id, `/convert/${value}/${from}/${to}`, params) as Record<string, unknown>;
 
   const meta = data.meta as Record<string, unknown> | undefined;
   const response = data.response as Record<string, unknown> | undefined;

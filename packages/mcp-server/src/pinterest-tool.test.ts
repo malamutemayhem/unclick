@@ -26,7 +26,7 @@ describe("pinterest connector resilience (L2)", () => {
 
   it("validates required params before calling the API", async () => {
     const result = await listPinterestBoards({}) as Record<string, unknown>;
-    expect(String(result.error)).toMatch(/access_token is required/i);
+    expect(result.not_connected).toBe(true);
   });
 
   it("passes through successful board listings", async () => {

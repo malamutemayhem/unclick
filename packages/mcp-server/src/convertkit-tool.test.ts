@@ -19,7 +19,7 @@ describe("convertkit connector resilience (L2)", () => {
 
   it("returns a structured error when api_key is missing", async () => {
     const r = await ckListForms({}) as Record<string, unknown>;
-    expect(r.error).toMatch(/api_key is required/i);
+    expect(r.not_connected).toBe(true);
   });
 
   it("maps the form list", async () => {

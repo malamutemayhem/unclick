@@ -5,13 +5,13 @@
 // Base URL: https://haveibeenpwned.com/api/v3/
 // Password API: https://api.pwnedpasswords.com/range/{prefix}
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const HIBP_BASE = "https://haveibeenpwned.com/api/v3";
 const HIBP_PASS_BASE = "https://api.pwnedpasswords.com";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.HIBP_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set HIBP_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("haveibeenpwned", args);
 }
 
 const HIBP_TIMEOUT_MS = Number(process.env.HIBP_TIMEOUT_MS) || 15000;
@@ -56,6 +56,7 @@ async function hibpGet(apiKey: string, path: string, params?: Record<string, str
 export async function checkAccountBreaches(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const account = String(args.account ?? args.email ?? "").trim().toLowerCase();
     if (!account) return { error: "account (email address) is required." };
 
@@ -105,6 +106,7 @@ export async function checkAccountBreaches(args: Record<string, unknown>): Promi
 export async function getAllBreaches(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string> = {};
     if (args.domain) params["domain"] = String(args.domain);
     if (args.is_spam_list !== undefined) params["isSpamList"] = String(args.is_spam_list);

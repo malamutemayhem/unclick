@@ -3,12 +3,12 @@
 // Auth: CALENDLY_API_KEY (Personal Access Token, Bearer)
 // Base: https://api.calendly.com
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const CALENDLY_BASE = "https://api.calendly.com";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.CALENDLY_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set CALENDLY_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("calendly", args);
 }
 
 const CALENDLY_TIMEOUT_MS = Number(process.env.CALENDLY_TIMEOUT_MS) || 10000;
@@ -58,6 +58,7 @@ async function calendlyGet(
 export async function getCalendlyUser(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const json = await calendlyGet(apiKey, "/users/me") as Record<string, unknown>;
     const r = json.resource as Record<string, unknown> | undefined;
     return {
@@ -78,6 +79,7 @@ export async function getCalendlyUser(args: Record<string, unknown>): Promise<un
 export async function listCalendlyEventTypes(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     // Resolve user URI first if not provided
     let userUri = String(args.user_uri ?? "").trim();
     if (!userUri) {
@@ -112,6 +114,7 @@ export async function listCalendlyEventTypes(args: Record<string, unknown>): Pro
 export async function listCalendlyEvents(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     let userUri = String(args.user_uri ?? "").trim();
     if (!userUri) {
       const me = await calendlyGet(apiKey, "/users/me") as Record<string, unknown>;
@@ -149,6 +152,7 @@ export async function listCalendlyEvents(args: Record<string, unknown>): Promise
 export async function getCalendlyEvent(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const eventUuid = String(args.event_uuid ?? "").trim();
     if (!eventUuid) return { error: "event_uuid is required." };
     const json = await calendlyGet(apiKey, `/scheduled_events/${eventUuid}`) as Record<string, unknown>;
@@ -162,6 +166,7 @@ export async function getCalendlyEvent(args: Record<string, unknown>): Promise<u
 export async function listCalendlyInvitees(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const eventUuid = String(args.event_uuid ?? "").trim();
     if (!eventUuid) return { error: "event_uuid is required." };
     const params: Record<string, string> = {};

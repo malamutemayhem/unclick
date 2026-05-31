@@ -4,12 +4,12 @@
 // Auth: IPAUSTRALIA_API_KEY env var (Authorization Bearer header).
 // Base URL: https://api.ipaustralia.gov.au/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const IPAU_BASE = "https://api.ipaustralia.gov.au";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.IPAUSTRALIA_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set IPAUSTRALIA_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("ipaustralia", args);
 }
 
 const IPAUSTRALIA_TIMEOUT_MS = Number(process.env.IPAUSTRALIA_TIMEOUT_MS) || 15000;
@@ -54,6 +54,7 @@ async function ipauGet(
 export async function searchTrademarks(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const keyword = String(args.keyword ?? args.query ?? "").trim();
     if (!keyword) return { error: "keyword is required." };
 
@@ -94,6 +95,7 @@ export async function searchTrademarks(args: Record<string, unknown>): Promise<u
 export async function getTrademarkDetails(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const number = String(args.number ?? args.trademark_number ?? "").trim();
     if (!number) return { error: "number is required (trademark application number)." };
 
@@ -123,6 +125,7 @@ export async function getTrademarkDetails(args: Record<string, unknown>): Promis
 export async function searchPatents(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const keyword = String(args.keyword ?? args.query ?? "").trim();
     if (!keyword) return { error: "keyword is required." };
 

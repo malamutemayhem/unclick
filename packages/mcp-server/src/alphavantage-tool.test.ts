@@ -27,6 +27,7 @@ describe("alphavantage connector resilience (L2)", () => {
   });
 
   it("validates input before any network call", async () => {
+    vi.stubEnv("ALPHAVANTAGE_API_KEY", "k");
     await expect(stockQuote({})).rejects.toThrow(/symbol is required/i);
   });
 

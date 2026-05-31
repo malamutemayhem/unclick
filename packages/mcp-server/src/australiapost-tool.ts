@@ -4,12 +4,12 @@
 // Auth: AUSPOST_API_KEY env var (AUTH-KEY header).
 // Base URL: https://digitalapi.auspost.com.au/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const AUSPOST_BASE = "https://digitalapi.auspost.com.au";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.AUSPOST_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set AUSPOST_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("australiapost", args);
 }
 
 const AUSPOST_TIMEOUT_MS = Number(process.env.AUSPOST_TIMEOUT_MS) || 15000;
@@ -50,6 +50,7 @@ async function auspostGet(apiKey: string, path: string, params?: Record<string, 
 export async function trackAuspostParcel(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const trackingId = String(args.tracking_id ?? "").trim();
     if (!trackingId) return { error: "tracking_id is required." };
 
@@ -82,6 +83,7 @@ export async function trackAuspostParcel(args: Record<string, unknown>): Promise
 export async function getAuspostPostcode(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? args.suburb ?? args.postcode ?? "").trim();
     if (!query) return { error: "query is required (suburb name or postcode)." };
 
@@ -115,6 +117,7 @@ export async function getAuspostPostcode(args: Record<string, unknown>): Promise
 export async function getAuspostDeliveryTimes(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const fromPostcode = String(args.from_postcode ?? "").trim();
     const toPostcode = String(args.to_postcode ?? "").trim();
     if (!fromPostcode) return { error: "from_postcode is required." };
