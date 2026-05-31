@@ -14,6 +14,36 @@ const RESPONSE_CODES: Record<number, string> = {
   5: "Rate limit - too many requests. Please wait 5 seconds before trying again.",
 };
 
+const TRIVIA_TIMEOUT_MS = Number(process.env.TRIVIA_TIMEOUT_MS) || 10000;
+
+async function triviaFetch<T>(path: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TRIVIA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${OPENTDB_BASE}${path}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Open Trivia DB request timed out after ${TRIVIA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Open Trivia DB network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Open Trivia DB rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Open Trivia DB HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
+  }
+  return res.json() as Promise<T>;
+}
+
 interface TriviaQuestion {
   category: string;
   type: string;
@@ -49,12 +79,7 @@ export async function triviaQuestions(args: Record<string, unknown>): Promise<un
     if (["multiple", "boolean"].includes(type)) params.set("type", type);
   }
 
-  const res = await fetch(`${OPENTDB_BASE}/api.php?${params}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
-  if (!res.ok) throw new Error(`Open Trivia DB HTTP ${res.status}`);
-
-  const data = await res.json() as TriviaResponse;
+  const data = await triviaFetch<TriviaResponse>(`/api.php?${params}`);
 
   if (data.response_code !== 0) {
     return {
@@ -81,12 +106,7 @@ export async function triviaQuestions(args: Record<string, unknown>): Promise<un
 // GET /api_category.php
 
 export async function triviaCategories(_args: Record<string, unknown>): Promise<unknown> {
-  const res = await fetch(`${OPENTDB_BASE}/api_category.php`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
-  if (!res.ok) throw new Error(`Open Trivia DB HTTP ${res.status}`);
-
-  const data = await res.json() as CategoryResponse;
+  const data = await triviaFetch<CategoryResponse>("/api_category.php");
 
   return {
     count: data.trivia_categories.length,

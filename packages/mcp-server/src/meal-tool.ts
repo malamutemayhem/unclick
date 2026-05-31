@@ -36,11 +36,33 @@ interface CategoryResponse {
   categories: CategoryItem[];
 }
 
+const MEAL_TIMEOUT_MS = Number(process.env.MEAL_TIMEOUT_MS) || 10000;
+
 async function mealFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${MEALDB_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
-  if (!res.ok) throw new Error(`TheMealDB HTTP ${res.status}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MEAL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${MEALDB_BASE}${path}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`TheMealDB request timed out after ${MEAL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`TheMealDB network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`TheMealDB rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`TheMealDB HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
+  }
   return res.json() as Promise<T>;
 }
 
