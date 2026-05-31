@@ -25,9 +25,13 @@ describe("stripe connector resilience (L2)", () => {
     expect(String(result.error)).toMatch(/timed out/i);
   });
 
-  it("validates required config before calling the API", async () => {
+  it("returns a guided not-connected result when the secret key is missing", async () => {
     const result = await stripeCustomers({}) as Record<string, unknown>;
-    expect(String(result.error)).toMatch(/secret_key/i);
+    expect(result.not_connected).toBe(true);
+    expect(String(result.error)).toMatch(/not connected to stripe/i);
+    expect(result.how_to_connect).toEqual(
+      expect.arrayContaining([expect.stringMatching(/keychain_secure_connect/i)]),
+    );
   });
 
   it("passes through successful customer listings", async () => {

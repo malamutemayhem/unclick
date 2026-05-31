@@ -25,9 +25,13 @@ describe("foursquare connector resilience (L2)", () => {
     expect(r.error).toMatch(/timed out/i);
   });
 
-  it("returns a structured error when the key is missing", async () => {
+  it("returns a guided not-connected result when the key is missing", async () => {
     const r = await foursquareSearchPlaces({ query: "coffee" }) as Record<string, unknown>;
-    expect(r.error).toMatch(/required/i);
+    expect(r.not_connected).toBe(true);
+    expect(r.error).toMatch(/not connected to foursquare/i);
+    expect(r.how_to_connect).toEqual(
+      expect.arrayContaining([expect.stringMatching(/keychain_secure_connect/i)]),
+    );
   });
 
   it("passes through search data", async () => {

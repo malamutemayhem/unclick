@@ -4,6 +4,8 @@
 // Base URL: https://openapi.etsy.com/v3
 // No external dependencies - native fetch only.
 
+import { notConnected, type NotConnectedResult } from "./connection-help.js";
+
 const ETSY_BASE = "https://openapi.etsy.com/v3";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -14,9 +16,18 @@ interface EtsyConfig {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireConfig(args: Record<string, unknown>): EtsyConfig | { error: string } {
-  const api_key = String(args.api_key ?? "").trim();
-  if (!api_key) return { error: "api_key is required (Etsy API key)." };
+function requireConfig(args: Record<string, unknown>): EtsyConfig | NotConnectedResult {
+  const api_key = String(args.api_key ?? process.env.ETSY_API_KEY ?? "").trim();
+  if (!api_key) {
+    return notConnected({
+      connector:   "etsy",
+      displayName: "Etsy",
+      credential:  "API key",
+      arg:         "api_key",
+      envVar:      "ETSY_API_KEY",
+      setupUrl:    "https://www.etsy.com/developers/your-apps",
+    });
+  }
   return { api_key };
 }
 

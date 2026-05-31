@@ -4,6 +4,8 @@
 // Docs: https://docs.foursquare.com/developer/reference/place-search
 // No external dependencies - native fetch only.
 
+import { notConnected } from "./connection-help.js";
+
 const FOURSQUARE_BASE = "https://api.foursquare.com/v3";
 const FOURSQUARE_TIMEOUT_MS = Number(process.env.FOURSQUARE_TIMEOUT_MS) || 10000;
 
@@ -16,6 +18,16 @@ function getApiKey(args: Record<string, unknown>): string | null {
     null
   );
 }
+
+// Built once and returned from every endpoint when the credential is missing.
+const FOURSQUARE_NOT_CONNECTED = notConnected({
+  connector:   "foursquare",
+  displayName: "Foursquare",
+  credential:  "API key",
+  arg:         "api_key",
+  envVar:      "FOURSQUARE_API_KEY",
+  setupUrl:    "https://foursquare.com/developers/home",
+});
 
 async function fsFetch(
   path: string,
@@ -74,7 +86,7 @@ async function fsFetch(
 
 export async function foursquareSearchPlaces(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = getApiKey(args);
-  if (!apiKey) return { error: "FOURSQUARE_API_KEY env var (or api_key arg) is required." };
+  if (!apiKey) return FOURSQUARE_NOT_CONNECTED;
 
   return fsFetch("/places/search", apiKey, {
     query:      args.query      ? String(args.query)      : undefined,
@@ -89,7 +101,7 @@ export async function foursquareSearchPlaces(args: Record<string, unknown>): Pro
 
 export async function foursquareGetPlace(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = getApiKey(args);
-  if (!apiKey) return { error: "FOURSQUARE_API_KEY env var (or api_key arg) is required." };
+  if (!apiKey) return FOURSQUARE_NOT_CONNECTED;
 
   const fsq_id = String(args.fsq_id ?? "").trim();
   if (!fsq_id) return { error: "fsq_id is required." };
@@ -101,7 +113,7 @@ export async function foursquareGetPlace(args: Record<string, unknown>): Promise
 
 export async function foursquareGetPhotos(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = getApiKey(args);
-  if (!apiKey) return { error: "FOURSQUARE_API_KEY env var (or api_key arg) is required." };
+  if (!apiKey) return FOURSQUARE_NOT_CONNECTED;
 
   const fsq_id = String(args.fsq_id ?? "").trim();
   if (!fsq_id) return { error: "fsq_id is required." };
@@ -113,7 +125,7 @@ export async function foursquareGetPhotos(args: Record<string, unknown>): Promis
 
 export async function foursquareGetTips(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = getApiKey(args);
-  if (!apiKey) return { error: "FOURSQUARE_API_KEY env var (or api_key arg) is required." };
+  if (!apiKey) return FOURSQUARE_NOT_CONNECTED;
 
   const fsq_id = String(args.fsq_id ?? "").trim();
   if (!fsq_id) return { error: "fsq_id is required." };
@@ -125,7 +137,7 @@ export async function foursquareGetTips(args: Record<string, unknown>): Promise<
 
 export async function foursquareAutocomplete(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = getApiKey(args);
-  if (!apiKey) return { error: "FOURSQUARE_API_KEY env var (or api_key arg) is required." };
+  if (!apiKey) return FOURSQUARE_NOT_CONNECTED;
 
   const query = String(args.query ?? "").trim();
   if (!query) return { error: "query is required." };
