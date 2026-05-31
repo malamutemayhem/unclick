@@ -3,18 +3,15 @@
 // Env var: BUNGIE_API_KEY (header: X-API-Key)
 // Base URL: https://www.bungie.net/Platform/
 
+import { requireCredential } from "./connector-setup.js";
+import type { NotConnectedResult } from "./connection-help.js";
+
 const BUNGIE_BASE = "https://www.bungie.net/Platform";
 
 // ─── API helper ───────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.BUNGIE_API_KEY ?? "").trim();
-  if (!key) {
-    throw new Error(
-      "BUNGIE_API_KEY is required. Register at https://www.bungie.net/en/Application"
-    );
-  }
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("bungie", args);
 }
 
 async function bungieFetch<T>(
@@ -68,6 +65,7 @@ export async function bungieSearchPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const displayName = String(args.displayName ?? "").trim();
   if (!displayName) return { error: "displayName is required." };
 
@@ -101,6 +99,7 @@ export async function bungieGetProfile(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const membershipType = String(args.membershipType ?? "").trim();
   const membershipId = String(args.membershipId ?? "").trim();
   if (!membershipType) return { error: "membershipType is required." };
@@ -157,6 +156,7 @@ export async function bungieGetManifest(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const data = await bungieFetch<Record<string, unknown>>(
     "/Destiny2/Manifest/",
     key
@@ -184,6 +184,7 @@ export async function bungieSearchEntities(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const entityType = String(args.entityType ?? "").trim();
   const searchTerm = String(args.searchTerm ?? "").trim();
   if (!entityType) return { error: "entityType is required (e.g. DestinyInventoryItemDefinition)." };
