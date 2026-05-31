@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
   BadgeCheck,
@@ -41,9 +41,13 @@ type XPassProduct = {
 };
 
 type RecentReport = {
+  id: string;
   date: string;
+  sortKey: string;
   title: string;
+  summary: string;
   status: XPassRowStatus;
+  mode: "latest" | "completed" | "attention";
 };
 
 const PRODUCTS: XPassProduct[] = [
@@ -202,62 +206,96 @@ function reportsFor(product: XPassProduct): RecentReport[] {
   const result = resultFor(product.id);
   const status = dogfoodToRowStatus(result?.status);
 
-  return [
+  const reports: RecentReport[] = [
     {
-      date: "Latest",
+      id: "latest",
+      date: "31 May 2026",
+      sortKey: "2026-05-31",
       title: result?.summary ?? `${product.name} report`,
+      summary: result?.summary ?? `Latest ${product.name} checklist view.`,
       status,
+      mode: "latest",
     },
     {
-      date: "On demand",
-      title: `${product.name} checklist`,
-      status: product.id === "fidelitypass" ? "N/A" : "WAITING",
+      id: "checklist-refresh",
+      date: "30 May 2026",
+      sortKey: "2026-05-30",
+      title: `${product.name} checklist refresh`,
+      summary: `The ${product.name} checklist was refreshed and scored as a completed product sweep.`,
+      status: "PASS",
+      mode: "completed",
     },
     {
-      date: "Next",
-      title: result?.nextProof ?? "Ready for the next XPass run",
+      id: "attention-sweep",
+      date: "29 May 2026",
+      sortKey: "2026-05-29",
+      title: result?.nextProof ?? `${product.name} attention sweep`,
+      summary: `Rows needing proof or owner action stay visible until the next ${product.name} run clears them.`,
       status: status === "PASS" ? "PASS" : "WARNING",
+      mode: "attention",
     },
   ];
+
+  return reports.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
 }
 
-function checklistFor(product: XPassProduct): XPassChecklistGroup[] {
+function rowStatusForReport(row: { status?: XPassRowStatus }, report: RecentReport, rowIndex: number, groupIndex: number): XPassRowStatus {
+  if (row.status === "N/A") return "N/A";
+  if (report.mode === "completed") return "PASS";
+  if (report.mode === "attention") return (rowIndex + groupIndex) % 7 === 0 ? "WARNING" : "PASS";
+  if (report.status === "PASS") return row.status ?? "PASS";
+  if (report.status === "FAIL") return (rowIndex + groupIndex) % 5 === 0 ? "FAIL" : "PASS";
+  if (report.status === "ALERT") return (rowIndex + groupIndex) % 5 === 0 ? "ALERT" : "PASS";
+  if (report.status === "WARNING") return (rowIndex + groupIndex) % 6 === 0 ? "WARNING" : "PASS";
+  return row.status ?? "WAITING";
+}
+
+function checklistFor(product: XPassProduct, report: RecentReport): XPassChecklistGroup[] {
   const result = resultFor(product.id);
   const currentStatus = dogfoodToRowStatus(result?.status);
+  const selectedStatus = report.status === "WAITING" ? currentStatus : report.status;
 
-  return [
+  const groups: XPassChecklistGroup[] = [
     {
       title: "Current run gate",
       rows: [
         {
           title: "Build request selected",
-          comment: `Pick or generate a report so ${product.name} can score every relevant checklist row.`,
-          status: "WAITING",
+          comment: `${report.date} / ${report.title}`,
+          status: report.mode === "latest" && selectedStatus === "WAITING" ? "WAITING" : "PASS",
         },
         {
-          title: "Latest receipt evidence",
-          comment: result?.summary ?? "No live receipt has been selected for this checklist view yet.",
-          status: currentStatus,
+          title: "Receipt evidence",
+          comment: report.summary,
+          status: selectedStatus,
         },
         {
           title: "Loop until green",
           comment: "The report must keep working through failures until every relevant row is PASS or N/A.",
-          status: "WAITING",
+          status: selectedStatus === "WAITING" ? "WAITING" : selectedStatus === "PASS" ? "PASS" : "WARNING",
         },
         {
           title: "N/A is explained",
           comment: "A skipped row is only N/A when the comment explains why the check does not apply.",
-          status: "WAITING",
+          status: "PASS",
         },
         {
           title: "Owner action is clear",
           comment: "Any FAIL, ALERT, or Warning row must say who or what fixes it next.",
-          status: currentStatus === "FAIL" ? "FAIL" : "WAITING",
+          status: ["FAIL", "ALERT", "WARNING"].includes(selectedStatus) ? "WARNING" : "PASS",
         },
       ],
     },
     ...XPASS_PRODUCT_CHECKLISTS[product.id],
   ];
+
+  return groups.map((group, groupIndex) => ({
+    ...group,
+    rows: group.rows.map((row, rowIndex) => ({
+      ...row,
+      status: rowStatusForReport(row, report, rowIndex, groupIndex),
+    })),
+  }));
 }
 
 function StatusBadge({ status }: { status: XPassRowStatus }) {
@@ -265,8 +303,8 @@ function StatusBadge({ status }: { status: XPassRowStatus }) {
   const Icon = style.icon;
 
   return (
-    <span className={`inline-flex min-w-[74px] items-center justify-center gap-1 rounded px-2 py-0.5 text-[11px] font-bold ${style.className}`}>
-      <Icon className="h-3 w-3" />
+    <span className={`inline-flex min-w-[66px] items-center justify-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold ${style.className}`}>
+      <Icon className="h-2.5 w-2.5" />
       {style.label}
     </span>
   );
@@ -303,7 +341,7 @@ function ProductCard({ product }: { product: XPassProduct }) {
 
 function StatusLegend() {
   return (
-    <div className="mt-3 flex flex-wrap gap-2" aria-label="XPass status legend">
+    <div className="mt-3 flex max-w-full flex-wrap gap-2" aria-label="XPass status legend">
       {STATUS_LEGEND.map((status) => (
         <StatusBadge key={status} status={status} />
       ))}
@@ -311,21 +349,47 @@ function StatusLegend() {
   );
 }
 
-function RecentReports({ product }: { product: XPassProduct }) {
+function RecentReports({
+  reports,
+  selectedReport,
+  onSelectReport,
+}: {
+  reports: RecentReport[];
+  selectedReport: RecentReport;
+  onSelectReport: (reportId: string) => void;
+}) {
   return (
-    <aside className="rounded-lg border border-white/[0.08] bg-[#111] p-4">
-      <h2 className="text-sm font-semibold text-white">Recent reports</h2>
-      <div className="mt-3 space-y-2">
-        {reportsFor(product).map((report) => (
-          <div key={`${report.date}-${report.title}`} className="rounded-md border border-white/[0.07] bg-black/20 px-3 py-2">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[11px] font-semibold text-white/55">{report.date}</p>
+    <section className="min-w-0 rounded-lg border border-white/[0.08] bg-[#111] p-4">
+      <div className="flex min-w-0 items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-white">Recent reports</h2>
+        <p className="text-[11px] font-medium text-white/40">Newest first</p>
+      </div>
+      <div className="mt-3 space-y-1.5">
+        {reports.map((report) => {
+          const selected = report.id === selectedReport.id;
+          return (
+            <button
+              key={report.id}
+              type="button"
+              aria-pressed={selected}
+              data-testid="xpass-report-option"
+              onClick={() => onSelectReport(report.id)}
+              className={`w-full min-w-0 rounded-md border px-2.5 py-1.5 text-left transition-colors ${
+                selected ? "border-[#61C1C4]/70 bg-[#61C1C4]/10" : "border-white/[0.07] bg-black/20 hover:border-white/15"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold text-white/60">{report.date}</p>
               <StatusBadge status={report.status} />
             </div>
-            <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/65">{report.title}</p>
-          </div>
-        ))}
+              <p className="mt-1 truncate text-xs leading-4 text-white/70">{report.title}</p>
+            </button>
+          );
+        })}
       </div>
+      <p className="mt-3 text-[11px] leading-4 text-white/45">
+        Selected report: {selectedReport.date}. The checklist below shows that report's row results.
+      </p>
       <Link
         to="/dogfood"
         className="mt-4 inline-flex min-h-7 items-center gap-1.5 text-xs font-medium text-[#61C1C4] transition-opacity hover:opacity-80"
@@ -333,27 +397,27 @@ function RecentReports({ product }: { product: XPassProduct }) {
         View public report
         <ExternalLink className="h-3.5 w-3.5" />
       </Link>
-    </aside>
+    </section>
   );
 }
 
 function ChecklistGroupView({ group }: { group: XPassChecklistGroup }) {
   return (
-    <section className="rounded-lg border border-white/[0.08] bg-[#111] p-4">
+    <section className="rounded-lg border border-white/[0.08] bg-[#111] p-3">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-white">{group.title}</h2>
+        <h2 className="text-xs font-semibold text-white">{group.title}</h2>
         <span className="text-[11px] font-medium text-white/40">{group.rows.length} checks</span>
       </div>
-      <div className="mt-3 overflow-hidden rounded-md border border-white/[0.08]">
+      <div className="mt-2 overflow-hidden rounded-md border border-white/[0.08]">
         {group.rows.map((row, index) => (
           <div
             key={`${group.title}-${row.title}`}
             data-testid="xpass-check-row"
-            className="grid min-h-9 grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-white/[0.06] bg-black/20 px-3 py-2 last:border-b-0 md:grid-cols-[34px_220px_minmax(0,1fr)_90px] md:items-center"
+            className="grid min-h-7 grid-cols-[minmax(96px,132px)_minmax(0,1fr)_68px] gap-2 border-b border-white/[0.06] bg-black/20 px-2 py-1 last:border-b-0 md:grid-cols-[28px_minmax(150px,220px)_minmax(0,1fr)_78px] md:items-center"
           >
             <p className="hidden text-[11px] font-semibold text-white/35 md:block">{index + 1}</p>
             <p className="truncate text-xs font-semibold text-white">{row.title}</p>
-            <p className="col-span-2 text-xs leading-5 text-white/55 md:col-span-1">{row.comment}</p>
+            <p className="min-w-0 truncate text-[11px] leading-4 text-white/55">{row.comment}</p>
             <StatusBadge status={row.status ?? "WAITING"} />
           </div>
         ))}
@@ -400,9 +464,18 @@ function XPassHome() {
 }
 
 function XPassProductReport({ product }: { product: XPassProduct }) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const Icon = product.icon;
   const checkCount = countChecklistRows(product.id) + 5;
   const groupCount = countChecklistGroups(product.id) + 1;
+  const reports = reportsFor(product);
+  const selectedReport = reports.find((report) => report.id === searchParams.get("report")) ?? reports[0];
+
+  function handleSelectReport(reportId: string) {
+    const next = new URLSearchParams(searchParams);
+    next.set("report", reportId);
+    setSearchParams(next, { replace: true });
+  }
 
   return (
     <div className="space-y-6">
@@ -410,8 +483,9 @@ function XPassProductReport({ product }: { product: XPassProduct }) {
         Back to XPass
       </Link>
 
-      <section className="rounded-lg border border-white/[0.08] bg-[#111] p-6">
-        <div className="flex items-start gap-4">
+      <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <section className="min-w-0 rounded-lg border border-white/[0.08] bg-[#111] p-6">
+        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30">
             <Icon className="h-5 w-5 text-[#61C1C4]" />
           </span>
@@ -427,7 +501,7 @@ function XPassProductReport({ product }: { product: XPassProduct }) {
               <span className="inline-flex min-h-7 items-center rounded-md border border-white/[0.08] bg-black/25 px-2.5">
                 {groupCount} groups
               </span>
-              <span className="inline-flex min-h-7 items-center rounded-md border border-white/[0.08] bg-black/25 px-2.5">
+              <span className="inline-flex min-h-7 max-w-full items-center rounded-md border border-white/[0.08] bg-black/25 px-2.5 leading-4">
                 Green only when every relevant row is PASS or N/A
               </span>
             </div>
@@ -444,15 +518,23 @@ function XPassProductReport({ product }: { product: XPassProduct }) {
           </div>
         </div>
       </section>
+        <RecentReports reports={reports} selectedReport={selectedReport} onSelectReport={handleSelectReport} />
+      </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="space-y-5">
-          {checklistFor(product).map((group) => (
+      <section className="space-y-3" data-testid="xpass-checklist-results">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold text-white">Checklist results</h2>
+            <p className="mt-1 text-xs text-white/45">
+              {selectedReport.date} / {selectedReport.title}
+            </p>
+          </div>
+          <StatusBadge status={selectedReport.status} />
+        </div>
+          {checklistFor(product, selectedReport).map((group) => (
             <ChecklistGroupView key={group.title} group={group} />
           ))}
-        </div>
-        <RecentReports product={product} />
-      </div>
+      </section>
     </div>
   );
 }
