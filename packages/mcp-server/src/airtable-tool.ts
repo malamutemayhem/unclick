@@ -3,6 +3,8 @@
 // Auth: personal access token (PAT) passed as access_token.
 // No external dependencies.
 
+import { requireCredential } from "./connector-setup.js";
+
 const AIRTABLE_META_API = "https://api.airtable.com/v0/meta";
 const AIRTABLE_DATA_API = "https://api.airtable.com/v0";
 
@@ -147,8 +149,8 @@ export async function airtableAction(
   action: string,
   args:   Record<string, unknown>
 ): Promise<unknown> {
-  const token = String(args.access_token ?? "").trim();
-  if (!token) return { error: "access_token is required." };
+  const token = requireCredential("airtable", args);
+  if (typeof token !== "string") return token;
 
   try {
     switch (action) {

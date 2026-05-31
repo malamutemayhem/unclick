@@ -2,6 +2,8 @@
 // Uses the AssemblyAI REST API via fetch - no external dependencies.
 // Users must supply an API key from assemblyai.com.
 
+import { requireCredential } from "./connector-setup.js";
+
 const AAI_BASE = "https://api.assemblyai.com/v2";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -95,12 +97,6 @@ function requireAssemblyAiSpendAllowed(operation: AssemblyAiToolOperation, model
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at assemblyai.com/dashboard.");
-  return key;
-}
-
 async function aaiGet<T>(apiKey: string, path: string, params?: Record<string, string>): Promise<T> {
   const url = new URL(`${AAI_BASE}${path}`);
   if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
@@ -168,7 +164,8 @@ async function aaiPost<T>(apiKey: string, path: string, body: unknown): Promise<
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function assemblyaiTranscribe(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey = requireKey(args);
+  const apiKey = requireCredential("assemblyai", args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("transcription", "AssemblyAI /transcript", apiKey);
   const audioUrl = String(args.audio_url ?? "").trim();
   if (!audioUrl) throw new Error("audio_url is required (publicly accessible URL of the audio/video file).");
@@ -197,7 +194,8 @@ export async function assemblyaiTranscribe(args: Record<string, unknown>): Promi
 }
 
 export async function assemblyaiGetTranscript(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey = requireKey(args);
+  const apiKey = requireCredential("assemblyai", args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("transcript-read", "AssemblyAI /transcript/{id}", apiKey);
   const id = String(args.transcript_id ?? "").trim();
   if (!id) throw new Error("transcript_id is required.");
@@ -205,7 +203,8 @@ export async function assemblyaiGetTranscript(args: Record<string, unknown>): Pr
 }
 
 export async function assemblyaiListTranscripts(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey = requireKey(args);
+  const apiKey = requireCredential("assemblyai", args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("transcript-listing", "AssemblyAI /transcript", apiKey);
   const params: Record<string, string> = {};
   if (args.limit)  params.limit  = String(Math.min(200, Math.max(1, Number(args.limit ?? 10))));
@@ -216,7 +215,8 @@ export async function assemblyaiListTranscripts(args: Record<string, unknown>): 
 }
 
 export async function assemblyaiGetSentences(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey = requireKey(args);
+  const apiKey = requireCredential("assemblyai", args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("sentence-listing", "AssemblyAI /transcript/{id}/sentences", apiKey);
   const id = String(args.transcript_id ?? "").trim();
   if (!id) throw new Error("transcript_id is required.");
@@ -225,7 +225,8 @@ export async function assemblyaiGetSentences(args: Record<string, unknown>): Pro
 }
 
 export async function assemblyaiGetParagraphs(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey = requireKey(args);
+  const apiKey = requireCredential("assemblyai", args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("paragraph-listing", "AssemblyAI /transcript/{id}/paragraphs", apiKey);
   const id = String(args.transcript_id ?? "").trim();
   if (!id) throw new Error("transcript_id is required.");
@@ -234,7 +235,8 @@ export async function assemblyaiGetParagraphs(args: Record<string, unknown>): Pr
 }
 
 export async function assemblyaiSummarize(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey = requireKey(args);
+  const apiKey = requireCredential("assemblyai", args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("summary-read", "AssemblyAI /transcript/{id}", apiKey);
   const id = String(args.transcript_id ?? "").trim();
   if (!id) throw new Error("transcript_id is required (transcript must already be completed with summarization enabled).");
