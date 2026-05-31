@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   LegalPassFixtureDocumentSchema,
   LegalPassHatDefinitionSchema,
+  LegalPassReceiptSchema,
   LegalPassReportSchema,
 } from "../schema.js";
 
@@ -90,6 +91,44 @@ describe("LegalPass phase-one schema", () => {
         disclaimers: [],
       }),
     ).toThrow();
+  });
+
+  it("parses scoped LegalPass receipts with issue-spotter boundaries", () => {
+    const receipt = LegalPassReceiptSchema.parse({
+      kind: "legalpass_receipt_v1",
+      status: "WARN",
+      run_id: "legalpass_abc123",
+      pack_id: "legalpass-mvp-v0",
+      target: { name: "Example", url: "https://example.com/legal" },
+      target_sha: "abc123",
+      generated_at: "2026-05-09T18:10:00.000Z",
+      mode: "fixture",
+      jurisdictions: ["AU"],
+      summary: {
+        total: 1,
+        check: 0,
+        fail: 1,
+        na: 0,
+        other: 0,
+        pending: 0,
+        pass_rate: 0,
+      },
+      disclaimer_present: true,
+      safety: {
+        issue_spotter_only: true,
+        no_legal_advice: true,
+        no_transactional_instrument: true,
+      },
+      evidence_sources: [MINIMAL_EVIDENCE],
+      action_needed: ["Practitioner review may be warranted before relying on this material."],
+      boundaries: [
+        "LegalPass is an issue-spotter and information tool only.",
+        "LegalPass does not provide legal advice or create a lawyer-client relationship.",
+      ],
+    });
+
+    expect(receipt.kind).toBe("legalpass_receipt_v1");
+    expect(receipt.safety.no_legal_advice).toBe(true);
   });
 
   it("requires every finding to carry evidence", () => {
