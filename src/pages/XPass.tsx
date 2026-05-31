@@ -110,8 +110,8 @@ export default function XPassPage() {
                 XPass
               </h1>
               <p className="mt-5 max-w-3xl text-lg leading-8 text-body sm:text-xl">
-                XPass is AutoPilot's quality-control checklist for AI work. Each Pass owns a large list of checks,
-                records PASS, FAIL, Warning, Alert, or N/A with comments, and keeps looping until the relevant rows are green.
+                XPass is AutoPilot's quality-control checklist for AI work. The family holds hundreds of checks across
+                the Pass products, records PASS, FAIL, Warning, Alert, or N/A with comments, and keeps looping until the relevant rows are green.
               </p>
             </FadeIn>
 

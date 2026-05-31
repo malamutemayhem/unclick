@@ -10,7 +10,7 @@ Each row names a Pass, its current promotion tier, the brief that owns the scope
 
 If a row here disagrees with the locked PRD, the PRD wins. If a row here disagrees with an individual brief, the brief wins for scope details and this file wins for tier and routing.
 
-Status note: PR #1219 merged the 2026-05-30 XPass receipt surfaces into `main`. The current correction is presentation and checklist depth: each Pass should expose a large product-specific QC checklist, not only a small receipt summary.
+Status note: PR #1219 merged the 2026-05-30 XPass receipt surfaces into `main`. The current correction is presentation and checklist depth: each Pass should expose a large product-specific QC checklist, with hundreds of rows across the XPass family, not only a small receipt summary.
 
 ## Live gates or public dogfood
 

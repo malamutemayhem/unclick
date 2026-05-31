@@ -20,6 +20,7 @@ describe("AdminXPassHub", () => {
 
     expect(screen.getByRole("heading", { name: "XPass" })).toBeInTheDocument();
     expect(screen.getByText(/quality-control checklist/i)).toBeInTheDocument();
+    expect(screen.getByText(/live checklist rows across 14 Passes/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "XPass family" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /TestPass/i })).toHaveAttribute("href", "/admin/checks/testpass");
     expect(screen.getByRole("link", { name: /SecurityPass/i })).toHaveAttribute("href", "/admin/checks/securitypass");
@@ -38,7 +39,7 @@ describe("AdminXPassHub", () => {
     expect(screen.getByText("Database scope is tenant-safe")).toBeInTheDocument();
     expect(screen.getAllByText(/Green only when every relevant row is PASS or N\/A/i).length).toBeGreaterThan(0);
     expect(screen.getByText("Alert")).toBeInTheDocument();
-    expect(screen.getAllByTestId("xpass-check-row").length).toBeGreaterThan(20);
+    expect(screen.getAllByTestId("xpass-check-row").length).toBeGreaterThan(55);
   });
 
   it("marks FidelityPass exact-copy scope as N/A when source copy is not in scope", () => {
@@ -56,6 +57,7 @@ describe("AdminXPassHub", () => {
     expect(screen.getByRole("heading", { name: "Message clarity" })).toBeInTheDocument();
     expect(screen.getByText("Headline promise is true")).toBeInTheDocument();
     expect(screen.getByText("No AI slop")).toBeInTheDocument();
-    expect(screen.getAllByTestId("xpass-check-row").length).toBeGreaterThan(20);
+    expect(screen.getByText("No filler adjectives")).toBeInTheDocument();
+    expect(screen.getAllByTestId("xpass-check-row").length).toBeGreaterThan(55);
   });
 });

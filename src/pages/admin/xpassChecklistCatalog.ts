@@ -58,7 +58,7 @@ function improvementLoop(productName: string): XPassChecklistGroup {
   };
 }
 
-export const XPASS_PRODUCT_CHECKLISTS: Record<XPassProductId, XPassChecklistGroup[]> = {
+const BASE_XPASS_PRODUCT_CHECKLISTS: Record<XPassProductId, XPassChecklistGroup[]> = {
   testpass: [
     {
       title: "Build and test proof",
@@ -526,10 +526,303 @@ export const XPASS_PRODUCT_CHECKLISTS: Record<XPassProductId, XPassChecklistGrou
   ],
 };
 
+const deepRunLoop = (productName: string, focus: string): XPassChecklistGroup[] => [
+  {
+    title: "Build request mapping",
+    rows: [
+      waiting("User request is parsed", `${productName} knows what the user asked to build or change before scoring ${focus}.`),
+      waiting("Affected surfaces are listed", `${productName} names the pages, APIs, jobs, copy, or files that are in scope.`),
+      waiting("Acceptance criteria are written", `${productName} has plain pass/fail criteria instead of a vague green result.`),
+      waiting("Non-goals are marked", `${productName} marks unrelated work as N/A with a short reason.`),
+      waiting("Risky assumptions are called out", `${productName} turns uncertain assumptions into WARNING or ALERT rows.`),
+      waiting("Input evidence is attached", `${productName} points to the request, source packet, diff, screenshot, or route being checked.`),
+      waiting("Relevant Passes are selected", `${productName} says which other XPass products must also run for this build.`),
+      waiting("Skipped Passes have N/A reasons", `${productName} cannot hide skipped XPass work behind a generic pass.`),
+    ],
+  },
+  {
+    title: "Evidence and replay",
+    rows: [
+      waiting("Automated proof exists", `${productName} records the command, tool, route, or receipt that proves the row.`),
+      waiting("Manual proof is labeled", `${productName} labels any human or visual check so it is not mistaken for automation.`),
+      waiting("Before state is known", `${productName} can explain what was wrong or unknown before the run.`),
+      waiting("After state is known", `${productName} can explain what changed after the run.`),
+      waiting("Edge case is checked", `${productName} checks at least one boundary case for ${focus}.`),
+      waiting("Failure case is checked", `${productName} proves bad input or missing proof does not quietly become PASS.`),
+      waiting("Receipt can be reopened", `${productName} leaves enough detail for another worker to verify the result later.`),
+      waiting("Timestamp is present", `${productName} records when the evidence was produced or last refreshed.`),
+    ],
+  },
+  {
+    title: "Loop until green",
+    rows: [
+      waiting("FAIL creates a fix task", `${productName} turns each FAIL into a clear repair step.`),
+      warning("WARNING has a decision", `${productName} keeps WARNING visible until it is accepted, fixed, or promoted to FAIL.`),
+      warning("ALERT pauses release", `${productName} treats ALERT rows as stop signs until the owner clears them.`),
+      waiting("N/A is justified", `${productName} only uses N/A when the row truly does not apply to this build.`),
+      waiting("Fix is rechecked", `${productName} reruns the row after a fix instead of trusting the first attempt.`),
+      waiting("Regression proof is kept", `${productName} saves proof that the same miss is less likely next time.`),
+      waiting("Summary matches rows", `${productName} cannot say green while any relevant row is FAIL, ALERT, WARNING, or WAITING.`),
+      waiting("Next run learns", `${productName} updates the checklist when this run exposes a missing check.`),
+    ],
+  },
+];
+
+const PRODUCT_DEEP_CHECKS: Record<XPassProductId, XPassChecklistGroup[]> = {
+  testpass: [
+    {
+      title: "Deep TestPass checklist",
+      rows: [
+        waiting("Fresh checkout can run", "A clean checkout can reproduce the test path without hidden local state."),
+        waiting("Changed package tests run", "Every package touched by the build has its own focused proof."),
+        waiting("Root tests still run", "Shared app behavior is checked after package-level proof passes."),
+        waiting("Mocked paths are named", "Mocked services are called out so nobody mistakes mocks for live proof."),
+        waiting("Live smoke is separate", "Preview or production smoke proof is recorded separately from local tests."),
+        waiting("Flaky test is not ignored", "Flakes create a warning or fix task instead of being waved through."),
+        waiting("Failure output is useful", "A failed test points to the broken behavior, not only a generic crash."),
+        waiting("Release gate is current", "The final green state is tied to the current commit or deployed build."),
+      ],
+    },
+  ],
+  uxpass: [
+    {
+      title: "Deep UXPass checklist",
+      rows: [
+        waiting("Desktop screenshot reviewed", "Desktop layout is visually checked for fit, hierarchy, and scan speed."),
+        waiting("Mobile screenshot reviewed", "Mobile layout is visually checked for fit, touch targets, and reading order."),
+        waiting("Long text is tested", "Long labels, comments, and product names do not break the layout."),
+        waiting("Empty data is tested", "The screen still makes sense when no report or result exists yet."),
+        waiting("Dense data is tested", "Large lists stay readable with thin rows and steady spacing."),
+        waiting("Primary path is obvious", "A new user can tell what to click or read first."),
+        waiting("Internal terms are hidden", "Worker-only terms stay out of the main human-facing view."),
+        waiting("Visual change has proof", "Screenshots or browser checks are attached when the UI changes."),
+      ],
+    },
+  ],
+  securitypass: [
+    {
+      title: "Deep SecurityPass checklist",
+      rows: [
+        waiting("Session boundary is tested", "Protected routes reject unauthenticated or wrong-tenant access."),
+        waiting("Admin boundary is tested", "Admin-only behavior cannot be reached by normal users."),
+        waiting("Secret display is controlled", "Raw keys appear only at creation time or from a safe local cache."),
+        waiting("Secret copy is safe", "Copy buttons do not log, persist, or echo secret values."),
+        waiting("Webhook input is verified", "External callbacks are authenticated before side effects run."),
+        waiting("Database writes are scoped", "Write paths include tenant, owner, or permission checks."),
+        waiting("Dangerous commands are blocked", "Tools cannot run deletes, resets, or rotations without the right gate."),
+        waiting("Security receipt is redacted", "The report proves the check without exposing sensitive evidence."),
+      ],
+    },
+  ],
+  copypass: [
+    {
+      title: "Deep CopyPass checklist",
+      rows: [
+        waiting("Main promise is specific", "The main promise names the useful outcome without hype."),
+        waiting("Subcopy removes doubt", "Supporting copy answers the user's next obvious question."),
+        waiting("CTA matches destination", "Button copy matches the screen, action, or tool it opens."),
+        waiting("Error wording is fixable", "The user can tell what to do after an error."),
+        waiting("Empty wording is useful", "Empty states explain what is missing and how to continue."),
+        waiting("No filler adjectives", "Words like powerful, seamless, and intelligent are justified or removed."),
+        waiting("No fake urgency", "The copy does not pressure the user with unsupported urgency."),
+        waiting("Tone matches UnClick", "The copy sounds plain, capable, and human across related screens."),
+      ],
+    },
+  ],
+  fidelitypass: [
+    {
+      title: "Deep FidelityPass checklist",
+      rows: [
+        waiting("Source packet hash is known", "The exact source can be identified again later."),
+        waiting("Destination packet is known", "The target location is clear enough to verify."),
+        waiting("Exact-copy rows are exact", "Exact text preserves punctuation, casing, order, and numbers."),
+        waiting("Allowed edits are listed", "Approved changes are named instead of hidden in the output."),
+        waiting("Normalization is declared", "Whitespace or markdown normalization rules are explicit."),
+        waiting("Missing source blocks pass", "No source packet means FAIL or N/A, never guessed PASS."),
+        waiting("Diff is human-readable", "A reviewer can see every meaningful change."),
+        waiting("CopyRoom receipt exists", "The final proof links source, destination, and verdict."),
+      ],
+    },
+  ],
+  legalpass: [
+    {
+      title: "Deep LegalPass checklist",
+      rows: [
+        waiting("Legal-risk words are found", "Terms like guarantee, certified, compliant, secure, or unlimited are checked."),
+        waiting("Policy claim has source", "Privacy, terms, billing, and retention claims point to a real source."),
+        waiting("Jurisdiction is explicit", "Location-specific claims name the jurisdiction or are marked unsupported."),
+        waiting("Disclaimer is near claim", "Risk wording appears close to the claim it qualifies."),
+        waiting("User consent is visible", "Consent, opt-in, opt-out, and notification points are checked."),
+        waiting("High-risk claim is escalated", "Legal-sensitive rows name the human or lane for review."),
+        warning("No certification implied", "LegalPass can flag readiness, but it does not certify legal compliance."),
+        waiting("Change history is kept", "Sensitive wording changes keep date, reason, and evidence."),
+      ],
+    },
+  ],
+  sloppass: [
+    {
+      title: "Deep SlopPass checklist",
+      rows: [
+        waiting("AI filler is removed", "Generic assistant wording is replaced with specific useful text."),
+        waiting("Dead code is spotted", "Unused exports, branches, comments, and assets are flagged."),
+        waiting("Duplicate logic is spotted", "Repeated logic is consolidated or justified."),
+        waiting("Naming is plain", "Names explain what the code or product does."),
+        waiting("Magic behavior is explained", "Non-obvious decisions have proof or a short comment."),
+        waiting("Diff is focused", "The change does not include unrelated churn."),
+        waiting("Generated noise is separated", "Generated files are updated only when needed and named as such."),
+        waiting("Slop creates cleanup task", "Mess that cannot be fixed now becomes a tracked task."),
+      ],
+    },
+  ],
+  commonsensepass: [
+    {
+      title: "Deep CommonSensePass checklist",
+      rows: [
+        waiting("Claim matches reality", "The report does not say complete, live, or green without observable proof."),
+        waiting("User expectation is honored", "The solution matches what the user meant, not just the literal words."),
+        waiting("Over-complexity is reduced", "A simpler answer is preferred when it solves the same problem."),
+        waiting("Obvious missing step is caught", "The checklist asks what a normal person would expect next."),
+        waiting("Bad analogy is not overused", "Analogies help the concept but do not become the product."),
+        waiting("Plain-language proof exists", "A non-technical reader can understand the result."),
+        waiting("Contradiction is blocked", "The UI, docs, PR, and Boardroom cannot disagree silently."),
+        waiting("Common-sense fail blocks green", "If the result feels obviously wrong, it cannot be marked PASS."),
+      ],
+    },
+  ],
+  seopass: [
+    {
+      title: "Deep SEOPass checklist",
+      rows: [
+        waiting("One clear H1 exists", "The page has one meaningful main heading."),
+        waiting("Title is not generic", "The browser title names the product, offer, or page purpose."),
+        waiting("Description is useful", "The meta description reads like a helpful search snippet."),
+        waiting("Internal anchor exists", "Relevant pages link to the page with meaningful text."),
+        waiting("Image text is useful", "Important visual content has alt text or nearby plain text."),
+        waiting("Duplicate intent is avoided", "Nearby pages do not compete for the same search intent."),
+        waiting("Indexing state is intentional", "Noindex, robots, canonical, and status code are checked."),
+        waiting("Search claim is backed", "Search-facing claims match actual product capability."),
+      ],
+    },
+  ],
+  geopass: [
+    {
+      title: "Deep GEOPass checklist",
+      rows: [
+        waiting("AI summary is obvious", "A model can summarize the page accurately in one sentence."),
+        waiting("Entity relationship is clear", "UnClick, AutoPilot, XPass, and product names connect cleanly."),
+        waiting("Use cases are explicit", "The page states when the product should be used."),
+        waiting("Audience is explicit", "The page names who the product is for."),
+        waiting("Examples reduce guessing", "Concrete examples stop answer engines inventing details."),
+        waiting("Definitions are stable", "The same product is not defined two different ways."),
+        waiting("Public proof is available", "Answer engines can cite safe public evidence where appropriate."),
+        waiting("AI answer drift feeds back", "Bad generated answers become new checklist rows."),
+      ],
+    },
+  ],
+  flowpass: [
+    {
+      title: "Deep FlowPass checklist",
+      rows: [
+        waiting("First step is visible", "The user can tell where to begin the journey."),
+        waiting("Current step is visible", "The user can tell what is happening now."),
+        waiting("Next step is visible", "The user can tell what happens after this screen."),
+        waiting("Back path is safe", "Going back does not silently lose important work."),
+        waiting("Retry path is safe", "Recoverable failures offer a clear retry or fix path."),
+        waiting("Blocked state is honest", "Blocked journeys say what is missing."),
+        waiting("Completion state is useful", "Done states say what was completed and where proof lives."),
+        waiting("Loop path is real", "Failed checks route back into work until they are green or N/A."),
+      ],
+    },
+  ],
+  rotatepass: [
+    {
+      title: "Deep RotatePass checklist",
+      rows: [
+        waiting("Secret owner is known", "The service or team responsible for the credential is named."),
+        waiting("Secret consumers are listed", "Apps, jobs, and integrations that use the secret are identified."),
+        waiting("New value is stored safely", "The new secret goes only into the approved secret store."),
+        waiting("No raw value in output", "Logs, receipts, and comments never print the secret."),
+        waiting("Dependent deploy is checked", "Services that need the new secret are redeployed or refreshed."),
+        waiting("Old value is revoked", "The old credential is removed after safe proof."),
+        waiting("Rollback is known", "The operator knows how to recover if rotation fails."),
+        waiting("Next rotation is tracked", "Expiry or review timing is recorded when known."),
+      ],
+    },
+  ],
+  wakepass: [
+    {
+      title: "Deep WakePass checklist",
+      rows: [
+        waiting("Owner check-in is fresh", "The active owner has checked in within the expected window."),
+        waiting("Work is not orphaned", "Open jobs have an owner, blocker, or routing decision."),
+        waiting("Stale work escalates", "Stale in-progress work creates a useful signal."),
+        waiting("Handoff is acknowledged", "Direct handoffs receive an ACK, next action, and ETA."),
+        waiting("Proof closes the loop", "Done jobs include proof, not just a done word."),
+        waiting("Noise wake is avoided", "Repeated wake messages do not spam the room without progress."),
+        waiting("Human touch is minimized", "Workers proceed without asking the user when proof is discoverable."),
+        waiting("Queue health is honest", "The system cannot call itself quiet while actionable work is queued."),
+      ],
+    },
+  ],
+  compliancepass: [
+    {
+      title: "Deep CompliancePass checklist",
+      rows: [
+        waiting("Control owner is named", "Each readiness row has an owner or responsible lane."),
+        waiting("Evidence type is named", "The row says whether it needs policy, log, screenshot, receipt, or review evidence."),
+        waiting("Evidence date is visible", "Proof has a date or freshness marker."),
+        waiting("Gap severity is ranked", "Missing readiness is ranked by release or business risk."),
+        waiting("Exception is documented", "Accepted risk has an owner, reason, and review timing."),
+        waiting("Framework language is accurate", "Framework names and claims are not invented or overstated."),
+        warning("Formal certification is not implied", "CompliancePass checks readiness; it does not replace an auditor."),
+        waiting("Recheck trigger exists", "A future trigger or schedule keeps readiness from going stale."),
+      ],
+    },
+  ],
+};
+
+const PRODUCT_NAMES: Record<XPassProductId, string> = {
+  testpass: "TestPass",
+  uxpass: "UXPass",
+  securitypass: "SecurityPass",
+  copypass: "CopyPass",
+  fidelitypass: "FidelityPass",
+  legalpass: "LegalPass",
+  sloppass: "SlopPass",
+  commonsensepass: "CommonSensePass",
+  seopass: "SEOPass",
+  geopass: "GEOPass",
+  flowpass: "FlowPass",
+  rotatepass: "RotatePass",
+  wakepass: "WakePass",
+  compliancepass: "CompliancePass",
+};
+
+export const XPASS_PRODUCT_CHECKLISTS: Record<XPassProductId, XPassChecklistGroup[]> = (
+  Object.keys(BASE_XPASS_PRODUCT_CHECKLISTS) as XPassProductId[]
+).reduce(
+  (catalog, productId) => {
+    catalog[productId] = [
+      ...BASE_XPASS_PRODUCT_CHECKLISTS[productId],
+      ...PRODUCT_DEEP_CHECKS[productId],
+      ...deepRunLoop(PRODUCT_NAMES[productId], productId),
+    ];
+    return catalog;
+  },
+  {} as Record<XPassProductId, XPassChecklistGroup[]>,
+);
+
 export function countChecklistRows(productId: XPassProductId): number {
   return XPASS_PRODUCT_CHECKLISTS[productId].reduce((total, group) => total + group.rows.length, 0);
 }
 
 export function countChecklistGroups(productId: XPassProductId): number {
   return XPASS_PRODUCT_CHECKLISTS[productId].length;
+}
+
+export function countFamilyChecklistRows(): number {
+  return (Object.keys(XPASS_PRODUCT_CHECKLISTS) as XPassProductId[]).reduce(
+    (total, productId) => total + countChecklistRows(productId),
+    0,
+  );
 }

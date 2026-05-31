@@ -23,6 +23,7 @@ import {
 import { dogfoodReport, type DogfoodStatus } from "@/data/dogfoodReport";
 import {
   countChecklistGroups,
+  countFamilyChecklistRows,
   countChecklistRows,
   XPASS_PRODUCT_CHECKLISTS,
   type XPassChecklistGroup,
@@ -273,8 +274,8 @@ function StatusBadge({ status }: { status: XPassRowStatus }) {
 
 function ProductCard({ product }: { product: XPassProduct }) {
   const Icon = product.icon;
-  const checkCount = countChecklistRows(product.id);
-  const groupCount = countChecklistGroups(product.id);
+  const checkCount = countChecklistRows(product.id) + 5;
+  const groupCount = countChecklistGroups(product.id) + 1;
 
   return (
     <Link
@@ -362,6 +363,8 @@ function ChecklistGroupView({ group }: { group: XPassChecklistGroup }) {
 }
 
 function XPassHome() {
+  const familyCheckCount = countFamilyChecklistRows() + PRODUCTS.length * 5;
+
   return (
     <div className="space-y-8">
       <section className="rounded-lg border border-white/[0.08] bg-[#111] p-6">
@@ -375,6 +378,9 @@ function XPassHome() {
             <p className="mt-3 max-w-3xl text-sm leading-6 text-white/60">
               XPass is the quality-control checklist for UnClick work. Each Pass owns a large set of checks, scores
               every relevant row, explains every result, and keeps looping until the non-N/A rows are green.
+            </p>
+            <p className="mt-3 text-xs font-medium text-white/45">
+              {familyCheckCount} live checklist rows across {PRODUCTS.length} Passes, before the run adds project-specific rows.
             </p>
           </div>
         </div>

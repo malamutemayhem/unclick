@@ -6,16 +6,18 @@
 
 ## Operating Model
 
-XPass should be a full QC checklist system.
+XPass should be a full QC checklist system with hundreds of checks across the family, not a small generic receipt wrapper.
 
 That means every XPass run considers the whole family and records each row as one of:
 
 | Mark | Meaning |
 | --- | --- |
-| ✓ | complete enough to run as evidence today |
-| ~ | real but not 100 percent complete |
-| ✗ | not built enough to count |
+| PASS | complete enough to run as evidence today |
+| WARNING | real risk or weak evidence that needs attention |
+| ALERT | stop-sign risk that should pause release until cleared |
+| FAIL | not built enough to count |
 | N/A | not applicable to this target or request |
+| WAITING | not run or not proven yet |
 
 This does not mean every expensive runner executes every time. The lightweight checklist always considers the whole product family and every product-specific row. Deep runners only run when the row applies.
 
@@ -64,7 +66,7 @@ These rows were closed or verified during the 2026-05-30 XPass completion run:
 
 The Admin XPass page should feel like a large QC checklist, not an engineering dashboard and not a tiny receipt wrapper.
 
-1. The XPass home shows a plain product card grid with the number of checklist rows per Pass.
+1. The XPass home shows a plain product card grid with the number of checklist rows per Pass and the family-wide checklist total.
 2. Each product card opens that Pass's full QC checklist, not a five-row meta summary.
 3. Each Pass owns product-specific groups. Example: CopyPass checks wording, claims, tone, source-copy, and AI-slop risk. SecurityPass checks secrets, auth, tenant scope, safe errors, and destructive-action gates.
 4. Each checklist row uses simple marks: `PASS`, `FAIL`, `N/A`, `WARNING`, `ALERT`, or `WAITING`, with a short comment.

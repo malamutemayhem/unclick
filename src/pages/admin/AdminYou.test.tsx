@@ -1,20 +1,25 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AdminYou from "./AdminYou";
 
-vi.mock("@/lib/auth", () => ({
-  useSession: () => ({
-    session: { access_token: "test-session-token" },
-    user: {
-      email: "owner@example.com",
-      created_at: "2026-01-01T00:00:00.000Z",
-      app_metadata: { provider: "email" },
-    },
-    loading: false,
-  }),
-  signOut: vi.fn(),
-}));
+vi.mock("@/lib/auth", () => {
+  const session = { access_token: "test-session-token" };
+  const user = {
+    email: "owner@example.com",
+    created_at: "2026-01-01T00:00:00.000Z",
+    app_metadata: { provider: "email" },
+  };
+
+  return {
+    useSession: () => ({
+      session,
+      user,
+      loading: false,
+    }),
+    signOut: vi.fn(),
+  };
+});
 
 function renderPage() {
   render(
@@ -74,6 +79,17 @@ function stubFetch(generatedKey: string | null) {
   });
 }
 
+async function waitForInitialAdminYouFetches() {
+  const fetchMock = globalThis.fetch as unknown as ReturnType<typeof vi.fn>;
+
+  await waitFor(() => {
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("admin_profile"), expect.any(Object));
+  });
+  await waitFor(() => {
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("auth_device_list"), expect.any(Object));
+  });
+}
+
 describe("AdminYou API key card", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -95,6 +111,7 @@ describe("AdminYou API key card", () => {
     expect(await screen.findByRole("button", { name: /Copy API key/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Copy MCP URL/i })).toBeInTheDocument();
     expect(screen.getByText(/Copy it now or copy the ready-made MCP URL/i)).toBeInTheDocument();
+    await waitForInitialAdminYouFetches();
   });
 
   it("explains why an old key cannot be copied after the raw value is gone", async () => {
@@ -104,5 +121,6 @@ describe("AdminYou API key card", () => {
 
     expect(await screen.findByText(/stores only a hash after setup/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Create new copyable key/i })).toBeInTheDocument();
+    await waitForInitialAdminYouFetches();
   });
 });
