@@ -223,6 +223,58 @@ function formatToolSummary(tool: ToolDef): string {
   ].join("\n");
 }
 
+// ─── Integration tool discovery ─────────────────────────────────────────────
+//
+// ADDITIONAL_TOOLS are flat { name, description, inputSchema } entries (the ~800
+// product + third-party integration tools wired in tool-wiring.ts). They are no
+// longer advertised in tools/list, so the meta-tools below let agents discover
+// and inspect them. Each is callable by name and via
+// `unclick_call` with `endpoint_id` set to the tool name.
+
+type IntegrationTool = {
+  name: string;
+  description: string;
+  inputSchema?: unknown;
+};
+
+const INTEGRATION_TOOLS = ADDITIONAL_TOOLS as readonly IntegrationTool[];
+
+const INTEGRATION_TOOL_MAP = new Map<string, IntegrationTool>(
+  INTEGRATION_TOOLS.map((tool) => [tool.name, tool]),
+);
+
+function searchIntegrationTools(query: string): IntegrationTool[] {
+  const q = query.toLowerCase();
+  if (!q) return [];
+  return INTEGRATION_TOOLS.filter(
+    (tool) =>
+      tool.name.toLowerCase().includes(q) ||
+      tool.description.toLowerCase().includes(q),
+  );
+}
+
+// Groups the flat integration tools by their name prefix (the text before the
+// first underscore, e.g. "bgg", "spotify", "testpass") so unclick_browse can
+// present a navigable list instead of 800 ungrouped names.
+function integrationToolGroups(): Map<string, IntegrationTool[]> {
+  const groups = new Map<string, IntegrationTool[]>();
+  for (const tool of INTEGRATION_TOOLS) {
+    const prefix = tool.name.split("_")[0] || tool.name;
+    const bucket = groups.get(prefix);
+    if (bucket) bucket.push(tool);
+    else groups.set(prefix, [tool]);
+  }
+  return groups;
+}
+
+function formatIntegrationToolSummary(tool: IntegrationTool): string {
+  return [
+    `**${tool.name}** (integration tool)`,
+    tool.description,
+    `Call with: \`unclick_call\` → \`{ endpoint_id: "${tool.name}", params: {...} }\``,
+  ].join("\n");
+}
+
 // ─── MCP Tool definitions ───────────────────────────────────────────────────
 
 // Internal tools: still callable for backwards compatibility, but not advertised
@@ -231,9 +283,11 @@ const INTERNAL_TOOLS = [
   {
     name: "unclick_search",
     description:
-      "Search the UnClick tool marketplace by keyword or description. " +
-      "Use this to discover which tools are available for a task. " +
-      "Example: 'I need to resize an image' returns the image tool with its endpoints.",
+      "Search the full UnClick tool marketplace (450+ integrations, 800+ endpoints) by keyword or description. " +
+      "Most tools are not shown in the tool list to keep it clean -- use this to discover them. " +
+      "Returns matching catalog tools and integration tools (Spotify, GitHub, Stripe, TestPass, etc.). " +
+      "Call a result by its name, or via unclick_call. " +
+      "Example: 'resize an image' returns the image tool; 'spotify' returns the Spotify integration tools.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -254,8 +308,10 @@ const INTERNAL_TOOLS = [
   {
     name: "unclick_browse",
     description:
-      "Browse all available UnClick tools, optionally filtered by category. " +
-      "Returns a list of tools with their slugs and descriptions.",
+      "Browse all available UnClick tools: the structured catalog plus every " +
+      "integration tool (grouped by provider, e.g. spotify, github, testpass). " +
+      "Optionally filter the structured catalog by category. " +
+      "Returns tool names and descriptions; call any of them by name or via unclick_call.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -281,8 +337,9 @@ const INTERNAL_TOOLS = [
         slug: {
           type: "string",
           description:
-            "Tool slug, e.g. 'image', 'hash', 'csv', 'cron'. " +
-            "Available slugs: " + CATALOG.map((t) => t.slug).join(", "),
+            "A catalog tool slug (e.g. 'image', 'hash', 'csv', 'cron') OR an " +
+            "integration tool name (e.g. 'spotify_search', 'testpass_run') from unclick_search. " +
+            "Catalog slugs: " + CATALOG.map((t) => t.slug).join(", "),
         },
       },
       required: ["slug"],
@@ -291,9 +348,10 @@ const INTERNAL_TOOLS = [
   {
     name: "unclick_call",
     description:
-      "Call any UnClick tool endpoint. Specify the endpoint ID and parameters. " +
-      "Use unclick_search or unclick_tool_info to discover endpoint IDs and required params. " +
-      "Example: endpoint_id='image.resize', params={image: '<base64>', width: 800, height: 600}",
+      "Call any UnClick tool endpoint or integration tool. Specify the endpoint ID and parameters. " +
+      "Use unclick_search or unclick_tool_info to discover endpoint IDs, integration tool names, and required params. " +
+      "Example: endpoint_id='image.resize', params={image: '<base64>', width: 800, height: 600}; " +
+      "or endpoint_id='spotify_search', params={query: 'daft punk'}",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -301,7 +359,8 @@ const INTERNAL_TOOLS = [
         endpoint_id: {
           type: "string",
           description:
-            "Endpoint identifier, e.g. 'image.resize', 'hash.compute', 'csv.parse', 'cron.next'",
+            "A catalog endpoint id (e.g. 'image.resize', 'hash.compute') or an " +
+            "integration tool name (e.g. 'spotify_search', 'testpass_run').",
         },
         params: {
           type: "object",
@@ -1696,11 +1755,17 @@ const EXPRESSROOM_VISIBLE_TOOLS = INTERNAL_TOOLS.filter((tool) =>
   (EXPRESSROOM_VISIBLE_TOOL_NAMES as readonly string[]).includes(tool.name),
 );
 
+// Collapsed tool surface: we advertise the four discovery meta-tools plus the
+// core memory and Boardroom workflows. The ~800 catalog and integration
+// endpoints in ADDITIONAL_TOOLS stay fully callable -- directly by name and via
+// `unclick_call` -- but are hidden from tools/list so connectors show a handful
+// of permissions instead of hundreds. Agents discover those tools through
+// `unclick_search` / `unclick_browse` / `unclick_tool_info`.
 export const ADVERTISED_TOOLS = [
+  ...INTERNAL_TOOLS,
   ...VISIBLE_TOOLS,
   ...EXPRESSROOM_VISIBLE_TOOLS,
   ...AUTOPILOT_VISIBLE_TOOLS,
-  ...ADDITIONAL_TOOLS,
 ];
 
 /** Combinators the Anthropic API rejects at the TOP level of a tool schema. */
@@ -1888,12 +1953,13 @@ export function createServer(): Server {
     }
   );
 
-  // LIST TOOLS: advertise the core memory tools, the friendly DraftRoom
-  // bridge tools, plus every product + marketplace tool registered in
-  // ADDITIONAL_TOOLS (TestPass, Crews, and third-party integrations from
-  // tool-wiring.ts). Internal meta tools (unclick_search, unclick_browse,
-  // unclick_tool_info, unclick_call) and the small DIRECT_TOOLS utility set
-  // remain callable for backwards compatibility but stay hidden from tools/list.
+  // LIST TOOLS: advertise the discovery meta-tools (unclick_search,
+  // unclick_browse, unclick_tool_info, unclick_call), the core memory tools,
+  // the Boardroom workflow tools, and the friendly DraftRoom bridge tools.
+  // The ~800 product + marketplace tools in ADDITIONAL_TOOLS (TestPass, Crews,
+  // and third-party integrations from tool-wiring.ts) plus the small
+  // DIRECT_TOOLS utility set stay callable -- by name and via unclick_call --
+  // but are hidden from tools/list so connectors stay to a handful of rows.
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return { tools: ADVERTISED_TOOLS_SAFE };
   });
@@ -2250,26 +2316,44 @@ export function createServer(): Server {
 
       // ── Meta tools ──────────────────────────────────────────────
       if (name === "unclick_search") {
-        const results = searchTools(
-          String(args.query ?? ""),
-          args.category as string | undefined
-        );
-        if (results.length === 0) {
+        const query = String(args.query ?? "");
+        const results = searchTools(query, args.category as string | undefined);
+        // Integration tools are not categorised, so only include them when no
+        // category filter is supplied.
+        const integrationResults = args.category
+          ? []
+          : searchIntegrationTools(query);
+
+        if (results.length === 0 && integrationResults.length === 0) {
           return {
             content: [
               {
                 type: "text",
-                text: `No tools found matching "${args.query}". Try unclick_browse to see all available tools.`,
+                text: `No tools found matching "${query}". Try unclick_browse to see all available tools.`,
               },
             ],
           };
         }
-        const text = results.map(formatToolSummary).join("\n\n---\n\n");
+
+        const sections: string[] = [];
+        if (results.length > 0) {
+          sections.push(results.map(formatToolSummary).join("\n\n---\n\n"));
+        }
+        if (integrationResults.length > 0) {
+          sections.push(
+            `## Integration tools (${integrationResults.length})\n\n` +
+              integrationResults
+                .map(formatIntegrationToolSummary)
+                .join("\n\n---\n\n"),
+          );
+        }
+
+        const total = results.length + integrationResults.length;
         return {
           content: [
             {
               type: "text",
-              text: `Found ${results.length} tool(s) matching "${args.query}":\n\n${text}`,
+              text: `Found ${total} tool(s) matching "${query}":\n\n${sections.join("\n\n")}`,
             },
           ],
         };
@@ -2294,11 +2378,37 @@ export function createServer(): Server {
           lines.push("");
         }
 
+        // Append the flat integration tools, grouped by name prefix. A category
+        // filter only applies to the structured catalog above, so we list the
+        // integration tools only on an unfiltered browse.
+        let integrationCount = 0;
+        if (!args.category) {
+          const groups = [...integrationToolGroups().entries()].sort(([a], [b]) =>
+            a.localeCompare(b),
+          );
+          integrationCount = groups.reduce((sum, [, tools]) => sum + tools.length, 0);
+          lines.push(
+            `# INTEGRATION TOOLS (${integrationCount})`,
+            "Call any of these by name or via `unclick_call` with `endpoint_id` set to the tool name. Use `unclick_search` to find one fast, or `unclick_tool_info` for its parameters.",
+            "",
+          );
+          for (const [prefix, tools] of groups) {
+            lines.push(`## ${prefix} (${tools.length})`);
+            for (const tool of tools) {
+              lines.push(`- **${tool.name}** -- ${tool.description}`);
+            }
+            lines.push("");
+          }
+        }
+
+        const heading = args.category
+          ? `UnClick Tool Catalog (${filtered.length} tools)`
+          : `UnClick Tool Catalog (${filtered.length} catalog + ${integrationCount} integration tools)`;
         return {
           content: [
             {
               type: "text",
-              text: `UnClick Tool Catalog (${filtered.length} tools)\n\n${lines.join("\n")}`,
+              text: `${heading}\n\n${lines.join("\n")}`,
             },
           ],
         };
@@ -2308,12 +2418,31 @@ export function createServer(): Server {
         const slug = String(args.slug ?? "");
         const tool = TOOL_MAP.get(slug);
         if (!tool) {
+          // Fall back to the flat integration tools, keyed by tool name.
+          const integrationTool = INTEGRATION_TOOL_MAP.get(slug);
+          if (integrationTool) {
+            const lines = [
+              `# ${integrationTool.name}`,
+              `**Type:** integration tool`,
+              "",
+              integrationTool.description,
+              "",
+              "## Input Schema",
+              "```json",
+              JSON.stringify(integrationTool.inputSchema ?? {}, null, 2),
+              "```",
+              "",
+              `> Call with: \`unclick_call\` → \`{ endpoint_id: "${integrationTool.name}", params: {...} }\` (or call \`${integrationTool.name}\` directly).`,
+            ];
+            return { content: [{ type: "text", text: lines.join("\n") }] };
+          }
+
           const available = CATALOG.map((t) => t.slug).join(", ");
           return {
             content: [
               {
                 type: "text",
-                text: `Tool "${slug}" not found. Available slugs: ${available}`,
+                text: `Tool "${slug}" not found. Available catalog slugs: ${available}. For one of the ${INTEGRATION_TOOLS.length} integration tools, pass its tool name (e.g. "spotify_search") or run unclick_search first.`,
               },
             ],
             isError: true,
@@ -2375,27 +2504,32 @@ export function createServer(): Server {
           };
         }
 
+        // Try ADDITIONAL_HANDLERS (the ~800 product + integration tools from
+        // tool-wiring.ts). These live outside the CATALOG/ENDPOINT_MAP, so they
+        // must be checked before declaring the endpoint unknown -- otherwise
+        // hiding them from tools/list would make them unreachable. Accept both
+        // dotted ("bgg.search") and flat ("bgg_search") endpoint ids.
+        const handlerKey = endpointId.replace(/\./g, "_");
+        const additionalHandler =
+          ADDITIONAL_HANDLERS[handlerKey] ?? ADDITIONAL_HANDLERS[endpointId];
+        if (additionalHandler) {
+          const result = await additionalHandler(params);
+          signalToolFailure(handlerKey, result, params);
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          };
+        }
+
         const entry = ENDPOINT_MAP.get(endpointId);
         if (!entry) {
           return {
             content: [
               {
                 type: "text",
-                text: `Endpoint "${endpointId}" not found. Use unclick_tool_info to see valid endpoint IDs.`,
+                text: `Endpoint "${endpointId}" not found. Use unclick_search or unclick_tool_info to find valid endpoint ids and integration tool names.`,
               },
             ],
             isError: true,
-          };
-        }
-
-        // Try ADDITIONAL_HANDLERS via dot-to-underscore key conversion ("foo.bar" -> "foo_bar")
-        const handlerKey = endpointId.replace(/\./g, "_");
-        const additionalHandler = ADDITIONAL_HANDLERS[handlerKey];
-        if (additionalHandler) {
-          const result = await additionalHandler(params);
-          signalToolFailure(handlerKey, result, params);
-          return {
-            content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
           };
         }
 

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { ADVERTISED_TOOLS, ADVERTISED_TOOLS_SAFE, advertiseToolSchema } from "../server.js";
+import { ADVERTISED_TOOLS_SAFE, advertiseToolSchema } from "../server.js";
+import { ADDITIONAL_TOOLS } from "../tool-wiring.js";
 
 type AdvertisedTool = { name: string; inputSchema?: unknown };
 
@@ -17,12 +18,17 @@ describe("advertised tool schemas are Anthropic-API safe", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("the known catalog offenders are cleaned but keep their properties", () => {
+  it("the known catalog offenders are cleaned by advertiseToolSchema but keep their properties", () => {
+    // These integration tools carry a top-level combinator. They are no longer
+    // advertised in tools/list (only reachable via name / unclick_call), but the
+    // sanitizer must still strip the combinator while preserving properties for
+    // any surface that advertises them.
     const names = ["legalpass_run", "legalpass_save_pack", "flowpass_register_pack", "sloppass_run"];
     for (const name of names) {
-      const tool = ADVERTISED_TOOLS_SAFE.find((t: AdvertisedTool) => t.name === name);
-      expect(tool, `${name} should be advertised`).toBeTruthy();
-      const schema = tool!.inputSchema as Record<string, unknown>;
+      const original = ADDITIONAL_TOOLS.find((t: AdvertisedTool) => t.name === name);
+      expect(original, `${name} should exist in the integration catalog`).toBeTruthy();
+      const safe = advertiseToolSchema(original as AdvertisedTool);
+      const schema = safe.inputSchema as Record<string, unknown>;
       expect(hasTopLevelCombinator(schema)).toBe(false);
       expect(schema.properties, `${name} should keep its properties`).toBeTruthy();
     }
@@ -30,7 +36,7 @@ describe("advertised tool schemas are Anthropic-API safe", () => {
 
   it("does not mutate the original schemas (runtime validation stays intact)", () => {
     // At least one original still carries the top-level anyOf used by AJV.
-    const original = ADVERTISED_TOOLS.find((t: AdvertisedTool) => t.name === "sloppass_run");
+    const original = ADDITIONAL_TOOLS.find((t: AdvertisedTool) => t.name === "sloppass_run");
     expect(hasTopLevelCombinator(original?.inputSchema)).toBe(true);
   });
 
