@@ -180,7 +180,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/deezer-tool.ts | 784d0608dda2 | 8130 |
 | packages/mcp-server/src/discogs-tool.ts | 547892efce07 | 4956 |
 | packages/mcp-server/src/discord-tool.ts | c70b8ac42f28 | 8191 |
-| packages/mcp-server/src/domain-tool.ts | 1beecc106e80 | 6076 |
+| packages/mcp-server/src/domain-tool.ts | 2ae91d6d6a0d | 6657 |
 | packages/mcp-server/src/ebay-tool.ts | 10dffe36315f | 7595 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |

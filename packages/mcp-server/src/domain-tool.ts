@@ -12,21 +12,36 @@ function getApiKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const DOMAIN_TIMEOUT_MS = Number(process.env.DOMAIN_TIMEOUT_MS) || 10000;
+
 async function domainFetch(
   apiKey: string,
   path: string,
   method = "GET",
   body?: unknown
 ): Promise<unknown> {
-  const res = await fetch(`${DOMAIN_BASE}${path}`, {
-    method,
-    headers: {
-      "X-Api-Key": apiKey,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DOMAIN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${DOMAIN_BASE}${path}`, {
+      method,
+      headers: {
+        "X-Api-Key": apiKey,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Domain API request timed out after ${DOMAIN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Domain API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid Domain API key.");
   if (res.status === 404) throw new Error("Resource not found.");
   if (res.status === 429) throw new Error("Domain API rate limit exceeded.");

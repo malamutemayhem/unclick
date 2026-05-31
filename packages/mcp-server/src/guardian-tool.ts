@@ -5,6 +5,8 @@
 
 const GUARDIAN_BASE = "https://content.guardianapis.com";
 
+const GUARDIAN_TIMEOUT_MS = Number(process.env.GUARDIAN_TIMEOUT_MS) || 10000;
+
 async function guardianGet(
   apiKey: string,
   path: string,
@@ -14,7 +16,23 @@ async function guardianGet(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") qs.set(k, String(v));
   }
-  const res = await fetch(`${GUARDIAN_BASE}${path}?${qs}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), GUARDIAN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${GUARDIAN_BASE}${path}?${qs}`, { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Guardian API request timed out after ${GUARDIAN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Guardian API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Guardian API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Guardian API HTTP ${res.status}: ${body || res.statusText}`);

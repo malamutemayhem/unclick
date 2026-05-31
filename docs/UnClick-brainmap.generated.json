@@ -8372,8 +8372,8 @@
     },
     {
       "source": "packages/mcp-server/src/domain-tool.ts",
-      "hash": "1beecc106e80",
-      "bytes": 6076
+      "hash": "2ae91d6d6a0d",
+      "bytes": 6657
     },
     {
       "source": "packages/mcp-server/src/ebay-tool.ts",
