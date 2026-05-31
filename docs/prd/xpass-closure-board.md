@@ -70,8 +70,11 @@ The Admin XPass page should feel like a large QC checklist, not an engineering d
 2. Each product card opens that Pass's full QC checklist, not a five-row meta summary.
 3. Each Pass owns product-specific groups. Example: CopyPass checks wording, claims, tone, source-copy, and AI-slop risk. SecurityPass checks secrets, auth, tenant scope, safe errors, and destructive-action gates.
 4. Each checklist row uses simple marks: `PASS`, `FAIL`, `N/A`, `WARNING`, `ALERT`, or `WAITING`, with a short comment.
-5. A report is green only when every relevant row is `PASS` or `N/A`.
-6. PR numbers, hashes, and internal proof details stay behind the report, unless an operator deliberately opens evidence.
+5. Checklist rows should be thin single-line rows wherever possible, similar to the Jobs page, so long lists can be scanned quickly.
+6. Recent reports belong in the top header/report-management area. The checklist itself should be full-width and should not have a side column beside it.
+7. Recent reports should be date-sorted and clickable. Selecting a report populates that product checklist with the selected run's row results.
+8. A report is green only when every relevant row is `PASS` or `N/A`.
+9. PR numbers, hashes, and internal proof details stay behind the report, unless an operator deliberately opens evidence.
 
 ## Retired Or Historical Names
 

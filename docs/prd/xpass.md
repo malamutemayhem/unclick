@@ -186,6 +186,8 @@ For material targets, XPass may also attach `lite_check` anti-rubber-stamp quest
 
 An XPass receipt should behave like a complete QC checklist: every known XPass product should appear, and every product should expose its own large row list. The family should add up to hundreds of rows before project-specific rows are generated for a run. Rows use `PASS`, `FAIL`, `ALERT`, `WARNING`, `N/A`, or `WAITING`. `N/A` is the correct result when a check was considered and does not apply to the target. The run is green only when every relevant row is `PASS` or `N/A`.
 
+In Admin, this should render as a scan-friendly report: recent reports are date-sorted and clickable in the top report-management area, and the checklist below is a full-width thin-row list with no side column beside the rows.
+
 ### Receipt schema sketch
 
 The receipt is the contract. Implementations live in package code, but the canonical shape is:
