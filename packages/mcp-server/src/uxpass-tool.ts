@@ -1,7 +1,7 @@
 /**
  * uxpass-tool - MCP handlers for UXPass.
  *
- * UXPass is the UI/UX sister to TestPass. uxpass_run, uxpass_status, and
+ * UXPass is the journey/usability sister to TestPass. uxpass_run, uxpass_status, and
  * the three uxpass_report_* tools call back into the UnClick Vercel API at
  * /api/uxpass using the caller's UNCLICK_API_KEY as a Bearer token (same
  * pattern as the testpass tool). The API resolves the key to a user id and
@@ -202,7 +202,7 @@ function buildUxPassReceipt(
     actionNeeded.push("Capture both mobile and desktop evidence before calling the visual critique complete.");
   }
   if (screenshotProof !== "present") {
-    actionNeeded.push("Add screenshot proof for UI/UX Boardroom closure or before/after comparison.");
+    actionNeeded.push("Add screenshot proof for UIPass or UXPass Boardroom closure when the target has a visible interface.");
   }
   if (!context.targetSha) {
     actionNeeded.push("Bind the receipt to a target SHA when it is used for PR or release proof.");
@@ -221,7 +221,7 @@ function buildUxPassReceipt(
       browser_snapshot: browserSnapshot,
       screenshot_proof: screenshotProof,
       mobile_desktop_coverage: coverage,
-      note: "Fetch-only UXPass checks are useful but do not prove visual polish without browser snapshots and screenshot evidence.",
+      note: "Fetch-only UXPass checks are useful for journey readiness but do not prove UIPass visual polish without browser snapshots and screenshot evidence.",
     },
     evidence_sources: [
       "uxpass_api_response",

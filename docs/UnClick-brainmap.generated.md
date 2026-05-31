@@ -13,17 +13,17 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Source | Hash | Bytes |
 | --- | --- | --- |
-| AUTOPILOT.md | 5b6b2c21c91d | 17427 |
+| AUTOPILOT.md | 790b43137907 | 17556 |
 | FLEET_SYNC.md | 83bbf1598b48 | 14705 |
 | docs/unclick-context-boot-packet.md | 259a136f762b | 6132 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
 | docs/pinballwake-nudgeonly-api.md | e056b727ce53 | 7559 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
-| docs/fleet-worker-roles.md | a8f64d0da135 | 4873 |
+| docs/fleet-worker-roles.md | de9f41b265f3 | 4881 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
 | src/App.tsx | 2cffedbf2fb0 | 14432 |
-| src/pages/admin/AdminShell.tsx | cd267dabfd21 | 22038 |
+| src/pages/admin/AdminShell.tsx | 79d0329e0e8b | 22091 |
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
@@ -93,7 +93,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/AuthCallback.tsx | 41644ade9f97 | 5284 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
 | src/pages/Connect.tsx | ebf2c68ad6c3 | 29590 |
-| src/pages/Crews.tsx | 9b4b9dfca188 | 18784 |
+| src/pages/Crews.tsx | 672df3eeb92b | 18792 |
 | src/pages/DeveloperDocs.tsx | 339b3a5c60ae | 23490 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
 | src/pages/VibeCoding.tsx | e09d777363c0 | 8012 |
@@ -119,7 +119,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
-| src/pages/XPass.tsx | e6ad3bd5a7a3 | 8705 |
+| src/pages/XPass.tsx | 5f07b2f32036 | 8713 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
 | scripts/pinballwake-close-supersede-room.mjs | 4d31f6a6a8c2 | 3891 |
@@ -142,7 +142,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 0483d0717e07 | 32407 |
+| scripts/pinballwake-xpass-gate-room.mjs | 8012a4cbab9e | 32880 |
 | packages/mcp-server/src/abn-tool.ts | 5105de2d357d | 3682 |
 | packages/mcp-server/src/abuseipdb-tool.ts | 21d5283c8dba | 4673 |
 | packages/mcp-server/src/airtable-tool.ts | cca3eed693da | 7132 |

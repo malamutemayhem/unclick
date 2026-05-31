@@ -30,6 +30,7 @@ describe("XPassPage", () => {
     expect(screen.getByRole("link", { name: /View public receipt/i })).toHaveAttribute("href", "/dogfood");
     expect(screen.getByRole("link", { name: /Open XPass in Admin/i })).toHaveAttribute("href", "/admin/checks");
     expect(screen.getByRole("heading", { name: "XPass family" })).toBeInTheDocument();
+    expect(screen.getAllByText("UIPass").length).toBeGreaterThan(0);
     expect(screen.getAllByText("UXPass").length).toBeGreaterThan(0);
   });
 });

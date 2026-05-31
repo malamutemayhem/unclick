@@ -20,9 +20,10 @@ describe("AdminXPassHub", () => {
 
     expect(screen.getByRole("heading", { name: "XPass" })).toBeInTheDocument();
     expect(screen.getByText(/quality-control checklist/i)).toBeInTheDocument();
-    expect(screen.getByText(/live checklist rows across 14 Passes/i)).toBeInTheDocument();
+    expect(screen.getByText(/live checklist rows across 15 Passes/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "XPass family" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /TestPass/i })).toHaveAttribute("href", "/admin/checks/testpass");
+    expect(screen.getByRole("link", { name: /UIPass/i })).toHaveAttribute("href", "/admin/checks/uipass");
     expect(screen.getByRole("link", { name: /SecurityPass/i })).toHaveAttribute("href", "/admin/checks/securitypass");
     expect(screen.getByText("Was it copied exactly?")).toBeInTheDocument();
     expect(screen.getAllByText(/checks$/i).length).toBeGreaterThan(10);
@@ -47,9 +48,12 @@ describe("AdminXPassHub", () => {
     renderHub("/admin/checks/securitypass");
 
     const reports = screen.getAllByTestId("xpass-report-option");
+    expect(reports).toHaveLength(6);
     expect(reports[0]).toHaveTextContent("31 May 2026");
     expect(reports[1]).toHaveTextContent("30 May 2026");
     expect(reports[2]).toHaveTextContent("29 May 2026");
+    expect(reports[0]).toHaveClass("min-h-7");
+    expect(screen.getByRole("button", { name: /Load 3 more/i })).toBeInTheDocument();
     expect(screen.getByText(/Selected report: 31 May 2026/i)).toBeInTheDocument();
 
     fireEvent.click(reports[1]);
@@ -57,6 +61,23 @@ describe("AdminXPassHub", () => {
     expect(reports[1]).toHaveAttribute("aria-pressed", "true");
     expect(screen.getAllByText(/30 May 2026 \/ SecurityPass checklist refresh/i).length).toBeGreaterThan(0);
     expect(within(screen.getByTestId("xpass-checklist-results")).getAllByText("PASS").length).toBeGreaterThan(30);
+  });
+
+  it("splits UIPass visual checks from UXPass journey checks", () => {
+    renderHub("/admin/checks/uipass");
+
+    expect(screen.getByRole("heading", { name: "UIPass" })).toBeInTheDocument();
+    expect(screen.getByText("Does it look right?")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Screen layout" })).toBeInTheDocument();
+    expect(screen.getByText("Desktop layout fits")).toBeInTheDocument();
+    expect(screen.queryByText("Journey can be completed")).not.toBeInTheDocument();
+
+    renderHub("/admin/checks/uxpass");
+
+    expect(screen.getByRole("heading", { name: "UXPass" })).toBeInTheDocument();
+    expect(screen.getByText("Is it easy to use?")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Task journey" })).toBeInTheDocument();
+    expect(screen.getByText("Journey can be completed")).toBeInTheDocument();
   });
 
   it("marks FidelityPass exact-copy scope as N/A when source copy is not in scope", () => {

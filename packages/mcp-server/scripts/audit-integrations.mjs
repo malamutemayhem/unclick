@@ -26,7 +26,7 @@ const OUT = path.resolve(REPO, "docs/integration-audit.md");
 // third-party integrations, which are the focus of the remediation program.
 
 const INTERNAL_PRODUCTS = new Set([
-  "testpass", "legalpass", "uxpass", "seopass", "compliancepass", "flowpass",
+  "testpass", "legalpass", "uipass", "uxpass", "seopass", "compliancepass", "flowpass",
   "copypass", "sloppass", "qc", "csuite", "crews", "igniteonly", "nudgeonly",
   "pushonly", "fidelitycopy", "commonsensepass",
 ]);

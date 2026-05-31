@@ -7624,8 +7624,8 @@
   "source_manifest": [
     {
       "source": "AUTOPILOT.md",
-      "hash": "5b6b2c21c91d",
-      "bytes": 17427
+      "hash": "790b43137907",
+      "bytes": 17556
     },
     {
       "source": "FLEET_SYNC.md",
@@ -7654,8 +7654,8 @@
     },
     {
       "source": "docs/fleet-worker-roles.md",
-      "hash": "a8f64d0da135",
-      "bytes": 4873
+      "hash": "de9f41b265f3",
+      "bytes": 4881
     },
     {
       "source": "docs/adr/0005-two-layer-admin-gating.md",
@@ -7674,8 +7674,8 @@
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "cd267dabfd21",
-      "bytes": 22038
+      "hash": "79d0329e0e8b",
+      "bytes": 22091
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -8024,8 +8024,8 @@
     },
     {
       "source": "src/pages/Crews.tsx",
-      "hash": "9b4b9dfca188",
-      "bytes": 18784
+      "hash": "672df3eeb92b",
+      "bytes": 18792
     },
     {
       "source": "src/pages/DeveloperDocs.tsx",
@@ -8154,8 +8154,8 @@
     },
     {
       "source": "src/pages/XPass.tsx",
-      "hash": "e6ad3bd5a7a3",
-      "bytes": 8705
+      "hash": "5f07b2f32036",
+      "bytes": 8713
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",
@@ -8269,8 +8269,8 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "0483d0717e07",
-      "bytes": 32407
+      "hash": "8012a4cbab9e",
+      "bytes": 32880
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",

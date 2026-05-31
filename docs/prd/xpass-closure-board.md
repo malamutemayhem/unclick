@@ -26,7 +26,8 @@ This does not mean every expensive runner executes every time. The lightweight c
 | XPass product | Keep? | Complete? | Current truth | To close the loop |
 | --- | --- | --- | --- | --- |
 | TestPass | Yes | ✓ | Strongest XPass product today. Package exists, tests exist, live MCP proof and dogfood receipt exist. TestPass PR smoke is the standing cloud gate for the suite. | Keep as default trust gate and make sure receipts stay scoped to the target. |
-| UXPass | Yes | ✓ | Annotated visual evidence receipt landed through PR #1219. Fetch-only runs warn when screenshot/mobile/desktop proof is missing. | Keep improving visual critique quality beyond accessibility and fixture checks. |
+| UIPass | Yes | In progress | Split from UXPass as the visual/interface checklist. It owns layout, spacing, typography, mobile fit, hierarchy, state styling, and polish. | Add a dedicated recurring screenshot receipt before calling the UIPass runner live. |
+| UXPass | Yes | ✓ | Existing runner and receipt surface stays live, but its product meaning narrows to journeys, task completion, forms, feedback, recovery, onboarding, and usability. | Keep improving journey critique quality beyond fixture checks and ensure UI-only checks move to UIPass. |
 | SecurityPass | Yes | ✓ | Safe receipt surface landed through PR #1219. It exposes redacted SecurityPass run/status proof without leaking secrets. | Keep deny-by-default scope gates, and only add active probes with explicit future authorisation. |
 | CopyPass | Yes | ✓ | Live receipt envelope landed through PR #1219. It separates copy-quality proof from exact 1:1 fidelity. | Keep CopyPass for wording, claims, tone, clarity, and product-copy risk. |
 | FidelityPass | Yes | ✓ | CopyRoom wrapper with explicit `N/A` behavior landed through PR #1219. It does not duplicate CopyRoom. | Use FidelityPass only when exact 1:1 copying, transcription, mirroring, or preservation is in scope. |
@@ -72,7 +73,7 @@ The Admin XPass page should feel like a large QC checklist, not an engineering d
 4. Each checklist row uses simple marks: `PASS`, `FAIL`, `N/A`, `WARNING`, `ALERT`, or `WAITING`, with a short comment.
 5. Checklist rows should be thin single-line rows wherever possible, similar to the Jobs page, so long lists can be scanned quickly.
 6. Recent reports belong in the top header/report-management area. The checklist itself should be full-width and should not have a side column beside it.
-7. Recent reports should be date-sorted and clickable. Selecting a report populates that product checklist with the selected run's row results.
+7. Recent reports should be date-sorted, clickable, thin-row, and able to show a deeper history through scroll or Load more. Selecting a report populates that product checklist with the selected run's row results.
 8. A report is green only when every relevant row is `PASS` or `N/A`.
 9. PR numbers, hashes, and internal proof details stay behind the report, unless an operator deliberately opens evidence.
 

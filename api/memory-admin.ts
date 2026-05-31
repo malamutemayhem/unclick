@@ -453,6 +453,7 @@ const RELIABILITY_SOURCES = [
   "connectors",
   "wakepass",
   "testpass",
+  "uipass",
   "uxpass",
   "flowpass",
   "securitypass",

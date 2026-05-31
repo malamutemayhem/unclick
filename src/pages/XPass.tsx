@@ -46,7 +46,7 @@ const USE_CASES = [
   },
   {
     title: "Screen or journey",
-    products: "UXPass, FlowPass, CopyPass, SEOPass, GEOPass",
+    products: "UIPass, UXPass, FlowPass, CopyPass, SEOPass, GEOPass",
     note: "Use when a page, form, onboarding path, or public surface needs to be clear and finishable.",
   },
   {

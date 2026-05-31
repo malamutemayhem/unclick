@@ -43,6 +43,7 @@ describe("xpass_aggregated_verdict", () => {
       target: { type: "pr", id: "547", sha: "abc123" },
       changed_files: ["src/pages/admin/You.tsx"],
       pass_results: [
+        { check: "UIPass", status: "passed", run_id: "ui-1", target_sha: "abc123", url: "https://example.test/ui" },
         { check: "UXPass", status: "passed", run_id: "ux-1", target_sha: "abc123", url: "https://example.test/ux" },
         { check: "FlowPass", status: "passed", run_id: "flow-1", target_sha: "abc123" },
         { check: "SlopPass", status: "green", run_id: "slop-1", target_sha: "abc123" },
@@ -57,7 +58,7 @@ describe("xpass_aggregated_verdict", () => {
     expect(result.auto_merge_gate?.required_head_sha).toBe("abc123");
     expect(result.receipt?.provenance?.head_sha).toBe("abc123");
     expect(result.receipt?.provenance?.invalidates_on).toContain("new_commit");
-    expect(result.receipt?.evidence).toHaveLength(3);
+    expect(result.receipt?.evidence).toHaveLength(4);
     expect(result.receipt?.action_needed).toEqual([]);
   });
 
@@ -70,7 +71,8 @@ describe("xpass_aggregated_verdict", () => {
     expect(result.ok).toBe(false);
     expect(result.verdict).toBe("pending");
     expect(result.result).toBe("xpass_needed");
-    expect(result.missing_checks).toEqual(["uxpass", "flowpass", "sloppass"]);
+    expect(result.missing_checks).toEqual(["uipass", "uxpass", "flowpass", "sloppass"]);
+    expect(result.receipt?.full_checklist?.some((item) => item.check === "uipass" && item.status === "MISSING")).toBe(true);
     expect(result.receipt?.full_checklist?.some((item) => item.check === "uxpass" && item.status === "MISSING")).toBe(true);
     expect(result.receipt?.full_checklist?.some((item) => item.check === "fidelitypass" && item.status === "N/A")).toBe(true);
   });
@@ -80,6 +82,7 @@ describe("xpass_aggregated_verdict", () => {
       target: { type: "pr", id: "547", sha: "new-head" },
       changed_files: ["src/pages/admin/You.tsx"],
       pass_results: [
+        { check: "UIPass", status: "passed", run_id: "ui-1", target_sha: "new-head" },
         { check: "UXPass", status: "passed", run_id: "ux-1", target_sha: "old-head" },
         { check: "FlowPass", status: "passed", run_id: "flow-1", target_sha: "new-head" },
         { check: "SlopPass", status: "passed", run_id: "slop-1", target_sha: "new-head" },
@@ -99,6 +102,7 @@ describe("xpass_aggregated_verdict", () => {
       target: { type: "pr", id: "547", sha: "abc123" },
       changed_files: ["src/pages/admin/You.tsx"],
       pass_results: [
+        { check: "UIPass", status: "passed", run_id: "ui-1", target_sha: "abc123" },
         { check: "UXPass", status: "passed", run_id: "ux-1" },
         { check: "FlowPass", status: "passed", run_id: "flow-1", target_sha: "abc123" },
         { check: "SlopPass", status: "passed", run_id: "slop-1", target_sha: "abc123" },

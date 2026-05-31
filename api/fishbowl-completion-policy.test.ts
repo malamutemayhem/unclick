@@ -198,7 +198,7 @@ describe("evaluateFishbowlCompletionPolicy", () => {
     const result = evaluateFishbowlCompletionPolicy({
       todo: {
         ...baseTodo,
-        title: "UXPass visual polish gate",
+        title: "UIPass visual polish gate",
         description: "UI overhaul for the Jobs page.",
       },
       comments: [{ author_agent_id: "reviewer-seat", text: "PASS: tests passed; proof: npm test." }],
@@ -212,13 +212,13 @@ describe("evaluateFishbowlCompletionPolicy", () => {
     const result = evaluateFishbowlCompletionPolicy({
       todo: {
         ...baseTodo,
-        title: "UXPass visual polish gate",
+        title: "UIPass visual polish gate",
         description: "UI overhaul for the Jobs page.",
       },
       comments: [
         {
           author_agent_id: "reviewer-seat",
-          text: "PASS: PR #913 and before/after screenshot proof captured at C:\\G\\Screenshots\\uxpass-after.png.",
+          text: "PASS: PR #913 and before/after screenshot proof captured at C:\\G\\Screenshots\\uipass-after.png.",
         },
       ],
       closerAgentId: "builder-seat",

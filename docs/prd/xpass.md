@@ -6,7 +6,7 @@
 
 ## Why this exists
 
-The XPass product line is growing quickly. TestPass, UXPass, SEOPass, CopyPass, FidelityPass, LegalPass, SecurityPass, SlopPass, CommonSensePass, FlowPass, GEOPass, RotatePass, WakePass, and CompliancePass each need their own scope contract, but users should not have to remember which Pass to call for every situation.
+The XPass product line is growing quickly. TestPass, UIPass, UXPass, SEOPass, CopyPass, FidelityPass, LegalPass, SecurityPass, SlopPass, CommonSensePass, FlowPass, GEOPass, RotatePass, WakePass, and CompliancePass each need their own scope contract, but users should not have to remember which Pass to call for every situation.
 
 CopyRoom is adjacent to XPass. It is the exact-copy room workers use when asked to reproduce source material 1:1. FidelityPass is the XPass/QC wrapper for that same exact-copy path. It should verify or wrap CopyRoom receipts instead of rebuilding a second exact-copy engine.
 
@@ -31,10 +31,11 @@ If the user names a specific Pass, route directly to that product first. For exa
 Use this simple rule:
 
 1. Building or changing code: consider TestPass, SlopPass, SecurityPass, CommonSensePass, and WakePass.
-2. Changing a screen or user journey: add UXPass and FlowPass.
-3. Changing public pages or product copy: add CopyPass, SEOPass, GEOPass, and LegalPass when claims or policy language are involved.
-4. Copying exact source material: require CopyRoom evidence and wrap it with FidelityPass.
-5. Touching credentials, connectors, compliance posture, or stale ownership: consider RotatePass, CompliancePass, and WakePass.
+2. Changing a visible interface: add UIPass for layout, spacing, mobile fit, hierarchy, and polish.
+3. Changing a user journey: add UXPass and FlowPass for task completion, forms, feedback, recovery, and flow.
+4. Changing public pages or product copy: add CopyPass, SEOPass, GEOPass, and LegalPass when claims or policy language are involved.
+5. Copying exact source material: require CopyRoom evidence and wrap it with FidelityPass.
+6. Touching credentials, connectors, compliance posture, or stale ownership: consider RotatePass, CompliancePass, and WakePass.
 
 The goal is not to run expensive checks every time. The goal is that the checklist is always considered, cheap checks run when useful, skipped checks are honest, and improvement signals feed Continuous Improver when the checklist is weak.
 
@@ -45,7 +46,7 @@ Use:
 - **XPass** for the umbrella/conductor product
 - **XPass run** for one orchestrated run across one or more Pass checks
 - **XPass receipt** for the combined result users can inspect or share
-- **XPass product check** for a single underlying check such as TestPass, UXPass, or SecurityPass
+- **XPass product check** for a single underlying check such as TestPass, UIPass, UXPass, or SecurityPass
 - **XPass product result** for the scoped output from one underlying Pass
 
 Do not introduce:
@@ -113,6 +114,10 @@ Live gates or public dogfood:
 - UXPass
 - CommonSensePass
 - WakePass
+
+Admin checklist surface, planned runner:
+
+- UIPass
 
 Package-ready or merged product tools:
 
@@ -203,7 +208,7 @@ interface XPassReceipt {
     sweep: 'package' | 'boundary' | 'targeted';
   };
   checks_selected: Array<{
-    pass: XPassProductId;        // 'testpass' | 'uxpass' | ...
+    pass: XPassProductId;        // 'testpass' | 'uipass' | 'uxpass' | ...
     reason: string;              // why this Pass was selected for this target
     result_ref: string;          // pointer to the XPass product result artifact
   }>;
@@ -275,7 +280,7 @@ Allowed public claims:
 Disallowed public claims:
 
 - XPass certifies quality, security, legality, SEO ranking, or production readiness.
-- XPass replaces TestPass, UXPass, SecurityPass, CopyPass, LegalPass, or any other individual Pass.
+- XPass replaces TestPass, UIPass, UXPass, SecurityPass, CopyPass, LegalPass, or any other individual Pass.
 - XPass proves every issue is gone.
 - XPass can run checks when credentials, tokens, target access, or provider setup are missing.
 

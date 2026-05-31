@@ -1,5 +1,6 @@
 export type XPassProductId =
   | "testpass"
+  | "uipass"
   | "uxpass"
   | "securitypass"
   | "copypass"
@@ -93,9 +94,9 @@ const BASE_XPASS_PRODUCT_CHECKLISTS: Record<XPassProductId, XPassChecklistGroup[
     },
     improvementLoop("TestPass"),
   ],
-  uxpass: [
+  uipass: [
     {
-      title: "Visual layout",
+      title: "Screen layout",
       rows: [
         waiting("Desktop layout fits", "No text, cards, controls, or media overlap at desktop width."),
         waiting("Mobile layout fits", "The same surface fits mobile without horizontal scrolling."),
@@ -106,23 +107,57 @@ const BASE_XPASS_PRODUCT_CHECKLISTS: Record<XPassProductId, XPassChecklistGroup[
       ],
     },
     {
-      title: "Interaction quality",
+      title: "Interface controls",
       rows: [
-        waiting("Primary action is clear", "The most likely next action is visible and named in plain English."),
-        waiting("Empty state helps", "Empty states explain what happens next instead of looking broken."),
-        waiting("Loading state helps", "Loading states preserve layout and tell the user what is happening."),
-        waiting("Error state helps", "Errors tell the user what failed and what to try next."),
-        waiting("Keyboard path works", "Important controls can be reached without pointer-only interaction."),
+        waiting("Buttons are legible", "Button labels, icons, and tap targets are easy to see and use."),
+        waiting("Inputs are aligned", "Fields, labels, hints, and validation text line up cleanly."),
+        waiting("Tables scan quickly", "Long lists, ledgers, and reports keep thin readable rows."),
+        waiting("States are visible", "Hover, focus, selected, disabled, loading, and error states are visually clear."),
+        waiting("Keyboard focus is visible", "The focused control is obvious without relying on a mouse."),
       ],
     },
     {
-      title: "Polish and trust",
+      title: "Visual polish and consistency",
       rows: [
-        waiting("Copy sounds human", "Interface text is short, calm, and specific."),
+        waiting("Typography is steady", "Headings, labels, body copy, and badges use consistent sizing."),
         waiting("Color has meaning", "Green, red, amber, and neutral states are used consistently."),
         waiting("Spacing is steady", "Rows and sections do not jump when status or comments change."),
         waiting("Visual proof captured", "Screenshots or visual smoke checks exist for important surfaces."),
-        waiting("User goal is protected", "The screen solves the task before it explains the system."),
+        waiting("Design matches product", "The page feels like the same UnClick product, not a pasted-on screen."),
+      ],
+    },
+    improvementLoop("UIPass"),
+  ],
+  uxpass: [
+    {
+      title: "Task journey",
+      rows: [
+        waiting("User goal is obvious", "A normal user can tell what this page helps them do."),
+        waiting("First step is clear", "The user can tell where to begin without reading internal context."),
+        waiting("Next step is clear", "After each action, the user knows what happens next."),
+        waiting("Completion is clear", "The user can tell when the task is finished and where proof lives."),
+        waiting("Back path is safe", "The user can recover or go back without losing important work."),
+        waiting("Dead ends are avoided", "The page does not leave the user stuck with no useful action."),
+      ],
+    },
+    {
+      title: "Understanding and feedback",
+      rows: [
+        waiting("Plain language works", "The screen explains itself in everyday words."),
+        waiting("Empty state helps", "Empty states explain what is missing and how to continue."),
+        waiting("Loading state helps", "Loading states preserve layout and tell the user what is happening."),
+        waiting("Error state helps", "Errors say what failed and what to try next."),
+        waiting("Help is near the problem", "Hints, examples, or explanations appear where the user needs them."),
+      ],
+    },
+    {
+      title: "Friction and confidence",
+      rows: [
+        waiting("Too many steps are removed", "The task avoids unnecessary clicks, repeats, or detours."),
+        waiting("Risk is explained", "Destructive, sensitive, or uncertain actions say what will happen."),
+        waiting("User control is preserved", "The user can review, cancel, retry, or correct important actions."),
+        waiting("Outcome matches expectation", "The result matches what the button, form, or page promised."),
+        waiting("User research signal captured", "Confusion, repeated misses, or support questions become improvement rows."),
       ],
     },
     improvementLoop("UXPass"),
@@ -584,18 +619,33 @@ const PRODUCT_DEEP_CHECKS: Record<XPassProductId, XPassChecklistGroup[]> = {
       ],
     },
   ],
-  uxpass: [
+  uipass: [
     {
-      title: "Deep UXPass checklist",
+      title: "Deep UIPass checklist",
       rows: [
         waiting("Desktop screenshot reviewed", "Desktop layout is visually checked for fit, hierarchy, and scan speed."),
         waiting("Mobile screenshot reviewed", "Mobile layout is visually checked for fit, touch targets, and reading order."),
         waiting("Long text is tested", "Long labels, comments, and product names do not break the layout."),
         waiting("Empty data is tested", "The screen still makes sense when no report or result exists yet."),
         waiting("Dense data is tested", "Large lists stay readable with thin rows and steady spacing."),
-        waiting("Primary path is obvious", "A new user can tell what to click or read first."),
+        waiting("Component states are checked", "Selected, hover, focus, disabled, loading, and error states are visible."),
         waiting("Internal terms are hidden", "Worker-only terms stay out of the main human-facing view."),
         waiting("Visual change has proof", "Screenshots or browser checks are attached when the UI changes."),
+      ],
+    },
+  ],
+  uxpass: [
+    {
+      title: "Deep UXPass checklist",
+      rows: [
+        waiting("Primary path is obvious", "A new user can tell what to do first and why."),
+        waiting("Journey can be completed", "The main task can be completed from start to finish."),
+        waiting("Wrong turn can recover", "The user can recover from a mistake without support."),
+        waiting("Form friction is low", "Forms ask only for what is needed and explain unclear fields."),
+        waiting("Confirmation is useful", "Done states say what happened and what the user can do next."),
+        waiting("Navigation matches intent", "Menus and links match the user's mental model for the task."),
+        waiting("Confusing copy is fixed", "Labels and instructions remove uncertainty instead of adding it."),
+        waiting("Journey proof exists", "A flow check, screen recording, or task walkthrough proves the user path."),
       ],
     },
   ],
@@ -783,6 +833,7 @@ const PRODUCT_DEEP_CHECKS: Record<XPassProductId, XPassChecklistGroup[]> = {
 
 const PRODUCT_NAMES: Record<XPassProductId, string> = {
   testpass: "TestPass",
+  uipass: "UIPass",
   uxpass: "UXPass",
   securitypass: "SecurityPass",
   copypass: "CopyPass",

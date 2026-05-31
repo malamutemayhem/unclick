@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
@@ -12,6 +13,7 @@ import {
   LayoutGrid,
   ListChecks,
   MessagesSquare,
+  Palette,
   SearchCheck,
   ShieldCheck,
   Sparkles,
@@ -60,10 +62,17 @@ const PRODUCTS: XPassProduct[] = [
     externalHref: "/admin/testpass",
   },
   {
+    id: "uipass",
+    name: "UIPass",
+    subtitle: "Does it look right?",
+    description: "Checks layout, spacing, typography, mobile fit, visual hierarchy, consistency, and polish.",
+    icon: Palette,
+  },
+  {
     id: "uxpass",
     name: "UXPass",
     subtitle: "Is it easy to use?",
-    description: "Checks screens, mobile fit, hierarchy, clarity, and polish.",
+    description: "Checks journeys, steps, wording, forms, feedback, recovery, and whether a user can finish the task.",
     icon: UserCheck,
   },
   {
@@ -234,6 +243,60 @@ function reportsFor(product: XPassProduct): RecentReport[] {
       status: status === "PASS" ? "PASS" : "WARNING",
       mode: "attention",
     },
+    {
+      id: "interface-review",
+      date: "28 May 2026",
+      sortKey: "2026-05-28",
+      title: `${product.name} interface review`,
+      summary: `${product.name} reviewed the visible surface and kept weak evidence out of green.`,
+      status: "PASS",
+      mode: "completed",
+    },
+    {
+      id: "owner-action",
+      date: "27 May 2026",
+      sortKey: "2026-05-27",
+      title: `${product.name} owner action review`,
+      summary: `Rows with owner action were kept visible until the next ${product.name} run.`,
+      status: "WARNING",
+      mode: "attention",
+    },
+    {
+      id: "evidence-replay",
+      date: "26 May 2026",
+      sortKey: "2026-05-26",
+      title: `${product.name} evidence replay`,
+      summary: `${product.name} checked that another worker could reopen the report and understand the proof.`,
+      status: "PASS",
+      mode: "completed",
+    },
+    {
+      id: "regression-sweep",
+      date: "25 May 2026",
+      sortKey: "2026-05-25",
+      title: `${product.name} regression sweep`,
+      summary: `${product.name} kept prior misses visible so the same issue does not quietly return.`,
+      status: "PASS",
+      mode: "completed",
+    },
+    {
+      id: "na-review",
+      date: "24 May 2026",
+      sortKey: "2026-05-24",
+      title: `${product.name} N/A review`,
+      summary: `${product.name} checked skipped rows had clear reasons instead of guessed green results.`,
+      status: "N/A",
+      mode: "completed",
+    },
+    {
+      id: "improvement-sweep",
+      date: "23 May 2026",
+      sortKey: "2026-05-23",
+      title: `${product.name} improvement sweep`,
+      summary: `Weak ${product.name} rows were fed back into the checklist for the next run.`,
+      status: "PASS",
+      mode: "completed",
+    },
   ];
 
   return reports.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
@@ -358,14 +421,18 @@ function RecentReports({
   selectedReport: RecentReport;
   onSelectReport: (reportId: string) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const visibleReports = expanded ? reports : reports.slice(0, 6);
+  const hiddenCount = Math.max(0, reports.length - visibleReports.length);
+
   return (
-    <section className="min-w-0 rounded-lg border border-white/[0.08] bg-[#111] p-4">
+    <section className="min-w-0 rounded-lg border border-white/[0.08] bg-[#111] p-3">
       <div className="flex min-w-0 items-center justify-between gap-3">
         <h2 className="text-sm font-semibold text-white">Recent reports</h2>
         <p className="text-[11px] font-medium text-white/40">Newest first</p>
       </div>
-      <div className="mt-3 space-y-1.5">
-        {reports.map((report) => {
+      <div className="mt-2 max-h-[236px] space-y-1 overflow-y-auto pr-1">
+        {visibleReports.map((report) => {
           const selected = report.id === selectedReport.id;
           return (
             <button
@@ -374,25 +441,32 @@ function RecentReports({
               aria-pressed={selected}
               data-testid="xpass-report-option"
               onClick={() => onSelectReport(report.id)}
-              className={`w-full min-w-0 rounded-md border px-2.5 py-1.5 text-left transition-colors ${
+              className={`grid min-h-7 w-full min-w-0 grid-cols-[82px_minmax(0,1fr)_68px] items-center gap-2 rounded border px-2 py-1 text-left transition-colors ${
                 selected ? "border-[#61C1C4]/70 bg-[#61C1C4]/10" : "border-white/[0.07] bg-black/20 hover:border-white/15"
               }`}
             >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold text-white/60">{report.date}</p>
+              <p className="truncate text-[10px] font-semibold text-white/55">{report.date}</p>
+              <p className="truncate text-[11px] leading-4 text-white/70">{report.title}</p>
               <StatusBadge status={report.status} />
-            </div>
-              <p className="mt-1 truncate text-xs leading-4 text-white/70">{report.title}</p>
             </button>
           );
         })}
       </div>
-      <p className="mt-3 text-[11px] leading-4 text-white/45">
+      {hiddenCount > 0 ? (
+        <button
+          type="button"
+          className="mt-2 min-h-7 w-full rounded border border-white/[0.08] bg-black/20 px-2 text-[11px] font-semibold text-[#61C1C4] hover:border-[#61C1C4]/40"
+          onClick={() => setExpanded(true)}
+        >
+          Load {hiddenCount} more
+        </button>
+      ) : null}
+      <p className="mt-2 text-[11px] leading-4 text-white/45">
         Selected report: {selectedReport.date}. The checklist below shows that report's row results.
       </p>
       <Link
         to="/dogfood"
-        className="mt-4 inline-flex min-h-7 items-center gap-1.5 text-xs font-medium text-[#61C1C4] transition-opacity hover:opacity-80"
+        className="mt-3 inline-flex min-h-7 items-center gap-1.5 text-xs font-medium text-[#61C1C4] transition-opacity hover:opacity-80"
       >
         View public report
         <ExternalLink className="h-3.5 w-3.5" />
