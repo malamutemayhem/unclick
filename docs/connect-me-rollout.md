@@ -1,5 +1,12 @@
 # Connect-me registry rollout (paste-repeatable "infinity prompt")
 
+> **STATUS: SWEEP COMPLETE (136/136).** Every credential-requiring connector
+> already has a `CONNECTOR_SETUP` row. If you were fed the batch prompt below,
+> do step 1, find zero unchecked `[ ]` connectors, and STOP. Reply with the
+> Progress line and make no code changes. Only resume real work if a brand-new
+> connector has been added since (an unchecked box appears in the checklist).
+> Do not edit existing rows in bulk and do not re-push an unchanged branch.
+
 This is the single source of truth for rolling the **connect-me onboarding cards**
 out across every credential-requiring connector.
 
@@ -65,129 +72,154 @@ future local `*-tool.ts` handler a one-liner (`requireCredential("<id>", args)`)
 
 ---
 
-## Progress: 3/120 connectors on the registry (117 left)
+## Progress: 136/136 connectors on the registry (0 left)
+
+The initial sweep landed every credential-requiring connector in one pass
+(arg names and env vars were harvested from each connector's *-tool.ts, not
+guessed). The list below is the live audit set. If a future connector is
+added, drop it in unchecked, give it a row, and bump the Progress line. The
+internal UnClick tools (keychain, crews, nudgeonly, sloppass, testpass,
+uxpass) authenticate with UNCLICK_API_KEY, not a connector credential, so
+they are intentionally excluded.
 
 ## Checklist (credential-requiring connectors)
 
 Tick `[x]` when a row exists in `CONNECTOR_SETUP`. Add any platform you find
 missing (cross-check `keychain_list_platforms`).
 
-- [x] stripe
+- [x] abuseipdb
+- [x] airtable
+- [x] algolia
+- [x] alphavantage
+- [x] amazon
+- [x] amber
+- [x] anthropic
+- [x] asana
+- [x] assemblyai
+- [x] australiapost
+- [x] bandsintown
+- [x] brickset
+- [x] bs
+- [x] bungie
+- [x] calendly
+- [x] carboninterface
+- [x] circleci
+- [x] clickup
+- [x] clockify
+- [x] coc
+- [x] cohere
+- [x] coingecko
+- [x] coinmarketcap
+- [x] convertkit
+- [x] cr
+- [x] datadog
+- [x] deepl
+- [x] discogs
+- [x] discord
+- [x] domain
+- [x] ebay
+- [x] ebird
+- [x] elevenlabs
+- [x] esports
 - [x] etsy
+- [x] eventbrite
+- [x] exchangerate
+- [x] feedly
+- [x] figma
+- [x] flyio
 - [x] foursquare
-- [ ] airtable
-- [ ] algolia
-- [ ] anthropic
-- [ ] assemblyai
-- [ ] abuseipdb
-- [ ] amber
-- [ ] asana
-- [ ] bandsintown
-- [ ] brickset
-- [ ] bungie
-- [ ] calendly
-- [ ] circleci
-- [ ] clickup
-- [ ] clockify
-- [ ] cmc
-- [ ] cohere
-- [ ] convertkit
-- [ ] datadog
-- [ ] deepl
-- [ ] discogs
-- [ ] discord
-- [ ] domain
-- [ ] ebay
-- [ ] ebird
-- [ ] elevenlabs
-- [ ] eventbrite
-- [ ] exchangerate
-- [ ] feedly
-- [ ] figma
-- [ ] fly
-- [ ] genius
-- [ ] github
-- [ ] gitlab
-- [ ] groq
-- [ ] guardian
-- [ ] gumroad
-- [ ] heygen
-- [ ] hibp
-- [ ] higgsfield
-- [ ] hunter
-- [ ] igdb
-- [ ] instapaper
-- [ ] kling
-- [ ] lastfm
-- [ ] line
-- [ ] linear
-- [ ] lemonsqueezy
-- [ ] mailchimp
-- [ ] mapbox
-- [ ] mastodon
-- [ ] mistral
-- [ ] mixpanel
-- [ ] monday
-- [ ] monica
-- [ ] nasa
-- [ ] neon
-- [ ] newsapi
-- [ ] notion
-- [ ] omdb
-- [ ] openai
-- [ ] pagerduty
-- [ ] paypal
-- [ ] perplexity
-- [ ] pika
-- [ ] pinecone
-- [ ] pinterest
-- [ ] plaid
-- [ ] podcastindex
-- [ ] postman
-- [ ] postmark
-- [ ] pushover
-- [ ] quickbooks
-- [ ] raindrop
-- [ ] rawg
-- [ ] readwise
-- [ ] reddit
-- [ ] render
-- [ ] replicate
-- [ ] resend
-- [ ] riot
-- [ ] runway
-- [ ] seatgeek
-- [ ] segment
-- [ ] sendgrid
-- [ ] sendle
-- [ ] sentry
-- [ ] shodan
-- [ ] shopify
-- [ ] slack
-- [ ] splitwise
-- [ ] spotify
-- [ ] square
-- [ ] stability
-- [ ] stockdata
-- [ ] tab
-- [ ] telegram
-- [ ] tmdb
-- [ ] ticketmaster
-- [ ] tiktok
-- [ ] togetherai
-- [ ] toggl
-- [ ] trello
-- [ ] trove
-- [ ] turso
-- [ ] twilio
-- [ ] twitch
-- [ ] untappd
-- [ ] urlscan
-- [ ] vercel
-- [ ] virustotal
-- [ ] whatsapp
-- [ ] wise
-- [ ] woocommerce
-- [ ] xero
-- [ ] yelp
-- [ ] youtube
+- [x] genius
+- [x] github
+- [x] gitlab
+- [x] groq
+- [x] guardian
+- [x] gumroad
+- [x] haveibeenpwned
+- [x] heygen
+- [x] higgsfield
+- [x] hunter
+- [x] igdb
+- [x] instapaper
+- [x] ipaustralia
+- [x] kling
+- [x] lastfm
+- [x] lego
+- [x] lemonsqueezy
+- [x] line
+- [x] linear
+- [x] mailchimp
+- [x] mapbox
+- [x] mastodon
+- [x] mistral
+- [x] mixpanel
+- [x] monday
+- [x] monica
+- [x] nasa
+- [x] neon
+- [x] newsapi
+- [x] notion
+- [x] nvd
+- [x] omdb
+- [x] openai
+- [x] openaq
+- [x] openexchangerates
+- [x] pagerduty
+- [x] paypal
+- [x] perplexity
+- [x] pika
+- [x] pinecone
+- [x] pinterest
+- [x] plaid
+- [x] podcastindex
+- [x] postman
+- [x] postmark
+- [x] pushover
+- [x] quickbooks
+- [x] raindrop
+- [x] rawg
+- [x] readwise
+- [x] reddit
+- [x] render
+- [x] replicate
+- [x] resend
+- [x] riot
+- [x] runway
+- [x] seatgeek
+- [x] segment
+- [x] sendgrid
+- [x] sendle
+- [x] sentry
+- [x] setlistfm
+- [x] shodan
+- [x] shopify
+- [x] slack
+- [x] splitwise
+- [x] spotify
+- [x] square
+- [x] stability
+- [x] steam
+- [x] stripe
+- [x] telegram
+- [x] ticketmaster
+- [x] tiktok
+- [x] tmdb
+- [x] togetherai
+- [x] toggl
+- [x] tomorrowio
+- [x] trello
+- [x] trove
+- [x] turso
+- [x] twilio
+- [x] twitch
+- [x] untappd
+- [x] upstash
+- [x] urlscan
+- [x] vercel
+- [x] virustotal
+- [x] whatsapp
+- [x] willyweather
+- [x] wise
+- [x] woocommerce
+- [x] xero
+- [x] yelp
+- [x] youtube
