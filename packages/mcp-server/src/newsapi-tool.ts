@@ -15,9 +15,26 @@ async function newsGet(
     if (v !== undefined && v !== "") qs.set(k, String(v));
   }
   const url = `${NEWSAPI_BASE}${path}${qs.toString() ? "?" + qs.toString() : ""}`;
-  const res = await fetch(url, {
-    headers: { "X-Api-Key": apiKey },
-  });
+  const NEWSAPI_TIMEOUT_MS = Number(process.env.NEWSAPI_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NEWSAPI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "X-Api-Key": apiKey },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`NewsAPI request timed out after ${NEWSAPI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`NewsAPI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    throw new Error("NewsAPI rate limit exceeded. Please wait and retry.");
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`NewsAPI HTTP ${res.status}: ${body || res.statusText}`);

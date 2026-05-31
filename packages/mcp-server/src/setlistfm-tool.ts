@@ -29,6 +29,9 @@ async function sfmFetch(
     }
   }
 
+  const SETLISTFM_TIMEOUT_MS = Number(process.env.SETLISTFM_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SETLISTFM_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
@@ -36,9 +39,19 @@ async function sfmFetch(
         "x-api-key": apiKey,
         Accept: "application/json",
       },
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Setlist.fm request timed out after ${SETLISTFM_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    return { error: "Setlist.fm rate limit exceeded. Please wait and retry.", status: 429 };
   }
 
   let data: unknown;
@@ -50,7 +63,7 @@ async function sfmFetch(
 
   if (!response.ok) {
     const e = data as Record<string, unknown>;
-    return { error: (e.message ?? `HTTP ${response.status}`), status: response.status };
+    return { error: (e.message ?? `status ${response.status}`), status: response.status };
   }
 
   return data;

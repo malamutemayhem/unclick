@@ -130,17 +130,36 @@ function requireKey(args: Record<string, unknown>): string {
 // --- API helpers -------------------------------------------------------------
 
 async function lsGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${LS_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/vnd.api+json",
-    },
-  });
+  const LEMONSQUEEZY_TIMEOUT_MS = Number(process.env.LEMONSQUEEZY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LEMONSQUEEZY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${LS_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/vnd.api+json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Lemon Squeezy request timed out after ${LEMONSQUEEZY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Lemon Squeezy network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Lemon Squeezy rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const errors = data.errors as Array<{ detail?: string; title?: string }> | undefined;
-    const msg = errors?.[0]?.detail ?? errors?.[0]?.title ?? `HTTP ${res.status}`;
+    const msg = errors?.[0]?.detail ?? errors?.[0]?.title ?? `status ${res.status}`;
     throw new Error(`Lemon Squeezy error: ${msg}`);
   }
   return data as T;

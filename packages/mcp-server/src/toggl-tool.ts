@@ -23,12 +23,26 @@ async function togglGet(
   baseUrl: string = TOGGL_BASE
 ): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${baseUrl}${path}${qs}`, {
-    headers: {
-      Authorization: basicAuth(apiKey),
-      "Content-Type": "application/json",
-    },
-  });
+  const TOGGL_TIMEOUT_MS = Number(process.env.TOGGL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOGGL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}${path}${qs}`, {
+      headers: {
+        Authorization: basicAuth(apiKey),
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Toggl request timed out after ${TOGGL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Toggl network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Toggl API key.");
   if (res.status === 403) throw new Error("Toggl: access forbidden.");
   if (res.status === 404) throw new Error(`Toggl: resource not found at ${path}.`);
@@ -46,14 +60,28 @@ async function togglPost(
   body: Record<string, unknown>,
   baseUrl: string = TOGGL_BASE
 ): Promise<unknown> {
-  const res = await fetch(`${baseUrl}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: basicAuth(apiKey),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const TOGGL_TIMEOUT_MS = Number(process.env.TOGGL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOGGL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: basicAuth(apiKey),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Toggl request timed out after ${TOGGL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Toggl network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Toggl API key.");
   if (res.status === 403) throw new Error("Toggl: access forbidden.");
   if (res.status === 429) throw new Error("Toggl rate limit exceeded.");

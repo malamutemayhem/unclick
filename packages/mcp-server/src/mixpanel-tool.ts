@@ -24,9 +24,26 @@ function basicAuth(username: string, secret: string): string {
 async function mpGet<T>(username: string, secret: string, baseUrl: string, path: string, params: Record<string, string>): Promise<T> {
   const url = new URL(`${baseUrl}${path}`);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: basicAuth(username, secret) },
-  });
+  const MIXPANEL_TIMEOUT_MS = Number(process.env.MIXPANEL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MIXPANEL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Authorization: basicAuth(username, secret) },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Mixpanel request timed out after ${MIXPANEL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Mixpanel network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    throw new Error("Mixpanel rate limit reached (HTTP 429). Please wait and retry.");
+  }
   const text = await res.text();
   let data: unknown;
   try { data = JSON.parse(text); } catch { data = text; }
@@ -39,14 +56,31 @@ async function mpGet<T>(username: string, secret: string, baseUrl: string, path:
 
 async function mpPost<T>(username: string, secret: string, baseUrl: string, path: string, body: Record<string, string>): Promise<T> {
   const form = new URLSearchParams(body);
-  const res = await fetch(`${baseUrl}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: basicAuth(username, secret),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: form.toString(),
-  });
+  const MIXPANEL_TIMEOUT_MS = Number(process.env.MIXPANEL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MIXPANEL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: basicAuth(username, secret),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: form.toString(),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Mixpanel request timed out after ${MIXPANEL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Mixpanel network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    throw new Error("Mixpanel rate limit reached (HTTP 429). Please wait and retry.");
+  }
   const text = await res.text();
   let data: unknown;
   try { data = JSON.parse(text); } catch { data = text; }
@@ -144,9 +178,24 @@ export async function mixpanelExportData(args: Record<string, unknown>): Promise
   // Export returns NDJSON - return as raw text
   const url = new URL(`${MP_QUERY}/export`);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: basicAuth(username, secret) },
-  });
+  const MIXPANEL_TIMEOUT_MS = Number(process.env.MIXPANEL_TIMEOUT_MS) || 30000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MIXPANEL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Authorization: basicAuth(username, secret) },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Mixpanel export timed out after ${MIXPANEL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Mixpanel export network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Mixpanel rate limit reached (HTTP 429). Please wait and retry.");
   if (!res.ok) throw new Error(`Mixpanel export error (${res.status})`);
   const text = await res.text();
   const lines = text.trim().split("\n").filter(Boolean);

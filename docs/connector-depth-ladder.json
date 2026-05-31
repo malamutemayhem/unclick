@@ -846,6 +846,24 @@
     }
   },
   {
+    "connector": "lemonsqueezy",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
     "connector": "lichess",
     "level": 2,
     "levelName": "Reliable",
@@ -936,6 +954,24 @@
     }
   },
   {
+    "connector": "mixpanel",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
     "connector": "monica",
     "level": 2,
     "levelName": "Reliable",
@@ -973,6 +1009,24 @@
   },
   {
     "connector": "nasa",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "newsapi",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
@@ -1152,6 +1206,42 @@
     }
   },
   {
+    "connector": "pagerduty",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "pandascore",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
     "connector": "paypal",
     "level": 2,
     "levelName": "Reliable",
@@ -1179,6 +1269,24 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "postman",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1386,6 +1494,24 @@
     }
   },
   {
+    "connector": "segment",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
     "connector": "sendgrid",
     "level": 2,
     "levelName": "Reliable",
@@ -1413,6 +1539,24 @@
       "handles429": true,
       "hasRetry": false,
       "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "setlistfm",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1566,6 +1710,24 @@
     }
   },
   {
+    "connector": "toggl",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
     "connector": "tomorrowio",
     "level": 2,
     "levelName": "Reliable",
@@ -1574,6 +1736,24 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "trello",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -2052,24 +2232,6 @@
     }
   },
   {
-    "connector": "lemonsqueezy",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 1,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "line",
     "level": 1,
     "levelName": "Wrapper",
@@ -2124,24 +2286,6 @@
     }
   },
   {
-    "connector": "mixpanel",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "monday",
     "level": 1,
     "levelName": "Wrapper",
@@ -2178,61 +2322,7 @@
     }
   },
   {
-    "connector": "newsapi",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "openf1",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "pagerduty",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 4,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "pandascore",
     "level": 1,
     "levelName": "Wrapper",
     "hardened": false,
@@ -2340,24 +2430,6 @@
     }
   },
   {
-    "connector": "postman",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "reddit",
     "level": 1,
     "levelName": "Wrapper",
@@ -2430,24 +2502,6 @@
     }
   },
   {
-    "connector": "segment",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 1,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "sentry",
     "level": 1,
     "levelName": "Wrapper",
@@ -2458,24 +2512,6 @@
       "hasRetry": true,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "setlistfm",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 1,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,
@@ -2682,24 +2718,6 @@
     }
   },
   {
-    "connector": "toggl",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": true,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "toilets",
     "level": 1,
     "levelName": "Wrapper",
@@ -2708,24 +2726,6 @@
       "hasTimeout": false,
       "handles429": false,
       "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "trello",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": true,
-      "hasRetry": true,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,

@@ -21,14 +21,31 @@ function requireApiToken(args: Record<string, unknown>): string {
 
 async function segmentTrackPost(writeKey: string, path: string, body: unknown): Promise<Record<string, unknown>> {
   const encoded = Buffer.from(`${writeKey}:`).toString("base64");
-  const res = await fetch(`${SEGMENT_TRACK_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${encoded}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const SEGMENT_TIMEOUT_MS = Number(process.env.SEGMENT_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SEGMENT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SEGMENT_TRACK_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${encoded}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Segment tracking request timed out after ${SEGMENT_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Segment tracking network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    throw new Error("Segment rate limit reached (HTTP 429). Please wait and retry.");
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`Segment tracking error (${res.status}): ${text || res.statusText}`);
@@ -43,16 +60,33 @@ async function segmentMgmtGet<T>(apiToken: string, path: string, query?: Record<
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${apiToken}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const SEGMENT_TIMEOUT_MS = Number(process.env.SEGMENT_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SEGMENT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Segment management request timed out after ${SEGMENT_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Segment management network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    throw new Error("Segment rate limit reached (HTTP 429). Please wait and retry.");
+  }
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const err = (data.errors as Array<Record<string, unknown>>)?.[0];
-    const msg = err?.message as string ?? `HTTP ${res.status}`;
+    const msg = err?.message as string ?? `status ${res.status}`;
     throw new Error(`Segment management error (${res.status}): ${msg}`);
   }
   return data as T;

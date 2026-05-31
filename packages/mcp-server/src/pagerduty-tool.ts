@@ -18,52 +18,97 @@ async function pdGet<T>(apiKey: string, path: string, query?: Record<string, str
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Token token=${apiKey}`,
-      Accept: "application/vnd.pagerduty+json;version=2",
-      "Content-Type": "application/json",
-    },
-  });
+  const PAGERDUTY_TIMEOUT_MS = Number(process.env.PAGERDUTY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PAGERDUTY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Token token=${apiKey}`,
+        Accept: "application/vnd.pagerduty+json;version=2",
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`PagerDuty request timed out after ${PAGERDUTY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`PagerDuty network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("PagerDuty rate limit reached (HTTP 429). Please wait and retry.");
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.error as Record<string, unknown>)?.message as string ?? `HTTP ${res.status}`;
+    const msg = (data.error as Record<string, unknown>)?.message as string ?? `status ${res.status}`;
     throw new Error(`PagerDuty error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function pdPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${PD_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Token token=${apiKey}`,
-      Accept: "application/vnd.pagerduty+json;version=2",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const PAGERDUTY_TIMEOUT_MS = Number(process.env.PAGERDUTY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PAGERDUTY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${PD_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Token token=${apiKey}`,
+        Accept: "application/vnd.pagerduty+json;version=2",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`PagerDuty request timed out after ${PAGERDUTY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`PagerDuty network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("PagerDuty rate limit reached (HTTP 429). Please wait and retry.");
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.error as Record<string, unknown>)?.message as string ?? `HTTP ${res.status}`;
+    const msg = (data.error as Record<string, unknown>)?.message as string ?? `status ${res.status}`;
     throw new Error(`PagerDuty error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function pdPut<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${PD_API_BASE}${path}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Token token=${apiKey}`,
-      Accept: "application/vnd.pagerduty+json;version=2",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const PAGERDUTY_TIMEOUT_MS = Number(process.env.PAGERDUTY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PAGERDUTY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${PD_API_BASE}${path}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Token token=${apiKey}`,
+        Accept: "application/vnd.pagerduty+json;version=2",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`PagerDuty request timed out after ${PAGERDUTY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`PagerDuty network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("PagerDuty rate limit reached (HTTP 429). Please wait and retry.");
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.error as Record<string, unknown>)?.message as string ?? `HTTP ${res.status}`;
+    const msg = (data.error as Record<string, unknown>)?.message as string ?? `status ${res.status}`;
     throw new Error(`PagerDuty error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -118,19 +163,34 @@ export async function pagerduty_create_incident(args: Record<string, unknown>): 
   }
   if (args.from) {
     // PagerDuty requires From header for incident creation
-    const res = await fetch(`${PD_API_BASE}/incidents`, {
-      method: "POST",
-      headers: {
-        Authorization: `Token token=${apiKey}`,
-        Accept: "application/vnd.pagerduty+json;version=2",
-        "Content-Type": "application/json",
-        From: String(args.from),
-      },
-      body: JSON.stringify(body),
-    });
+    const PAGERDUTY_TIMEOUT_MS = Number(process.env.PAGERDUTY_TIMEOUT_MS) || 15000;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), PAGERDUTY_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(`${PD_API_BASE}/incidents`, {
+        method: "POST",
+        headers: {
+          Authorization: `Token token=${apiKey}`,
+          Accept: "application/vnd.pagerduty+json;version=2",
+          "Content-Type": "application/json",
+          From: String(args.from),
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new Error(`PagerDuty request timed out after ${PAGERDUTY_TIMEOUT_MS}ms.`);
+      }
+      throw new Error(`PagerDuty network error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      clearTimeout(timer);
+    }
+    if (res.status === 429) throw new Error("PagerDuty rate limit reached (HTTP 429). Please wait and retry.");
     const data = await res.json() as Record<string, unknown>;
     if (!res.ok) {
-      const msg = (data.error as Record<string, unknown>)?.message as string ?? `HTTP ${res.status}`;
+      const msg = (data.error as Record<string, unknown>)?.message as string ?? `status ${res.status}`;
       throw new Error(`PagerDuty error (${res.status}): ${msg}`);
     }
     return (data as { incident: unknown }).incident;
