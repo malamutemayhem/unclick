@@ -12,6 +12,7 @@ import {
   KeyRound,
   LayoutList,
   MessagesSquare,
+  PlayCircle,
   RefreshCw,
   SearchCheck,
   ShieldCheck,
@@ -53,6 +54,23 @@ type ChecklistRow = {
   product: ProductDetail;
   status: XPassStatus;
   comment: string;
+};
+
+type RunTemplate = {
+  id: string;
+  title: string;
+  target: string;
+  passIds: string[];
+  notApplicableIds: string[];
+  firstAction: string;
+};
+
+type ImprovementRow = {
+  id: string;
+  productId: string;
+  signal: string;
+  nextAction: string;
+  proof: string;
 };
 
 const PRODUCT_ORDER = [
@@ -244,6 +262,65 @@ const REPORTS: ReportRow[] = [
   },
 ];
 
+const GUIDED_RUNS: RunTemplate[] = [
+  {
+    id: "code-pr",
+    title: "Code or PR",
+    target: "Pull request, MCP tool, backend change, or release.",
+    passIds: ["testpass", "securitypass", "sloppass", "commonsensepass"],
+    notApplicableIds: ["fidelitypass"],
+    firstAction: "Run XPass on the PR head, then compare every receipt to the current SHA.",
+  },
+  {
+    id: "screen-flow",
+    title: "Screen or journey",
+    target: "Admin page, public page, form, signup, or onboarding path.",
+    passIds: ["uxpass", "flowpass", "copypass", "seopass", "geopass", "commonsensepass"],
+    notApplicableIds: ["fidelitypass", "rotatepass"],
+    firstAction: "Capture desktop and mobile proof, then leave a plain checklist comment.",
+  },
+  {
+    id: "copy-source",
+    title: "Copy or exact source",
+    target: "Wording, table, label, prompt, supplied text, or source material.",
+    passIds: ["copypass", "fidelitypass", "legalpass", "commonsensepass"],
+    notApplicableIds: ["uxpass", "rotatepass"],
+    firstAction: "Use CopyRoom when exact copying is in scope, then wrap the receipt with FidelityPass.",
+  },
+  {
+    id: "keys-policy",
+    title: "Keys or policy",
+    target: "Credentials, auth, privacy, compliance, public claims, or trust wording.",
+    passIds: ["securitypass", "rotatepass", "legalpass", "compliancepass", "commonsensepass"],
+    notApplicableIds: ["fidelitypass"],
+    firstAction: "Prove redaction boundaries first, then keep compliance and legal language guidance-only.",
+  },
+];
+
+const IMPROVEMENT_QUEUE: ImprovementRow[] = [
+  {
+    id: "ux-visual-depth",
+    productId: "uxpass",
+    signal: "Visual critique needs stronger hierarchy and mobile judgment.",
+    nextAction: "Add annotated reports and recurring visual proof that does not clog the queue.",
+    proof: "UXPass closure item",
+  },
+  {
+    id: "na-reasons",
+    productId: "fidelitypass",
+    signal: "N/A rows must explain why exact copying was not in scope.",
+    nextAction: "Keep the FidelityPass wrapper tied to CopyRoom receipts and explicit N/A reasons.",
+    proof: "FidelityPass receipt wrapper",
+  },
+  {
+    id: "stale-green",
+    productId: "commonsensepass",
+    signal: "Green-looking work can still be stale, proofless, or out of scope.",
+    nextAction: "Keep stale receipt and proofless DONE checks near every XPass run.",
+    proof: "CommonSensePass worker exposure",
+  },
+];
+
 function statusFromDogfood(status: DogfoodStatus): XPassStatus {
   if (status === "passing") return "PASS";
   if (status === "failing" || status === "blocked") return "BLOCKER";
@@ -381,15 +458,140 @@ function ChecklistRows({ rows }: { rows: ChecklistRow[] }) {
   );
 }
 
+function ProductNameList({
+  ids,
+  productsById,
+}: {
+  ids: string[];
+  productsById: Map<string, ProductDetail>;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {ids.map((id) => {
+        const product = productsById.get(id);
+        if (!product) return null;
+
+        return (
+          <span
+            key={id}
+            className="inline-flex min-h-7 items-center rounded-full border border-white/[0.08] bg-black/20 px-2.5 text-xs font-medium text-white/65"
+          >
+            {product.name}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function GuidedRunPlanner({
+  activeRun,
+  productsById,
+  onSelectRun,
+}: {
+  activeRun: RunTemplate;
+  productsById: Map<string, ProductDetail>;
+  onSelectRun: (runId: string) => void;
+}) {
+  return (
+    <section className="rounded-lg border border-white/[0.08] bg-[#111] p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <PlayCircle className="h-4 w-4 text-[#61C1C4]" />
+            <h2 className="text-sm font-semibold text-white">Guided run planner</h2>
+          </div>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
+            Pick what you are building. XPass shows the checks to run, the checks to mark N/A, and the first proof step.
+          </p>
+        </div>
+        <Link
+          to="/admin/testpass/new"
+          className="inline-flex min-h-8 shrink-0 items-center gap-1.5 text-sm font-medium text-[#61C1C4] transition-opacity hover:opacity-80"
+        >
+          Open guided run
+          <ExternalLink className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-4">
+        {GUIDED_RUNS.map((run) => (
+          <button
+            key={run.id}
+            type="button"
+            aria-pressed={run.id === activeRun.id}
+            onClick={() => onSelectRun(run.id)}
+            className={`min-h-[78px] rounded-lg border px-3 py-3 text-left transition-colors ${
+              run.id === activeRun.id
+                ? "border-[#61C1C4]/40 bg-[#61C1C4]/10"
+                : "border-white/[0.06] bg-black/20 hover:border-white/15 hover:bg-white/[0.03]"
+            }`}
+          >
+            <p className="text-sm font-semibold text-white">{run.title}</p>
+            <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/50">{run.target}</p>
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.6fr)]">
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/35">Run these</p>
+          <div className="mt-3">
+            <ProductNameList ids={activeRun.passIds} productsById={productsById} />
+          </div>
+          <p className="mt-4 text-sm leading-6 text-white/55">{activeRun.firstAction}</p>
+        </div>
+        <div className="rounded-lg border border-white/[0.06] bg-black/20 p-4">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/35">Mark N/A now</p>
+          <div className="mt-3">
+            <ProductNameList ids={activeRun.notApplicableIds} productsById={productsById} />
+          </div>
+          <p className="mt-4 text-xs leading-5 text-white/45">
+            N/A means the check was considered and honestly does not fit this target.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ImprovementQueue({ productsById }: { productsById: Map<string, ProductDetail> }) {
+  return (
+    <div className="mt-5 overflow-hidden rounded-lg border border-[#E2B93B]/20">
+      {IMPROVEMENT_QUEUE.map((row) => {
+        const product = productsById.get(row.productId);
+
+        return (
+          <div
+            key={row.id}
+            className="grid gap-2 border-b border-[#E2B93B]/15 bg-black/15 px-3 py-2.5 text-sm last:border-b-0 md:grid-cols-[140px_minmax(0,1fr)_minmax(0,1fr)_150px] md:items-center"
+          >
+            <p className="font-medium text-white">{product?.name ?? row.productId}</p>
+            <p className="text-xs leading-5 text-[#e8dca8]">{row.signal}</p>
+            <p className="text-xs leading-5 text-[#e8dca8]/75">{row.nextAction}</p>
+            <p className="text-xs text-white/45">{row.proof}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function AdminXPassHub() {
   const [activeProductId, setActiveProductId] = useState<string>("all");
   const [activeReportId, setActiveReportId] = useState<string>(REPORTS[0].id);
+  const [activeRunId, setActiveRunId] = useState<string>(GUIDED_RUNS[0].id);
 
   const products = useMemo(
     () => PRODUCT_ORDER.map((id) => PRODUCT_DETAILS[id]).filter(Boolean),
     [],
   );
+  const productsById = useMemo(
+    () => new Map(products.map((product) => [product.id, product])),
+    [products],
+  );
   const activeReport = REPORTS.find((report) => report.id === activeReportId) ?? REPORTS[0];
+  const activeRun = GUIDED_RUNS.find((run) => run.id === activeRunId) ?? GUIDED_RUNS[0];
   const xpassIndexById = new Map(dogfoodReport.xpassIndex.map((entry) => [entry.id, entry]));
   const filteredProducts = activeProductId === "all"
     ? products
@@ -479,6 +681,12 @@ export default function AdminXPassHub() {
           ))}
         </div>
       </section>
+
+      <GuidedRunPlanner
+        activeRun={activeRun}
+        productsById={productsById}
+        onSelectRun={setActiveRunId}
+      />
 
       <section className="space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -575,6 +783,7 @@ export default function AdminXPassHub() {
             </p>
           </div>
         </div>
+        <ImprovementQueue productsById={productsById} />
       </section>
     </div>
   );
