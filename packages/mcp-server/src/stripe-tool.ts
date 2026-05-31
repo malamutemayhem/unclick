@@ -41,6 +41,9 @@ async function stripeFetch(
     body = form.toString();
   }
 
+  const STRIPE_TIMEOUT_MS = Number(process.env.STRIPE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), STRIPE_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
@@ -50,9 +53,15 @@ async function stripeFetch(
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Stripe request timed out after ${STRIPE_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 429) {

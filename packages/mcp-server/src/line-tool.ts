@@ -30,14 +30,30 @@ async function linePost<T>(
   path: string,
   body: Record<string, unknown>
 ): Promise<T> {
-  const res = await fetch(`${LINE_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const LINE_TIMEOUT_MS = Number(process.env.LINE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LINE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${LINE_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`LINE API request timed out after ${LINE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`LINE API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) throw new Error("LINE API rate limit reached (HTTP 429). Please wait and retry.");
 
   // LINE returns 200 for success; error bodies have message field
   const text = await res.text();
@@ -45,7 +61,7 @@ async function linePost<T>(
   try { data = JSON.parse(text); } catch { /* empty response is fine for 200 */ }
 
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     const detail = (data.details as Array<{ message: string }> | undefined)
       ?.map((d) => d.message)
       .join("; ");
@@ -59,16 +75,32 @@ async function lineGet<T>(
   token: string,
   path: string
 ): Promise<T> {
-  const res = await fetch(`${LINE_API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const LINE_TIMEOUT_MS = Number(process.env.LINE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LINE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${LINE_API_BASE}${path}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`LINE API request timed out after ${LINE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`LINE API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) throw new Error("LINE API rate limit reached (HTTP 429). Please wait and retry.");
 
   const text = await res.text();
   let data: Record<string, unknown> = {};
   try { data = JSON.parse(text); } catch { /* empty */ }
 
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`LINE API error: ${msg}`);
   }
 

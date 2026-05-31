@@ -63,14 +63,31 @@ async function telegramCall<T>(
   params: Record<string, unknown> = {}
 ): Promise<T> {
   const url = `${TELEGRAM_API_BASE}/bot${token}/${method}`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
-  });
+  const TELEGRAM_TIMEOUT_MS = Number(process.env.TELEGRAM_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TELEGRAM_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Telegram API request timed out after ${TELEGRAM_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Telegram API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
+  if (response.status === 429) {
+    throw new Error("Telegram API rate limit reached (HTTP 429). Please wait and retry.");
+  }
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} from Telegram API`);
+    throw new Error(`Telegram API HTTP ${response.status}`);
   }
 
   const data = (await response.json()) as TelegramResponse<T>;
