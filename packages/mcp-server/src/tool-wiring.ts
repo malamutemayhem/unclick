@@ -12551,6 +12551,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         url: { type: "string", description: "Target URL for a one-off SEOPass read-only run" },
         pack_name: { type: "string", description: "Name of a registered SEOPass pack; the pack URL is used as the target" },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks" },
       },
     },
   },
