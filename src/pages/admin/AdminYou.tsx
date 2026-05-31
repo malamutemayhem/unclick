@@ -6,7 +6,7 @@
  * ClaimKeyBanner is shown if the user has an unclaimed localStorage key.
  */
 
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSession, signOut } from "@/lib/auth";
 import ClaimKeyBanner from "@/components/ClaimKeyBanner";
@@ -207,13 +207,15 @@ function formatOperatorLocalTime(timezone: string | null | undefined): string {
 // backend stores in mc_business_context, which load_memory surfaces as a
 // standing rule at the start of every connected session.
 type AiStyleResponseLength = "brief" | "medium" | "detailed";
-type AiStyleComplexity = "simple" | "analogies" | "standard" | "technical";
+type AiStyleComplexity = "simple" | "standard" | "technical";
+type AiStyleAnalogies = "off" | "on";
 type AiStyleFormat = "prose" | "bullets" | "visual";
 type AiStyleEmojiLevel = "none" | "light" | "expressive";
 
 interface AiStyle {
   response_length: AiStyleResponseLength;
   complexity: AiStyleComplexity;
+  analogies: AiStyleAnalogies;
   format: AiStyleFormat;
   emoji_level: AiStyleEmojiLevel;
   custom_instructions: string;
@@ -223,19 +225,23 @@ interface AiStyle {
 
 const DEFAULT_AI_STYLE: AiStyle = {
   response_length: "medium",
-  complexity: "analogies",
+  complexity: "simple",
+  analogies: "on",
   format: "prose",
   emoji_level: "light",
   custom_instructions: "",
 };
 
 interface AiStyleAxis {
-  key: "response_length" | "complexity" | "format" | "emoji_level";
+  key: "response_length" | "complexity" | "analogies" | "format" | "emoji_level";
   label: string;
   hint: string;
   options: { value: string; label: string; desc: string }[];
 }
 
+// Reading level (Complexity) and the analogies technique are deliberately
+// separate axes: "Simple English" stays an unambiguous reading-level choice,
+// and analogies can be layered on top of any level.
 const AI_STYLE_AXES: AiStyleAxis[] = [
   {
     key: "response_length",
@@ -253,9 +259,17 @@ const AI_STYLE_AXES: AiStyleAxis[] = [
     hint: "Reading level and vocabulary",
     options: [
       { value: "simple", label: "Simple English", desc: "Plain words, no jargon" },
-      { value: "analogies", label: "With analogies", desc: "Simple, with comparisons" },
       { value: "standard", label: "Standard", desc: "Normal level of detail" },
       { value: "technical", label: "Technical", desc: "Precise and exact" },
+    ],
+  },
+  {
+    key: "analogies",
+    label: "Analogies",
+    hint: "Explain with comparisons",
+    options: [
+      { value: "on", label: "On", desc: "Use everyday comparisons to explain" },
+      { value: "off", label: "Off", desc: "Explain it straight, no comparisons" },
     ],
   },
   {
@@ -284,10 +298,35 @@ function aiStyleEquals(a: AiStyle, b: AiStyle): boolean {
   return (
     a.response_length === b.response_length &&
     a.complexity === b.complexity &&
+    a.analogies === b.analogies &&
     a.format === b.format &&
     a.emoji_level === b.emoji_level &&
     a.custom_instructions.trim() === b.custom_instructions.trim()
   );
+}
+
+// Curated fallback used only if the browser lacks Intl.supportedValuesOf.
+const FALLBACK_TIMEZONES = [
+  "UTC",
+  "Australia/Sydney", "Australia/Melbourne", "Australia/Brisbane", "Australia/Perth", "Australia/Adelaide",
+  "Pacific/Auckland",
+  "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Sao_Paulo",
+  "Europe/London", "Europe/Paris", "Europe/Berlin", "Europe/Madrid", "Europe/Moscow",
+  "Asia/Dubai", "Asia/Kolkata", "Asia/Singapore", "Asia/Hong_Kong", "Asia/Tokyo", "Asia/Shanghai",
+  "Africa/Johannesburg",
+];
+
+function listTimeZones(): string[] {
+  try {
+    const supported = (Intl as unknown as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf;
+    if (typeof supported === "function") {
+      const zones = supported("timeZone");
+      if (Array.isArray(zones) && zones.length > 0) return zones;
+    }
+  } catch {
+    // Older browsers: fall back to the curated list below.
+  }
+  return FALLBACK_TIMEZONES;
 }
 
 export default function AdminYou() {
@@ -545,6 +584,7 @@ export default function AdminYou() {
         body: JSON.stringify({
           response_length: aiStyle.response_length,
           complexity: aiStyle.complexity,
+          analogies: aiStyle.analogies,
           format: aiStyle.format,
           emoji_level: aiStyle.emoji_level,
           custom_instructions: aiStyle.custom_instructions,
@@ -636,6 +676,13 @@ export default function AdminYou() {
     operatorTime?.source === "browser" ? "Browser detected" :
     detectedTimezone ? "Browser available" :
     "Not detected";
+  const timezoneOptions = useMemo(() => {
+    const zones = new Set(listTimeZones());
+    // Guarantee the current and detected zones are always selectable.
+    if (operatorTime?.timezone) zones.add(operatorTime.timezone);
+    if (detectedTimezone) zones.add(detectedTimezone);
+    return Array.from(zones).sort((a, b) => a.localeCompare(b));
+  }, [operatorTime?.timezone, detectedTimezone]);
   const aiStyleDirty = !savedAiStyle || !aiStyleEquals(aiStyle, savedAiStyle);
   const youSections = [
     { id: "you-profile", label: "Profile", hint: "Identity and time", icon: User },
@@ -693,53 +740,53 @@ export default function AdminYou() {
           ))}
         </nav>
 
-        <div className="grid gap-6 xl:grid-cols-3">
+        <div className="space-y-6">
           {/* Profile card */}
           <div id="you-profile" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
-              <User className="h-4 w-4 text-[#E2B93B]" />
-              Profile
-            </h2>
-
-            <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-[#888]">
-                  <Mail className="h-3.5 w-3.5" />
-                  Email
-                </span>
-                <span className="font-mono text-xs text-white">
-                  {user?.email ?? "Unknown"}
-                </span>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+                  <User className="h-4 w-4 text-[#E2B93B]" />
+                  Profile
+                </h2>
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                  <div className="min-w-0">
+                    <span className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-[#777]">
+                      <Mail className="h-3.5 w-3.5" />
+                      Email
+                    </span>
+                    <span className="mt-1 block truncate font-mono text-xs text-white">
+                      {user?.email ?? "Unknown"}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-[#777]">
+                      <Shield className="h-3.5 w-3.5" />
+                      Auth provider
+                    </span>
+                    <span className="mt-1 block text-xs text-white">{providerLabel}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-[#777]">
+                      <Clock className="h-3.5 w-3.5" />
+                      Member since
+                    </span>
+                    <span className="mt-1 block text-xs text-white">
+                      {user?.created_at
+                        ? new Date(user.created_at).toLocaleDateString()
+                        : "Unknown"}
+                    </span>
+                  </div>
+                </div>
               </div>
-
-              <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-[#888]">
-                  <Shield className="h-3.5 w-3.5" />
-                  Auth provider
-                </span>
-                <span className="text-xs text-white">{providerLabel}</span>
-              </div>
-
-              <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-[#888]">
-                  <Clock className="h-3.5 w-3.5" />
-                  Member since
-                </span>
-                <span className="text-xs text-white">
-                  {user?.created_at
-                    ? new Date(user.created_at).toLocaleDateString()
-                    : "Unknown"}
-                </span>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="flex shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-2.5 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </button>
             </div>
-
-            <button
-              onClick={handleLogout}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-2.5 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </button>
           </div>
 
           {/* Local time card */}
@@ -748,55 +795,63 @@ export default function AdminYou() {
               <Clock className="h-4 w-4 text-[#E2B93B]" />
               Local Time
             </h2>
-            <p className="mt-3 text-sm leading-6 text-[#888]">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#888]">
               Used by Orchestrator so AI seats understand your working hours. Only timezone context is saved.
             </p>
-            <div className="mt-4 rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
-              <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="text-[#888]">Current local time</span>
-                <span className="text-right text-xs font-semibold text-white">{timezonePreview}</span>
+            <div className="mt-4 grid gap-6 md:grid-cols-2">
+              <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-[#888]">Current local time</span>
+                  <span className="text-right text-xs font-semibold text-white">{timezonePreview}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                  <span className="text-[#888]">Timezone</span>
+                  <span className="text-right font-mono text-xs text-white">
+                    {operatorTime?.timezone ?? detectedTimezone ?? "Unknown"}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                  <span className="text-[#888]">Source</span>
+                  <span className="text-right text-xs text-white">{timezoneSourceLabel}</span>
+                </div>
               </div>
-              <div className="mt-2 flex items-center justify-between gap-3 text-sm">
-                <span className="text-[#888]">Timezone</span>
-                <span className="text-right font-mono text-xs text-white">
-                  {operatorTime?.timezone ?? detectedTimezone ?? "Unknown"}
-                </span>
-              </div>
-              <div className="mt-2 flex items-center justify-between gap-3 text-sm">
-                <span className="text-[#888]">Source</span>
-                <span className="text-right text-xs text-white">{timezoneSourceLabel}</span>
-              </div>
-            </div>
-            <div className="mt-4 space-y-2">
-              <label className="block text-[11px] font-semibold uppercase tracking-wider text-white/40">
-                Manual timezone
-              </label>
-              <input
-                value={timezoneInput}
-                onChange={(event) => setTimezoneInput(event.target.value)}
-                placeholder={detectedTimezone ?? "Australia/Sydney"}
-                className="w-full rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 font-mono text-xs text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/50"
-              />
-              {timezoneError && <p className="text-[11px] text-red-400">{timezoneError}</p>}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => saveOperatorTimezone(timezoneInput, "manual")}
-                  disabled={timezoneSaving || !timezoneInput.trim()}
-                  className="rounded-md bg-[#61C1C4] px-3 py-1.5 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+              <div className="space-y-2">
+                <label htmlFor="timezone-select" className="block text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                  Timezone
+                </label>
+                <select
+                  id="timezone-select"
+                  value={timezoneInput || operatorTime?.timezone || detectedTimezone || "UTC"}
+                  onChange={(event) => setTimezoneInput(event.target.value)}
+                  className="w-full rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 font-mono text-xs text-white outline-none transition-colors focus:border-[#61C1C4]/50"
                 >
-                  {timezoneSaving ? "Saving..." : "Save override"}
-                </button>
-                {detectedTimezone && (
+                  {timezoneOptions.map((tz) => (
+                    <option key={tz} value={tz} className="bg-[#111111] font-mono">
+                      {tz}{tz === detectedTimezone ? " (detected)" : ""}
+                    </option>
+                  ))}
+                </select>
+                {timezoneError && <p className="text-[11px] text-red-400">{timezoneError}</p>}
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() => saveOperatorTimezone(detectedTimezone, "manual")}
-                    disabled={timezoneSaving}
-                    className="rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/[0.08] disabled:opacity-50"
+                    onClick={() => saveOperatorTimezone(timezoneInput, "manual")}
+                    disabled={timezoneSaving || !timezoneInput.trim()}
+                    className="rounded-md bg-[#61C1C4] px-3 py-1.5 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
                   >
-                    Use detected
+                    {timezoneSaving ? "Saving..." : "Save timezone"}
                   </button>
-                )}
+                  {detectedTimezone && (
+                    <button
+                      type="button"
+                      onClick={() => saveOperatorTimezone(detectedTimezone, "manual")}
+                      disabled={timezoneSaving}
+                      className="rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/[0.08] disabled:opacity-50"
+                    >
+                      Use detected
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -857,52 +912,54 @@ export default function AdminYou() {
                 </div>
               </div>
             ) : profile?.api_key ? (
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#888]">Key</span>
-                  <code className="rounded bg-white/[0.04] px-2 py-0.5 font-mono text-xs text-white">
-                    {profile.api_key.prefix}...
-                  </code>
+              <div className="mt-4 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                  <div>
+                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Key</span>
+                    <code className="mt-1 inline-block rounded bg-white/[0.04] px-2 py-0.5 font-mono text-xs text-white">
+                      {profile.api_key.prefix}...
+                    </code>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Tier</span>
+                    <span className="mt-1 inline-flex items-center rounded-full border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#E2B93B]">
+                      {profile.api_key.tier}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Status</span>
+                    <span className={`mt-1 block text-xs ${profile.api_key.is_active ? "text-green-400" : "text-red-400"}`}>
+                      {profile.api_key.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Total calls</span>
+                    <span className="mt-1 block font-mono text-xs text-white">
+                      {(profile.api_key.usage_count ?? 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] uppercase tracking-wider text-[#777]">Last used</span>
+                    <span className="mt-1 block text-xs text-white">
+                      {timeAgo(profile.api_key.last_used_at)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#888]">Tier</span>
-                  <span className="inline-flex items-center rounded-full border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#E2B93B]">
-                    {profile.api_key.tier}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#888]">Status</span>
-                  <span className={`text-xs ${profile.api_key.is_active ? "text-green-400" : "text-red-400"}`}>
-                    {profile.api_key.is_active ? "Active" : "Inactive"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#888]">Total calls</span>
-                  <span className="font-mono text-xs text-white">
-                    {(profile.api_key.usage_count ?? 0).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#888]">Last used</span>
-                  <span className="text-xs text-white">
-                    {timeAgo(profile.api_key.last_used_at)}
-                  </span>
-                </div>
-                <div className="border-t border-white/[0.06] pt-3">
-                  <p className="mb-2 text-[11px] text-[#666]">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-3">
+                  <p className="max-w-xl text-[11px] text-[#666]">
                     Key not visible? Your browser may have cleared it. Re-issuing generates a new key and invalidates the old one - saved Connections may need to be reconnected or re-saved.
                   </p>
-                  {reissueError && (
-                    <p className="mb-2 text-[11px] text-red-400">{reissueError}</p>
-                  )}
                   <button
                     onClick={handleReissueKey}
                     disabled={reissuing}
-                    className="w-full rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs text-white transition-colors hover:bg-white/[0.08] disabled:opacity-50"
+                    className="shrink-0 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs text-white transition-colors hover:bg-white/[0.08] disabled:opacity-50"
                   >
                     {reissuing ? "Re-issuing..." : "Re-issue API Key"}
                   </button>
                 </div>
+                {reissueError && (
+                  <p className="text-[11px] text-red-400">{reissueError}</p>
+                )}
               </div>
             ) : (
               <div className="mt-4 rounded-lg border border-dashed border-white/[0.08] p-4 text-center">
@@ -914,7 +971,7 @@ export default function AdminYou() {
           </div>
 
           {/* AI Style card */}
-          <div id="you-preferences" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6 xl:col-span-3">
+          <div id="you-preferences" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
                 <Sparkles className="h-4 w-4 text-[#E2B93B]" />
@@ -931,7 +988,7 @@ export default function AdminYou() {
               to say "shorter please", "simpler", or "more visual" every time.
             </p>
 
-            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+            <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {AI_STYLE_AXES.map((axis) => (
                 <div key={axis.key}>
                   <div className="flex items-baseline justify-between gap-2">
@@ -1024,7 +1081,7 @@ export default function AdminYou() {
           </div>
 
           {/* My Data card */}
-          <div id="you-my-data" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6 xl:col-span-3">
+          <div id="you-my-data" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <Database className="h-4 w-4 text-[#E2B93B]" />
               My Data
@@ -1084,7 +1141,7 @@ export default function AdminYou() {
           </div>
 
           {/* Security pointer */}
-          <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-6 xl:col-span-3">
+          <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <ShieldCheck className="h-4 w-4 text-[#E2B93B]" />
               Security lives in Settings

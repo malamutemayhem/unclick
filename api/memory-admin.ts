@@ -318,12 +318,14 @@ const AI_STYLE_KEY = "ai_style";
 const AI_STYLE_PRIORITY = 99;
 
 const AI_STYLE_RESPONSE_LENGTHS = ["brief", "medium", "detailed"] as const;
-const AI_STYLE_COMPLEXITIES = ["simple", "analogies", "standard", "technical"] as const;
+const AI_STYLE_COMPLEXITIES = ["simple", "standard", "technical"] as const;
+const AI_STYLE_ANALOGIES = ["off", "on"] as const;
 const AI_STYLE_FORMATS = ["prose", "bullets", "visual"] as const;
 const AI_STYLE_EMOJI_LEVELS = ["none", "light", "expressive"] as const;
 
 type AiStyleResponseLength = (typeof AI_STYLE_RESPONSE_LENGTHS)[number];
 type AiStyleComplexity = (typeof AI_STYLE_COMPLEXITIES)[number];
+type AiStyleAnalogies = (typeof AI_STYLE_ANALOGIES)[number];
 type AiStyleFormat = (typeof AI_STYLE_FORMATS)[number];
 type AiStyleEmojiLevel = (typeof AI_STYLE_EMOJI_LEVELS)[number];
 
@@ -331,6 +333,7 @@ interface AiStylePreferencesValue {
   directive: string;
   response_length: AiStyleResponseLength;
   complexity: AiStyleComplexity;
+  analogies: AiStyleAnalogies;
   format: AiStyleFormat;
   emoji_level: AiStyleEmojiLevel;
   custom_instructions: string;
@@ -340,7 +343,8 @@ interface AiStylePreferencesValue {
 
 const AI_STYLE_DEFAULTS = {
   response_length: "medium" as AiStyleResponseLength,
-  complexity: "analogies" as AiStyleComplexity,
+  complexity: "simple" as AiStyleComplexity,
+  analogies: "on" as AiStyleAnalogies,
   format: "prose" as AiStyleFormat,
   emoji_level: "light" as AiStyleEmojiLevel,
 };
@@ -352,7 +356,6 @@ const AI_STYLE_LENGTH_PHRASE: Record<AiStyleResponseLength, string> = {
 };
 const AI_STYLE_COMPLEXITY_PHRASE: Record<AiStyleComplexity, string> = {
   simple: "use simple, plain English",
-  analogies: "explain simply, with analogies",
   standard: "use a standard level of detail",
   technical: "be precise and technical",
 };
@@ -376,14 +379,16 @@ function pickAiStyleEnum<T extends string>(value: unknown, allowed: readonly T[]
 export function buildAiStyleDirective(fields: {
   response_length: AiStyleResponseLength;
   complexity: AiStyleComplexity;
+  analogies: AiStyleAnalogies;
   format: AiStyleFormat;
   emoji_level: AiStyleEmojiLevel;
   custom_instructions: string;
 }): string {
+  const analogyClause = fields.analogies === "on" ? ", and use analogies to explain" : "";
   const core =
     `Operator AI style, always honor unless overridden in-session: ` +
     `${AI_STYLE_LENGTH_PHRASE[fields.response_length]}; ` +
-    `${AI_STYLE_COMPLEXITY_PHRASE[fields.complexity]}; ` +
+    `${AI_STYLE_COMPLEXITY_PHRASE[fields.complexity]}${analogyClause}; ` +
     `${AI_STYLE_FORMAT_PHRASE[fields.format]}; ` +
     `${AI_STYLE_EMOJI_PHRASE[fields.emoji_level]}.`;
   const extra = fields.custom_instructions.trim();
@@ -401,9 +406,19 @@ export function normalizeAiStyleValue(value: unknown, updatedAt?: string | null)
     }
   }
   const rec = isRecord(parsed) ? parsed : {};
+  // Migration: the legacy "analogies" complexity value conflated reading level
+  // with the analogies technique, which made "Simple English" ambiguous. Map it
+  // to plain-English reading level + analogies on, so the two are now separate
+  // and unambiguous controls.
+  const legacyAnalogiesComplexity = rec.complexity === "analogies";
   const fields = {
     response_length: pickAiStyleEnum(rec.response_length, AI_STYLE_RESPONSE_LENGTHS, AI_STYLE_DEFAULTS.response_length),
-    complexity: pickAiStyleEnum(rec.complexity, AI_STYLE_COMPLEXITIES, AI_STYLE_DEFAULTS.complexity),
+    complexity: legacyAnalogiesComplexity
+      ? ("simple" as AiStyleComplexity)
+      : pickAiStyleEnum(rec.complexity, AI_STYLE_COMPLEXITIES, AI_STYLE_DEFAULTS.complexity),
+    analogies: rec.analogies === undefined && legacyAnalogiesComplexity
+      ? ("on" as AiStyleAnalogies)
+      : pickAiStyleEnum(rec.analogies, AI_STYLE_ANALOGIES, AI_STYLE_DEFAULTS.analogies),
     format: pickAiStyleEnum(rec.format, AI_STYLE_FORMATS, AI_STYLE_DEFAULTS.format),
     emoji_level: pickAiStyleEnum(rec.emoji_level, AI_STYLE_EMOJI_LEVELS, AI_STYLE_DEFAULTS.emoji_level),
     custom_instructions: typeof rec.custom_instructions === "string"
