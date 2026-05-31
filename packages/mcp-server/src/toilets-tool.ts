@@ -119,7 +119,21 @@ async function fetchAuToilets(
 ): Promise<AuToilet[]> {
   const radiusKm = radiusMeters / 1000;
   const url = `${AU_TOILET_BASE}?latitude=${lat}&longitude=${lon}&radius=${radiusKm}`;
-  const res = await fetch(url, { headers: FETCH_HEADERS });
+  const TOILETS_TIMEOUT_MS = Number(process.env.TOILETS_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOILETS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, { headers: FETCH_HEADERS, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`AU Toilet Map request timed out after ${TOILETS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`AU Toilet Map network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("AU Toilet Map rate limit exceeded.");
   if (!res.ok) throw new Error(`AU Toilet Map API HTTP ${res.status}`);
   const data = await res.json() as unknown;
   if (Array.isArray(data)) return data as AuToilet[];
@@ -210,11 +224,26 @@ async function fetchOsmToilets(
 node["amenity"="toilets"](around:${radiusMeters},${lat},${lon});
 out body;`;
 
-  const res = await fetch(OVERPASS_BASE, {
-    method: "POST",
-    headers: { ...FETCH_HEADERS, "Content-Type": "application/x-www-form-urlencoded" },
-    body: `data=${encodeURIComponent(query)}`,
-  });
+  const TOILETS_TIMEOUT_MS = Number(process.env.TOILETS_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOILETS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(OVERPASS_BASE, {
+      method: "POST",
+      headers: { ...FETCH_HEADERS, "Content-Type": "application/x-www-form-urlencoded" },
+      body: `data=${encodeURIComponent(query)}`,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Overpass request timed out after ${TOILETS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Overpass network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Overpass API rate limit exceeded.");
   if (!res.ok) throw new Error(`Overpass API HTTP ${res.status}`);
   const data = await res.json() as { elements?: OsmNode[] };
   return data.elements ?? [];
@@ -299,7 +328,15 @@ export async function getToiletDetails(args: Record<string, unknown>): Promise<u
   if (source === "au") {
     try {
       const url = `https://toiletmap.gov.au/api/getToiletDetails?toiletId=${encodeURIComponent(toiletId)}`;
-      const res = await fetch(url, { headers: FETCH_HEADERS });
+      const TOILETS_TIMEOUT_MS = Number(process.env.TOILETS_TIMEOUT_MS) || 15000;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), TOILETS_TIMEOUT_MS);
+      let res: Response;
+      try {
+        res = await fetch(url, { headers: FETCH_HEADERS, signal: controller.signal });
+      } finally {
+        clearTimeout(timer);
+      }
       if (!res.ok) throw new Error(`AU Toilet Map API HTTP ${res.status}`);
       const data = await res.json() as unknown;
       return data;
@@ -313,7 +350,15 @@ export async function getToiletDetails(args: Record<string, unknown>): Promise<u
   // OSM: fetch node by ID
   try {
     const url = `https://api.openstreetmap.org/api/0.6/node/${encodeURIComponent(toiletId)}.json`;
-    const res = await fetch(url, { headers: FETCH_HEADERS });
+    const TOILETS_TIMEOUT_MS = Number(process.env.TOILETS_TIMEOUT_MS) || 15000;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TOILETS_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(url, { headers: FETCH_HEADERS, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
     if (!res.ok) throw new Error(`OSM API HTTP ${res.status}`);
     const data = await res.json() as { elements?: OsmNode[] };
     const node = data.elements?.[0];

@@ -14,12 +14,27 @@ async function supercellFetch<T>(
   apiKey: string
 ): Promise<T> {
   const url = `${baseUrl}${path}`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-    },
-  });
+  const SUPERCELL_TIMEOUT_MS = Number(process.env.SUPERCELL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SUPERCELL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Supercell API request timed out after ${SUPERCELL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Supercell API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Supercell API rate limit exceeded. Please wait and retry.");
   const body = (await res.json()) as Record<string, unknown>;
   if (!res.ok) {
     throw new Error(

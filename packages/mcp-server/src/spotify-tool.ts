@@ -94,14 +94,29 @@ interface SpotifySearchResult {
 
 async function spotifyGet<T>(token: string, path: string, params: Record<string, string> = {}): Promise<T> {
   const qs = Object.keys(params).length > 0 ? `?${new URLSearchParams(params).toString()}` : "";
-  const res = await fetch(`${SPOTIFY_API_BASE}${path}${qs}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const SPOTIFY_TIMEOUT_MS = Number(process.env.SPOTIFY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SPOTIFY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SPOTIFY_API_BASE}${path}${qs}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Spotify API request timed out after ${SPOTIFY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Spotify API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Spotify rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = (err?.message as string) ?? `HTTP ${res.status}`;
+    const msg = (err?.message as string) ?? `status ${res.status}`;
     const status = err?.status ? ` (${err.status})` : "";
     throw new Error(`Spotify API error${status}: ${msg}`);
   }

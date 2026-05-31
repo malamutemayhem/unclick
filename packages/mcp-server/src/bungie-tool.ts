@@ -27,12 +27,28 @@ async function bungieFetch<T>(
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
 
-  const res = await fetch(url.toString(), {
-    headers: {
-      "X-API-Key": apiKey,
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-    },
-  });
+  const BUNGIE_TIMEOUT_MS = Number(process.env.BUNGIE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), BUNGIE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        "X-API-Key": apiKey,
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Bungie API request timed out after ${BUNGIE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Bungie API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) throw new Error("Bungie API rate limit exceeded. Please wait and retry.");
 
   const body = (await res.json()) as Record<string, unknown>;
 

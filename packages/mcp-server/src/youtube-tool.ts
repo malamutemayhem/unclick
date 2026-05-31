@@ -111,12 +111,26 @@ interface YtCaption {
 
 async function ytGet<T>(apiKey: string, endpoint: string, params: Record<string, string>): Promise<T> {
   const query = new URLSearchParams({ ...params, key: apiKey }).toString();
-  const res = await fetch(`${YT_API_BASE}/${endpoint}?${query}`);
+  const YOUTUBE_TIMEOUT_MS = Number(process.env.YOUTUBE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), YOUTUBE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${YT_API_BASE}/${endpoint}?${query}`, { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`YouTube API request timed out after ${YOUTUBE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`YouTube API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("YouTube API rate limit / quota exceeded. Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = (err?.message as string) ?? `HTTP ${res.status}`;
+    const msg = (err?.message as string) ?? `status ${res.status}`;
     const code = err?.code ? ` (code ${err.code})` : "";
     throw new Error(`YouTube API error${code}: ${msg}`);
   }

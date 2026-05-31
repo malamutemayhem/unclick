@@ -18,9 +18,23 @@ async function troveGet(
   params: Record<string, string>
 ): Promise<Record<string, unknown>> {
   const qs = new URLSearchParams({ ...params, key: apiKey, encoding: "json" });
-  const res = await fetch(`${TROVE_BASE}${path}?${qs}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const TROVE_TIMEOUT_MS = Number(process.env.TROVE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TROVE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${TROVE_BASE}${path}?${qs}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Trove API request timed out after ${TROVE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Trove API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 403) throw new Error("Invalid Trove API key.");
   if (res.status === 404) throw new Error("Resource not found in Trove.");
   if (res.status === 429) throw new Error("Trove API rate limit exceeded.");

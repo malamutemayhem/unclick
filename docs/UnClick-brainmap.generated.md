@@ -156,7 +156,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/bandsintown-tool.ts | 0ded8aafcfb2 | 3829 |
 | packages/mcp-server/src/bgg-tool.ts | 409f69d552ea | 11787 |
 | packages/mcp-server/src/bluesky-tool.ts | 89b5739acca5 | 14208 |
-| packages/mcp-server/src/bungie-tool.ts | e88c304b23f0 | 6643 |
+| packages/mcp-server/src/bungie-tool.ts | 156202b77025 | 7321 |
 | packages/mcp-server/src/calculator-tool.ts | 941b010bc4f9 | 7255 |
 | packages/mcp-server/src/calendly-tool.ts | 09240cc06f3b | 6971 |
 | packages/mcp-server/src/carboninterface-tool.ts | 5c25301e4ef3 | 7558 |
