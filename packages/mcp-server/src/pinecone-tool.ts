@@ -13,12 +13,27 @@ function requireKey(args: Record<string, unknown>): string {
 }
 
 async function pineGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${PINE_BASE}${path}`, {
-    headers: { "Api-Key": apiKey, "Content-Type": "application/json" },
-  });
+  const PINECONE_TIMEOUT_MS = Number(process.env.PINECONE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PINECONE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${PINE_BASE}${path}`, {
+      headers: { "Api-Key": apiKey, "Content-Type": "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pinecone request timed out after ${PINECONE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pinecone network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Pinecone rate limit reached (HTTP 429). Please wait and retry.");
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Pinecone error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -26,14 +41,29 @@ async function pineGet<T>(apiKey: string, path: string): Promise<T> {
 
 async function pinePost<T>(apiKey: string, path: string, body: unknown, baseUrl?: string): Promise<T> {
   const url = baseUrl ? `${baseUrl}${path}` : `${PINE_BASE}${path}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Api-Key": apiKey, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const PINECONE_TIMEOUT_MS = Number(process.env.PINECONE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PINECONE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Api-Key": apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pinecone request timed out after ${PINECONE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pinecone network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Pinecone rate limit reached (HTTP 429). Please wait and retry.");
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Pinecone error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -46,10 +76,25 @@ async function pineDel<T>(apiKey: string, path: string, body?: unknown, baseUrl?
     headers: { "Api-Key": apiKey, "Content-Type": "application/json" },
   };
   if (body) options.body = JSON.stringify(body);
-  const res = await fetch(url, options);
+  const PINECONE_TIMEOUT_MS = Number(process.env.PINECONE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PINECONE_TIMEOUT_MS);
+  options.signal = controller.signal;
+  let res: Response;
+  try {
+    res = await fetch(url, options);
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pinecone request timed out after ${PINECONE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pinecone network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 200 || res.status === 204) return {} as T;
+  if (res.status === 429) throw new Error("Pinecone rate limit reached (HTTP 429). Please wait and retry.");
   const data = await res.json() as Record<string, unknown>;
-  const msg = (data.message as string) ?? `HTTP ${res.status}`;
+  const msg = (data.message as string) ?? `status ${res.status}`;
   throw new Error(`Pinecone error (${res.status}): ${msg}`);
 }
 

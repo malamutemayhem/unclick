@@ -15,34 +15,64 @@ function requireKey(args: Record<string, unknown>): string {
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 async function klingGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${KLING_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const KLING_TIMEOUT_MS = Number(process.env.KLING_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), KLING_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${KLING_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Kling AI request timed out after ${KLING_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Kling AI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Kling AI rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Kling AI error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function klingPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${KLING_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const KLING_TIMEOUT_MS = Number(process.env.KLING_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), KLING_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${KLING_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Kling AI request timed out after ${KLING_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Kling AI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Kling AI rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Kling AI error (${res.status}): ${msg}`);
   }
   return data as T;

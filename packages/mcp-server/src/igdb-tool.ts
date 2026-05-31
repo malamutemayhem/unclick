@@ -21,10 +21,24 @@ function getCredentials(args: Record<string, unknown>): { clientId: string; clie
 async function getTwitchToken(clientId: string, clientSecret: string): Promise<string> {
   if (cachedToken && Date.now() < cachedToken.expires) return cachedToken.token;
 
-  const res = await fetch(
-    `${TWITCH_TOKEN_URL}?client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials`,
-    { method: "POST" }
-  );
+  const IGDB_TIMEOUT_MS = Number(process.env.IGDB_TIMEOUT_MS) || 15000;
+  const tokenController = new AbortController();
+  const tokenTimer = setTimeout(() => tokenController.abort(), IGDB_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(
+      `${TWITCH_TOKEN_URL}?client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}&grant_type=client_credentials`,
+      { method: "POST", signal: tokenController.signal }
+    );
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Twitch token request timed out after ${IGDB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Twitch token network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(tokenTimer);
+  }
+  if (res.status === 429) throw new Error("Twitch token request rate limited (HTTP 429). Please wait and retry.");
   if (res.status === 400 || res.status === 401) {
     throw new Error("Invalid IGDB credentials. Check your client_id and client_secret.");
   }
@@ -45,16 +59,30 @@ async function igdbPost(
   endpoint: string,
   body: string
 ): Promise<unknown> {
-  const res = await fetch(`${IGDB_BASE}${endpoint}`, {
-    method: "POST",
-    headers: {
-      "Client-ID": clientId,
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "text/plain",
-      Accept: "application/json",
-    },
-    body,
-  });
+  const IGDB_TIMEOUT_MS = Number(process.env.IGDB_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), IGDB_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${IGDB_BASE}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Client-ID": clientId,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "text/plain",
+        Accept: "application/json",
+      },
+      body,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`IGDB request timed out after ${IGDB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`IGDB network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) {
     cachedToken = null;
     throw new Error("IGDB token expired or invalid. Try again.");

@@ -34,19 +34,30 @@ async function flyFetch(
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
+  const FLYIO_TIMEOUT_MS = Number(process.env.FLYIO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FLYIO_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Fly.io API request timed out after ${FLYIO_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Fly.io API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   // 204 No Content
   if (response.status === 204) return { success: true };
+
+  if (response.status === 429) return { error: "Fly.io API rate limit exceeded. Please wait and retry.", status: 429 };
 
   const text = await response.text();
   let data: unknown;

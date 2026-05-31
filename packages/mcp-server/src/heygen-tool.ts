@@ -33,34 +33,64 @@ function requireKey(args: Record<string, unknown>): string {
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 async function hgGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${HG_API_BASE}${path}`, {
-    headers: {
-      "x-api-key": apiKey,
-      "Content-Type": "application/json",
-    },
-  });
+  const HEYGEN_TIMEOUT_MS = Number(process.env.HEYGEN_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HEYGEN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${HG_API_BASE}${path}`, {
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`HeyGen request timed out after ${HEYGEN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`HeyGen network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("HeyGen rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`HeyGen error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function hgPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${HG_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const HEYGEN_TIMEOUT_MS = Number(process.env.HEYGEN_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HEYGEN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${HG_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`HeyGen request timed out after ${HEYGEN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`HeyGen network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("HeyGen rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`HeyGen error (${res.status}): ${msg}`);
   }
   return data as T;
