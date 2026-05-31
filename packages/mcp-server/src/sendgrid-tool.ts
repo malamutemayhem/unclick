@@ -12,36 +12,72 @@ function requireKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const SENDGRID_TIMEOUT_MS = Number(process.env.SENDGRID_TIMEOUT_MS) || 15000;
+
 async function sgGet<T>(apiKey: string, path: string, params?: Record<string, string>): Promise<T> {
   const url = new URL(`${SG_BASE}${path}`);
   if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SENDGRID_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`SendGrid request timed out after ${SENDGRID_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`SendGrid network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`SendGrid rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (res.status === 204) return {} as T;
-  const data = await res.json() as Record<string, unknown>;
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const errs = data.errors as Array<{ message: string }> | undefined;
-    const msg = errs?.[0]?.message ?? `HTTP ${res.status}`;
+    const msg = errs?.[0]?.message ?? `status ${res.status}`;
     throw new Error(`SendGrid error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function sgPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${SG_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SENDGRID_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SG_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`SendGrid request timed out after ${SENDGRID_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`SendGrid network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`SendGrid rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (res.status === 202 || res.status === 204) return { success: true, status: res.status } as T;
-  const data = await res.json() as Record<string, unknown>;
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const errs = data.errors as Array<{ message: string }> | undefined;
-    const msg = errs?.[0]?.message ?? `HTTP ${res.status}`;
+    const msg = errs?.[0]?.message ?? `status ${res.status}`;
     throw new Error(`SendGrid error (${res.status}): ${msg}`);
   }
   return data as T;

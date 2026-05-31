@@ -11,15 +11,30 @@ function getApiKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const RESEND_TIMEOUT_MS = Number(process.env.RESEND_TIMEOUT_MS) || 15000;
+
 async function resendGet(
   apiKey: string,
   path: string
 ): Promise<Record<string, unknown>> {
-  const res = await fetch(`${RESEND_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RESEND_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${RESEND_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Resend request timed out after ${RESEND_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Resend network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Resend API key.");
   if (res.status === 404) throw new Error(`Resend: resource not found at ${path}.`);
   if (res.status === 429) throw new Error("Resend rate limit exceeded.");
@@ -35,14 +50,27 @@ async function resendPost(
   path: string,
   body: Record<string, unknown>
 ): Promise<Record<string, unknown>> {
-  const res = await fetch(`${RESEND_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RESEND_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${RESEND_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Resend request timed out after ${RESEND_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Resend network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Resend API key.");
   if (res.status === 422) {
     const b = await res.text().catch(() => "");

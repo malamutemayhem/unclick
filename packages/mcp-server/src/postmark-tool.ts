@@ -11,6 +11,8 @@ function requireKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const POSTMARK_TIMEOUT_MS = Number(process.env.POSTMARK_TIMEOUT_MS) || 15000;
+
 async function pmGet<T>(apiKey: string, path: string, query?: Record<string, string>): Promise<T> {
   const url = new URL(`${POSTMARK_API_BASE}${path}`);
   if (query) {
@@ -18,34 +20,68 @@ async function pmGet<T>(apiKey: string, path: string, query?: Record<string, str
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      "X-Postmark-Server-Token": apiKey,
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), POSTMARK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        "X-Postmark-Server-Token": apiKey,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Postmark request timed out after ${POSTMARK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Postmark network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Postmark rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.Message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.Message as string) ?? `status ${res.status}`;
     throw new Error(`Postmark error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function pmPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${POSTMARK_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "X-Postmark-Server-Token": apiKey,
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), POSTMARK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${POSTMARK_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "X-Postmark-Server-Token": apiKey,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Postmark request timed out after ${POSTMARK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Postmark network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Postmark rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.Message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.Message as string) ?? `status ${res.status}`;
     throw new Error(`Postmark error (${res.status}): ${msg}`);
   }
   return data as T;

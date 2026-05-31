@@ -78,6 +78,8 @@ function requireApiSecret(args: Record<string, unknown>): string {
 
 // --- API helpers -------------------------------------------------------------
 
+const CONVERTKIT_TIMEOUT_MS = Number(process.env.CONVERTKIT_TIMEOUT_MS) || 15000;
+
 async function ckGet<T>(path: string, queryParams: Record<string, string | undefined>): Promise<T> {
   const params = Object.entries(queryParams)
     .filter(([, v]) => v !== undefined && v !== "")
@@ -85,31 +87,65 @@ async function ckGet<T>(path: string, queryParams: Record<string, string | undef
     .join("&");
   const url = `${CK_API_BASE}${path}${params ? "?" + params : ""}`;
 
-  const res = await fetch(url, {
-    headers: { Accept: "application/json" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CONVERTKIT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ConvertKit request timed out after ${CONVERTKIT_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ConvertKit network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`ConvertKit rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`ConvertKit error: ${msg}`);
   }
   return data as T;
 }
 
 async function ckPost<T>(path: string, body: Record<string, unknown>): Promise<T> {
-  const res = await fetch(`${CK_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CONVERTKIT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${CK_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ConvertKit request timed out after ${CONVERTKIT_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ConvertKit network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`ConvertKit rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`ConvertKit error: ${msg}`);
   }
   return data as T;
