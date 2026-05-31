@@ -8,6 +8,15 @@ direct read of what UnClick's code actually contains today. Where the strategy
 reports assumed a primitive exists, this plan checks it against the repo and
 says plainly what is real, what is partial, and what is aspirational.
 
+> Update: a deeper read followed this draft. See
+> `path-a-ground-truth-audit.md` for the file-by-file audit and
+> `path-a-eval-harness-spec.md` for the learning loop. Two corrections from
+> that audit are folded in below: (a) the anti-fake-green completion gate and an
+> independent-verifier requirement ALREADY exist in
+> `api/lib/fishbowl-completion-policy.ts`, so Phases 1-2 are about typing and
+> wiring, not green-fielding; (b) `memory/conflicts.ts` is tool-conflict
+> detection, not memory-claim conflict resolution.
+
 ## The frame (and the honest ceiling)
 
 UnClick is a harness. It runs on top of frontier models it does not train. So
@@ -37,13 +46,17 @@ of them.
 REAL and substantial:
 
 - **Memory module** (`packages/mcp-server/src/memory/`). Deep, not a stub. Has
-  `embeddings.ts` (vector/semantic search), `conflicts.ts` (conflict
-  resolution), bitemporal handling (`__tests__/bitemporal.test.ts`), hybrid
+  `embeddings.ts` (semantic vectors when OpenAI embeddings are enabled;
+  defaults to a deterministic local hash embedding otherwise), bitemporal
+  handling (`__tests__/bitemporal.test.ts`, `valid_from`, `asOf`), hybrid
   search (`__tests__/hybrid-search.test.ts`), typed links, session state,
-  quota/decay policy, instrumentation, and a local + Supabase backend. This is
-  the strongest existing asset. The strategy reports treated "memory quality"
-  as a thing to build. Most of it is here; the work is sharpening retrieval and
-  staleness, not starting over.
+  quota/decay policy (`manageDecay`, `invalidateFact`), fact provenance
+  (extractor/model/prompt/commit/PR linkage), instrumentation, and a local +
+  Supabase backend. This is the strongest existing asset. The strategy reports
+  treated "memory quality" as a thing to build. Most of it is here; the work is
+  sharpening retrieval and surfacing contradictions, not starting over. (Note:
+  `conflicts.ts` is TOOL-conflict detection, not memory-claim resolution;
+  contradiction surfacing at retrieval time is still a real gap.)
 - **Proof "pass" family.** A whole fleet of verifiers already exists as tools
   and as standalone packages: flowpass, xpass, testpass, uxpass, securitypass,
   seopass, legalpass, compliancepass, geopass, copypass, commonsensepass,
@@ -83,10 +96,30 @@ ASPIRATIONAL / NOT in the code (flagged so we do not build on fiction):
 - **Outcome-eval / proof-as-reward learning loop.** Lots of unit tests, but no
   harness that scores agent runs by verified outcome and feeds that back into
   policy. Not found.
-- **Named "continuity kernel," "Boardroom Jobs," "QueuePush," "WakePass"** as
-  first-class objects. These appear as naming in tests/notes. The real
-  equivalents are Fishbowl + orchestrator-context. Treat the fancy names as
-  branding for things that are partly built, not as shipped components.
+- **"AnswerPass" and "WakePass"** as built components. AnswerPass has zero
+  matches. WakePass is a reserved slot in the xpass `CHECK_ORDER`, not a
+  package. Both are real ideas, not yet real code.
+- **"QueuePush," "continuity kernel," "Truth Kernel"** as separately built
+  objects. The real equivalents are Fishbowl + `orchestrator-context.ts`. These
+  are partly-built things under aspirational names, not missing components.
+
+### Terminology reconciliation (important)
+
+The strategy decks and the code use different words for the SAME things. This
+caused my first audit to wrongly flag "Boardroom" as absent. The mapping:
+
+| Product / strategy wording | Actual code |
+|---|---|
+| Boardroom (Jobs) | Fishbowl (`api/lib/fishbowl-*.ts`) |
+| Overseer Truth Kernel | continuity kernel = promoted `orchestrator-context.ts` + world-state diff |
+| QueuePush | Fishbowl job/queue state |
+| WakePass | reserved `wakepass` slot in xpass `CHECK_ORDER` (not built) |
+| XPass receipt | `xpass_receipt_v1` (real, SHA-bound) |
+| AnswerPass | NOT built; the name we should give the shared receipt type |
+
+Boardroom and Fishbowl are one concept with two names. That naming drift is a
+real, recurring cost (it confused this very audit). Whether to collapse it in
+code is a separate decision flagged at the end of this doc.
 
 ## The build plan
 
@@ -105,11 +138,14 @@ confidence, verification_status, disagreement_status,
 risk_level, next_required_proof
 ```
 
-Then wire one rule into the Fishbowl completion policy
-(`fishbowl-completion-policy.ts`): a job cannot go green unless a receipt says
-the claim is verified with fresh, typed evidence (a real PR / passing test /
-deploy). No proof, not done. This directly attacks the stated #1 pain (apparent
-progress vs verified progress) and reuses code that already exists.
+The completion gate ITSELF already exists. `fishbowl-completion-policy.ts`
+already blocks "done" without proof (regex over PR/commit/test/deploy/screenshot
+language), already enforces proof freshness ordering, and already requires an
+independent verifier (a different agent_id must add PASS proof). So Phase 1 is
+NOT building the gate. It is upgrading the gate to consume a typed receipt as
+first-class input instead of regex-matching prose, with the regex kept as a
+free-text fallback. No proof, still not done; but "proof" becomes a structured
+object with evidence and freshness rather than a string match.
 
 This is also where "AnswerPass" should actually be born: not as a new island,
 but as the name for this unified receipt layer sitting over the existing pass
@@ -207,3 +243,34 @@ consumes it, and the eval-scored learning loop that turns proof into the reward
 signal. Build those three and UnClick stops being "another agent harness" and
 becomes the place where any frontier model is held accountable. That is the
 winnable game on Path A, and it does not require beating Claude at training.
+
+## Recommended first slice (consolidated)
+
+A third planning pass (ChatGPT) independently proposed the same shape and added
+a sharper sequencing instinct worth adopting: lead with a read-model + recovery,
+not with the receipt schema. Since the audit found the completion gate already
+exists, this ordering is better. Consolidated first slice:
+
+1. **Overseer Truth Kernel** (= continuity kernel). One compact state model
+   reading Fishbowl/Boardroom jobs, live seats, xpass receipts, PRs, commits,
+   deploys, tests, memory, check-ins. It answers: what is true, what is stale,
+   what is blocked, who owns it, what has proof vs only claims proof, what
+   happens next. Built on `orchestrator-context.ts`.
+2. **Stale Recovery MVP.** Wire `fishbowl-todo-open-stale-release` (detection,
+   exists) to `route-packet-dispatch` (packet, exists) so a stale worker yields
+   a recovery packet (job, last state, proof present, proof missing, safest next
+   action, which seat/model takes it), not just an alert.
+
+This slice is practical, uses context that already exists, and immediately makes
+the system feel more intelligent: it turns messy agent activity into clear,
+proof-backed next actions. The shared receipt type ("AnswerPass") and the
+learning loop follow, in that order.
+
+## Open decision: the Boardroom/Fishbowl rename
+
+The product says Boardroom; the code says Fishbowl. Options: (a) documented
+alias only, leave code as-is (cheapest, zero risk); (b) rename user-facing
+strings to Boardroom, keep code Fishbowl; (c) full code rename Fishbowl ->
+Boardroom (touches many `fishbowl-*.ts` files, tools, tests, and FLEET_SYNC;
+high collision risk with other active lanes). This is a judgment call for the
+owner, not something to refactor unilaterally.
