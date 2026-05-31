@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 572,
+    "inventory": 573,
     "source_manifest": 187,
     "pages": 78,
     "tools": 187,
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 114
+      "count": 115
     },
     {
       "id": "launch-and-onboarding",
@@ -1938,6 +1938,16 @@
       "kind": "component",
       "meaning": "Account and admin configuration.",
       "source": "src/pages/AdminSettings.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-admin-xpass-hub-src-pages-admin-adminxpasshub-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin XPass Hub",
+      "kind": "component",
+      "meaning": "Admin surface for Admin XPass Hub.",
+      "source": "src/pages/admin/AdminXPassHub.tsx",
       "route": "",
       "tags": []
     },
@@ -7762,8 +7772,8 @@
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "3a9b7643c7fc",
-      "bytes": 13854
+      "hash": "badf018e0064",
+      "bytes": 12371
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
@@ -7972,8 +7982,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "16909fd44b92",
-      "bytes": 16552
+      "hash": "4103b5e68d6c",
+      "bytes": 16693
     },
     {
       "source": "src/pages/FAQPage.tsx",
