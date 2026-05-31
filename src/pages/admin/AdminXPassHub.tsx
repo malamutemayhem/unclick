@@ -209,12 +209,12 @@ const PRODUCT_DETAILS: Record<string, ProductDetail> = {
 
 const STATUS_STYLE: Record<XPassStatus, { label: string; classes: string; icon: ComponentType<{ className?: string }> }> = {
   PASS: {
-    label: "PASS",
+    label: "Tick",
     classes: "border-[#61C1C4]/35 bg-[#61C1C4]/10 text-[#9edfe1]",
     icon: CheckCircle2,
   },
   BLOCKER: {
-    label: "BLOCKER",
+    label: "Cross",
     classes: "border-red-500/35 bg-red-500/10 text-red-300",
     icon: XCircle,
   },
@@ -224,7 +224,7 @@ const STATUS_STYLE: Record<XPassStatus, { label: string; classes: string; icon: 
     icon: CircleMinus,
   },
   "NOT RUN": {
-    label: "NOT RUN",
+    label: "Waiting",
     classes: "border-[#E2B93B]/35 bg-[#E2B93B]/10 text-[#f1d878]",
     icon: Clock3,
   },
@@ -238,26 +238,26 @@ const STATUS_STYLE: Record<XPassStatus, { label: string; classes: string; icon: 
 const REPORTS: ReportRow[] = [
   {
     id: "public-dogfood",
-    title: "Public dogfood receipt",
-    date: "Latest public run",
+    title: "Latest XPass report",
+    date: "Current public proof",
     status: statusFromDogfood(dogfoodReport.status),
-    note: "Reads the public dogfood receipt and keeps the suite honest about what actually ran.",
+    note: "The current checklist. Each row has a result and a plain comment.",
     productIds: [...PRODUCT_ORDER],
   },
   {
     id: "pr-backed-sweep",
-    title: "PR-backed XPass sweep",
-    date: "May 30, 2026",
+    title: "Full suite closeout",
+    date: "In progress",
     status: "NOT RUN",
-    note: "Recent product receipts are PR-ready and cloud-green; final main verdict waits until those PRs land.",
+    note: "The final family report appears here after every product check is folded into main.",
     productIds: ["securitypass", "copypass", "legalpass", "seopass", "geopass", "flowpass", "uxpass", "rotatepass", "wakepass", "compliancepass"],
   },
   {
     id: "source-copy",
-    title: "Copy and source fidelity",
+    title: "Exact copy check",
     date: "On demand",
     status: "N/A",
-    note: "Only applies when the target includes exact source text, tables, labels, prompts, or wording.",
+    note: "Use this only when wording, tables, prompts, or labels must match exactly.",
     productIds: ["copypass", "fidelitypass", "commonsensepass"],
   },
 ];
@@ -269,7 +269,7 @@ const GUIDED_RUNS: RunTemplate[] = [
     target: "Pull request, MCP tool, backend change, or release.",
     passIds: ["testpass", "securitypass", "sloppass", "commonsensepass"],
     notApplicableIds: ["fidelitypass"],
-    firstAction: "Run XPass on the PR head, then compare every receipt to the current SHA.",
+    firstAction: "Check the change, record the result for each useful Pass, and explain any skipped rows.",
   },
   {
     id: "screen-flow",
@@ -338,10 +338,19 @@ function findDogfoodResult(productId: string): DogfoodPassResult | undefined {
 
 function commentFor(product: ProductDetail, report: ReportRow): string {
   if (product.id === "fidelitypass" && report.id !== "source-copy") {
-    return "Not applicable unless exact 1:1 copying is in scope.";
+    return "N/A because this report is not checking exact copied source material.";
   }
 
   const result = findDogfoodResult(product.id);
+  if (result?.status === "passing" && product.id === "securitypass") {
+    return "Tick. The safe security boundary passed without exposing secrets or running unsafe probes.";
+  }
+  if (result?.status === "passing" && product.id === "compliancepass") {
+    return "Tick. The readiness scan passed and the wording stays careful about certification.";
+  }
+  if (result?.status === "pending") {
+    return "Waiting. This check is available, but this report has not run it yet.";
+  }
   if (result?.summary) return result.summary;
 
   return product.plain;
@@ -499,10 +508,10 @@ function GuidedRunPlanner({
         <div>
           <div className="flex items-center gap-2">
             <PlayCircle className="h-4 w-4 text-[#61C1C4]" />
-            <h2 className="text-sm font-semibold text-white">Guided run planner</h2>
+            <h2 className="text-sm font-semibold text-white">Start a report</h2>
           </div>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
-            Pick what you are building. XPass shows the checks to run, the checks to mark N/A, and the first proof step.
+            Pick the closest job type. XPass shows which checks matter and which ones can be marked N/A.
           </p>
         </div>
         <Link
@@ -547,7 +556,7 @@ function GuidedRunPlanner({
             <ProductNameList ids={activeRun.notApplicableIds} productsById={productsById} />
           </div>
           <p className="mt-4 text-xs leading-5 text-white/45">
-            N/A means the check was considered and honestly does not fit this target.
+            N/A means the check was considered and does not fit this job.
           </p>
         </div>
       </div>
@@ -615,10 +624,10 @@ export default function AdminXPassHub() {
         </div>
         <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(260px,0.7fr)] lg:items-end">
           <div className="min-w-0">
-            <h1 className="text-3xl font-semibold tracking-tight text-white">XPass</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-white">XPass Report</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/60">
-              XPass is AutoPilot's roadworthy check for work. It looks at the whole suite, marks each product as PASS,
-              BLOCKER, N/A, MISSING, or NOT RUN, then leaves plain-English comments.
+              XPass is AutoPilot's roadworthy checklist for work. Pick a report, read the rows, and use the comment
+              to see what passed, what needs attention, and what does not apply.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-3 text-center">
@@ -643,15 +652,15 @@ export default function AdminXPassHub() {
           <div className="flex items-start gap-3">
             <LayoutList className="mt-0.5 h-5 w-5 shrink-0 text-[#61C1C4]" />
             <div>
-              <h2 className="text-sm font-semibold text-white">How XPass thinks</h2>
+              <h2 className="text-sm font-semibold text-white">How to read it</h2>
               <p className="mt-2 text-sm leading-6 text-white/55">
-                First it names the target. Then it chooses the relevant Pass products, records what did not apply,
-                links the evidence, and sends weak or noisy checks back to Continuous Improver.
+                Tick means the check is okay. Cross means it needs attention. N/A means it does not apply. Waiting
+                means the check exists but this report has not run it yet.
               </p>
             </div>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-4">
-            {["Target", "Checks", "Evidence", "Improve"].map((label) => (
+            {["Report", "Result", "Comment", "Next step"].map((label) => (
               <div key={label} className="rounded-md border border-white/[0.06] bg-black/20 px-3 py-2 text-xs font-medium text-white/65">
                 {label}
               </div>
@@ -661,7 +670,7 @@ export default function AdminXPassHub() {
             to="/admin/testpass/new"
             className="mt-4 inline-flex min-h-8 items-center gap-1.5 text-sm font-medium text-[#61C1C4] transition-opacity hover:opacity-80"
           >
-            Start a guided run
+            Start a report
             <ExternalLink className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -691,14 +700,14 @@ export default function AdminXPassHub() {
       <section className="space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-white">Products</h2>
-            <p className="mt-1 text-xs text-white/45">Pick one product or keep the whole suite in view.</p>
+            <h2 className="text-sm font-semibold text-white">Pass checks</h2>
+            <p className="mt-1 text-xs text-white/45">Pick one check or keep the whole list in view.</p>
           </div>
           <Link
             to="/dogfood"
             className="inline-flex min-h-8 items-center gap-1.5 text-xs font-medium text-[#61C1C4] transition-opacity hover:opacity-80"
           >
-            Public XPass receipt
+            Public report
             <ExternalLink className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -717,7 +726,7 @@ export default function AdminXPassHub() {
               <Sparkles className="h-4 w-4 shrink-0 text-[#61C1C4]" />
               <span className="text-sm font-semibold text-white">All XPass</span>
             </div>
-            <p className="mt-1 text-xs leading-5 text-white/50">Whole-suite checklist</p>
+            <p className="mt-1 text-xs leading-5 text-white/50">Whole checklist</p>
           </button>
           {products.map((product) => (
             <ProductTab

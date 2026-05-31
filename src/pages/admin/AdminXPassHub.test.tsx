@@ -15,10 +15,10 @@ describe("AdminXPassHub", () => {
   it("shows the suite landing page with checklist and reports", () => {
     renderHub();
 
-    expect(screen.getByRole("heading", { name: "XPass" })).toBeInTheDocument();
-    expect(screen.getByText(/AutoPilot's roadworthy check/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "XPass Report" })).toBeInTheDocument();
+    expect(screen.getByText(/AutoPilot's roadworthy checklist/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Reports" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Guided run planner" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Start a report" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Checklist" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /All XPass/i })).toBeInTheDocument();
     expect(screen.getAllByText("FidelityPass").length).toBeGreaterThan(0);
@@ -37,10 +37,10 @@ describe("AdminXPassHub", () => {
   it("switches report context from the report ledger", () => {
     renderHub();
 
-    fireEvent.click(screen.getByRole("button", { name: /Copy and source fidelity/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Exact copy check/i }));
 
-    expect(screen.getByText(/Only applies when the target includes exact source text/i)).toBeInTheDocument();
-    expect(screen.getAllByText("Copy and source fidelity").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Use this only when wording/i)).toBeInTheDocument();
+    expect(screen.getAllByText("Exact copy check").length).toBeGreaterThan(0);
   });
 
   it("guides a run from a plain-English target", () => {
@@ -51,6 +51,6 @@ describe("AdminXPassHub", () => {
     expect(screen.getByText(/Capture desktop and mobile proof/i)).toBeInTheDocument();
     expect(screen.getAllByText("UXPass").length).toBeGreaterThan(0);
     expect(screen.getAllByText("FlowPass").length).toBeGreaterThan(0);
-    expect(screen.getByText(/N\/A means the check was considered/i)).toBeInTheDocument();
+    expect(screen.getByText(/N\/A means the check was considered and does not fit this job/i)).toBeInTheDocument();
   });
 });
