@@ -11,37 +11,73 @@ function requireKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const TOGETHER_TIMEOUT_MS = Number(process.env.TOGETHERAI_TIMEOUT_MS) || 60000;
+
 async function togetherPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${TOGETHER_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOGETHER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${TOGETHER_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Together AI request timed out after ${TOGETHER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Together AI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Together AI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const msg = (data.error as Record<string, unknown>)?.message as string
       ?? (data.message as string)
-      ?? `HTTP ${res.status}`;
+      ?? `status ${res.status}`;
     throw new Error(`Together AI error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function togetherGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${TOGETHER_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOGETHER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${TOGETHER_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Together AI request timed out after ${TOGETHER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Together AI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Together AI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const msg = (data.error as Record<string, unknown>)?.message as string
       ?? (data.message as string)
-      ?? `HTTP ${res.status}`;
+      ?? `status ${res.status}`;
     throw new Error(`Together AI error (${res.status}): ${msg}`);
   }
   return data as T;

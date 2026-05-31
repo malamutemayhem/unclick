@@ -148,6 +148,8 @@ function requireKey(args: Record<string, unknown>): string {
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
+const OPENAI_TIMEOUT_MS = Number(process.env.OPENAI_TIMEOUT_MS) || 60000;
+
 async function openaiPost<T>(apiKey: string, path: string, body: unknown, orgId?: string): Promise<T> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${apiKey}`,
@@ -155,16 +157,33 @@ async function openaiPost<T>(apiKey: string, path: string, body: unknown, orgId?
   };
   if (orgId) headers["OpenAI-Organization"] = orgId;
 
-  const res = await fetch(`${OPENAI_API_BASE}${path}`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${OPENAI_API_BASE}${path}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`OpenAI request timed out after ${OPENAI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`OpenAI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`OpenAI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = (err?.message as string) ?? `HTTP ${res.status}`;
+    const msg = (err?.message as string) ?? `status ${res.status}`;
     const code = err?.code ? ` (${err.code})` : "";
     const type = err?.type ? ` [${err.type}]` : "";
     throw new Error(`OpenAI error${type}${code}: ${msg}`);
@@ -173,14 +192,31 @@ async function openaiPost<T>(apiKey: string, path: string, body: unknown, orgId?
 }
 
 async function openaiGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${OPENAI_API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${OPENAI_API_BASE}${path}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`OpenAI request timed out after ${OPENAI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`OpenAI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`OpenAI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = (err?.message as string) ?? `HTTP ${res.status}`;
+    const msg = (err?.message as string) ?? `status ${res.status}`;
     throw new Error(`OpenAI error: ${msg}`);
   }
   return data as T;
@@ -323,7 +359,7 @@ export async function openaiCreateTranscription(args: Record<string, unknown>): 
   });
 
   if (!res.ok) {
-    let msg = `HTTP ${res.status}`;
+    let msg = `status ${res.status}`;
     try {
       const data = await res.json() as Record<string, unknown>;
       const err = data.error as Record<string, unknown> | undefined;

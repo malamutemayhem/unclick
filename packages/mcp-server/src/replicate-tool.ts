@@ -51,35 +51,71 @@ function requireToken(args: Record<string, unknown>): string {
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
-async function replicateGet<T>(token: string, path: string): Promise<T> {
-  const res = await fetch(`${REPLICATE_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+const REPLICATE_TIMEOUT_MS = Number(process.env.REPLICATE_TIMEOUT_MS) || 30000;
 
-  const data = await res.json() as Record<string, unknown>;
+async function replicateGet<T>(token: string, path: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REPLICATE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${REPLICATE_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Replicate request timed out after ${REPLICATE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Replicate network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Replicate rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const detail = (data.detail as string) ?? `HTTP ${res.status}`;
+    const detail = (data.detail as string) ?? `status ${res.status}`;
     throw new Error(`Replicate error (${res.status}): ${detail}`);
   }
   return data as T;
 }
 
 async function replicatePost<T>(token: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${REPLICATE_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REPLICATE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${REPLICATE_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Replicate request timed out after ${REPLICATE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Replicate network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Replicate rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const detail = (data.detail as string) ?? `HTTP ${res.status}`;
+    const detail = (data.detail as string) ?? `status ${res.status}`;
     throw new Error(`Replicate error (${res.status}): ${detail}`);
   }
   return data as T;
