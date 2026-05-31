@@ -2,6 +2,9 @@
 // Uses the ElevenLabs REST API via fetch - no external dependencies.
 // Users must supply an API key from elevenlabs.io.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const EL_API_BASE = "https://api.elevenlabs.io/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -132,10 +135,10 @@ function requireElevenLabsSpendAllowed(operation: ElevenLabsToolOperation, model
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at elevenlabs.io.");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("elevenlabs", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -221,6 +224,7 @@ async function elPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function elevenlabsListVoices(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireElevenLabsSpendAllowed("voice-listing", "ElevenLabs /voices", apiKey);
   const data = await elGet<{ voices: ElVoice[] }>(apiKey, "/voices");
 
@@ -239,6 +243,7 @@ export async function elevenlabsListVoices(args: Record<string, unknown>): Promi
 
 export async function elevenlabsGetVoice(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const voiceId = String(args.voice_id ?? "").trim();
   if (!voiceId) throw new Error("voice_id is required.");
 
@@ -260,6 +265,7 @@ export async function elevenlabsGetVoice(args: Record<string, unknown>): Promise
 
 export async function elevenlabsTextToSpeech(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const voiceId = String(args.voice_id ?? "").trim();
   const text = String(args.text ?? "").trim();
   if (!voiceId) throw new Error("voice_id is required.");
@@ -303,6 +309,7 @@ export async function elevenlabsTextToSpeech(args: Record<string, unknown>): Pro
 
 export async function elevenlabsGetModels(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireElevenLabsSpendAllowed("model-listing", "ElevenLabs /models", apiKey);
   const models = await elGet<ElModel[]>(apiKey, "/models");
 
@@ -321,6 +328,7 @@ export async function elevenlabsGetModels(args: Record<string, unknown>): Promis
 
 export async function elevenlabsGetHistory(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireElevenLabsSpendAllowed("history-listing", "ElevenLabs /history", apiKey);
   const pageSize = Math.min(1000, Math.max(1, Number(args.page_size ?? 30)));
   const params = new URLSearchParams({ page_size: String(pageSize) });

@@ -3,14 +3,17 @@
 // Auth: EBIRD_API_KEY env or api_key arg (X-eBirdApiToken header).
 // Docs: https://documenter.getpostman.com/view/664302/S1ENwy59
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const EBIRD_BASE = "https://api.ebird.org/v2";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
-function getKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.EBIRD_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set EBIRD_API_KEY env).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("ebird", args);
 }
 
 const EBIRD_TIMEOUT_MS = Number(process.env.EBIRD_TIMEOUT_MS) || 10000;
@@ -59,7 +62,8 @@ async function ebirdFetch<T>(
 export async function getRecentObservations(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const apiKey     = getKey(args);
+  const apiKey     = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const regionCode = String(args.region_code ?? "").trim().toUpperCase();
   if (!regionCode) throw new Error("region_code is required (e.g. 'US-NY', 'GB', 'AU-NSW').");
 
@@ -112,7 +116,8 @@ export async function getRecentObservations(
 export async function getNotableObservations(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const apiKey     = getKey(args);
+  const apiKey     = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const regionCode = String(args.region_code ?? "").trim().toUpperCase();
   if (!regionCode) throw new Error("region_code is required (e.g. 'US-NY', 'GB').");
 
@@ -162,7 +167,8 @@ export async function getNotableObservations(
 export async function getSpeciesInfo(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const apiKey      = getKey(args);
+  const apiKey      = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const speciesCode = String(args.species_code ?? "").trim().toLowerCase();
   const locale      = String(args.locale ?? "en").trim();
 

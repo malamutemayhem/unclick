@@ -3,6 +3,9 @@
 // Docs: https://www.discogs.com/developers
 // Env var: DISCOGS_TOKEN
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const DISCOGS_BASE = "https://api.discogs.com";
 const DISCOGS_TIMEOUT_MS = Number(process.env.DISCOGS_TIMEOUT_MS) || 10000;
 
@@ -47,17 +50,18 @@ async function discogsGet(
   return res.json() as Promise<Record<string, unknown>>;
 }
 
-function getToken(args: Record<string, unknown>): string {
-  const token = String(args.token ?? process.env.DISCOGS_TOKEN ?? "").trim();
-  if (!token) throw new Error("token is required (or set DISCOGS_TOKEN env var).");
-  return token;
+// Resolves the token from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown).
+function requireToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("discogs", args);
 }
 
 // ── Tool functions ─────────────────────────────────────────────────────────────
 
 export async function discogsSearchReleases(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getToken(args);
+    const token = requireToken(args);
+    if (typeof token !== "string") return token;
     const params: Record<string, string | number> = { type: "release" };
     if (args.query)  params.q      = String(args.query);
     if (args.artist) params.artist = String(args.artist);
@@ -81,7 +85,8 @@ export async function discogsSearchReleases(args: Record<string, unknown>): Prom
 
 export async function discogsGetRelease(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getToken(args);
+    const token = requireToken(args);
+    if (typeof token !== "string") return token;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await discogsGet(token, `/releases/${encodeURIComponent(id)}`);
@@ -93,7 +98,8 @@ export async function discogsGetRelease(args: Record<string, unknown>): Promise<
 
 export async function discogsGetArtist(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getToken(args);
+    const token = requireToken(args);
+    if (typeof token !== "string") return token;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await discogsGet(token, `/artists/${encodeURIComponent(id)}`);
@@ -105,7 +111,8 @@ export async function discogsGetArtist(args: Record<string, unknown>): Promise<u
 
 export async function discogsSearchArtists(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getToken(args);
+    const token = requireToken(args);
+    if (typeof token !== "string") return token;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { q: query, type: "artist" };
@@ -123,7 +130,8 @@ export async function discogsSearchArtists(args: Record<string, unknown>): Promi
 
 export async function discogsGetMarketplaceStats(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getToken(args);
+    const token = requireToken(args);
+    if (typeof token !== "string") return token;
     const releaseId = String(args.release_id ?? "").trim();
     if (!releaseId) return { error: "release_id is required." };
     const data = await discogsGet(token, `/marketplace/stats/${encodeURIComponent(releaseId)}`);
@@ -135,7 +143,8 @@ export async function discogsGetMarketplaceStats(args: Record<string, unknown>):
 
 export async function discogsGetLabel(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const token = getToken(args);
+    const token = requireToken(args);
+    if (typeof token !== "string") return token;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await discogsGet(token, `/labels/${encodeURIComponent(id)}`);
