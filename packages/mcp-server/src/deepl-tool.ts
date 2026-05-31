@@ -12,35 +12,71 @@ function requireKey(args: Record<string, unknown>): { key: string; base: string 
   return { key, base };
 }
 
+const DEEPL_TIMEOUT_MS = Number(process.env.DEEPL_TIMEOUT_MS) || 15000;
+
 async function dlPost<T>(key: string, base: string, path: string, body: Record<string, string | string[]>): Promise<T> {
   const form = new URLSearchParams();
   Object.entries(body).forEach(([k, v]) => {
     if (Array.isArray(v)) v.forEach((item) => form.append(k, item));
     else form.set(k, v);
   });
-  const res = await fetch(`${base}${path}`, {
-    method: "POST",
-    headers: {
-      "DeepL-Auth-Key": key,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: form.toString(),
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DEEPL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${base}${path}`, {
+      method: "POST",
+      headers: {
+        "DeepL-Auth-Key": key,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: form.toString(),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`DeepL request timed out after ${DEEPL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`DeepL network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`DeepL rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`DeepL error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function dlGet<T>(key: string, base: string, path: string): Promise<T> {
-  const res = await fetch(`${base}${path}`, {
-    headers: { "DeepL-Auth-Key": key },
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DEEPL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${base}${path}`, {
+      headers: { "DeepL-Auth-Key": key },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`DeepL request timed out after ${DEEPL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`DeepL network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`DeepL rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`DeepL error (${res.status}): ${msg}`);
   }
   return data as T;

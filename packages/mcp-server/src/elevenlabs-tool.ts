@@ -140,35 +140,71 @@ function requireKey(args: Record<string, unknown>): string {
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
-async function elGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${EL_API_BASE}${path}`, {
-    headers: {
-      "xi-api-key": apiKey,
-      "Content-Type": "application/json",
-    },
-  });
+const ELEVENLABS_TIMEOUT_MS = Number(process.env.ELEVENLABS_TIMEOUT_MS) || 30000;
 
-  const data = await res.json() as Record<string, unknown>;
+async function elGet<T>(apiKey: string, path: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ELEVENLABS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${EL_API_BASE}${path}`, {
+      headers: {
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ElevenLabs request timed out after ${ELEVENLABS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ElevenLabs network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`ElevenLabs rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const detail = data.detail as Record<string, unknown> | string | undefined;
     const msg = typeof detail === "object" ? (detail?.message ?? JSON.stringify(detail)) : detail;
-    throw new Error(`ElevenLabs error (${res.status}): ${msg ?? `HTTP ${res.status}`}`);
+    throw new Error(`ElevenLabs error (${res.status}): ${msg ?? `status ${res.status}`}`);
   }
   return data as T;
 }
 
 async function elPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${EL_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "xi-api-key": apiKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ELEVENLABS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${EL_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ElevenLabs request timed out after ${ELEVENLABS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ElevenLabs network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`ElevenLabs rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
-    let msg = `HTTP ${res.status}`;
+    let msg = `status ${res.status}`;
     try {
       const data = await res.json() as Record<string, unknown>;
       const detail = data.detail as Record<string, unknown> | string | undefined;

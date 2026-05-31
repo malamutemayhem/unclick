@@ -8292,8 +8292,8 @@
     },
     {
       "source": "packages/mcp-server/src/cohere-tool.ts",
-      "hash": "9ca27e0737f8",
-      "bytes": 9207
+      "hash": "7ea6da1b5d4a",
+      "bytes": 10712
     },
     {
       "source": "packages/mcp-server/src/coingecko-tool.ts",
@@ -8352,8 +8352,8 @@
     },
     {
       "source": "packages/mcp-server/src/deepl-tool.ts",
-      "hash": "3c88cc9c44bf",
-      "bytes": 5695
+      "hash": "b32abdc9d2fd",
+      "bytes": 7180
     },
     {
       "source": "packages/mcp-server/src/deezer-tool.ts",

@@ -164,7 +164,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/circleci-tool.ts | 14729ddbb6ce | 4949 |
 | packages/mcp-server/src/clickup-tool.ts | 3f9127777b87 | 6316 |
 | packages/mcp-server/src/clockify-tool.ts | 058798077459 | 6790 |
-| packages/mcp-server/src/cohere-tool.ts | 9ca27e0737f8 | 9207 |
+| packages/mcp-server/src/cohere-tool.ts | 7ea6da1b5d4a | 10712 |
 | packages/mcp-server/src/coingecko-tool.ts | 6d6a16d83f9f | 7635 |
 | packages/mcp-server/src/coinmarketcap-tool.ts | c931670eb0c8 | 7714 |
 | packages/mcp-server/src/color-tool.ts | f9aa9c0fec6e | 13643 |
@@ -176,7 +176,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/csuite-tool.ts | 0ab5af89bb49 | 70236 |
 | packages/mcp-server/src/datadog-tool.ts | 802b808614cd | 5556 |
 | packages/mcp-server/src/datetime-tool.ts | 19075fddbc55 | 10618 |
-| packages/mcp-server/src/deepl-tool.ts | 3c88cc9c44bf | 5695 |
+| packages/mcp-server/src/deepl-tool.ts | b32abdc9d2fd | 7180 |
 | packages/mcp-server/src/deezer-tool.ts | 784d0608dda2 | 8130 |
 | packages/mcp-server/src/discogs-tool.ts | 4c3c38f44cbe | 5743 |
 | packages/mcp-server/src/discord-tool.ts | c70b8ac42f28 | 8191 |
