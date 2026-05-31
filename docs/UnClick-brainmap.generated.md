@@ -163,7 +163,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/chessdotcom-tool.ts | e9b2630bba3f | 7642 |
 | packages/mcp-server/src/circleci-tool.ts | b7b2879fdf0e | 6521 |
 | packages/mcp-server/src/clickup-tool.ts | b8f6a7c21317 | 6739 |
-| packages/mcp-server/src/clockify-tool.ts | 058798077459 | 6790 |
+| packages/mcp-server/src/clockify-tool.ts | 86ae10a34bfb | 7218 |
 | packages/mcp-server/src/cohere-tool.ts | 7ea6da1b5d4a | 10712 |
 | packages/mcp-server/src/coingecko-tool.ts | 6d6a16d83f9f | 7635 |
 | packages/mcp-server/src/coinmarketcap-tool.ts | c931670eb0c8 | 7714 |

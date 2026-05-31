@@ -8287,8 +8287,8 @@
     },
     {
       "source": "packages/mcp-server/src/clockify-tool.ts",
-      "hash": "058798077459",
-      "bytes": 6790
+      "hash": "86ae10a34bfb",
+      "bytes": 7218
     },
     {
       "source": "packages/mcp-server/src/cohere-tool.ts",

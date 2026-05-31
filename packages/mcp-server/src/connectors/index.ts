@@ -44,6 +44,13 @@ import { mastodonConnector } from "./mastodon.js";
 import { lineConnector }     from "./line.js";
 import { figmaConnector }    from "./figma.js";
 import { splitwiseConnector } from "./splitwise.js";
+import { clockifyConnector }   from "./clockify.js";
+import { feedlyConnector }     from "./feedly.js";
+import { monicaConnector }     from "./monica.js";
+import { notionConnector }     from "./notion.js";
+import { raindropConnector }   from "./raindrop.js";
+import { readwiseConnector }   from "./readwise.js";
+import { instapaperConnector } from "./instapaper.js";
 
 export {
   xeroConnector,
@@ -57,6 +64,13 @@ export {
   lineConnector,
   figmaConnector,
   splitwiseConnector,
+  clockifyConnector,
+  feedlyConnector,
+  monicaConnector,
+  notionConnector,
+  raindropConnector,
+  readwiseConnector,
+  instapaperConnector,
 };
 
 export const CONNECTORS: Record<string, ConnectorConfig> = {
@@ -71,4 +85,11 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
   line:     lineConnector,
   figma:    figmaConnector,
   splitwise: splitwiseConnector,
+  clockify:   clockifyConnector,
+  feedly:     feedlyConnector,
+  monica:     monicaConnector,
+  notion:     notionConnector,
+  raindrop:   raindropConnector,
+  readwise:   readwiseConnector,
+  instapaper: instapaperConnector,
 };
