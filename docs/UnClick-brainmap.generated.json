@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 573,
-    "source_manifest": 187,
-    "pages": 78,
+    "inventory": 574,
+    "source_manifest": 188,
+    "pages": 79,
     "tools": 187,
     "rooms": 23,
     "workers": 8
@@ -27,7 +27,7 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 31
+      "count": 32
     },
     {
       "id": "tools",
@@ -3482,6 +3482,16 @@
       "tags": []
     },
     {
+      "id": "public-surfaces-public-page-xpass-src-pages-xpass-tsx-xpass",
+      "division": "Public surfaces",
+      "name": "XPass",
+      "kind": "public page",
+      "meaning": "User-facing page for XPass.",
+      "source": "src/pages/XPass.tsx",
+      "route": "/xpass",
+      "tags": []
+    },
+    {
       "id": "rooms-pinballwake-room-ack-ledger-scripts-pinballwake-ack-ledger-room-mjs-no-route",
       "division": "Rooms",
       "name": "ack ledger",
@@ -6290,6 +6300,12 @@
       "Tools",
       "Public tools marketplace entry point.",
       "src/pages/Tools.tsx"
+    ],
+    [
+      "/xpass",
+      "XPass",
+      "User-facing page for XPass.",
+      "src/pages/XPass.tsx"
     ]
   ],
   "inductionRows": [
@@ -7592,8 +7608,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "26405e588808",
-      "bytes": 14258
+      "hash": "4347f236822f",
+      "bytes": 14359
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -8074,6 +8090,11 @@
       "source": "src/pages/Tools.tsx",
       "hash": "1b9bc9d666a7",
       "bytes": 15377
+    },
+    {
+      "source": "src/pages/XPass.tsx",
+      "hash": "96f38c4d74a7",
+      "bytes": 8617
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",

@@ -11,7 +11,7 @@ const PRODUCT_LINKS = [
   { label: "Apps", href: "/tools" },
   { label: "Memory", href: "/memory" },
   { label: "Connections", href: "/admin/keychain" },
-  { label: "XPass", href: "/dogfood" },
+  { label: "XPass", href: "/xpass" },
 ];
 
 const RESOURCES_LINKS = [
