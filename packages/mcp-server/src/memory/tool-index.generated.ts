@@ -4117,11 +4117,11 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "uxpass_run",
-        "description": "Run a UI/UX quality check synchronously against a URL. Executes the deterministic uxpass-core check set (HTTP, HTML, accessibility, agent readability, performance, security) against the target and returns the run id, status, UX Score, and summary. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry)."
+        "description": "Run a UI/UX quality check synchronously against a URL. Executes the deterministic uxpass-core check set (HTTP, HTML, accessibility, agent readability, performance, security) against the target and returns the run id, status, UX Score, summary, and uxpass_receipt_v1. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The receipt calls out when browser visual snapshots, screenshots, or mobile/desktop proof are missing. The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry)."
       },
       {
         "name": "uxpass_status",
-        "description": "Fetch the status, UX Score, and summary for a UXPass run."
+        "description": "Fetch the status, UX Score, summary, and uxpass_receipt_v1 for a UXPass run."
       },
       {
         "name": "uxpass_report_html",

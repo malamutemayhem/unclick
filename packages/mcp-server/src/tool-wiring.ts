@@ -12461,7 +12461,7 @@ export const ADDITIONAL_TOOLS = [
   // ── uxpass-tool.ts (UI/UX QC, sister to TestPass) ──────────────────────────
   {
     name: "uxpass_run",
-    description: "Run a UI/UX quality check synchronously against a URL. Executes the deterministic uxpass-core check set (HTTP, HTML, accessibility, agent readability, performance, security) against the target and returns the run id, status, UX Score, and summary. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
+    description: "Run a UI/UX quality check synchronously against a URL. Executes the deterministic uxpass-core check set (HTTP, HTML, accessibility, agent readability, performance, security) against the target and returns the run id, status, UX Score, summary, and uxpass_receipt_v1. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The receipt calls out when browser visual snapshots, screenshots, or mobile/desktop proof are missing. The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12477,12 +12477,13 @@ export const ADDITIONAL_TOOLS = [
           type: "string",
           description: "Client-generated idempotency key (UUIDv5 from thread_id + prompt_hash + time_bucket recommended). Required for safe retry. If omitted, the server creates a fresh row and you lose retry safety; sending the same task_id twice returns the original run_id with was_duplicate=true instead of creating a duplicate.",
         },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks." },
       },
     },
   },
   {
     name: "uxpass_status",
-    description: "Fetch the status, UX Score, and summary for a UXPass run.",
+    description: "Fetch the status, UX Score, summary, and uxpass_receipt_v1 for a UXPass run.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
