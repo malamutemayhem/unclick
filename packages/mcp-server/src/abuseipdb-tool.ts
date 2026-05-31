@@ -3,12 +3,13 @@
 // Auth: ABUSEIPDB_API_KEY (Key header)
 // Base: https://api.abuseipdb.com/api/v2/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const ABUSEIPDB_BASE = "https://api.abuseipdb.com/api/v2";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.ABUSEIPDB_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set ABUSEIPDB_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("abuseipdb", args);
 }
 
 async function abuseGet(
@@ -88,6 +89,7 @@ async function abusePost(
 export async function checkIpAbuse(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const ip = String(args.ip ?? "").trim();
     if (!ip) return { error: "ip is required." };
     const params: Record<string, string> = { ipAddress: ip };
@@ -118,6 +120,7 @@ export async function checkIpAbuse(args: Record<string, unknown>): Promise<unkno
 export async function reportIpAbuse(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const ip = String(args.ip ?? "").trim();
     const categories = String(args.categories ?? "").trim();
     if (!ip) return { error: "ip is required." };
@@ -139,6 +142,7 @@ export async function reportIpAbuse(args: Record<string, unknown>): Promise<unkn
 export async function getBlacklistAbuseipdb(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string> = {};
     if (args.confidence_minimum) params.confidenceMinimum = String(args.confidence_minimum);
     if (args.limit) params.limit = String(args.limit);

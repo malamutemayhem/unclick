@@ -4,12 +4,13 @@
 // Auth: Bearer token via AMBER_API_KEY env var.
 // Base URL: https://api.amber.com.au/v1/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const AMBER_BASE = "https://api.amber.com.au/v1";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.AMBER_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set AMBER_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("amber", args);
 }
 
 async function amberGet(apiKey: string, path: string, params?: Record<string, string>): Promise<unknown> {
@@ -35,6 +36,7 @@ async function amberGet(apiKey: string, path: string, params?: Record<string, st
 export async function getAmberSites(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const sites = await amberGet(apiKey, "/sites") as Array<Record<string, unknown>>;
     return {
       count: sites.length,
@@ -57,6 +59,7 @@ export async function getAmberSites(args: Record<string, unknown>): Promise<unkn
 export async function getAmberCurrentPrice(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const siteId = String(args.site_id ?? "").trim();
     if (!siteId) return { error: "site_id is required. Call get_amber_sites to find yours." };
 
@@ -87,6 +90,7 @@ export async function getAmberCurrentPrice(args: Record<string, unknown>): Promi
 export async function getAmberForecast(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const siteId = String(args.site_id ?? "").trim();
     if (!siteId) return { error: "site_id is required. Call get_amber_sites to find yours." };
 
