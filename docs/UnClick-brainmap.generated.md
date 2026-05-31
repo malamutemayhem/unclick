@@ -159,8 +159,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/bungie-tool.ts | e88c304b23f0 | 6643 |
 | packages/mcp-server/src/calculator-tool.ts | 941b010bc4f9 | 7255 |
 | packages/mcp-server/src/calendly-tool.ts | 09240cc06f3b | 6971 |
-| packages/mcp-server/src/carboninterface-tool.ts | 75827e943e9f | 6705 |
-| packages/mcp-server/src/chessdotcom-tool.ts | 56425dde5729 | 6852 |
+| packages/mcp-server/src/carboninterface-tool.ts | 5c25301e4ef3 | 7558 |
+| packages/mcp-server/src/chessdotcom-tool.ts | e9b2630bba3f | 7642 |
 | packages/mcp-server/src/circleci-tool.ts | 14729ddbb6ce | 4949 |
 | packages/mcp-server/src/clickup-tool.ts | 3f9127777b87 | 6316 |
 | packages/mcp-server/src/clockify-tool.ts | 058798077459 | 6790 |

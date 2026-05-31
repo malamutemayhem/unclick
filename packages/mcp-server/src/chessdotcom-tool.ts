@@ -6,13 +6,32 @@ const CHESS_BASE = "https://api.chess.com/pub";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
+const CHESS_TIMEOUT_MS = Number(process.env.CHESSDOTCOM_TIMEOUT_MS) || 10000;
+
 async function chessFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${CHESS_BASE}${path}`, {
-    headers: {
-      "User-Agent": "UnClick MCP Server",
-      Accept: "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CHESS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${CHESS_BASE}${path}`, {
+      headers: {
+        "User-Agent": "UnClick MCP Server",
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Chess.com API request timed out after ${CHESS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Chess.com API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Chess.com API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     if (res.status === 404) {
       throw new Error(

@@ -90,6 +90,42 @@
     }
   },
   {
+    "connector": "carboninterface",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "chessdotcom",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
     "connector": "coingecko",
     "level": 2,
     "levelName": "Reliable",
@@ -170,6 +206,24 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "ebird",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -350,6 +404,42 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "hunter",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
+    "connector": "ipapi",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -990,42 +1080,6 @@
     }
   },
   {
-    "connector": "carboninterface",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 1,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "chessdotcom",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "circleci",
     "level": 1,
     "levelName": "Wrapper",
@@ -1179,24 +1233,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "ebird",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1422,24 +1458,6 @@
     }
   },
   {
-    "connector": "hunter",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": true,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "igdb",
     "level": 1,
     "levelName": "Wrapper",
@@ -1468,24 +1486,6 @@
       "hasRetry": false,
       "readsErrorBody": true,
       "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "ipapi",
-    "level": 1,
-    "levelName": "Wrapper",
-    "hardened": false,
-    "signals": {
-      "hasTimeout": false,
-      "handles429": false,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 2,
       "errorStyleClean": true,
       "memoryAware": false,
       "proactive": false,

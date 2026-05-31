@@ -8267,13 +8267,13 @@
     },
     {
       "source": "packages/mcp-server/src/carboninterface-tool.ts",
-      "hash": "75827e943e9f",
-      "bytes": 6705
+      "hash": "5c25301e4ef3",
+      "bytes": 7558
     },
     {
       "source": "packages/mcp-server/src/chessdotcom-tool.ts",
-      "hash": "56425dde5729",
-      "bytes": 6852
+      "hash": "e9b2630bba3f",
+      "bytes": 7642
     },
     {
       "source": "packages/mcp-server/src/circleci-tool.ts",
