@@ -22,15 +22,15 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | a8f64d0da135 | 4873 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 4347f236822f | 14359 |
-| src/pages/admin/AdminShell.tsx | a5993008255d | 19438 |
+| src/App.tsx | 2cffedbf2fb0 | 14432 |
+| src/pages/admin/AdminShell.tsx | cd267dabfd21 | 22038 |
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
 | .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | 82100008ad1b | 6417 |
+| package.json | 80d780561f43 | 6468 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -206,9 +206,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 47 |
+| Admin surfaces | Private operator views and internal control panels. | 48 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 32 |
-| Tools | MCP and gateway capabilities available to seats. | 187 |
+| Tools | MCP and gateway capabilities available to seats. | 190 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 16 |
@@ -261,6 +261,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/billing | Admin Billing | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/boardroom | Fishbowl | Boardroom discussion surface for worker coordination. | src/pages/admin/Fishbowl.tsx |
 | /admin/brainmap | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | src/pages/admin/AdminBrainmap.tsx |
+| /admin/checks/:productId | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/checks | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/codebase | Admin Codebase | Internal source and architecture orientation surface. | src/pages/admin/AdminCodebase.tsx |
 | /admin/copypass | Copy Pass Catalog | Admin surface for Copy Pass Catalog. | src/pages/admin/copypass/CopyPassCatalog.tsx |
@@ -389,6 +390,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | fpl | fpl MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/fpl-tool.ts |
 | gdelt | gdelt MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gdelt-tool.ts |
 | genius | genius MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/genius-tool.ts |
+| geopass | geopass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/geopass-tool.ts |
 | github | github MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/github-tool.ts |
 | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gitlab-tool.ts |
 | groq | groq MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/groq-tool.ts |
@@ -467,6 +469,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | riot | riot MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/riot-tool.ts |
 | runway | runway MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/runway-tool.ts |
 | seatgeek | seatgeek MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/seatgeek-tool.ts |
+| securitypass | securitypass MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/securitypass-tool.ts |
 | segment | segment MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/segment-tool.ts |
 | sendgrid | sendgrid MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sendgrid-tool.ts |
 | sendle | sendle MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sendle-tool.ts |
@@ -518,6 +521,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | wise | wise MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wise-tool.ts |
 | woocommerce | woocommerce MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/woocommerce-tool.ts |
 | xero | xero MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/xero-tool.ts |
+| xpass aggregated verdict | xpass aggregated verdict MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/xpass-aggregated-verdict-tool.ts |
 | yelp | yelp MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/yelp-tool.ts |
 | youtube | youtube MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/youtube-tool.ts |
 
@@ -533,6 +537,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Benchmarks | Admin surface for Admin Benchmarks. | /admin/benchmarks | src/pages/admin/AdminBenchmarks.tsx |
 | Admin surfaces | admin page | Admin Billing | Admin surface for Admin Ecosystem Pages. | /admin/billing | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | /admin/brainmap | src/pages/admin/AdminBrainmap.tsx |
+| Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks/:productId | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Codebase | Internal source and architecture orientation surface. | /admin/codebase | src/pages/admin/AdminCodebase.tsx |
 | Admin surfaces | admin page | Admin Dashboard | Front door for current operator state. | /admin/dashboard | src/pages/admin/AdminDashboard.tsx |
@@ -954,6 +959,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | fpl | fpl MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/fpl-tool.ts |
 | Tools | MCP tool | gdelt | gdelt MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gdelt-tool.ts |
 | Tools | MCP tool | genius | genius MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/genius-tool.ts |
+| Tools | MCP tool | geopass | geopass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/geopass-tool.ts |
 | Tools | MCP tool | github | github MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/github-tool.ts |
 | Tools | MCP tool | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gitlab-tool.ts |
 | Tools | MCP tool | groq | groq MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/groq-tool.ts |
@@ -1032,6 +1038,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | riot | riot MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/riot-tool.ts |
 | Tools | MCP tool | runway | runway MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/runway-tool.ts |
 | Tools | MCP tool | seatgeek | seatgeek MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/seatgeek-tool.ts |
+| Tools | MCP tool | securitypass | securitypass MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/securitypass-tool.ts |
 | Tools | MCP tool | segment | segment MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/segment-tool.ts |
 | Tools | MCP tool | sendgrid | sendgrid MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sendgrid-tool.ts |
 | Tools | MCP tool | sendle | sendle MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sendle-tool.ts |
@@ -1083,6 +1090,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | wise | wise MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wise-tool.ts |
 | Tools | MCP tool | woocommerce | woocommerce MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/woocommerce-tool.ts |
 | Tools | MCP tool | xero | xero MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/xero-tool.ts |
+| Tools | MCP tool | xpass aggregated verdict | xpass aggregated verdict MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/xpass-aggregated-verdict-tool.ts |
 | Tools | MCP tool | yelp | yelp MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/yelp-tool.ts |
 | Tools | MCP tool | youtube | youtube MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/youtube-tool.ts |
 | Workers and seats | seat | Claude Reviewer Seat | External reviewer lane used for independent checks and proof review. | - | docs/fleet-worker-roles.md |
@@ -1187,7 +1195,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | build:dev | vite build --mode development |
 | compliancepass:report | npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs |
 | lint | eslint . |
-| test | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run && npm run test:api-lib-esm-extension |
+| test | npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && vitest run && npm run test:api-lib-esm-extension |
 | test:api | npm run test --workspace=apps/api |
 | test:api-lib-esm-extension | node --test scripts/api-lib-esm-extension-guard.test.mjs |
 | test:brainmap | node --test scripts/UnClick-brainmap.test.mjs |
