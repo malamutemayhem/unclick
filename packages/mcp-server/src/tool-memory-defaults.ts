@@ -157,6 +157,14 @@ const CONNECTOR_DEFAULTS_REGISTRY: Record<string, ConnectorDefaultSpec> = {
   // Netlify: a user usually watches one site.
   netlify_get_site:     { connector: "netlify", guardArgs: ["site_id"], fillArgs: ["site_id"] },
   netlify_list_deploys: { connector: "netlify", guardArgs: ["site_id"], fillArgs: ["site_id"] },
+  // Contentful: every read is scoped to one space.
+  contentful_list_entries:       { connector: "contentful", guardArgs: ["space_id"], fillArgs: ["space_id"] },
+  contentful_get_entry:          { connector: "contentful", guardArgs: ["space_id"], fillArgs: ["space_id"] },
+  contentful_list_content_types: { connector: "contentful", guardArgs: ["space_id"], fillArgs: ["space_id"] },
+  contentful_list_assets:        { connector: "contentful", guardArgs: ["space_id"], fillArgs: ["space_id"] },
+  // Webflow: a user usually works on one site.
+  webflow_get_site:         { connector: "webflow", guardArgs: ["site_id"], fillArgs: ["site_id"] },
+  webflow_list_collections: { connector: "webflow", guardArgs: ["site_id"], fillArgs: ["site_id"] },
   // Weather: "the weather" means the user's home location (city, or lat/lon).
   weather_current:  { connector: "weather", guardArgs: ["latitude", "longitude", "city"], fillArgs: ["city", "latitude", "longitude"] },
   weather_forecast: { connector: "weather", guardArgs: ["latitude", "longitude", "city"], fillArgs: ["city", "latitude", "longitude"] },

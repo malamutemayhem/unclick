@@ -1109,6 +1109,36 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     envVar:      "CALCOM_API_KEY",
     setupUrl:    "https://app.cal.com/settings/developer/api-keys",
   },
+  contentful: {
+    displayName: "Contentful",
+    credential:  "Content Delivery API token",
+    arg:         "access_token",
+    envVar:      "CONTENTFUL_ACCESS_TOKEN",
+    setupUrl:    "https://app.contentful.com/",
+    note:        "Also pass space_id (or set CONTENTFUL_SPACE_ID). environment defaults to master.",
+  },
+  webflow: {
+    displayName: "Webflow",
+    credential:  "API token",
+    arg:         "access_token",
+    envVar:      "WEBFLOW_ACCESS_TOKEN",
+    setupUrl:    "https://developers.webflow.com/data/reference/authentication",
+  },
+  digitalocean: {
+    displayName: "DigitalOcean",
+    credential:  "personal access token",
+    arg:         "access_token",
+    envVar:      "DIGITALOCEAN_ACCESS_TOKEN",
+    setupUrl:    "https://cloud.digitalocean.com/account/api/tokens",
+  },
+  klaviyo: {
+    displayName: "Klaviyo",
+    credential:  "private API key",
+    arg:         "api_key",
+    envVar:      "KLAVIYO_API_KEY",
+    setupUrl:    "https://www.klaviyo.com/settings/account/api-keys",
+    note:        "Use a private API key (starts with pk_).",
+  },
 };
 
 /**

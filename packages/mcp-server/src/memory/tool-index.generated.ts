@@ -632,6 +632,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "contentful",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "contentful_list_entries",
+        "description": "List Contentful entries, optionally filtered by content_type or full-text query."
+      },
+      {
+        "name": "contentful_get_entry",
+        "description": "Get a single Contentful entry by id."
+      },
+      {
+        "name": "contentful_list_content_types",
+        "description": "List Contentful content types (the content model)."
+      },
+      {
+        "name": "contentful_list_assets",
+        "description": "List Contentful media assets."
+      }
+    ]
+  },
+  {
     "app": "convertkit",
     "category": "Commerce / Creator",
     "tools": [
@@ -816,6 +838,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "deezer_search_playlist",
         "description": "Search for Deezer playlists."
+      }
+    ]
+  },
+  {
+    "app": "digitalocean",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "do_list_droplets",
+        "description": "List DigitalOcean droplets (signals when any are powered off)."
+      },
+      {
+        "name": "do_list_apps",
+        "description": "List DigitalOcean App Platform apps."
+      },
+      {
+        "name": "do_list_databases",
+        "description": "List DigitalOcean managed database clusters."
+      },
+      {
+        "name": "do_account",
+        "description": "Get the DigitalOcean account profile and limits."
       }
     ]
   },
@@ -1718,6 +1762,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "keychain_secure_connect",
         "description": "Securely connect a platform credential without exposing the key in chat. Checks environment variables first; if not found, opens a localhost secure input page for the user to paste their key. Call once to get the URL, then call again after the user submits to complete the connection."
+      }
+    ]
+  },
+  {
+    "app": "klaviyo",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "klaviyo_list_lists",
+        "description": "List Klaviyo lists."
+      },
+      {
+        "name": "klaviyo_list_segments",
+        "description": "List Klaviyo segments (dynamic groups)."
+      },
+      {
+        "name": "klaviyo_list_metrics",
+        "description": "List Klaviyo metrics (tracked events)."
+      },
+      {
+        "name": "klaviyo_list_profiles",
+        "description": "List Klaviyo profiles (subscribers)."
       }
     ]
   },
@@ -4318,6 +4384,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "virustotal_scan_domain",
         "description": "Get a VirusTotal report for a domain."
+      }
+    ]
+  },
+  {
+    "app": "webflow",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "webflow_list_sites",
+        "description": "List Webflow sites for the account."
+      },
+      {
+        "name": "webflow_get_site",
+        "description": "Get a single Webflow site by id."
+      },
+      {
+        "name": "webflow_list_collections",
+        "description": "List CMS collections for a Webflow site."
+      },
+      {
+        "name": "webflow_list_items",
+        "description": "List items in a Webflow CMS collection."
       }
     ]
   },

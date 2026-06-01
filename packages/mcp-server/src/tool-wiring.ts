@@ -664,6 +664,22 @@ import {
 } from "./calcom-tool.js";
 
 import {
+  contentfulListEntries, contentfulGetEntry, contentfulListContentTypes, contentfulListAssets,
+} from "./contentful-tool.js";
+
+import {
+  webflowListSites, webflowGetSite, webflowListCollections, webflowListItems,
+} from "./webflow-tool.js";
+
+import {
+  doListDroplets, doListApps, doListDatabases, doAccount,
+} from "./digitalocean-tool.js";
+
+import {
+  klaviyoListLists, klaviyoListSegments, klaviyoListMetrics, klaviyoListProfiles,
+} from "./klaviyo-tool.js";
+
+import {
   deeplTranslateText, deeplGetUsage, deeplListLanguages, deeplTranslateDocument,
 } from "./deepl-tool.js";
 
@@ -9614,6 +9630,229 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── contentful-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "contentful_list_entries",
+    description: "List Contentful entries, optionally filtered by content_type or full-text query.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+        content_type: { type: "string", description: "Filter to one content type id" },
+        query: { type: "string", description: "Full-text search query" },
+        limit: { type: "number", description: "Entries to return (max 100, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "contentful_get_entry",
+    description: "Get a single Contentful entry by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+        entry_id: { type: "string", description: "Entry id" },
+      },
+      required: ["access_token", "entry_id"],
+    },
+  },
+  {
+    name: "contentful_list_content_types",
+    description: "List Contentful content types (the content model).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "contentful_list_assets",
+    description: "List Contentful media assets.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+        limit: { type: "number", description: "Assets to return (max 100, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+
+  // ── webflow-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "webflow_list_sites",
+    description: "List Webflow sites for the account.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "webflow_get_site",
+    description: "Get a single Webflow site by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+        site_id: { type: "string", description: "Webflow site id (can be a saved default)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "webflow_list_collections",
+    description: "List CMS collections for a Webflow site.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+        site_id: { type: "string", description: "Webflow site id (can be a saved default)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "webflow_list_items",
+    description: "List items in a Webflow CMS collection.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+        collection_id: { type: "string", description: "Webflow collection id" },
+        limit: { type: "number", description: "Items to return (max 100, default 25)" },
+        offset: { type: "number", description: "Pagination offset" },
+      },
+      required: ["access_token", "collection_id"],
+    },
+  },
+
+  // ── digitalocean-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "do_list_droplets",
+    description: "List DigitalOcean droplets (signals when any are powered off).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+        tag_name: { type: "string", description: "Filter droplets by tag" },
+        limit: { type: "number", description: "Droplets to return (max 200, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "do_list_apps",
+    description: "List DigitalOcean App Platform apps.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+        limit: { type: "number", description: "Apps to return (max 200, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "do_list_databases",
+    description: "List DigitalOcean managed database clusters.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "do_account",
+    description: "Get the DigitalOcean account profile and limits.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+      },
+      required: ["access_token"],
+    },
+  },
+
+  // ── klaviyo-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "klaviyo_list_lists",
+    description: "List Klaviyo lists.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "klaviyo_list_segments",
+    description: "List Klaviyo segments (dynamic groups).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "klaviyo_list_metrics",
+    description: "List Klaviyo metrics (tracked events).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "klaviyo_list_profiles",
+    description: "List Klaviyo profiles (subscribers).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+        filter: { type: "string", description: "Klaviyo filter expression (e.g. equals(email,'a@b.com'))" },
+        limit: { type: "number", description: "Profiles to return (max 100, default 20)" },
+      },
+      required: ["api_key"],
+    },
+  },
+
   // ── zendesk-tool.ts ───────────────────────────────────────────────────────────
   {
     name: "zendesk_search",
@@ -14436,6 +14675,30 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   jira_list_projects:      (args) => jiraListProjects(args),
   jira_create_issue:       (args) => jiraCreateIssue(args),
   jira_add_comment:        (args) => jiraAddComment(args),
+
+  // contentful-tool.ts
+  contentful_list_entries:       (args) => contentfulListEntries(args),
+  contentful_get_entry:          (args) => contentfulGetEntry(args),
+  contentful_list_content_types: (args) => contentfulListContentTypes(args),
+  contentful_list_assets:        (args) => contentfulListAssets(args),
+
+  // webflow-tool.ts
+  webflow_list_sites:       (args) => webflowListSites(args),
+  webflow_get_site:         (args) => webflowGetSite(args),
+  webflow_list_collections: (args) => webflowListCollections(args),
+  webflow_list_items:       (args) => webflowListItems(args),
+
+  // digitalocean-tool.ts
+  do_list_droplets:        (args) => doListDroplets(args),
+  do_list_apps:            (args) => doListApps(args),
+  do_list_databases:       (args) => doListDatabases(args),
+  do_account:              (args) => doAccount(args),
+
+  // klaviyo-tool.ts
+  klaviyo_list_lists:      (args) => klaviyoListLists(args),
+  klaviyo_list_segments:   (args) => klaviyoListSegments(args),
+  klaviyo_list_metrics:    (args) => klaviyoListMetrics(args),
+  klaviyo_list_profiles:   (args) => klaviyoListProfiles(args),
 
   // zendesk-tool.ts
   zendesk_search:          (args) => zendeskSearch(args),
