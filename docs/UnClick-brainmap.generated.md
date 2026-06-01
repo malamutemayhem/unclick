@@ -58,7 +58,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminAnalytics.tsx | 8e3ab82ef00f | 10336 |
 | src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
-| src/pages/admin/AdminEcosystemPages.tsx | badf018e0064 | 12371 |
+| src/pages/admin/AdminEcosystemPages.tsx | 13bc51cceb52 | 12105 |
 | src/pages/admin/AdminBenchmarks.tsx | 69eb15aaf438 | 25684 |
 | src/pages/admin/Fishbowl.tsx | 525cfc33fcdc | 33809 |
 | src/pages/admin/AdminBrainmap.tsx | c764ced96836 | 26511 |
@@ -87,7 +87,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/testpass/ReportDetail.tsx | b3db4032aa33 | 12374 |
 | src/pages/admin/testpass/RunDetail.tsx | 52e43b795126 | 21979 |
 | src/pages/admin/testpass/TestPassCatalog.tsx | 8fc76ddd8d3f | 21847 |
-| src/pages/admin/AdminTools.tsx | 918ac064a12e | 5678 |
+| src/pages/admin/AdminTools.tsx | 808485ffc146 | 5678 |
 | src/pages/admin/AdminUsers.tsx | 701e7da2f201 | 863 |
 | src/pages/admin/AdminYou.tsx | 3d0240411971 | 51024 |
 | src/pages/AppDetail.tsx | 4e2ec609ff61 | 5401 |
