@@ -709,6 +709,15 @@ import {
   shortcutSearchStories, shortcutGetStory, shortcutListProjects, shortcutListEpics,
 } from "./shortcut-tool.js";
 
+import { codaListDocs, codaListTables, codaListRows } from "./coda-tool.js";
+import { brevoListContacts, brevoListCampaigns, brevoGetAccount } from "./brevo-tool.js";
+import { uptimerobotGetMonitors, uptimerobotGetAccount } from "./uptimerobot-tool.js";
+import { dropboxListFolder, dropboxSearch, dropboxGetAccount } from "./dropbox-tool.js";
+import { bitbucketListRepos, bitbucketGetRepo, bitbucketListPullRequests } from "./bitbucket-tool.js";
+import { cloudinaryListResources, cloudinaryGetUsage } from "./cloudinary-tool.js";
+import { wordpressListPosts, wordpressGetPost, wordpressListPages } from "./wordpress-tool.js";
+import { ghostListPosts, ghostListPages, ghostListTags } from "./ghost-tool.js";
+
 import {
   wikipediaSearch, wikipediaSummary, wikipediaPage,
 } from "./wikipedia-tool.js";
@@ -6365,13 +6374,13 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        access_token: { type: "string" },
-        q: { type: "string" },
-        subreddit: { type: "string" },
-        sort: { type: "string" },
-        limit: { type: "number" },
+        access_token: { type: "string", description: "Reddit OAuth bearer token" },
+        query: { type: "string", description: "Search query" },
+        subreddit: { type: "string", description: "Limit to a subreddit" },
+        sort: { type: "string", description: "relevance, hot, top, new, or comments" },
+        limit: { type: "number", description: "Results to return" },
       },
-      required: ["access_token", "q"],
+      required: ["access_token", "query"],
     },
   },
   {
@@ -10186,6 +10195,140 @@ export const ADDITIONAL_TOOLS = [
       lang: { type: "string", description: "Wikipedia language code (default en)" },
     }, required: ["title"] },
   },
+
+  // ── coda-tool.ts ──────────────────────────────────────────────────────────────
+  { name: "coda_list_docs", description: "List your Coda docs.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_token: { type: "string", description: "Coda API token" },
+    query: { type: "string", description: "Filter docs by name" },
+    limit: { type: "number", description: "Docs to return (max 100, default 25)" },
+  }, required: ["api_token"] } },
+  { name: "coda_list_tables", description: "List the tables in a Coda doc.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_token: { type: "string", description: "Coda API token" },
+    doc_id: { type: "string", description: "Coda doc id" },
+  }, required: ["api_token", "doc_id"] } },
+  { name: "coda_list_rows", description: "List rows in a Coda table.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_token: { type: "string", description: "Coda API token" },
+    doc_id: { type: "string", description: "Coda doc id" },
+    table_id: { type: "string", description: "Coda table id or name" },
+    limit: { type: "number", description: "Rows to return (max 200, default 25)" },
+  }, required: ["api_token", "doc_id", "table_id"] } },
+
+  // ── brevo-tool.ts ─────────────────────────────────────────────────────────────
+  { name: "brevo_list_contacts", description: "List Brevo contacts.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_key: { type: "string", description: "Brevo API key" },
+    limit: { type: "number", description: "Contacts to return (max 1000, default 50)" },
+    offset: { type: "number", description: "Pagination offset" },
+  }, required: ["api_key"] } },
+  { name: "brevo_list_campaigns", description: "List Brevo email campaigns.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_key: { type: "string", description: "Brevo API key" },
+    status: { type: "string", description: "Filter by status (sent, draft, queued, ...)" },
+    limit: { type: "number", description: "Campaigns to return (max 100, default 25)" },
+  }, required: ["api_key"] } },
+  { name: "brevo_get_account", description: "Get the Brevo account profile and plan.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_key: { type: "string", description: "Brevo API key" },
+  }, required: ["api_key"] } },
+
+  // ── uptimerobot-tool.ts ───────────────────────────────────────────────────────
+  { name: "uptimerobot_get_monitors", description: "List UptimeRobot monitors (signals when any are DOWN).", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_key: { type: "string", description: "UptimeRobot API key" },
+    search: { type: "string", description: "Filter monitors by name or URL" },
+  }, required: ["api_key"] } },
+  { name: "uptimerobot_get_account", description: "Get UptimeRobot account details and limits.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_key: { type: "string", description: "UptimeRobot API key" },
+  }, required: ["api_key"] } },
+
+  // ── dropbox-tool.ts ───────────────────────────────────────────────────────────
+  { name: "dropbox_list_folder", description: "List files and folders in a Dropbox path (empty path = root).", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "Dropbox access token" },
+    path: { type: "string", description: "Folder path (empty string for root)" },
+    limit: { type: "number", description: "Entries to return (max 2000, default 100)" },
+  }, required: ["access_token"] } },
+  { name: "dropbox_search", description: "Search Dropbox for files and folders by name.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "Dropbox access token" },
+    query: { type: "string", description: "File or folder name to search for" },
+    limit: { type: "number", description: "Results to return (max 1000, default 25)" },
+  }, required: ["access_token", "query"] } },
+  { name: "dropbox_get_account", description: "Get the current Dropbox account profile.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "Dropbox access token" },
+  }, required: ["access_token"] } },
+
+  // ── bitbucket-tool.ts ─────────────────────────────────────────────────────────
+  { name: "bitbucket_list_repos", description: "List Bitbucket repositories in a workspace.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    username: { type: "string", description: "Bitbucket username" },
+    app_password: { type: "string", description: "Bitbucket app password" },
+    workspace: { type: "string", description: "Workspace id" },
+    limit: { type: "number", description: "Repos to return (max 100, default 25)" },
+  }, required: ["username", "app_password", "workspace"] } },
+  { name: "bitbucket_get_repo", description: "Get a single Bitbucket repository.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    username: { type: "string", description: "Bitbucket username" },
+    app_password: { type: "string", description: "Bitbucket app password" },
+    workspace: { type: "string", description: "Workspace id" },
+    repo: { type: "string", description: "Repository slug" },
+  }, required: ["username", "app_password", "workspace", "repo"] } },
+  { name: "bitbucket_list_pull_requests", description: "List pull requests for a Bitbucket repository.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    username: { type: "string", description: "Bitbucket username" },
+    app_password: { type: "string", description: "Bitbucket app password" },
+    workspace: { type: "string", description: "Workspace id" },
+    repo: { type: "string", description: "Repository slug" },
+    state: { type: "string", enum: ["OPEN", "MERGED", "DECLINED", "SUPERSEDED"], description: "Filter by PR state" },
+    limit: { type: "number", description: "PRs to return (max 50, default 25)" },
+  }, required: ["username", "app_password", "workspace", "repo"] } },
+
+  // ── cloudinary-tool.ts ────────────────────────────────────────────────────────
+  { name: "cloudinary_list_resources", description: "List Cloudinary media resources.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    cloud_name: { type: "string", description: "Cloudinary cloud name" },
+    api_key: { type: "string", description: "Cloudinary API key" },
+    api_secret: { type: "string", description: "Cloudinary API secret" },
+    resource_type: { type: "string", description: "image (default), video, or raw" },
+    prefix: { type: "string", description: "Filter by public_id prefix / folder" },
+    limit: { type: "number", description: "Resources to return (max 100, default 25)" },
+  }, required: ["cloud_name", "api_key", "api_secret"] } },
+  { name: "cloudinary_get_usage", description: "Get Cloudinary usage and quota.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    cloud_name: { type: "string", description: "Cloudinary cloud name" },
+    api_key: { type: "string", description: "Cloudinary API key" },
+    api_secret: { type: "string", description: "Cloudinary API secret" },
+  }, required: ["cloud_name", "api_key", "api_secret"] } },
+
+  // ── wordpress-tool.ts ─────────────────────────────────────────────────────────
+  { name: "wordpress_list_posts", description: "List WordPress posts, optionally by search term.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "WordPress site URL" },
+    username: { type: "string", description: "WordPress username" },
+    app_password: { type: "string", description: "WordPress application password" },
+    search: { type: "string", description: "Search term" },
+    status: { type: "string", description: "Filter by status (publish, draft, ...)" },
+    limit: { type: "number", description: "Posts to return (max 100, default 10)" },
+  }, required: ["site_url", "username", "app_password"] } },
+  { name: "wordpress_get_post", description: "Get a single WordPress post by id.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "WordPress site URL" },
+    username: { type: "string", description: "WordPress username" },
+    app_password: { type: "string", description: "WordPress application password" },
+    post_id: { type: "string", description: "Post id" },
+  }, required: ["site_url", "username", "app_password", "post_id"] } },
+  { name: "wordpress_list_pages", description: "List WordPress pages.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "WordPress site URL" },
+    username: { type: "string", description: "WordPress username" },
+    app_password: { type: "string", description: "WordPress application password" },
+    search: { type: "string", description: "Search term" },
+    limit: { type: "number", description: "Pages to return (max 100, default 10)" },
+  }, required: ["site_url", "username", "app_password"] } },
+
+  // ── ghost-tool.ts ─────────────────────────────────────────────────────────────
+  { name: "ghost_list_posts", description: "List published Ghost posts.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "Ghost site URL" },
+    content_key: { type: "string", description: "Ghost Content API key" },
+    filter: { type: "string", description: "Ghost filter (e.g. tag:news)" },
+    limit: { type: "number", description: "Posts to return (max 100, default 15)" },
+  }, required: ["site_url", "content_key"] } },
+  { name: "ghost_list_pages", description: "List Ghost pages.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "Ghost site URL" },
+    content_key: { type: "string", description: "Ghost Content API key" },
+    limit: { type: "number", description: "Pages to return (max 100, default 15)" },
+  }, required: ["site_url", "content_key"] } },
+  { name: "ghost_list_tags", description: "List Ghost tags.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "Ghost site URL" },
+    content_key: { type: "string", description: "Ghost Content API key" },
+    limit: { type: "number", description: "Tags to return (max 100, default 50)" },
+  }, required: ["site_url", "content_key"] } },
 
   // ── zendesk-tool.ts ───────────────────────────────────────────────────────────
   {
@@ -15371,6 +15514,44 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   wikipedia_search:        (args) => wikipediaSearch(args),
   wikipedia_summary:       (args) => wikipediaSummary(args),
   wikipedia_page:          (args) => wikipediaPage(args),
+
+  // coda-tool.ts
+  coda_list_docs:          (args) => codaListDocs(args),
+  coda_list_tables:        (args) => codaListTables(args),
+  coda_list_rows:          (args) => codaListRows(args),
+
+  // brevo-tool.ts
+  brevo_list_contacts:     (args) => brevoListContacts(args),
+  brevo_list_campaigns:    (args) => brevoListCampaigns(args),
+  brevo_get_account:       (args) => brevoGetAccount(args),
+
+  // uptimerobot-tool.ts
+  uptimerobot_get_monitors: (args) => uptimerobotGetMonitors(args),
+  uptimerobot_get_account:  (args) => uptimerobotGetAccount(args),
+
+  // dropbox-tool.ts
+  dropbox_list_folder:     (args) => dropboxListFolder(args),
+  dropbox_search:          (args) => dropboxSearch(args),
+  dropbox_get_account:     (args) => dropboxGetAccount(args),
+
+  // bitbucket-tool.ts
+  bitbucket_list_repos:         (args) => bitbucketListRepos(args),
+  bitbucket_get_repo:           (args) => bitbucketGetRepo(args),
+  bitbucket_list_pull_requests: (args) => bitbucketListPullRequests(args),
+
+  // cloudinary-tool.ts
+  cloudinary_list_resources: (args) => cloudinaryListResources(args),
+  cloudinary_get_usage:      (args) => cloudinaryGetUsage(args),
+
+  // wordpress-tool.ts
+  wordpress_list_posts:    (args) => wordpressListPosts(args),
+  wordpress_get_post:      (args) => wordpressGetPost(args),
+  wordpress_list_pages:    (args) => wordpressListPages(args),
+
+  // ghost-tool.ts
+  ghost_list_posts:        (args) => ghostListPosts(args),
+  ghost_list_pages:        (args) => ghostListPages(args),
+  ghost_list_tags:         (args) => ghostListTags(args),
 
   // klaviyo-tool.ts
   klaviyo_list_lists:      (args) => klaviyoListLists(args),

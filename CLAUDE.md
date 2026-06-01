@@ -83,12 +83,26 @@ These tools remain callable by name, but they are hidden from `ListTools` to kee
 
 The old tool names still work as aliases for backward compatibility. Additional memory operations (manage_decay, store_code, log_conversation, supersede_fact, upsert_library_doc, etc.) are callable via `unclick_call` with `endpoint_id: "memory.<op>"`.
 
-## Adding a new tool
+## Adding a new connector (an "App")
 
-1. Create `api/*-tool.ts` with the Vercel handler and endpoint logic
-2. Wire it in `packages/mcp-server/src/tool-wiring.ts` (add name, description, category, and endpoint mapping)
-3. Add a tile in `src/pages/Tools.tsx`
-4. If it should appear in `ListTools`, add it intentionally to the first-party tool surface in `packages/mcp-server/src/server.ts`
+**Read `docs/adding-a-connector.md` first** - it is the full playbook (the
+connector "ant mound", the L1-L5 ladder, the modular template, the L3/L4
+bolt-ons, enforcement, the Apps catalog, the regenerate-in-order rule, and the
+verification gates). `docs/connector-standard.md` defines the quality bar.
+
+Short version (each connector is built to L5):
+1. `packages/mcp-server/src/<slug>-tool.ts` - the connector (timeout, clean 429,
+   two-lane errors, `stampMeta` source/freshness/next_steps). Connectors live
+   here, NOT in `api/`.
+2. `packages/mcp-server/src/<slug>-tool.test.ts` - colocated test (required for L2).
+3. `packages/mcp-server/src/tool-wiring.ts` - import + `ADDITIONAL_TOOLS` defs +
+   `ADDITIONAL_HANDLERS` dispatch.
+4. `packages/mcp-server/src/connector-setup.ts` - a `CONNECTOR_SETUP` row.
+5. `scripts/generate-app-catalog.mjs` - a category bucket (+ optional name/blurb/domain).
+6. Regenerate IN ORDER (after the test exists): `generate-tool-index.mjs` ->
+   `connector-depth-ladder.mjs` -> `generate-app-catalog.mjs` -> `UnClick-brainmap.mjs`,
+   then run the `--check` gates. The Apps pages render from the generated catalog
+   (no manual tile edit).
 
 ## Style rules
 

@@ -27,13 +27,13 @@ const CATEGORY_OF = {};
 const bucket = (name, slugs) => slugs.forEach((s) => { CATEGORY_OF[s] = name; });
 
 bucket("AI", ["anthropic", "openai", "cohere", "mistral", "groq", "perplexity", "togetherai", "replicate", "stability", "elevenlabs", "heygen", "higgsfield", "kling", "pika", "runway", "assemblyai", "deepl", "csuite"]);
-bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault"]);
+bucket("Developer & infra", ["github", "gitlab", "vercel", "netlify", "render", "flyio", "digitalocean", "circleci", "datadog", "sentry", "pagerduty", "neon", "turso", "upstash", "pinecone", "postman", "segment", "mixpanel", "posthog", "algolia", "keychain", "vault", "uptimerobot", "bitbucket", "cloudinary"]);
 bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero", "quickbooks", "lemonsqueezy", "splitwise", "gumroad"]);
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates"]);
-bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk"]);
+bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk", "brevo"]);
 bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews"]);
 bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia"]);
-bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut"]);
+bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut", "coda", "dropbox"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb"]);
 bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1"]);
@@ -41,7 +41,7 @@ bucket("Travel, maps & local", ["mapbox", "foursquare", "yelp", "ptv", "australi
 bucket("Weather & science", ["openmeteo", "tomorrowio", "willyweather", "openaq", "nasa", "usgs", "ebird", "carboninterface", "openfoodfacts", "meal", "untappd"]);
 bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virustotal", "nvd", "hunter"]);
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
-bucket("Content & CMS", ["contentful", "webflow"]);
+bucket("Content & CMS", ["contentful", "webflow", "wordpress", "ghost"]);
 bucket("Books", ["openlibrary"]);
 bucket("Images", ["unsplash", "giphy"]);
 bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter"]);
@@ -53,7 +53,7 @@ const NAME_OF = {
   "xpass-aggregated-verdict": "XPass Verdict",
   github: "GitHub", gitlab: "GitLab", youtube: "YouTube", tiktok: "TikTok", paypal: "PayPal",
   lastfm: "Last.fm", espn: "ESPN", ebay: "eBay", ebird: "eBird", bluesky: "Bluesky",
-  willyweather: "WillyWeather", riot: "Riot Games",
+  willyweather: "WillyWeather", riot: "Riot Games", wordpress: "WordPress", uptimerobot: "UptimeRobot",
   abn: "ABN", abuseipdb: "AbuseIPDB", alphavantage: "Alpha Vantage", australiapost: "Australia Post",
   bgg: "BoardGameGeek", calcom: "Cal.com", carboninterface: "Carbon Interface", chessdotcom: "Chess.com",
   coingecko: "CoinGecko", coinmarketcap: "CoinMarketCap", commonsensepass: "CommonSensePass",
@@ -96,6 +96,14 @@ const BLURB_OF = {
   miro: "List Miro boards and read what is on them.",
   shortcut: "Search stories, projects, and epics in Shortcut.",
   wikipedia: "Search Wikipedia and read article summaries.",
+  coda: "Read your Coda docs, tables, and rows.",
+  brevo: "Read Brevo contacts, email campaigns, and account.",
+  uptimerobot: "Check your monitors and get alerted when one is down.",
+  dropbox: "Browse, search, and read your Dropbox files.",
+  bitbucket: "Browse Bitbucket repositories and pull requests.",
+  cloudinary: "List your Cloudinary media and check usage.",
+  wordpress: "Read posts and pages from your WordPress site.",
+  ghost: "Read posts, pages, and tags from your Ghost site.",
   airtable: "Read and update records across your Airtable bases.",
   bluesky: "Post, read, search, and follow on Bluesky.",
   clickup: "Read and update ClickUp tasks, lists, and spaces.",
@@ -177,6 +185,8 @@ const DOMAIN_OF = {
   todoist: "todoist.com", pipedrive: "pipedrive.com", confluence: "atlassian.com",
   unsplash: "unsplash.com", giphy: "giphy.com", miro: "miro.com", shortcut: "shortcut.com",
   wikipedia: "wikipedia.org",
+  coda: "coda.io", brevo: "brevo.com", uptimerobot: "uptimerobot.com", dropbox: "dropbox.com",
+  bitbucket: "bitbucket.org", cloudinary: "cloudinary.com", wordpress: "wordpress.org", ghost: "ghost.org",
 };
 
 function titleCase(slug) {
