@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (177 external connectors)
+## Distribution (185 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 138 | 78% |
+| L5 | Agentic | 146 | 79% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 36 | 20% |
+| L2 | Reliable | 36 | 19% |
 | L1 | Wrapper | 3 | 2% |
 
-**Hardened (reliability bar met): 173 of 177 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 181 of 185 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 138 of 141 (98%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 146 of 149 (98%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -67,6 +67,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `cohere` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `coingecko` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `coinmarketcap` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `confluence` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `contentful` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `convertkit` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `datadog` | Yes | - | Yes | Yes | Yes | no-memory |
@@ -88,6 +89,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `fpl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `gdelt` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `genius` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `giphy` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `groq` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `guardian` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `gumroad` | Yes | - | - | Yes | Yes | no-memory |
@@ -112,6 +114,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `mailchimp` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `mapbox` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `meal` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `miro` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `mistral` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `mixpanel` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `monday` | Yes | - | - | Yes | Yes | no-memory |
@@ -134,6 +137,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `pika` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pinecone` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pinterest` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `pipedrive` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `plaid` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `podcastindex` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `posthog` | Yes | Yes | - | Yes | Yes |  |
@@ -151,6 +155,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `sendle` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `setlistfm` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `shodan` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `shortcut` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `sleeper` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `speedrun` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `spotify` | Yes | - | - | Yes | Yes | no-memory |
@@ -162,6 +167,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `ticketmaster` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `tiktok` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `tmdb` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `todoist` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `togetherai` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `toggl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `toilets` | Yes | - | - | Yes | Yes | no-memory |
@@ -172,6 +178,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `twilio` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `twitch` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `typeform` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `unsplash` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `untappd` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `upstash` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `urlscan` | Yes | - | - | Yes | Yes | no-memory |
@@ -179,6 +186,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L5 Agentic | `vercel` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `virustotal` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `webflow` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `wikipedia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `willyweather` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `wise` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `yelp` | Yes | - | - | Yes | Yes | no-memory |

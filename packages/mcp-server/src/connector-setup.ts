@@ -1139,6 +1139,56 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     setupUrl:    "https://www.klaviyo.com/settings/account/api-keys",
     note:        "Use a private API key (starts with pk_).",
   },
+  todoist: {
+    displayName: "Todoist",
+    credential:  "API token",
+    arg:         "api_token",
+    envVar:      "TODOIST_API_TOKEN",
+    setupUrl:    "https://app.todoist.com/app/settings/integrations/developer",
+  },
+  pipedrive: {
+    displayName: "Pipedrive",
+    credential:  "API token",
+    arg:         "api_token",
+    envVar:      "PIPEDRIVE_API_TOKEN",
+    setupUrl:    "https://app.pipedrive.com/settings/api",
+  },
+  confluence: {
+    displayName: "Confluence",
+    credential:  "API token",
+    arg:         "api_token",
+    envVar:      "CONFLUENCE_API_TOKEN",
+    setupUrl:    "https://id.atlassian.com/manage-profile/security/api-tokens",
+    note:        "Also pass site and email (or set CONFLUENCE_SITE / CONFLUENCE_EMAIL, or reuse JIRA_SITE / JIRA_EMAIL).",
+  },
+  unsplash: {
+    displayName: "Unsplash",
+    credential:  "Access Key",
+    arg:         "access_key",
+    envVar:      "UNSPLASH_ACCESS_KEY",
+    setupUrl:    "https://unsplash.com/oauth/applications",
+  },
+  giphy: {
+    displayName: "Giphy",
+    credential:  "API key",
+    arg:         "api_key",
+    envVar:      "GIPHY_API_KEY",
+    setupUrl:    "https://developers.giphy.com/dashboard/",
+  },
+  miro: {
+    displayName: "Miro",
+    credential:  "access token",
+    arg:         "access_token",
+    envVar:      "MIRO_ACCESS_TOKEN",
+    setupUrl:    "https://developers.miro.com/",
+  },
+  shortcut: {
+    displayName: "Shortcut",
+    credential:  "API token",
+    arg:         "api_token",
+    envVar:      "SHORTCUT_API_TOKEN",
+    setupUrl:    "https://app.shortcut.com/settings/account/api-tokens",
+  },
 };
 
 /**

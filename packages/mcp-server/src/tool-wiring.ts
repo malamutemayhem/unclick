@@ -682,6 +682,38 @@ import {
 } from "./klaviyo-tool.js";
 
 import {
+  todoistListProjects, todoistListTasks, todoistCreateTask, todoistCompleteTask,
+} from "./todoist-tool.js";
+
+import {
+  pipedriveListDeals, pipedriveListPersons, pipedriveListOrganizations, pipedriveSearchDeals,
+} from "./pipedrive-tool.js";
+
+import {
+  confluenceSearch, confluenceGetPage, confluenceListSpaces,
+} from "./confluence-tool.js";
+
+import {
+  unsplashSearchPhotos, unsplashGetPhoto, unsplashRandomPhoto,
+} from "./unsplash-tool.js";
+
+import {
+  giphySearch, giphyTrending, giphyRandom,
+} from "./giphy-tool.js";
+
+import {
+  miroListBoards, miroGetBoard, miroListItems,
+} from "./miro-tool.js";
+
+import {
+  shortcutSearchStories, shortcutGetStory, shortcutListProjects, shortcutListEpics,
+} from "./shortcut-tool.js";
+
+import {
+  wikipediaSearch, wikipediaSummary, wikipediaPage,
+} from "./wikipedia-tool.js";
+
+import {
   deeplTranslateText, deeplGetUsage, deeplListLanguages, deeplTranslateDocument,
 } from "./deepl-tool.js";
 
@@ -9901,6 +9933,260 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── todoist-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "todoist_list_projects",
+    description: "List your Todoist projects.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Todoist API token" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "todoist_list_tasks",
+    description: "List active Todoist tasks, optionally by project or filter.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Todoist API token" },
+      project_id: { type: "string", description: "Limit to one project id" },
+      filter: { type: "string", description: "Todoist filter query (e.g. 'today', 'overdue')" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "todoist_create_task",
+    description: "Create a Todoist task.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Todoist API token" },
+      content: { type: "string", description: "The task text" },
+      project_id: { type: "string", description: "Project id to add the task to" },
+      due_string: { type: "string", description: "Natural-language due date (e.g. 'tomorrow 5pm')" },
+      priority: { type: "number", minimum: 1, maximum: 4, description: "Priority 1 (normal) to 4 (urgent)" },
+    }, required: ["api_token", "content"] },
+  },
+  {
+    name: "todoist_complete_task",
+    description: "Complete (close) a Todoist task by id.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Todoist API token" },
+      task_id: { type: "string", description: "Task id to close" },
+    }, required: ["api_token", "task_id"] },
+  },
+
+  // ── pipedrive-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "pipedrive_list_deals",
+    description: "List Pipedrive deals.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Pipedrive API token" },
+      status: { type: "string", description: "Filter by status (open, won, lost, deleted, all_not_deleted)" },
+      limit: { type: "number", description: "Deals to return (max 100, default 25)" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "pipedrive_list_persons",
+    description: "List Pipedrive persons (contacts).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Pipedrive API token" },
+      limit: { type: "number", description: "Persons to return (max 100, default 25)" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "pipedrive_list_organizations",
+    description: "List Pipedrive organizations (companies).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Pipedrive API token" },
+      limit: { type: "number", description: "Organizations to return (max 100, default 25)" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "pipedrive_search_deals",
+    description: "Search Pipedrive deals by term.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Pipedrive API token" },
+      term: { type: "string", description: "Search term (deal title or keyword)" },
+      limit: { type: "number", description: "Results to return (max 100, default 25)" },
+    }, required: ["api_token", "term"] },
+  },
+
+  // ── confluence-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "confluence_search",
+    description: "Search Confluence pages by text.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      site: { type: "string", description: "Atlassian site (e.g. mycompany)" },
+      email: { type: "string", description: "Atlassian account email" },
+      api_token: { type: "string", description: "Atlassian API token" },
+      query: { type: "string", description: "Text to search for" },
+      limit: { type: "number", description: "Results to return (max 50, default 25)" },
+    }, required: ["site", "email", "api_token", "query"] },
+  },
+  {
+    name: "confluence_get_page",
+    description: "Get a Confluence page by id, including its body.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      site: { type: "string", description: "Atlassian site (e.g. mycompany)" },
+      email: { type: "string", description: "Atlassian account email" },
+      api_token: { type: "string", description: "Atlassian API token" },
+      page_id: { type: "string", description: "Confluence content/page id" },
+    }, required: ["site", "email", "api_token", "page_id"] },
+  },
+  {
+    name: "confluence_list_spaces",
+    description: "List Confluence spaces.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      site: { type: "string", description: "Atlassian site (e.g. mycompany)" },
+      email: { type: "string", description: "Atlassian account email" },
+      api_token: { type: "string", description: "Atlassian API token" },
+      limit: { type: "number", description: "Spaces to return (max 100, default 50)" },
+    }, required: ["site", "email", "api_token"] },
+  },
+
+  // ── unsplash-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "unsplash_search_photos",
+    description: "Search Unsplash photos.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_key: { type: "string", description: "Unsplash Access Key" },
+      query: { type: "string", description: "What to search for" },
+      per_page: { type: "number", description: "Photos to return (max 30, default 10)" },
+      orientation: { type: "string", enum: ["landscape", "portrait", "squarish"], description: "Filter by orientation" },
+    }, required: ["access_key", "query"] },
+  },
+  {
+    name: "unsplash_get_photo",
+    description: "Get a single Unsplash photo by id (URLs + attribution).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_key: { type: "string", description: "Unsplash Access Key" },
+      photo_id: { type: "string", description: "Unsplash photo id" },
+    }, required: ["access_key", "photo_id"] },
+  },
+  {
+    name: "unsplash_random_photo",
+    description: "Get a random Unsplash photo, optionally matching a query.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_key: { type: "string", description: "Unsplash Access Key" },
+      query: { type: "string", description: "Optional topic to match" },
+      orientation: { type: "string", enum: ["landscape", "portrait", "squarish"], description: "Filter by orientation" },
+    }, required: ["access_key"] },
+  },
+
+  // ── giphy-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "giphy_search",
+    description: "Search Giphy for GIFs.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_key: { type: "string", description: "Giphy API key" },
+      query: { type: "string", description: "What GIF to search for" },
+      limit: { type: "number", description: "GIFs to return (max 50, default 10)" },
+      rating: { type: "string", enum: ["g", "pg", "pg-13", "r"], description: "Content rating cap" },
+    }, required: ["api_key", "query"] },
+  },
+  {
+    name: "giphy_trending",
+    description: "Get trending GIFs from Giphy.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_key: { type: "string", description: "Giphy API key" },
+      limit: { type: "number", description: "GIFs to return (max 50, default 10)" },
+      rating: { type: "string", enum: ["g", "pg", "pg-13", "r"], description: "Content rating cap" },
+    }, required: ["api_key"] },
+  },
+  {
+    name: "giphy_random",
+    description: "Get a random GIF from Giphy, optionally by tag.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_key: { type: "string", description: "Giphy API key" },
+      tag: { type: "string", description: "Optional tag to match" },
+      rating: { type: "string", enum: ["g", "pg", "pg-13", "r"], description: "Content rating cap" },
+    }, required: ["api_key"] },
+  },
+
+  // ── miro-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "miro_list_boards",
+    description: "List Miro boards.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_token: { type: "string", description: "Miro access token" },
+      query: { type: "string", description: "Filter boards by name" },
+      limit: { type: "number", description: "Boards to return (max 50, default 25)" },
+    }, required: ["access_token"] },
+  },
+  {
+    name: "miro_get_board",
+    description: "Get a single Miro board by id.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_token: { type: "string", description: "Miro access token" },
+      board_id: { type: "string", description: "Miro board id" },
+    }, required: ["access_token", "board_id"] },
+  },
+  {
+    name: "miro_list_items",
+    description: "List the items (notes, shapes, text) on a Miro board.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_token: { type: "string", description: "Miro access token" },
+      board_id: { type: "string", description: "Miro board id" },
+      type: { type: "string", description: "Filter by item type (e.g. sticky_note, shape, text)" },
+      limit: { type: "number", description: "Items to return (max 50, default 25)" },
+    }, required: ["access_token", "board_id"] },
+  },
+
+  // ── shortcut-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "shortcut_search_stories",
+    description: "Search Shortcut stories with the search syntax.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Shortcut API token" },
+      query: { type: "string", description: "Search query (e.g. 'state:\"In Progress\" owner:me')" },
+      limit: { type: "number", description: "Results to return (max 25, default 25)" },
+    }, required: ["api_token", "query"] },
+  },
+  {
+    name: "shortcut_get_story",
+    description: "Get a single Shortcut story by id.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Shortcut API token" },
+      story_id: { type: "string", description: "Shortcut story id" },
+    }, required: ["api_token", "story_id"] },
+  },
+  {
+    name: "shortcut_list_projects",
+    description: "List Shortcut projects.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Shortcut API token" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "shortcut_list_epics",
+    description: "List Shortcut epics.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Shortcut API token" },
+    }, required: ["api_token"] },
+  },
+
+  // ── wikipedia-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "wikipedia_search",
+    description: "Search Wikipedia article titles. No key needed.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      query: { type: "string", description: "What to search for" },
+      lang: { type: "string", description: "Wikipedia language code (default en)" },
+      limit: { type: "number", description: "Results to return (max 50, default 10)" },
+    }, required: ["query"] },
+  },
+  {
+    name: "wikipedia_summary",
+    description: "Get a short Wikipedia summary for a page title. No key needed.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      title: { type: "string", description: "Exact page title" },
+      lang: { type: "string", description: "Wikipedia language code (default en)" },
+    }, required: ["title"] },
+  },
+  {
+    name: "wikipedia_page",
+    description: "Get the full plain-text Wikipedia article for a title. No key needed.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      title: { type: "string", description: "Exact page title" },
+      lang: { type: "string", description: "Wikipedia language code (default en)" },
+    }, required: ["title"] },
+  },
+
   // ── zendesk-tool.ts ───────────────────────────────────────────────────────────
   {
     name: "zendesk_search",
@@ -15041,6 +15327,50 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   do_list_apps:            (args) => doListApps(args),
   do_list_databases:       (args) => doListDatabases(args),
   do_account:              (args) => doAccount(args),
+
+  // klaviyo-tool.ts
+  // todoist-tool.ts
+  todoist_list_projects:   (args) => todoistListProjects(args),
+  todoist_list_tasks:      (args) => todoistListTasks(args),
+  todoist_create_task:     (args) => todoistCreateTask(args),
+  todoist_complete_task:   (args) => todoistCompleteTask(args),
+
+  // pipedrive-tool.ts
+  pipedrive_list_deals:         (args) => pipedriveListDeals(args),
+  pipedrive_list_persons:       (args) => pipedriveListPersons(args),
+  pipedrive_list_organizations: (args) => pipedriveListOrganizations(args),
+  pipedrive_search_deals:       (args) => pipedriveSearchDeals(args),
+
+  // confluence-tool.ts
+  confluence_search:       (args) => confluenceSearch(args),
+  confluence_get_page:     (args) => confluenceGetPage(args),
+  confluence_list_spaces:  (args) => confluenceListSpaces(args),
+
+  // unsplash-tool.ts
+  unsplash_search_photos:  (args) => unsplashSearchPhotos(args),
+  unsplash_get_photo:      (args) => unsplashGetPhoto(args),
+  unsplash_random_photo:   (args) => unsplashRandomPhoto(args),
+
+  // giphy-tool.ts
+  giphy_search:            (args) => giphySearch(args),
+  giphy_trending:          (args) => giphyTrending(args),
+  giphy_random:            (args) => giphyRandom(args),
+
+  // miro-tool.ts
+  miro_list_boards:        (args) => miroListBoards(args),
+  miro_get_board:          (args) => miroGetBoard(args),
+  miro_list_items:         (args) => miroListItems(args),
+
+  // shortcut-tool.ts
+  shortcut_search_stories: (args) => shortcutSearchStories(args),
+  shortcut_get_story:      (args) => shortcutGetStory(args),
+  shortcut_list_projects:  (args) => shortcutListProjects(args),
+  shortcut_list_epics:     (args) => shortcutListEpics(args),
+
+  // wikipedia-tool.ts
+  wikipedia_search:        (args) => wikipediaSearch(args),
+  wikipedia_summary:       (args) => wikipediaSummary(args),
+  wikipedia_page:          (args) => wikipediaPage(args),
 
   // klaviyo-tool.ts
   klaviyo_list_lists:      (args) => klaviyoListLists(args),

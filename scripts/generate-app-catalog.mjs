@@ -32,8 +32,8 @@ bucket("Money & payments", ["stripe", "paypal", "square", "plaid", "wise", "xero
 bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "exchangerate", "openexchangerates"]);
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk"]);
 bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews"]);
-bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove"]);
-bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith"]);
+bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove", "wikipedia"]);
+bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith", "todoist", "pipedrive", "confluence", "miro", "shortcut"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb"]);
 bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1"]);
@@ -43,6 +43,7 @@ bucket("Security", ["abuseipdb", "haveibeenpwned", "shodan", "urlscan", "virusto
 bucket("Events & tickets", ["ticketmaster", "seatgeek", "eventbrite", "bandsintown"]);
 bucket("Content & CMS", ["contentful", "webflow"]);
 bucket("Books", ["openlibrary"]);
+bucket("Images", ["unsplash", "giphy"]);
 bucket("Utilities", ["calculator", "color", "datetime", "numbers", "random", "text", "trivia", "unit-converter"]);
 bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppass", "legalpass", "compliancepass", "flowpass", "commonsensepass", "fidelitycopy", "igniteonly", "nudgeonly", "pushonly", "qc", "geopass", "securitypass", "xpass-aggregated-verdict"]);
 
@@ -87,6 +88,14 @@ const BLURB_OF = {
   openai: "Chat, embeddings, images, and transcription from OpenAI.",
   anthropic: "Chat completions from Claude models.",
   jobsmith: "Check a CV or cover letter against JobSmith's quality rules.",
+  todoist: "List, create, and complete your Todoist tasks.",
+  pipedrive: "Read deals, contacts, and companies in your Pipedrive CRM.",
+  confluence: "Search and read Confluence pages and spaces.",
+  unsplash: "Search and fetch free Unsplash photos.",
+  giphy: "Search trending and random GIFs on Giphy.",
+  miro: "List Miro boards and read what is on them.",
+  shortcut: "Search stories, projects, and epics in Shortcut.",
+  wikipedia: "Search Wikipedia and read article summaries.",
   airtable: "Read and update records across your Airtable bases.",
   bluesky: "Post, read, search, and follow on Bluesky.",
   clickup: "Read and update ClickUp tasks, lists, and spaces.",
@@ -165,6 +174,9 @@ const DOMAIN_OF = {
   shodan: "shodan.io", virustotal: "virustotal.com", openmeteo: "open-meteo.com", tomorrowio: "tomorrow.io",
   guardian: "theguardian.com", monica: "monicahq.com", readwise: "readwise.io", raindrop: "raindrop.io",
   instapaper: "instapaper.com", feedly: "feedly.com",
+  todoist: "todoist.com", pipedrive: "pipedrive.com", confluence: "atlassian.com",
+  unsplash: "unsplash.com", giphy: "giphy.com", miro: "miro.com", shortcut: "shortcut.com",
+  wikipedia: "wikipedia.org",
 };
 
 function titleCase(slug) {
