@@ -35,6 +35,7 @@ import DispatchPage from "./pages/Dispatch.tsx";
 import CrewsPage from "./pages/Crews.tsx";
 import ToolsPage from "./pages/Tools.tsx";
 import AppsPage from "./pages/Apps.tsx";
+import AppDetailPage from "./pages/AppDetail.tsx";
 import JobsmithPage from "./pages/Jobsmith.tsx";
 import NewToAIPage from "./pages/NewToAI.tsx";
 import SmartHomePage from "./pages/SmartHome.tsx";
@@ -144,6 +145,7 @@ const App = () => (
           <Route path="/backstagepass" element={<Navigate to="/admin/keychain" replace />} />
           {/* Core product pages */}
           <Route path="/apps" element={<AppsPage />} />
+          <Route path="/apps/:slug" element={<AppDetailPage />} />
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="/skills" element={<Navigate to="/admin/skills" replace />} />
           <Route path="/jobsmith" element={<JobsmithPage />} />
