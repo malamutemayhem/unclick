@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const CI_BASE = "https://www.carboninterface.com/api/v1";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
@@ -98,7 +99,7 @@ export async function estimateFlightEmissions(
   );
 
   const attrs = data.data.attributes;
-  return {
+  return stampMeta({
     id:               data.data.id,
     type:             "flight",
     passengers,
@@ -110,7 +111,11 @@ export async function estimateFlightEmissions(
     distance_value:   attrs.distance_value ?? null,
     distance_unit:    attrs.distance_unit  ?? null,
     estimated_at:     attrs.estimated_at   ?? null,
-  };
+  }, {
+    source: "Carbon Interface",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use carbon_vehicle_emissions or carbon_electricity_emissions for other estimates."],
+  });
 }
 
 export async function estimateVehicleEmissions(

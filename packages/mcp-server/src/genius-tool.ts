@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const GENIUS_BASE = "https://api.genius.com";
 
@@ -78,7 +79,12 @@ export async function geniusGetSong(args: Record<string, unknown>): Promise<unkn
   if (typeof token !== "string") return token;
   const id = args.id;
   if (!id) throw new Error("id is required.");
-  return geniusCall(token, `/songs/${id}`);
+  const __res = await geniusCall(token, `/songs/${id}`) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Genius",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use genius_get_artist for the artist, or genius_search to find more songs."],
+  });
 }
 
 export async function geniusGetArtist(args: Record<string, unknown>): Promise<unknown> {

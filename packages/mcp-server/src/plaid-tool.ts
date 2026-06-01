@@ -1,3 +1,4 @@
+import { stampMeta } from "./connector-meta.js";
 // ─── Plaid API Tool ──────────────────────────────────────────────────────────
 // Covers accounts, transactions, balances, identity, and link token creation.
 // Auth: client_id + secret in request body (Plaid API convention).
@@ -92,9 +93,14 @@ export async function plaidAccounts(args: Record<string, unknown>): Promise<unkn
   const access_token = String(args.access_token ?? "").trim();
   if (!access_token) return { error: "access_token is required (Plaid item access token)." };
 
-  return plaidFetch(cfg, "/accounts/get", {
+  const __res = await plaidFetch(cfg, "/accounts/get", {
     access_token,
     options: args.account_ids ? { account_ids: args.account_ids } : undefined,
+  }) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Plaid",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use plaid_transactions for transaction history, or plaid_balances for balances."],
   });
 }
 

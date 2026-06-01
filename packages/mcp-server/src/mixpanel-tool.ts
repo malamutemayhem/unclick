@@ -4,6 +4,7 @@
 
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const MP_INGEST = "https://api.mixpanel.com";
 const MP_QUERY  = "https://data.mixpanel.com/api/2.0";
@@ -129,7 +130,12 @@ export async function mixpanelGetEvents(args: Record<string, unknown>): Promise<
   };
   if (args.event) params.event = JSON.stringify(Array.isArray(args.event) ? args.event : [String(args.event)]);
 
-  return mpGet(username, secret, MP_QUERY, "/events", params);
+  const __res = await mpGet(username, secret, MP_QUERY, "/events", params) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Mixpanel",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use mixpanel_get_funnels or mixpanel_get_retention for deeper analysis."],
+  });
 }
 
 export async function mixpanelGetFunnels(args: Record<string, unknown>): Promise<unknown> {

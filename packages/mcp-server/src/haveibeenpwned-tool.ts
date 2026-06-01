@@ -7,6 +7,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const HIBP_BASE = "https://haveibeenpwned.com/api/v3";
 const HIBP_PASS_BASE = "https://api.pwnedpasswords.com";
 
@@ -77,7 +78,7 @@ export async function checkAccountBreaches(args: Record<string, unknown>): Promi
     }
 
     const breaches = data as Array<Record<string, unknown>>;
-    return {
+    return stampMeta({
       account,
       pwned: true,
       breach_count: breaches.length,
@@ -95,7 +96,11 @@ export async function checkAccountBreaches(args: Record<string, unknown>): Promi
         is_sensitive: b["IsSensitive"],
         is_spam_list: b["IsSpamList"],
       })),
-    };
+    }, {
+      source: "Have I Been Pwned",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use hibp_check_password to test a password, or hibp_all_breaches to browse known breaches."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

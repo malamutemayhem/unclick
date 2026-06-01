@@ -5,6 +5,7 @@
 // Use production by default. Set WISE_SANDBOX=true to use the sandbox environment.
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const WISE_BASE = process.env.WISE_SANDBOX === "true"
   ? "https://api.sandbox.transferwise.tech/v1"
@@ -80,7 +81,7 @@ export async function wiseExchangeRates(args: Record<string, unknown>): Promise<
   const data = await wiseFetch(token, "/rates", params);
   const rates = Array.isArray(data) ? data : [data];
 
-  return {
+  return stampMeta({
     source,
     target,
     amount: amount ? Number(amount) : null,
@@ -90,7 +91,11 @@ export async function wiseExchangeRates(args: Record<string, unknown>): Promise<
       target: r.target,
       time: r.time,
     })),
-  };
+  }, {
+    source: "Wise",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use wise_create_quote to lock a rate, or wise_accounts for your balances."],
+  });
 }
 
 export async function wiseProfile(args: Record<string, unknown>): Promise<unknown> {

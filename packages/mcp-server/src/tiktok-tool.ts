@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const TIKTOK_BASE = "https://open.tiktokapis.com/v2";
 
 function getToken(args: Record<string, unknown>): string | NotConnectedResult {
@@ -110,7 +111,11 @@ export async function getTiktokUser(args: Record<string, unknown>): Promise<unkn
     const fields = "open_id,union_id,avatar_url,display_name,bio_description,profile_deep_link,is_verified,follower_count,following_count,likes_count,video_count";
     const json = await tiktokGet(token, "/user/info/", { fields }) as Record<string, unknown>;
     const data = json.data as Record<string, unknown> | undefined;
-    return data?.user ?? json;
+    return stampMeta((data?.user ?? json) as Record<string, unknown>, {
+      source: "TikTok",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use list_tiktok_videos for this user's videos, or get_tiktok_video for one video."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

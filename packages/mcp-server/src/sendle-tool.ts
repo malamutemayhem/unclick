@@ -6,6 +6,7 @@
 
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const SENDLE_BASE = "https://api.sendle.com/api";
 
@@ -163,7 +164,7 @@ export async function trackSendleParcel(args: Record<string, unknown>): Promise<
 
     const data = await sendleFetch(auth, `/tracking/${encodeURIComponent(ref)}`) as Record<string, unknown>;
 
-    return {
+    return stampMeta({
       tracking_ref: ref,
       state: data["state"],
       tracking_events: (data["tracking_events"] as Array<Record<string, unknown>> | undefined)?.map((e) => ({
@@ -173,7 +174,11 @@ export async function trackSendleParcel(args: Record<string, unknown>): Promise<
         location: e["location"],
       })),
       estimated_delivery: data["estimated_delivery"],
-    };
+    }, {
+      source: "Sendle",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use get_sendle_quote for pricing, or create_sendle_order to book."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

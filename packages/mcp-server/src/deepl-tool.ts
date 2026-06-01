@@ -4,6 +4,7 @@
 
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -127,7 +128,12 @@ export async function deeplGetUsage(args: Record<string, unknown>): Promise<unkn
   const _creds = requireKey(args);
   if (typeof _creds !== "object" || "not_connected" in _creds) return _creds as NotConnectedResult;
   const { key, base } = _creds;
-  return dlGet(key, base, "/usage");
+  const __res = await dlGet(key, base, "/usage") as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "DeepL",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use deepl_translate_text to translate, or deepl_list_languages for supported languages."],
+  });
 }
 
 export async function deeplListLanguages(args: Record<string, unknown>): Promise<unknown> {

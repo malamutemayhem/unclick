@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const AAI_BASE = "https://api.assemblyai.com/v2";
 
@@ -204,7 +205,12 @@ export async function assemblyaiGetTranscript(args: Record<string, unknown>): Pr
   requireAssemblyAiSpendAllowed("transcript-read", "AssemblyAI /transcript/{id}", apiKey);
   const id = String(args.transcript_id ?? "").trim();
   if (!id) throw new Error("transcript_id is required.");
-  return aaiGet(apiKey, `/transcript/${encodeURIComponent(id)}`);
+  const __res = await aaiGet(apiKey, `/transcript/${encodeURIComponent(id)}`) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "AssemblyAI",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use assemblyai_get_paragraphs or assemblyai_get_sentences for structured text."],
+  });
 }
 
 export async function assemblyaiListTranscripts(args: Record<string, unknown>): Promise<unknown> {
