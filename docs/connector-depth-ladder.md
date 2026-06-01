@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (163 external connectors)
+## Distribution (165 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 127 | 78% |
+| L5 | Agentic | 129 | 78% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 22% |
 | L1 | Wrapper | 0 | 0% |
 
-**Hardened (reliability bar met): 163 of 163 (100%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 165 of 165 (100%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 127 of 127 (100%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 129 of 129 (100%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ## Per-connector, highest rung first
 
@@ -106,6 +106,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 | L5 Agentic | `musicbrainz` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `nasa` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `neon` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `netlify` | Yes | Yes | Yes | Yes | Yes |  |
 | L5 Agentic | `newsapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `nvd` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `omdb` | Yes | - | - | Yes | Yes | no-memory |
@@ -123,6 +124,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 | L5 Agentic | `pinterest` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `plaid` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `podcastindex` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `posthog` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `ptv` | Yes | Yes | Yes | Yes | Yes |  |
 | L5 Agentic | `radiobrowser` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `rawg` | Yes | - | - | Yes | Yes | no-memory |

@@ -1065,6 +1065,21 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     setupUrl:    "https://id.atlassian.com/manage-profile/security/api-tokens",
     note:        "Also pass site (e.g. mycompany) and email, or set JIRA_SITE and JIRA_EMAIL. Auth is your email + the API token.",
   },
+  posthog: {
+    displayName: "PostHog",
+    credential:  "Personal API key",
+    arg:         "api_key",
+    envVar:      "POSTHOG_API_KEY",
+    setupUrl:    "https://app.posthog.com/settings/user-api-keys",
+    note:        "Also pass project_id (or set POSTHOG_PROJECT_ID). Default host is US Cloud; pass host for EU or self-hosted.",
+  },
+  netlify: {
+    displayName: "Netlify",
+    credential:  "personal access token",
+    arg:         "access_token",
+    envVar:      "NETLIFY_ACCESS_TOKEN",
+    setupUrl:    "https://app.netlify.com/user/applications#personal-access-tokens",
+  },
 };
 
 /**

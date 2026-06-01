@@ -640,6 +640,14 @@ import {
 } from "./jira-tool.js";
 
 import {
+  posthogListFeatureFlags, posthogListInsights, posthogListPersons, posthogQuery,
+} from "./posthog-tool.js";
+
+import {
+  netlifyListSites, netlifyGetSite, netlifyListDeploys, netlifyGetDeploy,
+} from "./netlify-tool.js";
+
+import {
   deeplTranslateText, deeplGetUsage, deeplListLanguages, deeplTranslateDocument,
 } from "./deepl-tool.js";
 
@@ -9590,6 +9598,125 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── posthog-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "posthog_list_feature_flags",
+    description: "List PostHog feature flags for a project.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "posthog_list_insights",
+    description: "List saved PostHog insights (charts) for a project.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+        search: { type: "string", description: "Filter insights by name" },
+        limit: { type: "number", description: "Results to return (max 100, default 25)" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "posthog_list_persons",
+    description: "List PostHog persons (users) for a project.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+        search: { type: "string", description: "Filter persons by email or properties" },
+        limit: { type: "number", description: "Results to return (max 100, default 25)" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "posthog_query",
+    description: "Run an ad-hoc HogQL (SQL) query against a PostHog project's events.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+        query: { type: "string", description: "HogQL/SQL query (e.g. select count() from events)" },
+      },
+      required: ["api_key", "query"],
+    },
+  },
+
+  // ── netlify-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "netlify_list_sites",
+    description: "List Netlify sites for the account.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        name: { type: "string", description: "Filter sites by name" },
+        limit: { type: "number", description: "Sites to return (max 100, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "netlify_get_site",
+    description: "Get a single Netlify site by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        site_id: { type: "string", description: "Netlify site id (can be a saved default)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "netlify_list_deploys",
+    description: "List recent deploys for a Netlify site (signals when the latest deploy failed).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        site_id: { type: "string", description: "Netlify site id (can be a saved default)" },
+        limit: { type: "number", description: "Deploys to return (max 100, default 10)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "netlify_get_deploy",
+    description: "Get a single Netlify deploy by id (including build logs metadata).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        deploy_id: { type: "string", description: "Netlify deploy id" },
+      },
+      required: ["access_token", "deploy_id"],
+    },
+  },
+
   // ── deepl-tool.ts ─────────────────────────────────────────────────────────────
   {
     name: "deepl_translate_text",
@@ -14089,6 +14216,18 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   jira_list_projects:      (args) => jiraListProjects(args),
   jira_create_issue:       (args) => jiraCreateIssue(args),
   jira_add_comment:        (args) => jiraAddComment(args),
+
+  // posthog-tool.ts
+  posthog_list_feature_flags: (args) => posthogListFeatureFlags(args),
+  posthog_list_insights:      (args) => posthogListInsights(args),
+  posthog_list_persons:       (args) => posthogListPersons(args),
+  posthog_query:              (args) => posthogQuery(args),
+
+  // netlify-tool.ts
+  netlify_list_sites:      (args) => netlifyListSites(args),
+  netlify_get_site:        (args) => netlifyGetSite(args),
+  netlify_list_deploys:    (args) => netlifyListDeploys(args),
+  netlify_get_deploy:      (args) => netlifyGetDeploy(args),
 
   // datadog-tool.ts
   datadog_list_monitors:   (args) => datadogListMonitors(args),

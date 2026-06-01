@@ -2142,6 +2142,28 @@
     ]
   },
   {
+    "app": "netlify",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "netlify_list_sites",
+        "description": "List Netlify sites for the account."
+      },
+      {
+        "name": "netlify_get_site",
+        "description": "Get a single Netlify site by id."
+      },
+      {
+        "name": "netlify_list_deploys",
+        "description": "List recent deploys for a Netlify site (signals when the latest deploy failed)."
+      },
+      {
+        "name": "netlify_get_deploy",
+        "description": "Get a single Netlify deploy by id (including build logs metadata)."
+      }
+    ]
+  },
+  {
     "app": "newsapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -2618,6 +2640,28 @@
       {
         "name": "podcast_recent_episodes",
         "description": "Get recent podcast episodes from Podcast Index."
+      }
+    ]
+  },
+  {
+    "app": "posthog",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "posthog_list_feature_flags",
+        "description": "List PostHog feature flags for a project."
+      },
+      {
+        "name": "posthog_list_insights",
+        "description": "List saved PostHog insights (charts) for a project."
+      },
+      {
+        "name": "posthog_list_persons",
+        "description": "List PostHog persons (users) for a project."
+      },
+      {
+        "name": "posthog_query",
+        "description": "Run an ad-hoc HogQL (SQL) query against a PostHog project's events."
       }
     ]
   },

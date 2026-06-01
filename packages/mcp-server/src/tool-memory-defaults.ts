@@ -149,6 +149,14 @@ const CONNECTOR_DEFAULTS_REGISTRY: Record<string, ConnectorDefaultSpec> = {
   neon_get_project:    { connector: "neon", guardArgs: ["project_id"], fillArgs: ["project_id"] },
   neon_list_branches:  { connector: "neon", guardArgs: ["project_id"], fillArgs: ["project_id"] },
   neon_list_databases: { connector: "neon", guardArgs: ["project_id"], fillArgs: ["project_id"] },
+  // PostHog: every project-scoped read needs the same project_id.
+  posthog_list_feature_flags: { connector: "posthog", guardArgs: ["project_id"], fillArgs: ["project_id"] },
+  posthog_list_insights:      { connector: "posthog", guardArgs: ["project_id"], fillArgs: ["project_id"] },
+  posthog_list_persons:       { connector: "posthog", guardArgs: ["project_id"], fillArgs: ["project_id"] },
+  posthog_query:              { connector: "posthog", guardArgs: ["project_id"], fillArgs: ["project_id"] },
+  // Netlify: a user usually watches one site.
+  netlify_get_site:     { connector: "netlify", guardArgs: ["site_id"], fillArgs: ["site_id"] },
+  netlify_list_deploys: { connector: "netlify", guardArgs: ["site_id"], fillArgs: ["site_id"] },
   // Weather: "the weather" means the user's home location (city, or lat/lon).
   weather_current:  { connector: "weather", guardArgs: ["latitude", "longitude", "city"], fillArgs: ["city", "latitude", "longitude"] },
   weather_forecast: { connector: "weather", guardArgs: ["latitude", "longitude", "city"], fillArgs: ["city", "latitude", "longitude"] },

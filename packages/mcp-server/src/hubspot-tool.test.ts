@@ -56,7 +56,7 @@ describe("hubspot source stamping (L5)", () => {
     const fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ results: [] }) }));
     vi.stubGlobal("fetch", fetchMock);
     await hubspotSearchContacts({ access_token: "k", query: "ada@example.com" });
-    const init = fetchMock.mock.calls[0][1] as { method: string; body: string };
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, { method: string; body: string }];
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body).query).toBe("ada@example.com");
   });

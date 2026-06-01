@@ -41,7 +41,8 @@ describe("jira connector resilience (L2)", () => {
     const fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ issues: [] }) }));
     vi.stubGlobal("fetch", fetchMock);
     await jiraSearchIssues({ ...CREDS, site: "https://acme.atlassian.net/jira" });
-    expect(String(fetchMock.mock.calls[0][0])).toMatch(/^https:\/\/acme\.atlassian\.net\/rest\/api\/3\/search/);
+    const [url] = fetchMock.mock.calls[0] as unknown as [string];
+    expect(String(url)).toMatch(/^https:\/\/acme\.atlassian\.net\/rest\/api\/3\/search/);
   });
 });
 

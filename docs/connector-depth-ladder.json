@@ -1320,6 +1320,26 @@
     }
   },
   {
+    "connector": "netlify",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": true,
+      "proactive": true,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "newsapi",
     "level": 5,
     "levelName": "Agentic",
@@ -1654,6 +1674,26 @@
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "posthog",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": true,
       "proactive": false,
       "agentic": true,
       "sourceStamped": true
