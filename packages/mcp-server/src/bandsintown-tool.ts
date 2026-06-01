@@ -77,7 +77,7 @@ async function bitFetch(
 export async function bandsintownArtist(args: Record<string, unknown>): Promise<unknown> {
   const appId = getAppId(args);
 
-  const artistName = String(args.artist_name ?? "").trim();
+  const artistName = String((args.artist ?? args.artist_name) ?? "").trim();
   if (!artistName) return { error: "artist_name is required." };
 
   const __res = await bitFetch(`/artists/${encodeURIComponent(artistName)}`, appId) as Record<string, unknown>;
@@ -93,7 +93,7 @@ export async function bandsintownArtist(args: Record<string, unknown>): Promise<
 export async function bandsintownEvents(args: Record<string, unknown>): Promise<unknown> {
   const appId = getAppId(args);
 
-  const artistName = String(args.artist_name ?? "").trim();
+  const artistName = String((args.artist ?? args.artist_name) ?? "").trim();
   if (!artistName) return { error: "artist_name is required." };
 
   return bitFetch(`/artists/${encodeURIComponent(artistName)}/events`, appId, {
@@ -106,7 +106,7 @@ export async function bandsintownEvents(args: Record<string, unknown>): Promise<
 export async function bandsintownRecommended(args: Record<string, unknown>): Promise<unknown> {
   const appId = getAppId(args);
 
-  const artistName = String(args.artist_name ?? "").trim();
+  const artistName = String((args.artist ?? args.artist_name) ?? "").trim();
   if (!artistName) return { error: "artist_name is required." };
 
   const location = String(args.location ?? "").trim();

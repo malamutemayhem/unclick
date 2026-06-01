@@ -86,7 +86,7 @@ export async function yelpGetBusiness(args: Record<string, unknown>): Promise<un
   try {
     const apiKey = getApiKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const id = String(args.id ?? "").trim();
+    const id = String((args.business_id ?? args.id) ?? "").trim();
     if (!id) return { error: "id is required (Yelp business alias or ID)." };
     const data = await yelpGet(apiKey, `/businesses/${encodeURIComponent(id)}`);
     return data;
@@ -99,7 +99,7 @@ export async function yelpGetReviews(args: Record<string, unknown>): Promise<unk
   try {
     const apiKey = getApiKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const id = String(args.id ?? "").trim();
+    const id = String((args.business_id ?? args.id) ?? "").trim();
     if (!id) return { error: "id is required (Yelp business alias or ID)." };
     const params: Record<string, string | number> = {};
     if (args.sort_by)  params.sort_by  = String(args.sort_by);

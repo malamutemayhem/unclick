@@ -256,7 +256,7 @@ export async function lichessTopPlayers(
 export async function lichessTournament(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const id = String(args.id ?? "").trim();
+  const id = String((args.tournament_id ?? args.id) ?? "").trim();
   if (!id) throw new Error("id is required (Lichess tournament ID).");
 
   const data = (await lichessFetch<Record<string, unknown>>(

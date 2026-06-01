@@ -119,7 +119,7 @@ export async function forexCurrencies(args: Record<string, unknown>): Promise<un
 export async function forexConvert(args: Record<string, unknown>): Promise<unknown> {
   const app_id = requireAppId(args);
   if (typeof app_id !== "string") return app_id;
-  const value = Number(args.value);
+  const value = Number((args.amount ?? args.value));
   if (!value || isNaN(value)) throw new Error("value is required and must be a number.");
   const from = String(args.from ?? "").trim().toUpperCase();
   const to = String(args.to ?? "").trim().toUpperCase();

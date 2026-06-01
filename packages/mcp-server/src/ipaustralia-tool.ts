@@ -101,7 +101,7 @@ export async function getTrademarkDetails(args: Record<string, unknown>): Promis
   try {
     const apiKey = getApiKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const number = String(args.number ?? args.trademark_number ?? "").trim();
+    const number = String((args.applicationNumber ?? args.number) ?? args.trademark_number ?? "").trim();
     if (!number) return { error: "number is required (trademark application number)." };
 
     const data = await ipauGet(apiKey, `/public/v1/trademarks/${encodeURIComponent(number)}`) as Record<string, unknown>;

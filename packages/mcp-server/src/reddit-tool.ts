@@ -451,13 +451,16 @@ export async function redditVote(args: RedditVoteArgs): Promise<unknown> {
 
 export interface RedditSubscribeArgs {
   access_token: string;
-  subreddit: string;
+  // `sr` is the documented schema name (the Reddit API field); `subreddit`
+  // is accepted as a friendlier alias.
+  sr?: string;
+  subreddit?: string;
   action: string;
 }
 
 export async function redditSubscribe(args: RedditSubscribeArgs): Promise<unknown> {
-  const sub = args.subreddit.replace(/^r\//i, "");
-  if (!sub) return { error: "validation", message: "subreddit is required." };
+  const sub = (args.sr ?? args.subreddit ?? "").replace(/^r\//i, "");
+  if (!sub) return { error: "validation", message: "sr (subreddit) is required." };
   if (args.action !== "sub" && args.action !== "unsub") {
     return { error: "validation", message: "action must be 'sub' or 'unsub'." };
   }

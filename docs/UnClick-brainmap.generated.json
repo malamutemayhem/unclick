@@ -8786,8 +8786,8 @@
     },
     {
       "source": "packages/mcp-server/src/amazon-tool.ts",
-      "hash": "8184f6a60db6",
-      "bytes": 15876
+      "hash": "faeea675e2f5",
+      "bytes": 15899
     },
     {
       "source": "packages/mcp-server/src/amber-tool.ts",
@@ -8811,13 +8811,13 @@
     },
     {
       "source": "packages/mcp-server/src/australiapost-tool.ts",
-      "hash": "c1f9f3dc9b8e",
-      "bytes": 6173
+      "hash": "ed627c360433",
+      "bytes": 6185
     },
     {
       "source": "packages/mcp-server/src/bandsintown-tool.ts",
-      "hash": "a1a0d5b07e7f",
-      "bytes": 4100
+      "hash": "d255220247d1",
+      "bytes": 4151
     },
     {
       "source": "packages/mcp-server/src/bgg-tool.ts",
@@ -8851,8 +8851,8 @@
     },
     {
       "source": "packages/mcp-server/src/calculator-tool.ts",
-      "hash": "941b010bc4f9",
-      "bytes": 7255
+      "hash": "5a3d3d30645e",
+      "bytes": 7319
     },
     {
       "source": "packages/mcp-server/src/calendly-tool.ts",
@@ -8911,8 +8911,8 @@
     },
     {
       "source": "packages/mcp-server/src/color-tool.ts",
-      "hash": "f9aa9c0fec6e",
-      "bytes": 13643
+      "hash": "8e737cb9e16f",
+      "bytes": 13782
     },
     {
       "source": "packages/mcp-server/src/commonsensepass-tool.ts",

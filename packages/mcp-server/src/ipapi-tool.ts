@@ -79,7 +79,7 @@ export async function ipLookup(args: Record<string, unknown>): Promise<unknown> 
 }
 
 export async function ipBatch(args: Record<string, unknown>): Promise<unknown> {
-  const addresses = args.addresses;
+  const addresses = (args.ips ?? args.addresses);
   if (!Array.isArray(addresses) || addresses.length === 0) {
     throw new Error("addresses is required and must be a non-empty array of IP strings.");
   }
