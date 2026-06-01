@@ -33,7 +33,7 @@ bucket("Markets & crypto", ["alphavantage", "coingecko", "coinmarketcap", "excha
 bucket("Messaging & email", ["slack", "discord", "telegram", "whatsapp", "line", "twilio", "email", "resend", "sendgrid", "postmark", "mailchimp", "convertkit", "klaviyo", "pushover", "intercom", "zendesk"]);
 bucket("Social", ["reddit", "bluesky", "mastodon", "pinterest", "tiktok", "youtube", "twitch", "hackernews"]);
 bucket("News & reading", ["newsapi", "guardian", "gdelt", "feedly", "instapaper", "readwise", "raindrop", "trove"]);
-bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform"]);
+bucket("Productivity", ["notion", "asana", "trello", "clickup", "monday", "linear", "jira", "hubspot", "clockify", "toggl", "calendly", "calcom", "airtable", "monica", "figma", "crews", "typeform", "jobsmith"]);
 bucket("Shopping", ["amazon", "ebay", "etsy", "shopify", "woocommerce"]);
 bucket("Music & video", ["spotify", "deezer", "lastfm", "genius", "musicbrainz", "discogs", "setlistfm", "podcastindex", "radiobrowser", "tmdb", "omdb"]);
 bucket("Games & esports", ["steam", "rawg", "igdb", "bgg", "riot", "bungie", "chessdotcom", "lichess", "speedrun", "pandascore", "supercell", "lego", "sleeper", "fpl", "espn", "openf1"]);
@@ -48,6 +48,7 @@ bucket("Quality (XPass)", ["testpass", "copypass", "uxpass", "seopass", "sloppas
 
 // ─── Display-name casing fixes (fallback is Title Case of the slug) ────────────
 const NAME_OF = {
+  jobsmith: "JobSmith",
   github: "GitHub", gitlab: "GitLab", youtube: "YouTube", tiktok: "TikTok", paypal: "PayPal",
   lastfm: "Last.fm", espn: "ESPN", ebay: "eBay", ebird: "eBird", bluesky: "Bluesky",
   willyweather: "WillyWeather", riot: "Riot Games",
@@ -84,6 +85,7 @@ const BLURB_OF = {
   zendesk: "Search, read, and reply to support tickets.",
   openai: "Chat, embeddings, images, and transcription from OpenAI.",
   anthropic: "Chat completions from Claude models.",
+  jobsmith: "Check a CV or cover letter against JobSmith's quality rules.",
 };
 
 // Brand domains for the favicon icon. Known brands show a real favicon (framed

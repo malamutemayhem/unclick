@@ -647,6 +647,8 @@ import {
   netlifyListSites, netlifyGetSite, netlifyListDeploys, netlifyGetDeploy,
 } from "./netlify-tool.js";
 
+import { jobsmithCheck, jobsmithRules } from "./jobsmith-tool.js";
+
 import {
   zendeskSearch, zendeskListTickets, zendeskGetTicket, zendeskAddComment,
 } from "./zendesk-tool.js";
@@ -9630,6 +9632,32 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── jobsmith-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "jobsmith_check",
+    description: "Run JobSmith's CV / cover-letter quality rules over a piece of text. No key needed.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        text: { type: "string", description: "The CV or cover-letter text to check" },
+      },
+      required: ["text"],
+    },
+  },
+  {
+    name: "jobsmith_rules",
+    description: "Browse JobSmith's rule pack (counts by category and severity), optionally filtered by category.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "Filter to one category (e.g. ATS, TRUTH, VOICE, PRIVACY)" },
+      },
+      required: [],
+    },
+  },
+
   // ── contentful-tool.ts ────────────────────────────────────────────────────────
   {
     name: "contentful_list_entries",
@@ -14675,6 +14703,10 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   jira_list_projects:      (args) => jiraListProjects(args),
   jira_create_issue:       (args) => jiraCreateIssue(args),
   jira_add_comment:        (args) => jiraAddComment(args),
+
+  // jobsmith-tool.ts
+  jobsmith_check:          (args) => jobsmithCheck(args),
+  jobsmith_rules:          (args) => jobsmithRules(args),
 
   // contentful-tool.ts
   contentful_list_entries:       (args) => contentfulListEntries(args),

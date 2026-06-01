@@ -1120,6 +1120,26 @@
     }
   },
   {
+    "connector": "jobsmith",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": false,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "klaviyo",
     "level": 5,
     "levelName": "Agentic",

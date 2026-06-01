@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (173 external connectors)
+## Distribution (174 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 137 | 79% |
+| L5 | Agentic | 138 | 79% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 36 | 21% |
 | L1 | Wrapper | 0 | 0% |
 
-**Hardened (reliability bar met): 173 of 173 (100%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 173 of 174 (99%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,13 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 137 of 137 (100%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 138 of 138 (100%).** The remaining 0 L2 rows are genuine upgrade candidates.
+
+### Climbed in depth but not yet hardened
+
+These reached L3+ capability but have not met the L2 reliability bar. Hardening them is the highest-leverage next pass.
+
+- `jobsmith` (L5 Agentic): not-hardened, no-timeout, no-rate-limit, no-memory
 
 ## Per-connector, highest rung first
 
@@ -96,6 +102,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 | L5 Agentic | `ipapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ipaustralia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `jira` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `jobsmith` | - | - | - | Yes | Yes | not-hardened, no-timeout, no-rate-limit, no-memory |
 | L5 Agentic | `klaviyo` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `kling` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lastfm` | Yes | - | - | Yes | Yes | no-memory |

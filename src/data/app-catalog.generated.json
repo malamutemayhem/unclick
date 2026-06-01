@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 198,
-  "toolCount": 852,
+  "appCount": 199,
+  "toolCount": 854,
   "categories": [
     "AI",
     "Books",
@@ -2211,6 +2211,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "jobsmith",
+      "name": "JobSmith",
+      "category": "Productivity",
+      "blurb": "Check a CV or cover letter against JobSmith's quality rules.",
+      "domain": null,
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "jobsmith_check",
+          "description": "Run JobSmith's CV / cover-letter quality rules over a piece of text. No key needed."
+        },
+        {
+          "name": "jobsmith_rules",
+          "description": "Browse JobSmith's rule pack (counts by category and severity), optionally filtered by category."
+        }
+      ],
+      "level": null,
+      "hardened": false
     },
     {
       "slug": "keychain",

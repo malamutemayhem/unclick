@@ -1740,6 +1740,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "jobsmith",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "jobsmith_check",
+        "description": "Run JobSmith's CV / cover-letter quality rules over a piece of text. No key needed."
+      },
+      {
+        "name": "jobsmith_rules",
+        "description": "Browse JobSmith's rule pack (counts by category and severity), optionally filtered by category."
+      }
+    ]
+  },
+  {
     "app": "keychain",
     "category": "AI",
     "tools": [
