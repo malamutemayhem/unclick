@@ -2,6 +2,8 @@
 // Three games, one file. Each game uses its own base URL and API key.
 // Env vars: COC_API_KEY, CR_API_KEY, BS_API_KEY
 
+import { stampMeta } from "./connector-meta.js";
+
 const COC_BASE = "https://api.clashofclans.com/v1";
 const CR_BASE = "https://api.clashroyale.com/v1";
 const BS_BASE = "https://api.brawlstars.com/v1";
@@ -76,7 +78,7 @@ export async function cocPlayer(
     key
   );
 
-  return {
+  return stampMeta({
     tag: data.tag,
     name: data.name,
     town_hall_level: data.townHallLevel,
@@ -102,7 +104,11 @@ export async function cocPlayer(
       ((data.troops as Record<string, unknown>[]) ?? [])
         .slice(0, 20)
         .map((t) => ({ name: t.name, level: t.level, max_level: t.maxLevel })),
-  };
+  }, {
+    source: "Supercell API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use coc_clan for the player's clan, or coc_clan_members to list members."],
+  });
 }
 
 // GET /clans/{urlencoded_tag}

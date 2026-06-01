@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const PD_API_BASE = "https://api.pagerduty.com";
 
 function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
@@ -126,11 +127,15 @@ export async function pagerduty_list_incidents(args: Record<string, unknown>): P
   if (args.service_ids) query["service_ids[]"] = String(args.service_ids);
 
   const data = await pdGet<{ incidents: unknown[]; total: number }>(apiKey, "/incidents", query);
-  return {
+  return stampMeta({
     total: data.total,
     count: data.incidents.length,
     incidents: data.incidents,
-  };
+  }, {
+    source: "PagerDuty",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use pagerduty_get_incident for detail, or pagerduty_list_oncalls for who's on call."],
+  });
 }
 
 export async function pagerduty_get_incident(args: Record<string, unknown>): Promise<unknown> {

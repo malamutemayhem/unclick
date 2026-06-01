@@ -4,6 +4,7 @@
 
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const TWILIO_API_BASE = "https://api.twilio.com/2010-04-01";
 
@@ -233,7 +234,7 @@ export async function twilioListMessages(args: Record<string, unknown>): Promise
 
   const data = await twilioGet<TwilioListResponse<TwilioMessage>>(accountSid, authToken, "/Messages", query);
   const messages = (data.messages as TwilioMessage[] | undefined) ?? [];
-  return {
+  return stampMeta({
     count: messages.length,
     messages: messages.map((m) => ({
       sid: m.sid,
@@ -247,7 +248,11 @@ export async function twilioListMessages(args: Record<string, unknown>): Promise
       error_code: m.error_code,
     })),
     next_page_uri: data.next_page_uri ?? null,
-  };
+  }, {
+    source: "Twilio",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use twilio_get_message for a single message, or twilio_send_sms to send."],
+  });
 }
 
 export async function twilioGetMessage(args: Record<string, unknown>): Promise<unknown> {

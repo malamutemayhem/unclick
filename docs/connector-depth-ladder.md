@@ -18,10 +18,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 81 | 50% |
+| L5 | Agentic | 90 | 56% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 80 | 50% |
+| L2 | Reliable | 71 | 44% |
 | L1 | Wrapper | 0 | 0% |
 
 **Hardened (reliability bar met): 161 of 161 (100%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
@@ -42,8 +42,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `bungie` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `calendly` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `chessdotcom` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `circleci` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `coingecko` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `coinmarketcap` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `datadog` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `deezer` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `discogs` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ebay` | Yes | - | - | Yes | Yes | no-memory |
@@ -53,6 +55,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `etsy` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `eventbrite` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `exchangerate` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `figma` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `foursquare` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `fpl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `gdelt` | Yes | - | - | Yes | Yes | no-memory |
@@ -61,6 +64,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `hackernews` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `hunter` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ipapi` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `ipaustralia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lastfm` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lego` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `lemonsqueezy` | Yes | - | - | Yes | Yes | no-memory |
@@ -78,6 +82,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `openfoodfacts` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openlibrary` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openmeteo` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `pagerduty` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pandascore` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pinecone` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pinterest` | Yes | - | - | Yes | Yes | no-memory |
@@ -89,12 +94,14 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `restcountries` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `riot` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `seatgeek` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `segment` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `setlistfm` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `shodan` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `sleeper` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `speedrun` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `spotify` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `steam` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `supercell` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `tab` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `thelott` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ticketmaster` | Yes | - | - | Yes | Yes | no-memory |
@@ -103,10 +110,12 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `tomorrowio` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `trivia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `trove` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `twilio` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `twitch` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `untappd` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `urlscan` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `usgs` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `vercel` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `virustotal` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `willyweather` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `yelp` | Yes | - | - | Yes | Yes | no-memory |
@@ -117,18 +126,15 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `assemblyai` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `bluesky` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `carboninterface` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `circleci` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `clickup` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `clockify` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `cohere` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `convertkit` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `datadog` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `deepl` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `discord` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `domain` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `email` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `feedly` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `figma` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `flyio` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `genius` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `github` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -139,7 +145,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `higgsfield` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `igdb` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `instapaper` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `ipaustralia` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `kling` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `line` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `linear` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -152,7 +157,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `notion` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `openai` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `openexchangerates` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `pagerduty` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `paypal` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `perplexity` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `pika` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -167,7 +171,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `replicate` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `resend` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `runway` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `segment` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `sendgrid` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `sendle` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `sentry` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -177,16 +180,13 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `square` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `stability` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `stripe` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `supercell` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `telegram` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `tiktok` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `togetherai` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `toilets` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `trello` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `turso` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `twilio` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `upstash` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `vercel` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `whatsapp` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `wise` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `woocommerce` | Yes | - | - | - | - | no-memory, no-source-stamp |

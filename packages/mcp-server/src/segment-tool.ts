@@ -6,6 +6,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const SEGMENT_TRACK_BASE = "https://api.segment.io/v1";
 const SEGMENT_MGMT_BASE = "https://api.segmentapis.com";
@@ -148,7 +149,11 @@ export async function segment_list_sources(args: Record<string, unknown>): Promi
     apiToken, `/workspaces/${workspaceId}/sources`
   );
   const sources = data.data?.sources ?? [];
-  return { count: sources.length, sources };
+  return stampMeta({ count: sources.length, sources }, {
+    source: "Segment",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use segment_list_destinations for a source, or segment_get_source for detail."],
+  });
 }
 
 export async function segment_list_destinations(args: Record<string, unknown>): Promise<unknown> {

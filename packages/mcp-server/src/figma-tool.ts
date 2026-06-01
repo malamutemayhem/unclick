@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const FIGMA_API_BASE = "https://api.figma.com/v1";
 
@@ -164,7 +165,7 @@ export async function figmaGetFile(args: Record<string, unknown>): Promise<unkno
 
   const componentCount = Object.keys(file.components ?? {}).length;
 
-  return {
+  return stampMeta({
     name: file.name,
     file_key: fileKey,
     last_modified: file.lastModified,
@@ -174,7 +175,11 @@ export async function figmaGetFile(args: Record<string, unknown>): Promise<unkno
     page_count: pages.length,
     pages,
     component_count: componentCount,
-  };
+  }, {
+    source: "Figma REST API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use figma_get_node for a specific node, or figma_get_components for the file's components."],
+  });
 }
 
 export async function figmaGetNode(args: Record<string, unknown>): Promise<unknown> {

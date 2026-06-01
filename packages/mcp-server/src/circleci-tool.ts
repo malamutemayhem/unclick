@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const CIRCLECI_API_BASE = "https://circleci.com/api/v2";
 
 function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
@@ -104,11 +105,15 @@ export async function circleci_list_pipelines(args: Record<string, unknown>): Pr
   }
 
   const data = await ccGet<{ items: unknown[]; next_page_token: string | null }>(apiKey, path, query);
-  return {
+  return stampMeta({
     count: data.items.length,
     next_page_token: data.next_page_token ?? null,
     pipelines: data.items,
-  };
+  }, {
+    source: "CircleCI",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use circleci_get_pipeline for detail, or circleci_list_workflows for a pipeline's workflows."],
+  });
 }
 
 export async function circleci_get_pipeline(args: Record<string, unknown>): Promise<unknown> {

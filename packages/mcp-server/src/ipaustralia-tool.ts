@@ -6,6 +6,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const IPAU_BASE = "https://api.ipaustralia.gov.au";
 
 function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
@@ -71,7 +72,7 @@ export async function searchTrademarks(args: Record<string, unknown>): Promise<u
 
     const results = data["results"] as Array<Record<string, unknown>> | undefined ?? [];
 
-    return {
+    return stampMeta({
       query: keyword,
       total: data["total"] ?? results.length,
       results: results.map((t) => ({
@@ -84,7 +85,11 @@ export async function searchTrademarks(args: Record<string, unknown>): Promise<u
         filing_date: t["filingDate"],
         registration_date: t["registrationDate"],
       })),
-    };
+    }, {
+      source: "IP Australia",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use get_trademark_details with an application number for full detail."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

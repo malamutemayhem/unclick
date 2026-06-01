@@ -4,6 +4,7 @@
 
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const DD_BASE = "https://api.datadoghq.com/api/v1";
 
@@ -90,7 +91,11 @@ export async function datadogListMonitors(args: Record<string, unknown>): Promis
   if (args.page) params.page = String(args.page);
   if (args.page_size) params.page_size = String(Math.min(1000, Number(args.page_size)));
   const data = await ddGet<unknown[]>(apiKey, appKey, "/monitor", params);
-  return { count: Array.isArray(data) ? data.length : 0, monitors: data };
+  return stampMeta({ count: Array.isArray(data) ? data.length : 0, monitors: data }, {
+    source: "Datadog",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use datadog_get_monitor for a monitor, or datadog_query_metrics for metric data."],
+  });
 }
 
 export async function datadogGetMonitor(args: Record<string, unknown>): Promise<unknown> {

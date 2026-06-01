@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const VERCEL_BASE = "https://api.vercel.com";
 
 function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
@@ -80,7 +81,7 @@ export async function listVercelDeployments(args: Record<string, unknown>): Prom
     if (args.team_id) params.teamId = String(args.team_id);
     const data = await vercelGet(token, "/v6/deployments", params);
     const deployments = (data.deployments as Array<Record<string, unknown>>) ?? [];
-    return {
+    return stampMeta({
       count: deployments.length,
       pagination: data.pagination,
       deployments: deployments.map((d) => ({
@@ -95,7 +96,11 @@ export async function listVercelDeployments(args: Record<string, unknown>): Prom
         creator: (d.creator as Record<string, unknown> | undefined)?.email,
         meta: d.meta,
       })),
-    };
+    }, {
+      source: "Vercel",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use vercel_get_deployment for full detail, or vercel_list_projects for projects."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
