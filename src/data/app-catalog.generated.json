@@ -72,7 +72,7 @@
       "slug": "airtable",
       "name": "Airtable",
       "category": "Productivity",
-      "blurb": "Interact with the Airtable REST API: list bases, list and search records, get a single record, and create or update records.",
+      "blurb": "Read and update records across your Airtable bases.",
       "domain": "airtable.com",
       "toolCount": 1,
       "tools": [
@@ -348,7 +348,7 @@
       "slug": "bluesky",
       "name": "Bluesky",
       "category": "Social",
-      "blurb": "Perform a Bluesky action: bluesky_post, bluesky_read_feed, bluesky_reply, bluesky_like, bluesky_repost, bluesky_search, bluesky_profile, bluesky_follow.",
+      "blurb": "Post, read, search, and follow on Bluesky.",
       "domain": "bsky.app",
       "toolCount": 1,
       "tools": [
@@ -620,7 +620,7 @@
       "slug": "clickup",
       "name": "Clickup",
       "category": "Productivity",
-      "blurb": "Interact with the ClickUp API v2: list workspaces and spaces, get lists and tasks, create tasks, and update task properties.",
+      "blurb": "Read and update ClickUp tasks, lists, and spaces.",
       "domain": "clickup.com",
       "toolCount": 1,
       "tools": [
@@ -636,7 +636,7 @@
       "slug": "clockify",
       "name": "Clockify",
       "category": "Productivity",
-      "blurb": "Perform a Clockify action: get_clockify_workspaces, get_time_entries, create_time_entry, get_clockify_projects, get_clockify_summary.",
+      "blurb": "Track time and read Clockify projects and reports.",
       "domain": "clockify.me",
       "toolCount": 1,
       "tools": [
@@ -788,7 +788,7 @@
       "slug": "commonsensepass",
       "name": "CommonSensePass",
       "category": "Quality (XPass)",
-      "blurb": "Run the verdict-only CommonSensePass sanity gate before a worker claims healthy, quiet, no_work, pass, done, merge_ready, duplicate_wake, or route.",
+      "blurb": "Sanity-gate a worker before it claims it is done.",
       "domain": null,
       "toolCount": 2,
       "tools": [
@@ -808,7 +808,7 @@
       "slug": "compliancepass",
       "name": "CompliancePass",
       "category": "Quality (XPass)",
-      "blurb": "Run CompliancePass against a local repo path. Returns evidence-backed readiness guidance, gaps, next actions, and an in-session run id. Historical EnterprisePass references are treated as this same product.",
+      "blurb": "Check a repo for compliance readiness and gaps.",
       "domain": null,
       "toolCount": 4,
       "tools": [
@@ -900,7 +900,7 @@
       "slug": "copypass",
       "name": "CopyPass",
       "category": "Quality (XPass)",
-      "blurb": "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, and optional CopyRoom exact-copy receipt.",
+      "blurb": "Review AI-written copy for quality and clarity.",
       "domain": null,
       "toolCount": 2,
       "tools": [
@@ -920,7 +920,7 @@
       "slug": "crews",
       "name": "Crews",
       "category": "Productivity",
-      "blurb": "Call this tool when the user wants to start a Crews Council run. In a sampling-capable MCP client, it prepares the run, asks advisors for opinions, runs peer review, persists the Chairman synthesis, and returns a ConversationalCard. If sampling is unavailable, the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
+      "blurb": "Run a multi-advisor Crews council on a task.",
       "domain": null,
       "toolCount": 3,
       "tools": [
@@ -1524,7 +1524,7 @@
       "slug": "fidelitycopy",
       "name": "FidelityCopy",
       "category": "Quality (XPass)",
-      "blurb": "Create a deterministic FidelityCopy receipt for exact copy work. AI may request the copy, but this tool computes source/output hashes and returns PASS only when the selected mode proves exact or approved fidelity.",
+      "blurb": "Prove exact-copy work with a verified receipt.",
       "domain": null,
       "toolCount": 2,
       "tools": [
@@ -1584,7 +1584,7 @@
       "slug": "flowpass",
       "name": "FlowPass",
       "category": "Quality (XPass)",
-      "blurb": "Run FlowPass against a public fixture or registered pack. Returns journey readiness, step verdicts, hat outputs, exclusions, and a stored report. Without fixture proof, returns a plan-only receipt instead of pretending a live journey ran.",
+      "blurb": "Check a user journey end to end for gaps.",
       "domain": null,
       "toolCount": 7,
       "tools": [
@@ -1688,7 +1688,7 @@
       "slug": "gdelt",
       "name": "GDELT",
       "category": "News & reading",
-      "blurb": "Search global news via the GDELT Project. Returns article titles, URLs, sources, dates, countries, and languages. No API key required.",
+      "blurb": "Search world news and event trends.",
       "domain": null,
       "toolCount": 4,
       "tools": [
@@ -1760,7 +1760,7 @@
       "slug": "gitlab",
       "name": "GitLab",
       "category": "Developer & infra",
-      "blurb": "Interact with the GitLab REST API: search projects, get project details, list issues and merge requests, and look up users. Supports self-hosted GitLab instances.",
+      "blurb": "Manage GitLab repos, issues, and merge requests.",
       "domain": "gitlab.com",
       "toolCount": 1,
       "tools": [
@@ -1924,7 +1924,7 @@
       "slug": "heygen",
       "name": "Heygen",
       "category": "AI",
-      "blurb": "Create an AI avatar video with HeyGen. The avatar speaks a script using a selected voice. Returns a video_id to poll for completion.",
+      "blurb": "Generate avatar videos and list voices.",
       "domain": "heygen.com",
       "toolCount": 4,
       "tools": [
@@ -1952,7 +1952,7 @@
       "slug": "higgsfield",
       "name": "Higgsfield",
       "category": "AI",
-      "blurb": "Generate a video from a text prompt using Higgsfield AI. Supports Soul Styles for cinematic looks. Returns a generation_id to poll for completion.",
+      "blurb": "Generate images and video from prompts.",
       "domain": null,
       "toolCount": 4,
       "tools": [
@@ -2072,7 +2072,7 @@
       "slug": "igniteonly",
       "name": "IgniteOnly",
       "category": "Quality (XPass)",
-      "blurb": "Return the PinballWake IgniteOnlyAPI guardrails. This is the green ignite sibling to NudgeOnly: verified worker wake packets only, no build, merge, approval, closure, or truth-setting.",
+      "blurb": "Run IgniteOnly policy checks and receipts.",
       "domain": null,
       "toolCount": 3,
       "tools": [
@@ -2096,7 +2096,7 @@
       "slug": "instapaper",
       "name": "Instapaper",
       "category": "News & reading",
-      "blurb": "Perform an Instapaper action: get_instapaper_bookmarks, add_instapaper_bookmark, archive_bookmark, delete_bookmark, get_instapaper_folders.",
+      "blurb": "Save and read articles in Instapaper.",
       "domain": "instapaper.com",
       "toolCount": 1,
       "tools": [
@@ -2229,14 +2229,14 @@
           "description": "Browse JobSmith's rule pack (counts by category and severity), optionally filtered by category."
         }
       ],
-      "level": null,
+      "level": 5,
       "hardened": false
     },
     {
       "slug": "keychain",
       "name": "Keychain",
       "category": "Developer & infra",
-      "blurb": "Store an encrypted platform credential in the UnClick Keychain. Tests the credential against the platform API before saving. Scoped to the caller's UNCLICK_API_KEY.",
+      "blurb": "Connect and manage your app logins and keys.",
       "domain": null,
       "toolCount": 5,
       "tools": [
@@ -2296,7 +2296,7 @@
       "slug": "kling",
       "name": "Kling",
       "category": "AI",
-      "blurb": "Generate a high-quality video from text using Kling AI (Kuaishou). Supports standard and professional modes. Returns a task_id to poll for completion.",
+      "blurb": "Generate video clips from text or images.",
       "domain": null,
       "toolCount": 2,
       "tools": [
@@ -2356,7 +2356,7 @@
       "slug": "legalpass",
       "name": "LegalPass",
       "category": "Quality (XPass)",
-      "blurb": "Run a LegalPass issue-spotting pass against a URL, contract upload, or repo. With fixture_text, returns deterministic public evidence; without it, returns the guarded run plan.",
+      "blurb": "Spot legal issues in text with guardrails.",
       "domain": null,
       "toolCount": 5,
       "tools": [
@@ -2620,7 +2620,7 @@
       "slug": "mastodon",
       "name": "Mastodon",
       "category": "Social",
-      "blurb": "Perform a Mastodon action: mastodon_post, mastodon_read_timeline, mastodon_reply, mastodon_boost, mastodon_favorite, mastodon_search, mastodon_profile, mastodon_follow, mastodon_notifications.",
+      "blurb": "Post, read, and search on Mastodon.",
       "domain": "joinmastodon.org",
       "toolCount": 1,
       "tools": [
@@ -2768,7 +2768,7 @@
       "slug": "monica",
       "name": "Monica",
       "category": "Productivity",
-      "blurb": "Perform a Monica CRM action: get_contacts, search_contacts, get_contact, create_contact, get_contact_reminders, get_activities, add_note.",
+      "blurb": "Manage contacts and reminders in Monica CRM.",
       "domain": "monicahq.com",
       "toolCount": 1,
       "tools": [
@@ -2952,7 +2952,7 @@
       "slug": "nudgeonly",
       "name": "NudgeOnly",
       "category": "Quality (XPass)",
-      "blurb": "Return the PinballWake NudgeOnlyAPI guardrails. This is a red-lane, read-only policy for 👉Nudge: painpoint hints only, no writes, no decisions, no truth-setting.",
+      "blurb": "Run NudgeOnly nudge policy and receipts.",
       "domain": null,
       "toolCount": 3,
       "tools": [
@@ -3364,7 +3364,7 @@
       "slug": "pika",
       "name": "Pika",
       "category": "AI",
-      "blurb": "Generate a creative AI video from a text prompt using Pika. Optionally animate an input image. Returns a generation_id to poll for completion.",
+      "blurb": "Generate short video clips with Pika.",
       "domain": null,
       "toolCount": 3,
       "tools": [
@@ -3636,7 +3636,7 @@
       "slug": "pushonly",
       "name": "PushOnly",
       "category": "Quality (XPass)",
-      "blurb": "Return the PinballWake PushOnlyAPI guardrails. This blue push lane turns verified IgniteOnly wake packets into worker-facing push envelopes only; no execution or source-of-truth writes.",
+      "blurb": "Run PushOnly wake-and-push policy.",
       "domain": null,
       "toolCount": 3,
       "tools": [
@@ -3692,7 +3692,7 @@
       "slug": "qc",
       "name": "QC",
       "category": "Quality (XPass)",
-      "blurb": "Run a sequential QC checklist against a website URL. Checks site load, SSL, meta tags, og:image, robots.txt, sitemap, console errors, broken links, response time, and copy quality (em dashes, banned words). Runs checks one at a time and returns a pass/fail/warn result for each.",
+      "blurb": "Run quality-control checklists and copy audits.",
       "domain": null,
       "toolCount": 3,
       "tools": [
@@ -3780,7 +3780,7 @@
       "slug": "raindrop",
       "name": "Raindrop",
       "category": "News & reading",
-      "blurb": "Perform a Raindrop.io action: search_raindrops, get_collection_raindrops, get_raindrop_collections, create_raindrop, get_raindrop, delete_raindrop.",
+      "blurb": "Save and organise bookmarks in Raindrop.",
       "domain": "raindrop.io",
       "toolCount": 1,
       "tools": [
@@ -3876,7 +3876,7 @@
       "slug": "readwise",
       "name": "Readwise",
       "category": "News & reading",
-      "blurb": "Perform a Readwise action: get_readwise_highlights, get_readwise_books, get_daily_review, search_highlights, create_highlight.",
+      "blurb": "Read your Readwise highlights and documents.",
       "domain": "readwise.io",
       "toolCount": 1,
       "tools": [
@@ -4096,7 +4096,7 @@
       "slug": "runway",
       "name": "Runway",
       "category": "AI",
-      "blurb": "Generate a video from text or an image using Runway ML. Supports text-to-video and image-to-video. Returns a task_id to poll for completion.",
+      "blurb": "Generate video with Runway models.",
       "domain": "runwayml.com",
       "toolCount": 3,
       "tools": [
@@ -4264,7 +4264,7 @@
       "slug": "seopass",
       "name": "SEOPass",
       "category": "Quality (XPass)",
-      "blurb": "Run SEOPass against a public URL or registered pack. Returns a live-readonly SEO verdict, score, findings, fix prompts, and an in-session run id.",
+      "blurb": "Check a page for search-visibility issues.",
       "domain": null,
       "toolCount": 4,
       "tools": [
@@ -4436,7 +4436,7 @@
       "slug": "sloppass",
       "name": "SlopPass",
       "category": "Quality (XPass)",
-      "blurb": "Run SlopPass against caller-provided source files or a unified diff. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, read repositories, persist source content, or make paid model calls by default.",
+      "blurb": "Catch AI-code slop and quality issues.",
       "domain": null,
       "toolCount": 1,
       "tools": [
@@ -5076,7 +5076,7 @@
       "slug": "trello",
       "name": "Trello",
       "category": "Productivity",
-      "blurb": "Interact with the Trello REST API: list boards and lists, get and search cards, create cards, and update card properties.",
+      "blurb": "Manage Trello boards, lists, and cards.",
       "domain": "trello.com",
       "toolCount": 1,
       "tools": [
@@ -5432,7 +5432,7 @@
       "slug": "uxpass",
       "name": "UXPass",
       "category": "Quality (XPass)",
-      "blurb": "Run a UI/UX quality check synchronously against a URL. Executes the deterministic uxpass-core check set (HTTP, HTML, accessibility, agent readability, performance, security) against the target and returns the run id, status, UX Score, and summary. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
+      "blurb": "Check a page's UI and UX for usability issues.",
       "domain": null,
       "toolCount": 6,
       "tools": [

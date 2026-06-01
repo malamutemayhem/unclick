@@ -86,7 +86,50 @@ const BLURB_OF = {
   openai: "Chat, embeddings, images, and transcription from OpenAI.",
   anthropic: "Chat completions from Claude models.",
   jobsmith: "Check a CV or cover letter against JobSmith's quality rules.",
+  airtable: "Read and update records across your Airtable bases.",
+  bluesky: "Post, read, search, and follow on Bluesky.",
+  clickup: "Read and update ClickUp tasks, lists, and spaces.",
+  clockify: "Track time and read Clockify projects and reports.",
+  commonsensepass: "Sanity-gate a worker before it claims it is done.",
+  compliancepass: "Check a repo for compliance readiness and gaps.",
+  copypass: "Review AI-written copy for quality and clarity.",
+  crews: "Run a multi-advisor Crews council on a task.",
+  fidelitycopy: "Prove exact-copy work with a verified receipt.",
+  flowpass: "Check a user journey end to end for gaps.",
+  gdelt: "Search world news and event trends.",
+  gitlab: "Manage GitLab repos, issues, and merge requests.",
+  heygen: "Generate avatar videos and list voices.",
+  higgsfield: "Generate images and video from prompts.",
+  igniteonly: "Run IgniteOnly policy checks and receipts.",
+  instapaper: "Save and read articles in Instapaper.",
+  keychain: "Connect and manage your app logins and keys.",
+  kling: "Generate video clips from text or images.",
+  legalpass: "Spot legal issues in text with guardrails.",
+  mastodon: "Post, read, and search on Mastodon.",
+  monica: "Manage contacts and reminders in Monica CRM.",
+  nudgeonly: "Run NudgeOnly nudge policy and receipts.",
+  pika: "Generate short video clips with Pika.",
+  pushonly: "Run PushOnly wake-and-push policy.",
+  qc: "Run quality-control checklists and copy audits.",
+  raindrop: "Save and organise bookmarks in Raindrop.",
+  readwise: "Read your Readwise highlights and documents.",
+  runway: "Generate video with Runway models.",
+  seopass: "Check a page for search-visibility issues.",
+  sloppass: "Catch AI-code slop and quality issues.",
+  trello: "Manage Trello boards, lists, and cards.",
+  uxpass: "Check a page's UI and UX for usability issues.",
 };
+
+// Keep every blurb a short, single-line sentence (the safety net for any new
+// connector whose first tool description is a long enumeration).
+function capBlurb(text) {
+  const t = String(text).replace(/\s+/g, " ").trim();
+  if (t.length <= 120) return t;
+  const firstSentence = t.split(/(?<=[.!?])\s/)[0];
+  if (firstSentence.length <= 120) return firstSentence;
+  const cut = t.slice(0, 117);
+  return cut.slice(0, cut.lastIndexOf(" ")).replace(/[,:;]+$/, "").trim() + ".";
+}
 
 // Brand domains for the favicon icon. Known brands show a real favicon (framed
 // consistently); unknown apps fall back to the tinted letter chip at render time.
@@ -144,7 +187,7 @@ function build() {
         slug,
         name: NAME_OF[slug] ?? titleCase(slug),
         category,
-        blurb: BLURB_OF[slug] ?? (tools[0]?.description ?? `${NAME_OF[slug] ?? titleCase(slug)} tools.`),
+        blurb: BLURB_OF[slug] ?? capBlurb(tools[0]?.description ?? `${NAME_OF[slug] ?? titleCase(slug)} tools.`),
         domain: DOMAIN_OF[slug] ?? null,
         toolCount: tools.length,
         tools: tools.map((t) => ({ name: t.name, description: t.description })),
