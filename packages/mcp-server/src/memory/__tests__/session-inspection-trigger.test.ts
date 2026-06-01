@@ -4,7 +4,7 @@ import {
   triggerSessionInspection,
   isSessionInspectionEnabled,
   resetSessionInspectionThrottle,
-} from "../session-inspection-trigger.ts";
+} from "../session-inspection-trigger.js";
 
 describe("session inspection trigger", () => {
   const realFetch = globalThis.fetch;
