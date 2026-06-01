@@ -2,14 +2,20 @@
 // Connects to Reddit via OAuth2 bearer tokens when provided.
 // Public GET endpoints fall back to www.reddit.com JSON so read-only tools work
 // for public Reddit content without requiring a user token.
-// No external dependencies - uses global fetch (Node 18+).
 // Rate limit: Reddit allows 60 requests/minute for OAuth clients.
 
+import { XMLParser } from "fast-xml-parser";
 import { stampMeta } from "./connector-meta.js";
 
 const REDDIT_OAUTH_BASE = "https://oauth.reddit.com";
 const REDDIT_PUBLIC_BASE = "https://www.reddit.com";
 const USER_AGENT = "UnClick-MCP/1.0 by unclick.dev";
+const RSS_XML_TEXT_NODE = "#text";
+const RSS_XML_PARSER = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: "",
+  textNodeName: RSS_XML_TEXT_NODE,
+});
 
 // Per-process rate limit tracking (headers from Reddit responses)
 let _remaining = 60;
@@ -127,7 +133,199 @@ async function rFetch(
   return json;
 }
 
+async function rFetchPublicRss(path: string): Promise<string | Record<string, unknown>> {
+  const rssPath = path.replace(/\.json$/i, "/.rss");
+  const url = `${REDDIT_PUBLIC_BASE}${rssPath}`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "User-Agent": USER_AGENT,
+      Accept: "application/atom+xml, application/xml;q=0.9, */*;q=0.8",
+    },
+  });
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("retry-after");
+    return {
+      error: "rate_limited",
+      message: "Reddit RSS rate limit exceeded.",
+      retry_after_seconds: retryAfter ? Number(retryAfter) : 60,
+    };
+  }
+
+  if (res.status === 404) {
+    return { error: "not_found", message: `Resource not found: ${rssPath}` };
+  }
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return { error: `http_${res.status}`, message: text || res.statusText };
+  }
+
+  return res.text();
+}
+
 // ── Shape helpers ────────────────────────────────────────────────────────────
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function toArray<T = unknown>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+  return value === undefined || value === null ? [] : [value as T];
+}
+
+function textValue(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  const record = asRecord(value);
+  if (!record) return "";
+  return textValue(record[RSS_XML_TEXT_NODE]);
+}
+
+function decodeHtmlEntities(value: string): string {
+  const named: Record<string, string> = {
+    amp: "&",
+    apos: "'",
+    gt: ">",
+    lt: "<",
+    nbsp: " ",
+    quot: "\"",
+  };
+
+  return value.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (match, entity: string) => {
+    const lower = entity.toLowerCase();
+    if (lower.startsWith("#x")) return String.fromCodePoint(parseInt(lower.slice(2), 16));
+    if (lower.startsWith("#")) return String.fromCodePoint(parseInt(lower.slice(1), 10));
+    return named[lower] ?? match;
+  });
+}
+
+function htmlToText(value: string): string {
+  let html = decodeHtmlEntities(decodeHtmlEntities(value));
+  const mdMatch = html.match(/<!--\s*SC_OFF\s*-->\s*<div class="md">([\s\S]*?)<\/div>\s*<!--\s*SC_ON\s*-->/i)
+    ?? html.match(/<div class="md">([\s\S]*?)<\/div>/i);
+  if (mdMatch) html = mdMatch[1];
+
+  return decodeHtmlEntities(html)
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|blockquote|h[1-6])>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[ \t\f\v]+/g, " ")
+    .replace(/\s*\n\s*/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function linkHref(entry: Record<string, unknown>): string | null {
+  const links = toArray<Record<string, unknown>>(entry["link"]);
+  for (const link of links) {
+    const href = textValue(link?.["href"]);
+    if (href) return href;
+  }
+  return null;
+}
+
+function entryAuthor(entry: Record<string, unknown>): string | null {
+  const author = asRecord(entry["author"]);
+  const name = textValue(author?.["name"]).trim();
+  return name ? name.replace(/^\/u\//i, "") : null;
+}
+
+function entrySubreddit(entry: Record<string, unknown>): string | null {
+  const category = asRecord(entry["category"]);
+  const term = textValue(category?.["term"]).trim();
+  return term || null;
+}
+
+function entryCreatedUtc(entry: Record<string, unknown>): number | null {
+  const updated = textValue(entry["updated"] ?? entry["published"]).trim();
+  if (!updated) return null;
+  const parsed = Date.parse(updated);
+  return Number.isNaN(parsed) ? null : Math.floor(parsed / 1000);
+}
+
+function entryFullname(entry: Record<string, unknown>, permalink: string | null, fallbackKind: "t1" | "t3"): string | null {
+  const idText = textValue(entry["id"]);
+  const fullname = idText.match(/\bt[13]_[a-z0-9]+\b/i)?.[0];
+  if (fullname) return fullname;
+
+  const commentId = permalink?.match(/\/comments\/[^/]+\/[^/]+\/([^/?#]+)/i)?.[1];
+  if (commentId) return `${fallbackKind}_${commentId}`;
+
+  const postId = permalink?.match(/\/comments\/([^/?#]+)/i)?.[1];
+  return postId ? `${fallbackKind}_${postId}` : null;
+}
+
+function shapeThreadFromRss(xml: string, limit: number): Record<string, unknown> {
+  const parsed = RSS_XML_PARSER.parse(xml);
+  const feed = asRecord(asRecord(parsed)?.["feed"]);
+  const entries = toArray<Record<string, unknown>>(feed?.["entry"]);
+
+  if (entries.length === 0) {
+    return { error: "unexpected_response", message: "Reddit RSS response contained no thread entries." };
+  }
+
+  const items = entries.map((entry) => {
+    const permalink = linkHref(entry);
+    const body = htmlToText(textValue(entry["content"]));
+    const name = entryFullname(entry, permalink, permalink?.match(/\/comments\/[^/]+\/[^/]+\/[^/?#]+/i) ? "t1" : "t3");
+    return {
+      id: name?.replace(/^t[13]_/, "") ?? null,
+      name,
+      author: entryAuthor(entry),
+      body,
+      title: decodeHtmlEntities(textValue(entry["title"])).trim(),
+      permalink,
+      subreddit: entrySubreddit(entry),
+      created_utc: entryCreatedUtc(entry),
+    };
+  });
+
+  const postEntry = items[0];
+  const comments = items.slice(1, limit + 1).map((item) => ({
+    id: item.id,
+    name: item.name,
+    author: item.author,
+    body: item.body,
+    score: null,
+    created_utc: item.created_utc,
+    permalink: item.permalink,
+    parent_id: null,
+    subreddit: item.subreddit,
+  }));
+
+  return stampMeta({
+    post: {
+      id: postEntry.id,
+      name: postEntry.name,
+      title: postEntry.title,
+      author: postEntry.author,
+      subreddit: postEntry.subreddit,
+      score: null,
+      upvote_ratio: null,
+      num_comments: comments.length,
+      url: postEntry.permalink,
+      permalink: postEntry.permalink,
+      selftext: postEntry.body || null,
+      is_self: null,
+      created_utc: postEntry.created_utc,
+      nsfw: null,
+      spoiler: null,
+      flair: null,
+    },
+    count: comments.length,
+    comments,
+  }, {
+    source: "Reddit RSS",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use reddit_comment with a Reddit OAuth token to reply to the post or a comment."],
+  });
+}
 
 function shapePosts(listing: unknown): unknown[] {
   if (
@@ -406,7 +604,16 @@ export async function redditThread(args: RedditThreadArgs): Promise<unknown> {
   if (args.sort) params["sort"] = args.sort;
 
   const result = await rFetch("GET", path, args.access_token, params);
-  if (result && typeof result === "object" && "error" in (result as object)) return result;
+  if (result && typeof result === "object" && "error" in (result as object)) {
+    const token = args.access_token?.trim();
+    const error = (result as Record<string, unknown>)["error"];
+    if (!token && (error === "forbidden" || error === "http_403")) {
+      const rss = await rFetchPublicRss(path);
+      if (typeof rss !== "string") return rss;
+      return shapeThreadFromRss(rss, limit);
+    }
+    return result;
+  }
   if (!Array.isArray(result)) {
     return { error: "unexpected_response", message: "Reddit thread response was not a listing pair." };
   }
