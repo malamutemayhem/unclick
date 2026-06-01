@@ -1273,7 +1273,7 @@
       "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
-      "memoryAware": false,
+      "memoryAware": true,
       "proactive": false,
       "agentic": true,
       "sourceStamped": true
@@ -2253,7 +2253,7 @@
       "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
-      "memoryAware": false,
+      "memoryAware": true,
       "proactive": false,
       "agentic": true,
       "sourceStamped": true

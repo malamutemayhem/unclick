@@ -69,3 +69,70 @@ describe("PTV memory defaults", () => {
     expect(result.applied).toEqual([]);
   });
 });
+
+describe("generic connector memory defaults", () => {
+  const backendWith = (rows: unknown[]) => ({
+    async getBusinessContext() {
+      return rows;
+    },
+    async searchMemory() {
+      return [];
+    },
+  });
+
+  it("fills a saved Turso org when none is supplied", async () => {
+    const result = await applyToolMemoryDefaults("turso_list_databases", {}, {
+      backend: backendWith([
+        { category: "connector_defaults", key: "turso", value: { org: "acme-co" } },
+      ]),
+    });
+
+    expect(result.args).toMatchObject({
+      org: "acme-co",
+      __unclick_memory_defaults: ["memory.org"],
+    });
+    expect(result.applied).toEqual(["memory.org"]);
+  });
+
+  it("fills a saved Neon project_id", async () => {
+    const result = await applyToolMemoryDefaults("neon_get_project", {}, {
+      backend: backendWith([
+        { category: "connector_defaults", key: "neon", value: { project_id: "proj-123" } },
+      ]),
+    });
+
+    expect(result.args).toMatchObject({ project_id: "proj-123", __unclick_memory_defaults: ["memory.project_id"] });
+  });
+
+  it("fills a saved home city for weather and tolerates a JSON-string value", async () => {
+    const result = await applyToolMemoryDefaults("weather_current", {}, {
+      backend: backendWith([
+        { category: "connector_defaults", key: "weather", value: JSON.stringify({ city: "Melbourne" }) },
+      ]),
+    });
+
+    expect(result.args).toMatchObject({ city: "Melbourne", __unclick_memory_defaults: ["memory.city"] });
+  });
+
+  it("does not override an explicit location (guard args)", async () => {
+    const result = await applyToolMemoryDefaults("weather_current", { latitude: 1, longitude: 2 }, {
+      backend: backendWith([
+        { category: "connector_defaults", key: "weather", value: { city: "Melbourne" } },
+      ]),
+    });
+
+    expect(result.args).toEqual({ latitude: 1, longitude: 2 });
+    expect(result.applied).toEqual([]);
+  });
+
+  it("is a no-op for tools without a registered default", async () => {
+    const result = await applyToolMemoryDefaults("openai_chat_completion", { model: "x" }, {
+      backend: backendWith([
+        { category: "connector_defaults", key: "turso", value: { org: "acme-co" } },
+      ]),
+    });
+
+    expect(result.args).toEqual({ model: "x" });
+    expect(result.applied).toEqual([]);
+  });
+});

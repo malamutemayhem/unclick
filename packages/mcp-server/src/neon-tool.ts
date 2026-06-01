@@ -120,8 +120,17 @@ export async function neonGetProject(args: Record<string, unknown>): Promise<unk
   const projectId = String(args.project_id ?? "").trim();
   if (!projectId) return { error: "project_id is required." };
 
+  const defaultsUsed = Array.isArray(args.__unclick_memory_defaults)
+    ? args.__unclick_memory_defaults.filter((v): v is string => typeof v === "string")
+    : [];
   try {
-    return neonFetch(apiKey, "GET", `/projects/${encodeURIComponent(projectId)}`);
+    const __res = await neonFetch(apiKey, "GET", `/projects/${encodeURIComponent(projectId)}`) as Record<string, unknown>;
+    return stampMeta(__res, {
+      source: "Neon",
+      fetched_at: new Date().toISOString(),
+      defaults_used: defaultsUsed,
+      next_steps: ["Use neon_list_branches for this project's branches, or neon_list_databases for its databases."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

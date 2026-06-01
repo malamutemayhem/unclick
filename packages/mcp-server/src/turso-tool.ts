@@ -74,10 +74,14 @@ export async function tursoListDatabases(args: Record<string, unknown>): Promise
   if (!org) return { error: "org is required (your Turso organization name or username)." };
 
   try {
+    const defaultsUsed = Array.isArray(args.__unclick_memory_defaults)
+      ? args.__unclick_memory_defaults.filter((v): v is string => typeof v === "string")
+      : [];
     const __res = await tursoFetch(apiKey, "GET", `${TURSO_API_BASE}/organizations/${encodeURIComponent(org)}/databases`) as Record<string, unknown>;
     return stampMeta(__res, {
       source: "Turso",
       fetched_at: new Date().toISOString(),
+      defaults_used: defaultsUsed,
       next_steps: ["Use turso_get_database for detail, or turso_list_groups for groups."],
     });
   } catch (err) {

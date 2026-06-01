@@ -71,6 +71,26 @@ Requirement: fill missing args from UnClick memory defaults so the agent can say
   `args.__unclick_memory_defaults` and falls back to env defaults, recording
   which defaults were used).
 
+**L3 is opt-in by nature, not a universal target.** Unlike L5 (which applies to
+every data read), a memory default only helps a connector that has a stable
+per-user "home/default" value worth remembering: a home location, a single
+org/project, a default workspace. Stateless lookups (`search X`, `get Y by id`)
+have no natural default, so a `no-memory` gap on them is expected, not a defect.
+
+The injection is centralized, so adding L3 to an eligible connector is two small
+steps, both wired end-to-end (never a marker without a working fill):
+
+1. Register the tool in `CONNECTOR_DEFAULTS_REGISTRY` in
+   `tool-memory-defaults.ts` with its `connector` key, the `guardArgs` (only fill
+   when the caller supplied none of them, so an explicit choice is never
+   overridden), and the `fillArgs` to apply. The user stores the value once as
+   business context `{ category: "connector_defaults", key: <connector>,
+   value: { <arg>: <value> } }`.
+2. In the connector, read `args.__unclick_memory_defaults` and pass it through as
+   `defaults_used` on the stamp, so the response advertises what was filled from
+   memory. `turso`, `neon`, `openmeteo` (weather), `amber`, and `ptv` are the
+   live references.
+
 ### L4 Proactive
 Requirement: emit a signal when something the user cares about changes (a
 disruption, a price spike, a status change), instead of only answering on demand.

@@ -124,14 +124,60 @@ async function loadPtvDefaults(backend: DefaultableBackend): Promise<PtvDefaults
   return extractPtvDefaultsFromMemoryRows(Array.isArray(memoryRows) ? memoryRows : []);
 }
 
-export async function applyToolMemoryDefaults(
-  toolName: string,
-  args: Record<string, unknown>,
-  options: { backend?: DefaultableBackend } = {}
-): Promise<ToolMemoryDefaultsResult> {
-  if (toolName !== "ptv_departures" || args.stop_id !== undefined) {
-    return { args, applied: [] };
+// ─── Generic connector defaults (the L3 registry beyond PTV) ────────────────────
+// L3 (memory-aware) is opt-in by nature: it only helps a connector that has a
+// stable per-user "home/default" value worth remembering (a home location, a
+// single org/project). Stateless lookups (search X, get Y by id) have no natural
+// default and are intentionally absent here. Defaults are read from business
+// context shaped as { category: "connector_defaults", key: <connector>,
+// value: { <arg>: <value> } } and applied only when the caller supplied none of
+// the guard args, so an explicit choice is never overridden.
+interface ConnectorDefaultSpec {
+  connector: string;   // business-context key holding the saved default
+  guardArgs: string[]; // fill only if the caller supplied none of these
+  fillArgs: string[];  // which keys of the stored object to apply, in order
+}
+
+const CONNECTOR_DEFAULTS_REGISTRY: Record<string, ConnectorDefaultSpec> = {
+  // Turso: one org per user; every read is scoped to it.
+  turso_list_databases: { connector: "turso", guardArgs: ["org"], fillArgs: ["org"] },
+  turso_get_database:   { connector: "turso", guardArgs: ["org"], fillArgs: ["org"] },
+  turso_list_groups:    { connector: "turso", guardArgs: ["org"], fillArgs: ["org"] },
+  // Neon: a developer usually works against one project.
+  neon_get_project:    { connector: "neon", guardArgs: ["project_id"], fillArgs: ["project_id"] },
+  neon_list_branches:  { connector: "neon", guardArgs: ["project_id"], fillArgs: ["project_id"] },
+  neon_list_databases: { connector: "neon", guardArgs: ["project_id"], fillArgs: ["project_id"] },
+  // Weather: "the weather" means the user's home location (city, or lat/lon).
+  weather_current:  { connector: "weather", guardArgs: ["latitude", "longitude", "city"], fillArgs: ["city", "latitude", "longitude"] },
+  weather_forecast: { connector: "weather", guardArgs: ["latitude", "longitude", "city"], fillArgs: ["city", "latitude", "longitude"] },
+  weather_hourly:   { connector: "weather", guardArgs: ["latitude", "longitude", "city"], fillArgs: ["city", "latitude", "longitude"] },
+};
+
+const GENERIC_DEFAULT_CATEGORIES = ["connector_defaults", "tool_defaults"];
+
+export async function loadConnectorDefaults(
+  backend: DefaultableBackend,
+  connector: string,
+): Promise<Record<string, unknown> | null> {
+  const businessContext = await backend.getBusinessContext().catch(() => []);
+  for (const row of businessContext) {
+    const record = asRecord(row);
+    if (!record) continue;
+    const category = String(record.category ?? "").toLowerCase();
+    const key = String(record.key ?? "").toLowerCase();
+    if (!GENERIC_DEFAULT_CATEGORIES.includes(category)) continue;
+    if (key !== connector) continue;
+    const value = asRecord(parseJsonish(record.value));
+    if (value) return value;
   }
+  return null;
+}
+
+async function applyPtvDefaults(
+  args: Record<string, unknown>,
+  options: { backend?: DefaultableBackend },
+): Promise<ToolMemoryDefaultsResult> {
+  if (args.stop_id !== undefined) return { args, applied: [] };
 
   const backend = options.backend ?? await getBackend();
   const defaults = await loadPtvDefaults(backend);
@@ -141,6 +187,39 @@ export async function applyToolMemoryDefaults(
   const applied: string[] = [];
   for (const [key, value] of Object.entries(defaults)) {
     if (nextArgs[key] !== undefined || value === undefined) continue;
+    nextArgs[key] = value;
+    applied.push(`memory.${key}`);
+  }
+  if (applied.length > 0) nextArgs.__unclick_memory_defaults = applied;
+  return { args: nextArgs, applied };
+}
+
+export async function applyToolMemoryDefaults(
+  toolName: string,
+  args: Record<string, unknown>,
+  options: { backend?: DefaultableBackend } = {}
+): Promise<ToolMemoryDefaultsResult> {
+  // PTV keeps its richer bespoke loader (memory-text extraction + normalization).
+  if (toolName === "ptv_departures") return applyPtvDefaults(args, options);
+
+  const spec = CONNECTOR_DEFAULTS_REGISTRY[toolName];
+  if (!spec) return { args, applied: [] };
+  // Never override an explicit choice: only fill when the caller gave none of
+  // the guard args (e.g. a weather request that already named a city/lat-lon).
+  if (spec.guardArgs.some((a) => args[a] !== undefined && String(args[a]).trim() !== "")) {
+    return { args, applied: [] };
+  }
+
+  const backend = options.backend ?? await getBackend();
+  const stored = await loadConnectorDefaults(backend, spec.connector);
+  if (!stored) return { args, applied: [] };
+
+  const nextArgs: Record<string, unknown> = { ...args };
+  const applied: string[] = [];
+  for (const key of spec.fillArgs) {
+    if (nextArgs[key] !== undefined) continue;
+    const value = stored[key];
+    if (value === undefined || value === null || String(value).trim() === "") continue;
     nextArgs[key] = value;
     applied.push(`memory.${key}`);
   }

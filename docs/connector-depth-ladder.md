@@ -103,7 +103,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 | L5 Agentic | `monday` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `musicbrainz` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `nasa` | Yes | - | - | Yes | Yes | no-memory |
-| L5 Agentic | `neon` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `neon` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `newsapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `nvd` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `omdb` | Yes | - | - | Yes | Yes | no-memory |
@@ -152,7 +152,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 | L5 Agentic | `tomorrowio` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `trivia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `trove` | Yes | - | - | Yes | Yes | no-memory |
-| L5 Agentic | `turso` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `turso` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `twilio` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `twitch` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `untappd` | Yes | - | - | Yes | Yes | no-memory |
