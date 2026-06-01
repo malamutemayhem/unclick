@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const TM_BASE = "https://app.ticketmaster.com/discovery/v2";
 
 async function tmGet(
@@ -61,12 +62,16 @@ export async function tmSearchEvents(args: Record<string, unknown>): Promise<unk
     const data = await tmGet(apiKey, "/events.json", params);
     const embedded = data._embedded as Record<string, unknown> | undefined;
     const page = data.page as Record<string, unknown> | undefined;
-    return {
+    return stampMeta({
       total_elements: page?.totalElements,
       total_pages:    page?.totalPages,
       page:           page?.number,
       events: (embedded?.events as unknown[]) ?? [],
-    };
+    }, {
+      source: "Ticketmaster Discovery",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use tm_get_event with a result id, or tm_search_venues to find venues."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

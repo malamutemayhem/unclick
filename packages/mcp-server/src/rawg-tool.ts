@@ -3,6 +3,8 @@
 // Env var: RAWG_API_KEY
 // Base URL: https://api.rawg.io/api/
 
+import { stampMeta } from "./connector-meta.js";
+
 const RAWG_BASE = "https://api.rawg.io/api";
 
 // ─── API helper ───────────────────────────────────────────────────────────────
@@ -99,11 +101,15 @@ export async function rawgSearchGames(
   const data = await rawgFetch<Record<string, unknown>>("/games", key, extra);
   const results = (data.results as Record<string, unknown>[]) ?? [];
 
-  return {
+  return stampMeta({
     count: data.count ?? 0,
     next: data.next ?? null,
     results: results.map(normalizeGame),
-  };
+  }, {
+    source: "RAWG",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use rawg_get_game for full detail, or rawg_game_screenshots for media."],
+  });
 }
 
 // ─── rawg_get_game ────────────────────────────────────────────────────────────

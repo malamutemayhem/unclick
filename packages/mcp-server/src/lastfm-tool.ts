@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const LASTFM_BASE = "https://ws.audioscrobbler.com/2.0";
 const LASTFM_TIMEOUT_MS = Number(process.env.LASTFM_TIMEOUT_MS) || 10000;
 
@@ -59,7 +60,11 @@ export async function lastfmGetArtistInfo(args: Record<string, unknown>): Promis
     const params: Record<string, string | number> = { artist };
     if (args.lang) params.lang = String(args.lang);
     const data = await lastfmGet(apiKey, "artist.getinfo", params);
-    return data.artist ?? data;
+    return stampMeta((data.artist ?? data) as Record<string, unknown>, {
+      source: "Last.fm",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use lastfm_top_tracks for this artist, or lastfm_similar_artists for related acts."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

@@ -2,6 +2,8 @@
 // Uses the Chess.com Published-Data API via fetch - no external dependencies, no API key required.
 // Documentation: https://www.chess.com/news/view/published-data-api
 
+import { stampMeta } from "./connector-meta.js";
+
 const CHESS_BASE = "https://api.chess.com/pub";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
@@ -55,7 +57,7 @@ export async function chessPlayer(
     `/player/${username}`
   )) as Record<string, unknown>;
 
-  return {
+  return stampMeta({
     username: data.username,
     name: data.name ?? null,
     title: data.title ?? null,
@@ -70,7 +72,11 @@ export async function chessPlayer(
     verified: data.verified ?? false,
     url: data.url ?? null,
     avatar: data.avatar ?? null,
-  };
+  }, {
+    source: "Chess.com",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use chess_player_stats for ratings, or chess_player_games for recent games."],
+  });
 }
 
 export async function chessPlayerStats(

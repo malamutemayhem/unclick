@@ -4,6 +4,8 @@
 // Docs: https://api.setlist.fm/docs/1.0/index.html
 // No external dependencies - native fetch only.
 
+import { stampMeta } from "./connector-meta.js";
+
 const SETLISTFM_BASE = "https://api.setlist.fm/rest/1.0";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -75,8 +77,13 @@ export async function setlistfmSearchArtist(args: Record<string, unknown>): Prom
   const apiKey = getApiKey(args);
   if (!apiKey) return { error: "SETLISTFM_API_KEY env var (or api_key arg) is required." };
 
-  return sfmFetch("/search/artists", apiKey, {
+  const __res = await sfmFetch("/search/artists", apiKey, {
     artistName: args.artistName ? String(args.artistName) : undefined,
+  }) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "setlist.fm",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use setlistfm_artist_setlists with an artist mbid for past shows."],
   });
 }
 

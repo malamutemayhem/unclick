@@ -6,6 +6,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const TROVE_BASE = "https://api.trove.nla.gov.au/v3";
 
@@ -80,13 +81,17 @@ export async function searchTrove(args: Record<string, unknown>): Promise<unknow
     const zoneData = (response?.["zone"] as Array<Record<string, unknown>>)?.[0];
     const records = zoneData?.["records"] as Record<string, unknown> | undefined;
 
-    return {
+    return stampMeta({
       query,
       zone,
       total: records?.["total"] ?? 0,
       next_start: records?.["nextStart"] ?? null,
       results: records?.["article"] ?? records?.["work"] ?? records?.["item"] ?? [],
-    };
+    }, {
+      source: "Trove (National Library of Australia)",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use trove_get_work or trove_newspaper_article for full detail on a result."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

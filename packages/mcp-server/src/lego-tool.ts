@@ -9,6 +9,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const REBRICKABLE_BASE = "https://rebrickable.com/api/v3/lego";
 const BRICKSET_BASE = "https://brickset.com/api/v3.asmx";
@@ -94,7 +95,7 @@ export async function legoSearchSets(
   );
   const results = (data.results as Record<string, unknown>[]) ?? [];
 
-  return {
+  return stampMeta({
     count: data.count ?? 0,
     next: data.next ?? null,
     sets: results.map((s) => ({
@@ -106,7 +107,11 @@ export async function legoSearchSets(
       set_img_url: s.set_img_url ?? null,
       set_url: s.set_url ?? null,
     })),
-  };
+  }, {
+    source: "Rebrickable (LEGO)",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use lego_get_set for full detail, or lego_set_parts for the parts list."],
+  });
 }
 
 // ─── lego_get_set ─────────────────────────────────────────────────────────────

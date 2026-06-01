@@ -4,6 +4,7 @@
 // Base URL: https://boardgamegeek.com/xmlapi2
 
 import { XMLParser } from "fast-xml-parser";
+import { stampMeta } from "./connector-meta.js";
 
 const BGG_BASE = "https://boardgamegeek.com/xmlapi2";
 
@@ -116,7 +117,7 @@ export async function bggSearch(args: Record<string, unknown>): Promise<unknown>
   const root = (data.items ?? {}) as Record<string, unknown>;
   const items = (root.item as Record<string, unknown>[]) ?? [];
 
-  return {
+  return stampMeta({
     total: Number(attr(root, "total") ?? items.length),
     results: items.slice(0, 20).map((item) => ({
       id: attr(item, "id"),
@@ -124,7 +125,11 @@ export async function bggSearch(args: Record<string, unknown>): Promise<unknown>
       name: primaryName(item.name),
       year_published: val(item.yearpublished) || null,
     })),
-  };
+  }, {
+    source: "BoardGameGeek",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use bgg_game_details with a result id, or bgg_top_games for the current rankings."],
+  });
 }
 
 // ─── bgg_game_details ─────────────────────────────────────────────────────────

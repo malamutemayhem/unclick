@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const EBIRD_BASE = "https://api.ebird.org/v2";
 
@@ -93,7 +94,7 @@ export async function getRecentObservations(
     apiKey
   );
 
-  return {
+  return stampMeta({
     region_code: regionCode,
     back_days:   Number(back),
     count:       data.length,
@@ -110,7 +111,11 @@ export async function getRecentObservations(
       valid:        o.obsValid,
       reviewed:     o.obsReviewed,
     })),
-  };
+  }, {
+    source: "eBird (Cornell Lab)",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use ebird_notable_observations for rare sightings, or ebird_species_info for a species."],
+  });
 }
 
 export async function getNotableObservations(

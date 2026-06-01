@@ -2,6 +2,8 @@
 // Uses the Lichess public API via fetch - no external dependencies, no API key required.
 // Documentation: https://lichess.org/api
 
+import { stampMeta } from "./connector-meta.js";
+
 const LICHESS_BASE = "https://lichess.org/api";
 const LICHESS_TIMEOUT_MS = Number(process.env.LICHESS_TIMEOUT_MS) || 10000;
 
@@ -66,7 +68,7 @@ export async function lichessUser(
     ratings[key] = (val as Record<string, unknown>).rating as number ?? null;
   }
 
-  return {
+  return stampMeta({
     id: data.id,
     username: data.username,
     title: data.title ?? null,
@@ -85,7 +87,11 @@ export async function lichessUser(
       : null,
     ratings,
     online: data.online ?? false,
-  };
+  }, {
+    source: "Lichess",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use lichess_user_games for recent games, or lichess_top_players for leaderboards."],
+  });
 }
 
 export async function lichessUserGames(

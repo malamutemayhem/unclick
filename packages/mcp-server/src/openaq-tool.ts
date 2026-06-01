@@ -3,6 +3,8 @@
 // Auth: OPENAQ_API_KEY env or api_key arg (X-API-Key header).
 // Docs: https://docs.openaq.io/
 
+import { stampMeta } from "./connector-meta.js";
+
 const OPENAQ_BASE = "https://api.openaq.io/v3";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
@@ -80,7 +82,7 @@ export async function getAirQuality(
 
   const data = await openaqFetch<LocationsResponse>("/locations", params, apiKey);
 
-  return {
+  return stampMeta({
     count:     data.meta?.found ?? data.results.length,
     locations: data.results.map((loc) => ({
       id:          loc.id,
@@ -102,7 +104,11 @@ export async function getAirQuality(
         ? (loc.datetimeLast as Record<string, unknown>).utc ?? null
         : null,
     })),
-  };
+  }, {
+    source: "OpenAQ",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use openaq_measurements for a location's readings, or openaq_countries to list coverage."],
+  });
 }
 
 export async function getAirMeasurements(

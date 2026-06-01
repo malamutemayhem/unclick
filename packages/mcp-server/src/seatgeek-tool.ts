@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const SEATGEEK_BASE = "https://api.seatgeek.com/2";
 
@@ -64,10 +65,14 @@ export async function seatgeekSearchEvents(args: Record<string, unknown>): Promi
     if (args.per_page)       params.per_page       = Number(args.per_page);
     if (args.page)           params.page           = Number(args.page);
     const data = await seatgeekGet(clientId, "/events", params);
-    return {
+    return stampMeta({
       total:  data.meta ? (data.meta as Record<string, unknown>).total : undefined,
       events: data.events,
-    };
+    }, {
+      source: "SeatGeek",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use seatgeek_get_event with a result id, or seatgeek_search_performers to find acts."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

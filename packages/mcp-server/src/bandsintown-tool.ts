@@ -5,6 +5,8 @@
 // Docs: https://app.swaggerhub.com/apis/Bandsintown/PublicAPI/3.0.0
 // No external dependencies - native fetch only.
 
+import { stampMeta } from "./connector-meta.js";
+
 const BANDSINTOWN_BASE = "https://rest.bandsintown.com";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -78,7 +80,12 @@ export async function bandsintownArtist(args: Record<string, unknown>): Promise<
   const artistName = String(args.artist_name ?? "").trim();
   if (!artistName) return { error: "artist_name is required." };
 
-  return bitFetch(`/artists/${encodeURIComponent(artistName)}`, appId);
+  const __res = await bitFetch(`/artists/${encodeURIComponent(artistName)}`, appId) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Bandsintown",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use bandsintown_events for this artist's upcoming shows."],
+  });
 }
 
 // ─── bandsintown_events ────────────────────────────────────────────────────────

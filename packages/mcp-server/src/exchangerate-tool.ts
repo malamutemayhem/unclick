@@ -4,6 +4,8 @@
 // Base: https://v6.exchangerate-api.com/v6/{api_key}
 // Free tier (no key): https://open.er-api.com/v6 (latest rates only)
 
+import { stampMeta } from "./connector-meta.js";
+
 const EXCHANGERATE_BASE = "https://v6.exchangerate-api.com/v6";
 const EXCHANGERATE_FREE_BASE = "https://open.er-api.com/v6";
 const EXCHANGERATE_TIMEOUT_MS = Number(process.env.EXCHANGERATE_TIMEOUT_MS) || 10000;
@@ -53,12 +55,16 @@ export async function exchangerateLatest(args: Record<string, unknown>): Promise
       : `${EXCHANGERATE_FREE_BASE}/latest/${base}`;
 
     const json = await erGet(url);
-    return {
+    return stampMeta({
       base_code: json.base_code,
       time_last_update_utc: json.time_last_update_utc,
       time_next_update_utc: json.time_next_update_utc,
       rates: json.conversion_rates,
-    };
+    }, {
+      source: "ExchangeRate-API",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use exchangerate_convert to convert an amount, or exchangerate_historical for a past date."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

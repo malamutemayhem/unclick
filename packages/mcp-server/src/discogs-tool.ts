@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const DISCOGS_BASE = "https://api.discogs.com";
 const DISCOGS_TIMEOUT_MS = Number(process.env.DISCOGS_TIMEOUT_MS) || 10000;
@@ -72,12 +73,16 @@ export async function discogsSearchReleases(args: Record<string, unknown>): Prom
     if (args.per_page) params.per_page = Number(args.per_page);
     if (args.page)     params.page     = Number(args.page);
     const data = await discogsGet(token, "/database/search", params);
-    return {
+    return stampMeta({
       total:   (data.pagination as Record<string, unknown>)?.items,
       pages:   (data.pagination as Record<string, unknown>)?.pages,
       page:    (data.pagination as Record<string, unknown>)?.page,
       results: data.results,
-    };
+    }, {
+      source: "Discogs",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use discogs_get_release with a result id, or discogs_get_artist for an artist's discography."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

@@ -2,6 +2,8 @@
 // Uses the MusicBrainz REST API via fetch - no external dependencies.
 // No auth required. Identifies with a User-Agent header as required by MusicBrainz policy.
 
+import { stampMeta } from "./connector-meta.js";
+
 const MB_BASE = "https://musicbrainz.org/ws/2";
 const MB_USER_AGENT = "UnClick/1.0 (support@unclick.world)";
 const MUSICBRAINZ_TIMEOUT_MS = Number(process.env.MUSICBRAINZ_TIMEOUT_MS) || 10000;
@@ -56,7 +58,12 @@ export async function mbSearchArtists(args: Record<string, unknown>): Promise<un
   const query = String(args.query ?? "").trim();
   if (!query) throw new Error("query is required.");
   const limit = args.limit !== undefined ? Number(args.limit) : undefined;
-  return mbCall("/artist", { query, limit });
+  const __res = await mbCall("/artist", { query, limit }) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "MusicBrainz",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use mb_get_artist with an mbid for full detail, or mb_search_releases to find albums."],
+  });
 }
 
 export async function mbSearchReleases(args: Record<string, unknown>): Promise<unknown> {

@@ -2,6 +2,8 @@
 // No authentication required - completely free and open.
 // Base URL: https://de1.api.radio-browser.info/json/
 
+import { stampMeta } from "./connector-meta.js";
+
 const RADIO_BASE = "https://de1.api.radio-browser.info/json";
 const RADIO_TIMEOUT_MS = Number(process.env.RADIOBROWSER_TIMEOUT_MS) || 10000;
 
@@ -89,10 +91,14 @@ export async function radioSearch(args: Record<string, unknown>): Promise<unknow
   }
 
   const data = await radioFetch("/stations/search", params) as Station[];
-  return {
+  return stampMeta({
     count: data.length,
     stations: data.map(normalizeStation),
-  };
+  }, {
+    source: "Radio Browser",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use radio_by_country or radio_by_tag to browse, or radio_top_voted for popular stations."],
+  });
 }
 
 // ─── radio_by_country ─────────────────────────────────────────────────────────

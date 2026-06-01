@@ -2,6 +2,8 @@
 // No API key required -- free public API.
 // Base URL: https://www.themealdb.com/api/json/v1/1/
 
+import { stampMeta } from "./connector-meta.js";
+
 const MEALDB_BASE = "https://www.themealdb.com/api/json/v1/1";
 
 interface MealSummary {
@@ -102,11 +104,15 @@ export async function searchMeals(args: Record<string, unknown>): Promise<unknow
     return { query, count: 0, meals: [], message: `No meals found matching "${query}".` };
   }
 
-  return {
+  return stampMeta({
     query,
     count: data.meals.length,
     meals: (data.meals as MealDetail[]).map(normalizeMeal),
-  };
+  }, {
+    source: "TheMealDB",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use meal_get_by_id for the full recipe, or meal_filter_by_category to browse."],
+  });
 }
 
 // ─── get_random_meal ──────────────────────────────────────────────────────────

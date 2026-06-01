@@ -3,6 +3,8 @@
 // Auth: None required for public data
 // Base: https://www.speedrun.com/api/v1
 
+import { stampMeta } from "./connector-meta.js";
+
 const SPEEDRUN_BASE = "https://www.speedrun.com/api/v1";
 
 const SPEEDRUN_TIMEOUT_MS = Number(process.env.SPEEDRUN_TIMEOUT_MS) || 10000;
@@ -55,7 +57,7 @@ export async function speedrunSearchGames(args: Record<string, unknown>): Promis
 
     const json = await speedrunGet("/games", params) as Record<string, unknown>;
     const data = (json.data ?? []) as Array<Record<string, unknown>>;
-    return {
+    return stampMeta({
       count: data.length,
       games: data.map((g) => ({
         id: g.id,
@@ -66,7 +68,11 @@ export async function speedrunSearchGames(args: Record<string, unknown>): Promis
         platforms: (g.platforms as string[] | undefined) ?? [],
         regions: (g.regions as string[] | undefined) ?? [],
       })),
-    };
+    }, {
+      source: "Speedrun.com",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use speedrun_get_leaderboard for a game's records, or speedrun_get_game for full detail."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

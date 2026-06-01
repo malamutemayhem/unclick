@@ -18,6 +18,60 @@
     }
   },
   {
+    "connector": "bandsintown",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "bgg",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "chessdotcom",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "coingecko",
     "level": 5,
     "levelName": "Agentic",
@@ -36,7 +90,97 @@
     }
   },
   {
+    "connector": "deezer",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "discogs",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "ebird",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "espn",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "exchangerate",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "fpl",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
@@ -81,6 +225,96 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "lastfm",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "lego",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "lichess",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "meal",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "musicbrainz",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -144,6 +378,24 @@
     }
   },
   {
+    "connector": "openaq",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "openfoodfacts",
     "level": 5,
     "levelName": "Agentic",
@@ -153,6 +405,24 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "openlibrary",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -198,6 +468,42 @@
     }
   },
   {
+    "connector": "radiobrowser",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "rawg",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "restcountries",
     "level": 5,
     "levelName": "Agentic",
@@ -216,7 +522,133 @@
     }
   },
   {
+    "connector": "seatgeek",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "setlistfm",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "speedrun",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "ticketmaster",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "tmdb",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "trivia",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "trove",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "untappd",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
@@ -432,42 +864,6 @@
     }
   },
   {
-    "connector": "bandsintown",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "bgg",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "bluesky",
     "level": 2,
     "levelName": "Reliable",
@@ -531,24 +927,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "chessdotcom",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -702,42 +1080,6 @@
     }
   },
   {
-    "connector": "deezer",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "discogs",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "discord",
     "level": 2,
     "levelName": "Reliable",
@@ -783,24 +1125,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "ebird",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -882,24 +1206,6 @@
     }
   },
   {
-    "connector": "exchangerate",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "feedly",
     "level": 2,
     "levelName": "Reliable",
@@ -963,24 +1269,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "fpl",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1260,42 +1548,6 @@
     }
   },
   {
-    "connector": "lastfm",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "lego",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "lemonsqueezy",
     "level": 2,
     "levelName": "Reliable",
@@ -1305,24 +1557,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "lichess",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1422,24 +1656,6 @@
     }
   },
   {
-    "connector": "meal",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "mistral",
     "level": 2,
     "levelName": "Reliable",
@@ -1495,24 +1711,6 @@
   },
   {
     "connector": "monica",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "musicbrainz",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
@@ -1602,24 +1800,6 @@
     }
   },
   {
-    "connector": "openaq",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "openexchangerates",
     "level": 2,
     "levelName": "Reliable",
@@ -1647,24 +1827,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "openlibrary",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1908,24 +2070,6 @@
     }
   },
   {
-    "connector": "radiobrowser",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "raindrop",
     "level": 2,
     "levelName": "Reliable",
@@ -1935,24 +2079,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "rawg",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -2088,24 +2214,6 @@
     }
   },
   {
-    "connector": "seatgeek",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "segment",
     "level": 2,
     "levelName": "Reliable",
@@ -2178,24 +2286,6 @@
     }
   },
   {
-    "connector": "setlistfm",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "shodan",
     "level": 2,
     "levelName": "Reliable",
@@ -2251,24 +2341,6 @@
   },
   {
     "connector": "sleeper",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "speedrun",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
@@ -2466,24 +2538,6 @@
     }
   },
   {
-    "connector": "ticketmaster",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "tiktok",
     "level": 2,
     "levelName": "Reliable",
@@ -2592,42 +2646,6 @@
     }
   },
   {
-    "connector": "trivia",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "trove",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "turso",
     "level": 2,
     "levelName": "Reliable",
@@ -2665,24 +2683,6 @@
   },
   {
     "connector": "twitch",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "untappd",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,

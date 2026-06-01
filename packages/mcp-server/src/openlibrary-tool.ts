@@ -2,6 +2,8 @@
 // Uses the Open Library REST API via fetch - no external dependencies.
 // No authentication required.
 
+import { stampMeta } from "./connector-meta.js";
+
 const OL_BASE = "https://openlibrary.org";
 const OPENLIBRARY_TIMEOUT_MS = Number(process.env.OPENLIBRARY_TIMEOUT_MS) || 10000;
 
@@ -57,7 +59,12 @@ export async function openlibrarySearch(args: Record<string, unknown>): Promise<
   if (args.author) params.author = String(args.author);
   if (args.isbn) params.isbn = String(args.isbn);
   if (args.limit) params.limit = Number(args.limit);
-  return olCall("/search.json", params);
+  const __res = await olCall("/search.json", params) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Open Library",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use openlibrary_get_book with a work id, or openlibrary_get_author for author detail."],
+  });
 }
 
 export async function openlibraryGetBook(args: Record<string, unknown>): Promise<unknown> {

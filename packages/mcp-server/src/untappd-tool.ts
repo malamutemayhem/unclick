@@ -4,6 +4,8 @@
 // Public endpoints authenticate via query params: ?client_id=&client_secret=
 // Base URL: https://api.untappd.com/v4/
 
+import { stampMeta } from "./connector-meta.js";
+
 const UNTAPPD_BASE = "https://api.untappd.com/v4";
 
 // ─── API helper ───────────────────────────────────────────────────────────────
@@ -100,7 +102,7 @@ export async function untappdSearchBeer(
   const beers = (data.beers as Record<string, unknown>) ?? {};
   const items = (beers.items as Record<string, unknown>[]) ?? [];
 
-  return {
+  return stampMeta({
     query: q,
     found: beers.count ?? 0,
     offset: beers.offset ?? 0,
@@ -121,7 +123,11 @@ export async function untappdSearchBeer(
         brewery_id: brewery.brewery_id ?? null,
       };
     }),
-  };
+  }, {
+    source: "Untappd",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use untappd_get_beer with a bid for full detail, or untappd_search_brewery to find breweries."],
+  });
 }
 
 // ─── untappd_get_beer ─────────────────────────────────────────────────────────

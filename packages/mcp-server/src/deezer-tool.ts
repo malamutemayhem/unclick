@@ -2,6 +2,8 @@
 // No API key required for basic search (public endpoints).
 // Base URL: https://api.deezer.com/
 
+import { stampMeta } from "./connector-meta.js";
+
 const DEEZER_BASE = "https://api.deezer.com";
 const DEEZER_TIMEOUT_MS = Number(process.env.DEEZER_TIMEOUT_MS) || 10000;
 
@@ -99,12 +101,16 @@ export async function searchDeezer(args: Record<string, unknown>): Promise<unkno
   const limit = Math.min(50, Math.max(1, Number(args.limit ?? 10)));
   const data = await deezerFetch<DeezerSearchResponse>(`/search?q=${encodeURIComponent(query)}&limit=${limit}`);
 
-  return {
+  return stampMeta({
     query,
     total: data.total,
     returned: data.data.length,
     tracks: data.data.map(normalizeTrack),
-  };
+  }, {
+    source: "Deezer",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use deezer_get_track for full detail on a track id, or deezer_get_artist / deezer_get_album to dig deeper."],
+  });
 }
 
 // ─── get_deezer_artist ────────────────────────────────────────────────────────

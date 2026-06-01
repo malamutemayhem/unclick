@@ -2,6 +2,8 @@
 // No authentication required - completely free and open.
 // Base URL: https://opentdb.com/
 
+import { stampMeta } from "./connector-meta.js";
+
 const OPENTDB_BASE = "https://opentdb.com";
 
 // Response codes from the API
@@ -88,7 +90,7 @@ export async function triviaQuestions(args: Record<string, unknown>): Promise<un
     };
   }
 
-  return {
+  return stampMeta({
     count: data.results.length,
     questions: data.results.map((q) => ({
       category: q.category,
@@ -99,7 +101,11 @@ export async function triviaQuestions(args: Record<string, unknown>): Promise<un
       incorrect_answers: q.incorrect_answers.map(decodeHtmlEntities),
       all_answers: shuffle([q.correct_answer, ...q.incorrect_answers]).map(decodeHtmlEntities),
     })),
-  };
+  }, {
+    source: "Open Trivia DB",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use trivia_categories to list the available topic ids."],
+  });
 }
 
 // ─── trivia_categories ────────────────────────────────────────────────────────
