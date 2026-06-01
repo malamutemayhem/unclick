@@ -6,6 +6,7 @@
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
 import { stampMeta } from "./connector-meta.js";
+import { emitConnectorSignal } from "./signals/emit.js";
 const PD_API_BASE = "https://api.pagerduty.com";
 
 function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
@@ -127,6 +128,23 @@ export async function pagerduty_list_incidents(args: Record<string, unknown>): P
   if (args.service_ids) query["service_ids[]"] = String(args.service_ids);
 
   const data = await pdGet<{ incidents: unknown[]; total: number }>(apiKey, "/incidents", query);
+
+  // L4 proactive: open (triggered, unacknowledged) incidents are the canonical
+  // "wake me" condition. Signal the caller's own inbox when any are present.
+  const triggered = data.incidents.filter(
+    (i) => (i as { status?: string } | null)?.status === "triggered",
+  ).length;
+  if (triggered > 0) {
+    void emitConnectorSignal({
+      tool: "pagerduty_list_incidents",
+      action: "incidents_triggered",
+      severity: "critical",
+      summary: `${triggered} triggered PagerDuty incident${triggered === 1 ? "" : "s"} need acknowledgement.`,
+      deepLink: "/tools/pagerduty",
+      payload: { triggered_count: triggered },
+    });
+  }
+
   return stampMeta({
     total: data.total,
     count: data.incidents.length,

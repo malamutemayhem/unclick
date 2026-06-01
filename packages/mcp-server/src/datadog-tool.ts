@@ -5,6 +5,7 @@
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
 import { stampMeta } from "./connector-meta.js";
+import { emitConnectorSignal } from "./signals/emit.js";
 
 const DD_BASE = "https://api.datadoghq.com/api/v1";
 
@@ -91,6 +92,23 @@ export async function datadogListMonitors(args: Record<string, unknown>): Promis
   if (args.page) params.page = String(args.page);
   if (args.page_size) params.page_size = String(Math.min(1000, Number(args.page_size)));
   const data = await ddGet<unknown[]>(apiKey, appKey, "/monitor", params);
+
+  // L4 proactive: monitors sitting in the Alert state are user-actionable, so
+  // signal the caller's own inbox when any are firing.
+  const alerting = (Array.isArray(data) ? data : []).filter(
+    (m) => (m as { overall_state?: string } | null)?.overall_state === "Alert",
+  ).length;
+  if (alerting > 0) {
+    void emitConnectorSignal({
+      tool: "datadog_list_monitors",
+      action: "monitors_alerting",
+      severity: "action_needed",
+      summary: `${alerting} Datadog monitor${alerting === 1 ? "" : "s"} in the Alert state.`,
+      deepLink: "/tools/datadog",
+      payload: { alerting_count: alerting },
+    });
+  }
+
   return stampMeta({ count: Array.isArray(data) ? data.length : 0, monitors: data }, {
     source: "Datadog",
     fetched_at: new Date().toISOString(),

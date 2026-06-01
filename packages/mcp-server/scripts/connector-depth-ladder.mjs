@@ -122,7 +122,7 @@ export function detectSignals(source) {
     errorStyleClean,
     // depth axis (deliberate UnClick value-add markers)
     memoryAware: /__unclick_memory_defaults|defaults_used/.test(source),
-    proactive: /emitSignal\(|\bwakeSignal\b|scheduledCheck|proactiveCheck/.test(source),
+    proactive: /emit\w*Signal\(|\bwakeSignal\b|scheduledCheck|proactiveCheck/.test(source),
     agentic: /next_steps?\s*:/.test(source),
     sourceStamped: /(fetched_at|retrieved_at|as_of)\s*:/.test(source) && /source\s*:/.test(source),
   };

@@ -434,7 +434,7 @@
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
-      "proactive": false,
+      "proactive": true,
       "agentic": true,
       "sourceStamped": true
     }
@@ -1494,7 +1494,7 @@
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
-      "proactive": false,
+      "proactive": true,
       "agentic": true,
       "sourceStamped": true
     }
@@ -1634,7 +1634,7 @@
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": true,
-      "proactive": false,
+      "proactive": true,
       "agentic": true,
       "sourceStamped": true
     }

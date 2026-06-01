@@ -95,9 +95,25 @@ steps, both wired end-to-end (never a marker without a working fill):
 Requirement: emit a signal when something the user cares about changes (a
 disruption, a price spike, a status change), instead of only answering on demand.
 
-- Marker: `emitSignal(` / `wakeSignal` / `scheduledCheck` / `proactiveCheck`.
-- Reference: the signal surface used by the bug pipeline (`emitSignal`), pointed
-  at a user-facing change rather than a tool failure.
+- Marker: `emit*Signal(` / `wakeSignal` / `scheduledCheck` / `proactiveCheck`.
+- Reference: `emitConnectorSignal()` in `signals/emit.ts`, called from
+  `ptv_disruptions`, `pagerduty_list_incidents`, and `datadog_list_monitors`.
+  During an ordinary read the connector spots a user-actionable condition (active
+  disruptions, triggered incidents, monitors in `Alert`) and drops a signal into
+  the caller's own inbox, scoped to their API key, fire-and-forget. The next
+  `check_signals` surfaces it. PTV is the first connector to clear all five rungs.
+
+**L4 is opt-in by nature, like L3.** It only fits a connector that reads a
+*changeable, user-actionable* quantity (an incident queue, a disruptions feed, an
+alert state). A stateless lookup has nothing to be proactive about, so its
+missing L4 marker is expected, not a gap. Emit only on a genuine condition (keep
+it off the happy path) and pick severity honestly: `critical` for "wake me now"
+(triggered incidents), `action_needed` for "worth surfacing soon".
+
+Note the two halves of proactivity: the *emit* above is the connector's job and
+is what the ladder scores; *waking unprompted* additionally needs the scheduled
+runner to call the connector on a cadence (the heartbeat / autonomous-runner
+substrate), which is owned outside the connector.
 
 ### L5 Agentic
 Requirement: stamp every response with where it came from and how fresh it is,

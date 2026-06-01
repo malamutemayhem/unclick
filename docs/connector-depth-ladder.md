@@ -61,7 +61,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 | L5 Agentic | `coingecko` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `coinmarketcap` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `convertkit` | Yes | - | - | Yes | Yes | no-memory |
-| L5 Agentic | `datadog` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `datadog` | Yes | - | Yes | Yes | Yes | no-memory |
 | L5 Agentic | `deepl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `deezer` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `discogs` | Yes | - | - | Yes | Yes | no-memory |
@@ -114,14 +114,14 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 | L5 Agentic | `openfoodfacts` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openlibrary` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openmeteo` | Yes | Yes | - | Yes | Yes |  |
-| L5 Agentic | `pagerduty` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `pagerduty` | Yes | - | Yes | Yes | Yes | no-memory |
 | L5 Agentic | `pandascore` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pika` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pinecone` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `pinterest` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `plaid` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `podcastindex` | Yes | - | - | Yes | Yes | no-memory |
-| L5 Agentic | `ptv` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `ptv` | Yes | Yes | Yes | Yes | Yes |  |
 | L5 Agentic | `radiobrowser` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `rawg` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `reddit` | Yes | - | - | Yes | Yes | no-memory |
