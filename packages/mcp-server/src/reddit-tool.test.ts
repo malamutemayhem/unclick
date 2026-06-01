@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { redditSearch } from "./reddit-tool.js";
+import { redditRead, redditSearch, redditThread } from "./reddit-tool.js";
 
 // L2 resilience contract for the Reddit connector: request timeout, clean 429
 // handling, input validation, and stable response mapping.
@@ -36,5 +36,60 @@ describe("reddit connector resilience (L2)", () => {
     })));
     const result = await redditSearch({ access_token: "t", query: "x" }) as Record<string, unknown>;
     expect(result.error).toBeUndefined();
+  });
+
+  it("accepts q and uses public Reddit JSON without OAuth", async () => {
+    let requestedUrl = "";
+    let requestedAuthorization: string | undefined;
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: { headers?: Record<string, string> }) => {
+      requestedUrl = url;
+      requestedAuthorization = init?.headers?.Authorization;
+      return {
+        ok: true, status: 200, headers: { get: (): string | null => null },
+        json: async () => ({ data: { children: [], after: null } }),
+      };
+    }));
+
+    const result = await redditSearch({ q: "ultraplan", subreddit: "ClaudeAI", limit: 1 }) as Record<string, unknown>;
+
+    expect(result.error).toBeUndefined();
+    expect(requestedUrl).toContain("https://www.reddit.com/r/ClaudeAI/search.json");
+    expect(requestedUrl).toContain("q=ultraplan");
+    expect(requestedAuthorization).toBeUndefined();
+  });
+
+  it("reads public subreddit listings without OAuth", async () => {
+    let requestedUrl = "";
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      requestedUrl = url;
+      return {
+        ok: true, status: 200, headers: { get: (): string | null => null },
+        json: async () => ({ data: { children: [], after: null } }),
+      };
+    }));
+
+    const result = await redditRead({ subreddit: "ClaudeAI", limit: 1 }) as Record<string, unknown>;
+
+    expect(result.error).toBeUndefined();
+    expect(requestedUrl).toContain("https://www.reddit.com/r/ClaudeAI/hot.json");
+  });
+
+  it("reads public Reddit threads without OAuth", async () => {
+    let requestedUrl = "";
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      requestedUrl = url;
+      return {
+        ok: true, status: 200, headers: { get: (): string | null => null },
+        json: async () => [
+          { data: { children: [] } },
+          { data: { children: [] } },
+        ],
+      };
+    }));
+
+    const result = await redditThread({ url: "https://www.reddit.com/r/ClaudeAI/comments/1scblui/ultraplan_is_here/" }) as Record<string, unknown>;
+
+    expect(result.error).toBeUndefined();
+    expect(requestedUrl).toContain("https://www.reddit.com/r/ClaudeAI/comments/1scblui.json");
   });
 });
