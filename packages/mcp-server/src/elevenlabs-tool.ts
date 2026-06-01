@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const EL_API_BASE = "https://api.elevenlabs.io/v1";
 
@@ -228,7 +229,7 @@ export async function elevenlabsListVoices(args: Record<string, unknown>): Promi
   requireElevenLabsSpendAllowed("voice-listing", "ElevenLabs /voices", apiKey);
   const data = await elGet<{ voices: ElVoice[] }>(apiKey, "/voices");
 
-  return {
+  return stampMeta({
     count: data.voices.length,
     voices: data.voices.map((v) => ({
       voice_id: v.voice_id,
@@ -238,7 +239,11 @@ export async function elevenlabsListVoices(args: Record<string, unknown>): Promi
       labels: v.labels ?? {},
       preview_url: v.preview_url ?? null,
     })),
-  };
+  }, {
+    source: "ElevenLabs",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use elevenlabs_get_voice for detail, or elevenlabs_text_to_speech to synthesize."],
+  });
 }
 
 export async function elevenlabsGetVoice(args: Record<string, unknown>): Promise<unknown> {

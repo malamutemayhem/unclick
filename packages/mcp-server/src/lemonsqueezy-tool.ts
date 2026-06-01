@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const LS_API_BASE = "https://api.lemonsqueezy.com/v1";
 
 // --- Types -------------------------------------------------------------------
@@ -183,7 +184,7 @@ export async function lsListStores(args: Record<string, unknown>): Promise<unkno
     });
 
     const response = await lsGet<LsListResponse<LsStore>>(apiKey, `/stores${qs}`);
-    return {
+    return stampMeta({
       count: response.data.length,
       meta: response.meta,
       data: response.data.map((s) => ({
@@ -197,7 +198,11 @@ export async function lsListStores(args: Record<string, unknown>): Promise<unkno
         currency: s.attributes.currency,
         created_at: s.attributes.created_at,
       })),
-    };
+    }, {
+      source: "Lemon Squeezy",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use ls_list_products or ls_list_orders for a store."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

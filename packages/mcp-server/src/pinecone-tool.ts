@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const PINE_BASE = "https://api.pinecone.io";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -105,7 +106,11 @@ export async function pineconeListIndexes(args: Record<string, unknown>): Promis
   if (typeof apiKey !== "string") return apiKey;
   const data = await pineGet<{ indexes?: Array<{ name: string; dimension: number; metric: string; status: unknown; host: string }> }>(apiKey, "/indexes");
   const indexes = data.indexes ?? [];
-  return { count: indexes.length, indexes };
+  return stampMeta({ count: indexes.length, indexes }, {
+    source: "Pinecone",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use pinecone_describe_index for an index, or pinecone_query_vectors to search."],
+  });
 }
 
 export async function pineconeDescribeIndex(args: Record<string, unknown>): Promise<unknown> {

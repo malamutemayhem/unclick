@@ -3,6 +3,8 @@
 // Docs: https://api.beta.tab.com.au/
 // Base URL: https://api.beta.tab.com.au/v1/
 
+import { stampMeta } from "./connector-meta.js";
+
 const TAB_BASE = "https://api.beta.tab.com.au/v1";
 
 async function tabGet(path: string, params?: Record<string, string>): Promise<unknown> {
@@ -57,7 +59,7 @@ export async function getTabMeetings(args: Record<string, unknown>): Promise<unk
       !raceType || (m["raceType"] as string)?.toUpperCase() === raceType
     );
 
-    return {
+    return stampMeta({
       race_type: raceType,
       jurisdiction,
       count: filtered.length,
@@ -78,7 +80,11 @@ export async function getTabMeetings(args: Record<string, unknown>): Promise<unk
           status: r["raceStatus"],
         })),
       })),
-    };
+    }, {
+      source: "TAB",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use tab_race for a specific race, or tab_sports_markets for sports betting."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

@@ -4,6 +4,7 @@
 
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -113,7 +114,7 @@ export async function algoliaSearch(args: Record<string, unknown>): Promise<unkn
   const data = await algoPost<{ hits: unknown[]; nbHits: number; page: number; nbPages: number; processingTimeMS: number }>(
     appId, apiKey, `/indexes/${encodeURIComponent(index)}/query`, body
   );
-  return {
+  return stampMeta({
     index,
     query,
     total_hits: data.nbHits,
@@ -121,7 +122,11 @@ export async function algoliaSearch(args: Record<string, unknown>): Promise<unkn
     total_pages: data.nbPages,
     processing_ms: data.processingTimeMS,
     hits: data.hits,
-  };
+  }, {
+    source: "Algolia",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use algolia_get_object for a record by id, or algolia_browse_index to page the index."],
+  });
 }
 
 export async function algoliaGetObject(args: Record<string, unknown>): Promise<unknown> {

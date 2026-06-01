@@ -4,6 +4,7 @@
 
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -97,7 +98,11 @@ export async function mailchimpListAudiences(args: Record<string, unknown>): Pro
   const { key, dc } = _creds;
   const count = String(Math.min(1000, Math.max(1, Number(args.count ?? 10))));
   const data = await mcGet<{ lists: unknown[]; total_items: number }>(key, dc, "/lists", { count, fields: "lists.id,lists.name,lists.stats,lists.status,total_items" });
-  return { total: data.total_items, audiences: data.lists };
+  return stampMeta({ total: data.total_items, audiences: data.lists }, {
+    source: "Mailchimp Marketing API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use mailchimp_list_members for an audience, or mailchimp_list_campaigns for campaigns."],
+  });
 }
 
 export async function mailchimpListCampaigns(args: Record<string, unknown>): Promise<unknown> {

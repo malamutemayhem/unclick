@@ -1,4 +1,5 @@
 import { createHmac, createHash } from "crypto";
+import { stampMeta } from "./connector-meta.js";
 
 // ─── Marketplace configurations ─────────────────────────────────────────────
 
@@ -280,10 +281,14 @@ export async function amazonSearch(args: Record<string, unknown>): Promise<unkno
   if (!searchResult) return { items: [], total_result_count: 0 };
 
   const items = (searchResult.Items as Array<Record<string, unknown>> | undefined) ?? [];
-  return {
+  return stampMeta({
     total_result_count: searchResult.TotalResultCount ?? items.length,
     items: items.map(cleanItem),
-  };
+  }, {
+    source: "Amazon Product Advertising API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use amazon_product with an ASIN for full detail, or amazon_variations for variants."],
+  });
 }
 
 export async function amazonProduct(args: Record<string, unknown>): Promise<unknown> {

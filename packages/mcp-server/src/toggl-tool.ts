@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const TOGGL_BASE = "https://api.track.toggl.com/api/v9";
 const TOGGL_REPORTS_BASE = "https://api.track.toggl.com/reports/api/v3";
 
@@ -102,7 +103,7 @@ export async function getTogglTimeEntries(args: Record<string, unknown>): Promis
     if (args.end_date) params.end_date = String(args.end_date);
     if (args.meta) params.meta = "true";
     const entries = await togglGet(apiKey, "/me/time_entries", params) as Array<Record<string, unknown>>;
-    return {
+    return stampMeta({
       count: entries.length,
       entries: entries.map((e) => ({
         id: e.id,
@@ -116,7 +117,11 @@ export async function getTogglTimeEntries(args: Record<string, unknown>): Promis
         tags: e.tags,
         at: e.at,
       })),
-    };
+    }, {
+      source: "Toggl Track",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use toggl_summary for totals, or toggl_projects to list projects."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

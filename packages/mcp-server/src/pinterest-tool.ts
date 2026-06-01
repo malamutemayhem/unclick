@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const PINTEREST_BASE = "https://api.pinterest.com/v5";
 
 function getToken(args: Record<string, unknown>): string | NotConnectedResult {
@@ -102,7 +103,7 @@ export async function listPinterestBoards(args: Record<string, unknown>): Promis
 
     const json = await pinterestGet(token, "/boards", params) as Record<string, unknown>;
     const items = (json.items ?? []) as Array<Record<string, unknown>>;
-    return {
+    return stampMeta({
       count: items.length,
       bookmark: json.bookmark,
       boards: items.map((b) => ({
@@ -115,7 +116,11 @@ export async function listPinterestBoards(args: Record<string, unknown>): Promis
         created_at: b.created_at,
         media: b.media,
       })),
-    };
+    }, {
+      source: "Pinterest",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use list_pinterest_pins for a board's pins, or get_pinterest_board for board detail."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

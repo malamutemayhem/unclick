@@ -4,6 +4,8 @@
 // Docs: https://nvd.nist.gov/developers/vulnerabilities
 // Base URL: https://services.nvd.nist.gov/rest/json/cves/2.0
 
+import { stampMeta } from "./connector-meta.js";
+
 const NVD_BASE = "https://services.nvd.nist.gov/rest/json/cves/2.0";
 
 async function nvdGet(params: Record<string, string>, apiKey?: string): Promise<Record<string, unknown>> {
@@ -91,7 +93,11 @@ export async function getCveDetail(args: Record<string, unknown>): Promise<unkno
 
     if (!vulns?.length) return { error: `CVE "${cveId}" not found.`, cve_id: cveId };
 
-    return formatCve(vulns[0]);
+    return stampMeta(formatCve(vulns[0]) as Record<string, unknown>, {
+      source: "NVD (NIST)",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use search_cve to find related CVEs, or get_recent_cves for the latest."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
