@@ -15,6 +15,12 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
 import { scoreLiveJobs } from "./lib/eval/live-score.js";
 import { rowsToAdapterInputs, type RawTodoRow, type RawCommentRow } from "./lib/eval/improvement-fetch.js";
+import { armTableFromRows, rowsFromArmTable, type RoutingArmRow } from "./lib/eval/routing-store.js";
+import { foldScoresByArm } from "./lib/eval/routing-record.js";
+import { armLeaderboard } from "./lib/eval/router-bandit.js";
+
+// All worker seats in this deployment share one routing scorecard scope.
+const ROUTING_SCOPE = "global";
 
 function bearerFrom(req: VercelRequest): string | null {
   const header = req.headers.authorization;
@@ -109,10 +115,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const inputs = rowsToAdapterInputs(todoRows, (comments ?? []) as RawCommentRow[], Date.now());
   const report = scoreLiveJobs(inputs);
 
+  // Write path (opt-in via ?record=1, used by the cron): attribute each scored
+  // job to the arm that owned it (its assignee) and fold the proof outcome into
+  // the persisted arm table, so learned routing accumulates over time.
+  let leaderboard: ReturnType<typeof armLeaderboard> | undefined;
+  const shouldRecord = req.query.record === "1" || req.query.record === "true";
+  if (shouldRecord) {
+    try {
+      const { data: armRows } = await supabase
+        .from("mc_routing_arm_stats")
+        .select("arm, pulls, reward_sum, verified")
+        .eq("api_key_hash", ROUTING_SCOPE);
+      let table = armTableFromRows((armRows ?? []) as RoutingArmRow[]);
+
+      const jobArm: Record<string, string | null> = {};
+      for (const t of todoRows) jobArm[t.id] = t.assigned_to_agent_id ?? null;
+      const folded = foldScoresByArm(report.scored, jobArm, table);
+      table = folded.table;
+
+      const upsertRows = rowsFromArmTable(table).map((r) => ({
+        api_key_hash: ROUTING_SCOPE,
+        arm: r.arm,
+        pulls: r.pulls,
+        reward_sum: r.reward_sum,
+        verified: r.verified,
+        updated_at: new Date().toISOString(),
+      }));
+      if (upsertRows.length > 0) {
+        const { error: upsertError } = await supabase
+          .from("mc_routing_arm_stats")
+          .upsert(upsertRows, { onConflict: "api_key_hash,arm" });
+        if (upsertError) console.error("[eval-truth-rate] arm upsert error:", upsertError.message);
+      }
+      leaderboard = armLeaderboard(table);
+    } catch (e) {
+      console.error("[eval-truth-rate] routing record failed:", e instanceof Error ? e.message : e);
+    }
+  }
+
   return res.status(200).json({
     window_days: lookbackDays,
     summary: report.summary,
     false_green_job_ids: report.falseGreenJobIds,
     stale_job_ids: report.staleJobIds,
+    routing_leaderboard: leaderboard,
   });
 }
