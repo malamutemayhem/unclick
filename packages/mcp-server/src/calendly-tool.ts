@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const CALENDLY_BASE = "https://api.calendly.com";
 
 function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
@@ -61,7 +62,7 @@ export async function getCalendlyUser(args: Record<string, unknown>): Promise<un
     if (typeof apiKey !== "string") return apiKey;
     const json = await calendlyGet(apiKey, "/users/me") as Record<string, unknown>;
     const r = json.resource as Record<string, unknown> | undefined;
-    return {
+    return stampMeta({
       uri: r?.uri,
       name: r?.name,
       email: r?.email,
@@ -69,7 +70,11 @@ export async function getCalendlyUser(args: Record<string, unknown>): Promise<un
       scheduling_url: r?.scheduling_url,
       created_at: r?.created_at,
       current_organization: r?.current_organization,
-    };
+    }, {
+      source: "Calendly",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use list_calendly_events for booked meetings, or list_calendly_event_types for your event types."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

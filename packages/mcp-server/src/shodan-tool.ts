@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const SHODAN_BASE = "https://api.shodan.io";
 
@@ -64,7 +65,7 @@ export async function searchShodan(args: Record<string, unknown>): Promise<unkno
     if (args.minify !== undefined) params.minify = String(args.minify);
     const data = await shodanGet(apiKey, "/shodan/host/search", params);
     const matches = (data.matches as Array<Record<string, unknown>>) ?? [];
-    return {
+    return stampMeta({
       total: data.total,
       count: matches.length,
       facets: data.facets,
@@ -83,7 +84,11 @@ export async function searchShodan(args: Record<string, unknown>): Promise<unkno
         timestamp: m.timestamp,
         data: typeof m.data === "string" ? m.data.slice(0, 300) : null,
       })),
-    };
+    }, {
+      source: "Shodan",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use shodan_host_info for a specific IP, or shodan_stats to aggregate facets."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

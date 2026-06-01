@@ -6,6 +6,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const HUNTER_BASE = "https://api.hunter.io/v2";
 
@@ -71,7 +72,7 @@ export async function findEmail(args: Record<string, unknown>): Promise<unknown>
 
     const data = await hunterGet(apiKey, "/domain-search", params);
 
-    return {
+    return stampMeta({
       domain: data["domain"],
       organization: data["organization"],
       description: data["description"],
@@ -98,7 +99,11 @@ export async function findEmail(args: Record<string, unknown>): Promise<unknown>
         phone: e["phone_number"],
         verification_status: (e["verification"] as Record<string, unknown>)?.["status"],
       })),
-    };
+    }, {
+      source: "Hunter",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use hunter_find_email for a specific person, or hunter_verify_email to validate an address."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const CMC_BASE = "https://pro-api.coinmarketcap.com/v1";
 
@@ -68,7 +69,7 @@ export async function cmcListings(args: Record<string, unknown>): Promise<unknow
 
   const data = await cmcFetch(apiKey, "/cryptocurrency/listings/latest", { limit, convert }) as Array<Record<string, unknown>>;
 
-  return {
+  return stampMeta({
     convert,
     limit: Number(limit),
     coins: (Array.isArray(data) ? data : []).map((c) => {
@@ -91,7 +92,11 @@ export async function cmcListings(args: Record<string, unknown>): Promise<unknow
         last_updated: quote?.last_updated ?? null,
       };
     }),
-  };
+  }, {
+    source: "CoinMarketCap",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use cmc_quotes for specific symbols, or cmc_info for project detail."],
+  });
 }
 
 export async function cmcQuotes(args: Record<string, unknown>): Promise<unknown> {

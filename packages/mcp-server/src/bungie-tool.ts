@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const BUNGIE_BASE = "https://www.bungie.net/Platform";
 
@@ -77,7 +78,7 @@ export async function bungieSearchPlayer(
 
   const results = Array.isArray(data) ? data : [];
 
-  return {
+  return stampMeta({
     query: displayName,
     count: results.length,
     players: results.map((p) => ({
@@ -88,7 +89,11 @@ export async function bungieSearchPlayer(
       bungie_global_display_name_code: p.bungieGlobalDisplayNameCode ?? null,
       icon_path: p.iconPath ? `https://www.bungie.net${p.iconPath}` : null,
     })),
-  };
+  }, {
+    source: "Bungie.net API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use bungie_get_profile with a membership id and type for full detail."],
+  });
 }
 
 // ─── bungie_get_profile ───────────────────────────────────────────────────────

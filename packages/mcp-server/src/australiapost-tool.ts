@@ -6,6 +6,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const AUSPOST_BASE = "https://digitalapi.auspost.com.au";
 
 function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
@@ -59,7 +60,7 @@ export async function trackAuspostParcel(args: Record<string, unknown>): Promise
 
     if (!tracking?.length) return { error: "No tracking data found for that ID.", tracking_id: trackingId };
 
-    return {
+    return stampMeta({
       tracking_id: trackingId,
       results: tracking.map((r) => ({
         tracking_id: r["tracking_id"],
@@ -72,7 +73,11 @@ export async function trackAuspostParcel(args: Record<string, unknown>): Promise
           location: e["location"],
         })),
       })),
-    };
+    }, {
+      source: "Australia Post",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use auspost_delivery_times to estimate transit, or auspost_get_postcode to look up a postcode."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

@@ -3,6 +3,8 @@
 // Env var: PANDASCORE_TOKEN (header: Authorization: Bearer {token})
 // Base URL: https://api.pandascore.co/
 
+import { stampMeta } from "./connector-meta.js";
+
 const PANDASCORE_BASE = "https://api.pandascore.co";
 
 // ─── API helper ───────────────────────────────────────────────────────────────
@@ -88,7 +90,7 @@ export async function esportsMatches(
 
   const matches = Array.isArray(data) ? data : [];
 
-  return {
+  return stampMeta({
     count: matches.length,
     matches: matches.map((m) => ({
       id: m.id,
@@ -129,7 +131,11 @@ export async function esportsMatches(
           }
         : null,
     })),
-  };
+  }, {
+    source: "PandaScore",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use esports_teams or esports_tournaments for more context on a match."],
+  });
 }
 
 // ─── esports_tournaments ──────────────────────────────────────────────────────

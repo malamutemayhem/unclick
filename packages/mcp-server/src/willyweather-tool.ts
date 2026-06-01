@@ -6,6 +6,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const WILLY_BASE = "https://api.willyweather.com.au/v2";
 
 function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
@@ -74,7 +75,7 @@ export async function getWillyweatherForecast(args: Record<string, unknown>): Pr
 
     const forecasts = data["forecasts"] as Record<string, unknown> | undefined;
 
-    return {
+    return stampMeta({
       location: `${loc.name}, ${loc.state}`,
       location_id: loc.id,
       days_requested: days,
@@ -83,7 +84,11 @@ export async function getWillyweatherForecast(args: Record<string, unknown>): Pr
       rainfall: forecasts?.["rainfall"],
       wind: forecasts?.["wind"],
       sunrise_sunset: forecasts?.["sunrisesunset"],
-    };
+    }, {
+      source: "WillyWeather",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use willyweather_tide or willyweather_surf for coastal data at the same location."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

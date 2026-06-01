@@ -3,6 +3,8 @@
 // Supports Tattslotto, Oz Lotto, Powerball, Set for Life, Monday/Wednesday Lotto.
 // Base URL: https://api.thelott.com/
 
+import { stampMeta } from "./connector-meta.js";
+
 const LOTT_BASE = "https://api.thelott.com";
 
 const GAME_SLUGS: Record<string, string> = {
@@ -67,7 +69,7 @@ export async function getLottResults(args: Record<string, unknown>): Promise<unk
 
     const data = await lottGet(`/games/${slug}/draws/latest`, params) as Record<string, unknown>;
 
-    return {
+    return stampMeta({
       game: slug,
       draw_number: data["drawNumber"],
       draw_date: data["drawDate"],
@@ -77,7 +79,11 @@ export async function getLottResults(args: Record<string, unknown>): Promise<unk
       jackpot: data["jackpot"],
       prize_pools: data["prizePools"],
       division_results: data["divisionResults"],
-    };
+    }, {
+      source: "The Lott",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use lott_jackpots for current jackpots."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

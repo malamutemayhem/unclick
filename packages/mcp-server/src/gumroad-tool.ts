@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const GUMROAD_API_BASE = "https://api.gumroad.com/v2";
 
 function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
@@ -55,10 +56,14 @@ export async function gumroad_list_products(args: Record<string, unknown>): Prom
   const token = requireKey(args);
   if (typeof token !== "string") return token;
   const data = await grGet<{ products: unknown[] }>(token, "/products");
-  return {
+  return stampMeta({
     count: data.products?.length ?? 0,
     products: data.products ?? [],
-  };
+  }, {
+    source: "Gumroad",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use gumroad_get_product for a product, or gumroad_list_sales for recent sales."],
+  });
 }
 
 export async function gumroad_get_product(args: Record<string, unknown>): Promise<unknown> {

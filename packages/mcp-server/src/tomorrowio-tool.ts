@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const TOMORROWIO_BASE = "https://api.tomorrow.io/v4";
 
@@ -98,7 +99,11 @@ export async function tomorrowRealtime(args: Record<string, unknown>): Promise<u
   if (!location) throw new Error("location is required (city name, lat/lon, or postal code).");
 
   const data = await tioFetch(apiKey, "/weather/realtime", { location }) as Record<string, unknown>;
-  return formatRealtime(data);
+  return stampMeta(formatRealtime(data) as Record<string, unknown>, {
+    source: "Tomorrow.io",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use tomorrow_forecast for the multi-day outlook, or tomorrow_history for past conditions."],
+  });
 }
 
 export async function tomorrowForecast(args: Record<string, unknown>): Promise<unknown> {

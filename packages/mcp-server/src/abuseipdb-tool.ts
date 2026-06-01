@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const ABUSEIPDB_BASE = "https://api.abuseipdb.com/api/v2";
 
@@ -97,7 +98,7 @@ export async function checkIpAbuse(args: Record<string, unknown>): Promise<unkno
     if (args.verbose) params.verbose = "true";
     const json = await abuseGet(apiKey, "/check", params);
     const d = json.data as Record<string, unknown> | undefined;
-    return {
+    return stampMeta({
       ip_address: d?.ipAddress,
       is_public: d?.isPublic,
       abuse_confidence_score: d?.abuseConfidenceScore,
@@ -110,7 +111,11 @@ export async function checkIpAbuse(args: Record<string, unknown>): Promise<unkno
       num_distinct_users: d?.numDistinctUsers,
       last_reported_at: d?.lastReportedAt,
       reports: d?.reports ?? [],
-    };
+    }, {
+      source: "AbuseIPDB",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use abuseipdb_blacklist for the worst offenders, or abuseipdb_report_ip to report abuse."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

@@ -6,6 +6,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const ETSY_BASE = "https://openapi.etsy.com/v3";
 
@@ -85,7 +86,7 @@ export async function etsySearchListings(args: Record<string, unknown>): Promise
   const keywords = String(args.keywords ?? "").trim();
   if (!keywords) return { error: "keywords is required for searching listings." };
 
-  return etsyFetch(cfg, "/application/listings/active", {
+  const __res = await etsyFetch(cfg, "/application/listings/active", {
     keywords,
     limit:          args.limit          ? Number(args.limit)          : 25,
     offset:         args.offset         ? Number(args.offset)         : undefined,
@@ -95,6 +96,11 @@ export async function etsySearchListings(args: Record<string, unknown>): Promise
     max_price:      args.max_price      ? Number(args.max_price)      : undefined,
     taxonomy_id:    args.taxonomy_id    ? Number(args.taxonomy_id)    : undefined,
     location:       args.location       ? String(args.location)       : undefined,
+  }) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Etsy",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use etsy_get_listing with a result id, or etsy_get_shop for the seller."],
   });
 }
 

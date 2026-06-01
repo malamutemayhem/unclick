@@ -3,6 +3,8 @@
 // No external dependencies - uses global fetch (Node 18+).
 // Rate limit: Reddit allows 60 requests/minute for OAuth clients.
 
+import { stampMeta } from "./connector-meta.js";
+
 const REDDIT_BASE = "https://oauth.reddit.com";
 const USER_AGENT = "UnClick-MCP/1.0 by unclick.dev";
 
@@ -206,14 +208,18 @@ export async function redditRead(args: RedditReadArgs): Promise<unknown> {
   const posts = shapePosts(result);
   const data = (result as Record<string, unknown>)?.["data"] as Record<string, unknown> | undefined;
 
-  return {
+  return stampMeta({
     subreddit: sub,
     sort,
     count: posts.length,
     after: data?.["after"] ?? null,
     before: data?.["before"] ?? null,
     posts,
-  };
+  }, {
+    source: "Reddit",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use reddit_search to search posts, or reddit_user to look up an author."],
+  });
 }
 
 export interface RedditPostArgs {

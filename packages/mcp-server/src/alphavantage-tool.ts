@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const ALPHAVANTAGE_BASE = "https://www.alphavantage.co/query";
 
@@ -72,7 +73,7 @@ export async function stockQuote(args: Record<string, unknown>): Promise<unknown
     return { symbol, quote: null, note: "No data returned. Check symbol." };
   }
 
-  return {
+  return stampMeta({
     symbol: quote["01. symbol"],
     open: quote["02. open"],
     high: quote["03. high"],
@@ -83,7 +84,11 @@ export async function stockQuote(args: Record<string, unknown>): Promise<unknown
     previous_close: quote["08. previous close"],
     change: quote["09. change"],
     change_percent: quote["10. change percent"],
-  };
+  }, {
+    source: "Alpha Vantage",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use stock_daily or stock_intraday for time series, or stock_search to find a symbol."],
+  });
 }
 
 export async function stockSearch(args: Record<string, unknown>): Promise<unknown> {
