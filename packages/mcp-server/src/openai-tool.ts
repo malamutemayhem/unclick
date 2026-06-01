@@ -2,6 +2,9 @@
 // Uses the OpenAI REST API via fetch - no external dependencies.
 // Users must supply an API key from platform.openai.com.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const OPENAI_API_BASE = "https://api.openai.com/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -140,13 +143,13 @@ function requireOpenAiSpendAllowed(operation: OpenAiToolOperation, model: string
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at platform.openai.com/api-keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("openai", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
+
+const OPENAI_TIMEOUT_MS = Number(process.env.OPENAI_TIMEOUT_MS) || 60000;
 
 async function openaiPost<T>(apiKey: string, path: string, body: unknown, orgId?: string): Promise<T> {
   const headers: Record<string, string> = {
@@ -155,16 +158,33 @@ async function openaiPost<T>(apiKey: string, path: string, body: unknown, orgId?
   };
   if (orgId) headers["OpenAI-Organization"] = orgId;
 
-  const res = await fetch(`${OPENAI_API_BASE}${path}`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${OPENAI_API_BASE}${path}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`OpenAI request timed out after ${OPENAI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`OpenAI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`OpenAI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = (err?.message as string) ?? `HTTP ${res.status}`;
+    const msg = (err?.message as string) ?? `status ${res.status}`;
     const code = err?.code ? ` (${err.code})` : "";
     const type = err?.type ? ` [${err.type}]` : "";
     throw new Error(`OpenAI error${type}${code}: ${msg}`);
@@ -173,14 +193,31 @@ async function openaiPost<T>(apiKey: string, path: string, body: unknown, orgId?
 }
 
 async function openaiGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${OPENAI_API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${OPENAI_API_BASE}${path}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`OpenAI request timed out after ${OPENAI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`OpenAI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`OpenAI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = (err?.message as string) ?? `HTTP ${res.status}`;
+    const msg = (err?.message as string) ?? `status ${res.status}`;
     throw new Error(`OpenAI error: ${msg}`);
   }
   return data as T;
@@ -190,6 +227,7 @@ async function openaiGet<T>(apiKey: string, path: string): Promise<T> {
 
 export async function openaiChatCompletion(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "gpt-4o-mini");
   const orgId = args.org_id ? String(args.org_id) : undefined;
   requireOpenAiSpendAllowed("chat", model, apiKey);
@@ -239,6 +277,7 @@ export async function openaiChatCompletion(args: Record<string, unknown>): Promi
 
 export async function openaiCreateEmbedding(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "text-embedding-3-small");
   const orgId = args.org_id ? String(args.org_id) : undefined;
   requireOpenAiSpendAllowed("embedding", model, apiKey);
@@ -269,6 +308,7 @@ export async function openaiCreateEmbedding(args: Record<string, unknown>): Prom
 
 export async function openaiGenerateImage(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
   const model = String(args.model ?? "dall-e-3");
@@ -295,6 +335,7 @@ export async function openaiGenerateImage(args: Record<string, unknown>): Promis
 
 export async function openaiCreateTranscription(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const audioUrl = String(args.audio_url ?? "").trim();
   if (!audioUrl) throw new Error("audio_url is required (URL of the audio file to transcribe).");
   const model = String(args.model ?? "whisper-1");
@@ -323,7 +364,7 @@ export async function openaiCreateTranscription(args: Record<string, unknown>): 
   });
 
   if (!res.ok) {
-    let msg = `HTTP ${res.status}`;
+    let msg = `status ${res.status}`;
     try {
       const data = await res.json() as Record<string, unknown>;
       const err = data.error as Record<string, unknown> | undefined;
@@ -348,6 +389,7 @@ export async function openaiCreateTranscription(args: Record<string, unknown>): 
 
 export async function openaiListModels(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireOpenAiSpendAllowed("model-listing", "OpenAI /models", apiKey);
   const data = await openaiGet<{ data: OpenAiModel[] }>(apiKey, "/models");
 
@@ -355,12 +397,16 @@ export async function openaiListModels(args: Record<string, unknown>): Promise<u
   // Sort by creation date descending
   models.sort((a, b) => b.created - a.created);
 
-  return {
+  return stampMeta({
     count: models.length,
     models: models.map((m) => ({
       id: m.id,
       created: new Date(m.created * 1000).toISOString(),
       owned_by: m.owned_by,
     })),
-  };
+  }, {
+    source: "OpenAI",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use openai_chat_completion with a model id, or openai_create_embedding."],
+  });
 }

@@ -3,6 +3,8 @@
 // No external dependencies - uses global fetch (Node 18+).
 // Rate limit: Reddit allows 60 requests/minute for OAuth clients.
 
+import { stampMeta } from "./connector-meta.js";
+
 const REDDIT_BASE = "https://oauth.reddit.com";
 const USER_AGENT = "UnClick-MCP/1.0 by unclick.dev";
 
@@ -52,7 +54,20 @@ async function rFetch(
     ).toString();
   }
 
-  const res = await fetch(url, { method, headers, body: fetchBody });
+  const REDDIT_TIMEOUT_MS = Number(process.env.REDDIT_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REDDIT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, { method, headers, body: fetchBody, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Reddit API request timed out after ${REDDIT_TIMEOUT_MS}ms.` };
+    }
+    return { error: `Network error reaching Reddit API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
 
   // Update rate limit state from response headers
   const rem = res.headers.get("x-ratelimit-remaining");
@@ -193,14 +208,18 @@ export async function redditRead(args: RedditReadArgs): Promise<unknown> {
   const posts = shapePosts(result);
   const data = (result as Record<string, unknown>)?.["data"] as Record<string, unknown> | undefined;
 
-  return {
+  return stampMeta({
     subreddit: sub,
     sort,
     count: posts.length,
     after: data?.["after"] ?? null,
     before: data?.["before"] ?? null,
     posts,
-  };
+  }, {
+    source: "Reddit",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use reddit_search to search posts, or reddit_user to look up an author."],
+  });
 }
 
 export interface RedditPostArgs {

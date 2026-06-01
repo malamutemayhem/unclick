@@ -2,17 +2,36 @@
 // Uses the ip-api.com free tier via fetch - no auth required (100 req/min).
 // Returns country, region, city, lat/lon, ISP, timezone, and more.
 
+import { stampMeta } from "./connector-meta.js";
+
 const IPAPI_BASE = "http://ip-api.com";
 
 // --- API helper ---
+
+const IPAPI_TIMEOUT_MS = Number(process.env.IPAPI_TIMEOUT_MS) || 10000;
 
 async function ipapiGet(ip: string): Promise<Record<string, unknown>> {
   const path = ip ? `/${encodeURIComponent(ip)}` : "/";
   const url = `${IPAPI_BASE}/json${path}?fields=66846719`;
 
-  const response = await fetch(url, { headers: { "Accept": "application/json" } });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), IPAPI_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url, { headers: { "Accept": "application/json" }, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ip-api.com request timed out after ${IPAPI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ip-api.com network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (response.status === 429) {
+    throw new Error(`ip-api.com rate limit reached (HTTP 429).`);
+  }
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} from ip-api.com`);
+    throw new Error(`ip-api.com HTTP ${response.status}.`);
   }
 
   const data = await response.json() as Record<string, unknown>;
@@ -52,7 +71,11 @@ export async function ipLookup(args: Record<string, unknown>): Promise<unknown> 
   const ip = String(args.ip ?? "").trim();
   // Empty ip will look up the caller's IP
   const data = await ipapiGet(ip);
-  return normalizeIpData(data);
+  return stampMeta(normalizeIpData(data) as Record<string, unknown>, {
+    source: "ip-api.com",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use ip_batch to look up many IPs at once."],
+  });
 }
 
 export async function ipBatch(args: Record<string, unknown>): Promise<unknown> {
@@ -69,14 +92,30 @@ export async function ipBatch(args: Record<string, unknown>): Promise<unknown> {
     fields: "66846719",
   }));
 
-  const response = await fetch(`${IPAPI_BASE}/batch`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Accept": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), IPAPI_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(`${IPAPI_BASE}/batch`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ip-api.com batch request timed out after ${IPAPI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ip-api.com network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
+  if (response.status === 429) {
+    throw new Error(`ip-api.com rate limit reached (HTTP 429).`);
+  }
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} from ip-api.com batch endpoint`);
+    throw new Error(`ip-api.com batch HTTP ${response.status}.`);
   }
 
   const results = await response.json() as Array<Record<string, unknown>>;

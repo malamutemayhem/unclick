@@ -2,6 +2,9 @@
 // Uses the Cohere REST API via fetch - no external dependencies.
 // Users must supply an API key from dashboard.cohere.com.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const COHERE_API_BASE = "https://api.cohere.com/v1";
 
 // --- Types -------------------------------------------------------------------
@@ -61,44 +64,78 @@ interface CohereModel {
 
 // --- Auth validation ---------------------------------------------------------
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at dashboard.cohere.com.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("cohere", args);
 }
 
 // --- API helpers -------------------------------------------------------------
 
-async function coherePost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${COHERE_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "X-Client-Name": "unclick-mcp",
-    },
-    body: JSON.stringify(body),
-  });
+const COHERE_TIMEOUT_MS = Number(process.env.COHERE_TIMEOUT_MS) || 30000;
 
-  const data = await res.json() as Record<string, unknown>;
+async function coherePost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), COHERE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${COHERE_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "X-Client-Name": "unclick-mcp",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Cohere request timed out after ${COHERE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Cohere network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Cohere rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`Cohere error: ${msg}`);
   }
   return data as T;
 }
 
 async function cohereGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${COHERE_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "X-Client-Name": "unclick-mcp",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), COHERE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${COHERE_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "X-Client-Name": "unclick-mcp",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Cohere request timed out after ${COHERE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Cohere network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Cohere rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`Cohere error: ${msg}`);
   }
   return data as T;
@@ -118,6 +155,7 @@ function parseJsonOrArray<T>(value: unknown, fieldName: string): T[] {
 export async function cohereChat(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const message = String(args.message ?? "").trim();
     if (!message) throw new Error("message is required.");
 
@@ -156,6 +194,7 @@ export async function cohereChat(args: Record<string, unknown>): Promise<unknown
 export async function cohereGenerate(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const prompt = String(args.prompt ?? "").trim();
     if (!prompt) throw new Error("prompt is required.");
 
@@ -187,6 +226,7 @@ export async function cohereGenerate(args: Record<string, unknown>): Promise<unk
 export async function cohereEmbed(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const texts = parseJsonOrArray<string>(args.texts, "texts");
     const model = String(args.model ?? "embed-english-v3.0");
     const input_type = String(args.input_type ?? "search_document");
@@ -212,6 +252,7 @@ export async function cohereEmbed(args: Record<string, unknown>): Promise<unknow
 export async function cohereRerank(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? "").trim();
     if (!query) throw new Error("query is required.");
 
@@ -239,6 +280,7 @@ export async function cohereRerank(args: Record<string, unknown>): Promise<unkno
 export async function cohereClassify(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const inputs = parseJsonOrArray<string>(args.inputs, "inputs");
     const examples = parseJsonOrArray<{ text: string; label: string }>(args.examples, "examples");
     const model = String(args.model ?? "embed-english-v2.0");
@@ -264,17 +306,22 @@ export async function cohereClassify(args: Record<string, unknown>): Promise<unk
 export async function cohereListModels(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const data = await cohereGet<{ models: CohereModel[] }>(apiKey, "/models");
     const models = data.models ?? [];
 
-    return {
+    return stampMeta({
       count: models.length,
       models: models.map((m) => ({
         name: m.name,
         endpoints: m.endpoints ?? [],
         context_length: m.context_length ?? null,
       })),
-    };
+    }, {
+      source: "Cohere",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use cohere_chat with a model, or cohere_embed for embeddings."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

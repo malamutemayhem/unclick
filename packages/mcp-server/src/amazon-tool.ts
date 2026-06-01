@@ -1,4 +1,5 @@
 import { createHmac, createHash } from "crypto";
+import { stampMeta } from "./connector-meta.js";
 
 // ─── Marketplace configurations ─────────────────────────────────────────────
 
@@ -122,12 +123,26 @@ async function paApiCall(
   const headers = buildSignedHeaders(operation, bodyStr, creds, host, region);
   const url     = `https://${host}/paapi5/${operation.toLowerCase()}`;
 
-  const response = await fetch(url, { method: "POST", headers, body: bodyStr });
+  const AMAZON_TIMEOUT_MS = Number(process.env.AMAZON_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AMAZON_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url, { method: "POST", headers, body: bodyStr, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Amazon PA-API request timed out after ${AMAZON_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Amazon PA-API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (response.status === 429) throw new Error("Amazon PA-API rate limit / throttle reached (HTTP 429). Please wait and retry.");
   const data = await response.json() as unknown;
 
   if (!response.ok) {
     const err = data as Record<string, unknown>;
-    const type   = (err.__type    as string | undefined) ?? `HTTP ${response.status}`;
+    const type   = (err.__type    as string | undefined) ?? `status ${response.status}`;
     const detail = (err.message   as string | undefined) ?? JSON.stringify(data);
     throw new Error(`PA-API error (${type}): ${detail}`);
   }
@@ -266,10 +281,14 @@ export async function amazonSearch(args: Record<string, unknown>): Promise<unkno
   if (!searchResult) return { items: [], total_result_count: 0 };
 
   const items = (searchResult.Items as Array<Record<string, unknown>> | undefined) ?? [];
-  return {
+  return stampMeta({
     total_result_count: searchResult.TotalResultCount ?? items.length,
     items: items.map(cleanItem),
-  };
+  }, {
+    source: "Amazon Product Advertising API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use amazon_product with an ASIN for full detail, or amazon_variations for variants."],
+  });
 }
 
 export async function amazonProduct(args: Record<string, unknown>): Promise<unknown> {

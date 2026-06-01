@@ -1,0 +1,43 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { listMondayBoards } from "./monday-tool.js";
+
+// L2 resilience contract for the Monday.com connector: request timeout, clean
+// 429 handling, input validation, and stable response mapping.
+describe("monday connector resilience (L2)", () => {
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  it("returns a clean rate-limit error on HTTP 429", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: false, status: 429, headers: { get: (): string | null => null }, text: async () => "", json: async () => ({}),
+    })));
+    const result = await listMondayBoards({ api_key: "k" }) as Record<string, unknown>;
+    expect(String(result.error)).toMatch(/rate limit/i);
+  });
+
+  it("returns a clean timeout error when the request aborts", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      const e = new Error("aborted");
+      e.name = "AbortError";
+      throw e;
+    }));
+    const result = await listMondayBoards({ api_key: "k" }) as Record<string, unknown>;
+    expect(String(result.error)).toMatch(/timed out/i);
+  });
+
+  it("returns a guided not-connected card when the API key is missing", async () => {
+    const result = await listMondayBoards({}) as Record<string, unknown>;
+    expect(result.not_connected).toBe(true);
+    expect(result.connector).toBe("monday");
+    expect(String(result.error)).toMatch(/not connected to monday/i);
+    expect(Array.isArray(result.how_to_connect)).toBe(true);
+  });
+
+  it("passes through successful board listings", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: true, status: 200, headers: { get: (): string | null => null },
+      json: async () => ({ data: { boards: [{ id: "1", name: "Sprint" }] } }),
+    })));
+    const result = await listMondayBoards({ api_key: "k" }) as Record<string, unknown>;
+    expect(result.error).toBeUndefined();
+  });
+});

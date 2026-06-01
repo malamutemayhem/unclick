@@ -5,6 +5,8 @@
 // Docs: https://app.swaggerhub.com/apis/Bandsintown/PublicAPI/3.0.0
 // No external dependencies - native fetch only.
 
+import { stampMeta } from "./connector-meta.js";
+
 const BANDSINTOWN_BASE = "https://rest.bandsintown.com";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -16,6 +18,8 @@ function getAppId(args: Record<string, unknown>): string {
     "unclick"
   );
 }
+
+const BANDSINTOWN_TIMEOUT_MS = Number(process.env.BANDSINTOWN_TIMEOUT_MS) || 10000;
 
 async function bitFetch(
   path: string,
@@ -31,25 +35,38 @@ async function bitFetch(
     }
   }
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), BANDSINTOWN_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       headers: { Accept: "application/json" },
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Bandsintown request timed out after ${BANDSINTOWN_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    return { error: `Bandsintown rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.` };
   }
 
   let data: unknown;
   try {
     data = await response.json();
   } catch {
-    return { error: `Non-JSON response (HTTP ${response.status})`, status: response.status };
+    return { error: `Non-JSON response (status ${response.status})`, status: response.status };
   }
 
   if (!response.ok) {
     const e = data as Record<string, unknown>;
-    return { error: (e.message ?? `HTTP ${response.status}`), status: response.status };
+    return { error: (e.message ?? `status ${response.status}`), status: response.status };
   }
 
   return data;
@@ -63,7 +80,12 @@ export async function bandsintownArtist(args: Record<string, unknown>): Promise<
   const artistName = String(args.artist_name ?? "").trim();
   if (!artistName) return { error: "artist_name is required." };
 
-  return bitFetch(`/artists/${encodeURIComponent(artistName)}`, appId);
+  const __res = await bitFetch(`/artists/${encodeURIComponent(artistName)}`, appId) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Bandsintown",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use bandsintown_events for this artist's upcoming shows."],
+  });
 }
 
 // ─── bandsintown_events ────────────────────────────────────────────────────────

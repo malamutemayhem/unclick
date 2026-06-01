@@ -4,6 +4,8 @@
 // Docs: https://api.setlist.fm/docs/1.0/index.html
 // No external dependencies - native fetch only.
 
+import { stampMeta } from "./connector-meta.js";
+
 const SETLISTFM_BASE = "https://api.setlist.fm/rest/1.0";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -29,6 +31,9 @@ async function sfmFetch(
     }
   }
 
+  const SETLISTFM_TIMEOUT_MS = Number(process.env.SETLISTFM_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SETLISTFM_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
@@ -36,9 +41,19 @@ async function sfmFetch(
         "x-api-key": apiKey,
         Accept: "application/json",
       },
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Setlist.fm request timed out after ${SETLISTFM_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    return { error: "Setlist.fm rate limit exceeded. Please wait and retry.", status: 429 };
   }
 
   let data: unknown;
@@ -50,7 +65,7 @@ async function sfmFetch(
 
   if (!response.ok) {
     const e = data as Record<string, unknown>;
-    return { error: (e.message ?? `HTTP ${response.status}`), status: response.status };
+    return { error: (e.message ?? `status ${response.status}`), status: response.status };
   }
 
   return data;
@@ -62,8 +77,13 @@ export async function setlistfmSearchArtist(args: Record<string, unknown>): Prom
   const apiKey = getApiKey(args);
   if (!apiKey) return { error: "SETLISTFM_API_KEY env var (or api_key arg) is required." };
 
-  return sfmFetch("/search/artists", apiKey, {
+  const __res = await sfmFetch("/search/artists", apiKey, {
     artistName: args.artistName ? String(args.artistName) : undefined,
+  }) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "setlist.fm",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use setlistfm_artist_setlists with an artist mbid for past shows."],
   });
 }
 

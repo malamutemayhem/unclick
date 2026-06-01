@@ -4,13 +4,19 @@
 // Auth: DOMAIN_API_KEY env var (X-Api-Key header).
 // Base URL: https://api.domain.com.au/v1/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const DOMAIN_BASE = "https://api.domain.com.au/v1";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.DOMAIN_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set DOMAIN_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("domain", args);
 }
+
+const DOMAIN_TIMEOUT_MS = Number(process.env.DOMAIN_TIMEOUT_MS) || 10000;
 
 async function domainFetch(
   apiKey: string,
@@ -18,15 +24,28 @@ async function domainFetch(
   method = "GET",
   body?: unknown
 ): Promise<unknown> {
-  const res = await fetch(`${DOMAIN_BASE}${path}`, {
-    method,
-    headers: {
-      "X-Api-Key": apiKey,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DOMAIN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${DOMAIN_BASE}${path}`, {
+      method,
+      headers: {
+        "X-Api-Key": apiKey,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Domain API request timed out after ${DOMAIN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Domain API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid Domain API key.");
   if (res.status === 404) throw new Error("Resource not found.");
   if (res.status === 429) throw new Error("Domain API rate limit exceeded.");
@@ -41,7 +60,8 @@ async function domainFetch(
 
 export async function searchDomainListings(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const listingType = String(args.listing_type ?? "residential").toLowerCase();
     const endpoint = listingType === "commercial"
       ? "/listings/commercial/_search"
@@ -98,13 +118,14 @@ export async function searchDomainListings(args: Record<string, unknown>): Promi
 
 export async function getDomainProperty(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const propertyId = String(args.property_id ?? "").trim();
     if (!propertyId) return { error: "property_id is required." };
 
     const data = await domainFetch(apiKey, `/listings/${propertyId}`) as Record<string, unknown>;
 
-    return {
+    return stampMeta({
       id: data["id"],
       status: data["status"],
       type: data["type"],
@@ -123,7 +144,11 @@ export async function getDomainProperty(args: Record<string, unknown>): Promise<
       agency: data["advertiser"],
       features: data["features"],
       inspection_times: data["inspectionSchedule"],
-    };
+    }, {
+      source: "Domain",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use domain_suburb_stats for area trends, or domain_search_listings for comparable listings."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -133,7 +158,8 @@ export async function getDomainProperty(args: Record<string, unknown>): Promise<
 
 export async function getDomainSuburbStats(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const suburb = String(args.suburb ?? "").trim();
     const state = String(args.state ?? "").trim();
     if (!suburb) return { error: "suburb is required." };

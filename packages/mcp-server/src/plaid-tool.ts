@@ -1,3 +1,4 @@
+import { stampMeta } from "./connector-meta.js";
 // ─── Plaid API Tool ──────────────────────────────────────────────────────────
 // Covers accounts, transactions, balances, identity, and link token creation.
 // Auth: client_id + secret in request body (Plaid API convention).
@@ -35,6 +36,9 @@ async function plaidFetch(
 ): Promise<unknown> {
   const url = `https://${cfg.environment}.plaid.com${path}`;
 
+  const PLAID_TIMEOUT_MS = Number(process.env.PLAID_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PLAID_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url, {
@@ -48,9 +52,15 @@ async function plaidFetch(
         secret:    cfg.secret,
         ...body,
       }),
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Plaid request timed out after ${PLAID_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 429) {
@@ -83,9 +93,14 @@ export async function plaidAccounts(args: Record<string, unknown>): Promise<unkn
   const access_token = String(args.access_token ?? "").trim();
   if (!access_token) return { error: "access_token is required (Plaid item access token)." };
 
-  return plaidFetch(cfg, "/accounts/get", {
+  const __res = await plaidFetch(cfg, "/accounts/get", {
     access_token,
     options: args.account_ids ? { account_ids: args.account_ids } : undefined,
+  }) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Plaid",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use plaid_transactions for transaction history, or plaid_balances for balances."],
   });
 }
 

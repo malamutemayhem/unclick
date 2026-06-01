@@ -4,6 +4,8 @@
 // Public endpoints authenticate via query params: ?client_id=&client_secret=
 // Base URL: https://api.untappd.com/v4/
 
+import { stampMeta } from "./connector-meta.js";
+
 const UNTAPPD_BASE = "https://api.untappd.com/v4";
 
 // ─── API helper ───────────────────────────────────────────────────────────────
@@ -29,6 +31,8 @@ function requireCreds(args: Record<string, unknown>): UntappdCreds {
   return { clientId, clientSecret };
 }
 
+const UNTAPPD_TIMEOUT_MS = Number(process.env.UNTAPPD_TIMEOUT_MS) || 10000;
+
 async function untappdFetch<T>(
   path: string,
   creds: UntappdCreds,
@@ -41,11 +45,29 @@ async function untappdFetch<T>(
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
 
-  const res = await fetch(url.toString(), {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), UNTAPPD_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Untappd API request timed out after ${UNTAPPD_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Untappd API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const body = (await res.json()) as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Untappd API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+
+  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
 
   if (!res.ok) {
     const meta = (body.meta as Record<string, unknown>) ?? {};
@@ -80,7 +102,7 @@ export async function untappdSearchBeer(
   const beers = (data.beers as Record<string, unknown>) ?? {};
   const items = (beers.items as Record<string, unknown>[]) ?? [];
 
-  return {
+  return stampMeta({
     query: q,
     found: beers.count ?? 0,
     offset: beers.offset ?? 0,
@@ -101,7 +123,11 @@ export async function untappdSearchBeer(
         brewery_id: brewery.brewery_id ?? null,
       };
     }),
-  };
+  }, {
+    source: "Untappd",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use untappd_get_beer with a bid for full detail, or untappd_search_brewery to find breweries."],
+  });
 }
 
 // ─── untappd_get_beer ─────────────────────────────────────────────────────────

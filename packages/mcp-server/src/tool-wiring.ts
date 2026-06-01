@@ -630,6 +630,58 @@ import {
 } from "./datadog-tool.js";
 
 import {
+  hubspotListContacts, hubspotGetContact, hubspotSearchContacts,
+  hubspotListCompanies, hubspotListDeals, hubspotCreateContact,
+} from "./hubspot-tool.js";
+
+import {
+  jiraSearchIssues, jiraGetIssue, jiraListProjects,
+  jiraCreateIssue, jiraAddComment,
+} from "./jira-tool.js";
+
+import {
+  posthogListFeatureFlags, posthogListInsights, posthogListPersons, posthogQuery,
+} from "./posthog-tool.js";
+
+import {
+  netlifyListSites, netlifyGetSite, netlifyListDeploys, netlifyGetDeploy,
+} from "./netlify-tool.js";
+
+import { jobsmithCheck, jobsmithRules } from "./jobsmith-tool.js";
+
+import {
+  zendeskSearch, zendeskListTickets, zendeskGetTicket, zendeskAddComment,
+} from "./zendesk-tool.js";
+
+import {
+  intercomListConversations, intercomGetConversation, intercomListContacts, intercomSearchContacts,
+} from "./intercom-tool.js";
+
+import {
+  typeformListForms, typeformGetForm, typeformGetResponses,
+} from "./typeform-tool.js";
+
+import {
+  calcomMe, calcomListEventTypes, calcomListBookings,
+} from "./calcom-tool.js";
+
+import {
+  contentfulListEntries, contentfulGetEntry, contentfulListContentTypes, contentfulListAssets,
+} from "./contentful-tool.js";
+
+import {
+  webflowListSites, webflowGetSite, webflowListCollections, webflowListItems,
+} from "./webflow-tool.js";
+
+import {
+  doListDroplets, doListApps, doListDatabases, doAccount,
+} from "./digitalocean-tool.js";
+
+import {
+  klaviyoListLists, klaviyoListSegments, klaviyoListMetrics, klaviyoListProfiles,
+} from "./klaviyo-tool.js";
+
+import {
   deeplTranslateText, deeplGetUsage, deeplListLanguages, deeplTranslateDocument,
 } from "./deepl-tool.js";
 
@@ -9426,6 +9478,752 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── hubspot-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "hubspot_list_contacts",
+    description: "List HubSpot CRM contacts (most recently created first).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        limit: { type: "number", description: "Contacts to return (max 100, default 25)" },
+        after: { type: "string", description: "Pagination cursor from a previous response" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "hubspot_get_contact",
+    description: "Get a single HubSpot contact by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        contact_id: { type: "string", description: "HubSpot contact id" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token", "contact_id"],
+    },
+  },
+  {
+    name: "hubspot_search_contacts",
+    description: "Search HubSpot contacts by name, email, or company.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        query: { type: "string", description: "Search term (name, email, or company)" },
+        limit: { type: "number", description: "Results to return (max 100, default 25)" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token", "query"],
+    },
+  },
+  {
+    name: "hubspot_list_companies",
+    description: "List HubSpot CRM companies.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        limit: { type: "number", description: "Companies to return (max 100, default 25)" },
+        after: { type: "string", description: "Pagination cursor from a previous response" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "hubspot_list_deals",
+    description: "List HubSpot CRM deals.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        limit: { type: "number", description: "Deals to return (max 100, default 25)" },
+        after: { type: "string", description: "Pagination cursor from a previous response" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "hubspot_create_contact",
+    description: "Create a HubSpot contact.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        email: { type: "string", description: "Contact email address" },
+        properties: { type: "object", description: "Additional contact properties (firstname, lastname, company, phone, ...)" },
+      },
+      required: ["access_token"],
+    },
+  },
+
+  // ── jira-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "jira_search_issues",
+    description: "Search Jira issues with JQL (defaults to most recently updated).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany or mycompany.atlassian.net)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        jql: { type: "string", description: "JQL query (e.g. 'project = ENG AND status = \"In Progress\"')" },
+        max_results: { type: "number", description: "Issues to return (max 100, default 25)" },
+        fields: { type: "string", description: "Comma-separated fields to return" },
+      },
+      required: ["site", "email", "api_token"],
+    },
+  },
+  {
+    name: "jira_get_issue",
+    description: "Get a single Jira issue by key, including description and comments.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        issue_key: { type: "string", description: "Issue key (e.g. ENG-123)" },
+      },
+      required: ["site", "email", "api_token", "issue_key"],
+    },
+  },
+  {
+    name: "jira_list_projects",
+    description: "List Jira projects, with an optional name query.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        query: { type: "string", description: "Filter projects by name or key" },
+        max_results: { type: "number", description: "Projects to return (max 100, default 50)" },
+      },
+      required: ["site", "email", "api_token"],
+    },
+  },
+  {
+    name: "jira_create_issue",
+    description: "Create a Jira issue. project_key can be filled from a saved memory default.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        project_key: { type: "string", description: "Project key (e.g. ENG). Can be a saved default." },
+        summary: { type: "string", description: "Issue summary / title" },
+        issue_type: { type: "string", description: "Issue type name (default Task)" },
+        description: { type: "string", description: "Plain-text description" },
+      },
+      required: ["site", "email", "api_token", "summary"],
+    },
+  },
+  {
+    name: "jira_add_comment",
+    description: "Add a comment to a Jira issue.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        issue_key: { type: "string", description: "Issue key (e.g. ENG-123)" },
+        body: { type: "string", description: "Comment text" },
+      },
+      required: ["site", "email", "api_token", "issue_key", "body"],
+    },
+  },
+
+  // ── jobsmith-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "jobsmith_check",
+    description: "Run JobSmith's CV / cover-letter quality rules over a piece of text. No key needed.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        text: { type: "string", description: "The CV or cover-letter text to check" },
+      },
+      required: ["text"],
+    },
+  },
+  {
+    name: "jobsmith_rules",
+    description: "Browse JobSmith's rule pack (counts by category and severity), optionally filtered by category.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "Filter to one category (e.g. ATS, TRUTH, VOICE, PRIVACY)" },
+      },
+      required: [],
+    },
+  },
+
+  // ── contentful-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "contentful_list_entries",
+    description: "List Contentful entries, optionally filtered by content_type or full-text query.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+        content_type: { type: "string", description: "Filter to one content type id" },
+        query: { type: "string", description: "Full-text search query" },
+        limit: { type: "number", description: "Entries to return (max 100, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "contentful_get_entry",
+    description: "Get a single Contentful entry by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+        entry_id: { type: "string", description: "Entry id" },
+      },
+      required: ["access_token", "entry_id"],
+    },
+  },
+  {
+    name: "contentful_list_content_types",
+    description: "List Contentful content types (the content model).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "contentful_list_assets",
+    description: "List Contentful media assets.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+        limit: { type: "number", description: "Assets to return (max 100, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+
+  // ── webflow-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "webflow_list_sites",
+    description: "List Webflow sites for the account.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "webflow_get_site",
+    description: "Get a single Webflow site by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+        site_id: { type: "string", description: "Webflow site id (can be a saved default)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "webflow_list_collections",
+    description: "List CMS collections for a Webflow site.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+        site_id: { type: "string", description: "Webflow site id (can be a saved default)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "webflow_list_items",
+    description: "List items in a Webflow CMS collection.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+        collection_id: { type: "string", description: "Webflow collection id" },
+        limit: { type: "number", description: "Items to return (max 100, default 25)" },
+        offset: { type: "number", description: "Pagination offset" },
+      },
+      required: ["access_token", "collection_id"],
+    },
+  },
+
+  // ── digitalocean-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "do_list_droplets",
+    description: "List DigitalOcean droplets (signals when any are powered off).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+        tag_name: { type: "string", description: "Filter droplets by tag" },
+        limit: { type: "number", description: "Droplets to return (max 200, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "do_list_apps",
+    description: "List DigitalOcean App Platform apps.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+        limit: { type: "number", description: "Apps to return (max 200, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "do_list_databases",
+    description: "List DigitalOcean managed database clusters.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "do_account",
+    description: "Get the DigitalOcean account profile and limits.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+      },
+      required: ["access_token"],
+    },
+  },
+
+  // ── klaviyo-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "klaviyo_list_lists",
+    description: "List Klaviyo lists.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "klaviyo_list_segments",
+    description: "List Klaviyo segments (dynamic groups).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "klaviyo_list_metrics",
+    description: "List Klaviyo metrics (tracked events).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "klaviyo_list_profiles",
+    description: "List Klaviyo profiles (subscribers).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+        filter: { type: "string", description: "Klaviyo filter expression (e.g. equals(email,'a@b.com'))" },
+        limit: { type: "number", description: "Profiles to return (max 100, default 20)" },
+      },
+      required: ["api_key"],
+    },
+  },
+
+  // ── zendesk-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "zendesk_search",
+    description: "Search Zendesk with the query DSL (e.g. 'type:ticket status:open priority:urgent').",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain (e.g. mycompany)" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        query: { type: "string", description: "Zendesk search query" },
+      },
+      required: ["subdomain", "email", "api_token", "query"],
+    },
+  },
+  {
+    name: "zendesk_list_tickets",
+    description: "List recent Zendesk tickets (signals when any are still new).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        sort_by: { type: "string", description: "Sort field (e.g. created_at, updated_at)" },
+        limit: { type: "number", description: "Tickets to return (max 100, default 25)" },
+      },
+      required: ["subdomain", "email", "api_token"],
+    },
+  },
+  {
+    name: "zendesk_get_ticket",
+    description: "Get a single Zendesk ticket by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        ticket_id: { type: "string", description: "Ticket id" },
+      },
+      required: ["subdomain", "email", "api_token", "ticket_id"],
+    },
+  },
+  {
+    name: "zendesk_add_comment",
+    description: "Add a public or internal comment to a Zendesk ticket.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        ticket_id: { type: "string", description: "Ticket id" },
+        body: { type: "string", description: "Comment text" },
+        public: { type: "boolean", description: "Public reply (default true) or internal note (false)" },
+      },
+      required: ["subdomain", "email", "api_token", "ticket_id", "body"],
+    },
+  },
+
+  // ── intercom-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "intercom_list_conversations",
+    description: "List recent Intercom conversations.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        limit: { type: "number", description: "Conversations to return (max 150, default 20)" },
+        starting_after: { type: "string", description: "Pagination cursor from a previous response" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "intercom_get_conversation",
+    description: "Get a single Intercom conversation by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        conversation_id: { type: "string", description: "Conversation id" },
+      },
+      required: ["access_token", "conversation_id"],
+    },
+  },
+  {
+    name: "intercom_list_contacts",
+    description: "List Intercom contacts.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        limit: { type: "number", description: "Contacts to return (max 150, default 25)" },
+        starting_after: { type: "string", description: "Pagination cursor from a previous response" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "intercom_search_contacts",
+    description: "Search Intercom contacts by email.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        query: { type: "string", description: "Email (or partial email) to match" },
+      },
+      required: ["access_token", "query"],
+    },
+  },
+
+  // ── typeform-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "typeform_list_forms",
+    description: "List your Typeform forms.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Typeform personal access token" },
+        search: { type: "string", description: "Filter forms by title" },
+        limit: { type: "number", description: "Forms to return (max 200, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "typeform_get_form",
+    description: "Get a Typeform form definition (fields and titles) by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Typeform personal access token" },
+        form_id: { type: "string", description: "Form id" },
+      },
+      required: ["access_token", "form_id"],
+    },
+  },
+  {
+    name: "typeform_get_responses",
+    description: "Get submissions for a Typeform form.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Typeform personal access token" },
+        form_id: { type: "string", description: "Form id" },
+        since: { type: "string", description: "ISO 8601 lower bound on submission time" },
+        limit: { type: "number", description: "Responses to return (max 1000, default 25)" },
+      },
+      required: ["access_token", "form_id"],
+    },
+  },
+
+  // ── calcom-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "calcom_me",
+    description: "Get the authenticated Cal.com user's profile.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Cal.com API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "calcom_list_event_types",
+    description: "List your Cal.com bookable event (meeting) types.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Cal.com API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "calcom_list_bookings",
+    description: "List Cal.com bookings, optionally filtered by status.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Cal.com API key" },
+        status: { type: "string", description: "Filter by status (upcoming, past, cancelled, ...)" },
+      },
+      required: ["api_key"],
+    },
+  },
+
+  // ── posthog-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "posthog_list_feature_flags",
+    description: "List PostHog feature flags for a project.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "posthog_list_insights",
+    description: "List saved PostHog insights (charts) for a project.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+        search: { type: "string", description: "Filter insights by name" },
+        limit: { type: "number", description: "Results to return (max 100, default 25)" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "posthog_list_persons",
+    description: "List PostHog persons (users) for a project.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+        search: { type: "string", description: "Filter persons by email or properties" },
+        limit: { type: "number", description: "Results to return (max 100, default 25)" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "posthog_query",
+    description: "Run an ad-hoc HogQL (SQL) query against a PostHog project's events.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+        query: { type: "string", description: "HogQL/SQL query (e.g. select count() from events)" },
+      },
+      required: ["api_key", "query"],
+    },
+  },
+
+  // ── netlify-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "netlify_list_sites",
+    description: "List Netlify sites for the account.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        name: { type: "string", description: "Filter sites by name" },
+        limit: { type: "number", description: "Sites to return (max 100, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "netlify_get_site",
+    description: "Get a single Netlify site by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        site_id: { type: "string", description: "Netlify site id (can be a saved default)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "netlify_list_deploys",
+    description: "List recent deploys for a Netlify site (signals when the latest deploy failed).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        site_id: { type: "string", description: "Netlify site id (can be a saved default)" },
+        limit: { type: "number", description: "Deploys to return (max 100, default 10)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "netlify_get_deploy",
+    description: "Get a single Netlify deploy by id (including build logs metadata).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        deploy_id: { type: "string", description: "Netlify deploy id" },
+      },
+      required: ["access_token", "deploy_id"],
+    },
+  },
+
   // ── deepl-tool.ts ─────────────────────────────────────────────────────────────
   {
     name: "deepl_translate_text",
@@ -14206,6 +15004,83 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   mixpanel_get_funnels:    (args) => mixpanelGetFunnels(args),
   mixpanel_get_retention:  (args) => mixpanelGetRetention(args),
   mixpanel_export_data:    (args) => mixpanelExportData(args),
+
+  // hubspot-tool.ts
+  hubspot_list_contacts:   (args) => hubspotListContacts(args),
+  hubspot_get_contact:     (args) => hubspotGetContact(args),
+  hubspot_search_contacts: (args) => hubspotSearchContacts(args),
+  hubspot_list_companies:  (args) => hubspotListCompanies(args),
+  hubspot_list_deals:      (args) => hubspotListDeals(args),
+  hubspot_create_contact:  (args) => hubspotCreateContact(args),
+
+  // jira-tool.ts
+  jira_search_issues:      (args) => jiraSearchIssues(args),
+  jira_get_issue:          (args) => jiraGetIssue(args),
+  jira_list_projects:      (args) => jiraListProjects(args),
+  jira_create_issue:       (args) => jiraCreateIssue(args),
+  jira_add_comment:        (args) => jiraAddComment(args),
+
+  // jobsmith-tool.ts
+  jobsmith_check:          (args) => jobsmithCheck(args),
+  jobsmith_rules:          (args) => jobsmithRules(args),
+
+  // contentful-tool.ts
+  contentful_list_entries:       (args) => contentfulListEntries(args),
+  contentful_get_entry:          (args) => contentfulGetEntry(args),
+  contentful_list_content_types: (args) => contentfulListContentTypes(args),
+  contentful_list_assets:        (args) => contentfulListAssets(args),
+
+  // webflow-tool.ts
+  webflow_list_sites:       (args) => webflowListSites(args),
+  webflow_get_site:         (args) => webflowGetSite(args),
+  webflow_list_collections: (args) => webflowListCollections(args),
+  webflow_list_items:       (args) => webflowListItems(args),
+
+  // digitalocean-tool.ts
+  do_list_droplets:        (args) => doListDroplets(args),
+  do_list_apps:            (args) => doListApps(args),
+  do_list_databases:       (args) => doListDatabases(args),
+  do_account:              (args) => doAccount(args),
+
+  // klaviyo-tool.ts
+  klaviyo_list_lists:      (args) => klaviyoListLists(args),
+  klaviyo_list_segments:   (args) => klaviyoListSegments(args),
+  klaviyo_list_metrics:    (args) => klaviyoListMetrics(args),
+  klaviyo_list_profiles:   (args) => klaviyoListProfiles(args),
+
+  // zendesk-tool.ts
+  zendesk_search:          (args) => zendeskSearch(args),
+  zendesk_list_tickets:    (args) => zendeskListTickets(args),
+  zendesk_get_ticket:      (args) => zendeskGetTicket(args),
+  zendesk_add_comment:     (args) => zendeskAddComment(args),
+
+  // intercom-tool.ts
+  intercom_list_conversations: (args) => intercomListConversations(args),
+  intercom_get_conversation:   (args) => intercomGetConversation(args),
+  intercom_list_contacts:      (args) => intercomListContacts(args),
+  intercom_search_contacts:    (args) => intercomSearchContacts(args),
+
+  // typeform-tool.ts
+  typeform_list_forms:     (args) => typeformListForms(args),
+  typeform_get_form:       (args) => typeformGetForm(args),
+  typeform_get_responses:  (args) => typeformGetResponses(args),
+
+  // calcom-tool.ts
+  calcom_me:               (args) => calcomMe(args),
+  calcom_list_event_types: (args) => calcomListEventTypes(args),
+  calcom_list_bookings:    (args) => calcomListBookings(args),
+
+  // posthog-tool.ts
+  posthog_list_feature_flags: (args) => posthogListFeatureFlags(args),
+  posthog_list_insights:      (args) => posthogListInsights(args),
+  posthog_list_persons:       (args) => posthogListPersons(args),
+  posthog_query:              (args) => posthogQuery(args),
+
+  // netlify-tool.ts
+  netlify_list_sites:      (args) => netlifyListSites(args),
+  netlify_get_site:        (args) => netlifyGetSite(args),
+  netlify_list_deploys:    (args) => netlifyListDeploys(args),
+  netlify_get_deploy:      (args) => netlifyGetDeploy(args),
 
   // datadog-tool.ts
   datadog_list_monitors:   (args) => datadogListMonitors(args),

@@ -3,6 +3,9 @@
 // Docs: https://newsapi.org/docs
 // Env var: NEWS_API_KEY
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const NEWSAPI_BASE = "https://newsapi.org/v2";
 
 async function newsGet(
@@ -15,9 +18,26 @@ async function newsGet(
     if (v !== undefined && v !== "") qs.set(k, String(v));
   }
   const url = `${NEWSAPI_BASE}${path}${qs.toString() ? "?" + qs.toString() : ""}`;
-  const res = await fetch(url, {
-    headers: { "X-Api-Key": apiKey },
-  });
+  const NEWSAPI_TIMEOUT_MS = Number(process.env.NEWSAPI_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NEWSAPI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "X-Api-Key": apiKey },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`NewsAPI request timed out after ${NEWSAPI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`NewsAPI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    throw new Error("NewsAPI rate limit exceeded. Please wait and retry.");
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`NewsAPI HTTP ${res.status}: ${body || res.statusText}`);
@@ -27,10 +47,8 @@ async function newsGet(
   return json;
 }
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.NEWS_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set NEWS_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("newsapi", args);
 }
 
 // ── Tool functions ─────────────────────────────────────────────────────────────
@@ -38,6 +56,7 @@ function getApiKey(args: Record<string, unknown>): string {
 export async function newsGetTopHeadlines(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string | number> = {};
     if (args.country)  params.country  = String(args.country);
     if (args.category) params.category = String(args.category);
@@ -46,10 +65,14 @@ export async function newsGetTopHeadlines(args: Record<string, unknown>): Promis
     if (args.page_size) params.pageSize = Number(args.page_size);
     if (args.page)     params.page     = Number(args.page);
     const data = await newsGet(apiKey, "/top-headlines", params);
-    return {
+    return stampMeta({
       total_results: data.totalResults,
       articles: data.articles,
-    };
+    }, {
+      source: "NewsAPI.org",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use news_search for a keyword query across all articles, or news_get_sources to list available outlets."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -58,6 +81,7 @@ export async function newsGetTopHeadlines(args: Record<string, unknown>): Promis
 export async function newsSearchNews(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { q: query };
@@ -82,6 +106,7 @@ export async function newsSearchNews(args: Record<string, unknown>): Promise<unk
 export async function newsGetSources(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string> = {};
     if (args.category) params.category = String(args.category);
     if (args.language) params.language = String(args.language);

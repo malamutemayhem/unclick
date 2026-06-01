@@ -4,6 +4,8 @@
 // Docs: https://nvd.nist.gov/developers/vulnerabilities
 // Base URL: https://services.nvd.nist.gov/rest/json/cves/2.0
 
+import { stampMeta } from "./connector-meta.js";
+
 const NVD_BASE = "https://services.nvd.nist.gov/rest/json/cves/2.0";
 
 async function nvdGet(params: Record<string, string>, apiKey?: string): Promise<Record<string, unknown>> {
@@ -13,7 +15,20 @@ async function nvdGet(params: Record<string, string>, apiKey?: string): Promise<
   };
   if (apiKey) headers["apiKey"] = apiKey;
 
-  const res = await fetch(`${NVD_BASE}?${qs}`, { headers });
+  const NVD_TIMEOUT_MS = Number(process.env.NVD_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NVD_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${NVD_BASE}?${qs}`, { headers, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`NVD API request timed out after ${NVD_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`NVD API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 403) throw new Error("Invalid NVD API key.");
   if (res.status === 404) throw new Error("CVE not found.");
   if (res.status === 429) throw new Error("NVD API rate limit exceeded. Consider providing an NVD_API_KEY for higher limits.");
@@ -78,7 +93,11 @@ export async function getCveDetail(args: Record<string, unknown>): Promise<unkno
 
     if (!vulns?.length) return { error: `CVE "${cveId}" not found.`, cve_id: cveId };
 
-    return formatCve(vulns[0]);
+    return stampMeta(formatCve(vulns[0]) as Record<string, unknown>, {
+      source: "NVD (NIST)",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use search_cve to find related CVEs, or get_recent_cves for the latest."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

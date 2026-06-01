@@ -7,14 +7,15 @@
  * caller's user id from that token and enforces actor_user_id scoping.
  */
 
+import { unclickNotConfigured } from "./connection-help.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const API_BASE = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function getApiKey(): string {
+function getApiKey(): string | NotConnectedResult {
   const key = process.env.UNCLICK_API_KEY?.trim();
-  if (!key) {
-    throw new Error("UNCLICK_API_KEY env var is not set. Get your install config at https://unclick.world");
-  }
+  if (!key) return unclickNotConfigured();
   return key;
 }
 
@@ -22,8 +23,9 @@ function parseTextBody(text: string): unknown {
   try { return text ? JSON.parse(text) : null; } catch { return text; }
 }
 
-async function fetchJson(path: string): Promise<{ ok: boolean; status: number; body: unknown }> {
+async function fetchJson(path: string): Promise<{ ok: boolean; status: number; body: unknown } | NotConnectedResult> {
   const apiKey = getApiKey();
+  if (typeof apiKey !== "string") return apiKey;
   const res = await fetch(`${API_BASE}${path}`, {
     headers: { Authorization: `Bearer ${apiKey}` },
   });
@@ -33,6 +35,7 @@ async function fetchJson(path: string): Promise<{ ok: boolean; status: number; b
 
 export async function testpassListPacks(): Promise<unknown> {
   const result = await fetchJson("/api/memory-admin?action=list_testpass_packs");
+  if ("not_connected" in result) return result;
   if (!result.ok) return { error: `testpass list_packs failed (HTTP ${result.status})`, body: result.body };
   return result.body;
 }
@@ -45,6 +48,7 @@ export async function testpassRun(args: Record<string, unknown>): Promise<unknow
   if (!targetUrl) return { error: "target_url is required" };
 
   const apiKey = getApiKey();
+  if (typeof apiKey !== "string") return apiKey;
   const requestBody: Record<string, unknown> = {
     target: { type: "mcp", url: targetUrl },
     profile,
@@ -70,6 +74,7 @@ export async function testpassStatus(args: Record<string, unknown>): Promise<unk
   if (!runId) return { error: "run_id is required" };
 
   const result = await fetchJson(`/api/testpass?action=status&run_id=${encodeURIComponent(runId)}`);
+  if ("not_connected" in result) return result;
   if (!result.ok) return { error: `testpass status failed (HTTP ${result.status})`, body: result.body };
   return result.body;
 }
@@ -79,6 +84,7 @@ export async function testpassReportHtml(args: Record<string, unknown>): Promise
   if (!runId) return { error: "run_id is required" };
 
   const apiKey = getApiKey();
+  if (typeof apiKey !== "string") return apiKey;
   const res = await fetch(
     `${API_BASE}/api/testpass?action=report_html&run_id=${encodeURIComponent(runId)}`,
     { headers: { Authorization: `Bearer ${apiKey}` } },
@@ -96,6 +102,7 @@ export async function testpassReportJson(args: Record<string, unknown>): Promise
   if (!runId) return { error: "run_id is required" };
 
   const result = await fetchJson(`/api/testpass?action=report_json&run_id=${encodeURIComponent(runId)}`);
+  if ("not_connected" in result) return result;
   if (!result.ok) return { error: `testpass report_json failed (HTTP ${result.status})`, body: result.body };
   return { run_id: runId, format: "json", body: result.body };
 }
@@ -105,6 +112,7 @@ export async function testpassReportMd(args: Record<string, unknown>): Promise<u
   if (!runId) return { error: "run_id is required" };
 
   const result = await fetchJson(`/api/testpass?action=report_md&run_id=${encodeURIComponent(runId)}`);
+  if ("not_connected" in result) return result;
   if (!result.ok) return { error: `testpass report_md failed (HTTP ${result.status})`, body: result.body };
   if (result.body && typeof result.body === "object" && "markdown" in result.body) {
     return { run_id: runId, format: "md", body: (result.body as { markdown: string }).markdown };
@@ -124,6 +132,7 @@ export async function testpassEvidence(args: Record<string, unknown>): Promise<u
   if (!itemId && !checkId) return { error: "item_id or check_id is required" };
 
   const result = await fetchJson(`/api/testpass?action=report_json&run_id=${encodeURIComponent(runId)}`);
+  if ("not_connected" in result) return result;
   if (!result.ok) return { error: `testpass evidence failed (HTTP ${result.status})`, body: result.body };
   const body = result.body as {
     items?: Array<Record<string, unknown>>;
@@ -145,6 +154,7 @@ export async function testpassSavePack(args: Record<string, unknown>): Promise<u
   if (!yaml) return { error: "yaml is required" };
 
   const apiKey = getApiKey();
+  if (typeof apiKey !== "string") return apiKey;
   const res = await fetch(`${API_BASE}/api/testpass?action=save_pack`, {
     method: "POST",
     headers: {
@@ -176,6 +186,7 @@ export async function testpassEditItem(args: Record<string, unknown>): Promise<u
   const payload: Record<string, unknown> = { run_id: runId, item_id: itemId, verdict, notes: notes.trim() };
 
   const apiKey = getApiKey();
+  if (typeof apiKey !== "string") return apiKey;
   const res = await fetch(`${API_BASE}/api/testpass?action=edit_item`, {
     method: "POST",
     headers: {

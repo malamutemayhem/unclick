@@ -3,6 +3,8 @@
 // Default region base: https://euw1.api.riotgames.com/
 // Match v5 uses regional routing: europe / americas / asia
 
+import { stampMeta } from "./connector-meta.js";
+
 const RIOT_DEFAULT_REGION = "euw1";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -33,12 +35,27 @@ async function riotFetch<T>(
   url: string,
   apiKey: string
 ): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      "X-Riot-Token": apiKey,
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-    },
-  });
+  const RIOT_TIMEOUT_MS = Number(process.env.RIOT_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RIOT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: {
+        "X-Riot-Token": apiKey,
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Riot API request timed out after ${RIOT_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Riot API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Riot API rate limit exceeded. Please wait and retry.");
   const body = (await res.json()) as Record<string, unknown>;
   if (!res.ok) {
     const status = body.status as Record<string, unknown> | undefined;
@@ -65,7 +82,7 @@ export async function riotSummoner(
 
   const data = await riotFetch<Record<string, unknown>>(url, key);
 
-  return {
+  return stampMeta({
     id: data.id,
     account_id: data.accountId,
     puuid: data.puuid,
@@ -74,7 +91,11 @@ export async function riotSummoner(
     summoner_level: data.summonerLevel,
     revision_date: data.revisionDate,
     region,
-  };
+  }, {
+    source: "Riot Games API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use riot_ranked for ranked stats, or riot_match_history for recent games."],
+  });
 }
 
 // ─── riot_ranked ──────────────────────────────────────────────────────────────

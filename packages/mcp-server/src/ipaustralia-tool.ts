@@ -4,13 +4,16 @@
 // Auth: IPAUSTRALIA_API_KEY env var (Authorization Bearer header).
 // Base URL: https://api.ipaustralia.gov.au/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const IPAU_BASE = "https://api.ipaustralia.gov.au";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.IPAUSTRALIA_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set IPAUSTRALIA_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("ipaustralia", args);
 }
+
+const IPAUSTRALIA_TIMEOUT_MS = Number(process.env.IPAUSTRALIA_TIMEOUT_MS) || 15000;
 
 async function ipauGet(
   apiKey: string,
@@ -18,12 +21,25 @@ async function ipauGet(
   params?: Record<string, string>
 ): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${IPAU_BASE}${path}${qs}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), IPAUSTRALIA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${IPAU_BASE}${path}${qs}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`IP Australia API request timed out after ${IPAUSTRALIA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`IP Australia API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid IP Australia API key.");
   if (res.status === 404) throw new Error("Resource not found.");
   if (res.status === 429) throw new Error("IP Australia API rate limit exceeded.");
@@ -39,6 +55,7 @@ async function ipauGet(
 export async function searchTrademarks(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const keyword = String(args.keyword ?? args.query ?? "").trim();
     if (!keyword) return { error: "keyword is required." };
 
@@ -55,7 +72,7 @@ export async function searchTrademarks(args: Record<string, unknown>): Promise<u
 
     const results = data["results"] as Array<Record<string, unknown>> | undefined ?? [];
 
-    return {
+    return stampMeta({
       query: keyword,
       total: data["total"] ?? results.length,
       results: results.map((t) => ({
@@ -68,7 +85,11 @@ export async function searchTrademarks(args: Record<string, unknown>): Promise<u
         filing_date: t["filingDate"],
         registration_date: t["registrationDate"],
       })),
-    };
+    }, {
+      source: "IP Australia",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use get_trademark_details with an application number for full detail."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -79,6 +100,7 @@ export async function searchTrademarks(args: Record<string, unknown>): Promise<u
 export async function getTrademarkDetails(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const number = String(args.number ?? args.trademark_number ?? "").trim();
     if (!number) return { error: "number is required (trademark application number)." };
 
@@ -108,6 +130,7 @@ export async function getTrademarkDetails(args: Record<string, unknown>): Promis
 export async function searchPatents(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const keyword = String(args.keyword ?? args.query ?? "").trim();
     if (!keyword) return { error: "keyword is required." };
 

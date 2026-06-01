@@ -2,6 +2,10 @@
 // Uses the ElevenLabs REST API via fetch - no external dependencies.
 // Users must supply an API key from elevenlabs.io.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const EL_API_BASE = "https://api.elevenlabs.io/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -132,43 +136,79 @@ function requireElevenLabsSpendAllowed(operation: ElevenLabsToolOperation, model
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at elevenlabs.io.");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("elevenlabs", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
-async function elGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${EL_API_BASE}${path}`, {
-    headers: {
-      "xi-api-key": apiKey,
-      "Content-Type": "application/json",
-    },
-  });
+const ELEVENLABS_TIMEOUT_MS = Number(process.env.ELEVENLABS_TIMEOUT_MS) || 30000;
 
-  const data = await res.json() as Record<string, unknown>;
+async function elGet<T>(apiKey: string, path: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ELEVENLABS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${EL_API_BASE}${path}`, {
+      headers: {
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ElevenLabs request timed out after ${ELEVENLABS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ElevenLabs network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`ElevenLabs rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const detail = data.detail as Record<string, unknown> | string | undefined;
     const msg = typeof detail === "object" ? (detail?.message ?? JSON.stringify(detail)) : detail;
-    throw new Error(`ElevenLabs error (${res.status}): ${msg ?? `HTTP ${res.status}`}`);
+    throw new Error(`ElevenLabs error (${res.status}): ${msg ?? `status ${res.status}`}`);
   }
   return data as T;
 }
 
 async function elPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${EL_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "xi-api-key": apiKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ELEVENLABS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${EL_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ElevenLabs request timed out after ${ELEVENLABS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ElevenLabs network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`ElevenLabs rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
-    let msg = `HTTP ${res.status}`;
+    let msg = `status ${res.status}`;
     try {
       const data = await res.json() as Record<string, unknown>;
       const detail = data.detail as Record<string, unknown> | string | undefined;
@@ -185,10 +225,11 @@ async function elPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function elevenlabsListVoices(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireElevenLabsSpendAllowed("voice-listing", "ElevenLabs /voices", apiKey);
   const data = await elGet<{ voices: ElVoice[] }>(apiKey, "/voices");
 
-  return {
+  return stampMeta({
     count: data.voices.length,
     voices: data.voices.map((v) => ({
       voice_id: v.voice_id,
@@ -198,11 +239,16 @@ export async function elevenlabsListVoices(args: Record<string, unknown>): Promi
       labels: v.labels ?? {},
       preview_url: v.preview_url ?? null,
     })),
-  };
+  }, {
+    source: "ElevenLabs",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use elevenlabs_get_voice for detail, or elevenlabs_text_to_speech to synthesize."],
+  });
 }
 
 export async function elevenlabsGetVoice(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const voiceId = String(args.voice_id ?? "").trim();
   if (!voiceId) throw new Error("voice_id is required.");
 
@@ -224,6 +270,7 @@ export async function elevenlabsGetVoice(args: Record<string, unknown>): Promise
 
 export async function elevenlabsTextToSpeech(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const voiceId = String(args.voice_id ?? "").trim();
   const text = String(args.text ?? "").trim();
   if (!voiceId) throw new Error("voice_id is required.");
@@ -267,6 +314,7 @@ export async function elevenlabsTextToSpeech(args: Record<string, unknown>): Pro
 
 export async function elevenlabsGetModels(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireElevenLabsSpendAllowed("model-listing", "ElevenLabs /models", apiKey);
   const models = await elGet<ElModel[]>(apiKey, "/models");
 
@@ -285,6 +333,7 @@ export async function elevenlabsGetModels(args: Record<string, unknown>): Promis
 
 export async function elevenlabsGetHistory(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireElevenLabsSpendAllowed("history-listing", "ElevenLabs /history", apiKey);
   const pageSize = Math.min(1000, Math.max(1, Number(args.page_size ?? 30)));
   const params = new URLSearchParams({ page_size: String(pageSize) });

@@ -43,6 +43,9 @@ async function qbFetch(
 ): Promise<unknown> {
   const url = `${qbBase(cfg)}${path}`;
 
+  const QUICKBOOKS_TIMEOUT_MS = Number(process.env.QUICKBOOKS_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), QUICKBOOKS_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url, {
@@ -53,9 +56,15 @@ async function qbFetch(
         "Accept":       "application/json",
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `QuickBooks request timed out after ${QUICKBOOKS_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 429) {
@@ -84,6 +93,9 @@ async function qbQuery(cfg: QBConfig, sql: string): Promise<unknown> {
   url.searchParams.set("query", sql);
   url.searchParams.set("minorversion", "65");
 
+  const QUICKBOOKS_TIMEOUT_MS = Number(process.env.QUICKBOOKS_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), QUICKBOOKS_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
@@ -91,9 +103,15 @@ async function qbQuery(cfg: QBConfig, sql: string): Promise<unknown> {
         Authorization: `Bearer ${cfg.access_token}`,
         "Accept":      "application/json",
       },
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `QuickBooks request timed out after ${QUICKBOOKS_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 429) {

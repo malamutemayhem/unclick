@@ -4,19 +4,35 @@
 // Auth: WILLYWEATHER_KEY env var (passed as key query param in base URL).
 // Base URL: https://api.willyweather.com.au/v2/{key}/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const WILLY_BASE = "https://api.willyweather.com.au/v2";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.WILLYWEATHER_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set WILLYWEATHER_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("willyweather", args);
 }
+
+const WILLYWEATHER_TIMEOUT_MS = Number(process.env.WILLYWEATHER_TIMEOUT_MS) || 10000;
 
 async function willyGet(apiKey: string, path: string, params?: Record<string, string>): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${WILLY_BASE}/${apiKey}${path}${qs}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), WILLYWEATHER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${WILLY_BASE}/${apiKey}${path}${qs}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`WillyWeather request timed out after ${WILLYWEATHER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`WillyWeather network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid WillyWeather API key.");
   if (res.status === 404) throw new Error("Location not found.");
   if (res.status === 429) throw new Error("WillyWeather API rate limit exceeded.");
@@ -44,6 +60,7 @@ async function searchLocation(apiKey: string, query: string): Promise<{ id: numb
 export async function getWillyweatherForecast(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
     if (!query) return { error: "location is required (suburb name or postcode)." };
 
@@ -58,7 +75,7 @@ export async function getWillyweatherForecast(args: Record<string, unknown>): Pr
 
     const forecasts = data["forecasts"] as Record<string, unknown> | undefined;
 
-    return {
+    return stampMeta({
       location: `${loc.name}, ${loc.state}`,
       location_id: loc.id,
       days_requested: days,
@@ -67,7 +84,11 @@ export async function getWillyweatherForecast(args: Record<string, unknown>): Pr
       rainfall: forecasts?.["rainfall"],
       wind: forecasts?.["wind"],
       sunrise_sunset: forecasts?.["sunrisesunset"],
-    };
+    }, {
+      source: "WillyWeather",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use willyweather_tide or willyweather_surf for coastal data at the same location."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -78,6 +99,7 @@ export async function getWillyweatherForecast(args: Record<string, unknown>): Pr
 export async function getWillyweatherSurf(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
     if (!query) return { error: "location is required (suburb name or postcode)." };
 
@@ -109,6 +131,7 @@ export async function getWillyweatherSurf(args: Record<string, unknown>): Promis
 export async function getWillyweatherTide(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
     if (!query) return { error: "location is required (suburb name or postcode)." };
 

@@ -3,13 +3,20 @@
 // Auth: SHODAN_API_KEY (key query param)
 // Base: https://api.shodan.io/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const SHODAN_BASE = "https://api.shodan.io";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.SHODAN_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set SHODAN_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("shodan", args);
 }
+
+const SHODAN_TIMEOUT_MS = Number(process.env.SHODAN_TIMEOUT_MS) || 15000;
 
 async function shodanGet(
   apiKey: string,
@@ -17,7 +24,19 @@ async function shodanGet(
   params?: Record<string, string>
 ): Promise<Record<string, unknown>> {
   const qs = new URLSearchParams({ key: apiKey, ...(params ?? {}) });
-  const res = await fetch(`${SHODAN_BASE}${path}?${qs}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SHODAN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SHODAN_BASE}${path}?${qs}`, { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Shodan request timed out after ${SHODAN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Shodan network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Shodan API key.");
   if (res.status === 404) throw new Error("Shodan: resource not found.");
   if (res.status === 429) throw new Error("Shodan rate limit exceeded.");
@@ -36,7 +55,8 @@ async function shodanGet(
 // search_shodan
 export async function searchShodan(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required (e.g. 'port:22 country:US', 'product:nginx')." };
     const params: Record<string, string> = { query };
@@ -45,7 +65,7 @@ export async function searchShodan(args: Record<string, unknown>): Promise<unkno
     if (args.minify !== undefined) params.minify = String(args.minify);
     const data = await shodanGet(apiKey, "/shodan/host/search", params);
     const matches = (data.matches as Array<Record<string, unknown>>) ?? [];
-    return {
+    return stampMeta({
       total: data.total,
       count: matches.length,
       facets: data.facets,
@@ -64,7 +84,11 @@ export async function searchShodan(args: Record<string, unknown>): Promise<unkno
         timestamp: m.timestamp,
         data: typeof m.data === "string" ? m.data.slice(0, 300) : null,
       })),
-    };
+    }, {
+      source: "Shodan",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use shodan_host_info for a specific IP, or shodan_stats to aggregate facets."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -73,7 +97,8 @@ export async function searchShodan(args: Record<string, unknown>): Promise<unkno
 // get_host_info
 export async function getHostInfo(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const ip = String(args.ip ?? "").trim();
     if (!ip) return { error: "ip is required." };
     const params: Record<string, string> = {};
@@ -112,7 +137,8 @@ export async function getHostInfo(args: Record<string, unknown>): Promise<unknow
 // get_shodan_stats
 export async function getShodanStats(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string> = { query };

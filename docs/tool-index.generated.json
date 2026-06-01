@@ -306,6 +306,24 @@
     ]
   },
   {
+    "app": "calcom",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "calcom_me",
+        "description": "Get the authenticated Cal.com user's profile."
+      },
+      {
+        "name": "calcom_list_event_types",
+        "description": "List your Cal.com bookable event (meeting) types."
+      },
+      {
+        "name": "calcom_list_bookings",
+        "description": "List Cal.com bookings, optionally filtered by status."
+      }
+    ]
+  },
+  {
     "app": "calculator",
     "category": "Utilities",
     "tools": [
@@ -600,6 +618,28 @@
     ]
   },
   {
+    "app": "contentful",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "contentful_list_entries",
+        "description": "List Contentful entries, optionally filtered by content_type or full-text query."
+      },
+      {
+        "name": "contentful_get_entry",
+        "description": "Get a single Contentful entry by id."
+      },
+      {
+        "name": "contentful_list_content_types",
+        "description": "List Contentful content types (the content model)."
+      },
+      {
+        "name": "contentful_list_assets",
+        "description": "List Contentful media assets."
+      }
+    ]
+  },
+  {
     "app": "convertkit",
     "category": "Commerce / Creator",
     "tools": [
@@ -784,6 +824,28 @@
       {
         "name": "deezer_search_playlist",
         "description": "Search for Deezer playlists."
+      }
+    ]
+  },
+  {
+    "app": "digitalocean",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "do_list_droplets",
+        "description": "List DigitalOcean droplets (signals when any are powered off)."
+      },
+      {
+        "name": "do_list_apps",
+        "description": "List DigitalOcean App Platform apps."
+      },
+      {
+        "name": "do_list_databases",
+        "description": "List DigitalOcean managed database clusters."
+      },
+      {
+        "name": "do_account",
+        "description": "Get the DigitalOcean account profile and limits."
       }
     ]
   },
@@ -1496,6 +1558,36 @@
     ]
   },
   {
+    "app": "hubspot",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "hubspot_list_contacts",
+        "description": "List HubSpot CRM contacts (most recently created first)."
+      },
+      {
+        "name": "hubspot_get_contact",
+        "description": "Get a single HubSpot contact by id."
+      },
+      {
+        "name": "hubspot_search_contacts",
+        "description": "Search HubSpot contacts by name, email, or company."
+      },
+      {
+        "name": "hubspot_list_companies",
+        "description": "List HubSpot CRM companies."
+      },
+      {
+        "name": "hubspot_list_deals",
+        "description": "List HubSpot CRM deals."
+      },
+      {
+        "name": "hubspot_create_contact",
+        "description": "Create a HubSpot contact."
+      }
+    ]
+  },
+  {
     "app": "hunter",
     "category": "Security",
     "tools": [
@@ -1568,6 +1660,28 @@
     ]
   },
   {
+    "app": "intercom",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "intercom_list_conversations",
+        "description": "List recent Intercom conversations."
+      },
+      {
+        "name": "intercom_get_conversation",
+        "description": "Get a single Intercom conversation by id."
+      },
+      {
+        "name": "intercom_list_contacts",
+        "description": "List Intercom contacts."
+      },
+      {
+        "name": "intercom_search_contacts",
+        "description": "Search Intercom contacts by email."
+      }
+    ]
+  },
+  {
     "app": "ipapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1600,6 +1714,46 @@
     ]
   },
   {
+    "app": "jira",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "jira_search_issues",
+        "description": "Search Jira issues with JQL (defaults to most recently updated)."
+      },
+      {
+        "name": "jira_get_issue",
+        "description": "Get a single Jira issue by key, including description and comments."
+      },
+      {
+        "name": "jira_list_projects",
+        "description": "List Jira projects, with an optional name query."
+      },
+      {
+        "name": "jira_create_issue",
+        "description": "Create a Jira issue. project_key can be filled from a saved memory default."
+      },
+      {
+        "name": "jira_add_comment",
+        "description": "Add a comment to a Jira issue."
+      }
+    ]
+  },
+  {
+    "app": "jobsmith",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "jobsmith_check",
+        "description": "Run JobSmith's CV / cover-letter quality rules over a piece of text. No key needed."
+      },
+      {
+        "name": "jobsmith_rules",
+        "description": "Browse JobSmith's rule pack (counts by category and severity), optionally filtered by category."
+      }
+    ]
+  },
+  {
     "app": "keychain",
     "category": "AI",
     "tools": [
@@ -1622,6 +1776,28 @@
       {
         "name": "keychain_secure_connect",
         "description": "Securely connect a platform credential without exposing the key in chat. Checks environment variables first; if not found, opens a localhost secure input page for the user to paste their key. Call once to get the URL, then call again after the user submits to complete the connection."
+      }
+    ]
+  },
+  {
+    "app": "klaviyo",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "klaviyo_list_lists",
+        "description": "List Klaviyo lists."
+      },
+      {
+        "name": "klaviyo_list_segments",
+        "description": "List Klaviyo segments (dynamic groups)."
+      },
+      {
+        "name": "klaviyo_list_metrics",
+        "description": "List Klaviyo metrics (tracked events)."
+      },
+      {
+        "name": "klaviyo_list_profiles",
+        "description": "List Klaviyo profiles (subscribers)."
       }
     ]
   },
@@ -2096,6 +2272,28 @@
       {
         "name": "neon_execute_sql",
         "description": "Execute a SQL query against a Neon database endpoint."
+      }
+    ]
+  },
+  {
+    "app": "netlify",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "netlify_list_sites",
+        "description": "List Netlify sites for the account."
+      },
+      {
+        "name": "netlify_get_site",
+        "description": "Get a single Netlify site by id."
+      },
+      {
+        "name": "netlify_list_deploys",
+        "description": "List recent deploys for a Netlify site (signals when the latest deploy failed)."
+      },
+      {
+        "name": "netlify_get_deploy",
+        "description": "Get a single Netlify deploy by id (including build logs metadata)."
       }
     ]
   },
@@ -2576,6 +2774,28 @@
       {
         "name": "podcast_recent_episodes",
         "description": "Get recent podcast episodes from Podcast Index."
+      }
+    ]
+  },
+  {
+    "app": "posthog",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "posthog_list_feature_flags",
+        "description": "List PostHog feature flags for a project."
+      },
+      {
+        "name": "posthog_list_insights",
+        "description": "List saved PostHog insights (charts) for a project."
+      },
+      {
+        "name": "posthog_list_persons",
+        "description": "List PostHog persons (users) for a project."
+      },
+      {
+        "name": "posthog_query",
+        "description": "Run an ad-hoc HogQL (SQL) query against a PostHog project's events."
       }
     ]
   },
@@ -3968,6 +4188,24 @@
     ]
   },
   {
+    "app": "typeform",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "typeform_list_forms",
+        "description": "List your Typeform forms."
+      },
+      {
+        "name": "typeform_get_form",
+        "description": "Get a Typeform form definition (fields and titles) by id."
+      },
+      {
+        "name": "typeform_get_responses",
+        "description": "Get submissions for a Typeform form."
+      }
+    ]
+  },
+  {
     "app": "unit-converter",
     "category": "Utilities",
     "tools": [
@@ -4198,6 +4436,28 @@
     ]
   },
   {
+    "app": "webflow",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "webflow_list_sites",
+        "description": "List Webflow sites for the account."
+      },
+      {
+        "name": "webflow_get_site",
+        "description": "Get a single Webflow site by id."
+      },
+      {
+        "name": "webflow_list_collections",
+        "description": "List CMS collections for a Webflow site."
+      },
+      {
+        "name": "webflow_list_items",
+        "description": "List items in a Webflow CMS collection."
+      }
+    ]
+  },
+  {
     "app": "whatsapp",
     "category": "Messaging",
     "tools": [
@@ -4382,6 +4642,28 @@
       {
         "name": "youtube_get_captions",
         "description": "List available caption tracks for a YouTube video."
+      }
+    ]
+  },
+  {
+    "app": "zendesk",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "zendesk_search",
+        "description": "Search Zendesk with the query DSL (e.g. 'type:ticket status:open priority:urgent')."
+      },
+      {
+        "name": "zendesk_list_tickets",
+        "description": "List recent Zendesk tickets (signals when any are still new)."
+      },
+      {
+        "name": "zendesk_get_ticket",
+        "description": "Get a single Zendesk ticket by id."
+      },
+      {
+        "name": "zendesk_add_comment",
+        "description": "Add a public or internal comment to a Zendesk ticket."
       }
     ]
   }

@@ -2,14 +2,34 @@
 // Uses the free ABR JSONP API - no authentication required.
 // Base URL: https://abr.business.gov.au/json/
 
+import { stampMeta } from "./connector-meta.js";
+
 const ABN_BASE = "https://abr.business.gov.au/json";
+const ABN_TIMEOUT_MS = Number(process.env.ABN_TIMEOUT_MS) || 10000;
 
 // ─── JSONP helper ─────────────────────────────────────────────────────────────
 
 async function fetchJsonp(url: string): Promise<unknown> {
-  const res = await fetch(url, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ABN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ABR API request timed out after ${ABN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ABR API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`ABR API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     throw new Error(`ABR API HTTP ${res.status}`);
   }
@@ -44,7 +64,7 @@ export async function abnLookup(args: Record<string, unknown>): Promise<unknown>
     return { error: "No business found for that ABN.", abn };
   }
 
-  return {
+  return stampMeta({
     abn: data["Abn"],
     entity_name: data["EntityName"] ?? null,
     entity_type_code: data["EntityTypeCode"] ?? null,
@@ -61,7 +81,11 @@ export async function abnLookup(args: Record<string, unknown>): Promise<unknown>
           (b) => ({ name: b["OrganisationName"], effective_from: b["EffectiveFrom"] })
         )
       : [],
-  };
+  }, {
+    source: "Australian Business Register",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use abn_search to find businesses by name."],
+  });
 }
 
 // ─── abn_search ───────────────────────────────────────────────────────────────

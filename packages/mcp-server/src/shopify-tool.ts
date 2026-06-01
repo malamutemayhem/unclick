@@ -65,11 +65,20 @@ async function shopifyFetch(
     init.body = JSON.stringify(body);
   }
 
+  const SHOPIFY_TIMEOUT_MS = Number(process.env.SHOPIFY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SHOPIFY_TIMEOUT_MS);
+  init.signal = controller.signal;
   let response: Response;
   try {
     response = await fetch(url.toString(), init);
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Shopify request timed out after ${SHOPIFY_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   // Shopify rate limit: 429 with Retry-After header
