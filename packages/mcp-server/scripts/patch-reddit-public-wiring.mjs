@@ -168,10 +168,11 @@ const redditToolBlock = `  {
       additionalProperties: false,
       properties: {
         access_token: { type: "string" },
+        sr: { type: "string", description: "Subreddit name alias" },
         subreddit: { type: "string" },
         action: { type: "string", enum: ["sub", "unsub"], description: "sub or unsub" },
       },
-      required: ["access_token", "subreddit", "action"],
+      required: ["access_token", "action"],
     },
   },
 `;
@@ -185,6 +186,12 @@ replaceOnce(
   reddit_thread:           (args) => redditThread(args as unknown as Parameters<typeof redditThread>[0]),
   reddit_user:             (args) => redditUser(args as unknown as Parameters<typeof redditUser>[0]),`,
   "Reddit thread handler"
+);
+
+replaceOnce(
+  `  reddit_subscribe:        (args) => redditSubscribe(args as unknown as Parameters<typeof redditSubscribe>[0]),`,
+  `  reddit_subscribe:        (args) => redditSubscribe({ ...args, subreddit: String(args.subreddit ?? args.sr ?? "") } as unknown as Parameters<typeof redditSubscribe>[0]),`,
+  "Reddit subscribe alias handler"
 );
 
 if (source !== original) {
