@@ -254,17 +254,11 @@ export function AdminAppsIntro() {
         <div>
           <p className="text-sm font-semibold text-white">Apps are what UnClick can use.</p>
           <p className="mt-1 text-sm leading-6 text-white/55">
-            Built-in apps work straight away. Connected apps are approved. Turned Off apps stay quiet.
-            Needs Login and Needs API Key tell the user exactly why an app is waiting.
+            Your AI picks the right app on its own, or you can ask for one by name. Every app is on by
+            default. Search or filter the list below to find one, untick an app to stop your AI using
+            it, and click an app's name to open its page and see exactly what it can do.
           </p>
         </div>
-      </div>
-      <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
-        {["Built-In", "Connected", "Turned Off", "Needs Login", "Needs API Key", "Private Tools", "Marketplace"].map((label) => (
-          <span key={label} className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-white/55">
-            {label}
-          </span>
-        ))}
       </div>
     </div>
   );
