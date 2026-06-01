@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import FadeIn from "@/components/FadeIn";
-import { AppWindow, Brain, Link2, BadgeCheck, ArrowRight } from "lucide-react";
+import { AppWindow, Brain, Link2, BadgeCheck, ArrowRight, Plane } from "lucide-react";
 import { presets } from "@/lib/design-system";
 
 /**
@@ -8,8 +8,8 @@ import { presets } from "@/lib/design-system";
  *
  * Notes (2026-05-28 Apple polish pass):
  *  - All icons are monochrome on a single primary tint. No rainbow.
- *  - Autopilot and the developer marketplace are intentionally not surfaced
- *    as tiles right now (per Chris). They remain in the codebase.
+ *  - AutoPilot is surfaced as the simple work hub, with XPass as its proof layer.
+ *    The developer marketplace remains hidden until that chapter is ready.
  *  - Connections currently points at /admin/keychain to match the Footer.
  *    Promote to a public landing if/when one ships.
  */
@@ -33,8 +33,14 @@ const PRODUCTS = [
     icon: Link2,
   },
   {
+    title: "AutoPilot",
+    description: "The work hub that plans, routes, checks, and proves jobs.",
+    href: "/admin/autopilot",
+    icon: Plane,
+  },
+  {
     title: "XPass",
-    description: "Built-in proof the work was actually done right.",
+    description: "The roadworthy checklist for AI work before it ships.",
     href: "/dogfood",
     icon: BadgeCheck,
   },
@@ -95,7 +101,7 @@ const Hero = () => {
               <h2 className={presets.h2}>The rails your agent plugs into.</h2>
               <p className="mt-3 text-body">
                 One layer that sits behind Claude, ChatGPT, Cursor, and every MCP client.
-                Tools to act. Memory to remember. Connections to sign in. Proof it worked.
+                Tools to act. Memory to remember. Connections to sign in. AutoPilot to move work. XPass to prove it.
               </p>
             </div>
           </FadeIn>

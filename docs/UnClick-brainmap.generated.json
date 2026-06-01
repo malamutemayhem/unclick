@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 572,
-    "source_manifest": 187,
-    "pages": 78,
-    "tools": 187,
+    "inventory": 594,
+    "source_manifest": 190,
+    "pages": 82,
+    "tools": 203,
     "rooms": 23,
     "workers": 8
   },
@@ -21,19 +21,19 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 47
+      "count": 48
     },
     {
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 31
+      "count": 34
     },
     {
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 187
+      "count": 203
     },
     {
       "id": "rooms",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 114
+      "count": 116
     },
     {
       "id": "launch-and-onboarding",
@@ -169,6 +169,16 @@
       "meaning": "Generated ecosystem map that teaches seats what UnClick is.",
       "source": "src/pages/admin/AdminBrainmap.tsx",
       "route": "/admin/brainmap",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-checks-src-pages-admin-adminecosystempages-tsx-admin-checks-productid",
+      "division": "Admin surfaces",
+      "name": "Admin Checks",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Ecosystem Pages.",
+      "source": "src/pages/admin/AdminEcosystemPages.tsx",
+      "route": "/admin/checks/:productId",
       "tags": []
     },
     {
@@ -1882,6 +1892,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-app-module-generate-jobsmith-rules-scripts-generate-jobsmith-rules-mjs-no-route",
+      "division": "Modules and apps",
+      "name": "generate jobsmith rules",
+      "kind": "app module",
+      "meaning": "generate jobsmith rules UnClick module.",
+      "source": "scripts/generate-jobsmith-rules.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-app-module-parse-pdf-browser-src-lib-jobsmith-parsepdfbrowser-ts-no-route",
       "division": "Modules and apps",
       "name": "parse Pdf Browser",
@@ -1938,6 +1958,16 @@
       "kind": "component",
       "meaning": "Account and admin configuration.",
       "source": "src/pages/AdminSettings.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "modules-and-apps-component-admin-xpass-hub-src-pages-admin-adminxpasshub-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Admin XPass Hub",
+      "kind": "component",
+      "meaning": "Admin surface for Admin XPass Hub.",
+      "source": "src/pages/admin/AdminXPassHub.tsx",
       "route": "",
       "tags": []
     },
@@ -3162,6 +3192,26 @@
       "tags": []
     },
     {
+      "id": "public-surfaces-public-page-app-detail-src-pages-appdetail-tsx-apps-slug",
+      "division": "Public surfaces",
+      "name": "App Detail",
+      "kind": "public page",
+      "meaning": "User-facing page for App Detail.",
+      "source": "src/pages/AppDetail.tsx",
+      "route": "/apps/:slug",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-apps-src-pages-apps-tsx-apps",
+      "division": "Public surfaces",
+      "name": "Apps",
+      "kind": "public page",
+      "meaning": "User-facing page for Apps.",
+      "source": "src/pages/Apps.tsx",
+      "route": "/apps",
+      "tags": []
+    },
+    {
       "id": "public-surfaces-public-page-auth-callback-src-pages-authcallback-tsx-auth-callback",
       "division": "Public surfaces",
       "name": "Auth Callback",
@@ -3469,6 +3519,16 @@
       "meaning": "User-facing page for Vibe Coding.",
       "source": "src/pages/VibeCoding.tsx",
       "route": "/developers/vibe-coding",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-xpass-src-pages-xpass-tsx-xpass",
+      "division": "Public surfaces",
+      "name": "XPass",
+      "kind": "public page",
+      "meaning": "User-facing page for XPass.",
+      "source": "src/pages/XPass.tsx",
+      "route": "/xpass",
       "tags": []
     },
     {
@@ -3952,6 +4012,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-calcom-packages-mcp-server-src-calcom-tool-ts-no-route",
+      "division": "Tools",
+      "name": "calcom",
+      "kind": "MCP tool",
+      "meaning": "calcom MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/calcom-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-calculator-packages-mcp-server-src-calculator-tool-ts-no-route",
       "division": "Tools",
       "name": "calculator",
@@ -4082,6 +4152,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-contentful-packages-mcp-server-src-contentful-tool-ts-no-route",
+      "division": "Tools",
+      "name": "contentful",
+      "kind": "MCP tool",
+      "meaning": "contentful MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/contentful-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-convertkit-packages-mcp-server-src-convertkit-tool-ts-no-route",
       "division": "Tools",
       "name": "convertkit",
@@ -4158,6 +4238,16 @@
       "kind": "MCP tool",
       "meaning": "deezer MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/deezer-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-digitalocean-packages-mcp-server-src-digitalocean-tool-ts-no-route",
+      "division": "Tools",
+      "name": "digitalocean",
+      "kind": "MCP tool",
+      "meaning": "digitalocean MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/digitalocean-tool.ts",
       "route": "",
       "tags": []
     },
@@ -4362,6 +4452,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-geopass-packages-mcp-server-src-geopass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "geopass",
+      "kind": "MCP tool",
+      "meaning": "geopass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/geopass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-github-packages-mcp-server-src-github-tool-ts-no-route",
       "division": "Tools",
       "name": "github",
@@ -4462,6 +4562,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-hubspot-packages-mcp-server-src-hubspot-tool-ts-no-route",
+      "division": "Tools",
+      "name": "hubspot",
+      "kind": "MCP tool",
+      "meaning": "hubspot MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/hubspot-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-hunter-packages-mcp-server-src-hunter-tool-ts-no-route",
       "division": "Tools",
       "name": "hunter",
@@ -4502,6 +4612,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-intercom-packages-mcp-server-src-intercom-tool-ts-no-route",
+      "division": "Tools",
+      "name": "intercom",
+      "kind": "MCP tool",
+      "meaning": "intercom MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/intercom-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-ipapi-packages-mcp-server-src-ipapi-tool-ts-no-route",
       "division": "Tools",
       "name": "ipapi",
@@ -4522,12 +4642,42 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-jira-packages-mcp-server-src-jira-tool-ts-no-route",
+      "division": "Tools",
+      "name": "jira",
+      "kind": "MCP tool",
+      "meaning": "jira MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/jira-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-jobsmith-packages-mcp-server-src-jobsmith-tool-ts-no-route",
+      "division": "Tools",
+      "name": "jobsmith",
+      "kind": "MCP tool",
+      "meaning": "jobsmith MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/jobsmith-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-keychain-packages-mcp-server-src-keychain-tool-ts-no-route",
       "division": "Tools",
       "name": "keychain",
       "kind": "MCP tool",
       "meaning": "keychain MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/keychain-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-klaviyo-packages-mcp-server-src-klaviyo-tool-ts-no-route",
+      "division": "Tools",
+      "name": "klaviyo",
+      "kind": "MCP tool",
+      "meaning": "klaviyo MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/klaviyo-tool.ts",
       "route": "",
       "tags": []
     },
@@ -4718,6 +4868,16 @@
       "kind": "MCP tool",
       "meaning": "neon MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/neon-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-netlify-packages-mcp-server-src-netlify-tool-ts-no-route",
+      "division": "Tools",
+      "name": "netlify",
+      "kind": "MCP tool",
+      "meaning": "netlify MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/netlify-tool.ts",
       "route": "",
       "tags": []
     },
@@ -4942,6 +5102,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-posthog-packages-mcp-server-src-posthog-tool-ts-no-route",
+      "division": "Tools",
+      "name": "posthog",
+      "kind": "MCP tool",
+      "meaning": "posthog MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/posthog-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-postman-packages-mcp-server-src-postman-tool-ts-no-route",
       "division": "Tools",
       "name": "postman",
@@ -5138,6 +5308,16 @@
       "kind": "MCP tool",
       "meaning": "seatgeek MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/seatgeek-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-securitypass-packages-mcp-server-src-securitypass-tool-ts-no-route",
+      "division": "Tools",
+      "name": "securitypass",
+      "kind": "MCP tool",
+      "meaning": "securitypass MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/securitypass-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5512,6 +5692,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-typeform-packages-mcp-server-src-typeform-tool-ts-no-route",
+      "division": "Tools",
+      "name": "typeform",
+      "kind": "MCP tool",
+      "meaning": "typeform MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/typeform-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-unit-converter-packages-mcp-server-src-unit-converter-tool-ts-no-route",
       "division": "Tools",
       "name": "unit converter",
@@ -5602,6 +5792,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-webflow-packages-mcp-server-src-webflow-tool-ts-no-route",
+      "division": "Tools",
+      "name": "webflow",
+      "kind": "MCP tool",
+      "meaning": "webflow MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/webflow-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-whatsapp-packages-mcp-server-src-whatsapp-tool-ts-no-route",
       "division": "Tools",
       "name": "whatsapp",
@@ -5652,6 +5852,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-xpass-aggregated-verdict-packages-mcp-server-src-xpass-aggregated-verdict-tool-ts-no-route",
+      "division": "Tools",
+      "name": "xpass aggregated verdict",
+      "kind": "MCP tool",
+      "meaning": "xpass aggregated verdict MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/xpass-aggregated-verdict-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-yelp-packages-mcp-server-src-yelp-tool-ts-no-route",
       "division": "Tools",
       "name": "yelp",
@@ -5668,6 +5878,16 @@
       "kind": "MCP tool",
       "meaning": "youtube MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/youtube-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-zendesk-packages-mcp-server-src-zendesk-tool-ts-no-route",
+      "division": "Tools",
+      "name": "zendesk",
+      "kind": "MCP tool",
+      "meaning": "zendesk MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/zendesk-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5886,6 +6106,12 @@
       "src/pages/admin/AdminBrainmap.tsx"
     ],
     [
+      "/admin/checks/:productId",
+      "Admin Checks",
+      "Admin surface for Admin Ecosystem Pages.",
+      "src/pages/admin/AdminEcosystemPages.tsx"
+    ],
+    [
       "/admin/checks",
       "Admin Checks",
       "Admin surface for Admin Ecosystem Pages.",
@@ -6102,6 +6328,18 @@
       "src/pages/admin/AdminShell.tsx"
     ],
     [
+      "/apps/:slug",
+      "App Detail",
+      "User-facing page for App Detail.",
+      "src/pages/AppDetail.tsx"
+    ],
+    [
+      "/apps",
+      "Apps",
+      "User-facing page for Apps.",
+      "src/pages/Apps.tsx"
+    ],
+    [
       "/auth/callback",
       "Auth Callback",
       "User-facing page for Auth Callback.",
@@ -6280,6 +6518,12 @@
       "Tools",
       "Public tools marketplace entry point.",
       "src/pages/Tools.tsx"
+    ],
+    [
+      "/xpass",
+      "XPass",
+      "User-facing page for XPass.",
+      "src/pages/XPass.tsx"
     ]
   ],
   "inductionRows": [
@@ -6424,6 +6668,11 @@
       "packages/mcp-server/src/bungie-tool.ts"
     ],
     [
+      "calcom",
+      "calcom MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/calcom-tool.ts"
+    ],
+    [
       "calculator",
       "calculator MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/calculator-tool.ts"
@@ -6489,6 +6738,11 @@
       "packages/mcp-server/src/compliancepass-tool.ts"
     ],
     [
+      "contentful",
+      "contentful MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/contentful-tool.ts"
+    ],
+    [
       "convertkit",
       "convertkit MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/convertkit-tool.ts"
@@ -6527,6 +6781,11 @@
       "deezer",
       "deezer MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/deezer-tool.ts"
+    ],
+    [
+      "digitalocean",
+      "digitalocean MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/digitalocean-tool.ts"
     ],
     [
       "discogs",
@@ -6629,6 +6888,11 @@
       "packages/mcp-server/src/genius-tool.ts"
     ],
     [
+      "geopass",
+      "geopass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/geopass-tool.ts"
+    ],
+    [
       "github",
       "github MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/github-tool.ts"
@@ -6679,6 +6943,11 @@
       "packages/mcp-server/src/higgsfield-tool.ts"
     ],
     [
+      "hubspot",
+      "hubspot MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/hubspot-tool.ts"
+    ],
+    [
       "hunter",
       "hunter MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/hunter-tool.ts"
@@ -6699,6 +6968,11 @@
       "packages/mcp-server/src/instapaper-tool.ts"
     ],
     [
+      "intercom",
+      "intercom MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/intercom-tool.ts"
+    ],
+    [
       "ipapi",
       "ipapi MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/ipapi-tool.ts"
@@ -6709,9 +6983,24 @@
       "packages/mcp-server/src/ipaustralia-tool.ts"
     ],
     [
+      "jira",
+      "jira MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/jira-tool.ts"
+    ],
+    [
+      "jobsmith",
+      "jobsmith MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/jobsmith-tool.ts"
+    ],
+    [
       "keychain",
       "keychain MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/keychain-tool.ts"
+    ],
+    [
+      "klaviyo",
+      "klaviyo MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/klaviyo-tool.ts"
     ],
     [
       "kling",
@@ -6807,6 +7096,11 @@
       "neon",
       "neon MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/neon-tool.ts"
+    ],
+    [
+      "netlify",
+      "netlify MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/netlify-tool.ts"
     ],
     [
       "newsapi",
@@ -6919,6 +7213,11 @@
       "packages/mcp-server/src/podcastindex-tool.ts"
     ],
     [
+      "posthog",
+      "posthog MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/posthog-tool.ts"
+    ],
+    [
       "postman",
       "postman MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/postman-tool.ts"
@@ -7017,6 +7316,11 @@
       "seatgeek",
       "seatgeek MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/seatgeek-tool.ts"
+    ],
+    [
+      "securitypass",
+      "securitypass MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/securitypass-tool.ts"
     ],
     [
       "segment",
@@ -7204,6 +7508,11 @@
       "packages/mcp-server/src/twitch-tool.ts"
     ],
     [
+      "typeform",
+      "typeform MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/typeform-tool.ts"
+    ],
+    [
       "unit converter",
       "unit converter MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/unit-converter-tool.ts"
@@ -7249,6 +7558,11 @@
       "packages/mcp-server/src/virustotal-tool.ts"
     ],
     [
+      "webflow",
+      "webflow MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/webflow-tool.ts"
+    ],
+    [
       "whatsapp",
       "whatsapp MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/whatsapp-tool.ts"
@@ -7274,6 +7588,11 @@
       "packages/mcp-server/src/xero-tool.ts"
     ],
     [
+      "xpass aggregated verdict",
+      "xpass aggregated verdict MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/xpass-aggregated-verdict-tool.ts"
+    ],
+    [
       "yelp",
       "yelp MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/yelp-tool.ts"
@@ -7282,6 +7601,11 @@
       "youtube",
       "youtube MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/youtube-tool.ts"
+    ],
+    [
+      "zendesk",
+      "zendesk MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/zendesk-tool.ts"
     ]
   ],
   "roomRows": [
@@ -7499,7 +7823,7 @@
     ],
     [
       "test",
-      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && vitest run && npm run test:api-lib-esm-extension"
+      "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && vitest run && npm run test:api-lib-esm-extension"
     ],
     [
       "test:api",
@@ -7537,8 +7861,8 @@
   "source_manifest": [
     {
       "source": "AUTOPILOT.md",
-      "hash": "5b6b2c21c91d",
-      "bytes": 17427
+      "hash": "790b43137907",
+      "bytes": 17556
     },
     {
       "source": "FLEET_SYNC.md",
@@ -7567,8 +7891,8 @@
     },
     {
       "source": "docs/fleet-worker-roles.md",
-      "hash": "a8f64d0da135",
-      "bytes": 4873
+      "hash": "de9f41b265f3",
+      "bytes": 4881
     },
     {
       "source": "docs/adr/0005-two-layer-admin-gating.md",
@@ -7582,13 +7906,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "26405e588808",
-      "bytes": 14258
+      "hash": "112afd6a05d8",
+      "bytes": 14647
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "a5993008255d",
-      "bytes": 19438
+      "hash": "79d0329e0e8b",
+      "bytes": 22091
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -7622,8 +7946,8 @@
     },
     {
       "source": "package.json",
-      "hash": "82100008ad1b",
-      "bytes": 6417
+      "hash": "80d780561f43",
+      "bytes": 6468
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -7762,8 +8086,8 @@
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "3a9b7643c7fc",
-      "bytes": 13854
+      "hash": "badf018e0064",
+      "bytes": 12371
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
@@ -7907,8 +8231,8 @@
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "8544965a0043",
-      "bytes": 8530
+      "hash": "918ac064a12e",
+      "bytes": 5678
     },
     {
       "source": "src/pages/admin/AdminUsers.tsx",
@@ -7917,8 +8241,18 @@
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "394d65c7aabb",
-      "bytes": 37346
+      "hash": "3d0240411971",
+      "bytes": 51024
+    },
+    {
+      "source": "src/pages/AppDetail.tsx",
+      "hash": "4e2ec609ff61",
+      "bytes": 5401
+    },
+    {
+      "source": "src/pages/Apps.tsx",
+      "hash": "f68ab8412c39",
+      "bytes": 2636
     },
     {
       "source": "src/pages/AuthCallback.tsx",
@@ -7937,8 +8271,8 @@
     },
     {
       "source": "src/pages/Crews.tsx",
-      "hash": "9b4b9dfca188",
-      "bytes": 18784
+      "hash": "672df3eeb92b",
+      "bytes": 18792
     },
     {
       "source": "src/pages/DeveloperDocs.tsx",
@@ -7972,8 +8306,8 @@
     },
     {
       "source": "src/pages/DogfoodReport.tsx",
-      "hash": "16909fd44b92",
-      "bytes": 16552
+      "hash": "4103b5e68d6c",
+      "bytes": 16693
     },
     {
       "source": "src/pages/FAQPage.tsx",
@@ -8064,6 +8398,11 @@
       "source": "src/pages/Tools.tsx",
       "hash": "1b9bc9d666a7",
       "bytes": 15377
+    },
+    {
+      "source": "src/pages/XPass.tsx",
+      "hash": "5f07b2f32036",
+      "bytes": 8713
     },
     {
       "source": "scripts/pinballwake-ack-ledger-room.mjs",
@@ -8177,73 +8516,73 @@
     },
     {
       "source": "scripts/pinballwake-xpass-gate-room.mjs",
-      "hash": "0483d0717e07",
-      "bytes": 32407
+      "hash": "8012a4cbab9e",
+      "bytes": 32880
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
-      "hash": "a24bc4729b72",
-      "bytes": 4433
+      "hash": "7481ff8b9005",
+      "bytes": 4651
     },
     {
       "source": "packages/mcp-server/src/abuseipdb-tool.ts",
-      "hash": "7dce94852598",
-      "bytes": 5851
+      "hash": "c3c7f2d8566c",
+      "bytes": 6263
     },
     {
       "source": "packages/mcp-server/src/airtable-tool.ts",
-      "hash": "4fa96c2691ce",
-      "bytes": 7560
+      "hash": "917c11a6f79e",
+      "bytes": 7602
     },
     {
       "source": "packages/mcp-server/src/algolia-tool.ts",
-      "hash": "1ec3c336988a",
-      "bytes": 6484
+      "hash": "aa95d5b77b4c",
+      "bytes": 7208
     },
     {
       "source": "packages/mcp-server/src/alphavantage-tool.ts",
-      "hash": "c39cdb9bae44",
-      "bytes": 8414
+      "hash": "2792412e3c61",
+      "bytes": 9254
     },
     {
       "source": "packages/mcp-server/src/amazon-tool.ts",
-      "hash": "d458cb6792e6",
-      "bytes": 15616
+      "hash": "8184f6a60db6",
+      "bytes": 15876
     },
     {
       "source": "packages/mcp-server/src/amber-tool.ts",
-      "hash": "6d020b798469",
-      "bytes": 4138
+      "hash": "635b10e30a39",
+      "bytes": 7078
     },
     {
       "source": "packages/mcp-server/src/anthropic-tool.ts",
-      "hash": "2d1635148638",
-      "bytes": 9331
+      "hash": "72906c764b43",
+      "bytes": 9657
     },
     {
       "source": "packages/mcp-server/src/asana-tool.ts",
-      "hash": "ba96b18e214f",
-      "bytes": 9208
+      "hash": "2519967f5105",
+      "bytes": 9808
     },
     {
       "source": "packages/mcp-server/src/assemblyai-tool.ts",
-      "hash": "f19a681a7909",
-      "bytes": 11213
+      "hash": "24ebe71790cf",
+      "bytes": 11837
     },
     {
       "source": "packages/mcp-server/src/australiapost-tool.ts",
-      "hash": "012cc850af83",
-      "bytes": 5743
+      "hash": "c1f9f3dc9b8e",
+      "bytes": 6173
     },
     {
       "source": "packages/mcp-server/src/bandsintown-tool.ts",
-      "hash": "0ded8aafcfb2",
-      "bytes": 3829
+      "hash": "a1a0d5b07e7f",
+      "bytes": 4100
     },
     {
       "source": "packages/mcp-server/src/bgg-tool.ts",
-      "hash": "409f69d552ea",
-      "bytes": 11787
+      "hash": "182bc6f9686a",
+      "bytes": 12028
     },
     {
       "source": "packages/mcp-server/src/bluesky-tool.ts",
@@ -8252,8 +8591,13 @@
     },
     {
       "source": "packages/mcp-server/src/bungie-tool.ts",
-      "hash": "156202b77025",
-      "bytes": 7321
+      "hash": "a6a1a1915cc3",
+      "bytes": 7686
+    },
+    {
+      "source": "packages/mcp-server/src/calcom-tool.ts",
+      "hash": "d287d0a01077",
+      "bytes": 3332
     },
     {
       "source": "packages/mcp-server/src/calculator-tool.ts",
@@ -8262,23 +8606,23 @@
     },
     {
       "source": "packages/mcp-server/src/calendly-tool.ts",
-      "hash": "09240cc06f3b",
-      "bytes": 6971
+      "hash": "12032f4f7f6c",
+      "bytes": 7492
     },
     {
       "source": "packages/mcp-server/src/carboninterface-tool.ts",
-      "hash": "5c25301e4ef3",
-      "bytes": 7558
+      "hash": "14fa562b0217",
+      "bytes": 7953
     },
     {
       "source": "packages/mcp-server/src/chessdotcom-tool.ts",
-      "hash": "e9b2630bba3f",
-      "bytes": 7642
+      "hash": "29bbcfa26e3f",
+      "bytes": 7874
     },
     {
       "source": "packages/mcp-server/src/circleci-tool.ts",
-      "hash": "b7b2879fdf0e",
-      "bytes": 6521
+      "hash": "0c585c18d348",
+      "bytes": 7085
     },
     {
       "source": "packages/mcp-server/src/clickup-tool.ts",
@@ -8292,18 +8636,18 @@
     },
     {
       "source": "packages/mcp-server/src/cohere-tool.ts",
-      "hash": "7ea6da1b5d4a",
-      "bytes": 10712
+      "hash": "91a7c36218e0",
+      "bytes": 11278
     },
     {
       "source": "packages/mcp-server/src/coingecko-tool.ts",
-      "hash": "6d6a16d83f9f",
-      "bytes": 7635
+      "hash": "105c55971d63",
+      "bytes": 7884
     },
     {
       "source": "packages/mcp-server/src/coinmarketcap-tool.ts",
-      "hash": "c931670eb0c8",
-      "bytes": 7714
+      "hash": "f44ff0239baa",
+      "bytes": 8444
     },
     {
       "source": "packages/mcp-server/src/color-tool.ts",
@@ -8317,23 +8661,28 @@
     },
     {
       "source": "packages/mcp-server/src/compliancepass-tool.ts",
-      "hash": "13242448457f",
-      "bytes": 3202
+      "hash": "bedf85b00baa",
+      "bytes": 7342
+    },
+    {
+      "source": "packages/mcp-server/src/contentful-tool.ts",
+      "hash": "fe4a6bb32986",
+      "bytes": 5202
     },
     {
       "source": "packages/mcp-server/src/convertkit-tool.ts",
-      "hash": "e798f052c772",
-      "bytes": 10043
+      "hash": "d6f0f01e6032",
+      "bytes": 10595
     },
     {
       "source": "packages/mcp-server/src/copypass-tool.ts",
-      "hash": "70d540c397a5",
-      "bytes": 31503
+      "hash": "3cbadbc448a0",
+      "bytes": 33377
     },
     {
       "source": "packages/mcp-server/src/crews-tool.ts",
-      "hash": "111454c76c0a",
-      "bytes": 13547
+      "hash": "aefc67a40964",
+      "bytes": 14093
     },
     {
       "source": "packages/mcp-server/src/csuite-tool.ts",
@@ -8342,8 +8691,8 @@
     },
     {
       "source": "packages/mcp-server/src/datadog-tool.ts",
-      "hash": "b22fe27148e8",
-      "bytes": 6924
+      "hash": "529fa672eb0e",
+      "bytes": 8255
     },
     {
       "source": "packages/mcp-server/src/datetime-tool.ts",
@@ -8352,33 +8701,23 @@
     },
     {
       "source": "packages/mcp-server/src/deepl-tool.ts",
-      "hash": "b32abdc9d2fd",
-      "bytes": 7180
+      "hash": "69dad96b05ec",
+      "bytes": 8084
     },
     {
       "source": "packages/mcp-server/src/deezer-tool.ts",
-      "hash": "784d0608dda2",
-      "bytes": 8130
+      "hash": "cfbe0c88ce25",
+      "bytes": 8390
+    },
+    {
+      "source": "packages/mcp-server/src/digitalocean-tool.ts",
+      "hash": "ad80b450a7f7",
+      "bytes": 4467
     },
     {
       "source": "packages/mcp-server/src/discogs-tool.ts",
-      "hash": "4c3c38f44cbe",
-      "bytes": 5743
-    },
-    {
-      "source": "packages/mcp-server/src/discord-tool.ts",
-      "hash": "875644df6fbf",
-      "bytes": 8894
-    },
-    {
-      "source": "packages/mcp-server/src/domain-tool.ts",
-      "hash": "2ae91d6d6a0d",
-      "bytes": 6657
-    },
-    {
-      "source": "packages/mcp-server/src/ebay-tool.ts",
-      "hash": "dc4a5c9e2db6",
-      "bytes": 8434
+      "hash": "3e766c100f7c",
+      "bytes": 6462
     },
     {
       "source": ".github/workflows/apply-migrations.yml",

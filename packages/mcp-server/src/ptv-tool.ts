@@ -45,9 +45,9 @@ async function ptvFetch(path: string, params: Record<string, string> = {}): Prom
     });
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
-      throw new Error(`PTV API request timed out after ${PTV_TIMEOUT_MS}ms.`);
+      throw new Error(`PTV API request timed out after ${PTV_TIMEOUT_MS}ms.`, { cause: err });
     }
-    throw new Error(`PTV API network error: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(`PTV API network error: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
   } finally {
     clearTimeout(timer);
   }

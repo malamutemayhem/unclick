@@ -14,17 +14,17 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (174 external connectors)
+## Distribution (177 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 138 | 79% |
+| L5 | Agentic | 138 | 78% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 36 | 21% |
-| L1 | Wrapper | 0 | 0% |
+| L2 | Reliable | 36 | 20% |
+| L1 | Wrapper | 3 | 2% |
 
-**Hardened (reliability bar met): 173 of 174 (99%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 173 of 177 (98%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 138 of 138 (100%).** The remaining 0 L2 rows are genuine upgrade candidates.
+**L5-reachable connectors at L5: 138 of 141 (98%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ### Climbed in depth but not yet hardened
 
@@ -220,6 +220,9 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L2 Reliable | `whatsapp` | Yes | - | - | - | - | L2 by design (write/send) |
 | L2 Reliable | `woocommerce` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
 | L2 Reliable | `xero` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L1 Wrapper | `geopass` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-memory, no-source-stamp |
+| L1 Wrapper | `securitypass` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
+| L1 Wrapper | `xpass-aggregated-verdict` | - | - | - | - | - | not-hardened, no-rate-limit, no-memory, no-source-stamp |
 
 Also present (graded separately, not part of the connector program): 16 internal products, 2 infra, 7 local utilities.
 

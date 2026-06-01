@@ -40,6 +40,7 @@ import JobsmithPage from "./pages/Jobsmith.tsx";
 import NewToAIPage from "./pages/NewToAI.tsx";
 import SmartHomePage from "./pages/SmartHome.tsx";
 import InstallRecoverPage from "./pages/InstallRecover.tsx";
+import XPassPage from "./pages/XPass.tsx";
 import DogfoodReportPage from "./pages/DogfoodReport.tsx";
 import LoginPage from "./pages/Login.tsx";
 import SignupPage from "./pages/Signup.tsx";
@@ -185,6 +186,7 @@ const App = () => (
             <Route path="jobsmith" element={<AdminJobsmith />} />
             <Route path="todos" element={<Navigate to="/admin/jobs" replace />} />
             <Route path="checks" element={<AdminChecks />} />
+            <Route path="checks/:productId" element={<AdminChecks />} />
             <Route path="ledger" element={<AdminLedger />} />
             <Route path="billing" element={<AdminBilling />} />
             <Route path="testpass"              element={<TestPassCatalog />} />
@@ -227,6 +229,7 @@ const App = () => (
           <Route path="/organiser" element={<OrganiserPage />} />
           <Route path="/dispatch" element={<DispatchPage />} />
           <Route path="/crews" element={<CrewsPage />} />
+          <Route path="/xpass" element={<XPassPage />} />
           <Route path="/dogfood" element={<DogfoodReportPage />} />
           {/* BuildDesk: hidden per Chris 2026-05-28. Developer dispatch surface
               for AI coding workers, paused until the developer marketplace

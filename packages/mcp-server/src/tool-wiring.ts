@@ -834,7 +834,7 @@ import {
   legalpassVerdict,
 } from "./legalpass-tool.js";
 
-// ─── UXPass (sister to TestPass, UI/UX QC) ───────────────────────────────────
+// ─── UXPass (sister to TestPass, journey/usability QC) ───────────────────────
 import {
   uxpassRun,
   uxpassStatus,
@@ -851,6 +851,12 @@ import {
   seopassRegisterPack,
   seopassLighthousePlan,
 } from "./seopass-tool.js";
+
+// --- GEOPass (AI answer-engine readiness QC, sister to SEOPass) -------------
+import {
+  geopassRun,
+  geopassStatus,
+} from "./geopass-tool.js";
 
 // ─── CompliancePass (public name for EnterprisePass readiness) ───────────────
 import {
@@ -870,6 +876,17 @@ import {
   flowpassRun,
   flowpassStatus,
 } from "./flowpass-tool.js";
+
+// ─── SecurityPass (scope-gated security receipts) ───────────────────────────
+import {
+  securitypassDisclosureStatus,
+  securitypassFindingDetail,
+  securitypassRegisterPack,
+  securitypassReport,
+  securitypassRun,
+  securitypassStatus,
+  securitypassVerifyScope,
+} from "./securitypass-tool.js";
 
 // ─── CopyPass (copy quality QC, sister to SecurityPass) ─────────────────────
 import {
@@ -892,6 +909,9 @@ import {
   commonsensepassRulesTool,
   COMMONSENSEPASS_CLAIM_KINDS,
 } from "./commonsensepass-tool.js";
+
+// --- XPass (conductor receipt across product checks) -------------------------
+import { xpassAggregatedVerdict } from "./xpass-aggregated-verdict-tool.js";
 
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
@@ -12917,6 +12937,98 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // -- xpass-aggregated-verdict-tool.ts (conductor receipt with SHA binding) --
+  {
+    name: "xpass_aggregated_verdict",
+    description: "Return one XPass conductor verdict for a target PR/change at a specific commit SHA. Selected PASS receipts must name the same head SHA; stale, unscoped, missing, or blocker receipts cannot produce a green verdict.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        target: {
+          type: "object",
+          additionalProperties: false,
+          description: "Target change to inspect. target.sha or target.head_sha is required for anti-stale proof binding.",
+          properties: {
+            type: { type: "string", description: "Target type, such as pr, branch, commit, url, artifact, or change." },
+            kind: { type: "string", description: "Alias for target.type." },
+            id: { type: "string", description: "PR number, issue id, branch label, or artifact id." },
+            pr_number: { type: "number", description: "PR number when the target is a pull request." },
+            prNumber: { type: "number", description: "Alias for pr_number." },
+            sha: { type: "string", description: "Current target commit SHA." },
+            head_sha: { type: "string", description: "Alias for sha." },
+            headSha: { type: "string", description: "Alias for sha." },
+            url: { type: "string", description: "Optional target URL." },
+            ref: { type: "string", description: "Optional branch, PR, or artifact ref." },
+            title: { type: "string", description: "Optional target title used for check selection." },
+            description: { type: "string", description: "Optional target summary used for check selection." },
+            files: { type: "array", items: { type: "string" }, description: "Changed file paths for check selection." },
+            changed_files: { type: "array", items: { type: "string" }, description: "Alias for files." },
+          },
+        },
+        title: { type: "string", description: "Optional PR/change title used for check selection." },
+        description: { type: "string", description: "Optional PR/change description used for check selection." },
+        context: { type: "string", description: "Optional extra context used for check selection." },
+        body: { type: "string", description: "Optional body text used for check selection." },
+        summary: { type: "string", description: "Optional summary text used for check selection." },
+        tags: { type: "array", items: { type: "string" }, description: "Optional tags used for check selection." },
+        changed_files: { type: "array", items: { type: "string" }, description: "Changed file paths for check selection." },
+        changedFiles: { type: "array", items: { type: "string" }, description: "Alias for changed_files." },
+        files: { type: "array", items: { type: "string" }, description: "Alias for changed_files." },
+        owned_files: { type: "array", items: { type: "string" }, description: "Owned file paths for check selection." },
+        ownedFiles: { type: "array", items: { type: "string" }, description: "Alias for owned_files." },
+        enabled_checks: {
+          type: "array",
+          items: { type: "string", enum: ["testpass", "uxpass", "flowpass", "securitypass", "rotatepass", "copypass", "fidelitypass", "seopass", "geopass", "legalpass", "compliancepass", "commonsensepass", "wakepass", "sloppass"] },
+          description: "Optional suite restriction. When supplied, XPass only gates the selected checks that are enabled here.",
+        },
+        selected_checks: {
+          type: "array",
+          items: { type: "string", enum: ["testpass", "uxpass", "flowpass", "securitypass", "rotatepass", "copypass", "fidelitypass", "seopass", "geopass", "legalpass", "compliancepass", "commonsensepass", "wakepass", "sloppass"] },
+          description: "Optional explicit XPass product checks to require for this verdict.",
+        },
+        available_checks: {
+          type: "array",
+          items: { type: "string", enum: ["testpass", "uxpass", "flowpass", "securitypass", "rotatepass", "copypass", "fidelitypass", "seopass", "geopass", "legalpass", "compliancepass", "commonsensepass", "wakepass", "sloppass"] },
+          description: "Optional worker availability list. Selected checks outside this list are NOT RUN and cannot make the verdict green.",
+        },
+        pass_results: {
+          type: "array",
+          description: "Underlying Pass receipts or summarized results. Green results must include target_sha/head_sha matching target.sha.",
+          items: {
+            type: "object",
+            additionalProperties: true,
+            properties: {
+              check: { type: "string" },
+              name: { type: "string" },
+              status: { type: "string" },
+              result: { type: "string" },
+              verdict: { type: "string" },
+              run_id: { type: "string" },
+              receipt_id: { type: "string" },
+              url: { type: "string" },
+              summary: { type: "string" },
+              message: { type: "string" },
+              generated_at: { type: "string" },
+              target_sha: { type: "string" },
+              head_sha: { type: "string" },
+            },
+          },
+        },
+        results: {
+          type: "object",
+          additionalProperties: true,
+          description: "Map form of pass_results keyed by check name.",
+        },
+        require_council: { type: "boolean", description: "Force the Crews Council recommendation on this XPass receipt." },
+        force_council: { type: "boolean", description: "Alias for require_council." },
+        generated_at: { type: "string", description: "Optional deterministic timestamp for tests or replay." },
+        now: { type: "string", description: "Alias for generated_at." },
+      },
+      required: ["target"],
+    },
+  },
+
   // ── testpass-tool.ts ────────────────────────────────────────────────────────
   {
     name: "testpass_list_packs",
@@ -13078,6 +13190,7 @@ export const ADDITIONAL_TOOLS = [
         profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Run profile (default: smoke)" },
         jurisdictions: { type: "array", items: { type: "string" }, description: "Optional jurisdiction routing hints" },
         fixture_text: { type: "string", description: "Public text to check deterministically for dogfood or local proof" },
+        target_sha: { type: "string", description: "Optional commit or target evidence SHA to bind the LegalPass receipt to a specific target version" },
       },
     },
   },
@@ -13143,10 +13256,10 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
-  // ── uxpass-tool.ts (UI/UX QC, sister to TestPass) ──────────────────────────
+  // ── uxpass-tool.ts (journey/usability QC, sister to TestPass) ──────────────
   {
     name: "uxpass_run",
-    description: "Run a UI/UX quality check synchronously against a URL. Executes the deterministic uxpass-core check set (HTTP, HTML, accessibility, agent readability, performance, security) against the target and returns the run id, status, UX Score, and summary. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
+    description: "Run a UX journey/usability check synchronously against a URL. Executes the deterministic uxpass-core check set and returns the run id, status, UX Score, summary, and uxpass_receipt_v1. UIPass now owns visual/interface polish; this legacy UXPass runner still calls out when screenshots or mobile/desktop proof are missing for visible surfaces. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -13162,12 +13275,13 @@ export const ADDITIONAL_TOOLS = [
           type: "string",
           description: "Client-generated idempotency key (UUIDv5 from thread_id + prompt_hash + time_bucket recommended). Required for safe retry. If omitted, the server creates a fresh row and you lose retry safety; sending the same task_id twice returns the original run_id with was_duplicate=true instead of creating a duplicate.",
         },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks." },
       },
     },
   },
   {
     name: "uxpass_status",
-    description: "Fetch the status, UX Score, and summary for a UXPass run.",
+    description: "Fetch the status, UX Score, summary, and uxpass_receipt_v1 for a UXPass run.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -13236,6 +13350,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         url: { type: "string", description: "Target URL for a one-off SEOPass read-only run" },
         pack_name: { type: "string", description: "Name of a registered SEOPass pack; the pack URL is used as the target" },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks" },
       },
     },
   },
@@ -13278,6 +13393,67 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // -- geopass-tool.ts (AI answer-engine readiness QC, sister to SEOPass) ----
+  {
+    name: "geopass_run",
+    description: "Run GEOPass against a public URL. Returns a live-readonly AI answer-engine readiness receipt covering answer extractability, entity clarity, citation/sourceability, freshness cues, content structure, llms.txt, and AI bot visibility. GEOPass reports readiness only and does not guarantee rankings or citations.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        url: { type: "string", description: "Target public http(s) URL for a one-off GEOPass read-only run" },
+        target_url: { type: "string", description: "Alias for url" },
+        checks: {
+          type: "array",
+          minItems: 1,
+          description: "Optional GEOPass check ids. Defaults to the public-safe live checklist.",
+          items: {
+            type: "string",
+            enum: [
+              "ai-bot-crawlability",
+              "llms-txt",
+              "answer-extractability",
+              "entity-clarity",
+              "citation-readiness",
+              "freshness-cues",
+              "content-structure",
+              "schema-org-citation-grade",
+              "brand-mention-readiness",
+              "wikidata-presence",
+              "common-crawl-presence",
+              "aggregate-ai-engine-readiness",
+            ],
+          },
+        },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks." },
+      },
+    },
+  },
+  {
+    name: "geopass_status",
+    description: "Fetch the stored in-session GEOPass report and geopass_receipt_v1 envelope for a run started through geopass_run.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The GEOPass run id returned by geopass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+
   // ── flowpass-tool.ts (end-to-end journey QC with fixture proof) ────────────
   {
     name: "flowpass_run",
@@ -13307,6 +13483,7 @@ export const ADDITIONAL_TOOLS = [
         journey_name: { type: "string", description: "Optional journey name override" },
         journey_kind: { type: "string", enum: ["signup", "auth", "checkout", "onboarding", "support", "custom"] },
         generated_at: { type: "string", description: "Optional ISO timestamp for reproducible fixture tests" },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks" },
       },
     },
   },
@@ -13429,24 +13606,148 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
-  // ── sloppass-tool.ts (AI-code quality QC and diff review) ────────────────
+  // ── securitypass-tool.ts (scope-gated security receipts) ─────────────────
   {
-    name: "sloppass_run",
-    description: "Run SlopPass against caller-provided source files or a unified diff. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, read repositories, persist source content, or make paid model calls by default.",
+    name: "securitypass_run",
+    description: "Start a scope-gated SecurityPass scan against a registered pack or target URL. Returns a safe securitypass_receipt_v1 proof envelope without raw secrets or PoC payloads.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
-      anyOf: [{ required: ["files"] }, { required: ["diff"] }],
+      properties: {
+        pack_id: { type: "string", description: "Pack id, e.g. 'securitypass-web-baseline'" },
+        pack_yaml: { type: "string", description: "Optional pack YAML to validate and run without prior registration" },
+        target_id: { type: "string", description: "Target id inside the SecurityPass pack" },
+        target_url: { type: "string", description: "Target URL (must be in pack scope)" },
+        contract_id: { type: "string", description: "Scope contract id for skeleton URL scans" },
+        proof_method: { type: "string", enum: ["dns_txt", "well_known", "bug_bounty_program", "signed_email"] },
+        expected_token: { type: "string", description: "Expected scope proof token" },
+        proof_timeout_ms: { type: "number", description: "Optional timeout for well-known proof fetches" },
+        profile: { type: "string", enum: ["smoke", "standard", "deep"], default: "smoke" },
+      },
+    },
+  },
+  {
+    name: "securitypass_status",
+    description: "Poll the state of a SecurityPass run. Returns status, verdict summary, counts, and a safe securitypass_receipt_v1 proof envelope.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The run id returned by securitypass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "securitypass_report",
+    description: "Fetch the synthesised report for a completed run (executive narrative + findings). format=json|markdown|html.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string" },
+        format: { type: "string", enum: ["json", "markdown", "html"], default: "json" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "securitypass_register_pack",
+    description: "Save a SecurityPack YAML for the calling tenant. Validates against the schema.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        pack_id: { type: "string" },
+        yaml: { type: "string", description: "Pack contents as YAML" },
+      },
+      required: ["pack_id", "yaml"],
+    },
+  },
+  {
+    name: "securitypass_verify_scope",
+    description: "Verify scope authorisation for a target via DNS TXT or /.well-known proof. Required before any active probe runs.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        target_type: { type: "string", enum: ["url", "git", "mcp", "api"] },
+        target_url: { type: "string" },
+        target_repo: { type: "string" },
+        proof_method: { type: "string", enum: ["dns_txt", "well_known", "bug_bounty_program", "signed_email"] },
+        contract_id: { type: "string", description: "Signed scope contract id" },
+        expected_token: { type: "string", description: "Token to look for in DNS TXT or /.well-known" },
+        proof_timeout_ms: { type: "number", description: "Optional timeout for well-known proof fetches" },
+      },
+      required: ["proof_method"],
+    },
+  },
+  {
+    name: "securitypass_disclosure_status",
+    description: "Check the 90+30 responsible-disclosure timer state for a finding (notified, acked, extended, public, withdrawn).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        finding_id: { type: "string" },
+      },
+      required: ["finding_id"],
+    },
+  },
+  {
+    name: "securitypass_finding_detail",
+    description: "Fetch a single finding including PoC payload (curl / prompt / payload) and remediation. PoC is generated, never auto-fired.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        finding_id: { type: "string" },
+      },
+      required: ["finding_id"],
+    },
+  },
+
+  // ── sloppass-tool.ts (AI-code quality QC and diff review) ────────────────
+  {
+    name: "sloppass_run",
+    description: "Run SlopPass against caller-provided source files, a unified diff, or a GitHub PR target whose public .diff should be fetched. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, clone repositories, persist source content, or make paid model calls by default.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["files"] },
+        { required: ["diff"] },
+        {
+          required: ["target"],
+          properties: {
+            target: {
+              type: "object",
+              required: ["kind"],
+              properties: { kind: { type: "string", enum: ["pr"] } },
+            },
+          },
+        },
+      ],
       properties: {
         target: {
           type: "object",
           additionalProperties: false,
-          description: "Target being inspected.",
+          description: "Target being inspected. For live GitHub PR review, use kind=pr with repo plus number, or url/pr_url.",
           properties: {
             kind: { type: "string", enum: ["repo", "branch", "diff", "files", "pr", "artifact"] },
             label: { type: "string", minLength: 1 },
             files: { type: "array", items: { type: "string", minLength: 1 } },
             ref: { type: "string" },
+            repo: { type: "string", pattern: "^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}$", description: "GitHub repo in owner/name form for kind=pr." },
+            number: {
+              oneOf: [
+                { type: "integer", minimum: 1 },
+                { type: "string", pattern: "^[1-9][0-9]*$" },
+              ],
+              description: "GitHub pull request number for kind=pr.",
+            },
+            url: { type: "string", description: "GitHub pull request URL for kind=pr." },
+            pr_url: { type: "string", description: "GitHub pull request URL for kind=pr." },
           },
           required: ["kind", "label"],
         },
@@ -13479,6 +13780,7 @@ export const ADDITIONAL_TOOLS = [
               "test_proof_theatre",
               "slopocalypse_failure_mode",
               "maintenance_change_risk",
+              "vcs_integration_risk",
             ],
           },
         },
@@ -13503,6 +13805,7 @@ export const ADDITIONAL_TOOLS = [
       properties: {
         repo_path: { type: "string", description: "Local repository path to scan. Defaults to the MCP server working directory." },
         target_name: { type: "string", description: "Human-readable target name for the report. Defaults to UnClick." },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks" },
       },
     },
   },
@@ -13546,7 +13849,7 @@ export const ADDITIONAL_TOOLS = [
   // ── copypass-tool.ts (copy quality QC with CopyRoom receipt support) ─────
   {
     name: "copypass_run",
-    description: "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, and optional CopyRoom exact-copy receipt.",
+    description: "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, a structured copypass_receipt_v1 proof envelope, and optional CopyRoom exact-copy receipt.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -13580,7 +13883,7 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "copypass_status",
-    description: "Fetch the current status, notes, deterministic findings, disclaimer, and CopyRoom receipt for a CopyPass run started in this MCP session.",
+    description: "Fetch the current status, notes, deterministic findings, disclaimer, copypass_receipt_v1 proof envelope, and CopyRoom receipt for a CopyPass run started in this MCP session.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -13637,11 +13940,24 @@ export const ADDITIONAL_TOOLS = [
   {
     name: "fidelitypass_verify_copy",
     description:
-      "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes. Missing bytes, stale metadata, or prose-only AI proof cannot PASS.",
+      "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes, or return N/A when no exact 1:1 copy is in scope. Missing bytes, stale metadata, or prose-only AI proof cannot PASS.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
+        exact_copy_required: {
+          type: "boolean",
+          description: "Set false only when the target has no exact 1:1 copy, transcription, mirroring, or preservation scope. Returns N/A.",
+        },
+        copy_scope: {
+          type: "string",
+          enum: ["exact_copy", "not_applicable"],
+          description: "Explicit FidelityPass scope. Use not_applicable to record the XPass N/A row when no exact copy is in scope.",
+        },
+        scope_reason: {
+          type: "string",
+          description: "Reason why FidelityPass is N/A for this target. Used only when exact_copy_required=false or copy_scope=not_applicable.",
+        },
         source_text: { type: "string", description: "Exact source text to verify. Mutually exclusive with source_base64." },
         source_base64: { type: "string", description: "Exact source bytes as base64. Mutually exclusive with source_text." },
         copyroom_source_packet: {
@@ -14939,6 +15255,9 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   commonsensepass_check: (args) => commonsensepassCheckTool(args),
   commonsensepass_rules: (args) => commonsensepassRulesTool(args),
 
+  // xpass-aggregated-verdict-tool.ts
+  xpass_aggregated_verdict: (args) => xpassAggregatedVerdict(args),
+
   // legalpass-tool.ts
   legalpass_run:       (args) => legalpassRun(args),
   legalpass_status:    (args) => legalpassStatus(args),
@@ -14960,6 +15279,10 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   seopass_register_pack:   (args) => seopassRegisterPack(args),
   seopass_lighthouse_plan: (args) => seopassLighthousePlan(args),
 
+  // geopass-tool.ts
+  geopass_run:             (args) => geopassRun(args),
+  geopass_status:          (args) => geopassStatus(args),
+
   // compliancepass-tool.ts
   compliancepass_run:         (args) => compliancepassRun(args),
   compliancepass_status:      (args) => compliancepassStatus(args),
@@ -14974,6 +15297,15 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   flowpass_record:             (args) => flowpassRecord(args),
   flowpass_quarantine:         (args) => flowpassQuarantine(args),
   flowpass_disagreement_queue: (args) => flowpassDisagreementQueue(args),
+
+  // securitypass-tool.ts
+  securitypass_run:               (args) => securitypassRun(args),
+  securitypass_status:            (args) => securitypassStatus(args),
+  securitypass_report:            (args) => securitypassReport(args),
+  securitypass_register_pack:     (args) => securitypassRegisterPack(args),
+  securitypass_verify_scope:      (args) => securitypassVerifyScope(args),
+  securitypass_disclosure_status: (args) => securitypassDisclosureStatus(args),
+  securitypass_finding_detail:    (args) => securitypassFindingDetail(args),
 
   // copypass-tool.ts
   copypass_run:            (args) => copypassRun(args),

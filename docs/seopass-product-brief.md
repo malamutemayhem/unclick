@@ -33,7 +33,7 @@ The current adapter is plan-only and public-safe. It accepts GEOPass-shaped sour
 
 ## Positioning
 
-TestPass checks agent tools. UXPass checks user experience. SEOPass checks whether the public web can find and trust the page.
+TestPass checks agent tools. UIPass checks the visible interface. UXPass checks user journeys. SEOPass checks whether the public web can find and trust the page.
 
 ## 2026 research refresh: SEO plus AI search
 

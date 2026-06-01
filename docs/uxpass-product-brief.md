@@ -1,22 +1,24 @@
 # UXPass product brief and build plan
 
-A new agent-native UI/UX QC product for UnClick, sister to TestPass. This brief covers research, design, architecture, build plan, pricing, risks, and naming. Australian English. No em dashes anywhere.
+> 2026-05-31 split note: UXPass now owns user journeys, task completion, forms, feedback, recovery, onboarding, and usability. UIPass owns the visible interface checks that used to be mixed into this brief: layout, spacing, typography, mobile fit, visual hierarchy, state styling, screenshots, and polish. The existing `uxpass` runner may still carry legacy visual evidence until UIPass gets a dedicated runner, but product language should keep the split clear.
+
+A new agent-native usability and journey QC product for UnClick, sister to TestPass and UIPass. This brief covers research, design, architecture, build plan, pricing, risks, and naming. Australian English. No em dashes anywhere.
 
 ---
 
 ## 1. Executive summary
 
-UXPass is the UI/UX equivalent of TestPass. Where TestPass answers "does this MCP server or API conform to spec," UXPass answers "is this UI optimised to the max, and can a human or an AI agent actually use it well." The product runs a panel of fifteen-plus specialised AI critics (the "hat panel") in parallel against a live URL, a Storybook component, or a Figma frame, then synthesises their verdicts into a single 0 to 100 UX Score and a remediation queue that flows into Fishbowl as todos.
+UXPass is the journey and usability equivalent of TestPass. Where TestPass answers "does this MCP server or API conform to spec," UXPass answers "can a human or AI agent understand the task, move through it, recover from mistakes, and finish with confidence." The product runs a panel of specialised critics in parallel against a live URL, Storybook component, or Figma frame, then synthesises their verdicts into a single 0 to 100 UX Score and a remediation queue that flows into Fishbowl as todos.
 
-The wedge is unowned. Chromatic, Percy, Applitools, Argos and Lost Pixel all do pixel diffs. Stark, axe and Lighthouse cover accessibility and performance. Hotjar and Clarity show frustration after the fact. None of them grade aesthetic coherence, motion quality, dark pattern density, agent readability, or first-run experience. UXPass owns those five dimensions as the headline composite, then layers conventional Lighthouse and axe results underneath for completeness.
+The wedge is unowned. Hotjar and Clarity show frustration after the fact. Lighthouse, axe, and performance tooling answer useful narrow questions. UXPass focuses on the end-to-end human experience: clear goal, clear first step, low friction, useful feedback, safe recovery, and a confident finish. UIPass owns the separate visible interface lane: layout, spacing, typography, responsive fit, state styling, screenshots, and visual polish.
 
-Three architectural commitments make UXPass distinct from the field. First, every UnClick tool gets an internal UXPass pack auto-applied via a bolt-on module, so TestPass, Memory, Fishbowl, Crews, BackstagePass and Signals all run UI QC on themselves continuously. Second, the run loop reuses Crews for the multi-hat deliberation step, avoiding rebuild of multi-agent infrastructure. Third, results route through Signals as severity-tagged events, into Fishbowl as todos, and into BackstagePass for credential storage, all using the existing UnClick fabric.
+Three architectural commitments make UXPass distinct from the field. First, every UnClick tool gets an internal UXPass pack auto-applied via a bolt-on module, so TestPass, Memory, Fishbowl, Crews, BackstagePass and Signals all run journey QC on themselves continuously. Second, the run loop reuses Crews for the multi-critic deliberation step, avoiding rebuild of multi-agent infrastructure. Third, results route through Signals as severity-tagged events, into Fishbowl as todos, and into BackstagePass for credential storage, all using the existing UnClick fabric.
 
 The build is ten chunks, each one to two days for Bailey or Cowork or Codex Worker 2. Chunks one through six ship a credible MVP (one URL, four hats, one report). Chunks seven through ten add Figma, the creative-edge hats (Agent Readability, Dark Pattern Detector), the marketing site, and the full hat roster.
 
 Pricing sits where TestPass sits: a free tier for indie developers, a Pro tier in the $19 to $39 per project per month band that competes with Vercel Speed Insights and Argos, and a Team tier around $99 per month that aligns with Argos Pro and Hotjar Plus. Enterprise is sales-led with SSO and private hat models.
 
-The slogan: **"Every pixel earns its place."** Sister to TestPass's agent-native QC, sitting in the same UnClick family.
+The slogan: **"Every step earns its place."** Sister to TestPass and UIPass, sitting in the same UnClick family.
 
 ---
 
@@ -466,18 +468,18 @@ Name confirmed: **UXPass**. Sister to TestPass. Retains the "Pass" suffix that t
 
 Five candidates, all in UnClick house style: short, punchy, no em dashes, plain English.
 
-1. **"Every pixel earns its place."** Strongest. Implies rigour, taste, and a critic's eye. Pairs with the hat panel concept.
+1. **"Every step earns its place."** Strongest after the UIPass split. Implies the journey is deliberate, recoverable, and clear.
 2. **"Eighteen critics. One score."** Most concrete differentiator stated outright.
 3. **"Where humans and agents both win."** Echoes the UnClick parent slogan ("Where AI belongs. Humans welcome.") and lands the agent-readability angle.
-4. **"Ship UI that ships itself."** Cheeky, agent-native, says "your UI is good enough that an AI agent can sell it for you."
+4. **"Ship journeys people can finish."** Plain, agent-native, and focused on the task instead of the visual layer.
 5. **"UX, before you ship."** Plain, factual. Pairs with the pricing positioning sentence ("UXPass before, Hotjar after").
 
 ### 11.2 Recommendation
 
-Lead public marketing with **"Every pixel earns its place."** Use **"Eighteen critics. One score."** as the supporting subhead. Tagline pair on the marketing page:
+Lead public marketing with **"Every step earns its place."** Use **"Eighteen critics. One score."** as the supporting subhead. Tagline pair on the marketing page:
 
-> Every pixel earns its place.
-> Eighteen specialised AI critics tear apart your UI in parallel and synthesise a verdict before your PR merges.
+> Every step earns its place.
+> Eighteen specialised AI critics walk the journey in parallel and synthesise a verdict before your PR merges.
 
 Tucks the hat panel into a single sentence, keeps the "AI critics" phrase that nobody else can claim today, and lands in the same typographic shape as TestPass.
 
@@ -491,4 +493,4 @@ Second, the agent-readability angle must mature fast. Stagehand v3, browser-use'
 
 Third, the bolt-on architecture must hold. Every UnClick tool QC'ing itself with UXPass is the proof. If TestPass's admin UI ships with a UX Score of 92 and a public report that anyone can replicate, that is more credible than any landing page copy. UnClick eats its own dog food publicly, and UXPass becomes the lens through which everyone sees the family.
 
-The slogan ties it together. **Every pixel earns its place.** Eighteen critics, one score, and the only tool that grades a UI for the humans and the agents who will increasingly browse alongside them.
+The slogan ties it together. **Every step earns its place.** Eighteen critics, one score, and the tool that grades whether humans and agents can understand, recover, and finish the journey.

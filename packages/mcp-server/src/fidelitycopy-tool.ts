@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 type FidelityCopyMode = "raw_bytes" | "text_exact" | "json_canonical" | "approved_transform";
-type FidelityCopyVerdict = "PASS" | "BLOCKER" | "HOLD" | "ROUTE" | "SUPPRESS";
+type FidelityCopyVerdict = "PASS" | "BLOCKER" | "HOLD" | "ROUTE" | "SUPPRESS" | "N/A";
 
 interface Payload {
   kind: "text" | "base64";
@@ -48,9 +48,23 @@ interface FidelityCopyReceipt {
   action_needed: string[];
 }
 
+interface FidelityPassNotApplicableReceipt {
+  kind: "fidelitypass_scope_receipt_v1";
+  status: "not_applicable";
+  verdict: "N/A";
+  checked_scope: "no_exact_copy";
+  reason: string;
+  action_needed: string[];
+  tool_version: string;
+  timestamp: string;
+  provenance_ref: string;
+}
+
 const TOOL_VERSION = "fidelitycopy-v1";
 const DEFAULT_SOURCE_REF = "fidelitycopy://inline-source";
 const DEFAULT_OUTPUT_REF = "fidelitycopy://inline-output";
+const DEFAULT_NOT_APPLICABLE_REASON =
+  "No exact 1:1 copy, transcription, mirroring, or preservation is in scope for this target.";
 
 export async function fidelitycopyCopy(args: Record<string, unknown>): Promise<unknown> {
   const mode = parseMode(args.mode);
@@ -73,6 +87,17 @@ export async function fidelitycopyCopy(args: Record<string, unknown>): Promise<u
 }
 
 export async function fidelitypassVerifyCopy(args: Record<string, unknown>): Promise<unknown> {
+  const scope = parseFidelityPassScope(args);
+  if ("error" in scope) return { error: scope.error };
+  if (scope.notApplicable) {
+    const receipt = buildNotApplicableReceipt(args);
+    return {
+      verdict: "N/A",
+      receipt,
+      action_needed: receipt.action_needed,
+    };
+  }
+
   const receiptPayload = parseReceipt(args.receipt_payload ?? args.receipt);
   const mode = parseMode(args.mode) ?? modeFromReceipt(receiptPayload);
   if (!mode) return { error: "mode must be one of: raw_bytes, text_exact, json_canonical, approved_transform" };
@@ -109,6 +134,41 @@ export async function fidelitypassVerifyCopy(args: Record<string, unknown>): Pro
   }
 
   return { verdict: receipt.verdict, receipt };
+}
+
+function parseFidelityPassScope(args: Record<string, unknown>): { notApplicable: boolean } | { error: string } {
+  const copyScope = readString(args.copy_scope);
+  const exactCopyRequired = args.exact_copy_required;
+
+  if (copyScope !== null && copyScope !== "" && copyScope !== "exact_copy" && copyScope !== "not_applicable") {
+    return { error: "copy_scope must be exact_copy or not_applicable" };
+  }
+  if (exactCopyRequired !== undefined && exactCopyRequired !== null && typeof exactCopyRequired !== "boolean") {
+    return { error: "exact_copy_required must be a boolean" };
+  }
+  if (copyScope === "exact_copy" && exactCopyRequired === false) {
+    return { error: "FidelityPass scope conflict: copy_scope=exact_copy cannot be combined with exact_copy_required=false." };
+  }
+  if (copyScope === "not_applicable" && exactCopyRequired === true) {
+    return { error: "FidelityPass scope conflict: copy_scope=not_applicable cannot be combined with exact_copy_required=true." };
+  }
+
+  return { notApplicable: copyScope === "not_applicable" || exactCopyRequired === false };
+}
+
+function buildNotApplicableReceipt(args: Record<string, unknown>): FidelityPassNotApplicableReceipt {
+  const reason = readString(args.scope_reason)?.trim() || DEFAULT_NOT_APPLICABLE_REASON;
+  return {
+    kind: "fidelitypass_scope_receipt_v1",
+    status: "not_applicable",
+    verdict: "N/A",
+    checked_scope: "no_exact_copy",
+    reason,
+    action_needed: [],
+    tool_version: TOOL_VERSION,
+    timestamp: new Date().toISOString(),
+    provenance_ref: readString(args.provenance_ref) || "mcp://fidelitypass/not-applicable",
+  };
 }
 
 function createCopyOutput(

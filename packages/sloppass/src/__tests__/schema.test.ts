@@ -41,6 +41,29 @@ describe("SlopPass run schema", () => {
     expect(parsed.provider).toBe("http");
   });
 
+  it("keeps GitHub PR target metadata on diff-backed runs", () => {
+    const parsed = SlopPassRunInputSchema.parse({
+      target: {
+        kind: "pr",
+        label: "PR #1200",
+        repo: "malamutemayhem/unclick",
+        number: 1200,
+        url: "https://github.com/malamutemayhem/unclick/pull/1200",
+      },
+      diff: [
+        "diff --git a/src/example.ts b/src/example.ts",
+        "--- a/src/example.ts",
+        "+++ b/src/example.ts",
+        "@@ -1 +1 @@",
+        "+export const ok = true;",
+      ].join("\n"),
+    });
+
+    expect(parsed.target.repo).toBe("malamutemayhem/unclick");
+    expect(parsed.target.number).toBe(1200);
+    expect(parsed.target.url).toBe("https://github.com/malamutemayhem/unclick/pull/1200");
+  });
+
   it("accepts git_context as a review source", () => {
     const parsed = SlopPassRunInputSchema.parse({
       target: { kind: "pr", label: "PR 123", ref: "123" },

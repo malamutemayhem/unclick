@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 199,
-  "toolCount": 854,
+  "appCount": 202,
+  "toolCount": 864,
   "categories": [
     "AI",
     "Books",
@@ -906,11 +906,11 @@
       "tools": [
         {
           "name": "copypass_run",
-          "description": "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, and optional CopyRoom exact-copy receipt."
+          "description": "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, a structured copypass_receipt_v1 proof envelope, and optional CopyRoom exact-copy receipt."
         },
         {
           "name": "copypass_status",
-          "description": "Fetch the current status, notes, deterministic findings, disclaimer, and CopyRoom receipt for a CopyPass run started in this MCP session."
+          "description": "Fetch the current status, notes, deterministic findings, disclaimer, copypass_receipt_v1 proof envelope, and CopyRoom receipt for a CopyPass run started in this MCP session."
         }
       ],
       "level": null,
@@ -1534,7 +1534,7 @@
         },
         {
           "name": "fidelitypass_verify_copy",
-          "description": "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes. Missing bytes, stale metadata, or prose-only AI proof cannot PASS."
+          "description": "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes, or return N/A when no exact 1:1 copy is in scope. Missing bytes, stale metadata, or prose-only AI proof cannot PASS."
         }
       ],
       "level": null,
@@ -1739,6 +1739,26 @@
       ],
       "level": 5,
       "hardened": true
+    },
+    {
+      "slug": "geopass",
+      "name": "GeoPass",
+      "category": "Quality (XPass)",
+      "blurb": "Run GEOPass against a public URL.",
+      "domain": null,
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "geopass_run",
+          "description": "Run GEOPass against a public URL. Returns a live-readonly AI answer-engine readiness receipt covering answer extractability, entity clarity, citation/sourceability, freshness cues, content structure, llms.txt, and AI bot visibility. GEOPass reports readiness only and does not guarantee rankings or citations."
+        },
+        {
+          "name": "geopass_status",
+          "description": "Fetch the stored in-session GEOPass report and geopass_receipt_v1 envelope for a run started through geopass_run."
+        }
+      ],
+      "level": 1,
+      "hardened": false
     },
     {
       "slug": "github",
@@ -4153,6 +4173,46 @@
       "hardened": true
     },
     {
+      "slug": "securitypass",
+      "name": "SecurityPass",
+      "category": "Quality (XPass)",
+      "blurb": "Start a scope-gated SecurityPass scan against a registered pack or target URL.",
+      "domain": null,
+      "toolCount": 7,
+      "tools": [
+        {
+          "name": "securitypass_run",
+          "description": "Start a scope-gated SecurityPass scan against a registered pack or target URL. Returns a safe securitypass_receipt_v1 proof envelope without raw secrets or PoC payloads."
+        },
+        {
+          "name": "securitypass_status",
+          "description": "Poll the state of a SecurityPass run. Returns status, verdict summary, counts, and a safe securitypass_receipt_v1 proof envelope."
+        },
+        {
+          "name": "securitypass_report",
+          "description": "Fetch the synthesised report for a completed run (executive narrative + findings). format=json|markdown|html."
+        },
+        {
+          "name": "securitypass_register_pack",
+          "description": "Save a SecurityPack YAML for the calling tenant. Validates against the schema."
+        },
+        {
+          "name": "securitypass_verify_scope",
+          "description": "Verify scope authorisation for a target via DNS TXT or /.well-known proof. Required before any active probe runs."
+        },
+        {
+          "name": "securitypass_disclosure_status",
+          "description": "Check the 90+30 responsible-disclosure timer state for a finding (notified, acked, extended, public, withdrawn)."
+        },
+        {
+          "name": "securitypass_finding_detail",
+          "description": "Fetch a single finding including PoC payload (curl / prompt / payload) and remediation. PoC is generated, never auto-fired."
+        }
+      ],
+      "level": 1,
+      "hardened": false
+    },
+    {
       "slug": "segment",
       "name": "Segment",
       "category": "Developer & infra",
@@ -4442,7 +4502,7 @@
       "tools": [
         {
           "name": "sloppass_run",
-          "description": "Run SlopPass against caller-provided source files or a unified diff. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, read repositories, persist source content, or make paid model calls by default."
+          "description": "Run SlopPass against caller-provided source files, a unified diff, or a GitHub PR target whose public .diff should be fetched. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, clone repositories, persist source content, or make paid model calls by default."
         }
       ],
       "level": null,
@@ -5438,11 +5498,11 @@
       "tools": [
         {
           "name": "uxpass_run",
-          "description": "Run a UI/UX quality check synchronously against a URL. Executes the deterministic uxpass-core check set (HTTP, HTML, accessibility, agent readability, performance, security) against the target and returns the run id, status, UX Score, and summary. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry)."
+          "description": "Run a UX journey/usability check synchronously against a URL. Executes the deterministic uxpass-core check set and returns the run id, status, UX Score, summary, and uxpass_receipt_v1. UIPass now owns visual/interface polish; this legacy UXPass runner still calls out when screenshots or mobile/desktop proof are missing for visible surfaces. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry)."
         },
         {
           "name": "uxpass_status",
-          "description": "Fetch the status, UX Score, and summary for a UXPass run."
+          "description": "Fetch the status, UX Score, summary, and uxpass_receipt_v1 for a UXPass run."
         },
         {
           "name": "uxpass_report_html",
@@ -5731,6 +5791,22 @@
       ],
       "level": 2,
       "hardened": true
+    },
+    {
+      "slug": "xpass-aggregated-verdict",
+      "name": "XPass Verdict",
+      "category": "Quality (XPass)",
+      "blurb": "Return one XPass conductor verdict for a target PR/change at a specific commit SHA.",
+      "domain": null,
+      "toolCount": 1,
+      "tools": [
+        {
+          "name": "xpass_aggregated_verdict",
+          "description": "Return one XPass conductor verdict for a target PR/change at a specific commit SHA. Selected PASS receipts must name the same head SHA; stale, unscoped, missing, or blocker receipts cannot produce a green verdict."
+        }
+      ],
+      "level": 1,
+      "hardened": false
     },
     {
       "slug": "yelp",
