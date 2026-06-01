@@ -1,5 +1,4 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import React from "react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -13,27 +12,18 @@ vi.mock("@/lib/auth", () => ({
 
 async function renderAdminTools() {
   const { default: AdminTools } = await import("./AdminTools");
-
   render(
     <MemoryRouter>
       <AdminTools />
     </MemoryRouter>,
   );
-
   await screen.findByRole("heading", { name: "Apps" });
-  await waitFor(() =>
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/memory-admin?action=admin_tools",
-      expect.objectContaining({
-        headers: { Authorization: "Bearer test-session-token" },
-      }),
-    ),
-  );
 }
 
-describe("AdminTools", () => {
+describe("AdminTools (Apps library)", () => {
   beforeEach(() => {
     vi.resetModules();
+    localStorage.clear();
     vi.stubGlobal(
       "fetch",
       vi.fn(() =>
@@ -51,22 +41,30 @@ describe("AdminTools", () => {
     vi.restoreAllMocks();
   });
 
-  it("shows the Skills Library starter pack preview with native boundaries", async () => {
+  it("loads connection status from admin_tools", async () => {
     await renderAdminTools();
-
-    expect(screen.getByRole("heading", { name: "Skills Library" })).toBeInTheDocument();
-    expect(screen.getByText(/A curated starter pack of 20/i)).toBeInTheDocument();
-    expect(screen.getByText("7 hardwired")).toBeInTheDocument();
-    expect(screen.getByText("7 hybrid")).toBeInTheDocument();
-    expect(screen.getByText("6 optional")).toBeInTheDocument();
-    expect(screen.getByText("Coordinator router")).toBeInTheDocument();
-    expect(screen.getAllByText(/Hardwire into UnClick/i).length).toBeGreaterThan(0);
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/memory-admin?action=admin_tools",
+        expect.objectContaining({
+          headers: { Authorization: "Bearer test-session-token" },
+        }),
+      ),
+    );
   });
 
-  it("links to the full Skills Library instead of offering live install execution", async () => {
+  it("renders the unified app rows with admin controls and search", async () => {
     await renderAdminTools();
+    expect(screen.getByPlaceholderText(/search apps/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /turn all on/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /turn all off/i })).toBeInTheDocument();
+    // A known app from the generated catalog renders as a row.
+    expect(screen.getByText("GitHub")).toBeInTheDocument();
+  });
 
-    expect(screen.getByRole("link", { name: "Open Skills Library" })).toHaveAttribute("href", "/admin/skills");
-    expect(screen.queryByRole("button", { name: /Install/i })).not.toBeInTheDocument();
+  it("links to Passport and the Skills Library instead of inlining everything", async () => {
+    await renderAdminTools();
+    expect(screen.getByRole("link", { name: /Skills Library/i })).toHaveAttribute("href", "/admin/skills");
+    expect(screen.getByRole("link", { name: /Passport/i })).toHaveAttribute("href", "/admin/keychain");
   });
 });
