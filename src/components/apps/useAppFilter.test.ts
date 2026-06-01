@@ -4,9 +4,9 @@ import { useAppFilter } from "./useAppFilter";
 import type { AppEntry } from "@/lib/appCatalog";
 
 const APPS: AppEntry[] = [
-  { slug: "github", name: "GitHub", category: "Developer & infra", blurb: "Manage repos.", toolCount: 1, tools: [{ name: "github_action", description: "Repos, issues, PRs." }], level: 2, hardened: true },
-  { slug: "openmeteo", name: "Open-Meteo", category: "Weather & science", blurb: "Forecasts.", toolCount: 3, tools: [{ name: "weather_current", description: "Current weather conditions." }], level: 5, hardened: true },
-  { slug: "stripe", name: "Stripe", category: "Money & payments", blurb: "Payments.", toolCount: 6, tools: [{ name: "stripe_customers", description: "Customers and charges." }], level: 5, hardened: true },
+  { slug: "github", name: "GitHub", category: "Developer & infra", blurb: "Manage repos.", domain: null, toolCount: 1, tools: [{ name: "github_action", description: "Repos, issues, PRs." }], level: 2, hardened: true },
+  { slug: "openmeteo", name: "Open-Meteo", category: "Weather & science", blurb: "Forecasts.", domain: null, toolCount: 3, tools: [{ name: "weather_current", description: "Current weather conditions." }], level: 5, hardened: true },
+  { slug: "stripe", name: "Stripe", category: "Money & payments", blurb: "Payments.", domain: null, toolCount: 6, tools: [{ name: "stripe_customers", description: "Customers and charges." }], level: 5, hardened: true },
 ];
 
 describe("useAppFilter", () => {

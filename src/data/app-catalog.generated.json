@@ -29,6 +29,7 @@
       "name": "ABN",
       "category": "Travel, maps & local",
       "blurb": "Look up an Australian Business Number (ABN).",
+      "domain": null,
       "toolCount": 2,
       "tools": [
         {
@@ -48,6 +49,7 @@
       "name": "AbuseIPDB",
       "category": "Security",
       "blurb": "Check if an IP address has been reported for abuse.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -71,6 +73,7 @@
       "name": "Airtable",
       "category": "Productivity",
       "blurb": "Interact with the Airtable REST API: list bases, list and search records, get a single record, and create or update records.",
+      "domain": "airtable.com",
       "toolCount": 1,
       "tools": [
         {
@@ -86,6 +89,7 @@
       "name": "Algolia",
       "category": "Developer & infra",
       "blurb": "Search an Algolia index for records matching a query.",
+      "domain": "algolia.com",
       "toolCount": 4,
       "tools": [
         {
@@ -113,6 +117,7 @@
       "name": "Alpha Vantage",
       "category": "Markets & crypto",
       "blurb": "Get a real-time stock quote from Alpha Vantage.",
+      "domain": null,
       "toolCount": 6,
       "tools": [
         {
@@ -148,6 +153,7 @@
       "name": "Amazon",
       "category": "Shopping",
       "blurb": "Search for products on Amazon.",
+      "domain": "amazon.com",
       "toolCount": 4,
       "tools": [
         {
@@ -175,6 +181,7 @@
       "name": "Amber",
       "category": "Travel, maps & local",
       "blurb": "Get Amber Electric sites for the authenticated user.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -198,6 +205,7 @@
       "name": "Anthropic",
       "category": "AI",
       "blurb": "Chat completions from Claude models.",
+      "domain": "anthropic.com",
       "toolCount": 2,
       "tools": [
         {
@@ -217,6 +225,7 @@
       "name": "Asana",
       "category": "Productivity",
       "blurb": "List all Asana workspaces accessible by the authenticated user.",
+      "domain": "asana.com",
       "toolCount": 7,
       "tools": [
         {
@@ -256,6 +265,7 @@
       "name": "Assemblyai",
       "category": "AI",
       "blurb": "Submit an audio or video file for transcription with AssemblyAI.",
+      "domain": null,
       "toolCount": 6,
       "tools": [
         {
@@ -291,6 +301,7 @@
       "name": "Australia Post",
       "category": "Travel, maps & local",
       "blurb": "Track an Australia Post parcel by tracking number.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -314,6 +325,7 @@
       "name": "Bandsintown",
       "category": "Events & tickets",
       "blurb": "Get an artist profile from Bandsintown.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -337,6 +349,7 @@
       "name": "Bluesky",
       "category": "Social",
       "blurb": "Perform a Bluesky action: bluesky_post, bluesky_read_feed, bluesky_reply, bluesky_like, bluesky_repost, bluesky_search, bluesky_profile, bluesky_follow.",
+      "domain": "bsky.app",
       "toolCount": 1,
       "tools": [
         {
@@ -352,6 +365,7 @@
       "name": "BoardGameGeek",
       "category": "Games & esports",
       "blurb": "Search BoardGameGeek for board games by name.",
+      "domain": null,
       "toolCount": 5,
       "tools": [
         {
@@ -383,6 +397,7 @@
       "name": "Bungie",
       "category": "Games & esports",
       "blurb": "Search for a Destiny 2 player by display name.",
+      "domain": null,
       "toolCount": 4,
       "tools": [
         {
@@ -410,6 +425,7 @@
       "name": "C-Suite",
       "category": "AI",
       "blurb": "Run a C-Suite multi-perspective analysis on a business scenario.",
+      "domain": null,
       "toolCount": 1,
       "tools": [
         {
@@ -425,6 +441,7 @@
       "name": "Cal.com",
       "category": "Productivity",
       "blurb": "Get the authenticated Cal.com user's profile.",
+      "domain": "cal.com",
       "toolCount": 3,
       "tools": [
         {
@@ -448,6 +465,7 @@
       "name": "Calculator",
       "category": "Utilities",
       "blurb": "Calculate tip amount and total for a bill.",
+      "domain": null,
       "toolCount": 5,
       "tools": [
         {
@@ -479,6 +497,7 @@
       "name": "Calendly",
       "category": "Productivity",
       "blurb": "Get the authenticated Calendly user profile.",
+      "domain": "calendly.com",
       "toolCount": 5,
       "tools": [
         {
@@ -510,6 +529,7 @@
       "name": "Carbon Interface",
       "category": "Weather & science",
       "blurb": "Estimate carbon emissions for a flight.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -533,6 +553,7 @@
       "name": "Chess.com",
       "category": "Games & esports",
       "blurb": "Get a Chess.com player profile.",
+      "domain": null,
       "toolCount": 5,
       "tools": [
         {
@@ -564,6 +585,7 @@
       "name": "Circleci",
       "category": "Developer & infra",
       "blurb": "List CircleCI pipelines for a project or organization. Optionally filter by branch.",
+      "domain": "circleci.com",
       "toolCount": 6,
       "tools": [
         {
@@ -599,6 +621,7 @@
       "name": "Clickup",
       "category": "Productivity",
       "blurb": "Interact with the ClickUp API v2: list workspaces and spaces, get lists and tasks, create tasks, and update task properties.",
+      "domain": "clickup.com",
       "toolCount": 1,
       "tools": [
         {
@@ -614,6 +637,7 @@
       "name": "Clockify",
       "category": "Productivity",
       "blurb": "Perform a Clockify action: get_clockify_workspaces, get_time_entries, create_time_entry, get_clockify_projects, get_clockify_summary.",
+      "domain": "clockify.me",
       "toolCount": 1,
       "tools": [
         {
@@ -629,6 +653,7 @@
       "name": "Cohere",
       "category": "AI",
       "blurb": "Chat with a Cohere Command model. Supports system preamble and conversation history.",
+      "domain": "cohere.com",
       "toolCount": 6,
       "tools": [
         {
@@ -664,6 +689,7 @@
       "name": "CoinGecko",
       "category": "Markets & crypto",
       "blurb": "Get cryptocurrency prices from CoinGecko.",
+      "domain": "coingecko.com",
       "toolCount": 6,
       "tools": [
         {
@@ -699,6 +725,7 @@
       "name": "CoinMarketCap",
       "category": "Markets & crypto",
       "blurb": "Get latest cryptocurrency listings from CoinMarketCap.",
+      "domain": "coinmarketcap.com",
       "toolCount": 5,
       "tools": [
         {
@@ -730,6 +757,7 @@
       "name": "Color",
       "category": "Utilities",
       "blurb": "Convert a color between HEX, RGB, HSL, and other formats.",
+      "domain": null,
       "toolCount": 5,
       "tools": [
         {
@@ -761,6 +789,7 @@
       "name": "CommonSensePass",
       "category": "Quality (XPass)",
       "blurb": "Run the verdict-only CommonSensePass sanity gate before a worker claims healthy, quiet, no_work, pass, done, merge_ready, duplicate_wake, or route.",
+      "domain": null,
       "toolCount": 2,
       "tools": [
         {
@@ -780,6 +809,7 @@
       "name": "CompliancePass",
       "category": "Quality (XPass)",
       "blurb": "Run CompliancePass against a local repo path. Returns evidence-backed readiness guidance, gaps, next actions, and an in-session run id. Historical EnterprisePass references are treated as this same product.",
+      "domain": null,
       "toolCount": 4,
       "tools": [
         {
@@ -807,6 +837,7 @@
       "name": "Contentful",
       "category": "Content & CMS",
       "blurb": "List Contentful entries, optionally filtered by content_type or full-text query.",
+      "domain": "contentful.com",
       "toolCount": 4,
       "tools": [
         {
@@ -834,6 +865,7 @@
       "name": "Convertkit",
       "category": "Messaging & email",
       "blurb": "List all subscribers in a ConvertKit account.",
+      "domain": "convertkit.com",
       "toolCount": 6,
       "tools": [
         {
@@ -869,6 +901,7 @@
       "name": "CopyPass",
       "category": "Quality (XPass)",
       "blurb": "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, and optional CopyRoom exact-copy receipt.",
+      "domain": null,
       "toolCount": 2,
       "tools": [
         {
@@ -888,6 +921,7 @@
       "name": "Crews",
       "category": "Productivity",
       "blurb": "Call this tool when the user wants to start a Crews Council run. In a sampling-capable MCP client, it prepares the run, asks advisors for opinions, runs peer review, persists the Chairman synthesis, and returns a ConversationalCard. If sampling is unavailable, the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -911,6 +945,7 @@
       "name": "Datadog",
       "category": "Developer & infra",
       "blurb": "List Datadog monitors (alerts) with optional name or tag filters.",
+      "domain": "datadoghq.com",
       "toolCount": 6,
       "tools": [
         {
@@ -946,6 +981,7 @@
       "name": "Datetime",
       "category": "Utilities",
       "blurb": "Get the current date and time, optionally in a specific timezone.",
+      "domain": null,
       "toolCount": 7,
       "tools": [
         {
@@ -985,6 +1021,7 @@
       "name": "Deepl",
       "category": "AI",
       "blurb": "Translate text into another language using DeepL's neural translation engine.",
+      "domain": "deepl.com",
       "toolCount": 4,
       "tools": [
         {
@@ -1012,6 +1049,7 @@
       "name": "Deezer",
       "category": "Music & video",
       "blurb": "Search Deezer for tracks, artists, or albums.",
+      "domain": "deezer.com",
       "toolCount": 6,
       "tools": [
         {
@@ -1047,6 +1085,7 @@
       "name": "DigitalOcean",
       "category": "Developer & infra",
       "blurb": "List DigitalOcean droplets (signals when any are powered off).",
+      "domain": "digitalocean.com",
       "toolCount": 4,
       "tools": [
         {
@@ -1074,6 +1113,7 @@
       "name": "Discogs",
       "category": "Music & video",
       "blurb": "Search for music releases on Discogs.",
+      "domain": "discogs.com",
       "toolCount": 6,
       "tools": [
         {
@@ -1109,6 +1149,7 @@
       "name": "Discord",
       "category": "Messaging & email",
       "blurb": "Send a message to a Discord channel.",
+      "domain": "discord.com",
       "toolCount": 7,
       "tools": [
         {
@@ -1148,6 +1189,7 @@
       "name": "Domain",
       "category": "Travel, maps & local",
       "blurb": "Search Australian property listings on Domain.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -1171,6 +1213,7 @@
       "name": "eBay",
       "category": "Shopping",
       "blurb": "Search eBay listings via the Browse API.",
+      "domain": "ebay.com",
       "toolCount": 4,
       "tools": [
         {
@@ -1198,6 +1241,7 @@
       "name": "eBird",
       "category": "Weather & science",
       "blurb": "Get recent bird observations from eBird.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -1221,6 +1265,7 @@
       "name": "Elevenlabs",
       "category": "AI",
       "blurb": "List all available voices in ElevenLabs.",
+      "domain": "elevenlabs.io",
       "toolCount": 5,
       "tools": [
         {
@@ -1252,6 +1297,7 @@
       "name": "Email",
       "category": "Messaging & email",
       "blurb": "Send an email via Gmail/IMAP.",
+      "domain": null,
       "toolCount": 6,
       "tools": [
         {
@@ -1287,6 +1333,7 @@
       "name": "ESPN",
       "category": "Games & esports",
       "blurb": "Get current NFL scores from ESPN.",
+      "domain": null,
       "toolCount": 7,
       "tools": [
         {
@@ -1326,6 +1373,7 @@
       "name": "Etsy",
       "category": "Shopping",
       "blurb": "Search active Etsy listings by keyword.",
+      "domain": "etsy.com",
       "toolCount": 5,
       "tools": [
         {
@@ -1357,6 +1405,7 @@
       "name": "Eventbrite",
       "category": "Events & tickets",
       "blurb": "Search for events on Eventbrite.",
+      "domain": "eventbrite.com",
       "toolCount": 6,
       "tools": [
         {
@@ -1392,6 +1441,7 @@
       "name": "Exchangerate",
       "category": "Markets & crypto",
       "blurb": "Get latest currency exchange rates for a base currency. Works without API key using the free tier.",
+      "domain": null,
       "toolCount": 4,
       "tools": [
         {
@@ -1419,6 +1469,7 @@
       "name": "Fantasy Premier League",
       "category": "Games & esports",
       "blurb": "Get Fantasy Premier League bootstrap data (players, teams, etc.).",
+      "domain": null,
       "toolCount": 7,
       "tools": [
         {
@@ -1458,6 +1509,7 @@
       "name": "Feedly",
       "category": "News & reading",
       "blurb": "Perform a Feedly action: get_feedly_feeds, get_feedly_streams, search_feedly, get_feedly_categories, mark_as_read.",
+      "domain": "feedly.com",
       "toolCount": 1,
       "tools": [
         {
@@ -1473,6 +1525,7 @@
       "name": "FidelityCopy",
       "category": "Quality (XPass)",
       "blurb": "Create a deterministic FidelityCopy receipt for exact copy work. AI may request the copy, but this tool computes source/output hashes and returns PASS only when the selected mode proves exact or approved fidelity.",
+      "domain": null,
       "toolCount": 2,
       "tools": [
         {
@@ -1492,6 +1545,7 @@
       "name": "Figma",
       "category": "Productivity",
       "blurb": "Get a Figma file's structure and metadata - pages, frames, and component count.",
+      "domain": "figma.com",
       "toolCount": 7,
       "tools": [
         {
@@ -1531,6 +1585,7 @@
       "name": "FlowPass",
       "category": "Quality (XPass)",
       "blurb": "Run FlowPass against a public fixture or registered pack. Returns journey readiness, step verdicts, hat outputs, exclusions, and a stored report. Without fixture proof, returns a plan-only receipt instead of pretending a live journey ran.",
+      "domain": null,
       "toolCount": 7,
       "tools": [
         {
@@ -1570,6 +1625,7 @@
       "name": "Fly.io",
       "category": "Developer & infra",
       "blurb": "List all Fly.io apps in your organization.",
+      "domain": "fly.io",
       "toolCount": 5,
       "tools": [
         {
@@ -1601,6 +1657,7 @@
       "name": "Foursquare",
       "category": "Travel, maps & local",
       "blurb": "Search for places on Foursquare.",
+      "domain": "foursquare.com",
       "toolCount": 5,
       "tools": [
         {
@@ -1632,6 +1689,7 @@
       "name": "GDELT",
       "category": "News & reading",
       "blurb": "Search global news via the GDELT Project. Returns article titles, URLs, sources, dates, countries, and languages. No API key required.",
+      "domain": null,
       "toolCount": 4,
       "tools": [
         {
@@ -1659,6 +1717,7 @@
       "name": "Genius",
       "category": "Music & video",
       "blurb": "Search Genius for songs and lyrics.",
+      "domain": "genius.com",
       "toolCount": 4,
       "tools": [
         {
@@ -1686,6 +1745,7 @@
       "name": "GitHub",
       "category": "Developer & infra",
       "blurb": "Manage repos, issues, pull requests, and Actions.",
+      "domain": "github.com",
       "toolCount": 1,
       "tools": [
         {
@@ -1701,6 +1761,7 @@
       "name": "GitLab",
       "category": "Developer & infra",
       "blurb": "Interact with the GitLab REST API: search projects, get project details, list issues and merge requests, and look up users. Supports self-hosted GitLab instances.",
+      "domain": "gitlab.com",
       "toolCount": 1,
       "tools": [
         {
@@ -1716,6 +1777,7 @@
       "name": "Groq",
       "category": "AI",
       "blurb": "Run a fast LLM inference with Groq. Supports Llama 3, Mixtral, Gemma, and other open models at high speed.",
+      "domain": "groq.com",
       "toolCount": 2,
       "tools": [
         {
@@ -1735,6 +1797,7 @@
       "name": "Guardian",
       "category": "News & reading",
       "blurb": "Search for articles on The Guardian.",
+      "domain": "theguardian.com",
       "toolCount": 5,
       "tools": [
         {
@@ -1766,6 +1829,7 @@
       "name": "Gumroad",
       "category": "Money & payments",
       "blurb": "List all products in a Gumroad account.",
+      "domain": "gumroad.com",
       "toolCount": 5,
       "tools": [
         {
@@ -1797,6 +1861,7 @@
       "name": "Hacker News",
       "category": "Social",
       "blurb": "Get the top stories from Hacker News.",
+      "domain": "ycombinator.com",
       "toolCount": 7,
       "tools": [
         {
@@ -1836,6 +1901,7 @@
       "name": "Have I Been Pwned",
       "category": "Security",
       "blurb": "Check if an email account has been in a data breach.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -1859,6 +1925,7 @@
       "name": "Heygen",
       "category": "AI",
       "blurb": "Create an AI avatar video with HeyGen. The avatar speaks a script using a selected voice. Returns a video_id to poll for completion.",
+      "domain": "heygen.com",
       "toolCount": 4,
       "tools": [
         {
@@ -1886,6 +1953,7 @@
       "name": "Higgsfield",
       "category": "AI",
       "blurb": "Generate a video from a text prompt using Higgsfield AI. Supports Soul Styles for cinematic looks. Returns a generation_id to poll for completion.",
+      "domain": null,
       "toolCount": 4,
       "tools": [
         {
@@ -1913,6 +1981,7 @@
       "name": "HubSpot",
       "category": "Productivity",
       "blurb": "Read and update CRM contacts, companies, and deals.",
+      "domain": "hubspot.com",
       "toolCount": 6,
       "tools": [
         {
@@ -1948,6 +2017,7 @@
       "name": "Hunter",
       "category": "Security",
       "blurb": "Find email addresses for a domain using Hunter.io.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -1971,6 +2041,7 @@
       "name": "IGDB",
       "category": "Games & esports",
       "blurb": "Search the IGDB games database by name.",
+      "domain": "igdb.com",
       "toolCount": 5,
       "tools": [
         {
@@ -2002,6 +2073,7 @@
       "name": "IgniteOnly",
       "category": "Quality (XPass)",
       "blurb": "Return the PinballWake IgniteOnlyAPI guardrails. This is the green ignite sibling to NudgeOnly: verified worker wake packets only, no build, merge, approval, closure, or truth-setting.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -2025,6 +2097,7 @@
       "name": "Instapaper",
       "category": "News & reading",
       "blurb": "Perform an Instapaper action: get_instapaper_bookmarks, add_instapaper_bookmark, archive_bookmark, delete_bookmark, get_instapaper_folders.",
+      "domain": "instapaper.com",
       "toolCount": 1,
       "tools": [
         {
@@ -2040,6 +2113,7 @@
       "name": "Intercom",
       "category": "Messaging & email",
       "blurb": "List recent Intercom conversations.",
+      "domain": "intercom.com",
       "toolCount": 4,
       "tools": [
         {
@@ -2067,6 +2141,7 @@
       "name": "IP API",
       "category": "Travel, maps & local",
       "blurb": "Look up geolocation for an IP address.",
+      "domain": null,
       "toolCount": 2,
       "tools": [
         {
@@ -2086,6 +2161,7 @@
       "name": "IP Australia",
       "category": "Travel, maps & local",
       "blurb": "Search Australian trademarks via IP Australia.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -2109,6 +2185,7 @@
       "name": "Jira",
       "category": "Productivity",
       "blurb": "Search, read, and create issues across your projects.",
+      "domain": "atlassian.com",
       "toolCount": 5,
       "tools": [
         {
@@ -2140,6 +2217,7 @@
       "name": "Keychain",
       "category": "Developer & infra",
       "blurb": "Store an encrypted platform credential in the UnClick Keychain. Tests the credential against the platform API before saving. Scoped to the caller's UNCLICK_API_KEY.",
+      "domain": null,
       "toolCount": 5,
       "tools": [
         {
@@ -2171,6 +2249,7 @@
       "name": "Klaviyo",
       "category": "Messaging & email",
       "blurb": "List Klaviyo lists.",
+      "domain": "klaviyo.com",
       "toolCount": 4,
       "tools": [
         {
@@ -2198,6 +2277,7 @@
       "name": "Kling",
       "category": "AI",
       "blurb": "Generate a high-quality video from text using Kling AI (Kuaishou). Supports standard and professional modes. Returns a task_id to poll for completion.",
+      "domain": null,
       "toolCount": 2,
       "tools": [
         {
@@ -2217,6 +2297,7 @@
       "name": "Last.fm",
       "category": "Music & video",
       "blurb": "Get Last.fm artist info.",
+      "domain": "last.fm",
       "toolCount": 7,
       "tools": [
         {
@@ -2256,6 +2337,7 @@
       "name": "LegalPass",
       "category": "Quality (XPass)",
       "blurb": "Run a LegalPass issue-spotting pass against a URL, contract upload, or repo. With fixture_text, returns deterministic public evidence; without it, returns the guarded run plan.",
+      "domain": null,
       "toolCount": 5,
       "tools": [
         {
@@ -2287,6 +2369,7 @@
       "name": "Lego",
       "category": "Games & esports",
       "blurb": "Search LEGO sets by name/theme (Rebrickable).",
+      "domain": "lego.com",
       "toolCount": 7,
       "tools": [
         {
@@ -2326,6 +2409,7 @@
       "name": "Lemon Squeezy",
       "category": "Money & payments",
       "blurb": "List all Lemon Squeezy stores on your account.",
+      "domain": "lemonsqueezy.com",
       "toolCount": 6,
       "tools": [
         {
@@ -2361,6 +2445,7 @@
       "name": "Lichess",
       "category": "Games & esports",
       "blurb": "Get a Lichess user profile.",
+      "domain": "lichess.org",
       "toolCount": 5,
       "tools": [
         {
@@ -2392,6 +2477,7 @@
       "name": "Line",
       "category": "Messaging & email",
       "blurb": "Send a text message to a LINE user, group, or room.",
+      "domain": "line.me",
       "toolCount": 6,
       "tools": [
         {
@@ -2427,6 +2513,7 @@
       "name": "Linear",
       "category": "Productivity",
       "blurb": "Interact with the Linear GraphQL API: list and search issues, create issues, get project details, and list teams.",
+      "domain": "linear.app",
       "toolCount": 1,
       "tools": [
         {
@@ -2442,6 +2529,7 @@
       "name": "Mailchimp",
       "category": "Messaging & email",
       "blurb": "List all Mailchimp audiences (lists) in the account.",
+      "domain": "mailchimp.com",
       "toolCount": 7,
       "tools": [
         {
@@ -2481,6 +2569,7 @@
       "name": "Mapbox",
       "category": "Travel, maps & local",
       "blurb": "Convert an address or place name to coordinates using Mapbox.",
+      "domain": "mapbox.com",
       "toolCount": 5,
       "tools": [
         {
@@ -2512,6 +2601,7 @@
       "name": "Mastodon",
       "category": "Social",
       "blurb": "Perform a Mastodon action: mastodon_post, mastodon_read_timeline, mastodon_reply, mastodon_boost, mastodon_favorite, mastodon_search, mastodon_profile, mastodon_follow, mastodon_notifications.",
+      "domain": "joinmastodon.org",
       "toolCount": 1,
       "tools": [
         {
@@ -2527,6 +2617,7 @@
       "name": "Meal",
       "category": "Weather & science",
       "blurb": "Search for meals/recipes by name.",
+      "domain": null,
       "toolCount": 7,
       "tools": [
         {
@@ -2566,6 +2657,7 @@
       "name": "Mistral",
       "category": "AI",
       "blurb": "Run a chat completion with a Mistral AI model (mistral-small, mistral-medium, mistral-large, etc.).",
+      "domain": "mistral.ai",
       "toolCount": 3,
       "tools": [
         {
@@ -2589,6 +2681,7 @@
       "name": "Mixpanel",
       "category": "Developer & infra",
       "blurb": "Track a custom event in Mixpanel.",
+      "domain": "mixpanel.com",
       "toolCount": 5,
       "tools": [
         {
@@ -2620,6 +2713,7 @@
       "name": "Monday",
       "category": "Productivity",
       "blurb": "List boards in a Monday.com account.",
+      "domain": "monday.com",
       "toolCount": 6,
       "tools": [
         {
@@ -2655,6 +2749,7 @@
       "name": "Monica",
       "category": "Productivity",
       "blurb": "Perform a Monica CRM action: get_contacts, search_contacts, get_contact, create_contact, get_contact_reminders, get_activities, add_note.",
+      "domain": "monicahq.com",
       "toolCount": 1,
       "tools": [
         {
@@ -2670,6 +2765,7 @@
       "name": "MusicBrainz",
       "category": "Music & video",
       "blurb": "Search for artists on MusicBrainz.",
+      "domain": null,
       "toolCount": 5,
       "tools": [
         {
@@ -2701,6 +2797,7 @@
       "name": "NASA",
       "category": "Weather & science",
       "blurb": "Get NASA Astronomy Picture of the Day.",
+      "domain": "nasa.gov",
       "toolCount": 5,
       "tools": [
         {
@@ -2732,6 +2829,7 @@
       "name": "Neon",
       "category": "Developer & infra",
       "blurb": "List all Neon Serverless Postgres projects in your account.",
+      "domain": "neon.tech",
       "toolCount": 6,
       "tools": [
         {
@@ -2767,6 +2865,7 @@
       "name": "Netlify",
       "category": "Developer & infra",
       "blurb": "List sites and deploys, and catch failed builds.",
+      "domain": "netlify.com",
       "toolCount": 4,
       "tools": [
         {
@@ -2794,6 +2893,7 @@
       "name": "NewsAPI",
       "category": "News & reading",
       "blurb": "Get top headlines from NewsAPI.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -2817,6 +2917,7 @@
       "name": "Notion",
       "category": "Productivity",
       "blurb": "Read and write pages and databases in your workspace.",
+      "domain": "notion.so",
       "toolCount": 1,
       "tools": [
         {
@@ -2832,6 +2933,7 @@
       "name": "NudgeOnly",
       "category": "Quality (XPass)",
       "blurb": "Return the PinballWake NudgeOnlyAPI guardrails. This is a red-lane, read-only policy for 👉Nudge: painpoint hints only, no writes, no decisions, no truth-setting.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -2855,6 +2957,7 @@
       "name": "Numbers",
       "category": "Utilities",
       "blurb": "Get an interesting fact about a number.",
+      "domain": null,
       "toolCount": 2,
       "tools": [
         {
@@ -2874,6 +2977,7 @@
       "name": "NVD (CVEs)",
       "category": "Security",
       "blurb": "Get details for a specific CVE by ID.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -2897,6 +3001,7 @@
       "name": "OMDb",
       "category": "Music & video",
       "blurb": "Search movies/TV shows on OMDB.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -2920,6 +3025,7 @@
       "name": "Open Exchange Rates",
       "category": "Markets & crypto",
       "blurb": "Get latest forex exchange rates from Open Exchange Rates.",
+      "domain": null,
       "toolCount": 4,
       "tools": [
         {
@@ -2947,6 +3053,7 @@
       "name": "Open Food Facts",
       "category": "Weather & science",
       "blurb": "Search for food products on Open Food Facts.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -2970,6 +3077,7 @@
       "name": "Open Library",
       "category": "Books",
       "blurb": "Search books on Open Library.",
+      "domain": null,
       "toolCount": 6,
       "tools": [
         {
@@ -3005,6 +3113,7 @@
       "name": "Open-Meteo",
       "category": "Weather & science",
       "blurb": "Get current weather for a location from Open-Meteo (no API key required).",
+      "domain": "open-meteo.com",
       "toolCount": 3,
       "tools": [
         {
@@ -3028,6 +3137,7 @@
       "name": "OpenAI",
       "category": "AI",
       "blurb": "Chat, embeddings, images, and transcription from OpenAI.",
+      "domain": "openai.com",
       "toolCount": 5,
       "tools": [
         {
@@ -3059,6 +3169,7 @@
       "name": "OpenAQ",
       "category": "Weather & science",
       "blurb": "Get air quality data for a location from OpenAQ.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -3082,6 +3193,7 @@
       "name": "OpenF1",
       "category": "Games & esports",
       "blurb": "Get Formula 1 sessions from OpenF1.",
+      "domain": null,
       "toolCount": 8,
       "tools": [
         {
@@ -3125,6 +3237,7 @@
       "name": "Pagerduty",
       "category": "Developer & infra",
       "blurb": "List PagerDuty incidents. Filter by status (triggered, acknowledged, resolved), service, or date range.",
+      "domain": "pagerduty.com",
       "toolCount": 7,
       "tools": [
         {
@@ -3164,6 +3277,7 @@
       "name": "PandaScore",
       "category": "Games & esports",
       "blurb": "Get esports matches from PandaScore.",
+      "domain": null,
       "toolCount": 5,
       "tools": [
         {
@@ -3195,6 +3309,7 @@
       "name": "PayPal",
       "category": "Money & payments",
       "blurb": "Create or retrieve a PayPal order.",
+      "domain": "paypal.com",
       "toolCount": 2,
       "tools": [
         {
@@ -3214,6 +3329,7 @@
       "name": "Perplexity",
       "category": "AI",
       "blurb": "Run a search-augmented chat completion with Perplexity AI. Returns grounded answers with citations from the web.",
+      "domain": "perplexity.ai",
       "toolCount": 1,
       "tools": [
         {
@@ -3229,6 +3345,7 @@
       "name": "Pika",
       "category": "AI",
       "blurb": "Generate a creative AI video from a text prompt using Pika. Optionally animate an input image. Returns a generation_id to poll for completion.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -3252,6 +3369,7 @@
       "name": "Pinecone",
       "category": "Developer & infra",
       "blurb": "List all Pinecone vector indexes in the project.",
+      "domain": "pinecone.io",
       "toolCount": 5,
       "tools": [
         {
@@ -3283,6 +3401,7 @@
       "name": "Pinterest",
       "category": "Social",
       "blurb": "List Pinterest boards for the authenticated user.",
+      "domain": "pinterest.com",
       "toolCount": 6,
       "tools": [
         {
@@ -3318,6 +3437,7 @@
       "name": "Plaid",
       "category": "Money & payments",
       "blurb": "Get accounts for a Plaid-linked item.",
+      "domain": "plaid.com",
       "toolCount": 5,
       "tools": [
         {
@@ -3349,6 +3469,7 @@
       "name": "Podcast Index",
       "category": "Music & video",
       "blurb": "Search for podcasts on Podcast Index.",
+      "domain": null,
       "toolCount": 6,
       "tools": [
         {
@@ -3384,6 +3505,7 @@
       "name": "PostHog",
       "category": "Developer & infra",
       "blurb": "Read product analytics, insights, and feature flags.",
+      "domain": "posthog.com",
       "toolCount": 4,
       "tools": [
         {
@@ -3411,6 +3533,7 @@
       "name": "Postman",
       "category": "Developer & infra",
       "blurb": "Interact with the Postman API: list and retrieve collections, list environments, and list monitors.",
+      "domain": "postman.com",
       "toolCount": 1,
       "tools": [
         {
@@ -3426,6 +3549,7 @@
       "name": "Postmark",
       "category": "Messaging & email",
       "blurb": "Send a transactional email via Postmark. Supports HTML and plain text.",
+      "domain": "postmarkapp.com",
       "toolCount": 6,
       "tools": [
         {
@@ -3461,6 +3585,7 @@
       "name": "PTV",
       "category": "Travel, maps & local",
       "blurb": "Live Melbourne train, tram, and bus departures and disruptions.",
+      "domain": "ptv.vic.gov.au",
       "toolCount": 5,
       "tools": [
         {
@@ -3492,6 +3617,7 @@
       "name": "PushOnly",
       "category": "Quality (XPass)",
       "blurb": "Return the PinballWake PushOnlyAPI guardrails. This blue push lane turns verified IgniteOnly wake packets into worker-facing push envelopes only; no execution or source-of-truth writes.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -3515,6 +3641,7 @@
       "name": "Pushover",
       "category": "Messaging & email",
       "blurb": "Send a push notification via Pushover.",
+      "domain": "pushover.net",
       "toolCount": 5,
       "tools": [
         {
@@ -3546,6 +3673,7 @@
       "name": "QC",
       "category": "Quality (XPass)",
       "blurb": "Run a sequential QC checklist against a website URL. Checks site load, SSL, meta tags, og:image, robots.txt, sitemap, console errors, broken links, response time, and copy quality (em dashes, banned words). Runs checks one at a time and returns a pass/fail/warn result for each.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -3569,6 +3697,7 @@
       "name": "Quickbooks",
       "category": "Money & payments",
       "blurb": "Query QuickBooks Online customers.",
+      "domain": "quickbooks.intuit.com",
       "toolCount": 4,
       "tools": [
         {
@@ -3596,6 +3725,7 @@
       "name": "Radio Browser",
       "category": "Music & video",
       "blurb": "Search for radio stations via Radio Browser.",
+      "domain": null,
       "toolCount": 6,
       "tools": [
         {
@@ -3631,6 +3761,7 @@
       "name": "Raindrop",
       "category": "News & reading",
       "blurb": "Perform a Raindrop.io action: search_raindrops, get_collection_raindrops, get_raindrop_collections, create_raindrop, get_raindrop, delete_raindrop.",
+      "domain": "raindrop.io",
       "toolCount": 1,
       "tools": [
         {
@@ -3646,6 +3777,7 @@
       "name": "Random",
       "category": "Utilities",
       "blurb": "Generate a random UUID.",
+      "domain": null,
       "toolCount": 8,
       "tools": [
         {
@@ -3689,6 +3821,7 @@
       "name": "Rawg",
       "category": "Games & esports",
       "blurb": "Search for video games on RAWG.",
+      "domain": null,
       "toolCount": 6,
       "tools": [
         {
@@ -3724,6 +3857,7 @@
       "name": "Readwise",
       "category": "News & reading",
       "blurb": "Perform a Readwise action: get_readwise_highlights, get_readwise_books, get_daily_review, search_highlights, create_highlight.",
+      "domain": "readwise.io",
       "toolCount": 1,
       "tools": [
         {
@@ -3739,6 +3873,7 @@
       "name": "Reddit",
       "category": "Social",
       "blurb": "Read posts from a Reddit subreddit.",
+      "domain": "reddit.com",
       "toolCount": 7,
       "tools": [
         {
@@ -3778,6 +3913,7 @@
       "name": "Render",
       "category": "Developer & infra",
       "blurb": "List all Render services (web services, static sites, cron jobs, etc.).",
+      "domain": "render.com",
       "toolCount": 6,
       "tools": [
         {
@@ -3813,6 +3949,7 @@
       "name": "Replicate",
       "category": "AI",
       "blurb": "List public models available on Replicate.",
+      "domain": "replicate.com",
       "toolCount": 6,
       "tools": [
         {
@@ -3848,6 +3985,7 @@
       "name": "Resend",
       "category": "Messaging & email",
       "blurb": "Send an email using Resend.",
+      "domain": "resend.com",
       "toolCount": 3,
       "tools": [
         {
@@ -3871,6 +4009,7 @@
       "name": "REST Countries",
       "category": "Travel, maps & local",
       "blurb": "Get all countries from REST Countries.",
+      "domain": null,
       "toolCount": 6,
       "tools": [
         {
@@ -3906,6 +4045,7 @@
       "name": "Riot Games",
       "category": "Games & esports",
       "blurb": "Get a League of Legends summoner by name.",
+      "domain": "riotgames.com",
       "toolCount": 5,
       "tools": [
         {
@@ -3937,6 +4077,7 @@
       "name": "Runway",
       "category": "AI",
       "blurb": "Generate a video from text or an image using Runway ML. Supports text-to-video and image-to-video. Returns a task_id to poll for completion.",
+      "domain": "runwayml.com",
       "toolCount": 3,
       "tools": [
         {
@@ -3960,6 +4101,7 @@
       "name": "Seatgeek",
       "category": "Events & tickets",
       "blurb": "Search for events on SeatGeek.",
+      "domain": null,
       "toolCount": 6,
       "tools": [
         {
@@ -3995,6 +4137,7 @@
       "name": "Segment",
       "category": "Developer & infra",
       "blurb": "Track a custom event in Segment. Use for recording user actions like 'Signed Up', 'Item Purchased', etc.",
+      "domain": "segment.com",
       "toolCount": 5,
       "tools": [
         {
@@ -4026,6 +4169,7 @@
       "name": "Sendgrid",
       "category": "Messaging & email",
       "blurb": "Send a transactional email via SendGrid.",
+      "domain": "sendgrid.com",
       "toolCount": 6,
       "tools": [
         {
@@ -4061,6 +4205,7 @@
       "name": "Sendle",
       "category": "Travel, maps & local",
       "blurb": "Get a shipping quote from Sendle.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -4084,6 +4229,7 @@
       "name": "Sentry",
       "category": "Developer & infra",
       "blurb": "Interact with the Sentry REST API: list projects and issues, get issue details and events, and resolve issues.",
+      "domain": "sentry.io",
       "toolCount": 1,
       "tools": [
         {
@@ -4099,6 +4245,7 @@
       "name": "SEOPass",
       "category": "Quality (XPass)",
       "blurb": "Run SEOPass against a public URL or registered pack. Returns a live-readonly SEO verdict, score, findings, fix prompts, and an in-session run id.",
+      "domain": null,
       "toolCount": 4,
       "tools": [
         {
@@ -4126,6 +4273,7 @@
       "name": "Setlist.fm",
       "category": "Music & video",
       "blurb": "Search for an artist on Setlist.fm.",
+      "domain": null,
       "toolCount": 4,
       "tools": [
         {
@@ -4153,6 +4301,7 @@
       "name": "Shodan",
       "category": "Security",
       "blurb": "Search Shodan for internet-connected devices.",
+      "domain": "shodan.io",
       "toolCount": 3,
       "tools": [
         {
@@ -4176,6 +4325,7 @@
       "name": "Shopify",
       "category": "Shopping",
       "blurb": "Get products from a Shopify store.",
+      "domain": "shopify.com",
       "toolCount": 7,
       "tools": [
         {
@@ -4215,6 +4365,7 @@
       "name": "Slack",
       "category": "Messaging & email",
       "blurb": "Send and read messages across your channels.",
+      "domain": "slack.com",
       "toolCount": 1,
       "tools": [
         {
@@ -4230,6 +4381,7 @@
       "name": "Sleeper",
       "category": "Games & esports",
       "blurb": "Get the current NFL state from Sleeper.",
+      "domain": null,
       "toolCount": 6,
       "tools": [
         {
@@ -4265,6 +4417,7 @@
       "name": "SlopPass",
       "category": "Quality (XPass)",
       "blurb": "Run SlopPass against caller-provided source files or a unified diff. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, read repositories, persist source content, or make paid model calls by default.",
+      "domain": null,
       "toolCount": 1,
       "tools": [
         {
@@ -4280,6 +4433,7 @@
       "name": "Speedrun",
       "category": "Games & esports",
       "blurb": "Search for games on Speedrun.com by name. No API key required.",
+      "domain": null,
       "toolCount": 5,
       "tools": [
         {
@@ -4311,6 +4465,7 @@
       "name": "Splitwise",
       "category": "Money & payments",
       "blurb": "Perform a Splitwise action: get_groups, get_expenses, get_balances, create_expense, get_friends.",
+      "domain": "splitwise.com",
       "toolCount": 1,
       "tools": [
         {
@@ -4326,6 +4481,7 @@
       "name": "Spotify",
       "category": "Music & video",
       "blurb": "Search Spotify for tracks, albums, artists, or playlists.",
+      "domain": "spotify.com",
       "toolCount": 7,
       "tools": [
         {
@@ -4365,6 +4521,7 @@
       "name": "Square",
       "category": "Money & payments",
       "blurb": "List or create Square payments.",
+      "domain": "squareup.com",
       "toolCount": 4,
       "tools": [
         {
@@ -4392,6 +4549,7 @@
       "name": "Stability",
       "category": "AI",
       "blurb": "Generate images from a text prompt using Stability AI.",
+      "domain": null,
       "toolCount": 4,
       "tools": [
         {
@@ -4419,6 +4577,7 @@
       "name": "Steam",
       "category": "Games & esports",
       "blurb": "Get Steam player profile summaries for one or more Steam IDs.",
+      "domain": "steampowered.com",
       "toolCount": 5,
       "tools": [
         {
@@ -4450,6 +4609,7 @@
       "name": "Stripe",
       "category": "Money & payments",
       "blurb": "Look up customers, charges, invoices, and subscriptions.",
+      "domain": "stripe.com",
       "toolCount": 6,
       "tools": [
         {
@@ -4485,6 +4645,7 @@
       "name": "Supercell",
       "category": "Games & esports",
       "blurb": "Get a Clash of Clans player by tag.",
+      "domain": null,
       "toolCount": 7,
       "tools": [
         {
@@ -4524,6 +4685,7 @@
       "name": "Tab",
       "category": "Travel, maps & local",
       "blurb": "Get TAB race meetings for a date.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -4547,6 +4709,7 @@
       "name": "Telegram",
       "category": "Messaging & email",
       "blurb": "Send a Telegram message.",
+      "domain": "telegram.org",
       "toolCount": 6,
       "tools": [
         {
@@ -4582,6 +4745,7 @@
       "name": "TestPass",
       "category": "Quality (XPass)",
       "blurb": "List TestPass packs available to the caller, including system packs and the caller's custom packs.",
+      "domain": null,
       "toolCount": 10,
       "tools": [
         {
@@ -4633,6 +4797,7 @@
       "name": "Text",
       "category": "Utilities",
       "blurb": "Analyse text (word count, sentences, readability).",
+      "domain": null,
       "toolCount": 7,
       "tools": [
         {
@@ -4672,6 +4837,7 @@
       "name": "The Lott",
       "category": "Travel, maps & local",
       "blurb": "Get Australian lottery results from The Lott.",
+      "domain": null,
       "toolCount": 2,
       "tools": [
         {
@@ -4691,6 +4857,7 @@
       "name": "Ticketmaster",
       "category": "Events & tickets",
       "blurb": "Search for events on Ticketmaster.",
+      "domain": "ticketmaster.com",
       "toolCount": 5,
       "tools": [
         {
@@ -4722,6 +4889,7 @@
       "name": "TikTok",
       "category": "Social",
       "blurb": "Get the authenticated TikTok user profile (follower count, video count, etc.).",
+      "domain": "tiktok.com",
       "toolCount": 3,
       "tools": [
         {
@@ -4745,6 +4913,7 @@
       "name": "TMDB",
       "category": "Music & video",
       "blurb": "Search for movies on TMDB.",
+      "domain": "themoviedb.org",
       "toolCount": 8,
       "tools": [
         {
@@ -4788,6 +4957,7 @@
       "name": "Together AI",
       "category": "AI",
       "blurb": "Run a chat completion with any Together AI model. Supports Llama, Mistral, Qwen, and 100+ open-source models.",
+      "domain": null,
       "toolCount": 4,
       "tools": [
         {
@@ -4815,6 +4985,7 @@
       "name": "Toggl",
       "category": "Productivity",
       "blurb": "Get Toggl time entries.",
+      "domain": "toggl.com",
       "toolCount": 4,
       "tools": [
         {
@@ -4842,6 +5013,7 @@
       "name": "Toilets",
       "category": "Travel, maps & local",
       "blurb": "Find the nearest public toilets to a location (Australia).",
+      "domain": null,
       "toolCount": 2,
       "tools": [
         {
@@ -4861,6 +5033,7 @@
       "name": "Tomorrow.io",
       "category": "Weather & science",
       "blurb": "Get realtime weather from Tomorrow.io.",
+      "domain": "tomorrow.io",
       "toolCount": 3,
       "tools": [
         {
@@ -4884,6 +5057,7 @@
       "name": "Trello",
       "category": "Productivity",
       "blurb": "Interact with the Trello REST API: list boards and lists, get and search cards, create cards, and update card properties.",
+      "domain": "trello.com",
       "toolCount": 1,
       "tools": [
         {
@@ -4899,6 +5073,7 @@
       "name": "Trivia",
       "category": "Utilities",
       "blurb": "Get trivia questions from Open Trivia DB.",
+      "domain": null,
       "toolCount": 2,
       "tools": [
         {
@@ -4918,6 +5093,7 @@
       "name": "Trove",
       "category": "News & reading",
       "blurb": "Search the National Library of Australia's Trove.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -4941,6 +5117,7 @@
       "name": "Turso",
       "category": "Developer & infra",
       "blurb": "List all databases in a Turso organization.",
+      "domain": "turso.tech",
       "toolCount": 5,
       "tools": [
         {
@@ -4972,6 +5149,7 @@
       "name": "Twilio",
       "category": "Messaging & email",
       "blurb": "Send an SMS via Twilio.",
+      "domain": "twilio.com",
       "toolCount": 7,
       "tools": [
         {
@@ -5011,6 +5189,7 @@
       "name": "Twitch",
       "category": "Social",
       "blurb": "Search for live streams on Twitch.",
+      "domain": "twitch.tv",
       "toolCount": 7,
       "tools": [
         {
@@ -5050,6 +5229,7 @@
       "name": "Typeform",
       "category": "Productivity",
       "blurb": "List your Typeform forms.",
+      "domain": "typeform.com",
       "toolCount": 3,
       "tools": [
         {
@@ -5073,6 +5253,7 @@
       "name": "Unit Converter",
       "category": "Utilities",
       "blurb": "Convert between length units.",
+      "domain": null,
       "toolCount": 7,
       "tools": [
         {
@@ -5112,6 +5293,7 @@
       "name": "Untappd",
       "category": "Weather & science",
       "blurb": "Search for beers on Untappd.",
+      "domain": null,
       "toolCount": 5,
       "tools": [
         {
@@ -5143,6 +5325,7 @@
       "name": "Upstash",
       "category": "Developer & infra",
       "blurb": "Get the value of a key from an Upstash Redis database.",
+      "domain": "upstash.com",
       "toolCount": 7,
       "tools": [
         {
@@ -5182,6 +5365,7 @@
       "name": "urlscan.io",
       "category": "Security",
       "blurb": "Submit a URL for scanning on urlscan.io.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -5205,6 +5389,7 @@
       "name": "USGS",
       "category": "Weather & science",
       "blurb": "Get recent earthquakes from USGS.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -5228,6 +5413,7 @@
       "name": "UXPass",
       "category": "Quality (XPass)",
       "blurb": "Run a UI/UX quality check synchronously against a URL. Executes the deterministic uxpass-core check set (HTTP, HTML, accessibility, agent readability, performance, security) against the target and returns the run id, status, UX Score, and summary. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
+      "domain": null,
       "toolCount": 6,
       "tools": [
         {
@@ -5263,6 +5449,7 @@
       "name": "Vault",
       "category": "Developer & infra",
       "blurb": "Perform a vault action: vault_init, vault_store, vault_retrieve, vault_list, vault_delete, vault_rotate, vault_audit.",
+      "domain": null,
       "toolCount": 1,
       "tools": [
         {
@@ -5278,6 +5465,7 @@
       "name": "Vercel",
       "category": "Developer & infra",
       "blurb": "List Vercel deployments for a project.",
+      "domain": "vercel.com",
       "toolCount": 8,
       "tools": [
         {
@@ -5321,6 +5509,7 @@
       "name": "VirusTotal",
       "category": "Security",
       "blurb": "Submit a URL for scanning on VirusTotal.",
+      "domain": "virustotal.com",
       "toolCount": 4,
       "tools": [
         {
@@ -5348,6 +5537,7 @@
       "name": "Webflow",
       "category": "Content & CMS",
       "blurb": "List Webflow sites for the account.",
+      "domain": "webflow.com",
       "toolCount": 4,
       "tools": [
         {
@@ -5375,6 +5565,7 @@
       "name": "Whatsapp",
       "category": "Messaging & email",
       "blurb": "Send a text message via WhatsApp Business Cloud API.",
+      "domain": "whatsapp.com",
       "toolCount": 5,
       "tools": [
         {
@@ -5406,6 +5597,7 @@
       "name": "WillyWeather",
       "category": "Weather & science",
       "blurb": "Get weather forecast from WillyWeather for an Australian location.",
+      "domain": null,
       "toolCount": 3,
       "tools": [
         {
@@ -5429,6 +5621,7 @@
       "name": "Wise",
       "category": "Money & payments",
       "blurb": "Get exchange rates from Wise.",
+      "domain": "wise.com",
       "toolCount": 4,
       "tools": [
         {
@@ -5456,6 +5649,7 @@
       "name": "WooCommerce",
       "category": "Shopping",
       "blurb": "List or get WooCommerce products.",
+      "domain": "woocommerce.com",
       "toolCount": 3,
       "tools": [
         {
@@ -5479,6 +5673,7 @@
       "name": "Xero",
       "category": "Money & payments",
       "blurb": "Get invoices from Xero.",
+      "domain": "xero.com",
       "toolCount": 8,
       "tools": [
         {
@@ -5522,6 +5717,7 @@
       "name": "Yelp",
       "category": "Travel, maps & local",
       "blurb": "Search for businesses on Yelp.",
+      "domain": "yelp.com",
       "toolCount": 5,
       "tools": [
         {
@@ -5553,6 +5749,7 @@
       "name": "YouTube",
       "category": "Social",
       "blurb": "Search YouTube for videos, channels, or playlists.",
+      "domain": "youtube.com",
       "toolCount": 6,
       "tools": [
         {
@@ -5588,6 +5785,7 @@
       "name": "Zendesk",
       "category": "Messaging & email",
       "blurb": "Search, read, and reply to support tickets.",
+      "domain": "zendesk.com",
       "toolCount": 4,
       "tools": [
         {

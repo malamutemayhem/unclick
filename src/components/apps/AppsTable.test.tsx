@@ -5,8 +5,8 @@ import { AppsTable } from "./AppsTable";
 import type { AppEntry } from "@/lib/appCatalog";
 
 const APPS: AppEntry[] = [
-  { slug: "github", name: "GitHub", category: "Developer & infra", blurb: "Manage repos.", toolCount: 1, tools: [{ name: "github_action", description: "Repos and issues." }], level: 2, hardened: true },
-  { slug: "openmeteo", name: "Open-Meteo", category: "Weather & science", blurb: "Forecasts.", toolCount: 3, tools: [{ name: "weather_current", description: "Current weather." }], level: 5, hardened: true },
+  { slug: "github", name: "GitHub", category: "Developer & infra", blurb: "Manage repos.", domain: null, toolCount: 1, tools: [{ name: "github_action", description: "Repos and issues." }], level: 2, hardened: true },
+  { slug: "openmeteo", name: "Open-Meteo", category: "Weather & science", blurb: "Forecasts.", domain: null, toolCount: 3, tools: [{ name: "weather_current", description: "Current weather." }], level: 5, hardened: true },
 ];
 
 function renderTable(ui: React.ReactElement) {

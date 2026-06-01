@@ -14,6 +14,7 @@ export interface AppEntry {
   name: string;
   category: string;
   blurb: string;
+  domain: string | null;
   toolCount: number;
   tools: AppTool[];
   level: number | null;

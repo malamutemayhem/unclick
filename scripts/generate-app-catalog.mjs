@@ -86,6 +86,41 @@ const BLURB_OF = {
   anthropic: "Chat completions from Claude models.",
 };
 
+// Brand domains for the favicon icon. Known brands show a real favicon (framed
+// consistently); unknown apps fall back to the tinted letter chip at render time.
+const DOMAIN_OF = {
+  github: "github.com", gitlab: "gitlab.com", vercel: "vercel.com", netlify: "netlify.com",
+  render: "render.com", flyio: "fly.io", digitalocean: "digitalocean.com", circleci: "circleci.com",
+  datadog: "datadoghq.com", sentry: "sentry.io", pagerduty: "pagerduty.com", neon: "neon.tech",
+  turso: "turso.tech", upstash: "upstash.com", pinecone: "pinecone.io", postman: "postman.com",
+  segment: "segment.com", mixpanel: "mixpanel.com", posthog: "posthog.com", algolia: "algolia.com",
+  stripe: "stripe.com", paypal: "paypal.com", square: "squareup.com", plaid: "plaid.com",
+  wise: "wise.com", xero: "xero.com", quickbooks: "quickbooks.intuit.com", lemonsqueezy: "lemonsqueezy.com",
+  splitwise: "splitwise.com", gumroad: "gumroad.com", coingecko: "coingecko.com", coinmarketcap: "coinmarketcap.com",
+  slack: "slack.com", discord: "discord.com", telegram: "telegram.org", whatsapp: "whatsapp.com",
+  line: "line.me", twilio: "twilio.com", resend: "resend.com", sendgrid: "sendgrid.com",
+  postmark: "postmarkapp.com", mailchimp: "mailchimp.com", convertkit: "convertkit.com", klaviyo: "klaviyo.com",
+  pushover: "pushover.net", intercom: "intercom.com", zendesk: "zendesk.com", reddit: "reddit.com",
+  bluesky: "bsky.app", mastodon: "joinmastodon.org", pinterest: "pinterest.com", tiktok: "tiktok.com",
+  youtube: "youtube.com", twitch: "twitch.tv", hackernews: "ycombinator.com", notion: "notion.so",
+  asana: "asana.com", trello: "trello.com", clickup: "clickup.com", monday: "monday.com",
+  linear: "linear.app", jira: "atlassian.com", hubspot: "hubspot.com", clockify: "clockify.me",
+  toggl: "toggl.com", calendly: "calendly.com", calcom: "cal.com", airtable: "airtable.com",
+  figma: "figma.com", typeform: "typeform.com", amazon: "amazon.com", ebay: "ebay.com",
+  etsy: "etsy.com", shopify: "shopify.com", woocommerce: "woocommerce.com", spotify: "spotify.com",
+  deezer: "deezer.com", lastfm: "last.fm", genius: "genius.com", discogs: "discogs.com",
+  tmdb: "themoviedb.org", steam: "steampowered.com", igdb: "igdb.com", riot: "riotgames.com",
+  lichess: "lichess.org", lego: "lego.com", mapbox: "mapbox.com", foursquare: "foursquare.com",
+  yelp: "yelp.com", ptv: "ptv.vic.gov.au", openai: "openai.com", anthropic: "anthropic.com",
+  cohere: "cohere.com", mistral: "mistral.ai", groq: "groq.com", perplexity: "perplexity.ai",
+  replicate: "replicate.com", elevenlabs: "elevenlabs.io", heygen: "heygen.com", runway: "runwayml.com",
+  deepl: "deepl.com", nasa: "nasa.gov", contentful: "contentful.com", webflow: "webflow.com",
+  ticketmaster: "ticketmaster.com", eventbrite: "eventbrite.com", supabase: "supabase.com",
+  shodan: "shodan.io", virustotal: "virustotal.com", openmeteo: "open-meteo.com", tomorrowio: "tomorrow.io",
+  guardian: "theguardian.com", monica: "monicahq.com", readwise: "readwise.io", raindrop: "raindrop.io",
+  instapaper: "instapaper.com", feedly: "feedly.com",
+};
+
 function titleCase(slug) {
   return slug.split(/[-_]/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
@@ -108,6 +143,7 @@ function build() {
         name: NAME_OF[slug] ?? titleCase(slug),
         category,
         blurb: BLURB_OF[slug] ?? (tools[0]?.description ?? `${NAME_OF[slug] ?? titleCase(slug)} tools.`),
+        domain: DOMAIN_OF[slug] ?? null,
         toolCount: tools.length,
         tools: tools.map((t) => ({ name: t.name, description: t.description })),
         level: grade?.level ?? null,
