@@ -5,6 +5,7 @@
 
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const UPSTASH_API_BASE = "https://api.upstash.com/v2";
 
@@ -88,7 +89,12 @@ export async function upstashRedisGet(args: Record<string, unknown>): Promise<un
     if (!key) return { error: "key is required." };
 
     const auth = buildBasicAuth(email, apiKey);
-    return upstashFetch(auth, "GET", `/redis/databases/${encodeURIComponent(dbId)}/get/${encodeURIComponent(key)}`);
+    const __res = await upstashFetch(auth, "GET", `/redis/databases/${encodeURIComponent(dbId)}/get/${encodeURIComponent(key)}`) as Record<string, unknown>;
+    return stampMeta(__res, {
+      source: "Upstash",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use upstash_redis_set to write, or upstash_redis_list_keys to scan keys."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const ASANA_BASE = "https://app.asana.com/api/1.0";
 
@@ -146,7 +147,11 @@ export async function listAsanaTasks(args: Record<string, unknown>): Promise<unk
     if (args.limit) params.limit = String(args.limit);
     const json = await asanaGet(apiKey, "/tasks", params) as Record<string, unknown>;
     const data = (json.data ?? []) as Array<Record<string, unknown>>;
-    return { count: data.length, tasks: data };
+    return stampMeta({ count: data.length, tasks: data }, {
+      source: "Asana",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use get_asana_task for a task's detail, or update_asana_task to edit it."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

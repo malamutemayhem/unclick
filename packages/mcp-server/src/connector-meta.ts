@@ -24,12 +24,15 @@ export interface ConnectorMeta {
  * result so existing top-level fields are unchanged; callers that already shape
  * their payload keep working.
  */
-export function stampMeta<T extends Record<string, unknown>>(
+export function stampMeta<T>(
   result: T,
   meta: ConnectorMeta,
-): T & { unclick_meta: ConnectorMeta } {
-  return {
-    ...result,
-    unclick_meta: { defaults_used: [], ...meta },
-  };
+): Record<string, unknown> {
+  const stamp = { defaults_used: [], ...meta };
+  // Object results get the stamp merged in; arrays and primitives are nested
+  // under `data` so their shape is never mangled (mirrors ptv's addPtvMeta).
+  if (result && typeof result === "object" && !Array.isArray(result)) {
+    return { ...(result as Record<string, unknown>), unclick_meta: stamp };
+  }
+  return { data: result, unclick_meta: stamp };
 }

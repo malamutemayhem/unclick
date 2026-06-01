@@ -1,3 +1,4 @@
+import { stampMeta } from "./connector-meta.js";
 // Neon Serverless Postgres API integration for the UnClick MCP server.
 // Uses the Neon REST API via fetch - no external dependencies.
 // Users must supply an API key from console.neon.tech.
@@ -99,9 +100,14 @@ export async function neonListProjects(args: Record<string, unknown>): Promise<u
   if (!apiKey) return { error: "api_key is required. Get one at console.neon.tech." };
 
   try {
-    return neonFetch(apiKey, "GET", "/projects", undefined, {
+    const __res = await neonFetch(apiKey, "GET", "/projects", undefined, {
       limit: args.limit ? Number(args.limit) : undefined,
       cursor: args.cursor ? String(args.cursor) : undefined,
+    }) as Record<string, unknown>;
+    return stampMeta(__res, {
+      source: "Neon",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use neon_get_project for detail, or neon_list_branches for its branches."],
     });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };

@@ -35,8 +35,10 @@ describe("render connector resilience (L2)", () => {
       ok: true, status: 200, headers: { get: () => null },
       text: async () => JSON.stringify([{ service: { id: "s1", name: "web" } }]),
     })));
-    const result = await renderListServices({ api_key: "k" });
-    expect(Array.isArray(result)).toBe(true);
-    expect((result as unknown[]).length).toBe(1);
+    const result = await renderListServices({ api_key: "k" }) as Record<string, unknown>;
+    // List results are stamped with provenance, so the array is nested under `data`.
+    expect(Array.isArray(result.data)).toBe(true);
+    expect((result.data as unknown[]).length).toBe(1);
+    expect((result.unclick_meta as Record<string, unknown>).source).toBe("Render");
   });
 });

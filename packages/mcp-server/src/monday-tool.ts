@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const MONDAY_BASE = "https://api.monday.com/v2";
 
@@ -73,7 +74,11 @@ export async function listMondayBoards(args: Record<string, unknown>): Promise<u
     `;
     const data = await mondayQuery(apiKey, query, { limit }) as Record<string, unknown>;
     const boards = (data.boards ?? []) as Array<Record<string, unknown>>;
-    return { count: boards.length, boards };
+    return stampMeta({ count: boards.length, boards }, {
+      source: "monday.com",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use get_monday_board for columns, or list_monday_items for a board's items."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
