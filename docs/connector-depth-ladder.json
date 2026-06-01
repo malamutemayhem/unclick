@@ -420,6 +420,26 @@
     }
   },
   {
+    "connector": "confluence",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "contentful",
     "level": 5,
     "levelName": "Agentic",
@@ -831,6 +851,26 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "giphy",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1320,6 +1360,26 @@
     }
   },
   {
+    "connector": "miro",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "mistral",
     "level": 5,
     "levelName": "Agentic",
@@ -1760,6 +1820,26 @@
     }
   },
   {
+    "connector": "pipedrive",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "plaid",
     "level": 5,
     "levelName": "Agentic",
@@ -2100,6 +2180,26 @@
     }
   },
   {
+    "connector": "shortcut",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "sleeper",
     "level": 5,
     "levelName": "Agentic",
@@ -2320,6 +2420,26 @@
     }
   },
   {
+    "connector": "todoist",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "togetherai",
     "level": 5,
     "levelName": "Agentic",
@@ -2520,6 +2640,26 @@
     }
   },
   {
+    "connector": "unsplash",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "untappd",
     "level": 5,
     "levelName": "Agentic",
@@ -2654,6 +2794,26 @@
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": true,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "wikipedia",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
       "proactive": false,
       "agentic": true,
       "sourceStamped": true

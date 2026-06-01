@@ -632,6 +632,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "confluence",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "confluence_search",
+        "description": "Search Confluence pages by text."
+      },
+      {
+        "name": "confluence_get_page",
+        "description": "Get a Confluence page by id, including its body."
+      },
+      {
+        "name": "confluence_list_spaces",
+        "description": "List Confluence spaces."
+      }
+    ]
+  },
+  {
     "app": "contentful",
     "category": "Marketing / Communication / Data",
     "tools": [
@@ -1390,6 +1408,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "giphy",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "giphy_search",
+        "description": "Search Giphy for GIFs."
+      },
+      {
+        "name": "giphy_trending",
+        "description": "Get trending GIFs from Giphy."
+      },
+      {
+        "name": "giphy_random",
+        "description": "Get a random GIF from Giphy, optionally by tag."
+      }
+    ]
+  },
+  {
     "app": "github",
     "category": "Developer / Productivity",
     "tools": [
@@ -2124,6 +2160,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "miro",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "miro_list_boards",
+        "description": "List Miro boards."
+      },
+      {
+        "name": "miro_get_board",
+        "description": "Get a single Miro board by id."
+      },
+      {
+        "name": "miro_list_items",
+        "description": "List the items (notes, shapes, text) on a Miro board."
+      }
+    ]
+  },
+  {
     "app": "mistral",
     "category": "AI Models",
     "tools": [
@@ -2732,6 +2786,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "get_pinterest_user",
         "description": "Get the authenticated Pinterest user account info."
+      }
+    ]
+  },
+  {
+    "app": "pipedrive",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "pipedrive_list_deals",
+        "description": "List Pipedrive deals."
+      },
+      {
+        "name": "pipedrive_list_persons",
+        "description": "List Pipedrive persons (contacts)."
+      },
+      {
+        "name": "pipedrive_list_organizations",
+        "description": "List Pipedrive organizations (companies)."
+      },
+      {
+        "name": "pipedrive_search_deals",
+        "description": "Search Pipedrive deals by term."
       }
     ]
   },
@@ -3512,6 +3588,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "shortcut",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "shortcut_search_stories",
+        "description": "Search Shortcut stories with the search syntax."
+      },
+      {
+        "name": "shortcut_get_story",
+        "description": "Get a single Shortcut story by id."
+      },
+      {
+        "name": "shortcut_list_projects",
+        "description": "List Shortcut projects."
+      },
+      {
+        "name": "shortcut_list_epics",
+        "description": "List Shortcut epics."
+      }
+    ]
+  },
+  {
     "app": "slack",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3990,6 +4088,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "todoist",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "todoist_list_projects",
+        "description": "List your Todoist projects."
+      },
+      {
+        "name": "todoist_list_tasks",
+        "description": "List active Todoist tasks, optionally by project or filter."
+      },
+      {
+        "name": "todoist_create_task",
+        "description": "Create a Todoist task."
+      },
+      {
+        "name": "todoist_complete_task",
+        "description": "Complete (close) a Todoist task by id."
+      }
+    ]
+  },
+  {
     "app": "togetherai",
     "category": "Monitoring / CI / CDP / Email / Commerce / Inference",
     "tools": [
@@ -4254,6 +4374,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "unsplash",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "unsplash_search_photos",
+        "description": "Search Unsplash photos."
+      },
+      {
+        "name": "unsplash_get_photo",
+        "description": "Get a single Unsplash photo by id (URLs + attribution)."
+      },
+      {
+        "name": "unsplash_random_photo",
+        "description": "Get a random Unsplash photo, optionally matching a query."
+      }
+    ]
+  },
+  {
     "app": "untappd",
     "category": "Gaming",
     "tools": [
@@ -4494,6 +4632,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "whatsapp_upload_media",
         "description": "Upload a media file to WhatsApp and get a media ID for use in messages."
+      }
+    ]
+  },
+  {
+    "app": "wikipedia",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "wikipedia_search",
+        "description": "Search Wikipedia article titles. No key needed."
+      },
+      {
+        "name": "wikipedia_summary",
+        "description": "Get a short Wikipedia summary for a page title. No key needed."
+      },
+      {
+        "name": "wikipedia_page",
+        "description": "Get the full plain-text Wikipedia article for a title. No key needed."
       }
     ]
   },

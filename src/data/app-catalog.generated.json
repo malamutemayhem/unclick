@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 202,
-  "toolCount": 864,
+  "appCount": 210,
+  "toolCount": 891,
   "categories": [
     "AI",
     "Books",
@@ -9,6 +9,7 @@
     "Developer & infra",
     "Events & tickets",
     "Games & esports",
+    "Images",
     "Markets & crypto",
     "Messaging & email",
     "Money & payments",
@@ -831,6 +832,30 @@
       ],
       "level": null,
       "hardened": false
+    },
+    {
+      "slug": "confluence",
+      "name": "Confluence",
+      "category": "Productivity",
+      "blurb": "Search and read Confluence pages and spaces.",
+      "domain": "atlassian.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "confluence_search",
+          "description": "Search Confluence pages by text."
+        },
+        {
+          "name": "confluence_get_page",
+          "description": "Get a Confluence page by id, including its body."
+        },
+        {
+          "name": "confluence_list_spaces",
+          "description": "List Confluence spaces."
+        }
+      ],
+      "level": 5,
+      "hardened": true
     },
     {
       "slug": "contentful",
@@ -1759,6 +1784,30 @@
       ],
       "level": 1,
       "hardened": false
+    },
+    {
+      "slug": "giphy",
+      "name": "Giphy",
+      "category": "Images",
+      "blurb": "Search trending and random GIFs on Giphy.",
+      "domain": "giphy.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "giphy_search",
+          "description": "Search Giphy for GIFs."
+        },
+        {
+          "name": "giphy_trending",
+          "description": "Get trending GIFs from Giphy."
+        },
+        {
+          "name": "giphy_random",
+          "description": "Get a random GIF from Giphy, optionally by tag."
+        }
+      ],
+      "level": 5,
+      "hardened": true
     },
     {
       "slug": "github",
@@ -2693,6 +2742,30 @@
       "hardened": true
     },
     {
+      "slug": "miro",
+      "name": "Miro",
+      "category": "Productivity",
+      "blurb": "List Miro boards and read what is on them.",
+      "domain": "miro.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "miro_list_boards",
+          "description": "List Miro boards."
+        },
+        {
+          "name": "miro_get_board",
+          "description": "Get a single Miro board by id."
+        },
+        {
+          "name": "miro_list_items",
+          "description": "List the items (notes, shapes, text) on a Miro board."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "mistral",
       "name": "Mistral",
       "category": "AI",
@@ -3467,6 +3540,34 @@
         {
           "name": "get_pinterest_user",
           "description": "Get the authenticated Pinterest user account info."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "pipedrive",
+      "name": "Pipedrive",
+      "category": "Productivity",
+      "blurb": "Read deals, contacts, and companies in your Pipedrive CRM.",
+      "domain": "pipedrive.com",
+      "toolCount": 4,
+      "tools": [
+        {
+          "name": "pipedrive_list_deals",
+          "description": "List Pipedrive deals."
+        },
+        {
+          "name": "pipedrive_list_persons",
+          "description": "List Pipedrive persons (contacts)."
+        },
+        {
+          "name": "pipedrive_list_organizations",
+          "description": "List Pipedrive organizations (companies)."
+        },
+        {
+          "name": "pipedrive_search_deals",
+          "description": "Search Pipedrive deals by term."
         }
       ],
       "level": 5,
@@ -4441,6 +4542,34 @@
       "hardened": true
     },
     {
+      "slug": "shortcut",
+      "name": "Shortcut",
+      "category": "Productivity",
+      "blurb": "Search stories, projects, and epics in Shortcut.",
+      "domain": "shortcut.com",
+      "toolCount": 4,
+      "tools": [
+        {
+          "name": "shortcut_search_stories",
+          "description": "Search Shortcut stories with the search syntax."
+        },
+        {
+          "name": "shortcut_get_story",
+          "description": "Get a single Shortcut story by id."
+        },
+        {
+          "name": "shortcut_list_projects",
+          "description": "List Shortcut projects."
+        },
+        {
+          "name": "shortcut_list_epics",
+          "description": "List Shortcut epics."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "slack",
       "name": "Slack",
       "category": "Messaging & email",
@@ -5033,6 +5162,34 @@
       "hardened": true
     },
     {
+      "slug": "todoist",
+      "name": "Todoist",
+      "category": "Productivity",
+      "blurb": "List, create, and complete your Todoist tasks.",
+      "domain": "todoist.com",
+      "toolCount": 4,
+      "tools": [
+        {
+          "name": "todoist_list_projects",
+          "description": "List your Todoist projects."
+        },
+        {
+          "name": "todoist_list_tasks",
+          "description": "List active Todoist tasks, optionally by project or filter."
+        },
+        {
+          "name": "todoist_create_task",
+          "description": "Create a Todoist task."
+        },
+        {
+          "name": "todoist_complete_task",
+          "description": "Complete (close) a Todoist task by id."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "togetherai",
       "name": "Together AI",
       "category": "AI",
@@ -5369,6 +5526,30 @@
       "hardened": false
     },
     {
+      "slug": "unsplash",
+      "name": "Unsplash",
+      "category": "Images",
+      "blurb": "Search and fetch free Unsplash photos.",
+      "domain": "unsplash.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "unsplash_search_photos",
+          "description": "Search Unsplash photos."
+        },
+        {
+          "name": "unsplash_get_photo",
+          "description": "Get a single Unsplash photo by id (URLs + attribution)."
+        },
+        {
+          "name": "unsplash_random_photo",
+          "description": "Get a random Unsplash photo, optionally matching a query."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "untappd",
       "name": "Untappd",
       "category": "Weather & science",
@@ -5670,6 +5851,30 @@
         }
       ],
       "level": 2,
+      "hardened": true
+    },
+    {
+      "slug": "wikipedia",
+      "name": "Wikipedia",
+      "category": "News & reading",
+      "blurb": "Search Wikipedia and read article summaries.",
+      "domain": "wikipedia.org",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "wikipedia_search",
+          "description": "Search Wikipedia article titles. No key needed."
+        },
+        {
+          "name": "wikipedia_summary",
+          "description": "Get a short Wikipedia summary for a page title. No key needed."
+        },
+        {
+          "name": "wikipedia_page",
+          "description": "Get the full plain-text Wikipedia article for a title. No key needed."
+        }
+      ],
+      "level": 5,
       "hardened": true
     },
     {

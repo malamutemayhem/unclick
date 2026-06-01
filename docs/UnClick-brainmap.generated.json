@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 594,
+    "inventory": 602,
     "source_manifest": 190,
     "pages": 82,
-    "tools": 203,
+    "tools": 211,
     "rooms": 23,
     "workers": 8
   },
@@ -33,7 +33,7 @@
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 203
+      "count": 211
     },
     {
       "id": "rooms",
@@ -4152,6 +4152,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-confluence-packages-mcp-server-src-confluence-tool-ts-no-route",
+      "division": "Tools",
+      "name": "confluence",
+      "kind": "MCP tool",
+      "meaning": "confluence MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/confluence-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-contentful-packages-mcp-server-src-contentful-tool-ts-no-route",
       "division": "Tools",
       "name": "contentful",
@@ -4458,6 +4468,16 @@
       "kind": "MCP tool",
       "meaning": "geopass MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/geopass-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-giphy-packages-mcp-server-src-giphy-tool-ts-no-route",
+      "division": "Tools",
+      "name": "giphy",
+      "kind": "MCP tool",
+      "meaning": "giphy MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/giphy-tool.ts",
       "route": "",
       "tags": []
     },
@@ -4802,6 +4822,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-miro-packages-mcp-server-src-miro-tool-ts-no-route",
+      "division": "Tools",
+      "name": "miro",
+      "kind": "MCP tool",
+      "meaning": "miro MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/miro-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-mistral-packages-mcp-server-src-mistral-tool-ts-no-route",
       "division": "Tools",
       "name": "mistral",
@@ -5078,6 +5108,16 @@
       "kind": "MCP tool",
       "meaning": "pinterest MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/pinterest-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-pipedrive-packages-mcp-server-src-pipedrive-tool-ts-no-route",
+      "division": "Tools",
+      "name": "pipedrive",
+      "kind": "MCP tool",
+      "meaning": "pipedrive MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/pipedrive-tool.ts",
       "route": "",
       "tags": []
     },
@@ -5402,6 +5442,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-shortcut-packages-mcp-server-src-shortcut-tool-ts-no-route",
+      "division": "Tools",
+      "name": "shortcut",
+      "kind": "MCP tool",
+      "meaning": "shortcut MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/shortcut-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-slack-packages-mcp-server-src-slack-tool-ts-no-route",
       "division": "Tools",
       "name": "slack",
@@ -5592,6 +5642,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-todoist-packages-mcp-server-src-todoist-tool-ts-no-route",
+      "division": "Tools",
+      "name": "todoist",
+      "kind": "MCP tool",
+      "meaning": "todoist MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/todoist-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-togetherai-packages-mcp-server-src-togetherai-tool-ts-no-route",
       "division": "Tools",
       "name": "togetherai",
@@ -5712,6 +5772,16 @@
       "tags": []
     },
     {
+      "id": "tools-mcp-tool-unsplash-packages-mcp-server-src-unsplash-tool-ts-no-route",
+      "division": "Tools",
+      "name": "unsplash",
+      "kind": "MCP tool",
+      "meaning": "unsplash MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/unsplash-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "tools-mcp-tool-untappd-packages-mcp-server-src-untappd-tool-ts-no-route",
       "division": "Tools",
       "name": "untappd",
@@ -5808,6 +5878,16 @@
       "kind": "MCP tool",
       "meaning": "whatsapp MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/whatsapp-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-wikipedia-packages-mcp-server-src-wikipedia-tool-ts-no-route",
+      "division": "Tools",
+      "name": "wikipedia",
+      "kind": "MCP tool",
+      "meaning": "wikipedia MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/wikipedia-tool.ts",
       "route": "",
       "tags": []
     },
@@ -6738,6 +6818,11 @@
       "packages/mcp-server/src/compliancepass-tool.ts"
     ],
     [
+      "confluence",
+      "confluence MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/confluence-tool.ts"
+    ],
+    [
       "contentful",
       "contentful MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/contentful-tool.ts"
@@ -6891,6 +6976,11 @@
       "geopass",
       "geopass MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/geopass-tool.ts"
+    ],
+    [
+      "giphy",
+      "giphy MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/giphy-tool.ts"
     ],
     [
       "github",
@@ -7063,6 +7153,11 @@
       "packages/mcp-server/src/meal-tool.ts"
     ],
     [
+      "miro",
+      "miro MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/miro-tool.ts"
+    ],
+    [
       "mistral",
       "mistral MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/mistral-tool.ts"
@@ -7201,6 +7296,11 @@
       "pinterest",
       "pinterest MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/pinterest-tool.ts"
+    ],
+    [
+      "pipedrive",
+      "pipedrive MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/pipedrive-tool.ts"
     ],
     [
       "plaid",
@@ -7363,6 +7463,11 @@
       "packages/mcp-server/src/shopify-tool.ts"
     ],
     [
+      "shortcut",
+      "shortcut MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/shortcut-tool.ts"
+    ],
+    [
       "slack",
       "slack MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/slack-tool.ts"
@@ -7458,6 +7563,11 @@
       "packages/mcp-server/src/tmdb-tool.ts"
     ],
     [
+      "todoist",
+      "todoist MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/todoist-tool.ts"
+    ],
+    [
       "togetherai",
       "togetherai MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/togetherai-tool.ts"
@@ -7518,6 +7628,11 @@
       "packages/mcp-server/src/unit-converter-tool.ts"
     ],
     [
+      "unsplash",
+      "unsplash MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/unsplash-tool.ts"
+    ],
+    [
       "untappd",
       "untappd MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/untappd-tool.ts"
@@ -7566,6 +7681,11 @@
       "whatsapp",
       "whatsapp MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/whatsapp-tool.ts"
+    ],
+    [
+      "wikipedia",
+      "wikipedia MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/wikipedia-tool.ts"
     ],
     [
       "willyweather",
@@ -8665,6 +8785,11 @@
       "bytes": 7342
     },
     {
+      "source": "packages/mcp-server/src/confluence-tool.ts",
+      "hash": "f1248450cf5a",
+      "bytes": 4326
+    },
+    {
       "source": "packages/mcp-server/src/contentful-tool.ts",
       "hash": "fe4a6bb32986",
       "bytes": 5202
@@ -8713,11 +8838,6 @@
       "source": "packages/mcp-server/src/digitalocean-tool.ts",
       "hash": "ad80b450a7f7",
       "bytes": 4467
-    },
-    {
-      "source": "packages/mcp-server/src/discogs-tool.ts",
-      "hash": "3e766c100f7c",
-      "bytes": 6462
     },
     {
       "source": ".github/workflows/apply-migrations.yml",
