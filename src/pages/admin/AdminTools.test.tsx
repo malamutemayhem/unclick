@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -66,5 +66,18 @@ describe("AdminTools (Apps library)", () => {
     await renderAdminTools();
     expect(screen.getByRole("link", { name: /Skills Library/i })).toHaveAttribute("href", "/admin/skills");
     expect(screen.getByRole("link", { name: /Passport/i })).toHaveAttribute("href", "/admin/keychain");
+  });
+
+  it("persists a turn-off to the enforcement API (admin_set_app_state)", async () => {
+    await renderAdminTools();
+    fireEvent.click(screen.getByLabelText(/Turn GitHub off/i));
+    await waitFor(() => {
+      const call = (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls.find(
+        (c) => String(c[0]).includes("admin_set_app_state"),
+      );
+      expect(call).toBeTruthy();
+      const body = JSON.parse((call![1] as { body: string }).body);
+      expect(body.disabled_apps).toContain("github");
+    });
   });
 });

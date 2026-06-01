@@ -9,6 +9,7 @@ import {
 import { CATALOG, TOOL_MAP, ENDPOINT_MAP, type ToolDef } from "./catalog.js";
 import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
+import { getDisabledApps, filterDisabledTools, isToolDisabled, appForTool } from "./tool-gating.js";
 import { crewsStartRun } from "./crews-tool.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
@@ -1905,13 +1906,30 @@ export function createServer(): Server {
   // unclick_tool_info, unclick_call) and the small DIRECT_TOOLS utility set
   // remain callable for backwards compatibility but stay hidden from tools/list.
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: ADVERTISED_TOOLS_SAFE };
+    // Enforcement: hide tools belonging to apps this tenant turned off in the
+    // admin Apps page. Fail-safe (empty set => no filtering).
+    const disabled = await getDisabledApps(currentApiKeyHash());
+    return { tools: filterDisabledTools(ADVERTISED_TOOLS_SAFE, disabled) };
   });
 
   // CALL TOOL
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: rawArgs } = request.params;
     const args = (rawArgs ?? {}) as Record<string, unknown>;
+
+    // Enforcement (defense in depth): refuse a call to an app the tenant turned
+    // off, even if the client kept a stale tool list.
+    const disabledApps = await getDisabledApps(currentApiKeyHash());
+    if (isToolDisabled(name, disabledApps)) {
+      return {
+        content: [{
+          type: "text",
+          text: `The "${appForTool(name)}" app is turned off for this account. Turn it back on in the admin Apps page to use ${name}.`,
+        }],
+        isError: true,
+      };
+    }
+
     const validationError = validateToolArgumentsForRuntime(name, args);
     if (validationError) {
       return {

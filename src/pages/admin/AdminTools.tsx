@@ -14,29 +14,11 @@ interface Connector {
   credential: { is_valid: boolean; last_tested_at: string | null } | null;
 }
 
-const DISABLED_KEY = "unclick.apps.disabled.v1";
-
-function loadDisabled(): Set<string> {
-  try {
-    const raw = localStorage.getItem(DISABLED_KEY);
-    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function saveDisabled(set: Set<string>) {
-  try {
-    localStorage.setItem(DISABLED_KEY, JSON.stringify([...set]));
-  } catch {
-    // ignore storage failures (private mode etc.)
-  }
-}
-
 export default function AdminToolsPage() {
   const { session } = useSession();
   const [connectors, setConnectors] = useState<Connector[]>([]);
-  const [disabled, setDisabled] = useState<Set<string>>(() => loadDisabled());
+  const [disabled, setDisabled] = useState<Set<string>>(new Set());
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!session) return;
@@ -48,6 +30,7 @@ export default function AdminToolsPage() {
         if (res.ok) {
           const body = await res.json();
           setConnectors(body.connectors ?? []);
+          setDisabled(new Set((body.disabled_apps as string[] | undefined) ?? []));
         }
       } catch {
         // status is best-effort; the catalog still renders without it.
@@ -67,20 +50,36 @@ export default function AdminToolsPage() {
     return rec;
   }, [disabled]);
 
-  function setAndSave(next: Set<string>) {
-    saveDisabled(next);
+  // Persist the disabled set to the tenant store the MCP server enforces against.
+  // Optimistic: update the UI first, roll back if the save fails.
+  async function persist(next: Set<string>) {
+    if (!session) return;
+    const prev = disabled;
     setDisabled(new Set(next));
+    setSaving(true);
+    try {
+      const res = await fetch("/api/memory-admin?action=admin_set_app_state", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ disabled_apps: [...next] }),
+      });
+      if (!res.ok) setDisabled(prev);
+    } catch {
+      setDisabled(prev);
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleToggle(slug: string, on: boolean) {
     const next = new Set(disabled);
     if (on) next.delete(slug);
     else next.add(slug);
-    setAndSave(next);
+    void persist(next);
   }
 
   function handleToggleAll(on: boolean) {
-    setAndSave(on ? new Set() : new Set(APP_CATALOG.map((a) => a.slug)));
+    void persist(on ? new Set() : new Set(APP_CATALOG.map((a) => a.slug)));
   }
 
   function statusOf(app: { slug: string }): AppStatus | null {
@@ -105,7 +104,7 @@ export default function AdminToolsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-white">Apps</h1>
           <p className="text-sm text-white/50">
-            {APP_COUNT} apps, {TOOL_COUNT} tools your AI can reach. All on by default.
+            {APP_COUNT} apps, {TOOL_COUNT} tools your AI can reach. All on by default; turn any off and your AI stops using it.
           </p>
         </div>
       </div>
@@ -119,6 +118,7 @@ export default function AdminToolsPage() {
         onToggle={handleToggle}
         onToggleAll={handleToggleAll}
         statusOf={statusOf}
+        busy={saving}
       />
 
       {/* Slim footer: where keys and related libraries live */}
