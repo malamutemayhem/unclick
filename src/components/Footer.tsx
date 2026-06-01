@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
  */
 
 const PRODUCT_LINKS = [
-  { label: "Apps", href: "/tools" },
+  { label: "Apps", href: "/apps" },
   { label: "Memory", href: "/memory" },
   { label: "Connections", href: "/admin/keychain" },
   { label: "XPass", href: "/dogfood" },

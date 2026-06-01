@@ -29,7 +29,7 @@ const Navbar = () => {
   }, []);
 
   const navLinks = [
-    { label: "Apps", href: "/tools" },
+    { label: "Apps", href: "/apps" },
     { label: "Memory", href: "/memory" },
     { label: "XPass", href: "/dogfood" },
     { label: "Docs", href: "/docs" },
