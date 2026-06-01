@@ -18,10 +18,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 1 | 1% |
+| L5 | Agentic | 14 | 9% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 160 | 99% |
+| L2 | Reliable | 147 | 91% |
 | L1 | Wrapper | 0 | 0% |
 
 **Hardened (reliability bar met): 161 of 161 (100%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
@@ -30,14 +30,26 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 
 | Level | Connector | Hardened | Memory | Proactive | Agentic | Source-stamp | Gaps |
 |:-----:|-----------|:--------:|:------:|:---------:|:-------:|:------------:|------|
+| L5 Agentic | `amber` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `coingecko` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `espn` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `guardian` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `hackernews` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `nasa` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `newsapi` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `omdb` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `openfoodfacts` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `openmeteo` | Yes | Yes | - | Yes | Yes |  |
 | L5 Agentic | `ptv` | Yes | Yes | - | Yes | Yes |  |
+| L5 Agentic | `restcountries` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `tmdb` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `usgs` | Yes | - | - | Yes | Yes | no-memory |
 | L2 Reliable | `abn` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `abuseipdb` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `airtable` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `algolia` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `alphavantage` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `amazon` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `amber` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `anthropic` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `asana` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `assemblyai` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -53,7 +65,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `clickup` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `clockify` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `cohere` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `coingecko` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `coinmarketcap` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `convertkit` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `datadog` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -66,7 +77,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `ebird` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `elevenlabs` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `email` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `espn` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `etsy` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `eventbrite` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `exchangerate` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -80,9 +90,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `github` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `gitlab` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `groq` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `guardian` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `gumroad` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `hackernews` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `haveibeenpwned` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `heygen` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `higgsfield` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -107,19 +115,14 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `monday` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `monica` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `musicbrainz` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `nasa` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `neon` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `newsapi` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `notion` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `nvd` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `omdb` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `openai` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `openaq` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `openexchangerates` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `openf1` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `openfoodfacts` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `openlibrary` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `openmeteo` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `pagerduty` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `pandascore` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `paypal` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -141,7 +144,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `render` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `replicate` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `resend` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `restcountries` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `riot` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `runway` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `seatgeek` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -167,7 +169,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `thelott` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `ticketmaster` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `tiktok` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `tmdb` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `togetherai` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `toggl` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `toilets` | Yes | - | - | - | - | no-memory, no-source-stamp |
@@ -181,7 +182,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `untappd` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `upstash` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `urlscan` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `usgs` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `vercel` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `virustotal` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `whatsapp` | Yes | - | - | - | - | no-memory, no-source-stamp |

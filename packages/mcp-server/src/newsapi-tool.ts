@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const NEWSAPI_BASE = "https://newsapi.org/v2";
 
 async function newsGet(
@@ -64,10 +65,14 @@ export async function newsGetTopHeadlines(args: Record<string, unknown>): Promis
     if (args.page_size) params.pageSize = Number(args.page_size);
     if (args.page)     params.page     = Number(args.page);
     const data = await newsGet(apiKey, "/top-headlines", params);
-    return {
+    return stampMeta({
       total_results: data.totalResults,
       articles: data.articles,
-    };
+    }, {
+      source: "NewsAPI.org",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use news_search for a keyword query across all articles, or news_get_sources to list available outlets."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

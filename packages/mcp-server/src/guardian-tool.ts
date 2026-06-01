@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const GUARDIAN_BASE = "https://content.guardianapis.com";
 
@@ -70,12 +71,16 @@ export async function guardianSearchArticles(args: Record<string, unknown>): Pro
     if (args.page_size) params["page-size"] = Number(args.page_size);
     if (args.page)      params.page         = Number(args.page);
     const data = await guardianGet(apiKey, "/search", params);
-    return {
+    return stampMeta({
       total:        data.total,
       page:         data.currentPage,
       pages:        data.pages,
       articles:     data.results,
-    };
+    }, {
+      source: "The Guardian Open Platform",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use guardian_get_article with a returned article id for the full body, or guardian_get_sections to browse topics."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

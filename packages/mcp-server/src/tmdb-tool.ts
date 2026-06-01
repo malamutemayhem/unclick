@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -105,11 +106,15 @@ export async function tmdbSearchMovies(
   );
   const results = (data.results as Record<string, unknown>[]) ?? [];
 
-  return {
+  return stampMeta({
     total: data.total_results ?? 0,
     pages: data.total_pages ?? 1,
     results: results.map(normalizeMovie),
-  };
+  }, {
+    source: "The Movie Database (TMDB)",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use tmdb_movie with a returned id for full detail and cast, or tmdb_search_tv to search shows instead."],
+  });
 }
 
 export async function tmdbSearchTv(

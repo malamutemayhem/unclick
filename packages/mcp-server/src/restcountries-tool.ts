@@ -2,6 +2,8 @@
 // Uses the REST Countries public API via fetch - no auth required.
 // Data covers all 250 countries with rich metadata.
 
+import { stampMeta } from "./connector-meta.js";
+
 const RESTCOUNTRIES_BASE = "https://restcountries.com/v3.1";
 const RESTCOUNTRIES_TIMEOUT_MS = Number(process.env.RESTCOUNTRIES_TIMEOUT_MS) || 10000;
 
@@ -107,10 +109,14 @@ export async function countryByName(args: Record<string, unknown>): Promise<unkn
   if (data && typeof data === "object" && "results" in data) return data;
 
   const countries = data as Array<Record<string, unknown>>;
-  return {
+  return stampMeta({
     count: countries.length,
     countries: countries.map(normalizeCountry),
-  };
+  }, {
+    source: "REST Countries v3.1",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use country_by_code for a single country by ISO code, or country_by_region to list a whole region."],
+  });
 }
 
 export async function countryByCode(args: Record<string, unknown>): Promise<unknown> {

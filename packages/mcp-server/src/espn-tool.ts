@@ -2,6 +2,8 @@
 // No API key required.
 // Base URL: https://site.api.espn.com/apis/site/v2/sports/
 
+import { stampMeta } from "./connector-meta.js";
+
 const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports";
 const ESPN_TIMEOUT_MS = Number(process.env.ESPN_TIMEOUT_MS) || 10000;
 
@@ -92,13 +94,17 @@ function normalizeEvent(event: EspnEvent) {
 
 export async function getNflScores(_args: Record<string, unknown>): Promise<unknown> {
   const data = await espnFetch<EspnScoreboardResponse>("/football/nfl/scoreboard");
-  return {
+  return stampMeta({
     sport: "NFL",
     season_year: data.season?.year ?? null,
     week: data.week?.number ?? null,
     event_count: data.events?.length ?? 0,
     events: (data.events ?? []).map(normalizeEvent),
-  };
+  }, {
+    source: "ESPN",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use espn_team_info for a specific team, or espn_news for the latest headlines."],
+  });
 }
 
 // ─── get_nba_scores ───────────────────────────────────────────────────────────

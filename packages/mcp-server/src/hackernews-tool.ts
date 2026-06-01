@@ -2,6 +2,8 @@
 // No authentication required - completely open.
 // Base URL: https://hacker-news.firebaseio.com/v0/
 
+import { stampMeta } from "./connector-meta.js";
+
 const HN_BASE = "https://hacker-news.firebaseio.com/v0";
 const HN_TIMEOUT_MS = Number(process.env.HN_TIMEOUT_MS) || 10000;
 
@@ -90,7 +92,11 @@ export async function hnTopStories(args: Record<string, unknown>): Promise<unkno
   const limit = Math.min(30, Math.max(1, Number(args.limit ?? 10)));
   const ids = await hnFetch<number[]>("/topstories.json");
   const stories = await fetchStories(ids, limit);
-  return { count: stories.length, feed: "top", stories };
+  return stampMeta({ count: stories.length, feed: "top", stories }, {
+    source: "Hacker News (Firebase API)",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use hn_item with a story id for its full text and comment ids, or hn_user to look up an author."],
+  });
 }
 
 // ─── hn_new_stories ───────────────────────────────────────────────────────────

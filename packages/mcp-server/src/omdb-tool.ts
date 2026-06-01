@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const OMDB_BASE = "http://www.omdbapi.com/";
 const OMDB_TIMEOUT_MS = Number(process.env.OMDB_TIMEOUT_MS) || 10000;
@@ -67,7 +68,12 @@ export async function omdbSearch(args: Record<string, unknown>): Promise<unknown
   if (args.type) params.type = String(args.type);
   if (args.y) params.y = String(args.y);
   if (args.page) params.page = Number(args.page);
-  return omdbCall(apiKey, params);
+  const data = await omdbCall(apiKey, params) as Record<string, unknown>;
+  return stampMeta(data, {
+    source: "OMDb API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use omdb_by_title or omdb_by_id for full detail on a specific title."],
+  });
 }
 
 export async function omdbGetByTitle(args: Record<string, unknown>): Promise<unknown> {

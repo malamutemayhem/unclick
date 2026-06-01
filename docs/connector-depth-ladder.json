@@ -1,5 +1,185 @@
 [
   {
+    "connector": "amber",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": true,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "coingecko",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "espn",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "guardian",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "hackernews",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "nasa",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "newsapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "omdb",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "openfoodfacts",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "openmeteo",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": true,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "ptv",
     "level": 5,
     "levelName": "Agentic",
@@ -12,6 +192,60 @@
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": true,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "restcountries",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "tmdb",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "usgs",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
       "proactive": false,
       "agentic": true,
       "sourceStamped": true
@@ -109,24 +343,6 @@
   },
   {
     "connector": "amazon",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "amber",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
@@ -414,24 +630,6 @@
     }
   },
   {
-    "connector": "coingecko",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "coinmarketcap",
     "level": 2,
     "levelName": "Reliable",
@@ -631,24 +829,6 @@
   },
   {
     "connector": "email",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "espn",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
@@ -900,24 +1080,6 @@
     }
   },
   {
-    "connector": "guardian",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "gumroad",
     "level": 2,
     "levelName": "Reliable",
@@ -927,24 +1089,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "hackernews",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1386,43 +1530,7 @@
     }
   },
   {
-    "connector": "nasa",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "neon",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "newsapi",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
@@ -1467,24 +1575,6 @@
       "handles429": true,
       "hasRetry": false,
       "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "omdb",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1566,24 +1656,6 @@
     }
   },
   {
-    "connector": "openfoodfacts",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "openlibrary",
     "level": 2,
     "levelName": "Reliable",
@@ -1593,24 +1665,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "openmeteo",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1989,24 +2043,6 @@
       "handles429": true,
       "hasRetry": false,
       "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "restcountries",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -2466,24 +2502,6 @@
     }
   },
   {
-    "connector": "tmdb",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "togetherai",
     "level": 2,
     "levelName": "Reliable",
@@ -2701,24 +2719,6 @@
   },
   {
     "connector": "urlscan",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "usgs",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,

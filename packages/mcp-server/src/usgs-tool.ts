@@ -2,6 +2,8 @@
 // Free USGS Earthquake Hazards Program API - no auth required.
 // Docs: https://earthquake.usgs.gov/fdsnws/event/1/
 
+import { stampMeta } from "./connector-meta.js";
+
 const USGS_BASE = "https://earthquake.usgs.gov/fdsnws/event/1";
 const USGS_TIMEOUT_MS = Number(process.env.USGS_TIMEOUT_MS) || 10000;
 
@@ -86,13 +88,17 @@ export async function getRecentEarthquakes(
 
   const data = await usgsFetch<GeoJsonResponse>(params);
 
-  return {
+  return stampMeta({
     count:       data.features.length,
     generated:   data.metadata?.generated
       ? new Date(data.metadata.generated as number).toISOString()
       : null,
     earthquakes: data.features.map(mapFeature),
-  };
+  }, {
+    source: "USGS Earthquake Catalog",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use usgs_earthquake_detail with an event id for the full report, or usgs_earthquakes_by_region to focus on an area."],
+  });
 }
 
 export async function getEarthquakeDetail(

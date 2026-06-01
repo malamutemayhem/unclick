@@ -2,6 +2,8 @@
 // Uses NASA's public APIs via fetch - no external dependencies.
 // Get a free API key at https://api.nasa.gov/ or use DEMO_KEY for low-volume access.
 
+import { stampMeta } from "./connector-meta.js";
+
 const NASA_BASE = "https://api.nasa.gov";
 const NASA_TIMEOUT_MS = Number(process.env.NASA_TIMEOUT_MS) || 10000;
 
@@ -60,7 +62,7 @@ export async function nasaApod(
     params
   )) as Record<string, unknown>;
 
-  return {
+  return stampMeta({
     date: data.date,
     title: data.title,
     explanation: data.explanation,
@@ -68,7 +70,11 @@ export async function nasaApod(
     media_type: data.media_type,
     copyright: data.copyright ?? null,
     hdurl: data.hdurl ?? null,
-  };
+  }, {
+    source: "NASA Open APIs (APOD)",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use nasa_mars_photos for rover imagery, or nasa_asteroids for near-Earth object data."],
+  });
 }
 
 export async function nasaAsteroids(
