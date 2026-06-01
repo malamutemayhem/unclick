@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 210,
-  "toolCount": 891,
+  "appCount": 218,
+  "toolCount": 913,
   "categories": [
     "AI",
     "Books",
@@ -346,6 +346,30 @@
       "hardened": true
     },
     {
+      "slug": "bitbucket",
+      "name": "Bitbucket",
+      "category": "Developer & infra",
+      "blurb": "Browse Bitbucket repositories and pull requests.",
+      "domain": "bitbucket.org",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "bitbucket_list_repos",
+          "description": "List Bitbucket repositories in a workspace."
+        },
+        {
+          "name": "bitbucket_get_repo",
+          "description": "Get a single Bitbucket repository."
+        },
+        {
+          "name": "bitbucket_list_pull_requests",
+          "description": "List pull requests for a Bitbucket repository."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "bluesky",
       "name": "Bluesky",
       "category": "Social",
@@ -388,6 +412,30 @@
         {
           "name": "bgg_game_reviews",
           "description": "Get user comments and ratings for a board game on BGG."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "brevo",
+      "name": "Brevo",
+      "category": "Messaging & email",
+      "blurb": "Read Brevo contacts, email campaigns, and account.",
+      "domain": "brevo.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "brevo_list_contacts",
+          "description": "List Brevo contacts."
+        },
+        {
+          "name": "brevo_list_campaigns",
+          "description": "List Brevo email campaigns."
+        },
+        {
+          "name": "brevo_get_account",
+          "description": "Get the Brevo account profile and plan."
         }
       ],
       "level": 5,
@@ -647,6 +695,50 @@
         }
       ],
       "level": 2,
+      "hardened": true
+    },
+    {
+      "slug": "cloudinary",
+      "name": "Cloudinary",
+      "category": "Developer & infra",
+      "blurb": "List your Cloudinary media and check usage.",
+      "domain": "cloudinary.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "cloudinary_list_resources",
+          "description": "List Cloudinary media resources."
+        },
+        {
+          "name": "cloudinary_get_usage",
+          "description": "Get Cloudinary usage and quota."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "coda",
+      "name": "Coda",
+      "category": "Productivity",
+      "blurb": "Read your Coda docs, tables, and rows.",
+      "domain": "coda.io",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "coda_list_docs",
+          "description": "List your Coda docs."
+        },
+        {
+          "name": "coda_list_tables",
+          "description": "List the tables in a Coda doc."
+        },
+        {
+          "name": "coda_list_rows",
+          "description": "List rows in a Coda table."
+        }
+      ],
+      "level": 5,
       "hardened": true
     },
     {
@@ -1234,6 +1326,30 @@
       "hardened": true
     },
     {
+      "slug": "dropbox",
+      "name": "Dropbox",
+      "category": "Productivity",
+      "blurb": "Browse, search, and read your Dropbox files.",
+      "domain": "dropbox.com",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "dropbox_list_folder",
+          "description": "List files and folders in a Dropbox path (empty path = root)."
+        },
+        {
+          "name": "dropbox_search",
+          "description": "Search Dropbox for files and folders by name."
+        },
+        {
+          "name": "dropbox_get_account",
+          "description": "Get the current Dropbox account profile."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "ebay",
       "name": "eBay",
       "category": "Shopping",
@@ -1784,6 +1900,30 @@
       ],
       "level": 1,
       "hardened": false
+    },
+    {
+      "slug": "ghost",
+      "name": "Ghost",
+      "category": "Content & CMS",
+      "blurb": "Read posts, pages, and tags from your Ghost site.",
+      "domain": "ghost.org",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "ghost_list_posts",
+          "description": "List published Ghost posts."
+        },
+        {
+          "name": "ghost_list_pages",
+          "description": "List Ghost pages."
+        },
+        {
+          "name": "ghost_list_tags",
+          "description": "List Ghost tags."
+        }
+      ],
+      "level": 5,
+      "hardened": true
     },
     {
       "slug": "giphy",
@@ -5622,6 +5762,26 @@
       "hardened": true
     },
     {
+      "slug": "uptimerobot",
+      "name": "UptimeRobot",
+      "category": "Developer & infra",
+      "blurb": "Check your monitors and get alerted when one is down.",
+      "domain": "uptimerobot.com",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "uptimerobot_get_monitors",
+          "description": "List UptimeRobot monitors (signals when any are DOWN)."
+        },
+        {
+          "name": "uptimerobot_get_account",
+          "description": "Get UptimeRobot account details and limits."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "urlscan",
       "name": "urlscan.io",
       "category": "Security",
@@ -5951,6 +6111,30 @@
         }
       ],
       "level": 2,
+      "hardened": true
+    },
+    {
+      "slug": "wordpress",
+      "name": "WordPress",
+      "category": "Content & CMS",
+      "blurb": "Read posts and pages from your WordPress site.",
+      "domain": "wordpress.org",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "wordpress_list_posts",
+          "description": "List WordPress posts, optionally by search term."
+        },
+        {
+          "name": "wordpress_get_post",
+          "description": "Get a single WordPress post by id."
+        },
+        {
+          "name": "wordpress_list_pages",
+          "description": "List WordPress pages."
+        }
+      ],
+      "level": 5,
       "hardened": true
     },
     {

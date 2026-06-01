@@ -288,12 +288,48 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bitbucket",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "bitbucket_list_repos",
+        "description": "List Bitbucket repositories in a workspace."
+      },
+      {
+        "name": "bitbucket_get_repo",
+        "description": "Get a single Bitbucket repository."
+      },
+      {
+        "name": "bitbucket_list_pull_requests",
+        "description": "List pull requests for a Bitbucket repository."
+      }
+    ]
+  },
+  {
     "app": "bluesky",
     "category": "Existing tools (previously unwired)",
     "tools": [
       {
         "name": "bluesky_action",
         "description": "Perform a Bluesky action: bluesky_post, bluesky_read_feed, bluesky_reply, bluesky_like, bluesky_repost, bluesky_search, bluesky_profile, bluesky_follow."
+      }
+    ]
+  },
+  {
+    "app": "brevo",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "brevo_list_contacts",
+        "description": "List Brevo contacts."
+      },
+      {
+        "name": "brevo_list_campaigns",
+        "description": "List Brevo email campaigns."
+      },
+      {
+        "name": "brevo_get_account",
+        "description": "Get the Brevo account profile and plan."
       }
     ]
   },
@@ -480,6 +516,38 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "clockify_action",
         "description": "Perform a Clockify action: get_clockify_workspaces, get_time_entries, create_time_entry, get_clockify_projects, get_clockify_summary."
+      }
+    ]
+  },
+  {
+    "app": "cloudinary",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "cloudinary_list_resources",
+        "description": "List Cloudinary media resources."
+      },
+      {
+        "name": "cloudinary_get_usage",
+        "description": "Get Cloudinary usage and quota."
+      }
+    ]
+  },
+  {
+    "app": "coda",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "coda_list_docs",
+        "description": "List your Coda docs."
+      },
+      {
+        "name": "coda_list_tables",
+        "description": "List the tables in a Coda doc."
+      },
+      {
+        "name": "coda_list_rows",
+        "description": "List rows in a Coda table."
       }
     ]
   },
@@ -964,6 +1032,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "dropbox",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "dropbox_list_folder",
+        "description": "List files and folders in a Dropbox path (empty path = root)."
+      },
+      {
+        "name": "dropbox_search",
+        "description": "Search Dropbox for files and folders by name."
+      },
+      {
+        "name": "dropbox_get_account",
+        "description": "Get the current Dropbox account profile."
+      }
+    ]
+  },
+  {
     "app": "ebay",
     "category": "AI",
     "tools": [
@@ -1404,6 +1490,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "geopass_status",
         "description": "Fetch the stored in-session GEOPass report and geopass_receipt_v1 envelope for a run started through geopass_run."
+      }
+    ]
+  },
+  {
+    "app": "ghost",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "ghost_list_posts",
+        "description": "List published Ghost posts."
+      },
+      {
+        "name": "ghost_list_pages",
+        "description": "List Ghost pages."
+      },
+      {
+        "name": "ghost_list_tags",
+        "description": "List Ghost tags."
       }
     ]
   },
@@ -4452,6 +4556,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "uptimerobot",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "uptimerobot_get_monitors",
+        "description": "List UptimeRobot monitors (signals when any are DOWN)."
+      },
+      {
+        "name": "uptimerobot_get_account",
+        "description": "Get UptimeRobot account details and limits."
+      }
+    ]
+  },
+  {
     "app": "urlscan",
     "category": "Security",
     "tools": [
@@ -4708,6 +4826,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "woo_customers",
         "description": "List WooCommerce customers."
+      }
+    ]
+  },
+  {
+    "app": "wordpress",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "wordpress_list_posts",
+        "description": "List WordPress posts, optionally by search term."
+      },
+      {
+        "name": "wordpress_get_post",
+        "description": "Get a single WordPress post by id."
+      },
+      {
+        "name": "wordpress_list_pages",
+        "description": "List WordPress pages."
       }
     ]
   },
