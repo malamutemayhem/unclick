@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const HF_API_BASE = "https://api.higgsfield.ai/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
@@ -148,7 +149,7 @@ export async function higgsfield_get_status(args: Record<string, unknown>): Prom
 
   const result = await hfGet<Record<string, unknown>>(apiKey, `/generation/${encodeURIComponent(generationId)}`);
 
-  return {
+  return stampMeta({
     generation_id: generationId,
     status: result.status ?? null,
     video_url: result.video_url ?? result.url ?? null,
@@ -157,5 +158,9 @@ export async function higgsfield_get_status(args: Record<string, unknown>): Prom
     completed_at: result.completed_at ?? null,
     error: result.error ?? null,
     raw: result,
-  };
+  }, {
+    source: "Higgsfield",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not completed, poll higgsfield_get_status again; once done, use the media url."],
+  });
 }

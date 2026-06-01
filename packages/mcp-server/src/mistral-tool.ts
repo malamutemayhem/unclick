@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const MISTRAL_API_BASE = "https://api.mistral.ai/v1";
 
 // --- Types -------------------------------------------------------------------
@@ -183,7 +184,7 @@ export async function mistralListModels(args: Record<string, unknown>): Promise<
     const data = await mistralGet<{ data: MistralModel[] }>(apiKey, "/models");
     const models = data.data ?? [];
 
-    return {
+    return stampMeta({
       count: models.length,
       models: models.map((m) => ({
         id: m.id,
@@ -191,7 +192,11 @@ export async function mistralListModels(args: Record<string, unknown>): Promise<
         created: m.created ? new Date(m.created * 1000).toISOString() : null,
         capabilities: m.capabilities ?? null,
       })),
-    };
+    }, {
+      source: "Mistral",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use mistral_chat_completion with a model id, or mistral_create_embedding."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

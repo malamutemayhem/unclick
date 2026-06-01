@@ -6,6 +6,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const ANTHROPIC_API_BASE = "https://api.anthropic.com/v1";
 const ANTHROPIC_VERSION = "2023-06-01";
@@ -263,7 +264,7 @@ export async function anthropicListModels(args: Record<string, unknown>): Promis
     apiKey, "/models"
   );
 
-  return {
+  return stampMeta({
     count: data.data.length,
     has_more: data.has_more,
     models: data.data.map((m) => ({
@@ -271,5 +272,9 @@ export async function anthropicListModels(args: Record<string, unknown>): Promis
       display_name: m.display_name,
       created_at: m.created_at,
     })),
-  };
+  }, {
+    source: "Anthropic",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use anthropic_create_message with a model id."],
+  });
 }

@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const REPLICATE_API_BASE = "https://api.replicate.com/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -151,7 +152,7 @@ export async function replicateListModels(args: Record<string, unknown>): Promis
     token, `/models${cursor}`
   );
 
-  return {
+  return stampMeta({
     count: data.results.length,
     next_cursor: data.next ?? null,
     models: data.results.map((m) => ({
@@ -162,7 +163,11 @@ export async function replicateListModels(args: Record<string, unknown>): Promis
       url: m.url,
       latest_version_id: m.latest_version?.id ?? null,
     })),
-  };
+  }, {
+    source: "Replicate",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use replicate_create_prediction with an owner/name and version id."],
+  });
 }
 
 export async function replicateGetModel(args: Record<string, unknown>): Promise<unknown> {
@@ -223,7 +228,11 @@ export async function replicateCreatePrediction(args: Record<string, unknown>): 
   if (args.stream === true) body.stream = true;
 
   const prediction = await replicatePost<ReplicatePrediction>(token, "/predictions", body);
-  return normalizePrediction(prediction);
+  return stampMeta(normalizePrediction(prediction) as Record<string, unknown>, {
+    source: "Replicate",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not yet succeeded, call replicate_get_prediction again shortly; once done, read the output."],
+  });
 }
 
 export async function replicateGetPrediction(args: Record<string, unknown>): Promise<unknown> {

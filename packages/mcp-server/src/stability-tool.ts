@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const STABILITY_API_BASE = "https://api.stability.ai";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -365,7 +366,7 @@ export async function stabilityListEngines(args: Record<string, unknown>): Promi
   requireStabilitySpendAllowed("engine-listing", "Stability AI /v1/engines/list", apiKey);
   const engines = await stabilityGet<StabilityEngine[]>(apiKey, "/v1/engines/list");
 
-  return {
+  return stampMeta({
     count: engines.length,
     engines: engines.map((e) => ({
       id: e.id,
@@ -374,5 +375,9 @@ export async function stabilityListEngines(args: Record<string, unknown>): Promi
       type: e.type,
       ready: e.ready,
     })),
-  };
+  }, {
+    source: "Stability AI",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use stability_text_to_image with an engine id."],
+  });
 }

@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const RW_API_BASE = "https://api.dev.runwayml.com/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
@@ -132,7 +133,7 @@ export async function runway_get_task(args: Record<string, unknown>): Promise<un
   const result = await rwGet<Record<string, unknown>>(apiKey, `/tasks/${encodeURIComponent(taskId)}`);
 
   const output = result.output as string[] | undefined;
-  return {
+  return stampMeta({
     task_id: taskId,
     status: result.status ?? null,
     progress: result.progress ?? null,
@@ -142,7 +143,11 @@ export async function runway_get_task(args: Record<string, unknown>): Promise<un
     failure_code: result.failureCode ?? null,
     created_at: result.createdAt ?? null,
     raw: result,
-  };
+  }, {
+    source: "Runway",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not done, poll runway_get_task again; once complete, use video_url."],
+  });
 }
 
 export async function runway_list_models(args: Record<string, unknown>): Promise<unknown> {

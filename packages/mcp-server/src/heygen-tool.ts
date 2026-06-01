@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const HG_API_BASE = "https://api.heygen.com";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -177,7 +178,7 @@ export async function heygen_get_video_status(args: Record<string, unknown>): Pr
   );
 
   const info = data.data ?? data;
-  return {
+  return stampMeta({
     video_id: videoId,
     status: info.status ?? null,
     video_url: info.video_url ?? null,
@@ -186,7 +187,11 @@ export async function heygen_get_video_status(args: Record<string, unknown>): Pr
     created_at: info.created_at ?? null,
     error: info.error ?? null,
     raw: data,
-  };
+  }, {
+    source: "HeyGen",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not completed, poll heygen_get_video_status again; once done, use video_url."],
+  });
 }
 
 export async function heygen_list_voices(args: Record<string, unknown>): Promise<unknown> {

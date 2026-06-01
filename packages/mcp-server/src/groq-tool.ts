@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const GROQ_BASE = "https://api.groq.com/openai/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -169,7 +170,7 @@ export async function groqListModels(args: Record<string, unknown>): Promise<unk
   const data = await groqGet<{ data: GroqModel[] }>(apiKey, "/models");
   const models = (data.data ?? []).filter((m) => m.active !== false);
   models.sort((a, b) => b.created - a.created);
-  return {
+  return stampMeta({
     count: models.length,
     models: models.map((m) => ({
       id: m.id,
@@ -177,5 +178,9 @@ export async function groqListModels(args: Record<string, unknown>): Promise<unk
       context_window: m.context_window,
       created: new Date(m.created * 1000).toISOString(),
     })),
-  };
+  }, {
+    source: "Groq",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use groq_chat_completion with a model id."],
+  });
 }

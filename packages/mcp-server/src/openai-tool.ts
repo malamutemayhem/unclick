@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const OPENAI_API_BASE = "https://api.openai.com/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -396,12 +397,16 @@ export async function openaiListModels(args: Record<string, unknown>): Promise<u
   // Sort by creation date descending
   models.sort((a, b) => b.created - a.created);
 
-  return {
+  return stampMeta({
     count: models.length,
     models: models.map((m) => ({
       id: m.id,
       created: new Date(m.created * 1000).toISOString(),
       owned_by: m.owned_by,
     })),
-  };
+  }, {
+    source: "OpenAI",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use openai_chat_completion with a model id, or openai_create_embedding."],
+  });
 }

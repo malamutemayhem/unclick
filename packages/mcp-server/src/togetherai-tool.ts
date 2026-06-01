@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const TOGETHER_API_BASE = "https://api.together.xyz/v1";
 
 function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
@@ -161,8 +162,12 @@ export async function togetherai_list_models(args: Record<string, unknown>): Pro
   if (typeof apiKey !== "string") return apiKey;
   const data = await togetherGet<unknown[]>(apiKey, "/models");
   const models = Array.isArray(data) ? data : [];
-  return {
+  return stampMeta({
     count: models.length,
     models,
-  };
+  }, {
+    source: "Together AI",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use togetherai_chat_completion with a model id, or togetherai_create_embedding."],
+  });
 }

@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const KLING_API_BASE = "https://api.klingai.com/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
@@ -133,7 +134,7 @@ export async function kling_get_task(args: Record<string, unknown>): Promise<unk
   const info = taskData ?? result;
   const videos = info.task_result as Record<string, unknown> | undefined;
 
-  return {
+  return stampMeta({
     task_id: taskId,
     status: info.task_status ?? null,
     progress: info.task_progress ?? null,
@@ -143,5 +144,9 @@ export async function kling_get_task(args: Record<string, unknown>): Promise<unk
     updated_at: info.updated_at ?? null,
     error: info.task_status_msg ?? null,
     raw: result,
-  };
+  }, {
+    source: "Kling",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not succeed, poll kling_get_task again; once done, use video_url."],
+  });
 }

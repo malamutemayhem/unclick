@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const COHERE_API_BASE = "https://api.cohere.com/v1";
 
 // --- Types -------------------------------------------------------------------
@@ -309,14 +310,18 @@ export async function cohereListModels(args: Record<string, unknown>): Promise<u
     const data = await cohereGet<{ models: CohereModel[] }>(apiKey, "/models");
     const models = data.models ?? [];
 
-    return {
+    return stampMeta({
       count: models.length,
       models: models.map((m) => ({
         name: m.name,
         endpoints: m.endpoints ?? [],
         context_length: m.context_length ?? null,
       })),
-    };
+    }, {
+      source: "Cohere",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use cohere_chat with a model, or cohere_embed for embeddings."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const PIKA_API_BASE = "https://api.pika.art/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
@@ -117,7 +118,7 @@ export async function pika_get_generation(args: Record<string, unknown>): Promis
     apiKey, `/generations/${encodeURIComponent(generationId)}`
   );
 
-  return {
+  return stampMeta({
     generation_id: generationId,
     status: result.status ?? null,
     video_url: result.video_url ?? result.url ?? null,
@@ -126,7 +127,11 @@ export async function pika_get_generation(args: Record<string, unknown>): Promis
     created_at: result.created_at ?? result.createdAt ?? null,
     error: result.error ?? null,
     raw: result,
-  };
+  }, {
+    source: "Pika",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not finished, poll pika_get_generation again; once done, use video_url."],
+  });
 }
 
 export async function pika_list_styles(args: Record<string, unknown>): Promise<unknown> {
