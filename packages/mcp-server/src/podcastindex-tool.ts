@@ -6,6 +6,7 @@
 import { createHash } from "crypto";
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const PI_BASE = "https://api.podcastindex.org/api/1.0";
 
@@ -89,7 +90,12 @@ export async function podcastSearch(args: Record<string, unknown>): Promise<unkn
   if (!q) throw new Error("q is required.");
   const params: Record<string, string | number | undefined> = { q };
   if (args.max) params.max = Number(args.max);
-  return piCall(args, "/search/byterm", params);
+  const __res = await piCall(args, "/search/byterm", params) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Podcast Index",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use podcast_get_episodes with a feed id, or podcast_by_feed_url for one feed."],
+  });
 }
 
 export async function podcastGetByFeedUrl(args: Record<string, unknown>): Promise<unknown> {

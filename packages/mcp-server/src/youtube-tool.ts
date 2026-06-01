@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const YT_API_BASE = "https://www.googleapis.com/youtube/v3";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -171,7 +172,7 @@ export async function youtubeSearch(args: Record<string, unknown>): Promise<unkn
     apiKey, "search", params
   );
 
-  return {
+  return stampMeta({
     total_results: data.pageInfo.totalResults,
     next_page_token: data.nextPageToken ?? null,
     items: (data.items ?? []).map((item) => ({
@@ -185,7 +186,11 @@ export async function youtubeSearch(args: Record<string, unknown>): Promise<unkn
       thumbnail: item.snippet.thumbnails?.medium?.url ?? item.snippet.thumbnails?.default?.url ?? null,
       live_broadcast: item.snippet.liveBroadcastContent,
     })),
-  };
+  }, {
+    source: "YouTube Data API v3",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use youtube_get_video for full detail on a video id, or youtube_get_channel for a channel."],
+  });
 }
 
 export async function youtubeGetVideo(args: Record<string, unknown>): Promise<unknown> {

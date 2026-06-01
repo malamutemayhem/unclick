@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const MB_BASE = "https://api.mapbox.com";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -61,12 +62,16 @@ export async function mapboxGeocodeForward(args: Record<string, unknown>): Promi
     `/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json`,
     params
   );
-  return {
+  return stampMeta({
     query,
     count: data.features.length,
     attribution: data.attribution,
     features: data.features,
-  };
+  }, {
+    source: "Mapbox",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use mapbox_geocode_reverse for coordinates to address, or mapbox_get_directions for routing."],
+  });
 }
 
 export async function mapboxGeocodeReverse(args: Record<string, unknown>): Promise<unknown> {

@@ -3,6 +3,8 @@
 // Default region base: https://euw1.api.riotgames.com/
 // Match v5 uses regional routing: europe / americas / asia
 
+import { stampMeta } from "./connector-meta.js";
+
 const RIOT_DEFAULT_REGION = "euw1";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -80,7 +82,7 @@ export async function riotSummoner(
 
   const data = await riotFetch<Record<string, unknown>>(url, key);
 
-  return {
+  return stampMeta({
     id: data.id,
     account_id: data.accountId,
     puuid: data.puuid,
@@ -89,7 +91,11 @@ export async function riotSummoner(
     summoner_level: data.summonerLevel,
     revision_date: data.revisionDate,
     region,
-  };
+  }, {
+    source: "Riot Games API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use riot_ranked for ranked stats, or riot_match_history for recent games."],
+  });
 }
 
 // ─── riot_ranked ──────────────────────────────────────────────────────────────

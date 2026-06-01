@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const URLSCAN_BASE = "https://urlscan.io/api/v1";
 
@@ -95,14 +96,18 @@ export async function scanUrlUrlscan(args: Record<string, unknown>): Promise<unk
     else body.visibility = "public";
     if (args.tags) body.tags = args.tags;
     const data = await urlscanPost(apiKey, "/scan/", body);
-    return {
+    return stampMeta({
       uuid: data.uuid,
       api: data.api,
       result: data.result,
       visibility: data.visibility,
       message: data.message,
       note: "Scan is queued. Use get_scan_result with the uuid to retrieve results (may take 10-30 seconds).",
-    };
+    }, {
+      source: "urlscan.io",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use urlscan_get_result with the uuid once the scan finishes."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const YELP_BASE = "https://api.yelp.com/v3";
 
 const YELP_TIMEOUT_MS = Number(process.env.YELP_TIMEOUT_MS) || 15000;
@@ -68,10 +69,14 @@ export async function yelpSearchBusinesses(args: Record<string, unknown>): Promi
     if (args.offset)     params.offset     = Number(args.offset);
     if (args.open_now !== undefined) params.open_now = args.open_now ? "true" : "false";
     const data = await yelpGet(apiKey, "/businesses/search", params);
-    return {
+    return stampMeta({
       total:      data.total,
       businesses: data.businesses,
-    };
+    }, {
+      source: "Yelp Fusion",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use yelp_get_business with a result id, or yelp_get_reviews for its reviews."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

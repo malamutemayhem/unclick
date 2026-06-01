@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const VT_BASE = "https://www.virustotal.com/api/v3";
 
@@ -104,11 +105,15 @@ export async function scanUrlVirustotal(args: Record<string, unknown>): Promise<
     const body = new URLSearchParams({ url });
     const data = await vtPost(apiKey, "/urls", body);
     const id = (data.data as Record<string, unknown>)?.id ?? null;
-    return {
+    return stampMeta({
       submitted: true,
       analysis_id: id,
       note: "Use get_url_report with the base64url-encoded URL to fetch results.",
-    };
+    }, {
+      source: "VirusTotal",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use virustotal_url_report with the encoded URL to fetch the verdict."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

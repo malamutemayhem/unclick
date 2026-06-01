@@ -5,6 +5,8 @@
 // API: https://api.ebay.com/buy/browse/v1
 // No external dependencies - native fetch only.
 
+import { stampMeta } from "./connector-meta.js";
+
 const EBAY_TOKEN_URL  = "https://api.ebay.com/identity/v1/oauth2/token";
 const EBAY_BROWSE_URL = "https://api.ebay.com/buy/browse/v1";
 
@@ -138,7 +140,12 @@ export async function ebaySearch(args: Record<string, unknown>): Promise<unknown
     fieldgroups:    args.fieldgroups    ? String(args.fieldgroups)    : undefined,
   };
 
-  return ebayFetch(cfg, "/item_summary/search", query);
+  const __res = await ebayFetch(cfg, "/item_summary/search", query) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "eBay Browse API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use ebay_get_item with a returned item id for full detail."],
+  });
 }
 
 // ─── ebay_get_item ────────────────────────────────────────────────────────────

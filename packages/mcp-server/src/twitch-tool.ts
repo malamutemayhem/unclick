@@ -5,6 +5,7 @@
 
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const TWITCH_API = "https://api.twitch.tv/helix";
 const TWITCH_AUTH = "https://id.twitch.tv/oauth2/token";
@@ -102,8 +103,12 @@ export async function twitchSearchStreams(args: Record<string, unknown>): Promis
     const params: Record<string, string | number> = { query };
     if (args.first) params.first = Number(args.first);
     if (args.after) params.after = String(args.after);
-    const data = await twitchGet(clientId, token, "/search/channels", params);
-    return data;
+    const data = await twitchGet(clientId, token, "/search/channels", params) as Record<string, unknown>;
+    return stampMeta(data, {
+      source: "Twitch Helix",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use twitch_get_stream for a channel's live status, or twitch_get_clips for clips."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

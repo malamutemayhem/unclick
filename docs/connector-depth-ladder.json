@@ -126,6 +126,24 @@
     }
   },
   {
+    "connector": "ebay",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "ebird",
     "level": 5,
     "levelName": "Agentic",
@@ -162,6 +180,24 @@
     }
   },
   {
+    "connector": "eventbrite",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "exchangerate",
     "level": 5,
     "levelName": "Agentic",
@@ -180,7 +216,43 @@
     }
   },
   {
+    "connector": "foursquare",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "fpl",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "gdelt",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
@@ -224,6 +296,24 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "ipapi",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -279,6 +369,24 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "mapbox",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -396,6 +504,24 @@
     }
   },
   {
+    "connector": "openf1",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "openfoodfacts",
     "level": 5,
     "levelName": "Agentic",
@@ -444,6 +570,24 @@
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": true,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "podcastindex",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
       "proactive": false,
       "agentic": true,
       "sourceStamped": true
@@ -522,6 +666,24 @@
     }
   },
   {
+    "connector": "riot",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "seatgeek",
     "level": 5,
     "levelName": "Agentic",
@@ -558,6 +720,24 @@
     }
   },
   {
+    "connector": "sleeper",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "speedrun",
     "level": 5,
     "levelName": "Agentic",
@@ -566,6 +746,42 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "spotify",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "steam",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -648,7 +864,43 @@
     }
   },
   {
+    "connector": "twitch",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "untappd",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "urlscan",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
@@ -675,6 +927,60 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "virustotal",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "yelp",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "youtube",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1116,24 +1422,6 @@
     }
   },
   {
-    "connector": "ebay",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "elevenlabs",
     "level": 2,
     "levelName": "Reliable",
@@ -1171,24 +1459,6 @@
   },
   {
     "connector": "etsy",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "eventbrite",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
@@ -1251,42 +1521,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "foursquare",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "gdelt",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1494,24 +1728,6 @@
     }
   },
   {
-    "connector": "ipapi",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "ipaustralia",
     "level": 2,
     "levelName": "Reliable",
@@ -1611,24 +1827,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "mapbox",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -1818,24 +2016,6 @@
     }
   },
   {
-    "connector": "openf1",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "pagerduty",
     "level": 2,
     "levelName": "Reliable",
@@ -1971,24 +2151,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "podcastindex",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -2178,24 +2340,6 @@
     }
   },
   {
-    "connector": "riot",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "runway",
     "level": 2,
     "levelName": "Reliable",
@@ -2340,43 +2484,7 @@
     }
   },
   {
-    "connector": "sleeper",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "splitwise",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "spotify",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
@@ -2421,24 +2529,6 @@
       "handles429": true,
       "hasRetry": true,
       "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "steam",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": false,
-      "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,
@@ -2682,24 +2772,6 @@
     }
   },
   {
-    "connector": "twitch",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "upstash",
     "level": 2,
     "levelName": "Reliable",
@@ -2718,24 +2790,6 @@
     }
   },
   {
-    "connector": "urlscan",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "vercel",
     "level": 2,
     "levelName": "Reliable",
@@ -2744,24 +2798,6 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "virustotal",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -2845,42 +2881,6 @@
   },
   {
     "connector": "xero",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "yelp",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
-    "connector": "youtube",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,

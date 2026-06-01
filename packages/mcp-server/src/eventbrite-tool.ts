@@ -4,6 +4,8 @@
 // Docs: https://www.eventbrite.com/platform/api
 // No external dependencies - native fetch only.
 
+import { stampMeta } from "./connector-meta.js";
+
 const EVENTBRITE_BASE = "https://www.eventbriteapi.com/v3";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -87,12 +89,17 @@ export async function eventbriteSearchEvents(args: Record<string, unknown>): Pro
   const token = getToken(args);
   if (!token) return { error: "EVENTBRITE_TOKEN env var (or token arg) is required." };
 
-  return ebFetch("/events/search/", token, {
+  const __res = await ebFetch("/events/search/", token, {
     q:                        args.q                        ? String(args.q)                        : undefined,
     "location.address":       args.location_address        ? String(args.location_address)        : undefined,
     "start_date.range_start": args.start_date_range_start  ? String(args.start_date_range_start)  : undefined,
     categories:               args.category_id             ? String(args.category_id)             : undefined,
     sort_by:                  args.sort_by                 ? String(args.sort_by)                 : undefined,
+  }) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Eventbrite",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use eventbrite_get_event with a result id, or eventbrite_get_venue for the venue."],
   });
 }
 

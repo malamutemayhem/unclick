@@ -6,6 +6,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const FOURSQUARE_BASE = "https://api.foursquare.com/v3";
 const FOURSQUARE_TIMEOUT_MS = Number(process.env.FOURSQUARE_TIMEOUT_MS) || 10000;
@@ -76,12 +77,17 @@ export async function foursquareSearchPlaces(args: Record<string, unknown>): Pro
   const apiKey = requireKey(args);
   if (typeof apiKey !== "string") return apiKey;
 
-  return fsFetch("/places/search", apiKey, {
+  const __res = await fsFetch("/places/search", apiKey, {
     query:      args.query      ? String(args.query)      : undefined,
     ll:         args.ll         ? String(args.ll)         : undefined,
     near:       args.near       ? String(args.near)       : undefined,
     categories: args.categories ? String(args.categories) : undefined,
     limit:      args.limit      ? Number(args.limit)      : undefined,
+  }) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Foursquare Places",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use foursquare_get_place for full detail, or foursquare_get_tips for visitor tips."],
   });
 }
 

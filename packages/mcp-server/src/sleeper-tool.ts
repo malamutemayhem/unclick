@@ -2,6 +2,8 @@
 // No authentication required.
 // Base URL: https://api.sleeper.app/v1/
 
+import { stampMeta } from "./connector-meta.js";
+
 const SLEEPER_BASE = "https://api.sleeper.app/v1";
 
 const SLEEPER_TIMEOUT_MS = Number(process.env.SLEEPER_TIMEOUT_MS) || 15000;
@@ -47,7 +49,7 @@ interface NflState {
 
 export async function getNflState(_args: Record<string, unknown>): Promise<unknown> {
   const data = await sleeperFetch<NflState>("/state/nfl");
-  return {
+  return stampMeta({
     current_week: data.week,
     display_week: data.display_week,
     season: data.season,
@@ -55,7 +57,11 @@ export async function getNflState(_args: Record<string, unknown>): Promise<unkno
     season_start_date: data.season_start_date,
     previous_season: data.previous_season,
     leg: data.leg,
-  };
+  }, {
+    source: "Sleeper",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use sleeper_league for a league, or sleeper_trending_players for adds/drops."],
+  });
 }
 
 // ─── get_sleeper_players ──────────────────────────────────────────────────────

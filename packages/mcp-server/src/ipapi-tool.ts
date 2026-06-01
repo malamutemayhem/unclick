@@ -2,6 +2,8 @@
 // Uses the ip-api.com free tier via fetch - no auth required (100 req/min).
 // Returns country, region, city, lat/lon, ISP, timezone, and more.
 
+import { stampMeta } from "./connector-meta.js";
+
 const IPAPI_BASE = "http://ip-api.com";
 
 // --- API helper ---
@@ -69,7 +71,11 @@ export async function ipLookup(args: Record<string, unknown>): Promise<unknown> 
   const ip = String(args.ip ?? "").trim();
   // Empty ip will look up the caller's IP
   const data = await ipapiGet(ip);
-  return normalizeIpData(data);
+  return stampMeta(normalizeIpData(data) as Record<string, unknown>, {
+    source: "ip-api.com",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use ip_batch to look up many IPs at once."],
+  });
 }
 
 export async function ipBatch(args: Record<string, unknown>): Promise<unknown> {

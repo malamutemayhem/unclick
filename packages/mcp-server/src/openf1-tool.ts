@@ -2,6 +2,8 @@
 // Uses the OpenF1 public API via fetch - no external dependencies, no API key required.
 // Documentation: https://openf1.org/
 
+import { stampMeta } from "./connector-meta.js";
+
 const OPENF1_BASE = "https://api.openf1.org/v1";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
@@ -51,7 +53,7 @@ export async function f1Sessions(
 
   const data = await openf1Fetch<Record<string, unknown>>("/sessions", params);
 
-  return {
+  return stampMeta({
     count: data.length,
     sessions: data.map((s) => ({
       session_key: s.session_key,
@@ -64,7 +66,11 @@ export async function f1Sessions(
       circuit_short_name: s.circuit_short_name,
       meeting_name: s.meeting_name,
     })),
-  };
+  }, {
+    source: "OpenF1",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use a session_key with f1_drivers, f1_laps, or f1_positions for that session's data."],
+  });
 }
 
 export async function f1Drivers(

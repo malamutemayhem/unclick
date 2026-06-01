@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const SPOTIFY_API_BASE = "https://api.spotify.com/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -213,7 +214,11 @@ export async function spotifySearch(args: Record<string, unknown>): Promise<unkn
       })),
     };
   }
-  return result;
+  return stampMeta(result, {
+    source: "Spotify Web API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use spotify_get_track / spotify_get_artist / spotify_get_album for full detail on a result id."],
+  });
 }
 
 export async function spotifyGetTrack(args: Record<string, unknown>): Promise<unknown> {

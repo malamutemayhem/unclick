@@ -4,6 +4,8 @@
 // GEO API: https://api.gdeltproject.org/api/v2/geo/geo
 // Updated every 15 minutes. Covers all broadcast, print, and web news globally.
 
+import { stampMeta } from "./connector-meta.js";
+
 const GDELT_DOC = "https://api.gdeltproject.org/api/v2/doc/doc";
 const GDELT_GEO = "https://api.gdeltproject.org/api/v2/geo/geo";
 
@@ -94,7 +96,7 @@ export async function gdeltNewsSearch(args: Record<string, unknown>): Promise<un
   const data = await gdeltFetch(GDELT_DOC, params) as { articles?: GdeltArticle[] };
   const articles = data?.articles ?? [];
 
-  return {
+  return stampMeta({
     query,
     count: articles.length,
     articles: articles.map((a) => ({
@@ -106,7 +108,11 @@ export async function gdeltNewsSearch(args: Record<string, unknown>): Promise<un
       country: a.sourcecountry ?? null,
       image: a.socialimage ?? null,
     })),
-  };
+  }, {
+    source: "GDELT Project",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use gdelt_trending for hot topics, or gdelt_tone_analysis to gauge sentiment."],
+  });
 }
 
 // ─── gdelt_tone_analysis ──────────────────────────────────────────────────────

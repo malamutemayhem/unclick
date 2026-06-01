@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const STEAM_BASE = "https://api.steampowered.com";
 const STEAM_STORE_BASE = "https://store.steampowered.com/api";
 
@@ -94,7 +95,7 @@ export async function getSteamPlayerSummaries(args: Record<string, unknown>): Pr
 
     const response = json.response as Record<string, unknown> | undefined;
     const players = (response?.players ?? []) as Array<Record<string, unknown>>;
-    return {
+    return stampMeta({
       count: players.length,
       players: players.map((p) => ({
         steamid: p.steamid,
@@ -109,7 +110,11 @@ export async function getSteamPlayerSummaries(args: Record<string, unknown>): Pr
         gameid: p.gameid,
         gameextrainfo: p.gameextrainfo,
       })),
-    };
+    }, {
+      source: "Steam Web API",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use get_steam_owned_games or get_steam_player_achievements for a steamid."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
