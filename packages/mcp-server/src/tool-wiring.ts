@@ -648,6 +648,22 @@ import {
 } from "./netlify-tool.js";
 
 import {
+  zendeskSearch, zendeskListTickets, zendeskGetTicket, zendeskAddComment,
+} from "./zendesk-tool.js";
+
+import {
+  intercomListConversations, intercomGetConversation, intercomListContacts, intercomSearchContacts,
+} from "./intercom-tool.js";
+
+import {
+  typeformListForms, typeformGetForm, typeformGetResponses,
+} from "./typeform-tool.js";
+
+import {
+  calcomMe, calcomListEventTypes, calcomListBookings,
+} from "./calcom-tool.js";
+
+import {
   deeplTranslateText, deeplGetUsage, deeplListLanguages, deeplTranslateDocument,
 } from "./deepl-tool.js";
 
@@ -9598,6 +9614,210 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── zendesk-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "zendesk_search",
+    description: "Search Zendesk with the query DSL (e.g. 'type:ticket status:open priority:urgent').",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain (e.g. mycompany)" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        query: { type: "string", description: "Zendesk search query" },
+      },
+      required: ["subdomain", "email", "api_token", "query"],
+    },
+  },
+  {
+    name: "zendesk_list_tickets",
+    description: "List recent Zendesk tickets (signals when any are still new).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        sort_by: { type: "string", description: "Sort field (e.g. created_at, updated_at)" },
+        limit: { type: "number", description: "Tickets to return (max 100, default 25)" },
+      },
+      required: ["subdomain", "email", "api_token"],
+    },
+  },
+  {
+    name: "zendesk_get_ticket",
+    description: "Get a single Zendesk ticket by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        ticket_id: { type: "string", description: "Ticket id" },
+      },
+      required: ["subdomain", "email", "api_token", "ticket_id"],
+    },
+  },
+  {
+    name: "zendesk_add_comment",
+    description: "Add a public or internal comment to a Zendesk ticket.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        ticket_id: { type: "string", description: "Ticket id" },
+        body: { type: "string", description: "Comment text" },
+        public: { type: "boolean", description: "Public reply (default true) or internal note (false)" },
+      },
+      required: ["subdomain", "email", "api_token", "ticket_id", "body"],
+    },
+  },
+
+  // ── intercom-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "intercom_list_conversations",
+    description: "List recent Intercom conversations.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        limit: { type: "number", description: "Conversations to return (max 150, default 20)" },
+        starting_after: { type: "string", description: "Pagination cursor from a previous response" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "intercom_get_conversation",
+    description: "Get a single Intercom conversation by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        conversation_id: { type: "string", description: "Conversation id" },
+      },
+      required: ["access_token", "conversation_id"],
+    },
+  },
+  {
+    name: "intercom_list_contacts",
+    description: "List Intercom contacts.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        limit: { type: "number", description: "Contacts to return (max 150, default 25)" },
+        starting_after: { type: "string", description: "Pagination cursor from a previous response" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "intercom_search_contacts",
+    description: "Search Intercom contacts by email.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        query: { type: "string", description: "Email (or partial email) to match" },
+      },
+      required: ["access_token", "query"],
+    },
+  },
+
+  // ── typeform-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "typeform_list_forms",
+    description: "List your Typeform forms.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Typeform personal access token" },
+        search: { type: "string", description: "Filter forms by title" },
+        limit: { type: "number", description: "Forms to return (max 200, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "typeform_get_form",
+    description: "Get a Typeform form definition (fields and titles) by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Typeform personal access token" },
+        form_id: { type: "string", description: "Form id" },
+      },
+      required: ["access_token", "form_id"],
+    },
+  },
+  {
+    name: "typeform_get_responses",
+    description: "Get submissions for a Typeform form.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Typeform personal access token" },
+        form_id: { type: "string", description: "Form id" },
+        since: { type: "string", description: "ISO 8601 lower bound on submission time" },
+        limit: { type: "number", description: "Responses to return (max 1000, default 25)" },
+      },
+      required: ["access_token", "form_id"],
+    },
+  },
+
+  // ── calcom-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "calcom_me",
+    description: "Get the authenticated Cal.com user's profile.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Cal.com API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "calcom_list_event_types",
+    description: "List your Cal.com bookable event (meeting) types.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Cal.com API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "calcom_list_bookings",
+    description: "List Cal.com bookings, optionally filtered by status.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Cal.com API key" },
+        status: { type: "string", description: "Filter by status (upcoming, past, cancelled, ...)" },
+      },
+      required: ["api_key"],
+    },
+  },
+
   // ── posthog-tool.ts ───────────────────────────────────────────────────────────
   {
     name: "posthog_list_feature_flags",
@@ -14216,6 +14436,28 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   jira_list_projects:      (args) => jiraListProjects(args),
   jira_create_issue:       (args) => jiraCreateIssue(args),
   jira_add_comment:        (args) => jiraAddComment(args),
+
+  // zendesk-tool.ts
+  zendesk_search:          (args) => zendeskSearch(args),
+  zendesk_list_tickets:    (args) => zendeskListTickets(args),
+  zendesk_get_ticket:      (args) => zendeskGetTicket(args),
+  zendesk_add_comment:     (args) => zendeskAddComment(args),
+
+  // intercom-tool.ts
+  intercom_list_conversations: (args) => intercomListConversations(args),
+  intercom_get_conversation:   (args) => intercomGetConversation(args),
+  intercom_list_contacts:      (args) => intercomListContacts(args),
+  intercom_search_contacts:    (args) => intercomSearchContacts(args),
+
+  // typeform-tool.ts
+  typeform_list_forms:     (args) => typeformListForms(args),
+  typeform_get_form:       (args) => typeformGetForm(args),
+  typeform_get_responses:  (args) => typeformGetResponses(args),
+
+  // calcom-tool.ts
+  calcom_me:               (args) => calcomMe(args),
+  calcom_list_event_types: (args) => calcomListEventTypes(args),
+  calcom_list_bookings:    (args) => calcomListBookings(args),
 
   // posthog-tool.ts
   posthog_list_feature_flags: (args) => posthogListFeatureFlags(args),

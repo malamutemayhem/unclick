@@ -306,6 +306,24 @@
     ]
   },
   {
+    "app": "calcom",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "calcom_me",
+        "description": "Get the authenticated Cal.com user's profile."
+      },
+      {
+        "name": "calcom_list_event_types",
+        "description": "List your Cal.com bookable event (meeting) types."
+      },
+      {
+        "name": "calcom_list_bookings",
+        "description": "List Cal.com bookings, optionally filtered by status."
+      }
+    ]
+  },
+  {
     "app": "calculator",
     "category": "Utilities",
     "tools": [
@@ -1580,6 +1598,28 @@
       {
         "name": "instapaper_action",
         "description": "Perform an Instapaper action: get_instapaper_bookmarks, add_instapaper_bookmark, archive_bookmark, delete_bookmark, get_instapaper_folders."
+      }
+    ]
+  },
+  {
+    "app": "intercom",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "intercom_list_conversations",
+        "description": "List recent Intercom conversations."
+      },
+      {
+        "name": "intercom_get_conversation",
+        "description": "Get a single Intercom conversation by id."
+      },
+      {
+        "name": "intercom_list_contacts",
+        "description": "List Intercom contacts."
+      },
+      {
+        "name": "intercom_search_contacts",
+        "description": "Search Intercom contacts by email."
       }
     ]
   },
@@ -4020,6 +4060,24 @@
     ]
   },
   {
+    "app": "typeform",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "typeform_list_forms",
+        "description": "List your Typeform forms."
+      },
+      {
+        "name": "typeform_get_form",
+        "description": "Get a Typeform form definition (fields and titles) by id."
+      },
+      {
+        "name": "typeform_get_responses",
+        "description": "Get submissions for a Typeform form."
+      }
+    ]
+  },
+  {
     "app": "unit-converter",
     "category": "Utilities",
     "tools": [
@@ -4424,6 +4482,28 @@
       {
         "name": "youtube_get_captions",
         "description": "List available caption tracks for a YouTube video."
+      }
+    ]
+  },
+  {
+    "app": "zendesk",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "zendesk_search",
+        "description": "Search Zendesk with the query DSL (e.g. 'type:ticket status:open priority:urgent')."
+      },
+      {
+        "name": "zendesk_list_tickets",
+        "description": "List recent Zendesk tickets (signals when any are still new)."
+      },
+      {
+        "name": "zendesk_get_ticket",
+        "description": "Get a single Zendesk ticket by id."
+      },
+      {
+        "name": "zendesk_add_comment",
+        "description": "Add a public or internal comment to a Zendesk ticket."
       }
     ]
   }

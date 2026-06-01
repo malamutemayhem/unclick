@@ -1080,6 +1080,35 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     envVar:      "NETLIFY_ACCESS_TOKEN",
     setupUrl:    "https://app.netlify.com/user/applications#personal-access-tokens",
   },
+  zendesk: {
+    displayName: "Zendesk",
+    credential:  "API token",
+    arg:         "api_token",
+    envVar:      "ZENDESK_API_TOKEN",
+    setupUrl:    "https://support.zendesk.com/hc/en-us/articles/4408889192858",
+    note:        "Also pass subdomain and email, or set ZENDESK_SUBDOMAIN and ZENDESK_EMAIL. Auth is email/token + the API token.",
+  },
+  intercom: {
+    displayName: "Intercom",
+    credential:  "access token",
+    arg:         "access_token",
+    envVar:      "INTERCOM_ACCESS_TOKEN",
+    setupUrl:    "https://developers.intercom.com/building-apps/docs/authentication-types",
+  },
+  typeform: {
+    displayName: "Typeform",
+    credential:  "personal access token",
+    arg:         "access_token",
+    envVar:      "TYPEFORM_ACCESS_TOKEN",
+    setupUrl:    "https://admin.typeform.com/account#/section/tokens",
+  },
+  calcom: {
+    displayName: "Cal.com",
+    credential:  "API key",
+    arg:         "api_key",
+    envVar:      "CALCOM_API_KEY",
+    setupUrl:    "https://app.cal.com/settings/developer/api-keys",
+  },
 };
 
 /**
