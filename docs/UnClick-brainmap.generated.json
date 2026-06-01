@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 579,
-    "source_manifest": 188,
-    "pages": 80,
+    "inventory": 580,
+    "source_manifest": 189,
+    "pages": 81,
     "tools": 190,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 48
+      "count": 49
     },
     {
       "id": "public-surfaces",
@@ -389,6 +389,16 @@
       "meaning": "Apps, tools, and connector capability surface.",
       "source": "src/pages/admin/AdminTools.tsx",
       "route": "/admin/tools",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-truth-rate-src-pages-admin-admintruthrate-tsx-admin-truth-rate",
+      "division": "Admin surfaces",
+      "name": "Admin Truth Rate",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Truth Rate.",
+      "source": "src/pages/admin/AdminTruthRate.tsx",
+      "route": "/admin/truth-rate",
       "tags": []
     },
     {
@@ -6154,6 +6164,12 @@
       "src/pages/admin/AdminTools.tsx"
     ],
     [
+      "/admin/truth-rate",
+      "Admin Truth Rate",
+      "Admin surface for Admin Truth Rate.",
+      "src/pages/admin/AdminTruthRate.tsx"
+    ],
+    [
       "/admin/users",
       "Admin Users",
       "Internal user management.",
@@ -7679,13 +7695,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "2cffedbf2fb0",
-      "bytes": 14432
+      "hash": "62736086197a",
+      "bytes": 14597
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "79d0329e0e8b",
-      "bytes": 22091
+      "hash": "eec397ebdddb",
+      "bytes": 22187
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -8006,6 +8022,11 @@
       "source": "src/pages/admin/AdminTools.tsx",
       "hash": "8544965a0043",
       "bytes": 8530
+    },
+    {
+      "source": "src/pages/admin/AdminTruthRate.tsx",
+      "hash": "115c5cce9b90",
+      "bytes": 8868
     },
     {
       "source": "src/pages/admin/AdminUsers.tsx",

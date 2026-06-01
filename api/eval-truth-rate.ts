@@ -6,25 +6,67 @@
 // that need action. This is the surface that turns the whole eval pipeline into
 // a real, observable number.
 //
-// Auth: same CRON_SECRET bearer pattern as api/signals-dispatch.ts. Read-only;
-// uses the service-role key only to query, never to mutate.
+// Auth: accepts EITHER the CRON_SECRET bearer (for the scheduled run) OR a
+// Supabase admin session JWT (for the admin dashboard), mirroring
+// api/benchmarks.ts. Read-only; uses the service-role key only to query, never
+// to mutate.
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
 import { scoreLiveJobs } from "./lib/eval/live-score.js";
 import { rowsToAdapterInputs, type RawTodoRow, type RawCommentRow } from "./lib/eval/improvement-fetch.js";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const authHeader = req.headers.authorization ?? "";
-  const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
-  if (!process.env.CRON_SECRET || authHeader !== expected) {
-    return res.status(401).json({ error: "Unauthorized" });
+function bearerFrom(req: VercelRequest): string | null {
+  const header = req.headers.authorization;
+  if (!header || typeof header !== "string") return null;
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : null;
+}
+
+function adminEmails(): string[] {
+  return (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+/** Cron token OR an admin Supabase session both authorize this read-only view. */
+async function isAuthorized(req: VercelRequest, supabaseUrl: string, serviceRoleKey: string): Promise<boolean> {
+  const token = bearerFrom(req);
+  if (!token) return false;
+
+  // Path 1: the scheduled cron secret.
+  if (process.env.CRON_SECRET && token === process.env.CRON_SECRET) return true;
+
+  // Path 2: an admin Supabase session JWT (not an UnClick API key).
+  if (token.startsWith("uc_") || token.startsWith("agt_")) return false;
+  try {
+    const scoped = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+    const { data, error } = await scoped.auth.getUser(token);
+    if (error || !data?.user?.email) return false;
+    return adminEmails().includes(data.user.email.toLowerCase());
+  } catch {
+    return false;
   }
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") return res.status(204).end();
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !supabaseKey) {
     return res.status(500).json({ error: "Database service unavailable" });
+  }
+
+  if (!(await isAuthorized(req, supabaseUrl, supabaseKey))) {
+    return res.status(403).json({ error: "Admin access required" });
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
