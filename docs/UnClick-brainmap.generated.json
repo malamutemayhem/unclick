@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 578,
+    "inventory": 579,
     "source_manifest": 188,
     "pages": 80,
     "tools": 190,
@@ -75,7 +75,7 @@
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 10
+      "count": 11
     },
     {
       "id": "modules-and-apps",
@@ -3759,6 +3759,16 @@
       "meaning": "Primary work source for open, in-progress, done, and dropped chips.",
       "source": "src/pages/admin/AdminJobs.tsx",
       "route": "/admin/jobs",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-boardroom-compat-api-lib-boardroom-compat-ts-no-route",
+      "division": "Source of truth",
+      "name": "boardroom compat",
+      "kind": "state module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/boardroom-compat.ts",
+      "route": "",
       "tags": []
     },
     {
