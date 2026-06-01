@@ -1496,6 +1496,36 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "hubspot",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "hubspot_list_contacts",
+        "description": "List HubSpot CRM contacts (most recently created first)."
+      },
+      {
+        "name": "hubspot_get_contact",
+        "description": "Get a single HubSpot contact by id."
+      },
+      {
+        "name": "hubspot_search_contacts",
+        "description": "Search HubSpot contacts by name, email, or company."
+      },
+      {
+        "name": "hubspot_list_companies",
+        "description": "List HubSpot CRM companies."
+      },
+      {
+        "name": "hubspot_list_deals",
+        "description": "List HubSpot CRM deals."
+      },
+      {
+        "name": "hubspot_create_contact",
+        "description": "Create a HubSpot contact."
+      }
+    ]
+  },
+  {
     "app": "hunter",
     "category": "Security",
     "tools": [
@@ -1596,6 +1626,32 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "search_patents",
         "description": "Search Australian patents via IP Australia."
+      }
+    ]
+  },
+  {
+    "app": "jira",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "jira_search_issues",
+        "description": "Search Jira issues with JQL (defaults to most recently updated)."
+      },
+      {
+        "name": "jira_get_issue",
+        "description": "Get a single Jira issue by key, including description and comments."
+      },
+      {
+        "name": "jira_list_projects",
+        "description": "List Jira projects, with an optional name query."
+      },
+      {
+        "name": "jira_create_issue",
+        "description": "Create a Jira issue. project_key can be filled from a saved memory default."
+      },
+      {
+        "name": "jira_add_comment",
+        "description": "Add a comment to a Jira issue."
       }
     ]
   },

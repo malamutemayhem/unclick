@@ -94,6 +94,16 @@ describe("generic connector memory defaults", () => {
     expect(result.applied).toEqual(["memory.org"]);
   });
 
+  it("fills a saved Jira project_key on create", async () => {
+    const result = await applyToolMemoryDefaults("jira_create_issue", { summary: "x" }, {
+      backend: backendWith([
+        { category: "connector_defaults", key: "jira", value: { project_key: "ENG" } },
+      ]),
+    });
+
+    expect(result.args).toMatchObject({ project_key: "ENG", __unclick_memory_defaults: ["memory.project_key"] });
+  });
+
   it("fills a saved Neon project_id", async () => {
     const result = await applyToolMemoryDefaults("neon_get_project", {}, {
       backend: backendWith([

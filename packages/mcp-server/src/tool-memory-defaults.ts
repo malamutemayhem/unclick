@@ -143,6 +143,8 @@ const CONNECTOR_DEFAULTS_REGISTRY: Record<string, ConnectorDefaultSpec> = {
   turso_list_databases: { connector: "turso", guardArgs: ["org"], fillArgs: ["org"] },
   turso_get_database:   { connector: "turso", guardArgs: ["org"], fillArgs: ["org"] },
   turso_list_groups:    { connector: "turso", guardArgs: ["org"], fillArgs: ["org"] },
+  // Jira: a user usually files into one home project.
+  jira_create_issue:   { connector: "jira", guardArgs: ["project_key"], fillArgs: ["project_key"] },
   // Neon: a developer usually works against one project.
   neon_get_project:    { connector: "neon", guardArgs: ["project_id"], fillArgs: ["project_id"] },
   neon_list_branches:  { connector: "neon", guardArgs: ["project_id"], fillArgs: ["project_id"] },

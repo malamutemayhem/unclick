@@ -1049,6 +1049,22 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     envVar:      "BS_API_KEY",
     setupUrl:    "https://developer.brawlstars.com/",
   },
+  hubspot: {
+    displayName: "HubSpot",
+    credential:  "Private App access token",
+    arg:         "access_token",
+    envVar:      "HUBSPOT_ACCESS_TOKEN",
+    setupUrl:    "https://app.hubspot.com/settings/integrations/private-apps",
+    note:        "Create a Private App and copy its access token; grant the crm.objects.* scopes you need.",
+  },
+  jira: {
+    displayName: "Jira",
+    credential:  "API token",
+    arg:         "api_token",
+    envVar:      "JIRA_API_TOKEN",
+    setupUrl:    "https://id.atlassian.com/manage-profile/security/api-tokens",
+    note:        "Also pass site (e.g. mycompany) and email, or set JIRA_SITE and JIRA_EMAIL. Auth is your email + the API token.",
+  },
 };
 
 /**

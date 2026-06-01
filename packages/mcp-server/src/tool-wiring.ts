@@ -630,6 +630,16 @@ import {
 } from "./datadog-tool.js";
 
 import {
+  hubspotListContacts, hubspotGetContact, hubspotSearchContacts,
+  hubspotListCompanies, hubspotListDeals, hubspotCreateContact,
+} from "./hubspot-tool.js";
+
+import {
+  jiraSearchIssues, jiraGetIssue, jiraListProjects,
+  jiraCreateIssue, jiraAddComment,
+} from "./jira-tool.js";
+
+import {
   deeplTranslateText, deeplGetUsage, deeplListLanguages, deeplTranslateDocument,
 } from "./deepl-tool.js";
 
@@ -9406,6 +9416,180 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── hubspot-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "hubspot_list_contacts",
+    description: "List HubSpot CRM contacts (most recently created first).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        limit: { type: "number", description: "Contacts to return (max 100, default 25)" },
+        after: { type: "string", description: "Pagination cursor from a previous response" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "hubspot_get_contact",
+    description: "Get a single HubSpot contact by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        contact_id: { type: "string", description: "HubSpot contact id" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token", "contact_id"],
+    },
+  },
+  {
+    name: "hubspot_search_contacts",
+    description: "Search HubSpot contacts by name, email, or company.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        query: { type: "string", description: "Search term (name, email, or company)" },
+        limit: { type: "number", description: "Results to return (max 100, default 25)" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token", "query"],
+    },
+  },
+  {
+    name: "hubspot_list_companies",
+    description: "List HubSpot CRM companies.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        limit: { type: "number", description: "Companies to return (max 100, default 25)" },
+        after: { type: "string", description: "Pagination cursor from a previous response" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "hubspot_list_deals",
+    description: "List HubSpot CRM deals.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        limit: { type: "number", description: "Deals to return (max 100, default 25)" },
+        after: { type: "string", description: "Pagination cursor from a previous response" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "hubspot_create_contact",
+    description: "Create a HubSpot contact.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        email: { type: "string", description: "Contact email address" },
+        properties: { type: "object", description: "Additional contact properties (firstname, lastname, company, phone, ...)" },
+      },
+      required: ["access_token"],
+    },
+  },
+
+  // ── jira-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "jira_search_issues",
+    description: "Search Jira issues with JQL (defaults to most recently updated).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany or mycompany.atlassian.net)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        jql: { type: "string", description: "JQL query (e.g. 'project = ENG AND status = \"In Progress\"')" },
+        max_results: { type: "number", description: "Issues to return (max 100, default 25)" },
+        fields: { type: "string", description: "Comma-separated fields to return" },
+      },
+      required: ["site", "email", "api_token"],
+    },
+  },
+  {
+    name: "jira_get_issue",
+    description: "Get a single Jira issue by key, including description and comments.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        issue_key: { type: "string", description: "Issue key (e.g. ENG-123)" },
+      },
+      required: ["site", "email", "api_token", "issue_key"],
+    },
+  },
+  {
+    name: "jira_list_projects",
+    description: "List Jira projects, with an optional name query.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        query: { type: "string", description: "Filter projects by name or key" },
+        max_results: { type: "number", description: "Projects to return (max 100, default 50)" },
+      },
+      required: ["site", "email", "api_token"],
+    },
+  },
+  {
+    name: "jira_create_issue",
+    description: "Create a Jira issue. project_key can be filled from a saved memory default.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        project_key: { type: "string", description: "Project key (e.g. ENG). Can be a saved default." },
+        summary: { type: "string", description: "Issue summary / title" },
+        issue_type: { type: "string", description: "Issue type name (default Task)" },
+        description: { type: "string", description: "Plain-text description" },
+      },
+      required: ["site", "email", "api_token", "summary"],
+    },
+  },
+  {
+    name: "jira_add_comment",
+    description: "Add a comment to a Jira issue.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        issue_key: { type: "string", description: "Issue key (e.g. ENG-123)" },
+        body: { type: "string", description: "Comment text" },
+      },
+      required: ["site", "email", "api_token", "issue_key", "body"],
+    },
+  },
+
   // ── deepl-tool.ts ─────────────────────────────────────────────────────────────
   {
     name: "deepl_translate_text",
@@ -13890,6 +14074,21 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   mixpanel_get_funnels:    (args) => mixpanelGetFunnels(args),
   mixpanel_get_retention:  (args) => mixpanelGetRetention(args),
   mixpanel_export_data:    (args) => mixpanelExportData(args),
+
+  // hubspot-tool.ts
+  hubspot_list_contacts:   (args) => hubspotListContacts(args),
+  hubspot_get_contact:     (args) => hubspotGetContact(args),
+  hubspot_search_contacts: (args) => hubspotSearchContacts(args),
+  hubspot_list_companies:  (args) => hubspotListCompanies(args),
+  hubspot_list_deals:      (args) => hubspotListDeals(args),
+  hubspot_create_contact:  (args) => hubspotCreateContact(args),
+
+  // jira-tool.ts
+  jira_search_issues:      (args) => jiraSearchIssues(args),
+  jira_get_issue:          (args) => jiraGetIssue(args),
+  jira_list_projects:      (args) => jiraListProjects(args),
+  jira_create_issue:       (args) => jiraCreateIssue(args),
+  jira_add_comment:        (args) => jiraAddComment(args),
 
   // datadog-tool.ts
   datadog_list_monitors:   (args) => datadogListMonitors(args),
