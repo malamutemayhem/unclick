@@ -1,11 +1,14 @@
 // Reddit API MCP Tool
-// Connects to Reddit via OAuth2 bearer tokens (oauth.reddit.com).
+// Connects to Reddit via OAuth2 bearer tokens when provided.
+// Public GET endpoints fall back to www.reddit.com JSON so read-only tools work
+// for public Reddit content without requiring a user token.
 // No external dependencies - uses global fetch (Node 18+).
 // Rate limit: Reddit allows 60 requests/minute for OAuth clients.
 
 import { stampMeta } from "./connector-meta.js";
 
-const REDDIT_BASE = "https://oauth.reddit.com";
+const REDDIT_OAUTH_BASE = "https://oauth.reddit.com";
+const REDDIT_PUBLIC_BASE = "https://www.reddit.com";
 const USER_AGENT = "UnClick-MCP/1.0 by unclick.dev";
 
 // Per-process rate limit tracking (headers from Reddit responses)
@@ -17,9 +20,17 @@ let _resetAt = Date.now() + 60_000;
 async function rFetch(
   method: "GET" | "POST",
   path: string,
-  accessToken: string,
+  accessToken?: string,
   body?: Record<string, string | number | boolean>
 ): Promise<unknown> {
+  const token = accessToken?.trim();
+  if (method !== "GET" && !token) {
+    return {
+      error: "unauthorized",
+      message: "A Reddit OAuth access token is required for write actions.",
+    };
+  }
+
   // Guard: if we have no remaining quota and reset hasn't passed, bail early
   if (_remaining <= 0 && Date.now() < _resetAt) {
     const waitMs = _resetAt - Date.now();
@@ -30,12 +41,11 @@ async function rFetch(
     };
   }
 
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${accessToken}`,
-    "User-Agent": USER_AGENT,
-  };
+  const headers: Record<string, string> = { "User-Agent": USER_AGENT };
+  if (token) headers.Authorization = `Bearer ${token}`;
 
-  let url = `${REDDIT_BASE}${path}`;
+  const base = token ? REDDIT_OAUTH_BASE : REDDIT_PUBLIC_BASE;
+  let url = `${base}${path}`;
   let fetchBody: string | undefined;
 
   if (method === "GET" && body) {
@@ -183,10 +193,22 @@ function shapeComments(listing: unknown): unknown[] {
     });
 }
 
+function redditThreadPath(args: RedditThreadArgs): string | null {
+  if (args.url) {
+    const match = args.url.match(/\/r\/([^/]+)\/comments\/([^/?#]+)/i);
+    if (!match) return null;
+    return `/r/${match[1]}/comments/${match[2]}.json`;
+  }
+
+  const sub = args.subreddit?.replace(/^r\//i, "");
+  if (!sub || !args.id?.trim()) return null;
+  return `/r/${sub}/comments/${args.id.trim()}.json`;
+}
+
 // ── Exported operation functions ─────────────────────────────────────────────
 
 export interface RedditReadArgs {
-  access_token: string;
+  access_token?: string;
   subreddit: string;
   sort?: string;
   limit?: number;
@@ -316,8 +338,9 @@ export async function redditComment(args: RedditCommentArgs): Promise<unknown> {
 }
 
 export interface RedditSearchArgs {
-  access_token: string;
-  query: string;
+  access_token?: string;
+  query?: string;
+  q?: string;
   subreddit?: string;
   sort?: string;
   t?: string;
@@ -326,11 +349,12 @@ export interface RedditSearchArgs {
 }
 
 export async function redditSearch(args: RedditSearchArgs): Promise<unknown> {
-  if (!args.query?.trim()) return { error: "validation", message: "query is required." };
+  const query = (args.query ?? args.q)?.trim();
+  if (!query) return { error: "validation", message: "query is required." };
 
   const limit = Math.min(100, Math.max(1, Number(args.limit ?? 25)));
   const params: Record<string, string | number | boolean> = {
-    q: args.query,
+    q: query,
     sort: args.sort ?? "relevance",
     limit,
     type: "link",
@@ -350,7 +374,7 @@ export async function redditSearch(args: RedditSearchArgs): Promise<unknown> {
   const data = (result as Record<string, unknown>)?.["data"] as Record<string, unknown> | undefined;
 
   return {
-    query: args.query,
+    query,
     subreddit: sub ?? null,
     sort: args.sort ?? "relevance",
     count: posts.length,
@@ -359,8 +383,50 @@ export async function redditSearch(args: RedditSearchArgs): Promise<unknown> {
   };
 }
 
+export interface RedditThreadArgs {
+  access_token?: string;
+  url?: string;
+  subreddit?: string;
+  id?: string;
+  limit?: number;
+  sort?: string;
+}
+
+export async function redditThread(args: RedditThreadArgs): Promise<unknown> {
+  const path = redditThreadPath(args);
+  if (!path) {
+    return {
+      error: "validation",
+      message: "Provide a Reddit thread url or both subreddit and id.",
+    };
+  }
+
+  const limit = Math.min(500, Math.max(1, Number(args.limit ?? 100)));
+  const params: Record<string, string | number | boolean> = { limit };
+  if (args.sort) params["sort"] = args.sort;
+
+  const result = await rFetch("GET", path, args.access_token, params);
+  if (result && typeof result === "object" && "error" in (result as object)) return result;
+  if (!Array.isArray(result)) {
+    return { error: "unexpected_response", message: "Reddit thread response was not a listing pair." };
+  }
+
+  const posts = shapePosts(result[0]);
+  const comments = shapeComments(result[1]);
+
+  return stampMeta({
+    post: posts[0] ?? null,
+    count: comments.length,
+    comments,
+  }, {
+    source: "Reddit",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use reddit_comment with a Reddit OAuth token to reply to the post or a comment."],
+  });
+}
+
 export interface RedditUserArgs {
-  access_token: string;
+  access_token?: string;
   username: string;
   include_posts?: boolean;
   include_comments?: boolean;
