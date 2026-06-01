@@ -50,6 +50,56 @@ export function classify(base) {
   return "integration";
 }
 
+// ─── L2 cap (intentional, not unfinished) ──────────────────────────────────────
+// Some connectors legitimately top out at L2. The L5 markers (source/freshness +
+// a next-step handoff) describe a *data read* you hand back to the agent, so they
+// do not apply to a few archetypes:
+//   - "write/send"  performs an outbound action (send a message/email/push). The
+//                   result is a delivery receipt, not retrieved data; there is no
+//                   freshness to stamp and no downstream tool to hand off to.
+//   - "generation"  returns model-generated content (LLM chat). Provenance is the
+//                   model + params already in the response, not a fetched source.
+//   - "action-multiplexer" routes many read *and* write actions through a single
+//                   tool's switch. There is no one result surface to stamp;
+//                   per-branch stamping is possible but deferred as low-value
+//                   against the cost of unwrapping the dispatcher.
+// Listing them here keeps the ladder honest: these read as "L2 by design", not
+// "L2, not yet upgraded". Revisit a row only if its shape changes (e.g. a
+// dispatcher is split into discrete read tools).
+export const L2_CAPPED_BY_DESIGN = {
+  // write/send: a receipt, not data
+  line: "write/send", postmark: "write/send", pushover: "write/send",
+  resend: "write/send", sendgrid: "write/send", telegram: "write/send",
+  whatsapp: "write/send",
+  // generation: model output, not a fetched source
+  perplexity: "generation",
+  // action-multiplexers: one tool, many read+write actions
+  airtable: "action-multiplexer", bluesky: "action-multiplexer",
+  clickup: "action-multiplexer", clockify: "action-multiplexer",
+  discord: "action-multiplexer", email: "action-multiplexer",
+  feedly: "action-multiplexer", github: "action-multiplexer",
+  gitlab: "action-multiplexer", instapaper: "action-multiplexer",
+  linear: "action-multiplexer", mastodon: "action-multiplexer",
+  monica: "action-multiplexer", notion: "action-multiplexer",
+  paypal: "action-multiplexer", postman: "action-multiplexer",
+  quickbooks: "action-multiplexer", raindrop: "action-multiplexer",
+  readwise: "action-multiplexer", sentry: "action-multiplexer",
+  shopify: "action-multiplexer", slack: "action-multiplexer",
+  splitwise: "action-multiplexer", square: "action-multiplexer",
+  stripe: "action-multiplexer", trello: "action-multiplexer",
+  woocommerce: "action-multiplexer", xero: "action-multiplexer",
+};
+
+export const CAP_REASON_LABELS = {
+  "write/send": "write/send tool, no data to stamp",
+  "generation": "model output, not a fetched source",
+  "action-multiplexer": "one tool multiplexes many read+write actions",
+};
+
+export function capReason(base) {
+  return L2_CAPPED_BY_DESIGN[base] ?? null;
+}
+
 // ─── Signal detection ──────────────────────────────────────────────────────────
 // Source-derived booleans only. hasTest is supplied separately (it comes from
 // the test-file listing, not the module body).
@@ -142,14 +192,16 @@ export function buildLadder() {
     const hasTest = testFiles.has(`${base}-tool`) || testFiles.has(base);
     const hardened = isHardened(signals, hasTest);
     const level = assignLevel(signals, hardened);
+    const kind = classify(base);
     rows.push({
       base,
-      kind: classify(base),
+      kind,
       level,
       levelName: levelName(level),
       hardened,
       hasTest,
       signals,
+      capReason: kind === "integration" && level === 2 ? capReason(base) : null,
     });
   }
   // deterministic: highest level first, then alphabetical
@@ -203,6 +255,27 @@ export function render(rows) {
   const hardenedCount = integrations.filter((r) => r.hardened).length;
   md += `\n**Hardened (reliability bar met): ${hardenedCount} of ${n} (${pct(hardenedCount)}%).** Depth and hardening are independent: a connector can be agentic yet not hardened.\n\n`;
 
+  // L2, split into "capped by design" vs genuine upgrade candidates.
+  const l2 = integrations.filter((r) => r.level === 2);
+  const capped = l2.filter((r) => r.capReason);
+  const upgradeable = l2.filter((r) => !r.capReason);
+  if (capped.length) {
+    const byReason = {};
+    for (const r of capped) (byReason[r.capReason] ??= []).push(r.base);
+    md += `### Capped at L2 by design (${capped.length})\n\n`;
+    md += `The L5 markers (source + freshness, then a next-step handoff) describe a **data read** the agent consumes. These connectors are not reads, so L2 is their ceiling, not a gap. They are excluded from the "L5 reachable" denominator.\n\n`;
+    for (const reason of ["action-multiplexer", "write/send", "generation"]) {
+      const list = byReason[reason];
+      if (!list) continue;
+      md += `- **${reason}** (${CAP_REASON_LABELS[reason]}): ${list.sort().map((b) => `\`${b}\``).join(", ")}\n`;
+    }
+    md += `\n`;
+    const reachable = n - capped.length;
+    const atL5 = dist[5];
+    md += `**L5-reachable connectors at L5: ${atL5} of ${reachable} (${reachable ? Math.round((atL5 / reachable) * 100) : 0}%).** `;
+    md += `The remaining ${upgradeable.length} L2 ${upgradeable.length === 1 ? "row is a" : "rows are"} genuine upgrade ${upgradeable.length === 1 ? "candidate" : "candidates"}${upgradeable.length ? `: ${upgradeable.map((r) => `\`${r.base}\``).join(", ")}` : ""}.\n\n`;
+  }
+
   const depthNotHardened = integrations.filter((r) => r.level >= 3 && !r.hardened);
   if (depthNotHardened.length) {
     md += `### Climbed in depth but not yet hardened\n\n`;
@@ -217,7 +290,8 @@ export function render(rows) {
   md += `| Level | Connector | Hardened | Memory | Proactive | Agentic | Source-stamp | Gaps |\n`;
   md += `|:-----:|-----------|:--------:|:------:|:---------:|:-------:|:------------:|------|\n`;
   for (const r of integrations) {
-    md += `| L${r.level} ${r.levelName} | \`${r.base}\` | ${tick(r.hardened)} | ${tick(r.signals.memoryAware)} | ${tick(r.signals.proactive)} | ${tick(r.signals.agentic)} | ${tick(r.signals.sourceStamped)} | ${gaps(r)} |\n`;
+    const gapCell = r.capReason ? `L2 by design (${r.capReason})` : gaps(r);
+    md += `| L${r.level} ${r.levelName} | \`${r.base}\` | ${tick(r.hardened)} | ${tick(r.signals.memoryAware)} | ${tick(r.signals.proactive)} | ${tick(r.signals.agentic)} | ${tick(r.signals.sourceStamped)} | ${gapCell} |\n`;
   }
 
   const others = {
@@ -247,6 +321,8 @@ function renderJson(rows) {
     level: r.level,
     levelName: r.levelName,
     hardened: r.hardened,
+    cappedByDesign: Boolean(r.capReason),
+    capReason: r.capReason,
     signals: r.signals,
   }));
   return JSON.stringify(payload, null, 2) + "\n";

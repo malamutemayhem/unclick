@@ -6,6 +6,7 @@
 
 import { notConnectedFor } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const IGDB_BASE = "https://api.igdb.com/v4";
 const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
@@ -127,7 +128,13 @@ export async function igdbGetGame(args: Record<string, unknown>): Promise<unknow
 
     const body = `fields id,name,summary,storyline,genres.name,platforms.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,release_dates.human,rating,rating_count,aggregated_rating,aggregated_rating_count,cover.url,screenshots.url,websites.url,url; where id = ${gameId};`;
     const result = await igdbPost(clientId, token, "/games", body) as Array<unknown>;
-    return result[0] ?? { error: "Game not found." };
+    const game = result[0];
+    if (!game) return { error: "Game not found." };
+    return stampMeta(game as Record<string, unknown>, {
+      source: "IGDB",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use igdb_get_company for the studio, or igdb_search_games for related titles."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

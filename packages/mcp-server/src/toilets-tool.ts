@@ -1,3 +1,4 @@
+import { stampMeta } from "./connector-meta.js";
 // Public toilet finder using AU Toilet Map API (primary) and OpenStreetMap Overpass (fallback).
 // Zero-config - no API key required.
 // AU API: https://toiletmap.gov.au/api/getToiletsByRadius
@@ -363,14 +364,18 @@ export async function getToiletDetails(args: Record<string, unknown>): Promise<u
     const data = await res.json() as { elements?: OsmNode[] };
     const node = data.elements?.[0];
     if (!node) return { error: `OSM node ${toiletId} not found.` };
-    return {
+    return stampMeta({
       id: String(node.id),
       source: "osm",
       latitude: node.lat,
       longitude: node.lon,
       tags: node.tags ?? {},
       maps_url: `https://www.google.com/maps?q=${node.lat},${node.lon}`,
-    };
+    }, {
+      source: "OpenStreetMap",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use find_nearest_toilets to see other options nearby."],
+    });
   } catch (err) {
     return {
       error: `Failed to fetch OSM toilet details: ${err instanceof Error ? err.message : String(err)}`,

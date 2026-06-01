@@ -6,6 +6,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const DOMAIN_BASE = "https://api.domain.com.au/v1";
 
@@ -124,7 +125,7 @@ export async function getDomainProperty(args: Record<string, unknown>): Promise<
 
     const data = await domainFetch(apiKey, `/listings/${propertyId}`) as Record<string, unknown>;
 
-    return {
+    return stampMeta({
       id: data["id"],
       status: data["status"],
       type: data["type"],
@@ -143,7 +144,11 @@ export async function getDomainProperty(args: Record<string, unknown>): Promise<
       agency: data["advertiser"],
       features: data["features"],
       inspection_times: data["inspectionSchedule"],
-    };
+    }, {
+      source: "Domain",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use domain_suburb_stats for area trends, or domain_search_listings for comparable listings."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

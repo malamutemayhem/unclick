@@ -4,6 +4,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const OXR_BASE = "https://openexchangerates.org/api";
 
@@ -66,12 +67,16 @@ export async function forexLatest(args: Record<string, unknown>): Promise<unknow
 
   const data = await oxrFetch(app_id, "/latest.json", params) as Record<string, unknown>;
 
-  return {
+  return stampMeta({
     base: data.base,
     timestamp: data.timestamp,
     date: new Date(Number(data.timestamp) * 1000).toISOString().split("T")[0],
     rates: data.rates,
-  };
+  }, {
+    source: "Open Exchange Rates",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use forex_convert to convert an amount, or forex_historical for a past date."],
+  });
 }
 
 export async function forexHistorical(args: Record<string, unknown>): Promise<unknown> {

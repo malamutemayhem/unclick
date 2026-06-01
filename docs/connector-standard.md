@@ -92,6 +92,31 @@ Depth and hardening are separate axes. A connector can reach L5 in capability an
 still fail the L2 bar; the ladder flags that as `not-hardened` (PTV does today).
 Aim to be both deep and hardened.
 
+### When L2 is the ceiling (capped by design)
+
+L5 stamps a **data read**: a source, a freshness timestamp, and a next-step
+handoff the agent consumes. That contract does not apply to every connector, so
+some legitimately top out at L2. These are listed in `L2_CAPPED_BY_DESIGN` in
+`scripts/connector-depth-ladder.mjs` and render under "Capped at L2 by design"
+in the ladder, with their gap cell reading `L2 by design (...)` rather than
+`no-source-stamp`. They are excluded from the "L5-reachable" denominator so the
+percentage measures real work, not impossible work.
+
+| Archetype | Why L2 is the ceiling | Examples |
+|-----------|-----------------------|----------|
+| **write/send** | The result is a delivery receipt, not retrieved data. There is no freshness to stamp and no downstream tool to hand off to. | `resend`, `sendgrid`, `postmark`, `telegram`, `whatsapp`, `line`, `pushover` |
+| **generation** | Returns model-generated content. Provenance is the model + params already in the response, not a fetched source. | `perplexity` |
+| **action-multiplexer** | One tool routes many read *and* write actions through a single `switch`. There is no one result surface to stamp; per-branch stamping is possible but deferred as low-value against the cost of unwrapping the dispatcher. | `stripe`, `shopify`, `xero`, `notion`, `slack`, `github` |
+
+Two consequences worth stating plainly:
+
+- A capped row is **done**, not a backlog item. Do not "fix" its
+  `no-source-stamp` gap by stamping a send receipt or a switch branch.
+- A row leaves the cap only when its **shape** changes. If an
+  action-multiplexer is split into discrete read tools (the way `asana` and
+  `monday` expose `list_*`/`get_*` functions), those read tools can and should
+  climb to L5, and the base should be removed from `L2_CAPPED_BY_DESIGN`.
+
 ## What "do better" means
 
 The differentiators that make an UnClick connector beat a typical public wrapper,

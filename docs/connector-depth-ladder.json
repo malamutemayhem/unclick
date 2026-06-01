@@ -4,6 +4,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -22,6 +24,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -40,6 +44,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -58,6 +64,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -76,6 +84,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -94,6 +104,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -112,6 +124,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -130,6 +144,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -148,6 +164,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -166,6 +184,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -184,6 +204,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -202,6 +224,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -220,6 +244,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -238,6 +264,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -256,6 +284,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -274,6 +304,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -292,6 +324,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -310,6 +344,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -328,6 +364,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -346,6 +384,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -364,6 +404,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -382,6 +424,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -400,6 +444,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -418,6 +464,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -436,6 +484,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -450,10 +500,32 @@
     }
   },
   {
+    "connector": "domain",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "ebay",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -472,6 +544,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -490,6 +564,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -508,6 +584,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -526,6 +604,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -544,6 +624,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -562,6 +644,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -580,6 +664,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -598,6 +684,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -616,6 +704,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -634,6 +724,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -652,6 +744,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -670,6 +764,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -688,6 +784,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -706,6 +804,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -724,6 +824,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -742,6 +844,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -760,6 +864,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -778,6 +884,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -796,6 +904,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -814,6 +924,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -828,10 +940,32 @@
     }
   },
   {
+    "connector": "igdb",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "ipapi",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -850,6 +984,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -868,6 +1004,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -886,6 +1024,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -904,6 +1044,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -922,6 +1064,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -940,6 +1084,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -958,6 +1104,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -976,6 +1124,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -994,6 +1144,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1012,6 +1164,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1030,6 +1184,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1048,6 +1204,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1066,6 +1224,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1084,6 +1244,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1102,6 +1264,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1120,6 +1284,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1138,6 +1304,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1156,6 +1324,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1174,6 +1344,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1192,6 +1364,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1206,10 +1380,32 @@
     }
   },
   {
+    "connector": "openexchangerates",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "openf1",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1228,6 +1424,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1246,6 +1444,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1264,6 +1464,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1282,6 +1484,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1300,6 +1504,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1318,6 +1524,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1336,6 +1544,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1354,6 +1564,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1372,6 +1584,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1390,6 +1604,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1408,6 +1624,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1426,6 +1644,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1444,6 +1664,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1462,6 +1684,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1480,6 +1704,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1498,6 +1724,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1516,6 +1744,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1534,6 +1764,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1552,6 +1784,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1570,6 +1804,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1588,6 +1824,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1606,6 +1844,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1624,6 +1864,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1642,6 +1884,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1660,6 +1904,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1678,6 +1924,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1696,6 +1944,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1714,6 +1964,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1732,6 +1984,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1750,6 +2004,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1768,6 +2024,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1786,6 +2044,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1804,6 +2064,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1822,6 +2084,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1840,6 +2104,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1858,6 +2124,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1876,6 +2144,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1890,10 +2160,32 @@
     }
   },
   {
+    "connector": "toilets",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "tomorrowio",
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1912,6 +2204,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1930,6 +2224,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1948,6 +2244,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1966,6 +2264,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -1984,6 +2284,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2002,6 +2304,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2020,6 +2324,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2038,6 +2344,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2056,6 +2364,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2074,6 +2384,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2092,6 +2404,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2110,6 +2424,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2128,6 +2444,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2146,6 +2464,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2164,6 +2484,8 @@
     "level": 5,
     "levelName": "Agentic",
     "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2182,6 +2504,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2200,6 +2524,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2218,6 +2544,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2236,6 +2564,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2254,6 +2584,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2268,28 +2600,12 @@
     }
   },
   {
-    "connector": "domain",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": false,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "email",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2308,6 +2624,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2326,6 +2644,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2344,6 +2664,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2358,28 +2680,12 @@
     }
   },
   {
-    "connector": "igdb",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": true,
-      "readsErrorBody": false,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "instapaper",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2398,6 +2704,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "write/send",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2416,6 +2724,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2434,6 +2744,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2452,6 +2764,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2470,6 +2784,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2484,28 +2800,12 @@
     }
   },
   {
-    "connector": "openexchangerates",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "paypal",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2524,6 +2824,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "generation",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2542,6 +2844,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2560,6 +2864,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "write/send",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2578,6 +2884,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "write/send",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2596,6 +2904,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2614,6 +2924,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2632,6 +2944,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2650,6 +2964,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "write/send",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2668,6 +2984,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "write/send",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2686,6 +3004,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2704,6 +3024,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2722,6 +3044,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2740,6 +3064,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2758,6 +3084,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2776,6 +3104,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2794,6 +3124,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "write/send",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2808,28 +3140,12 @@
     }
   },
   {
-    "connector": "toilets",
-    "level": 2,
-    "levelName": "Reliable",
-    "hardened": true,
-    "signals": {
-      "hasTimeout": true,
-      "handles429": true,
-      "hasRetry": false,
-      "readsErrorBody": true,
-      "bareStatusErrors": 0,
-      "errorStyleClean": true,
-      "memoryAware": false,
-      "proactive": false,
-      "agentic": false,
-      "sourceStamped": false
-    }
-  },
-  {
     "connector": "trello",
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2848,6 +3164,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "write/send",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2866,6 +3184,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,
@@ -2884,6 +3204,8 @@
     "level": 2,
     "levelName": "Reliable",
     "hardened": true,
+    "cappedByDesign": true,
+    "capReason": "action-multiplexer",
     "signals": {
       "hasTimeout": true,
       "handles429": true,

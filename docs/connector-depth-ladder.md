@@ -18,13 +18,23 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 121 | 75% |
+| L5 | Agentic | 125 | 78% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 40 | 25% |
+| L2 | Reliable | 36 | 22% |
 | L1 | Wrapper | 0 | 0% |
 
 **Hardened (reliability bar met): 161 of 161 (100%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+
+### Capped at L2 by design (36)
+
+The L5 markers (source + freshness, then a next-step handoff) describe a **data read** the agent consumes. These connectors are not reads, so L2 is their ceiling, not a gap. They are excluded from the "L5 reachable" denominator.
+
+- **action-multiplexer** (one tool multiplexes many read+write actions): `airtable`, `bluesky`, `clickup`, `clockify`, `discord`, `email`, `feedly`, `github`, `gitlab`, `instapaper`, `linear`, `mastodon`, `monica`, `notion`, `paypal`, `postman`, `quickbooks`, `raindrop`, `readwise`, `sentry`, `shopify`, `slack`, `splitwise`, `square`, `stripe`, `trello`, `woocommerce`, `xero`
+- **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
+- **generation** (model output, not a fetched source): `perplexity`
+
+**L5-reachable connectors at L5: 125 of 125 (100%).** The remaining 0 L2 rows are genuine upgrade candidates.
 
 ## Per-connector, highest rung first
 
@@ -55,6 +65,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `deepl` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `deezer` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `discogs` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `domain` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ebay` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ebird` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `elevenlabs` | Yes | - | - | Yes | Yes | no-memory |
@@ -76,6 +87,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `heygen` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `higgsfield` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `hunter` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `igdb` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ipapi` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `ipaustralia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `kling` | Yes | - | - | Yes | Yes | no-memory |
@@ -97,6 +109,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `omdb` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openai` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openaq` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `openexchangerates` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openf1` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openfoodfacts` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `openlibrary` | Yes | - | - | Yes | Yes | no-memory |
@@ -135,6 +148,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `tmdb` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `togetherai` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `toggl` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `toilets` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `tomorrowio` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `trivia` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `trove` | Yes | - | - | Yes | Yes | no-memory |
@@ -151,46 +165,42 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `wise` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `yelp` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `youtube` | Yes | - | - | Yes | Yes | no-memory |
-| L2 Reliable | `airtable` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `bluesky` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `clickup` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `clockify` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `discord` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `domain` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `email` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `feedly` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `github` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `gitlab` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `igdb` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `instapaper` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `line` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `linear` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `mastodon` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `monica` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `notion` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `openexchangerates` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `paypal` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `perplexity` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `postman` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `postmark` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `pushover` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `quickbooks` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `raindrop` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `readwise` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `resend` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `sendgrid` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `sentry` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `shopify` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `slack` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `splitwise` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `square` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `stripe` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `telegram` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `toilets` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `trello` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `whatsapp` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `woocommerce` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `xero` | Yes | - | - | - | - | no-memory, no-source-stamp |
+| L2 Reliable | `airtable` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `bluesky` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `clickup` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `clockify` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `discord` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `email` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `feedly` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `github` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `gitlab` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `instapaper` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `line` | Yes | - | - | - | - | L2 by design (write/send) |
+| L2 Reliable | `linear` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `mastodon` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `monica` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `notion` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `paypal` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `perplexity` | Yes | - | - | - | - | L2 by design (generation) |
+| L2 Reliable | `postman` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `postmark` | Yes | - | - | - | - | L2 by design (write/send) |
+| L2 Reliable | `pushover` | Yes | - | - | - | - | L2 by design (write/send) |
+| L2 Reliable | `quickbooks` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `raindrop` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `readwise` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `resend` | Yes | - | - | - | - | L2 by design (write/send) |
+| L2 Reliable | `sendgrid` | Yes | - | - | - | - | L2 by design (write/send) |
+| L2 Reliable | `sentry` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `shopify` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `slack` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `splitwise` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `square` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `stripe` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `telegram` | Yes | - | - | - | - | L2 by design (write/send) |
+| L2 Reliable | `trello` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `whatsapp` | Yes | - | - | - | - | L2 by design (write/send) |
+| L2 Reliable | `woocommerce` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
+| L2 Reliable | `xero` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
 
 Also present (graded separately, not part of the connector program): 16 internal products, 2 infra, 7 local utilities.
 
