@@ -18,10 +18,10 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
-| L5 | Agentic | 90 | 56% |
+| L5 | Agentic | 91 | 57% |
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
-| L2 | Reliable | 71 | 44% |
+| L2 | Reliable | 70 | 43% |
 | L1 | Wrapper | 0 | 0% |
 
 **Hardened (reliability bar met): 161 of 161 (100%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
@@ -45,6 +45,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L5 Agentic | `circleci` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `coingecko` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `coinmarketcap` | Yes | - | - | Yes | Yes | no-memory |
+| L5 Agentic | `convertkit` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `datadog` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `deezer` | Yes | - | - | Yes | Yes | no-memory |
 | L5 Agentic | `discogs` | Yes | - | - | Yes | Yes | no-memory |
@@ -129,7 +130,6 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L2 Reliable | `clickup` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `clockify` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `cohere` | Yes | - | - | - | - | no-memory, no-source-stamp |
-| L2 Reliable | `convertkit` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `deepl` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `discord` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L2 Reliable | `domain` | Yes | - | - | - | - | no-memory, no-source-stamp |

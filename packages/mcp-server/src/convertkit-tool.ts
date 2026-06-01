@@ -5,6 +5,7 @@
 
 import { requireCredential } from "./connector-setup.js";
 import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const CK_API_BASE = "https://api.convertkit.com/v3";
 
@@ -169,7 +170,7 @@ export async function ckListSubscribers(args: Record<string, unknown>): Promise<
     if (args.sort_field) params.sort_field = String(args.sort_field);
 
     const result = await ckGet<CkSubscribersResponse>("/subscribers", params);
-    return {
+    return stampMeta({
       total_subscribers: result.total_subscribers,
       page: result.page,
       total_pages: result.total_pages,
@@ -182,7 +183,11 @@ export async function ckListSubscribers(args: Record<string, unknown>): Promise<
         created_at: s.created_at,
         fields: s.fields,
       })),
-    };
+    }, {
+      source: "Kit (ConvertKit)",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use ck_tag_subscriber to tag someone, or ck_list_tags to see your tags."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
