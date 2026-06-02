@@ -15,6 +15,7 @@ import {
   filterProfilesByPrefs,
   useFishbowlViewPrefs,
 } from "./fishbowl/prefs";
+import { authorTexture } from "./fishbowl/authorTexture";
 
 interface FishbowlMessage {
   id: string;
@@ -431,8 +432,8 @@ function PostBox({ disabled, onPost }: PostBoxProps) {
   );
 }
 
-function MessageBody({ m }: { m: FishbowlMessage }) {
-  const human = isHumanAgentId(m.author_agent_id);
+export function MessageBody({ m }: { m: FishbowlMessage }) {
+  const texture = authorTexture(m);
   return (
     <>
       <div className="flex flex-wrap items-baseline gap-2">
@@ -440,14 +441,16 @@ function MessageBody({ m }: { m: FishbowlMessage }) {
         <span className="font-medium text-[#ccc]">
           {m.author_name ?? "(unnamed agent)"}
         </span>
-        {human && (
-          <span className="rounded bg-[#E2B93B]/15 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#E2B93B]">
-            you
+        {texture.label && (
+          <span
+            className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${texture.chipClass}`}
+          >
+            {texture.label}
           </span>
         )}
         <span className="text-xs text-[#666]">[{formatUtcTime(m.created_at)}]</span>
       </div>
-      <p className="mt-1 whitespace-pre-wrap text-[#ccc]">{m.text}</p>
+      <p className={`mt-1 whitespace-pre-wrap ${texture.muted ? "text-[#999]" : "text-[#ccc]"}`}>{m.text}</p>
       {m.tags && m.tags.length > 0 && (
         <div className="mt-1 flex flex-wrap gap-1">
           {m.tags.map((t) => (
@@ -512,7 +515,7 @@ function MessageLane({
           ) : (
             <ul className="max-h-72 divide-y divide-white/[0.04] overflow-y-auto">
               {messages.map((m) => (
-                <li key={m.id} className="px-4 py-3 text-sm">
+                <li key={m.id} className={`px-4 py-3 text-sm ${authorTexture(m).containerClass}`}>
                   <MessageBody m={m} />
                 </li>
               ))}
@@ -786,11 +789,10 @@ export default function Fishbowl() {
                   <ul className="divide-y divide-white/[0.04]">
                     {visibleGroups.map(({ parent, replies }) => {
                       const isExpanded = expandedThreads.has(parent.id);
-                      const parentHuman = isHumanAgentId(parent.author_agent_id);
                       return (
                         <li
                           key={parent.id}
-                          className={`px-4 py-3 text-sm ${parentHuman ? "bg-[#E2B93B]/[0.04]" : ""}`}
+                          className={`px-4 py-3 text-sm ${authorTexture(parent).containerClass}`}
                         >
                           <MessageBody m={parent} />
                           {replies.length > 0 && (
@@ -806,17 +808,14 @@ export default function Fishbowl() {
                               </button>
                               {isExpanded && (
                                 <ul className="mt-2 space-y-3 border-l-2 border-white/[0.08] pl-4 opacity-80">
-                                  {replies.map((r) => {
-                                    const replyHuman = isHumanAgentId(r.author_agent_id);
-                                    return (
-                                      <li
-                                        key={r.id}
-                                        className={replyHuman ? "rounded-md bg-[#E2B93B]/[0.04] px-2 py-1" : ""}
-                                      >
-                                        <MessageBody m={r} />
-                                      </li>
-                                    );
-                                  })}
+                                  {replies.map((r) => (
+                                    <li
+                                      key={r.id}
+                                      className={`rounded-md px-2 py-1 ${authorTexture(r).containerClass}`}
+                                    >
+                                      <MessageBody m={r} />
+                                    </li>
+                                  ))}
                                 </ul>
                               )}
                             </div>
