@@ -284,7 +284,7 @@ describe("runtime tool schema validation", () => {
 });
 
 describe("collapsed advertised tool surface", () => {
-  const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
+  const advertisedNames = new Set<string>(ADVERTISED_TOOLS.map((tool) => tool.name));
 
   it("advertises the four discovery meta-tools so the hidden catalog stays reachable", () => {
     for (const meta of ["unclick_search", "unclick_browse", "unclick_tool_info", "unclick_call"]) {
