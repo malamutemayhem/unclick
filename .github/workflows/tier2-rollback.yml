@@ -1,0 +1,52 @@
+name: Tier-2 Rollback (manual)
+
+# Third safety leg for safe-tier auto-merge: a single, reversible command to
+# undo a merge that should not have landed. Manual only. There is no schedule
+# and no automatic trigger - a human must dispatch this with an explicit PR
+# number. Dry-run by default; the revert is opened as its own draft PR, so it
+# is itself reversible and never force-pushes or rewrites history.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to roll back (the merged PR to revert)"
+        required: true
+        type: string
+      execute:
+        description: "Actually open the revert PR (false = print the plan only)"
+        required: false
+        type: boolean
+        default: false
+      allow_old:
+        description: "Override the 72h freshness guard for an older merge"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  rollback:
+    name: One-step rollback of a safe-tier merge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "unclick-tier2-rollback[bot]"
+          git config user.email "tier2-rollback@users.noreply.github.com"
+
+      - name: Plan or execute rollback
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TIER2_ROLLBACK_EXECUTE: ${{ inputs.execute }}
+          TIER2_ROLLBACK_ALLOW_OLD: ${{ inputs.allow_old }}
+        run: node scripts/tier2-rollback.mjs --pr "${{ inputs.pr_number }}"
