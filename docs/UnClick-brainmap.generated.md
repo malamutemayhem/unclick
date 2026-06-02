@@ -218,7 +218,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 119 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 116 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 115 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 5 |
 
 ## UnClick Structure
@@ -773,7 +773,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Settings | User-facing page for Settings. | - | src/pages/Settings.tsx |
 | Modules and apps | component | Settings | Admin surface for Settings. | - | src/pages/admin/fishbowl/Settings.tsx |
 | Modules and apps | component | Storage Bar | Memory admin panel for Storage Bar. | - | src/pages/admin/memory/StorageBar.tsx |
-| Modules and apps | component | Todos | Admin surface for Todos. | - | src/pages/admin/fishbowl/Todos.tsx |
 | Modules and apps | component | Un Click Tools | Tool page for Un Click Tools. | - | src/pages/admin/tools/UnClickTools.tsx |
 | Modules and apps | package | abn mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/abn-mcp/package.json |
 | Modules and apps | package | amber mcp | Shared package used by UnClick tools, MCP, or worker lanes. | - | packages/standalone/amber-mcp/package.json |
