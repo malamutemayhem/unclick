@@ -2,6 +2,9 @@
 // Uses the official LINE Messaging API via fetch - no external dependencies.
 // Users must create a LINE channel and obtain a Channel Access Token.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const LINE_API_BASE = "https://api.line.me/v2/bot";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -30,14 +33,30 @@ async function linePost<T>(
   path: string,
   body: Record<string, unknown>
 ): Promise<T> {
-  const res = await fetch(`${LINE_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const LINE_TIMEOUT_MS = Number(process.env.LINE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LINE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${LINE_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`LINE API request timed out after ${LINE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`LINE API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) throw new Error("LINE API rate limit reached (HTTP 429). Please wait and retry.");
 
   // LINE returns 200 for success; error bodies have message field
   const text = await res.text();
@@ -45,7 +64,7 @@ async function linePost<T>(
   try { data = JSON.parse(text); } catch { /* empty response is fine for 200 */ }
 
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     const detail = (data.details as Array<{ message: string }> | undefined)
       ?.map((d) => d.message)
       .join("; ");
@@ -59,16 +78,32 @@ async function lineGet<T>(
   token: string,
   path: string
 ): Promise<T> {
-  const res = await fetch(`${LINE_API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const LINE_TIMEOUT_MS = Number(process.env.LINE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LINE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${LINE_API_BASE}${path}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`LINE API request timed out after ${LINE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`LINE API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) throw new Error("LINE API rate limit reached (HTTP 429). Please wait and retry.");
 
   const text = await res.text();
   let data: Record<string, unknown> = {};
   try { data = JSON.parse(text); } catch { /* empty */ }
 
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`LINE API error: ${msg}`);
   }
 
@@ -77,16 +112,15 @@ async function lineGet<T>(
 
 // ─── Token validation ─────────────────────────────────────────────────────────
 
-function requireToken(token: unknown): string {
-  const t = String(token ?? "").trim();
-  if (!t) throw new Error("channel_access_token is required. Create a LINE channel at developers.line.biz.");
-  return t;
+function requireToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("line", args);
 }
 
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function lineSendMessage(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const to = String(args.to ?? "").trim();
   if (!to) throw new Error("to is required (user ID, group ID, or room ID).");
   const message = String(args.message ?? "").trim();
@@ -106,7 +140,8 @@ export async function lineSendMessage(args: Record<string, unknown>): Promise<un
 }
 
 export async function lineSendFlexMessage(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const to = String(args.to ?? "").trim();
   if (!to) throw new Error("to is required.");
   const altText = String(args.alt_text ?? "").trim();
@@ -136,7 +171,8 @@ export async function lineSendFlexMessage(args: Record<string, unknown>): Promis
 }
 
 export async function lineGetProfile(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const userId = String(args.user_id ?? "").trim();
   if (!userId) throw new Error("user_id is required.");
 
@@ -151,7 +187,8 @@ export async function lineGetProfile(args: Record<string, unknown>): Promise<unk
 }
 
 export async function lineGetGroupSummary(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const groupId = String(args.group_id ?? "").trim();
   if (!groupId) throw new Error("group_id is required.");
 
@@ -165,7 +202,8 @@ export async function lineGetGroupSummary(args: Record<string, unknown>): Promis
 }
 
 export async function lineReplyMessage(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const replyToken = String(args.reply_token ?? "").trim();
   if (!replyToken) throw new Error("reply_token is required (obtained from a webhook event).");
 
@@ -202,7 +240,8 @@ export async function lineReplyMessage(args: Record<string, unknown>): Promise<u
 }
 
 export async function lineBroadcast(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.channel_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const message = String(args.message ?? "").trim();
   if (!message) throw new Error("message is required.");
 

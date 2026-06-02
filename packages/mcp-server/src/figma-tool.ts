@@ -2,6 +2,10 @@
 // Uses the official Figma API v1 via fetch - no external dependencies.
 // Users must generate a Personal Access Token in Figma account settings.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const FIGMA_API_BASE = "https://api.figma.com/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -57,14 +61,29 @@ async function figmaGet<T>(
     url += `?${qs}`;
   }
 
-  const res = await fetch(url, {
-    headers: { "X-Figma-Token": token },
-  });
+  const FIGMA_TIMEOUT_MS = Number(process.env.FIGMA_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FIGMA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "X-Figma-Token": token },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Figma request timed out after ${FIGMA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Figma network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Figma rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = (await res.json()) as Record<string, unknown>;
 
   if (!res.ok) {
-    const msg = (data.err as string) ?? (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.err as string) ?? (data.message as string) ?? `status ${res.status}`;
     const status = (data.status as number) ?? res.status;
     throw new Error(`Figma API error (${status}): ${msg}`);
   }
@@ -77,19 +96,34 @@ async function figmaPost<T>(
   path: string,
   body: Record<string, unknown>
 ): Promise<T> {
-  const res = await fetch(`${FIGMA_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "X-Figma-Token": token,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const FIGMA_TIMEOUT_MS = Number(process.env.FIGMA_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FIGMA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${FIGMA_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "X-Figma-Token": token,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Figma request timed out after ${FIGMA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Figma network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Figma rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = (await res.json()) as Record<string, unknown>;
 
   if (!res.ok) {
-    const msg = (data.err as string) ?? (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.err as string) ?? (data.message as string) ?? `status ${res.status}`;
     const status = (data.status as number) ?? res.status;
     throw new Error(`Figma API error (${status}): ${msg}`);
   }
@@ -99,10 +133,8 @@ async function figmaPost<T>(
 
 // ─── Token validation ─────────────────────────────────────────────────────────
 
-function requireToken(token: unknown): string {
-  const t = String(token ?? "").trim();
-  if (!t) throw new Error("personal_access_token is required. Generate one at figma.com → Account Settings → Personal access tokens.");
-  return t;
+function requireToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("figma", args);
 }
 
 function requireFileKey(fileKey: unknown): string {
@@ -114,7 +146,8 @@ function requireFileKey(fileKey: unknown): string {
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function figmaGetFile(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.personal_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const fileKey = requireFileKey(args.file_key);
 
   const params: Record<string, string> = {};
@@ -132,7 +165,7 @@ export async function figmaGetFile(args: Record<string, unknown>): Promise<unkno
 
   const componentCount = Object.keys(file.components ?? {}).length;
 
-  return {
+  return stampMeta({
     name: file.name,
     file_key: fileKey,
     last_modified: file.lastModified,
@@ -142,11 +175,16 @@ export async function figmaGetFile(args: Record<string, unknown>): Promise<unkno
     page_count: pages.length,
     pages,
     component_count: componentCount,
-  };
+  }, {
+    source: "Figma REST API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use figma_get_node for a specific node, or figma_get_components for the file's components."],
+  });
 }
 
 export async function figmaGetNode(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.personal_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const fileKey = requireFileKey(args.file_key);
   const nodeId = String(args.node_id ?? "").trim();
   if (!nodeId) throw new Error("node_id is required.");
@@ -187,7 +225,8 @@ export async function figmaGetNode(args: Record<string, unknown>): Promise<unkno
 }
 
 export async function figmaGetImages(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.personal_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const fileKey = requireFileKey(args.file_key);
 
   // node_ids can be a comma-separated string or an array
@@ -235,7 +274,8 @@ export async function figmaGetImages(args: Record<string, unknown>): Promise<unk
 }
 
 export async function figmaGetComments(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.personal_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const fileKey = requireFileKey(args.file_key);
 
   const data = await figmaGet<{ comments: FigmaComment[] }>(token, `/files/${fileKey}/comments`);
@@ -260,7 +300,8 @@ export async function figmaGetComments(args: Record<string, unknown>): Promise<u
 }
 
 export async function figmaPostComment(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.personal_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const fileKey = requireFileKey(args.file_key);
   const message = String(args.message ?? "").trim();
   if (!message) throw new Error("message is required.");
@@ -290,7 +331,8 @@ export async function figmaPostComment(args: Record<string, unknown>): Promise<u
 }
 
 export async function figmaGetComponents(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.personal_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const fileKey = requireFileKey(args.file_key);
 
   // /files/:key returns components in the top-level `components` map
@@ -311,7 +353,8 @@ export async function figmaGetComponents(args: Record<string, unknown>): Promise
 }
 
 export async function figmaGetTeamProjects(args: Record<string, unknown>): Promise<unknown> {
-  const token = requireToken(args.personal_access_token);
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const teamId = String(args.team_id ?? "").trim();
   if (!teamId) throw new Error("team_id is required (found in your Figma team URL).");
 

@@ -2,23 +2,39 @@
 // Uses the Pinecone REST API via fetch - no external dependencies.
 // Users must supply an API key from app.pinecone.io.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const PINE_BASE = "https://api.pinecone.io";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.pinecone.io.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("pinecone", args);
 }
 
 async function pineGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${PINE_BASE}${path}`, {
-    headers: { "Api-Key": apiKey, "Content-Type": "application/json" },
-  });
+  const PINECONE_TIMEOUT_MS = Number(process.env.PINECONE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PINECONE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${PINE_BASE}${path}`, {
+      headers: { "Api-Key": apiKey, "Content-Type": "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pinecone request timed out after ${PINECONE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pinecone network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Pinecone rate limit reached (HTTP 429). Please wait and retry.");
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Pinecone error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -26,14 +42,29 @@ async function pineGet<T>(apiKey: string, path: string): Promise<T> {
 
 async function pinePost<T>(apiKey: string, path: string, body: unknown, baseUrl?: string): Promise<T> {
   const url = baseUrl ? `${baseUrl}${path}` : `${PINE_BASE}${path}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Api-Key": apiKey, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const PINECONE_TIMEOUT_MS = Number(process.env.PINECONE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PINECONE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Api-Key": apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pinecone request timed out after ${PINECONE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pinecone network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Pinecone rate limit reached (HTTP 429). Please wait and retry.");
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Pinecone error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -46,10 +77,25 @@ async function pineDel<T>(apiKey: string, path: string, body?: unknown, baseUrl?
     headers: { "Api-Key": apiKey, "Content-Type": "application/json" },
   };
   if (body) options.body = JSON.stringify(body);
-  const res = await fetch(url, options);
+  const PINECONE_TIMEOUT_MS = Number(process.env.PINECONE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PINECONE_TIMEOUT_MS);
+  options.signal = controller.signal;
+  let res: Response;
+  try {
+    res = await fetch(url, options);
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pinecone request timed out after ${PINECONE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pinecone network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 200 || res.status === 204) return {} as T;
+  if (res.status === 429) throw new Error("Pinecone rate limit reached (HTTP 429). Please wait and retry.");
   const data = await res.json() as Record<string, unknown>;
-  const msg = (data.message as string) ?? `HTTP ${res.status}`;
+  const msg = (data.message as string) ?? `status ${res.status}`;
   throw new Error(`Pinecone error (${res.status}): ${msg}`);
 }
 
@@ -57,13 +103,19 @@ async function pineDel<T>(apiKey: string, path: string, body?: unknown, baseUrl?
 
 export async function pineconeListIndexes(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await pineGet<{ indexes?: Array<{ name: string; dimension: number; metric: string; status: unknown; host: string }> }>(apiKey, "/indexes");
   const indexes = data.indexes ?? [];
-  return { count: indexes.length, indexes };
+  return stampMeta({ count: indexes.length, indexes }, {
+    source: "Pinecone",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use pinecone_describe_index for an index, or pinecone_query_vectors to search."],
+  });
 }
 
 export async function pineconeDescribeIndex(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const name = String(args.index_name ?? "").trim();
   if (!name) throw new Error("index_name is required.");
   return pineGet(apiKey, `/indexes/${encodeURIComponent(name)}`);
@@ -71,6 +123,7 @@ export async function pineconeDescribeIndex(args: Record<string, unknown>): Prom
 
 export async function pineconeQueryVectors(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const indexHost = String(args.index_host ?? "").trim();
   if (!indexHost) throw new Error("index_host is required (the full host URL from describe_index, e.g. https://my-index-xxx.svc.pinecone.io).");
 
@@ -99,6 +152,7 @@ export async function pineconeQueryVectors(args: Record<string, unknown>): Promi
 
 export async function pineconeUpsertVectors(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const indexHost = String(args.index_host ?? "").trim();
   if (!indexHost) throw new Error("index_host is required.");
 
@@ -121,6 +175,7 @@ export async function pineconeUpsertVectors(args: Record<string, unknown>): Prom
 
 export async function pineconeDeleteVectors(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const indexHost = String(args.index_host ?? "").trim();
   if (!indexHost) throw new Error("index_host is required.");
 

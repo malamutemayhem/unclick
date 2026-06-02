@@ -252,19 +252,13 @@ export function AdminAppsIntro() {
       <div className="flex items-start gap-3">
         <AppWindow className="mt-0.5 h-4 w-4 shrink-0 text-[#61C1C4]" />
         <div>
-          <p className="text-sm font-semibold text-white">Apps are what UnClick can use.</p>
+          <p className="text-sm font-semibold text-white">Apps are what UnClick can use. Actions are what each app can do.</p>
           <p className="mt-1 text-sm leading-6 text-white/55">
-            Built-in apps work straight away. Connected apps are approved. Turned Off apps stay quiet.
-            Needs Login and Needs API Key tell the user exactly why an app is waiting.
+            Click any app row to expand its actions right here, or click its name to open its page.
+            Your AI picks the right app on its own, or you can ask for one by name. Every app is on by
+            default; untick one to stop your AI using it.
           </p>
         </div>
-      </div>
-      <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
-        {["Built-In", "Connected", "Turned Off", "Needs Login", "Needs API Key", "Private Tools", "Marketplace"].map((label) => (
-          <span key={label} className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-white/55">
-            {label}
-          </span>
-        ))}
       </div>
     </div>
   );

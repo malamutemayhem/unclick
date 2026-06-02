@@ -2,6 +2,10 @@
 // Uses the Twilio REST API via fetch - no external dependencies.
 // Users must supply their Account SID and Auth Token from the Twilio Console.
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const TWILIO_API_BASE = "https://api.twilio.com/2010-04-01";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -58,11 +62,10 @@ interface TwilioVerifyCheckResponse {
 
 // ─── Auth helper ──────────────────────────────────────────────────────────────
 
-function requireAuth(args: Record<string, unknown>): { accountSid: string; authToken: string } {
-  const accountSid = String(args.account_sid ?? "").trim();
-  const authToken = String(args.auth_token ?? "").trim();
-  if (!accountSid) throw new Error("account_sid is required. Find it at console.twilio.com.");
-  if (!authToken) throw new Error("auth_token is required. Find it at console.twilio.com.");
+function requireAuth(args: Record<string, unknown>): { accountSid: string; authToken: string } | NotConnectedResult {
+  const accountSid = String(args.account_sid ?? process.env.TWILIO_ACCOUNT_SID ?? "").trim();
+  const authToken = String(args.auth_token ?? process.env.TWILIO_AUTH_TOKEN ?? "").trim();
+  if (!accountSid || !authToken) return notConnectedFor("twilio");
   return { accountSid, authToken };
 }
 
@@ -81,19 +84,34 @@ async function twilioPost<T>(
   const url = `${TWILIO_API_BASE}/Accounts/${accountSid}${path}.json`;
   const body = new URLSearchParams(params).toString();
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: basicAuth(accountSid, authToken),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
-  });
+  const TWILIO_TIMEOUT_MS = Number(process.env.TWILIO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TWILIO_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: basicAuth(accountSid, authToken),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Twilio request timed out after ${TWILIO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Twilio network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Twilio rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const code = data.code ? ` (code ${data.code})` : "";
-    throw new Error(`Twilio error${code}: ${data.message ?? `HTTP ${res.status}`}`);
+    throw new Error(`Twilio error${code}: ${data.message ?? `status ${res.status}`}`);
   }
   return data as T;
 }
@@ -107,14 +125,29 @@ async function twilioGet<T>(
   const qs = new URLSearchParams(query).toString();
   const url = `${TWILIO_API_BASE}/Accounts/${accountSid}${path}.json${qs ? `?${qs}` : ""}`;
 
-  const res = await fetch(url, {
-    headers: { Authorization: basicAuth(accountSid, authToken) },
-  });
+  const TWILIO_TIMEOUT_MS = Number(process.env.TWILIO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TWILIO_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { Authorization: basicAuth(accountSid, authToken) },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Twilio request timed out after ${TWILIO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Twilio network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Twilio rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const code = data.code ? ` (code ${data.code})` : "";
-    throw new Error(`Twilio error${code}: ${data.message ?? `HTTP ${res.status}`}`);
+    throw new Error(`Twilio error${code}: ${data.message ?? `status ${res.status}`}`);
   }
   return data as T;
 }
@@ -128,19 +161,34 @@ async function twilioVerifyPost<T>(
   const url = `https://verify.twilio.com/v2${path}`;
   const body = new URLSearchParams(params).toString();
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: basicAuth(accountSid, authToken),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
-  });
+  const TWILIO_TIMEOUT_MS = Number(process.env.TWILIO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TWILIO_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: basicAuth(accountSid, authToken),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Twilio Verify request timed out after ${TWILIO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Twilio Verify network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Twilio rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const code = data.code ? ` (code ${data.code})` : "";
-    throw new Error(`Twilio Verify error${code}: ${data.message ?? `HTTP ${res.status}`}`);
+    throw new Error(`Twilio Verify error${code}: ${data.message ?? `status ${res.status}`}`);
   }
   return data as T;
 }
@@ -148,7 +196,9 @@ async function twilioVerifyPost<T>(
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function twilioSendSms(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const to = String(args.to ?? "").trim();
   const from = String(args.from ?? "").trim();
   const body = String(args.body ?? "").trim();
@@ -172,7 +222,9 @@ export async function twilioSendSms(args: Record<string, unknown>): Promise<unkn
 }
 
 export async function twilioListMessages(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const query: Record<string, string> = {};
   if (args.to) query.To = String(args.to);
   if (args.from) query.From = String(args.from);
@@ -182,7 +234,7 @@ export async function twilioListMessages(args: Record<string, unknown>): Promise
 
   const data = await twilioGet<TwilioListResponse<TwilioMessage>>(accountSid, authToken, "/Messages", query);
   const messages = (data.messages as TwilioMessage[] | undefined) ?? [];
-  return {
+  return stampMeta({
     count: messages.length,
     messages: messages.map((m) => ({
       sid: m.sid,
@@ -196,11 +248,17 @@ export async function twilioListMessages(args: Record<string, unknown>): Promise
       error_code: m.error_code,
     })),
     next_page_uri: data.next_page_uri ?? null,
-  };
+  }, {
+    source: "Twilio",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use twilio_get_message for a single message, or twilio_send_sms to send."],
+  });
 }
 
 export async function twilioGetMessage(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const messageSid = String(args.message_sid ?? "").trim();
   if (!messageSid) throw new Error("message_sid is required.");
 
@@ -222,7 +280,9 @@ export async function twilioGetMessage(args: Record<string, unknown>): Promise<u
 }
 
 export async function twilioMakeCall(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const to = String(args.to ?? "").trim();
   const from = String(args.from ?? "").trim();
   const twiml = String(args.twiml ?? "").trim();
@@ -248,7 +308,9 @@ export async function twilioMakeCall(args: Record<string, unknown>): Promise<unk
 }
 
 export async function twilioListCalls(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const query: Record<string, string> = {};
   if (args.to) query.To = String(args.to);
   if (args.from) query.From = String(args.from);
@@ -276,7 +338,9 @@ export async function twilioListCalls(args: Record<string, unknown>): Promise<un
 }
 
 export async function twilioSendVerify(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const serviceSid = String(args.service_sid ?? "").trim();
   const to = String(args.to ?? "").trim();
   const channel = String(args.channel ?? "sms").toLowerCase();
@@ -303,7 +367,9 @@ export async function twilioSendVerify(args: Record<string, unknown>): Promise<u
 }
 
 export async function twilioCheckVerify(args: Record<string, unknown>): Promise<unknown> {
-  const { accountSid, authToken } = requireAuth(args);
+  const _auth = requireAuth(args);
+  if ("not_connected" in _auth) return _auth;
+  const { accountSid, authToken } = _auth;
   const serviceSid = String(args.service_sid ?? "").trim();
   const to = String(args.to ?? "").trim();
   const code = String(args.code ?? "").trim();

@@ -2,49 +2,80 @@
 // Uses the Runway REST API via fetch - no external dependencies.
 // Users must supply an API key from app.runwayml.com/account/api-keys.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const RW_API_BASE = "https://api.dev.runwayml.com/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.runwayml.com/account/api-keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("runway", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 async function rwGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${RW_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "X-Runway-Version": "2024-11-06",
-    },
-  });
+  const RUNWAY_TIMEOUT_MS = Number(process.env.RUNWAY_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RUNWAY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${RW_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "X-Runway-Version": "2024-11-06",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Runway request timed out after ${RUNWAY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Runway network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Runway rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Runway error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function rwPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${RW_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "X-Runway-Version": "2024-11-06",
-    },
-    body: JSON.stringify(body),
-  });
+  const RUNWAY_TIMEOUT_MS = Number(process.env.RUNWAY_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RUNWAY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${RW_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "X-Runway-Version": "2024-11-06",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Runway request timed out after ${RUNWAY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Runway network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Runway rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Runway error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -54,6 +85,7 @@ async function rwPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function runway_generate_video(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const promptText = String(args.prompt ?? "").trim();
   const imageUrl = args.image_url ? String(args.image_url).trim() : undefined;
 
@@ -94,13 +126,14 @@ export async function runway_generate_video(args: Record<string, unknown>): Prom
 
 export async function runway_get_task(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const taskId = String(args.task_id ?? "").trim();
   if (!taskId) throw new Error("task_id is required.");
 
   const result = await rwGet<Record<string, unknown>>(apiKey, `/tasks/${encodeURIComponent(taskId)}`);
 
   const output = result.output as string[] | undefined;
-  return {
+  return stampMeta({
     task_id: taskId,
     status: result.status ?? null,
     progress: result.progress ?? null,
@@ -110,11 +143,16 @@ export async function runway_get_task(args: Record<string, unknown>): Promise<un
     failure_code: result.failureCode ?? null,
     created_at: result.createdAt ?? null,
     raw: result,
-  };
+  }, {
+    source: "Runway",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not done, poll runway_get_task again; once complete, use video_url."],
+  });
 }
 
 export async function runway_list_models(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await rwGet<{ data?: unknown[]; models?: unknown[] } & Record<string, unknown>>(
     apiKey, "/models"
   );

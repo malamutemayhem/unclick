@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run prepare:wiring --workspace=@unclick/mcp-server && npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": "vite",

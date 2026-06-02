@@ -4,7 +4,7 @@ export const redditConnector: ConnectorConfig = {
   name: "Reddit",
   slug: "reddit",
   authType: "oauth2",
-  description: "Reddit API. Read posts and comments, submit content, vote, search subreddits, and manage subscriptions.",
+  description: "Reddit API. Read public posts, threads, comments, users, and search without OAuth; submit content, vote, and manage subscriptions with OAuth.",
   scopes: [
     "read",
     "submit",
@@ -19,7 +19,7 @@ export const redditConnector: ConnectorConfig = {
     {
       key:         "access_token",
       label:       "Access Token",
-      description: "Reddit OAuth2 access token. Obtain via Reddit's OAuth2 flow with your app credentials.",
+      description: "Optional for public read-only tools. Required for posting, commenting, voting, subscribing, or private Reddit OAuth access.",
       secret:      true,
       placeholder: "eyJhbGciOiJSUzI1NiIsImtpZCI6IlNIQTI1NjpzS3dsMnlsV0VtMjVmcXhwTU40cVY4NE5YeVpmbGhFRXh1ZnBValZhNW8iLCJ0eXAiOiJKV1QifQ...",
       findGuideUrl: "https://github.com/reddit-archive/reddit/wiki/OAuth2",

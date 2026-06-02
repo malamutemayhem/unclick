@@ -16,6 +16,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as crypto from "node:crypto";
 import yaml from "js-yaml";
+import { unclickNotConfigured, type NotConnectedResult } from "./connection-help.js";
 
 const API_BASE = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
 
@@ -71,11 +72,9 @@ interface UxPassMcpReceipt {
 
 const RUN_CONTEXT = new Map<string, UxPassRunContext>();
 
-function getApiKey(): string {
+function getApiKey(): string | NotConnectedResult {
   const key = process.env.UNCLICK_API_KEY?.trim();
-  if (!key) {
-    throw new Error("UNCLICK_API_KEY env var is not set. Get your install config at https://unclick.world");
-  }
+  if (!key) return unclickNotConfigured();
   return key;
 }
 
@@ -84,6 +83,7 @@ async function callApi(
   init: { method?: string; body?: unknown } = {},
 ): Promise<unknown> {
   const apiKey = getApiKey();
+  if (typeof apiKey !== "string") return apiKey;
   const res = await fetch(`${API_BASE}/api/uxpass${pathAndQuery}`, {
     method: init.method ?? "GET",
     headers: {
@@ -323,6 +323,7 @@ export async function uxpassReportHtml(args: Record<string, unknown>): Promise<u
   const runId = typeof args.run_id === "string" ? args.run_id : "";
   if (!runId) return { error: "run_id is required" };
   const apiKey = getApiKey();
+  if (typeof apiKey !== "string") return apiKey;
   const res = await fetch(
     `${API_BASE}/api/uxpass?action=report_html&run_id=${encodeURIComponent(runId)}`,
     { headers: { Authorization: `Bearer ${apiKey}` } },

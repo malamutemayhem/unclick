@@ -3,13 +3,20 @@
 // Auth: VIRUSTOTAL_API_KEY (x-apikey header)
 // Base: https://www.virustotal.com/api/v3/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const VT_BASE = "https://www.virustotal.com/api/v3";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.VIRUSTOTAL_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set VIRUSTOTAL_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("virustotal", args);
 }
+
+const VIRUSTOTAL_TIMEOUT_MS = Number(process.env.VIRUSTOTAL_TIMEOUT_MS) || 15000;
 
 async function vtGet(
   apiKey: string,
@@ -17,9 +24,22 @@ async function vtGet(
   params?: Record<string, string>
 ): Promise<Record<string, unknown>> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${VT_BASE}${path}${qs}`, {
-    headers: { "x-apikey": apiKey },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), VIRUSTOTAL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${VT_BASE}${path}${qs}`, {
+      headers: { "x-apikey": apiKey },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`VirusTotal request timed out after ${VIRUSTOTAL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`VirusTotal network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid VirusTotal API key.");
   if (res.status === 404) throw new Error(`VirusTotal: resource not found at ${path}.`);
   if (res.status === 429) throw new Error("VirusTotal rate limit exceeded. Wait and retry.");
@@ -35,14 +55,27 @@ async function vtPost(
   path: string,
   body: URLSearchParams
 ): Promise<Record<string, unknown>> {
-  const res = await fetch(`${VT_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "x-apikey": apiKey,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: body.toString(),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), VIRUSTOTAL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${VT_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "x-apikey": apiKey,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: body.toString(),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`VirusTotal request timed out after ${VIRUSTOTAL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`VirusTotal network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid VirusTotal API key.");
   if (res.status === 429) throw new Error("VirusTotal rate limit exceeded. Wait and retry.");
   if (!res.ok) {
@@ -65,17 +98,22 @@ function extractStats(data: Record<string, unknown>): Record<string, unknown> {
 // scan_url_virustotal
 export async function scanUrlVirustotal(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const url = String(args.url ?? "").trim();
     if (!url) return { error: "url is required." };
     const body = new URLSearchParams({ url });
     const data = await vtPost(apiKey, "/urls", body);
     const id = (data.data as Record<string, unknown>)?.id ?? null;
-    return {
+    return stampMeta({
       submitted: true,
       analysis_id: id,
       note: "Use get_url_report with the base64url-encoded URL to fetch results.",
-    };
+    }, {
+      source: "VirusTotal",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use virustotal_url_report with the encoded URL to fetch the verdict."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -84,7 +122,8 @@ export async function scanUrlVirustotal(args: Record<string, unknown>): Promise<
 // get_url_report
 export async function getUrlReport(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const url = String(args.url ?? "").trim();
     if (!url) return { error: "url is required." };
     // Encode to base64url without padding
@@ -109,7 +148,8 @@ export async function getUrlReport(args: Record<string, unknown>): Promise<unkno
 // scan_ip_virustotal
 export async function scanIpVirustotal(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const ip = String(args.ip ?? "").trim();
     if (!ip) return { error: "ip is required." };
     const data = await vtGet(apiKey, `/ip_addresses/${ip}`);
@@ -132,7 +172,8 @@ export async function scanIpVirustotal(args: Record<string, unknown>): Promise<u
 // scan_domain_virustotal
 export async function scanDomainVirustotal(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const domain = String(args.domain ?? "").trim();
     if (!domain) return { error: "domain is required." };
     const data = await vtGet(apiKey, `/domains/${domain}`);

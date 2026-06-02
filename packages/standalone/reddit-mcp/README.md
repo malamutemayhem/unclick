@@ -1,6 +1,6 @@
 # Reddit MCP by UnClick
 
-Search, read, and post across Reddit: posts, comments, subreddits, and users.
+Search, read public Reddit content without OAuth, and post or vote with OAuth when needed.
 
 > By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world
 
@@ -25,6 +25,7 @@ Installs straight from GitHub, no npm account needed.
 - `reddit_post`
 - `reddit_comment`
 - `reddit_search`
+- `reddit_thread`
 - `reddit_user`
 - `reddit_vote`
 - `reddit_subscribe`

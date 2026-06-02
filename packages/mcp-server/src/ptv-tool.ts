@@ -5,6 +5,8 @@
 
 import { createHmac } from "node:crypto";
 
+import { emitConnectorSignal } from "./signals/emit.js";
+
 const PTV_BASE = "https://timetableapi.ptv.vic.gov.au";
 const PTV_ATTRIBUTION =
   "Source: Licensed from Public Transport Victoria under a Creative Commons Attribution 4.0 International Licence.";
@@ -80,7 +82,9 @@ function addPtvMeta(result: unknown, tool: string, defaultsUsed: string[]): unkn
     next_steps:
       tool === "ptv_search"
         ? ["Use a returned stop_id with ptv_departures."]
-        : ["Use ptv_disruptions to check service disruptions for the same route type."],
+        : tool === "ptv_disruptions"
+          ? ["Use ptv_departures for live times on an affected stop."]
+          : ["Use ptv_disruptions to check service disruptions for the same route type."],
   };
 
   if (result && typeof result === "object" && !Array.isArray(result)) {
@@ -145,6 +149,18 @@ export async function ptvDepartures(args: Record<string, unknown>): Promise<unkn
 // ─── ptv_disruptions ──────────────────────────────────────────────────────────
 // GET /v3/disruptions
 
+// Counts disruption entries across every PTV mode bucket in a /v3/disruptions
+// response ({ disruptions: { metro_train: [...], metro_tram: [...], ... } }).
+export function countDisruptions(result: unknown): number {
+  const buckets = (result as { disruptions?: Record<string, unknown> } | null)?.disruptions;
+  if (!buckets || typeof buckets !== "object") return 0;
+  let total = 0;
+  for (const value of Object.values(buckets)) {
+    if (Array.isArray(value)) total += value.length;
+  }
+  return total;
+}
+
 export async function ptvDisruptions(args: Record<string, unknown>): Promise<unknown> {
   const params: Record<string, string> = {};
 
@@ -155,7 +171,24 @@ export async function ptvDisruptions(args: Record<string, unknown>): Promise<unk
     params["disruption_status"] = String(args.disruption_status);
   }
 
-  return ptvFetch("/v3/disruptions", params);
+  const result = await ptvFetch("/v3/disruptions", params);
+
+  // L4 proactive: when the network is actually disrupted, drop a signal into the
+  // caller's own inbox so the next check_signals surfaces it instead of the agent
+  // having to think to ask. Fire-and-forget and scoped to the caller's key.
+  const disrupted = countDisruptions(result);
+  if (disrupted > 0) {
+    void emitConnectorSignal({
+      tool: "ptv_disruptions",
+      action: "disruptions_active",
+      severity: "action_needed",
+      summary: `${disrupted} active PTV disruption${disrupted === 1 ? "" : "s"} on the network.`,
+      deepLink: "/tools/ptv",
+      payload: { active_count: disrupted, route_type: args.route_type ?? null },
+    });
+  }
+
+  return addPtvMeta(result, "ptv_disruptions", []);
 }
 
 // ─── ptv_stops_on_route ───────────────────────────────────────────────────────

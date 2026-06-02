@@ -2,25 +2,44 @@
 // Uses the Alpha Vantage REST API via fetch - no external dependencies.
 // Users must register at alphavantage.co to get a free API key.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const ALPHAVANTAGE_BASE = "https://www.alphavantage.co/query";
 
 // --- API helper ---
 
-function requireKey(): string {
-  const key = (process.env.ALPHAVANTAGE_API_KEY ?? "").trim();
-  if (!key) throw new Error("ALPHAVANTAGE_API_KEY environment variable is required.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("alphavantage", args);
 }
 
-async function avFetch(params: Record<string, string>): Promise<unknown> {
-  const apikey = requireKey();
+const ALPHAVANTAGE_TIMEOUT_MS = Number(process.env.ALPHAVANTAGE_TIMEOUT_MS) || 10000;
+
+async function avFetch(apikey: string, params: Record<string, string>): Promise<unknown> {
   const url = new URL(ALPHAVANTAGE_BASE);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   url.searchParams.set("apikey", apikey);
 
-  const response = await fetch(url.toString());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ALPHAVANTAGE_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Alpha Vantage API request timed out after ${ALPHAVANTAGE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Alpha Vantage API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(`Alpha Vantage API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} from Alpha Vantage API`);
+    throw new Error(`Alpha Vantage API HTTP ${response.status}.`);
   }
 
   const data = await response.json();
@@ -43,16 +62,18 @@ async function avFetch(params: Record<string, string>): Promise<unknown> {
 // --- Operations ---
 
 export async function stockQuote(args: Record<string, unknown>): Promise<unknown> {
+  const apikey = requireKey(args);
+  if (typeof apikey !== "string") return apikey;
   const symbol = String(args.symbol ?? "").trim().toUpperCase();
   if (!symbol) throw new Error("symbol is required.");
 
-  const data = await avFetch({ function: "GLOBAL_QUOTE", symbol }) as Record<string, unknown>;
+  const data = await avFetch(apikey, { function: "GLOBAL_QUOTE", symbol }) as Record<string, unknown>;
   const quote = data["Global Quote"] as Record<string, string> | undefined;
   if (!quote || !quote["01. symbol"]) {
     return { symbol, quote: null, note: "No data returned. Check symbol." };
   }
 
-  return {
+  return stampMeta({
     symbol: quote["01. symbol"],
     open: quote["02. open"],
     high: quote["03. high"],
@@ -63,14 +84,20 @@ export async function stockQuote(args: Record<string, unknown>): Promise<unknown
     previous_close: quote["08. previous close"],
     change: quote["09. change"],
     change_percent: quote["10. change percent"],
-  };
+  }, {
+    source: "Alpha Vantage",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use stock_daily or stock_intraday for time series, or stock_search to find a symbol."],
+  });
 }
 
 export async function stockSearch(args: Record<string, unknown>): Promise<unknown> {
+  const apikey = requireKey(args);
+  if (typeof apikey !== "string") return apikey;
   const keywords = String(args.keywords ?? "").trim();
   if (!keywords) throw new Error("keywords is required.");
 
-  const data = await avFetch({ function: "SYMBOL_SEARCH", keywords }) as Record<string, unknown>;
+  const data = await avFetch(apikey, { function: "SYMBOL_SEARCH", keywords }) as Record<string, unknown>;
   const matches = data["bestMatches"] as Array<Record<string, string>> | undefined;
 
   return {
@@ -87,11 +114,13 @@ export async function stockSearch(args: Record<string, unknown>): Promise<unknow
 }
 
 export async function stockDaily(args: Record<string, unknown>): Promise<unknown> {
+  const apikey = requireKey(args);
+  if (typeof apikey !== "string") return apikey;
   const symbol = String(args.symbol ?? "").trim().toUpperCase();
   if (!symbol) throw new Error("symbol is required.");
   const outputsize = String(args.outputsize ?? "compact");
 
-  const data = await avFetch({
+  const data = await avFetch(apikey, {
     function: "TIME_SERIES_DAILY",
     symbol,
     outputsize,
@@ -122,6 +151,8 @@ export async function stockDaily(args: Record<string, unknown>): Promise<unknown
 }
 
 export async function stockIntraday(args: Record<string, unknown>): Promise<unknown> {
+  const apikey = requireKey(args);
+  if (typeof apikey !== "string") return apikey;
   const symbol = String(args.symbol ?? "").trim().toUpperCase();
   if (!symbol) throw new Error("symbol is required.");
 
@@ -131,7 +162,7 @@ export async function stockIntraday(args: Record<string, unknown>): Promise<unkn
     throw new Error(`interval must be one of: ${validIntervals.join(", ")}.`);
   }
 
-  const data = await avFetch({
+  const data = await avFetch(apikey, {
     function: "TIME_SERIES_INTRADAY",
     symbol,
     interval,
@@ -164,12 +195,14 @@ export async function stockIntraday(args: Record<string, unknown>): Promise<unkn
 }
 
 export async function forexRate(args: Record<string, unknown>): Promise<unknown> {
+  const apikey = requireKey(args);
+  if (typeof apikey !== "string") return apikey;
   const from_currency = String(args.from_currency ?? "").trim().toUpperCase();
   const to_currency = String(args.to_currency ?? "").trim().toUpperCase();
   if (!from_currency) throw new Error("from_currency is required.");
   if (!to_currency) throw new Error("to_currency is required.");
 
-  const data = await avFetch({
+  const data = await avFetch(apikey, {
     function: "CURRENCY_EXCHANGE_RATE",
     from_currency,
     to_currency,
@@ -192,12 +225,14 @@ export async function forexRate(args: Record<string, unknown>): Promise<unknown>
 }
 
 export async function cryptoDaily(args: Record<string, unknown>): Promise<unknown> {
+  const apikey = requireKey(args);
+  if (typeof apikey !== "string") return apikey;
   const symbol = String(args.symbol ?? "").trim().toUpperCase();
   const market = String(args.market ?? "").trim().toUpperCase();
   if (!symbol) throw new Error("symbol is required.");
   if (!market) throw new Error("market is required (e.g. USD, EUR).");
 
-  const data = await avFetch({
+  const data = await avFetch(apikey, {
     function: "DIGITAL_CURRENCY_DAILY",
     symbol,
     market,

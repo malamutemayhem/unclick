@@ -230,9 +230,9 @@ describe("NudgeOnlyAPI policy", () => {
     const previous = process.env.OPENROUTER_API_KEY;
     delete process.env.OPENROUTER_API_KEY;
 
-    await expect(nudgeonlyApi({ event_text: "wakepass stale ack" }))
-      .rejects
-      .toThrow("api_key is required");
+    const result = await nudgeonlyApi({ event_text: "wakepass stale ack" }) as Record<string, unknown>;
+    expect(result.not_connected).toBe(true);
+    expect(result.connector).toBe("openrouter");
 
     if (previous === undefined) {
       delete process.env.OPENROUTER_API_KEY;

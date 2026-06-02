@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ptvSearch, ptvDepartures } from "./ptv-tool.js";
+import { ptvSearch, ptvDepartures, ptvDisruptions, countDisruptions } from "./ptv-tool.js";
 
 // Colocated PTV connector tests. Exercise the L2 (resilience) and L4 (source
 // stamp + memory defaults) behaviours so PTV is the reference for the depth ladder.
@@ -76,5 +76,36 @@ describe("ptv source stamping + memory defaults (L4)", () => {
 
     expect(String(fetchMock.mock.calls[0][0])).toContain("/stop/9999");
     expect(result.unclick_meta.defaults_used).not.toContain("PTV_HOME_STOP_ID");
+  });
+});
+
+describe("ptv proactive disruptions signal (L4)", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("counts disruption entries across every mode bucket", () => {
+    expect(countDisruptions({ disruptions: { metro_train: [{}, {}], metro_tram: [{}] } })).toBe(3);
+    expect(countDisruptions({ disruptions: {} })).toBe(0);
+    expect(countDisruptions({})).toBe(0);
+    expect(countDisruptions(null)).toBe(0);
+  });
+
+  it("stamps the disruptions read and stays a safe no-op when no API key is configured", async () => {
+    // No UNCLICK_API_KEY -> emitConnectorSignal resolves to a no-op, so the read
+    // must still return its stamped payload without throwing.
+    vi.stubEnv("UNCLICK_API_KEY", "");
+    vi.stubEnv("UNCLICK_API_KEY_HASH", "");
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: true, status: 200, json: async () => ({ disruptions: { metro_train: [{ title: "Delays" }] } }),
+    })));
+
+    const result = await ptvDisruptions({}) as Record<string, any>;
+
+    expect(result.unclick_meta).toMatchObject({
+      source: "PTV Timetable API v3",
+      next_steps: ["Use ptv_departures for live times on an affected stop."],
+    });
   });
 });

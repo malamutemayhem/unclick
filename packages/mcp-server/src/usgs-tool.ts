@@ -2,7 +2,10 @@
 // Free USGS Earthquake Hazards Program API - no auth required.
 // Docs: https://earthquake.usgs.gov/fdsnws/event/1/
 
+import { stampMeta } from "./connector-meta.js";
+
 const USGS_BASE = "https://earthquake.usgs.gov/fdsnws/event/1";
+const USGS_TIMEOUT_MS = Number(process.env.USGS_TIMEOUT_MS) || 10000;
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
@@ -12,10 +15,26 @@ async function usgsFetch<T>(params: Record<string, string>): Promise<T> {
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
-  const res = await fetch(url.toString());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), USGS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`USGS API request timed out after ${USGS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`USGS API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`USGS API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`USGS API HTTP ${res.status}: ${text.slice(0, 200)}`);
+    throw new Error(`USGS API HTTP ${res.status}${text ? `: ${text.slice(0, 200)}` : ""}`);
   }
   return res.json() as Promise<T>;
 }
@@ -69,13 +88,17 @@ export async function getRecentEarthquakes(
 
   const data = await usgsFetch<GeoJsonResponse>(params);
 
-  return {
+  return stampMeta({
     count:       data.features.length,
     generated:   data.metadata?.generated
       ? new Date(data.metadata.generated as number).toISOString()
       : null,
     earthquakes: data.features.map(mapFeature),
-  };
+  }, {
+    source: "USGS Earthquake Catalog",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use usgs_earthquake_detail with an event id for the full report, or usgs_earthquakes_by_region to focus on an area."],
+  });
 }
 
 export async function getEarthquakeDetail(
@@ -84,16 +107,7 @@ export async function getEarthquakeDetail(
   const eventId = String(args.event_id ?? "").trim();
   if (!eventId) throw new Error("event_id is required.");
 
-  const url = new URL(`${USGS_BASE}/query`);
-  url.searchParams.set("format", "geojson");
-  url.searchParams.set("eventid", eventId);
-
-  const res = await fetch(url.toString());
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`USGS API HTTP ${res.status}: ${text.slice(0, 200)}`);
-  }
-  const data = await res.json() as GeoJsonFeature;
+  const data = await usgsFetch<GeoJsonFeature>({ eventid: eventId });
 
   const p = data.properties;
   const [lon, lat, depth] = data.geometry.coordinates;

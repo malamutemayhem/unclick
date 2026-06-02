@@ -3,6 +3,8 @@
 // Auth: OPENAQ_API_KEY env or api_key arg (X-API-Key header).
 // Docs: https://docs.openaq.io/
 
+import { stampMeta } from "./connector-meta.js";
+
 const OPENAQ_BASE = "https://api.openaq.io/v3";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
@@ -10,6 +12,8 @@ const OPENAQ_BASE = "https://api.openaq.io/v3";
 function getKey(args: Record<string, unknown>): string {
   return String(args.api_key ?? process.env.OPENAQ_API_KEY ?? "").trim();
 }
+
+const OPENAQ_TIMEOUT_MS = Number(process.env.OPENAQ_TIMEOUT_MS) || 10000;
 
 async function openaqFetch<T>(
   path: string,
@@ -24,10 +28,26 @@ async function openaqFetch<T>(
   const headers: Record<string, string> = { "Accept": "application/json" };
   if (apiKey) headers["X-API-Key"] = apiKey;
 
-  const res = await fetch(url.toString(), { headers });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPENAQ_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), { headers, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`OpenAQ API request timed out after ${OPENAQ_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`OpenAQ API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`OpenAQ API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({})) as Record<string, unknown>;
-    const msg  = body.detail ?? body.message ?? `HTTP ${res.status}`;
+    const msg  = body.detail ?? body.message ?? `status ${res.status}`;
     throw new Error(`OpenAQ API error: ${String(msg)}`);
   }
   return res.json() as Promise<T>;
@@ -62,7 +82,7 @@ export async function getAirQuality(
 
   const data = await openaqFetch<LocationsResponse>("/locations", params, apiKey);
 
-  return {
+  return stampMeta({
     count:     data.meta?.found ?? data.results.length,
     locations: data.results.map((loc) => ({
       id:          loc.id,
@@ -84,7 +104,11 @@ export async function getAirQuality(
         ? (loc.datetimeLast as Record<string, unknown>).utc ?? null
         : null,
     })),
-  };
+  }, {
+    source: "OpenAQ",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use openaq_measurements for a location's readings, or openaq_countries to list coverage."],
+  });
 }
 
 export async function getAirMeasurements(

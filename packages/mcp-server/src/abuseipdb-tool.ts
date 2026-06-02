@@ -3,12 +3,14 @@
 // Auth: ABUSEIPDB_API_KEY (Key header)
 // Base: https://api.abuseipdb.com/api/v2/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const ABUSEIPDB_BASE = "https://api.abuseipdb.com/api/v2";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.ABUSEIPDB_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set ABUSEIPDB_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("abuseipdb", args);
 }
 
 async function abuseGet(
@@ -17,12 +19,26 @@ async function abuseGet(
   params: Record<string, string>
 ): Promise<Record<string, unknown>> {
   const qs = new URLSearchParams(params);
-  const res = await fetch(`${ABUSEIPDB_BASE}${path}?${qs}`, {
-    headers: {
-      Key: apiKey,
-      Accept: "application/json",
-    },
-  });
+  const ABUSEIPDB_TIMEOUT_MS = Number(process.env.ABUSEIPDB_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ABUSEIPDB_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${ABUSEIPDB_BASE}${path}?${qs}`, {
+      headers: {
+        Key: apiKey,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`AbuseIPDB request timed out after ${ABUSEIPDB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`AbuseIPDB network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid AbuseIPDB API key.");
   if (res.status === 429) throw new Error("AbuseIPDB rate limit exceeded. Upgrade your plan or wait.");
   if (!res.ok) {
@@ -38,15 +54,29 @@ async function abusePost(
   params: Record<string, string>
 ): Promise<Record<string, unknown>> {
   const body = new URLSearchParams(params);
-  const res = await fetch(`${ABUSEIPDB_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Key: apiKey,
-      Accept: "application/json",
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: body.toString(),
-  });
+  const ABUSEIPDB_TIMEOUT_MS = Number(process.env.ABUSEIPDB_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ABUSEIPDB_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${ABUSEIPDB_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Key: apiKey,
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: body.toString(),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`AbuseIPDB request timed out after ${ABUSEIPDB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`AbuseIPDB network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid AbuseIPDB API key.");
   if (res.status === 429) throw new Error("AbuseIPDB rate limit exceeded.");
   if (!res.ok) {
@@ -60,6 +90,7 @@ async function abusePost(
 export async function checkIpAbuse(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const ip = String(args.ip ?? "").trim();
     if (!ip) return { error: "ip is required." };
     const params: Record<string, string> = { ipAddress: ip };
@@ -67,7 +98,7 @@ export async function checkIpAbuse(args: Record<string, unknown>): Promise<unkno
     if (args.verbose) params.verbose = "true";
     const json = await abuseGet(apiKey, "/check", params);
     const d = json.data as Record<string, unknown> | undefined;
-    return {
+    return stampMeta({
       ip_address: d?.ipAddress,
       is_public: d?.isPublic,
       abuse_confidence_score: d?.abuseConfidenceScore,
@@ -80,7 +111,11 @@ export async function checkIpAbuse(args: Record<string, unknown>): Promise<unkno
       num_distinct_users: d?.numDistinctUsers,
       last_reported_at: d?.lastReportedAt,
       reports: d?.reports ?? [],
-    };
+    }, {
+      source: "AbuseIPDB",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use abuseipdb_blacklist for the worst offenders, or abuseipdb_report_ip to report abuse."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -90,6 +125,7 @@ export async function checkIpAbuse(args: Record<string, unknown>): Promise<unkno
 export async function reportIpAbuse(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const ip = String(args.ip ?? "").trim();
     const categories = String(args.categories ?? "").trim();
     if (!ip) return { error: "ip is required." };
@@ -111,6 +147,7 @@ export async function reportIpAbuse(args: Record<string, unknown>): Promise<unkn
 export async function getBlacklistAbuseipdb(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string> = {};
     if (args.confidence_minimum) params.confidenceMinimum = String(args.confidence_minimum);
     if (args.limit) params.limit = String(args.limit);

@@ -5009,10 +5009,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           credential: credMap.get(pc.id as string) ?? null,
         }));
 
+        // Apps the user has turned off (enforced by the MCP server).
+        const { data: appState } = await supabase
+          .from("tenant_app_state")
+          .select("disabled_apps")
+          .eq("api_key_hash", tenant.apiKeyHash)
+          .maybeSingle();
+
         return res.status(200).json({
           metering: meteringMap,
           connectors: enrichedConnectors,
+          disabled_apps: (appState?.disabled_apps as string[] | undefined) ?? [],
         });
+      }
+
+      case "admin_set_app_state": {
+        if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+        const tenant = await resolveSessionTenant(req, supabaseUrl, supabaseKey, supabase);
+        if (!tenant) return res.status(401).json({ error: "Not signed in" });
+
+        const body = (req.body ?? {}) as { disabled_apps?: unknown };
+        const disabled = Array.isArray(body.disabled_apps)
+          ? [...new Set(body.disabled_apps.map(String).filter((s) => s.length > 0))]
+          : [];
+
+        const { error: upErr } = await supabase
+          .from("tenant_app_state")
+          .upsert(
+            { api_key_hash: tenant.apiKeyHash, disabled_apps: disabled, updated_at: new Date().toISOString() },
+            { onConflict: "api_key_hash" },
+          );
+        if (upErr) throw upErr;
+        return res.status(200).json({ success: true, disabled_apps: disabled });
       }
 
       case "admin_update_fact": {

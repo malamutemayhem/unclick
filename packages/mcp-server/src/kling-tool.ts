@@ -2,47 +2,78 @@
 // Uses the Kling AI REST API via fetch - no external dependencies.
 // Users must supply an API key from klingai.com (access_key format or pre-generated JWT).
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const KLING_API_BASE = "https://api.klingai.com/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at klingai.com.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("kling", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 async function klingGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${KLING_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const KLING_TIMEOUT_MS = Number(process.env.KLING_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), KLING_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${KLING_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Kling AI request timed out after ${KLING_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Kling AI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Kling AI rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Kling AI error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function klingPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${KLING_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const KLING_TIMEOUT_MS = Number(process.env.KLING_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), KLING_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${KLING_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Kling AI request timed out after ${KLING_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Kling AI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Kling AI rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Kling AI error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -52,6 +83,7 @@ async function klingPost<T>(apiKey: string, path: string, body: unknown): Promis
 
 export async function kling_generate_video(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
 
@@ -90,6 +122,7 @@ export async function kling_generate_video(args: Record<string, unknown>): Promi
 
 export async function kling_get_task(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const taskId = String(args.task_id ?? "").trim();
   if (!taskId) throw new Error("task_id is required.");
 
@@ -101,7 +134,7 @@ export async function kling_get_task(args: Record<string, unknown>): Promise<unk
   const info = taskData ?? result;
   const videos = info.task_result as Record<string, unknown> | undefined;
 
-  return {
+  return stampMeta({
     task_id: taskId,
     status: info.task_status ?? null,
     progress: info.task_progress ?? null,
@@ -111,5 +144,9 @@ export async function kling_get_task(args: Record<string, unknown>): Promise<unk
     updated_at: info.updated_at ?? null,
     error: info.task_status_msg ?? null,
     raw: result,
-  };
+  }, {
+    source: "Kling",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not succeed, poll kling_get_task again; once done, use video_url."],
+  });
 }

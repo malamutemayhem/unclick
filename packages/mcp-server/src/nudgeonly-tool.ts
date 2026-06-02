@@ -2,6 +2,8 @@
 // It can summarize, flag, and suggest checks, but it must never decide or write.
 
 import { createHash } from "node:crypto";
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 
 const OPENROUTER_BASE = "https://openrouter.ai/api/v1";
 const DEFAULT_MODEL = "liquid/lfm-2.5-1.2b-instruct:free";
@@ -308,12 +310,8 @@ export const NUDGEONLY_POLICY = {
   verifier_rule: "Every nudge must be verified by deterministic code or a trusted lane before action.",
 } as const;
 
-function apiKeyFrom(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.OPENROUTER_API_KEY ?? "").trim();
-  if (!key) {
-    throw new Error("api_key is required unless OPENROUTER_API_KEY is set.");
-  }
-  return key;
+function apiKeyFrom(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("openrouter", args);
 }
 
 export function isNudgeOnlyFreeOpenRouterModel(model: string): boolean {
@@ -857,6 +855,7 @@ export async function nudgeonlyReceiptBridge(args: Record<string, unknown>): Pro
 
 export async function nudgeonlyApi(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = apiKeyFrom(args);
+  if (typeof apiKey !== "string") return apiKey;
   const eventText = trimInput(args.event_text);
   if (!eventText) throw new Error("event_text is required.");
 

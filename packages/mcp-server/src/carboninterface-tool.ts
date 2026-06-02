@@ -3,33 +3,53 @@
 // Auth: CARBONINTERFACE_API_KEY env or api_key arg (Bearer token).
 // Docs: https://docs.carboninterface.com/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const CI_BASE = "https://www.carboninterface.com/api/v1";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
-function getKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.CARBONINTERFACE_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set CARBONINTERFACE_API_KEY env).");
-  return key;
+function getKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("carboninterface", args);
 }
+
+const CARBONINTERFACE_TIMEOUT_MS = Number(process.env.CARBONINTERFACE_TIMEOUT_MS) || 10000;
 
 async function ciFetch<T>(
   path: string,
   body: Record<string, unknown>,
   apiKey: string
 ): Promise<T> {
-  const res = await fetch(`${CI_BASE}${path}`, {
-    method:  "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type":  "application/json",
-      "Accept":        "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CARBONINTERFACE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${CI_BASE}${path}`, {
+      method:  "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type":  "application/json",
+        "Accept":        "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Carbon Interface API request timed out after ${CARBONINTERFACE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Carbon Interface API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Carbon Interface API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({})) as Record<string, unknown>;
-    const msg = err.message ?? err.error ?? `HTTP ${res.status}`;
+    const msg = err.message ?? err.error ?? `status ${res.status}`;
     throw new Error(`Carbon Interface API error: ${String(msg)}`);
   }
   return res.json() as Promise<T>;
@@ -49,6 +69,7 @@ export async function estimateFlightEmissions(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const apiKey = getKey(args);
+  if (typeof apiKey !== "string") return apiKey;
 
   // legs: array of { departure_airport, destination_airport, cabin_class? }
   const legs = args.legs;
@@ -78,7 +99,7 @@ export async function estimateFlightEmissions(
   );
 
   const attrs = data.data.attributes;
-  return {
+  return stampMeta({
     id:               data.data.id,
     type:             "flight",
     passengers,
@@ -90,13 +111,18 @@ export async function estimateFlightEmissions(
     distance_value:   attrs.distance_value ?? null,
     distance_unit:    attrs.distance_unit  ?? null,
     estimated_at:     attrs.estimated_at   ?? null,
-  };
+  }, {
+    source: "Carbon Interface",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use carbon_vehicle_emissions or carbon_electricity_emissions for other estimates."],
+  });
 }
 
 export async function estimateVehicleEmissions(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const apiKey = getKey(args);
+  if (typeof apiKey !== "string") return apiKey;
 
   const distanceValue = Number(args.distance_value ?? args.distance ?? 0);
   const distanceUnit  = String(args.distance_unit ?? "km").toLowerCase();
@@ -140,6 +166,7 @@ export async function estimateElectricityEmissions(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const apiKey = getKey(args);
+  if (typeof apiKey !== "string") return apiKey;
 
   const electricityValue = Number(args.electricity_value ?? args.kwh ?? 0);
   const electricityUnit  = String(args.electricity_unit ?? "kwh").toLowerCase();

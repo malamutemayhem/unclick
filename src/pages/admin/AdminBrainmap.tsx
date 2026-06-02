@@ -166,7 +166,7 @@ const coreSurfaceGroups = [
   },
   {
     group: "Knowledge",
-    routes: ["/admin/brainmap", "/admin/memory", "/admin/tools", "/admin/codebase"],
+    routes: ["/admin/brainmap", "/admin/memory", "/admin/apps", "/admin/codebase"],
   },
   {
     group: "Proof and safety",
