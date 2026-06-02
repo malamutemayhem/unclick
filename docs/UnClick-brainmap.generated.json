@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 610,
+    "inventory": 612,
     "source_manifest": 190,
     "pages": 82,
     "tools": 219,
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 119
+      "count": 121
     },
     {
       "id": "ledgers-and-proof",
@@ -1468,6 +1468,26 @@
       "kind": "script",
       "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
       "source": "scripts/pinballwake-writerlane-free-writer.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-live-catalog-scripts-pinballwake-writerlane-live-catalog-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake writerlane live catalog",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-live-catalog.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-live-catalog-test-scripts-pinballwake-writerlane-live-catalog-test-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake writerlane live catalog.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-live-catalog.test.mjs",
       "route": "",
       "tags": []
     },
@@ -8096,6 +8116,10 @@
     [
       "test:watch",
       "vitest"
+    ],
+    [
+      "test:writerlane-live-catalog",
+      "node --test scripts/pinballwake-writerlane-live-catalog.test.mjs"
     ]
   ],
   "source_manifest": [
@@ -8186,8 +8210,8 @@
     },
     {
       "source": "package.json",
-      "hash": "80d780561f43",
-      "bytes": 6468
+      "hash": "ec9c3b1ab6e9",
+      "bytes": 6572
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
