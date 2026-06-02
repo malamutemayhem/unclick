@@ -11,6 +11,7 @@ import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
 import { crewsStartRun } from "./crews-tool.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
+import { xgatePreflight } from "./xgate-preflight.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
 import { markContextLoaded, recordToolCall } from "./memory/session-state.js";
 import { searchToolIndex } from "./memory/tool-awareness.js";
@@ -2374,6 +2375,26 @@ export function createServer(): Server {
       if (name === "unclick_call") {
         const endpointId = String(args.endpoint_id ?? "");
         const params = (args.params ?? {}) as Record<string, unknown>;
+
+        // XGate preflight: pre-execution guardrails. Off by default; only
+        // evaluates when UNCLICK_XGATE_ENFORCE=1, and only blocks in "block"
+        // mode. Shadow mode (default when enabled) reports without blocking.
+        // The gate logic is single-sourced in the API (api/lib/xgate); this
+        // hot-path hook calls it over HTTP, matching how the package already
+        // reaches the API. Never throws; on any error it proceeds (fail open
+        // in shadow, the operator opts into block explicitly).
+        const xgate = await xgatePreflight(endpointId, params);
+        if (xgate && !xgate.proceed) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `XGate blocked this action (${xgate.gate ?? "xgate"}: ${xgate.ruleId ?? "rule"}). ${xgate.reason ?? ""}`.trim(),
+              },
+            ],
+            isError: true,
+          };
+        }
 
         // Memory endpoints: "memory.add_fact", "memory.store_code", etc.
         if (endpointId.startsWith("memory.")) {

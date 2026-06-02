@@ -390,6 +390,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const authority = await resolveXGateAuthority(req, supabaseUrl, serviceRoleKey);
   if (!authority.ok) return json(res, authority.status, { error: authority.error });
 
+  // Preflight mode: the MCP tool hot path posts { endpointId, params } and gets
+  // a simple proceed/block decision via the pure preflight helper. Off-by-
+  // default and shadow/block behaviour are decided inside runPreflight from the
+  // UNCLICK_XGATE_* env, so this path is safe to expose.
+  if (req.query.mode === "preflight") {
+    try {
+      const { runPreflight } = await import(/* @vite-ignore */ "./lib/xgate/preflight.js");
+      const body = (req.body ?? {}) as { endpointId?: unknown; params?: unknown };
+      const endpointId = typeof body.endpointId === "string" ? body.endpointId : "";
+      const params = (body.params && typeof body.params === "object" ? body.params : {}) as Record<string, unknown>;
+      const outcome = runPreflight(endpointId, params, { enforce: true });
+      return json(res, 200, outcome);
+    } catch (error) {
+      // Fail open: a preflight transport error must not block the tool path.
+      return json(res, 200, { proceed: true, verdict: "allow", error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
   const parsed = parseXGateCheckBody(req.body);
   if (!parsed.ok) return json(res, 400, { error: parsed.error });
 
