@@ -248,6 +248,7 @@ function meaningForTool(file) {
   if (base === "igniteonly") return "IgniteOnly verified worker wake packet bridge.";
   if (base === "heartbeat-protocol") return "Canonical heartbeat policy served to scheduled seats.";
   if (base.includes("testpass")) return "TestPass proof and test orchestration capability.";
+  if (base.includes("uipass")) return "UIPass interface verification capability.";
   if (base.includes("uxpass")) return "UXPass experience verification capability.";
   return `${name} MCP capability, available through the UnClick tool gateway.`;
 }
@@ -440,7 +441,7 @@ function classifyConceptFile(file) {
   if (lower.includes("jobsmith")) return ["Modules and apps", "app module"];
   if (lower.includes("autopilot")) return ["Automations", "autopilot module"];
   if (lower.includes("nudgeonly") || lower.includes("igniteonly") || lower.includes("pushonly")) return ["Wrappers and protocols", "bridge"];
-  if (lower.includes("wakepass") || lower.includes("testpass") || lower.includes("uxpass") || lower.includes("safetypass") || lower.includes("fidelity")) return ["Passes and gates", "pass"];
+  if (lower.includes("wakepass") || lower.includes("testpass") || lower.includes("uipass") || lower.includes("uxpass") || lower.includes("safetypass") || lower.includes("fidelity")) return ["Passes and gates", "pass"];
   if (lower.includes("ledger") || lower.includes("receipt") || lower.includes("proof")) return ["Ledgers and proof", "proof module"];
   if (lower.includes("orchestrator") || lower.includes("boardroom") || lower.includes("memory")) return ["Source of truth", "state module"];
   return null;

@@ -35,6 +35,9 @@ function baseUrl(cfg: PayPalConfig): string {
 
 async function getPayPalToken(cfg: PayPalConfig): Promise<string | { error: string }> {
   const credentials = Buffer.from(`${cfg.client_id}:${cfg.client_secret}`).toString("base64");
+  const PAYPAL_TIMEOUT_MS = Number(process.env.PAYPAL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PAYPAL_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(`${baseUrl(cfg)}/v1/oauth2/token`, {
@@ -45,9 +48,15 @@ async function getPayPalToken(cfg: PayPalConfig): Promise<string | { error: stri
         "Accept":       "application/json",
       },
       body: "grant_type=client_credentials",
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `PayPal token request timed out after ${PAYPAL_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error fetching PayPal token: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   let data: unknown;
@@ -78,6 +87,9 @@ async function paypalFetch(
     }
   }
 
+  const PAYPAL_TIMEOUT_MS = Number(process.env.PAYPAL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PAYPAL_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
@@ -88,9 +100,15 @@ async function paypalFetch(
         "Accept":       "application/json",
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `PayPal request timed out after ${PAYPAL_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 429) {

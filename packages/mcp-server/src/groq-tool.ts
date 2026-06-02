@@ -2,6 +2,9 @@
 // Uses the Groq REST API via fetch - no external dependencies.
 // Compatible with OpenAI API format. Users must supply an API key from console.groq.com.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const GROQ_BASE = "https://api.groq.com/openai/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -44,38 +47,72 @@ interface GroqModel {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at console.groq.com/keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("groq", args);
 }
 
+const GROQ_TIMEOUT_MS = Number(process.env.GROQ_TIMEOUT_MS) || 30000;
+
 async function groqPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${GROQ_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), GROQ_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${GROQ_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Groq request timed out after ${GROQ_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Groq network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Groq rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = (err?.message as string) ?? `HTTP ${res.status}`;
+    const msg = (err?.message as string) ?? `status ${res.status}`;
     throw new Error(`Groq error: ${msg}`);
   }
   return data as T;
 }
 
 async function groqGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${GROQ_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), GROQ_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${GROQ_BASE}${path}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Groq request timed out after ${GROQ_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Groq network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Groq rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = (err?.message as string) ?? `HTTP ${res.status}`;
+    const msg = (err?.message as string) ?? `status ${res.status}`;
     throw new Error(`Groq error: ${msg}`);
   }
   return data as T;
@@ -85,6 +122,7 @@ async function groqGet<T>(apiKey: string, path: string): Promise<T> {
 
 export async function groqChatCompletion(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "llama-3.3-70b-versatile");
 
   let messages: GroqMessage[];
@@ -128,10 +166,11 @@ export async function groqChatCompletion(args: Record<string, unknown>): Promise
 
 export async function groqListModels(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await groqGet<{ data: GroqModel[] }>(apiKey, "/models");
   const models = (data.data ?? []).filter((m) => m.active !== false);
   models.sort((a, b) => b.created - a.created);
-  return {
+  return stampMeta({
     count: models.length,
     models: models.map((m) => ({
       id: m.id,
@@ -139,5 +178,9 @@ export async function groqListModels(args: Record<string, unknown>): Promise<unk
       context_window: m.context_window,
       created: new Date(m.created * 1000).toISOString(),
     })),
-  };
+  }, {
+    source: "Groq",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use groq_chat_completion with a model id."],
+  });
 }

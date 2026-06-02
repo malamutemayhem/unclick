@@ -5,23 +5,39 @@
 // Base URL: https://haveibeenpwned.com/api/v3/
 // Password API: https://api.pwnedpasswords.com/range/{prefix}
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const HIBP_BASE = "https://haveibeenpwned.com/api/v3";
 const HIBP_PASS_BASE = "https://api.pwnedpasswords.com";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.HIBP_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set HIBP_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("haveibeenpwned", args);
 }
+
+const HIBP_TIMEOUT_MS = Number(process.env.HIBP_TIMEOUT_MS) || 15000;
 
 async function hibpGet(apiKey: string, path: string, params?: Record<string, string>): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await fetch(`${HIBP_BASE}${path}${qs}`, {
-    headers: {
-      "hibp-api-key": apiKey,
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HIBP_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${HIBP_BASE}${path}${qs}`, {
+      headers: {
+        "hibp-api-key": apiKey,
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`HIBP request timed out after ${HIBP_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`HIBP network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid HIBP API key.");
   if (res.status === 403) throw new Error("HIBP API key does not have permission for this endpoint.");
   if (res.status === 404) return null;
@@ -41,6 +57,7 @@ async function hibpGet(apiKey: string, path: string, params?: Record<string, str
 export async function checkAccountBreaches(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const account = String(args.account ?? args.email ?? "").trim().toLowerCase();
     if (!account) return { error: "account (email address) is required." };
 
@@ -61,7 +78,7 @@ export async function checkAccountBreaches(args: Record<string, unknown>): Promi
     }
 
     const breaches = data as Array<Record<string, unknown>>;
-    return {
+    return stampMeta({
       account,
       pwned: true,
       breach_count: breaches.length,
@@ -79,7 +96,11 @@ export async function checkAccountBreaches(args: Record<string, unknown>): Promi
         is_sensitive: b["IsSensitive"],
         is_spam_list: b["IsSpamList"],
       })),
-    };
+    }, {
+      source: "Have I Been Pwned",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use hibp_check_password to test a password, or hibp_all_breaches to browse known breaches."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -90,6 +111,7 @@ export async function checkAccountBreaches(args: Record<string, unknown>): Promi
 export async function getAllBreaches(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string> = {};
     if (args.domain) params["domain"] = String(args.domain);
     if (args.is_spam_list !== undefined) params["isSpamList"] = String(args.is_spam_list);
@@ -134,12 +156,28 @@ export async function checkPassword(args: Record<string, unknown>): Promise<unkn
     const prefix = hashHex.slice(0, 5);
     const suffix = hashHex.slice(5);
 
-    const res = await fetch(`${HIBP_PASS_BASE}/range/${prefix}`, {
-      headers: {
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-        "Add-Padding": "true",
-      },
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), HIBP_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(`${HIBP_PASS_BASE}/range/${prefix}`, {
+        headers: {
+          "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+          "Add-Padding": "true",
+        },
+        signal: controller.signal,
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new Error(`HIBP password API request timed out after ${HIBP_TIMEOUT_MS}ms.`);
+      }
+      throw new Error(`HIBP password API network error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      clearTimeout(timer);
+    }
+    if (res.status === 429) {
+      throw new Error(`HIBP password API rate limit exceeded.`);
+    }
     if (!res.ok) {
       throw new Error(`HIBP password API HTTP ${res.status}`);
     }

@@ -1,3 +1,4 @@
+import { stampMeta } from "./connector-meta.js";
 // Fly.io Machines API integration for the UnClick MCP server.
 // Uses the Fly.io Machines REST API via fetch - no external dependencies.
 // Users must supply an API token from fly.io (fly auth token).
@@ -34,19 +35,30 @@ async function flyFetch(
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
+  const FLYIO_TIMEOUT_MS = Number(process.env.FLYIO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FLYIO_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Fly.io API request timed out after ${FLYIO_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Fly.io API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   // 204 No Content
   if (response.status === 204) return { success: true };
+
+  if (response.status === 429) return { error: "Fly.io API rate limit exceeded. Please wait and retry.", status: 429 };
 
   const text = await response.text();
   let data: unknown;
@@ -75,7 +87,12 @@ export async function flyListApps(args: Record<string, unknown>): Promise<unknow
     const query: Record<string, string | undefined> = {};
     if (args.org_slug) query.org_slug = String(args.org_slug);
 
-    return flyFetch(apiKey, "GET", "/apps", undefined, query);
+    const __res = await flyFetch(apiKey, "GET", "/apps", undefined, query) as Record<string, unknown>;
+    return stampMeta(__res, {
+      source: "Fly.io",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use fly_get_app for detail, or fly_list_machines for an app's machines."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

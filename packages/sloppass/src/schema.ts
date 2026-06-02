@@ -23,6 +23,10 @@ export const SlopPassTargetSchema = z.object({
   label: z.string().min(1),
   files: z.array(z.string()).optional(),
   ref: z.string().optional(),
+  repo: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9._-]{1,100}$/).optional(),
+  number: z.union([z.number().int().positive(), z.string().regex(/^[1-9]\d*$/)]).optional(),
+  url: z.string().url().optional(),
+  pr_url: z.string().url().optional(),
 });
 
 export const SlopPassSourceFileSchema = z.object({

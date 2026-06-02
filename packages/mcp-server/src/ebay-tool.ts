@@ -5,6 +5,8 @@
 // API: https://api.ebay.com/buy/browse/v1
 // No external dependencies - native fetch only.
 
+import { stampMeta } from "./connector-meta.js";
+
 const EBAY_TOKEN_URL  = "https://api.ebay.com/identity/v1/oauth2/token";
 const EBAY_BROWSE_URL = "https://api.ebay.com/buy/browse/v1";
 
@@ -32,6 +34,9 @@ function requireConfig(args: Record<string, unknown>): EbayConfig | { error: str
 
 async function getEbayToken(cfg: EbayConfig): Promise<string | { error: string }> {
   const credentials = Buffer.from(`${cfg.client_id}:${cfg.client_secret}`).toString("base64");
+  const EBAY_TIMEOUT_MS = Number(process.env.EBAY_TIMEOUT_MS) || 15000;
+  const tokenController = new AbortController();
+  const tokenTimer = setTimeout(() => tokenController.abort(), EBAY_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(EBAY_TOKEN_URL, {
@@ -41,9 +46,15 @@ async function getEbayToken(cfg: EbayConfig): Promise<string | { error: string }
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: "grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope",
+      signal: tokenController.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `eBay token request timed out after ${EBAY_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error fetching eBay token: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(tokenTimer);
   }
 
   let data: unknown;
@@ -72,6 +83,9 @@ async function ebayFetch(
     }
   }
 
+  const EBAY_TIMEOUT_MS = Number(process.env.EBAY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), EBAY_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
@@ -80,9 +94,15 @@ async function ebayFetch(
         "X-EBAY-C-MARKETPLACE-ID": cfg.marketplace ?? "EBAY_US",
         "Content-Type":           "application/json",
       },
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `eBay request timed out after ${EBAY_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   // eBay rate limit
@@ -120,7 +140,12 @@ export async function ebaySearch(args: Record<string, unknown>): Promise<unknown
     fieldgroups:    args.fieldgroups    ? String(args.fieldgroups)    : undefined,
   };
 
-  return ebayFetch(cfg, "/item_summary/search", query);
+  const __res = await ebayFetch(cfg, "/item_summary/search", query) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "eBay Browse API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use ebay_get_item with a returned item id for full detail."],
+  });
 }
 
 // ─── ebay_get_item ────────────────────────────────────────────────────────────

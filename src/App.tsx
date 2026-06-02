@@ -34,10 +34,13 @@ import OrganiserPage from "./pages/Organiser.tsx";
 import DispatchPage from "./pages/Dispatch.tsx";
 import CrewsPage from "./pages/Crews.tsx";
 import ToolsPage from "./pages/Tools.tsx";
+import AppsPage from "./pages/Apps.tsx";
+import AppDetailPage from "./pages/AppDetail.tsx";
 import JobsmithPage from "./pages/Jobsmith.tsx";
 import NewToAIPage from "./pages/NewToAI.tsx";
 import SmartHomePage from "./pages/SmartHome.tsx";
 import InstallRecoverPage from "./pages/InstallRecover.tsx";
+import XPassPage from "./pages/XPass.tsx";
 import DogfoodReportPage from "./pages/DogfoodReport.tsx";
 import LoginPage from "./pages/Login.tsx";
 import SignupPage from "./pages/Signup.tsx";
@@ -142,6 +145,8 @@ const App = () => (
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/backstagepass" element={<Navigate to="/admin/keychain" replace />} />
           {/* Core product pages */}
+          <Route path="/apps" element={<AppsPage />} />
+          <Route path="/apps/:slug" element={<AppDetailPage />} />
           <Route path="/tools" element={<ToolsPage />} />
           <Route path="/skills" element={<Navigate to="/admin/skills" replace />} />
           <Route path="/jobsmith" element={<JobsmithPage />} />
@@ -167,7 +172,8 @@ const App = () => (
             <Route path="you" element={<AdminYou />} />
             <Route path="memory" element={<AdminMemory />} />
             <Route path="keychain" element={<AdminKeychain />} />
-            <Route path="tools" element={<AdminTools />} />
+            <Route path="apps" element={<AdminTools />} />
+            <Route path="tools" element={<Navigate to="/admin/apps" replace />} />
             <Route path="skills" element={<AdminSkills />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="settings" element={<AdminSettings />} />
@@ -181,6 +187,7 @@ const App = () => (
             <Route path="jobsmith" element={<AdminJobsmith />} />
             <Route path="todos" element={<Navigate to="/admin/jobs" replace />} />
             <Route path="checks" element={<AdminChecks />} />
+            <Route path="checks/:productId" element={<AdminChecks />} />
             <Route path="ledger" element={<AdminLedger />} />
             <Route path="billing" element={<AdminBilling />} />
             <Route path="testpass"              element={<TestPassCatalog />} />
@@ -223,6 +230,7 @@ const App = () => (
           <Route path="/organiser" element={<OrganiserPage />} />
           <Route path="/dispatch" element={<DispatchPage />} />
           <Route path="/crews" element={<CrewsPage />} />
+          <Route path="/xpass" element={<XPassPage />} />
           <Route path="/dogfood" element={<DogfoodReportPage />} />
           {/* BuildDesk: hidden per Chris 2026-05-28. Developer dispatch surface
               for AI coding workers, paused until the developer marketplace

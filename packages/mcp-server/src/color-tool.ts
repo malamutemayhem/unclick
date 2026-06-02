@@ -11,8 +11,8 @@ interface CMYK { c: number; m: number; y: number; k: number }
 // ─── convert_color ────────────────────────────────────────────────────────────
 
 export function convertColor(args: Record<string, unknown>): unknown {
-  const value = String(args.value ?? "").trim();
-  const fromFormat = String(args.from_format ?? "").toLowerCase();
+  const value = String((args.color ?? args.value) ?? "").trim();
+  const fromFormat = String((args.from ?? args.from_format) ?? "").toLowerCase();
 
   if (!value) return { error: "value is required." };
   if (!fromFormat) return { error: "from_format is required (hex, rgb, hsl, hsv, cmyk)." };
@@ -55,7 +55,7 @@ export function convertColor(args: Record<string, unknown>): unknown {
 // ─── get_color_info ───────────────────────────────────────────────────────────
 
 export function getColorInfo(args: Record<string, unknown>): unknown {
-  const value = String(args.value ?? "").trim();
+  const value = String((args.color ?? args.value) ?? "").trim();
   if (!value) return { error: "value is required (hex like #FF5733 or rgb like rgb(255,87,51))." };
 
   let rgb: RGB;
@@ -90,7 +90,7 @@ export function getColorInfo(args: Record<string, unknown>): unknown {
 // ─── generate_color_palette ───────────────────────────────────────────────────
 
 export function generateColorPalette(args: Record<string, unknown>): unknown {
-  const baseHex = String(args.base_hex ?? "").trim();
+  const baseHex = String((args.color ?? args.base_hex) ?? "").trim();
   if (!baseHex) return { error: "base_hex is required (e.g. #FF5733)." };
 
   let rgb: RGB;
@@ -119,8 +119,8 @@ export function generateColorPalette(args: Record<string, unknown>): unknown {
 // ─── mix_colors ───────────────────────────────────────────────────────────────
 
 export function mixColors(args: Record<string, unknown>): unknown {
-  const hex1 = String(args.color1_hex ?? "").trim();
-  const hex2 = String(args.color2_hex ?? "").trim();
+  const hex1 = String((args.color1 ?? args.color1_hex) ?? "").trim();
+  const hex2 = String((args.color2 ?? args.color2_hex) ?? "").trim();
   const ratio = Math.max(0, Math.min(1, Number(args.ratio ?? 0.5)));
 
   if (!hex1) return { error: "color1_hex is required." };
@@ -149,8 +149,8 @@ export function mixColors(args: Record<string, unknown>): unknown {
 // ─── check_contrast_ratio ─────────────────────────────────────────────────────
 
 export function checkContrastRatio(args: Record<string, unknown>): unknown {
-  const fgHex = String(args.foreground_hex ?? "").trim();
-  const bgHex = String(args.background_hex ?? "").trim();
+  const fgHex = String((args.foreground ?? args.foreground_hex) ?? "").trim();
+  const bgHex = String((args.background ?? args.background_hex) ?? "").trim();
 
   if (!fgHex) return { error: "foreground_hex is required." };
   if (!bgHex) return { error: "background_hex is required." };

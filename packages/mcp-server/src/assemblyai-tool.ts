@@ -2,6 +2,10 @@
 // Uses the AssemblyAI REST API via fetch - no external dependencies.
 // Users must supply an API key from assemblyai.com.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const AAI_BASE = "https://api.assemblyai.com/v2";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -95,35 +99,69 @@ function requireAssemblyAiSpendAllowed(operation: AssemblyAiToolOperation, model
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at assemblyai.com/dashboard.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("assemblyai", args);
 }
 
 async function aaiGet<T>(apiKey: string, path: string, params?: Record<string, string>): Promise<T> {
   const url = new URL(`${AAI_BASE}${path}`);
   if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: apiKey },
-  });
+  const ASSEMBLYAI_TIMEOUT_MS = Number(process.env.ASSEMBLYAI_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ASSEMBLYAI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Authorization: apiKey },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`AssemblyAI request timed out after ${ASSEMBLYAI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`AssemblyAI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`AssemblyAI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.error as string) ?? `status ${res.status}`;
     throw new Error(`AssemblyAI error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function aaiPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${AAI_BASE}${path}`, {
-    method: "POST",
-    headers: { Authorization: apiKey, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const ASSEMBLYAI_TIMEOUT_MS = Number(process.env.ASSEMBLYAI_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ASSEMBLYAI_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${AAI_BASE}${path}`, {
+      method: "POST",
+      headers: { Authorization: apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`AssemblyAI request timed out after ${ASSEMBLYAI_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`AssemblyAI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`AssemblyAI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.error as string) ?? `status ${res.status}`;
     throw new Error(`AssemblyAI error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -133,6 +171,7 @@ async function aaiPost<T>(apiKey: string, path: string, body: unknown): Promise<
 
 export async function assemblyaiTranscribe(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("transcription", "AssemblyAI /transcript", apiKey);
   const audioUrl = String(args.audio_url ?? "").trim();
   if (!audioUrl) throw new Error("audio_url is required (publicly accessible URL of the audio/video file).");
@@ -162,14 +201,21 @@ export async function assemblyaiTranscribe(args: Record<string, unknown>): Promi
 
 export async function assemblyaiGetTranscript(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("transcript-read", "AssemblyAI /transcript/{id}", apiKey);
   const id = String(args.transcript_id ?? "").trim();
   if (!id) throw new Error("transcript_id is required.");
-  return aaiGet(apiKey, `/transcript/${encodeURIComponent(id)}`);
+  const __res = await aaiGet(apiKey, `/transcript/${encodeURIComponent(id)}`) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "AssemblyAI",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use assemblyai_get_paragraphs or assemblyai_get_sentences for structured text."],
+  });
 }
 
 export async function assemblyaiListTranscripts(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("transcript-listing", "AssemblyAI /transcript", apiKey);
   const params: Record<string, string> = {};
   if (args.limit)  params.limit  = String(Math.min(200, Math.max(1, Number(args.limit ?? 10))));
@@ -181,6 +227,7 @@ export async function assemblyaiListTranscripts(args: Record<string, unknown>): 
 
 export async function assemblyaiGetSentences(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("sentence-listing", "AssemblyAI /transcript/{id}/sentences", apiKey);
   const id = String(args.transcript_id ?? "").trim();
   if (!id) throw new Error("transcript_id is required.");
@@ -190,6 +237,7 @@ export async function assemblyaiGetSentences(args: Record<string, unknown>): Pro
 
 export async function assemblyaiGetParagraphs(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("paragraph-listing", "AssemblyAI /transcript/{id}/paragraphs", apiKey);
   const id = String(args.transcript_id ?? "").trim();
   if (!id) throw new Error("transcript_id is required.");
@@ -199,6 +247,7 @@ export async function assemblyaiGetParagraphs(args: Record<string, unknown>): Pr
 
 export async function assemblyaiSummarize(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireAssemblyAiSpendAllowed("summary-read", "AssemblyAI /transcript/{id}", apiKey);
   const id = String(args.transcript_id ?? "").trim();
   if (!id) throw new Error("transcript_id is required (transcript must already be completed with summarization enabled).");

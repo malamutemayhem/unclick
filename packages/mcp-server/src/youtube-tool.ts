@@ -2,6 +2,9 @@
 // Uses the YouTube Data API via fetch - no external dependencies.
 // Users must supply an API key from Google Cloud Console.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const YT_API_BASE = "https://www.googleapis.com/youtube/v3";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -111,12 +114,26 @@ interface YtCaption {
 
 async function ytGet<T>(apiKey: string, endpoint: string, params: Record<string, string>): Promise<T> {
   const query = new URLSearchParams({ ...params, key: apiKey }).toString();
-  const res = await fetch(`${YT_API_BASE}/${endpoint}?${query}`);
+  const YOUTUBE_TIMEOUT_MS = Number(process.env.YOUTUBE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), YOUTUBE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${YT_API_BASE}/${endpoint}?${query}`, { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`YouTube API request timed out after ${YOUTUBE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`YouTube API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("YouTube API rate limit / quota exceeded. Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const err = data.error as Record<string, unknown> | undefined;
-    const msg = (err?.message as string) ?? `HTTP ${res.status}`;
+    const msg = (err?.message as string) ?? `status ${res.status}`;
     const code = err?.code ? ` (code ${err.code})` : "";
     throw new Error(`YouTube API error${code}: ${msg}`);
   }
@@ -125,16 +142,15 @@ async function ytGet<T>(apiKey: string, endpoint: string, params: Record<string,
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Create one at console.cloud.google.com.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("youtube", args);
 }
 
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function youtubeSearch(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const q = String(args.query ?? "").trim();
   if (!q) throw new Error("query is required.");
   const maxResults = Math.min(50, Math.max(1, Number(args.max_results ?? 10)));
@@ -156,7 +172,7 @@ export async function youtubeSearch(args: Record<string, unknown>): Promise<unkn
     apiKey, "search", params
   );
 
-  return {
+  return stampMeta({
     total_results: data.pageInfo.totalResults,
     next_page_token: data.nextPageToken ?? null,
     items: (data.items ?? []).map((item) => ({
@@ -170,11 +186,16 @@ export async function youtubeSearch(args: Record<string, unknown>): Promise<unkn
       thumbnail: item.snippet.thumbnails?.medium?.url ?? item.snippet.thumbnails?.default?.url ?? null,
       live_broadcast: item.snippet.liveBroadcastContent,
     })),
-  };
+  }, {
+    source: "YouTube Data API v3",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use youtube_get_video for full detail on a video id, or youtube_get_channel for a channel."],
+  });
 }
 
 export async function youtubeGetVideo(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const videoId = String(args.video_id ?? "").trim();
   if (!videoId) throw new Error("video_id is required.");
 
@@ -204,6 +225,7 @@ export async function youtubeGetVideo(args: Record<string, unknown>): Promise<un
 
 export async function youtubeGetChannel(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const channelId = String(args.channel_id ?? "").trim();
   const forHandle = String(args.handle ?? "").trim();
   if (!channelId && !forHandle) throw new Error("Either channel_id or handle is required.");
@@ -230,6 +252,7 @@ export async function youtubeGetChannel(args: Record<string, unknown>): Promise<
 
 export async function youtubeListPlaylists(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const channelId = String(args.channel_id ?? "").trim();
   if (!channelId) throw new Error("channel_id is required.");
   const maxResults = Math.min(50, Math.max(1, Number(args.max_results ?? 20)));
@@ -262,6 +285,7 @@ export async function youtubeListPlaylists(args: Record<string, unknown>): Promi
 
 export async function youtubeListPlaylistItems(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const playlistId = String(args.playlist_id ?? "").trim();
   if (!playlistId) throw new Error("playlist_id is required.");
   const maxResults = Math.min(50, Math.max(1, Number(args.max_results ?? 20)));
@@ -292,6 +316,7 @@ export async function youtubeListPlaylistItems(args: Record<string, unknown>): P
 
 export async function youtubeGetCaptions(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const videoId = String(args.video_id ?? "").trim();
   if (!videoId) throw new Error("video_id is required.");
 

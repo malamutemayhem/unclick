@@ -1,7 +1,7 @@
 {
   "name": "@unclick/mcp-server",
   "version": "0.3.110",
-  "mcpName": "io.github.malamutemayhem/unclick-mcp-server",
+  "mcpName": "io.github.malamutemayhem/unclick",
   "description": "MCP server for the UnClick tool marketplace — lets AI agents discover and use every UnClick tool",
   "type": "module",
   "bin": {
@@ -19,10 +19,11 @@
     "server.json"
   ],
   "scripts": {
-    "build": "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && tsc",
-    "dev": "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && tsx src/index.ts",
+    "prepare:wiring": "node scripts/patch-reddit-public-wiring.mjs && node scripts/generate-tool-index.mjs",
+    "build": "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsc",
+    "dev": "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsx src/index.ts",
     "start": "node dist/index.js",
-    "test": "npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && tsx --test src/memory/__tests__/typed-links.test.ts src/memory/__tests__/hybrid-search.test.ts src/memory/__tests__/bitemporal.test.ts src/memory/__tests__/response-bounds.test.ts src/memory/__tests__/load-memory-invalidation.test.ts src/memory/__tests__/snapshot-taxonomy.test.ts src/memory/__tests__/local-backend.test.ts && vitest run",
+    "test": "npm run prepare:wiring && npm run build --workspace=@unclick/commonsensepass && npm run build --workspace=@unclick/flowpass && npm run build --workspace=@unclick/securitypass && tsx --test src/memory/__tests__/typed-links.test.ts src/memory/__tests__/hybrid-search.test.ts src/memory/__tests__/bitemporal.test.ts src/memory/__tests__/response-bounds.test.ts src/memory/__tests__/load-memory-invalidation.test.ts src/memory/__tests__/snapshot-taxonomy.test.ts src/memory/__tests__/local-backend.test.ts && vitest run && node --test scripts/connector-depth-ladder.test.mjs && node scripts/generate-tool-index.mjs --check && node scripts/connector-depth-ladder.mjs --check && node scripts/check-standalone-registry.mjs",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -33,6 +34,7 @@
     "@types/nodemailer": "^8.0.0",
     "@unclick/commonsensepass": "*",
     "@unclick/flowpass": "*",
+    "@unclick/securitypass": "*",
     "ajv": "^8.20.0",
     "csv-parse": "^6.2.1",
     "csv-stringify": "^6.7.0",

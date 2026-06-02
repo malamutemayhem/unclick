@@ -3,18 +3,16 @@
 // Env var: BUNGIE_API_KEY (header: X-API-Key)
 // Base URL: https://www.bungie.net/Platform/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const BUNGIE_BASE = "https://www.bungie.net/Platform";
 
 // ─── API helper ───────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.BUNGIE_API_KEY ?? "").trim();
-  if (!key) {
-    throw new Error(
-      "BUNGIE_API_KEY is required. Register at https://www.bungie.net/en/Application"
-    );
-  }
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("bungie", args);
 }
 
 async function bungieFetch<T>(
@@ -27,12 +25,28 @@ async function bungieFetch<T>(
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
 
-  const res = await fetch(url.toString(), {
-    headers: {
-      "X-API-Key": apiKey,
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-    },
-  });
+  const BUNGIE_TIMEOUT_MS = Number(process.env.BUNGIE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), BUNGIE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        "X-API-Key": apiKey,
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Bungie API request timed out after ${BUNGIE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Bungie API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) throw new Error("Bungie API rate limit exceeded. Please wait and retry.");
 
   const body = (await res.json()) as Record<string, unknown>;
 
@@ -52,6 +66,7 @@ export async function bungieSearchPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const displayName = String(args.displayName ?? "").trim();
   if (!displayName) return { error: "displayName is required." };
 
@@ -63,7 +78,7 @@ export async function bungieSearchPlayer(
 
   const results = Array.isArray(data) ? data : [];
 
-  return {
+  return stampMeta({
     query: displayName,
     count: results.length,
     players: results.map((p) => ({
@@ -74,7 +89,11 @@ export async function bungieSearchPlayer(
       bungie_global_display_name_code: p.bungieGlobalDisplayNameCode ?? null,
       icon_path: p.iconPath ? `https://www.bungie.net${p.iconPath}` : null,
     })),
-  };
+  }, {
+    source: "Bungie.net API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use bungie_get_profile with a membership id and type for full detail."],
+  });
 }
 
 // ─── bungie_get_profile ───────────────────────────────────────────────────────
@@ -85,6 +104,7 @@ export async function bungieGetProfile(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const membershipType = String(args.membershipType ?? "").trim();
   const membershipId = String(args.membershipId ?? "").trim();
   if (!membershipType) return { error: "membershipType is required." };
@@ -141,6 +161,7 @@ export async function bungieGetManifest(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const data = await bungieFetch<Record<string, unknown>>(
     "/Destiny2/Manifest/",
     key
@@ -168,6 +189,7 @@ export async function bungieSearchEntities(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const entityType = String(args.entityType ?? "").trim();
   const searchTerm = String(args.searchTerm ?? "").trim();
   if (!entityType) return { error: "entityType is required (e.g. DestinyInventoryItemDefinition)." };

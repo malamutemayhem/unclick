@@ -51,6 +51,11 @@ describe("seopass-tool", () => {
     expect(result.error).toMatch(/http\(s\)/);
   });
 
+  it("rejects blank target SHA values", async () => {
+    const result = (await seopassRun({ url: "https://unclick.world", target_sha: " " })) as { error?: string };
+    expect(result.error).toMatch(/target_sha/);
+  });
+
   it("rejects invalid pack URLs and unsupported check ids before storing", async () => {
     const badUrl = (await seopassRegisterPack({
       pack_yaml: [
@@ -93,12 +98,21 @@ describe("seopass-tool", () => {
       "https://unclick.world/llms.txt": "# UnClick\n> Agent-native tooling.\n\n## Pages\n[Docs](https://unclick.world/docs): Docs.",
     });
 
-    const run = (await seopassRun({ url: "https://unclick.world" })) as {
+    const run = (await seopassRun({ url: "https://unclick.world", target_sha: "seo-sha-123" })) as {
       run_id?: string;
       status?: string;
       pass?: string;
       report?: { mode?: string };
       verdict_summary?: { fail?: number };
+      seopass_receipt_v1?: {
+        kind?: string;
+        status?: string;
+        target_sha?: string;
+        mode?: string;
+        checked?: { total?: number; fail?: number };
+        boundaries?: string[];
+        action_needed?: string[];
+      };
     };
 
     expect(run.status).toBe("complete");
@@ -106,10 +120,25 @@ describe("seopass-tool", () => {
     expect(run.report?.mode).toBe("live-readonly");
     expect(run.verdict_summary?.fail).toBe(0);
     expect(run.run_id).toMatch(/^seopass-/);
+    expect(run.seopass_receipt_v1).toMatchObject({
+      kind: "seopass_receipt_v1",
+      status: "WARN",
+      target_sha: "seo-sha-123",
+      mode: "live-readonly",
+      checked: { fail: 0 },
+    });
+    expect(run.seopass_receipt_v1?.checked?.total).toBeGreaterThan(0);
+    expect(run.seopass_receipt_v1?.boundaries?.join(" ")).toMatch(/does not guarantee rankings/);
+    expect(run.seopass_receipt_v1?.action_needed?.[0]).toContain("aio-freshness-missing");
 
-    const status = (await seopassStatus({ run_id: run.run_id })) as { run_id?: string; status?: string };
+    const status = (await seopassStatus({ run_id: run.run_id })) as {
+      run_id?: string;
+      status?: string;
+      seopass_receipt_v1?: { target_sha?: string };
+    };
     expect(status.run_id).toBe(run.run_id);
     expect(status.status).toBe("complete");
+    expect(status.seopass_receipt_v1?.target_sha).toBe("seo-sha-123");
   });
 
   it("returns a blocker verdict when robots and noindex block search", async () => {

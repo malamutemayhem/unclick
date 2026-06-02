@@ -132,6 +132,29 @@ interface CopyRunRecord {
   error?: string;
 }
 
+interface CopyPassReceipt {
+  kind: "copypass_receipt_v1";
+  pass: "copypass";
+  receipt_id: string;
+  run_id: string;
+  status: "PASS" | "WARN" | "FAIL";
+  profile: RunProfile;
+  checked_at: string;
+  completed_at: string;
+  target: CopyRunRecord["target"];
+  verdict: CopyPassRunVerdict;
+  overall_score: number;
+  finding_count: number;
+  checks_attempted: CopyPassCheckId[];
+  evidence: {
+    source: "caller_provided_copy" | "copyroom_source_packet";
+    copy_text_preview: string;
+    copyroom_receipt_attached: boolean;
+  };
+  boundaries: string[];
+  action_needed: string[];
+}
+
 const RUNS = new Map<string, CopyRunRecord>();
 
 const COPYPASS_DISCLAIMER = {
@@ -611,6 +634,39 @@ function summarizeCopyPass(findings: CopyFinding[]): CopyPassSummary {
   };
 }
 
+function toReceiptStatus(verdict: CopyPassRunVerdict): CopyPassReceipt["status"] {
+  if (verdict === "pass") return "PASS";
+  if (verdict === "warn") return "WARN";
+  return "FAIL";
+}
+
+function createCopyPassReceipt(run: CopyRunRecord): CopyPassReceipt {
+  return {
+    kind: "copypass_receipt_v1",
+    pass: "copypass",
+    receipt_id: `copypass:${run.id}`,
+    run_id: run.id,
+    status: toReceiptStatus(run.copypass_verdict),
+    profile: run.profile,
+    checked_at: run.completed_at ?? run.created_at,
+    completed_at: run.completed_at ?? run.created_at,
+    target: run.target,
+    verdict: run.copypass_verdict,
+    overall_score: run.overall_score,
+    finding_count: run.findings.length,
+    checks_attempted: run.checks_attempted,
+    evidence: {
+      source: run.copyroom_receipt ? "copyroom_source_packet" : "caller_provided_copy",
+      copy_text_preview: run.target.copy_text_preview,
+      copyroom_receipt_attached: Boolean(run.copyroom_receipt),
+    },
+    boundaries: run.not_checked.map((item) => `${item.label}: ${item.reason}`),
+    action_needed: run.findings.map((finding) =>
+      `${finding.severity.toUpperCase()}: ${finding.title} (${finding.check_id})`,
+    ),
+  };
+}
+
 function normalizeCopy(value: string): string {
   return value.toLocaleLowerCase("en-US").replace(/\s+/g, " ").trim();
 }
@@ -751,6 +807,7 @@ export async function copypassRun(args: Record<string, unknown>): Promise<unknow
     notes: completed.notes,
     preview: completed.target.copy_text_preview,
     copyroom_receipt: completed.copyroom_receipt ?? null,
+    receipt: createCopyPassReceipt(completed),
   };
 }
 
@@ -776,6 +833,7 @@ export async function copypassStatus(args: Record<string, unknown>): Promise<unk
     notes: run.notes,
     completed_at: run.completed_at,
     copyroom_receipt: run.copyroom_receipt ?? null,
+    receipt: createCopyPassReceipt(run),
   };
 }
 

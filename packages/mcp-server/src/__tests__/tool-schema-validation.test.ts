@@ -29,6 +29,10 @@ describe("runtime tool schema validation", () => {
     { name: "commonsensepass_protocol", args: { bogus_field: "should reject" } },
     { name: "commonsensepass_check", args: { claim: "quiet", context: { now_ms: 1 }, bogus_field: "should reject" } },
     { name: "commonsensepass_rules", args: { include_fixtures: false, bogus_field: "should reject" } },
+    { name: "xpass_aggregated_verdict", args: { target: { type: "pr", id: "547", sha: "abc123" }, bogus_field: "should reject" } },
+    { name: "fidelitypass_verify_copy", args: { copy_scope: "not_applicable", bogus_field: "should reject" } },
+    { name: "securitypass_run", args: { target_url: "https://example.com", bogus_field: "should reject" } },
+    { name: "securitypass_status", args: { run_id: "securitypass-run-id", bogus_field: "should reject" } },
     { name: "list_expressroom_drafts", args: { agent_id: "strict-probe", bogus_field: "should reject" } },
     {
       name: "ack_handoff",
@@ -46,6 +50,20 @@ describe("runtime tool schema validation", () => {
       args: {
         agent_id: "strict-probe",
         todo_id: "11111111-1111-4111-8111-111111111111",
+        bogus_field: "should reject",
+      },
+    },
+    {
+      name: "sloppass_run",
+      args: {
+        target: { kind: "pr", label: "PR #1200", repo: "malamutemayhem/unclick", number: 1200 },
+        bogus_field: "should reject",
+      },
+    },
+    {
+      name: "copypass_run",
+      args: {
+        copy_text: "Try UnClick with proof receipts.",
         bogus_field: "should reject",
       },
     },
@@ -126,6 +144,39 @@ describe("runtime tool schema validation", () => {
     expect(validateToolArgumentsForRuntime("commonsensepass_rules", {
       include_fixtures: false,
     })).toBeNull();
+    expect(validateToolArgumentsForRuntime("xpass_aggregated_verdict", {
+      target: { type: "pr", id: "547", sha: "abc123" },
+      changed_files: ["src/pages/admin/You.tsx"],
+      pass_results: [
+        { check: "UXPass", status: "passed", run_id: "ux-1", target_sha: "abc123" },
+      ],
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("fidelitypass_verify_copy", {
+      copy_scope: "not_applicable",
+      scope_reason: "No exact copy is in scope for this target.",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("fidelitypass_verify_copy", {
+      copy_scope: "exact_copy",
+      copyroom_source_packet: {
+        source_id: "source-1",
+        source_pointer: "copyroom://source-1",
+        text: "Exact source",
+      },
+      output_text: "Exact source",
+      mode: "text_exact",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("list_expressroom_drafts", {
+      agent_id: "strict-probe",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("securitypass_run", {
+      target_url: "https://example.com",
+      proof_method: "signed_email",
+      contract_id: "scope-contract",
+      expected_token: "signed-token",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("securitypass_status", {
+      run_id: "securitypass-run-id",
+    })).toBeNull();
     expect(validateToolArgumentsForRuntime("list_expressroom_drafts", {
       agent_id: "strict-probe",
       official_todo_id: "11111111-1111-4111-8111-111111111111",
@@ -144,6 +195,18 @@ describe("runtime tool schema validation", () => {
     expect(validateToolArgumentsForRuntime("release_claim", {
       agent_id: "strict-probe",
       todo_id: "11111111-1111-4111-8111-111111111111",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("sloppass_run", {
+      target: { kind: "pr", label: "PR #1200", repo: "malamutemayhem/unclick", number: 1200 },
+      checks: ["vcs_integration_risk"],
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("copypass_run", {
+      copy_text: "UnClick helps teams review AI work with shared context, public proof, and green checks.",
+      channel: "homepage_hero",
+      profile: "smoke",
+    })).toBeNull();
+    expect(validateToolArgumentsForRuntime("copypass_status", {
+      run_id: "copy-run-123",
     })).toBeNull();
     expect(validateToolArgumentsForRuntime("unclick_call", {
       endpoint_id: "memory.search_memory",
@@ -209,6 +272,14 @@ describe("runtime tool schema validation", () => {
     const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
 
     expect(advertisedNames.has("release_claim")).toBe(true);
+  });
+
+  it("advertises SecurityPass as a scope-gated receipt surface", () => {
+    const advertisedNames = new Set(ADVERTISED_TOOLS.map((tool) => tool.name));
+
+    expect(advertisedNames.has("securitypass_run")).toBe(true);
+    expect(advertisedNames.has("securitypass_status")).toBe(true);
+    expect(advertisedNames.has("securitypass_verify_scope")).toBe(true);
   });
 });
 

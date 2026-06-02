@@ -16,6 +16,8 @@ describe("createGeoPassScannerPlan", () => {
     expect(plan.engines).toEqual(DEFAULT_GEOPASS_ENGINES);
     expect(plan.bots).toEqual(DEFAULT_GEOPASS_BOTS);
     expect(plan.steps.map((step) => step.id)).toContain("ai-bot-crawlability");
+    expect(plan.steps.map((step) => step.id)).toContain("answer-extractability");
+    expect(plan.steps.map((step) => step.id)).toContain("citation-readiness");
     expect(plan.steps.map((step) => step.id)).toContain(
       "aggregate-ai-engine-readiness",
     );
@@ -40,7 +42,7 @@ describe("createGeoPassScannerPlan", () => {
 
     expect(plan.disallowedActions).toContain("live crawler execution");
     expect(plan.disallowedActions).toContain("paid API calls");
-    expect(plan.disallowedActions).toContain("citation guarantees");
+    expect(plan.disallowedActions).toContain("guaranteed citations");
   });
 
   it("rejects invalid target URLs", () => {

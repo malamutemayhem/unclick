@@ -15,6 +15,7 @@ type SeoPassMcpRun = {
   status: "complete";
   pass: "seopass";
   target_url: string;
+  target_sha?: string;
   generated_at: string;
   search_engine_readiness_score: number;
   verdict: "ready" | "needs-work" | "blocked";
@@ -41,6 +42,37 @@ type SeoPassMcpRun = {
   };
 };
 
+type SeoPassMcpReceipt = {
+  kind: "seopass_receipt_v1";
+  status: "PASS" | "WARN" | "BLOCKER";
+  run_id: string;
+  target_url: string;
+  target_sha?: string;
+  generated_at: string;
+  mode: "live-readonly";
+  score: number;
+  verdict: SeoPassMcpRun["verdict"];
+  checked: {
+    total: number;
+    pass: number;
+    warn: number;
+    fail: number;
+  };
+  evidence_sources: Array<{
+    kind: string;
+    label: string;
+    source_url?: string;
+    summary: string;
+  }>;
+  action_needed: string[];
+  boundaries: string[];
+};
+
+type SeoPassMcpRunResponse = SeoPassMcpRun & {
+  seopass_receipt_v1: SeoPassMcpReceipt;
+  lighthouse_plan?: Record<string, unknown>;
+};
+
 type FetchTextResult = {
   url: string;
   status: number;
@@ -61,7 +93,7 @@ type CanonicalLink = {
   ignoredAttributes: string[];
 };
 
-const RUNS = new Map<string, SeoPassMcpRun>();
+const RUNS = new Map<string, SeoPassMcpRunResponse>();
 const DEFAULT_CHECKS = [
   "lighthouse-performance",
   "crawlability",
@@ -118,9 +150,77 @@ function lighthousePlan(pack: Record<string, unknown>): Record<string, unknown> 
   };
 }
 
+function buildSeoPassReceipt(run: SeoPassMcpRun, targetSha?: string): SeoPassMcpReceipt {
+  return {
+    kind: "seopass_receipt_v1",
+    status: receiptStatus(run),
+    run_id: run.run_id,
+    target_url: run.target_url,
+    ...(targetSha ? { target_sha: targetSha } : {}),
+    generated_at: run.generated_at,
+    mode: "live-readonly",
+    score: run.search_engine_readiness_score,
+    verdict: run.verdict,
+    checked: {
+      total: run.report.checks.length,
+      pass: run.verdict_summary.pass,
+      warn: run.verdict_summary.warn,
+      fail: run.verdict_summary.fail,
+    },
+    evidence_sources: run.report.evidence.map((source) => ({
+      kind: source.kind,
+      label: labelForEvidenceKind(source.kind),
+      source_url: source.source_url,
+      summary: source.summary,
+    })),
+    action_needed: receiptActions(run),
+    boundaries: [
+      "SEOPass reports public read-only search-readiness evidence only.",
+      "SEOPass does not guarantee rankings, indexing, AI Overview placement, or AI citations.",
+      "SEOPass does not mutate sites, submit URLs, use credentials, paid APIs, or private crawler data.",
+    ],
+  };
+}
+
+function receiptStatus(run: SeoPassMcpRun): SeoPassMcpReceipt["status"] {
+  if (run.verdict === "blocked" || run.verdict_summary.fail > 0) return "BLOCKER";
+  if (run.verdict === "needs-work" || run.verdict_summary.warn > 0) return "WARN";
+  return "PASS";
+}
+
+function receiptActions(run: SeoPassMcpRun): string[] {
+  const actions = run.report.checks.flatMap((check) =>
+    check.findings.map((finding) => `${finding.id}: ${finding.recommendation}`),
+  );
+  return Array.from(new Set(actions)).slice(0, 12);
+}
+
+function labelForEvidenceKind(kind: string): string {
+  const labels: Record<string, string> = {
+    "http-response": "HTTP response",
+    "robots-txt": "robots.txt",
+    "robots-policy": "Robots policy",
+    sitemap: "Sitemap",
+    "llms-txt": "llms.txt",
+    "html-head": "HTML head",
+    "page-snapshot": "Page snapshot",
+    canonical: "Canonical signal",
+    "structured-data": "Structured data",
+    "internal-link": "Internal link",
+    lighthouse: "Lighthouse",
+    "geopass-signal": "GEOPass signal",
+    "manual-note": "Manual note",
+  };
+  return labels[kind] ?? kind;
+}
+
 export async function seopassRun(args: Record<string, unknown>): Promise<unknown> {
   const url = typeof args.url === "string" ? args.url : undefined;
   const packName = typeof args.pack_name === "string" ? args.pack_name : undefined;
+  if (args.target_sha !== undefined && (typeof args.target_sha !== "string" || args.target_sha.trim().length === 0)) {
+    return { error: "target_sha must be a non-empty string when provided" };
+  }
+  const targetSha = typeof args.target_sha === "string" ? args.target_sha.trim() : undefined;
   if (!url && !packName) return { error: "Either url or pack_name is required" };
 
   const pack = packName ? loadRegisteredPack(packName) : null;
@@ -136,11 +236,14 @@ export async function seopassRun(args: Record<string, unknown>): Promise<unknown
 
   const checkSelection = selectChecks(pack?.checks);
   const run = await runReadonlySeoPass(targetUrl, checkSelection.checks, pack ?? {}, checkSelection.ignored);
-  RUNS.set(run.run_id, run);
-  return {
+  const response: SeoPassMcpRunResponse = {
     ...run,
+    ...(targetSha ? { target_sha: targetSha } : {}),
+    seopass_receipt_v1: buildSeoPassReceipt(run, targetSha),
     lighthouse_plan: lighthousePlan({ ...(pack ?? {}), url: targetUrl }),
   };
+  RUNS.set(run.run_id, response);
+  return response;
 }
 
 export async function seopassStatus(args: Record<string, unknown>): Promise<unknown> {

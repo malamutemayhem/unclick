@@ -3,6 +3,8 @@
 // Env var: PANDASCORE_TOKEN (header: Authorization: Bearer {token})
 // Base URL: https://api.pandascore.co/
 
+import { stampMeta } from "./connector-meta.js";
+
 const PANDASCORE_BASE = "https://api.pandascore.co";
 
 // ─── API helper ───────────────────────────────────────────────────────────────
@@ -29,12 +31,31 @@ async function pandascoreFetch<T>(
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
 
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-    },
-  });
+  const PANDASCORE_TIMEOUT_MS = Number(process.env.PANDASCORE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PANDASCORE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`PandaScore request timed out after ${PANDASCORE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`PandaScore network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`PandaScore rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
 
   if (!res.ok) {
     const body = (await res.json()) as Record<string, unknown>;
@@ -69,7 +90,7 @@ export async function esportsMatches(
 
   const matches = Array.isArray(data) ? data : [];
 
-  return {
+  return stampMeta({
     count: matches.length,
     matches: matches.map((m) => ({
       id: m.id,
@@ -110,7 +131,11 @@ export async function esportsMatches(
           }
         : null,
     })),
-  };
+  }, {
+    source: "PandaScore",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use esports_teams or esports_tournaments for more context on a match."],
+  });
 }
 
 // ─── esports_tournaments ──────────────────────────────────────────────────────
@@ -249,7 +274,7 @@ export async function esportsGetMatch(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const token = requireKey(args);
-  const id = String(args.id ?? "").trim();
+  const id = String((args.match_id ?? args.id) ?? "").trim();
   if (!id) return { error: "id is required (PandaScore match ID)." };
 
   const data = await pandascoreFetch<Record<string, unknown>>(

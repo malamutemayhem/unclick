@@ -17,7 +17,7 @@ Add to your MCP config (Claude Desktop: `~/Library/Application Support/Claude/cl
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz"],
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz"],
       "env": {
         "UNCLICK_API_KEY": "your_api_key_here"
       }
@@ -37,7 +37,7 @@ Same config snippet as above — Cursor uses the same MCP format.
 ### Local / Development
 
 ```bash
-UNCLICK_API_KEY=unck_... npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz
+UNCLICK_API_KEY=unck_... npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz
 ```
 
 ## Memory (built in, zero config)

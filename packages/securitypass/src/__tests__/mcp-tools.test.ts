@@ -23,6 +23,7 @@ describe("SECURITYPASS_TOOLS registration", () => {
   it("each tool has an inputSchema", () => {
     for (const tool of SECURITYPASS_TOOLS) {
       expect(tool.inputSchema.type).toBe("object");
+      expect(tool.inputSchema.additionalProperties).toBe(false);
       expect(tool.inputSchema.properties).toBeDefined();
     }
   });
@@ -164,16 +165,56 @@ describe("SECURITYPASS_HANDLERS validation behaviour", () => {
       target_id: "repo",
     })) as {
       stub?: boolean;
+      run_id?: string;
       status?: string;
       not_checked_count?: number;
       posture_summary?: string;
       disclaimer?: { compact?: string };
+      receipt?: {
+        kind?: string;
+        pass?: string;
+        run_id?: string;
+        receipt_id?: string;
+        status?: string;
+        evidence?: {
+          scope_verified?: boolean;
+          active_probes_run?: boolean;
+          raw_finding_evidence_exposed?: boolean;
+          poc_payloads_exposed?: boolean;
+        };
+        boundaries?: unknown[];
+        action_needed?: unknown[];
+      };
     };
     expect(result.stub).toBe(false);
     expect(result.status).toBe("complete");
     expect(result.not_checked_count).toBe(1);
     expect(result.posture_summary).toMatch(/incomplete coverage/i);
     expect(result.disclaimer?.compact).toMatch(/not a pentest/i);
+    expect(result.receipt).toMatchObject({
+      kind: "securitypass_receipt_v1",
+      pass: "securitypass",
+      run_id: result.run_id,
+      receipt_id: `securitypass:${result.run_id}`,
+      status: "WARN",
+      evidence: {
+        scope_verified: true,
+        active_probes_run: false,
+        raw_finding_evidence_exposed: false,
+        poc_payloads_exposed: false,
+      },
+    });
+    expect(result.receipt?.boundaries).toHaveLength(1);
+    expect(result.receipt?.action_needed).toEqual([]);
+
+    const status = (await SECURITYPASS_HANDLERS.securitypass_status({
+      run_id: result.run_id,
+    })) as { receipt?: { kind?: string; run_id?: string; not_checked_count?: number } };
+    expect(status.receipt).toMatchObject({
+      kind: "securitypass_receipt_v1",
+      run_id: result.run_id,
+      not_checked_count: 1,
+    });
   });
 
   it("securitypass_run reports unknown pack targets without fallback", async () => {

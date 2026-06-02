@@ -3,7 +3,7 @@ import { SLOPPASS_DISCLAIMER } from "../disclaimer.js";
 import { sourceFilesFromUnifiedDiff } from "../diff.js";
 import { detectStaleOverwrites } from "../lenses/stale-overwrite.js";
 import { SlopPassRunInputSchema, type SlopPassRunInput } from "../schema.js";
-import type { SlopPassResult, SlopPassSeverity } from "../types.js";
+import type { SlopPassCategory, SlopPassResult, SlopPassSeverity } from "../types.js";
 import { detectSlopSignals } from "./detectors.js";
 import { getProvider } from "../vendor/promptfoo-lite/index.js";
 import { toSlopPassVerdict } from "../verdict-pack.js";
@@ -41,6 +41,7 @@ export async function runSlopPass(input: SlopPassRunInput): Promise<SlopPassResu
   const checks = parsed.checks ?? DEFAULT_CHECKS;
   const wantsStaleOverwrite = checks.includes("vcs_integration_risk");
   const sourceChecks = checks.filter((check) => check !== "vcs_integration_risk");
+  const sourceCheckSet = new Set<SlopPassCategory>(sourceChecks);
   const attemptedChecks = checks.filter((check) =>
     check !== "vcs_integration_risk" || Boolean(parsed.git_context)
   );
@@ -51,7 +52,7 @@ export async function runSlopPass(input: SlopPassRunInput): Promise<SlopPassResu
   const provider = getProvider(parsed.provider);
   const providerFindings = await provider.evaluate(files, sourceChecks);
   const heuristicFindings = detectSlopSignals(files).filter((finding) =>
-    sourceChecks.includes(finding.category)
+    sourceCheckSet.has(finding.category)
   );
   const staleOverwriteFindings =
     parsed.git_context && wantsStaleOverwrite
@@ -62,7 +63,7 @@ export async function runSlopPass(input: SlopPassRunInput): Promise<SlopPassResu
   for (const finding of findings) counts[finding.severity]++;
 
   const checkedLabels = new Set(checks);
-  const notChecked = DEFAULT_CHECKS.filter((category) => !checkedLabels.has(category)).map((category) => ({
+  const notChecked: Array<{ label: string; reason: string }> = DEFAULT_CHECKS.filter((category) => !checkedLabels.has(category)).map((category) => ({
     label: category,
     reason: "Check was not requested for this scoped run.",
   }));

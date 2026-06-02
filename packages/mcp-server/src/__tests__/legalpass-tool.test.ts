@@ -42,12 +42,24 @@ describe("LegalPass MCP exposure", () => {
       no_legal_advice: true,
       no_transactional_instrument: true,
     });
+    expect(result.legalpass_receipt_v1).toMatchObject({
+      kind: "legalpass_receipt_v1",
+      status: "WARN",
+      mode: "plan-only",
+      safety: {
+        issue_spotter_only: true,
+        no_legal_advice: true,
+        no_transactional_instrument: true,
+      },
+    });
+    expect(JSON.stringify(result.legalpass_receipt_v1)).toContain("does not provide legal advice");
   });
 
   it("runs deterministic public fixture checks when text is provided", async () => {
     const result = await legalpassRun({
       target_url: "https://example.com/legal",
       jurisdictions: ["AU"],
+      target_sha: "legal-sha-123",
       fixture_text:
         "Privacy contact details explain how we collect and use data, " +
         "retain records, share with a third party, cover liability, indemnity, " +
@@ -58,6 +70,14 @@ describe("LegalPass MCP exposure", () => {
     expect(result.status).toBe("complete");
     expect(result.run_id).toMatch(/^legalpass_/);
     expect(result.summary).toMatchObject({ fail: 0 });
+    expect(result.legalpass_receipt_v1).toMatchObject({
+      kind: "legalpass_receipt_v1",
+      status: "PASS",
+      target_sha: "legal-sha-123",
+      mode: "fixture",
+      disclaimer_present: true,
+    });
+    expect(JSON.stringify(result.legalpass_receipt_v1)).toContain("LegalPass is an issue-spotter");
     expect(JSON.stringify(result.items)).toContain("fixture_text");
     expect(String(result.note)).toContain("deterministic public fixture");
     expect(JSON.stringify(result)).not.toMatch(/you should/i);
@@ -66,6 +86,7 @@ describe("LegalPass MCP exposure", () => {
     const status = await legalpassStatus({ run_id: result.run_id }) as Record<string, unknown>;
     expect(status.run_id).toBe(result.run_id);
     expect(status.summary).toEqual(result.summary);
+    expect(status.legalpass_receipt_v1).toEqual(result.legalpass_receipt_v1);
   });
 
   it("saves custom packs and records human edit audit entries", async () => {
@@ -196,6 +217,10 @@ describe("LegalPass MCP exposure", () => {
     await expect(legalpassRun({
       target: { kind: "email", url: "https://example.com" },
     })).resolves.toMatchObject({ error: "target.kind must be url|contract_upload|repo" });
+    await expect(legalpassRun({
+      target_url: "https://example.com/terms",
+      target_sha: "   ",
+    })).resolves.toMatchObject({ error: "target_sha must not be blank" });
 
     await expect(
       legalpassSavePack({

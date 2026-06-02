@@ -2,6 +2,9 @@
 // Uses the Replicate REST API via fetch - no external dependencies.
 // Users must supply an API token from replicate.com/account/api-tokens.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const REPLICATE_API_BASE = "https://api.replicate.com/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -43,43 +46,77 @@ interface ReplicatePrediction {
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireToken(args: Record<string, unknown>): string {
-  const token = String(args.api_token ?? "").trim();
-  if (!token) throw new Error("api_token is required. Get one at replicate.com/account/api-tokens.");
-  return token;
+function requireToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("replicate", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
-async function replicateGet<T>(token: string, path: string): Promise<T> {
-  const res = await fetch(`${REPLICATE_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+const REPLICATE_TIMEOUT_MS = Number(process.env.REPLICATE_TIMEOUT_MS) || 30000;
 
-  const data = await res.json() as Record<string, unknown>;
+async function replicateGet<T>(token: string, path: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REPLICATE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${REPLICATE_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Replicate request timed out after ${REPLICATE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Replicate network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Replicate rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const detail = (data.detail as string) ?? `HTTP ${res.status}`;
+    const detail = (data.detail as string) ?? `status ${res.status}`;
     throw new Error(`Replicate error (${res.status}): ${detail}`);
   }
   return data as T;
 }
 
 async function replicatePost<T>(token: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${REPLICATE_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REPLICATE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${REPLICATE_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Replicate request timed out after ${REPLICATE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Replicate network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Replicate rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const detail = (data.detail as string) ?? `HTTP ${res.status}`;
+    const detail = (data.detail as string) ?? `status ${res.status}`;
     throw new Error(`Replicate error (${res.status}): ${detail}`);
   }
   return data as T;
@@ -109,12 +146,13 @@ function normalizePrediction(p: ReplicatePrediction) {
 
 export async function replicateListModels(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const cursor = args.cursor ? `?cursor=${encodeURIComponent(String(args.cursor))}` : "";
   const data = await replicateGet<{ results: ReplicateModel[]; next?: string; previous?: string }>(
     token, `/models${cursor}`
   );
 
-  return {
+  return stampMeta({
     count: data.results.length,
     next_cursor: data.next ?? null,
     models: data.results.map((m) => ({
@@ -125,11 +163,16 @@ export async function replicateListModels(args: Record<string, unknown>): Promis
       url: m.url,
       latest_version_id: m.latest_version?.id ?? null,
     })),
-  };
+  }, {
+    source: "Replicate",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use replicate_create_prediction with an owner/name and version id."],
+  });
 }
 
 export async function replicateGetModel(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const owner = String(args.owner ?? "").trim();
   const name = String(args.model_name ?? "").trim();
   if (!owner) throw new Error("owner is required (the model owner's username).");
@@ -154,6 +197,7 @@ export async function replicateGetModel(args: Record<string, unknown>): Promise<
 
 export async function replicateCreatePrediction(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
 
   let input: Record<string, unknown>;
   if (typeof args.input === "string") {
@@ -184,11 +228,16 @@ export async function replicateCreatePrediction(args: Record<string, unknown>): 
   if (args.stream === true) body.stream = true;
 
   const prediction = await replicatePost<ReplicatePrediction>(token, "/predictions", body);
-  return normalizePrediction(prediction);
+  return stampMeta(normalizePrediction(prediction) as Record<string, unknown>, {
+    source: "Replicate",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not yet succeeded, call replicate_get_prediction again shortly; once done, read the output."],
+  });
 }
 
 export async function replicateGetPrediction(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const predictionId = String(args.prediction_id ?? "").trim();
   if (!predictionId) throw new Error("prediction_id is required.");
 
@@ -198,6 +247,7 @@ export async function replicateGetPrediction(args: Record<string, unknown>): Pro
 
 export async function replicateListPredictions(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const cursor = args.cursor ? `?cursor=${encodeURIComponent(String(args.cursor))}` : "";
   const data = await replicateGet<{ results: ReplicatePrediction[]; next?: string; previous?: string }>(
     token, `/predictions${cursor}`
@@ -212,6 +262,7 @@ export async function replicateListPredictions(args: Record<string, unknown>): P
 
 export async function replicateCancelPrediction(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const predictionId = String(args.prediction_id ?? "").trim();
   if (!predictionId) throw new Error("prediction_id is required.");
 
