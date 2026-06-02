@@ -9,8 +9,8 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 610,
-    "source_manifest": 190,
+    "inventory": 611,
+    "source_manifest": 191,
     "pages": 82,
     "tools": 219,
     "rooms": 23,
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 119
+      "count": 120
     },
     {
       "id": "ledgers-and-proof",
@@ -1758,6 +1758,16 @@
       "kind": "workflow",
       "meaning": "tier2 auto merge queue check GitHub automation workflow.",
       "source": ".github/workflows/tier2-auto-merge-queue-check.yml",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-workflow-tier2-rollback-yml-github-workflows-tier2-rollback-yml-no-route",
+      "division": "Automations",
+      "name": "tier2 rollback.yml",
+      "kind": "workflow",
+      "meaning": "tier2 rollback GitHub automation workflow.",
+      "source": ".github/workflows/tier2-rollback.yml",
       "route": "",
       "tags": []
     },
@@ -8094,6 +8104,10 @@
       "node --test scripts/rotatepass-redaction-guard.test.mjs"
     ],
     [
+      "test:tier2-rollback",
+      "node --test scripts/tier2-rollback.test.mjs"
+    ],
+    [
       "test:watch",
       "vitest"
     ]
@@ -8186,8 +8200,8 @@
     },
     {
       "source": "package.json",
-      "hash": "80d780561f43",
-      "bytes": 6468
+      "hash": "97ee2d82f6f6",
+      "bytes": 6542
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -9048,6 +9062,11 @@
       "source": ".github/workflows/tier2-auto-merge-queue-check.yml",
       "hash": "5abfca8c42dc",
       "bytes": 830
+    },
+    {
+      "source": ".github/workflows/tier2-rollback.yml",
+      "hash": "be13a562ece2",
+      "bytes": 1689
     }
   ]
 }
