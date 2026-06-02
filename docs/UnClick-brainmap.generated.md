@@ -22,8 +22,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | de9f41b265f3 | 4881 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 112afd6a05d8 | 14647 |
-| src/pages/admin/AdminShell.tsx | 79d0329e0e8b | 22091 |
+| src/App.tsx | 3417f42712a9 | 14800 |
+| src/pages/admin/AdminShell.tsx | dfe4ed312dae | 22167 |
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
@@ -89,6 +89,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/testpass/TestPassCatalog.tsx | 8fc76ddd8d3f | 21847 |
 | src/pages/admin/AdminTools.tsx | 808485ffc146 | 5678 |
 | src/pages/admin/AdminUsers.tsx | 701e7da2f201 | 863 |
+| src/pages/admin/AdminXGate.tsx | d9be13cafb44 | 12478 |
 | src/pages/admin/AdminYou.tsx | 3d0240411971 | 51024 |
 | src/pages/AppDetail.tsx | 4e2ec609ff61 | 5401 |
 | src/pages/Apps.tsx | f68ab8412c39 | 2636 |
@@ -208,7 +209,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 48 |
+| Admin surfaces | Private operator views and internal control panels. | 49 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 34 |
 | Tools | MCP and gateway capabilities available to seats. | 219 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
@@ -216,7 +217,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 16 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 119 |
-| Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
+| Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 7 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 116 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 5 |
@@ -298,6 +299,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/tools | Admin Tools | Apps, tools, and connector capability surface. | src/pages/admin/AdminTools.tsx |
 | /admin/users | Admin Users | Internal user management. | src/pages/admin/AdminUsers.tsx |
 | /admin/workers | Admin Workers | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
+| /admin/xgate | Admin XGate | Admin surface for Admin XGate. | src/pages/admin/AdminXGate.tsx |
 | /admin/you | Admin You | Personal account, identity, and access panel. | src/pages/admin/AdminYou.tsx |
 | /admin | Admin Shell | Admin surface for Admin Shell. | src/pages/admin/AdminShell.tsx |
 | /apps/:slug | App Detail | User-facing page for App Detail. | src/pages/AppDetail.tsx |
@@ -594,6 +596,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Tools | Apps, tools, and connector capability surface. | /admin/tools | src/pages/admin/AdminTools.tsx |
 | Admin surfaces | admin page | Admin Users | Internal user management. | /admin/users | src/pages/admin/AdminUsers.tsx |
 | Admin surfaces | admin page | Admin Workers | Admin surface for Admin Ecosystem Pages. | /admin/workers | src/pages/admin/AdminEcosystemPages.tsx |
+| Admin surfaces | admin page | Admin XGate | Admin surface for Admin XGate. | /admin/xgate | src/pages/admin/AdminXGate.tsx |
 | Admin surfaces | admin page | Admin You | Personal account, identity, and access panel. | /admin/you | src/pages/admin/AdminYou.tsx |
 | Admin surfaces | admin page | Copy Pass Catalog | Admin surface for Copy Pass Catalog. | /admin/copypass | src/pages/admin/copypass/CopyPassCatalog.tsx |
 | Admin surfaces | admin page | Crew Composer | Crews admin page for Crew Composer. | /admin/crews/:id/edit | src/pages/admin/crews/CrewComposer.tsx |
@@ -735,6 +738,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Launch and onboarding | policy | Heartbeat Master | Canonical schedule prompt and procedure for safe heartbeat seats. | /admin/agents/heartbeat | src/pages/admin/AdminSeatHeartbeat.tsx |
 | Launch and onboarding | route | Launchpad | Control hub that points seats to the next safe operating lane. | /admin/pinballwake | scripts/pinballwake-launchpad-room.mjs |
 | Ledgers and proof | ledger | Proof Ledger | Structured evidence, proof freshness, receipts, and DONE trust surface. | - | docs/agent-observability.md |
+| Ledgers and proof | proof module | ledger | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/xgate/ledger.ts |
 | Ledgers and proof | proof module | pinballwake ack ledger room | pinballwake ack ledger room UnClick module. | - | scripts/pinballwake-ack-ledger-room.mjs |
 | Ledgers and proof | proof module | pinballwake event ledger room | pinballwake event ledger room UnClick module. | - | scripts/pinballwake-event-ledger-room.mjs |
 | Ledgers and proof | proof module | pinballwake openhands proof runner | pinballwake openhands proof runner UnClick module. | - | scripts/pinballwake-openhands-proof-runner.mjs |

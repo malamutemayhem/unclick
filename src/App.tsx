@@ -83,6 +83,7 @@ import AdminBrainmap from "./pages/admin/AdminBrainmap.tsx";
 import AdminJobs from "./pages/admin/AdminJobs.tsx";
 import AdminJobsmith from "./pages/admin/AdminJobsmith.tsx";
 import AdminBenchmarks from "./pages/admin/AdminBenchmarks.tsx";
+import AdminXGate from "./pages/admin/AdminXGate.tsx";
 import AdminExpressBuild from "./pages/admin/AdminExpressBuild.tsx";
 import {
   AdminAutopilot,
@@ -95,7 +96,7 @@ import {
 import SignalsCatalog from "./pages/admin/signals/SignalsCatalog.tsx";
 import SignalsSettings from "./pages/admin/signals/SignalsSettings.tsx";
 import Fishbowl from "./pages/admin/Fishbowl.tsx";
-// BuildDeskPage import removed 2026-05-28 — page hidden per Chris (developer marketplace paused). File retained at src/pages/BuildDesk.tsx; /build route redirects to /.
+// BuildDeskPage import removed 2026-05-28 - page hidden per Chris (developer marketplace paused). File retained at src/pages/BuildDesk.tsx; /build route redirects to /.
 import { trackPageView } from "./lib/analytics.ts";
 
 const queryClient = new QueryClient();
@@ -216,6 +217,7 @@ const App = () => (
             <Route path="audit-log"      element={<RequireAdmin><AdminAuditLog /></RequireAdmin>} />
             <Route path="brainmap"       element={<RequireAdmin><AdminBrainmap /></RequireAdmin>} />
             <Route path="benchmarks"     element={<RequireAdmin><AdminBenchmarks /></RequireAdmin>} />
+            <Route path="xgate"          element={<RequireAdmin><AdminXGate /></RequireAdmin>} />
             <Route path="signals"          element={<SignalsCatalog />} />
             <Route path="signals/settings" element={<SignalsSettings />} />
             <Route path="boardroom"        element={<Fishbowl />} />
