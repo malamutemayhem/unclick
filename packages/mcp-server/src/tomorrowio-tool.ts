@@ -2,23 +2,25 @@
 // Uses the Tomorrow.io REST API via fetch - no external dependencies.
 // Users must register at tomorrow.io to get a free API key.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const TOMORROWIO_BASE = "https://api.tomorrow.io/v4";
 
 // --- API helper ---
 
-function requireKey(): string {
-  const key = (process.env.TOMORROWIO_API_KEY ?? "").trim();
-  if (!key) throw new Error("TOMORROWIO_API_KEY environment variable is required.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("tomorrowio", args);
 }
 
-async function tioFetch(
+async function tioFetch(apiKey: string,
+  
   path: string,
   params: Record<string, string> = {},
   method: "GET" | "POST" = "GET",
   body?: unknown
 ): Promise<unknown> {
-  const apiKey = requireKey();
   const url = new URL(`${TOMORROWIO_BASE}${path}`);
   url.searchParams.set("apikey", apiKey);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
@@ -32,10 +34,29 @@ async function tioFetch(
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url.toString(), options);
+  const TOMORROWIO_TIMEOUT_MS = Number(process.env.TOMORROWIO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOMORROWIO_TIMEOUT_MS);
+  options.signal = controller.signal;
+
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), options);
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Tomorrow.io request timed out after ${TOMORROWIO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Tomorrow.io network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    throw new Error("Tomorrow.io rate limit reached (HTTP 429). Check your plan's request limit.");
+  }
   if (!response.ok) {
     const text = await response.text().catch(() => "");
-    throw new Error(`HTTP ${response.status} from Tomorrow.io API${text ? `: ${text}` : ""}`);
+    throw new Error(`Tomorrow.io API error (HTTP ${response.status})${text ? `: ${text}` : ""}`);
   }
 
   return response.json();
@@ -72,14 +93,22 @@ function formatRealtime(data: Record<string, unknown>) {
 // --- Operations ---
 
 export async function tomorrowRealtime(args: Record<string, unknown>): Promise<unknown> {
+  const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const location = String(args.location ?? "").trim();
   if (!location) throw new Error("location is required (city name, lat/lon, or postal code).");
 
-  const data = await tioFetch("/weather/realtime", { location }) as Record<string, unknown>;
-  return formatRealtime(data);
+  const data = await tioFetch(apiKey, "/weather/realtime", { location }) as Record<string, unknown>;
+  return stampMeta(formatRealtime(data) as Record<string, unknown>, {
+    source: "Tomorrow.io",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use tomorrow_forecast for the multi-day outlook, or tomorrow_history for past conditions."],
+  });
 }
 
 export async function tomorrowForecast(args: Record<string, unknown>): Promise<unknown> {
+  const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const location = String(args.location ?? "").trim();
   if (!location) throw new Error("location is required.");
 
@@ -91,7 +120,7 @@ export async function tomorrowForecast(args: Record<string, unknown>): Promise<u
   const fields = String(args.fields ?? "").trim();
   if (fields) params.fields = fields;
 
-  const data = await tioFetch("/weather/forecast", params) as Record<string, unknown>;
+  const data = await tioFetch(apiKey, "/weather/forecast", params) as Record<string, unknown>;
 
   const timelines = data.timelines as Record<string, unknown> | undefined;
   const hourly = (timelines?.hourly as Array<Record<string, unknown>>) ?? [];
@@ -111,6 +140,8 @@ export async function tomorrowForecast(args: Record<string, unknown>): Promise<u
 }
 
 export async function tomorrowHistory(args: Record<string, unknown>): Promise<unknown> {
+  const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const location = String(args.location ?? "").trim();
   const startTime = String(args.startTime ?? "").trim();
   const endTime = String(args.endTime ?? "").trim();
@@ -121,7 +152,7 @@ export async function tomorrowHistory(args: Record<string, unknown>): Promise<un
 
   const params: Record<string, string> = { location, startTime, endTime };
 
-  const data = await tioFetch("/weather/history/recent", params) as Record<string, unknown>;
+  const data = await tioFetch(apiKey, "/weather/history/recent", params) as Record<string, unknown>;
 
   const timelines = data.data as Record<string, unknown> | undefined;
   const intervals = (timelines?.timelines as Array<Record<string, unknown>>) ?? [];

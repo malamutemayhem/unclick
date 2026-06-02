@@ -1,7 +1,7 @@
 {
   "name": "@unclick/uxpass",
   "version": "0.1.0",
-  "description": "UXPass - AI agent UI/UX quality control. Eighteen specialised critics, one composite UX Score.",
+  "description": "UXPass - AI agent journey and usability quality control. Visual interface polish now belongs to UIPass.",
   "type": "module",
   "main": "./dist/index.js",
   "exports": {

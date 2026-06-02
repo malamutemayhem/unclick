@@ -2,46 +2,82 @@
 // Uses the SendGrid REST API via fetch - no external dependencies.
 // Users must supply an API key from app.sendgrid.com.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const SG_BASE = "https://api.sendgrid.com/v3";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.sendgrid.com/settings/api-keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("sendgrid", args);
 }
+
+const SENDGRID_TIMEOUT_MS = Number(process.env.SENDGRID_TIMEOUT_MS) || 15000;
 
 async function sgGet<T>(apiKey: string, path: string, params?: Record<string, string>): Promise<T> {
   const url = new URL(`${SG_BASE}${path}`);
   if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SENDGRID_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`SendGrid request timed out after ${SENDGRID_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`SendGrid network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`SendGrid rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (res.status === 204) return {} as T;
-  const data = await res.json() as Record<string, unknown>;
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const errs = data.errors as Array<{ message: string }> | undefined;
-    const msg = errs?.[0]?.message ?? `HTTP ${res.status}`;
+    const msg = errs?.[0]?.message ?? `status ${res.status}`;
     throw new Error(`SendGrid error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function sgPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${SG_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SENDGRID_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SG_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`SendGrid request timed out after ${SENDGRID_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`SendGrid network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`SendGrid rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (res.status === 202 || res.status === 204) return { success: true, status: res.status } as T;
-  const data = await res.json() as Record<string, unknown>;
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const errs = data.errors as Array<{ message: string }> | undefined;
-    const msg = errs?.[0]?.message ?? `HTTP ${res.status}`;
+    const msg = errs?.[0]?.message ?? `status ${res.status}`;
     throw new Error(`SendGrid error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -51,6 +87,7 @@ async function sgPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function sendgridSendEmail(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const to = String(args.to ?? "").trim();
   const from = String(args.from ?? "").trim();
   const subject = String(args.subject ?? "").trim();
@@ -77,6 +114,7 @@ export async function sendgridSendEmail(args: Record<string, unknown>): Promise<
 
 export async function sendgridListTemplates(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const params: Record<string, string> = { generations: "dynamic" };
   if (args.page_size) params.page_size = String(Math.min(200, Math.max(1, Number(args.page_size))));
   return sgGet(apiKey, "/templates", params);
@@ -84,6 +122,7 @@ export async function sendgridListTemplates(args: Record<string, unknown>): Prom
 
 export async function sendgridGetTemplate(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const id = String(args.template_id ?? "").trim();
   if (!id) throw new Error("template_id is required.");
   return sgGet(apiKey, `/templates/${encodeURIComponent(id)}`);
@@ -91,11 +130,13 @@ export async function sendgridGetTemplate(args: Record<string, unknown>): Promis
 
 export async function sendgridListContacts(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   return sgGet(apiKey, "/marketing/contacts");
 }
 
 export async function sendgridAddContact(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const email = String(args.email ?? "").trim();
   if (!email) throw new Error("email is required.");
 
@@ -112,6 +153,7 @@ export async function sendgridAddContact(args: Record<string, unknown>): Promise
 
 export async function sendgridGetStats(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const startDate = String(args.start_date ?? new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0]);
   const params: Record<string, string> = { start_date: startDate };
   if (args.end_date) params.end_date = String(args.end_date);

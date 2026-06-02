@@ -3,25 +3,27 @@
 // Users must create an API token at wise.com/settings/api-tokens.
 
 // Use production by default. Set WISE_SANDBOX=true to use the sandbox environment.
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const WISE_BASE = process.env.WISE_SANDBOX === "true"
   ? "https://api.sandbox.transferwise.tech/v1"
   : "https://api.wise.com/v1";
 
 // --- API helper ---
 
-function requireToken(): string {
-  const token = (process.env.WISE_API_TOKEN ?? "").trim();
-  if (!token) throw new Error("WISE_API_TOKEN environment variable is required.");
-  return token;
+function requireToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("wise", args);
 }
 
-async function wiseFetch(
+async function wiseFetch(token: string,
+  
   path: string,
   params: Record<string, string> = {},
   method: "GET" | "POST" = "GET",
   body?: unknown
 ): Promise<unknown> {
-  const token = requireToken();
   const url = new URL(`${WISE_BASE}${path}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
@@ -31,15 +33,32 @@ async function wiseFetch(
     "Content-Type": "application/json",
   };
 
-  const options: RequestInit = { method, headers };
+  const WISE_TIMEOUT_MS = Number(process.env.WISE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), WISE_TIMEOUT_MS);
+  const options: RequestInit = { method, headers, signal: controller.signal };
   if (method === "POST" && body !== undefined) {
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url.toString(), options);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), options);
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Wise API request timed out after ${WISE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Wise API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(`Wise API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!response.ok) {
     const text = await response.text().catch(() => "");
-    throw new Error(`HTTP ${response.status} from Wise API${text ? `: ${text}` : ""}`);
+    throw new Error(`Wise API HTTP ${response.status}${text ? `: ${text}` : ""}`);
   }
 
   return response.json();
@@ -48,6 +67,8 @@ async function wiseFetch(
 // --- Operations ---
 
 export async function wiseExchangeRates(args: Record<string, unknown>): Promise<unknown> {
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const source = String(args.source ?? "").trim().toUpperCase();
   const target = String(args.target ?? "").trim().toUpperCase();
   if (!source) throw new Error("source currency is required (e.g. USD).");
@@ -57,10 +78,10 @@ export async function wiseExchangeRates(args: Record<string, unknown>): Promise<
   const amount = args.amount !== undefined ? String(Number(args.amount)) : undefined;
   if (amount) params.amount = amount;
 
-  const data = await wiseFetch("/rates", params);
+  const data = await wiseFetch(token, "/rates", params);
   const rates = Array.isArray(data) ? data : [data];
 
-  return {
+  return stampMeta({
     source,
     target,
     amount: amount ? Number(amount) : null,
@@ -70,11 +91,17 @@ export async function wiseExchangeRates(args: Record<string, unknown>): Promise<
       target: r.target,
       time: r.time,
     })),
-  };
+  }, {
+    source: "Wise",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use wise_create_quote to lock a rate, or wise_accounts for your balances."],
+  });
 }
 
-export async function wiseProfile(_args: Record<string, unknown>): Promise<unknown> {
-  const data = await wiseFetch("/profiles");
+export async function wiseProfile(args: Record<string, unknown>): Promise<unknown> {
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
+  const data = await wiseFetch(token, "/profiles");
   const profiles = Array.isArray(data) ? data : [data];
 
   return {
@@ -91,10 +118,12 @@ export async function wiseProfile(_args: Record<string, unknown>): Promise<unkno
 }
 
 export async function wiseAccounts(args: Record<string, unknown>): Promise<unknown> {
-  const profileId = String(args.profileId ?? "").trim();
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
+  const profileId = String((args.profile_id ?? args.profileId) ?? "").trim();
   if (!profileId) throw new Error("profileId is required. Use wise_profile to get your profile ID.");
 
-  const data = await wiseFetch("/borderless-accounts", { profileId });
+  const data = await wiseFetch(token, "/borderless-accounts", { profileId });
   const accounts = Array.isArray(data) ? data : [data];
 
   return {
@@ -114,6 +143,8 @@ export async function wiseAccounts(args: Record<string, unknown>): Promise<unkno
 }
 
 export async function wiseCreateQuote(args: Record<string, unknown>): Promise<unknown> {
+  const token = requireToken(args);
+  if (typeof token !== "string") return token;
   const sourceCurrency = String(args.sourceCurrency ?? "").trim().toUpperCase();
   const targetCurrency = String(args.targetCurrency ?? "").trim().toUpperCase();
   if (!sourceCurrency) throw new Error("sourceCurrency is required.");
@@ -130,7 +161,7 @@ export async function wiseCreateQuote(args: Record<string, unknown>): Promise<un
   if (sourceAmount !== undefined) body.sourceAmount = sourceAmount;
   if (targetAmount !== undefined) body.targetAmount = targetAmount;
 
-  const data = await wiseFetch("/quotes", {}, "POST", body) as Record<string, unknown>;
+  const data = await wiseFetch(token, "/quotes", {}, "POST", body) as Record<string, unknown>;
 
   return {
     id: data.id,

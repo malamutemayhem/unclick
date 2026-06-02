@@ -57,12 +57,36 @@ interface LegalPassMcpSummary {
   pass_rate: number;
 }
 
+interface LegalPassMcpReceipt {
+  kind: "legalpass_receipt_v1";
+  status: "PASS" | "WARN" | "BLOCKER";
+  run_id: string;
+  pack_id: string;
+  target: LegalPassMcpTarget;
+  target_sha?: string;
+  generated_at: string;
+  mode: "fixture" | "plan-only";
+  jurisdictions: LegalPassMcpJurisdiction[];
+  summary: LegalPassMcpSummary;
+  disclaimer_present: true;
+  safety: {
+    issue_spotter_only: true;
+    no_legal_advice: true;
+    no_transactional_instrument: true;
+  };
+  evidence_sources: Array<{ kind: "fixture" | "manual-note"; label: string; summary: string; source_url?: string }>;
+  action_needed: string[];
+  boundaries: string[];
+}
+
 interface LegalPassMcpRunRecord {
   status: "complete" | "planned";
   pass: "legalpass";
   run_id: string;
   pack_id: string;
   target: LegalPassMcpTarget;
+  target_sha?: string;
+  generated_at: string;
   profile: LegalPassMcpProfile;
   jurisdictions: LegalPassMcpJurisdiction[];
   summary: LegalPassMcpSummary;
@@ -76,6 +100,10 @@ interface LegalPassMcpRunRecord {
   };
   audit_log: Array<Record<string, unknown>>;
 }
+
+type LegalPassMcpRunResponse = LegalPassMcpRunRecord & {
+  legalpass_receipt_v1: LegalPassMcpReceipt;
+};
 
 interface LegalPassMcpPack {
   id: string;
@@ -121,6 +149,12 @@ const SUPPORTED_JURISDICTIONS = new Set<LegalPassMcpJurisdiction>([
 ]);
 const DEFAULT_PROFILE: LegalPassMcpProfile = "standard";
 const DEFAULT_JURISDICTIONS: LegalPassMcpJurisdiction[] = ["AU", "EU", "US-CA"];
+const RECEIPT_BOUNDARIES = [
+  "LegalPass is an issue-spotter and information tool only.",
+  "LegalPass does not provide legal advice, legal opinions, legal recommendations, or transactional instruments.",
+  "LegalPass does not create a lawyer-client, solicitor-client, or attorney-client relationship.",
+  "LegalPass receipts are scoped to the supplied public fixture, guarded plan, or declared target only.",
+];
 
 const DISCLAIMERS: Record<DisclaimerLength, string> = {
   chat:
@@ -421,18 +455,85 @@ function summaryFromItems(items: LegalPassMcpItem[]): LegalPassMcpSummary {
   return summary;
 }
 
-function cloneRun(record: LegalPassMcpRunRecord): LegalPassMcpRunRecord {
-  return structuredClone(record);
+function cloneRun(record: LegalPassMcpRunRecord): LegalPassMcpRunResponse {
+  const copy = structuredClone(record);
+  return {
+    ...copy,
+    legalpass_receipt_v1: buildLegalPassReceipt(copy),
+  };
 }
 
-function saveRun(record: LegalPassMcpRunRecord): LegalPassMcpRunRecord {
+function saveRun(record: LegalPassMcpRunRecord): LegalPassMcpRunResponse {
   const existing = runStore.get(record.run_id);
   if (existing) {
     return cloneRun(existing);
   }
 
-  runStore.set(record.run_id, cloneRun(record));
+  runStore.set(record.run_id, structuredClone(record));
   return cloneRun(record);
+}
+
+function buildLegalPassReceipt(record: LegalPassMcpRunRecord): LegalPassMcpReceipt {
+  const mode = record.status === "planned" ? "plan-only" : "fixture";
+  const evidence_sources = record.items
+    .flatMap((item) => item.evidence)
+    .map((item) => ({
+      kind: "fixture" as const,
+      label: item.source,
+      summary: item.excerpt,
+      ...(item.url ? { source_url: item.url } : {}),
+    }))
+    .filter((item, index, all) =>
+      all.findIndex((candidate) =>
+        candidate.label === item.label &&
+        candidate.summary === item.summary &&
+        candidate.source_url === item.source_url
+      ) === index,
+    )
+    .slice(0, 12);
+  const action_needed = legalPassActionNeeded(record);
+  const status: LegalPassMcpReceipt["status"] = record.safety.no_legal_advice !== true
+    ? "BLOCKER"
+    : record.status === "planned" || record.summary.pending > 0 || record.summary.fail > 0
+      ? "WARN"
+      : "PASS";
+
+  return {
+    kind: "legalpass_receipt_v1",
+    status,
+    run_id: record.run_id,
+    pack_id: record.pack_id,
+    target: record.target,
+    ...(record.target_sha ? { target_sha: record.target_sha } : {}),
+    generated_at: record.generated_at,
+    mode,
+    jurisdictions: record.jurisdictions,
+    summary: record.summary,
+    disclaimer_present: true,
+    safety: record.safety,
+    evidence_sources: evidence_sources.length > 0
+      ? evidence_sources
+      : [{ kind: "manual-note", label: "LegalPass boundary", summary: record.note }],
+    action_needed,
+    boundaries: RECEIPT_BOUNDARIES,
+  };
+}
+
+function legalPassActionNeeded(record: LegalPassMcpRunRecord): string[] {
+  const actions: string[] = [];
+  if (record.status === "planned") {
+    actions.push("Public fixture text or a later guarded ingestion path is still needed before this counts as completed LegalPass evidence.");
+  }
+  if (record.summary.fail > 0) {
+    actions.push("Practitioner review may be warranted before relying on flagged material.");
+  }
+  if (record.summary.pending > 0) {
+    actions.push("Pending LegalPass rows need public evidence before they count as checked.");
+  }
+  if (record.audit_log.length > 0) {
+    actions.push("Human reviewer edits are present; preserve the audit log with the receipt.");
+  }
+  return actions;
 }
 
 function fixtureChecksForPack(pack: LegalPassMcpPack): typeof FIXTURE_CHECKS {
@@ -504,6 +605,9 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
     return parsedTarget;
   }
   const target = parsedTarget.target;
+  const parsedTargetSha = parseTargetSha(args.target_sha, target);
+  if ("error" in parsedTargetSha) return parsedTargetSha;
+  const targetSha = parsedTargetSha.target_sha;
   const parsedProfile = parseProfile(args.profile ?? pack.profile ?? DEFAULT_PROFILE, "profile");
   if ("error" in parsedProfile) return parsedProfile;
   const profile = parsedProfile.profile;
@@ -528,6 +632,8 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
       run_id: buildRunId({ packId, pack_signature, target, profile, jurisdictions, fixtureText }),
       pack_id: packId,
       target,
+      ...(targetSha ? { target_sha: targetSha } : {}),
+      generated_at: new Date().toISOString(),
       profile,
       jurisdictions,
       summary: fixture.summary,
@@ -552,6 +658,8 @@ export async function legalpassRun(args: Record<string, unknown>): Promise<unkno
     run_id: runId,
     pack_id: packId,
     target,
+    ...(targetSha ? { target_sha: targetSha } : {}),
+    generated_at: new Date().toISOString(),
     profile,
     jurisdictions,
     summary: summaryFromItems([]),
@@ -619,6 +727,22 @@ function parseTarget(args: Record<string, unknown>):
   }
 
   return { error: "target.kind or target_url is required" };
+}
+
+function parseTargetSha(value: unknown, target: LegalPassMcpTarget):
+  | { target_sha?: string }
+  | { error: string } {
+  if (value === undefined || value === null) {
+    return target.commit ? { target_sha: target.commit } : {};
+  }
+  if (typeof value !== "string") {
+    return { error: "target_sha must be a string" };
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return { error: "target_sha must not be blank" };
+  }
+  return { target_sha: trimmed };
 }
 
 function parseProfile(value: unknown, fieldName: string):
@@ -769,7 +893,7 @@ export async function legalpassEditItem(args: Record<string, unknown>): Promise<
     ...(reviewerNote ? { reviewer_note: reviewerNote } : {}),
   };
   record.audit_log.push(audit_entry);
-  runStore.set(runId, cloneRun(record));
+  runStore.set(runId, structuredClone(record));
 
   return {
     run_id: runId,

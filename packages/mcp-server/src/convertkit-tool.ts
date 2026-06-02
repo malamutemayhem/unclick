@@ -3,6 +3,10 @@
 // Users must supply an api_key (read ops) and/or api_secret (subscriber management)
 // from app.convertkit.com/account_settings/advanced_settings.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const CK_API_BASE = "https://api.convertkit.com/v3";
 
 // --- Types -------------------------------------------------------------------
@@ -64,19 +68,19 @@ interface CkSubscribeResponse {
 
 // --- Auth validation ---------------------------------------------------------
 
-function requireApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Find it at app.convertkit.com/account_settings/advanced_settings.");
-  return key;
+function requireApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("convertkit", args);
 }
 
-function requireApiSecret(args: Record<string, unknown>): string {
-  const secret = String(args.api_secret ?? "").trim();
-  if (!secret) throw new Error("api_secret is required for subscriber management. Find it at app.convertkit.com/account_settings/advanced_settings.");
+function requireApiSecret(args: Record<string, unknown>): string | NotConnectedResult {
+  const secret = String(args.api_secret ?? process.env.CONVERTKIT_API_SECRET ?? "").trim();
+  if (!secret) return requireCredential("convertkit", { ...args, api_key: "" });
   return secret;
 }
 
 // --- API helpers -------------------------------------------------------------
+
+const CONVERTKIT_TIMEOUT_MS = Number(process.env.CONVERTKIT_TIMEOUT_MS) || 15000;
 
 async function ckGet<T>(path: string, queryParams: Record<string, string | undefined>): Promise<T> {
   const params = Object.entries(queryParams)
@@ -85,31 +89,65 @@ async function ckGet<T>(path: string, queryParams: Record<string, string | undef
     .join("&");
   const url = `${CK_API_BASE}${path}${params ? "?" + params : ""}`;
 
-  const res = await fetch(url, {
-    headers: { Accept: "application/json" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CONVERTKIT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ConvertKit request timed out after ${CONVERTKIT_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ConvertKit network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`ConvertKit rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`ConvertKit error: ${msg}`);
   }
   return data as T;
 }
 
 async function ckPost<T>(path: string, body: Record<string, unknown>): Promise<T> {
-  const res = await fetch(`${CK_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CONVERTKIT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${CK_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ConvertKit request timed out after ${CONVERTKIT_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ConvertKit network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`ConvertKit rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`ConvertKit error: ${msg}`);
   }
   return data as T;
@@ -120,6 +158,7 @@ async function ckPost<T>(path: string, body: Record<string, unknown>): Promise<T
 export async function ckListSubscribers(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiSecret = requireApiSecret(args);
+    if (typeof apiSecret !== "string") return apiSecret;
 
     const params: Record<string, string | undefined> = { api_secret: apiSecret };
     if (args.page) params.page = String(args.page);
@@ -131,7 +170,7 @@ export async function ckListSubscribers(args: Record<string, unknown>): Promise<
     if (args.sort_field) params.sort_field = String(args.sort_field);
 
     const result = await ckGet<CkSubscribersResponse>("/subscribers", params);
-    return {
+    return stampMeta({
       total_subscribers: result.total_subscribers,
       page: result.page,
       total_pages: result.total_pages,
@@ -144,7 +183,11 @@ export async function ckListSubscribers(args: Record<string, unknown>): Promise<
         created_at: s.created_at,
         fields: s.fields,
       })),
-    };
+    }, {
+      source: "Kit (ConvertKit)",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use ck_tag_subscriber to tag someone, or ck_list_tags to see your tags."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -153,6 +196,7 @@ export async function ckListSubscribers(args: Record<string, unknown>): Promise<
 export async function ckAddSubscriber(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const formId = String(args.form_id ?? "").trim();
     if (!formId) throw new Error("form_id is required.");
     const email = String(args.email ?? "").trim();
@@ -183,6 +227,7 @@ export async function ckAddSubscriber(args: Record<string, unknown>): Promise<un
 export async function ckListForms(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const result = await ckGet<{ forms: CkForm[] }>("/forms", { api_key: apiKey });
     const forms = result.forms ?? [];
     return {
@@ -205,6 +250,7 @@ export async function ckListForms(args: Record<string, unknown>): Promise<unknow
 export async function ckListSequences(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const result = await ckGet<{ courses: CkSequence[] }>("/sequences", { api_key: apiKey });
     const sequences = result.courses ?? [];
     return {
@@ -225,6 +271,7 @@ export async function ckListSequences(args: Record<string, unknown>): Promise<un
 export async function ckListTags(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const result = await ckGet<{ tags: CkTag[] }>("/tags", { api_key: apiKey });
     const tags = result.tags ?? [];
     return {
@@ -243,6 +290,7 @@ export async function ckListTags(args: Record<string, unknown>): Promise<unknown
 export async function ckTagSubscriber(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const tagId = String(args.tag_id ?? "").trim();
     if (!tagId) throw new Error("tag_id is required.");
     const email = String(args.email ?? "").trim();

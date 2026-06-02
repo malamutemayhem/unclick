@@ -2,6 +2,8 @@
 // No API key required -- free public API.
 // Base URL: https://www.themealdb.com/api/json/v1/1/
 
+import { stampMeta } from "./connector-meta.js";
+
 const MEALDB_BASE = "https://www.themealdb.com/api/json/v1/1";
 
 interface MealSummary {
@@ -36,11 +38,33 @@ interface CategoryResponse {
   categories: CategoryItem[];
 }
 
+const MEAL_TIMEOUT_MS = Number(process.env.MEAL_TIMEOUT_MS) || 10000;
+
 async function mealFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${MEALDB_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
-  if (!res.ok) throw new Error(`TheMealDB HTTP ${res.status}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MEAL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${MEALDB_BASE}${path}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`TheMealDB request timed out after ${MEAL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`TheMealDB network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`TheMealDB rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`TheMealDB HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -80,11 +104,15 @@ export async function searchMeals(args: Record<string, unknown>): Promise<unknow
     return { query, count: 0, meals: [], message: `No meals found matching "${query}".` };
   }
 
-  return {
+  return stampMeta({
     query,
     count: data.meals.length,
     meals: (data.meals as MealDetail[]).map(normalizeMeal),
-  };
+  }, {
+    source: "TheMealDB",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use meal_get_by_id for the full recipe, or meal_filter_by_category to browse."],
+  });
 }
 
 // ─── get_random_meal ──────────────────────────────────────────────────────────

@@ -2,7 +2,10 @@
 // Uses the REST Countries public API via fetch - no auth required.
 // Data covers all 250 countries with rich metadata.
 
+import { stampMeta } from "./connector-meta.js";
+
 const RESTCOUNTRIES_BASE = "https://restcountries.com/v3.1";
+const RESTCOUNTRIES_TIMEOUT_MS = Number(process.env.RESTCOUNTRIES_TIMEOUT_MS) || 10000;
 
 // --- API helper ---
 
@@ -10,17 +13,33 @@ async function rcFetch(path: string, fields?: string): Promise<unknown> {
   const url = new URL(`${RESTCOUNTRIES_BASE}${path}`);
   if (fields) url.searchParams.set("fields", fields);
 
-  const response = await fetch(url.toString(), {
-    headers: { "Accept": "application/json" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RESTCOUNTRIES_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), {
+      headers: { "Accept": "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`REST Countries API request timed out after ${RESTCOUNTRIES_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`REST Countries API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (response.status === 404) {
     return { results: [], note: "No countries matched the query." };
   }
-
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(`REST Countries API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!response.ok) {
     const text = await response.text().catch(() => "");
-    throw new Error(`HTTP ${response.status} from REST Countries API${text ? `: ${text}` : ""}`);
+    throw new Error(`REST Countries API HTTP ${response.status}${text ? `: ${text.slice(0, 200)}` : ""}`);
   }
 
   return response.json();
@@ -90,10 +109,14 @@ export async function countryByName(args: Record<string, unknown>): Promise<unkn
   if (data && typeof data === "object" && "results" in data) return data;
 
   const countries = data as Array<Record<string, unknown>>;
-  return {
+  return stampMeta({
     count: countries.length,
     countries: countries.map(normalizeCountry),
-  };
+  }, {
+    source: "REST Countries v3.1",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use country_by_code for a single country by ISO code, or country_by_region to list a whole region."],
+  });
 }
 
 export async function countryByCode(args: Record<string, unknown>): Promise<unknown> {

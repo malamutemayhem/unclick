@@ -3,13 +3,14 @@
 // Auth: STEAM_API_KEY (API key query param)
 // Base: https://api.steampowered.com
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const STEAM_BASE = "https://api.steampowered.com";
 const STEAM_STORE_BASE = "https://store.steampowered.com/api";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.STEAM_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set STEAM_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("steam", args);
 }
 
 async function steamGet(
@@ -20,9 +21,23 @@ async function steamGet(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
-  const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
-  });
+  const STEAM_TIMEOUT_MS = Number(process.env.STEAM_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), STEAM_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Steam request timed out after ${STEAM_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Steam network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid Steam API key.");
   if (res.status === 429) throw new Error("Steam rate limit exceeded.");
   if (!res.ok) {
@@ -40,9 +55,24 @@ async function steamStoreGet(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
-  const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
-  });
+  const STEAM_TIMEOUT_MS = Number(process.env.STEAM_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), STEAM_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Steam Store request timed out after ${STEAM_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Steam Store network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Steam Store rate limit exceeded.");
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Steam Store HTTP ${res.status}: ${body || res.statusText}`);
@@ -54,6 +84,7 @@ async function steamStoreGet(
 export async function getSteamPlayerSummaries(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const steamids = String(args.steamids ?? "").trim();
     if (!steamids) return { error: "steamids is required (comma-separated Steam64 IDs, up to 100)." };
 
@@ -64,7 +95,7 @@ export async function getSteamPlayerSummaries(args: Record<string, unknown>): Pr
 
     const response = json.response as Record<string, unknown> | undefined;
     const players = (response?.players ?? []) as Array<Record<string, unknown>>;
-    return {
+    return stampMeta({
       count: players.length,
       players: players.map((p) => ({
         steamid: p.steamid,
@@ -79,7 +110,11 @@ export async function getSteamPlayerSummaries(args: Record<string, unknown>): Pr
         gameid: p.gameid,
         gameextrainfo: p.gameextrainfo,
       })),
-    };
+    }, {
+      source: "Steam Web API",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use get_steam_owned_games or get_steam_player_achievements for a steamid."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -89,6 +124,7 @@ export async function getSteamPlayerSummaries(args: Record<string, unknown>): Pr
 export async function getSteamOwnedGames(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const steamId = String(args.steamid ?? "").trim();
     if (!steamId) return { error: "steamid is required (Steam64 ID)." };
 
@@ -123,6 +159,7 @@ export async function getSteamOwnedGames(args: Record<string, unknown>): Promise
 export async function getSteamAchievements(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const steamId = String(args.steamid ?? "").trim();
     if (!steamId) return { error: "steamid is required." };
     const appId = String(args.appid ?? "").trim();

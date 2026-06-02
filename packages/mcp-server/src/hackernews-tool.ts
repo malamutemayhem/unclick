@@ -2,15 +2,38 @@
 // No authentication required - completely open.
 // Base URL: https://hacker-news.firebaseio.com/v0/
 
+import { stampMeta } from "./connector-meta.js";
+
 const HN_BASE = "https://hacker-news.firebaseio.com/v0";
+const HN_TIMEOUT_MS = Number(process.env.HN_TIMEOUT_MS) || 10000;
 
 // ─── API helper ───────────────────────────────────────────────────────────────
 
 async function hnFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${HN_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
-  if (!res.ok) throw new Error(`HN API HTTP ${res.status}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${HN_BASE}${path}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Hacker News API request timed out after ${HN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Hacker News API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Hacker News API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Hacker News API HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -69,7 +92,11 @@ export async function hnTopStories(args: Record<string, unknown>): Promise<unkno
   const limit = Math.min(30, Math.max(1, Number(args.limit ?? 10)));
   const ids = await hnFetch<number[]>("/topstories.json");
   const stories = await fetchStories(ids, limit);
-  return { count: stories.length, feed: "top", stories };
+  return stampMeta({ count: stories.length, feed: "top", stories }, {
+    source: "Hacker News (Firebase API)",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use hn_item with a story id for its full text and comment ids, or hn_user to look up an author."],
+  });
 }
 
 // ─── hn_new_stories ───────────────────────────────────────────────────────────

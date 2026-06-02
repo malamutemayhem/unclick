@@ -3,7 +3,11 @@
 // Docs: https://www.last.fm/api
 // Env var: LASTFM_API_KEY
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const LASTFM_BASE = "https://ws.audioscrobbler.com/2.0";
+const LASTFM_TIMEOUT_MS = Number(process.env.LASTFM_TIMEOUT_MS) || 10000;
 
 async function lastfmGet(
   apiKey: string,
@@ -18,17 +22,31 @@ async function lastfmGet(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") qs.set(k, String(v));
   }
-  const res = await fetch(`${LASTFM_BASE}/?${qs}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LASTFM_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${LASTFM_BASE}/?${qs}`, { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Last.fm API request timed out after ${LASTFM_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Last.fm API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Last.fm API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) throw new Error(`Last.fm API HTTP ${res.status}: ${res.statusText}`);
   const json = await res.json() as Record<string, unknown>;
   if (json.error) throw new Error(`Last.fm error ${json.error}: ${json.message}`);
   return json;
 }
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.LASTFM_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set LASTFM_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("lastfm", args);
 }
 
 // ── Tool functions ─────────────────────────────────────────────────────────────
@@ -36,12 +54,17 @@ function getApiKey(args: Record<string, unknown>): string {
 export async function lastfmGetArtistInfo(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const artist = String(args.artist ?? "").trim();
     if (!artist) return { error: "artist is required." };
     const params: Record<string, string | number> = { artist };
     if (args.lang) params.lang = String(args.lang);
     const data = await lastfmGet(apiKey, "artist.getinfo", params);
-    return data.artist ?? data;
+    return stampMeta((data.artist ?? data) as Record<string, unknown>, {
+      source: "Last.fm",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use lastfm_top_tracks for this artist, or lastfm_similar_artists for related acts."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -50,7 +73,8 @@ export async function lastfmGetArtistInfo(args: Record<string, unknown>): Promis
 export async function lastfmSearchArtists(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
-    const query = String(args.query ?? "").trim();
+    if (typeof apiKey !== "string") return apiKey;
+    const query = String((args.artist ?? args.query) ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { artist: query };
     if (args.limit) params.limit = Number(args.limit);
@@ -70,6 +94,7 @@ export async function lastfmSearchArtists(args: Record<string, unknown>): Promis
 export async function lastfmGetTopTracks(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const artist = String(args.artist ?? "").trim();
     if (!artist) return { error: "artist is required." };
     const params: Record<string, string | number> = { artist };
@@ -89,6 +114,7 @@ export async function lastfmGetTopTracks(args: Record<string, unknown>): Promise
 export async function lastfmGetSimilarArtists(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const artist = String(args.artist ?? "").trim();
     if (!artist) return { error: "artist is required." };
     const params: Record<string, string | number> = { artist };
@@ -107,6 +133,7 @@ export async function lastfmGetSimilarArtists(args: Record<string, unknown>): Pr
 export async function lastfmGetChartTopArtists(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string | number> = {};
     if (args.limit) params.limit = Number(args.limit);
     if (args.page)  params.page  = Number(args.page);
@@ -124,6 +151,7 @@ export async function lastfmGetChartTopArtists(args: Record<string, unknown>): P
 export async function lastfmGetChartTopTracks(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const params: Record<string, string | number> = {};
     if (args.limit) params.limit = Number(args.limit);
     if (args.page)  params.page  = Number(args.page);
@@ -141,6 +169,7 @@ export async function lastfmGetChartTopTracks(args: Record<string, unknown>): Pr
 export async function lastfmGetAlbumInfo(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const artist = String(args.artist ?? "").trim();
     const album  = String(args.album  ?? "").trim();
     if (!artist) return { error: "artist is required." };

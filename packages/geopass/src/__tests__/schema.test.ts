@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GeoPassReportSchema } from "../schema.js";
+import { GeoPassReceiptSchema, GeoPassReportSchema } from "../schema.js";
 
 const validReport = {
   target_url: "https://example.com/",
@@ -86,5 +86,38 @@ describe("GeoPassReportSchema", () => {
     expect(result.checks[0]?.findings[0]?.evidence[0]?.source_url).toBe(
       "https://example.com/llms.txt",
     );
+  });
+
+  it("accepts the first-class live receipt envelope", () => {
+    const receipt = GeoPassReceiptSchema.parse({
+      kind: "geopass_receipt_v1",
+      status: "WARN",
+      run_id: "geopass-abc123",
+      target_url: "https://example.com/",
+      generated_at: "2026-05-30T12:00:00.000Z",
+      mode: "live-readonly",
+      score: 74,
+      verdict: "needs-work",
+      checked: {
+        total: 3,
+        ready: 1,
+        needs_work: 2,
+        blocked: 0,
+        unknown: 0,
+      },
+      evidence_sources: [
+        {
+          kind: "html",
+          label: "Heading scan",
+          source_url: "https://example.com/",
+          summary: "Question headings found.",
+        },
+      ],
+      action_needed: ["Add clearer source links."],
+      boundaries: ["Readiness only. No citation guarantee."],
+    });
+
+    expect(receipt.kind).toBe("geopass_receipt_v1");
+    expect(receipt.status).toBe("WARN");
   });
 });

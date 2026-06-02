@@ -23,14 +23,30 @@ async function discordFetch(
     headers["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(`${DISCORD_API}${path}`, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  const DISCORD_TIMEOUT_MS = Number(process.env.DISCORD_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DISCORD_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${DISCORD_API}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Discord API request timed out after ${DISCORD_TIMEOUT_MS}ms.` };
+    }
+    return { error: `Network error reaching Discord API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
 
   // 204 No Content - success with no body (e.g. react)
   if (res.status === 204) return { success: true };
+
+  if (res.status === 429) return { error: "Discord rate limit reached. Please wait and retry.", status: 429 };
 
   const data = (await res.json()) as unknown;
 

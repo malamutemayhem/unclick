@@ -288,12 +288,48 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "bitbucket",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "bitbucket_list_repos",
+        "description": "List Bitbucket repositories in a workspace."
+      },
+      {
+        "name": "bitbucket_get_repo",
+        "description": "Get a single Bitbucket repository."
+      },
+      {
+        "name": "bitbucket_list_pull_requests",
+        "description": "List pull requests for a Bitbucket repository."
+      }
+    ]
+  },
+  {
     "app": "bluesky",
     "category": "Existing tools (previously unwired)",
     "tools": [
       {
         "name": "bluesky_action",
         "description": "Perform a Bluesky action: bluesky_post, bluesky_read_feed, bluesky_reply, bluesky_like, bluesky_repost, bluesky_search, bluesky_profile, bluesky_follow."
+      }
+    ]
+  },
+  {
+    "app": "brevo",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "brevo_list_contacts",
+        "description": "List Brevo contacts."
+      },
+      {
+        "name": "brevo_list_campaigns",
+        "description": "List Brevo email campaigns."
+      },
+      {
+        "name": "brevo_get_account",
+        "description": "Get the Brevo account profile and plan."
       }
     ]
   },
@@ -316,6 +352,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "bungie_search_entities",
         "description": "Search Destiny 2 manifest entities."
+      }
+    ]
+  },
+  {
+    "app": "calcom",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "calcom_me",
+        "description": "Get the authenticated Cal.com user's profile."
+      },
+      {
+        "name": "calcom_list_event_types",
+        "description": "List your Cal.com bookable event (meeting) types."
+      },
+      {
+        "name": "calcom_list_bookings",
+        "description": "List Cal.com bookings, optionally filtered by status."
       }
     ]
   },
@@ -466,6 +520,38 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "cloudinary",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "cloudinary_list_resources",
+        "description": "List Cloudinary media resources."
+      },
+      {
+        "name": "cloudinary_get_usage",
+        "description": "Get Cloudinary usage and quota."
+      }
+    ]
+  },
+  {
+    "app": "coda",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "coda_list_docs",
+        "description": "List your Coda docs."
+      },
+      {
+        "name": "coda_list_tables",
+        "description": "List the tables in a Coda doc."
+      },
+      {
+        "name": "coda_list_rows",
+        "description": "List rows in a Coda table."
+      }
+    ]
+  },
+  {
     "app": "cohere",
     "category": "AI Models",
     "tools": [
@@ -557,7 +643,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "color_convert",
-        "description": "Convert a color between HEX, RGB, HSL, and other formats."
+        "description": "Convert a color from one format into ALL other formats (HEX, RGB, HSL, HSV, CMYK) at once."
       },
       {
         "name": "color_info",
@@ -614,6 +700,46 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "confluence",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "confluence_search",
+        "description": "Search Confluence pages by text."
+      },
+      {
+        "name": "confluence_get_page",
+        "description": "Get a Confluence page by id, including its body."
+      },
+      {
+        "name": "confluence_list_spaces",
+        "description": "List Confluence spaces."
+      }
+    ]
+  },
+  {
+    "app": "contentful",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "contentful_list_entries",
+        "description": "List Contentful entries, optionally filtered by content_type or full-text query."
+      },
+      {
+        "name": "contentful_get_entry",
+        "description": "Get a single Contentful entry by id."
+      },
+      {
+        "name": "contentful_list_content_types",
+        "description": "List Contentful content types (the content model)."
+      },
+      {
+        "name": "contentful_list_assets",
+        "description": "List Contentful media assets."
+      }
+    ]
+  },
+  {
     "app": "convertkit",
     "category": "Commerce / Creator",
     "tools": [
@@ -649,11 +775,11 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "copypass_run",
-        "description": "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, and optional CopyRoom exact-copy receipt."
+        "description": "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, a structured copypass_receipt_v1 proof envelope, and optional CopyRoom exact-copy receipt."
       },
       {
         "name": "copypass_status",
-        "description": "Fetch the current status, notes, deterministic findings, disclaimer, and CopyRoom receipt for a CopyPass run started in this MCP session."
+        "description": "Fetch the current status, notes, deterministic findings, disclaimer, copypass_receipt_v1 proof envelope, and CopyRoom receipt for a CopyPass run started in this MCP session."
       }
     ]
   },
@@ -802,6 +928,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "digitalocean",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "do_list_droplets",
+        "description": "List DigitalOcean droplets (signals when any are powered off)."
+      },
+      {
+        "name": "do_list_apps",
+        "description": "List DigitalOcean App Platform apps."
+      },
+      {
+        "name": "do_list_databases",
+        "description": "List DigitalOcean managed database clusters."
+      },
+      {
+        "name": "do_account",
+        "description": "Get the DigitalOcean account profile and limits."
+      }
+    ]
+  },
+  {
     "app": "discogs",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -880,6 +1028,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "domain_suburb_stats",
         "description": "Get property market statistics for an Australian suburb."
+      }
+    ]
+  },
+  {
+    "app": "dropbox",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "dropbox_list_folder",
+        "description": "List files and folders in a Dropbox path (empty path = root)."
+      },
+      {
+        "name": "dropbox_search",
+        "description": "Search Dropbox for files and folders by name."
+      },
+      {
+        "name": "dropbox_get_account",
+        "description": "Get the current Dropbox account profile."
       }
     ]
   },
@@ -1057,7 +1223,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "eventbrite_create_event",
-        "description": "Create an event on Eventbrite."
+        "description": "Create an event on Eventbrite under an organization."
       },
       {
         "name": "eventbrite_list_categories",
@@ -1111,7 +1277,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "fidelitypass_verify_copy",
-        "description": "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes. Missing bytes, stale metadata, or prose-only AI proof cannot PASS."
+        "description": "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes, or return N/A when no exact 1:1 copy is in scope. Missing bytes, stale metadata, or prose-only AI proof cannot PASS."
       }
     ]
   },
@@ -1314,6 +1480,56 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "geopass",
+    "category": "GEOPass (AI answer-engine readiness QC, sister to SEOPass)",
+    "tools": [
+      {
+        "name": "geopass_run",
+        "description": "Run GEOPass against a public URL. Returns a live-readonly AI answer-engine readiness receipt covering answer extractability, entity clarity, citation/sourceability, freshness cues, content structure, llms.txt, and AI bot visibility. GEOPass reports readiness only and does not guarantee rankings or citations."
+      },
+      {
+        "name": "geopass_status",
+        "description": "Fetch the stored in-session GEOPass report and geopass_receipt_v1 envelope for a run started through geopass_run."
+      }
+    ]
+  },
+  {
+    "app": "ghost",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "ghost_list_posts",
+        "description": "List published Ghost posts."
+      },
+      {
+        "name": "ghost_list_pages",
+        "description": "List Ghost pages."
+      },
+      {
+        "name": "ghost_list_tags",
+        "description": "List Ghost tags."
+      }
+    ]
+  },
+  {
+    "app": "giphy",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "giphy_search",
+        "description": "Search Giphy for GIFs."
+      },
+      {
+        "name": "giphy_trending",
+        "description": "Get trending GIFs from Giphy."
+      },
+      {
+        "name": "giphy_random",
+        "description": "Get a random GIF from Giphy, optionally by tag."
+      }
+    ]
+  },
+  {
     "app": "github",
     "category": "Developer / Productivity",
     "tools": [
@@ -1496,6 +1712,36 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "hubspot",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "hubspot_list_contacts",
+        "description": "List HubSpot CRM contacts (most recently created first)."
+      },
+      {
+        "name": "hubspot_get_contact",
+        "description": "Get a single HubSpot contact by id."
+      },
+      {
+        "name": "hubspot_search_contacts",
+        "description": "Search HubSpot contacts by name, email, or company."
+      },
+      {
+        "name": "hubspot_list_companies",
+        "description": "List HubSpot CRM companies."
+      },
+      {
+        "name": "hubspot_list_deals",
+        "description": "List HubSpot CRM deals."
+      },
+      {
+        "name": "hubspot_create_contact",
+        "description": "Create a HubSpot contact."
+      }
+    ]
+  },
+  {
     "app": "hunter",
     "category": "Security",
     "tools": [
@@ -1568,6 +1814,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "intercom",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "intercom_list_conversations",
+        "description": "List recent Intercom conversations."
+      },
+      {
+        "name": "intercom_get_conversation",
+        "description": "Get a single Intercom conversation by id."
+      },
+      {
+        "name": "intercom_list_contacts",
+        "description": "List Intercom contacts."
+      },
+      {
+        "name": "intercom_search_contacts",
+        "description": "Search Intercom contacts by email."
+      }
+    ]
+  },
+  {
     "app": "ipapi",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -1600,6 +1868,46 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "jira",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "jira_search_issues",
+        "description": "Search Jira issues with JQL (defaults to most recently updated)."
+      },
+      {
+        "name": "jira_get_issue",
+        "description": "Get a single Jira issue by key, including description and comments."
+      },
+      {
+        "name": "jira_list_projects",
+        "description": "List Jira projects, with an optional name query."
+      },
+      {
+        "name": "jira_create_issue",
+        "description": "Create a Jira issue. project_key can be filled from a saved memory default."
+      },
+      {
+        "name": "jira_add_comment",
+        "description": "Add a comment to a Jira issue."
+      }
+    ]
+  },
+  {
+    "app": "jobsmith",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "jobsmith_check",
+        "description": "Run JobSmith's CV / cover-letter quality rules over a piece of text. No key needed."
+      },
+      {
+        "name": "jobsmith_rules",
+        "description": "Browse JobSmith's rule pack (counts by category and severity), optionally filtered by category."
+      }
+    ]
+  },
+  {
     "app": "keychain",
     "category": "AI",
     "tools": [
@@ -1622,6 +1930,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "keychain_secure_connect",
         "description": "Securely connect a platform credential without exposing the key in chat. Checks environment variables first; if not found, opens a localhost secure input page for the user to paste their key. Call once to get the URL, then call again after the user submits to complete the connection."
+      }
+    ]
+  },
+  {
+    "app": "klaviyo",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "klaviyo_list_lists",
+        "description": "List Klaviyo lists."
+      },
+      {
+        "name": "klaviyo_list_segments",
+        "description": "List Klaviyo segments (dynamic groups)."
+      },
+      {
+        "name": "klaviyo_list_metrics",
+        "description": "List Klaviyo metrics (tracked events)."
+      },
+      {
+        "name": "klaviyo_list_profiles",
+        "description": "List Klaviyo profiles (subscribers)."
       }
     ]
   },
@@ -1934,6 +2264,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "miro",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "miro_list_boards",
+        "description": "List Miro boards."
+      },
+      {
+        "name": "miro_get_board",
+        "description": "Get a single Miro board by id."
+      },
+      {
+        "name": "miro_list_items",
+        "description": "List the items (notes, shapes, text) on a Miro board."
+      }
+    ]
+  },
+  {
     "app": "mistral",
     "category": "AI Models",
     "tools": [
@@ -2096,6 +2444,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "neon_execute_sql",
         "description": "Execute a SQL query against a Neon database endpoint."
+      }
+    ]
+  },
+  {
+    "app": "netlify",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "netlify_list_sites",
+        "description": "List Netlify sites for the account."
+      },
+      {
+        "name": "netlify_get_site",
+        "description": "Get a single Netlify site by id."
+      },
+      {
+        "name": "netlify_list_deploys",
+        "description": "List recent deploys for a Netlify site (signals when the latest deploy failed)."
+      },
+      {
+        "name": "netlify_get_deploy",
+        "description": "Get a single Netlify deploy by id (including build logs metadata)."
       }
     ]
   },
@@ -2524,6 +2894,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "pipedrive",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "pipedrive_list_deals",
+        "description": "List Pipedrive deals."
+      },
+      {
+        "name": "pipedrive_list_persons",
+        "description": "List Pipedrive persons (contacts)."
+      },
+      {
+        "name": "pipedrive_list_organizations",
+        "description": "List Pipedrive organizations (companies)."
+      },
+      {
+        "name": "pipedrive_search_deals",
+        "description": "Search Pipedrive deals by term."
+      }
+    ]
+  },
+  {
     "app": "plaid",
     "category": "AI",
     "tools": [
@@ -2576,6 +2968,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "podcast_recent_episodes",
         "description": "Get recent podcast episodes from Podcast Index."
+      }
+    ]
+  },
+  {
+    "app": "posthog",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "posthog_list_feature_flags",
+        "description": "List PostHog feature flags for a project."
+      },
+      {
+        "name": "posthog_list_insights",
+        "description": "List saved PostHog insights (charts) for a project."
+      },
+      {
+        "name": "posthog_list_persons",
+        "description": "List PostHog persons (users) for a project."
+      },
+      {
+        "name": "posthog_query",
+        "description": "Run an ad-hoc HogQL (SQL) query against a PostHog project's events."
       }
     ]
   },
@@ -2853,7 +3267,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "reddit_read",
-        "description": "Read posts from a Reddit subreddit."
+        "description": "Read public posts from a Reddit subreddit. OAuth is optional for public reads."
       },
       {
         "name": "reddit_post",
@@ -2865,11 +3279,15 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "reddit_search",
-        "description": "Search Reddit posts."
+        "description": "Search public Reddit posts. OAuth is optional for public reads."
+      },
+      {
+        "name": "reddit_thread",
+        "description": "Read a public Reddit thread, including the post and comments."
       },
       {
         "name": "reddit_user",
-        "description": "Get a Reddit user profile and posts."
+        "description": "Get a public Reddit user profile and recent activity. OAuth is optional for public reads."
       },
       {
         "name": "reddit_vote",
@@ -3064,6 +3482,40 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "securitypass",
+    "category": "SecurityPass (scope-gated security receipts)",
+    "tools": [
+      {
+        "name": "securitypass_run",
+        "description": "Start a scope-gated SecurityPass scan against a registered pack or target URL. Returns a safe securitypass_receipt_v1 proof envelope without raw secrets or PoC payloads."
+      },
+      {
+        "name": "securitypass_status",
+        "description": "Poll the state of a SecurityPass run. Returns status, verdict summary, counts, and a safe securitypass_receipt_v1 proof envelope."
+      },
+      {
+        "name": "securitypass_report",
+        "description": "Fetch the synthesised report for a completed run (executive narrative + findings). format=json|markdown|html."
+      },
+      {
+        "name": "securitypass_register_pack",
+        "description": "Save a SecurityPack YAML for the calling tenant. Validates against the schema."
+      },
+      {
+        "name": "securitypass_verify_scope",
+        "description": "Verify scope authorisation for a target via DNS TXT or /.well-known proof. Required before any active probe runs."
+      },
+      {
+        "name": "securitypass_disclosure_status",
+        "description": "Check the 90+30 responsible-disclosure timer state for a finding (notified, acked, extended, public, withdrawn)."
+      },
+      {
+        "name": "securitypass_finding_detail",
+        "description": "Fetch a single finding including PoC payload (curl / prompt / payload) and remediation. PoC is generated, never auto-fired."
+      }
+    ]
+  },
+  {
     "app": "segment",
     "category": "Monitoring / CI / CDP / Email / Commerce / Inference",
     "tools": [
@@ -3244,6 +3696,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "shortcut",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "shortcut_search_stories",
+        "description": "Search Shortcut stories with the search syntax."
+      },
+      {
+        "name": "shortcut_get_story",
+        "description": "Get a single Shortcut story by id."
+      },
+      {
+        "name": "shortcut_list_projects",
+        "description": "List Shortcut projects."
+      },
+      {
+        "name": "shortcut_list_epics",
+        "description": "List Shortcut epics."
+      }
+    ]
+  },
+  {
     "app": "slack",
     "category": "Existing tools (previously unwired)",
     "tools": [
@@ -3289,7 +3763,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "sloppass_run",
-        "description": "Run SlopPass against caller-provided source files or a unified diff. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, read repositories, persist source content, or make paid model calls by default."
+        "description": "Run SlopPass against caller-provided source files, a unified diff, or a GitHub PR target whose public .diff should be fetched. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, clone repositories, persist source content, or make paid model calls by default."
       }
     ]
   },
@@ -3507,7 +3981,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "tab_race",
-        "description": "Get TAB race details."
+        "description": "Get TAB race details. A race is addressed by its meeting date, meeting name, and race number (TAB has no single race id)."
       },
       {
         "name": "tab_sports_markets",
@@ -3722,6 +4196,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "todoist",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "todoist_list_projects",
+        "description": "List your Todoist projects."
+      },
+      {
+        "name": "todoist_list_tasks",
+        "description": "List active Todoist tasks, optionally by project or filter."
+      },
+      {
+        "name": "todoist_create_task",
+        "description": "Create a Todoist task."
+      },
+      {
+        "name": "todoist_complete_task",
+        "description": "Complete (close) a Todoist task by id."
+      }
+    ]
+  },
+  {
     "app": "togetherai",
     "category": "Monitoring / CI / CDP / Email / Commerce / Inference",
     "tools": [
@@ -3925,11 +4421,29 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "twitch_channel_info",
-        "description": "Get information about a Twitch channel."
+        "description": "Get information about a Twitch channel by its login name."
       },
       {
         "name": "twitch_schedule",
-        "description": "Get a Twitch channel's streaming schedule."
+        "description": "Get a Twitch channel's streaming schedule by its login name."
+      }
+    ]
+  },
+  {
+    "app": "typeform",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "typeform_list_forms",
+        "description": "List your Typeform forms."
+      },
+      {
+        "name": "typeform_get_form",
+        "description": "Get a Typeform form definition (fields and titles) by id."
+      },
+      {
+        "name": "typeform_get_responses",
+        "description": "Get submissions for a Typeform form."
       }
     ]
   },
@@ -3964,6 +4478,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "convert_data_storage",
         "description": "Convert between data storage units."
+      }
+    ]
+  },
+  {
+    "app": "unsplash",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "unsplash_search_photos",
+        "description": "Search Unsplash photos."
+      },
+      {
+        "name": "unsplash_get_photo",
+        "description": "Get a single Unsplash photo by id (URLs + attribution)."
+      },
+      {
+        "name": "unsplash_random_photo",
+        "description": "Get a random Unsplash photo, optionally matching a query."
       }
     ]
   },
@@ -4028,6 +4560,20 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "uptimerobot",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "uptimerobot_get_monitors",
+        "description": "List UptimeRobot monitors (signals when any are DOWN)."
+      },
+      {
+        "name": "uptimerobot_get_account",
+        "description": "Get UptimeRobot account details and limits."
+      }
+    ]
+  },
+  {
     "app": "urlscan",
     "category": "Security",
     "tools": [
@@ -4059,21 +4605,21 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "usgs_earthquakes_by_region",
-        "description": "Get USGS earthquakes within a geographic region."
+        "description": "Get recent USGS earthquakes within a radius of a point (latitude/longitude)."
       }
     ]
   },
   {
     "app": "uxpass",
-    "category": "UXPass (sister to TestPass, UI/UX QC)",
+    "category": "UXPass (sister to TestPass, journey/usability QC)",
     "tools": [
       {
         "name": "uxpass_run",
-        "description": "Run a UI/UX quality check synchronously against a URL. Executes the deterministic uxpass-core check set (HTTP, HTML, accessibility, agent readability, performance, security) against the target and returns the run id, status, UX Score, and summary. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry)."
+        "description": "Run a UX journey/usability check synchronously against a URL. Executes the deterministic uxpass-core check set and returns the run id, status, UX Score, summary, and uxpass_receipt_v1. UIPass now owns visual/interface polish; this legacy UXPass runner still calls out when screenshots or mobile/desktop proof are missing for visible surfaces. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry)."
       },
       {
         "name": "uxpass_status",
-        "description": "Fetch the status, UX Score, and summary for a UXPass run."
+        "description": "Fetch the status, UX Score, summary, and uxpass_receipt_v1 for a UXPass run."
       },
       {
         "name": "uxpass_report_html",
@@ -4164,6 +4710,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "webflow",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "webflow_list_sites",
+        "description": "List Webflow sites for the account."
+      },
+      {
+        "name": "webflow_get_site",
+        "description": "Get a single Webflow site by id."
+      },
+      {
+        "name": "webflow_list_collections",
+        "description": "List CMS collections for a Webflow site."
+      },
+      {
+        "name": "webflow_list_items",
+        "description": "List items in a Webflow CMS collection."
+      }
+    ]
+  },
+  {
     "app": "whatsapp",
     "category": "Messaging",
     "tools": [
@@ -4186,6 +4754,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "whatsapp_upload_media",
         "description": "Upload a media file to WhatsApp and get a media ID for use in messages."
+      }
+    ]
+  },
+  {
+    "app": "wikipedia",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "wikipedia_search",
+        "description": "Search Wikipedia article titles. No key needed."
+      },
+      {
+        "name": "wikipedia_summary",
+        "description": "Get a short Wikipedia summary for a page title. No key needed."
+      },
+      {
+        "name": "wikipedia_page",
+        "description": "Get the full plain-text Wikipedia article for a title. No key needed."
       }
     ]
   },
@@ -4248,6 +4834,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "wordpress",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "wordpress_list_posts",
+        "description": "List WordPress posts, optionally by search term."
+      },
+      {
+        "name": "wordpress_get_post",
+        "description": "Get a single WordPress post by id."
+      },
+      {
+        "name": "wordpress_list_pages",
+        "description": "List WordPress pages."
+      }
+    ]
+  },
+  {
     "app": "xero",
     "category": "AI",
     "tools": [
@@ -4282,6 +4886,16 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "xero_organisation",
         "description": "Get organisation details from Xero."
+      }
+    ]
+  },
+  {
+    "app": "xpass-aggregated-verdict",
+    "category": "XPass (conductor receipt across product checks)",
+    "tools": [
+      {
+        "name": "xpass_aggregated_verdict",
+        "description": "Return one XPass conductor verdict for a target PR/change at a specific commit SHA. Selected PASS receipts must name the same head SHA; stale, unscoped, missing, or blocker receipts cannot produce a green verdict."
       }
     ]
   },
@@ -4338,6 +4952,28 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "youtube_get_captions",
         "description": "List available caption tracks for a YouTube video."
+      }
+    ]
+  },
+  {
+    "app": "zendesk",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "zendesk_search",
+        "description": "Search Zendesk with the query DSL (e.g. 'type:ticket status:open priority:urgent')."
+      },
+      {
+        "name": "zendesk_list_tickets",
+        "description": "List recent Zendesk tickets (signals when any are still new)."
+      },
+      {
+        "name": "zendesk_get_ticket",
+        "description": "Get a single Zendesk ticket by id."
+      },
+      {
+        "name": "zendesk_add_comment",
+        "description": "Add a public or internal comment to a Zendesk ticket."
       }
     ]
   }

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   FlowPassFindingSchema,
   FlowPassGeoPassAdapterSchema,
+  FlowPassReceiptSchema,
   FlowPassReportSchema,
 } from "../schema.js";
 
@@ -69,5 +70,44 @@ describe("FlowPass schema", () => {
     });
 
     expect(report.steps[0]?.findings).toEqual([]);
+  });
+
+  it("validates a journey receipt envelope", () => {
+    const receipt = FlowPassReceiptSchema.parse({
+      kind: "flowpass_receipt_v1",
+      status: "PENDING",
+      run_id: "flowpass_plan_1",
+      target_url: "https://example.com/signup",
+      target_sha: "abc123",
+      generated_at: "2026-05-30T14:10:00.000Z",
+      mode: "plan-only",
+      profile: "smoke",
+      journey: {
+        id: "signup",
+        name: "Signup journey",
+        kind: "signup",
+      },
+      score: 0,
+      verdict: "unknown",
+      checked: { total: 1, pass: 0, warn: 0, fail: 0, unknown: 1 },
+      evidence_sources: [
+        {
+          kind: "manual-note",
+          label: "Plan-only note",
+          source_url: "https://example.com/signup",
+          summary: "Fixture proof is still required.",
+        },
+      ],
+      not_checked: [{ label: "Success state", reason: "No fixture supplied." }],
+      disagreements_open: 0,
+      action_needed: ["Provide fixture proof before using this as a PASS receipt."],
+      boundaries: [
+        "FlowPass uses provided public fixture evidence from this MCP surface.",
+        "Plan-only results are not PASS receipts until fixture or live read-only proof is supplied.",
+      ],
+    });
+
+    expect(receipt.kind).toBe("flowpass_receipt_v1");
+    expect(receipt.status).toBe("PENDING");
   });
 });

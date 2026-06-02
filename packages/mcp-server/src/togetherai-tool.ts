@@ -3,45 +3,82 @@
 // Auth: Bearer token
 // Base: https://api.together.xyz/v1
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const TOGETHER_API_BASE = "https://api.together.xyz/v1";
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at api.together.ai/settings/api-keys.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("togetherai", args);
 }
 
+const TOGETHER_TIMEOUT_MS = Number(process.env.TOGETHERAI_TIMEOUT_MS) || 60000;
+
 async function togetherPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${TOGETHER_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOGETHER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${TOGETHER_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Together AI request timed out after ${TOGETHER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Together AI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Together AI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const msg = (data.error as Record<string, unknown>)?.message as string
       ?? (data.message as string)
-      ?? `HTTP ${res.status}`;
+      ?? `status ${res.status}`;
     throw new Error(`Together AI error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function togetherGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${TOGETHER_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TOGETHER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${TOGETHER_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Together AI request timed out after ${TOGETHER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Together AI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Together AI rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
     const msg = (data.error as Record<string, unknown>)?.message as string
       ?? (data.message as string)
-      ?? `HTTP ${res.status}`;
+      ?? `status ${res.status}`;
     throw new Error(`Together AI error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -51,6 +88,7 @@ async function togetherGet<T>(apiKey: string, path: string): Promise<T> {
 
 export async function togetherai_chat_completion(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "meta-llama/Llama-3-8b-chat-hf").trim();
   const messages = args.messages;
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -79,6 +117,7 @@ export async function togetherai_chat_completion(args: Record<string, unknown>):
 
 export async function togetherai_completion(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "mistralai/Mistral-7B-v0.1").trim();
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
@@ -103,6 +142,7 @@ export async function togetherai_completion(args: Record<string, unknown>): Prom
 
 export async function togetherai_create_embedding(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const model = String(args.model ?? "togethercomputer/m2-bert-80M-8k-retrieval").trim();
   const input = args.input;
   if (!input) throw new Error("input is required (string or array of strings).");
@@ -119,10 +159,15 @@ export async function togetherai_create_embedding(args: Record<string, unknown>)
 
 export async function togetherai_list_models(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await togetherGet<unknown[]>(apiKey, "/models");
   const models = Array.isArray(data) ? data : [];
-  return {
+  return stampMeta({
     count: models.length,
     models,
-  };
+  }, {
+    source: "Together AI",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use togetherai_chat_completion with a model id, or togetherai_create_embedding."],
+  });
 }

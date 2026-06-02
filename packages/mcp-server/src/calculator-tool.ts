@@ -30,9 +30,9 @@ export function calculateTip(args: Record<string, unknown>): unknown {
 // ─── calculate_mortgage ───────────────────────────────────────────────────────
 
 export function calculateMortgage(args: Record<string, unknown>): unknown {
-  const loanAmount = Number(args.loan_amount ?? 0);
+  const loanAmount = Number((args.principal ?? args.loan_amount) ?? 0);
   const annualRate = Number(args.annual_rate ?? 0);
-  const termYears = Number(args.term_years ?? 0);
+  const termYears = Number((args.years ?? args.term_years) ?? 0);
 
   if (loanAmount <= 0) return { error: "loan_amount must be a positive number." };
   if (annualRate < 0) return { error: "annual_rate must be non-negative." };
@@ -173,8 +173,8 @@ const APPROX_RATES_TO_USD: Record<string, number> = {
 
 export function convertCurrencyEstimate(args: Record<string, unknown>): unknown {
   const amount = Number(args.amount ?? 0);
-  const from = String(args.from_currency ?? "").toUpperCase().trim();
-  const to = String(args.to_currency ?? "").toUpperCase().trim();
+  const from = String((args.from ?? args.from_currency) ?? "").toUpperCase().trim();
+  const to = String((args.to ?? args.to_currency) ?? "").toUpperCase().trim();
 
   if (amount <= 0) return { error: "amount must be a positive number." };
   if (!from) return { error: "from_currency is required (e.g. USD, EUR, AUD)." };

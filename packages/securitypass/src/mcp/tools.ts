@@ -16,7 +16,7 @@ import {
   verifyScope,
   type ScopeProofMethod,
 } from "../scope/verify.js";
-import type { RunProfile, SecurityRunTarget } from "../types/index.js";
+import type { Finding, RunProfile, RunRow, SecurityRunTarget, Severity } from "../types/index.js";
 import type { SecurityPack } from "../types/pack-schema.js";
 
 // Shared MCP tool descriptor shape. Mirrors the structure used by
@@ -27,6 +27,7 @@ export interface SecurityPassToolDef {
   description: string;
   inputSchema: {
     type: "object";
+    additionalProperties?: false;
     properties: Record<string, unknown>;
     required?: string[];
   };
@@ -36,9 +37,10 @@ export const SECURITYPASS_TOOLS: SecurityPassToolDef[] = [
   {
     name: "securitypass_run",
     description:
-      "Start a SecurityPass scan against a registered pack. Returns the run id; poll securitypass_status for completion.",
+      "Start a scope-gated SecurityPass scan against a registered pack or target URL. Returns a safe securitypass_receipt_v1 proof envelope without raw secrets or PoC payloads.",
     inputSchema: {
       type: "object",
+      additionalProperties: false,
       properties: {
         pack_id: { type: "string", description: "Pack id, e.g. 'securitypass-web-baseline'" },
         pack_yaml: { type: "string", description: "Optional pack YAML to validate and run without prior registration" },
@@ -63,9 +65,10 @@ export const SECURITYPASS_TOOLS: SecurityPassToolDef[] = [
   {
     name: "securitypass_status",
     description:
-      "Poll the state of a SecurityPass run. Returns status, verdict summary, and counts.",
+      "Poll the state of a SecurityPass run. Returns status, verdict summary, counts, and a safe securitypass_receipt_v1 proof envelope.",
     inputSchema: {
       type: "object",
+      additionalProperties: false,
       properties: {
         run_id: { type: "string", description: "The run id returned by securitypass_run" },
       },
@@ -78,6 +81,7 @@ export const SECURITYPASS_TOOLS: SecurityPassToolDef[] = [
       "Fetch the synthesised report for a completed run (executive narrative + findings). format=json|markdown|html.",
     inputSchema: {
       type: "object",
+      additionalProperties: false,
       properties: {
         run_id: { type: "string" },
         format: { type: "string", enum: ["json", "markdown", "html"], default: "json" },
@@ -90,6 +94,7 @@ export const SECURITYPASS_TOOLS: SecurityPassToolDef[] = [
     description: "Save a SecurityPack YAML for the calling tenant. Validates against the schema.",
     inputSchema: {
       type: "object",
+      additionalProperties: false,
       properties: {
         pack_id: { type: "string" },
         yaml: { type: "string", description: "Pack contents as YAML" },
@@ -103,6 +108,7 @@ export const SECURITYPASS_TOOLS: SecurityPassToolDef[] = [
       "Verify scope authorisation for a target via DNS TXT or /.well-known proof. Required before any active probe runs.",
     inputSchema: {
       type: "object",
+      additionalProperties: false,
       properties: {
         target_type: { type: "string", enum: ["url", "git", "mcp", "api"] },
         target_url: { type: "string" },
@@ -124,6 +130,7 @@ export const SECURITYPASS_TOOLS: SecurityPassToolDef[] = [
       "Check the 90+30 responsible-disclosure timer state for a finding (notified, acked, extended, public, withdrawn).",
     inputSchema: {
       type: "object",
+      additionalProperties: false,
       properties: {
         finding_id: { type: "string" },
       },
@@ -136,6 +143,7 @@ export const SECURITYPASS_TOOLS: SecurityPassToolDef[] = [
       "Fetch a single finding including PoC payload (curl / prompt / payload) and remediation. PoC is generated, never auto-fired.",
     inputSchema: {
       type: "object",
+      additionalProperties: false,
       properties: {
         finding_id: { type: "string" },
       },
@@ -145,6 +153,46 @@ export const SECURITYPASS_TOOLS: SecurityPassToolDef[] = [
 ];
 
 export type SecurityPassHandler = (args: Record<string, unknown>) => Promise<unknown>;
+
+export interface SecurityPassReceipt {
+  kind: "securitypass_receipt_v1";
+  pass: "securitypass";
+  receipt_id: string;
+  run_id: string;
+  status: "PASS" | "WARN" | "FAIL";
+  run_status: RunRow["status"];
+  checked_at: string;
+  completed_at: string | null;
+  target: SecurityRunTarget;
+  profile: RunProfile;
+  score: number;
+  posture_summary: string;
+  verdict_summary: RunRow["verdict_summary"];
+  severity_counts: Record<Severity, number>;
+  finding_count: number;
+  failing_finding_count: number;
+  not_checked_count: number;
+  evidence: {
+    scope_verified: boolean;
+    scope_performed_count: number;
+    active_probes_run: boolean;
+    raw_finding_evidence_exposed: false;
+    poc_payloads_exposed: false;
+  };
+  boundaries: Array<{
+    check_id: string;
+    title: string;
+    reason: string;
+    category: string;
+    severity: Severity;
+  }>;
+  action_needed: Array<{
+    check_id: string;
+    title: string;
+    severity: Severity;
+    category: string;
+  }>;
+}
 
 function normalizeProfile(raw: unknown): RunProfile {
   return raw === "standard" || raw === "deep" ? raw : "smoke";
@@ -180,6 +228,77 @@ function parsePackYaml(yaml: string): { pack?: SecurityPack; error?: unknown } {
     };
   }
   return { pack: result.data };
+}
+
+function countBySeverity(findings: Finding[]): Record<Severity, number> {
+  const counts: Record<Severity, number> = {
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0,
+    info: 0,
+  };
+  for (const finding of findings) counts[finding.severity] += 1;
+  return counts;
+}
+
+function hasActiveProbeEvidence(run: RunRow, findings: Finding[]): boolean {
+  if (findings.length > 0) return true;
+  return run.scope_performed.some((line) => /\b(fetched|ran)\b/i.test(line));
+}
+
+function receiptStatus(run: RunRow, findings: Finding[]): SecurityPassReceipt["status"] {
+  if (run.status === "failed" || run.status === "budget_exceeded") return "FAIL";
+  if (findings.some((finding) => finding.verdict === "fail")) return "FAIL";
+  if (run.status !== "complete" || run.not_checked.length > 0) return "WARN";
+  return "PASS";
+}
+
+function createSecurityPassReceipt(
+  run: RunRow,
+  findings: Finding[],
+  report: ReturnType<typeof buildSecurityPassReport>,
+): SecurityPassReceipt {
+  const failingFindings = findings.filter((finding) => finding.verdict === "fail");
+  return {
+    kind: "securitypass_receipt_v1",
+    pass: "securitypass",
+    receipt_id: `securitypass:${run.id}`,
+    run_id: run.id,
+    status: receiptStatus(run, findings),
+    run_status: run.status,
+    checked_at: run.completed_at ?? run.created_at,
+    completed_at: run.completed_at,
+    target: run.target,
+    profile: run.profile,
+    score: report.score,
+    posture_summary: report.posture_summary,
+    verdict_summary: run.verdict_summary,
+    severity_counts: countBySeverity(findings),
+    finding_count: findings.length,
+    failing_finding_count: failingFindings.length,
+    not_checked_count: run.not_checked.length,
+    evidence: {
+      scope_verified: run.scope_performed.length > 0,
+      scope_performed_count: run.scope_performed.length,
+      active_probes_run: hasActiveProbeEvidence(run, findings),
+      raw_finding_evidence_exposed: false,
+      poc_payloads_exposed: false,
+    },
+    boundaries: run.not_checked.map((item) => ({
+      check_id: item.check_id,
+      title: item.title,
+      reason: item.reason,
+      category: item.category,
+      severity: item.severity,
+    })),
+    action_needed: failingFindings.map((finding) => ({
+      check_id: finding.check_id,
+      title: finding.title,
+      severity: finding.severity,
+      category: finding.category,
+    })),
+  };
 }
 
 export async function securitypassRun(args: Record<string, unknown>): Promise<unknown> {
@@ -219,6 +338,7 @@ export async function securitypassRun(args: Record<string, unknown>): Promise<un
         not_checked_count: result.run.not_checked.length,
         posture_summary: report.posture_summary,
         disclaimer: result.run.disclaimer,
+        receipt: createSecurityPassReceipt(result.run, result.findings, report),
       };
     }
 
@@ -247,6 +367,7 @@ export async function securitypassRun(args: Record<string, unknown>): Promise<un
       not_checked_count: result.run.not_checked.length,
       posture_summary: report.posture_summary,
       disclaimer: result.run.disclaimer,
+      receipt: createSecurityPassReceipt(result.run, [result.finding], report),
     };
   } catch (err) {
     if (err instanceof ScopeUnverifiedError) {
@@ -285,6 +406,7 @@ export async function securitypassStatus(args: Record<string, unknown>): Promise
     posture_summary: report.posture_summary,
     coverage_note: report.coverage_note,
     completed_at: run.completed_at,
+    receipt: createSecurityPassReceipt(run, findings, report),
   };
 }
 
