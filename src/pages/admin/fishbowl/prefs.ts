@@ -9,6 +9,19 @@
 // The user-facing surface is always called the Boardroom.
 
 import { useCallback, useEffect, useState } from "react";
+import { classifyAuthorType } from "./authorTexture";
+
+/**
+ * Which slice of the feed the viewer is looking at.
+ * - all: every message in the feed.
+ * - my_team: the human plus interactive and cron AI agents; platform/system
+ *   posts are hidden so the feed reads as a team control room.
+ * - assigned_to_me: only posts the human authored or that name the human in
+ *   their recipients.
+ */
+export type FishbowlFeedScope = "all" | "my_team" | "assigned_to_me";
+
+export const FEED_SCOPES: FishbowlFeedScope[] = ["all", "my_team", "assigned_to_me"];
 
 export interface FishbowlViewPrefs {
   /** Hide agents that have no current status and have gone quiet. */
@@ -17,13 +30,22 @@ export interface FishbowlViewPrefs {
   tagFilters: string[];
   /** agent_ids whose posts and presence are hidden from the viewer. */
   mutedAgentIds: string[];
+  /** Which slice of the feed to show. Defaults to the viewer's team. */
+  scope: FishbowlFeedScope;
 }
 
 export const DEFAULT_VIEW_PREFS: FishbowlViewPrefs = {
   hideIdleAgents: false,
   tagFilters: [],
   mutedAgentIds: [],
+  scope: "my_team",
 };
+
+export function parseFeedScope(value: unknown): FishbowlFeedScope {
+  return typeof value === "string" && (FEED_SCOPES as string[]).includes(value)
+    ? (value as FishbowlFeedScope)
+    : DEFAULT_VIEW_PREFS.scope;
+}
 
 // Kept identical to the original Settings key so existing saved prefs migrate
 // cleanly. Older payloads also carried pulse/stale/eventsBot fields; we simply
@@ -53,6 +75,7 @@ export function loadViewPrefs(): FishbowlViewPrefs {
       hideIdleAgents: Boolean(parsed.hideIdleAgents),
       tagFilters: Array.isArray(parsed.tagFilters) ? parsed.tagFilters : [],
       mutedAgentIds: Array.isArray(parsed.mutedAgentIds) ? parsed.mutedAgentIds : [],
+      scope: parseFeedScope(parsed.scope),
     };
   } catch {
     return DEFAULT_VIEW_PREFS;
@@ -96,6 +119,45 @@ export function filterFeedByPrefs<T extends FeedFilterMessage>(
     }
     return true;
   });
+}
+
+export interface ScopeFilterMessage {
+  author_agent_id: string | null;
+  author_name?: string | null;
+  recipients: string[] | null;
+  tags: string[] | null;
+}
+
+/** The signed-in human, used to resolve the "assigned to me" scope. */
+export interface FeedViewer {
+  agentId: string | null;
+  emoji: string | null;
+}
+
+function isAddressedToViewer(m: ScopeFilterMessage, viewer: FeedViewer): boolean {
+  if (viewer.agentId && m.author_agent_id === viewer.agentId) return true;
+  const recipients = m.recipients ?? [];
+  // A broadcast ("all") is not a personal assignment; only exact id/emoji count.
+  if (viewer.agentId && recipients.includes(viewer.agentId)) return true;
+  if (viewer.emoji && recipients.includes(viewer.emoji)) return true;
+  return false;
+}
+
+/**
+ * Narrow the feed to the chosen scope. "my_team" hides platform/system posts
+ * (keeping human, interactive AI, and cron AI); "assigned_to_me" keeps only
+ * posts the viewer authored or that name them; "all" is a pass-through.
+ */
+export function filterFeedByScope<T extends ScopeFilterMessage>(
+  messages: T[],
+  scope: FishbowlFeedScope,
+  viewer: FeedViewer,
+): T[] {
+  if (scope === "all") return messages;
+  if (scope === "my_team") {
+    return messages.filter((m) => classifyAuthorType(m) !== "system");
+  }
+  return messages.filter((m) => isAddressedToViewer(m, viewer));
 }
 
 export interface MutableProfile {

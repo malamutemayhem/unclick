@@ -11,11 +11,20 @@ import {
   isHandoffMessage,
 } from "./fishbowl/messageLanes";
 import {
+  FEED_SCOPES,
   filterFeedByPrefs,
+  filterFeedByScope,
   filterProfilesByPrefs,
   useFishbowlViewPrefs,
+  type FishbowlFeedScope,
 } from "./fishbowl/prefs";
 import { authorTexture } from "./fishbowl/authorTexture";
+
+const FEED_SCOPE_LABELS: Record<FishbowlFeedScope, string> = {
+  all: "All",
+  my_team: "My team",
+  assigned_to_me: "Mine",
+};
 
 interface FishbowlMessage {
   id: string;
@@ -587,9 +596,21 @@ export default function Fishbowl() {
     () => filterFeedByPrefs(mainFeedMessages, prefs),
     [mainFeedMessages, prefs],
   );
+  // The signed-in human, used to resolve the "Mine" scope.
+  const feedViewer = useMemo(
+    () => ({
+      agentId: humanAgentId,
+      emoji: profiles.find((p) => p.agent_id === humanAgentId)?.emoji ?? null,
+    }),
+    [humanAgentId, profiles],
+  );
+  const scopedFeed = useMemo(
+    () => filterFeedByScope(filteredFeed, prefs.scope, feedViewer),
+    [filteredFeed, prefs.scope, feedViewer],
+  );
   const groupedMessages = useMemo(
-    () => groupMessagesByThread(filteredFeed),
-    [filteredFeed],
+    () => groupMessagesByThread(scopedFeed),
+    [scopedFeed],
   );
 
   // Presence surfaces (Now Playing + the agents panel) hide muted agents. The
@@ -680,7 +701,7 @@ export default function Fishbowl() {
   const showEmptyState =
     firstLoadDone && !error && profiles.length === 0 && messages.length === 0;
   const filtersHideEverything =
-    mainFeedMessages.length > 0 && filteredFeed.length === 0;
+    mainFeedMessages.length > 0 && scopedFeed.length === 0;
 
   const nowForCounts = Date.now();
   const connectedCount = profileClusters.reduce((n, c) => n + c.primaries.length, 0);
@@ -766,7 +787,7 @@ export default function Fishbowl() {
         <div className="grid gap-6 md:grid-cols-[1fr_240px]">
           {/* Feed */}
           <section className="rounded-xl border border-white/[0.06] bg-white/[0.02]">
-            <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] px-4 py-3">
               <h2 className="text-sm font-semibold text-[#ccc]">
                 Recent messages
                 {groupedMessages.length > 0 && (
@@ -775,13 +796,36 @@ export default function Fishbowl() {
                   </span>
                 )}
               </h2>
-              {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#888]" />}
+              <div className="flex items-center gap-2">
+                <div
+                  className="inline-flex rounded-md border border-white/[0.08] p-0.5"
+                  role="group"
+                  aria-label="Feed scope"
+                >
+                  {FEED_SCOPES.map((scope) => (
+                    <button
+                      key={scope}
+                      type="button"
+                      onClick={() => update("scope", scope)}
+                      aria-pressed={prefs.scope === scope}
+                      className={`rounded px-2 py-0.5 text-[11px] font-medium transition ${
+                        prefs.scope === scope
+                          ? "bg-[#E2B93B]/15 text-[#E2B93B]"
+                          : "text-[#888] hover:text-[#ccc]"
+                      }`}
+                    >
+                      {FEED_SCOPE_LABELS[scope]}
+                    </button>
+                  ))}
+                </div>
+                {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#888]" />}
+              </div>
             </div>
             <div>
               {groupedMessages.length === 0 ? (
                 <p className="px-4 py-6 text-center text-sm text-[#666]">
                   {filtersHideEverything
-                    ? "Your view settings are hiding every message. Clear them below to see the feed."
+                    ? "This view is hiding every message. Switch the scope to All above, or clear your filters below."
                     : "No messages yet. Routine heartbeat and event chatter is grouped lower down."}
                 </p>
               ) : (

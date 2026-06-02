@@ -2,14 +2,23 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_VIEW_PREFS,
   filterFeedByPrefs,
+  filterFeedByScope,
   filterProfilesByPrefs,
   isAgentMuted,
+  parseFeedScope,
 } from "./prefs";
 
 const msg = (author_agent_id: string | null, tags: string[] | null) => ({
   author_agent_id,
   tags,
 });
+
+const scopeMsg = (
+  author_agent_id: string | null,
+  tags: string[] | null,
+  recipients: string[] | null = ["all"],
+  author_name: string | null = "Agent",
+) => ({ author_agent_id, tags, recipients, author_name });
 
 describe("Boardroom view prefs", () => {
   it("treats the default prefs as a pass-through", () => {
@@ -61,5 +70,48 @@ describe("Boardroom view prefs", () => {
     const prefs = { ...DEFAULT_VIEW_PREFS, mutedAgentIds: ["a"] };
     expect(isAgentMuted(prefs, null)).toBe(false);
     expect(isAgentMuted(prefs, "a")).toBe(true);
+  });
+
+  it("defaults the view to the viewer's team", () => {
+    expect(DEFAULT_VIEW_PREFS.scope).toBe("my_team");
+  });
+});
+
+describe("Boardroom feed scope", () => {
+  const viewer = { agentId: "human-me", emoji: "😎" };
+
+  const human = scopeMsg("human-me", ["fyi"], ["all"], "Chris");
+  const teammate = scopeMsg("chatgpt-codex-worker-9", ["fyi"], ["all"], "Worker 9");
+  const cron = scopeMsg("claude-worker3", ["heartbeat"], ["all"], "Popcorn");
+  const system = scopeMsg("bot", ["event", "todo-completed"], ["all"], null);
+  const toMe = scopeMsg("chatgpt-codex-worker-4", ["handoff"], ["😎"], "Worker 4");
+  const all = [human, teammate, cron, system, toMe];
+
+  it("passes everything through for the All scope", () => {
+    expect(filterFeedByScope(all, "all", viewer)).toEqual(all);
+  });
+
+  it("hides platform/system posts for My team", () => {
+    expect(filterFeedByScope(all, "my_team", viewer)).toEqual([human, teammate, cron, toMe]);
+  });
+
+  it("keeps only posts the viewer authored or that name them for Mine", () => {
+    expect(filterFeedByScope(all, "assigned_to_me", viewer)).toEqual([human, toMe]);
+  });
+
+  it("matches the viewer by agent id in recipients too", () => {
+    const byId = scopeMsg("someone", ["handoff"], ["human-me"], "Someone");
+    expect(filterFeedByScope([byId], "assigned_to_me", viewer)).toEqual([byId]);
+  });
+
+  it("does not treat a broadcast as a personal assignment", () => {
+    expect(filterFeedByScope([teammate], "assigned_to_me", viewer)).toEqual([]);
+  });
+
+  it("validates persisted scope values and falls back to the default", () => {
+    expect(parseFeedScope("all")).toBe("all");
+    expect(parseFeedScope("assigned_to_me")).toBe("assigned_to_me");
+    expect(parseFeedScope("bogus")).toBe("my_team");
+    expect(parseFeedScope(undefined)).toBe("my_team");
   });
 });
