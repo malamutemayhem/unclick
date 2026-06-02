@@ -104,7 +104,7 @@ export default function AdminToolsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-white">Apps</h1>
           <p className="text-sm text-white/50">
-            {APP_COUNT} apps, {TOOL_COUNT} tools your AI can reach. All on by default. Turn any off and your AI stops using it.
+            {APP_COUNT} apps · {TOOL_COUNT} actions your AI can reach. All on by default. Turn any off and your AI stops using it.
           </p>
         </div>
       </div>

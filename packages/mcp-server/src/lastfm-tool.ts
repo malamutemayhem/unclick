@@ -74,7 +74,7 @@ export async function lastfmSearchArtists(args: Record<string, unknown>): Promis
   try {
     const apiKey = getApiKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const query = String(args.query ?? "").trim();
+    const query = String((args.artist ?? args.query) ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { artist: query };
     if (args.limit) params.limit = Number(args.limit);

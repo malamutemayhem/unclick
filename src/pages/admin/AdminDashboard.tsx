@@ -20,8 +20,8 @@ const overview = [
   },
   {
     title: "Apps",
-    body: "Built-in tools, connected apps, disabled apps, and services waiting for login or API keys.",
-    href: "/admin/tools",
+    body: "Built-in apps, connected apps, disabled apps, and services waiting for login or API keys.",
+    href: "/admin/apps",
     icon: AppWindow,
   },
   {

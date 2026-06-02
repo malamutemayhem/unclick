@@ -61,7 +61,7 @@ export async function getWillyweatherForecast(args: Record<string, unknown>): Pr
   try {
     const apiKey = getApiKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
+    const query = String((args.location_id ?? args.location) ?? args.suburb ?? args.postcode ?? "").trim();
     if (!query) return { error: "location is required (suburb name or postcode)." };
 
     const loc = await searchLocation(apiKey, query);
@@ -100,7 +100,7 @@ export async function getWillyweatherSurf(args: Record<string, unknown>): Promis
   try {
     const apiKey = getApiKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
+    const query = String((args.location_id ?? args.location) ?? args.suburb ?? args.postcode ?? "").trim();
     if (!query) return { error: "location is required (suburb name or postcode)." };
 
     const loc = await searchLocation(apiKey, query);
@@ -132,7 +132,7 @@ export async function getWillyweatherTide(args: Record<string, unknown>): Promis
   try {
     const apiKey = getApiKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const query = String(args.location ?? args.suburb ?? args.postcode ?? "").trim();
+    const query = String((args.location_id ?? args.location) ?? args.suburb ?? args.postcode ?? "").trim();
     if (!query) return { error: "location is required (suburb name or postcode)." };
 
     const loc = await searchLocation(apiKey, query);

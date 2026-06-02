@@ -89,7 +89,7 @@ export async function getAuspostPostcode(args: Record<string, unknown>): Promise
   try {
     const apiKey = getApiKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const query = String(args.query ?? args.suburb ?? args.postcode ?? "").trim();
+    const query = String((args.q ?? args.query) ?? args.suburb ?? args.postcode ?? "").trim();
     if (!query) return { error: "query is required (suburb name or postcode)." };
 
     const data = await auspostGet(apiKey, "/postcode/search.json", { q: query }) as Record<string, unknown>;

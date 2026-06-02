@@ -65,7 +65,7 @@ export async function getRecentObservations(
 ): Promise<unknown> {
   const apiKey     = requireKey(args);
   if (typeof apiKey !== "string") return apiKey;
-  const regionCode = String(args.region_code ?? "").trim().toUpperCase();
+  const regionCode = String((args.regionCode ?? args.region_code) ?? "").trim().toUpperCase();
   if (!regionCode) throw new Error("region_code is required (e.g. 'US-NY', 'GB', 'AU-NSW').");
 
   const back   = String(Math.min(30, Math.max(1, Number(args.back ?? 7))));
@@ -123,7 +123,7 @@ export async function getNotableObservations(
 ): Promise<unknown> {
   const apiKey     = requireKey(args);
   if (typeof apiKey !== "string") return apiKey;
-  const regionCode = String(args.region_code ?? "").trim().toUpperCase();
+  const regionCode = String((args.regionCode ?? args.region_code) ?? "").trim().toUpperCase();
   if (!regionCode) throw new Error("region_code is required (e.g. 'US-NY', 'GB').");
 
   const back       = String(Math.min(30, Math.max(1, Number(args.back ?? 7))));
@@ -174,7 +174,7 @@ export async function getSpeciesInfo(
 ): Promise<unknown> {
   const apiKey      = requireKey(args);
   if (typeof apiKey !== "string") return apiKey;
-  const speciesCode = String(args.species_code ?? "").trim().toLowerCase();
+  const speciesCode = String((args.speciesCode ?? args.species_code) ?? "").trim().toLowerCase();
   const locale      = String(args.locale ?? "en").trim();
 
   const params: Record<string, string> = { locale };

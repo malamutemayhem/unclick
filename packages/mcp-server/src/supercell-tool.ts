@@ -69,7 +69,7 @@ export async function cocPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCocKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.playerTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash of Clans player tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(
@@ -116,7 +116,7 @@ export async function cocClan(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCocKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.clanTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash of Clans clan tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(
@@ -160,7 +160,7 @@ export async function cocClanMembers(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCocKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.clanTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash of Clans clan tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(
@@ -204,7 +204,7 @@ export async function crPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCrKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.playerTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash Royale player tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(
@@ -292,7 +292,7 @@ export async function bsPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireBsKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.playerTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Brawl Stars player tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(
@@ -336,7 +336,7 @@ export async function bsClub(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireBsKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.clubTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Brawl Stars club tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(

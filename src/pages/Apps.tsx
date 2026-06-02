@@ -32,9 +32,9 @@ function HowItWorks() {
 const Apps = () => {
   useCanonical("/apps");
   useMetaTags({
-    title: "Apps. Every tool your AI can reach.",
-    description: `Browse ${APP_COUNT} apps and ${TOOL_COUNT} tools your AI can use. It picks the right one for you, or you can ask for one by name.`,
-    ogTitle: "Apps. Every tool your AI can reach.",
+    title: "Apps. Every action your AI can reach.",
+    description: `Browse ${APP_COUNT} apps and ${TOOL_COUNT} actions your AI can use. It picks the right one for you, or you can ask for one by name.`,
+    ogTitle: "Apps. Every action your AI can reach.",
     ogDescription: "An app store for AI agents. Built-in apps work straight away; connect the rest once.",
     ogUrl: "https://unclick.world/apps",
   });
@@ -42,9 +42,9 @@ const Apps = () => {
   return (
     <PageShell
       eyebrow="Apps"
-      title="Every tool your AI can reach."
+      title="Every action your AI can reach."
       accent="One install."
-      lede={`${APP_COUNT} apps. ${TOOL_COUNT} tools. Your AI picks the right one, or you can ask for one by name.`}
+      lede={`${APP_COUNT} apps · ${TOOL_COUNT} actions. Your AI picks the right one, or you can ask for one by name.`}
       cta={{ label: "Get started", href: "/#install" }}
     >
       <section className={presets.section}>

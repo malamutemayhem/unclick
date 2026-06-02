@@ -82,7 +82,7 @@ export async function newsSearchNews(args: Record<string, unknown>): Promise<unk
   try {
     const apiKey = getApiKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const query = String(args.query ?? "").trim();
+    const query = String((args.q ?? args.query) ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { q: query };
     if (args.from_date)   params.from       = String(args.from_date);
