@@ -85,9 +85,15 @@ const handlerFn: Record<string, string> = {};
   let m: RegExpExecArray | null;
   while ((m = re.exec(blob))) {
     const rhs = m[2];
-    const argName = (rhs.match(/^\(?\s*([A-Za-z0-9_]+)\s*\)?\s*=>/) || [])[1];
-    let fn: string | undefined;
-    if (argName) fn = (rhs.match(new RegExp(`([A-Za-z0-9_]+)\\s*\\(\\s*${argName}\\b`)) || [])[1];
+    // Prefer an IMPORTED connector function among all calls in the RHS. This
+    // beats built-ins like String/Number/Promise that appear in wrapped
+    // dispatches, e.g. `(args) => fn({ ...args, x: String(args.y) })`.
+    const calls = [...rhs.matchAll(/([A-Za-z0-9_]+)\s*\(/g)].map((c) => c[1]);
+    let fn: string | undefined = calls.find((c) => importMap[c]);
+    if (!fn) {
+      const argName = (rhs.match(/^\(?\s*([A-Za-z0-9_]+)\s*\)?\s*=>/) || [])[1];
+      if (argName) fn = (rhs.match(new RegExp(`([A-Za-z0-9_]+)\\s*\\(\\s*${argName}\\b`)) || [])[1];
+    }
     if (!fn) fn = (rhs.match(/=>\s*([A-Za-z0-9_]+)\s*\(/) || rhs.match(/^([A-Za-z0-9_]+)$/) || [])[1];
     if (fn) handlerFn[m[1]] = fn;
   }

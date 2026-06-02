@@ -3267,7 +3267,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "reddit_read",
-        "description": "Read posts from a Reddit subreddit."
+        "description": "Read public posts from a Reddit subreddit. OAuth is optional for public reads."
       },
       {
         "name": "reddit_post",
@@ -3279,11 +3279,15 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "reddit_search",
-        "description": "Search Reddit posts."
+        "description": "Search public Reddit posts. OAuth is optional for public reads."
+      },
+      {
+        "name": "reddit_thread",
+        "description": "Read a public Reddit thread, including the post and comments."
       },
       {
         "name": "reddit_user",
-        "description": "Get a Reddit user profile and posts."
+        "description": "Get a public Reddit user profile and recent activity. OAuth is optional for public reads."
       },
       {
         "name": "reddit_vote",
