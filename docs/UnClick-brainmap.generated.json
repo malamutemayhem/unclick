@@ -382,13 +382,13 @@
       "tags": []
     },
     {
-      "id": "admin-surfaces-admin-page-admin-tools-src-pages-admin-admintools-tsx-admin-tools",
+      "id": "admin-surfaces-admin-page-admin-tools-src-pages-admin-admintools-tsx-admin-apps",
       "division": "Admin surfaces",
       "name": "Admin Tools",
       "kind": "admin page",
       "meaning": "Apps, tools, and connector capability surface.",
       "source": "src/pages/admin/AdminTools.tsx",
-      "route": "/admin/tools",
+      "route": "/admin/apps",
       "tags": []
     },
     {
@@ -6224,6 +6224,12 @@
       "src/pages/admin/AdminAnalytics.tsx"
     ],
     [
+      "/admin/apps",
+      "Admin Tools",
+      "Apps, tools, and connector capability surface.",
+      "src/pages/admin/AdminTools.tsx"
+    ],
+    [
       "/admin/audit-log",
       "Admin Audit Log",
       "Internal audit trail for sensitive admin actions.",
@@ -6456,12 +6462,6 @@
       "Test Pass Catalog",
       "Admin surface for Test Pass Catalog.",
       "src/pages/admin/testpass/TestPassCatalog.tsx"
-    ],
-    [
-      "/admin/tools",
-      "Admin Tools",
-      "Apps, tools, and connector capability surface.",
-      "src/pages/admin/AdminTools.tsx"
     ],
     [
       "/admin/users",
@@ -8146,12 +8146,12 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "112afd6a05d8",
-      "bytes": 14647
+      "hash": "8c0d4c0f0c41",
+      "bytes": 14729
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "79d0329e0e8b",
+      "hash": "2b6e2e9698d4",
       "bytes": 22091
     },
     {
@@ -8315,6 +8315,11 @@
       "bytes": 10336
     },
     {
+      "source": "src/pages/admin/AdminTools.tsx",
+      "hash": "94d7806189d8",
+      "bytes": 5681
+    },
+    {
       "source": "src/pages/admin/AdminAuditLog.tsx",
       "hash": "028edd82cb11",
       "bytes": 874
@@ -8326,8 +8331,8 @@
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "13bc51cceb52",
-      "bytes": 12105
+      "hash": "0f2003fd8242",
+      "bytes": 12106
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
@@ -8341,8 +8346,8 @@
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "c764ced96836",
-      "bytes": 26511
+      "hash": "7d9f49ee973c",
+      "bytes": 26510
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -8381,8 +8386,8 @@
     },
     {
       "source": "src/pages/admin/AdminDashboard.tsx",
-      "hash": "437a146a3d78",
-      "bytes": 5259
+      "hash": "7ee015247aa8",
+      "bytes": 5257
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
@@ -8470,11 +8475,6 @@
       "bytes": 21847
     },
     {
-      "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "808485ffc146",
-      "bytes": 5678
-    },
-    {
       "source": "src/pages/admin/AdminUsers.tsx",
       "hash": "701e7da2f201",
       "bytes": 863
@@ -8486,13 +8486,13 @@
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "4e2ec609ff61",
+      "hash": "0cf7c397e1b5",
       "bytes": 5401
     },
     {
       "source": "src/pages/Apps.tsx",
-      "hash": "f68ab8412c39",
-      "bytes": 2636
+      "hash": "1ccab2a4ccad",
+      "bytes": 2647
     },
     {
       "source": "src/pages/AuthCallback.tsx",
