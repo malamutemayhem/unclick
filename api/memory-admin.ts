@@ -9157,6 +9157,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const statusFromPost = statusFromFishbowlPost(text);
         const profileUpdate: Record<string, unknown> = {
           last_seen_at: postedAtIso,
+          last_posted_at: postedAtIso,
           current_status_updated_at: postedAtIso,
           next_checkin_at: null,
         };
