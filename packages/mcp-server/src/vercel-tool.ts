@@ -111,7 +111,7 @@ export async function getVercelDeployment(args: Record<string, unknown>): Promis
   try {
     const token = getApiKey(args);
     if (typeof token !== "string") return token;
-    const id = String(args.id ?? "").trim();
+    const id = String((args.deploymentId ?? args.id) ?? "").trim();
     if (!id) return { error: "id is required." };
     const params: Record<string, string> = {};
     if (args.team_id) params.teamId = String(args.team_id);

@@ -95,7 +95,7 @@ function normalizeTrack(t: DeezerTrack) {
 // ─── search_deezer ────────────────────────────────────────────────────────────
 
 export async function searchDeezer(args: Record<string, unknown>): Promise<unknown> {
-  const query = String(args.query ?? "").trim();
+  const query = String((args.q ?? args.query) ?? "").trim();
   if (!query) return { error: "query is required." };
 
   const limit = Math.min(50, Math.max(1, Number(args.limit ?? 10)));
@@ -227,7 +227,7 @@ interface DeezerPlaylistSearchResponse {
 }
 
 export async function searchDeezerPlaylist(args: Record<string, unknown>): Promise<unknown> {
-  const query = String(args.query ?? "").trim();
+  const query = String((args.q ?? args.query) ?? "").trim();
   if (!query) return { error: "query is required." };
 
   const limit = Math.min(25, Math.max(1, Number(args.limit ?? 10)));

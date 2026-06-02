@@ -5,15 +5,9 @@ import FadeIn from "../components/FadeIn";
 import { useCanonical } from "../hooks/use-canonical";
 import { useMetaTags } from "../hooks/useMetaTags";
 import { presets } from "../lib/design-system";
-import { getApp, levelLabel } from "@/lib/appCatalog";
+import { actionLabel, getApp, levelLabel } from "@/lib/appCatalog";
 import { AppIcon } from "@/components/apps/AppIcon";
 import { APP_DETAIL_EXTRAS } from "@/components/apps/appDetailExtras";
-
-// Turn a tool name like "github_action" into "Github action" for a friendly label.
-function humanizeTool(name: string): string {
-  const s = name.replace(/_/g, " ");
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
 
 const AppDetail = () => {
   const { slug = "" } = useParams();
@@ -23,7 +17,7 @@ const AppDetail = () => {
   useMetaTags({
     title: app ? `${app.name}. ${app.blurb}` : "App not found",
     description: app
-      ? `${app.name}: ${app.blurb} ${app.toolCount} tools your AI can use.`
+      ? `${app.name}: ${app.blurb} ${app.toolCount} actions your AI can use.`
       : "That app does not exist in the UnClick library.",
     ogUrl: `https://unclick.world/apps/${slug}`,
   });
@@ -59,7 +53,7 @@ const AppDetail = () => {
               <div>
                 <h2 className="text-xl font-semibold text-white">{app.name}</h2>
                 <p className="text-xs text-white/45">
-                  {app.category} · {app.toolCount} tools
+                  {app.category} · {app.toolCount} actions
                   {quality === "Smart" && (
                     <span className="ml-2 inline-flex items-center gap-1 rounded border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#9be4e6]">
                       <Sparkles className="h-3 w-3" /> Smart
@@ -79,13 +73,16 @@ const AppDetail = () => {
               </ul>
             </div>
 
-            {/* What it can do */}
+            {/* Actions — what this app can do */}
             <div className="mt-6">
-              <h3 className="mb-3 text-sm font-semibold text-white">What it can do</h3>
+              <h3 className="mb-3 text-sm font-semibold text-white">
+                Actions <span className="text-white/40">— what {app.name} can do</span>
+              </h3>
               <div className="divide-y divide-white/[0.05] rounded-xl border border-white/[0.07]">
                 {app.tools.map((t) => (
                   <div key={t.name} className="px-4 py-2.5">
-                    <p className="text-xs font-medium text-white/85">{humanizeTool(t.name)}</p>
+                    <p className="text-xs font-medium text-white/85">{actionLabel(t)}</p>
+                    <code className="mt-0.5 block font-mono text-[11px] text-white/30">{t.name}</code>
                     <p className="mt-0.5 text-xs leading-5 text-white/50">{t.description}</p>
                   </div>
                 ))}

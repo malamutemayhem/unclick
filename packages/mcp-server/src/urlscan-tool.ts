@@ -159,7 +159,7 @@ export async function getScanResult(args: Record<string, unknown>): Promise<unkn
 // search_urlscan
 export async function searchUrlscan(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const query = String(args.query ?? "").trim();
+    const query = String((args.q ?? args.query) ?? "").trim();
     if (!query) return { error: "query is required (e.g. 'domain:example.com' or 'page.ip:1.2.3.4')." };
     const params: Record<string, string> = { q: query };
     if (args.size) params.size = String(args.size);

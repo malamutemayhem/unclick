@@ -87,7 +87,7 @@ export async function untappdSearchBeer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const creds = requireCreds(args);
-  const q = String(args.q ?? "").trim();
+  const q = String((args.query ?? args.q) ?? "").trim();
   if (!q) return { error: "q is required (search query)." };
 
   const extra: Record<string, string> = { q };
@@ -221,7 +221,7 @@ export async function untappdSearchBrewery(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const creds = requireCreds(args);
-  const q = String(args.q ?? "").trim();
+  const q = String((args.query ?? args.q) ?? "").trim();
   if (!q) return { error: "q is required (search query)." };
 
   const data = await untappdFetch<Record<string, unknown>>(

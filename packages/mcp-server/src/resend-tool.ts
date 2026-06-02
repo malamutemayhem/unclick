@@ -120,7 +120,7 @@ export async function getEmailResend(args: Record<string, unknown>): Promise<unk
   try {
     const apiKey = getApiKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const id = String(args.id ?? "").trim();
+    const id = String((args.email_id ?? args.id) ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await resendGet(apiKey, `/emails/${id}`);
     return {

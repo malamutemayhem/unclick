@@ -58,7 +58,7 @@ export async function guardianSearchArticles(args: Record<string, unknown>): Pro
   try {
     const apiKey = requireKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const query = String(args.query ?? "").trim();
+    const query = String((args.q ?? args.query) ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = {
       q:           query,
@@ -90,7 +90,7 @@ export async function guardianGetArticle(args: Record<string, unknown>): Promise
   try {
     const apiKey = requireKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const id = String(args.id ?? "").trim();
+    const id = String((args.article_id ?? args.id) ?? "").trim();
     if (!id) return { error: "id is required (e.g. 'world/2024/jan/01/article-slug')." };
     const data = await guardianGet(apiKey, `/${id}`, { "show-fields": "all" });
     return data.content ?? data;
@@ -133,7 +133,7 @@ export async function guardianGetEdition(args: Record<string, unknown>): Promise
   try {
     const apiKey = requireKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const edition = String(args.edition ?? "uk").trim().toLowerCase();
+    const edition = String((args.edition_id ?? args.edition) ?? "uk").trim().toLowerCase();
     // Edition IDs: uk, us, au
     const data = await guardianGet(apiKey, "/editions", {});
     const editions = (data.results as Array<Record<string, unknown>>) ?? [];

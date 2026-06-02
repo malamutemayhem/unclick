@@ -120,7 +120,7 @@ export async function getDomainProperty(args: Record<string, unknown>): Promise<
   try {
     const apiKey = requireKey(args);
     if (typeof apiKey !== "string") return apiKey;
-    const propertyId = String(args.property_id ?? "").trim();
+    const propertyId = String((args.listing_id ?? args.property_id) ?? "").trim();
     if (!propertyId) return { error: "property_id is required." };
 
     const data = await domainFetch(apiKey, `/listings/${propertyId}`) as Record<string, unknown>;

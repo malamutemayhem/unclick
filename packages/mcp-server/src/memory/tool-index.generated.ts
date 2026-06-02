@@ -643,7 +643,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "color_convert",
-        "description": "Convert a color between HEX, RGB, HSL, and other formats."
+        "description": "Convert a color from one format into ALL other formats (HEX, RGB, HSL, HSV, CMYK) at once."
       },
       {
         "name": "color_info",
@@ -1223,7 +1223,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "eventbrite_create_event",
-        "description": "Create an event on Eventbrite."
+        "description": "Create an event on Eventbrite under an organization."
       },
       {
         "name": "eventbrite_list_categories",
@@ -3267,7 +3267,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "reddit_read",
-        "description": "Read posts from a Reddit subreddit."
+        "description": "Read public posts from a Reddit subreddit. OAuth is optional for public reads."
       },
       {
         "name": "reddit_post",
@@ -3279,11 +3279,15 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "reddit_search",
-        "description": "Search Reddit posts."
+        "description": "Search public Reddit posts. OAuth is optional for public reads."
+      },
+      {
+        "name": "reddit_thread",
+        "description": "Read a public Reddit thread, including the post and comments."
       },
       {
         "name": "reddit_user",
-        "description": "Get a Reddit user profile and posts."
+        "description": "Get a public Reddit user profile and recent activity. OAuth is optional for public reads."
       },
       {
         "name": "reddit_vote",
@@ -3977,7 +3981,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "tab_race",
-        "description": "Get TAB race details."
+        "description": "Get TAB race details. A race is addressed by its meeting date, meeting name, and race number (TAB has no single race id)."
       },
       {
         "name": "tab_sports_markets",
@@ -4417,11 +4421,11 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "twitch_channel_info",
-        "description": "Get information about a Twitch channel."
+        "description": "Get information about a Twitch channel by its login name."
       },
       {
         "name": "twitch_schedule",
-        "description": "Get a Twitch channel's streaming schedule."
+        "description": "Get a Twitch channel's streaming schedule by its login name."
       }
     ]
   },
@@ -4601,7 +4605,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       },
       {
         "name": "usgs_earthquakes_by_region",
-        "description": "Get USGS earthquakes within a geographic region."
+        "description": "Get recent USGS earthquakes within a radius of a point (latitude/longitude)."
       }
     ]
   },
