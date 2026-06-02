@@ -89,9 +89,9 @@ describe("heartbeat_protocol payload", () => {
       procedure: [...protocol.procedure, "new instruction"],
     };
 
-    expect(formatHeartbeatProtocolVersion(13)).toBe("2026-05-12.v13");
-    expect(protocol.version).toBe("2026-05-12.v13");
-    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("a30452dd99915a67");
+    expect(formatHeartbeatProtocolVersion(14)).toBe("2026-06-02.v14");
+    expect(protocol.version).toBe("2026-06-02.v14");
+    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("fee442ed68f0fde9");
     expect(heartbeatProtocolContentFingerprint(changed)).not.toBe(
       heartbeatProtocolContentFingerprint(protocol),
     );
@@ -103,5 +103,7 @@ describe("heartbeat_protocol payload", () => {
     expect(serialized).not.toContain("secret");
     expect(serialized).not.toContain("api_key");
     expect(serialized).not.toContain("execute mode enabled");
+    expect(serialized).toContain("suppress_noop_heartbeat=true");
+    expect(serialized).toContain("do not post or save");
   });
 });
