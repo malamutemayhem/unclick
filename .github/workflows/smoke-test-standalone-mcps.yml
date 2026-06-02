@@ -1,0 +1,53 @@
+name: Smoke test standalone MCPs
+
+# Proves the standalone MCP servers actually work end to end: builds them, drives
+# each over the real MCP protocol, makes a live API call, and posts the results
+# as a PR comment. Runs on CI runners (open internet), so no local install needed.
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - "packages/standalone/**"
+      - ".github/workflows/smoke-test-standalone-mcps.yml"
+
+permissions:
+  contents: read
+  pull-requests: write   # post live results as a PR comment
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGETS: "openmeteo-mcp coingecko-mcp restcountries-mcp hackernews-mcp ptv-mcp"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build the servers under test
+        run: |
+          set -euo pipefail
+          for p in $TARGETS; do
+            echo "::group::build $p"
+            ( cd "packages/standalone/$p" && npm install --no-audit --no-fund && npm run build )
+            echo "::endgroup::"
+          done
+
+      - name: Run live smoke test
+        run: |
+          set -euo pipefail
+          tmp="$RUNNER_TEMP/smoke"; mkdir -p "$tmp"; cd "$tmp"
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund "@modelcontextprotocol/sdk@^1.15.1" >/dev/null
+          cp "$GITHUB_WORKSPACE/packages/standalone/smoke-test.mjs" .
+          STANDALONE_DIR="$GITHUB_WORKSPACE/packages/standalone" \
+            RESULT_FILE="$GITHUB_WORKSPACE/smoke-result.md" \
+            node smoke-test.mjs
+
+      - name: Comment live results on PR
+        if: github.event_name == 'pull_request'
+        run: gh pr comment "${{ github.event.pull_request.number }}" --body-file "$GITHUB_WORKSPACE/smoke-result.md"

@@ -9,8 +9,8 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 610,
-    "source_manifest": 190,
+    "inventory": 611,
+    "source_manifest": 191,
     "pages": 82,
     "tools": 219,
     "rooms": 23,
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 119
+      "count": 120
     },
     {
       "id": "ledgers-and-proof",
@@ -1728,6 +1728,16 @@
       "kind": "workflow",
       "meaning": "seed vault GitHub automation workflow.",
       "source": ".github/workflows/seed-vault.yml",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-workflow-smoke-test-standalone-mcps-yml-github-workflows-smoke-test-standalone-mcps-yml-no-route",
+      "division": "Automations",
+      "name": "smoke test standalone mcps.yml",
+      "kind": "workflow",
+      "meaning": "smoke test standalone mcps GitHub automation workflow.",
+      "source": ".github/workflows/smoke-test-standalone-mcps.yml",
       "route": "",
       "tags": []
     },
@@ -9033,6 +9043,11 @@
       "source": ".github/workflows/seed-vault.yml",
       "hash": "003a9bd13283",
       "bytes": 1246
+    },
+    {
+      "source": ".github/workflows/smoke-test-standalone-mcps.yml",
+      "hash": "9cda22e30700",
+      "bytes": 1818
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
