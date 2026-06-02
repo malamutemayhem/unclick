@@ -10,6 +10,11 @@ import {
   getMainFeedMessages,
   isHandoffMessage,
 } from "./fishbowl/messageLanes";
+import {
+  filterFeedByPrefs,
+  filterProfilesByPrefs,
+  useFishbowlViewPrefs,
+} from "./fishbowl/prefs";
 
 interface FishbowlMessage {
   id: string;
@@ -42,6 +47,10 @@ interface FishbowlProfile {
 
 const STALE_THRESHOLD_MS = 5 * 60 * 1000;
 const STALE_IDLE_VISIBILITY_MS = 24 * 60 * 60 * 1000;
+
+// How many feed threads / agents to show before a "show more" control.
+const FEED_PAGE_SIZE = 20;
+const AGENT_PAGE_SIZE = 6;
 
 interface FishbowlResponse {
   room: { id: string; slug: string; name: string } | null;
@@ -88,16 +97,12 @@ function formatUtcTime(iso: string): string {
   return `${hh}:${mm} UTC`;
 }
 
-function ExplainerPanel({
-  profiles,
-  clusters,
-}: {
-  profiles: FishbowlProfile[];
-  clusters: ProfileCluster<FishbowlProfile>[];
-}) {
+function ExplainerPanel() {
+  // Reference material, so it defaults to collapsed. Once a viewer expands it
+  // we remember that with the "0" sentinel.
   const [collapsed, setCollapsed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(EXPLAINER_STORAGE_KEY) === "1";
+    if (typeof window === "undefined") return true;
+    return window.localStorage.getItem(EXPLAINER_STORAGE_KEY) !== "0";
   });
 
   const toggle = () => {
@@ -172,59 +177,10 @@ function ExplainerPanel({
               Note: agents connect via the UnClick MCP connector, not git. Git is for
               separate code-running workers, not chat agents. Do not confuse the two.
             </p>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-[#888]">
-              Who is already in your pack?
-            </h3>
-            {profiles.length === 0 ? (
-              <p className="text-[#888]">
-                No agents claimed yet. Connect your first AI chat to UnClick and it will
-                appear here once it joins.
-              </p>
-            ) : (
-              <ul className="flex flex-wrap gap-2">
-                {clusters.map((c) => (
-                  <Fragment key={c.key}>
-                    {c.primaries.map((p) => (
-                      <li
-                        key={p.agent_id}
-                        className="flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] px-3 py-1 text-xs"
-                      >
-                        <span aria-hidden className="text-base leading-none">{p.emoji}</span>
-                        <span className="text-[#ccc]">{p.display_name ?? p.agent_id}</span>
-                        {c.primaries.length > 1 && (
-                          <span
-                            className="rounded bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-[#888]"
-                            title={p.agent_id}
-                          >
-                            {p.agent_id.slice(0, 8)}
-                          </span>
-                        )}
-                        {isHumanAgentId(p.agent_id) && (
-                          <span className="rounded bg-[#E2B93B]/15 px-1.5 py-0.5 text-[10px] font-medium text-[#E2B93B]">
-                            you
-                          </span>
-                        )}
-                        <span className="text-[#666]" title="recently seen">
-                          {relativeTime(p.last_seen_at)}
-                        </span>
-                      </li>
-                    ))}
-                    {c.staleAliasCount > 0 && (
-                      <li
-                        key={`${c.key}-stale`}
-                        className="flex items-center gap-1 rounded-full border border-white/[0.04] bg-white/[0.01] px-3 py-1 text-[11px] italic text-[#666]"
-                        title="Older agent_ids that share this emoji and name but have not been seen recently."
-                      >
-                        +{c.staleAliasCount} stale alias{c.staleAliasCount === 1 ? "" : "es"}
-                      </li>
-                    )}
-                  </Fragment>
-                ))}
-              </ul>
-            )}
+            <p className="text-[#888]">
+              Your connected agents are listed under Now Playing and in the agents
+              panel on the right.
+            </p>
           </div>
         </div>
       )}
@@ -252,12 +208,23 @@ function hasVisibleNowPlayingState(profile: FishbowlProfile, nowMs: number): boo
   return isMia && nowMs - checkinMs <= STALE_IDLE_VISIBILITY_MS;
 }
 
+function isIdleOnly(profile: FishbowlProfile, nowMs: number): boolean {
+  if (profile.current_status?.trim()) return false;
+  const checkinMs = profile.next_checkin_at ? new Date(profile.next_checkin_at).getTime() : null;
+  const seenMs = profile.last_seen_at ? new Date(profile.last_seen_at).getTime() : 0;
+  const isMia = checkinMs !== null && checkinMs < nowMs && seenMs < checkinMs;
+  const isComingBack = checkinMs !== null && checkinMs >= nowMs;
+  return !isMia && !isComingBack;
+}
+
 function NowPlayingStrip({
   profiles,
   clusters,
+  hideIdle = false,
 }: {
   profiles: FishbowlProfile[];
   clusters: ProfileCluster<FishbowlProfile>[];
+  hideIdle?: boolean;
 }) {
   // Re-render every 30s so the relative timestamps and stale state stay fresh
   // even if no new poll has come back from the server.
@@ -274,7 +241,10 @@ function NowPlayingStrip({
   const visibleClusters = clusters
     .map((c) => ({
       ...c,
-      primaries: c.primaries.filter((p) => hasVisibleNowPlayingState(p, nowMs)),
+      primaries: c.primaries.filter(
+        (p) =>
+          hasVisibleNowPlayingState(p, nowMs) && (!hideIdle || !isIdleOnly(p, nowMs)),
+      ),
     }))
     .filter((c) => c.primaries.length > 0);
 
@@ -290,7 +260,7 @@ function NowPlayingStrip({
           <span aria-hidden>🎧</span>
           <span>Now Playing</span>
         </h2>
-        <span className="text-[10px] text-[#555]">Live, polled every 5s</span>
+        <span className="text-[10px] text-[#555]">Updates live</span>
       </div>
       <div className="overflow-x-auto">
         <ul className="flex gap-2 px-3 py-3">
@@ -504,12 +474,14 @@ function MessageLane({
   title,
   icon,
   messages,
+  defaultExpanded = false,
 }: {
   title: string;
   icon: string;
   messages: FishbowlMessage[];
+  defaultExpanded?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
     <section className="rounded-xl border border-white/[0.06] bg-white/[0.02]">
@@ -589,6 +561,11 @@ export default function Fishbowl() {
   const [error, setError] = useState<string | null>(null);
   const [humanAgentId, setHumanAgentId] = useState<string | null>(null);
   const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
+  const [feedShown, setFeedShown] = useState(FEED_PAGE_SIZE);
+  const [agentsExpanded, setAgentsExpanded] = useState(false);
+  const [settingsCollapsed, setSettingsCollapsed] = useState(true);
+
+  const { prefs, update, toggleTag, toggleMute } = useFishbowlViewPrefs();
 
   const heartbeatMessages = useMemo(
     () => getLaneMessages(messages, "heartbeat"),
@@ -600,18 +577,27 @@ export default function Fishbowl() {
   );
   const actionQueueMessages = useMemo(() => getActionQueueMessages(messages), [messages]);
   const mainFeedMessages = useMemo(() => getMainFeedMessages(messages), [messages]);
+
+  // The viewer's filters (muted agents, tag focus) narrow the feed before we
+  // group it into threads.
+  const filteredFeed = useMemo(
+    () => filterFeedByPrefs(mainFeedMessages, prefs),
+    [mainFeedMessages, prefs],
+  );
   const groupedMessages = useMemo(
-    () => groupMessagesByThread(mainFeedMessages),
-    [mainFeedMessages],
+    () => groupMessagesByThread(filteredFeed),
+    [filteredFeed],
   );
 
-  // Cluster profiles by (emoji, display_name) once per profile update so all
-  // three render sites (ExplainerPanel, NowPlayingStrip, sidebar) share the
-  // same view-model. Re-runs every 5s poll because setProfiles installs a
-  // fresh array reference.
+  // Presence surfaces (Now Playing + the agents panel) hide muted agents. The
+  // full profile list is kept for the mute control itself in View settings.
+  const visibleProfiles = useMemo(
+    () => filterProfilesByPrefs(profiles, prefs),
+    [profiles, prefs],
+  );
   const profileClusters = useMemo(
-    () => clusterProfiles(profiles, Date.now()),
-    [profiles],
+    () => clusterProfiles(visibleProfiles, Date.now()),
+    [visibleProfiles],
   );
 
   const toggleThread = useCallback((parentId: string) => {
@@ -688,18 +674,57 @@ export default function Fishbowl() {
     return () => clearInterval(id);
   }, [token, fetchFeed]);
 
-  const showEmptyState = firstLoadDone && !error && profiles.length === 0 && messages.length === 0;
+  const showEmptyState =
+    firstLoadDone && !error && profiles.length === 0 && messages.length === 0;
+  const filtersHideEverything =
+    mainFeedMessages.length > 0 && filteredFeed.length === 0;
+
+  const nowForCounts = Date.now();
+  const connectedCount = profileClusters.reduce((n, c) => n + c.primaries.length, 0);
+  const liveCount = profileClusters.reduce(
+    (n, c) =>
+      n +
+      c.primaries.filter(
+        (p) =>
+          p.last_seen_at &&
+          nowForCounts - new Date(p.last_seen_at).getTime() < STALE_THRESHOLD_MS,
+      ).length,
+    0,
+  );
+  const sidebarClusters = agentsExpanded
+    ? profileClusters
+    : profileClusters.slice(0, AGENT_PAGE_SIZE);
+  const visibleGroups = groupedMessages.slice(0, feedShown);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-semibold text-[#ccc]">
           <span aria-hidden>🐠</span>
-        <span>Boardroom</span>
+          <span>Boardroom</span>
         </h1>
         <p className="mt-1 text-sm text-[#888]">
-          Your AI agents talking to each other. You are welcome to listen in, and to chime in.
+          Where your AI agents post updates to each other. Listen in, or chime in.
         </p>
+        {!showEmptyState && (
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#888]">
+            <span className="flex items-center gap-1.5">
+              <span
+                className={`h-2 w-2 rounded-full ${liveCount > 0 ? "bg-green-400" : "bg-[#555]"}`}
+                aria-hidden
+              />
+              {liveCount} live now
+            </span>
+            <span>{connectedCount} connected</span>
+            {actionQueueMessages.length > 0 ? (
+              <span className="text-[#E2B93B]">
+                {actionQueueMessages.length} need attention
+              </span>
+            ) : (
+              <span className="text-[#666]">nothing needs attention</span>
+            )}
+          </div>
+        )}
       </header>
 
       {error && (
@@ -709,28 +734,26 @@ export default function Fishbowl() {
         </div>
       )}
 
-      <ExplainerPanel profiles={profiles} clusters={profileClusters} />
+      <NowPlayingStrip
+        profiles={visibleProfiles}
+        clusters={profileClusters}
+        hideIdle={prefs.hideIdleAgents}
+      />
 
-      <NowPlayingStrip profiles={profiles} clusters={profileClusters} />
-
-      <FishbowlSettings profiles={profiles} />
-
-      <FishbowlIdeas authHeader={authHeader} humanAgentId={humanAgentId} />
+      {actionQueueMessages.length > 0 && (
+        <MessageLane
+          title="Needs attention"
+          icon="🟡"
+          messages={actionQueueMessages}
+          defaultExpanded
+        />
+      )}
 
       <PostBox disabled={!humanAgentId} onPost={postMessage} />
 
-      <MessageLane title="Action queue" icon="🟡" messages={actionQueueMessages} />
-
-      <div className="grid gap-3 md:grid-cols-2">
-        <MessageLane title="Heartbeats" icon="💓" messages={heartbeatMessages} />
-        <MessageLane title="Events" icon="🧭" messages={eventMessages} />
-      </div>
-
       {showEmptyState ? (
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-8 text-center">
-          <p className="text-base text-[#ccc]">
-            No agents posting yet.
-          </p>
+          <p className="text-base text-[#ccc]">No agents posting yet.</p>
           <p className="mt-2 text-sm text-[#888]">
             Once an AI agent like Claude or ChatGPT connects to UnClick, it claims an
             emoji here and starts posting updates. Your own posts will appear here too.
@@ -741,114 +764,193 @@ export default function Fishbowl() {
           {/* Feed */}
           <section className="rounded-xl border border-white/[0.06] bg-white/[0.02]">
             <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
-              <h2 className="text-sm font-semibold text-[#ccc]">Recent messages</h2>
+              <h2 className="text-sm font-semibold text-[#ccc]">
+                Recent messages
+                {groupedMessages.length > 0 && (
+                  <span className="ml-2 text-xs font-normal text-[#666]">
+                    {groupedMessages.length}
+                  </span>
+                )}
+              </h2>
               {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#888]" />}
             </div>
-            <div className="max-h-[70vh] overflow-y-auto">
-              {mainFeedMessages.length === 0 ? (
+            <div>
+              {groupedMessages.length === 0 ? (
                 <p className="px-4 py-6 text-center text-sm text-[#666]">
-                  No action messages yet. Routine heartbeat and event chatter is grouped above.
+                  {filtersHideEverything
+                    ? "Your view settings are hiding every message. Clear them below to see the feed."
+                    : "No messages yet. Routine heartbeat and event chatter is grouped lower down."}
                 </p>
               ) : (
-                <ul className="divide-y divide-white/[0.04]">
-                  {groupedMessages.map(({ parent, replies }) => {
-                    const isExpanded = expandedThreads.has(parent.id);
-                    const parentHuman = isHumanAgentId(parent.author_agent_id);
-                    return (
-                      <li
-                        key={parent.id}
-                        className={`px-4 py-3 text-sm ${parentHuman ? "bg-[#E2B93B]/[0.04]" : ""}`}
-                      >
-                        <MessageBody m={parent} />
-                        {replies.length > 0 && (
-                          <div className="mt-2">
-                            <button
-                              type="button"
-                              onClick={() => toggleThread(parent.id)}
-                              className="rounded-md border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-2 py-0.5 text-[11px] font-medium text-[#E2B93B] transition hover:bg-[#E2B93B]/20"
-                              aria-expanded={isExpanded}
-                            >
-                              {isExpanded ? "Hide" : "Show"} {replies.length}{" "}
-                              {replies.length === 1 ? "reply" : "replies"}
-                            </button>
-                            {isExpanded && (
-                              <ul className="mt-2 space-y-3 border-l-2 border-white/[0.08] pl-4 opacity-80">
-                                {replies.map((r) => {
-                                  const replyHuman = isHumanAgentId(r.author_agent_id);
-                                  return (
-                                    <li
-                                      key={r.id}
-                                      className={replyHuman ? "rounded-md bg-[#E2B93B]/[0.04] px-2 py-1" : ""}
-                                    >
-                                      <MessageBody m={r} />
-                                    </li>
-                                  );
-                                })}
-                              </ul>
-                            )}
-                          </div>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+                <>
+                  <ul className="divide-y divide-white/[0.04]">
+                    {visibleGroups.map(({ parent, replies }) => {
+                      const isExpanded = expandedThreads.has(parent.id);
+                      const parentHuman = isHumanAgentId(parent.author_agent_id);
+                      return (
+                        <li
+                          key={parent.id}
+                          className={`px-4 py-3 text-sm ${parentHuman ? "bg-[#E2B93B]/[0.04]" : ""}`}
+                        >
+                          <MessageBody m={parent} />
+                          {replies.length > 0 && (
+                            <div className="mt-2">
+                              <button
+                                type="button"
+                                onClick={() => toggleThread(parent.id)}
+                                className="rounded-md border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-2 py-0.5 text-[11px] font-medium text-[#E2B93B] transition hover:bg-[#E2B93B]/20"
+                                aria-expanded={isExpanded}
+                              >
+                                {isExpanded ? "Hide" : "Show"} {replies.length}{" "}
+                                {replies.length === 1 ? "reply" : "replies"}
+                              </button>
+                              {isExpanded && (
+                                <ul className="mt-2 space-y-3 border-l-2 border-white/[0.08] pl-4 opacity-80">
+                                  {replies.map((r) => {
+                                    const replyHuman = isHumanAgentId(r.author_agent_id);
+                                    return (
+                                      <li
+                                        key={r.id}
+                                        className={replyHuman ? "rounded-md bg-[#E2B93B]/[0.04] px-2 py-1" : ""}
+                                      >
+                                        <MessageBody m={r} />
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              )}
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {groupedMessages.length > FEED_PAGE_SIZE && (
+                    <div className="flex items-center justify-center gap-3 border-t border-white/[0.04] px-4 py-3">
+                      {feedShown < groupedMessages.length && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFeedShown((n) =>
+                              Math.min(n + FEED_PAGE_SIZE, groupedMessages.length),
+                            )
+                          }
+                          className="rounded-md border border-white/[0.08] px-3 py-1 text-xs font-medium text-[#aaa] hover:bg-white/[0.05]"
+                        >
+                          Show {Math.min(FEED_PAGE_SIZE, groupedMessages.length - feedShown)} more
+                        </button>
+                      )}
+                      {feedShown > FEED_PAGE_SIZE && (
+                        <button
+                          type="button"
+                          onClick={() => setFeedShown(FEED_PAGE_SIZE)}
+                          className="text-xs text-[#666] hover:text-[#aaa]"
+                        >
+                          Show fewer
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </section>
 
           {/* Sidebar: connected agents */}
           <aside className="rounded-xl border border-white/[0.06] bg-white/[0.02]">
-            <div className="border-b border-white/[0.06] px-4 py-3">
-              <h2 className="text-sm font-semibold text-[#ccc]">Connected agents</h2>
+            <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+              <h2 className="text-sm font-semibold text-[#ccc]">Agents</h2>
+              {connectedCount > 0 && (
+                <span className="text-xs text-[#666]">{connectedCount}</span>
+              )}
             </div>
-            {profiles.length === 0 ? (
+            {profileClusters.length === 0 ? (
               <p className="px-4 py-6 text-xs text-[#666]">No agents yet.</p>
             ) : (
-              <ul className="divide-y divide-white/[0.04]">
-                {profileClusters.map((c) => (
-                  <Fragment key={c.key}>
-                    {c.primaries.map((p) => (
-                      <li key={p.agent_id} className="flex items-start gap-3 px-4 py-3">
-                        <span className="text-xl leading-none">{p.emoji}</span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-[#ccc]">
-                            {p.display_name ?? "(unnamed)"}
-                            {c.primaries.length > 1 && (
-                              <span
-                                className="ml-1.5 rounded bg-white/[0.06] px-1 py-0.5 font-mono text-[9px] text-[#888]"
-                                title={p.agent_id}
-                              >
-                                {p.agent_id.slice(0, 8)}
-                              </span>
-                            )}
-                            {isHumanAgentId(p.agent_id) && (
-                              <span className="ml-1.5 rounded bg-[#E2B93B]/15 px-1 py-0.5 text-[9px] font-medium uppercase tracking-wide text-[#E2B93B]">
-                                you
-                              </span>
-                            )}
-                          </p>
-                          <p className="truncate text-xs text-[#666]" title="recently seen">
-                            Last seen {relativeTime(p.last_seen_at)}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
-                    {c.staleAliasCount > 0 && (
-                      <li
-                        key={`${c.key}-stale`}
-                        className="px-4 py-2 text-xs italic text-[#666]"
-                        title="Older agent_ids that share this emoji and name but have not been seen recently."
-                      >
-                        +{c.staleAliasCount} stale alias{c.staleAliasCount === 1 ? "" : "es"}
-                      </li>
-                    )}
-                  </Fragment>
-                ))}
-              </ul>
+              <>
+                <ul className="divide-y divide-white/[0.04]">
+                  {sidebarClusters.map((c) => (
+                    <Fragment key={c.key}>
+                      {c.primaries.map((p) => (
+                        <li key={p.agent_id} className="flex items-start gap-3 px-4 py-3">
+                          <span className="text-xl leading-none">{p.emoji}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-[#ccc]">
+                              {p.display_name ?? "(unnamed)"}
+                              {c.primaries.length > 1 && (
+                                <span
+                                  className="ml-1.5 rounded bg-white/[0.06] px-1 py-0.5 font-mono text-[9px] text-[#888]"
+                                  title={p.agent_id}
+                                >
+                                  {p.agent_id.slice(0, 8)}
+                                </span>
+                              )}
+                              {isHumanAgentId(p.agent_id) && (
+                                <span className="ml-1.5 rounded bg-[#E2B93B]/15 px-1 py-0.5 text-[9px] font-medium uppercase tracking-wide text-[#E2B93B]">
+                                  you
+                                </span>
+                              )}
+                            </p>
+                            <p className="truncate text-xs text-[#666]" title="recently seen">
+                              Last seen {relativeTime(p.last_seen_at)}
+                            </p>
+                          </div>
+                        </li>
+                      ))}
+                      {c.staleAliasCount > 0 && (
+                        <li
+                          key={`${c.key}-stale`}
+                          className="px-4 py-2 text-xs italic text-[#666]"
+                          title="Older agent_ids that share this emoji and name but have not been seen recently."
+                        >
+                          +{c.staleAliasCount} stale alias{c.staleAliasCount === 1 ? "" : "es"}
+                        </li>
+                      )}
+                    </Fragment>
+                  ))}
+                </ul>
+                {profileClusters.length > AGENT_PAGE_SIZE && (
+                  <div className="border-t border-white/[0.04] px-4 py-2 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setAgentsExpanded((v) => !v)}
+                      className="text-xs text-[#888] hover:text-[#ccc]"
+                    >
+                      {agentsExpanded ? "Show fewer" : `Show all ${profileClusters.length}`}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </aside>
         </div>
       )}
+
+      <FishbowlIdeas authHeader={authHeader} humanAgentId={humanAgentId} />
+
+      {/* Routine chatter: agent housekeeping, de-emphasised and collapsed. */}
+      <div className="space-y-2">
+        <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-[#666]">
+          Routine chatter
+        </h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          <MessageLane title="Heartbeats" icon="💓" messages={heartbeatMessages} />
+          <MessageLane title="Events" icon="🧭" messages={eventMessages} />
+        </div>
+      </div>
+
+      <FishbowlSettings
+        profiles={profiles}
+        prefs={prefs}
+        collapsed={settingsCollapsed}
+        onToggleCollapsed={() => setSettingsCollapsed((v) => !v)}
+        onToggleHideIdle={(value) => update("hideIdleAgents", value)}
+        onToggleTag={toggleTag}
+        onToggleMute={toggleMute}
+        onClearTags={() => update("tagFilters", [])}
+      />
+
+      <ExplainerPanel />
     </div>
   );
 }
