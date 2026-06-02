@@ -69,9 +69,9 @@ const TOOLS = [
 ];
 
 const HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-  sendle_get_quote: (args) => getSendleQuote(args),
-  sendle_create_order: (args) => createSendleOrder(args),
-  sendle_track_parcel: (args) => trackSendleParcel(args),
+  sendle_get_quote: (args) => getSendleQuote(args as unknown as Parameters<typeof getSendleQuote>[0]),
+  sendle_create_order: (args) => createSendleOrder(args as unknown as Parameters<typeof createSendleOrder>[0]),
+  sendle_track_parcel: (args) => trackSendleParcel(args as unknown as Parameters<typeof trackSendleParcel>[0]),
 };
 
 const server = new Server(

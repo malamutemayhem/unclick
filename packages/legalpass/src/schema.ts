@@ -177,6 +177,36 @@ export const LegalPassReportSchema = z.object({
   notes: z.array(z.string().min(1)).default([]),
 });
 
+export const LegalPassReceiptSchema = z.object({
+  kind: z.literal("legalpass_receipt_v1"),
+  status: z.enum(["PASS", "WARN", "BLOCKER"]),
+  run_id: z.string().min(1),
+  pack_id: z.string().min(1),
+  target: LegalPassTargetSchema,
+  target_sha: z.string().min(1).optional(),
+  generated_at: z.string().datetime(),
+  mode: z.enum(["fixture", "plan-only"]),
+  jurisdictions: JurisdictionListSchema,
+  summary: z.object({
+    total: z.number().int().min(0),
+    check: z.number().int().min(0),
+    fail: z.number().int().min(0),
+    na: z.number().int().min(0),
+    other: z.number().int().min(0),
+    pending: z.number().int().min(0),
+    pass_rate: z.number().min(0).max(100),
+  }),
+  disclaimer_present: z.literal(true),
+  safety: z.object({
+    issue_spotter_only: z.literal(true),
+    no_legal_advice: z.literal(true),
+    no_transactional_instrument: z.literal(true),
+  }),
+  evidence_sources: z.array(LegalPassEvidenceSchema).default([]),
+  action_needed: z.array(z.string().min(1)).default([]),
+  boundaries: z.array(z.string().min(1)).min(1),
+});
+
 export const LegalPassGeoPassAdapterSchema = z.object({
   source: z.literal("geopass"),
   target_url: HttpUrlSchema,
@@ -201,4 +231,5 @@ export type LegalPassHatDefinition = z.infer<typeof LegalPassHatDefinitionSchema
 export type LegalPassHatResult = z.infer<typeof LegalPassHatResultSchema>;
 export type LegalPassScannerSource = z.infer<typeof LegalPassScannerSourceSchema>;
 export type LegalPassReport = z.infer<typeof LegalPassReportSchema>;
+export type LegalPassReceipt = z.infer<typeof LegalPassReceiptSchema>;
 export type LegalPassGeoPassAdapter = z.infer<typeof LegalPassGeoPassAdapterSchema>;

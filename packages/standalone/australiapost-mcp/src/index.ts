@@ -62,9 +62,9 @@ const TOOLS = [
 ];
 
 const HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-  auspost_track_parcel: (args) => trackAuspostParcel(args),
-  auspost_get_postcode: (args) => getAuspostPostcode(args),
-  auspost_delivery_times: (args) => getAuspostDeliveryTimes(args),
+  auspost_track_parcel: (args) => trackAuspostParcel(args as unknown as Parameters<typeof trackAuspostParcel>[0]),
+  auspost_get_postcode: (args) => getAuspostPostcode(args as unknown as Parameters<typeof getAuspostPostcode>[0]),
+  auspost_delivery_times: (args) => getAuspostDeliveryTimes(args as unknown as Parameters<typeof getAuspostDeliveryTimes>[0]),
 };
 
 const server = new Server(

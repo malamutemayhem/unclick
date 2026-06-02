@@ -3,23 +3,38 @@
 // Auth: RESEND_API_KEY (Bearer token)
 // Base: https://api.resend.com/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const RESEND_BASE = "https://api.resend.com";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.RESEND_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set RESEND_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("resend", args);
 }
+
+const RESEND_TIMEOUT_MS = Number(process.env.RESEND_TIMEOUT_MS) || 15000;
 
 async function resendGet(
   apiKey: string,
   path: string
 ): Promise<Record<string, unknown>> {
-  const res = await fetch(`${RESEND_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RESEND_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${RESEND_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Resend request timed out after ${RESEND_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Resend network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Resend API key.");
   if (res.status === 404) throw new Error(`Resend: resource not found at ${path}.`);
   if (res.status === 429) throw new Error("Resend rate limit exceeded.");
@@ -35,14 +50,27 @@ async function resendPost(
   path: string,
   body: Record<string, unknown>
 ): Promise<Record<string, unknown>> {
-  const res = await fetch(`${RESEND_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RESEND_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${RESEND_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Resend request timed out after ${RESEND_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Resend network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Resend API key.");
   if (res.status === 422) {
     const b = await res.text().catch(() => "");
@@ -60,6 +88,7 @@ async function resendPost(
 export async function sendEmailResend(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const from = String(args.from ?? "").trim();
     const to = args.to;
     const subject = String(args.subject ?? "").trim();
@@ -90,7 +119,8 @@ export async function sendEmailResend(args: Record<string, unknown>): Promise<un
 export async function getEmailResend(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
-    const id = String(args.id ?? "").trim();
+    if (typeof apiKey !== "string") return apiKey;
+    const id = String((args.email_id ?? args.id) ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await resendGet(apiKey, `/emails/${id}`);
     return {
@@ -110,6 +140,7 @@ export async function getEmailResend(args: Record<string, unknown>): Promise<unk
 export async function listDomainsResend(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const data = await resendGet(apiKey, "/domains");
     const domains = (data.data as Array<Record<string, unknown>>) ?? [];
     return {

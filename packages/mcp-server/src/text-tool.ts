@@ -148,7 +148,7 @@ export function extractPhoneNumbers(args: Record<string, unknown>): unknown {
 
 export function countOccurrences(args: Record<string, unknown>): unknown {
   const text = String(args.text ?? "");
-  const search = String(args.search_string ?? "");
+  const search = String((args.search ?? args.search_string) ?? "");
 
   if (!text) return { error: "text is required." };
   if (!search) return { error: "search_string is required." };
@@ -190,7 +190,7 @@ export function countOccurrences(args: Record<string, unknown>): unknown {
 
 export function truncateText(args: Record<string, unknown>): unknown {
   const text = String(args.text ?? "");
-  const maxChars = Math.max(1, Number(args.max_chars ?? 100));
+  const maxChars = Math.max(1, Number((args.max_length ?? args.max_chars) ?? 100));
   const useEllipsis = args.ellipsis !== false && args.ellipsis !== "false";
 
   if (!text) return { error: "text is required." };

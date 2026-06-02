@@ -4,6 +4,9 @@
 // Base URL: https://api.stripe.com/v1
 // No external dependencies - native fetch only.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+
 const STRIPE_BASE = "https://api.stripe.com/v1";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -14,9 +17,9 @@ interface StripeConfig {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireConfig(args: Record<string, unknown>): StripeConfig | { error: string } {
-  const secret_key = String(args.secret_key ?? "").trim();
-  if (!secret_key) return { error: "secret_key is required (Stripe secret key, starts with sk_)." };
+function requireConfig(args: Record<string, unknown>): StripeConfig | NotConnectedResult {
+  const secret_key = requireCredential("stripe", args);
+  if (typeof secret_key !== "string") return secret_key;
   return { secret_key };
 }
 
@@ -41,6 +44,9 @@ async function stripeFetch(
     body = form.toString();
   }
 
+  const STRIPE_TIMEOUT_MS = Number(process.env.STRIPE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), STRIPE_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
@@ -50,9 +56,15 @@ async function stripeFetch(
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Stripe request timed out after ${STRIPE_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 429) {

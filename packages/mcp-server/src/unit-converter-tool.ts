@@ -38,8 +38,8 @@ export function convertWeight(args: Record<string, unknown>): unknown {
 
 export function convertTemperature(args: Record<string, unknown>): unknown {
   const value = Number(args.value ?? NaN);
-  const from = String(args.from_unit ?? "").toUpperCase().replace(/\s/g, "");
-  const to = String(args.to_unit ?? "").toUpperCase().replace(/\s/g, "");
+  const from = String((args.from ?? args.from_unit) ?? "").toUpperCase().replace(/\s/g, "");
+  const to = String((args.to ?? args.to_unit) ?? "").toUpperCase().replace(/\s/g, "");
   const supported = ["C", "F", "K", "R"];
 
   if (isNaN(value)) return { error: "value must be a number." };
@@ -153,8 +153,8 @@ function convertUnit(
   supported: string[],
 ): unknown {
   const value = Number(args.value ?? NaN);
-  const from = String(args.from_unit ?? "").trim();
-  const to = String(args.to_unit ?? "").trim();
+  const from = String((args.from ?? args.from_unit) ?? "").trim();
+  const to = String((args.to ?? args.to_unit) ?? "").trim();
 
   if (isNaN(value)) return { error: "value must be a number." };
 

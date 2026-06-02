@@ -2,13 +2,20 @@
 // Uses the Algolia REST API via fetch - no external dependencies.
 // Users must supply an Application ID and API Key from algolia.com.
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireCreds(args: Record<string, unknown>): { appId: string; apiKey: string } {
-  const appId = String(args.app_id ?? "").trim();
-  const apiKey = String(args.api_key ?? "").trim();
-  if (!appId) throw new Error("app_id is required (Algolia Application ID from algolia.com).");
-  if (!apiKey) throw new Error("api_key is required (Algolia API Key from algolia.com).");
+// Algolia needs two values (app id + API key), so it resolves them itself and
+// returns the shared not-connected card when either is missing.
+function requireCreds(
+  args: Record<string, unknown>,
+): { appId: string; apiKey: string } | NotConnectedResult {
+  const appId = String(args.app_id ?? process.env.ALGOLIA_APP_ID ?? "").trim();
+  const apiKey = String(args.api_key ?? process.env.ALGOLIA_API_KEY ?? "").trim();
+  if (!appId || !apiKey) return notConnectedFor("algolia");
   return { appId, apiKey };
 }
 
@@ -19,33 +26,69 @@ function baseUrl(appId: string): string {
 async function algoGet<T>(appId: string, apiKey: string, path: string, params?: Record<string, string>): Promise<T> {
   const url = new URL(`${baseUrl(appId)}${path}`);
   if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), {
-    headers: {
-      "X-Algolia-Application-Id": appId,
-      "X-Algolia-API-Key": apiKey,
-    },
-  });
+  const ALGOLIA_TIMEOUT_MS = Number(process.env.ALGOLIA_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ALGOLIA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        "X-Algolia-Application-Id": appId,
+        "X-Algolia-API-Key": apiKey,
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Algolia request timed out after ${ALGOLIA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Algolia network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Algolia rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`Algolia error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function algoPost<T>(appId: string, apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${baseUrl(appId)}${path}`, {
-    method: "POST",
-    headers: {
-      "X-Algolia-Application-Id": appId,
-      "X-Algolia-API-Key": apiKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const ALGOLIA_TIMEOUT_MS = Number(process.env.ALGOLIA_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ALGOLIA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl(appId)}${path}`, {
+      method: "POST",
+      headers: {
+        "X-Algolia-Application-Id": appId,
+        "X-Algolia-API-Key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Algolia request timed out after ${ALGOLIA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Algolia network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Algolia rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`Algolia error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -54,7 +97,9 @@ async function algoPost<T>(appId: string, apiKey: string, path: string, body: un
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function algoliaSearch(args: Record<string, unknown>): Promise<unknown> {
-  const { appId, apiKey } = requireCreds(args);
+  const creds = requireCreds(args);
+  if (!("apiKey" in creds)) return creds;
+  const { appId, apiKey } = creds;
   const index = String(args.index ?? "").trim();
   const query = String(args.query ?? "");
   if (!index) throw new Error("index is required (Algolia index name).");
@@ -69,7 +114,7 @@ export async function algoliaSearch(args: Record<string, unknown>): Promise<unkn
   const data = await algoPost<{ hits: unknown[]; nbHits: number; page: number; nbPages: number; processingTimeMS: number }>(
     appId, apiKey, `/indexes/${encodeURIComponent(index)}/query`, body
   );
-  return {
+  return stampMeta({
     index,
     query,
     total_hits: data.nbHits,
@@ -77,11 +122,17 @@ export async function algoliaSearch(args: Record<string, unknown>): Promise<unkn
     total_pages: data.nbPages,
     processing_ms: data.processingTimeMS,
     hits: data.hits,
-  };
+  }, {
+    source: "Algolia",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use algolia_get_object for a record by id, or algolia_browse_index to page the index."],
+  });
 }
 
 export async function algoliaGetObject(args: Record<string, unknown>): Promise<unknown> {
-  const { appId, apiKey } = requireCreds(args);
+  const creds = requireCreds(args);
+  if (!("apiKey" in creds)) return creds;
+  const { appId, apiKey } = creds;
   const index = String(args.index ?? "").trim();
   const objectId = String(args.object_id ?? "").trim();
   if (!index) throw new Error("index is required.");
@@ -90,7 +141,9 @@ export async function algoliaGetObject(args: Record<string, unknown>): Promise<u
 }
 
 export async function algoliaListIndices(args: Record<string, unknown>): Promise<unknown> {
-  const { appId, apiKey } = requireCreds(args);
+  const creds = requireCreds(args);
+  if (!("apiKey" in creds)) return creds;
+  const { appId, apiKey } = creds;
   const data = await algoGet<{ items: Array<{ name: string; entries: number; dataSize: number; fileSize: number; lastBuildTimeS: number; numberOfPendingTask: number }> }>(
     appId, apiKey, "/indexes"
   );
@@ -101,7 +154,9 @@ export async function algoliaListIndices(args: Record<string, unknown>): Promise
 }
 
 export async function algoliaBrowseIndex(args: Record<string, unknown>): Promise<unknown> {
-  const { appId, apiKey } = requireCreds(args);
+  const creds = requireCreds(args);
+  if (!("apiKey" in creds)) return creds;
+  const { appId, apiKey } = creds;
   const index = String(args.index ?? "").trim();
   if (!index) throw new Error("index is required.");
 

@@ -4,19 +4,39 @@
 // Auth: HUNTER_API_KEY env var (api_key query param).
 // Base URL: https://api.hunter.io/v2/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const HUNTER_BASE = "https://api.hunter.io/v2";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.HUNTER_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set HUNTER_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("hunter", args);
 }
+
+const HUNTER_TIMEOUT_MS = Number(process.env.HUNTER_TIMEOUT_MS) || 10000;
 
 async function hunterGet(apiKey: string, path: string, params: Record<string, string>): Promise<Record<string, unknown>> {
   const qs = new URLSearchParams({ ...params, api_key: apiKey });
-  const res = await fetch(`${HUNTER_BASE}${path}?${qs}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HUNTER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${HUNTER_BASE}${path}?${qs}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Hunter.io API request timed out after ${HUNTER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Hunter.io API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid Hunter.io API key.");
   if (res.status === 404) throw new Error("Resource not found.");
   if (res.status === 429) throw new Error("Hunter.io rate limit exceeded.");
@@ -36,7 +56,8 @@ async function hunterGet(apiKey: string, path: string, params: Record<string, st
 
 export async function findEmail(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const domain = String(args.domain ?? "").trim().toLowerCase();
     if (!domain) return { error: "domain is required (e.g. stripe.com)." };
 
@@ -51,7 +72,7 @@ export async function findEmail(args: Record<string, unknown>): Promise<unknown>
 
     const data = await hunterGet(apiKey, "/domain-search", params);
 
-    return {
+    return stampMeta({
       domain: data["domain"],
       organization: data["organization"],
       description: data["description"],
@@ -78,7 +99,11 @@ export async function findEmail(args: Record<string, unknown>): Promise<unknown>
         phone: e["phone_number"],
         verification_status: (e["verification"] as Record<string, unknown>)?.["status"],
       })),
-    };
+    }, {
+      source: "Hunter",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use hunter_find_email for a specific person, or hunter_verify_email to validate an address."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -88,7 +113,8 @@ export async function findEmail(args: Record<string, unknown>): Promise<unknown>
 
 export async function verifyEmail(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const email = String(args.email ?? "").trim().toLowerCase();
     if (!email) return { error: "email is required." };
 
@@ -119,7 +145,8 @@ export async function verifyEmail(args: Record<string, unknown>): Promise<unknow
 
 export async function getDomainInfo(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const domain = String(args.domain ?? "").trim().toLowerCase();
     if (!domain) return { error: "domain is required (e.g. stripe.com)." };
 

@@ -49,6 +49,7 @@ const XPASS_STAGE_STYLES: Record<XPassIndexEntry["stage"], string> = {
   live_gate: "border-border/60 bg-background/50 text-body",
   live_dogfood: "border-border/60 bg-background/50 text-body",
   scope_gated: "border-border/60 bg-background/50 text-body",
+  safe_proof: "border-border/60 bg-background/50 text-body",
   package_ready: "border-border/60 bg-background/50 text-body",
   boundary: "border-border/60 bg-background/50 text-body",
   planned: "border-border/60 bg-background/50 text-body",
@@ -77,10 +78,10 @@ export default function DogfoodReportPage() {
 
   useCanonical("/dogfood");
   useMetaTags({
-    title: "UnClick Dogfood Report - We Run UnClick on UnClick",
-    description: "Public dogfood receipt for UnClick Pass-family checks running against UnClick itself.",
+    title: "UnClick XPass - Public Dogfood Receipt",
+    description: "Simple public receipt for UnClick AutoPilot and the XPass family running checks against UnClick itself.",
     ogTitle: "UnClick Dogfood Report",
-    ogDescription: "We dogfood UnClick on UnClick. Public Pass-family quality receipts.",
+    ogDescription: "UnClick AutoPilot uses XPass like a roadworthy checklist for AI work.",
     ogUrl: "https://unclick.world/dogfood",
   });
 
@@ -125,8 +126,8 @@ export default function DogfoodReportPage() {
                   {report.headline}
                 </h1>
                 <p className="mt-4 max-w-2xl break-words text-lg leading-relaxed text-body">
-                  This page shows the latest Pass-family receipt evidence from checks running
-                  against UnClick itself.
+                  XPass sits under AutoPilot. It is the simple checklist UnClick uses before work is trusted:
+                  what passed, what needs action, what did not apply, and what evidence was used.
                 </p>
                 <a
                   href="/dogfood/latest.json"

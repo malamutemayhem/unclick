@@ -1,0 +1,33 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.malamutemayhem/openf1",
+  "title": "OpenF1 MCP by UnClick",
+  "description": "Formula 1 sessions, drivers, positions, laps, pit stops, car data, radio, and weather. By UnClick.",
+  "version": "0.1.0",
+  "websiteUrl": "https://unclick.world",
+  "icons": [
+    {
+      "src": "https://unclick.world/favicon.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "source": "github",
+    "subfolder": "packages/standalone/openf1-mcp"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@unclick/openf1-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

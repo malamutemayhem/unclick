@@ -3,6 +3,8 @@
 // Auth: personal access token (PAT) passed as access_token.
 // No external dependencies.
 
+import { requireCredential } from "./connector-setup.js";
+
 const AIRTABLE_META_API = "https://api.airtable.com/v0/meta";
 const AIRTABLE_DATA_API = "https://api.airtable.com/v0";
 
@@ -20,15 +22,24 @@ async function airtableFetch(
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
+  const AIRTABLE_TIMEOUT_MS = Number(process.env.AIRTABLE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AIRTABLE_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Airtable API request timed out after ${AIRTABLE_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Airtable API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   const text = await response.text();
@@ -138,8 +149,8 @@ export async function airtableAction(
   action: string,
   args:   Record<string, unknown>
 ): Promise<unknown> {
-  const token = String(args.access_token ?? "").trim();
-  if (!token) return { error: "access_token is required." };
+  const token = requireCredential("airtable", args);
+  if (typeof token !== "string") return token;
 
   try {
     switch (action) {

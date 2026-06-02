@@ -2,31 +2,51 @@
 // Uses the CoinMarketCap Pro API via fetch - no external dependencies.
 // Users must register at coinmarketcap.com to get a free API key.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const CMC_BASE = "https://pro-api.coinmarketcap.com/v1";
 
 // --- API helper ---
 
-function requireKey(): string {
-  const key = (process.env.COINMARKETCAP_API_KEY ?? "").trim();
-  if (!key) throw new Error("COINMARKETCAP_API_KEY environment variable is required.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("coinmarketcap", args);
 }
 
-async function cmcFetch(path: string, params: Record<string, string> = {}): Promise<unknown> {
-  const apiKey = requireKey();
+const CMC_TIMEOUT_MS = Number(process.env.COINMARKETCAP_TIMEOUT_MS) || 10000;
+
+async function cmcFetch(apiKey: string, path: string, params: Record<string, string> = {}): Promise<unknown> {
   const url = new URL(`${CMC_BASE}${path}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
-  const response = await fetch(url.toString(), {
-    headers: {
-      "X-CMC_PRO_API_KEY": apiKey,
-      "Accept": "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CMC_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), {
+      headers: {
+        "X-CMC_PRO_API_KEY": apiKey,
+        "Accept": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`CoinMarketCap API request timed out after ${CMC_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`CoinMarketCap API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    throw new Error(`CoinMarketCap API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!response.ok) {
     const text = await response.text().catch(() => "");
-    throw new Error(`HTTP ${response.status} from CoinMarketCap API${text ? `: ${text}` : ""}`);
+    throw new Error(`CoinMarketCap API HTTP ${response.status}${text ? `: ${text.slice(0, 200)}` : ""}`);
   }
 
   const data = await response.json() as Record<string, unknown>;
@@ -42,12 +62,14 @@ async function cmcFetch(path: string, params: Record<string, string> = {}): Prom
 // --- Operations ---
 
 export async function cmcListings(args: Record<string, unknown>): Promise<unknown> {
+  const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const limit = String(Math.min(5000, Math.max(1, Number(args.limit ?? 100))));
   const convert = String(args.convert ?? "USD").trim().toUpperCase();
 
-  const data = await cmcFetch("/cryptocurrency/listings/latest", { limit, convert }) as Array<Record<string, unknown>>;
+  const data = await cmcFetch(apiKey, "/cryptocurrency/listings/latest", { limit, convert }) as Array<Record<string, unknown>>;
 
-  return {
+  return stampMeta({
     convert,
     limit: Number(limit),
     coins: (Array.isArray(data) ? data : []).map((c) => {
@@ -70,10 +92,16 @@ export async function cmcListings(args: Record<string, unknown>): Promise<unknow
         last_updated: quote?.last_updated ?? null,
       };
     }),
-  };
+  }, {
+    source: "CoinMarketCap",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use cmc_quotes for specific symbols, or cmc_info for project detail."],
+  });
 }
 
 export async function cmcQuotes(args: Record<string, unknown>): Promise<unknown> {
+  const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const symbol = String(args.symbol ?? "").trim().toUpperCase();
   const id = String(args.id ?? "").trim();
   if (!symbol && !id) throw new Error("symbol or id is required.");
@@ -82,7 +110,7 @@ export async function cmcQuotes(args: Record<string, unknown>): Promise<unknown>
   if (symbol) params.symbol = symbol;
   if (id) params.id = id;
 
-  const data = await cmcFetch("/cryptocurrency/quotes/latest", params) as Record<string, unknown>;
+  const data = await cmcFetch(apiKey, "/cryptocurrency/quotes/latest", params) as Record<string, unknown>;
 
   // data is keyed by symbol or id
   const entries = Object.values(data).map((c) => {
@@ -110,10 +138,12 @@ export async function cmcQuotes(args: Record<string, unknown>): Promise<unknown>
 }
 
 export async function cmcInfo(args: Record<string, unknown>): Promise<unknown> {
+  const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const symbol = String(args.symbol ?? "").trim().toUpperCase();
   if (!symbol) throw new Error("symbol is required.");
 
-  const data = await cmcFetch("/cryptocurrency/info", { symbol }) as Record<string, unknown>;
+  const data = await cmcFetch(apiKey, "/cryptocurrency/info", { symbol }) as Record<string, unknown>;
 
   const entries = Object.values(data).map((c) => {
     const coin = c as Record<string, unknown>;
@@ -143,9 +173,11 @@ export async function cmcInfo(args: Record<string, unknown>): Promise<unknown> {
 }
 
 export async function cmcTrending(args: Record<string, unknown>): Promise<unknown> {
+  const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const limit = String(Math.min(200, Math.max(1, Number(args.limit ?? 10))));
 
-  const data = await cmcFetch("/cryptocurrency/trending/latest", { limit, convert: "USD" });
+  const data = await cmcFetch(apiKey, "/cryptocurrency/trending/latest", { limit, convert: "USD" });
 
   const coins = Array.isArray(data) ? data : [];
   return {
@@ -165,8 +197,10 @@ export async function cmcTrending(args: Record<string, unknown>): Promise<unknow
   };
 }
 
-export async function cmcGlobalMetrics(_args: Record<string, unknown>): Promise<unknown> {
-  const data = await cmcFetch("/global-metrics/quotes/latest", { convert: "USD" }) as Record<string, unknown>;
+export async function cmcGlobalMetrics(args: Record<string, unknown>): Promise<unknown> {
+  const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
+  const data = await cmcFetch(apiKey, "/global-metrics/quotes/latest", { convert: "USD" }) as Record<string, unknown>;
   const quote = (data.quote as Record<string, Record<string, unknown>> | undefined)?.USD;
 
   return {

@@ -41,8 +41,8 @@ const TOOLS = [
 ];
 
 const HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-  lott_results: (args) => getLottResults(args),
-  lott_jackpots: (args) => getLottJackpots(args),
+  lott_results: (args) => getLottResults(args as unknown as Parameters<typeof getLottResults>[0]),
+  lott_jackpots: (args) => getLottJackpots(args as unknown as Parameters<typeof getLottJackpots>[0]),
 };
 
 const server = new Server(

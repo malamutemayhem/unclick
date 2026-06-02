@@ -133,6 +133,36 @@ export const CompliancePassReportSchema = z.object({
   disclaimer: z.string().min(1),
 });
 
+export const CompliancePassReceiptSchema = z.object({
+  kind: z.literal("compliancepass_receipt_v1"),
+  status: z.enum(["PASS", "WARN", "BLOCKER"]),
+  run_id: z.string().min(1),
+  target_name: z.string().min(1),
+  target_sha: z.string().min(1).optional(),
+  generated_at: z.string().datetime(),
+  valid_until: z.string().datetime(),
+  readiness_score: z.object({
+    value: z.number().min(0).max(100),
+    band: CompliancePassBandSchema,
+    traffic_light: z.enum(["green", "yellow", "red", "grey"]),
+    rationale: z.string().min(1),
+  }),
+  checked: z.object({
+    total: z.number().int().nonnegative(),
+    pass: z.number().int().nonnegative(),
+    partial: z.number().int().nonnegative(),
+    fail: z.number().int().nonnegative(),
+    unknown: z.number().int().nonnegative(),
+    na: z.number().int().nonnegative(),
+    pending: z.literal(0),
+  }),
+  gap_severity_counts: CompliancePassGapSeverityCountsSchema,
+  blocking_gap_count: z.number().int().nonnegative(),
+  evidence_sources: z.array(CompliancePassEvidenceSchema).default([]),
+  action_needed: z.array(z.string().min(1)).default([]),
+  boundaries: z.array(z.string().min(1)).min(1),
+});
+
 export type CompliancePassCategoryId = z.infer<typeof CompliancePassCategoryIdSchema>;
 export type CompliancePassStatus = z.infer<typeof CompliancePassStatusSchema>;
 export type CompliancePassSeverity = z.infer<typeof CompliancePassSeveritySchema>;
@@ -143,3 +173,4 @@ export type CompliancePassGapSeverityCounts = z.infer<typeof CompliancePassGapSe
 export type CompliancePassCheck = z.infer<typeof CompliancePassCheckSchema>;
 export type CompliancePassCategory = z.infer<typeof CompliancePassCategorySchema>;
 export type CompliancePassReport = z.infer<typeof CompliancePassReportSchema>;
+export type CompliancePassReceipt = z.infer<typeof CompliancePassReceiptSchema>;

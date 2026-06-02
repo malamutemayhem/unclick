@@ -1,13 +1,18 @@
 name: Publish standalone MCPs
 
-# Publishes the standalone niche MCP servers in packages/standalone/*-mcp two ways:
+# Publishes the standalone niche MCP servers in packages/standalone/*-mcp three ways:
 #   1. GitHub release tarballs (always; npm-free, GITHUB_TOKEN only).
 #   2. npm packages (only if the NPM_TOKEN secret is set; skipped otherwise).
-# Both are idempotent: a version already published is skipped, so re-runs are safe.
+#   3. The official MCP registry (registry.modelcontextprotocol.io) via GitHub
+#      OIDC, so they are discoverable in the MCP directories. Runs only after
+#      npm publish, since the registry validates the npm package.
+# All idempotent: an already-published version is skipped, so re-runs are safe.
 #
-# Runs automatically when packages/standalone/** lands on main. To publish to npm,
-# add repo secret NPM_TOKEN (a granular automation token with write access to the
-# @unclick scope). No secret = tarball-only, still fully working.
+# Runs automatically when packages/standalone/** lands on main.
+#
+# IMPORTANT for npm + registry: NPM_TOKEN must be able to publish headlessly,
+# i.e. a granular token with "Bypass 2FA" enabled (or an automation token).
+# A token that still requires a 2FA OTP will fail in CI (tarballs still publish).
 
 on:
   push:
@@ -36,12 +41,15 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Build, pack, and (if NPM_TOKEN set) publish to npm
+        id: pub
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
           mkdir -p ../release-artifacts
           rm -f ../release-artifacts/*.tgz || true
+          npm_ready_file="$GITHUB_WORKSPACE/../release-artifacts/npm-ready-packages.txt"
+          : > "$npm_ready_file"
           npm_published=0; npm_skipped=0
           for dir in packages/standalone/*-mcp; do
             [ -d "$dir" ] || continue
@@ -58,14 +66,24 @@ jobs:
               cp "$GITHUB_WORKSPACE/../release-artifacts/$packed" "$GITHUB_WORKSPACE/../release-artifacts/$slug.tgz"
               # 2) npm publish, only when a token is present and version is new
               if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
+                npm_ready=false
                 if npm view "$name@$version" version >/dev/null 2>&1; then
                   echo "npm: $name@$version already published, skipping"
+                  npm_ready=true
                 else
                   # Non-fatal: a token/2FA problem must not block the tarball path.
-                  if npm publish --access public; then
+                  if npm publish --access public --provenance; then
                     echo "npm: published $name@$version"
+                    npm_ready=true
                   else
                     echo "::warning::npm publish failed for $name@$version (token/2FA?). Tarball still published."
+                  fi
+                fi
+                if [ "$npm_ready" = true ]; then
+                  if npm view "$name@$version" version >/dev/null 2>&1; then
+                    echo "$dir" >> "$npm_ready_file"
+                  else
+                    echo "::warning::npm did not confirm $name@$version yet; skipping registry publish for this package"
                   fi
                 fi
               else
@@ -75,6 +93,13 @@ jobs:
             echo "::endgroup::"
           done
           echo "Packed tarballs:"; ls -1 ../release-artifacts/*.tgz
+          # Registry publish is only meaningful once the npm packages exist.
+          if [ -s "$npm_ready_file" ]; then
+            echo "registry_eligible=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "registry_eligible=false" >> "$GITHUB_OUTPUT"
+            echo "No npm-confirmed packages; skipping registry publish."
+          fi
 
       - name: Upload tarballs to rolling GitHub release
         run: |
@@ -92,3 +117,38 @@ jobs:
           done
           gh release edit "$ROLLING_TAG" --title "$title" --notes "$notes"
           echo "Published tarballs to release ${ROLLING_TAG}."
+
+      - name: Publish to the official MCP registry (GitHub OIDC)
+        # Lands each standalone in registry.modelcontextprotocol.io so it is
+        # discoverable in the MCP directories. Uses GitHub OIDC for the
+        # io.github.malamutemayhem/* namespace (no token needed for the registry).
+        # Runs only after npm publish, since the registry validates the npm package.
+        if: ${{ steps.pub.outputs.registry_eligible == 'true' }}
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          if ! curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher; then
+            echo "::warning::could not download mcp-publisher; skipping registry publish"; exit 0
+          fi
+          sudo mv mcp-publisher /usr/local/bin/mcp-publisher
+          if ! mcp-publisher login github-oidc; then
+            echo "::warning::mcp-publisher OIDC login failed; skipping registry publish"; exit 0
+          fi
+          published=0
+          ready_file="../release-artifacts/npm-ready-packages.txt"
+          while IFS= read -r dir; do
+            [ -n "$dir" ] || continue
+            [ -d "$dir" ] || { echo "::warning::registry package directory missing: $dir"; continue; }
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            if ! npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "::warning::registry skipped for $dir because $name@$version is not visible on npm"
+              continue
+            fi
+            if ( cd "$dir" && mcp-publisher publish ); then
+              published=$((published+1)); echo "registry: published $dir"
+            else
+              echo "::warning::registry publish failed for $dir"
+            fi
+          done < "$ready_file"
+          echo "Registry publish attempted; $published succeeded."

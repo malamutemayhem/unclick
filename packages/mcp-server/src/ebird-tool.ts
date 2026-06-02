@@ -3,15 +3,21 @@
 // Auth: EBIRD_API_KEY env or api_key arg (X-eBirdApiToken header).
 // Docs: https://documenter.getpostman.com/view/664302/S1ENwy59
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const EBIRD_BASE = "https://api.ebird.org/v2";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
-function getKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.EBIRD_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set EBIRD_API_KEY env).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("ebird", args);
 }
+
+const EBIRD_TIMEOUT_MS = Number(process.env.EBIRD_TIMEOUT_MS) || 10000;
 
 async function ebirdFetch<T>(
   path: string,
@@ -22,12 +28,29 @@ async function ebirdFetch<T>(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      "X-eBirdApiToken": apiKey,
-      "Accept":          "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), EBIRD_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        "X-eBirdApiToken": apiKey,
+        "Accept":          "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`eBird API request timed out after ${EBIRD_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`eBird API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`eBird API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`eBird API HTTP ${res.status}: ${text.slice(0, 200)}`);
@@ -40,8 +63,9 @@ async function ebirdFetch<T>(
 export async function getRecentObservations(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const apiKey     = getKey(args);
-  const regionCode = String(args.region_code ?? "").trim().toUpperCase();
+  const apiKey     = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
+  const regionCode = String((args.regionCode ?? args.region_code) ?? "").trim().toUpperCase();
   if (!regionCode) throw new Error("region_code is required (e.g. 'US-NY', 'GB', 'AU-NSW').");
 
   const back   = String(Math.min(30, Math.max(1, Number(args.back ?? 7))));
@@ -70,7 +94,7 @@ export async function getRecentObservations(
     apiKey
   );
 
-  return {
+  return stampMeta({
     region_code: regionCode,
     back_days:   Number(back),
     count:       data.length,
@@ -87,14 +111,19 @@ export async function getRecentObservations(
       valid:        o.obsValid,
       reviewed:     o.obsReviewed,
     })),
-  };
+  }, {
+    source: "eBird (Cornell Lab)",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use ebird_notable_observations for rare sightings, or ebird_species_info for a species."],
+  });
 }
 
 export async function getNotableObservations(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const apiKey     = getKey(args);
-  const regionCode = String(args.region_code ?? "").trim().toUpperCase();
+  const apiKey     = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
+  const regionCode = String((args.regionCode ?? args.region_code) ?? "").trim().toUpperCase();
   if (!regionCode) throw new Error("region_code is required (e.g. 'US-NY', 'GB').");
 
   const back       = String(Math.min(30, Math.max(1, Number(args.back ?? 7))));
@@ -143,8 +172,9 @@ export async function getNotableObservations(
 export async function getSpeciesInfo(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const apiKey      = getKey(args);
-  const speciesCode = String(args.species_code ?? "").trim().toLowerCase();
+  const apiKey      = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
+  const speciesCode = String((args.speciesCode ?? args.species_code) ?? "").trim().toLowerCase();
   const locale      = String(args.locale ?? "en").trim();
 
   const params: Record<string, string> = { locale };

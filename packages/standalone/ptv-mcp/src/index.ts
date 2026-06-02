@@ -35,18 +35,20 @@ const TOOLS = [
   },
   {
     name: "ptv_departures",
-    description: "Get PTV departures for a stop.",
+    description: "Get PTV departures for a stop. In full UnClick, stop_id can be filled from saved Memory defaults.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        route_type: { type: "number", description: "0=train,1=tram,2=bus,3=vline,4=night" },
-        stop_id: { type: "number" },
+        route_type: { type: "number", description: "0=train, 1=tram, 2=bus, 3=vline, 4=night. Defaults to train." },
+        stop_id: { type: "number", description: "PTV stop ID. Optional when a saved UnClick Memory default exists." },
         route_id: { type: "number" },
-        max_results: { type: "number" },
+        direction_id: { type: "number" },
+        max_results: { type: "number", description: "Defaults to 5, maximum 20." },
+        look_backwards: { type: "boolean" },
+        include_cancelled: { type: "boolean" },
         api_key: { type: "string" },
       },
-      required: ["route_type", "stop_id"],
     },
   },
   {
@@ -91,11 +93,11 @@ const TOOLS = [
 ];
 
 const HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-  ptv_search: (args) => ptvSearch(args),
-  ptv_departures: (args) => ptvDepartures(args),
-  ptv_disruptions: (args) => ptvDisruptions(args),
-  ptv_stops_on_route: (args) => ptvStopsOnRoute(args),
-  ptv_route_directions: (args) => ptvRouteDirections(args),
+  ptv_search: (args) => ptvSearch(args as unknown as Parameters<typeof ptvSearch>[0]),
+  ptv_departures: (args) => ptvDepartures(args as unknown as Parameters<typeof ptvDepartures>[0]),
+  ptv_disruptions: (args) => ptvDisruptions(args as unknown as Parameters<typeof ptvDisruptions>[0]),
+  ptv_stops_on_route: (args) => ptvStopsOnRoute(args as unknown as Parameters<typeof ptvStopsOnRoute>[0]),
+  ptv_route_directions: (args) => ptvRouteDirections(args as unknown as Parameters<typeof ptvRouteDirections>[0]),
 };
 
 const server = new Server(

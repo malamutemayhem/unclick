@@ -9,10 +9,15 @@ import {
 import { CATALOG, TOOL_MAP, ENDPOINT_MAP, type ToolDef } from "./catalog.js";
 import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
+import { getDisabledApps, filterDisabledTools, isToolDisabled, appForTool } from "./tool-gating.js";
 import { crewsStartRun } from "./crews-tool.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
 import { markContextLoaded, recordToolCall } from "./memory/session-state.js";
+import { searchToolIndex } from "./memory/tool-awareness.js";
+import { applyToolMemoryDefaults } from "./tool-memory-defaults.js";
+import { classifyFailure } from "./tool-failure-class.js";
+import { reportToolFailureBug } from "./tool-failure-report.js";
 import { emitSignal } from "./signals/emit.js";
 import { getHeartbeatProtocol } from "./heartbeat-protocol.js";
 import { getCommonSensePassProtocol } from "./commonsensepass-protocol.js";
@@ -182,14 +187,20 @@ function signalToolFailure(toolName: string, result: unknown, args?: unknown): v
   const apiKeyHash = currentApiKeyHash();
   const summary = failureSummary(toolName, result);
   if (!apiKeyHash || !summary) return;
+  const cls = classifyFailure(summary);
+  reportToolFailureBug(toolName, summary, cls, args);
   void emitSignal({
     apiKeyHash,
     tool: toolName,
     action: "failed",
-    severity: "action_needed",
+    severity: cls.severity,
     summary: summary.slice(0, 500),
-    deepLink: signalDeepLink(toolName),
-    payload: signalPayload(toolName, args),
+    deepLink: cls.ownerActionable ? "/admin/settings#bugs" : signalDeepLink(toolName),
+    payload: {
+      ...signalPayload(toolName, args),
+      failure_class: cls.failureClass,
+      owner_actionable: cls.ownerActionable,
+    },
   });
 }
 
@@ -1895,13 +1906,30 @@ export function createServer(): Server {
   // unclick_tool_info, unclick_call) and the small DIRECT_TOOLS utility set
   // remain callable for backwards compatibility but stay hidden from tools/list.
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: ADVERTISED_TOOLS_SAFE };
+    // Enforcement: hide tools belonging to apps this tenant turned off in the
+    // admin Apps page. Fail-safe (empty set => no filtering).
+    const disabled = await getDisabledApps(currentApiKeyHash());
+    return { tools: filterDisabledTools(ADVERTISED_TOOLS_SAFE, disabled) };
   });
 
   // CALL TOOL
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: rawArgs } = request.params;
     const args = (rawArgs ?? {}) as Record<string, unknown>;
+
+    // Enforcement (defense in depth): refuse a call to an app the tenant turned
+    // off, even if the client kept a stale tool list.
+    const disabledApps = await getDisabledApps(currentApiKeyHash());
+    if (isToolDisabled(name, disabledApps)) {
+      return {
+        content: [{
+          type: "text",
+          text: `The "${appForTool(name)}" app is turned off for this account. Turn it back on in the admin Apps page to use ${name}.`,
+        }],
+        isError: true,
+      };
+    }
+
     const validationError = validateToolArgumentsForRuntime(name, args);
     if (validationError) {
       return {
@@ -2250,26 +2278,38 @@ export function createServer(): Server {
 
       // ── Meta tools ──────────────────────────────────────────────
       if (name === "unclick_search") {
-        const results = searchTools(
-          String(args.query ?? ""),
-          args.category as string | undefined
-        );
-        if (results.length === 0) {
+        const query = String(args.query ?? "");
+        const results = searchTools(query, args.category as string | undefined);
+        // Also search the full integration surface (803+ tools) with intent/alias
+        // routing, so "next train" finds ptv_search, "bitcoin price" finds crypto.
+        const toolHits = query ? searchToolIndex(query, 10) : [];
+
+        if (results.length === 0 && toolHits.length === 0) {
           return {
             content: [
               {
                 type: "text",
-                text: `No tools found matching "${args.query}". Try unclick_browse to see all available tools.`,
+                text: `No tools found matching "${query}". Try unclick_browse to see all available tools.`,
               },
             ],
           };
         }
-        const text = results.map(formatToolSummary).join("\n\n---\n\n");
+
+        const sections: string[] = [];
+        if (toolHits.length > 0) {
+          const lines = toolHits
+            .map((h) => `- **${h.name}** (${h.app}) -- ${h.description}`)
+            .join("\n");
+          sections.push(`Integration tools (call directly by name, or via unclick_call):\n${lines}`);
+        }
+        if (results.length > 0) {
+          sections.push(`Built-in catalog tools:\n\n${results.map(formatToolSummary).join("\n\n---\n\n")}`);
+        }
         return {
           content: [
             {
               type: "text",
-              text: `Found ${results.length} tool(s) matching "${args.query}":\n\n${text}`,
+              text: `Found ${toolHits.length + results.length} tool(s) matching "${query}":\n\n${sections.join("\n\n")}`,
             },
           ],
         };
@@ -2360,6 +2400,7 @@ export function createServer(): Server {
           if (memHandler) {
             recordToolCall(op);
             const result = await memHandler(params);
+            signalToolFailure(endpointId, result, params);
             return {
               content: [{ type: "text", text: memoryToolText(op, result) }],
             };
@@ -2370,6 +2411,7 @@ export function createServer(): Server {
         const localHandler = LOCAL_CATALOG_HANDLERS[endpointId];
         if (localHandler) {
           const result = await localHandler(params);
+          signalToolFailure(endpointId, result, params);
           return {
             content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
           };
@@ -2392,8 +2434,9 @@ export function createServer(): Server {
         const handlerKey = endpointId.replace(/\./g, "_");
         const additionalHandler = ADDITIONAL_HANDLERS[handlerKey];
         if (additionalHandler) {
-          const result = await additionalHandler(params);
-          signalToolFailure(handlerKey, result, params);
+          const { args: handlerArgs } = await applyToolMemoryDefaults(handlerKey, params);
+          const result = await additionalHandler(handlerArgs);
+          signalToolFailure(handlerKey, result, handlerArgs);
           return {
             content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
           };
@@ -2472,8 +2515,9 @@ export function createServer(): Server {
       // ── Additional tools (third-party integrations) ───────────────
       const additionalHandler = ADDITIONAL_HANDLERS[name];
       if (additionalHandler) {
-        const result = await additionalHandler(args);
-        signalToolFailure(name, result, args);
+        const { args: handlerArgs } = await applyToolMemoryDefaults(name, args);
+        const result = await additionalHandler(handlerArgs);
+        signalToolFailure(name, result, handlerArgs);
         return {
           content: [
             {
@@ -2505,15 +2549,22 @@ export function createServer(): Server {
         message = String(err);
       }
       const apiKeyHash = currentApiKeyHash();
+      const summary = `${name}: ${message}`;
       if (apiKeyHash) {
+        const cls = classifyFailure(summary);
+        reportToolFailureBug(name, summary, cls, args);
         void emitSignal({
           apiKeyHash,
           tool: name,
           action: "exception",
-          severity: "action_needed",
-          summary: `${name}: ${message}`.slice(0, 500),
-          deepLink: signalDeepLink(name),
-          payload: signalPayload(name, args),
+          severity: cls.severity,
+          summary: summary.slice(0, 500),
+          deepLink: cls.ownerActionable ? "/admin/settings#bugs" : signalDeepLink(name),
+          payload: {
+            ...signalPayload(name, args),
+            failure_class: cls.failureClass,
+            owner_actionable: cls.ownerActionable,
+          },
         });
       }
       return {

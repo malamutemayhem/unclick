@@ -27,15 +27,24 @@ async function sentryFetch(
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
+  const SENTRY_TIMEOUT_MS = Number(process.env.SENTRY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SENTRY_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Sentry API request timed out after ${SENTRY_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Sentry API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   const text = await response.text();

@@ -6,6 +6,7 @@
  */
 
 import { buildCard, type ConversationalCard } from "./cards/card.js";
+import { unclickNotConfigured, type NotConnectedResult } from "./connection-help.js";
 
 const API_BASE = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
 const MAX_PER_CALL = 2048;
@@ -65,12 +66,21 @@ type StageResult = {
   tokensOut: number;
 };
 
-function getApiKey(): string {
+function getApiKey(): string | NotConnectedResult {
   const key = process.env.UNCLICK_API_KEY?.trim();
-  if (!key) {
-    throw new Error("UNCLICK_API_KEY env var is not set. Get your install config at https://unclick.world");
-  }
+  if (!key) return unclickNotConfigured();
   return key;
+}
+
+// Render the shared not-connected result as the Crew surface's ConversationalCard
+// so a missing UNCLICK_API_KEY produces a guided card instead of throwing.
+function notConnectedCard(r: NotConnectedResult): ConversationalCard {
+  return buildCard({
+    headline: "UnClick is not configured",
+    summary: r.error,
+    keyFacts: ["missing: UNCLICK_API_KEY"],
+    nextActions: r.how_to_connect,
+  });
 }
 
 async function adminCall(
@@ -80,6 +90,9 @@ async function adminCall(
   query?: Record<string, string>,
 ): Promise<{ ok: boolean; status: number; json: unknown }> {
   const apiKey = getApiKey();
+  if (typeof apiKey !== "string") {
+    return { ok: false, status: 0, json: { card: notConnectedCard(apiKey) } };
+  }
   const qs = new URLSearchParams({ action, ...(query ?? {}) }).toString();
   const url = `${API_BASE}/api/memory-admin?${qs}`;
   const init: RequestInit = {

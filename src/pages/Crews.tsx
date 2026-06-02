@@ -32,7 +32,7 @@ const AGENT_PERSONAS = [
   },
   {
     title: "Quality Reviewers",
-    desc: "XPass checks can review the work from the right angle, including TestPass, UXPass, SecurityPass, CopyPass, LegalPass, and SlopPass.",
+    desc: "XPass checks can review the work from the right angle, including TestPass, UIPass, UXPass, SecurityPass, CopyPass, LegalPass, and SlopPass.",
     icon: Check,
   },
 ];

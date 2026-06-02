@@ -4,17 +4,19 @@
 // Auth uses HMAC-SHA1: SHA1(api_key + api_secret + unix_timestamp).
 
 import { createHash } from "crypto";
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 
 const PI_BASE = "https://api.podcastindex.org/api/1.0";
 
 // ─── Auth helper ──────────────────────────────────────────────────────────────
 
-function buildAuthHeaders(): Record<string, string> {
-  const apiKey = process.env.PODCASTINDEX_API_KEY?.trim() ?? "";
-  const apiSecret = process.env.PODCASTINDEX_API_SECRET?.trim() ?? "";
+function buildAuthHeaders(args: Record<string, unknown>): Record<string, string> | NotConnectedResult {
+  const apiKey = String(args.api_key ?? process.env.PODCASTINDEX_API_KEY ?? "").trim();
+  const apiSecret = String(args.api_secret ?? process.env.PODCASTINDEX_API_SECRET ?? "").trim();
 
-  if (!apiKey) throw new Error("PODCASTINDEX_API_KEY environment variable is not set.");
-  if (!apiSecret) throw new Error("PODCASTINDEX_API_SECRET environment variable is not set.");
+  if (!apiKey || !apiSecret) return notConnectedFor("podcastindex");
 
   const timestamp = Math.floor(Date.now() / 1000);
   const hash = createHash("sha1")
@@ -32,9 +34,13 @@ function buildAuthHeaders(): Record<string, string> {
 // ─── API helper ───────────────────────────────────────────────────────────────
 
 async function piCall(
+  args: Record<string, unknown>,
   path: string,
   params: Record<string, string | number | undefined> = {}
 ): Promise<unknown> {
+  const headers = buildAuthHeaders(args);
+  if ("not_connected" in headers) return headers;
+
   const url = new URL(`${PI_BASE}${path}`);
 
   for (const [k, v] of Object.entries(params)) {
@@ -43,12 +49,29 @@ async function piCall(
     }
   }
 
-  const response = await fetch(url.toString(), {
-    headers: buildAuthHeaders(),
-  });
+  const PODCASTINDEX_TIMEOUT_MS = Number(process.env.PODCASTINDEX_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PODCASTINDEX_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), {
+      headers,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Podcast Index request timed out after ${PODCASTINDEX_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Podcast Index network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
+  if (response.status === 429) {
+    throw new Error("Podcast Index rate limit exceeded. Please wait and retry.");
+  }
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} from Podcast Index API`);
+    throw new Error(`Podcast Index API HTTP ${response.status}`);
   }
 
   const data = (await response.json()) as Record<string, unknown>;
@@ -67,22 +90,27 @@ export async function podcastSearch(args: Record<string, unknown>): Promise<unkn
   if (!q) throw new Error("q is required.");
   const params: Record<string, string | number | undefined> = { q };
   if (args.max) params.max = Number(args.max);
-  return piCall("/search/byterm", params);
+  const __res = await piCall(args, "/search/byterm", params) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Podcast Index",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use podcast_get_episodes with a feed id, or podcast_by_feed_url for one feed."],
+  });
 }
 
 export async function podcastGetByFeedUrl(args: Record<string, unknown>): Promise<unknown> {
   const url = String(args.url ?? "").trim();
   if (!url) throw new Error("url is required.");
-  return piCall("/podcasts/byfeedurl", { url });
+  return piCall(args, "/podcasts/byfeedurl", { url });
 }
 
 export async function podcastGetEpisodes(args: Record<string, unknown>): Promise<unknown> {
-  const feedId = args.feed_id;
+  const feedId = (args.id ?? args.feed_id);
   if (!feedId) throw new Error("feed_id is required.");
   const params: Record<string, string | number | undefined> = { id: Number(feedId) };
   if (args.max) params.max = Number(args.max);
   if (args.since) params.since = Number(args.since);
-  return piCall("/episodes/byfeedid", params);
+  return piCall(args, "/episodes/byfeedid", params);
 }
 
 export async function podcastSearchEpisodes(args: Record<string, unknown>): Promise<unknown> {
@@ -90,7 +118,7 @@ export async function podcastSearchEpisodes(args: Record<string, unknown>): Prom
   if (!q) throw new Error("q is required.");
   const params: Record<string, string | number | undefined> = { q };
   if (args.max) params.max = Number(args.max);
-  return piCall("/search/byterm", params);
+  return piCall(args, "/search/byterm", params);
 }
 
 export async function podcastTrending(args: Record<string, unknown>): Promise<unknown> {
@@ -98,11 +126,11 @@ export async function podcastTrending(args: Record<string, unknown>): Promise<un
   if (args.max) params.max = Number(args.max);
   if (args.lang) params.lang = String(args.lang);
   if (args.cat) params.cat = String(args.cat);
-  return piCall("/podcasts/trending", params);
+  return piCall(args, "/podcasts/trending", params);
 }
 
 export async function podcastRecentEpisodes(args: Record<string, unknown>): Promise<unknown> {
   const params: Record<string, string | number | undefined> = {};
   if (args.max) params.max = Number(args.max);
-  return piCall("/episodes/recent", params);
+  return piCall(args, "/episodes/recent", params);
 }

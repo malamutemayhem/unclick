@@ -56,9 +56,9 @@ const TOOLS = [
 ];
 
 const HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-  amber_sites: (args) => getAmberSites(args),
-  amber_current_price: (args) => getAmberCurrentPrice(args),
-  amber_forecast: (args) => getAmberForecast(args),
+  amber_sites: (args) => getAmberSites(args as unknown as Parameters<typeof getAmberSites>[0]),
+  amber_current_price: (args) => getAmberCurrentPrice(args as unknown as Parameters<typeof getAmberCurrentPrice>[0]),
+  amber_forecast: (args) => getAmberForecast(args as unknown as Parameters<typeof getAmberForecast>[0]),
 };
 
 const server = new Server(

@@ -2,6 +2,9 @@
 // Uses the Stability AI REST API via fetch - no external dependencies.
 // Users must supply an API key from platform.stability.ai.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const STABILITY_API_BASE = "https://api.stability.ai";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -108,25 +111,38 @@ function requireStabilitySpendAllowed(operation: StabilityToolOperation, model: 
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at platform.stability.ai.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("stability", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 async function stabilityGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${STABILITY_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-    },
-  });
+  const STABILITY_TIMEOUT_MS = Number(process.env.STABILITY_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), STABILITY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${STABILITY_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Stability AI request timed out after ${STABILITY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Stability AI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Stability AI rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     const id = data.id ? ` (id: ${data.id})` : "";
     throw new Error(`Stability AI error${id}: ${msg}`);
   }
@@ -139,19 +155,34 @@ async function stabilityPost<T>(
   body: unknown,
   acceptHeader = "application/json"
 ): Promise<T> {
-  const res = await fetch(`${STABILITY_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      Accept: acceptHeader,
-    },
-    body: JSON.stringify(body),
-  });
+  const STABILITY_TIMEOUT_MS = Number(process.env.STABILITY_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), STABILITY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${STABILITY_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        Accept: acceptHeader,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Stability AI request timed out after ${STABILITY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Stability AI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Stability AI rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     const id = data.id ? ` (id: ${data.id})` : "";
     throw new Error(`Stability AI error${id}: ${msg}`);
   }
@@ -163,18 +194,33 @@ async function stabilityPostMultipart<T>(
   path: string,
   form: FormData
 ): Promise<T> {
-  const res = await fetch(`${STABILITY_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-    },
-    body: form,
-  });
+  const STABILITY_TIMEOUT_MS = Number(process.env.STABILITY_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), STABILITY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${STABILITY_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      body: form,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Stability AI request timed out after ${STABILITY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Stability AI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Stability AI rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? `status ${res.status}`;
     throw new Error(`Stability AI error: ${msg}`);
   }
   return data as T;
@@ -184,6 +230,7 @@ async function stabilityPostMultipart<T>(
 
 export async function stabilityTextToImage(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
   const engineId = String(args.engine_id ?? "stable-diffusion-xl-1024-v1-0");
@@ -230,6 +277,7 @@ export async function stabilityTextToImage(args: Record<string, unknown>): Promi
 
 export async function stabilityImageToImage(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   const imageUrl = String(args.image_url ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
@@ -280,6 +328,7 @@ export async function stabilityImageToImage(args: Record<string, unknown>): Prom
 
 export async function stabilityUpscale(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const imageUrl = String(args.image_url ?? "").trim();
   if (!imageUrl) throw new Error("image_url is required (URL of the image to upscale).");
   const width = Number(args.width ?? 2048);
@@ -313,10 +362,11 @@ export async function stabilityUpscale(args: Record<string, unknown>): Promise<u
 
 export async function stabilityListEngines(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   requireStabilitySpendAllowed("engine-listing", "Stability AI /v1/engines/list", apiKey);
   const engines = await stabilityGet<StabilityEngine[]>(apiKey, "/v1/engines/list");
 
-  return {
+  return stampMeta({
     count: engines.length,
     engines: engines.map((e) => ({
       id: e.id,
@@ -325,5 +375,9 @@ export async function stabilityListEngines(args: Record<string, unknown>): Promi
       type: e.type,
       ready: e.ready,
     })),
-  };
+  }, {
+    source: "Stability AI",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use stability_text_to_image with an engine id."],
+  });
 }

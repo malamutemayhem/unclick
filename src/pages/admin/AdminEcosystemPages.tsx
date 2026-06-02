@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import AdminXPassHub from "./AdminXPassHub";
 import {
   AppWindow,
   Archive,
@@ -24,7 +25,6 @@ import {
   SearchCheck,
   ShieldCheck,
   Tags,
-  UserCheck,
   Users,
   Wrench,
 } from "lucide-react";
@@ -204,29 +204,7 @@ export function AdminTodoList() {
 }
 
 export function AdminChecks() {
-  return (
-    <PageShell
-      kicker="Proof and quality checks"
-      title="XPass"
-      subtitle="XPass is the proof product line. It proves work with receipts instead of relying on a worker saying 'done'."
-    >
-      <TileGrid
-        items={[
-          { title: "TestPass", body: "Functional and regression proof.", icon: ClipboardCheck, href: "/admin/testpass" },
-          { title: "UXPass", body: "User experience and interface checks.", icon: UserCheck },
-          { title: "SecurityPass", body: "Security and protected-surface checks.", icon: ShieldCheck },
-          { title: "LegalPass", body: "Legal/compliance wording and risk checks.", icon: FileText },
-          { title: "CopyPass", body: "Writing, messaging, and copy quality checks.", icon: FileText, href: "/admin/copypass" },
-          { title: "FidelityPass", body: "Exact-copy proof wrapper for CopyRoom receipts.", icon: ClipboardCheck },
-          { title: "SEOPass", body: "Search visibility and metadata checks.", icon: SearchCheck },
-          { title: "SlopPass", body: "AI-code quality, slop signals, and maintainability checks.", icon: BadgeCheck },
-          { title: "CommonSensePass", body: "Sanity checks for status, proof, and readiness claims.", icon: BadgeCheck },
-          { title: "CompliancePass", body: "Compliance posture and enterprise-readiness checks.", icon: ShieldCheck },
-          { title: "RotatePass", body: "Passport rotation checks, likely folding into SecurityPass later.", icon: KeyRound },
-        ]}
-      />
-    </PageShell>
-  );
+  return <AdminXPassHub />;
 }
 
 export function AdminLedger() {
@@ -274,19 +252,13 @@ export function AdminAppsIntro() {
       <div className="flex items-start gap-3">
         <AppWindow className="mt-0.5 h-4 w-4 shrink-0 text-[#61C1C4]" />
         <div>
-          <p className="text-sm font-semibold text-white">Apps are what UnClick can use.</p>
+          <p className="text-sm font-semibold text-white">Apps are what UnClick can use. Actions are what each app can do.</p>
           <p className="mt-1 text-sm leading-6 text-white/55">
-            Built-in apps work straight away. Connected apps are approved. Turned Off apps stay quiet.
-            Needs Login and Needs API Key tell the user exactly why an app is waiting.
+            Click any app row to expand its actions right here, or click its name to open its page.
+            Your AI picks the right app on its own, or you can ask for one by name. Every app is on by
+            default; untick one to stop your AI using it.
           </p>
         </div>
-      </div>
-      <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
-        {["Built-In", "Connected", "Turned Off", "Needs Login", "Needs API Key", "Private Tools", "Marketplace"].map((label) => (
-          <span key={label} className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-white/55">
-            {label}
-          </span>
-        ))}
       </div>
     </div>
   );

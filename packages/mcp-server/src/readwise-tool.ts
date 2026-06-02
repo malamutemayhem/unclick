@@ -39,15 +39,24 @@ async function readwiseFetch(
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
+  const READWISE_TIMEOUT_MS = Number(process.env.READWISE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), READWISE_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Readwise API request timed out after ${READWISE_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Readwise API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 401) return { error: "Readwise token is invalid or expired. Check your READWISE_TOKEN.", status: 401 };

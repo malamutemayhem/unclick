@@ -31,6 +31,7 @@ const NAMESPACE = "io.github.malamutemayhem";        // verified registry namesp
 const VERSION = "0.1.0";
 const FUNNEL = "By UnClick. 180+ tools plus persistent agent memory in one install: https://unclick.world";
 const ICON = "https://unclick.world/favicon.png";
+const MAX_REGISTRY_DESCRIPTION = 100;
 
 // ─── The top-10 must-have standalones (open niches, we are first) ──────────────
 // keywords feed the registry/README so the server is found for its own term.
@@ -57,6 +58,32 @@ const CONFIG = {
   spotify:       { title: "Spotify MCP",         blurb: "Search Spotify for tracks, artists, albums, and playlists, with audio features and recommendations.", keywords: ["spotify", "music", "playlists", "tracks"] },
   youtube:       { title: "YouTube MCP",         blurb: "Search YouTube and get video, channel, playlist, and caption details.", keywords: ["youtube", "video", "search", "captions"] },
   reddit:        { title: "Reddit MCP",          blurb: "Search, read, and post across Reddit: posts, comments, subreddits, and users.", keywords: ["reddit", "social", "forums", "subreddit"] },
+  // ── batch 3 ──
+  espn:          { title: "ESPN Sports MCP",     blurb: "Live scores, news, and team info across NFL, NBA, MLB, NHL, and soccer from ESPN. No API key.", keywords: ["sports", "scores", "espn", "nfl", "nba"] },
+  trivia:        { title: "Trivia MCP",          blurb: "Trivia questions across categories and difficulties from the Open Trivia Database. No API key.", keywords: ["trivia", "quiz", "questions"] },
+  meal:          { title: "Recipes MCP",         blurb: "Search recipes by name, ingredient, category, or area, with full instructions, from TheMealDB. No API key.", keywords: ["recipes", "meals", "cooking", "food"] },
+  musicbrainz:   { title: "MusicBrainz MCP",     blurb: "Open music metadata: artists, releases, and recordings from MusicBrainz. No API key.", keywords: ["music", "musicbrainz", "metadata"] },
+  lastfm:        { title: "Last.fm MCP",         blurb: "Music charts, artist info, similar artists, and top tracks from Last.fm.", keywords: ["lastfm", "music", "charts"] },
+  usgs:          { title: "USGS Earthquakes MCP", blurb: "Recent earthquakes worldwide and by region, with detail, from USGS. No API key.", keywords: ["earthquakes", "usgs", "seismic"] },
+  openaq:        { title: "OpenAQ Air Quality MCP", blurb: "Global air quality measurements by location and country from OpenAQ. No API key.", keywords: ["air-quality", "openaq", "pollution"] },
+  omdb:          { title: "OMDb Movies MCP",     blurb: "Search movies and shows and get details by title or IMDb ID from the Open Movie Database.", keywords: ["movies", "omdb", "imdb", "film"] },
+  exchangerate:  { title: "Exchange Rates MCP",  blurb: "Currency conversion plus latest and historical exchange rates.", keywords: ["currency", "forex", "exchange-rate"] },
+  rawg:          { title: "RAWG Games MCP",      blurb: "Search video games with detail, screenshots, genres, and upcoming releases from RAWG.", keywords: ["games", "rawg", "video-games"] },
+  igdb:          { title: "IGDB Games MCP",      blurb: "Video game database: search games, companies, genres, and platforms via IGDB.", keywords: ["games", "igdb", "video-games"] },
+  genius:        { title: "Genius Lyrics MCP",   blurb: "Search songs and artists and get song and artist detail from Genius.", keywords: ["genius", "lyrics", "songs", "music"] },
+  // -- batch 4 --
+  abn:           { title: "ABN Lookup MCP",       blurb: "Australian Business Number lookup and business name search.", keywords: ["abn", "business", "australia"] },
+  chessdotcom:   { title: "Chess.com MCP",        blurb: "Chess.com player profiles, stats, games, puzzles, and leaderboards. No API key.", keywords: ["chess", "chess.com", "games"] },
+  openf1:        { title: "OpenF1 MCP",           blurb: "Formula 1 sessions, drivers, positions, laps, pit stops, car data, radio, and weather.", keywords: ["formula-1", "f1", "racing"] },
+  openfoodfacts: { title: "Open Food Facts MCP",  blurb: "Search food products, ingredients, nutrition, brands, and categories. No API key.", keywords: ["food", "nutrition", "open-food-facts"] },
+  lichess:       { title: "Lichess MCP",          blurb: "Lichess player profiles, games, daily puzzle, top players, and tournaments.", keywords: ["lichess", "chess", "games"] },
+  radiobrowser:  { title: "Radio Browser MCP",    blurb: "Search internet radio stations by country, tag, popularity, and votes. No API key.", keywords: ["radio", "stations", "music"] },
+  speedrun:      { title: "Speedrun.com MCP",     blurb: "Speedrun.com games, leaderboards, runs, and users. No API key.", keywords: ["speedrun", "games", "leaderboards"] },
+  ipapi:         { title: "IP Geolocation MCP",   blurb: "IP address geolocation and batch lookup with country, city, region, ISP, and timezone.", keywords: ["ip", "geolocation", "network"] },
+  fpl:           { title: "Fantasy Premier League MCP", blurb: "Fantasy Premier League teams, fixtures, players, standings, and league data.", keywords: ["fpl", "football", "fantasy"] },
+  deezer:        { title: "Deezer MCP",           blurb: "Search Deezer tracks, artists, albums, playlists, charts, and podcasts. No API key.", keywords: ["deezer", "music", "podcasts"] },
+  gdelt:         { title: "GDELT News MCP",       blurb: "Global news search, events, tone, themes, and geographic signals from GDELT.", keywords: ["gdelt", "news", "events"] },
+  sleeper:       { title: "Sleeper Fantasy MCP",  blurb: "Sleeper fantasy football users, leagues, rosters, drafts, players, and matchups.", keywords: ["sleeper", "fantasy", "football"] },
 };
 
 // ─── Parse tool-wiring.ts ──────────────────────────────────────────────────────
@@ -112,6 +139,22 @@ function write(file, content) {
   fs.writeFileSync(file, content);
 }
 
+function trimRegistryDescription(cfg) {
+  const title = cfg.title.replace(/\s+MCP$/i, "");
+  const keywordText = cfg.keywords.slice(0, 3).join(", ");
+  const candidates = [
+    `${cfg.blurb} By UnClick.`,
+    `${title} tools for ${keywordText} by UnClick.`,
+    `${title} MCP by UnClick.`,
+  ].map((text) => text.replace(/\s+/g, " ").trim());
+
+  const fit = candidates.find((text) => text.length <= MAX_REGISTRY_DESCRIPTION);
+  if (fit) return fit;
+
+  const fallback = candidates.at(-1) ?? "Standalone MCP by UnClick.";
+  return fallback.slice(0, MAX_REGISTRY_DESCRIPTION - 3).replace(/\s+\S*$/, "") + "...";
+}
+
 function generate(slug) {
   const cfg = CONFIG[slug];
   if (!cfg) throw new Error(`no config for slug: ${slug}`);
@@ -131,6 +174,7 @@ function generate(slug) {
   const outDir = path.join(OUT_ROOT, `${slug}-mcp`);
   const regName = `${NAMESPACE}/${slug}`;
   const pkgName = `@unclick/${slug}-mcp`;
+  const registryDescription = trimRegistryDescription(cfg);
 
   // index.ts — a minimal MCP stdio server exposing just this connector
   const index = `#!/usr/bin/env node
@@ -222,7 +266,7 @@ main().catch((err) => {
     $schema: "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
     name: regName,
     title: `${cfg.title} by UnClick`,
-    description: `${cfg.blurb} By UnClick (https://unclick.world).`,
+    description: registryDescription,
     version: VERSION,
     websiteUrl: "https://unclick.world",
     icons: [{ src: ICON, mimeType: "image/png", sizes: ["512x512"] }],

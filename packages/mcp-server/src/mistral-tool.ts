@@ -2,6 +2,9 @@
 // Uses the Mistral REST API via fetch - no external dependencies.
 // Users must supply an API key from console.mistral.ai.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const MISTRAL_API_BASE = "https://api.mistral.ai/v1";
 
 // --- Types -------------------------------------------------------------------
@@ -52,40 +55,74 @@ interface MistralEmbeddingResponse {
 
 // --- Auth validation ---------------------------------------------------------
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at console.mistral.ai.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("mistral", args);
 }
 
 // --- API helpers -------------------------------------------------------------
 
-async function mistralPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${MISTRAL_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+const MISTRAL_TIMEOUT_MS = Number(process.env.MISTRAL_TIMEOUT_MS) || 30000;
 
-  const data = await res.json() as Record<string, unknown>;
+async function mistralPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MISTRAL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${MISTRAL_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Mistral request timed out after ${MISTRAL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Mistral network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Mistral rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Mistral error: ${msg}`);
   }
   return data as T;
 }
 
 async function mistralGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${MISTRAL_API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${apiKey}` },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MISTRAL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${MISTRAL_API_BASE}${path}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Mistral request timed out after ${MISTRAL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Mistral network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
-  const data = await res.json() as Record<string, unknown>;
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Mistral rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Mistral error: ${msg}`);
   }
   return data as T;
@@ -96,6 +133,7 @@ async function mistralGet<T>(apiKey: string, path: string): Promise<T> {
 export async function mistralChatCompletion(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const model = String(args.model ?? "mistral-small-latest");
 
     // Parse messages
@@ -142,10 +180,11 @@ export async function mistralChatCompletion(args: Record<string, unknown>): Prom
 export async function mistralListModels(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const data = await mistralGet<{ data: MistralModel[] }>(apiKey, "/models");
     const models = data.data ?? [];
 
-    return {
+    return stampMeta({
       count: models.length,
       models: models.map((m) => ({
         id: m.id,
@@ -153,7 +192,11 @@ export async function mistralListModels(args: Record<string, unknown>): Promise<
         created: m.created ? new Date(m.created * 1000).toISOString() : null,
         capabilities: m.capabilities ?? null,
       })),
-    };
+    }, {
+      source: "Mistral",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use mistral_chat_completion with a model id, or mistral_create_embedding."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -162,6 +205,7 @@ export async function mistralListModels(args: Record<string, unknown>): Promise<
 export async function mistralCreateEmbedding(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const model = String(args.model ?? "mistral-embed");
     const encodingFormat = String(args.encoding_format ?? "float");
 
