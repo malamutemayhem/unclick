@@ -1179,6 +1179,31 @@ async function resolveSessionUser(
   }
 }
 
+export type ChannelStatusAuthOutcome =
+  | { kind: "authorized" }
+  | { kind: "soft_unconfigured" }
+  | { kind: "unauthorized" };
+
+/**
+ * Decide how admin_channel_status should respond to an auth state.
+ *
+ * The presence poll is hit every 60s by AIChatPanel (CHANNEL_STATUS_POLL_MS).
+ * A signed-in admin whose account has no linked api_key would otherwise get a
+ * 401 on every single poll, which is the sustained every-minute
+ * /api/memory-admin 401 noise from unclick.world (job 80b5c54a). We keep 401
+ * ONLY for genuinely unauthenticated callers and return a soft, unconfigured
+ * 200 for an authenticated-but-unlinked session, mirroring the existing
+ * admin_check_connection soft-state pattern. Pure and unit-tested.
+ */
+export function resolveChannelStatusAuthOutcome(input: {
+  apiKeyHash: string | null;
+  hasValidSession: boolean;
+}): ChannelStatusAuthOutcome {
+  if (input.apiKeyHash) return { kind: "authorized" };
+  if (input.hasValidSession) return { kind: "soft_unconfigured" };
+  return { kind: "unauthorized" };
+}
+
 // ─── AI chat helpers ───────────────────────────────────────────────────────
 
 type ChatProvider = "google" | "openai" | "anthropic";
@@ -6933,7 +6958,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "admin_channel_status": {
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
-        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        // Only pay for an extra getUser() check when there is no linked key.
+        const hasValidSession = apiKeyHash
+          ? true
+          : Boolean(await resolveSessionUser(req, supabaseUrl, supabaseKey));
+        const outcome = resolveChannelStatusAuthOutcome({ apiKeyHash, hasValidSession });
+        if (outcome.kind === "unauthorized") {
+          return res.status(401).json({ error: "Authorization header required" });
+        }
+        if (outcome.kind === "soft_unconfigured") {
+          // Authenticated admin with no api_key yet: do not 401 every 60s.
+          return res.status(200).json({
+            channel_active: false,
+            configured: false,
+            last_seen: null,
+            client_info: null,
+          });
+        }
         const { data, error } = await supabase
           .from("channel_status")
           .select("last_seen, client_info")
@@ -6947,6 +6988,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         return res.status(200).json({
           channel_active: active,
+          configured: true,
           last_seen: lastSeen,
           client_info: data?.client_info ?? null,
         });
