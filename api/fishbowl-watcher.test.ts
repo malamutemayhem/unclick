@@ -5,9 +5,11 @@ import {
   CHECKIN_ACTIVE_GRACE_MS,
   CHECKIN_DORMANT_SUPPRESS_MS,
   CHECKIN_OVERDUE_SUPPRESS_MS,
+  WAKEPASS_DORMANT_AGENT_SUPPRESS_MS,
   WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT,
   WAKEPASS_REROUTE_LEASE_SECONDS,
   buildDispatchReclaimSignal,
+  buildDormantWakepassReclaimSignal,
   buildMissedCheckinDispatch,
   buildOpenStaleTodoReleasePlan,
   buildWorkerMovementWorkflowPilotProofText,
@@ -17,6 +19,7 @@ import {
   hasRecentWorkerSelfHealingTodoSignal,
   isMissedCheckinDispatch,
   isMissedCheckinCandidate,
+  isDormantWakepassTarget,
   isReclaimableDispatchCandidate,
   isWakepassAutoRerouteEligible,
   messageAcknowledgesDispatch,
@@ -160,6 +163,29 @@ describe("fishbowl watcher PinballWake ACK coverage", () => {
     ).toBe(false);
   });
 
+  it("uses a 24h dormant cutoff for WakePass target noise", () => {
+    const nowMs = Date.parse("2026-05-08T01:22:00.000Z");
+
+    expect(WAKEPASS_DORMANT_AGENT_SUPPRESS_MS).toBe(24 * 60 * 60 * 1000);
+    expect(CHECKIN_DORMANT_SUPPRESS_MS).toBe(WAKEPASS_DORMANT_AGENT_SUPPRESS_MS);
+    expect(
+      isDormantWakepassTarget(
+        {
+          last_seen_at: new Date(nowMs - WAKEPASS_DORMANT_AGENT_SUPPRESS_MS - 1_000).toISOString(),
+        },
+        nowMs,
+      ),
+    ).toBe(true);
+    expect(
+      isDormantWakepassTarget(
+        {
+          last_seen_at: new Date(nowMs - WAKEPASS_DORMANT_AGENT_SUPPRESS_MS + 1_000).toISOString(),
+        },
+        nowMs,
+      ),
+    ).toBe(false);
+  });
+
   it("missed ACK reclaim is visible and heartbeat can close the leased dispatch", () => {
     const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
     const dispatch = buildMissedCheckinDispatch(baseProfile, nowMs);
@@ -208,6 +234,39 @@ describe("fishbowl watcher PinballWake ACK coverage", () => {
         ack_required: true,
         handoff_message_id: "msg-123",
         wake_reason: "PR ready for review",
+      },
+    });
+  });
+
+  it("downgrades missed ACK wakes for dormant targets to info receipts", () => {
+    const nowMs = Date.parse("2026-05-02T02:00:00.000Z");
+    const dormantDispatch: DispatchRow = {
+      ...baseDispatch,
+      lease_expires_at: "2026-05-02T01:50:00.000Z",
+      updated_at: "2026-05-02T01:40:00.000Z",
+    };
+    const signal = buildDispatchReclaimSignal(dormantDispatch, nowMs);
+    expect(signal?.action).toBe("handoff_ack_missing");
+
+    const dormantSignal = buildDormantWakepassReclaimSignal({
+      row: dormantDispatch,
+      signal: signal!,
+      profile: {
+        ...baseProfile,
+        last_seen_at: new Date(nowMs - WAKEPASS_DORMANT_AGENT_SUPPRESS_MS - 60_000).toISOString(),
+      },
+      nowMs,
+    });
+
+    expect(dormantSignal).toMatchObject({
+      action: "stale_dispatch_reclaimed",
+      summary: "Suppressed WakePass missed ACK for dormant worker-1",
+      payload: {
+        dormant_target_suppressed: true,
+        original_action: "handoff_ack_missing",
+        target_agent_id: "worker-1",
+        target_last_seen_age_minutes: 1441,
+        dormant_cutoff_hours: 24,
       },
     });
   });
