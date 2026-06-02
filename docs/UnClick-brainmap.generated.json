@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 610,
+    "inventory": 611,
     "source_manifest": 190,
     "pages": 82,
     "tools": 219,
@@ -75,7 +75,7 @@
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 10
+      "count": 11
     },
     {
       "id": "modules-and-apps",
@@ -3789,6 +3789,16 @@
       "meaning": "Primary work source for open, in-progress, done, and dropped chips.",
       "source": "src/pages/admin/AdminJobs.tsx",
       "route": "/admin/jobs",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-boardroom-read-bounds-api-lib-boardroom-read-bounds-ts-no-route",
+      "division": "Source of truth",
+      "name": "boardroom read bounds",
+      "kind": "state module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/boardroom-read-bounds.ts",
+      "route": "",
       "tags": []
     },
     {
