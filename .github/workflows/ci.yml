@@ -38,6 +38,8 @@ jobs:
         run: npm test --if-present
       - name: Continuous Improvement watch guard
         run: npm run test:continuous-improvement-watch
+      - name: Git hygiene guards
+        run: npm run test:git-hygiene
       - name: RotatePass redaction guard
         run: npm run test:rotatepass-redaction
       - name: CompliancePass receipt guard
