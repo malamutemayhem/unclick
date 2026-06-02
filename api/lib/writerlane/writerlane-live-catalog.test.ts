@@ -225,8 +225,11 @@ describe("fetchOpenRouterCatalog", () => {
     expect(catalog).toBeNull();
   });
 
-  it("returns null when no fetch implementation is available", async () => {
-    const catalog = await fetchOpenRouterCatalog(undefined as unknown as typeof fetch, {
+  it("returns null when there is no usable fetch implementation", async () => {
+    // Pass an explicit non-function (null) so the default globalThis.fetch is NOT
+    // substituted - default params only apply to `undefined`. This exercises the
+    // guard deterministically with zero network calls.
+    const catalog = await fetchOpenRouterCatalog(null as unknown as typeof fetch, {
       timeoutMs: 1000,
     });
     expect(catalog).toBeNull();
