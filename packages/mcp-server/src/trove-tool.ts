@@ -4,12 +4,17 @@
 // Auth: TROVE_API_KEY env var (key query param).
 // Base URL: https://api.trove.nla.gov.au/v3/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const TROVE_BASE = "https://api.trove.nla.gov.au/v3";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.TROVE_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set TROVE_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("trove", args);
 }
 
 async function troveGet(
@@ -18,9 +23,23 @@ async function troveGet(
   params: Record<string, string>
 ): Promise<Record<string, unknown>> {
   const qs = new URLSearchParams({ ...params, key: apiKey, encoding: "json" });
-  const res = await fetch(`${TROVE_BASE}${path}?${qs}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const TROVE_TIMEOUT_MS = Number(process.env.TROVE_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TROVE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${TROVE_BASE}${path}?${qs}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Trove API request timed out after ${TROVE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Trove API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 403) throw new Error("Invalid Trove API key.");
   if (res.status === 404) throw new Error("Resource not found in Trove.");
   if (res.status === 429) throw new Error("Trove API rate limit exceeded.");
@@ -35,7 +54,8 @@ async function troveGet(
 
 export async function searchTrove(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const query = String(args.query ?? args.q ?? "").trim();
     if (!query) return { error: "query is required." };
 
@@ -61,13 +81,17 @@ export async function searchTrove(args: Record<string, unknown>): Promise<unknow
     const zoneData = (response?.["zone"] as Array<Record<string, unknown>>)?.[0];
     const records = zoneData?.["records"] as Record<string, unknown> | undefined;
 
-    return {
+    return stampMeta({
       query,
       zone,
       total: records?.["total"] ?? 0,
       next_start: records?.["nextStart"] ?? null,
       results: records?.["article"] ?? records?.["work"] ?? records?.["item"] ?? [],
-    };
+    }, {
+      source: "Trove (National Library of Australia)",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use trove_get_work or trove_newspaper_article for full detail on a result."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -77,7 +101,8 @@ export async function searchTrove(args: Record<string, unknown>): Promise<unknow
 
 export async function getTroveWork(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
 
@@ -96,7 +121,8 @@ export async function getTroveWork(args: Record<string, unknown>): Promise<unkno
 
 export async function getTroveNewspaperArticle(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required (Trove newspaper article ID)." };
 

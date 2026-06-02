@@ -3,13 +3,15 @@
 // Auth: X-Postmark-Server-Token header
 // Base: https://api.postmarkapp.com
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 const POSTMARK_API_BASE = "https://api.postmarkapp.com";
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get your Server Token from account.postmarkapp.com.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("postmark", args);
 }
+
+const POSTMARK_TIMEOUT_MS = Number(process.env.POSTMARK_TIMEOUT_MS) || 15000;
 
 async function pmGet<T>(apiKey: string, path: string, query?: Record<string, string>): Promise<T> {
   const url = new URL(`${POSTMARK_API_BASE}${path}`);
@@ -18,34 +20,68 @@ async function pmGet<T>(apiKey: string, path: string, query?: Record<string, str
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      "X-Postmark-Server-Token": apiKey,
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), POSTMARK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        "X-Postmark-Server-Token": apiKey,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Postmark request timed out after ${POSTMARK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Postmark network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Postmark rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.Message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.Message as string) ?? `status ${res.status}`;
     throw new Error(`Postmark error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function pmPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${POSTMARK_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "X-Postmark-Server-Token": apiKey,
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json() as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), POSTMARK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${POSTMARK_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "X-Postmark-Server-Token": apiKey,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Postmark request timed out after ${POSTMARK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Postmark network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Postmark rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.Message as string) ?? `HTTP ${res.status}`;
+    const msg = (data.Message as string) ?? `status ${res.status}`;
     throw new Error(`Postmark error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -55,6 +91,7 @@ async function pmPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function postmark_send_email(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const from = String(args.from ?? "").trim();
   const to = String(args.to ?? "").trim();
   const subject = String(args.subject ?? "").trim();
@@ -84,6 +121,7 @@ export async function postmark_send_email(args: Record<string, unknown>): Promis
 
 export async function postmark_send_batch(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const messages = args.messages;
   if (!Array.isArray(messages) || messages.length === 0) {
     throw new Error("messages must be a non-empty array of email objects.");
@@ -98,11 +136,13 @@ export async function postmark_send_batch(args: Record<string, unknown>): Promis
 
 export async function postmark_get_delivery_stats(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   return pmGet<unknown>(apiKey, "/deliverystats");
 }
 
 export async function postmark_list_templates(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const query: Record<string, string> = {};
   if (args.count) query.Count = String(args.count);
   if (args.offset) query.Offset = String(args.offset);
@@ -119,6 +159,7 @@ export async function postmark_list_templates(args: Record<string, unknown>): Pr
 
 export async function postmark_get_template(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const id = String(args.template_id ?? "").trim();
   if (!id) throw new Error("template_id is required.");
   return pmGet<unknown>(apiKey, `/templates/${id}`);
@@ -126,6 +167,7 @@ export async function postmark_get_template(args: Record<string, unknown>): Prom
 
 export async function postmark_search_messages(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const query: Record<string, string> = {};
   if (args.count) query.count = String(args.count);
   if (args.offset) query.offset = String(args.offset);

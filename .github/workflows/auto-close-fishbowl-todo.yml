@@ -177,23 +177,20 @@ jobs:
                     fi
                   fi
 
-                  if [ "${dispatch_status}" != "leased" ] || [ -z "${lease_owner:-}" ]; then
-                    release_payload=$(jq -n \
-                      --arg agent_id "$AGENT_ID" \
-                      --arg dispatch_id "$dispatch_id" \
-                      '{method: "release", agent_id: $agent_id, dispatch_id: $dispatch_id, status: "completed"}')
-                    release_http=$(curl -sS -o wakepass-release.json -w "%{http_code}" \
-                      --connect-timeout 10 --max-time 30 \
-                      -X POST "${API_URL}?action=reliability_dispatches" \
-                      -H "Authorization: Bearer ${UNCLICK_API_KEY}" \
-                      -H "Content-Type: application/json" \
-                      -d "$release_payload") || release_http="000"
-                    if [ "$release_http" -ge 400 ] 2>/dev/null || [ "$release_http" = "000" ]; then
-                      echo "::warning::Could not complete WakePass dispatch ${dispatch_id} for PR #${pr_number} (HTTP ${release_http})."
-                      fail_count=$((fail_count + 1))
-                    else
-                      wakepass_complete_count=$((wakepass_complete_count + 1))
-                    fi
+                  echo "Completing WakePass dispatch ${dispatch_id} for PR #${pr_number} (${dispatch_status:-unknown}, lease owner: ${lease_owner:-none})."
+                  if node scripts/reliability-dispatch-complete.mjs \
+                    --dispatch-id "$dispatch_id" \
+                    --agent-id "$AGENT_ID" \
+                    --state completed \
+                    --api-url "$API_URL" \
+                    --current-task "merged PR #${pr_number} WakePass cleanup" \
+                    --next-action "remove stale WakePass blocker" \
+                    > wakepass-complete.json 2>wakepass-complete.err; then
+                    cat wakepass-complete.json
+                    wakepass_complete_count=$((wakepass_complete_count + 1))
+                  else
+                    echo "::warning::Could not complete WakePass dispatch ${dispatch_id} for PR #${pr_number}: $(cat wakepass-complete.err)"
+                    fail_count=$((fail_count + 1))
                   fi
                 done
               fi

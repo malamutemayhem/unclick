@@ -1,12 +1,14 @@
 // apps/jobsmith/src/lib/ingestCvCorpus.ts
 //
 // Read the local CV folder, normalize into a Corpus object.
-// v0 parses .txt files only. PDFs and INDDs are listed but not parsed.
+// Parses .txt/.md and .pdf cover letters; INDDs are listed but not parsed.
 //
 // The root path defaults to process.env.JOBSMITH_CV_ROOT, else throws.
 
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+
+import { extractPdfText } from "./pdfText";
 
 export interface Corpus {
   rootPath: string;
@@ -211,7 +213,12 @@ async function collectCoverLetters(entries: WalkEntry[]): Promise<CoverLetter[]>
     if (fmt === "other") continue;
     const company = parseCoverLetterCompany(f.name);
     const date = parseDateFromFile(f.name);
-    const textContent = fmt === "txt" ? await safeReadText(f.fullPath) : null;
+    let textContent: string | null = null;
+    if (fmt === "txt") {
+      textContent = await safeReadText(f.fullPath);
+    } else if (fmt === "pdf") {
+      textContent = await safeReadPdf(f.fullPath);
+    }
     result.push({
       fileName: f.name,
       filePath: f.fullPath,
@@ -237,7 +244,7 @@ async function collectJobsApplied(entries: WalkEntry[]): Promise<JobApplied[]> {
     const declined = e_isDeclined(f.relPath);
     const baseName = path.basename(f.name, path.extname(f.name));
     const m = baseName.match(JOB_APPLIED_NAME_RE);
-    let company: string | null = null;
+    let company: string;
     let role: string | null = null;
     if (m) {
       company = m[1].trim();
@@ -279,6 +286,16 @@ async function findPromptTemplate(entries: WalkEntry[]): Promise<string | null> 
 async function safeReadText(filePath: string): Promise<string | null> {
   try {
     return await fs.readFile(filePath, "utf8");
+  } catch {
+    return null;
+  }
+}
+
+async function safeReadPdf(filePath: string): Promise<string | null> {
+  try {
+    const buf = await fs.readFile(filePath);
+    const { text } = await extractPdfText(new Uint8Array(buf));
+    return text.trim().length > 0 ? text : null;
   } catch {
     return null;
   }

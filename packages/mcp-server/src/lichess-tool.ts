@@ -2,7 +2,10 @@
 // Uses the Lichess public API via fetch - no external dependencies, no API key required.
 // Documentation: https://lichess.org/api
 
+import { stampMeta } from "./connector-meta.js";
+
 const LICHESS_BASE = "https://lichess.org/api";
+const LICHESS_TIMEOUT_MS = Number(process.env.LICHESS_TIMEOUT_MS) || 10000;
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
@@ -14,12 +17,29 @@ async function lichessFetch<T>(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "UnClick MCP Server",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LICHESS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "UnClick MCP Server",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Lichess API request timed out after ${LICHESS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Lichess API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Lichess API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     if (res.status === 404) {
       throw new Error("Not found (HTTP 404). Check the username or resource exists.");
@@ -48,7 +68,7 @@ export async function lichessUser(
     ratings[key] = (val as Record<string, unknown>).rating as number ?? null;
   }
 
-  return {
+  return stampMeta({
     id: data.id,
     username: data.username,
     title: data.title ?? null,
@@ -67,7 +87,11 @@ export async function lichessUser(
       : null,
     ratings,
     online: data.online ?? false,
-  };
+  }, {
+    source: "Lichess",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use lichess_user_games for recent games, or lichess_top_players for leaderboards."],
+  });
 }
 
 export async function lichessUserGames(
@@ -85,13 +109,30 @@ export async function lichessUserGames(
   url.searchParams.set("evals", "false");
   url.searchParams.set("opening", "true");
 
-  const res = await fetch(url.toString(), {
-    headers: {
-      Accept: "application/x-ndjson",
-      "User-Agent": "UnClick MCP Server",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LICHESS_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Accept: "application/x-ndjson",
+        "User-Agent": "UnClick MCP Server",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Lichess API request timed out after ${LICHESS_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Lichess API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Lichess API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     throw new Error(`Lichess API HTTP ${res.status}`);
   }
@@ -215,7 +256,7 @@ export async function lichessTopPlayers(
 export async function lichessTournament(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const id = String(args.id ?? "").trim();
+  const id = String((args.tournament_id ?? args.id) ?? "").trim();
   if (!id) throw new Error("id is required (Lichess tournament ID).");
 
   const data = (await lichessFetch<Record<string, unknown>>(

@@ -37,15 +37,19 @@ describe("commonsensepass_protocol payload", () => {
     expect(protocol.tool_contract).toMatchObject({
       package_name: "@unclick/commonsensepass",
       function_name: "commonsensepassCheck",
+      mcp_tools: {
+        check: "commonsensepass_check",
+        rules: "commonsensepass_rules",
+      },
     });
     expect(protocol.verdicts.PASS).toContain("Continue");
     expect(protocol.verdicts.BLOCKER).toContain("Stop");
     expect(protocol.verdicts.HOLD).toContain("missing proof");
     expect(protocol.verdicts.SUPPRESS).toContain("quiet");
     expect(protocol.verdicts.ROUTE).toContain("another worker");
-    expect(protocol.procedure).toHaveLength(10);
+    expect(protocol.procedure).toHaveLength(11);
     expect(protocol.procedure[2]).toContain("deterministic evidence");
-    expect(protocol.procedure[8]).toContain("queue hydration failed");
+    expect(protocol.procedure[9]).toContain("queue hydration failed");
     expect(protocol.receipt_template.required_fields).toEqual([
       "verdict",
       "rule_id",
@@ -65,8 +69,8 @@ describe("commonsensepass_protocol payload", () => {
     };
 
     expect(formatCommonSensePassProtocolVersion(1)).toBe("2026-05-17.v1");
-    expect(protocol.version).toBe("2026-05-17.v1");
-    expect(commonSensePassProtocolContentFingerprint(protocol)).toBe("a5836dc10b023004");
+    expect(protocol.version).toBe("2026-05-17.v2");
+    expect(commonSensePassProtocolContentFingerprint(protocol)).toBe("07202540e14f8fc3");
     expect(commonSensePassProtocolContentFingerprint(changed)).not.toBe(
       commonSensePassProtocolContentFingerprint(protocol),
     );

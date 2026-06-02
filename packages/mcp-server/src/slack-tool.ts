@@ -24,9 +24,24 @@ async function slackGet(
   for (const [k, v] of Object.entries(params)) {
     qs.set(k, String(v));
   }
-  const res = await fetch(`${SLACK_API}/${method}?${qs}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const SLACK_TIMEOUT_MS = Number(process.env.SLACK_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SLACK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SLACK_API}/${method}?${qs}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Slack request timed out after ${SLACK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Slack network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Slack rate limit reached (HTTP 429). Please wait and retry.");
   if (!res.ok) {
     throw new Error(`Slack HTTP ${res.status}: ${res.statusText}`);
   }
@@ -38,14 +53,29 @@ async function slackPost(
   method: string,
   body: Record<string, unknown>
 ): Promise<Record<string, unknown>> {
-  const res = await fetch(`${SLACK_API}/${method}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json; charset=utf-8",
-    },
-    body: JSON.stringify(body),
-  });
+  const SLACK_TIMEOUT_MS = Number(process.env.SLACK_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SLACK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SLACK_API}/${method}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Slack request timed out after ${SLACK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Slack network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Slack rate limit reached (HTTP 429). Please wait and retry.");
   if (!res.ok) {
     throw new Error(`Slack HTTP ${res.status}: ${res.statusText}`);
   }

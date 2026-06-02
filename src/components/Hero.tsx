@@ -1,134 +1,122 @@
 import { Link } from "react-router-dom";
 import FadeIn from "@/components/FadeIn";
-import { AppWindow, Brain, Key, Plane, BadgeCheck, Store, ArrowRight } from "lucide-react";
+import { AppWindow, Brain, Link2, BadgeCheck, ArrowRight, Plane } from "lucide-react";
+import { presets } from "@/lib/design-system";
 
+/**
+ * Public-facing product tiles.
+ *
+ * Notes (2026-05-28 Apple polish pass):
+ *  - All icons are monochrome on a single primary tint. No rainbow.
+ *  - AutoPilot is surfaced as the simple work hub, with XPass as its proof layer.
+ *    The developer marketplace remains hidden until that chapter is ready.
+ *  - Connections currently points at /admin/keychain to match the Footer.
+ *    Promote to a public landing if/when one ships.
+ */
 const PRODUCTS = [
   {
     title: "Apps",
-    description: "Built-in tools and connected services",
+    description: "Every tool your agent needs, in one install.",
     href: "/tools",
     icon: AppWindow,
-    color: "bg-blue-500/10 text-blue-500",
   },
   {
     title: "Memory",
-    description: "Persistent cross-session context",
+    description: "Cross-session memory that remembers and shows what it captured.",
     href: "/memory",
     icon: Brain,
-    color: "bg-purple-500/10 text-purple-500",
   },
   {
-    title: "Passport",
-    description: "OAuth, keys, logins, and permissions",
+    title: "Connections",
+    description: "Sign in once. Your agent uses everything else.",
     href: "/admin/keychain",
-    icon: Key,
-    color: "bg-amber-500/10 text-amber-500",
+    icon: Link2,
   },
   {
-    title: "XPass / Checks",
-    description: "Test, UX, security, SEO, legal, and quality proof",
-    href: "/admin/checks",
-    icon: BadgeCheck,
-    color: "bg-red-500/10 text-red-500",
-  },
-  {
-    title: "Autopilot",
-    description: "The visible assembly line for AI work",
-    href: "/build",
+    title: "AutoPilot",
+    description: "The work hub that plans, routes, checks, and proves jobs.",
+    href: "/admin/autopilot",
     icon: Plane,
-    color: "bg-green-500/10 text-green-500",
   },
   {
-    title: "Marketplace",
-    description: "Ship and verify agent tools",
-    href: "/developers",
-    icon: Store,
-    color: "bg-yellow-500/10 text-yellow-500",
+    title: "XPass",
+    description: "The roadworthy checklist for AI work before it ships.",
+    href: "/dogfood",
+    icon: BadgeCheck,
   },
 ];
 
 const Hero = () => {
   return (
     <>
-      {/* Hero Section */}
-      <section className="relative pt-28 pb-20 overflow-hidden px-6">
-        <div className="pointer-events-none absolute inset-0 animated-grid opacity-40" />
-        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] rounded-full bg-primary/[0.06] blur-[100px]" />
+      {/* Hero */}
+      <section className={presets.heroSection}>
+        <div className={presets.halo} aria-hidden="true" />
 
-        <div className="relative z-10 mx-auto max-w-4xl text-center">
+        <div className={presets.heroInner}>
           <FadeIn>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 backdrop-blur-sm">
-              <span className="font-mono text-xs font-medium text-primary">Agent Rails</span>
+            <div className={presets.eyebrow}>
+              <span className={presets.eyebrowText}>Universal remote for AI</span>
             </div>
           </FadeIn>
 
           <FadeIn delay={0.05}>
-            <h1 className="text-5xl font-semibold leading-tight tracking-tight sm:text-6xl md:text-7xl">
-              Rails for{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary/70">
-                AI agents
-              </span>
+            <h1 className={presets.h1}>
+              Every tool.{" "}
+              <span className="text-primary">One install.</span>
             </h1>
           </FadeIn>
 
           <FadeIn delay={0.1}>
-            <p className="mt-6 text-lg text-body max-w-2xl mx-auto leading-relaxed">
-              Apps to act. Memory to remember. Passport to authenticate. Autopilot to coordinate.
-              XPass checks to prove it works before you ship.
+            <p className={presets.lede}>
+              UnClick gives your AI agent every tool it needs, memory that remembers,
+              and built-in proof the work was done right.
             </p>
           </FadeIn>
 
           <FadeIn delay={0.15}>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-10 flex justify-center">
               <a
                 href="#install"
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById("install")?.scrollIntoView({ behavior: "smooth" });
+                  document
+                    .getElementById("install")
+                    ?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                className={presets.ctaPrimary}
               >
-                Get Started Free
-              </a>
-              <a
-                href="#products"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-card/40 px-6 py-3 text-sm font-medium text-heading backdrop-blur-sm transition-colors hover:bg-card/70"
-              >
-                Explore Products <ArrowRight className="h-3.5 w-3.5" />
+                Get started
               </a>
             </div>
           </FadeIn>
         </div>
       </section>
 
-      {/* Products Section */}
-      <section id="products" className="px-6 py-20">
-        <div className="mx-auto max-w-5xl">
+      {/* Products */}
+      <section id="products" className={presets.section}>
+        <div className={presets.sectionInner}>
           <FadeIn>
-            <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-4xl">
-              The rails your agent plugs into
-            </h2>
-            <p className="mt-3 text-center text-body max-w-2xl mx-auto">
-              UnClick sits behind Claude, ChatGPT, Cursor, and every MCP client as the shared layer for action, memory, permissions, Autopilot, and XPass verification.
-            </p>
+            <div className={presets.sectionHeader}>
+              <h2 className={presets.h2}>The rails your agent plugs into.</h2>
+              <p className="mt-3 text-body">
+                One layer that sits behind Claude, ChatGPT, Cursor, and every MCP client.
+                Tools to act. Memory to remember. Connections to sign in. AutoPilot to move work. XPass to prove it.
+              </p>
+            </div>
           </FadeIn>
 
-          <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-16 grid gap-4 sm:grid-cols-2">
             {PRODUCTS.map((product, i) => (
               <FadeIn key={product.title} delay={0.05 * i}>
-                <Link
-                  to={product.href}
-                  className="group relative block h-full rounded-xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm transition-all hover:border-primary/30 hover:bg-card/80 hover:shadow-lg"
-                >
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${product.color} mb-4`}>
+                <Link to={product.href} className={presets.tile}>
+                  <div className={presets.tileIcon}>
                     <product.icon className="h-5 w-5" />
                   </div>
-                  <h3 className="text-lg font-semibold text-heading">{product.title}</h3>
-                  <p className="mt-2 text-sm text-body leading-relaxed">{product.description}</p>
+                  <h3 className={presets.h3}>{product.title}</h3>
+                  <p className="mt-2 text-sm text-body leading-relaxed">
+                    {product.description}
+                  </p>
                   <div className="mt-4 flex items-center gap-2 text-sm text-primary opacity-0 transition-opacity group-hover:opacity-100">
                     Learn more <ArrowRight className="h-3.5 w-3.5" />
                   </div>

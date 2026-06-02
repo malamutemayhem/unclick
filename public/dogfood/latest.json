@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-19T18:16:32.505Z",
-  "lastRunAt": "2026-05-19T18:16:32.505Z",
-  "status": "blocked",
+  "generatedAt": "2026-05-28T12:34:54.682Z",
+  "lastRunAt": "2026-05-28T12:34:54.682Z",
+  "status": "passing",
   "source": "nightly dogfood workflow",
   "headline": "We dogfood UnClick on UnClick.",
   "target": "UnClick public and agent-facing product surfaces",
-  "nextAutomation": "Nightly dogfood receipts refresh this board with live scheduled evidence.",
+  "nextAutomation": "Nightly dogfood receipts refresh this board with live checks, scheduled XPass package proof, and scheduled public-safe boundary proof.",
   "statusLegend": {
-    "passing": "A live check ran and returned a passing result.",
-    "failing": "A live check ran and returned a failing result or could not reach its API.",
-    "blocked": "The check could not run because an action is needed, such as a missing credential or scope gate.",
-    "pending": "The check is planned or scaffolded, but live proof is not available yet."
+    "passing": "A live check or scheduled package sweep ran and returned a passing result, or a scheduled boundary sweep ran and returned a passing result.",
+    "failing": "A live check or scheduled package sweep ran and returned a failing result.",
+    "blocked": "The check needs action before it can be marked passing, such as a missing credential, scope gate, or high-severity readiness gap.",
+    "pending": "The check is planned, package-ready, or scaffolded, but scheduled proof is not available yet."
   },
-  "proofPolicy": "Public dogfood receipts mark passing only when a live check actually ran. Blocked and pending are honest product states, not failures to hide.",
+  "proofPolicy": "Public dogfood receipts mark passing only when a live check or scheduled package sweep actually ran, or a scheduled boundary sweep actually ran. Blocked and pending are honest product states, not failures to hide.",
   "xpassIndex": [
     {
       "id": "testpass",
@@ -35,47 +35,101 @@
     {
       "id": "securitypass",
       "name": "SecurityPass",
-      "stage": "scope_gated",
-      "label": "Scope-gated",
-      "automation": "Blocked public receipt until safe recurring proof exists",
+      "stage": "safe_proof",
+      "label": "Safe proof live",
+      "automation": "Recurring static safety proof; active probes remain scope-gated",
       "mentionProfile": "Low mention volume by design because unsafe probes stay disabled.",
-      "nextStep": "Add a deny-by-default recurring runner proof before live security checks."
+      "nextStep": "Add a deny-by-default recurring active-runner proof before live security checks."
+    },
+    {
+      "id": "sloppass",
+      "name": "SlopPass",
+      "stage": "package_ready",
+      "label": "Package-ready quality gate",
+      "automation": "Package runner, verdict pack, dogfood tests, XPass routing",
+      "mentionProfile": "Medium mention volume because historical QualityPass references now route here.",
+      "nextStep": "Add a recurring SlopPass public receipt before marking it live dogfood."
     },
     {
       "id": "seopass",
       "name": "SEOPass",
-      "stage": "planned",
-      "label": "Planned",
-      "automation": "Scaffold-only public receipt",
-      "mentionProfile": "Low mention volume until a recurring search and metadata runner lands.",
-      "nextStep": "Define the smallest recurring metadata proof."
+      "stage": "live_dogfood",
+      "label": "Live dogfood lane",
+      "automation": "Public read-only SEO receipt",
+      "mentionProfile": "Medium mention volume when SEO metadata, crawler, or AI-era readiness drifts.",
+      "nextStep": "Promote the read-only receipt into a scheduled baseline and GEOPass bundle handoff."
     },
     {
       "id": "copypass",
       "name": "CopyPass",
-      "stage": "planned",
-      "label": "Planned",
-      "automation": "Scaffold-only public receipt",
-      "mentionProfile": "Low mention volume until copy checks become scheduled evidence.",
-      "nextStep": "Define the copy quality receipt shape."
+      "stage": "package_ready",
+      "label": "Package-ready",
+      "automation": "Deterministic copy review, CopyRoom boundary, dogfood tests",
+      "mentionProfile": "Medium mention volume for public wording, claims, docs, and source-copy risk.",
+      "nextStep": "Add a recurring CopyPass receipt with CopyRoom/source-copy proof."
     },
     {
       "id": "legalpass",
       "name": "LegalPass",
-      "stage": "planned",
-      "label": "Planned",
-      "automation": "Scaffold-only public receipt",
-      "mentionProfile": "Low mention volume until policy and claims checks become scheduled evidence.",
-      "nextStep": "Keep guidance-only until legal review boundaries are explicit."
+      "stage": "package_ready",
+      "label": "Package-ready guidance",
+      "automation": "Legal guidance tools, pack schema, public proof boundaries",
+      "mentionProfile": "Medium mention volume when public claims, policy language, or disclaimers change.",
+      "nextStep": "Add a recurring LegalPass receipt that stays guidance-only, not legal certification."
     },
     {
-      "id": "enterprisepass",
-      "name": "EnterprisePass",
-      "stage": "guidance",
-      "label": "Guidance report",
-      "automation": "Receipt guard and readiness report boundary",
-      "mentionProfile": "Low mention volume while it remains a guidance layer, not certification.",
-      "nextStep": "Add low-risk readiness checks without claiming compliance certification."
+      "id": "commonsensepass",
+      "name": "CommonSensePass",
+      "stage": "live_gate",
+      "label": "Worker sanity gate",
+      "automation": "False-DONE and proof sanity checks for worker claims and queues",
+      "mentionProfile": "High mention volume around claims, proof receipts, merge-ready language, and queue health.",
+      "nextStep": "Publish the recurring proof receipt for queue and worker-claim sanity."
+    },
+    {
+      "id": "flowpass",
+      "name": "FlowPass",
+      "stage": "package_ready",
+      "label": "Package-ready",
+      "automation": "Journey map checks and end-to-end flow fixtures",
+      "mentionProfile": "Medium mention volume for onboarding, checkout, handoff, forms, and success states.",
+      "nextStep": "Add a recurring journey receipt with one public flow target."
+    },
+    {
+      "id": "geopass",
+      "name": "GEOPass",
+      "stage": "package_ready",
+      "label": "Package-ready",
+      "automation": "AI answer-engine readiness scanner and metadata evidence",
+      "mentionProfile": "Medium mention volume for llms.txt, schema, bots, and answer-engine readiness.",
+      "nextStep": "Add a recurring answer-engine readiness receipt."
+    },
+    {
+      "id": "rotatepass",
+      "name": "RotatePass",
+      "stage": "boundary",
+      "label": "Boundary guard",
+      "automation": "Credential lifecycle docs and redaction guard",
+      "mentionProfile": "Low mention volume because live credential rotation stays behind explicit scope.",
+      "nextStep": "Add a safe local credential lifecycle receipt without touching real secrets."
+    },
+    {
+      "id": "wakepass",
+      "name": "WakePass",
+      "stage": "live_gate",
+      "label": "Wake and stale-work gate",
+      "automation": "Dispatch, stale ACK, heartbeat, and reclaim visibility",
+      "mentionProfile": "High mention volume when scheduled work stalls or needs a fresh owner.",
+      "nextStep": "Expose a public-safe stale-work receipt for dogfood runs."
+    },
+    {
+      "id": "compliancepass",
+      "name": "CompliancePass",
+      "stage": "live_dogfood",
+      "label": "Readiness evidence",
+      "automation": "Local deterministic scanner and public readiness receipt",
+      "mentionProfile": "Low mention volume unless readiness evidence, claims, or docs drift.",
+      "nextStep": "Keep report language conservative and link more XPass receipts as they mature."
     }
   ],
   "results": [
@@ -84,95 +138,433 @@
       "name": "TestPass",
       "status": "passing",
       "summary": "Scheduled TestPass completed with 17 checks and 0 failures.",
-      "evidence": "Run a30a4c31-72ec-4267-9996-9dd1c23dae26 checked https://unclick.world/api/mcp.",
-      "checkedAt": "2026-05-19T18:16:32.505Z",
-      "runId": "a30a4c31-72ec-4267-9996-9dd1c23dae26",
+      "evidence": "Run 693eb80d-1dc3-4b8e-847b-f3c56b156d5e checked https://unclick.world/api/mcp.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "runId": "693eb80d-1dc3-4b8e-847b-f3c56b156d5e",
       "targetUrl": "https://unclick.world/api/mcp",
       "proof": {
         "kind": "testpass_run",
-        "runId": "a30a4c31-72ec-4267-9996-9dd1c23dae26",
+        "runId": "693eb80d-1dc3-4b8e-847b-f3c56b156d5e",
         "targetUrl": "https://unclick.world/api/mcp"
       }
     },
     {
       "id": "uxpass",
       "name": "UXPass",
-      "status": "blocked",
-      "summary": "Scheduled UXPass could not run because DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET is missing.",
-      "evidence": "Set one workflow secret so the nightly dogfood workflow can create a fresh uxpass_runs row.",
-      "checkedAt": "2026-05-19T18:16:32.505Z",
-      "blockedReason": "Missing DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
-      "reasonCode": "missing_credential",
-      "nextProof": "Set one UXPass workflow secret, then rerun the dogfood report workflow."
+      "status": "passing",
+      "summary": "Scheduled UXPass completed with UX score 100.",
+      "evidence": "Run 6bb265c5-c163-4d15-a046-cef5b381461f checked https://unclick.world.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "runId": "6bb265c5-c163-4d15-a046-cef5b381461f",
+      "targetUrl": "https://unclick.world",
+      "proof": {
+        "kind": "uxpass_run",
+        "runId": "6bb265c5-c163-4d15-a046-cef5b381461f",
+        "targetUrl": "https://unclick.world"
+      }
     },
     {
       "id": "securitypass",
       "name": "SecurityPass",
-      "status": "blocked",
-      "summary": "SecurityPass is blocked until the recurring runner proof is ready.",
-      "evidence": "SecurityPass remains scope-gated; the public dogfood receipt does not run security probes yet.",
-      "checkedAt": "2026-05-19T18:16:32.505Z",
-      "blockedReason": "SecurityPass is intentionally deny-all/scope-gated until a safe recurring runner proof lands.",
-      "reasonCode": "scope_gate",
-      "nextProof": "Land a safe recurring SecurityPass runner receipt before marking this passing."
+      "status": "passing",
+      "summary": "Safe recurring proof verified SecurityPass remains deny-by-default before active probes.",
+      "evidence": "Static proof checked the runner scope gate plus scanner wrapper safety settings; no active probes were run.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "proof": {
+        "kind": "securitypass_safe_static_proof",
+        "files": {
+          "runner": "packages/securitypass/src/runner/index.ts",
+          "gitleaks": "packages/securitypass/src/probes/gitleaks.ts",
+          "osv": "packages/securitypass/src/probes/osv-scanner.ts"
+        },
+        "checks": [
+          {
+            "name": "runSkeletonScan verifies scope before creating a run.",
+            "ok": true
+          },
+          {
+            "name": "runSkeletonScan verifies scope before fetching security headers.",
+            "ok": true
+          },
+          {
+            "name": "runSecurityPack checks declared in-scope/out-of-scope assets before proof verification.",
+            "ok": true
+          },
+          {
+            "name": "Gitleaks uses the current git scan command with scanner-side redaction.",
+            "ok": true
+          },
+          {
+            "name": "OSV-Scanner uses the v2 source scan command and keeps source-path evidence.",
+            "ok": true
+          },
+          {
+            "name": "OSV-Scanner keeps Rust call analysis explicitly disabled for safe source scans.",
+            "ok": true
+          },
+          {
+            "name": "OSV-Scanner evidence keeps fixed-version and call-analysis context.",
+            "ok": true
+          },
+          {
+            "name": "OSV-Scanner scores official CVSS vector evidence instead of defaulting it low.",
+            "ok": true
+          }
+        ],
+        "activeProbesRun": false
+      },
+      "nextProof": "Add a scoped active-runner receipt before marking live security probes as passing."
+    },
+    {
+      "id": "sloppass",
+      "name": "SlopPass",
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed SlopPass.",
+      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/sloppass; cross-checked by TestPass, CommonSensePass, CopyPass.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "targetUrl": "packages/sloppass",
+      "proof": {
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "packageId": "sloppass",
+        "targetUrl": "packages/sloppass",
+        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "testpass",
+            "name": "TestPass",
+            "role": "package tests must pass before public proof is trusted",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "false-DONE and proof-claim sanity",
+            "status": "passing"
+          },
+          {
+            "id": "copypass",
+            "name": "CopyPass",
+            "role": "plain-English claims and wording boundary",
+            "status": "passing"
+          }
+        ]
+      }
     },
     {
       "id": "seopass",
       "name": "SEOPass",
-      "status": "pending",
-      "summary": "Queued for recurring search and metadata review.",
-      "evidence": "SEOPass is still scaffold-only for public dogfood receipts.",
-      "checkedAt": "2026-05-19T18:16:32.505Z",
-      "reasonCode": "planned_runner",
-      "nextProof": "Add a recurring SEOPass receipt before moving this out of pending."
+      "status": "passing",
+      "summary": "SEOPass read-only dogfood completed with SEO health score 91.",
+      "evidence": "Run seopass-dogfood-20260528123504 checked public HTML, robots.txt, sitemap.xml, and llms.txt for https://unclick.world.",
+      "checkedAt": "2026-05-28T12:35:04.135Z",
+      "runId": "seopass-dogfood-20260528123504",
+      "targetUrl": "https://unclick.world",
+      "proof": {
+        "kind": "seopass_run",
+        "runId": "seopass-dogfood-20260528123504",
+        "targetUrl": "https://unclick.world",
+        "score": 91,
+        "sourceUrls": [
+          "https://unclick.world",
+          "https://unclick.world/robots.txt",
+          "https://unclick.world/sitemap.xml",
+          "https://unclick.world/llms.txt"
+        ]
+      },
+      "nextProof": "Schedule this receipt and wire it to the shared GEOPass baseline."
     },
     {
       "id": "copypass",
       "name": "CopyPass",
-      "status": "pending",
-      "summary": "Queued for recurring copy quality review.",
-      "evidence": "CopyPass recurring public receipts will land after the runner surface is available.",
-      "checkedAt": "2026-05-19T18:16:32.505Z",
-      "reasonCode": "planned_runner",
-      "nextProof": "Add a recurring CopyPass receipt before moving this out of pending."
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed CopyPass.",
+      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/copypass; cross-checked by SlopPass, LegalPass, CommonSensePass.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "targetUrl": "packages/copypass",
+      "proof": {
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "packageId": "copypass",
+        "targetUrl": "packages/copypass",
+        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "sloppass",
+            "name": "SlopPass",
+            "role": "anti-slop quality review",
+            "status": "passing"
+          },
+          {
+            "id": "legalpass",
+            "name": "LegalPass",
+            "role": "claims and guidance-only boundary",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "proof-claim sanity",
+            "status": "passing"
+          }
+        ]
+      }
     },
     {
       "id": "legalpass",
       "name": "LegalPass",
-      "status": "pending",
-      "summary": "Queued for recurring policy and claims review.",
-      "evidence": "LegalPass recurring public receipts will land after the runner surface is available.",
-      "checkedAt": "2026-05-19T18:16:32.505Z",
-      "reasonCode": "planned_runner",
-      "nextProof": "Add a recurring LegalPass receipt before moving this out of pending."
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed LegalPass.",
+      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/legalpass; cross-checked by CopyPass, SecurityPass, CommonSensePass.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "targetUrl": "packages/legalpass",
+      "proof": {
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "packageId": "legalpass",
+        "targetUrl": "packages/legalpass",
+        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "copypass",
+            "name": "CopyPass",
+            "role": "public wording and claims clarity",
+            "status": "passing"
+          },
+          {
+            "id": "securitypass",
+            "name": "SecurityPass",
+            "role": "safe local package proof only",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "certification-claim sanity",
+            "status": "passing"
+          }
+        ]
+      }
     },
     {
-      "id": "enterprisepass",
-      "name": "EnterprisePass",
-      "status": "pending",
-      "summary": "Seed enterprise-readiness report is published; automated evidence checks are not live yet.",
-      "evidence": "See /enterprise/latest.json for the readiness-report boundary and pending category map.",
-      "checkedAt": "2026-05-19T18:16:32.505Z",
-      "reasonCode": "planned_runner",
+      "id": "commonsensepass",
+      "name": "CommonSensePass",
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed CommonSensePass.",
+      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/commonsensepass; cross-checked by TestPass, SlopPass.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "targetUrl": "packages/commonsensepass",
       "proof": {
-        "kind": "planned",
-        "targetUrl": "/enterprise/latest.json"
-      },
-      "nextProof": "Wire automated evidence checks before moving this beyond readiness guidance."
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "packageId": "commonsensepass",
+        "targetUrl": "packages/commonsensepass",
+        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "testpass",
+            "name": "TestPass",
+            "role": "package tests must pass before public proof is trusted",
+            "status": "passing"
+          },
+          {
+            "id": "sloppass",
+            "name": "SlopPass",
+            "role": "anti-slop claim review",
+            "status": "passing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "flowpass",
+      "name": "FlowPass",
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed FlowPass.",
+      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/flowpass; cross-checked by UXPass, TestPass, CommonSensePass.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "targetUrl": "packages/flowpass",
+      "proof": {
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "packageId": "flowpass",
+        "targetUrl": "packages/flowpass",
+        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "uxpass",
+            "name": "UXPass",
+            "role": "route and UX sweep overlap",
+            "status": "passing"
+          },
+          {
+            "id": "testpass",
+            "name": "TestPass",
+            "role": "package tests must pass before public proof is trusted",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "proof-claim sanity",
+            "status": "passing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "geopass",
+      "name": "GEOPass",
+      "status": "passing",
+      "summary": "Scheduled XPass package sweep passed GEOPass.",
+      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/geopass; cross-checked by TestPass, SEOPass, CommonSensePass.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "targetUrl": "packages/geopass",
+      "proof": {
+        "kind": "xpass_package_sweep",
+        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "packageId": "geopass",
+        "targetUrl": "packages/geopass",
+        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "receiptPath": "public/dogfood/xpass-package-sweep.json",
+        "reviewers": [
+          {
+            "id": "testpass",
+            "name": "TestPass",
+            "role": "package tests must pass before public proof is trusted",
+            "status": "passing"
+          },
+          {
+            "id": "seopass",
+            "name": "SEOPass",
+            "role": "search-indexing overlap for crawlable answer sources",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "proof-claim sanity",
+            "status": "passing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rotatepass",
+      "name": "RotatePass",
+      "status": "passing",
+      "summary": "Scheduled XPass boundary sweep passed RotatePass.",
+      "evidence": "Receipt xpass-boundary-sweep-5b2f73743e349bcb ran node --test scripts/rotatepass-redaction-guard.test.mjs; cross-checked by SecurityPass, LegalPass, CommonSensePass.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "runId": "xpass-boundary-sweep-5b2f73743e349bcb",
+      "targetUrl": "docs/rotatepass-local-phase0.md",
+      "proof": {
+        "kind": "xpass_boundary_sweep",
+        "runId": "xpass-boundary-sweep-5b2f73743e349bcb",
+        "productId": "rotatepass",
+        "targetUrl": "docs/rotatepass-local-phase0.md",
+        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "receiptPath": "public/dogfood/xpass-boundary-sweep.json",
+        "reviewers": [
+          {
+            "id": "securitypass",
+            "name": "SecurityPass",
+            "role": "safe local security and secret-boundary proof",
+            "status": "passing"
+          },
+          {
+            "id": "legalpass",
+            "name": "LegalPass",
+            "role": "safe guidance and non-certification wording",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "proof-claim sanity and false-DONE guard",
+            "status": "passing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wakepass",
+      "name": "WakePass",
+      "status": "passing",
+      "summary": "Scheduled XPass boundary sweep passed WakePass.",
+      "evidence": "Receipt xpass-boundary-sweep-5b2f73743e349bcb ran node --test scripts/event-wake-router.test.mjs scripts/pinballwake-ack-ledger-room.test.mjs scripts/pinballwake-stale-room.test.mjs scripts/worker-liveness-watchdog.test.mjs; cross-checked by TestPass, CommonSensePass, FlowPass.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "runId": "xpass-boundary-sweep-5b2f73743e349bcb",
+      "targetUrl": "docs/prd/wakepass.md",
+      "proof": {
+        "kind": "xpass_boundary_sweep",
+        "runId": "xpass-boundary-sweep-5b2f73743e349bcb",
+        "productId": "wakepass",
+        "targetUrl": "docs/prd/wakepass.md",
+        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "receiptPath": "public/dogfood/xpass-boundary-sweep.json",
+        "reviewers": [
+          {
+            "id": "testpass",
+            "name": "TestPass",
+            "role": "automation and MCP smoke trust gate",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "stale-work and false-DONE sanity",
+            "status": "passing"
+          },
+          {
+            "id": "flowpass",
+            "name": "FlowPass",
+            "role": "handoff and recovery-path overlap",
+            "status": "passing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "compliancepass",
+      "name": "CompliancePass",
+      "status": "passing",
+      "summary": "CompliancePass scanned 27 readiness checks and scored 99.3/100.",
+      "evidence": "See /enterprise/latest.json for the evidence-backed readiness report.",
+      "checkedAt": "2026-05-28T12:34:54.682Z",
+      "reasonCode": "public_receipt_complete",
+      "score": 99.3,
+      "band": "green",
+      "proof": {
+        "kind": "compliancepass_report",
+        "targetUrl": "/enterprise/latest.json",
+        "checksTotal": 27
+      }
     }
   ],
   "trend": [
     {
-      "date": "2026-05-19",
-      "passing": 1,
+      "date": "2026-05-28",
+      "passing": 13,
       "failing": 0,
-      "blocked": 2,
-      "pending": 4
+      "blocked": 0,
+      "pending": 0
     }
   ],
   "lastActionableFailure": {
-    "title": "UXPass needs attention",
-    "detail": "Scheduled UXPass could not run because DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET is missing. Blocked reason: Missing DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
+    "title": "No actionable dogfood failure in the latest receipt",
+    "detail": "The live checks that ran in this receipt did not report a blocking failure.",
     "owner": "Dogfood automation"
   }
 }

@@ -34,7 +34,23 @@ async function mastodonFetch(
     init.body = JSON.stringify(body);
   }
 
-  const res = await fetch(url, init);
+  const MASTODON_TIMEOUT_MS = Number(process.env.MASTODON_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MASTODON_TIMEOUT_MS);
+  init.signal = controller.signal;
+  let res: Response;
+  try {
+    res = await fetch(url, init);
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Mastodon request timed out after ${MASTODON_TIMEOUT_MS}ms.` };
+    }
+    return { error: `Network error reaching Mastodon API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) return { error: "Mastodon rate limit exceeded. Please wait and retry.", status: 429 };
 
   let data: unknown;
   const ct = res.headers.get("content-type") ?? "";
@@ -48,7 +64,7 @@ async function mastodonFetch(
     const errMsg =
       data && typeof data === "object" && "error" in (data as object)
         ? String((data as Record<string, unknown>).error)
-        : `HTTP ${res.status} ${res.statusText}`;
+        : `status ${res.status} ${res.statusText}`;
     return { error: errMsg, status: res.status };
   }
 

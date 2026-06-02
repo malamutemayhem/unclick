@@ -36,9 +36,13 @@ export const SeoPassReportVerdictSchema = z.enum([
 
 export const SeoPassEvidenceSchema = z.object({
   kind: z.enum([
+    "http-response",
     "robots-txt",
+    "robots-policy",
     "sitemap",
+    "llms-txt",
     "html-head",
+    "page-snapshot",
     "canonical",
     "structured-data",
     "internal-link",
@@ -51,6 +55,15 @@ export const SeoPassEvidenceSchema = z.object({
   summary: z.string().min(1),
 });
 
+export const SeoPassFixPromptSchema = z.object({
+  title: z.string().min(1),
+  frameworks: z
+    .array(z.enum(["nextjs", "astro", "wordpress", "shopify", "webflow", "html"]))
+    .default(["nextjs", "astro", "html"]),
+  prompt: z.string().min(1),
+  acceptance: z.array(z.string().min(1)).default([]),
+});
+
 export const SeoPassFindingSchema = z.object({
   id: z.string().min(1),
   check_id: SeoPassCheckIdSchema,
@@ -59,6 +72,7 @@ export const SeoPassFindingSchema = z.object({
   summary: z.string().min(1),
   evidence: z.array(SeoPassEvidenceSchema).default([]),
   recommendation: z.string().min(1).optional(),
+  fix_prompt: SeoPassFixPromptSchema.optional(),
 });
 
 export const SeoPassCheckResultSchema = z.object({
@@ -71,13 +85,23 @@ export const SeoPassCheckResultSchema = z.object({
 });
 
 export const SeoPassScannerSourceSchema = z.object({
-  kind: z.enum(["geopass-plan", "fixture", "manual"]),
+  kind: z.enum(["geopass-plan", "seopass-runner", "fixture", "manual"]),
   mode: z.enum(["plan-only", "fixture", "live-readonly"]).default("plan-only"),
   target_url: z.string().url(),
   shared_check_ids: z.array(z.string().min(1)).default([]),
+  source_urls: z.array(z.string().url()).default([]),
+});
+
+export const SeoPassCrossPassSignalSchema = z.object({
+  pass: z.enum(["geopass", "uipass", "uxpass", "testpass", "flowpass", "securitypass"]),
+  signal: z.string().min(1),
+  source_check_id: SeoPassCheckIdSchema,
+  score: z.number().min(0).max(100).optional(),
+  reason: z.string().min(1),
 });
 
 export const SeoPassReportSchema = z.object({
+  run_id: z.string().min(1).optional(),
   target_url: z.string().url(),
   generated_at: z.string().datetime(),
   mode: z.enum(["plan-only", "fixture", "live-readonly"]).default("plan-only"),
@@ -85,7 +109,31 @@ export const SeoPassReportSchema = z.object({
   verdict: SeoPassReportVerdictSchema,
   checks: z.array(SeoPassCheckResultSchema).min(1),
   scanner_source: SeoPassScannerSourceSchema,
+  cross_pass_signals: z.array(SeoPassCrossPassSignalSchema).default([]),
+  fix_prompts: z.array(SeoPassFixPromptSchema).default([]),
+  summary: z.string().min(1).optional(),
   notes: z.array(z.string().min(1)).default([]),
+});
+
+export const SeoPassReceiptSchema = z.object({
+  kind: z.literal("seopass_receipt_v1"),
+  status: z.enum(["PASS", "WARN", "BLOCKER"]),
+  run_id: z.string().min(1),
+  target_url: z.string().url(),
+  target_sha: z.string().min(1).optional(),
+  generated_at: z.string().datetime(),
+  mode: z.literal("live-readonly"),
+  score: z.number().min(0).max(100),
+  verdict: SeoPassReportVerdictSchema,
+  checked: z.object({
+    total: z.number().int().min(0),
+    pass: z.number().int().min(0),
+    warn: z.number().int().min(0),
+    fail: z.number().int().min(0),
+  }),
+  evidence_sources: z.array(SeoPassEvidenceSchema).default([]),
+  action_needed: z.array(z.string().min(1)).default([]),
+  boundaries: z.array(z.string().min(1)).min(1),
 });
 
 export const SeoPassGeoPassAdapterSchema = z.object({
@@ -134,8 +182,11 @@ export type SeoPassSeverity = z.infer<typeof SeoPassSeveritySchema>;
 export type SeoPassCheckVerdict = z.infer<typeof SeoPassCheckVerdictSchema>;
 export type SeoPassReportVerdict = z.infer<typeof SeoPassReportVerdictSchema>;
 export type SeoPassEvidence = z.infer<typeof SeoPassEvidenceSchema>;
+export type SeoPassFixPrompt = z.infer<typeof SeoPassFixPromptSchema>;
 export type SeoPassFinding = z.infer<typeof SeoPassFindingSchema>;
 export type SeoPassCheckResult = z.infer<typeof SeoPassCheckResultSchema>;
 export type SeoPassScannerSource = z.infer<typeof SeoPassScannerSourceSchema>;
+export type SeoPassCrossPassSignal = z.infer<typeof SeoPassCrossPassSignalSchema>;
 export type SeoPassReport = z.infer<typeof SeoPassReportSchema>;
+export type SeoPassReceipt = z.infer<typeof SeoPassReceiptSchema>;
 export type SeoPassGeoPassAdapter = z.infer<typeof SeoPassGeoPassAdapterSchema>;

@@ -86,7 +86,7 @@ export function createWebhookBinRouter(db: Db, auth: MiddlewareHandler) {
     });
 
     // Capture body as text (capped at MAX_BODY_BYTES)
-    let body: string | null = null;
+    let body: string | null;
     try {
       const raw = await c.req.text();
       body = raw.length > MAX_BODY_BYTES ? raw.slice(0, MAX_BODY_BYTES) + '…[truncated]' : raw;

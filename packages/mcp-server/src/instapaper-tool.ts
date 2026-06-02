@@ -128,6 +128,9 @@ async function getXAuthToken(
 
   const body = new URLSearchParams(formParams).toString();
 
+  const INSTAPAPER_TIMEOUT_MS = Number(process.env.INSTAPAPER_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), INSTAPAPER_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url, {
@@ -137,13 +140,23 @@ async function getXAuthToken(
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Instapaper xAuth request timed out after ${INSTAPAPER_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Instapaper: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 401) {
     return { error: "Instapaper authentication failed. Check your consumer key/secret and username/password." };
+  }
+
+  if (response.status === 429) {
+    return { error: "Instapaper rate limit exceeded. Please wait and retry." };
   }
 
   if (!response.ok) {
@@ -203,6 +216,9 @@ async function instapaperPost(
 
   const body = new URLSearchParams(formData).toString();
 
+  const INSTAPAPER_TIMEOUT_MS = Number(process.env.INSTAPAPER_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), INSTAPAPER_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url, {
@@ -213,13 +229,20 @@ async function instapaperPost(
         Accept:         "application/json",
       },
       body,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Instapaper API request timed out after ${INSTAPAPER_TIMEOUT_MS}ms.`, status: 408 };
+    }
     return { error: `Network error reaching Instapaper API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 401) return { error: "Instapaper authentication failed. Re-check your credentials.", status: 401 };
   if (response.status === 404) return { error: "Instapaper resource not found.", status: 404 };
+  if (response.status === 429) return { error: "Instapaper rate limit exceeded. Please wait and retry.", status: 429 };
 
   const text = await response.text();
   let data: unknown;

@@ -12,15 +12,31 @@ export const runCommand: CommandRunner = (spec) =>
     });
     let stdout = "";
     let stderr = "";
+    let timedOut = false;
+    const timeout =
+      spec.timeoutMs && spec.timeoutMs > 0
+        ? setTimeout(() => {
+            timedOut = true;
+            child.kill("SIGTERM");
+          }, spec.timeoutMs)
+        : null;
     child.stdout?.on("data", (chunk) => {
       stdout += String(chunk);
     });
     child.stderr?.on("data", (chunk) => {
       stderr += String(chunk);
     });
-    child.on("error", reject);
+    child.on("error", (err) => {
+      if (timeout) clearTimeout(timeout);
+      reject(err);
+    });
     child.on("close", (code) => {
-      resolve({ exitCode: code ?? 1, stdout, stderr });
+      if (timeout) clearTimeout(timeout);
+      resolve({
+        exitCode: timedOut ? 124 : code ?? 1,
+        stdout,
+        stderr: timedOut ? `${stderr}\nCommand timed out after ${spec.timeoutMs}ms.`.trim() : stderr,
+      });
     });
   });
 

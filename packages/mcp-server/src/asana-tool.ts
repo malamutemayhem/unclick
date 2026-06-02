@@ -3,12 +3,14 @@
 // Auth: ASANA_API_KEY (Personal Access Token, Bearer)
 // Base: https://app.asana.com/api/1.0
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const ASANA_BASE = "https://app.asana.com/api/1.0";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.ASANA_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set ASANA_API_KEY env var).");
-  return key;
+function getApiKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("asana", args);
 }
 
 async function asanaGet(
@@ -22,12 +24,26 @@ async function asanaGet(
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-    },
-  });
+  const ASANA_TIMEOUT_MS = Number(process.env.ASANA_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ASANA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Asana request timed out after ${ASANA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Asana network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Asana API key.");
   if (res.status === 403) throw new Error("Asana: access forbidden.");
   if (res.status === 404) throw new Error(`Asana: resource not found at ${path}.`);
@@ -45,15 +61,29 @@ async function asanaPost(
   body: Record<string, unknown>,
   method: "POST" | "PUT" = "POST"
 ): Promise<unknown> {
-  const res = await fetch(`${ASANA_BASE}${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({ data: body }),
-  });
+  const ASANA_TIMEOUT_MS = Number(process.env.ASANA_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ASANA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${ASANA_BASE}${path}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ data: body }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Asana request timed out after ${ASANA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Asana network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid Asana API key.");
   if (res.status === 403) throw new Error("Asana: access forbidden.");
   if (res.status === 404) throw new Error(`Asana: resource not found at ${path}.`);
@@ -69,6 +99,7 @@ async function asanaPost(
 export async function listAsanaWorkspaces(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const json = await asanaGet(apiKey, "/workspaces") as Record<string, unknown>;
     const data = (json.data ?? []) as Array<Record<string, unknown>>;
     return {
@@ -84,6 +115,7 @@ export async function listAsanaWorkspaces(args: Record<string, unknown>): Promis
 export async function listAsanaProjects(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const workspaceGid = String(args.workspace_gid ?? "").trim();
     if (!workspaceGid) return { error: "workspace_gid is required." };
     const params: Record<string, string> = {
@@ -104,6 +136,7 @@ export async function listAsanaProjects(args: Record<string, unknown>): Promise<
 export async function listAsanaTasks(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const projectGid = String(args.project_gid ?? "").trim();
     if (!projectGid) return { error: "project_gid is required." };
     const params: Record<string, string> = {
@@ -114,7 +147,11 @@ export async function listAsanaTasks(args: Record<string, unknown>): Promise<unk
     if (args.limit) params.limit = String(args.limit);
     const json = await asanaGet(apiKey, "/tasks", params) as Record<string, unknown>;
     const data = (json.data ?? []) as Array<Record<string, unknown>>;
-    return { count: data.length, tasks: data };
+    return stampMeta({ count: data.length, tasks: data }, {
+      source: "Asana",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use get_asana_task for a task's detail, or update_asana_task to edit it."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -124,6 +161,7 @@ export async function listAsanaTasks(args: Record<string, unknown>): Promise<unk
 export async function createAsanaTask(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const name = String(args.name ?? "").trim();
     if (!name) return { error: "name is required." };
     const workspaceGid = String(args.workspace_gid ?? "").trim();
@@ -146,6 +184,7 @@ export async function createAsanaTask(args: Record<string, unknown>): Promise<un
 export async function updateAsanaTask(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const taskGid = String(args.task_gid ?? "").trim();
     if (!taskGid) return { error: "task_gid is required." };
 
@@ -167,6 +206,7 @@ export async function updateAsanaTask(args: Record<string, unknown>): Promise<un
 export async function getAsanaTask(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const taskGid = String(args.task_gid ?? "").trim();
     if (!taskGid) return { error: "task_gid is required." };
     const json = await asanaGet(apiKey, `/tasks/${taskGid}`, {
@@ -182,6 +222,7 @@ export async function getAsanaTask(args: Record<string, unknown>): Promise<unkno
 export async function searchAsanaTasks(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = getApiKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const workspaceGid = String(args.workspace_gid ?? "").trim();
     if (!workspaceGid) return { error: "workspace_gid is required." };
     const text = String(args.text ?? "").trim();

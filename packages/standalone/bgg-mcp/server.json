@@ -1,0 +1,33 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.malamutemayhem/bgg",
+  "title": "BoardGameGeek MCP by UnClick",
+  "description": "BoardGameGeek search, game details, rankings, and collections. By UnClick.",
+  "version": "0.1.0",
+  "websiteUrl": "https://unclick.world",
+  "icons": [
+    {
+      "src": "https://unclick.world/favicon.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "source": "github",
+    "subfolder": "packages/standalone/bgg-mcp"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@unclick/bgg-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

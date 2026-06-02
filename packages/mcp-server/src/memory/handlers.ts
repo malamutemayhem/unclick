@@ -6,8 +6,9 @@
  * params object. Used by both direct MCP tools and the unclick_call meta-tool.
  */
 
-import { getBackend } from "./db.js";
+import { getBackend, getBackendCacheMetrics } from "./db.js";
 import {
+  buildCapabilityBriefing,
   buildToolGuidance,
   classifyTools,
   reportToolDetections,
@@ -557,9 +558,17 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       tool_guidance = buildToolGuidance(detections, nudgeable);
     }
 
+    // Inward capability awareness: tell the agent what UnClick can do at boot,
+    // so it routes real-world questions to an UnClick tool instead of web search.
+    const unclick_capabilities = buildCapabilityBriefing();
+
     if (!resolved) {
-      if (tool_guidance === undefined) return boundedContext;
-      return { ...(boundedContext as Record<string, unknown>), tool_guidance };
+      const base: Record<string, unknown> = {
+        ...(boundedContext as Record<string, unknown>),
+        unclick_capabilities,
+      };
+      if (tool_guidance !== undefined) base.tool_guidance = tool_guidance;
+      return base;
     }
 
     const scoped = filterContextByLayers(boundedContext, resolved.enabled_memory_layers);
@@ -578,6 +587,7 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       memory:
         scoped && typeof scoped === "object" ? scoped : { _raw: baseContext },
     };
+    result.unclick_capabilities = unclick_capabilities;
     if (tool_guidance !== undefined) result.tool_guidance = tool_guidance;
     return result;
   },
@@ -776,7 +786,15 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
 
   async memory_status() {
     const db = await getBackend();
-    return db.getMemoryStatus();
+    const status = await db.getMemoryStatus();
+    const statusObject =
+      status && typeof status === "object" && !Array.isArray(status)
+        ? status as Record<string, unknown>
+        : { status };
+    return {
+      ...statusObject,
+      backend_cache: getBackendCacheMetrics(),
+    };
   },
 
   async invalidate_fact(args) {

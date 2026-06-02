@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   SeoPassFindingSchema,
   SeoPassGeoPassAdapterSchema,
+  SeoPassReceiptSchema,
   SeoPassReportSchema,
 } from "../schema.js";
 
@@ -66,5 +67,36 @@ describe("SEOPass schema", () => {
     });
 
     expect(report.checks[0]?.findings).toEqual([]);
+  });
+
+  it("validates a live-readonly receipt envelope", () => {
+    const receipt = SeoPassReceiptSchema.parse({
+      kind: "seopass_receipt_v1",
+      status: "WARN",
+      run_id: "seopass-123",
+      target_url: "https://example.com/",
+      target_sha: "abc123",
+      generated_at: "2026-05-30T13:50:00.000Z",
+      mode: "live-readonly",
+      score: 72,
+      verdict: "needs-work",
+      checked: { total: 3, pass: 1, warn: 2, fail: 0 },
+      evidence_sources: [
+        {
+          kind: "sitemap",
+          label: "Sitemap",
+          source_url: "https://example.com/sitemap.xml",
+          summary: "2 URL(s) found.",
+        },
+      ],
+      action_needed: ["Add missing metadata."],
+      boundaries: [
+        "SEOPass reports public read-only search-readiness evidence only.",
+        "SEOPass does not guarantee rankings, indexing, AI Overview placement, or AI citations.",
+      ],
+    });
+
+    expect(receipt.kind).toBe("seopass_receipt_v1");
+    expect(receipt.target_sha).toBe("abc123");
   });
 });

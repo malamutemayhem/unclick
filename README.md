@@ -1,4 +1,4 @@
-# @unclick/mcp-server
+# UnClick MCP server
 
 **The app store for AI agents.** [unclick.world](https://unclick.world)
 
@@ -7,13 +7,13 @@
 
 ## Install
 
-**Using `npx` (no installation required):**
+**Using the latest GitHub release (no npm account required):**
 ```json
 {
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["@unclick/mcp-server"]
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz"]
     }
   }
 }
@@ -21,14 +21,46 @@
 
 Add this to your `claude_desktop_config.json` (or equivalent for Cursor, Windsurf, etc).
 
-**Or install globally:**
+**Or install globally from GitHub:**
 ```bash
-npm install -g @unclick/mcp-server
+npm install -g https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz
 ```
 
 ## Operational Notes
 
 This repo follows the AGENTS.md fence rules for agent work.
+
+## Run
+
+For local web development:
+
+```bash
+npm run dev
+```
+
+For the API workspace:
+
+```bash
+npm run dev:api
+```
+
+## Test
+
+Run the main test suite:
+
+```bash
+npm test
+```
+
+Run the production build check:
+
+```bash
+npm run build
+```
+
+## License
+
+This repository is licensed under the MIT License. See [LICENSE](./LICENSE).
 
 ## What it does
 
@@ -67,7 +99,7 @@ Or pass it via the MCP config:
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["@unclick/mcp-server"],
+      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz"],
       "env": {
         "UNCLICK_API_KEY": "your_key_here"
       }

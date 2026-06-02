@@ -630,6 +630,99 @@ import {
 } from "./datadog-tool.js";
 
 import {
+  hubspotListContacts, hubspotGetContact, hubspotSearchContacts,
+  hubspotListCompanies, hubspotListDeals, hubspotCreateContact,
+} from "./hubspot-tool.js";
+
+import {
+  jiraSearchIssues, jiraGetIssue, jiraListProjects,
+  jiraCreateIssue, jiraAddComment,
+} from "./jira-tool.js";
+
+import {
+  posthogListFeatureFlags, posthogListInsights, posthogListPersons, posthogQuery,
+} from "./posthog-tool.js";
+
+import {
+  netlifyListSites, netlifyGetSite, netlifyListDeploys, netlifyGetDeploy,
+} from "./netlify-tool.js";
+
+import { jobsmithCheck, jobsmithRules } from "./jobsmith-tool.js";
+
+import {
+  zendeskSearch, zendeskListTickets, zendeskGetTicket, zendeskAddComment,
+} from "./zendesk-tool.js";
+
+import {
+  intercomListConversations, intercomGetConversation, intercomListContacts, intercomSearchContacts,
+} from "./intercom-tool.js";
+
+import {
+  typeformListForms, typeformGetForm, typeformGetResponses,
+} from "./typeform-tool.js";
+
+import {
+  calcomMe, calcomListEventTypes, calcomListBookings,
+} from "./calcom-tool.js";
+
+import {
+  contentfulListEntries, contentfulGetEntry, contentfulListContentTypes, contentfulListAssets,
+} from "./contentful-tool.js";
+
+import {
+  webflowListSites, webflowGetSite, webflowListCollections, webflowListItems,
+} from "./webflow-tool.js";
+
+import {
+  doListDroplets, doListApps, doListDatabases, doAccount,
+} from "./digitalocean-tool.js";
+
+import {
+  klaviyoListLists, klaviyoListSegments, klaviyoListMetrics, klaviyoListProfiles,
+} from "./klaviyo-tool.js";
+
+import {
+  todoistListProjects, todoistListTasks, todoistCreateTask, todoistCompleteTask,
+} from "./todoist-tool.js";
+
+import {
+  pipedriveListDeals, pipedriveListPersons, pipedriveListOrganizations, pipedriveSearchDeals,
+} from "./pipedrive-tool.js";
+
+import {
+  confluenceSearch, confluenceGetPage, confluenceListSpaces,
+} from "./confluence-tool.js";
+
+import {
+  unsplashSearchPhotos, unsplashGetPhoto, unsplashRandomPhoto,
+} from "./unsplash-tool.js";
+
+import {
+  giphySearch, giphyTrending, giphyRandom,
+} from "./giphy-tool.js";
+
+import {
+  miroListBoards, miroGetBoard, miroListItems,
+} from "./miro-tool.js";
+
+import {
+  shortcutSearchStories, shortcutGetStory, shortcutListProjects, shortcutListEpics,
+} from "./shortcut-tool.js";
+
+import { codaListDocs, codaListTables, codaListRows } from "./coda-tool.js";
+import { brevoListContacts, brevoListCampaigns, brevoGetAccount } from "./brevo-tool.js";
+import { uptimerobotGetMonitors, uptimerobotGetAccount } from "./uptimerobot-tool.js";
+import { dropboxListFolder, dropboxSearch, dropboxGetAccount } from "./dropbox-tool.js";
+import { bitbucketListRepos, bitbucketGetRepo, bitbucketListPullRequests } from "./bitbucket-tool.js";
+import { cloudinaryListResources, cloudinaryGetUsage } from "./cloudinary-tool.js";
+import { wordpressListPosts, wordpressGetPost, wordpressListPages } from "./wordpress-tool.js";
+import { ghostListPosts, ghostListPages, ghostListTags } from "./ghost-tool.js";
+
+import {
+  wikipediaSearch, wikipediaSummary, wikipediaPage,
+} from "./wikipedia-tool.js";
+
+import {
   deeplTranslateText, deeplGetUsage, deeplListLanguages, deeplTranslateDocument,
 } from "./deepl-tool.js";
 
@@ -761,10 +854,13 @@ import {
 
 // ─── TestPass ─────────────────────────────────────────────────────────────────
 import {
+  testpassListPacks,
   testpassRun,
   testpassStatus,
   testpassSavePack,
   testpassEditItem,
+  testpassEvidence,
+  testpassFixList,
   testpassReportHtml,
   testpassReportJson,
   testpassReportMd,
@@ -772,11 +868,14 @@ import {
 
 // ─── LegalPass (issue-spotting guardrails) ───────────────────────────────────
 import {
+  legalpassEditItem,
   legalpassRun,
+  legalpassSavePack,
+  legalpassStatus,
   legalpassVerdict,
 } from "./legalpass-tool.js";
 
-// ─── UXPass (sister to TestPass, UI/UX QC) ───────────────────────────────────
+// ─── UXPass (sister to TestPass, journey/usability QC) ───────────────────────
 import {
   uxpassRun,
   uxpassStatus,
@@ -794,11 +893,66 @@ import {
   seopassLighthousePlan,
 } from "./seopass-tool.js";
 
+// --- GEOPass (AI answer-engine readiness QC, sister to SEOPass) -------------
+import {
+  geopassRun,
+  geopassStatus,
+} from "./geopass-tool.js";
+
+// ─── CompliancePass (public name for EnterprisePass readiness) ───────────────
+import {
+  compliancepassRun,
+  compliancepassStatus,
+  compliancepassReportJson,
+  compliancepassReportMd,
+} from "./compliancepass-tool.js";
+
+// ─── FlowPass (journey completion QC, sister to UXPass) ─────────────────────
+import {
+  flowpassDisagreementQueue,
+  flowpassQuarantine,
+  flowpassRecord,
+  flowpassRegisterPack,
+  flowpassReport,
+  flowpassRun,
+  flowpassStatus,
+} from "./flowpass-tool.js";
+
+// ─── SecurityPass (scope-gated security receipts) ───────────────────────────
+import {
+  securitypassDisclosureStatus,
+  securitypassFindingDetail,
+  securitypassRegisterPack,
+  securitypassReport,
+  securitypassRun,
+  securitypassStatus,
+  securitypassVerifyScope,
+} from "./securitypass-tool.js";
+
 // ─── CopyPass (copy quality QC, sister to SecurityPass) ─────────────────────
 import {
   copypassRun,
   copypassStatus,
 } from "./copypass-tool.js";
+
+// ─── SlopPass (AI-code quality and slop-signal QC) ─────────────────────────
+import { sloppassRun } from "./sloppass-tool.js";
+
+// --- FidelityCopy / FidelityPass (deterministic preserve-lane receipts) ------
+import {
+  fidelitycopyCopy,
+  fidelitypassVerifyCopy,
+} from "./fidelitycopy-tool.js";
+
+// --- CommonSensePass (worker sanity-gate verdicts) ---------------------------
+import {
+  commonsensepassCheckTool,
+  commonsensepassRulesTool,
+  COMMONSENSEPASS_CLAIM_KINDS,
+} from "./commonsensepass-tool.js";
+
+// --- XPass (conductor receipt across product checks) -------------------------
+import { xpassAggregatedVerdict } from "./xpass-aggregated-verdict-tool.js";
 
 // ─── Crews (Orchestrator Wizard) ──────────────────────────────────────────────
 import { crewsStartRun, crewsGetRun, crewsListRuns } from "./crews-tool.js";
@@ -1725,15 +1879,19 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "tab_race",
-    description: "Get TAB race details.",
+    description: "Get TAB race details. A race is addressed by its meeting date, meeting name, and race number (TAB has no single race id).",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        race_id: { type: "string" },
+        meeting_date: { type: "string", description: "Meeting date, YYYY-MM-DD" },
+        meeting_name: { type: "string", description: "Meeting name, e.g. Flemington" },
+        race_number: { type: "string", description: "Race number within the meeting" },
+        race_type: { type: "string", description: "R (thoroughbred), G (greyhound), or H (harness). Default R." },
+        jurisdiction: { type: "string", description: "State jurisdiction, e.g. VIC (default), NSW." },
         api_key: { type: "string" },
       },
-      required: ["race_id"],
+      required: ["meeting_date", "meeting_name", "race_number"],
     },
   },
   {
@@ -1817,18 +1975,20 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "ptv_departures",
-    description: "Get PTV departures for a stop.",
+    description: "Get PTV departures for a stop. In full UnClick, stop_id can be filled from saved Memory defaults.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        route_type: { type: "number", description: "0=train,1=tram,2=bus,3=vline,4=night" },
-        stop_id: { type: "number" },
+        route_type: { type: "number", description: "0=train, 1=tram, 2=bus, 3=vline, 4=night. Defaults to train." },
+        stop_id: { type: "number", description: "PTV stop ID. Optional when a saved UnClick Memory default exists." },
         route_id: { type: "number" },
-        max_results: { type: "number" },
+        direction_id: { type: "number" },
+        max_results: { type: "number", description: "Defaults to 5, maximum 20." },
+        look_backwards: { type: "boolean" },
+        include_cancelled: { type: "boolean" },
         api_key: { type: "string" },
       },
-      required: ["route_type", "stop_id"],
     },
   },
   {
@@ -2531,20 +2691,18 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "usgs_earthquakes_by_region",
-    description: "Get USGS earthquakes within a geographic region.",
+    description: "Get recent USGS earthquakes within a radius of a point (latitude/longitude).",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        minlatitude: { type: "number" },
-        maxlatitude: { type: "number" },
-        minlongitude: { type: "number" },
-        maxlongitude: { type: "number" },
-        minmagnitude: { type: "number" },
-        starttime: { type: "string" },
-        endtime: { type: "string" },
+        lat: { type: "number", description: "Centre latitude" },
+        lon: { type: "number", description: "Centre longitude" },
+        radius: { type: "number", description: "Search radius in km (default 500)" },
+        min_magnitude: { type: "number", description: "Minimum magnitude" },
+        limit: { type: "number", description: "Max results (default 20, max 500)" },
       },
-      required: ["minlatitude", "maxlatitude", "minlongitude", "maxlongitude"],
+      required: ["lat", "lon"],
     },
   },
 
@@ -3418,16 +3576,15 @@ export const ADDITIONAL_TOOLS = [
   // ── color-tool.ts ────────────────────────────────────────────────────────────
   {
     name: "color_convert",
-    description: "Convert a color between HEX, RGB, HSL, and other formats.",
+    description: "Convert a color from one format into ALL other formats (HEX, RGB, HSL, HSV, CMYK) at once.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        color: { type: "string" },
-        from: { type: "string" },
-        to: { type: "string" },
+        color: { type: "string", description: "The color value, e.g. #ff0000 or rgb(255,0,0)" },
+        from: { type: "string", description: "Source format: hex, rgb, hsl, hsv, or cmyk" },
       },
-      required: ["color", "from", "to"],
+      required: ["color", "from"],
     },
   },
   {
@@ -4777,20 +4934,21 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "eventbrite_create_event",
-    description: "Create an event on Eventbrite.",
+    description: "Create an event on Eventbrite under an organization.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        name: { type: "string" },
-        start_utc: { type: "string" },
-        end_utc: { type: "string" },
-        timezone: { type: "string" },
-        currency: { type: "string" },
-        organizer_id: { type: "string" },
+        name: { type: "string", description: "Event name/title" },
+        organization_id: { type: "string", description: "Eventbrite organization id that will own the event" },
+        start_utc: { type: "string", description: "Start time in UTC, e.g. 2026-07-01T19:00:00Z" },
+        end_utc: { type: "string", description: "End time in UTC, e.g. 2026-07-01T21:00:00Z" },
+        timezone: { type: "string", description: "IANA timezone, e.g. America/New_York" },
+        currency: { type: "string", description: "ISO currency code, e.g. USD" },
+        venue_id: { type: "string" },
         api_key: { type: "string" },
       },
-      required: ["name", "start_utc", "end_utc", "timezone"],
+      required: ["name", "organization_id", "start_utc", "end_utc", "timezone", "currency"],
     },
   },
   {
@@ -6133,30 +6291,30 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "twitch_channel_info",
-    description: "Get information about a Twitch channel.",
+    description: "Get information about a Twitch channel by its login name.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        broadcaster_id: { type: "string" },
+        channel: { type: "string", description: "Twitch channel login name, e.g. 'shroud'" },
         client_id: { type: "string" },
         client_secret: { type: "string" },
       },
-      required: ["broadcaster_id"],
+      required: ["channel"],
     },
   },
   {
     name: "twitch_schedule",
-    description: "Get a Twitch channel's streaming schedule.",
+    description: "Get a Twitch channel's streaming schedule by its login name.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        broadcaster_id: { type: "string" },
+        channel: { type: "string", description: "Twitch channel login name, e.g. 'shroud'" },
         client_id: { type: "string" },
         client_secret: { type: "string" },
       },
-      required: ["broadcaster_id"],
+      required: ["channel"],
     },
   },
 
@@ -6218,13 +6376,13 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        access_token: { type: "string" },
-        q: { type: "string" },
-        subreddit: { type: "string" },
-        sort: { type: "string" },
-        limit: { type: "number" },
+        access_token: { type: "string", description: "Reddit OAuth bearer token" },
+        query: { type: "string", description: "Search query" },
+        subreddit: { type: "string", description: "Limit to a subreddit" },
+        sort: { type: "string", description: "relevance, hot, top, new, or comments" },
+        limit: { type: "number", description: "Results to return" },
       },
-      required: ["access_token", "q"],
+      required: ["access_token", "query"],
     },
   },
   {
@@ -9363,6 +9521,1140 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // ── hubspot-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "hubspot_list_contacts",
+    description: "List HubSpot CRM contacts (most recently created first).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        limit: { type: "number", description: "Contacts to return (max 100, default 25)" },
+        after: { type: "string", description: "Pagination cursor from a previous response" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "hubspot_get_contact",
+    description: "Get a single HubSpot contact by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        contact_id: { type: "string", description: "HubSpot contact id" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token", "contact_id"],
+    },
+  },
+  {
+    name: "hubspot_search_contacts",
+    description: "Search HubSpot contacts by name, email, or company.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        query: { type: "string", description: "Search term (name, email, or company)" },
+        limit: { type: "number", description: "Results to return (max 100, default 25)" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token", "query"],
+    },
+  },
+  {
+    name: "hubspot_list_companies",
+    description: "List HubSpot CRM companies.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        limit: { type: "number", description: "Companies to return (max 100, default 25)" },
+        after: { type: "string", description: "Pagination cursor from a previous response" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "hubspot_list_deals",
+    description: "List HubSpot CRM deals.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        limit: { type: "number", description: "Deals to return (max 100, default 25)" },
+        after: { type: "string", description: "Pagination cursor from a previous response" },
+        properties: { type: "string", description: "Comma-separated properties to return" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "hubspot_create_contact",
+    description: "Create a HubSpot contact.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "HubSpot Private App access token" },
+        email: { type: "string", description: "Contact email address" },
+        properties: { type: "object", description: "Additional contact properties (firstname, lastname, company, phone, ...)" },
+      },
+      required: ["access_token"],
+    },
+  },
+
+  // ── jira-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "jira_search_issues",
+    description: "Search Jira issues with JQL (defaults to most recently updated).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany or mycompany.atlassian.net)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        jql: { type: "string", description: "JQL query (e.g. 'project = ENG AND status = \"In Progress\"')" },
+        max_results: { type: "number", description: "Issues to return (max 100, default 25)" },
+        fields: { type: "string", description: "Comma-separated fields to return" },
+      },
+      required: ["site", "email", "api_token"],
+    },
+  },
+  {
+    name: "jira_get_issue",
+    description: "Get a single Jira issue by key, including description and comments.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        issue_key: { type: "string", description: "Issue key (e.g. ENG-123)" },
+      },
+      required: ["site", "email", "api_token", "issue_key"],
+    },
+  },
+  {
+    name: "jira_list_projects",
+    description: "List Jira projects, with an optional name query.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        query: { type: "string", description: "Filter projects by name or key" },
+        max_results: { type: "number", description: "Projects to return (max 100, default 50)" },
+      },
+      required: ["site", "email", "api_token"],
+    },
+  },
+  {
+    name: "jira_create_issue",
+    description: "Create a Jira issue. project_key can be filled from a saved memory default.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        project_key: { type: "string", description: "Project key (e.g. ENG). Can be a saved default." },
+        summary: { type: "string", description: "Issue summary / title" },
+        issue_type: { type: "string", description: "Issue type name (default Task)" },
+        description: { type: "string", description: "Plain-text description" },
+      },
+      required: ["site", "email", "api_token", "summary"],
+    },
+  },
+  {
+    name: "jira_add_comment",
+    description: "Add a comment to a Jira issue.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        site: { type: "string", description: "Jira site (e.g. mycompany)" },
+        email: { type: "string", description: "Atlassian account email" },
+        api_token: { type: "string", description: "Atlassian API token" },
+        issue_key: { type: "string", description: "Issue key (e.g. ENG-123)" },
+        body: { type: "string", description: "Comment text" },
+      },
+      required: ["site", "email", "api_token", "issue_key", "body"],
+    },
+  },
+
+  // ── jobsmith-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "jobsmith_check",
+    description: "Run JobSmith's CV / cover-letter quality rules over a piece of text. No key needed.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        text: { type: "string", description: "The CV or cover-letter text to check" },
+      },
+      required: ["text"],
+    },
+  },
+  {
+    name: "jobsmith_rules",
+    description: "Browse JobSmith's rule pack (counts by category and severity), optionally filtered by category.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        category: { type: "string", description: "Filter to one category (e.g. ATS, TRUTH, VOICE, PRIVACY)" },
+      },
+      required: [],
+    },
+  },
+
+  // ── contentful-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "contentful_list_entries",
+    description: "List Contentful entries, optionally filtered by content_type or full-text query.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+        content_type: { type: "string", description: "Filter to one content type id" },
+        query: { type: "string", description: "Full-text search query" },
+        limit: { type: "number", description: "Entries to return (max 100, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "contentful_get_entry",
+    description: "Get a single Contentful entry by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+        entry_id: { type: "string", description: "Entry id" },
+      },
+      required: ["access_token", "entry_id"],
+    },
+  },
+  {
+    name: "contentful_list_content_types",
+    description: "List Contentful content types (the content model).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "contentful_list_assets",
+    description: "List Contentful media assets.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Contentful Content Delivery API token" },
+        space_id: { type: "string", description: "Contentful space id (can be a saved default)" },
+        environment: { type: "string", description: "Environment (default master)" },
+        limit: { type: "number", description: "Assets to return (max 100, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+
+  // ── webflow-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "webflow_list_sites",
+    description: "List Webflow sites for the account.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "webflow_get_site",
+    description: "Get a single Webflow site by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+        site_id: { type: "string", description: "Webflow site id (can be a saved default)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "webflow_list_collections",
+    description: "List CMS collections for a Webflow site.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+        site_id: { type: "string", description: "Webflow site id (can be a saved default)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "webflow_list_items",
+    description: "List items in a Webflow CMS collection.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Webflow API token" },
+        collection_id: { type: "string", description: "Webflow collection id" },
+        limit: { type: "number", description: "Items to return (max 100, default 25)" },
+        offset: { type: "number", description: "Pagination offset" },
+      },
+      required: ["access_token", "collection_id"],
+    },
+  },
+
+  // ── digitalocean-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "do_list_droplets",
+    description: "List DigitalOcean droplets (signals when any are powered off).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+        tag_name: { type: "string", description: "Filter droplets by tag" },
+        limit: { type: "number", description: "Droplets to return (max 200, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "do_list_apps",
+    description: "List DigitalOcean App Platform apps.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+        limit: { type: "number", description: "Apps to return (max 200, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "do_list_databases",
+    description: "List DigitalOcean managed database clusters.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "do_account",
+    description: "Get the DigitalOcean account profile and limits.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "DigitalOcean personal access token" },
+      },
+      required: ["access_token"],
+    },
+  },
+
+  // ── klaviyo-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "klaviyo_list_lists",
+    description: "List Klaviyo lists.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "klaviyo_list_segments",
+    description: "List Klaviyo segments (dynamic groups).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "klaviyo_list_metrics",
+    description: "List Klaviyo metrics (tracked events).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "klaviyo_list_profiles",
+    description: "List Klaviyo profiles (subscribers).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Klaviyo private API key" },
+        filter: { type: "string", description: "Klaviyo filter expression (e.g. equals(email,'a@b.com'))" },
+        limit: { type: "number", description: "Profiles to return (max 100, default 20)" },
+      },
+      required: ["api_key"],
+    },
+  },
+
+  // ── todoist-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "todoist_list_projects",
+    description: "List your Todoist projects.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Todoist API token" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "todoist_list_tasks",
+    description: "List active Todoist tasks, optionally by project or filter.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Todoist API token" },
+      project_id: { type: "string", description: "Limit to one project id" },
+      filter: { type: "string", description: "Todoist filter query (e.g. 'today', 'overdue')" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "todoist_create_task",
+    description: "Create a Todoist task.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Todoist API token" },
+      content: { type: "string", description: "The task text" },
+      project_id: { type: "string", description: "Project id to add the task to" },
+      due_string: { type: "string", description: "Natural-language due date (e.g. 'tomorrow 5pm')" },
+      priority: { type: "number", minimum: 1, maximum: 4, description: "Priority 1 (normal) to 4 (urgent)" },
+    }, required: ["api_token", "content"] },
+  },
+  {
+    name: "todoist_complete_task",
+    description: "Complete (close) a Todoist task by id.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Todoist API token" },
+      task_id: { type: "string", description: "Task id to close" },
+    }, required: ["api_token", "task_id"] },
+  },
+
+  // ── pipedrive-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "pipedrive_list_deals",
+    description: "List Pipedrive deals.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Pipedrive API token" },
+      status: { type: "string", description: "Filter by status (open, won, lost, deleted, all_not_deleted)" },
+      limit: { type: "number", description: "Deals to return (max 100, default 25)" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "pipedrive_list_persons",
+    description: "List Pipedrive persons (contacts).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Pipedrive API token" },
+      limit: { type: "number", description: "Persons to return (max 100, default 25)" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "pipedrive_list_organizations",
+    description: "List Pipedrive organizations (companies).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Pipedrive API token" },
+      limit: { type: "number", description: "Organizations to return (max 100, default 25)" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "pipedrive_search_deals",
+    description: "Search Pipedrive deals by term.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Pipedrive API token" },
+      term: { type: "string", description: "Search term (deal title or keyword)" },
+      limit: { type: "number", description: "Results to return (max 100, default 25)" },
+    }, required: ["api_token", "term"] },
+  },
+
+  // ── confluence-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "confluence_search",
+    description: "Search Confluence pages by text.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      site: { type: "string", description: "Atlassian site (e.g. mycompany)" },
+      email: { type: "string", description: "Atlassian account email" },
+      api_token: { type: "string", description: "Atlassian API token" },
+      query: { type: "string", description: "Text to search for" },
+      limit: { type: "number", description: "Results to return (max 50, default 25)" },
+    }, required: ["site", "email", "api_token", "query"] },
+  },
+  {
+    name: "confluence_get_page",
+    description: "Get a Confluence page by id, including its body.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      site: { type: "string", description: "Atlassian site (e.g. mycompany)" },
+      email: { type: "string", description: "Atlassian account email" },
+      api_token: { type: "string", description: "Atlassian API token" },
+      page_id: { type: "string", description: "Confluence content/page id" },
+    }, required: ["site", "email", "api_token", "page_id"] },
+  },
+  {
+    name: "confluence_list_spaces",
+    description: "List Confluence spaces.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      site: { type: "string", description: "Atlassian site (e.g. mycompany)" },
+      email: { type: "string", description: "Atlassian account email" },
+      api_token: { type: "string", description: "Atlassian API token" },
+      limit: { type: "number", description: "Spaces to return (max 100, default 50)" },
+    }, required: ["site", "email", "api_token"] },
+  },
+
+  // ── unsplash-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "unsplash_search_photos",
+    description: "Search Unsplash photos.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_key: { type: "string", description: "Unsplash Access Key" },
+      query: { type: "string", description: "What to search for" },
+      per_page: { type: "number", description: "Photos to return (max 30, default 10)" },
+      orientation: { type: "string", enum: ["landscape", "portrait", "squarish"], description: "Filter by orientation" },
+    }, required: ["access_key", "query"] },
+  },
+  {
+    name: "unsplash_get_photo",
+    description: "Get a single Unsplash photo by id (URLs + attribution).",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_key: { type: "string", description: "Unsplash Access Key" },
+      photo_id: { type: "string", description: "Unsplash photo id" },
+    }, required: ["access_key", "photo_id"] },
+  },
+  {
+    name: "unsplash_random_photo",
+    description: "Get a random Unsplash photo, optionally matching a query.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_key: { type: "string", description: "Unsplash Access Key" },
+      query: { type: "string", description: "Optional topic to match" },
+      orientation: { type: "string", enum: ["landscape", "portrait", "squarish"], description: "Filter by orientation" },
+    }, required: ["access_key"] },
+  },
+
+  // ── giphy-tool.ts ─────────────────────────────────────────────────────────────
+  {
+    name: "giphy_search",
+    description: "Search Giphy for GIFs.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_key: { type: "string", description: "Giphy API key" },
+      query: { type: "string", description: "What GIF to search for" },
+      limit: { type: "number", description: "GIFs to return (max 50, default 10)" },
+      rating: { type: "string", enum: ["g", "pg", "pg-13", "r"], description: "Content rating cap" },
+    }, required: ["api_key", "query"] },
+  },
+  {
+    name: "giphy_trending",
+    description: "Get trending GIFs from Giphy.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_key: { type: "string", description: "Giphy API key" },
+      limit: { type: "number", description: "GIFs to return (max 50, default 10)" },
+      rating: { type: "string", enum: ["g", "pg", "pg-13", "r"], description: "Content rating cap" },
+    }, required: ["api_key"] },
+  },
+  {
+    name: "giphy_random",
+    description: "Get a random GIF from Giphy, optionally by tag.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_key: { type: "string", description: "Giphy API key" },
+      tag: { type: "string", description: "Optional tag to match" },
+      rating: { type: "string", enum: ["g", "pg", "pg-13", "r"], description: "Content rating cap" },
+    }, required: ["api_key"] },
+  },
+
+  // ── miro-tool.ts ──────────────────────────────────────────────────────────────
+  {
+    name: "miro_list_boards",
+    description: "List Miro boards.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_token: { type: "string", description: "Miro access token" },
+      query: { type: "string", description: "Filter boards by name" },
+      limit: { type: "number", description: "Boards to return (max 50, default 25)" },
+    }, required: ["access_token"] },
+  },
+  {
+    name: "miro_get_board",
+    description: "Get a single Miro board by id.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_token: { type: "string", description: "Miro access token" },
+      board_id: { type: "string", description: "Miro board id" },
+    }, required: ["access_token", "board_id"] },
+  },
+  {
+    name: "miro_list_items",
+    description: "List the items (notes, shapes, text) on a Miro board.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      access_token: { type: "string", description: "Miro access token" },
+      board_id: { type: "string", description: "Miro board id" },
+      type: { type: "string", description: "Filter by item type (e.g. sticky_note, shape, text)" },
+      limit: { type: "number", description: "Items to return (max 50, default 25)" },
+    }, required: ["access_token", "board_id"] },
+  },
+
+  // ── shortcut-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "shortcut_search_stories",
+    description: "Search Shortcut stories with the search syntax.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Shortcut API token" },
+      query: { type: "string", description: "Search query (e.g. 'state:\"In Progress\" owner:me')" },
+      limit: { type: "number", description: "Results to return (max 25, default 25)" },
+    }, required: ["api_token", "query"] },
+  },
+  {
+    name: "shortcut_get_story",
+    description: "Get a single Shortcut story by id.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Shortcut API token" },
+      story_id: { type: "string", description: "Shortcut story id" },
+    }, required: ["api_token", "story_id"] },
+  },
+  {
+    name: "shortcut_list_projects",
+    description: "List Shortcut projects.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Shortcut API token" },
+    }, required: ["api_token"] },
+  },
+  {
+    name: "shortcut_list_epics",
+    description: "List Shortcut epics.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      api_token: { type: "string", description: "Shortcut API token" },
+    }, required: ["api_token"] },
+  },
+
+  // ── wikipedia-tool.ts ─────────────────────────────────────────────────────────
+  {
+    name: "wikipedia_search",
+    description: "Search Wikipedia article titles. No key needed.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      query: { type: "string", description: "What to search for" },
+      lang: { type: "string", description: "Wikipedia language code (default en)" },
+      limit: { type: "number", description: "Results to return (max 50, default 10)" },
+    }, required: ["query"] },
+  },
+  {
+    name: "wikipedia_summary",
+    description: "Get a short Wikipedia summary for a page title. No key needed.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      title: { type: "string", description: "Exact page title" },
+      lang: { type: "string", description: "Wikipedia language code (default en)" },
+    }, required: ["title"] },
+  },
+  {
+    name: "wikipedia_page",
+    description: "Get the full plain-text Wikipedia article for a title. No key needed.",
+    inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+      title: { type: "string", description: "Exact page title" },
+      lang: { type: "string", description: "Wikipedia language code (default en)" },
+    }, required: ["title"] },
+  },
+
+  // ── coda-tool.ts ──────────────────────────────────────────────────────────────
+  { name: "coda_list_docs", description: "List your Coda docs.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_token: { type: "string", description: "Coda API token" },
+    query: { type: "string", description: "Filter docs by name" },
+    limit: { type: "number", description: "Docs to return (max 100, default 25)" },
+  }, required: ["api_token"] } },
+  { name: "coda_list_tables", description: "List the tables in a Coda doc.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_token: { type: "string", description: "Coda API token" },
+    doc_id: { type: "string", description: "Coda doc id" },
+  }, required: ["api_token", "doc_id"] } },
+  { name: "coda_list_rows", description: "List rows in a Coda table.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_token: { type: "string", description: "Coda API token" },
+    doc_id: { type: "string", description: "Coda doc id" },
+    table_id: { type: "string", description: "Coda table id or name" },
+    limit: { type: "number", description: "Rows to return (max 200, default 25)" },
+  }, required: ["api_token", "doc_id", "table_id"] } },
+
+  // ── brevo-tool.ts ─────────────────────────────────────────────────────────────
+  { name: "brevo_list_contacts", description: "List Brevo contacts.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_key: { type: "string", description: "Brevo API key" },
+    limit: { type: "number", description: "Contacts to return (max 1000, default 50)" },
+    offset: { type: "number", description: "Pagination offset" },
+  }, required: ["api_key"] } },
+  { name: "brevo_list_campaigns", description: "List Brevo email campaigns.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_key: { type: "string", description: "Brevo API key" },
+    status: { type: "string", description: "Filter by status (sent, draft, queued, ...)" },
+    limit: { type: "number", description: "Campaigns to return (max 100, default 25)" },
+  }, required: ["api_key"] } },
+  { name: "brevo_get_account", description: "Get the Brevo account profile and plan.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_key: { type: "string", description: "Brevo API key" },
+  }, required: ["api_key"] } },
+
+  // ── uptimerobot-tool.ts ───────────────────────────────────────────────────────
+  { name: "uptimerobot_get_monitors", description: "List UptimeRobot monitors (signals when any are DOWN).", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_key: { type: "string", description: "UptimeRobot API key" },
+    search: { type: "string", description: "Filter monitors by name or URL" },
+  }, required: ["api_key"] } },
+  { name: "uptimerobot_get_account", description: "Get UptimeRobot account details and limits.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    api_key: { type: "string", description: "UptimeRobot API key" },
+  }, required: ["api_key"] } },
+
+  // ── dropbox-tool.ts ───────────────────────────────────────────────────────────
+  { name: "dropbox_list_folder", description: "List files and folders in a Dropbox path (empty path = root).", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "Dropbox access token" },
+    path: { type: "string", description: "Folder path (empty string for root)" },
+    limit: { type: "number", description: "Entries to return (max 2000, default 100)" },
+  }, required: ["access_token"] } },
+  { name: "dropbox_search", description: "Search Dropbox for files and folders by name.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "Dropbox access token" },
+    query: { type: "string", description: "File or folder name to search for" },
+    limit: { type: "number", description: "Results to return (max 1000, default 25)" },
+  }, required: ["access_token", "query"] } },
+  { name: "dropbox_get_account", description: "Get the current Dropbox account profile.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    access_token: { type: "string", description: "Dropbox access token" },
+  }, required: ["access_token"] } },
+
+  // ── bitbucket-tool.ts ─────────────────────────────────────────────────────────
+  { name: "bitbucket_list_repos", description: "List Bitbucket repositories in a workspace.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    username: { type: "string", description: "Bitbucket username" },
+    app_password: { type: "string", description: "Bitbucket app password" },
+    workspace: { type: "string", description: "Workspace id" },
+    limit: { type: "number", description: "Repos to return (max 100, default 25)" },
+  }, required: ["username", "app_password", "workspace"] } },
+  { name: "bitbucket_get_repo", description: "Get a single Bitbucket repository.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    username: { type: "string", description: "Bitbucket username" },
+    app_password: { type: "string", description: "Bitbucket app password" },
+    workspace: { type: "string", description: "Workspace id" },
+    repo: { type: "string", description: "Repository slug" },
+  }, required: ["username", "app_password", "workspace", "repo"] } },
+  { name: "bitbucket_list_pull_requests", description: "List pull requests for a Bitbucket repository.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    username: { type: "string", description: "Bitbucket username" },
+    app_password: { type: "string", description: "Bitbucket app password" },
+    workspace: { type: "string", description: "Workspace id" },
+    repo: { type: "string", description: "Repository slug" },
+    state: { type: "string", enum: ["OPEN", "MERGED", "DECLINED", "SUPERSEDED"], description: "Filter by PR state" },
+    limit: { type: "number", description: "PRs to return (max 50, default 25)" },
+  }, required: ["username", "app_password", "workspace", "repo"] } },
+
+  // ── cloudinary-tool.ts ────────────────────────────────────────────────────────
+  { name: "cloudinary_list_resources", description: "List Cloudinary media resources.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    cloud_name: { type: "string", description: "Cloudinary cloud name" },
+    api_key: { type: "string", description: "Cloudinary API key" },
+    api_secret: { type: "string", description: "Cloudinary API secret" },
+    resource_type: { type: "string", description: "image (default), video, or raw" },
+    prefix: { type: "string", description: "Filter by public_id prefix / folder" },
+    limit: { type: "number", description: "Resources to return (max 100, default 25)" },
+  }, required: ["cloud_name", "api_key", "api_secret"] } },
+  { name: "cloudinary_get_usage", description: "Get Cloudinary usage and quota.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    cloud_name: { type: "string", description: "Cloudinary cloud name" },
+    api_key: { type: "string", description: "Cloudinary API key" },
+    api_secret: { type: "string", description: "Cloudinary API secret" },
+  }, required: ["cloud_name", "api_key", "api_secret"] } },
+
+  // ── wordpress-tool.ts ─────────────────────────────────────────────────────────
+  { name: "wordpress_list_posts", description: "List WordPress posts, optionally by search term.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "WordPress site URL" },
+    username: { type: "string", description: "WordPress username" },
+    app_password: { type: "string", description: "WordPress application password" },
+    search: { type: "string", description: "Search term" },
+    status: { type: "string", description: "Filter by status (publish, draft, ...)" },
+    limit: { type: "number", description: "Posts to return (max 100, default 10)" },
+  }, required: ["site_url", "username", "app_password"] } },
+  { name: "wordpress_get_post", description: "Get a single WordPress post by id.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "WordPress site URL" },
+    username: { type: "string", description: "WordPress username" },
+    app_password: { type: "string", description: "WordPress application password" },
+    post_id: { type: "string", description: "Post id" },
+  }, required: ["site_url", "username", "app_password", "post_id"] } },
+  { name: "wordpress_list_pages", description: "List WordPress pages.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "WordPress site URL" },
+    username: { type: "string", description: "WordPress username" },
+    app_password: { type: "string", description: "WordPress application password" },
+    search: { type: "string", description: "Search term" },
+    limit: { type: "number", description: "Pages to return (max 100, default 10)" },
+  }, required: ["site_url", "username", "app_password"] } },
+
+  // ── ghost-tool.ts ─────────────────────────────────────────────────────────────
+  { name: "ghost_list_posts", description: "List published Ghost posts.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "Ghost site URL" },
+    content_key: { type: "string", description: "Ghost Content API key" },
+    filter: { type: "string", description: "Ghost filter (e.g. tag:news)" },
+    limit: { type: "number", description: "Posts to return (max 100, default 15)" },
+  }, required: ["site_url", "content_key"] } },
+  { name: "ghost_list_pages", description: "List Ghost pages.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "Ghost site URL" },
+    content_key: { type: "string", description: "Ghost Content API key" },
+    limit: { type: "number", description: "Pages to return (max 100, default 15)" },
+  }, required: ["site_url", "content_key"] } },
+  { name: "ghost_list_tags", description: "List Ghost tags.", inputSchema: { type: "object" as const, additionalProperties: false, properties: {
+    site_url: { type: "string", description: "Ghost site URL" },
+    content_key: { type: "string", description: "Ghost Content API key" },
+    limit: { type: "number", description: "Tags to return (max 100, default 50)" },
+  }, required: ["site_url", "content_key"] } },
+
+  // ── zendesk-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "zendesk_search",
+    description: "Search Zendesk with the query DSL (e.g. 'type:ticket status:open priority:urgent').",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain (e.g. mycompany)" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        query: { type: "string", description: "Zendesk search query" },
+      },
+      required: ["subdomain", "email", "api_token", "query"],
+    },
+  },
+  {
+    name: "zendesk_list_tickets",
+    description: "List recent Zendesk tickets (signals when any are still new).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        sort_by: { type: "string", description: "Sort field (e.g. created_at, updated_at)" },
+        limit: { type: "number", description: "Tickets to return (max 100, default 25)" },
+      },
+      required: ["subdomain", "email", "api_token"],
+    },
+  },
+  {
+    name: "zendesk_get_ticket",
+    description: "Get a single Zendesk ticket by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        ticket_id: { type: "string", description: "Ticket id" },
+      },
+      required: ["subdomain", "email", "api_token", "ticket_id"],
+    },
+  },
+  {
+    name: "zendesk_add_comment",
+    description: "Add a public or internal comment to a Zendesk ticket.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        subdomain: { type: "string", description: "Zendesk subdomain" },
+        email: { type: "string", description: "Agent email address" },
+        api_token: { type: "string", description: "Zendesk API token" },
+        ticket_id: { type: "string", description: "Ticket id" },
+        body: { type: "string", description: "Comment text" },
+        public: { type: "boolean", description: "Public reply (default true) or internal note (false)" },
+      },
+      required: ["subdomain", "email", "api_token", "ticket_id", "body"],
+    },
+  },
+
+  // ── intercom-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "intercom_list_conversations",
+    description: "List recent Intercom conversations.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        limit: { type: "number", description: "Conversations to return (max 150, default 20)" },
+        starting_after: { type: "string", description: "Pagination cursor from a previous response" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "intercom_get_conversation",
+    description: "Get a single Intercom conversation by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        conversation_id: { type: "string", description: "Conversation id" },
+      },
+      required: ["access_token", "conversation_id"],
+    },
+  },
+  {
+    name: "intercom_list_contacts",
+    description: "List Intercom contacts.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        limit: { type: "number", description: "Contacts to return (max 150, default 25)" },
+        starting_after: { type: "string", description: "Pagination cursor from a previous response" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "intercom_search_contacts",
+    description: "Search Intercom contacts by email.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Intercom access token" },
+        query: { type: "string", description: "Email (or partial email) to match" },
+      },
+      required: ["access_token", "query"],
+    },
+  },
+
+  // ── typeform-tool.ts ──────────────────────────────────────────────────────────
+  {
+    name: "typeform_list_forms",
+    description: "List your Typeform forms.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Typeform personal access token" },
+        search: { type: "string", description: "Filter forms by title" },
+        limit: { type: "number", description: "Forms to return (max 200, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "typeform_get_form",
+    description: "Get a Typeform form definition (fields and titles) by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Typeform personal access token" },
+        form_id: { type: "string", description: "Form id" },
+      },
+      required: ["access_token", "form_id"],
+    },
+  },
+  {
+    name: "typeform_get_responses",
+    description: "Get submissions for a Typeform form.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Typeform personal access token" },
+        form_id: { type: "string", description: "Form id" },
+        since: { type: "string", description: "ISO 8601 lower bound on submission time" },
+        limit: { type: "number", description: "Responses to return (max 1000, default 25)" },
+      },
+      required: ["access_token", "form_id"],
+    },
+  },
+
+  // ── calcom-tool.ts ────────────────────────────────────────────────────────────
+  {
+    name: "calcom_me",
+    description: "Get the authenticated Cal.com user's profile.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Cal.com API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "calcom_list_event_types",
+    description: "List your Cal.com bookable event (meeting) types.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Cal.com API key" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "calcom_list_bookings",
+    description: "List Cal.com bookings, optionally filtered by status.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "Cal.com API key" },
+        status: { type: "string", description: "Filter by status (upcoming, past, cancelled, ...)" },
+      },
+      required: ["api_key"],
+    },
+  },
+
+  // ── posthog-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "posthog_list_feature_flags",
+    description: "List PostHog feature flags for a project.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "posthog_list_insights",
+    description: "List saved PostHog insights (charts) for a project.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+        search: { type: "string", description: "Filter insights by name" },
+        limit: { type: "number", description: "Results to return (max 100, default 25)" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "posthog_list_persons",
+    description: "List PostHog persons (users) for a project.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+        search: { type: "string", description: "Filter persons by email or properties" },
+        limit: { type: "number", description: "Results to return (max 100, default 25)" },
+      },
+      required: ["api_key"],
+    },
+  },
+  {
+    name: "posthog_query",
+    description: "Run an ad-hoc HogQL (SQL) query against a PostHog project's events.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        api_key: { type: "string", description: "PostHog Personal API key" },
+        project_id: { type: "string", description: "PostHog project id (can be a saved default)" },
+        host: { type: "string", description: "PostHog host (default https://us.posthog.com)" },
+        query: { type: "string", description: "HogQL/SQL query (e.g. select count() from events)" },
+      },
+      required: ["api_key", "query"],
+    },
+  },
+
+  // ── netlify-tool.ts ───────────────────────────────────────────────────────────
+  {
+    name: "netlify_list_sites",
+    description: "List Netlify sites for the account.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        name: { type: "string", description: "Filter sites by name" },
+        limit: { type: "number", description: "Sites to return (max 100, default 25)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "netlify_get_site",
+    description: "Get a single Netlify site by id.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        site_id: { type: "string", description: "Netlify site id (can be a saved default)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "netlify_list_deploys",
+    description: "List recent deploys for a Netlify site (signals when the latest deploy failed).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        site_id: { type: "string", description: "Netlify site id (can be a saved default)" },
+        limit: { type: "number", description: "Deploys to return (max 100, default 10)" },
+      },
+      required: ["access_token"],
+    },
+  },
+  {
+    name: "netlify_get_deploy",
+    description: "Get a single Netlify deploy by id (including build logs metadata).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Netlify personal access token" },
+        deploy_id: { type: "string", description: "Netlify deploy id" },
+      },
+      required: ["access_token", "deploy_id"],
+    },
+  },
+
   // ── deepl-tool.ts ─────────────────────────────────────────────────────────────
   {
     name: "deepl_translate_text",
@@ -9605,6 +10897,8 @@ export const ADDITIONAL_TOOLS = [
         created_at: { type: "string", description: "Optional ISO timestamp for the source handoff or request." },
         now: { type: "string", description: "Optional ISO timestamp used for deterministic TTL checks." },
         ttl_minutes: { type: "number", description: "Minutes before missing ACK/proof becomes an escalation request. Default: 60." },
+        owner_last_seen_at: { type: "string", description: "Optional ISO timestamp for the current owner's last real check-in. Past TTL is treated as an expired ownership lease." },
+        owner_silent_minutes: { type: "number", description: "Optional owner silence age in minutes. Past TTL is treated as an expired ownership lease." },
         nudge_trace_id: { type: "string", description: "Optional trace_id from nudgeonly_api." },
       },
     },
@@ -10129,9 +11423,9 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        api_key: { type: "string", description: "Gumroad access token" },
+        access_token: { type: "string", description: "Gumroad access token" },
       },
-      required: ["api_key"],
+      required: ["access_token"],
     },
   },
   {
@@ -10141,10 +11435,10 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        api_key: { type: "string", description: "Gumroad access token" },
+        access_token: { type: "string", description: "Gumroad access token" },
         product_id: { type: "string", description: "Product ID (permalink)" },
       },
-      required: ["api_key", "product_id"],
+      required: ["access_token", "product_id"],
     },
   },
   {
@@ -10154,14 +11448,14 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        api_key: { type: "string", description: "Gumroad access token" },
+        access_token: { type: "string", description: "Gumroad access token" },
         product_id: { type: "string", description: "Filter by product ID" },
         email: { type: "string", description: "Filter by buyer email" },
         after: { type: "string", description: "Sales after this date (YYYY-MM-DD)" },
         before: { type: "string", description: "Sales before this date (YYYY-MM-DD)" },
         page: { type: "number", description: "Page number for pagination" },
       },
-      required: ["api_key"],
+      required: ["access_token"],
     },
   },
   {
@@ -10171,10 +11465,10 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        api_key: { type: "string", description: "Gumroad access token" },
+        access_token: { type: "string", description: "Gumroad access token" },
         sale_id: { type: "string", description: "Sale ID" },
       },
-      required: ["api_key", "sale_id"],
+      required: ["access_token", "sale_id"],
     },
   },
   {
@@ -10184,11 +11478,11 @@ export const ADDITIONAL_TOOLS = [
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        api_key: { type: "string", description: "Gumroad access token" },
+        access_token: { type: "string", description: "Gumroad access token" },
         product_id: { type: "string", description: "Product ID of the subscription product" },
         email: { type: "string", description: "Filter by subscriber email" },
       },
-      required: ["api_key", "product_id"],
+      required: ["access_token", "product_id"],
     },
   },
 
@@ -12039,7 +13333,143 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // -- commonsensepass-tool.ts (worker sanity-gate verdicts) ------------------
+  {
+    name: "commonsensepass_check",
+    description: "Run the verdict-only CommonSensePass sanity gate before a worker claims healthy, quiet, no_work, pass, done, merge_ready, duplicate_wake, or route.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        claim: { type: "string", enum: [...COMMONSENSEPASS_CLAIM_KINDS], description: "Worker claim to sanity-check." },
+        context: {
+          type: "object",
+          additionalProperties: true,
+          description: "Evidence packet for the claim, such as todos, active_jobs, PR state, wake state, SHAs, or lane evidence.",
+        },
+        evidence: {
+          type: "array",
+          items: { type: "object", additionalProperties: true },
+          description: "Optional evidence entries to echo when no rule-specific evidence is available.",
+        },
+      },
+      required: ["claim", "context"],
+    },
+  },
+  {
+    name: "commonsensepass_rules",
+    description: "Return the worker-readable CommonSensePass rules, verdict vocabulary, and fixture ids. Set include_fixtures=true for full example packets.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        include_fixtures: { type: "boolean", default: false, description: "Include full deterministic worker fixture packets." },
+      },
+    },
+  },
+
+  // -- xpass-aggregated-verdict-tool.ts (conductor receipt with SHA binding) --
+  {
+    name: "xpass_aggregated_verdict",
+    description: "Return one XPass conductor verdict for a target PR/change at a specific commit SHA. Selected PASS receipts must name the same head SHA; stale, unscoped, missing, or blocker receipts cannot produce a green verdict.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        target: {
+          type: "object",
+          additionalProperties: false,
+          description: "Target change to inspect. target.sha or target.head_sha is required for anti-stale proof binding.",
+          properties: {
+            type: { type: "string", description: "Target type, such as pr, branch, commit, url, artifact, or change." },
+            kind: { type: "string", description: "Alias for target.type." },
+            id: { type: "string", description: "PR number, issue id, branch label, or artifact id." },
+            pr_number: { type: "number", description: "PR number when the target is a pull request." },
+            prNumber: { type: "number", description: "Alias for pr_number." },
+            sha: { type: "string", description: "Current target commit SHA." },
+            head_sha: { type: "string", description: "Alias for sha." },
+            headSha: { type: "string", description: "Alias for sha." },
+            url: { type: "string", description: "Optional target URL." },
+            ref: { type: "string", description: "Optional branch, PR, or artifact ref." },
+            title: { type: "string", description: "Optional target title used for check selection." },
+            description: { type: "string", description: "Optional target summary used for check selection." },
+            files: { type: "array", items: { type: "string" }, description: "Changed file paths for check selection." },
+            changed_files: { type: "array", items: { type: "string" }, description: "Alias for files." },
+          },
+        },
+        title: { type: "string", description: "Optional PR/change title used for check selection." },
+        description: { type: "string", description: "Optional PR/change description used for check selection." },
+        context: { type: "string", description: "Optional extra context used for check selection." },
+        body: { type: "string", description: "Optional body text used for check selection." },
+        summary: { type: "string", description: "Optional summary text used for check selection." },
+        tags: { type: "array", items: { type: "string" }, description: "Optional tags used for check selection." },
+        changed_files: { type: "array", items: { type: "string" }, description: "Changed file paths for check selection." },
+        changedFiles: { type: "array", items: { type: "string" }, description: "Alias for changed_files." },
+        files: { type: "array", items: { type: "string" }, description: "Alias for changed_files." },
+        owned_files: { type: "array", items: { type: "string" }, description: "Owned file paths for check selection." },
+        ownedFiles: { type: "array", items: { type: "string" }, description: "Alias for owned_files." },
+        enabled_checks: {
+          type: "array",
+          items: { type: "string", enum: ["testpass", "uxpass", "flowpass", "securitypass", "rotatepass", "copypass", "fidelitypass", "seopass", "geopass", "legalpass", "compliancepass", "commonsensepass", "wakepass", "sloppass"] },
+          description: "Optional suite restriction. When supplied, XPass only gates the selected checks that are enabled here.",
+        },
+        selected_checks: {
+          type: "array",
+          items: { type: "string", enum: ["testpass", "uxpass", "flowpass", "securitypass", "rotatepass", "copypass", "fidelitypass", "seopass", "geopass", "legalpass", "compliancepass", "commonsensepass", "wakepass", "sloppass"] },
+          description: "Optional explicit XPass product checks to require for this verdict.",
+        },
+        available_checks: {
+          type: "array",
+          items: { type: "string", enum: ["testpass", "uxpass", "flowpass", "securitypass", "rotatepass", "copypass", "fidelitypass", "seopass", "geopass", "legalpass", "compliancepass", "commonsensepass", "wakepass", "sloppass"] },
+          description: "Optional worker availability list. Selected checks outside this list are NOT RUN and cannot make the verdict green.",
+        },
+        pass_results: {
+          type: "array",
+          description: "Underlying Pass receipts or summarized results. Green results must include target_sha/head_sha matching target.sha.",
+          items: {
+            type: "object",
+            additionalProperties: true,
+            properties: {
+              check: { type: "string" },
+              name: { type: "string" },
+              status: { type: "string" },
+              result: { type: "string" },
+              verdict: { type: "string" },
+              run_id: { type: "string" },
+              receipt_id: { type: "string" },
+              url: { type: "string" },
+              summary: { type: "string" },
+              message: { type: "string" },
+              generated_at: { type: "string" },
+              target_sha: { type: "string" },
+              head_sha: { type: "string" },
+            },
+          },
+        },
+        results: {
+          type: "object",
+          additionalProperties: true,
+          description: "Map form of pass_results keyed by check name.",
+        },
+        require_council: { type: "boolean", description: "Force the Crews Council recommendation on this XPass receipt." },
+        force_council: { type: "boolean", description: "Alias for require_council." },
+        generated_at: { type: "string", description: "Optional deterministic timestamp for tests or replay." },
+        now: { type: "string", description: "Alias for generated_at." },
+      },
+      required: ["target"],
+    },
+  },
+
   // ── testpass-tool.ts ────────────────────────────────────────────────────────
+  {
+    name: "testpass_list_packs",
+    description: "List TestPass packs available to the caller, including system packs and the caller's custom packs.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {},
+    },
+  },
   {
     name: "testpass_run",
     description: "Start a TestPass run against an MCP server. Seeds deterministic and agent checks from the given pack and returns the run id plus an initial verdict summary. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
@@ -12085,17 +13515,31 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "testpass_edit_item",
-    description: "Override the verdict and optional notes for a single check item in a TestPass run.",
+    description: "Override the verdict and notes for a single check item in a TestPass run. Fail-to-pass edits are flagged in mc_signals.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
         run_id: { type: "string", description: "The run the item belongs to" },
         item_id: { type: "string", description: "The testpass_items row id (uuid)" },
-        verdict: { type: "string", enum: ["pass", "fail", "na"], description: "New verdict" },
-        notes: { type: "string", description: "Optional reviewer notes" },
+        verdict: { type: "string", enum: ["pass", "fail", "na", "other"], description: "New verdict" },
+        notes: { type: "string", description: "Required reviewer note explaining the manual verdict edit" },
       },
-      required: ["run_id", "item_id", "verdict"],
+      required: ["run_id", "item_id", "verdict", "notes"],
+    },
+  },
+  {
+    name: "testpass_evidence",
+    description: "Fetch one TestPass item and its attached evidence by item_id or check_id. Use this when a chat agent needs proof for a specific checklist item.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The run id returned by testpass_run" },
+        item_id: { type: "string", description: "Optional testpass_items row id" },
+        check_id: { type: "string", description: "Optional checklist id such as RPC-001 or MCP-007" },
+      },
+      required: ["run_id"],
     },
   },
   {
@@ -12134,16 +13578,33 @@ export const ADDITIONAL_TOOLS = [
       required: ["run_id"],
     },
   },
-
-  // ── legalpass-tool.ts ──────────────────────────────────────────────────────
   {
-    name: "legalpass_run",
-    description: "Plan a LegalPass issue-spotting run against a URL, contract upload, or repo. Scaffold-only: exposes LegalPass guardrails and the safe run envelope while full 12-hat execution lands in a later engine chip.",
+    name: "testpass_fix_list",
+    description: "Get the Markdown fix-list for a TestPass run. This is an explicit alias for the markdown report so agents can discover the copy-paste repair artifact directly.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
+        run_id: { type: "string", description: "The run id returned by testpass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+
+  // ── legalpass-tool.ts ──────────────────────────────────────────────────────
+  {
+    name: "legalpass_run",
+    description: "Run a LegalPass issue-spotting pass against a URL, contract upload, or repo. With fixture_text, returns deterministic public evidence; without it, returns the guarded run plan.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["target"] },
+        { required: ["target_url"] },
+      ],
+      properties: {
         pack_id: { type: "string", description: "LegalPass pack slug (default: legalpass-mvp-v0)" },
+        target_url: { type: "string", description: "URL target shortcut for TestPass-style callers" },
         target: {
           type: "object",
           additionalProperties: false,
@@ -12159,8 +13620,58 @@ export const ADDITIONAL_TOOLS = [
         },
         profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Run profile (default: smoke)" },
         jurisdictions: { type: "array", items: { type: "string" }, description: "Optional jurisdiction routing hints" },
+        fixture_text: { type: "string", description: "Public text to check deterministically for dogfood or local proof" },
+        target_sha: { type: "string", description: "Optional commit or target evidence SHA to bind the LegalPass receipt to a specific target version" },
       },
-      required: ["target"],
+    },
+  },
+  {
+    name: "legalpass_status",
+    description: "Fetch the stored LegalPass run result and audit log for a run started through legalpass_run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The LegalPass run id returned by legalpass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "legalpass_save_pack",
+    description: "Save or update a LegalPass custom playbook pack. Requires an enabled citation_verifier hat.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["pack"] },
+        { required: ["yaml"] },
+      ],
+      properties: {
+        pack_id: { type: "string", description: "Optional pack id override for YAML payloads" },
+        pack: { type: "object", description: "LegalPass pack object" },
+        yaml: { type: "string", description: "LegalPass pack YAML" },
+        overwrite: { type: "boolean", description: "Allow replacing an existing pack id" },
+      },
+    },
+  },
+  {
+    name: "legalpass_edit_item",
+    description: "Apply a human reviewer override to a LegalPass item and return an audit entry with before/after state.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The LegalPass run id returned by legalpass_run" },
+        item_id: { type: "string", description: "The LegalPass item id to edit" },
+        verdict: { type: "string", enum: ["check", "fail", "na", "other", "pending"], description: "Reviewer override verdict" },
+        finding: { type: "string", description: "Replacement finding text, linted by PassGuard" },
+        on_fail_comment: { type: "string", description: "Replacement fail comment, linted by PassGuard" },
+        reviewer_note: { type: "string", description: "Human reviewer note for the audit trail, linted by PassGuard" },
+        notes: { type: "string", description: "Alias for reviewer_note, for TestPass-style callers" },
+        actor_user_id: { type: "string", description: "Optional actor id for the override audit entry" },
+      },
+      required: ["run_id", "item_id"],
     },
   },
   {
@@ -12176,10 +13687,10 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
-  // ── uxpass-tool.ts (UI/UX QC, sister to TestPass) ──────────────────────────
+  // ── uxpass-tool.ts (journey/usability QC, sister to TestPass) ──────────────
   {
     name: "uxpass_run",
-    description: "Run a UI/UX quality check synchronously against a URL. Executes the deterministic uxpass-core check set (HTTP, HTML, accessibility, agent readability, performance, security) against the target and returns the run id, status, UX Score, and summary. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
+    description: "Run a UX journey/usability check synchronously against a URL. Executes the deterministic uxpass-core check set and returns the run id, status, UX Score, summary, and uxpass_receipt_v1. UIPass now owns visual/interface polish; this legacy UXPass runner still calls out when screenshots or mobile/desktop proof are missing for visible surfaces. Pass either url (a one-off check) or pack_name (resolves the registered pack's url). The hats parameter is accepted for forward compatibility but is currently ignored; LLM hats land in a later chunk. Response includes was_duplicate: boolean indicating whether the row was already present (idempotent retry).",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12195,12 +13706,13 @@ export const ADDITIONAL_TOOLS = [
           type: "string",
           description: "Client-generated idempotency key (UUIDv5 from thread_id + prompt_hash + time_bucket recommended). Required for safe retry. If omitted, the server creates a fresh row and you lose retry safety; sending the same task_id twice returns the original run_id with was_duplicate=true instead of creating a duplicate.",
         },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks." },
       },
     },
   },
   {
     name: "uxpass_status",
-    description: "Fetch the status, UX Score, and summary for a UXPass run.",
+    description: "Fetch the status, UX Score, summary, and uxpass_receipt_v1 for a UXPass run.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12262,24 +13774,25 @@ export const ADDITIONAL_TOOLS = [
   // ── seopass-tool.ts (search visibility QC, sister to UXPass) ────────────────
   {
     name: "seopass_run",
-    description: "Plan a SEOPass run against a URL or registered pack. Chunk 1 returns the crawl and Lighthouse execution plan without persisting results.",
+    description: "Run SEOPass against a public URL or registered pack. Returns a live-readonly SEO verdict, score, findings, fix prompts, and an in-session run id.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        url: { type: "string", description: "Target URL for a one-off SEOPass plan" },
+        url: { type: "string", description: "Target URL for a one-off SEOPass read-only run" },
         pack_name: { type: "string", description: "Name of a registered SEOPass pack; the pack URL is used as the target" },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks" },
       },
     },
   },
   {
     name: "seopass_status",
-    description: "Fetch the status for a SEOPass run. Chunk 1 reserves the tool shape; persistence lands later.",
+    description: "Fetch the stored in-session status and report for a SEOPass run.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        run_id: { type: "string", description: "The SEOPass run id returned by a future seopass_run execution path" },
+        run_id: { type: "string", description: "The SEOPass run id returned by seopass_run" },
       },
       required: ["run_id"],
     },
@@ -12298,7 +13811,7 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "seopass_lighthouse_plan",
-    description: "Build the Lighthouse execution plan for a SEOPass target URL. Execution and persistence land in a later chunk.",
+    description: "Build the heavier Lighthouse execution plan for a SEOPass target URL. seopass_run already emits a lightweight live-readonly verdict.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12311,26 +13824,497 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
-  // ── copypass-tool.ts (copy quality QC, scaffold-only for Chunk 1) ────────
+  // -- geopass-tool.ts (AI answer-engine readiness QC, sister to SEOPass) ----
   {
-    name: "copypass_run",
-    description: "Start a scaffold CopyPass run for AI-generated copy. Chunk 1 stores an in-session run record and echoes operator context so later evidence-led copy checks can plug into a stable shape.",
+    name: "geopass_run",
+    description: "Run GEOPass against a public URL. Returns a live-readonly AI answer-engine readiness receipt covering answer extractability, entity clarity, citation/sourceability, freshness cues, content structure, llms.txt, and AI bot visibility. GEOPass reports readiness only and does not guarantee rankings or citations.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        copy_text: { type: "string", description: "The AI-generated copy to review." },
+        url: { type: "string", description: "Target public http(s) URL for a one-off GEOPass read-only run" },
+        target_url: { type: "string", description: "Alias for url" },
+        checks: {
+          type: "array",
+          minItems: 1,
+          description: "Optional GEOPass check ids. Defaults to the public-safe live checklist.",
+          items: {
+            type: "string",
+            enum: [
+              "ai-bot-crawlability",
+              "llms-txt",
+              "answer-extractability",
+              "entity-clarity",
+              "citation-readiness",
+              "freshness-cues",
+              "content-structure",
+              "schema-org-citation-grade",
+              "brand-mention-readiness",
+              "wikidata-presence",
+              "common-crawl-presence",
+              "aggregate-ai-engine-readiness",
+            ],
+          },
+        },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks." },
+      },
+    },
+  },
+  {
+    name: "geopass_status",
+    description: "Fetch the stored in-session GEOPass report and geopass_receipt_v1 envelope for a run started through geopass_run.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The GEOPass run id returned by geopass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+
+  // ── flowpass-tool.ts (end-to-end journey QC with fixture proof) ────────────
+  {
+    name: "flowpass_run",
+    description: "Run FlowPass against a public fixture or registered pack. Returns journey readiness, step verdicts, hat outputs, exclusions, and a stored report. Without fixture proof, returns a plan-only receipt instead of pretending a live journey ran.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        target_url: { type: "string", description: "Target URL for a one-off FlowPass run" },
+        url: { type: "string", description: "Alias for target_url" },
+        pack_id: { type: "string", description: "Registered FlowPass pack id" },
+        pack_name: { type: "string", description: "Registered FlowPass pack name" },
+        pack_yaml: { type: "string", description: "FlowPass YAML pack using plain-English steps" },
+        pack: { type: "object", description: "FlowPass pack object" },
+        fixture: {
+          type: "object",
+          description: "Public fixture evidence for route, CTA, form, success, failure, navigation, handoff, side channels, timing, and accessibility.",
+        },
+        profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Run profile label. Defaults to smoke." },
+        journey_id: { type: "string", description: "Optional journey id override" },
+        journey_name: { type: "string", description: "Optional journey name override" },
+        journey_kind: { type: "string", enum: ["signup", "auth", "checkout", "onboarding", "support", "custom"] },
+        generated_at: { type: "string", description: "Optional ISO timestamp for reproducible fixture tests" },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks" },
+      },
+    },
+  },
+  {
+    name: "flowpass_status",
+    description: "Fetch the stored FlowPass run status, score, summary, and open disagreement queue entries for a run started in this MCP session.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The FlowPass run id returned by flowpass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "flowpass_report",
+    description: "Fetch a FlowPass report in json, markdown, html, or fix_prompt format for a run started in this MCP session.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The FlowPass run id returned by flowpass_run" },
+        format: { type: "string", enum: ["json", "markdown", "html", "fix_prompt"], description: "Report format. Defaults to json." },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "flowpass_register_pack",
+    description: "Register a FlowPass pack from YAML or an object. Validates plain-English steps, hats, assertions, and optional fixture evidence.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["pack_yaml"] },
+        { required: ["pack"] },
+      ],
+      properties: {
+        pack_yaml: { type: "string", description: "FlowPass YAML pack" },
+        pack: { type: "object", description: "FlowPass pack object" },
+        overwrite: { type: "boolean", description: "Allow replacing an existing pack id" },
+      },
+    },
+  },
+  {
+    name: "flowpass_record",
+    description: "Convert supplied rrweb or structured session events into a draft FlowPass pack. This safe MCP surface does not start a live browser recording by itself.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        target_url: { type: "string", description: "Target URL the recording or session events came from" },
+        session_events: { type: "array", items: { type: "string" }, description: "Structured event summaries or pre-captured rrweb-derived step labels" },
+      },
+      required: ["target_url"],
+    },
+  },
+  {
+    name: "flowpass_quarantine",
+    description: "List, add, or resolve FlowPass quarantines for flows that should not be trusted as gates.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        action: { type: "string", enum: ["list", "add", "resolve"], description: "Defaults to list" },
+        flow_id: { type: "string", description: "Flow id for add or resolve" },
+        reason: { type: "string", description: "Reason when adding a quarantine" },
+      },
+    },
+  },
+  {
+    name: "flowpass_disagreement_queue",
+    description: "List or resolve FlowPass Driver versus Verifier disagreements.",
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        action: { type: "string", enum: ["list", "resolve"], description: "Defaults to list" },
+        run_id: { type: "string", description: "Optional FlowPass run id to filter" },
+        disagreement_id: { type: "string", description: "Disagreement id for resolve" },
+        reviewer_note: { type: "string", description: "Human note for disagreement resolution" },
+      },
+    },
+  },
+
+  // ── securitypass-tool.ts (scope-gated security receipts) ─────────────────
+  {
+    name: "securitypass_run",
+    description: "Start a scope-gated SecurityPass scan against a registered pack or target URL. Returns a safe securitypass_receipt_v1 proof envelope without raw secrets or PoC payloads.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        pack_id: { type: "string", description: "Pack id, e.g. 'securitypass-web-baseline'" },
+        pack_yaml: { type: "string", description: "Optional pack YAML to validate and run without prior registration" },
+        target_id: { type: "string", description: "Target id inside the SecurityPass pack" },
+        target_url: { type: "string", description: "Target URL (must be in pack scope)" },
+        contract_id: { type: "string", description: "Scope contract id for skeleton URL scans" },
+        proof_method: { type: "string", enum: ["dns_txt", "well_known", "bug_bounty_program", "signed_email"] },
+        expected_token: { type: "string", description: "Expected scope proof token" },
+        proof_timeout_ms: { type: "number", description: "Optional timeout for well-known proof fetches" },
+        profile: { type: "string", enum: ["smoke", "standard", "deep"], default: "smoke" },
+      },
+    },
+  },
+  {
+    name: "securitypass_status",
+    description: "Poll the state of a SecurityPass run. Returns status, verdict summary, counts, and a safe securitypass_receipt_v1 proof envelope.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The run id returned by securitypass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "securitypass_report",
+    description: "Fetch the synthesised report for a completed run (executive narrative + findings). format=json|markdown|html.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string" },
+        format: { type: "string", enum: ["json", "markdown", "html"], default: "json" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "securitypass_register_pack",
+    description: "Save a SecurityPack YAML for the calling tenant. Validates against the schema.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        pack_id: { type: "string" },
+        yaml: { type: "string", description: "Pack contents as YAML" },
+      },
+      required: ["pack_id", "yaml"],
+    },
+  },
+  {
+    name: "securitypass_verify_scope",
+    description: "Verify scope authorisation for a target via DNS TXT or /.well-known proof. Required before any active probe runs.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        target_type: { type: "string", enum: ["url", "git", "mcp", "api"] },
+        target_url: { type: "string" },
+        target_repo: { type: "string" },
+        proof_method: { type: "string", enum: ["dns_txt", "well_known", "bug_bounty_program", "signed_email"] },
+        contract_id: { type: "string", description: "Signed scope contract id" },
+        expected_token: { type: "string", description: "Token to look for in DNS TXT or /.well-known" },
+        proof_timeout_ms: { type: "number", description: "Optional timeout for well-known proof fetches" },
+      },
+      required: ["proof_method"],
+    },
+  },
+  {
+    name: "securitypass_disclosure_status",
+    description: "Check the 90+30 responsible-disclosure timer state for a finding (notified, acked, extended, public, withdrawn).",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        finding_id: { type: "string" },
+      },
+      required: ["finding_id"],
+    },
+  },
+  {
+    name: "securitypass_finding_detail",
+    description: "Fetch a single finding including PoC payload (curl / prompt / payload) and remediation. PoC is generated, never auto-fired.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        finding_id: { type: "string" },
+      },
+      required: ["finding_id"],
+    },
+  },
+
+  // ── sloppass-tool.ts (AI-code quality QC and diff review) ────────────────
+  {
+    name: "sloppass_run",
+    description: "Run SlopPass against caller-provided source files, a unified diff, or a GitHub PR target whose public .diff should be fetched. Returns an evidence-backed slop-signal receipt plus JSON, markdown, and HTML reports. SlopPass does not execute code, clone repositories, persist source content, or make paid model calls by default.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      anyOf: [
+        { required: ["files"] },
+        { required: ["diff"] },
+        {
+          required: ["target"],
+          properties: {
+            target: {
+              type: "object",
+              required: ["kind"],
+              properties: { kind: { type: "string", enum: ["pr"] } },
+            },
+          },
+        },
+      ],
+      properties: {
+        target: {
+          type: "object",
+          additionalProperties: false,
+          description: "Target being inspected. For live GitHub PR review, use kind=pr with repo plus number, or url/pr_url.",
+          properties: {
+            kind: { type: "string", enum: ["repo", "branch", "diff", "files", "pr", "artifact"] },
+            label: { type: "string", minLength: 1 },
+            files: { type: "array", items: { type: "string", minLength: 1 } },
+            ref: { type: "string" },
+            repo: { type: "string", pattern: "^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}$", description: "GitHub repo in owner/name form for kind=pr." },
+            number: {
+              oneOf: [
+                { type: "integer", minimum: 1 },
+                { type: "string", pattern: "^[1-9][0-9]*$" },
+              ],
+              description: "GitHub pull request number for kind=pr.",
+            },
+            url: { type: "string", description: "GitHub pull request URL for kind=pr." },
+            pr_url: { type: "string", description: "GitHub pull request URL for kind=pr." },
+          },
+          required: ["kind", "label"],
+        },
+        files: {
+          type: "array",
+          minItems: 1,
+          description: "Source files to inspect. Use this for scoped local artifacts or paste-backed code review.",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              path: { type: "string", minLength: 1 },
+              content: { type: "string" },
+              start_line: { type: "number", description: "Optional starting line for a diff hunk or sliced file." },
+            },
+            required: ["path", "content"],
+          },
+        },
+        diff: { type: "string", description: "Unified diff text to inspect. Added lines are converted into scoped file evidence." },
+        checks: {
+          type: "array",
+          minItems: 1,
+          description: "Optional SlopPass check categories to run. Defaults to all built-in categories.",
+          items: {
+            type: "string",
+            enum: [
+              "grounding_api_reality",
+              "logic_plausibility",
+              "scaffold_without_substance",
+              "test_proof_theatre",
+              "slopocalypse_failure_mode",
+              "maintenance_change_risk",
+              "vcs_integration_risk",
+            ],
+          },
+        },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks." },
+        provider: {
+          type: "string",
+          enum: ["http", "openai", "anthropic", "google", "ollama"],
+          description: "Provider mode to record in the receipt. Defaults to http and does not call a model.",
+        },
+      },
+      required: ["target"],
+    },
+  },
+
+  // ── compliancepass-tool.ts (evidence-backed readiness guidance) ───────────
+  {
+    name: "compliancepass_run",
+    description: "Run CompliancePass against a local repo path. Returns evidence-backed readiness guidance, gaps, next actions, and an in-session run id. Historical EnterprisePass references are treated as this same product.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        repo_path: { type: "string", description: "Local repository path to scan. Defaults to the MCP server working directory." },
+        target_name: { type: "string", description: "Human-readable target name for the report. Defaults to UnClick." },
+        target_sha: { type: "string", description: "Optional PR or commit SHA for receipt staleness checks" },
+      },
+    },
+  },
+  {
+    name: "compliancepass_status",
+    description: "Fetch the stored in-session status and summary for a CompliancePass run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The CompliancePass run id returned by compliancepass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "compliancepass_report_json",
+    description: "Fetch the full JSON CompliancePass readiness report for a completed in-session run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The CompliancePass run id returned by compliancepass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+  {
+    name: "compliancepass_report_md",
+    description: "Fetch a Markdown CompliancePass readiness report for a completed in-session run.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        run_id: { type: "string", description: "The CompliancePass run id returned by compliancepass_run" },
+      },
+      required: ["run_id"],
+    },
+  },
+
+  // ── copypass-tool.ts (copy quality QC with CopyRoom receipt support) ─────
+  {
+    name: "copypass_run",
+    description: "Start a deterministic CopyPass review for caller-provided AI-generated copy. Returns evidence-backed copy findings, scope boundaries, disclaimer text, a structured copypass_receipt_v1 proof envelope, and optional CopyRoom exact-copy receipt.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        copy_text: { type: "string", description: "The AI-generated copy to review. Optional when copyroom_source_packet is provided; exact-copy verification compares this text byte-for-byte against the packet." },
+        copyroom_required: {
+          type: "boolean",
+          description: "Set true when exact fidelity matters. Missing copyroom_source_packet returns COPYROOM_MISSING instead of a run with a null receipt.",
+        },
+        copyroom_source_packet: {
+          type: "object",
+          additionalProperties: false,
+          description: "Exact source packet for CopyRoom fidelity work. Use this instead of retyping source text when code, prompts, labels, tables, documents, or user-provided text must stay exact.",
+          properties: {
+            source_id: { type: "string", description: "Stable source identifier." },
+            source_pointer: { type: "string", description: "Pointer to the CopyRoom/source location." },
+            text: { type: "string", description: "Exact source text to copy or verify." },
+            encoding: { type: "string", enum: ["utf8"], description: "CopyRoom v1 encoding. Defaults to utf8." },
+            newline_policy: { type: "string", enum: ["preserve"], description: "CopyRoom v1 newline policy. Defaults to preserve." },
+          },
+          required: ["source_id", "source_pointer", "text"],
+        },
+        copyroom_output_pointer: { type: "string", description: "Pointer to the intended output artifact for the CopyRoom receipt." },
         channel: { type: "string", description: "Optional surface label such as homepage_hero, pricing_section, or onboarding_email." },
         audience: { type: "string", description: "Optional intended audience for the copy." },
         goal: { type: "string", description: "Optional goal for the copy, such as clarity, conversion, or trust." },
-        profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Reserved for later evaluator depth. Defaults to smoke." },
+        profile: { type: "string", enum: ["smoke", "standard", "deep"], description: "Review depth label for this scoped run. Defaults to smoke." },
       },
-      required: ["copy_text"],
+      required: [],
     },
   },
   {
     name: "copypass_status",
-    description: "Fetch the current status, notes, and scaffold finding count for a CopyPass run started in this MCP session.",
+    description: "Fetch the current status, notes, deterministic findings, disclaimer, copypass_receipt_v1 proof envelope, and CopyRoom receipt for a CopyPass run started in this MCP session.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -12341,10 +14325,111 @@ export const ADDITIONAL_TOOLS = [
     },
   },
 
+  // -- fidelitycopy-tool.ts (deterministic exact-copy receipts) ---------------
+  {
+    name: "fidelitycopy_copy",
+    description:
+      "Create a deterministic FidelityCopy receipt for exact copy work. AI may request the copy, but this tool computes source/output hashes and returns PASS only when the selected mode proves exact or approved fidelity.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        source_text: { type: "string", description: "Exact source text to copy. Mutually exclusive with source_base64." },
+        source_base64: { type: "string", description: "Exact source bytes as base64. Mutually exclusive with source_text." },
+        source_ref: { type: "string", description: "Source pointer used in the receipt." },
+        copyroom_source_packet: {
+          type: "object",
+          additionalProperties: false,
+          description: "CopyRoom source packet used as the source of truth. Mutually exclusive with source_text/source_base64.",
+          properties: {
+            source_id: { type: "string", description: "Stable CopyRoom source id." },
+            source_pointer: { type: "string", description: "Pointer to the CopyRoom/source location." },
+            text: { type: "string", description: "Exact source text to copy." },
+            encoding: { type: "string", enum: ["utf8"], description: "CopyRoom v1 encoding. Defaults to utf8." },
+            newline_policy: { type: "string", enum: ["preserve"], description: "CopyRoom v1 newline policy. Defaults to preserve." },
+          },
+          required: ["source_id", "source_pointer", "text"],
+        },
+        destination_label: { type: "string", description: "Human label for the output destination when output_ref is not supplied." },
+        output_ref: { type: "string", description: "Output pointer used in the receipt." },
+        output_text: { type: "string", description: "Output text for approved_transform mode." },
+        output_base64: { type: "string", description: "Output bytes for approved_transform mode as base64." },
+        mode: {
+          type: "string",
+          enum: ["raw_bytes", "text_exact", "json_canonical", "approved_transform"],
+          description: "Verification mode. Defaults to raw_bytes.",
+        },
+        allowed_changes: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "Required for approved_transform PASS.",
+        },
+        provenance_ref: { type: "string", description: "Optional Boardroom, issue, PR, or CopyRoom pointer for audit trail." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "fidelitypass_verify_copy",
+    description:
+      "Recompute a FidelityCopy/FidelityPass verdict from source and output bytes, or return N/A when no exact 1:1 copy is in scope. Missing bytes, stale metadata, or prose-only AI proof cannot PASS.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        exact_copy_required: {
+          type: "boolean",
+          description: "Set false only when the target has no exact 1:1 copy, transcription, mirroring, or preservation scope. Returns N/A.",
+        },
+        copy_scope: {
+          type: "string",
+          enum: ["exact_copy", "not_applicable"],
+          description: "Explicit FidelityPass scope. Use not_applicable to record the XPass N/A row when no exact copy is in scope.",
+        },
+        scope_reason: {
+          type: "string",
+          description: "Reason why FidelityPass is N/A for this target. Used only when exact_copy_required=false or copy_scope=not_applicable.",
+        },
+        source_text: { type: "string", description: "Exact source text to verify. Mutually exclusive with source_base64." },
+        source_base64: { type: "string", description: "Exact source bytes as base64. Mutually exclusive with source_text." },
+        copyroom_source_packet: {
+          type: "object",
+          additionalProperties: false,
+          description: "CopyRoom source packet used as the source of truth. Mutually exclusive with source_text/source_base64.",
+          properties: {
+            source_id: { type: "string", description: "Stable CopyRoom source id." },
+            source_pointer: { type: "string", description: "Pointer to the CopyRoom/source location." },
+            text: { type: "string", description: "Exact source text to verify." },
+            encoding: { type: "string", enum: ["utf8"], description: "CopyRoom v1 encoding. Defaults to utf8." },
+            newline_policy: { type: "string", enum: ["preserve"], description: "CopyRoom v1 newline policy. Defaults to preserve." },
+          },
+          required: ["source_id", "source_pointer", "text"],
+        },
+        output_text: { type: "string", description: "Exact output text to verify. Mutually exclusive with output_base64." },
+        output_base64: { type: "string", description: "Exact output bytes as base64. Mutually exclusive with output_text." },
+        source_ref: { type: "string", description: "Source pointer used in the recomputed receipt." },
+        output_ref: { type: "string", description: "Output pointer used in the recomputed receipt." },
+        mode: {
+          type: "string",
+          enum: ["raw_bytes", "text_exact", "json_canonical", "approved_transform"],
+          description: "Verification mode. Defaults to raw_bytes or the provided receipt mode.",
+        },
+        receipt: { type: "object", description: "Optional previous FidelityCopy receipt to compare against recomputed hashes." },
+        receipt_payload: { type: "object", description: "Alias for receipt." },
+        proof_text: { type: "string", description: "Optional prose proof. Prose alone is suppressed, not accepted as PASS." },
+        allowed_changes: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "Required for approved_transform PASS.",
+        },
+        provenance_ref: { type: "string", description: "Optional Boardroom, issue, PR, or CopyRoom pointer for audit trail." },
+      },
+      required: [],
+    },
+  },
+
   // ── crews-tool.ts (Orchestrator Wizard) ──────────────────────────────────────
   {
     name: "start_crew_run",
-    description: "Call this tool when the user wants to start a Crews Council run. Creates the run row on the UnClick API and returns a ConversationalCard with next actions. LLM turns are expected to flow through MCP sampling; if the Orchestrator does not support sampling the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
+    description: "Call this tool when the user wants to start a Crews Council run. In a sampling-capable MCP client, it prepares the run, asks advisors for opinions, runs peer review, persists the Chairman synthesis, and returns a ConversationalCard. If sampling is unavailable, the card reports SAMPLING_NOT_SUPPORTED. Response card surfaces was_duplicate when an existing run is returned for an already-seen task_id.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -13351,6 +15436,165 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   mixpanel_get_retention:  (args) => mixpanelGetRetention(args),
   mixpanel_export_data:    (args) => mixpanelExportData(args),
 
+  // hubspot-tool.ts
+  hubspot_list_contacts:   (args) => hubspotListContacts(args),
+  hubspot_get_contact:     (args) => hubspotGetContact(args),
+  hubspot_search_contacts: (args) => hubspotSearchContacts(args),
+  hubspot_list_companies:  (args) => hubspotListCompanies(args),
+  hubspot_list_deals:      (args) => hubspotListDeals(args),
+  hubspot_create_contact:  (args) => hubspotCreateContact(args),
+
+  // jira-tool.ts
+  jira_search_issues:      (args) => jiraSearchIssues(args),
+  jira_get_issue:          (args) => jiraGetIssue(args),
+  jira_list_projects:      (args) => jiraListProjects(args),
+  jira_create_issue:       (args) => jiraCreateIssue(args),
+  jira_add_comment:        (args) => jiraAddComment(args),
+
+  // jobsmith-tool.ts
+  jobsmith_check:          (args) => jobsmithCheck(args),
+  jobsmith_rules:          (args) => jobsmithRules(args),
+
+  // contentful-tool.ts
+  contentful_list_entries:       (args) => contentfulListEntries(args),
+  contentful_get_entry:          (args) => contentfulGetEntry(args),
+  contentful_list_content_types: (args) => contentfulListContentTypes(args),
+  contentful_list_assets:        (args) => contentfulListAssets(args),
+
+  // webflow-tool.ts
+  webflow_list_sites:       (args) => webflowListSites(args),
+  webflow_get_site:         (args) => webflowGetSite(args),
+  webflow_list_collections: (args) => webflowListCollections(args),
+  webflow_list_items:       (args) => webflowListItems(args),
+
+  // digitalocean-tool.ts
+  do_list_droplets:        (args) => doListDroplets(args),
+  do_list_apps:            (args) => doListApps(args),
+  do_list_databases:       (args) => doListDatabases(args),
+  do_account:              (args) => doAccount(args),
+
+  // klaviyo-tool.ts
+  // todoist-tool.ts
+  todoist_list_projects:   (args) => todoistListProjects(args),
+  todoist_list_tasks:      (args) => todoistListTasks(args),
+  todoist_create_task:     (args) => todoistCreateTask(args),
+  todoist_complete_task:   (args) => todoistCompleteTask(args),
+
+  // pipedrive-tool.ts
+  pipedrive_list_deals:         (args) => pipedriveListDeals(args),
+  pipedrive_list_persons:       (args) => pipedriveListPersons(args),
+  pipedrive_list_organizations: (args) => pipedriveListOrganizations(args),
+  pipedrive_search_deals:       (args) => pipedriveSearchDeals(args),
+
+  // confluence-tool.ts
+  confluence_search:       (args) => confluenceSearch(args),
+  confluence_get_page:     (args) => confluenceGetPage(args),
+  confluence_list_spaces:  (args) => confluenceListSpaces(args),
+
+  // unsplash-tool.ts
+  unsplash_search_photos:  (args) => unsplashSearchPhotos(args),
+  unsplash_get_photo:      (args) => unsplashGetPhoto(args),
+  unsplash_random_photo:   (args) => unsplashRandomPhoto(args),
+
+  // giphy-tool.ts
+  giphy_search:            (args) => giphySearch(args),
+  giphy_trending:          (args) => giphyTrending(args),
+  giphy_random:            (args) => giphyRandom(args),
+
+  // miro-tool.ts
+  miro_list_boards:        (args) => miroListBoards(args),
+  miro_get_board:          (args) => miroGetBoard(args),
+  miro_list_items:         (args) => miroListItems(args),
+
+  // shortcut-tool.ts
+  shortcut_search_stories: (args) => shortcutSearchStories(args),
+  shortcut_get_story:      (args) => shortcutGetStory(args),
+  shortcut_list_projects:  (args) => shortcutListProjects(args),
+  shortcut_list_epics:     (args) => shortcutListEpics(args),
+
+  // wikipedia-tool.ts
+  wikipedia_search:        (args) => wikipediaSearch(args),
+  wikipedia_summary:       (args) => wikipediaSummary(args),
+  wikipedia_page:          (args) => wikipediaPage(args),
+
+  // coda-tool.ts
+  coda_list_docs:          (args) => codaListDocs(args),
+  coda_list_tables:        (args) => codaListTables(args),
+  coda_list_rows:          (args) => codaListRows(args),
+
+  // brevo-tool.ts
+  brevo_list_contacts:     (args) => brevoListContacts(args),
+  brevo_list_campaigns:    (args) => brevoListCampaigns(args),
+  brevo_get_account:       (args) => brevoGetAccount(args),
+
+  // uptimerobot-tool.ts
+  uptimerobot_get_monitors: (args) => uptimerobotGetMonitors(args),
+  uptimerobot_get_account:  (args) => uptimerobotGetAccount(args),
+
+  // dropbox-tool.ts
+  dropbox_list_folder:     (args) => dropboxListFolder(args),
+  dropbox_search:          (args) => dropboxSearch(args),
+  dropbox_get_account:     (args) => dropboxGetAccount(args),
+
+  // bitbucket-tool.ts
+  bitbucket_list_repos:         (args) => bitbucketListRepos(args),
+  bitbucket_get_repo:           (args) => bitbucketGetRepo(args),
+  bitbucket_list_pull_requests: (args) => bitbucketListPullRequests(args),
+
+  // cloudinary-tool.ts
+  cloudinary_list_resources: (args) => cloudinaryListResources(args),
+  cloudinary_get_usage:      (args) => cloudinaryGetUsage(args),
+
+  // wordpress-tool.ts
+  wordpress_list_posts:    (args) => wordpressListPosts(args),
+  wordpress_get_post:      (args) => wordpressGetPost(args),
+  wordpress_list_pages:    (args) => wordpressListPages(args),
+
+  // ghost-tool.ts
+  ghost_list_posts:        (args) => ghostListPosts(args),
+  ghost_list_pages:        (args) => ghostListPages(args),
+  ghost_list_tags:         (args) => ghostListTags(args),
+
+  // klaviyo-tool.ts
+  klaviyo_list_lists:      (args) => klaviyoListLists(args),
+  klaviyo_list_segments:   (args) => klaviyoListSegments(args),
+  klaviyo_list_metrics:    (args) => klaviyoListMetrics(args),
+  klaviyo_list_profiles:   (args) => klaviyoListProfiles(args),
+
+  // zendesk-tool.ts
+  zendesk_search:          (args) => zendeskSearch(args),
+  zendesk_list_tickets:    (args) => zendeskListTickets(args),
+  zendesk_get_ticket:      (args) => zendeskGetTicket(args),
+  zendesk_add_comment:     (args) => zendeskAddComment(args),
+
+  // intercom-tool.ts
+  intercom_list_conversations: (args) => intercomListConversations(args),
+  intercom_get_conversation:   (args) => intercomGetConversation(args),
+  intercom_list_contacts:      (args) => intercomListContacts(args),
+  intercom_search_contacts:    (args) => intercomSearchContacts(args),
+
+  // typeform-tool.ts
+  typeform_list_forms:     (args) => typeformListForms(args),
+  typeform_get_form:       (args) => typeformGetForm(args),
+  typeform_get_responses:  (args) => typeformGetResponses(args),
+
+  // calcom-tool.ts
+  calcom_me:               (args) => calcomMe(args),
+  calcom_list_event_types: (args) => calcomListEventTypes(args),
+  calcom_list_bookings:    (args) => calcomListBookings(args),
+
+  // posthog-tool.ts
+  posthog_list_feature_flags: (args) => posthogListFeatureFlags(args),
+  posthog_list_insights:      (args) => posthogListInsights(args),
+  posthog_list_persons:       (args) => posthogListPersons(args),
+  posthog_query:              (args) => posthogQuery(args),
+
+  // netlify-tool.ts
+  netlify_list_sites:      (args) => netlifyListSites(args),
+  netlify_get_site:        (args) => netlifyGetSite(args),
+  netlify_list_deploys:    (args) => netlifyListDeploys(args),
+  netlify_get_deploy:      (args) => netlifyGetDeploy(args),
+
   // datadog-tool.ts
   datadog_list_monitors:   (args) => datadogListMonitors(args),
   datadog_get_monitor:     (args) => datadogGetMonitor(args),
@@ -13509,17 +15753,30 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   togetherai_list_models:     (args) => togetherai_list_models(args),
 
   // testpass-tool.ts
+  testpass_list_packs:  () => testpassListPacks(),
   testpass_run:         (args) => testpassRun(args),
   testpass_status:      (args) => testpassStatus(args),
   testpass_save_pack:   (args) => testpassSavePack(args),
   testpass_edit_item:   (args) => testpassEditItem(args),
+  testpass_evidence:    (args) => testpassEvidence(args),
   testpass_report_html: (args) => testpassReportHtml(args),
   testpass_report_json: (args) => testpassReportJson(args),
   testpass_report_md:   (args) => testpassReportMd(args),
+  testpass_fix_list:    (args) => testpassFixList(args),
+
+  // commonsensepass-tool.ts
+  commonsensepass_check: (args) => commonsensepassCheckTool(args),
+  commonsensepass_rules: (args) => commonsensepassRulesTool(args),
+
+  // xpass-aggregated-verdict-tool.ts
+  xpass_aggregated_verdict: (args) => xpassAggregatedVerdict(args),
 
   // legalpass-tool.ts
-  legalpass_run:     (args) => legalpassRun(args),
-  legalpass_verdict: (args) => legalpassVerdict(args),
+  legalpass_run:       (args) => legalpassRun(args),
+  legalpass_status:    (args) => legalpassStatus(args),
+  legalpass_save_pack: (args) => legalpassSavePack(args),
+  legalpass_edit_item: (args) => legalpassEditItem(args),
+  legalpass_verdict:   (args) => legalpassVerdict(args),
 
   // uxpass-tool.ts
   uxpass_run:           (args) => uxpassRun(args),
@@ -13535,9 +15792,44 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   seopass_register_pack:   (args) => seopassRegisterPack(args),
   seopass_lighthouse_plan: (args) => seopassLighthousePlan(args),
 
+  // geopass-tool.ts
+  geopass_run:             (args) => geopassRun(args),
+  geopass_status:          (args) => geopassStatus(args),
+
+  // compliancepass-tool.ts
+  compliancepass_run:         (args) => compliancepassRun(args),
+  compliancepass_status:      (args) => compliancepassStatus(args),
+  compliancepass_report_json: (args) => compliancepassReportJson(args),
+  compliancepass_report_md:   (args) => compliancepassReportMd(args),
+
+  // flowpass-tool.ts
+  flowpass_run:                (args) => flowpassRun(args),
+  flowpass_status:             (args) => flowpassStatus(args),
+  flowpass_report:             (args) => flowpassReport(args),
+  flowpass_register_pack:      (args) => flowpassRegisterPack(args),
+  flowpass_record:             (args) => flowpassRecord(args),
+  flowpass_quarantine:         (args) => flowpassQuarantine(args),
+  flowpass_disagreement_queue: (args) => flowpassDisagreementQueue(args),
+
+  // securitypass-tool.ts
+  securitypass_run:               (args) => securitypassRun(args),
+  securitypass_status:            (args) => securitypassStatus(args),
+  securitypass_report:            (args) => securitypassReport(args),
+  securitypass_register_pack:     (args) => securitypassRegisterPack(args),
+  securitypass_verify_scope:      (args) => securitypassVerifyScope(args),
+  securitypass_disclosure_status: (args) => securitypassDisclosureStatus(args),
+  securitypass_finding_detail:    (args) => securitypassFindingDetail(args),
+
   // copypass-tool.ts
   copypass_run:            (args) => copypassRun(args),
   copypass_status:         (args) => copypassStatus(args),
+
+  // sloppass-tool.ts
+  sloppass_run:            (args) => sloppassRun(args),
+
+  // fidelitycopy-tool.ts
+  fidelitycopy_copy:       (args) => fidelitycopyCopy(args),
+  fidelitypass_verify_copy:(args) => fidelitypassVerifyCopy(args),
 
   // crews-tool.ts
   start_crew_run: (args) => crewsStartRun(args),

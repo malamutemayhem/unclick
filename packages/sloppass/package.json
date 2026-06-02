@@ -6,6 +6,7 @@
   "main": "./dist/index.js",
   "exports": {
     ".": "./dist/index.js",
+    "./diff": "./dist/diff.js",
     "./types": "./dist/types.js",
     "./runner": "./dist/runner/index.js",
     "./reporter": "./dist/reporter.js",

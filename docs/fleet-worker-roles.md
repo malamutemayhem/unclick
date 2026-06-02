@@ -32,7 +32,7 @@ canonical copy-paste message for waking or aligning multiple workers at once.
 | 🦾 | ChatGPT Plex PC | Implementation / build | Build focused slices, fix tests, ship scoped PRs | Broad refactors, risky self-merges |
 | 🍿 | Claude Plex | QC / review / merge-readiness | Review PRs, spot blockers, verify non-overlap | Building over active owner files |
 | 🤖 | ChatGPT Lenovo PC | CEO assistant / backlog drain | Summaries, backlog cleanup, safe review | Acting on stale queue memory |
-| 🧪 | XPass Assistant | Pass-family proof | TestPass, UXPass, XPass, EnterprisePass proof and receipts | Over-claiming certification |
+| 🧪 | XPass Assistant | Pass-family proof | TestPass, UIPass, UXPass, XPass, CompliancePass proof and receipts | Over-claiming certification |
 | 🛠️ | Forge | Focused implementation | Small safe implementation PRs | Large multi-surface changes |
 | 🧭 | Navigator | Scout / non-overlap | Find safe next paths, inspect overlap, recommend owners | Owning broad builds |
 | 🛰️ | Relay | Simple status | Concise status, material-change summaries | Noisy healthy-cycle chatter |

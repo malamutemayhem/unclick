@@ -2,19 +2,19 @@
 // Uses the TMDB v3 REST API via fetch - no external dependencies.
 // Get a free API key at https://www.themoviedb.org/settings/api
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.TMDB_API_KEY ?? "").trim();
-  if (!key) {
-    throw new Error(
-      "api_key is required. Get a free key at https://www.themoviedb.org/settings/api"
-    );
-  }
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("tmdb", args);
 }
+
+const TMDB_TIMEOUT_MS = Number(process.env.TMDB_TIMEOUT_MS) || 10000;
 
 async function tmdbFetch<T>(
   path: string,
@@ -26,8 +26,24 @@ async function tmdbFetch<T>(
   for (const [k, v] of Object.entries(extra)) {
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
-  const res = await fetch(url.toString());
-  const body = (await res.json()) as Record<string, unknown>;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TMDB_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`TMDB API request timed out after ${TMDB_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`TMDB API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`TMDB API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {
     throw new Error(
       `TMDB API HTTP ${res.status}: ${String(body.status_message ?? "Unknown error")}`
@@ -76,6 +92,7 @@ export async function tmdbSearchMovies(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const query = String(args.query ?? "").trim();
   if (!query) throw new Error("query is required.");
 
@@ -89,17 +106,22 @@ export async function tmdbSearchMovies(
   );
   const results = (data.results as Record<string, unknown>[]) ?? [];
 
-  return {
+  return stampMeta({
     total: data.total_results ?? 0,
     pages: data.total_pages ?? 1,
     results: results.map(normalizeMovie),
-  };
+  }, {
+    source: "The Movie Database (TMDB)",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use tmdb_movie with a returned id for full detail and cast, or tmdb_search_tv to search shows instead."],
+  });
 }
 
 export async function tmdbSearchTv(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const query = String(args.query ?? "").trim();
   if (!query) throw new Error("query is required.");
 
@@ -119,6 +141,7 @@ export async function tmdbMovie(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const id = String(args.id ?? "").trim();
   if (!id) throw new Error("id is required (TMDB movie ID).");
 
@@ -160,6 +183,7 @@ export async function tmdbTv(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const id = String(args.id ?? "").trim();
   if (!id) throw new Error("id is required (TMDB TV show ID).");
 
@@ -199,6 +223,7 @@ export async function tmdbTrending(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const mediaType = String(args.media_type ?? "all");
   const timeWindow = String(args.time_window ?? "week");
 
@@ -231,6 +256,7 @@ export async function tmdbNowPlaying(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const data = await tmdbFetch<Record<string, unknown>>(
     "/movie/now_playing",
     key
@@ -247,6 +273,7 @@ export async function tmdbUpcoming(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const data = await tmdbFetch<Record<string, unknown>>(
     "/movie/upcoming",
     key
@@ -263,6 +290,7 @@ export async function tmdbPopularTv(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const data = await tmdbFetch<Record<string, unknown>>("/tv/popular", key);
   const results = (data.results as Record<string, unknown>[]) ?? [];
 

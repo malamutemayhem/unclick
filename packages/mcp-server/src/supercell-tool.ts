@@ -2,6 +2,8 @@
 // Three games, one file. Each game uses its own base URL and API key.
 // Env vars: COC_API_KEY, CR_API_KEY, BS_API_KEY
 
+import { stampMeta } from "./connector-meta.js";
+
 const COC_BASE = "https://api.clashofclans.com/v1";
 const CR_BASE = "https://api.clashroyale.com/v1";
 const BS_BASE = "https://api.brawlstars.com/v1";
@@ -14,12 +16,27 @@ async function supercellFetch<T>(
   apiKey: string
 ): Promise<T> {
   const url = `${baseUrl}${path}`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-    },
-  });
+  const SUPERCELL_TIMEOUT_MS = Number(process.env.SUPERCELL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SUPERCELL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Supercell API request timed out after ${SUPERCELL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Supercell API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Supercell API rate limit exceeded. Please wait and retry.");
   const body = (await res.json()) as Record<string, unknown>;
   if (!res.ok) {
     throw new Error(
@@ -52,7 +69,7 @@ export async function cocPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCocKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.playerTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash of Clans player tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(
@@ -61,7 +78,7 @@ export async function cocPlayer(
     key
   );
 
-  return {
+  return stampMeta({
     tag: data.tag,
     name: data.name,
     town_hall_level: data.townHallLevel,
@@ -87,7 +104,11 @@ export async function cocPlayer(
       ((data.troops as Record<string, unknown>[]) ?? [])
         .slice(0, 20)
         .map((t) => ({ name: t.name, level: t.level, max_level: t.maxLevel })),
-  };
+  }, {
+    source: "Supercell API",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use coc_clan for the player's clan, or coc_clan_members to list members."],
+  });
 }
 
 // GET /clans/{urlencoded_tag}
@@ -95,7 +116,7 @@ export async function cocClan(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCocKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.clanTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash of Clans clan tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(
@@ -139,7 +160,7 @@ export async function cocClanMembers(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCocKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.clanTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash of Clans clan tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(
@@ -183,7 +204,7 @@ export async function crPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCrKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.playerTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash Royale player tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(
@@ -271,7 +292,7 @@ export async function bsPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireBsKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.playerTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Brawl Stars player tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(
@@ -315,7 +336,7 @@ export async function bsClub(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireBsKey(args);
-  const tag = String(args.tag ?? "").trim();
+  const tag = String((args.clubTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Brawl Stars club tag)." };
 
   const data = await supercellFetch<Record<string, unknown>>(

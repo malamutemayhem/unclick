@@ -11,10 +11,12 @@ import DocsPage from "./pages/Docs.tsx";
 import LinkInBioPage from "./pages/tools/LinkInBio.tsx";
 import SchedulingPage from "./pages/tools/Scheduling.tsx";
 import SolvePage from "./pages/tools/Solve.tsx";
-import ArenaHome from "./pages/arena/ArenaHome.tsx";
-import ArenaProblem from "./pages/arena/ArenaProblem.tsx";
-import ArenaLeaderboard from "./pages/arena/ArenaLeaderboard.tsx";
-import ArenaSubmitProblem from "./pages/arena/ArenaSubmitProblem.tsx";
+// Arena is hidden for now (not deleted). Its pages, components, and API
+// remain in the codebase; only the public routes are turned off below.
+// import ArenaHome from "./pages/arena/ArenaHome.tsx";
+// import ArenaProblem from "./pages/arena/ArenaProblem.tsx";
+// import ArenaLeaderboard from "./pages/arena/ArenaLeaderboard.tsx";
+// import ArenaSubmitProblem from "./pages/arena/ArenaSubmitProblem.tsx";
 import FAQPage from "./pages/FAQPage.tsx";
 import ConnectPage from "./pages/Connect.tsx";
 import DevelopersPage from "./pages/Developers.tsx";
@@ -32,10 +34,13 @@ import OrganiserPage from "./pages/Organiser.tsx";
 import DispatchPage from "./pages/Dispatch.tsx";
 import CrewsPage from "./pages/Crews.tsx";
 import ToolsPage from "./pages/Tools.tsx";
+import AppsPage from "./pages/Apps.tsx";
+import AppDetailPage from "./pages/AppDetail.tsx";
 import JobsmithPage from "./pages/Jobsmith.tsx";
 import NewToAIPage from "./pages/NewToAI.tsx";
 import SmartHomePage from "./pages/SmartHome.tsx";
 import InstallRecoverPage from "./pages/InstallRecover.tsx";
+import XPassPage from "./pages/XPass.tsx";
 import DogfoodReportPage from "./pages/DogfoodReport.tsx";
 import LoginPage from "./pages/Login.tsx";
 import SignupPage from "./pages/Signup.tsx";
@@ -50,6 +55,7 @@ import AdminYou from "./pages/admin/AdminYou.tsx";
 import AdminMemory from "./pages/admin/AdminMemory.tsx";
 import AdminKeychain from "./pages/admin/AdminKeychain.tsx";
 import AdminTools from "./pages/admin/AdminTools.tsx";
+import AdminSkills from "./pages/admin/AdminSkills.tsx";
 import AdminActivity from "./pages/admin/AdminActivity.tsx";
 import AdminSettings from "./pages/admin/AdminSettings.tsx";
 import AdminAgentsPage from "./pages/admin/AdminAgents.tsx";
@@ -76,6 +82,8 @@ import AdminAuditLog from "./pages/admin/AdminAuditLog.tsx";
 import AdminBrainmap from "./pages/admin/AdminBrainmap.tsx";
 import AdminJobs from "./pages/admin/AdminJobs.tsx";
 import AdminJobsmith from "./pages/admin/AdminJobsmith.tsx";
+import AdminBenchmarks from "./pages/admin/AdminBenchmarks.tsx";
+import AdminExpressBuild from "./pages/admin/AdminExpressBuild.tsx";
 import {
   AdminAutopilot,
   AdminBilling,
@@ -87,7 +95,7 @@ import {
 import SignalsCatalog from "./pages/admin/signals/SignalsCatalog.tsx";
 import SignalsSettings from "./pages/admin/signals/SignalsSettings.tsx";
 import Fishbowl from "./pages/admin/Fishbowl.tsx";
-import BuildDeskPage from "./pages/BuildDesk.tsx";
+// BuildDeskPage import removed 2026-05-28 — page hidden per Chris (developer marketplace paused). File retained at src/pages/BuildDesk.tsx; /build route redirects to /.
 import { trackPageView } from "./lib/analytics.ts";
 
 const queryClient = new QueryClient();
@@ -118,11 +126,12 @@ const App = () => (
           <Route path="/tools/link-in-bio" element={<LinkInBioPage />} />
           <Route path="/tools/scheduling" element={<SchedulingPage />} />
           <Route path="/tools/solve" element={<SolvePage />} />
-          {/* Arena - AI agent problem board with 6 viral features */}
-          <Route path="/arena" element={<ArenaHome />} />
-          <Route path="/arena/leaderboard" element={<ArenaLeaderboard />} />
-          <Route path="/arena/submit" element={<ArenaSubmitProblem />} />
-          <Route path="/arena/:id" element={<ArenaProblem />} />
+          {/* Arena - hidden for now (not deleted). Routes redirect home so the
+              pages are not reachable; components and API are retained. */}
+          <Route path="/arena" element={<Navigate to="/" replace />} />
+          <Route path="/arena/leaderboard" element={<Navigate to="/" replace />} />
+          <Route path="/arena/submit" element={<Navigate to="/" replace />} />
+          <Route path="/arena/:id" element={<Navigate to="/" replace />} />
           <Route path="/developers" element={<DevelopersPage />} />
           <Route path="/developers/docs" element={<DeveloperDocsPage />} />
           <Route path="/developers/submit" element={<DeveloperSubmitPage />} />
@@ -136,7 +145,10 @@ const App = () => (
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/backstagepass" element={<Navigate to="/admin/keychain" replace />} />
           {/* Core product pages */}
+          <Route path="/apps" element={<AppsPage />} />
+          <Route path="/apps/:slug" element={<AppDetailPage />} />
           <Route path="/tools" element={<ToolsPage />} />
+          <Route path="/skills" element={<Navigate to="/admin/skills" replace />} />
           <Route path="/jobsmith" element={<JobsmithPage />} />
           <Route path="/memory" element={<MemoryPage />} />
           {/* /memory/admin redirects to the new admin shell */}
@@ -160,11 +172,14 @@ const App = () => (
             <Route path="you" element={<AdminYou />} />
             <Route path="memory" element={<AdminMemory />} />
             <Route path="keychain" element={<AdminKeychain />} />
-            <Route path="tools" element={<AdminTools />} />
+            <Route path="apps" element={<AdminTools />} />
+            <Route path="tools" element={<Navigate to="/admin/apps" replace />} />
+            <Route path="skills" element={<AdminSkills />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="projects" element={<AdminProjects />} />
             <Route path="autopilot" element={<AdminAutopilot />} />
+            <Route path="autopilot/expressbuild" element={<AdminExpressBuild />} />
             <Route path="agents"     element={<AdminAgentsPage />} />
             <Route path="agents/heartbeat" element={<AdminSeatHeartbeatPage />} />
             <Route path="workers" element={<AdminWorkers />} />
@@ -172,6 +187,7 @@ const App = () => (
             <Route path="jobsmith" element={<AdminJobsmith />} />
             <Route path="todos" element={<Navigate to="/admin/jobs" replace />} />
             <Route path="checks" element={<AdminChecks />} />
+            <Route path="checks/:productId" element={<AdminChecks />} />
             <Route path="ledger" element={<AdminLedger />} />
             <Route path="billing" element={<AdminBilling />} />
             <Route path="testpass"              element={<TestPassCatalog />} />
@@ -200,6 +216,7 @@ const App = () => (
             <Route path="moderation"     element={<RequireAdmin><AdminModeration /></RequireAdmin>} />
             <Route path="audit-log"      element={<RequireAdmin><AdminAuditLog /></RequireAdmin>} />
             <Route path="brainmap"       element={<RequireAdmin><AdminBrainmap /></RequireAdmin>} />
+            <Route path="benchmarks"     element={<RequireAdmin><AdminBenchmarks /></RequireAdmin>} />
             <Route path="signals"          element={<SignalsCatalog />} />
             <Route path="signals/settings" element={<SignalsSettings />} />
             <Route path="boardroom"        element={<Fishbowl />} />
@@ -213,8 +230,12 @@ const App = () => (
           <Route path="/organiser" element={<OrganiserPage />} />
           <Route path="/dispatch" element={<DispatchPage />} />
           <Route path="/crews" element={<CrewsPage />} />
+          <Route path="/xpass" element={<XPassPage />} />
           <Route path="/dogfood" element={<DogfoodReportPage />} />
-          <Route path="/build" element={<BuildDeskPage />} />
+          {/* BuildDesk: hidden per Chris 2026-05-28. Developer dispatch surface
+              for AI coding workers, paused until the developer marketplace
+              chapter is ready. Page component retained; route redirected. */}
+          <Route path="/build" element={<Navigate to="/" replace />} />
           <Route path="/new-to-ai" element={<NewToAIPage />} />
           <Route path="/smarthome" element={<SmartHomePage />} />
           <Route path="/pricing" element={<PricingPage />} />

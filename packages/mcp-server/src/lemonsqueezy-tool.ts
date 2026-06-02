@@ -2,6 +2,9 @@
 // Uses the Lemon Squeezy REST API via fetch - no external dependencies.
 // Users must supply an API key from app.lemonsqueezy.com/settings/api.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const LS_API_BASE = "https://api.lemonsqueezy.com/v1";
 
 // --- Types -------------------------------------------------------------------
@@ -121,26 +124,43 @@ interface LsCustomer {
 
 // --- Auth validation ---------------------------------------------------------
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at app.lemonsqueezy.com/settings/api.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("lemonsqueezy", args);
 }
 
 // --- API helpers -------------------------------------------------------------
 
 async function lsGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${LS_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/vnd.api+json",
-    },
-  });
+  const LEMONSQUEEZY_TIMEOUT_MS = Number(process.env.LEMONSQUEEZY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LEMONSQUEEZY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${LS_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/vnd.api+json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Lemon Squeezy request timed out after ${LEMONSQUEEZY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Lemon Squeezy network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Lemon Squeezy rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const errors = data.errors as Array<{ detail?: string; title?: string }> | undefined;
-    const msg = errors?.[0]?.detail ?? errors?.[0]?.title ?? `HTTP ${res.status}`;
+    const msg = errors?.[0]?.detail ?? errors?.[0]?.title ?? `status ${res.status}`;
     throw new Error(`Lemon Squeezy error: ${msg}`);
   }
   return data as T;
@@ -157,13 +177,14 @@ function buildQueryString(params: Record<string, string | undefined>): string {
 export async function lsListStores(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
       "page[number]": args["page[number]"] ? String(args["page[number]"]) : undefined,
       "page[size]": args["page[size]"] ? String(args["page[size]"]) : undefined,
     });
 
     const response = await lsGet<LsListResponse<LsStore>>(apiKey, `/stores${qs}`);
-    return {
+    return stampMeta({
       count: response.data.length,
       meta: response.meta,
       data: response.data.map((s) => ({
@@ -177,7 +198,11 @@ export async function lsListStores(args: Record<string, unknown>): Promise<unkno
         currency: s.attributes.currency,
         created_at: s.attributes.created_at,
       })),
-    };
+    }, {
+      source: "Lemon Squeezy",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use ls_list_products or ls_list_orders for a store."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -186,6 +211,7 @@ export async function lsListStores(args: Record<string, unknown>): Promise<unkno
 export async function lsListProducts(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
       "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
       "page[number]": args["page[number]"] ? String(args["page[number]"]) : undefined,
@@ -216,6 +242,7 @@ export async function lsListProducts(args: Record<string, unknown>): Promise<unk
 export async function lsListOrders(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
       "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
       "filter[user_email]": args["filter[user_email]"] ? String(args["filter[user_email]"]) : undefined,
@@ -249,6 +276,7 @@ export async function lsListOrders(args: Record<string, unknown>): Promise<unkno
 export async function lsListSubscriptions(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
       "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
       "filter[order_id]": args["filter[order_id]"] ? String(args["filter[order_id]"]) : undefined,
@@ -285,6 +313,7 @@ export async function lsListSubscriptions(args: Record<string, unknown>): Promis
 export async function lsGetOrder(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const orderId = String(args.order_id ?? "").trim();
     if (!orderId) throw new Error("order_id is required.");
 
@@ -317,6 +346,7 @@ export async function lsGetOrder(args: Record<string, unknown>): Promise<unknown
 export async function lsListCustomers(args: Record<string, unknown>): Promise<unknown> {
   try {
     const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const qs = buildQueryString({
       "filter[store_id]": args["filter[store_id]"] ? String(args["filter[store_id]"]) : undefined,
       "filter[email]": args["filter[email]"] ? String(args["filter[email]"]) : undefined,

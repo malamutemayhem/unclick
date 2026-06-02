@@ -3,6 +3,7 @@ import {
   getPhaseOneLegalPassHats,
   PHASE_ONE_LEGALPASS_HATS,
 } from "../hat-library.js";
+import { LegalPassHatDefinitionSchema } from "../schema.js";
 
 describe("phase-one LegalPass hats", () => {
   it("defines the three MVP hats", () => {
@@ -15,6 +16,7 @@ describe("phase-one LegalPass hats", () => {
 
   it("keeps deterministic fixture checks on every hat", () => {
     for (const hat of PHASE_ONE_LEGALPASS_HATS) {
+      expect(LegalPassHatDefinitionSchema.parse(hat)).toEqual(hat);
       expect(hat.checks.length).toBeGreaterThan(0);
       expect(hat.checks.every((check) => check.fixture_terms.length > 0)).toBe(true);
     }

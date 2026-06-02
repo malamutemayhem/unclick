@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import AdminJobs from "./AdminJobs";
+import AdminJobs, { JOBS_REFRESH_INTERVAL_MS } from "./AdminJobs";
 
 vi.mock("@/lib/auth", () => ({
   useSession: () => ({
@@ -128,9 +128,126 @@ describe("AdminJobs", () => {
     render(React.createElement(AdminJobs));
 
     expect(await screen.findByText("No jobs are being worked while backlog is waiting.")).toBeInTheDocument();
+    expect(screen.getByText("Traffic light")).toBeInTheDocument();
+    expect(screen.getByText("No active owner")).toBeInTheDocument();
+    expect(screen.getByText("Claim one waiting job")).toBeInTheDocument();
     expect(screen.getByText("Open backlog")).toBeInTheDocument();
     const alertsCard = screen.getByText("Alerts").closest("div");
     expect(alertsCard).not.toBeNull();
     expect(within(alertsCard as HTMLElement).getByText("1")).toBeInTheDocument();
+  });
+
+  it("shows a proof-state warning even when progress says shipped", async () => {
+    currentJobs = [
+      {
+        id: "false-green-job",
+        title: "False green proof job",
+        description: "Old PR merged, but missing authenticated screenshot proof.",
+        status: "done",
+        effective_status: "needs_proof",
+        priority: "urgent",
+        created_by_agent_id: "tester",
+        assigned_to_agent_id: "chatgpt-codex-desktop",
+        created_at: "2026-05-14T12:00:00.000Z",
+        completed_at: "2026-05-14T12:30:00.000Z",
+        updated_at: "2026-05-14T12:55:00.000Z",
+        comment_count: 3,
+        pipeline_stage_count: 5,
+        pipeline_progress: 100,
+        pipeline_evidence: ["build", "proof", "ship"],
+        proof_state: "missing_ui_proof",
+        proof_state_reason: "UI or browser proof is still missing.",
+        release_blocked: true,
+        release_block_reason: "UI or browser proof is still missing.",
+      },
+    ];
+
+    render(React.createElement(AdminJobs));
+
+    expect(await screen.findByText("False green proof job")).toBeInTheDocument();
+    expect(screen.getByText("needs proof")).toBeInTheDocument();
+    expect(screen.getByText("UI proof")).toBeInTheDocument();
+    expect(screen.getByTitle("UI or browser proof is still missing.")).toBeInTheDocument();
+    expect(screen.getByTestId("job-row-title")).not.toHaveClass("line-through");
+
+    const activeSection = screen.getByRole("button", { name: /Active/i }).closest("section");
+    const completedSection = screen.getByRole("button", { name: /Completed/i }).closest("section");
+    expect(activeSection).not.toBeNull();
+    expect(completedSection).not.toBeNull();
+    expect(within(activeSection as HTMLElement).getByText("False green proof job")).toBeInTheDocument();
+    expect(within(completedSection as HTMLElement).queryByText("False green proof job")).not.toBeInTheDocument();
+  });
+
+  it("treats reopened jobs as open even when stale completion fields remain", async () => {
+    currentJobs = [
+      {
+        id: "reopened-job",
+        title: "Reopened truth job",
+        description: "Old closeout data should not make this look shipped.",
+        status: "done",
+        effective_status: "open",
+        priority: "urgent",
+        created_by_agent_id: "tester",
+        assigned_to_agent_id: null,
+        created_at: "2026-05-14T12:00:00.000Z",
+        completed_at: "2026-05-14T12:30:00.000Z",
+        updated_at: "2026-05-14T12:55:00.000Z",
+        comment_count: 3,
+        pipeline_stage_count: 5,
+        pipeline_progress: 100,
+        pipeline_evidence: ["build", "proof", "ship"],
+      },
+    ];
+
+    render(React.createElement(AdminJobs));
+
+    expect(await screen.findByText("Reopened truth job")).toBeInTheDocument();
+    expect(screen.getByText("open")).toBeInTheDocument();
+    expect(screen.getByText("live")).toBeInTheDocument();
+    expect(screen.getByText("10%")).toBeInTheDocument();
+    expect(screen.getByTestId("job-row-title")).not.toHaveClass("line-through");
+
+    const nextSection = screen.getByRole("button", { name: /Next up/i }).closest("section");
+    const completedSection = screen.getByRole("button", { name: /Completed/i }).closest("section");
+    expect(nextSection).not.toBeNull();
+    expect(completedSection).not.toBeNull();
+    expect(within(nextSection as HTMLElement).getByText("Reopened truth job")).toBeInTheDocument();
+    expect(within(completedSection as HTMLElement).queryByText("Reopened truth job")).not.toBeInTheDocument();
+  });
+
+  it("polls the jobs API on a quieter 60-second cadence", async () => {
+    const intervalSpy = vi.spyOn(globalThis, "setInterval");
+
+    render(React.createElement(AdminJobs));
+
+    await screen.findByText("Alpha ready job");
+    expect(intervalSpy).toHaveBeenCalledWith(expect.any(Function), JOBS_REFRESH_INTERVAL_MS);
+    expect(JOBS_REFRESH_INTERVAL_MS).toBe(60_000);
+    expect(screen.getByText("Refreshes every 60s")).toBeInTheDocument();
+  });
+
+  it("loads jobs with a safe read identity when the admin profile claim fails", async () => {
+    vi.mocked(fetch).mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("fishbowl_admin_claim")) {
+        return Promise.resolve({
+          ok: false,
+          json: () => Promise.resolve({ error: "claim unavailable" }),
+        } as Response);
+      }
+      if (url.includes("fishbowl_list_todos")) {
+        expect(JSON.parse(String(init?.body))).toMatchObject({
+          agent_id: "admin-jobs-ui",
+          include_description: true,
+        });
+        return jsonResponse({ todos: currentJobs });
+      }
+      return jsonResponse({});
+    });
+
+    render(React.createElement(AdminJobs));
+
+    expect(await screen.findByText("Alpha ready job")).toBeInTheDocument();
+    expect(screen.getByText("Jobs are visible, but posting comments is waiting for the admin profile.")).toBeInTheDocument();
   });
 });

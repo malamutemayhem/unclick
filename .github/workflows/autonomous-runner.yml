@@ -95,6 +95,19 @@ jobs:
             printf '{"version":1,"updated_at":"%s","jobs":[]}\n' "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" > "${CODING_ROOM_LEDGER_PATH}"
           fi
 
+      - name: Set execute canary day key
+        id: canary-day
+        if: ${{ github.event_name == 'schedule' && vars.AUTONOMOUS_RUNNER_SCHEDULED_EXECUTE_CANARY == 'true' }}
+        run: echo "day=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore execute canary daily cap
+        id: canary-cap
+        if: ${{ github.event_name == 'schedule' && vars.AUTONOMOUS_RUNNER_SCHEDULED_EXECUTE_CANARY == 'true' }}
+        uses: actions/cache/restore@v5
+        with:
+          path: .pinballwake/canary-daily-cap
+          key: autopilot-execute-canary-${{ steps.canary-day.outputs.day }}
+
       - name: Prove Orchestrator seat handoff
         if: >-
           github.event_name == 'schedule' ||
@@ -115,40 +128,163 @@ jobs:
           UNCLICK_API_KEY: ${{ secrets.UNCLICK_API_KEY || secrets.FISHBOWL_AUTOCLOSE_TOKEN || secrets.FISHBOWL_WAKE_TOKEN }}
         run: node scripts/pinballwake-autonomous-runner.mjs
 
+      - name: Plan runner mode
+        id: runner-plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || '' }}
+          INPUT_EXECUTE_CONFIRM: ${{ github.event_name == 'workflow_dispatch' && inputs.execute_confirm || '' }}
+          INPUT_KILL_SWITCH: ${{ github.event_name == 'workflow_dispatch' && inputs.kill_switch || 'false' }}
+          INPUT_MAX_CYCLES: ${{ github.event_name == 'workflow_dispatch' && inputs.max_cycles || '' }}
+          VAR_RUNNER_MODE: ${{ vars.AUTONOMOUS_RUNNER_MODE || 'claim' }}
+          VAR_RUNNER_DISABLED: ${{ vars.AUTONOMOUS_RUNNER_DISABLED || 'false' }}
+          VAR_MAX_CYCLES: ${{ vars.AUTONOMOUS_RUNNER_MAX_CYCLES || '1' }}
+          VAR_TODO_LIMIT: ${{ vars.AUTONOMOUS_RUNNER_TODO_LIMIT || '10' }}
+          VAR_ALLOWED_TODO_ROLES: ${{ vars.AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES || 'builder,plex-builder,implementation,test_fix,docs_update,code' }}
+          SCHEDULED_CANARY_ENABLED: ${{ vars.AUTONOMOUS_RUNNER_SCHEDULED_EXECUTE_CANARY || 'false' }}
+          CANARY_CACHE_HIT: ${{ steps.canary-cap.outputs.cache-hit || 'false' }}
+        run: |
+          set -euo pipefail
+
+          mode="${VAR_RUNNER_MODE}"
+          disabled="${VAR_RUNNER_DISABLED}"
+          max_cycles="${VAR_MAX_CYCLES}"
+          todo_limit="${VAR_TODO_LIMIT}"
+          roles="${VAR_ALLOWED_TODO_ROLES}"
+          execute="false"
+          canary_execute="false"
+          skip_runner="false"
+          reason="normal_${EVENT_NAME}"
+
+          if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
+            mode="${INPUT_MODE:-dry-run}"
+            max_cycles="${INPUT_MAX_CYCLES:-1}"
+            reason="manual_${mode}"
+            if [ "${INPUT_KILL_SWITCH}" = "true" ]; then
+              disabled="true"
+              reason="manual_kill_switch"
+            fi
+            if [ "${INPUT_MODE}" = "execute" ] && [ "${INPUT_EXECUTE_CONFIRM}" = "ENABLE_OPENHANDS_EXECUTE" ]; then
+              execute="true"
+              reason="manual_execute_confirmed"
+            fi
+          elif [ "${EVENT_NAME}" = "schedule" ] && [ "${SCHEDULED_CANARY_ENABLED}" = "true" ]; then
+            if [ "${CANARY_CACHE_HIT}" = "true" ]; then
+              mode="dry-run"
+              skip_runner="true"
+              reason="scheduled_execute_canary_daily_cap_hit"
+            else
+              mode="execute"
+              execute="true"
+              canary_execute="true"
+              max_cycles="1"
+              todo_limit="1"
+              roles="docs_update,test_fix"
+              reason="scheduled_execute_canary"
+            fi
+          fi
+
+          {
+            echo "mode=${mode}"
+            echo "disabled=${disabled}"
+            echo "max_cycles=${max_cycles}"
+            echo "todo_limit=${todo_limit}"
+            echo "allowed_todo_roles=${roles}"
+            echo "execute=${execute}"
+            echo "canary_execute=${canary_execute}"
+            echo "skip_runner=${skip_runner}"
+            echo "reason=${reason}"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Set up uv for OpenHands execute
         if: >-
-          github.event_name == 'workflow_dispatch' &&
-          inputs.mode == 'execute' &&
-          inputs.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE' &&
+          steps.runner-plan.outputs.execute == 'true' &&
+          steps.runner-plan.outputs.skip_runner != 'true' &&
           vars.OPENHANDS_COMMAND == ''
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
 
+      - name: Check execute canary readiness
+        if: ${{ steps.runner-plan.outputs.execute == 'true' && steps.runner-plan.outputs.skip_runner != 'true' }}
+        env:
+          HAS_CODEROOM_APP_ID: ${{ secrets.CODEROOM_GITHUB_APP_ID != '' && 'true' || 'false' }}
+          HAS_CODEROOM_APP_PRIVATE_KEY: ${{ secrets.CODEROOM_GITHUB_APP_PRIVATE_KEY != '' && 'true' || 'false' }}
+          HAS_LLM_KEY: ${{ (secrets.OPENHANDS_LLM_API_KEY != '' || secrets.LLM_API_KEY != '' || secrets.OPENROUTER_API_KEY != '' || secrets.ANTHROPIC_API_KEY != '') && 'true' || 'false' }}
+          HAS_LLM_MODEL: ${{ (vars.OPENHANDS_LLM_MODEL != '' || vars.LLM_MODEL != '' || vars.OPENROUTER_WAKE_MODEL != '') && 'true' || 'false' }}
+          HAS_UNCLICK_API_KEY: ${{ (secrets.UNCLICK_API_KEY != '' || secrets.FISHBOWL_AUTOCLOSE_TOKEN != '' || secrets.FISHBOWL_WAKE_TOKEN != '') && 'true' || 'false' }}
+        run: |
+          set -euo pipefail
+          missing=()
+          [ "${HAS_CODEROOM_APP_ID}" = "true" ] || missing+=("CODEROOM_GITHUB_APP_ID")
+          [ "${HAS_CODEROOM_APP_PRIVATE_KEY}" = "true" ] || missing+=("CODEROOM_GITHUB_APP_PRIVATE_KEY")
+          [ "${HAS_LLM_KEY}" = "true" ] || missing+=("OPENHANDS_LLM_API_KEY or LLM_API_KEY or OPENROUTER_API_KEY or ANTHROPIC_API_KEY")
+          [ "${HAS_LLM_MODEL}" = "true" ] || missing+=("OPENHANDS_LLM_MODEL or LLM_MODEL or OPENROUTER_WAKE_MODEL")
+          [ "${HAS_UNCLICK_API_KEY}" = "true" ] || missing+=("UNCLICK_API_KEY or existing Fishbowl API token fallback")
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            printf '::error::Autopilot execute canary is not ready. Missing: %s\n' "$(IFS=', '; echo "${missing[*]}")"
+            exit 1
+          fi
+
+          echo "Autopilot execute canary readiness passed. No secret values printed."
+
+      - name: Mint CodeRoom GitHub App token
+        id: coderoom-token
+        if: ${{ steps.runner-plan.outputs.execute == 'true' && steps.runner-plan.outputs.skip_runner != 'true' }}
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.CODEROOM_GITHUB_APP_ID }}
+          private-key: ${{ secrets.CODEROOM_GITHUB_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Run autonomous Runner
+        if: ${{ steps.runner-plan.outputs.skip_runner != 'true' }}
         env:
           CODING_ROOM_LEDGER_PATH: ${{ vars.CODING_ROOM_LEDGER_PATH || '.pinballwake/coding-room-ledger.json' }}
           CODING_ROOM_LEASE_SECONDS: ${{ vars.CODING_ROOM_LEASE_SECONDS || '1800' }}
+          AUTONOMOUS_RUNNER_ID: ${{ steps.runner-plan.outputs.canary_execute == 'true' && 'pinballwake-autonomous-runner' || vars.AUTONOMOUS_RUNNER_ID || '' }}
+          CODING_ROOM_RUNNER_AGENT_ID: ${{ steps.runner-plan.outputs.canary_execute == 'true' && 'pinballwake-autonomous-runner' || vars.CODING_ROOM_RUNNER_AGENT_ID || '' }}
           AUTONOMOUS_RUNNER_QUEUE_SOURCE: ${{ vars.AUTONOMOUS_RUNNER_QUEUE_SOURCE || 'unclick' }}
           AUTONOMOUS_RUNNER_WAKE_SOURCE: ${{ github.event_name == 'workflow_dispatch' && inputs.wake_source || github.event_name == 'workflow_run' && 'queuepush' || github.event_name }}
-          AUTONOMOUS_RUNNER_TODO_LIMIT: ${{ vars.AUTONOMOUS_RUNNER_TODO_LIMIT || '10' }}
-          AUTONOMOUS_RUNNER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || vars.AUTONOMOUS_RUNNER_MODE || 'claim' }}
-          AUTONOMOUS_RUNNER_DISABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.kill_switch == 'true' && 'true' || vars.AUTONOMOUS_RUNNER_DISABLED || 'false' }}
-          AUTONOMOUS_RUNNER_ALLOW_EXECUTE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'execute' && inputs.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE' && 'true' || 'false' }}
-          AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'execute' && inputs.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE' && 'true' || 'false' }}
-          OPENHANDS_TEST_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'execute' && inputs.execute_confirm == 'ENABLE_OPENHANDS_EXECUTE' && '1' || '' }}
+          AUTONOMOUS_RUNNER_TODO_LIMIT: ${{ steps.runner-plan.outputs.todo_limit }}
+          AUTONOMOUS_RUNNER_MODE: ${{ steps.runner-plan.outputs.mode }}
+          AUTONOMOUS_RUNNER_DISABLED: ${{ steps.runner-plan.outputs.disabled }}
+          AUTONOMOUS_RUNNER_ALLOW_EXECUTE: ${{ steps.runner-plan.outputs.execute }}
+          AUTONOMOUS_RUNNER_OPENHANDS_EXECUTE: ${{ steps.runner-plan.outputs.execute }}
+          AUTONOMOUS_RUNNER_WRITER: ${{ vars.AUTONOMOUS_RUNNER_WRITER }}
+          AUTONOMOUS_RUNNER_REQUIRE_ASSIGNED_QUEUE: ${{ steps.runner-plan.outputs.canary_execute == 'true' && 'true' || vars.AUTONOMOUS_RUNNER_REQUIRE_ASSIGNED_QUEUE || 'false' }}
+          OPENHANDS_TEST_MODE: ${{ steps.runner-plan.outputs.execute == 'true' && '1' || '' }}
           OPENHANDS_COMMAND: ${{ vars.OPENHANDS_COMMAND || 'uvx' }}
           OPENHANDS_ARGS: ${{ vars.OPENHANDS_ARGS || '--python 3.12 openhands --headless --json --override-with-envs --task {prompt}' }}
-          LLM_API_KEY: ${{ secrets.OPENHANDS_LLM_API_KEY || secrets.LLM_API_KEY || '' }}
-          LLM_MODEL: ${{ vars.OPENHANDS_LLM_MODEL || vars.LLM_MODEL || '' }}
-          LLM_BASE_URL: ${{ vars.OPENHANDS_LLM_BASE_URL || vars.LLM_BASE_URL || '' }}
+          LLM_API_KEY: ${{ secrets.OPENHANDS_LLM_API_KEY || secrets.LLM_API_KEY || secrets.OPENROUTER_API_KEY || secrets.ANTHROPIC_API_KEY || '' }}
+          LLM_MODEL: ${{ vars.OPENHANDS_LLM_MODEL || vars.LLM_MODEL || vars.OPENROUTER_WAKE_MODEL || '' }}
+          LLM_BASE_URL: ${{ vars.OPENHANDS_LLM_BASE_URL || vars.LLM_BASE_URL || (secrets.OPENROUTER_API_KEY != '' && 'https://openrouter.ai/api/v1' || '') }}
           OPENHANDS_SUPPRESS_BANNER: "1"
           AUTONOMOUS_RUNNER_ALLOW_PROTECTED_SURFACES: "false"
           AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES: ${{ vars.AUTONOMOUS_RUNNER_ALLOWED_PRIORITIES || 'urgent,high' }}
           AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS: ${{ vars.AUTONOMOUS_RUNNER_ALLOWED_ACTION_REASONS || 'unassigned_open' }}
-          AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES: ${{ vars.AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES || 'builder,plex-builder,implementation,test_fix,docs_update,code' }}
-          AUTONOMOUS_RUNNER_MAX_CYCLES: ${{ github.event_name == 'workflow_dispatch' && inputs.max_cycles || vars.AUTONOMOUS_RUNNER_MAX_CYCLES || '1' }}
+          AUTONOMOUS_RUNNER_ALLOWED_TODO_ROLES: ${{ steps.runner-plan.outputs.allowed_todo_roles }}
+          AUTONOMOUS_RUNNER_MAX_CYCLES: ${{ steps.runner-plan.outputs.max_cycles }}
+          CODEROOM_GITHUB_APP_TOKEN: ${{ steps.coderoom-token.outputs.token || '' }}
           UNCLICK_MCP_URL: ${{ vars.UNCLICK_MCP_URL || 'https://unclick.world/api/mcp' }}
           UNCLICK_API_KEY: ${{ secrets.UNCLICK_API_KEY || secrets.FISHBOWL_AUTOCLOSE_TOKEN || secrets.FISHBOWL_WAKE_TOKEN }}
         run: node scripts/pinballwake-autonomous-runner.mjs
+
+      - name: Mark execute canary daily cap
+        if: ${{ steps.runner-plan.outputs.canary_execute == 'true' && success() }}
+        run: |
+          set -euo pipefail
+          mkdir -p .pinballwake/canary-daily-cap
+          printf 'completed_at=%s\nrun_id=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" "${GITHUB_RUN_ID}" > ".pinballwake/canary-daily-cap/${{ steps.canary-day.outputs.day }}.txt"
+
+      - name: Save execute canary daily cap
+        if: ${{ steps.runner-plan.outputs.canary_execute == 'true' && success() }}
+        uses: actions/cache/save@v5
+        with:
+          path: .pinballwake/canary-daily-cap
+          key: autopilot-execute-canary-${{ steps.canary-day.outputs.day }}
 
       - name: Upload runner ledger
         if: always()

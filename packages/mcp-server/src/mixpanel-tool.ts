@@ -2,18 +2,20 @@
 // Uses the Mixpanel REST API via fetch - no external dependencies.
 // Users must supply a Service Account username and secret from mixpanel.com/settings/service-accounts.
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const MP_INGEST = "https://api.mixpanel.com";
 const MP_QUERY  = "https://data.mixpanel.com/api/2.0";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireCreds(args: Record<string, unknown>): { username: string; secret: string; projectId: string } {
-  const username  = String(args.service_account_username ?? "").trim();
-  const secret    = String(args.service_account_secret ?? "").trim();
-  const projectId = String(args.project_id ?? "").trim();
-  if (!username) throw new Error("service_account_username is required (from mixpanel.com/settings/service-accounts).");
-  if (!secret)   throw new Error("service_account_secret is required.");
-  if (!projectId) throw new Error("project_id is required (numeric Mixpanel project ID).");
+function requireCreds(args: Record<string, unknown>): { username: string; secret: string; projectId: string } | NotConnectedResult {
+  const username  = String(args.service_account_username ?? process.env.MIXPANEL_SERVICE_ACCOUNT_USERNAME ?? "").trim();
+  const secret    = String(args.service_account_secret ?? process.env.MIXPANEL_SERVICE_ACCOUNT_SECRET ?? "").trim();
+  const projectId = String(args.project_id ?? process.env.MIXPANEL_PROJECT_ID ?? "").trim();
+  if (!username || !secret || !projectId) return notConnectedFor("mixpanel");
   return { username, secret, projectId };
 }
 
@@ -24,9 +26,26 @@ function basicAuth(username: string, secret: string): string {
 async function mpGet<T>(username: string, secret: string, baseUrl: string, path: string, params: Record<string, string>): Promise<T> {
   const url = new URL(`${baseUrl}${path}`);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: basicAuth(username, secret) },
-  });
+  const MIXPANEL_TIMEOUT_MS = Number(process.env.MIXPANEL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MIXPANEL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Authorization: basicAuth(username, secret) },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Mixpanel request timed out after ${MIXPANEL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Mixpanel network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    throw new Error("Mixpanel rate limit reached (HTTP 429). Please wait and retry.");
+  }
   const text = await res.text();
   let data: unknown;
   try { data = JSON.parse(text); } catch { data = text; }
@@ -39,14 +58,31 @@ async function mpGet<T>(username: string, secret: string, baseUrl: string, path:
 
 async function mpPost<T>(username: string, secret: string, baseUrl: string, path: string, body: Record<string, string>): Promise<T> {
   const form = new URLSearchParams(body);
-  const res = await fetch(`${baseUrl}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: basicAuth(username, secret),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: form.toString(),
-  });
+  const MIXPANEL_TIMEOUT_MS = Number(process.env.MIXPANEL_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MIXPANEL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: basicAuth(username, secret),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: form.toString(),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Mixpanel request timed out after ${MIXPANEL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Mixpanel network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    throw new Error("Mixpanel rate limit reached (HTTP 429). Please wait and retry.");
+  }
   const text = await res.text();
   let data: unknown;
   try { data = JSON.parse(text); } catch { data = text; }
@@ -60,7 +96,9 @@ async function mpPost<T>(username: string, secret: string, baseUrl: string, path
 // ─── Operations ───────────────────────────────────────────────────────────────
 
 export async function mixpanelTrackEvent(args: Record<string, unknown>): Promise<unknown> {
-  const { username, secret } = requireCreds(args);
+  const _creds = requireCreds(args);
+  if ("not_connected" in _creds) return _creds;
+  const { username, secret } = _creds;
   const event = String(args.event ?? "").trim();
   if (!event) throw new Error("event is required (event name to track).");
 
@@ -77,7 +115,9 @@ export async function mixpanelTrackEvent(args: Record<string, unknown>): Promise
 }
 
 export async function mixpanelGetEvents(args: Record<string, unknown>): Promise<unknown> {
-  const { username, secret, projectId } = requireCreds(args);
+  const _creds = requireCreds(args);
+  if ("not_connected" in _creds) return _creds;
+  const { username, secret, projectId } = _creds;
   const fromDate = String(args.from_date ?? new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0]);
   const toDate   = String(args.to_date ?? new Date().toISOString().split("T")[0]);
 
@@ -90,11 +130,18 @@ export async function mixpanelGetEvents(args: Record<string, unknown>): Promise<
   };
   if (args.event) params.event = JSON.stringify(Array.isArray(args.event) ? args.event : [String(args.event)]);
 
-  return mpGet(username, secret, MP_QUERY, "/events", params);
+  const __res = await mpGet(username, secret, MP_QUERY, "/events", params) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Mixpanel",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use mixpanel_get_funnels or mixpanel_get_retention for deeper analysis."],
+  });
 }
 
 export async function mixpanelGetFunnels(args: Record<string, unknown>): Promise<unknown> {
-  const { username, secret, projectId } = requireCreds(args);
+  const _creds = requireCreds(args);
+  if ("not_connected" in _creds) return _creds;
+  const { username, secret, projectId } = _creds;
   const funnelId = String(args.funnel_id ?? "").trim();
   if (!funnelId) throw new Error("funnel_id is required.");
   const fromDate = String(args.from_date ?? new Date(Date.now() - 30 * 86400000).toISOString().split("T")[0]);
@@ -110,7 +157,9 @@ export async function mixpanelGetFunnels(args: Record<string, unknown>): Promise
 }
 
 export async function mixpanelGetRetention(args: Record<string, unknown>): Promise<unknown> {
-  const { username, secret, projectId } = requireCreds(args);
+  const _creds = requireCreds(args);
+  if ("not_connected" in _creds) return _creds;
+  const { username, secret, projectId } = _creds;
   const fromDate = String(args.from_date ?? new Date(Date.now() - 30 * 86400000).toISOString().split("T")[0]);
   const toDate   = String(args.to_date ?? new Date().toISOString().split("T")[0]);
 
@@ -128,7 +177,9 @@ export async function mixpanelGetRetention(args: Record<string, unknown>): Promi
 }
 
 export async function mixpanelExportData(args: Record<string, unknown>): Promise<unknown> {
-  const { username, secret, projectId } = requireCreds(args);
+  const _creds = requireCreds(args);
+  if ("not_connected" in _creds) return _creds;
+  const { username, secret, projectId } = _creds;
   const fromDate = String(args.from_date ?? new Date(Date.now() - 1 * 86400000).toISOString().split("T")[0]);
   const toDate   = String(args.to_date ?? new Date().toISOString().split("T")[0]);
 
@@ -144,9 +195,24 @@ export async function mixpanelExportData(args: Record<string, unknown>): Promise
   // Export returns NDJSON - return as raw text
   const url = new URL(`${MP_QUERY}/export`);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: basicAuth(username, secret) },
-  });
+  const MIXPANEL_TIMEOUT_MS = Number(process.env.MIXPANEL_TIMEOUT_MS) || 30000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MIXPANEL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { Authorization: basicAuth(username, secret) },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Mixpanel export timed out after ${MIXPANEL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Mixpanel export network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Mixpanel rate limit reached (HTTP 429). Please wait and retry.");
   if (!res.ok) throw new Error(`Mixpanel export error (${res.status})`);
   const text = await res.text();
   const lines = text.trim().split("\n").filter(Boolean);

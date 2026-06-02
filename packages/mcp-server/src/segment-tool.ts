@@ -4,31 +4,52 @@
 // Auth: write_key (Basic auth, base64 encoded) for tracking; api_token (Bearer) for management
 // Base: https://api.segment.io/v1 (tracking) / https://api.segmentapis.com (management)
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const SEGMENT_TRACK_BASE = "https://api.segment.io/v1";
 const SEGMENT_MGMT_BASE = "https://api.segmentapis.com";
 
-function requireWriteKey(args: Record<string, unknown>): string {
-  const key = String(args.write_key ?? args.api_key ?? "").trim();
-  if (!key) throw new Error("write_key is required. Get one from your Segment source settings.");
+function requireWriteKey(args: Record<string, unknown>): string | NotConnectedResult {
+  const key = String(args.write_key ?? args.api_key ?? process.env.SEGMENT_WRITE_KEY ?? "").trim();
+  if (!key) return requireCredential("segment", { ...args, write_key: "" });
   return key;
 }
 
-function requireApiToken(args: Record<string, unknown>): string {
-  const token = String(args.api_token ?? args.api_key ?? "").trim();
-  if (!token) throw new Error("api_token is required. Get one from app.segment.com/goto-my-workspace/settings/access-management.");
+function requireApiToken(args: Record<string, unknown>): string | NotConnectedResult {
+  const token = String(args.api_token ?? args.api_key ?? process.env.SEGMENT_API_TOKEN ?? "").trim();
+  if (!token) return requireCredential("segment", { ...args, api_key: "" });
   return token;
 }
 
 async function segmentTrackPost(writeKey: string, path: string, body: unknown): Promise<Record<string, unknown>> {
   const encoded = Buffer.from(`${writeKey}:`).toString("base64");
-  const res = await fetch(`${SEGMENT_TRACK_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${encoded}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const SEGMENT_TIMEOUT_MS = Number(process.env.SEGMENT_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SEGMENT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SEGMENT_TRACK_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${encoded}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Segment tracking request timed out after ${SEGMENT_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Segment tracking network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    throw new Error("Segment rate limit reached (HTTP 429). Please wait and retry.");
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`Segment tracking error (${res.status}): ${text || res.statusText}`);
@@ -43,16 +64,33 @@ async function segmentMgmtGet<T>(apiToken: string, path: string, query?: Record<
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${apiToken}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const SEGMENT_TIMEOUT_MS = Number(process.env.SEGMENT_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SEGMENT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Segment management request timed out after ${SEGMENT_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Segment management network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    throw new Error("Segment rate limit reached (HTTP 429). Please wait and retry.");
+  }
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
     const err = (data.errors as Array<Record<string, unknown>>)?.[0];
-    const msg = err?.message as string ?? `HTTP ${res.status}`;
+    const msg = err?.message as string ?? `status ${res.status}`;
     throw new Error(`Segment management error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -62,6 +100,7 @@ async function segmentMgmtGet<T>(apiToken: string, path: string, query?: Record<
 
 export async function segment_track_event(args: Record<string, unknown>): Promise<unknown> {
   const writeKey = requireWriteKey(args);
+  if (typeof writeKey !== "string") return writeKey;
   const event = String(args.event ?? "").trim();
   const userId = String(args.user_id ?? "").trim();
   const anonymousId = String(args.anonymous_id ?? "").trim();
@@ -83,6 +122,7 @@ export async function segment_track_event(args: Record<string, unknown>): Promis
 
 export async function segment_identify_user(args: Record<string, unknown>): Promise<unknown> {
   const writeKey = requireWriteKey(args);
+  if (typeof writeKey !== "string") return writeKey;
   const userId = String(args.user_id ?? "").trim();
   const anonymousId = String(args.anonymous_id ?? "").trim();
   if (!userId && !anonymousId) throw new Error("user_id or anonymous_id is required.");
@@ -101,6 +141,7 @@ export async function segment_identify_user(args: Record<string, unknown>): Prom
 
 export async function segment_list_sources(args: Record<string, unknown>): Promise<unknown> {
   const apiToken = requireApiToken(args);
+  if (typeof apiToken !== "string") return apiToken;
   const workspaceId = String(args.workspace_id ?? "").trim();
   if (!workspaceId) throw new Error("workspace_id is required.");
 
@@ -108,11 +149,16 @@ export async function segment_list_sources(args: Record<string, unknown>): Promi
     apiToken, `/workspaces/${workspaceId}/sources`
   );
   const sources = data.data?.sources ?? [];
-  return { count: sources.length, sources };
+  return stampMeta({ count: sources.length, sources }, {
+    source: "Segment",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use segment_list_destinations for a source, or segment_get_source for detail."],
+  });
 }
 
 export async function segment_list_destinations(args: Record<string, unknown>): Promise<unknown> {
   const apiToken = requireApiToken(args);
+  if (typeof apiToken !== "string") return apiToken;
   const sourceId = String(args.source_id ?? "").trim();
   if (!sourceId) throw new Error("source_id is required.");
 
@@ -125,6 +171,7 @@ export async function segment_list_destinations(args: Record<string, unknown>): 
 
 export async function segment_get_source(args: Record<string, unknown>): Promise<unknown> {
   const apiToken = requireApiToken(args);
+  if (typeof apiToken !== "string") return apiToken;
   const sourceId = String(args.source_id ?? "").trim();
   if (!sourceId) throw new Error("source_id is required.");
 

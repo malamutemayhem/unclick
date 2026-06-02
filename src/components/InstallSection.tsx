@@ -18,6 +18,7 @@ type Platform = "Claude" | "ChatGPT" | "Cursor" | "VS Code" | "Other";
 type ClaudeSurface = "Web" | "Desktop" | "Code";
 
 const MCP_ORIGIN = "https://unclick.world/api/mcp";
+const MCP_PACKAGE_URL = "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz";
 const PLACEHOLDER_KEY = "YOUR_API_KEY";
 
 const platforms: Platform[] = ["Claude", "ChatGPT", "Cursor", "VS Code", "Other"];
@@ -40,7 +41,7 @@ function stdioJson(key: string) {
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["-y", "@unclick/mcp-server"],
+      "args": ["-y", "${MCP_PACKAGE_URL}"],
       "env": { "UNCLICK_API_KEY": "${key}" }
     }
   }

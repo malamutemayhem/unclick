@@ -2,12 +2,32 @@
 // No API key required.
 // Base URL: https://site.api.espn.com/apis/site/v2/sports/
 
+import { stampMeta } from "./connector-meta.js";
+
 const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports";
+const ESPN_TIMEOUT_MS = Number(process.env.ESPN_TIMEOUT_MS) || 10000;
 
 async function espnFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${ESPN_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ESPN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${ESPN_BASE}${path}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`ESPN API request timed out after ${ESPN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`ESPN API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`ESPN API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) throw new Error(`ESPN API HTTP ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -74,13 +94,17 @@ function normalizeEvent(event: EspnEvent) {
 
 export async function getNflScores(_args: Record<string, unknown>): Promise<unknown> {
   const data = await espnFetch<EspnScoreboardResponse>("/football/nfl/scoreboard");
-  return {
+  return stampMeta({
     sport: "NFL",
     season_year: data.season?.year ?? null,
     week: data.week?.number ?? null,
     event_count: data.events?.length ?? 0,
     events: (data.events ?? []).map(normalizeEvent),
-  };
+  }, {
+    source: "ESPN",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use espn_team_info for a specific team, or espn_news for the latest headlines."],
+  });
 }
 
 // ─── get_nba_scores ───────────────────────────────────────────────────────────
