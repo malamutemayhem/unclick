@@ -277,6 +277,45 @@ function scoreSeatPerformance({
   };
 }
 
+function detectClientHint(value: string): string | null {
+  if (/github[- ]?action|queuepush/.test(value)) return "client: github-action";
+  if (/codex|chatgpt/.test(value)) return "client: codex";
+  if (/claude/.test(value)) return "client: claude";
+  if (/windsurf|cascade/.test(value)) return "client: windsurf";
+  return null;
+}
+
+export function buildSeatCapabilityNotes(
+  seat: AISeat,
+  profile: FishbowlProfile | null = null,
+  nowMs = Date.now(),
+): string[] {
+  const notes = new Set<string>();
+  notes.add(profile ? "source: live-profile" : "source: manual-seat");
+
+  const clientHint = detectClientHint(
+    `${seat.provider} ${seat.device} ${profile?.user_agent_hint ?? ""} ${profile?.agent_id ?? ""}`.toLowerCase(),
+  );
+  if (clientHint) notes.add(clientHint);
+
+  const routingPolicy = normalizeSeatRoutingPolicy(seat.routingPolicy);
+  if (routingPolicy === "prefer") notes.add("routing: preferred");
+  if (routingPolicy === "avoid") notes.add("routing: avoid");
+  if (routingPolicy === "blocked") notes.add("routing: blocked");
+  if (seat.isVirtual) notes.add("lane: virtual-fallback");
+
+  const checkedInAt = profile ? latestProfileCheckInAt(profile) : null;
+  const freshness = freshnessPenalty(checkedInAt, nowMs).reason;
+  if (freshness !== "live" && freshness !== "warming up") notes.add(`reliability: ${freshness}`);
+  const missed = missedCheckInPenalty(profile, nowMs).reason;
+  if (missed) notes.add(`reliability: ${missed}`);
+
+  const issue = seat.issue.trim();
+  if (issue) notes.add(`issue: ${issue}`);
+
+  return Array.from(notes);
+}
+
 export function buildSeatPerformanceScores(
   seats: AISeat[],
   profiles: FishbowlProfile[] = [],

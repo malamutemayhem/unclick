@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import AdminAgentsPage from "./AdminAgents";
 import {
   AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY,
+  buildSeatCapabilityNotes,
   buildSeatOverrideStoragePayload,
   buildSeatPerformanceScores,
   latestProfileCheckInAt,
@@ -204,5 +205,46 @@ describe("AdminAgents seat check-ins", () => {
     expect(scores[1].reasons).toContain("missed check-in");
     expect(scores[2].status).toBe("blocked");
     expect(scores[2].reasons).toContain("blocked for routing");
+  });
+
+  it("builds deterministic capability notes from live profile hints", () => {
+    const notes = buildSeatCapabilityNotes(
+      seat({ id: "codex-seat", provider: "Codex Desktop", routingPolicy: "prefer" }),
+      profile({
+        agent_id: "chatgpt-codex-seat",
+        user_agent_hint: "codex-desktop/cursor-cloud",
+        last_seen_at: "2026-05-09T00:00:00.000Z",
+        next_checkin_at: "2026-05-09T01:00:00.000Z",
+      }),
+      Date.parse("2026-05-09T04:10:00.000Z"),
+    );
+
+    expect(notes).toContain("source: live-profile");
+    expect(notes).toContain("client: codex");
+    expect(notes).toContain("routing: preferred");
+    expect(notes).toContain("reliability: stale");
+    expect(notes).toContain("reliability: missed check-in");
+  });
+
+  it("builds deterministic capability notes for manual virtual fallback seats", () => {
+    const notes = buildSeatCapabilityNotes(
+      seat({
+        id: "virtual-fallback",
+        provider: "Windsurf",
+        device: "Cascade lane",
+        isVirtual: true,
+        routingPolicy: "blocked",
+        issue: "Needs login",
+      }),
+      null,
+      Date.parse("2026-05-09T04:10:00.000Z"),
+    );
+
+    expect(notes).toContain("source: manual-seat");
+    expect(notes).toContain("client: windsurf");
+    expect(notes).toContain("routing: blocked");
+    expect(notes).toContain("lane: virtual-fallback");
+    expect(notes).toContain("reliability: no live check-in");
+    expect(notes).toContain("issue: Needs login");
   });
 });
