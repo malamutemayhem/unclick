@@ -157,6 +157,10 @@ import {
   parseFishbowlMergedPullRequest,
 } from "./lib/fishbowl-pr-merge-reconcile.js";
 import { classifyTodoActionability } from "./lib/fishbowl-todo-actionability.js";
+import {
+  evaluateIdeaPromotion,
+  ideaPromotionLabel,
+} from "./lib/fishbowl-idea-promotion.js";
 import { planOpenStaleTodoRelease } from "./lib/fishbowl-todo-open-stale-release.js";
 import { fishbowlTodoReleaseProtectedReason } from "./lib/fishbowl-todo-release-protection.js";
 import {
@@ -11054,11 +11058,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             });
           }
 
-          const netUp = (idea.upvotes ?? 0) - (idea.downvotes ?? 0);
-          if (!isAdminCaller && netUp < 1) {
+          // Governance gate: a normal promotion needs enough distinct upvotes
+          // (default 3, env-configurable). A human admin may always promote, but
+          // a below-threshold admin promotion is flagged as an override so the
+          // bypass is visible in the feed, the response, and the admin UI.
+          const promoteDecision = evaluateIdeaPromotion({
+            upvotes: idea.upvotes ?? 0,
+            isAdminCaller,
+          });
+          if (!promoteDecision.allowed) {
             return res.status(403).json({
-              error: "idea needs net upvotes >= 1 (or admin caller) to promote",
-              how_to_fix: "Vote it up first, or have the human admin promote it from the Boardroom admin UI.",
+              error: `idea needs ${promoteDecision.threshold} distinct upvotes (or an admin override) to promote`,
+              threshold: promoteDecision.threshold,
+              upvotes: promoteDecision.upvotes,
+              how_to_fix: "Get more agents to upvote it, or have the human admin promote it from the Boardroom admin UI.",
             });
           }
 
@@ -11102,14 +11115,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .single();
           if (ideaErr) throw ideaErr;
 
+          const promotionLabel = ideaPromotionLabel(promoteDecision);
+
+          // Persist the override label on the idea so the admin UI can badge it
+          // durably (not just in the transient feed event). Best-effort and
+          // non-fatal: a separate update keeps promotion working even on a deploy
+          // where the column has not landed yet.
+          let lockedIdeaForResponse = lockedIdea;
+          if (promoteDecision.adminOverride) {
+            const { data: labelled, error: labelErr } = await supabase
+              .from("mc_fishbowl_ideas")
+              .update({ promoted_by_admin_override: true })
+              .eq("api_key_hash", apiKeyHash)
+              .eq("id", idea.id)
+              .select("*")
+              .maybeSingle();
+            if (labelErr) {
+              console.warn(
+                `[fishbowl] could not persist admin-override label for idea ${idea.id}: ${labelErr.message}`,
+              );
+            } else if (labelled) {
+              lockedIdeaForResponse = labelled;
+            }
+          }
+
           void postFishbowlEvent(
             supabase,
             apiKeyHash,
             agentId,
             "idea-promoted",
-            `Idea promoted to todo: ${idea.title}`,
+            `Idea promoted to todo: ${idea.title} [${promotionLabel}]`,
           );
-          return res.status(200).json({ todo: newTodo, idea: lockedIdea });
+          return res.status(200).json({
+            todo: newTodo,
+            idea: lockedIdeaForResponse,
+            promotion: {
+              threshold: promoteDecision.threshold,
+              upvotes: promoteDecision.upvotes,
+              admin_override: promoteDecision.adminOverride,
+              label: promotionLabel,
+            },
+          });
         }
 
         // ── Comments (polymorphic) ─────────────────────────────────────────
