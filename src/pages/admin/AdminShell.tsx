@@ -43,6 +43,7 @@ import {
   ShieldAlert,
   Users as UsersIcon,
   Gauge,
+  ShieldHalf,
   HeartPulse,
   ShieldCheck,
   ScrollText,
@@ -236,6 +237,7 @@ const ADMIN_SUBMENU = [
   { path: "/admin/brainmap",      label: "Ecosystem Brainmap",    icon: Sparkles    },
   { path: "/admin/benchmarks",    label: "Benchmarks",            icon: Trophy      },
   { path: "/admin/truth-rate",    label: "Truth Rate",            icon: Gauge       },
+  { path: "/admin/xgate",         label: "XGate",                 icon: ShieldHalf  },
 ] as const;
 
 function AdminSubmenu({ onLinkClick }: { onLinkClick?: () => void }) {

@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 580,
-    "source_manifest": 189,
-    "pages": 81,
+    "inventory": 582,
+    "source_manifest": 190,
+    "pages": 82,
     "tools": 190,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 49
+      "count": 50
     },
     {
       "id": "public-surfaces",
@@ -69,7 +69,7 @@
       "id": "ledgers-and-proof",
       "name": "Ledgers and proof",
       "meaning": "Receipts, audits, evidence, and proof-of-work surfaces.",
-      "count": 6
+      "count": 7
     },
     {
       "id": "source-of-truth",
@@ -419,6 +419,16 @@
       "meaning": "Admin surface for Admin Ecosystem Pages.",
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
       "route": "/admin/workers",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-xgate-src-pages-admin-adminxgate-tsx-admin-xgate",
+      "division": "Admin surfaces",
+      "name": "Admin XGate",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin XGate.",
+      "source": "src/pages/admin/AdminXGate.tsx",
+      "route": "/admin/xgate",
       "tags": []
     },
     {
@@ -1828,6 +1838,16 @@
       "kind": "ledger",
       "meaning": "Structured evidence, proof freshness, receipts, and DONE trust surface.",
       "source": "docs/agent-observability.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "ledgers-and-proof-proof-module-ledger-api-lib-xgate-ledger-ts-no-route",
+      "division": "Ledgers and proof",
+      "name": "ledger",
+      "kind": "proof module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/xgate/ledger.ts",
       "route": "",
       "tags": []
     },
@@ -6182,6 +6202,12 @@
       "src/pages/admin/AdminEcosystemPages.tsx"
     ],
     [
+      "/admin/xgate",
+      "Admin XGate",
+      "Admin surface for Admin XGate.",
+      "src/pages/admin/AdminXGate.tsx"
+    ],
+    [
       "/admin/you",
       "Admin You",
       "Personal account, identity, and access panel.",
@@ -7695,13 +7721,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "62736086197a",
-      "bytes": 14597
+      "hash": "1f64c47fabf8",
+      "bytes": 14750
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "eec397ebdddb",
-      "bytes": 22187
+      "hash": "a6176920310e",
+      "bytes": 22288
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -8032,6 +8058,11 @@
       "source": "src/pages/admin/AdminUsers.tsx",
       "hash": "701e7da2f201",
       "bytes": 863
+    },
+    {
+      "source": "src/pages/admin/AdminXGate.tsx",
+      "hash": "d9be13cafb44",
+      "bytes": 12478
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
