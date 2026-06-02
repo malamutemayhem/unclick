@@ -61,7 +61,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
 | src/pages/admin/AdminEcosystemPages.tsx | 0f2003fd8242 | 12106 |
 | src/pages/admin/AdminBenchmarks.tsx | 69eb15aaf438 | 25684 |
-| src/pages/admin/Fishbowl.tsx | ec3c5b4f4b4f | 37557 |
+| src/pages/admin/Fishbowl.tsx | 929d67442aac | 37443 |
 | src/pages/admin/AdminBrainmap.tsx | 7d9f49ee973c | 26510 |
 | src/pages/admin/AdminCodebase.tsx | ff33937fdf7b | 8044 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | a7d741e75c78 | 7306 |
@@ -92,7 +92,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminYou.tsx | 3d0240411971 | 51024 |
 | src/pages/AppDetail.tsx | 0cf7c397e1b5 | 5401 |
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
-| src/pages/AuthCallback.tsx | 41644ade9f97 | 5284 |
+| src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
 | src/pages/Connect.tsx | ebf2c68ad6c3 | 29590 |
 | src/pages/Crews.tsx | 672df3eeb92b | 18792 |
@@ -106,7 +106,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 08e9c9874c22 | 61541 |
-| src/pages/Login.tsx | 0cfc79660be5 | 8862 |
+| src/pages/Login.tsx | 86f887990094 | 8440 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
 | src/pages/Memory.tsx | cf7f06bacc89 | 18641 |
@@ -114,7 +114,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
-| src/pages/Signup.tsx | 8eee366a8e3f | 9045 |
+| src/pages/Signup.tsx | bb69e5123b4b | 8623 |
 | src/pages/SmartHome.tsx | 3671f5d143b1 | 20733 |
 | src/pages/Terms.tsx | 4613736d1aa8 | 9327 |
 | src/pages/tools/LinkInBio.tsx | 4f20852d63d4 | 7831 |
