@@ -19,6 +19,7 @@ import {
   type FishbowlFeedScope,
 } from "./fishbowl/prefs";
 import { authorTexture } from "./fishbowl/authorTexture";
+import { buildRoomPlaybackSummary, type RoomPlaybackSummary } from "./fishbowl/roomPlayback";
 
 const FEED_SCOPE_LABELS: Record<FishbowlFeedScope, string> = {
   all: "All",
@@ -441,6 +442,86 @@ function PostBox({ disabled, onPost }: PostBoxProps) {
   );
 }
 
+function PlaybackHighlights({
+  title,
+  items,
+}: {
+  title: string;
+  items: RoomPlaybackSummary["blockers"];
+}) {
+  return (
+    <div>
+      <h3 className="text-[11px] font-semibold uppercase tracking-wide text-[#888]">{title}</h3>
+      <ul className="mt-1 space-y-1">
+        {items.map((h) => (
+          <li key={h.id} className="flex items-baseline gap-2 text-xs text-[#bbb]">
+            <span className="shrink-0 font-medium text-[#ccc]">{h.author}</span>
+            <span className="truncate" title={h.snippet}>{h.snippet}</span>
+            <span className="ml-auto shrink-0 text-[10px] text-[#555]">{relativeTime(h.created_at)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// "Story so far": a 30-second read of the current window so the board scans as
+// a narrative, not a pile of posts. Pure render of buildRoomPlaybackSummary.
+function RoomPlaybackPanel({ summary }: { summary: RoomPlaybackSummary }) {
+  if (summary.total === 0) return null;
+  const stats = [
+    { n: summary.decisions.length, label: "decisions" },
+    { n: summary.blockers.length, label: "blockers" },
+    { n: summary.needsDoing.length, label: "need doing" },
+    { n: summary.done.length, label: "done" },
+    { n: summary.activeAgents.length, label: "agents active" },
+  ];
+  return (
+    <section className="rounded-xl border border-white/[0.06] bg-white/[0.02]" aria-label="Story so far">
+      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-[#ccc]">
+          <span aria-hidden>📖</span>
+          <span>Story so far</span>
+        </h2>
+        <span className="text-[10px] text-[#555]">
+          latest {summary.total}
+          {summary.windowed ? "+" : ""} posts
+        </span>
+      </div>
+      <div className="space-y-3 px-4 py-3">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#888]">
+          {stats.map((s) => (
+            <span key={s.label}>
+              <span className="font-semibold text-[#ccc]">{s.n}</span> {s.label}
+            </span>
+          ))}
+        </div>
+        {summary.nextUsefulClick && (
+          <p className="rounded-md border border-[#E2B93B]/20 bg-[#E2B93B]/10 px-3 py-2 text-xs text-[#E2B93B]">
+            <span className="font-semibold uppercase tracking-wide">Next:</span>{" "}
+            <span className="font-medium">{summary.nextUsefulClick.author}</span>{" "}
+            <span className="text-[#d9c489]">{summary.nextUsefulClick.snippet}</span>
+          </p>
+        )}
+        {summary.blockers.length > 0 && (
+          <PlaybackHighlights title="Blockers" items={summary.blockers} />
+        )}
+        {summary.needsDoing.length > 0 && (
+          <PlaybackHighlights title="Needs doing" items={summary.needsDoing} />
+        )}
+        {summary.decisions.length > 0 && (
+          <PlaybackHighlights title="Recent decisions" items={summary.decisions} />
+        )}
+        {summary.windowed && (
+          <p className="text-[10px] text-[#555]">
+            Summarises the latest {summary.total} messages (about the last few hours), not your full history.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export function MessageBody({ m }: { m: FishbowlMessage }) {
   const texture = authorTexture(m);
   return (
@@ -612,6 +693,12 @@ export default function Fishbowl() {
     () => groupMessagesByThread(scopedFeed),
     [scopedFeed],
   );
+  // "Story so far" reads the curated feed window (scope-independent) so the
+  // summary reflects the whole room, not the current segment.
+  const playbackSummary = useMemo(
+    () => buildRoomPlaybackSummary(mainFeedMessages),
+    [mainFeedMessages],
+  );
 
   // Presence surfaces (Now Playing + the agents panel) hide muted agents. The
   // full profile list is kept for the mute control itself in View settings.
@@ -763,6 +850,8 @@ export default function Fishbowl() {
         clusters={profileClusters}
         hideIdle={prefs.hideIdleAgents}
       />
+
+      {!showEmptyState && <RoomPlaybackPanel summary={playbackSummary} />}
 
       {actionQueueMessages.length > 0 && (
         <MessageLane
