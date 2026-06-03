@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import AdminAgentsPage from "./AdminAgents";
 import {
   AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY,
+  buildSeatCapabilityNotes,
   buildSeatOverrideStoragePayload,
   buildSeatPerformanceScores,
   latestProfileCheckInAt,
@@ -204,5 +205,64 @@ describe("AdminAgents seat check-ins", () => {
     expect(scores[1].reasons).toContain("missed check-in");
     expect(scores[2].status).toBe("blocked");
     expect(scores[2].reasons).toContain("blocked for routing");
+  });
+
+  it("derives deterministic seat capability notes for client type and reliability hints", () => {
+    const now = Date.parse("2026-05-09T04:10:00.000Z");
+    const notes = buildSeatCapabilityNotes(
+      [
+        seat({ id: "codex", name: "Codex seat", provider: "Codex Desktop", routingPolicy: "auto", load: 20 }),
+        seat({ id: "claude", name: "Claude seat", provider: "Claude Code", routingPolicy: "auto", load: 15 }),
+        seat({ id: "blocked", name: "Blocked seat", provider: "Codex Desktop", routingPolicy: "blocked", load: 95 }),
+      ],
+      [
+        profile({
+          agent_id: "codex",
+          display_name: "Codex seat",
+          user_agent_hint: "codex-desktop",
+          last_seen_at: "2026-05-09T04:05:00.000Z",
+          current_status: "PASS: build shipped",
+        }),
+        profile({
+          agent_id: "claude",
+          display_name: "Claude seat",
+          user_agent_hint: "claude-code/web",
+          last_seen_at: "2026-05-09T04:05:00.000Z",
+        }),
+        profile({
+          agent_id: "blocked",
+          display_name: "Blocked seat",
+          user_agent_hint: "codex-desktop",
+          last_seen_at: "2026-05-09T00:10:00.000Z",
+          current_status: "BLOCKER: waiting on review",
+          next_checkin_at: "2026-05-09T02:00:00.000Z",
+        }),
+        profile({
+          agent_id: "github-action-queuepush",
+          display_name: "QueuePush",
+          user_agent_hint: "github-action",
+          last_seen_at: "2026-05-09T04:06:00.000Z",
+        }),
+        profile({
+          agent_id: "windsurf-seat",
+          display_name: "Cascade Windsurf",
+          user_agent_hint: "windsurf/cascade",
+          last_seen_at: "2026-05-09T04:06:00.000Z",
+          current_status: "PASS: pulse sent",
+        }),
+      ],
+      now,
+    );
+
+    const noteById = new Map(notes.map((note) => [note.id, note]));
+    expect(noteById.get("codex")?.clientFamily).toBe("codex");
+    expect(noteById.get("claude")?.clientFamily).toBe("claude");
+    expect(noteById.get("github-action-queuepush")?.clientFamily).toBe("github-action");
+    expect(noteById.get("windsurf-seat")?.clientFamily).toBe("windsurf");
+    expect(noteById.get("blocked")?.freshness).toBe("stale");
+    expect(noteById.get("blocked")?.reliabilitySignals).toContain("blocked-routing");
+    expect(noteById.get("blocked")?.reliabilitySignals).toContain("missed-checkin");
+    expect(noteById.get("blocked")?.reliabilitySignals).toContain("status-blocker-signal");
+    expect(noteById.get("codex")?.reliabilitySignals).toContain("status-pass-signal");
   });
 });

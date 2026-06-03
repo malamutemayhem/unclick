@@ -39,6 +39,21 @@ export interface SeatPerformanceScore {
   source: "matched-seat" | "live-profile" | "manual-seat";
 }
 
+export type SeatClientFamily = "codex" | "claude" | "github-action" | "windsurf" | "other";
+export type SeatFreshnessBand = "live" | "warm" | "stale" | "cold";
+
+export interface SeatCapabilityNote {
+  id: string;
+  label: string;
+  source: SeatPerformanceScore["source"];
+  clientFamily: SeatClientFamily;
+  freshness: SeatFreshnessBand;
+  routingPolicy: SeatRoutingPolicy;
+  load: number;
+  reliabilitySignals: string[];
+  summary: string;
+}
+
 export const AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY = "unclick_ai_seat_load_overrides_v1";
 export const AI_SEAT_LEGACY_STORAGE_KEY = "unclick_ai_seat_manual_slots_v1";
 
@@ -206,6 +221,19 @@ function clampScore(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
+function detectSeatClientFamily(seat: AISeat | null, profile: FishbowlProfile | null): SeatClientFamily {
+  const haystack = `${seat?.provider ?? ""} ${seat?.name ?? ""} ${profile?.display_name ?? ""} ${profile?.user_agent_hint ?? ""}`
+    .toLowerCase()
+    .trim();
+  if (haystack.includes("github-action") || haystack.includes("github action") || haystack.includes("queuepush")) {
+    return "github-action";
+  }
+  if (haystack.includes("windsurf") || haystack.includes("cascade")) return "windsurf";
+  if (haystack.includes("claude")) return "claude";
+  if (haystack.includes("codex") || haystack.includes("chatgpt")) return "codex";
+  return "other";
+}
+
 function freshnessPenalty(checkedInAt: string | null, nowMs: number): { penalty: number; reason: string } {
   if (!checkedInAt) return { penalty: 45, reason: "no live check-in" };
   const checkedInMs = Date.parse(checkedInAt);
@@ -218,11 +246,67 @@ function freshnessPenalty(checkedInAt: string | null, nowMs: number): { penalty:
   return { penalty: 65, reason: "cold" };
 }
 
+function freshnessBandFromReason(reason: string): SeatFreshnessBand {
+  if (reason === "live") return "live";
+  if (reason === "warming up") return "warm";
+  if (reason === "quiet" || reason === "stale") return "stale";
+  return "cold";
+}
+
 function missedCheckInPenalty(profile: FishbowlProfile | null, nowMs: number): { penalty: number; reason: string | null } {
   if (!profile?.next_checkin_at) return { penalty: 0, reason: null };
   const nextMs = Date.parse(profile.next_checkin_at);
   if (!Number.isFinite(nextMs) || nowMs <= nextMs) return { penalty: 0, reason: null };
   return { penalty: 25, reason: "missed check-in" };
+}
+
+function buildSeatCapabilityNote({
+  id,
+  label,
+  seat = null,
+  profile = null,
+  nowMs,
+  source,
+}: {
+  id: string;
+  label: string;
+  seat?: AISeat | null;
+  profile?: FishbowlProfile | null;
+  nowMs: number;
+  source: SeatPerformanceScore["source"];
+}): SeatCapabilityNote {
+  const checkedInAt = profile ? latestProfileCheckInAt(profile) : null;
+  const freshness = freshnessPenalty(checkedInAt, nowMs);
+  const freshnessBand = freshnessBandFromReason(freshness.reason);
+  const routingPolicy = seat ? normalizeSeatRoutingPolicy(seat.routingPolicy) : "auto";
+  const load = seat ? normalizeSeatLoadOverride(seat.load, 0) : 0;
+  const missed = missedCheckInPenalty(profile, nowMs);
+  const statusText = profile?.current_status?.toLowerCase() ?? "";
+
+  const reliabilitySignals = new Set<string>();
+  if (routingPolicy === "blocked") reliabilitySignals.add("blocked-routing");
+  if (routingPolicy === "avoid") reliabilitySignals.add("avoid-routing");
+  if (freshnessBand === "stale") reliabilitySignals.add("stale-checkin");
+  if (freshnessBand === "cold") reliabilitySignals.add("cold-checkin");
+  if (missed.reason) reliabilitySignals.add("missed-checkin");
+  if (load >= 90) reliabilitySignals.add("high-load");
+  if (seat?.issue) reliabilitySignals.add("seat-issue");
+  if (/\bpass\b/i.test(statusText)) reliabilitySignals.add("status-pass-signal");
+  if (/\bblocker\b/i.test(statusText)) reliabilitySignals.add("status-blocker-signal");
+  if (!profile?.current_status) reliabilitySignals.add("no-current-status");
+
+  const clientFamily = detectSeatClientFamily(seat, profile);
+  return {
+    id,
+    label,
+    source,
+    clientFamily,
+    freshness: freshnessBand,
+    routingPolicy,
+    load,
+    reliabilitySignals: Array.from(reliabilitySignals),
+    summary: `${clientFamily}:${freshnessBand}:${routingPolicy}:load-${load}`,
+  };
 }
 
 function scoreSeatPerformance({
@@ -308,4 +392,37 @@ export function buildSeatPerformanceScores(
   }
 
   return scores.sort((left, right) => right.score - left.score || left.label.localeCompare(right.label));
+}
+
+export function buildSeatCapabilityNotes(
+  seats: AISeat[],
+  profiles: FishbowlProfile[] = [],
+  nowMs = Date.now(),
+): SeatCapabilityNote[] {
+  const seatProfiles = mapProfilesToSeats(seats, profiles);
+  const matchedProfiles = seatProfiles.values();
+  const notes = seats.map((seat) =>
+    buildSeatCapabilityNote({
+      id: seat.id,
+      label: seat.name,
+      seat,
+      profile: seatProfiles.get(seat.id) ?? null,
+      nowMs,
+      source: seatProfiles.has(seat.id) ? "matched-seat" : "manual-seat",
+    }),
+  );
+
+  for (const profile of unmatchedRecentProfiles(profiles, matchedProfiles, nowMs)) {
+    notes.push(
+      buildSeatCapabilityNote({
+        id: profile.agent_id,
+        label: profile.display_name?.trim() || profile.agent_id,
+        profile,
+        nowMs,
+        source: "live-profile",
+      }),
+    );
+  }
+
+  return notes.sort((left, right) => left.label.localeCompare(right.label));
 }
