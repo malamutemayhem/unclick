@@ -90,7 +90,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/testpass/TestPassCatalog.tsx | 8fc76ddd8d3f | 21847 |
 | src/pages/admin/AdminTruthRate.tsx | 115c5cce9b90 | 8868 |
 | src/pages/admin/AdminUsers.tsx | 701e7da2f201 | 863 |
-| src/pages/admin/AdminXGate.tsx | d9be13cafb44 | 12478 |
+| src/pages/admin/AdminXGate.tsx | e5c445d83634 | 14917 |
 | src/pages/admin/AdminYou.tsx | 3d0240411971 | 51024 |
 | src/pages/AppDetail.tsx | 0cf7c397e1b5 | 5401 |
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
