@@ -25,6 +25,9 @@ describe("classifyEndpoint", () => {
   it("classifies send endpoints", () => {
     expect(classifyEndpoint("email.send", { to: "x" })?.class).toBe("send");
   });
+  it("classifies the email_send direct tool name (not just dot form)", () => {
+    expect(classifyEndpoint("email_send", { to: "x" })?.class).toBe("send");
+  });
   it("returns null for ordinary reads (not gated)", () => {
     expect(classifyEndpoint("weather.current", { city: "x" })).toBeNull();
   });
@@ -79,5 +82,21 @@ describe("runPreflight", () => {
     expect(() =>
       runPreflight("neon.execute_sql", { sql: { not: "a string" } as unknown as string }, { mode: "block" }),
     ).not.toThrow();
+  });
+
+  it("marks classified actions with their action class (so the ledger can log them)", () => {
+    const out = runPreflight(
+      "neon.execute_sql",
+      { sql: "SELECT id FROM users WHERE id = 1" },
+      { mode: "shadow", environment: "prod" },
+    );
+    expect(out.classified).toBe(true);
+    expect(out.actionClass).toBe("sql");
+  });
+
+  it("does not mark benign reads as classified (so they are never logged)", () => {
+    const out = runPreflight("weather.current", { city: "x" }, { enforce: true });
+    expect(out.classified).toBeFalsy();
+    expect(out.actionClass).toBeUndefined();
   });
 });

@@ -401,6 +401,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const endpointId = typeof body.endpointId === "string" ? body.endpointId : "";
       const params = (body.params && typeof body.params === "object" ? body.params : {}) as Record<string, unknown>;
       const outcome = runPreflight(endpointId, params, { enforce: true });
+
+      // Observability: record evaluated (risk-classified) decisions to the
+      // control ledger so shadow mode is visible. Benign/unclassified calls are
+      // not logged -- they carry no gate-relevant risk. Best-effort: a logging
+      // failure must never block the tool path.
+      if (outcome.classified) {
+        try {
+          const db = createClient(supabaseUrl, serviceRoleKey, {
+            auth: { persistSession: false, autoRefreshToken: false },
+          });
+          const env = (process.env.UNCLICK_XGATE_ENV ?? "prod").toLowerCase();
+          await db.from("mc_xgate_ledger").insert({
+            api_key_hash: authority.apiKeyHash,
+            action_class: outcome.actionClass ?? "scope",
+            tool: endpointId || "unknown",
+            target: typeof params.target === "string" ? params.target : "",
+            environment: ENVIRONMENTS.has(env) ? env : "prod",
+            verdict: outcome.verdict,
+            rule_id: outcome.ruleId ?? "preflight",
+            reason: outcome.reason ?? `preflight ${outcome.verdict} (${outcome.mode})`,
+            authority: authority.authority,
+          });
+        } catch {
+          // swallow: never block the hot path on a ledger write
+        }
+      }
+
       return json(res, 200, outcome);
     } catch (error) {
       // Fail open: a preflight transport error must not block the tool path.
