@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateGates } from "./policy-engine";
+import { evaluateGates, evaluateGatesWithModes } from "./policy-engine";
 import type { Gate, GateContext, GateResult, GateVerdict } from "./types";
 
 const ctx: GateContext = {
@@ -104,5 +104,32 @@ describe("evaluateGates", () => {
       ctx,
     ).results;
     expect(results.map((r) => r.gate)).toEqual(["A", "B", "C"]);
+  });
+
+  it("skips gates that are explicitly off", () => {
+    const decision = evaluateGatesWithModes(
+      [stubGate("TrendSlopGate", "deny", "trendslop.bad"), stubGate("GitGate", "allow", "git.ok")],
+      ctx,
+      { gateModes: { TrendSlopGate: "off" } },
+    );
+
+    expect(decision.verdict).toBe("allow");
+    expect(decision.results.map((r) => r.gate)).toEqual(["GitGate"]);
+  });
+
+  it("logs watch-mode gates without letting them block", () => {
+    const decision = evaluateGatesWithModes(
+      [stubGate("TrendSlopGate", "rewrite", "trendslop.sycophancy_rewrite")],
+      ctx,
+      { gateModes: { TrendSlopGate: "watch" } },
+    );
+
+    expect(decision.verdict).toBe("allow");
+    expect(decision.results[0]).toMatchObject({
+      gate: "TrendSlopGate",
+      verdict: "allow",
+      ruleId: "trendslop.sycophancy_rewrite.watch",
+    });
+    expect(decision.results[0].evidence).toContain("would_verdict:rewrite");
   });
 });

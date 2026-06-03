@@ -5,6 +5,7 @@ import {
   LAUNCHPAD_ORCHESTRATORS,
   LAUNCHPAD_ROOM_COVERAGE,
   LAUNCHPAD_SEATS,
+  LAUNCHPAD_SETUP_STEPS,
   summarizeLaunchpadSeats,
 } from "./pinballwakeLaunchpad";
 
@@ -42,5 +43,13 @@ describe("PinballWake Launchpad admin model", () => {
         { ...LAUNCHPAD_ORCHESTRATORS[1], role: "active" },
       ]),
     ).toBe(true);
+  });
+
+  it("keeps TrendSlopGate conditioning visible in Launchpad setup", () => {
+    const step = LAUNCHPAD_SETUP_STEPS.find((item) => item.id === "trendslop-conditioning");
+
+    expect(step?.status).toBe("next");
+    expect(step?.detail).toMatch(/challenge weak premises/i);
+    expect(step?.detail).toMatch(/XGate/);
   });
 });

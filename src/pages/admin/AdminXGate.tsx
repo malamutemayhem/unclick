@@ -2,6 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AlertTriangle, CircleDot, Loader2, Lock, RefreshCw, ShieldCheck, ShieldHalf } from "lucide-react";
 import { useSession } from "@/lib/auth";
+import {
+  applyMasterXGateMode,
+  defaultXGateModes,
+  resolveMasterXGateMode,
+  setIndividualXGateMode,
+  XGATE_MODE_COPY,
+  XGATE_PRODUCT_CONFIGS,
+  type XGateControlMode,
+} from "./xgateModeModel";
 
 type XGateVerdict = "allow" | "deny" | "ask" | "rewrite";
 
@@ -23,11 +32,32 @@ interface KillSwitchState {
   updatedAt: string | null;
 }
 
+const XGATE_MODE_STORAGE_KEY = "unclick.admin.xgate.modes.v1";
+const MODE_ORDER: XGateControlMode[] = ["off", "watch", "block"];
+
 const VERDICT_STYLE: Record<XGateVerdict, { label: string; className: string }> = {
   allow: { label: "Allow", className: "bg-emerald-400 text-black" },
   ask: { label: "Ask", className: "bg-[#E2B93B] text-black" },
   deny: { label: "Deny", className: "bg-red-500 text-white" },
   rewrite: { label: "Rewrite", className: "bg-[#61C1C4] text-black" },
+};
+
+const MODE_STYLE: Record<XGateControlMode, { active: string; inactive: string; pill: string }> = {
+  off: {
+    active: "border-white/20 bg-white/15 text-white",
+    inactive: "border-white/[0.08] bg-white/[0.03] text-white/45 hover:bg-white/[0.08] hover:text-white",
+    pill: "bg-white/15 text-white/70",
+  },
+  watch: {
+    active: "border-[#E2B93B]/45 bg-[#E2B93B]/15 text-[#E2B93B]",
+    inactive: "border-white/[0.08] bg-white/[0.03] text-white/45 hover:bg-[#E2B93B]/10 hover:text-[#E2B93B]",
+    pill: "bg-[#E2B93B]/15 text-[#E2B93B]",
+  },
+  block: {
+    active: "border-red-400/45 bg-red-400/15 text-red-200",
+    inactive: "border-white/[0.08] bg-white/[0.03] text-white/45 hover:bg-red-400/10 hover:text-red-200",
+    pill: "bg-red-400/15 text-red-200",
+  },
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -43,6 +73,29 @@ function readString(value: unknown): string {
 function readBool(value: unknown): boolean | null {
   if (typeof value === "boolean") return value;
   return null;
+}
+
+function isXGateControlMode(value: unknown): value is XGateControlMode {
+  return value === "off" || value === "watch" || value === "block";
+}
+
+function readStoredGateModes(): Record<string, XGateControlMode> {
+  if (typeof window === "undefined") return defaultXGateModes();
+
+  try {
+    const stored = window.localStorage.getItem(XGATE_MODE_STORAGE_KEY);
+    if (!stored) return defaultXGateModes();
+    const parsed = JSON.parse(stored) as unknown;
+    if (!isRecord(parsed)) return defaultXGateModes();
+
+    const next = defaultXGateModes();
+    for (const product of XGATE_PRODUCT_CONFIGS) {
+      if (isXGateControlMode(parsed[product.id])) next[product.id] = parsed[product.id];
+    }
+    return next;
+  } catch {
+    return defaultXGateModes();
+  }
 }
 
 function normalizeVerdict(value: unknown): XGateVerdict {
@@ -123,6 +176,113 @@ function StatCard({ label, value, detail }: { label: string; value: string; deta
   );
 }
 
+function ModeButton({
+  mode,
+  active,
+  onClick,
+  compact = false,
+}: {
+  mode: XGateControlMode;
+  active: boolean;
+  onClick: () => void;
+  compact?: boolean;
+}) {
+  const copy = XGATE_MODE_COPY[mode];
+  const style = MODE_STYLE[mode];
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={copy.detail}
+      className={`rounded-md border font-semibold transition-colors ${
+        compact ? "px-2 py-1 text-[11px]" : "px-3 py-2 text-xs"
+      } ${active ? style.active : style.inactive}`}
+    >
+      {copy.label}
+    </button>
+  );
+}
+
+function XGateModePanel({
+  modes,
+  onMasterMode,
+  onGateMode,
+}: {
+  modes: Record<string, XGateControlMode>;
+  onMasterMode: (mode: XGateControlMode) => void;
+  onGateMode: (gateId: string, mode: XGateControlMode) => void;
+}) {
+  const masterMode = resolveMasterXGateMode(modes);
+
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-white">Gate modes</h2>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-white/45">
+            Each gate can run independently. The master control sets every gate at once; mixed individual settings show as Custom.
+          </p>
+        </div>
+        <span className="rounded bg-[#61C1C4]/10 px-2 py-1 text-[11px] font-semibold text-[#61C1C4]">
+          Master: {masterMode === "custom" ? "Custom" : XGATE_MODE_COPY[masterMode].label}
+        </span>
+      </div>
+
+      <div className="rounded-xl border border-white/[0.06] bg-[#111] p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold text-white">Master XGate</p>
+            <p className="mt-1 text-[11px] leading-5 text-white/45">
+              Off, Watch, or Block here overrides every individual gate.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {MODE_ORDER.map((mode) => (
+              <ModeButton
+                key={mode}
+                mode={mode}
+                active={masterMode === mode}
+                onClick={() => onMasterMode(mode)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-3">
+        {XGATE_PRODUCT_CONFIGS.map((product) => {
+          const mode = modes[product.id] ?? product.defaultMode;
+          return (
+            <div key={product.id} className="rounded-xl border border-white/[0.06] bg-[#111] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-white">{product.name}</h3>
+                  <p className="mt-1 text-xs leading-5 text-white/45">{product.summary}</p>
+                </div>
+                <span className={`shrink-0 rounded px-2 py-1 text-[10px] font-bold ${MODE_STYLE[mode].pill}`}>
+                  {XGATE_MODE_COPY[mode].label}
+                </span>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {MODE_ORDER.map((nextMode) => (
+                  <ModeButton
+                    key={nextMode}
+                    mode={nextMode}
+                    compact
+                    active={mode === nextMode}
+                    onClick={() => onGateMode(product.id, nextMode)}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function KillSwitchPanel({ state }: { state: KillSwitchState | null }) {
   const active = state?.active ?? false;
 
@@ -198,6 +358,7 @@ export default function AdminXGate() {
   const [error, setError] = useState<string | null>(null);
   const [decisions, setDecisions] = useState<XGateDecision[]>([]);
   const [killSwitch, setKillSwitch] = useState<KillSwitchState | null>(null);
+  const [gateModes, setGateModes] = useState<Record<string, XGateControlMode>>(readStoredGateModes);
 
   const load = useCallback(async () => {
     if (!session) return;
@@ -235,6 +396,14 @@ export default function AdminXGate() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(XGATE_MODE_STORAGE_KEY, JSON.stringify(gateModes));
+    } catch {
+      // Local admin preference storage is best effort only.
+    }
+  }, [gateModes]);
 
   if (adminVerified === false) {
     return (
@@ -283,6 +452,12 @@ export default function AdminXGate() {
         <StatCard label="Strict results" value={String(strictCount)} detail="Deny and ask verdicts that slowed an action." />
         <StatCard label="Latest" value={latest ? VERDICT_STYLE[latest.verdict].label : "None"} detail={latest ? `${latest.ruleId} in ${latest.environment}` : "No recent decision reported."} />
       </div>
+
+      <XGateModePanel
+        modes={gateModes}
+        onMasterMode={(mode) => setGateModes(applyMasterXGateMode(mode))}
+        onGateMode={(gateId, mode) => setGateModes((current) => setIndividualXGateMode(current, gateId, mode))}
+      />
 
       <KillSwitchPanel state={killSwitch} />
 

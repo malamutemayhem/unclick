@@ -16,6 +16,7 @@ describe("XGate eval fixtures", () => {
     expect(findXGateEvalFixture("xgate.git.force_push_main")?.expected.verdict).toBe("deny");
     expect(findXGateEvalFixture("xgate.secret.commit_denied")?.expected.gate).toBe("SecretGate");
     expect(findXGateEvalFixture("xgate.scope.scoped_delete_allowed")?.expected.verdict).toBe("allow");
+    expect(findXGateEvalFixture("xgate.trendslop.sycophancy_rewrite")?.expected.gate).toBe("TrendSlopGate");
   });
 
   it("stores redacted secret scenarios without hardcoded credential values", () => {

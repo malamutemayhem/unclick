@@ -145,6 +145,12 @@ export const LAUNCHPAD_SETUP_STEPS: LaunchpadSetupStep[] = [
     detail: "Many chats can be control surfaces, but only one active orchestrator lease can steer.",
   },
   {
+    id: "trendslop-conditioning",
+    label: "TrendSlopGate conditioning",
+    status: "next",
+    detail: "Launchpad seats should challenge weak premises, flag generic fashionable advice, and route answer quality risk through XGate.",
+  },
+  {
     id: "usage-metering",
     label: "Usage visibility",
     status: "watch",

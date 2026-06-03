@@ -23,6 +23,7 @@ XGate covers UnClick-owned tool paths and delegated client hooks where the clien
 | DataGate | 3 | Planned | Net-new gate | Gates destructive SQL before execution. |
 | GitGate | 4 | Planned | Net-new gate | Blocks dangerous git history operations. |
 | CommandGate | 5 | Planned | Net-new gate | Gates shell routed through UnClick tools and states the client-shell boundary. |
+| TrendSlopGate | Accountability slice | Present in this branch | Net-new gate | Rewrites or escalates over-agreeable, generic, fashionable, or poorly grounded AI advice before it reaches the user. |
 | ShipGate | 6 | Planned in sibling lane | Net-new gate | Gates deploy, publish, rollback, DNS, and production-affecting actions. |
 | ScopeGate | 7 | Planned in sibling lane | Formalizes existing ScopePack control | Denies writes outside the active owned file set. |
 | SpendGate | 7 | Planned in sibling lane | Formalizes existing budget control | Denies or asks when estimated spend crosses budget. |
@@ -33,6 +34,35 @@ XGate covers UnClick-owned tool paths and delegated client hooks where the clien
 | Client hook configs | 9 | Planned in sibling lane | Delegated coverage | Generates Claude Code and Cursor hooks for client-side actions where supported. |
 | Admin dashboard | 10 | Present | Visibility | Shows recent decisions, verdicts, rule ids, action class, environment, and kill switch state. |
 | Eval fixtures | 10 | Present | Regression fixtures | Keeps canonical XGate decisions stable as gates land. |
+
+## Gate Modes
+
+Each XGate product supports a shared control model:
+
+| Mode | Behavior |
+|---|---|
+| Off | Dormant. No checks, no warnings, no notes. |
+| Watch | Runs the gate and logs what would have happened, but never blocks. |
+| Block | Enforces the gate verdict before the action or answer leaves UnClick. |
+
+The master XGate control can set all gates to Off, Watch, or Block. When individual gates differ, the master state is Custom. Clicking a master mode from Custom overrides every individual gate.
+
+## TrendSlopGate
+
+TrendSlopGate covers answer quality before output, especially where AnswerPass or an answer surface signals that the AI may be:
+
+- agreeing with the user's direction before checking the premise
+- using fashionable management or AI language without situation-specific grounding
+- giving high-risk advice without context, evidence, tradeoffs, or counterpoint
+- validating a weak idea because it sounds supportive
+
+The first slice is deterministic and conservative. It does not claim to detect all bad advice. It catches strong signals and returns:
+
+- `allow` when the answer has enough evidence, context, or counterpoint
+- `rewrite` when the answer is too agreeable, generic, or trend-heavy
+- `ask` when high-risk advice is missing context
+
+This gate should later consume richer AnswerPass `answer_quality_risks` fields and write its decision into the answer receipt and XGate control ledger.
 
 ## XPass vs XGate
 
