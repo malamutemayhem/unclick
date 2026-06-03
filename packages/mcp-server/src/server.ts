@@ -1943,6 +1943,34 @@ export function createServer(): Server {
     trackToolCall(name);
 
     try {
+      // ── XGate preflight (defense in depth): EVERY UnClick tool call is
+      // evaluated before it runs, not just unclick_call. Off by default; only
+      // when UNCLICK_XGATE_ENFORCE=1. A cheap name-based prefilter in
+      // xgatePreflight skips the network hop for ordinary benign reads, so tool
+      // latency is unaffected. Shadow mode (default when enabled) records a
+      // verdict to the ledger but never blocks; only "block" mode stops the
+      // call. Never throws (fails open). The gate logic is single-sourced in the
+      // API (api/lib/xgate); this hook calls it over HTTP.
+      {
+        const gateEndpointId =
+          name === "unclick_call" ? String(args.endpoint_id ?? "") : name;
+        const gateParams = (
+          name === "unclick_call" ? (args.params ?? {}) : args
+        ) as Record<string, unknown>;
+        const xgate = await xgatePreflight(gateEndpointId, gateParams);
+        if (xgate && !xgate.proceed) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `XGate blocked this action (${xgate.gate ?? "xgate"}: ${xgate.ruleId ?? "rule"}). ${xgate.reason ?? ""}`.trim(),
+              },
+            ],
+            isError: true,
+          };
+        }
+      }
+
       // ── Heartbeat protocol: static, read-only AI Seat tether contract ──
       if (name === "heartbeat_protocol") {
         return {
@@ -2393,26 +2421,6 @@ export function createServer(): Server {
       if (name === "unclick_call") {
         const endpointId = String(args.endpoint_id ?? "");
         const params = (args.params ?? {}) as Record<string, unknown>;
-
-        // XGate preflight: pre-execution guardrails. Off by default; only
-        // evaluates when UNCLICK_XGATE_ENFORCE=1, and only blocks in "block"
-        // mode. Shadow mode (default when enabled) reports without blocking.
-        // The gate logic is single-sourced in the API (api/lib/xgate); this
-        // hot-path hook calls it over HTTP, matching how the package already
-        // reaches the API. Never throws; on any error it proceeds (fail open
-        // in shadow, the operator opts into block explicitly).
-        const xgate = await xgatePreflight(endpointId, params);
-        if (xgate && !xgate.proceed) {
-          return {
-            content: [
-              {
-                type: "text",
-                text: `XGate blocked this action (${xgate.gate ?? "xgate"}: ${xgate.ruleId ?? "rule"}). ${xgate.reason ?? ""}`.trim(),
-              },
-            ],
-            isError: true,
-          };
-        }
 
         // Memory endpoints: "memory.add_fact", "memory.store_code", etc.
         if (endpointId.startsWith("memory.")) {

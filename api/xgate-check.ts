@@ -25,6 +25,14 @@ const ACTION_CLASSES = new Set([
 const ENVIRONMENTS = new Set(["dev", "staging", "prod"]);
 const AUTONOMY_LEVELS = new Set(["interactive", "unattended"]);
 
+export type XGateMode = "off" | "shadow" | "block";
+const XGATE_SETTINGS_KEY = "global";
+
+/** Clamp any input to a valid 3-state dial value, falling back when unknown. */
+export function normalizeMode(value: unknown, fallback: XGateMode = "shadow"): XGateMode {
+  return value === "off" || value === "shadow" || value === "block" ? value : fallback;
+}
+
 type GateVerdict = "allow" | "deny" | "ask" | "rewrite";
 type LedgerAuthority = "auto" | "human" | "token" | "kill_switch";
 
@@ -369,6 +377,33 @@ async function readKillSwitchState(db: ReturnType<typeof createClient>, apiKeyHa
   };
 }
 
+let modeCache: { mode: XGateMode; at: number } | null = null;
+
+/**
+ * The live dial value (off/shadow/block) from mc_xgate_settings, cached briefly
+ * so the hot path does not read the DB on every call. Falls back to the
+ * UNCLICK_XGATE_MODE env (then shadow) when no row exists, so behaviour is
+ * unchanged until the dial is first used. Never throws.
+ */
+async function readXGateMode(db: ReturnType<typeof createClient>): Promise<XGateMode> {
+  if (modeCache && Date.now() - modeCache.at < 15000) return modeCache.mode;
+  const envFallback = normalizeMode(process.env.UNCLICK_XGATE_MODE, "shadow");
+  let mode: XGateMode = envFallback;
+  try {
+    const { data } = await db
+      .from("mc_xgate_settings")
+      .select("mode")
+      .eq("api_key_hash", XGATE_SETTINGS_KEY)
+      .maybeSingle();
+    const raw = isRecord(data) ? data.mode : undefined;
+    mode = typeof raw === "string" ? normalizeMode(raw, envFallback) : envFallback;
+  } catch {
+    mode = envFallback;
+  }
+  modeCache = { mode, at: Date.now() };
+  return mode;
+}
+
 function setCors(res: VercelResponse) {
   for (const [key, value] of Object.entries(CORS_HEADERS)) res.setHeader(key, value);
 }
@@ -381,7 +416,6 @@ function json(res: VercelResponse, status: number, body: unknown) {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   setCors(res);
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST") return json(res, 405, { error: "POST required" });
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -390,17 +424,89 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const authority = await resolveXGateAuthority(req, supabaseUrl, serviceRoleKey);
   if (!authority.ok) return json(res, authority.status, { error: authority.error });
 
+  const action = typeof req.query.action === "string" ? req.query.action : "";
+
+  // Dashboard read (admin session): recent control-ledger rows + the live dial
+  // value. Read-only; the service role is used only to query.
+  if (req.method === "GET") {
+    if (action === "recent") {
+      const db = createClient(supabaseUrl, serviceRoleKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data: rows } = await db
+        .from("mc_xgate_ledger")
+        .select("id,ts,verdict,rule_id,action_class,environment,tool,reason")
+        .order("ts", { ascending: false })
+        .limit(50);
+      const mode = await readXGateMode(db);
+      return json(res, 200, { decisions: rows ?? [], mode });
+    }
+    return json(res, 400, { error: "Unknown GET action" });
+  }
+
+  if (req.method !== "POST") return json(res, 405, { error: "POST required" });
+
+  // The dial: set the live XGate posture (off / shadow / block). Admin session
+  // only -- the cron token may evaluate but may not change posture.
+  if (action === "set_mode") {
+    if (authority.authority !== "human") {
+      return json(res, 403, { error: "Admin session required to change XGate mode" });
+    }
+    const parsed = parseMaybeJsonBody(req.body);
+    const bodyObj = parsed.ok && isRecord(parsed.value) ? parsed.value : {};
+    const mode = normalizeMode(bodyObj.mode);
+    const db = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { error } = await db
+      .from("mc_xgate_settings")
+      .upsert(
+        { api_key_hash: XGATE_SETTINGS_KEY, mode, updated_at: new Date().toISOString() },
+        { onConflict: "api_key_hash" },
+      );
+    if (error) return json(res, 503, { error: "Could not save XGate mode", detail: error.message });
+    modeCache = { mode, at: Date.now() };
+    return json(res, 200, { mode });
+  }
+
   // Preflight mode: the MCP tool hot path posts { endpointId, params } and gets
-  // a simple proceed/block decision via the pure preflight helper. Off-by-
-  // default and shadow/block behaviour are decided inside runPreflight from the
-  // UNCLICK_XGATE_* env, so this path is safe to expose.
+  // a simple proceed/block decision. The active mode (off/shadow/block) now
+  // comes from the live dial (mc_xgate_settings), falling back to env.
   if (req.query.mode === "preflight") {
     try {
       const { runPreflight } = await import(/* @vite-ignore */ "./lib/xgate/preflight.js");
       const body = (req.body ?? {}) as { endpointId?: unknown; params?: unknown };
       const endpointId = typeof body.endpointId === "string" ? body.endpointId : "";
       const params = (body.params && typeof body.params === "object" ? body.params : {}) as Record<string, unknown>;
-      const outcome = runPreflight(endpointId, params, { enforce: true });
+      const db = createClient(supabaseUrl, serviceRoleKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const mode = await readXGateMode(db);
+      const outcome = runPreflight(endpointId, params, { mode });
+
+      // Observability: record evaluated (risk-classified) decisions to the
+      // control ledger so shadow mode is visible. Benign/unclassified calls are
+      // not logged -- they carry no gate-relevant risk. Best-effort: a logging
+      // failure must never block the tool path.
+      if (outcome.classified) {
+        try {
+          const env = (process.env.UNCLICK_XGATE_ENV ?? "prod").toLowerCase();
+          await db.from("mc_xgate_ledger").insert({
+            api_key_hash: authority.apiKeyHash,
+            action_class: outcome.actionClass ?? "scope",
+            tool: endpointId || "unknown",
+            target: typeof params.target === "string" ? params.target : "",
+            environment: ENVIRONMENTS.has(env) ? env : "prod",
+            verdict: outcome.verdict,
+            rule_id: outcome.ruleId ?? "preflight",
+            reason: outcome.reason ?? `preflight ${outcome.verdict} (${outcome.mode})`,
+            authority: authority.authority,
+          });
+        } catch {
+          // swallow: never block the hot path on a ledger write
+        }
+      }
+
       return json(res, 200, outcome);
     } catch (error) {
       // Fail open: a preflight transport error must not block the tool path.

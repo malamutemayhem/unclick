@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { AlertTriangle, CircleDot, Loader2, Lock, RefreshCw, ShieldCheck, ShieldHalf } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { CircleDot, Loader2, Lock, RefreshCw, ShieldHalf } from "lucide-react";
 import { useSession } from "@/lib/auth";
 
 type XGateVerdict = "allow" | "deny" | "ask" | "rewrite";
+type XGateMode = "off" | "shadow" | "block";
 
 interface XGateDecision {
   id: string;
@@ -17,18 +18,31 @@ interface XGateDecision {
   reason: string;
 }
 
-interface KillSwitchState {
-  active: boolean;
-  reason: string | null;
-  updatedAt: string | null;
-}
-
 const VERDICT_STYLE: Record<XGateVerdict, { label: string; className: string }> = {
   allow: { label: "Allow", className: "bg-emerald-400 text-black" },
   ask: { label: "Ask", className: "bg-[#E2B93B] text-black" },
   deny: { label: "Deny", className: "bg-red-500 text-white" },
   rewrite: { label: "Rewrite", className: "bg-[#61C1C4] text-black" },
 };
+
+// The 3-state dial. One control: Off (dormant) -> Watch (logs, never blocks)
+// -> Block (actually stops flagged actions).
+const MODES: { value: XGateMode; label: string; blurb: string }[] = [
+  { value: "off", label: "Off", blurb: "Dormant. No checks, no warnings, no notes. Agents behave as if XGate isn't here." },
+  { value: "shadow", label: "Watch", blurb: "Watches everything and writes notes, but never blocks. Pure awareness." },
+  { value: "block", label: "Block", blurb: "Actually stops flagged actions. Real teeth." },
+];
+
+// Each gate, in plain english. The sidebar sub-links anchor to these sections.
+const GATES: { id: string; name: string; what: string }[] = [
+  { id: "commandgate", name: "CommandGate", what: "Watches terminal commands. Stops the scary, can't-undo ones (like deleting everything or wiping a disk) before they run." },
+  { id: "gitgate", name: "GitGate", what: "Watches Git. Stops moves that erase work, like force-pushing, deleting a branch, or rewriting history." },
+  { id: "datagate", name: "DataGate", what: "Watches database commands. It reads the SQL and stops the ones that wipe or delete data, like dropping a table or a DELETE with no filter." },
+  { id: "secretgate", name: "SecretGate", what: "Watches for passwords, API keys, and tokens. Stops them from being saved into code or sent out, where a leak is forever." },
+  { id: "shipgate", name: "ShipGate", what: "Watches deploys and releases. Makes sure pushing to live (or changing servers and DNS) isn't done carelessly or without proof." },
+  { id: "scopegate", name: "ScopeGate", what: "Watches which files get touched. Keeps the agent in its own lane, so it doesn't edit things it doesn't own." },
+  { id: "spendgate", name: "SpendGate", what: "Watches spending. Pauses anything that would cost more than your set limit before real money goes out." },
+];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -40,25 +54,19 @@ function readString(value: unknown): string {
   return "";
 }
 
-function readBool(value: unknown): boolean | null {
-  if (typeof value === "boolean") return value;
-  return null;
-}
-
 function normalizeVerdict(value: unknown): XGateVerdict {
   if (value === "deny" || value === "ask" || value === "rewrite" || value === "allow") return value;
   return "ask";
 }
 
+function normalizeMode(value: unknown): XGateMode {
+  return value === "off" || value === "shadow" || value === "block" ? value : "shadow";
+}
+
 function formatDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value || "Unknown";
-  return date.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function pickRows(body: Record<string, unknown>): unknown[] {
@@ -89,21 +97,6 @@ function normalizeDecision(row: unknown, index: number): XGateDecision {
   };
 }
 
-function normalizeKillSwitch(body: Record<string, unknown>): KillSwitchState | null {
-  const source = isRecord(body.killSwitch)
-    ? body.killSwitch
-    : isRecord(body.kill_switch)
-      ? body.kill_switch
-      : null;
-  if (!source) return null;
-  const active = readBool(source.active);
-  return {
-    active: active ?? false,
-    reason: readString(source.reason) || null,
-    updatedAt: readString(source.updated_at) || readString(source.updatedAt) || null,
-  };
-}
-
 function VerdictPill({ verdict }: { verdict: XGateVerdict }) {
   const style = VERDICT_STYLE[verdict];
   return (
@@ -113,45 +106,52 @@ function VerdictPill({ verdict }: { verdict: XGateVerdict }) {
   );
 }
 
-function StatCard({ label, value, detail }: { label: string; value: string; detail: string }) {
+function ModeDial({
+  mode,
+  saving,
+  onChange,
+}: {
+  mode: XGateMode;
+  saving: boolean;
+  onChange: (next: XGateMode) => void;
+}) {
+  const active = MODES.find((m) => m.value === mode) ?? MODES[1];
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111] p-4">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-white/40">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-      <p className="mt-1 text-xs leading-5 text-white/45">{detail}</p>
-    </div>
-  );
-}
-
-function KillSwitchPanel({ state }: { state: KillSwitchState | null }) {
-  const active = state?.active ?? false;
-
-  return (
-    <section className="rounded-xl border border-white/[0.06] bg-[#111] p-4">
-      <div className="flex items-start gap-3">
-        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${active ? "bg-red-500/15 text-red-300" : "bg-emerald-400/10 text-emerald-300"}`}>
-          {active ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-sm font-semibold text-white">Kill switch</h2>
-            <span className={`rounded px-2 py-0.5 text-[10px] font-bold ${active ? "bg-red-500 text-white" : "bg-emerald-400 text-black"}`}>
-              {active ? "Active" : "Inactive"}
-            </span>
-            {!state && (
-              <span className="rounded bg-white/[0.06] px-2 py-0.5 text-[10px] font-medium text-white/45">
-                Waiting for endpoint
-              </span>
-            )}
-          </div>
-          <p className="mt-2 text-xs leading-5 text-white/55">
-            {state?.reason || "No stop reason is recorded."}
-          </p>
-          <p className="mt-2 text-[11px] text-white/35">
-            Last update: {state?.updatedAt ? formatDate(state.updatedAt) : "Not reported"}
-          </p>
+    <section className="rounded-xl border border-white/[0.06] bg-[#111] p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-white">Mode</h2>
+          <p className="mt-1 text-xs text-white/50">One switch for your whole account. Choose how strict XGate is.</p>
+        </div>
+        <div className="inline-flex rounded-lg border border-white/[0.08] bg-black/30 p-1">
+          {MODES.map((m) => {
+            const selected = m.value === mode;
+            return (
+              <button
+                key={m.value}
+                type="button"
+                disabled={saving}
+                onClick={() => onChange(m.value)}
+                className={`relative min-w-[78px] rounded-md px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
+                  selected
+                    ? m.value === "block"
+                      ? "bg-red-500 text-white"
+                      : m.value === "off"
+                        ? "bg-white/80 text-black"
+                        : "bg-[#61C1C4] text-black"
+                    : "text-white/55 hover:text-white"
+                }`}
+              >
+                {m.label}
+              </button>
+            );
+          })}
         </div>
       </div>
+      <p className="mt-3 flex items-center gap-2 text-xs leading-5 text-white/55">
+        {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+        {active.blurb}
+      </p>
     </section>
   );
 }
@@ -192,12 +192,14 @@ function DecisionTable({ decisions }: { decisions: XGateDecision[] }) {
 export default function AdminXGate() {
   const { session } = useSession();
   const navigate = useNavigate();
+  const location = useLocation();
   const [adminVerified, setAdminVerified] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [endpointReady, setEndpointReady] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [decisions, setDecisions] = useState<XGateDecision[]>([]);
-  const [killSwitch, setKillSwitch] = useState<KillSwitchState | null>(null);
+  const [mode, setMode] = useState<XGateMode>("shadow");
+  const [savingMode, setSavingMode] = useState(false);
 
   const load = useCallback(async () => {
     if (!session) return;
@@ -216,7 +218,6 @@ export default function AdminXGate() {
       if (response.status === 404 || response.status === 405) {
         setEndpointReady(false);
         setDecisions([]);
-        setKillSwitch(null);
         return;
       }
       const body = await response.json();
@@ -224,7 +225,7 @@ export default function AdminXGate() {
       const record = isRecord(body) ? body : {};
       setEndpointReady(true);
       setDecisions(pickRows(record).map(normalizeDecision));
-      setKillSwitch(normalizeKillSwitch(record));
+      setMode(normalizeMode(record.mode));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -235,6 +236,37 @@ export default function AdminXGate() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Scroll to the gate section named in the URL hash (the sidebar sub-links).
+  useEffect(() => {
+    if (loading || !location.hash) return;
+    const el = document.getElementById(location.hash.slice(1));
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [loading, location.hash]);
+
+  const changeMode = useCallback(
+    async (next: XGateMode) => {
+      if (!session || next === mode || savingMode) return;
+      if (next === "block" && !window.confirm("Switch XGate to Block? This will actually stop flagged agent actions.")) return;
+      setSavingMode(true);
+      setError(null);
+      try {
+        const response = await fetch("/api/xgate-check?action=set_mode", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: next }),
+        });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error ?? "Could not change mode");
+        setMode(normalizeMode(body.mode));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not change mode");
+      } finally {
+        setSavingMode(false);
+      }
+    },
+    [session, mode, savingMode],
+  );
 
   if (adminVerified === false) {
     return (
@@ -254,9 +286,6 @@ export default function AdminXGate() {
     );
   }
 
-  const strictCount = decisions.filter((decision) => decision.verdict === "deny" || decision.verdict === "ask").length;
-  const latest = decisions[0];
-
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -266,7 +295,7 @@ export default function AdminXGate() {
             <h1 className="text-2xl font-semibold text-white">XGate</h1>
           </div>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-white/55">
-            Pre-action guardrail decisions for UnClick tool calls and delegated client hooks.
+            The guardrail that decides what an agent is allowed to do, before it does it. Each gate below watches one kind of risky action.
           </p>
         </div>
         <button
@@ -278,35 +307,46 @@ export default function AdminXGate() {
         </button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="Decisions" value={String(decisions.length)} detail={endpointReady ? "Recent control ledger rows." : "Endpoint is waiting for Part 9."} />
-        <StatCard label="Strict results" value={String(strictCount)} detail="Deny and ask verdicts that slowed an action." />
-        <StatCard label="Latest" value={latest ? VERDICT_STYLE[latest.verdict].label : "None"} detail={latest ? `${latest.ruleId} in ${latest.environment}` : "No recent decision reported."} />
-      </div>
-
-      <KillSwitchPanel state={killSwitch} />
+      <ModeDial mode={mode} saving={savingMode} onChange={changeMode} />
 
       {error && (
-        <div className="rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-xs text-red-300">
-          {error}
-        </div>
+        <div className="rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-xs text-red-300">{error}</div>
       )}
 
       {!endpointReady && (
         <div className="rounded-xl border border-[#E2B93B]/20 bg-[#E2B93B]/[0.05] p-4 text-xs leading-5 text-[#E2B93B]">
-          XGate history is waiting for the Part 9 endpoint. The dashboard route and read-only surface are ready.
+          XGate history endpoint is not responding yet. The dial and gate guide below still work.
         </div>
       )}
 
-      {decisions.length > 0 ? (
-        <DecisionTable decisions={decisions} />
-      ) : (
-        <div className="rounded-xl border border-white/[0.06] bg-[#111] p-8 text-center">
-          <CircleDot className="mx-auto h-6 w-6 text-white/25" />
-          <p className="mt-3 text-sm text-white/60">No XGate decisions recorded yet.</p>
-          <p className="mt-1 text-xs text-white/35">The ledger will fill once `/api/xgate-check?action=recent` returns rows.</p>
+      <div>
+        <h2 className="mb-3 text-sm font-semibold text-white">Recent decisions</h2>
+        {decisions.length > 0 ? (
+          <DecisionTable decisions={decisions} />
+        ) : (
+          <div className="rounded-xl border border-white/[0.06] bg-[#111] p-8 text-center">
+            <CircleDot className="mx-auto h-6 w-6 text-white/25" />
+            <p className="mt-3 text-sm text-white/60">No XGate decisions recorded yet.</p>
+            <p className="mt-1 text-xs text-white/35">In Watch or Block mode, flagged actions show up here.</p>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-sm font-semibold text-white">The gates</h2>
+        <div className="space-y-3">
+          {GATES.map((gate) => (
+            <section
+              key={gate.id}
+              id={gate.id}
+              className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111] p-4"
+            >
+              <h3 className="text-sm font-semibold text-white">{gate.name}</h3>
+              <p className="mt-1 text-xs leading-6 text-white/60">{gate.what}</p>
+            </section>
+          ))}
         </div>
-      )}
+      </div>
 
       <div className="flex flex-wrap gap-3 text-[11px] text-white/40">
         <Link to="/admin/checks" className="hover:text-[#61C1C4]">XPass checks</Link>

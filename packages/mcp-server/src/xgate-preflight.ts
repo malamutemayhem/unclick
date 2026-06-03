@@ -29,6 +29,20 @@ export function isXGateEnforceEnabled(): boolean {
   return process.env.UNCLICK_XGATE_ENFORCE === "1";
 }
 
+// Cheap, name-based prefilter so the common benign tools (datetime, weather,
+// search reads, memory) skip the network hop entirely. This is a SUPERSET of the
+// API's classifyEndpoint risk patterns: a false positive only costs one extra
+// preflight call (the API then returns allow), while a false negative would
+// silently skip the gate, so this errs toward true. The authoritative
+// classification stays single-sourced in the API; this only decides whether to
+// ask it at all.
+const GATE_HINT =
+  /(sql|query|exec|shell|command|bash|github|gitlab|push|merge|reset|force|deploy|publish|release|rollback|send|email|sms|message|whatsapp|telegram|slack)/i;
+
+export function mightBeGated(endpointId: string): boolean {
+  return GATE_HINT.test(endpointId);
+}
+
 /**
  * Ask the API to evaluate an endpoint call against the gates. Returns null when
  * disabled or on any failure (caller should proceed). Only a definitive block
@@ -39,6 +53,7 @@ export async function xgatePreflight(
   params: Record<string, unknown>,
 ): Promise<XGatePreflightOutcome | null> {
   if (!isXGateEnforceEnabled()) return null;
+  if (!mightBeGated(endpointId)) return null; // benign tool; skip the network hop
 
   const secret = process.env.CRON_SECRET;
   if (!secret) return null; // cannot authorize; do not block real work

@@ -53,6 +53,10 @@ export interface PreflightOutcome {
   reason?: string;
   /** True when a non-allow verdict was observed but mode let it through. */
   shadowed?: boolean;
+  /** True when the endpoint mapped to a real action class and was evaluated. */
+  classified?: boolean;
+  /** The action class evaluated, when classified (for the ledger). */
+  actionClass?: ActionClass;
 }
 
 /** Resolve the active mode from explicit opts then env. Default off. */
@@ -98,7 +102,7 @@ export function classifyEndpoint(
     return { class: "ship", raw: endpointId };
   }
   // Outbound send endpoints (email, sms, message) -> secret/exfil relevant.
-  if (/(send_email|send_sms|send_message|email\.send|whatsapp|telegram_send|slack)/.test(id)) {
+  if (/(send_email|email_send|send_sms|send_message|email\.send|whatsapp|telegram_send|slack)/.test(id)) {
     return { class: "send", raw: JSON.stringify(params) };
   }
   return null;
@@ -159,12 +163,14 @@ export function runPreflight(
       verdict: "ask",
       reason: "xgate preflight engine error; failing " + (mode === "block" ? "closed" : "open"),
       shadowed: mode !== "block",
+      classified: true,
+      actionClass: classified.class,
     };
   }
 
   const blocking = decision.verdict === "deny" || decision.verdict === "ask";
   if (!blocking) {
-    return { proceed: true, mode, verdict: decision.verdict };
+    return { proceed: true, mode, verdict: decision.verdict, classified: true, actionClass: classified.class };
   }
 
   if (mode === "shadow") {
@@ -176,6 +182,8 @@ export function runPreflight(
       ruleId: decision.deciding.ruleId,
       reason: decision.deciding.reason,
       shadowed: true,
+      classified: true,
+      actionClass: classified.class,
     };
   }
 
@@ -187,5 +195,7 @@ export function runPreflight(
     gate: decision.deciding.gate,
     ruleId: decision.deciding.ruleId,
     reason: decision.deciding.reason,
+    classified: true,
+    actionClass: classified.class,
   };
 }
