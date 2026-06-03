@@ -397,7 +397,7 @@ import {
 
 import {
   redditRead, redditPost, redditComment,
-  redditSearch, redditUser, redditVote, redditSubscribe,
+  redditSearch, redditThread, redditUser, redditVote, redditSubscribe,
 } from "./reddit-tool.js";
 
 import { mastodonAction } from "./mastodon-tool.js";
@@ -6321,19 +6321,19 @@ export const ADDITIONAL_TOOLS = [
   // ── reddit-tool.ts ───────────────────────────────────────────────────────────
   {
     name: "reddit_read",
-    description: "Read posts from a Reddit subreddit.",
+    description: "Read public posts from a Reddit subreddit. OAuth is optional for public reads.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        access_token: { type: "string" },
+        access_token: { type: "string", description: "Optional Reddit OAuth bearer token" },
         subreddit: { type: "string" },
         sort: { type: "string", enum: ["hot", "new", "top", "rising"], description: "hot, new, top, rising" },
         limit: { type: "number" },
         after: { type: "string" },
         t: { type: "string", enum: ["hour", "day", "week", "month", "year", "all"], description: "hour, day, week, month, year, all" },
       },
-      required: ["access_token", "subreddit"],
+      required: ["subreddit"],
     },
   },
   {
@@ -6371,33 +6371,54 @@ export const ADDITIONAL_TOOLS = [
   },
   {
     name: "reddit_search",
-    description: "Search Reddit posts.",
+    description: "Search public Reddit posts. OAuth is optional for public reads.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        access_token: { type: "string", description: "Reddit OAuth bearer token" },
+        access_token: { type: "string", description: "Optional Reddit OAuth bearer token" },
         query: { type: "string", description: "Search query" },
+        q: { type: "string", description: "Search query alias" },
         subreddit: { type: "string", description: "Limit to a subreddit" },
         sort: { type: "string", description: "relevance, hot, top, new, or comments" },
+        t: { type: "string", description: "hour, day, week, month, year, all" },
         limit: { type: "number", description: "Results to return" },
+        after: { type: "string" },
       },
-      required: ["access_token", "query"],
+      required: [],
+    },
+  },
+  {
+    name: "reddit_thread",
+    description: "Read a public Reddit thread, including the post and comments.",
+    inputSchema: {
+      type: "object" as const,
+      additionalProperties: false,
+      properties: {
+        access_token: { type: "string", description: "Optional Reddit OAuth bearer token" },
+        url: { type: "string", description: "Full Reddit thread URL" },
+        subreddit: { type: "string", description: "Subreddit name when url is not supplied" },
+        id: { type: "string", description: "Thread id when url is not supplied" },
+        limit: { type: "number" },
+        sort: { type: "string" },
+      },
+      required: [],
     },
   },
   {
     name: "reddit_user",
-    description: "Get a Reddit user profile and posts.",
+    description: "Get a public Reddit user profile and recent activity. OAuth is optional for public reads.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
-        access_token: { type: "string" },
+        access_token: { type: "string", description: "Optional Reddit OAuth bearer token" },
         username: { type: "string" },
-        type: { type: "string", description: "overview, submitted, comments" },
+        include_posts: { type: "boolean" },
+        include_comments: { type: "boolean" },
         limit: { type: "number" },
       },
-      required: ["access_token", "username"],
+      required: ["username"],
     },
   },
   {
@@ -6422,12 +6443,14 @@ export const ADDITIONAL_TOOLS = [
       additionalProperties: false,
       properties: {
         access_token: { type: "string" },
-        sr: { type: "string" },
+        sr: { type: "string", description: "Subreddit name alias" },
+        subreddit: { type: "string" },
         action: { type: "string", enum: ["sub", "unsub"], description: "sub or unsub" },
       },
-      required: ["access_token", "sr", "action"],
+      required: ["access_token", "action"],
     },
   },
+
 
   // ── mastodon-tool.ts ─────────────────────────────────────────────────────────
   {
@@ -15052,9 +15075,10 @@ export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>)
   reddit_post:             (args) => redditPost(args as unknown as Parameters<typeof redditPost>[0]),
   reddit_comment:          (args) => redditComment(args as unknown as Parameters<typeof redditComment>[0]),
   reddit_search:           (args) => redditSearch(args as unknown as Parameters<typeof redditSearch>[0]),
+  reddit_thread:           (args) => redditThread(args as unknown as Parameters<typeof redditThread>[0]),
   reddit_user:             (args) => redditUser(args as unknown as Parameters<typeof redditUser>[0]),
   reddit_vote:             (args) => redditVote(args as unknown as Parameters<typeof redditVote>[0]),
-  reddit_subscribe:        (args) => redditSubscribe(args as unknown as Parameters<typeof redditSubscribe>[0]),
+  reddit_subscribe:        (args) => redditSubscribe({ ...args, subreddit: String(args.subreddit ?? args.sr ?? "") } as unknown as Parameters<typeof redditSubscribe>[0]),
 
   // mastodon-tool.ts
   mastodon_action:         (args) => mastodonAction(String(args.action ?? ""), args),
