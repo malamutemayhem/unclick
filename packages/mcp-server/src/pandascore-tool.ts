@@ -274,7 +274,7 @@ export async function esportsGetMatch(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const token = requireKey(args);
-  const id = String(args.id ?? "").trim();
+  const id = String((args.match_id ?? args.id) ?? "").trim();
   if (!id) return { error: "id is required (PandaScore match ID)." };
 
   const data = await pandascoreFetch<Record<string, unknown>>(

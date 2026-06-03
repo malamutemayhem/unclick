@@ -120,7 +120,7 @@ export async function wiseProfile(args: Record<string, unknown>): Promise<unknow
 export async function wiseAccounts(args: Record<string, unknown>): Promise<unknown> {
   const token = requireToken(args);
   if (typeof token !== "string") return token;
-  const profileId = String(args.profileId ?? "").trim();
+  const profileId = String((args.profile_id ?? args.profileId) ?? "").trim();
   if (!profileId) throw new Error("profileId is required. Use wise_profile to get your profile ID.");
 
   const data = await wiseFetch(token, "/borderless-accounts", { profileId });

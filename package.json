@@ -30,6 +30,8 @@
     "review:dry-run": "node scripts/review-dry-run.mjs",
     "brainmap:generate": "node scripts/UnClick-brainmap.mjs",
     "brainmap:check": "node scripts/UnClick-brainmap.mjs --check",
+    "eval:report": "tsx api/lib/eval/run-report.ts",
+    "eval:check": "tsx api/lib/eval/run-report.ts --check",
     "dogfood:commonsensepass": "npm run dogfood --workspace=@unclick/commonsensepass",
     "test:brainmap": "node --test scripts/UnClick-brainmap.test.mjs",
     "uxpass:visual": "node scripts/uxpass-visual-audit.mjs"

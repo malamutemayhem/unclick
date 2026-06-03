@@ -88,7 +88,7 @@ export async function getSendleQuote(args: Record<string, unknown>): Promise<unk
       "delivery_suburb": String(args.delivery_suburb ?? ""),
       "delivery_postcode": deliveryPostcode,
       "delivery_country": String(args.delivery_country ?? "AU"),
-      "weight_value": String(args.weight_kg ?? "1"),
+      "weight_value": String((args.weight_value ?? args.weight_kg) ?? "1"),
       "weight_units": "kg",
     });
 
@@ -100,7 +100,7 @@ export async function getSendleQuote(args: Record<string, unknown>): Promise<unk
     return {
       pickup_postcode: pickupPostcode,
       delivery_postcode: deliveryPostcode,
-      weight_kg: args.weight_kg ?? 1,
+      weight_kg: (args.weight_value ?? args.weight_kg) ?? 1,
       quotes: Array.isArray(data)
         ? data.map((q) => ({
             plan: q["plan_name"],
@@ -159,7 +159,7 @@ export async function trackSendleParcel(args: Record<string, unknown>): Promise<
   try {
     const auth = getAuth(args);
     if ("not_connected" in auth) return auth;
-    const ref = String(args.tracking_ref ?? args.sendle_reference ?? "").trim();
+    const ref = String((args.tracking_id ?? args.tracking_ref) ?? args.sendle_reference ?? "").trim();
     if (!ref) return { error: "tracking_ref is required (Sendle reference number)." };
 
     const data = await sendleFetch(auth, `/tracking/${encodeURIComponent(ref)}`) as Record<string, unknown>;

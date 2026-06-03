@@ -68,7 +68,7 @@ export async function openlibrarySearch(args: Record<string, unknown>): Promise<
 }
 
 export async function openlibraryGetBook(args: Record<string, unknown>): Promise<unknown> {
-  const key = String(args.key ?? "").trim();
+  const key = String((args.work_id ?? args.key) ?? "").trim();
   if (!key) throw new Error("key is required (e.g. OL45804W).");
   // Strip leading slash if caller includes it
   const cleanKey = key.replace(/^\//, "");
@@ -82,14 +82,14 @@ export async function openlibraryGetEdition(args: Record<string, unknown>): Prom
 }
 
 export async function openlibraryGetAuthor(args: Record<string, unknown>): Promise<unknown> {
-  const key = String(args.key ?? "").trim();
+  const key = String((args.author_id ?? args.key) ?? "").trim();
   if (!key) throw new Error("key is required (e.g. OL23919A).");
   const cleanKey = key.replace(/^\//, "");
   return olCall(`/authors/${cleanKey}.json`);
 }
 
 export async function openlibraryAuthorWorks(args: Record<string, unknown>): Promise<unknown> {
-  const key = String(args.key ?? "").trim();
+  const key = String((args.author_id ?? args.key) ?? "").trim();
   if (!key) throw new Error("key is required (e.g. OL23919A).");
   const cleanKey = key.replace(/^\//, "");
   return olCall(`/authors/${cleanKey}/works.json`);

@@ -5,10 +5,17 @@
 //   - "admin":  adds a checkbox column + enable-all/disable-all + a status pill.
 // Both modes share the exact same filtering (useAppFilter) and layout, so the
 // signed-out and admin experiences stay in lockstep.
+//
+// Vocabulary: an "App" is the connector (the umbrella); an "Action" is one
+// callable thing inside it. Click anywhere on a row to expand its Actions inline
+// (clean human labels + one-line descriptions); click the app NAME to open its
+// page; the checkbox only turns the app on/off. Column widths are fixed so
+// expanding a row never shifts the layout.
 
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDown, ArrowUp, Search } from "lucide-react";
-import { APP_CATEGORIES, levelLabel, type AppEntry } from "@/lib/appCatalog";
+import { ArrowDown, ArrowUp, ChevronRight, Search } from "lucide-react";
+import { actionLabel, APP_CATEGORIES, levelLabel, type AppEntry, type AppTool } from "@/lib/appCatalog";
 import { AppIcon } from "./AppIcon";
 import { useAppFilter, type AppSortKey } from "./useAppFilter";
 
@@ -49,15 +56,46 @@ function SortHeader({
 
 export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf, busy }: AppsTableProps) {
   const { query, setQuery, category, setCategory, sortKey, sortDir, toggleSort, filtered } = useAppFilter(apps);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [showRaw, setShowRaw] = useState(false);
   const isAdmin = mode === "admin";
 
   const isOn = (slug: string) => (enabled ? enabled[slug] !== false : true);
   const onCount = isAdmin ? filtered.filter((a) => isOn(a.slug)).length : 0;
 
-  // Column template: [check] App | Category | What it does | Tools | Quality/Status
+  const q = query.trim().toLowerCase();
+  // When a search matches an app only by one of its Actions (not its name or
+  // blurb), auto-expand it so the matching Action is visible.
+  function matchedByAction(app: AppEntry): boolean {
+    if (!q) return false;
+    const appMatch =
+      app.name.toLowerCase().includes(q) ||
+      app.blurb.toLowerCase().includes(q) ||
+      app.category.toLowerCase().includes(q) ||
+      app.slug.includes(q);
+    if (appMatch) return false;
+    return app.tools.some(
+      (t) => actionLabel(t).toLowerCase().includes(q) || t.name.includes(q) || t.description.toLowerCase().includes(q),
+    );
+  }
+  const isExpanded = (app: AppEntry) => expanded.has(app.slug) || matchedByAction(app);
+
+  function toggleExpand(slug: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
+  }
+
+  // Column template: [check] App | Category | What it does | Actions | Quality/Status
   const cols = isAdmin
     ? "grid-cols-[28px_minmax(140px,1.4fr)_minmax(110px,0.9fr)_minmax(0,2.2fr)_56px_120px]"
     : "grid-cols-[minmax(140px,1.4fr)_minmax(110px,0.9fr)_minmax(0,2.4fr)_56px_96px]";
+  // Where the inline Actions list starts (the "What it does" column), spanning to
+  // the end so descriptions have room without disturbing the locked columns.
+  const actionsColStart = isAdmin ? 4 : 3;
 
   return (
     <div>
@@ -68,11 +106,21 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search apps or what they can do..."
+            placeholder="Search apps or actions — try 'bmi', 'invoice', 'parcel'..."
             className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] py-2 pl-9 pr-3 text-xs text-white placeholder:text-white/30 focus:border-[#61C1C4]/40 focus:outline-none"
           />
         </div>
-        <div className="flex items-center gap-2 text-[11px] text-white/40">
+        <div className="flex items-center gap-3 text-[11px] text-white/40">
+          <label className="flex cursor-pointer select-none items-center gap-1.5">
+            <input
+              type="checkbox"
+              checked={showRaw}
+              onChange={(e) => setShowRaw(e.target.checked)}
+              className="h-3.5 w-3.5 accent-[#61C1C4]"
+              aria-label="Show technical names"
+            />
+            Show technical names
+          </label>
           {isAdmin ? (
             <>
               <span>{onCount} of {filtered.length} on</span>
@@ -113,7 +161,7 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
         <SortHeader label="App" col="name" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
         <SortHeader label="Category" col="category" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
         <span className="text-[10px] font-semibold uppercase tracking-wide text-white/35">What it does</span>
-        <SortHeader label="Tools" col="toolCount" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} className="justify-end" />
+        <SortHeader label="Actions" col="toolCount" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} className="justify-end" />
         <SortHeader label={isAdmin ? "Status" : "Quality"} col="level" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} className="justify-end" />
       </div>
 
@@ -123,41 +171,78 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
           const on = isOn(app.slug);
           const status = statusOf?.(app) ?? null;
           const quality = levelLabel(app.level);
+          const open = isExpanded(app);
           return (
-            <div
-              key={app.slug}
-              className={`grid ${cols} items-center gap-3 px-3 py-1.5 text-xs transition-colors hover:bg-white/[0.02] ${isAdmin && !on ? "opacity-45" : ""}`}
-            >
-              {isAdmin && (
-                <input
-                  type="checkbox"
-                  checked={on}
-                  disabled={busy}
-                  onChange={(e) => onToggle?.(app.slug, e.target.checked)}
-                  className="h-3.5 w-3.5 accent-[#61C1C4]"
-                  aria-label={`Turn ${app.name} ${on ? "off" : "on"}`}
-                />
-              )}
-              <Link to={`/apps/${app.slug}`} className="flex min-w-0 items-center gap-2">
-                <AppIcon name={app.name} category={app.category} domain={app.domain} />
-                <span className="truncate font-medium text-white hover:text-[#9be4e6]">{app.name}</span>
-              </Link>
-              <span className="truncate text-white/45">{app.category}</span>
-              <span className="truncate text-white/50">{app.blurb}</span>
-              <span className="text-right tabular-nums text-white/40">{app.toolCount}</span>
-              <div className="flex justify-end">
-                {isAdmin ? (
-                  status ? (
-                    <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${status.tone}`}>{status.label}</span>
-                  ) : (
-                    <span className="text-[10px] text-white/30">{on ? "On" : "Off"}</span>
-                  )
-                ) : quality === "Smart" ? (
-                  <span className="rounded border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#9be4e6]">Smart</span>
-                ) : (
-                  <span className="text-[10px] text-white/25">Ready</span>
+            <div key={app.slug}>
+              <div
+                role="button"
+                tabIndex={0}
+                aria-expanded={open}
+                onClick={() => toggleExpand(app.slug)}
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
+                    e.preventDefault();
+                    toggleExpand(app.slug);
+                  }
+                }}
+                className={`grid ${cols} cursor-pointer items-center gap-3 px-3 py-1.5 text-xs transition-colors hover:bg-white/[0.02] focus:bg-white/[0.03] focus:outline-none ${isAdmin && !on ? "opacity-45" : ""}`}
+              >
+                {isAdmin && (
+                  <input
+                    type="checkbox"
+                    checked={on}
+                    disabled={busy}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => onToggle?.(app.slug, e.target.checked)}
+                    className="h-3.5 w-3.5 accent-[#61C1C4]"
+                    aria-label={`Turn ${app.name} ${on ? "off" : "on"}`}
+                  />
                 )}
+                <Link
+                  to={`/apps/${app.slug}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex min-w-0 items-center gap-2"
+                >
+                  <AppIcon name={app.name} category={app.category} domain={app.domain} />
+                  <span className="truncate font-medium text-white hover:text-[#9be4e6]">{app.name}</span>
+                </Link>
+                <span className="truncate text-white/45">{app.category}</span>
+                <span className="truncate text-white/50">{app.blurb}</span>
+                <span className="flex items-center justify-end gap-1 tabular-nums text-white/40">
+                  <ChevronRight className={`h-3 w-3 transition-transform ${open ? "rotate-90 text-[#61C1C4]" : "text-white/30"}`} />
+                  {app.toolCount}
+                </span>
+                <div className="flex justify-end">
+                  {isAdmin ? (
+                    status ? (
+                      <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${status.tone}`}>{status.label}</span>
+                    ) : (
+                      <span className="text-[10px] text-white/30">{on ? "On" : "Off"}</span>
+                    )
+                  ) : quality === "Smart" ? (
+                    <span className="rounded border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#9be4e6]">Smart</span>
+                  ) : (
+                    <span className="text-[10px] text-white/25">Ready</span>
+                  )}
+                </div>
               </div>
+
+              {/* Inline Actions — aligned under "What it does", columns stay locked */}
+              {open && (
+                <div className={`grid ${cols} gap-3 bg-white/[0.015] px-3 pb-2`}>
+                  <div style={{ gridColumn: `${actionsColStart} / -1` }} className="min-w-0">
+                    {app.tools.map((t) => (
+                      <div key={t.name} className="border-t border-white/[0.04] py-1.5 first:border-t-0">
+                        <span className="block text-[13px] font-medium text-white/85">{actionLabel(t)}</span>
+                        {showRaw && (
+                          <code className="block font-mono text-[11px] leading-4 text-white/30">{t.name}</code>
+                        )}
+                        <span className="block text-[13px] leading-snug text-white/45">{t.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
@@ -184,3 +269,6 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
     </button>
   );
 }
+
+// Re-exported for callers that render the action list elsewhere (e.g. AppDetail).
+export type { AppTool };

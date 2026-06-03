@@ -120,7 +120,7 @@ export async function twitchGetStream(args: Record<string, unknown>): Promise<un
     if ("not_connected" in _creds) return _creds;
     const { clientId, clientSecret } = _creds;
     const token = await getAppToken(clientId, clientSecret);
-    const channel = String(args.channel ?? "").trim();
+    const channel = String((args.user_login ?? args.channel) ?? "").trim();
     if (!channel) return { error: "channel (login name) is required." };
     const data = await twitchGet(clientId, token, "/streams", { user_login: channel });
     const streams = (data.data as unknown[]) ?? [];
@@ -137,7 +137,7 @@ export async function twitchSearchGames(args: Record<string, unknown>): Promise<
     if ("not_connected" in _creds) return _creds;
     const { clientId, clientSecret } = _creds;
     const token = await getAppToken(clientId, clientSecret);
-    const query = String(args.query ?? "").trim();
+    const query = String((args.name ?? args.query) ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { query };
     if (args.first) params.first = Number(args.first);

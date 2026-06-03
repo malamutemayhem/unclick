@@ -99,7 +99,7 @@ export async function fplBootstrap(
 export async function fplPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const id = String(args.id ?? "").trim();
+  const id = String((args.player_id ?? args.id) ?? "").trim();
   if (!id) throw new Error("id is required (player element ID from fpl_bootstrap).");
 
   const data = (await fplFetch<Record<string, unknown>>(
@@ -136,7 +136,7 @@ export async function fplPlayer(
 export async function fplGameweek(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const gw = String(args.gw ?? "").trim();
+  const gw = String((args.gameweek ?? args.gw) ?? "").trim();
   if (!gw) throw new Error("gw is required (gameweek number).");
 
   const data = (await fplFetch<Record<string, unknown>>(
@@ -191,8 +191,8 @@ export async function fplFixtures(
 export async function fplMyTeam(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const teamId = String(args.team_id ?? "").trim();
-  const gw = String(args.gw ?? "").trim();
+  const teamId = String((args.manager_id ?? args.team_id) ?? "").trim();
+  const gw = String((args.gameweek ?? args.gw) ?? "").trim();
   if (!teamId) throw new Error("team_id is required.");
   if (!gw) throw new Error("gw is required (gameweek number).");
 
@@ -219,7 +219,7 @@ export async function fplMyTeam(
 export async function fplManager(
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const teamId = String(args.team_id ?? "").trim();
+  const teamId = String((args.manager_id ?? args.team_id) ?? "").trim();
   if (!teamId) throw new Error("team_id is required.");
 
   const data = (await fplFetch<Record<string, unknown>>(

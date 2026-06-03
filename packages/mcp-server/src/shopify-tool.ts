@@ -115,7 +115,7 @@ async function shopifyFetch(
 }
 
 function requireConfig(args: Record<string, unknown>): ShopifyConfig | { error: string } {
-  const store        = String(args.store        ?? "").trim();
+  const store        = String(args.shop_domain ?? args.store ?? "").trim();
   const access_token = String(args.access_token ?? "").trim();
   if (!store)        return { error: "store is required (e.g. 'mystore' or 'mystore.myshopify.com')." };
   if (!access_token) return { error: "access_token is required (Shopify Admin API access token)." };

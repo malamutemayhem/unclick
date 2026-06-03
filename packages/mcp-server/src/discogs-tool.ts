@@ -64,7 +64,7 @@ export async function discogsSearchReleases(args: Record<string, unknown>): Prom
     const token = requireToken(args);
     if (typeof token !== "string") return token;
     const params: Record<string, string | number> = { type: "release" };
-    if (args.query)  params.q      = String(args.query);
+    if ((args.q ?? args.query))  params.q      = String((args.q ?? args.query));
     if (args.artist) params.artist = String(args.artist);
     if (args.genre)  params.genre  = String(args.genre);
     if (args.year)   params.year   = Number(args.year);
@@ -92,7 +92,7 @@ export async function discogsGetRelease(args: Record<string, unknown>): Promise<
   try {
     const token = requireToken(args);
     if (typeof token !== "string") return token;
-    const id = String(args.id ?? "").trim();
+    const id = String((args.release_id ?? args.id) ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await discogsGet(token, `/releases/${encodeURIComponent(id)}`);
     return data;
@@ -105,7 +105,7 @@ export async function discogsGetArtist(args: Record<string, unknown>): Promise<u
   try {
     const token = requireToken(args);
     if (typeof token !== "string") return token;
-    const id = String(args.id ?? "").trim();
+    const id = String((args.artist_id ?? args.id) ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await discogsGet(token, `/artists/${encodeURIComponent(id)}`);
     return data;
@@ -118,7 +118,7 @@ export async function discogsSearchArtists(args: Record<string, unknown>): Promi
   try {
     const token = requireToken(args);
     if (typeof token !== "string") return token;
-    const query = String(args.query ?? "").trim();
+    const query = String((args.q ?? args.query) ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { q: query, type: "artist" };
     if (args.per_page) params.per_page = Number(args.per_page);
@@ -150,7 +150,7 @@ export async function discogsGetLabel(args: Record<string, unknown>): Promise<un
   try {
     const token = requireToken(args);
     if (typeof token !== "string") return token;
-    const id = String(args.id ?? "").trim();
+    const id = String((args.label_id ?? args.id) ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await discogsGet(token, `/labels/${encodeURIComponent(id)}`);
     return data;

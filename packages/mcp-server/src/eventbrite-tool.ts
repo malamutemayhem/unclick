@@ -109,7 +109,7 @@ export async function eventbriteGetEvent(args: Record<string, unknown>): Promise
   const token = getToken(args);
   if (!token) return { error: "EVENTBRITE_TOKEN env var (or token arg) is required." };
 
-  const id = String(args.id ?? "").trim();
+  const id = String((args.event_id ?? args.id) ?? "").trim();
   if (!id) return { error: "id is required." };
 
   return ebFetch(`/events/${id}/`, token);
@@ -121,7 +121,7 @@ export async function eventbriteGetEventAttendees(args: Record<string, unknown>)
   const token = getToken(args);
   if (!token) return { error: "EVENTBRITE_TOKEN env var (or token arg) is required." };
 
-  const id = String(args.id ?? "").trim();
+  const id = String((args.event_id ?? args.id) ?? "").trim();
   if (!id) return { error: "id is required." };
 
   return ebFetch(`/events/${id}/attendees/`, token);
@@ -133,17 +133,22 @@ export async function eventbriteCreateEvent(args: Record<string, unknown>): Prom
   const token = getToken(args);
   if (!token) return { error: "EVENTBRITE_TOKEN env var (or token arg) is required." };
 
-  const organization_id = String(args.organization_id ?? "").trim();
+  const organization_id = String(args.organization_id ?? args.organizer_id ?? "").trim();
   if (!organization_id) return { error: "organization_id is required." };
 
   const name     = args.name     ? String(args.name)     : undefined;
-  const start    = args.start;
-  const end      = args.end;
+  const timezone = args.timezone ? String(args.timezone) : undefined;
+  const startUtc = args.start_utc ? String(args.start_utc) : undefined;
+  const endUtc   = args.end_utc   ? String(args.end_utc)   : undefined;
+  // Accept the flat start_utc/end_utc/timezone contract, or a pre-built
+  // { utc, timezone } object for either bound.
+  const start    = args.start ?? (startUtc && timezone ? { utc: startUtc, timezone } : undefined);
+  const end      = args.end   ?? (endUtc   && timezone ? { utc: endUtc,   timezone } : undefined);
   const currency = args.currency ? String(args.currency) : undefined;
 
   if (!name)     return { error: "name is required." };
-  if (!start)    return { error: "start is required (object with utc and timezone)." };
-  if (!end)      return { error: "end is required (object with utc and timezone)." };
+  if (!start)    return { error: "start_utc and timezone are required." };
+  if (!end)      return { error: "end_utc and timezone are required." };
   if (!currency) return { error: "currency is required (e.g. 'USD')." };
 
   const eventBody: Record<string, unknown> = {
@@ -174,7 +179,7 @@ export async function eventbriteGetVenue(args: Record<string, unknown>): Promise
   const token = getToken(args);
   if (!token) return { error: "EVENTBRITE_TOKEN env var (or token arg) is required." };
 
-  const id = String(args.id ?? "").trim();
+  const id = String((args.venue_id ?? args.id) ?? "").trim();
   if (!id) return { error: "id is required." };
 
   return ebFetch(`/venues/${id}/`, token);

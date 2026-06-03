@@ -14,6 +14,7 @@ import {
   reportToolDetections,
 } from "./tool-awareness.js";
 import { resolveAgent, filterContextByLayers } from "./agent.js";
+import { triggerSessionInspection } from "./session-inspection-trigger.js";
 import { emitSignal } from "../signals/emit.js";
 import { buildSearchMemoryCard } from "../cards/search-memory-card.js";
 import { extractMemoryTypedLinkCandidates } from "./typed-links.js";
@@ -529,6 +530,10 @@ export function compactSearchMemoryForStrictClients(value: unknown): unknown {
 
 export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> = {
   async get_startup_context(args) {
+    // Always-on inspection: fire and forget on every session start. Off unless
+    // UNCLICK_SESSION_INSPECTION=1; never blocks or breaks load_memory.
+    triggerSessionInspection();
+
     const db = await getBackend();
     const slug = typeof args.agent_slug === "string" ? args.agent_slug : undefined;
     const id = typeof args.agent_id === "string" ? args.agent_id : undefined;

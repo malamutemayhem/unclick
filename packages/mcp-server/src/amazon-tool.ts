@@ -317,7 +317,7 @@ export async function amazonBrowse(args: Record<string, unknown>): Promise<unkno
   const creds = extractCreds(args);
   if ("error" in creds) return creds;
 
-  const raw        = args.browse_node_ids ?? args.browse_node_id;
+  const raw        = (args.browseNodeId ?? args.browse_node_ids) ?? args.browse_node_id;
   const nodeIds    = Array.isArray(raw) ? raw.map(String) : [String(raw ?? "")];
 
   if (!nodeIds[0]) return { error: "At least one browse_node_id is required." };
