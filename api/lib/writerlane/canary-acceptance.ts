@@ -88,7 +88,10 @@ export interface CanaryVictoryClaim {
   readonly checksGreen: boolean;
   // The change merged via protected branch rules (not a direct/force push).
   readonly protectedMerge: boolean;
-  // Ledger human_touch_count. Must be exactly 0 for a zero-touch victory.
+  // Ledger human_touch_count. Must be exactly 0 for a zero-touch victory. This
+  // is the SAME human_touch_count the autopilot ledger already produces (see
+  // api/lib/autopilot-control-ledger.ts and api/lib/orchestrator-context.ts):
+  // this gate consumes that value, it does not recompute it.
   readonly humanTouchCount: number;
 }
 

@@ -15,6 +15,13 @@
 // every heartbeat outcome carry exactly one named reason code so the silence is
 // legible in the ledger instead of being an unexplained blank.
 //
+// Boundary (avoid duplication): this is NOT the watcher's worker-movement
+// classifier. api/fishbowl-watcher.ts already has its own narrow lease-reclaim
+// reasons (skip_no_action, lease_expired, active_lease_not_expired, etc.) for
+// deciding whether to move a stale worker. Those describe a single watcher
+// decision; the codes here describe a whole heartbeat cycle's outcome. Keep the
+// two vocabularies separate; do not fold one into the other.
+//
 // Purity / safety:
 //   - Pure. No DB, no LLM, no network, no shell, no filesystem, no git, no
 //     secrets, no side effects. It classifies a supplied signal; it never
