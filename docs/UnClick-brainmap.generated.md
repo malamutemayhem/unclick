@@ -30,7 +30,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | ea4302ee280b | 6581 |
+| package.json | 8079f83c9969 | 6685 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -217,7 +217,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 16 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 119 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 121 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 7 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 11 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 116 |
@@ -706,6 +706,8 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | script | pinballwake writerlane free models.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-free-models.test.mjs |
 | Automations | script | pinballwake writerlane free writer | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-free-writer.mjs |
 | Automations | script | pinballwake writerlane free writer.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-free-writer.test.mjs |
+| Automations | script | pinballwake writerlane live catalog | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-live-catalog.mjs |
+| Automations | script | pinballwake writerlane live catalog.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-live-catalog.test.mjs |
 | Automations | script | pinballwake writerlane validator | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-validator.mjs |
 | Automations | script | pinballwake writerlane validator.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-validator.test.mjs |
 | Automations | script | pinballwake xpass gate room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-xpass-gate-room.mjs |
@@ -1277,6 +1279,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | test:enterprisepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
 | test:rotatepass-redaction | node --test scripts/rotatepass-redaction-guard.test.mjs |
 | test:watch | vitest |
+| test:writerlane-live-catalog | node --test scripts/pinballwake-writerlane-live-catalog.test.mjs |
 
 - `node scripts/UnClick-brainmap.mjs --check` fails if `docs/UnClick-brainmap.generated.md` is stale.
 - `node scripts/UnClick-brainmap.mjs --check` also fails if `docs/UnClick-brainmap.generated.json` is stale.

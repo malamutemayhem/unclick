@@ -39,6 +39,11 @@ import {
 } from "./pinballwake-openhands-proof-runner.mjs";
 import { selectDefaultFreeChain } from "./pinballwake-writerlane-free-models.mjs";
 import {
+  fetchOpenRouterCatalog,
+  isLiveCatalogEnabled,
+  selectAvailableFreeModel,
+} from "./pinballwake-writerlane-live-catalog.mjs";
+import {
   buildValidationFromPatch,
   validateAutonomyProof,
 } from "./pinballwake-writerlane-validator.mjs";
@@ -83,6 +88,10 @@ export function createWriterLaneFreeWriterRunner({
   allowMissingTests = false,
   maxModels = DEFAULT_MAX_MODELS,
   timeoutMs = DEFAULT_TIMEOUT_MS,
+  // Verify the free-model chain against the live OpenRouter catalog before
+  // picking. Off by default (env WRITERLANE_USE_LIVE_CATALOG); when off the
+  // chain is the static priority list exactly as before.
+  useLiveCatalog = isLiveCatalogEnabled(env),
 } = {}) {
   const safeEnv = env || {};
   const apiKey = String(
@@ -113,10 +122,19 @@ export function createWriterLaneFreeWriterRunner({
 
     const taskKind = inferTaskKind(ownedFiles);
     const verification = normalizeList(scopePack?.verification || scopePack?.tests);
-    const chain = (Array.isArray(models) ? models : selectDefaultFreeChain(taskKind)).slice(
-      0,
-      Math.max(1, maxModels),
-    );
+    let rankedChain;
+    if (Array.isArray(models)) {
+      rankedChain = models;
+    } else if (useLiveCatalog) {
+      // Pull the live catalog and rank the configured priority list against it,
+      // returning the first-available models. Any catalog failure auto-falls back
+      // to the static chain, so this never blocks the writer.
+      const catalog = await fetchOpenRouterCatalog(doFetch, { apiKey });
+      rankedChain = selectAvailableFreeModel(taskKind, catalog).chain;
+    } else {
+      rankedChain = selectDefaultFreeChain(taskKind);
+    }
+    const chain = rankedChain.slice(0, Math.max(1, maxModels));
     if (chain.length === 0) {
       return { ok: false, reason: WRITERLANE_NO_FREE_MODELS, attempts: [] };
     }
