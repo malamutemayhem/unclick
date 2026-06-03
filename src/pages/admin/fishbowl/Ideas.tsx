@@ -13,7 +13,6 @@ interface Idea {
   score: number;
   created_by_agent_id: string;
   promoted_to_todo_id: string | null;
-  promoted_by_admin_override?: boolean | null;
   created_at: string;
   updated_at: string;
   my_vote?: "up" | "down" | null;
@@ -267,7 +266,7 @@ function IdeaRow({
                 }
                 disabled={busy}
                 className="inline-flex items-center gap-1.5 rounded-md border border-[#E2B93B]/40 bg-[#E2B93B]/15 px-2 py-1 text-xs font-medium text-[#E2B93B] hover:bg-[#E2B93B]/25 disabled:opacity-40"
-                title="Admin can promote any idea; agents need enough distinct upvotes (default 3) to promote"
+                title="Admin can promote any idea; agents need net upvotes >= 1"
               >
                 Promote to TODO
               </button>
@@ -275,14 +274,6 @@ function IdeaRow({
             {isLocked && idea.promoted_to_todo_id && (
               <span className="text-xs text-[#888]">
                 Locked. Promoted to todo {idea.promoted_to_todo_id.slice(0, 8)}.
-              </span>
-            )}
-            {isLocked && idea.promoted_by_admin_override && (
-              <span
-                className="inline-flex items-center rounded border border-amber-400/40 bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300"
-                title="A human admin promoted this idea below the upvote threshold"
-              >
-                promoted-by-admin (override)
               </span>
             )}
           </div>
