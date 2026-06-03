@@ -2,10 +2,28 @@ import type { VercelRequest } from "@vercel/node";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   coerceDecisionOutcome,
+  normalizeMode,
   parseXGateCheckBody,
   resolveXGateAuthority,
   sha256hex,
 } from "./xgate-check.js";
+
+describe("normalizeMode (the 3-state dial)", () => {
+  it("accepts the three valid modes", () => {
+    expect(normalizeMode("off")).toBe("off");
+    expect(normalizeMode("shadow")).toBe("shadow");
+    expect(normalizeMode("block")).toBe("block");
+  });
+  it("falls back to shadow for anything unknown", () => {
+    expect(normalizeMode("")).toBe("shadow");
+    expect(normalizeMode("BLOCK")).toBe("shadow");
+    expect(normalizeMode(undefined)).toBe("shadow");
+    expect(normalizeMode(42)).toBe("shadow");
+  });
+  it("honors an explicit fallback", () => {
+    expect(normalizeMode(undefined, "off")).toBe("off");
+  });
+});
 
 const originalCronSecret = process.env.CRON_SECRET;
 
