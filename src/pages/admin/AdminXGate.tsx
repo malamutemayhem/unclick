@@ -394,7 +394,10 @@ export default function AdminXGate() {
   }, [session, navigate]);
 
   useEffect(() => {
-    load();
+    const id = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(id);
   }, [load]);
 
   useEffect(() => {
