@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const wiringPath = path.resolve(here, "../src/tool-wiring.ts");
 let source = fs.readFileSync(wiringPath, "utf8");
+source = source.replace(/\r\n/g, "\n");
 const original = source;
 
 function replaceOnce(find, replace, label) {
