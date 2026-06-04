@@ -24,6 +24,8 @@ import type {
   MemoryTaxonomySnapshotWriteOptions,
   MemoryTaxonomySnapshotWriteResult,
   SaveTypedLinkCandidatesResult,
+  AdmissionDecision,
+  MemoryWriteGateCandidate,
 } from "./types.js";
 import {
   filterAndRankMemoryTypedLinks,
@@ -36,6 +38,12 @@ import {
   tokenizeLocalMemoryQuery,
   writeMemoryTaxonomySnapshotsToLibrary,
 } from "./supabase.js";
+import {
+  isMemoryWriteGateEnabled,
+  memoryWriteGateContentHash,
+  selectAdmissionDecision,
+  syntheticWriteGateId,
+} from "./write-gate.js";
 
 function dataDir(): string {
   return process.env.MEMORY_LOCAL_DATA_DIR || path.join(os.homedir(), ".unclick", "memory");
@@ -150,6 +158,10 @@ interface FactRow {
   valid_to?: string;
   created_at: string;
   updated_at: string;
+  content_hash?: string;
+  extractor_id?: string;
+  prompt_version?: string;
+  model_id?: string;
   commit_sha?: string;
   pr_number?: number;
 }
@@ -461,7 +473,68 @@ export class LocalBackend implements MemoryBackend {
     return { id };
   }
 
+  // --- lane-07: write-gate admission ---
+  async admitWrite(data: FactInput): Promise<AdmissionDecision> {
+    const candidates: MemoryWriteGateCandidate[] = readTable<FactRow>("extracted_facts")
+      .filter((row) => row.status === "active" && !row.invalidated_at)
+      .map((row) => ({
+        id: row.id,
+        fact: row.fact,
+        category: row.category,
+        confidence: row.confidence,
+        content_hash: row.content_hash ?? memoryWriteGateContentHash(row.fact),
+        created_at: row.created_at,
+      }));
+    return selectAdmissionDecision(data, candidates);
+  }
+
+  private routeWriteGateEvent(data: FactInput, gate: AdmissionDecision): { id: string; write_gate: AdmissionDecision; source_kind: "conversation_turn" } {
+    const rows = readTable<ConversationRow>("conversation_log");
+    const id = uuid();
+    rows.push({
+      id,
+      session_id: data.source_session_id ?? `write-gate-${gate.candidate_hash.slice(0, 12)}`,
+      role: "memory_write_gate_event",
+      content: data.fact,
+      has_code: false,
+      created_at: now(),
+    });
+    writeTable("conversation_log", rows);
+    return { id, write_gate: gate, source_kind: "conversation_turn" };
+  }
+
+  private async applyWriteGateDecision(
+    data: FactInput,
+    gate: AdmissionDecision
+  ): Promise<({ id: string; write_gate: AdmissionDecision; source_kind: "fact" | "conversation_turn" | "none" }) | null> {
+    if (gate.action === "ADD") return null;
+    if (gate.action === "NOOP" && gate.matched_id) {
+      return { id: gate.matched_id, write_gate: gate, source_kind: "fact" };
+    }
+    if (gate.action === "UPDATE" && gate.matched_id) {
+      const id = await this.supersedeFact(gate.matched_id, data.fact, data.category, data.confidence);
+      return { id, write_gate: gate, source_kind: "fact" };
+    }
+    if (gate.action === "ROUTE_EVENT") {
+      return this.routeWriteGateEvent(data, gate);
+    }
+    return {
+      id: syntheticWriteGateId("rejected", gate.candidate_hash),
+      write_gate: gate,
+      source_kind: "none",
+    };
+  }
+  // --- end lane-07 ---
+
   async addFact(data: FactInput): Promise<{ id: string }> {
+    // --- lane-07: write-gate admission ---
+    if (isMemoryWriteGateEnabled()) {
+      const gate = await this.admitWrite(data);
+      const gatedResult = await this.applyWriteGateDecision(data, gate);
+      if (gatedResult) return gatedResult;
+    }
+    // --- end lane-07 ---
+
     const id = uuid();
     const rows = readTable<FactRow>("extracted_facts");
     rows.push({
@@ -481,6 +554,10 @@ export class LocalBackend implements MemoryBackend {
       valid_to: undefined,
       created_at: now(),
       updated_at: now(),
+      content_hash: memoryWriteGateContentHash(data.fact),
+      extractor_id: data.extractor_id,
+      prompt_version: data.prompt_version,
+      model_id: data.model_id,
       commit_sha: data.commit_sha,
       pr_number: data.pr_number,
     });
@@ -516,6 +593,7 @@ export class LocalBackend implements MemoryBackend {
       valid_to: undefined,
       created_at: now(),
       updated_at: now(),
+      content_hash: memoryWriteGateContentHash(newText),
     });
     writeTable("extracted_facts", rows);
     return newId;

@@ -32,6 +32,8 @@ import type {
   MemoryTaxonomySnapshotWriteResult,
   MemoryTaxonomySnapshotSource,
   SaveTypedLinkCandidatesResult,
+  AdmissionDecision,
+  MemoryWriteGateCandidate,
 } from "./types.js";
 import {
   filterAndRankMemoryTypedLinks,
@@ -40,6 +42,13 @@ import {
   type MemoryTypedLinkStoredRow,
 } from "./typed-links.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
+import {
+  isMemoryWriteGateEnabled,
+  memoryWriteGateContentHash,
+  selectAdmissionDecision,
+  syntheticWriteGateId,
+  tokenizeMemoryWriteGateText,
+} from "./write-gate.js";
 
 function pgError(context: string, err: unknown): Error {
   if (err instanceof Error) return err;
@@ -979,11 +988,159 @@ export class SupabaseBackend implements MemoryBackend {
     return { id: row.id };
   }
 
+  // --- lane-07: write-gate admission ---
+  async admitWrite(data: FactInput): Promise<AdmissionDecision> {
+    const table = this.tables.extracted_facts;
+    const selectColumns = "id, fact, category, confidence, created_at, content_hash";
+    const candidateHash = memoryWriteGateContentHash(data.fact);
+    const candidates = new Map<string, MemoryWriteGateCandidate>();
+    const addRows = (rows: unknown[] | null | undefined): void => {
+      for (const row of rows ?? []) {
+        const r = row as {
+          id?: unknown;
+          fact?: unknown;
+          category?: unknown;
+          confidence?: unknown;
+          created_at?: unknown;
+          content_hash?: unknown;
+        };
+        if (typeof r.id !== "string" || typeof r.fact !== "string") continue;
+        candidates.set(r.id, {
+          id: r.id,
+          fact: r.fact,
+          category: typeof r.category === "string" ? r.category : "general",
+          confidence: typeof r.confidence === "number" ? r.confidence : null,
+          content_hash: typeof r.content_hash === "string" ? r.content_hash : null,
+          created_at: typeof r.created_at === "string" ? r.created_at : null,
+        });
+      }
+    };
+
+    let exactQuery = this.client
+      .from(table)
+      .select(selectColumns)
+      .eq("content_hash", candidateHash)
+      .eq("status", "active")
+      .is("invalidated_at", null)
+      .limit(1);
+    if (this.tenancy.mode === "managed") {
+      exactQuery = exactQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const exact = await exactQuery;
+    if (exact.error) throw pgError("writeGate exact scan", exact.error);
+    addRows(exact.data);
+
+    const tokens = tokenizeMemoryWriteGateText(data.fact).slice(0, 8);
+    if (tokens.length > 0) {
+      const pattern = tokens
+        .map((token) => `fact.ilike.%${token.replace(/[\\%_]/g, (char) => `\\${char}`)}%`)
+        .join(",");
+      let similarQuery = this.client
+        .from(table)
+        .select(selectColumns)
+        .eq("status", "active")
+        .is("invalidated_at", null)
+        .or(pattern)
+        .order("confidence", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(25);
+      if (this.tenancy.mode === "managed") {
+        similarQuery = similarQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+      }
+      const similar = await similarQuery;
+      if (similar.error) throw pgError("writeGate similar scan", similar.error);
+      addRows(similar.data);
+    }
+
+    return selectAdmissionDecision(data, Array.from(candidates.values()));
+  }
+
+  private async routeWriteGateEvent(
+    data: FactInput,
+    gate: AdmissionDecision
+  ): Promise<{ id: string; write_gate: AdmissionDecision; source_kind: "conversation_turn" }> {
+    await this.enforceCaps("general");
+    const { data: row, error } = await this.client
+      .from(this.tables.conversation_log)
+      .insert(
+        this.withTenancy({
+          session_id: data.source_session_id ?? `write-gate-${gate.candidate_hash.slice(0, 12)}`,
+          role: "memory_write_gate_event",
+          content: truncate(data.fact),
+          has_code: false,
+        })
+      )
+      .select("id")
+      .single();
+    if (error) throw pgError("writeGate route event insert", error);
+    return { id: String(row.id), write_gate: gate, source_kind: "conversation_turn" };
+  }
+
+  private async finalizeWriteGateSupersede(data: FactInput, id: string): Promise<void> {
+    let updateQuery = this.client
+      .from(this.tables.extracted_facts)
+      .update({
+        content_hash: contentHash(data.fact),
+        startup_fact_kind: data.startup_fact_kind ?? "durable",
+        decay_tier: "hot",
+        last_accessed: now(),
+        valid_from: data.valid_from ?? now(),
+        extractor_id: data.extractor_id ?? "manual",
+        prompt_version: data.prompt_version ?? null,
+        model_id: data.model_id ?? null,
+        commit_sha: data.commit_sha ?? null,
+        pr_number: data.pr_number ?? null,
+      })
+      .eq("id", id);
+    if (this.tenancy.mode === "managed") {
+      updateQuery = updateQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { error } = await updateQuery;
+    if (error) throw pgError("writeGate supersede finalize", error);
+    this.embedAndStore(this.tables.extracted_facts, id, data.fact).catch(() => {});
+  }
+
+  private async applyWriteGateDecision(
+    data: FactInput,
+    gate: AdmissionDecision
+  ): Promise<({ id: string; write_gate: AdmissionDecision; source_kind: "fact" | "conversation_turn" | "none" }) | null> {
+    if (gate.action === "ADD") return null;
+    if (gate.action === "NOOP" && gate.matched_id) {
+      return { id: gate.matched_id, write_gate: gate, source_kind: "fact" };
+    }
+    if (gate.action === "UPDATE" && gate.matched_id) {
+      const id = await this.supersedeFact(gate.matched_id, data.fact, data.category, data.confidence);
+      await this.finalizeWriteGateSupersede(data, id);
+      return { id, write_gate: gate, source_kind: "fact" };
+    }
+    if (gate.action === "ROUTE_EVENT") {
+      return this.routeWriteGateEvent(data, gate);
+    }
+    return {
+      id: syntheticWriteGateId("rejected", gate.candidate_hash),
+      write_gate: gate,
+      source_kind: "none",
+    };
+  }
+  // --- end lane-07 ---
+
   async addFact(data: FactInput): Promise<{ id: string }> {
     // preserve_as_blob: write raw body to canonical_docs, then extract+store atomic facts
     if (data.preserve_as_blob) {
       return this.saveBlob(data);
     }
+
+    // --- lane-07: write-gate admission ---
+    if (isMemoryWriteGateEnabled()) {
+      try {
+        const gate = await this.admitWrite(data);
+        const gatedResult = await this.applyWriteGateDecision(data, gate);
+        if (gatedResult) return gatedResult;
+      } catch (err) {
+        console.error("[memory_write_gate] optional admission failed:", err);
+      }
+    }
+    // --- end lane-07 ---
 
     await this.enforceCaps("fact");
 

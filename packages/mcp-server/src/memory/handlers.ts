@@ -18,6 +18,7 @@ import { triggerSessionInspection } from "./session-inspection-trigger.js";
 import { emitSignal } from "../signals/emit.js";
 import { buildSearchMemoryCard } from "../cards/search-memory-card.js";
 import { extractMemoryTypedLinkCandidates } from "./typed-links.js";
+import { logMemoryLoadEvent } from "./instrumentation.js";
 import type {
   MemoryBackend,
   MemoryProfileCard,
@@ -26,6 +27,7 @@ import type {
   MemoryRetrievalPlan,
   MemoryReceiptRedactionState,
   SaveTypedLinkCandidatesResult,
+  AdmissionDecision,
 } from "./types.js";
 import type { MemoryTypedLinkSourceKind } from "./typed-links.js";
 
@@ -34,6 +36,14 @@ function currentApiKeyHash(): string | null {
 }
 
 type Args = Record<string, unknown>;
+
+// --- lane-07: write-gate admission ---
+type AddFactResultWithGate = {
+  id: string;
+  write_gate?: AdmissionDecision;
+  source_kind?: "fact" | "conversation_turn" | "none";
+};
+// --- end lane-07 ---
 
 function str(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
@@ -677,26 +687,72 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       preserve_as_blob: typeof args.preserve_as_blob === "boolean" ? args.preserve_as_blob : false,
       commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
       pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
-    });
-    await persistTypedLinksForMemoryWrite(db, {
-      source_kind: "fact",
-      source_id: result.id,
-      text: str(args.fact),
-    });
+    }) as AddFactResultWithGate;
+
+    // --- lane-07: write-gate admission ---
+    const sourceKind = result.source_kind ?? "fact";
+    if (result.write_gate) {
+      logMemoryLoadEvent({
+        tool_name: "memory.write_gate",
+        params: {
+          action: result.write_gate.action,
+          reason: result.write_gate.reason,
+          route_target: result.write_gate.route_target,
+          duplicate_rate: result.write_gate.metrics.duplicate_rate,
+          write_precision: result.write_gate.metrics.write_precision,
+          source_kind: sourceKind,
+        },
+      });
+    }
+    // --- end lane-07 ---
+
+    if (sourceKind === "fact") {
+      await persistTypedLinksForMemoryWrite(db, {
+        source_kind: "fact",
+        source_id: result.id,
+        text: str(args.fact),
+      });
+    }
     const hash = currentApiKeyHash();
     if (hash) {
       const preview = str(args.fact).slice(0, 80);
+      const action = result.write_gate?.action;
+      const signalSummary =
+        action === "ROUTE_EVENT"
+          ? "Memory write routed to event store"
+          : action === "REJECT"
+            ? "Memory write rejected by admission gate"
+            : preview ? `Fact saved: ${preview}` : "Fact saved to memory";
       void emitSignal({
         apiKeyHash: hash,
         tool: "memory",
-        action: "fact_saved",
+        action: sourceKind === "fact" ? "fact_saved" : "fact_not_saved",
         severity: "info",
-        summary: preview ? `Fact saved: ${preview}` : "Fact saved to memory",
+        summary: signalSummary,
         deepLink: "/admin/memory?tab=facts",
       });
     }
     return result;
   },
+
+  // --- lane-07: write-gate admission ---
+  async admit_write(args) {
+    const db = await getBackend();
+    return db.admitWrite({
+      fact: str(args.fact),
+      category: str(args.category, "general"),
+      confidence: num(args.confidence, 0.9),
+      source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
+      valid_from: typeof args.valid_from === "string" ? args.valid_from : undefined,
+      extractor_id: typeof args.extractor_id === "string" ? args.extractor_id : undefined,
+      prompt_version: typeof args.prompt_version === "string" ? args.prompt_version : undefined,
+      model_id: typeof args.model_id === "string" ? args.model_id : undefined,
+      preserve_as_blob: typeof args.preserve_as_blob === "boolean" ? args.preserve_as_blob : false,
+      commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
+      pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
+    });
+  },
+  // --- end lane-07 ---
 
   async supersede_fact(args) {
     const db = await getBackend();

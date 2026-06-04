@@ -174,6 +174,43 @@ export interface MemoryTaxonomySnapshotWriteResult {
   }>;
 }
 
+// --- lane-07: write-gate admission ---
+export type MemoryWriteGateAction = "ADD" | "UPDATE" | "DELETE" | "NOOP" | "ROUTE_EVENT" | "REJECT";
+
+export type MemoryWriteGateRouteTarget = "fact_store" | "episode_store" | "none";
+
+export interface MemoryWriteGateMetrics {
+  duplicate_rate: number;
+  write_precision: number;
+  duplicate_blocked: boolean;
+  admitted_to_fact_store: boolean;
+}
+
+export interface MemoryWriteGateCandidate {
+  id: string;
+  fact: string;
+  category: string;
+  confidence?: number | null;
+  content_hash?: string | null;
+  created_at?: string | null;
+}
+
+export interface AdmissionDecision {
+  action: MemoryWriteGateAction;
+  admitted: boolean;
+  reason: string;
+  candidate_hash: string;
+  candidate_category?: string;
+  matched_id?: string;
+  matched_hash?: string | null;
+  matched_text?: string;
+  similarity?: number;
+  route_target?: MemoryWriteGateRouteTarget;
+  cool_down_seconds?: number;
+  metrics: MemoryWriteGateMetrics;
+}
+// --- end lane-07 ---
+
 export interface MemoryBackend {
   /** Load startup context (business context + recent sessions + hot facts). */
   getStartupContext(numSessions: number): Promise<unknown>;
@@ -237,4 +274,8 @@ export interface MemoryBackend {
 
   /** Mark a fact as invalidated (does not delete it). Writes an audit row. */
   invalidateFact(input: InvalidateFactInput): Promise<{ invalidated_at: string }>;
+
+  // --- lane-07: write-gate admission ---
+  admitWrite(candidate: FactInput): Promise<AdmissionDecision>;
+  // --- end lane-07 ---
 }
