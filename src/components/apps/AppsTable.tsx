@@ -233,11 +233,11 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                   <div style={{ gridColumn: `${actionsColStart} / -1` }} className="min-w-0">
                     {app.tools.map((t) => (
                       <div key={t.name} className="border-t border-white/[0.04] py-1.5 first:border-t-0">
-                        <span className="block text-[13px] font-medium text-white/85">{actionLabel(t)}</span>
+                        <span className="block text-[10px] font-medium text-white/85">{actionLabel(t)}</span>
                         {showRaw && (
-                          <code className="block font-mono text-[11px] leading-4 text-white/30">{t.name}</code>
+                          <code className="block font-mono text-[10px] leading-4 text-white/30">{t.name}</code>
                         )}
-                        <span className="block text-[13px] leading-snug text-white/45">{t.description}</span>
+                        <span className="block text-[10px] leading-snug text-white/45">{t.description}</span>
                       </div>
                     ))}
                   </div>
