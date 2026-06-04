@@ -28,6 +28,8 @@ import type {
   SessionEventQuery,
   SessionEventWriteResult,
   SaveTypedLinkCandidatesResult,
+  AdmissionDecision,
+  MemoryWriteGateCandidate,
 } from "./types.js";
 import {
   filterAndRankMemoryTypedLinks,
@@ -70,6 +72,19 @@ import {
 import type { ReconcileOptions, ReconcileResult, ContradictionEvent } from "./types.js";
 import type { ExistingFact } from "./reconcile.js";
 // --- end lane-02 ---
+// --- lane-07: write-gate & admission ---
+import {
+  hasMemoryWriteGateEpisodeBackend,
+  isMemoryWriteGateEnabled,
+  isMemoryWriteGateEpisodeStoreEnabled,
+  memoryWriteGateContentHash,
+  memoryWriteGateSessionEventInput,
+  type MemoryWriteGateResultSourceKind,
+  selectAdmissionDecision,
+  syntheticWriteGateId,
+  writeGateCandidateFromRankedSearchRow,
+} from "./write-gate.js";
+// --- end lane-07 ---
 
 function dataDir(): string {
   return process.env.MEMORY_LOCAL_DATA_DIR || path.join(os.homedir(), ".unclick", "memory");
@@ -211,6 +226,9 @@ interface FactRow {
   prompt_version?: string | null;
   model_id?: string | null;
   // --- end lane-03 ---
+  // --- lane-07: write-gate ---
+  content_hash?: string | null;
+  // --- end lane-07 ---
   commit_sha?: string;
   pr_number?: number;
   // --- lane-04: scopes / credential-aware / Boardroom visibility ---
@@ -587,7 +605,84 @@ export class LocalBackend implements MemoryBackend {
     return { id };
   }
 
+  // --- lane-07: write-gate admission ---
+  async admitWrite(data: FactInput): Promise<AdmissionDecision> {
+    const candidates = new Map<string, MemoryWriteGateCandidate>();
+    const searchRows = await this.searchMemory(data.fact, 25);
+    const rankedRows = Array.isArray(searchRows) ? searchRows : [];
+    for (const row of rankedRows) {
+      const candidate = writeGateCandidateFromRankedSearchRow(row);
+      if (candidate) candidates.set(candidate.id, candidate);
+    }
+    for (const row of readTable<FactRow>("extracted_facts")
+      .filter((row) => row.status === "active" && !row.invalidated_at)
+      .map((row) => ({
+        id: row.id,
+        fact: row.fact,
+        category: row.category,
+        confidence: row.confidence,
+        content_hash: row.content_hash ?? memoryWriteGateContentHash(row.fact),
+        created_at: row.created_at,
+      }))) {
+      candidates.set(row.id, { ...row, ...candidates.get(row.id) });
+    }
+    return selectAdmissionDecision(data, Array.from(candidates.values()));
+  }
+
+  private async routeWriteGateEvent(
+    data: FactInput,
+    gate: AdmissionDecision
+  ): Promise<{ id: string; write_gate: AdmissionDecision; source_kind: MemoryWriteGateResultSourceKind }> {
+    if (isMemoryWriteGateEpisodeStoreEnabled() && hasMemoryWriteGateEpisodeBackend(this)) {
+      const event = await this.addSessionEvent(memoryWriteGateSessionEventInput(data, gate));
+      return { id: event.id, write_gate: gate, source_kind: "session_event" };
+    }
+    const rows = readTable<ConversationRow>("conversation_log");
+    const id = uuid();
+    rows.push({
+      id,
+      session_id: data.source_session_id ?? `write-gate-${gate.candidate_hash.slice(0, 12)}`,
+      role: "memory_write_gate_event",
+      content: data.fact,
+      has_code: false,
+      created_at: now(),
+    });
+    writeTable("conversation_log", rows);
+    return { id, write_gate: gate, source_kind: "conversation_turn" };
+  }
+
+  private async applyWriteGateDecision(
+    data: FactInput,
+    gate: AdmissionDecision
+  ): Promise<({ id: string; write_gate: AdmissionDecision; source_kind: MemoryWriteGateResultSourceKind }) | null> {
+    if (gate.action === "ADD") return null;
+    if (gate.action === "NOOP" && gate.matched_id) {
+      return { id: gate.matched_id, write_gate: gate, source_kind: "fact" };
+    }
+    if (gate.action === "UPDATE" && gate.matched_id) {
+      const id = await this.supersedeFact(gate.matched_id, data.fact, data.category, data.confidence);
+      return { id, write_gate: gate, source_kind: "fact" };
+    }
+    if (gate.action === "ROUTE_EVENT") {
+      return this.routeWriteGateEvent(data, gate);
+    }
+    return {
+      id: syntheticWriteGateId("rejected", gate.candidate_hash),
+      write_gate: gate,
+      source_kind: "none",
+    };
+  }
+  // --- end lane-07 ---
+
   async addFact(data: FactInput): Promise<{ id: string }> {
+    // --- lane-07: write-gate admission (outer gate: dedup / admission / routing, runs first) ---
+    if (isMemoryWriteGateEnabled()) {
+      const gate = await this.admitWrite(data);
+      const gatedResult = await this.applyWriteGateDecision(data, gate);
+      if (gatedResult) return gatedResult;
+    }
+    // --- end lane-07 ---
+
     const memoryClass = isTypedMemorySplitEnabled()
       ? classifyMemoryClass({
           text: data.fact,
@@ -626,6 +721,10 @@ export class LocalBackend implements MemoryBackend {
       valid_to: undefined,
       created_at: now(),
       updated_at: now(),
+      content_hash: memoryWriteGateContentHash(data.fact),
+      extractor_id: data.extractor_id,
+      prompt_version: data.prompt_version,
+      model_id: data.model_id,
       commit_sha: data.commit_sha,
       pr_number: data.pr_number,
       // --- lane-03: provenance & receipts (only written when MEMORY_PROVENANCE_ENABLED) ---
@@ -687,6 +786,7 @@ export class LocalBackend implements MemoryBackend {
       valid_to: undefined,
       created_at: now(),
       updated_at: now(),
+      content_hash: memoryWriteGateContentHash(newText),
     });
     writeTable("extracted_facts", rows);
     return newId;

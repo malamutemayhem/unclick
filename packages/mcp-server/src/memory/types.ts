@@ -301,6 +301,49 @@ export interface ReconcileResult {
   contradiction?: ContradictionEvent;
 }
 // --- end lane-02 ---
+// --- lane-07: write-gate admission ---
+export type MemoryWriteGateAction = "ADD" | "UPDATE" | "DELETE" | "NOOP" | "ROUTE_EVENT" | "REJECT";
+
+export type MemoryWriteGateRouteTarget = "fact_store" | "episode_store" | "none";
+
+export interface MemoryWriteGateMetrics {
+  duplicate_rate: number;
+  write_precision: number;
+  duplicate_blocked: boolean;
+  admitted_to_fact_store: boolean;
+}
+
+export interface MemoryWriteGateCandidate {
+  id: string;
+  fact: string;
+  category: string;
+  confidence?: number | null;
+  content_hash?: string | null;
+  created_at?: string | null;
+  source?: "fact" | "session" | "conversation" | string;
+  final_score?: number | null;
+  rrf_score?: number | null;
+  kw_score?: number | null;
+  cosine_score?: number | null;
+  keyword_rank?: number | null;
+  vector_rank?: number | null;
+}
+
+export interface AdmissionDecision {
+  action: MemoryWriteGateAction;
+  admitted: boolean;
+  reason: string;
+  candidate_hash: string;
+  candidate_category?: string;
+  matched_id?: string;
+  matched_hash?: string | null;
+  matched_text?: string;
+  similarity?: number;
+  route_target?: MemoryWriteGateRouteTarget;
+  cool_down_seconds?: number;
+  metrics: MemoryWriteGateMetrics;
+}
+// --- end lane-07 ---
 
 export interface MemoryBackend {
   /** Load startup context (business context + recent sessions + hot facts). */
@@ -394,6 +437,9 @@ export interface MemoryBackend {
    */
   reconcileFact(candidate: FactInput, options?: ReconcileOptions): Promise<ReconcileResult>;
   // --- end lane-02 ---
+  // --- lane-07: write-gate admission ---
+  admitWrite(candidate: FactInput): Promise<AdmissionDecision>;
+  // --- end lane-07 ---
 }
 
 // --- lane-01: retrieval fusion (read path) ---
