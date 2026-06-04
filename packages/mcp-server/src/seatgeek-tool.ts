@@ -95,7 +95,7 @@ export async function seatgeekSearchPerformers(args: Record<string, unknown>): P
   try {
     const clientId = getClientId(args);
     if (typeof clientId !== "string") return clientId;
-    const query = String(args.query ?? "").trim();
+    const query = String((args.q ?? args.query) ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { q: query };
     if (args.per_page) params.per_page = Number(args.per_page);
@@ -128,7 +128,7 @@ export async function seatgeekSearchVenues(args: Record<string, unknown>): Promi
     const clientId = getClientId(args);
     if (typeof clientId !== "string") return clientId;
     const params: Record<string, string | number> = {};
-    if (args.query)   params.q                = String(args.query);
+    if ((args.q ?? args.query))   params.q                = String((args.q ?? args.query));
     if (args.city)    params["venue.city"]    = String(args.city);
     if (args.state)   params["venue.state"]   = String(args.state);
     if (args.country) params["venue.country"] = String(args.country);

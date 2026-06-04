@@ -19,6 +19,7 @@ export default function AdminToolsPage() {
   const [connectors, setConnectors] = useState<Connector[]>([]);
   const [disabled, setDisabled] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!session) return;
@@ -53,19 +54,29 @@ export default function AdminToolsPage() {
   // Persist the disabled set to the tenant store the MCP server enforces against.
   // Optimistic: update the UI first, roll back if the save fails.
   async function persist(next: Set<string>) {
-    if (!session) return;
+    if (!session) {
+      setSaveError("You are signed out. Sign in again to change your apps.");
+      return;
+    }
     const prev = disabled;
     setDisabled(new Set(next));
     setSaving(true);
+    setSaveError(null);
     try {
       const res = await fetch("/api/memory-admin?action=admin_set_app_state", {
         method: "POST",
         headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ disabled_apps: [...next] }),
       });
-      if (!res.ok) setDisabled(prev);
-    } catch {
+      if (!res.ok) {
+        // Surface why the save failed instead of silently reverting.
+        const detail = await res.text().catch(() => "");
+        setDisabled(prev);
+        setSaveError(`Could not save (${res.status}). Your change was undone. ${detail.slice(0, 200)}`.trim());
+      }
+    } catch (err) {
       setDisabled(prev);
+      setSaveError(`Could not save: ${err instanceof Error ? err.message : "network error"}. Your change was undone.`);
     } finally {
       setSaving(false);
     }
@@ -104,12 +115,21 @@ export default function AdminToolsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-white">Apps</h1>
           <p className="text-sm text-white/50">
-            {APP_COUNT} apps, {TOOL_COUNT} tools your AI can reach. All on by default. Turn any off and your AI stops using it.
+            {APP_COUNT} apps · {TOOL_COUNT} actions your AI can reach. All on by default. Turn any off and your AI stops using it.
           </p>
         </div>
       </div>
 
       <AdminAppsIntro />
+
+      {saveError && (
+        <div
+          role="alert"
+          className="mb-3 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-xs text-red-200"
+        >
+          {saveError}
+        </div>
+      )}
 
       <AppsTable
         apps={APP_CATALOG}

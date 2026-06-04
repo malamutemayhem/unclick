@@ -105,7 +105,7 @@ export async function podcastGetByFeedUrl(args: Record<string, unknown>): Promis
 }
 
 export async function podcastGetEpisodes(args: Record<string, unknown>): Promise<unknown> {
-  const feedId = args.feed_id;
+  const feedId = (args.id ?? args.feed_id);
   if (!feedId) throw new Error("feed_id is required.");
   const params: Record<string, string | number | undefined> = { id: Number(feedId) };
   if (args.max) params.max = Number(args.max);

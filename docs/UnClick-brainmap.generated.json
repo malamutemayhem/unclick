@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 613,
-    "source_manifest": 191,
-    "pages": 83,
+    "inventory": 618,
+    "source_manifest": 192,
+    "pages": 84,
     "tools": 219,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 49
+      "count": 50
     },
     {
       "id": "public-surfaces",
@@ -63,7 +63,7 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 119
+      "count": 121
     },
     {
       "id": "ledgers-and-proof",
@@ -75,7 +75,7 @@
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 10
+      "count": 12
     },
     {
       "id": "modules-and-apps",
@@ -382,13 +382,23 @@
       "tags": []
     },
     {
-      "id": "admin-surfaces-admin-page-admin-tools-src-pages-admin-admintools-tsx-admin-tools",
+      "id": "admin-surfaces-admin-page-admin-tools-src-pages-admin-admintools-tsx-admin-apps",
       "division": "Admin surfaces",
       "name": "Admin Tools",
       "kind": "admin page",
       "meaning": "Apps, tools, and connector capability surface.",
       "source": "src/pages/admin/AdminTools.tsx",
-      "route": "/admin/tools",
+      "route": "/admin/apps",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-truth-rate-src-pages-admin-admintruthrate-tsx-admin-truth-rate",
+      "division": "Admin surfaces",
+      "name": "Admin Truth Rate",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Truth Rate.",
+      "source": "src/pages/admin/AdminTruthRate.tsx",
+      "route": "/admin/truth-rate",
       "tags": []
     },
     {
@@ -1478,6 +1488,26 @@
       "kind": "script",
       "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
       "source": "scripts/pinballwake-writerlane-free-writer.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-live-catalog-scripts-pinballwake-writerlane-live-catalog-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake writerlane live catalog",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-live-catalog.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-live-catalog-test-scripts-pinballwake-writerlane-live-catalog-test-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake writerlane live catalog.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-live-catalog.test.mjs",
       "route": "",
       "tags": []
     },
@@ -3819,6 +3849,26 @@
       "meaning": "Primary work source for open, in-progress, done, and dropped chips.",
       "source": "src/pages/admin/AdminJobs.tsx",
       "route": "/admin/jobs",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-boardroom-compat-api-lib-boardroom-compat-ts-no-route",
+      "division": "Source of truth",
+      "name": "boardroom compat",
+      "kind": "state module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/boardroom-compat.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-boardroom-read-bounds-api-lib-boardroom-read-bounds-ts-no-route",
+      "division": "Source of truth",
+      "name": "boardroom read bounds",
+      "kind": "state module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/boardroom-read-bounds.ts",
+      "route": "",
       "tags": []
     },
     {
@@ -6254,6 +6304,12 @@
       "src/pages/admin/AdminAnalytics.tsx"
     ],
     [
+      "/admin/apps",
+      "Admin Tools",
+      "Apps, tools, and connector capability surface.",
+      "src/pages/admin/AdminTools.tsx"
+    ],
+    [
       "/admin/audit-log",
       "Admin Audit Log",
       "Internal audit trail for sensitive admin actions.",
@@ -6488,10 +6544,10 @@
       "src/pages/admin/testpass/TestPassCatalog.tsx"
     ],
     [
-      "/admin/tools",
-      "Admin Tools",
-      "Apps, tools, and connector capability surface.",
-      "src/pages/admin/AdminTools.tsx"
+      "/admin/truth-rate",
+      "Admin Truth Rate",
+      "Admin surface for Admin Truth Rate.",
+      "src/pages/admin/AdminTruthRate.tsx"
     ],
     [
       "/admin/users",
@@ -8126,12 +8182,20 @@
       "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
     [
+      "test:memory-eval",
+      "node --test scripts/memory-retrieval-eval.test.mjs"
+    ],
+    [
       "test:rotatepass-redaction",
       "node --test scripts/rotatepass-redaction-guard.test.mjs"
     ],
     [
       "test:watch",
       "vitest"
+    ],
+    [
+      "test:writerlane-live-catalog",
+      "node --test scripts/pinballwake-writerlane-live-catalog.test.mjs"
     ]
   ],
   "source_manifest": [
@@ -8182,13 +8246,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "3417f42712a9",
-      "bytes": 14800
+      "hash": "1f196048a2b9",
+      "bytes": 15047
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "dfe4ed312dae",
-      "bytes": 22167
+      "hash": "7f369084b44d",
+      "bytes": 24686
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -8222,8 +8286,8 @@
     },
     {
       "source": "package.json",
-      "hash": "80d780561f43",
-      "bytes": 6468
+      "hash": "c5c0ba95988e",
+      "bytes": 6824
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -8351,6 +8415,11 @@
       "bytes": 10336
     },
     {
+      "source": "src/pages/admin/AdminTools.tsx",
+      "hash": "5d2838bcd848",
+      "bytes": 6470
+    },
+    {
       "source": "src/pages/admin/AdminAuditLog.tsx",
       "hash": "028edd82cb11",
       "bytes": 874
@@ -8362,8 +8431,8 @@
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
-      "hash": "13bc51cceb52",
-      "bytes": 12105
+      "hash": "0f2003fd8242",
+      "bytes": 12106
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
@@ -8372,13 +8441,13 @@
     },
     {
       "source": "src/pages/admin/Fishbowl.tsx",
-      "hash": "525cfc33fcdc",
-      "bytes": 33809
+      "hash": "ec3c5b4f4b4f",
+      "bytes": 37557
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "c764ced96836",
-      "bytes": 26511
+      "hash": "7d9f49ee973c",
+      "bytes": 26510
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -8417,8 +8486,8 @@
     },
     {
       "source": "src/pages/admin/AdminDashboard.tsx",
-      "hash": "437a146a3d78",
-      "bytes": 5259
+      "hash": "7ee015247aa8",
+      "bytes": 5257
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
@@ -8506,9 +8575,9 @@
       "bytes": 21847
     },
     {
-      "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "808485ffc146",
-      "bytes": 5678
+      "source": "src/pages/admin/AdminTruthRate.tsx",
+      "hash": "115c5cce9b90",
+      "bytes": 8868
     },
     {
       "source": "src/pages/admin/AdminUsers.tsx",
@@ -8517,23 +8586,23 @@
     },
     {
       "source": "src/pages/admin/AdminXGate.tsx",
-      "hash": "5c4381abffaf",
-      "bytes": 19472
+      "hash": "db31f326ff07",
+      "bytes": 26775
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "3d0240411971",
-      "bytes": 51024
+      "hash": "89ed912e326b",
+      "bytes": 59397
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "4e2ec609ff61",
+      "hash": "0cf7c397e1b5",
       "bytes": 5401
     },
     {
       "source": "src/pages/Apps.tsx",
-      "hash": "f68ab8412c39",
-      "bytes": 2636
+      "hash": "1ccab2a4ccad",
+      "bytes": 2647
     },
     {
       "source": "src/pages/AuthCallback.tsx",
@@ -8802,8 +8871,8 @@
     },
     {
       "source": "packages/mcp-server/src/abn-tool.ts",
-      "hash": "7481ff8b9005",
-      "bytes": 4651
+      "hash": "981031e37dee",
+      "bytes": 6329
     },
     {
       "source": "packages/mcp-server/src/abuseipdb-tool.ts",
@@ -8827,8 +8896,8 @@
     },
     {
       "source": "packages/mcp-server/src/amazon-tool.ts",
-      "hash": "8184f6a60db6",
-      "bytes": 15876
+      "hash": "faeea675e2f5",
+      "bytes": 15899
     },
     {
       "source": "packages/mcp-server/src/amber-tool.ts",
@@ -8852,13 +8921,13 @@
     },
     {
       "source": "packages/mcp-server/src/australiapost-tool.ts",
-      "hash": "c1f9f3dc9b8e",
-      "bytes": 6173
+      "hash": "ed627c360433",
+      "bytes": 6185
     },
     {
       "source": "packages/mcp-server/src/bandsintown-tool.ts",
-      "hash": "a1a0d5b07e7f",
-      "bytes": 4100
+      "hash": "d255220247d1",
+      "bytes": 4151
     },
     {
       "source": "packages/mcp-server/src/bgg-tool.ts",
@@ -8892,8 +8961,8 @@
     },
     {
       "source": "packages/mcp-server/src/calculator-tool.ts",
-      "hash": "941b010bc4f9",
-      "bytes": 7255
+      "hash": "5a3d3d30645e",
+      "bytes": 7319
     },
     {
       "source": "packages/mcp-server/src/calendly-tool.ts",
@@ -8952,8 +9021,8 @@
     },
     {
       "source": "packages/mcp-server/src/color-tool.ts",
-      "hash": "f9aa9c0fec6e",
-      "bytes": 13643
+      "hash": "8e737cb9e16f",
+      "bytes": 13782
     },
     {
       "source": "packages/mcp-server/src/commonsensepass-tool.ts",

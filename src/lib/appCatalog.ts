@@ -7,6 +7,8 @@ import catalog from "@/data/app-catalog.generated.json";
 export interface AppTool {
   name: string;
   description: string;
+  /** Optional curated, human-friendly label. Falls back to actionLabel(name). */
+  label?: string;
 }
 
 export interface AppEntry {
@@ -43,4 +45,29 @@ export const LEVEL_LABEL: Record<number, string> = {
 
 export function levelLabel(level: number | null): string {
   return level ? LEVEL_LABEL[level] ?? "" : "";
+}
+
+// Tokens that read better fully upper-cased in an auto-generated Action label.
+const ACRONYMS = new Set([
+  "abn", "acn", "ip", "api", "url", "id", "uuid", "bmi", "faq", "seo", "sms",
+  "ai", "css", "html", "json", "csv", "pdf", "dns", "ssl", "cve", "cvss",
+  "nba", "nfl", "nhl", "mlb", "f1", "tv", "eta", "qr", "vat", "gst", "abv",
+]);
+
+// Clean, human-friendly label for one Action, derived from its raw tool name:
+// drop the app prefix, turn underscores into spaces, sentence-case, and
+// upper-case known acronyms. A curated `label` on the action always wins.
+// e.g. "crypto_trending" -> "Trending", "chess_player_stats" -> "Player stats",
+//      "calc_bmi" -> "BMI", "abn_lookup" -> "Lookup".
+export function actionLabel(tool: { name: string; label?: string }): string {
+  if (tool.label) return tool.label;
+  const parts = tool.name.split("_");
+  if (parts.length > 1) parts.shift(); // drop the app prefix (abn_, calc_, crypto_, ...)
+  if (parts.length === 0) return tool.name;
+  const words = parts.map((w, i) => {
+    if (ACRONYMS.has(w.toLowerCase())) return w.toUpperCase();
+    if (i === 0) return w.charAt(0).toUpperCase() + w.slice(1);
+    return w;
+  });
+  return words.join(" ");
 }

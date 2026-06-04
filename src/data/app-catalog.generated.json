@@ -849,13 +849,13 @@
       "slug": "color",
       "name": "Color",
       "category": "Utilities",
-      "blurb": "Convert a color between HEX, RGB, HSL, and other formats.",
+      "blurb": "Convert a color from one format into ALL other formats (HEX, RGB, HSL, HSV, CMYK) at once.",
       "domain": null,
       "toolCount": 5,
       "tools": [
         {
           "name": "color_convert",
-          "description": "Convert a color between HEX, RGB, HSL, and other formats."
+          "description": "Convert a color from one format into ALL other formats (HEX, RGB, HSL, HSV, CMYK) at once."
         },
         {
           "name": "color_info",
@@ -1563,7 +1563,7 @@
         },
         {
           "name": "eventbrite_create_event",
-          "description": "Create an event on Eventbrite."
+          "description": "Create an event on Eventbrite under an organization."
         },
         {
           "name": "eventbrite_list_categories",
@@ -5043,7 +5043,7 @@
         },
         {
           "name": "tab_race",
-          "description": "Get TAB race details."
+          "description": "Get TAB race details. A race is addressed by its meeting date, meeting name, and race number (TAB has no single race id)."
         },
         {
           "name": "tab_sports_markets",
@@ -5591,11 +5591,11 @@
         },
         {
           "name": "twitch_channel_info",
-          "description": "Get information about a Twitch channel."
+          "description": "Get information about a Twitch channel by its login name."
         },
         {
           "name": "twitch_schedule",
-          "description": "Get a Twitch channel's streaming schedule."
+          "description": "Get a Twitch channel's streaming schedule by its login name."
         }
       ],
       "level": 5,
@@ -5823,7 +5823,7 @@
         },
         {
           "name": "usgs_earthquakes_by_region",
-          "description": "Get USGS earthquakes within a geographic region."
+          "description": "Get recent USGS earthquakes within a radius of a point (latitude/longitude)."
         }
       ],
       "level": 5,

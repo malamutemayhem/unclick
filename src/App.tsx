@@ -83,6 +83,7 @@ import AdminBrainmap from "./pages/admin/AdminBrainmap.tsx";
 import AdminJobs from "./pages/admin/AdminJobs.tsx";
 import AdminJobsmith from "./pages/admin/AdminJobsmith.tsx";
 import AdminBenchmarks from "./pages/admin/AdminBenchmarks.tsx";
+import AdminTruthRate from "./pages/admin/AdminTruthRate.tsx";
 import AdminXGate from "./pages/admin/AdminXGate.tsx";
 import AdminExpressBuild from "./pages/admin/AdminExpressBuild.tsx";
 import {
@@ -173,7 +174,8 @@ const App = () => (
             <Route path="you" element={<AdminYou />} />
             <Route path="memory" element={<AdminMemory />} />
             <Route path="keychain" element={<AdminKeychain />} />
-            <Route path="tools" element={<AdminTools />} />
+            <Route path="apps" element={<AdminTools />} />
+            <Route path="tools" element={<Navigate to="/admin/apps" replace />} />
             <Route path="skills" element={<AdminSkills />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="settings" element={<AdminSettings />} />
@@ -217,6 +219,7 @@ const App = () => (
             <Route path="audit-log"      element={<RequireAdmin><AdminAuditLog /></RequireAdmin>} />
             <Route path="brainmap"       element={<RequireAdmin><AdminBrainmap /></RequireAdmin>} />
             <Route path="benchmarks"     element={<RequireAdmin><AdminBenchmarks /></RequireAdmin>} />
+            <Route path="truth-rate"     element={<RequireAdmin><AdminTruthRate /></RequireAdmin>} />
             <Route path="xgate"          element={<RequireAdmin><AdminXGate /></RequireAdmin>} />
             <Route path="signals"          element={<SignalsCatalog />} />
             <Route path="signals/settings" element={<SignalsSettings />} />

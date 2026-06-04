@@ -1,11 +1,24 @@
 // Australian Business Registry (ABN Lookup) integration.
-// Uses the free ABR JSONP API - no authentication required.
-// Base URL: https://abr.business.gov.au/json/
+// Uses the official ABR JSON web services. Base URL: https://abr.business.gov.au/json/
+//
+// Authentication: the ABR web services accept an authentication GUID. We read it
+// from the ABN_GUID environment variable so it is a SHARED, SERVER-SIDE secret.
+// Every user's lookup authenticates with the deployment's single GUID, which
+// keeps ABN Lookup a public, built-in tool that needs no per-user key or setup.
+// The GUID is never required from the caller (an optional `guid` arg can
+// override it for self-hosters). Set ABN_GUID in the server environment; never
+// commit it.
 
 import { stampMeta } from "./connector-meta.js";
 
 const ABN_BASE = "https://abr.business.gov.au/json";
 const ABN_TIMEOUT_MS = Number(process.env.ABN_TIMEOUT_MS) || 10000;
+
+// Shared server-side GUID (or an optional per-call override). Empty when
+// unconfigured; the request is still attempted (public/unauthenticated).
+function abnGuid(args: Record<string, unknown>): string {
+  return String(args.guid ?? process.env.ABN_GUID ?? "").trim();
+}
 
 // ─── JSONP helper ─────────────────────────────────────────────────────────────
 
@@ -42,15 +55,32 @@ async function fetchJsonp(url: string): Promise<unknown> {
   return JSON.parse(match[1]) as unknown;
 }
 
+// The ABR JSON AbnDetails endpoint returns BusinessName (trading names) as an
+// array of plain strings. Be defensive in case an object shape is ever seen.
+function businessNames(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((b) =>
+      typeof b === "string"
+        ? b
+        : String((b as Record<string, unknown>)?.["OrganisationName"] ?? (b as Record<string, unknown>)?.["Name"] ?? "").trim(),
+    )
+    .filter(Boolean);
+}
+
 // ─── abn_lookup ───────────────────────────────────────────────────────────────
-// GET /AbnDetails.aspx?abn={abn}&callback=callback
+// GET /AbnDetails.aspx?abn={abn}&guid={guid}&callback=callback
 // Returns entity name, type, ABN status, GST status, main business location.
 
 export async function abnLookup(args: Record<string, unknown>): Promise<unknown> {
   const abn = String(args.abn ?? "").trim().replace(/\s/g, "");
   if (!abn) return { error: "abn is required (11-digit Australian Business Number)." };
 
-  const url = `${ABN_BASE}/AbnDetails.aspx?abn=${encodeURIComponent(abn)}&callback=callback`;
+  const params = new URLSearchParams({ abn, callback: "callback" });
+  const guid = abnGuid(args);
+  if (guid) params.set("guid", guid);
+
+  const url = `${ABN_BASE}/AbnDetails.aspx?${params}`;
   const data = await fetchJsonp(url) as Record<string, unknown>;
 
   if (data["Message"]) {
@@ -76,11 +106,7 @@ export async function abnLookup(args: Record<string, unknown>): Promise<unknown>
     acn: data["Acn"] || null,
     address_state: data["AddressState"] ?? null,
     address_postcode: data["AddressPostcode"] ?? null,
-    business_names: Array.isArray(data["BusinessName"])
-      ? (data["BusinessName"] as Array<Record<string, unknown>>).map(
-          (b) => ({ name: b["OrganisationName"], effective_from: b["EffectiveFrom"] })
-        )
-      : [],
+    business_names: businessNames(data["BusinessName"]),
   }, {
     source: "Australian Business Register",
     fetched_at: new Date().toISOString(),
@@ -89,17 +115,21 @@ export async function abnLookup(args: Record<string, unknown>): Promise<unknown>
 }
 
 // ─── abn_search ───────────────────────────────────────────────────────────────
-// GET /Search.aspx?name={name}&callback=callback
-// Returns list of matching businesses with ABNs.
+// GET /MatchingNames.aspx?name={name}&maxResults={n}&guid={guid}&callback=callback
+// The documented ABR JSON name-search endpoint. Returns matching businesses with
+// their ABNs. (Requires the GUID for full results; supplied server-side.)
 
 export async function abnSearch(args: Record<string, unknown>): Promise<unknown> {
   const name = String(args.name ?? "").trim();
   if (!name) return { error: "name is required." };
 
-  const params = new URLSearchParams({ name, callback: "callback" });
+  const maxResults = Math.min(50, Math.max(1, Number(args.max_results) || 20));
+  const params = new URLSearchParams({ name, maxResults: String(maxResults), callback: "callback" });
   if (args.postcode) params.set("postcode", String(args.postcode));
+  const guid = abnGuid(args);
+  if (guid) params.set("guid", guid);
 
-  const url = `${ABN_BASE}/Search.aspx?${params}`;
+  const url = `${ABN_BASE}/MatchingNames.aspx?${params}`;
   const data = await fetchJsonp(url) as Record<string, unknown>;
 
   if (data["Message"]) {
@@ -109,7 +139,7 @@ export async function abnSearch(args: Record<string, unknown>): Promise<unknown>
 
   const names = Array.isArray(data["Names"]) ? data["Names"] as Array<Record<string, unknown>> : [];
 
-  return {
+  return stampMeta({
     query: name,
     count: names.length,
     results: names.map((n) => ({
@@ -122,5 +152,9 @@ export async function abnSearch(args: Record<string, unknown>): Promise<unknown>
       postcode: n["Postcode"] ?? null,
       score: n["Score"] ?? null,
     })),
-  };
+  }, {
+    source: "Australian Business Register",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use abn_lookup with a returned abn for full registration details."],
+  });
 }

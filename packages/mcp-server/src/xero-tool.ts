@@ -305,7 +305,7 @@ export async function xeroReports(args: Record<string, unknown>): Promise<unknow
   if ("error" in resolved) return resolved;
   args = resolved;
 
-  const reportId = str(args.report_id);
+  const reportId = str((args.report_type ?? args.report_id));
   if (!reportId) {
     return {
       error:

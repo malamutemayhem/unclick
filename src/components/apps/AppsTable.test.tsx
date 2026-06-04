@@ -20,7 +20,9 @@ describe("AppsTable", () => {
     renderTable(<AppsTable apps={APPS} mode="public" />);
     expect(screen.getByText("GitHub").closest("a")).toHaveAttribute("href", "/apps/github");
     expect(screen.queryByRole("button", { name: /turn all on/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    // No per-app enable checkbox in public mode (the "Show technical names"
+    // display toggle is allowed in both modes and is not an admin control).
+    expect(screen.queryByLabelText(/^Turn /i)).not.toBeInTheDocument();
   });
 
   it("search filters by capability across both surfaces", () => {
@@ -43,8 +45,10 @@ describe("AppsTable", () => {
         statusOf={() => null}
       />,
     );
-    const checkboxes = screen.getAllByRole("checkbox");
-    expect(checkboxes).toHaveLength(2);
+    // Two per-app enable checkboxes (GitHub off -> "Turn ... on", Open-Meteo on
+    // -> "Turn ... off"); the "Show technical names" toggle is separate.
+    expect(screen.getByLabelText("Turn GitHub on")).toBeInTheDocument();
+    expect(screen.getByLabelText("Turn Open-Meteo off")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /turn all off/i }));
     expect(onToggleAll).toHaveBeenCalledWith(false);
