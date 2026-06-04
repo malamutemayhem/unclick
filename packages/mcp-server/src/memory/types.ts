@@ -1,4 +1,5 @@
 import type { MemoryTypedLinkCandidate, MemoryTypedLinkSearchResult } from "./typed-links.js";
+import type { MemoryVisibility } from "./scopes.js";
 
 /**
  * Shared types for UnClick Memory backends (local + Supabase).
@@ -29,6 +30,13 @@ export interface FactInput {
   // Git linkage (Anti-Stomp)
   commit_sha?: string;
   pr_number?: number;
+  // --- lane-04: scopes / credential-aware / boardroom visibility ---
+  // Optional row-level scope. Only honored when MEMORY_SCOPES_ENABLED is on.
+  visibility?: MemoryVisibility | string;
+  owner_agent_id?: string;
+  boardroom_id?: string;
+  credential_scope?: string;
+  // --- end lane-04 ---
 }
 
 export type StartupFactKind = "durable" | "operational" | "excluded" | "legacy_unspecified";

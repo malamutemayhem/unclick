@@ -40,6 +40,14 @@ import {
   type MemoryTypedLinkStoredRow,
 } from "./typed-links.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
+import {
+  isFactInScope,
+  resolveScopeContext,
+  scopeFieldsForWrite,
+  scopesEnabled,
+  type MemoryScopeContext,
+  type MemoryFactScopeFields,
+} from "./scopes.js";
 
 function pgError(context: string, err: unknown): Error {
   if (err instanceof Error) return err;
@@ -766,10 +774,20 @@ export class SupabaseBackend implements MemoryBackend {
     const patterns = tokens.map((t) => `%${t.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
     const effectiveAsOf = asOf ?? now();
 
+    // --- lane-04: scope-aware recall. Only selects scope columns and filters
+    // when MEMORY_SCOPES_ENABLED is on, so flag-off is unchanged and has no
+    // schema dependency on the new columns. ---
+    const scopesOn = scopesEnabled();
+    const scopeCtx = resolveScopeContext();
+    const factSelect = scopesOn
+      ? "id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, visibility, owner_agent_id, boardroom_id, credential_scope, quarantined_at"
+      : "id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at";
+    // --- end lane-04 ---
+
     const runScan = async (mode: "and" | "or"): Promise<unknown[]> => {
       let factQ = this.client
         .from(this.tables.extracted_facts)
-        .select("id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at")
+        .select(factSelect)
         .eq("status", "active")
         .is("invalidated_at", null);
       let sessQ = this.client
@@ -812,10 +830,16 @@ export class SupabaseBackend implements MemoryBackend {
         valid_from?: string | null;
         valid_to?: string | null;
         invalidated_at?: string | null;
+        visibility?: string | null;
+        owner_agent_id?: string | null;
+        boardroom_id?: string | null;
+        credential_scope?: string | null;
+        quarantined_at?: string | null;
       };
       type SessRow = { id: string; summary: string; created_at: string };
-      const facts = ((factsRes.data ?? []) as FactRow[]).filter((r) =>
-        !isMemoryFactOperational(r) && isMemoryFactVisibleAt(r, effectiveAsOf)
+      const facts = ((factsRes.data ?? []) as unknown as FactRow[]).filter((r) =>
+        !isMemoryFactOperational(r) && isMemoryFactVisibleAt(r, effectiveAsOf) &&
+        (!scopesOn || isFactInScope(r, scopeCtx))
       ).map((r) => {
         const s = scoreLocalMemoryContent({
           query,
@@ -885,9 +909,17 @@ export class SupabaseBackend implements MemoryBackend {
       .map((row) => row.id as string);
     if (factIds.length === 0) return results;
 
+    // --- lane-04: scope-aware recall (only selects scope columns when on) ---
+    const scopesOn = scopesEnabled();
+    const scopeCtx = resolveScopeContext();
+    const recallSelect = scopesOn
+      ? "id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at, visibility, owner_agent_id, boardroom_id, credential_scope, quarantined_at"
+      : "id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at";
+    // --- end lane-04 ---
+
     let query = this.client
       .from(this.tables.extracted_facts)
-      .select("id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at")
+      .select(recallSelect)
       .in("id", factIds);
     if (this.tenancy.mode === "managed") {
       query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
@@ -898,6 +930,9 @@ export class SupabaseBackend implements MemoryBackend {
       console.error("[search_memory] recall-visibility filter failed:", error.message);
       return rows.filter((row) => {
         if (row.source !== "fact") return true;
+        // lane-04: fail closed when scope cannot be verified so a transient
+        // error never leaks a private or quarantined fact.
+        if (scopesOn) return false;
         return !isMemoryFactOperational({
           category: typeof row.category === "string" ? row.category : undefined,
           fact: typeof row.content === "string" ? row.content : undefined,
@@ -906,7 +941,7 @@ export class SupabaseBackend implements MemoryBackend {
     }
 
     const visibleFactIds = new Set(
-      ((data ?? []) as Array<{
+      ((data ?? []) as unknown as Array<{
         id: string;
         fact?: string | null;
         category?: string | null;
@@ -916,8 +951,14 @@ export class SupabaseBackend implements MemoryBackend {
         valid_to?: string | null;
         invalidated_at?: string | null;
         created_at?: string | null;
+        visibility?: string | null;
+        owner_agent_id?: string | null;
+        boardroom_id?: string | null;
+        credential_scope?: string | null;
+        quarantined_at?: string | null;
       }>)
-        .filter((row) => isMemoryFactVisibleAt(row, asOf) && !isMemoryFactOperational(row))
+        .filter((row) => isMemoryFactVisibleAt(row, asOf) && !isMemoryFactOperational(row) &&
+          (!scopesOn || isFactInScope(row, scopeCtx)))
         .map((row) => row.id)
     );
 
@@ -925,12 +966,49 @@ export class SupabaseBackend implements MemoryBackend {
   }
 
   async searchFacts(query: string): Promise<unknown> {
-    return this.rpc(
+    const result = await this.rpc<unknown>(
       "search_facts",
       { search_query: query },
       "mc_search_facts",
       { p_search_query: query }
     );
+    // --- lane-04: scope-filter fact-search results when enabled ---
+    if (!scopesEnabled() || !Array.isArray(result)) return result;
+    const ids = (result as Array<{ id?: unknown }>)
+      .filter((r) => typeof r.id === "string")
+      .map((r) => r.id as string);
+    const allowed = await this.filterFactIdsByScope(ids, resolveScopeContext());
+    return (result as Array<{ id?: unknown }>).filter(
+      (r) => typeof r.id === "string" && allowed.has(r.id as string)
+    );
+    // --- end lane-04 ---
+  }
+
+  // --- lane-04: re-fetch scope columns for a set of fact ids and return the
+  // ids the reader may see. Fails closed (drops unverified facts) on error so
+  // a transient failure never leaks a private or quarantined fact. ---
+  private async filterFactIdsByScope(
+    factIds: string[],
+    ctx: MemoryScopeContext
+  ): Promise<Set<string>> {
+    if (factIds.length === 0) return new Set();
+    let q = this.client
+      .from(this.tables.extracted_facts)
+      .select("id, visibility, owner_agent_id, boardroom_id, credential_scope, quarantined_at")
+      .in("id", factIds);
+    if (this.tenancy.mode === "managed") {
+      q = q.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await q;
+    if (error) {
+      console.error("[search_facts] scope filter failed:", error.message);
+      return new Set();
+    }
+    const allowed = new Set<string>();
+    for (const row of (data ?? []) as Array<MemoryFactScopeFields & { id: string }>) {
+      if (isFactInScope(row, ctx)) allowed.add(row.id);
+    }
+    return allowed;
   }
 
   async searchLibrary(query: string): Promise<unknown> {
@@ -1003,29 +1081,34 @@ export class SupabaseBackend implements MemoryBackend {
     const { data: existing } = await dupQuery.maybeSingle();
     if (existing) return { id: (existing as { id: string }).id };
 
+    // --- lane-04: stamp scope columns only when enabled, so the insert shape
+    // and its schema dependency stay unchanged when the flag is off ---
+    const baseRow = this.withTenancy({
+      fact: data.fact,
+      category: data.category,
+      confidence: data.confidence,
+      source_session_id: data.source_session_id ?? null,
+      source_type: "manual",
+      startup_fact_kind: data.startup_fact_kind ?? "durable",
+      status: "active",
+      decay_tier: "hot",
+      last_accessed: now(),
+      content_hash: hash,
+      valid_from: data.valid_from ?? now(),
+      recorded_at: now(),
+      extractor_id: data.extractor_id ?? "manual",
+      prompt_version: data.prompt_version ?? null,
+      model_id: data.model_id ?? null,
+      commit_sha: data.commit_sha ?? null,
+      pr_number: data.pr_number ?? null,
+    });
+    const insertRow = scopesEnabled()
+      ? { ...baseRow, ...scopeFieldsForWrite(data, resolveScopeContext(), true) }
+      : baseRow;
+    // --- end lane-04 ---
     const { data: row, error } = await this.client
       .from(this.tables.extracted_facts)
-      .insert(
-        this.withTenancy({
-          fact: data.fact,
-          category: data.category,
-          confidence: data.confidence,
-          source_session_id: data.source_session_id ?? null,
-          source_type: "manual",
-          startup_fact_kind: data.startup_fact_kind ?? "durable",
-          status: "active",
-          decay_tier: "hot",
-          last_accessed: now(),
-          content_hash: hash,
-          valid_from: data.valid_from ?? now(),
-          recorded_at: now(),
-          extractor_id: data.extractor_id ?? "manual",
-          prompt_version: data.prompt_version ?? null,
-          model_id: data.model_id ?? null,
-          commit_sha: data.commit_sha ?? null,
-          pr_number: data.pr_number ?? null,
-        })
-      )
+      .insert(insertRow)
       .select()
       .single();
     if (error) throw pgError("addFact insert", error);

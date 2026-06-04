@@ -677,6 +677,12 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       preserve_as_blob: typeof args.preserve_as_blob === "boolean" ? args.preserve_as_blob : false,
       commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
       pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
+      // --- lane-04: optional row-level scope (honored when MEMORY_SCOPES_ENABLED) ---
+      visibility: typeof args.visibility === "string" ? args.visibility : undefined,
+      owner_agent_id: typeof args.owner_agent_id === "string" ? args.owner_agent_id : undefined,
+      boardroom_id: typeof args.boardroom_id === "string" ? args.boardroom_id : undefined,
+      credential_scope: typeof args.credential_scope === "string" ? args.credential_scope : undefined,
+      // --- end lane-04 ---
     });
     await persistTypedLinksForMemoryWrite(db, {
       source_kind: "fact",

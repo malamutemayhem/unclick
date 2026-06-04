@@ -36,6 +36,12 @@ import {
   tokenizeLocalMemoryQuery,
   writeMemoryTaxonomySnapshotsToLibrary,
 } from "./supabase.js";
+import {
+  isFactInScope,
+  resolveScopeContext,
+  scopeFieldsForWrite,
+  scopesEnabled,
+} from "./scopes.js";
 
 function dataDir(): string {
   return process.env.MEMORY_LOCAL_DATA_DIR || path.join(os.homedir(), ".unclick", "memory");
@@ -152,6 +158,13 @@ interface FactRow {
   updated_at: string;
   commit_sha?: string;
   pr_number?: number;
+  // --- lane-04: scopes / credential-aware / boardroom visibility ---
+  visibility?: string | null;
+  owner_agent_id?: string | null;
+  boardroom_id?: string | null;
+  credential_scope?: string | null;
+  quarantined_at?: string | null;
+  // --- end lane-04 ---
 }
 
 interface ConversationRow {
@@ -253,6 +266,10 @@ export class LocalBackend implements MemoryBackend {
   }
 
   async getStartupContext(numSessions: number): Promise<unknown> {
+    // --- lane-04: scope-aware startup (no-op unless MEMORY_SCOPES_ENABLED) ---
+    const startupScopesOn = scopesEnabled();
+    const startupScopeCtx = resolveScopeContext();
+    // --- end lane-04 ---
     const bc = readTable<BusinessContextRow>("business_context")
       .filter((r) => r.decay_tier === "hot" || r.decay_tier === "warm")
       .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
@@ -264,6 +281,7 @@ export class LocalBackend implements MemoryBackend {
     const allFacts = readTable<FactRow>("extracted_facts");
     const facts = allFacts
       .filter(isStartupFact)
+      .filter((fact) => !startupScopesOn || isFactInScope(fact, startupScopeCtx))
       .sort((a, b) => {
         const penalty = startupFactPenalty(a) - startupFactPenalty(b);
         if (penalty !== 0) return penalty;
@@ -322,8 +340,15 @@ export class LocalBackend implements MemoryBackend {
     const tokens = tokenizeLocalMemoryQuery(query);
     if (tokens.length === 0) return [];
 
+    // --- lane-04: scope-aware recall (no-op unless MEMORY_SCOPES_ENABLED) ---
+    const scopesOn = scopesEnabled();
+    const scopeCtx = resolveScopeContext();
+    const inScope = (fact: FactRow): boolean => !scopesOn || isFactInScope(fact, scopeCtx);
+    // --- end lane-04 ---
+
     const facts = readTable<FactRow>("extracted_facts")
       .filter((fact) => isRecallVisibleFact(fact, asOf))
+      .filter(inScope)
       .map((fact) => {
         const score = scoreLocalMemoryContent({
           query,
@@ -404,8 +429,11 @@ export class LocalBackend implements MemoryBackend {
   }
 
   async searchFacts(query: string): Promise<unknown> {
+    const scopesOn = scopesEnabled();
+    const scopeCtx = resolveScopeContext();
     return readTable<FactRow>("extracted_facts")
       .filter((f) => isRecallVisibleFact(f) && matches(f.fact, query))
+      .filter((f) => !scopesOn || isFactInScope(f, scopeCtx))
       .sort((a, b) => b.confidence - a.confidence)
       .slice(0, 20)
       .map((f) => ({ id: f.id, fact: f.fact, category: f.category, confidence: f.confidence, status: f.status, created_at: f.created_at }));
@@ -483,6 +511,9 @@ export class LocalBackend implements MemoryBackend {
       updated_at: now(),
       commit_sha: data.commit_sha,
       pr_number: data.pr_number,
+      // --- lane-04: stamp scope columns (null unless MEMORY_SCOPES_ENABLED) ---
+      ...scopeFieldsForWrite(data, resolveScopeContext(), scopesEnabled()),
+      // --- end lane-04 ---
     });
     writeTable("extracted_facts", rows);
     return { id };
