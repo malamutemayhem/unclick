@@ -42,12 +42,15 @@ export interface ExistingFact {
   confidence?: number;
   recorded_at?: string;
   valid_from?: string;
-  // Provenance (Worker 3, band 01xx). Optional until that lane lands.
+  // Provenance (Worker 3, band 01xx, PR #1290). Optional until that lane merges.
   extractor_id?: string;
   model_id?: string;
   prompt_version?: string;
   commit_sha?: string;
   pr_number?: number;
+  source_agent_id?: string;
+  source_ref?: string;
+  receipt_id?: string;
 }
 
 /** Similarity in [0, 1]. Default is token overlap; swap in cosine later. */
@@ -230,10 +233,17 @@ function bestParty(fact: ExistingFact): ContradictionParty {
     prompt_version: fact.prompt_version,
     commit_sha: fact.commit_sha,
     pr_number: fact.pr_number,
+    source_agent_id: fact.source_agent_id,
+    source_ref: fact.source_ref,
+    receipt_id: fact.receipt_id,
   };
 }
 
 function incomingParty(candidate: FactInput): ContradictionParty {
+  // W3 provenance lands on FactInput via PR #1290; read forward-compatibly so
+  // this captures the fields whether or not that lane has merged into this base.
+  const prov = candidate as FactInput &
+    Partial<Pick<ContradictionParty, "source_agent_id" | "source_ref" | "receipt_id">>;
   return {
     fact: candidate.fact,
     category: candidate.category,
@@ -244,6 +254,9 @@ function incomingParty(candidate: FactInput): ContradictionParty {
     prompt_version: candidate.prompt_version,
     commit_sha: candidate.commit_sha,
     pr_number: candidate.pr_number,
+    source_agent_id: prov.source_agent_id,
+    source_ref: prov.source_ref,
+    receipt_id: prov.receipt_id,
   };
 }
 

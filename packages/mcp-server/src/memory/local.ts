@@ -537,16 +537,24 @@ export class LocalBackend implements MemoryBackend {
     }
     const existing: ExistingFact[] = readTable<FactRow>("extracted_facts")
       .filter((f) => f.category === candidate.category && isRecallVisibleFact(f))
-      .map((f) => ({
-        id: f.id,
-        fact: f.fact,
-        category: f.category,
-        confidence: f.confidence,
-        recorded_at: f.created_at,
-        valid_from: f.valid_from,
-        commit_sha: f.commit_sha,
-        pr_number: f.pr_number,
-      }));
+      .map((f) => {
+        // W3 provenance lands on the fact row via PR #1290; read forward-compatibly.
+        const prov = f as FactRow &
+          Partial<Pick<ExistingFact, "source_agent_id" | "source_ref" | "receipt_id">>;
+        return {
+          id: f.id,
+          fact: f.fact,
+          category: f.category,
+          confidence: f.confidence,
+          recorded_at: f.created_at,
+          valid_from: f.valid_from,
+          commit_sha: f.commit_sha,
+          pr_number: f.pr_number,
+          source_agent_id: prov.source_agent_id,
+          source_ref: prov.source_ref,
+          receipt_id: prov.receipt_id,
+        };
+      });
 
     const result = await reconcileCandidate(
       candidate,

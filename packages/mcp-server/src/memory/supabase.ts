@@ -1216,7 +1216,7 @@ export class SupabaseBackend implements MemoryBackend {
     let q = this.client
       .from(this.tables.extracted_facts)
       .select(
-        "id, fact, category, confidence, recorded_at, valid_from, extractor_id, model_id, prompt_version, commit_sha, pr_number"
+        "id, fact, category, confidence, recorded_at, valid_from, extractor_id, model_id, prompt_version, commit_sha, pr_number, source_agent_id, source_ref, receipt_id"
       )
       .eq("category", candidate.category)
       .is("invalidated_at", null)

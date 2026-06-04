@@ -201,6 +201,10 @@ export interface ContradictionParty {
   prompt_version?: string;
   commit_sha?: string;
   pr_number?: number;
+  // W3 provenance (PR #1290): single canonical agent column, owner == source.
+  source_agent_id?: string;
+  source_ref?: string;
+  receipt_id?: string;
 }
 
 /** A first-class contradiction event raised for Boardroom / admin visibility. */

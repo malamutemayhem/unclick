@@ -21,7 +21,7 @@ import {
   type ExistingFact,
   type ReconcileDeps,
 } from "../reconcile.js";
-import type { ContradictionEvent } from "../types.js";
+import type { ContradictionEvent, FactInput } from "../types.js";
 
 // ---- Pure classifier (always runs) ----
 
@@ -153,10 +153,19 @@ describe("reconcileCandidate", () => {
         category: "ops",
         confidence: 0.8,
         commit_sha: "abc123",
+        source_agent_id: "agent-ci", // W3 provenance on the existing side
       },
     ]);
     const r = await reconcileCandidate(
-      { fact: "Deploy day is Monday", category: "ops", confidence: 0.95, model_id: "claude" },
+      // W3 provenance on the incoming side (read forward-compatibly off FactInput).
+      {
+        fact: "Deploy day is Monday",
+        category: "ops",
+        confidence: 0.95,
+        model_id: "claude",
+        source_agent_id: "agent-now",
+        receipt_id: "rcpt-7",
+      } as FactInput,
       store.facts,
       store.deps,
       { session_id: "sess-1" },
@@ -173,6 +182,9 @@ describe("reconcileCandidate", () => {
     assert.equal(event.incoming.fact, "Deploy day is Monday");
     assert.equal(event.existing.commit_sha, "abc123"); // provenance carried through
     assert.equal(event.incoming.model_id, "claude");
+    assert.equal(event.existing.source_agent_id, "agent-ci"); // W3 columns, both sides
+    assert.equal(event.incoming.source_agent_id, "agent-now");
+    assert.equal(event.incoming.receipt_id, "rcpt-7");
     assert.equal(event.session_id, "sess-1");
   });
 
