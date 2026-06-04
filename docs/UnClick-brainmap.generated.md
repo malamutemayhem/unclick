@@ -219,7 +219,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 121 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 7 |
-| Source of truth | Canonical state, queue, memory, and context surfaces. | 11 |
+| Source of truth | Canonical state, queue, memory, and context surfaces. | 12 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 116 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 5 |
 
@@ -942,6 +942,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Source of truth | memory | Memory Library | Source-linked facts, sessions, context, and generated memory shelves. | /admin/memory | src/pages/admin/AdminMemory.tsx |
 | Source of truth | queue | Boardroom Jobs | Primary work source for open, in-progress, done, and dropped chips. | /admin/jobs | src/pages/admin/AdminJobs.tsx |
 | Source of truth | state module | boardroom compat | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/boardroom-compat.ts |
+| Source of truth | state module | boardroom read bounds | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/boardroom-read-bounds.ts |
 | Source of truth | state module | embed | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/memory/embed.ts |
 | Source of truth | state module | memory admin | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/memory-admin.ts |
 | Source of truth | state module | memory Data Island | memory Data Island shared frontend logic. | - | src/lib/memoryDataIsland.ts |

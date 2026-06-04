@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 616,
+    "inventory": 617,
     "source_manifest": 192,
     "pages": 84,
     "tools": 219,
@@ -75,7 +75,7 @@
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 11
+      "count": 12
     },
     {
       "id": "modules-and-apps",
@@ -3848,6 +3848,16 @@
       "kind": "state module",
       "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
       "source": "api/lib/boardroom-compat.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-boardroom-read-bounds-api-lib-boardroom-read-bounds-ts-no-route",
+      "division": "Source of truth",
+      "name": "boardroom read bounds",
+      "kind": "state module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/boardroom-read-bounds.ts",
       "route": "",
       "tags": []
     },
