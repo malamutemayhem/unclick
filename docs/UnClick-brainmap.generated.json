@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 619,
+    "inventory": 620,
     "source_manifest": 192,
     "pages": 84,
     "tools": 219,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 16
+      "count": 17
     },
     {
       "id": "wrappers-and-protocols",
@@ -442,6 +442,16 @@
       "tags": []
     },
     {
+      "id": "admin-surfaces-admin-page-boardroom-src-pages-admin-fishbowl-tsx-admin-boardroom",
+      "division": "Admin surfaces",
+      "name": "Boardroom",
+      "kind": "admin page",
+      "meaning": "Boardroom discussion surface for worker coordination.",
+      "source": "src/pages/admin/Fishbowl.tsx",
+      "route": "/admin/boardroom",
+      "tags": []
+    },
+    {
       "id": "admin-surfaces-admin-page-copy-pass-catalog-src-pages-admin-copypass-copypasscatalog-tsx-admin-copypass",
       "division": "Admin surfaces",
       "name": "Copy Pass Catalog",
@@ -509,16 +519,6 @@
       "meaning": "Crews admin page for Crews Settings.",
       "source": "src/pages/admin/crews/CrewsSettings.tsx",
       "route": "/admin/crews/settings",
-      "tags": []
-    },
-    {
-      "id": "admin-surfaces-admin-page-fishbowl-src-pages-admin-fishbowl-tsx-admin-boardroom",
-      "division": "Admin surfaces",
-      "name": "Fishbowl",
-      "kind": "admin page",
-      "meaning": "Boardroom discussion surface for worker coordination.",
-      "source": "src/pages/admin/Fishbowl.tsx",
-      "route": "/admin/boardroom",
       "tags": []
     },
     {
@@ -3089,6 +3089,16 @@
       "meaning": "Agent Skills-compatible starter package with provenance, safety, and native-mode metadata.",
       "source": "seed/skills/write-tests-for-changed-code.skill.md",
       "route": "/admin/skills",
+      "tags": []
+    },
+    {
+      "id": "passes-and-gates-component-source-gate-uipass-toolbox-packages-uxpass-src-ui-toolbox-ts-no-route",
+      "division": "Passes and gates",
+      "name": "UIPass Toolbox",
+      "kind": "component source gate",
+      "meaning": "Curated UI source registry and proof scoreboard for shadcn, Radix, React Aria, Base UI, Floating UI, Motion, 21st.dev, Magic UI, Aceternity, Origin UI, and advisory design intelligence.",
+      "source": "packages/uxpass/src/ui-toolbox.ts",
+      "route": "",
       "tags": []
     },
     {
@@ -6351,7 +6361,7 @@
     ],
     [
       "/admin/boardroom",
-      "Fishbowl",
+      "Boardroom",
       "Boardroom discussion surface for worker coordination.",
       "src/pages/admin/Fishbowl.tsx"
     ],
@@ -8225,8 +8235,8 @@
     },
     {
       "source": "docs/unclick-context-boot-packet.md",
-      "hash": "259a136f762b",
-      "bytes": 6132
+      "hash": "8af9b8fedfc4",
+      "bytes": 11213
     },
     {
       "source": "docs/agent-observability.md",
