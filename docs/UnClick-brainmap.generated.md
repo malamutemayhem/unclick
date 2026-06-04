@@ -30,7 +30,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | c5c0ba95988e | 6824 |
+| package.json | 82714e796f84 | 6974 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -1278,6 +1278,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | test:compliancepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
 | test:continuous-improvement-watch | node --test scripts/pinballwake-continuous-improvement-watch.test.mjs |
 | test:enterprisepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
+| test:git-hygiene | node --test scripts/check-checkout-hygiene.test.mjs scripts/check-dirty-branch.test.mjs scripts/salvage-worktrees.test.mjs |
 | test:memory-eval | node --test scripts/memory-retrieval-eval.test.mjs |
 | test:rotatepass-redaction | node --test scripts/rotatepass-redaction-guard.test.mjs |
 | test:watch | vitest |
