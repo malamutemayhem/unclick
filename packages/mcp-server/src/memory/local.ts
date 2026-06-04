@@ -23,6 +23,10 @@ import type {
   MemoryTaxonomySnapshotSource,
   MemoryTaxonomySnapshotWriteOptions,
   MemoryTaxonomySnapshotWriteResult,
+  MemoryClass,
+  SessionEventInput,
+  SessionEventQuery,
+  SessionEventWriteResult,
   SaveTypedLinkCandidatesResult,
 } from "./types.js";
 import {
@@ -38,6 +42,13 @@ import {
   writeMemoryTaxonomySnapshotsToLibrary,
 } from "./supabase.js";
 import { provenanceWriteFields, isProvenanceEnabled } from "./provenance.js";
+import {
+  classifyMemoryClass,
+  factInputToSessionEventInput,
+  isFactSearchableMemoryClass,
+  isTypedMemorySplitEnabled,
+  normalizeMemoryClass,
+} from "./typed-memory.js";
 
 function dataDir(): string {
   return process.env.MEMORY_LOCAL_DATA_DIR || path.join(os.homedir(), ".unclick", "memory");
@@ -132,6 +143,22 @@ interface SessionRow {
   created_at: string;
 }
 
+// --- lane-09: typed memory split ---
+interface SessionEventRow {
+  id: string;
+  session_id?: string;
+  memory_class: MemoryClass;
+  event_kind: string;
+  content: string;
+  summary?: string;
+  payload: Record<string, unknown>;
+  source_fact_id?: string;
+  source_session_summary_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+// --- end lane-09 ---
+
 interface FactRow {
   id: string;
   fact: string;
@@ -140,6 +167,9 @@ interface FactRow {
   source_session_id?: string;
   source_type: string;
   startup_fact_kind: "durable" | "operational" | "excluded" | "legacy_unspecified";
+  // --- lane-09: typed memory split ---
+  memory_class?: MemoryClass;
+  // --- end lane-09 ---
   status: string;
   superseded_by?: string;
   invalidated_at?: string;
@@ -234,6 +264,7 @@ function startupFactPenalty(fact: FactRow): number {
 }
 
 function isRecallVisibleFact(fact: FactRow, asOf?: string): boolean {
+  if (isTypedMemorySplitEnabled() && !isFactSearchableMemoryClass(fact.memory_class)) return false;
   return fact.status === "active" &&
     factVisibleAt(fact, asOf) &&
     startupFactPenalty(fact) < 2;
@@ -469,6 +500,20 @@ export class LocalBackend implements MemoryBackend {
   }
 
   async addFact(data: FactInput): Promise<{ id: string }> {
+    const memoryClass = isTypedMemorySplitEnabled()
+      ? classifyMemoryClass({
+          text: data.fact,
+          category: data.category,
+          startup_fact_kind: data.startup_fact_kind,
+          memory_class: data.memory_class,
+        })
+      : data.memory_class;
+    if (isTypedMemorySplitEnabled() && memoryClass === "episodic") {
+      const event = await this.addSessionEvent(factInputToSessionEventInput(data));
+      const result = { id: event.id, routed_to_episode: true, memory_class: event.memory_class };
+      return result;
+    }
+
     const id = uuid();
     const rows = readTable<FactRow>("extracted_facts");
     rows.push({
@@ -479,6 +524,7 @@ export class LocalBackend implements MemoryBackend {
       source_session_id: data.source_session_id,
       source_type: "manual",
       startup_fact_kind: data.startup_fact_kind ?? "durable",
+      memory_class: memoryClass,
       status: "active",
       superseded_by: undefined,
       access_count: 0,
@@ -517,6 +563,7 @@ export class LocalBackend implements MemoryBackend {
       source_session_id: undefined,
       source_type: "manual",
       startup_fact_kind: "durable",
+      memory_class: isTypedMemorySplitEnabled() ? "semantic" : undefined,
       status: "active",
       superseded_by: undefined,
       access_count: 0,
@@ -589,6 +636,57 @@ export class LocalBackend implements MemoryBackend {
   async searchTypedLinks(query: string, maxResults: number): Promise<MemoryTypedLinkSearchResult[]> {
     return filterAndRankMemoryTypedLinks(readTable<TypedLinkRow>("memory_typed_links"), query, maxResults);
   }
+
+  // --- lane-09: typed memory split ---
+  async addSessionEvent(data: SessionEventInput): Promise<SessionEventWriteResult> {
+    const rows = readTable<SessionEventRow>("session_events");
+    const id = uuid();
+    const memoryClass = normalizeMemoryClass(data.memory_class, "episodic");
+    rows.push({
+      id,
+      session_id: data.session_id,
+      memory_class: memoryClass,
+      event_kind: data.event_kind ?? "episode",
+      content: data.content,
+      summary: data.summary,
+      payload: data.payload ?? {},
+      source_fact_id: data.source_fact_id,
+      source_session_summary_id: data.source_session_summary_id,
+      created_at: now(),
+      updated_at: now(),
+    });
+    writeTable("session_events", rows);
+    return { id, memory_class: memoryClass };
+  }
+
+  async listSessionEvents(query: SessionEventQuery = {}): Promise<unknown> {
+    const limit = Math.max(1, Math.min(100, query.limit ?? 20));
+    const memoryClass = query.memory_class ? normalizeMemoryClass(query.memory_class) : undefined;
+    const needle = query.query?.toLowerCase();
+    return readTable<SessionEventRow>("session_events")
+      .filter((row) => !query.session_id || row.session_id === query.session_id)
+      .filter((row) => !memoryClass || row.memory_class === memoryClass)
+      .filter((row) => {
+        if (!needle) return true;
+        const summary = row.summary ?? "";
+        return row.content.toLowerCase().includes(needle) || summary.toLowerCase().includes(needle);
+      })
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .slice(0, limit)
+      .map((row) => ({
+        id: row.id,
+        session_id: row.session_id,
+        memory_class: row.memory_class,
+        event_kind: row.event_kind,
+        content: row.content,
+        summary: row.summary,
+        payload: row.payload,
+        source_fact_id: row.source_fact_id,
+        source_session_summary_id: row.source_session_summary_id,
+        created_at: row.created_at,
+      }));
+  }
+  // --- end lane-09 ---
 
   async getConversationDetail(sessionId: string): Promise<unknown> {
     return readTable<ConversationRow>("conversation_log")
@@ -778,7 +876,7 @@ export class LocalBackend implements MemoryBackend {
   }
 
   async getMemoryStatus(): Promise<unknown> {
-    const tables = ["business_context", "knowledge_library", "session_summaries", "extracted_facts", "conversation_log", "code_dumps"] as const;
+    const tables = ["business_context", "knowledge_library", "session_summaries", "extracted_facts", "session_events", "conversation_log", "code_dumps"] as const;
     const counts: Record<string, number> = {};
     for (const t of tables) {
       counts[t] = readTable(t).length;

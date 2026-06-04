@@ -32,6 +32,10 @@ import type {
   MemoryTaxonomySnapshotWriteOptions,
   MemoryTaxonomySnapshotWriteResult,
   MemoryTaxonomySnapshotSource,
+  MemoryClass,
+  SessionEventInput,
+  SessionEventQuery,
+  SessionEventWriteResult,
   SaveTypedLinkCandidatesResult,
 } from "./types.js";
 import {
@@ -41,6 +45,13 @@ import {
   type MemoryTypedLinkStoredRow,
 } from "./typed-links.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
+import {
+  classifyMemoryClass,
+  factInputToSessionEventInput,
+  isFactSearchableMemoryClass,
+  isTypedMemorySplitEnabled,
+  normalizeMemoryClass,
+} from "./typed-memory.js";
 
 function pgError(context: string, err: unknown): Error {
   if (err instanceof Error) return err;
@@ -117,6 +128,7 @@ interface TableNames {
   knowledge_library_history: string;
   session_summaries: string;
   extracted_facts: string;
+  session_events: string;
   conversation_log: string;
   memory_typed_links: string;
   code_dumps: string;
@@ -602,6 +614,7 @@ const BYOD_TABLES: TableNames = {
   knowledge_library_history: "knowledge_library_history",
   session_summaries: "session_summaries",
   extracted_facts: "extracted_facts",
+  session_events: "session_events",
   conversation_log: "conversation_log",
   memory_typed_links: "memory_typed_links",
   code_dumps: "code_dumps",
@@ -613,6 +626,7 @@ const MANAGED_TABLES: TableNames = {
   knowledge_library_history: "mc_knowledge_library_history",
   session_summaries: "mc_session_summaries",
   extracted_facts: "mc_extracted_facts",
+  session_events: "mc_session_events",
   conversation_log: "mc_conversation_log",
   memory_typed_links: "mc_memory_typed_links",
   code_dumps: "mc_code_dumps",
@@ -664,7 +678,9 @@ function isMemoryFactOperational(row: {
   fact?: string | null;
   source_type?: string | null;
   startup_fact_kind?: string | null;
+  memory_class?: string | null;
 }): boolean {
+  if (isTypedMemorySplitEnabled() && !isFactSearchableMemoryClass(row.memory_class)) return true;
   const kind = row.startup_fact_kind ?? "legacy_unspecified";
   if (kind === "operational" || kind === "excluded") return true;
   return hasOperationalMemorySignal(row.source_type, row.category, row.fact);
@@ -875,11 +891,14 @@ export class SupabaseBackend implements MemoryBackend {
     if (tokens.length === 0) return [];
     const patterns = tokens.map((t) => `%${t.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
     const effectiveAsOf = asOf ?? now();
+    const factSelect = isTypedMemorySplitEnabled()
+      ? "id, fact, category, confidence, created_at, source_type, startup_fact_kind, memory_class, valid_from, valid_to, invalidated_at"
+      : "id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at";
 
     const runScan = async (mode: "and" | "or"): Promise<unknown[]> => {
       let factQ = this.client
         .from(this.tables.extracted_facts)
-        .select("id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at")
+        .select(factSelect)
         .eq("status", "active")
         .is("invalidated_at", null);
       let sessQ = this.client
@@ -919,12 +938,13 @@ export class SupabaseBackend implements MemoryBackend {
         created_at: string;
         source_type?: string | null;
         startup_fact_kind?: string | null;
+        memory_class?: string | null;
         valid_from?: string | null;
         valid_to?: string | null;
         invalidated_at?: string | null;
       };
       type SessRow = { id: string; summary: string; created_at: string };
-      const facts = ((factsRes.data ?? []) as FactRow[]).filter((r) =>
+      const facts = ((factsRes.data ?? []) as unknown as FactRow[]).filter((r) =>
         !isMemoryFactOperational(r) && isMemoryFactVisibleAt(r, effectiveAsOf)
       ).map((r) => {
         const s = scoreLocalMemoryContent({
@@ -986,7 +1006,11 @@ export class SupabaseBackend implements MemoryBackend {
 
     let query = this.client
       .from(this.tables.extracted_facts)
-      .select("id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at")
+      .select(
+        isTypedMemorySplitEnabled()
+          ? "id, fact, category, source_type, startup_fact_kind, memory_class, valid_from, valid_to, invalidated_at, created_at"
+          : "id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at"
+      )
       .in("id", factIds);
     if (this.tenancy.mode === "managed") {
       query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
@@ -1005,12 +1029,13 @@ export class SupabaseBackend implements MemoryBackend {
     }
 
     const visibleFactIds = new Set(
-      ((data ?? []) as Array<{
+      ((data ?? []) as unknown as Array<{
         id: string;
         fact?: string | null;
         category?: string | null;
         source_type?: string | null;
         startup_fact_kind?: string | null;
+        memory_class?: string | null;
         valid_from?: string | null;
         valid_to?: string | null;
         invalidated_at?: string | null;
@@ -1024,6 +1049,52 @@ export class SupabaseBackend implements MemoryBackend {
   }
 
   async searchFacts(query: string): Promise<unknown> {
+    if (isTypedMemorySplitEnabled()) {
+      const tokens = tokenizeLocalMemoryQuery(query);
+      if (tokens.length === 0) return [];
+      let factQ = this.client
+        .from(this.tables.extracted_facts)
+        .select("id, fact, category, confidence, status, created_at, source_type, startup_fact_kind, memory_class, valid_from, valid_to, invalidated_at")
+        .eq("status", "active")
+        .is("invalidated_at", null);
+      if (this.tenancy.mode === "managed") {
+        factQ = factQ.eq("api_key_hash", this.tenancy.apiKeyHash);
+      }
+      for (const token of tokens) {
+        factQ = factQ.ilike("fact", `%${token.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+      }
+      const { data, error } = await factQ
+        .order("confidence", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw pgError("searchFacts typed split select", error);
+      return ((data ?? []) as Array<{
+        id: string;
+        fact: string;
+        category: string;
+        confidence: number;
+        status: string;
+        created_at: string;
+        source_type?: string | null;
+        startup_fact_kind?: string | null;
+        memory_class?: string | null;
+        valid_from?: string | null;
+        valid_to?: string | null;
+        invalidated_at?: string | null;
+      }>)
+        .filter((row) => isMemoryFactVisibleAt(row, now()) && !isMemoryFactOperational(row))
+        .slice(0, 20)
+        .map((row) => ({
+          id: row.id,
+          fact: row.fact,
+          category: row.category,
+          confidence: row.confidence,
+          status: row.status,
+          created_at: row.created_at,
+          memory_class: row.memory_class ?? "semantic",
+        }));
+    }
+
     return this.rpc(
       "search_facts",
       { search_query: query },
@@ -1084,6 +1155,20 @@ export class SupabaseBackend implements MemoryBackend {
       return this.saveBlob(data);
     }
 
+    const memoryClass = isTypedMemorySplitEnabled()
+      ? classifyMemoryClass({
+          text: data.fact,
+          category: data.category,
+          startup_fact_kind: data.startup_fact_kind,
+          memory_class: data.memory_class,
+        })
+      : data.memory_class;
+    if (isTypedMemorySplitEnabled() && memoryClass === "episodic") {
+      const event = await this.addSessionEvent(factInputToSessionEventInput(data));
+      const result = { id: event.id, routed_to_episode: true, memory_class: event.memory_class };
+      return result;
+    }
+
     await this.enforceCaps("fact");
 
     const hash = contentHash(data.fact);
@@ -1102,32 +1187,33 @@ export class SupabaseBackend implements MemoryBackend {
     const { data: existing } = await dupQuery.maybeSingle();
     if (existing) return { id: (existing as { id: string }).id };
 
+    const insertRow: Record<string, unknown> = {
+      fact: data.fact,
+      category: data.category,
+      confidence: data.confidence,
+      source_session_id: data.source_session_id ?? null,
+      source_type: "manual",
+      startup_fact_kind: data.startup_fact_kind ?? "durable",
+      status: "active",
+      decay_tier: "hot",
+      last_accessed: now(),
+      content_hash: hash,
+      valid_from: data.valid_from ?? now(),
+      recorded_at: now(),
+      extractor_id: data.extractor_id ?? "manual",
+      prompt_version: data.prompt_version ?? null,
+      model_id: data.model_id ?? null,
+      commit_sha: data.commit_sha ?? null,
+      pr_number: data.pr_number ?? null,
+    };
+    if (isTypedMemorySplitEnabled()) insertRow.memory_class = memoryClass ?? "semantic";
+    // --- lane-03: provenance & receipts (only written when MEMORY_PROVENANCE_ENABLED) ---
+    Object.assign(insertRow, provenanceWriteFields(data) ?? {});
+    // --- end lane-03 ---
+
     const { data: row, error } = await this.client
       .from(this.tables.extracted_facts)
-      .insert(
-        this.withTenancy({
-          fact: data.fact,
-          category: data.category,
-          confidence: data.confidence,
-          source_session_id: data.source_session_id ?? null,
-          source_type: "manual",
-          startup_fact_kind: data.startup_fact_kind ?? "durable",
-          status: "active",
-          decay_tier: "hot",
-          last_accessed: now(),
-          content_hash: hash,
-          valid_from: data.valid_from ?? now(),
-          recorded_at: now(),
-          extractor_id: data.extractor_id ?? "manual",
-          prompt_version: data.prompt_version ?? null,
-          model_id: data.model_id ?? null,
-          commit_sha: data.commit_sha ?? null,
-          pr_number: data.pr_number ?? null,
-          // --- lane-03: provenance & receipts (only written when MEMORY_PROVENANCE_ENABLED) ---
-          ...(provenanceWriteFields(data) ?? {}),
-          // --- end lane-03 ---
-        })
-      )
+      .insert(this.withTenancy(insertRow))
       .select()
       .single();
     if (error) throw pgError("addFact insert", error);
@@ -1394,6 +1480,69 @@ export class SupabaseBackend implements MemoryBackend {
 
     return filterAndRankMemoryTypedLinks((data ?? []) as unknown as MemoryTypedLinkStoredRow[], query, limit);
   }
+
+  // --- lane-09: typed memory split ---
+  async addSessionEvent(data: SessionEventInput): Promise<SessionEventWriteResult> {
+    await this.enforceCaps("general");
+    const memoryClass = normalizeMemoryClass(data.memory_class, "episodic");
+    const { data: row, error } = await this.client
+      .from(this.tables.session_events)
+      .insert(
+        this.withTenancy({
+          session_id: data.session_id ?? null,
+          memory_class: memoryClass,
+          event_kind: data.event_kind ?? "episode",
+          content: truncate(data.content),
+          summary: data.summary ?? null,
+          payload: data.payload ?? {},
+          source_fact_id: data.source_fact_id ?? null,
+          source_session_summary_id: data.source_session_summary_id ?? null,
+        })
+      )
+      .select("id, memory_class")
+      .single();
+    if (error) throw pgError("addSessionEvent insert", error);
+    return { id: String(row.id), memory_class: normalizeMemoryClass(row.memory_class, memoryClass) };
+  }
+
+  async listSessionEvents(query: SessionEventQuery = {}): Promise<unknown> {
+    const limit = Math.max(1, Math.min(Math.floor(query.limit ?? 20) || 20, 100));
+    const memoryClass = query.memory_class ? normalizeMemoryClass(query.memory_class) : undefined;
+    const searchText = query.query?.trim();
+    let request = this.client
+      .from(this.tables.session_events)
+      .select(
+        [
+          "id",
+          "session_id",
+          "memory_class",
+          "event_kind",
+          "content",
+          "summary",
+          "payload",
+          "source_fact_id",
+          "source_session_summary_id",
+          "created_at",
+        ].join(",")
+      )
+      .order("created_at", { ascending: false })
+      .limit(searchText ? Math.min(limit * 4, 250) : limit);
+
+    if (this.tenancy.mode === "managed") {
+      request = request.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    if (query.session_id) request = request.eq("session_id", query.session_id);
+    if (memoryClass) request = request.eq("memory_class", memoryClass);
+    if (searchText) {
+      const pattern = `%${searchText.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+      request = request.or(`content.ilike.${pattern},summary.ilike.${pattern}`);
+    }
+
+    const { data, error } = await request;
+    if (error) throw pgError("listSessionEvents select", error);
+    return ((data ?? []) as unknown as Array<Record<string, unknown>>).slice(0, limit);
+  }
+  // --- end lane-09 ---
 
   async getConversationDetail(sessionId: string): Promise<unknown> {
     return this.rpc(

@@ -20,6 +20,9 @@ export interface FactInput {
   confidence: number;
   source_session_id?: string;
   startup_fact_kind?: StartupFactKind;
+  // --- lane-09: typed memory split ---
+  memory_class?: MemoryClass;
+  // --- end lane-09 ---
   // Bi-temporal + provenance (Chunk 2)
   valid_from?: string;
   extractor_id?: string;
@@ -40,6 +43,33 @@ export interface FactInput {
 }
 
 export type StartupFactKind = "durable" | "operational" | "excluded" | "legacy_unspecified";
+
+// --- lane-09: typed memory split ---
+export type MemoryClass = "episodic" | "semantic" | "procedural" | "task";
+
+export interface SessionEventInput {
+  session_id?: string;
+  memory_class?: MemoryClass;
+  event_kind?: string;
+  content: string;
+  summary?: string;
+  payload?: Record<string, unknown>;
+  source_fact_id?: string;
+  source_session_summary_id?: string;
+}
+
+export interface SessionEventQuery {
+  query?: string;
+  session_id?: string;
+  memory_class?: MemoryClass;
+  limit?: number;
+}
+
+export interface SessionEventWriteResult {
+  id: string;
+  memory_class: MemoryClass;
+}
+// --- end lane-09 ---
 
 export type MemoryProfileCardSourceKind = "business_context" | "fact" | "session_summary";
 export type MemoryReceiptRedactionState = "clean" | "redacted" | "sensitive-hidden" | "blocked";
@@ -250,4 +280,12 @@ export interface MemoryBackend {
 
   /** Mark a fact as invalidated (does not delete it). Writes an audit row. */
   invalidateFact(input: InvalidateFactInput): Promise<{ invalidated_at: string }>;
+
+  // --- lane-09: typed memory split ---
+  /** Store an episodic memory outside the atomic fact index. */
+  addSessionEvent(data: SessionEventInput): Promise<SessionEventWriteResult>;
+
+  /** Search or list episodic memory explicitly. */
+  listSessionEvents(query?: SessionEventQuery): Promise<unknown>;
+  // --- end lane-09 ---
 }
