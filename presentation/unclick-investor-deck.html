@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UnClick - Investor Overview</title>
+<meta name="description" content="UnClick. The universal remote for AI. One install gives any AI agent every tool, memory that remembers, and built-in proof the work was done right." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ===================== Brand tokens ===================== */
+:root{
+  --teal:#61c1c4;          /* UnClick signature teal */
+  --teal-bright:#86dadd;
+  --teal-deep:#2f9499;     /* readable teal on light */
+  --navy:#06202c;
+  --navy-2:#0a2c3c;
+  --navy-3:#0e3a4e;
+  --ink:#0d2a36;           /* heading on light */
+  --body:#3c5763;          /* body on light */
+  --muted:#6f8b95;
+  --light:#eef5f6;
+  --light-2:#e2eef0;
+  --card:#ffffff;
+  --line:#d6e4e8;
+  --red:#e5685f;
+  --amber:#e7b14d;
+  --green:#52c08a;
+  --shadow:0 18px 50px -22px rgba(10,44,60,.35);
+  --shadow-soft:0 10px 30px -16px rgba(10,44,60,.28);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:#04141c;color:var(--ink);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow:hidden;
+}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+/* ===================== Deck / slide frame ===================== */
+.deck{position:fixed;inset:0}
+.slide{
+  position:absolute;inset:0;display:none;
+  align-items:center;justify-content:center;
+  padding:clamp(28px,5vw,80px);
+  overflow:hidden;
+}
+.slide.active{display:flex;animation:slideIn .5s ease both}
+@keyframes slideIn{from{opacity:0}to{opacity:1}}
+.inner{position:relative;width:min(1200px,94vw);z-index:2}
+
+/* Light + dark canvases */
+.slide.light{
+  background:
+    radial-gradient(1100px 620px at 72% -12%, #ffffff 0%, #eef5f6 42%, #e0edf0 100%);
+  color:var(--ink);
+}
+.slide.light::after{ /* faint grid */
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(to right,rgba(13,42,54,.045) 1px,transparent 1px),
+                   linear-gradient(to bottom,rgba(13,42,54,.045) 1px,transparent 1px);
+  background-size:54px 54px;
+  -webkit-mask-image:radial-gradient(ellipse 75% 70% at 50% 40%,#000 30%,transparent 100%);
+          mask-image:radial-gradient(ellipse 75% 70% at 50% 40%,#000 30%,transparent 100%);
+}
+.slide.dark{
+  background:linear-gradient(155deg,#05161f 0%,#0a2b3b 55%,#06202c 100%);
+  color:#eaf6f7;
+}
+.slide.dark .inner{color:#eaf6f7}
+.slide.dark::before{ /* teal aurora glow */
+  content:"";position:absolute;z-index:0;width:60vw;height:60vw;left:55%;top:-25%;
+  background:radial-gradient(circle at center,rgba(97,193,196,.30),transparent 62%);
+  filter:blur(8px);animation:drift 16s ease-in-out infinite;pointer-events:none;
+}
+.slide.dark::after{ /* second glow + grid feel */
+  content:"";position:absolute;z-index:0;width:52vw;height:52vw;left:-18%;bottom:-28%;
+  background:radial-gradient(circle at center,rgba(46,148,153,.22),transparent 60%);
+  filter:blur(6px);animation:drift 20s ease-in-out infinite reverse;pointer-events:none;
+}
+@keyframes drift{
+  0%,100%{transform:translate(0,0) scale(1)}
+  33%{transform:translate(4%,5%) scale(1.06)}
+  66%{transform:translate(-4%,-3%) scale(.96)}
+}
+
+/* ===================== Typography ===================== */
+.eyebrow{
+  display:inline-flex;align-items:center;gap:9px;
+  font-size:clamp(11px,1.15vw,14px);font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--teal-deep);margin-bottom:22px;
+}
+.slide.dark .eyebrow{color:var(--teal-bright)}
+.eyebrow::before{content:"";width:26px;height:2px;background:currentColor;border-radius:2px;opacity:.8}
+h1{font-size:clamp(40px,6.6vw,92px);line-height:1.02;font-weight:800;letter-spacing:-.025em;margin:0}
+h2{font-size:clamp(28px,4.3vw,60px);line-height:1.06;font-weight:800;letter-spacing:-.022em;margin:0 0 18px}
+h3{font-size:clamp(17px,1.7vw,22px);font-weight:700;margin:0}
+.lead{font-size:clamp(16px,1.75vw,23px);line-height:1.5;color:var(--body);font-weight:400;max-width:62ch}
+.slide.dark .lead{color:#bcd9dd}
+.grad{background:linear-gradient(100deg,var(--teal) 0%,var(--teal-bright) 55%,#bdeff0 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tealtext{color:var(--teal-deep)} .slide.dark .tealtext{color:var(--teal-bright)}
+.small{font-size:clamp(12px,1.2vw,14.5px);color:var(--muted)}
+.slide.dark .small{color:#9fc1c7}
+b,strong{font-weight:700;color:var(--ink)} .slide.dark b,.slide.dark strong{color:#fff}
+
+/* ===================== Reusable bits ===================== */
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border-radius:999px;
+  font-size:13px;font-weight:600;background:rgba(97,193,196,.12);color:var(--teal-deep);
+  border:1px solid rgba(97,193,196,.32)}
+.slide.dark .pill{background:rgba(97,193,196,.14);color:var(--teal-bright);border-color:rgba(97,193,196,.4)}
+.tag{margin-top:26px;font-size:clamp(14px,1.5vw,18px);font-weight:600;color:var(--ink)}
+.slide.dark .tag{color:#dff3f4}
+.row{display:flex;gap:18px}
+.wrap{flex-wrap:wrap}
+.center{text-align:center;align-items:center}
+.mt8{margin-top:8px}.mt16{margin-top:16px}.mt24{margin-top:24px}.mt32{margin-top:32px}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 24px;box-shadow:var(--shadow-soft)}
+.slide.dark .card{background:rgba(255,255,255,.045);border-color:rgba(134,218,221,.18);box-shadow:none;backdrop-filter:blur(4px)}
+.ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;flex:none;
+  background:linear-gradient(140deg,rgba(97,193,196,.18),rgba(97,193,196,.06));color:var(--teal-deep);
+  border:1px solid rgba(97,193,196,.3)}
+.slide.dark .ic{color:var(--teal-bright)}
+.ic svg{width:24px;height:24px}
+
+/* ===================== Slide 1 cover ===================== */
+.cover-logo{display:flex;align-items:center;gap:18px;margin-bottom:34px}
+.cover-logo .mark{width:64px;height:64px}
+.cover-logo .word{font-size:clamp(30px,4vw,44px);font-weight:800;letter-spacing:-.03em;color:#fff}
+.cover-sub{font-size:clamp(18px,2.1vw,28px);font-weight:600;color:var(--teal-bright);margin-top:18px}
+.cover-one{margin-top:26px;max-width:54ch}
+
+/* ===================== Pillars hub (slide 6) ===================== */
+.hub{display:flex;flex-direction:column;align-items:center;margin-top:26px}
+.hub-badge{display:inline-flex;align-items:center;gap:12px;padding:14px 26px;border-radius:16px;
+  background:linear-gradient(135deg,var(--navy),var(--navy-3));color:#fff;font-weight:700;font-size:clamp(15px,1.7vw,20px);
+  box-shadow:0 16px 40px -18px rgba(10,44,60,.6)}
+.hub-badge .mark{width:30px;height:30px}
+.hub-stem{width:2px;height:26px;background:linear-gradient(var(--teal),transparent)}
+.pillars{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;width:100%}
+.pillar{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 16px;text-align:center;
+  box-shadow:var(--shadow-soft);position:relative;overflow:hidden}
+.pillar::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--teal-bright))}
+.pillar .ic{margin:0 auto 12px}
+.pillar h3{font-size:clamp(14px,1.5vw,18px)}
+.pillar p{margin:7px 0 0;font-size:clamp(11.5px,1.15vw,13.5px);color:var(--muted);line-height:1.4}
+
+/* ===================== 2-up panels ===================== */
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pain h3{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:clamp(16px,1.8vw,21px)}
+.pain p{margin:0;color:var(--body);line-height:1.5;font-size:clamp(13.5px,1.45vw,17px)}
+
+/* Old vs new (slide 4) */
+.ov{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:center;margin-top:8px}
+.ov-card{border-radius:18px;padding:22px;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow-soft)}
+.ov-card.old{border-color:rgba(229,104,95,.35);background:linear-gradient(180deg,#fff,#fdf1f0)}
+.ov-card.new{border-color:rgba(97,193,196,.45);background:linear-gradient(180deg,#fff,#eafafb)}
+.ov-card .lbl{font-size:12.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.ov-card.old .lbl{color:var(--red)} .ov-card.new .lbl{color:var(--teal-deep)}
+.ov-flow{margin:14px 0;font-family:'JetBrains Mono',monospace;font-size:clamp(12px,1.3vw,14.5px);line-height:1.7;color:var(--ink)}
+.ov-metric{display:flex;gap:18px;margin-top:10px}
+.ov-metric .m .v{font-size:clamp(20px,2.4vw,30px);font-weight:800;font-family:'JetBrains Mono',monospace}
+.ov-card.old .m .v{color:var(--red)} .ov-card.new .m .v{color:var(--teal-deep)}
+.ov-metric .m .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.ov-x{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.ov-x .big{font-size:clamp(28px,4vw,52px);font-weight:900;line-height:1;
+  background:linear-gradient(120deg,var(--teal-deep),var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent}
+.ov-x .cap{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;text-align:center}
+
+/* ===================== Stat band ===================== */
+.statband{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 16px;text-align:center;box-shadow:var(--shadow-soft)}
+.slide.dark .stat{background:rgba(255,255,255,.05);border-color:rgba(134,218,221,.2)}
+.stat .num{font-size:clamp(26px,3.4vw,44px);font-weight:900;letter-spacing:-.02em;font-family:'JetBrains Mono',monospace;
+  background:linear-gradient(120deg,var(--teal-deep),var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+.slide.dark .stat .num{background:linear-gradient(120deg,var(--teal),var(--teal-bright));-webkit-background-clip:text;background-clip:text}
+.stat .lbl{margin-top:8px;font-size:clamp(11px,1.2vw,13.5px);color:var(--muted);font-weight:600}
+.slide.dark .stat .lbl{color:#a7c9cf}
+
+/* ===================== Memory stack ===================== */
+.memgrid{display:grid;grid-template-columns:1.25fr 1fr;gap:24px;align-items:center;margin-top:8px}
+.mem-stack{display:flex;flex-direction:column;gap:9px}
+.mem-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;border:1px solid var(--line);
+  background:var(--card);box-shadow:var(--shadow-soft)}
+.mem-row .n{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;flex:none;
+  font-family:'JetBrains Mono',monospace}
+.mem-row .t{font-weight:700;font-size:clamp(13px,1.4vw,16px);color:var(--ink)}
+.mem-row .d{font-size:clamp(11px,1.15vw,13px);color:var(--muted)}
+.mem-side{background:linear-gradient(160deg,var(--navy),var(--navy-3));color:#fff;border-radius:18px;padding:26px;box-shadow:var(--shadow)}
+.mem-side h3{color:#fff;font-size:clamp(18px,2vw,24px);margin-bottom:10px}
+.mem-side p{color:#bcd9dd;line-height:1.5;margin:0;font-size:clamp(13.5px,1.4vw,16px)}
+.mem-side .pill{margin-top:16px;background:rgba(97,193,196,.18);color:var(--teal-bright);border-color:rgba(97,193,196,.4)}
+
+/* ===================== Assembly line ===================== */
+.launchbar{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  background:linear-gradient(135deg,var(--navy),var(--navy-3));color:#fff;border-radius:14px;padding:14px 20px;margin:6px 0 18px}
+.launchbar .who{display:flex;align-items:center;gap:12px;font-weight:700;font-size:clamp(13px,1.5vw,17px)}
+.kill{display:inline-flex;align-items:center;gap:9px;background:rgba(229,104,95,.18);border:1px solid rgba(229,104,95,.55);
+  color:#ff8d83;font-weight:800;letter-spacing:.06em;padding:8px 14px;border-radius:10px;font-size:13px}
+.kill .dotr{width:11px;height:11px;border-radius:50%;background:var(--red);box-shadow:0 0 0 4px rgba(229,104,95,.25);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.line{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;justify-content:center}
+.station{position:relative;flex:1 1 120px;min-width:104px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:14px 10px;text-align:center;box-shadow:var(--shadow-soft)}
+.station .s-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal-deep);font-weight:700}
+.station .s-t{font-weight:700;font-size:clamp(12px,1.25vw,14.5px);margin-top:3px;color:var(--ink)}
+.station .s-d{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.35}
+.station .lt{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%}
+.legend{display:flex;gap:22px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--body)}
+.legend i{width:11px;height:11px;border-radius:50%;display:inline-block}
+
+/* ===================== Gates (slide 11) ===================== */
+.gates{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:stretch;margin-top:6px}
+.gate{border-radius:18px;padding:24px}
+.gate.before{background:linear-gradient(165deg,rgba(231,177,77,.14),rgba(255,255,255,.03));border:1px solid rgba(231,177,77,.4)}
+.gate.after{background:linear-gradient(165deg,rgba(97,193,196,.16),rgba(255,255,255,.03));border:1px solid rgba(97,193,196,.45)}
+.gate h3{font-size:clamp(18px,2vw,24px);color:#fff;display:flex;align-items:center;gap:10px}
+.gate .k{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.gate.before .k{color:var(--amber)} .gate.after .k{color:var(--teal-bright)}
+.gate p{color:#cfe6e9;line-height:1.5;margin:10px 0 0;font-size:clamp(13px,1.4vw,16px)}
+.gate-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#9fc1c7}
+.gate-mid .act{writing-mode:vertical-rl;font-weight:800;letter-spacing:.12em;font-size:13px;color:#fff;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);padding:14px 8px;border-radius:10px}
+.trust-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+.trust{background:rgba(255,255,255,.05);border:1px solid rgba(134,218,221,.2);border-radius:14px;padding:16px}
+.trust h4{margin:0 0 5px;font-size:clamp(13px,1.4vw,16px);color:#fff;display:flex;gap:9px;align-items:center}
+.trust p{margin:0;font-size:clamp(11px,1.15vw,13px);color:#a7c9cf;line-height:1.4}
+.lockup{margin-top:22px;text-align:center;font-weight:800;letter-spacing:.04em;font-size:clamp(16px,2vw,26px)}
+.lockup .grad{font-weight:900}
+
+/* ===================== Moat bundle ===================== */
+.bundle{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;margin:24px 0 8px}
+.bchip{background:rgba(255,255,255,.06);border:1px solid rgba(134,218,221,.3);border-radius:14px;padding:16px 18px;text-align:center;min-width:128px}
+.bchip .bi{color:var(--teal-bright);margin-bottom:8px;display:flex;justify-content:center}
+.bchip .bt{font-weight:700;color:#fff;font-size:clamp(13px,1.4vw,16px)}
+.bchip .bd{font-size:11px;color:#9fc1c7;margin-top:3px}
+.op{font-size:26px;font-weight:800;color:var(--teal-bright)}
+.bchip.eq{background:linear-gradient(135deg,var(--teal-deep),var(--teal));border:none}
+.bchip.eq .bt,.bchip.eq .bd{color:#04222a}.bchip.eq .bi{color:#04222a}
+
+/* ===================== VS table ===================== */
+.vs{width:100%;border-collapse:separate;border-spacing:0;margin-top:6px;background:var(--card);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-soft);border:1px solid var(--line)}
+.vs th,.vs td{padding:13px 18px;text-align:left;font-size:clamp(12.5px,1.4vw,16px);border-bottom:1px solid var(--line)}
+.vs thead th{background:#f4f9fa;font-weight:700;color:var(--ink);font-size:clamp(12px,1.3vw,15px)}
+.vs thead th:last-child{background:linear-gradient(135deg,rgba(97,193,196,.16),rgba(97,193,196,.06));color:var(--teal-deep)}
+.vs td:first-child{font-weight:600;color:var(--ink)}
+.vs tr:last-child td{border-bottom:none}
+.vs .no{color:var(--red);font-weight:700}
+.vs .yes{color:var(--teal-deep);font-weight:800}
+.vs td.col-u{background:rgba(97,193,196,.06)}
+
+/* ===================== Tiers / business ===================== */
+.mm{display:inline-block;font-size:clamp(15px,1.8vw,21px);font-weight:600;color:var(--ink);
+  border-left:4px solid var(--teal);padding:6px 0 6px 16px;margin:4px 0 22px;line-height:1.4}
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tier{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;box-shadow:var(--shadow-soft);position:relative}
+.tier.pop{border-color:var(--teal);box-shadow:0 18px 40px -20px rgba(97,193,196,.6)}
+.tier .badge{position:absolute;top:-11px;left:18px;background:var(--teal);color:#04222a;font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:.04em}
+.tier .name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal-deep)}
+.tier .price{font-size:clamp(24px,2.8vw,36px);font-weight:900;margin:6px 0 4px;font-family:'JetBrains Mono',monospace;color:var(--ink)}
+.tier .price small{font-size:14px;font-weight:600;color:var(--muted)}
+.tier .for{font-size:12.5px;color:var(--muted);line-height:1.4}
+.market-note{margin-top:22px}
+
+/* audiences / market */
+.aud{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px}
+.aud .card h3{display:flex;align-items:center;gap:12px;font-size:clamp(17px,1.9vw,22px);margin-bottom:8px}
+.aud .card p{margin:0;color:var(--body);line-height:1.5;font-size:clamp(13.5px,1.45vw,17px)}
+
+/* live list */
+.livegrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 26px;margin-top:6px}
+.live{display:flex;gap:13px;align-items:flex-start}
+.live .ck{width:26px;height:26px;border-radius:8px;flex:none;display:grid;place-items:center;background:rgba(82,192,138,.16);color:var(--green);border:1px solid rgba(82,192,138,.4)}
+.live .lt{font-weight:700;color:var(--ink);font-size:clamp(13.5px,1.45vw,16.5px)}
+.live .ld{color:var(--muted);font-size:clamp(12px,1.2vw,14px);line-height:1.4}
+.placeholder{margin-top:18px;border:1.5px dashed rgba(97,193,196,.55);border-radius:14px;padding:16px 20px;
+  background:rgba(97,193,196,.06);color:var(--teal-deep);font-weight:600;font-size:clamp(13px,1.4vw,16px)}
+
+/* vision / ask */
+.vision-big{font-size:clamp(30px,4.6vw,64px);font-weight:800;line-height:1.04;letter-spacing:-.02em;margin-top:10px}
+.ask-list{margin-top:20px;display:grid;gap:12px;max-width:60ch}
+.ask-list .ai{display:flex;gap:13px;align-items:flex-start;font-size:clamp(14px,1.5vw,18px);color:#cfe6e9}
+.ask-list .ai b{color:#fff}
+.ask-list .n{color:var(--teal-bright);font-weight:800;font-family:'JetBrains Mono',monospace;flex:none}
+.contact{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;font-weight:600;color:#dff3f4;font-size:clamp(13px,1.45vw,17px)}
+.contact a{color:var(--teal-bright);text-decoration:none}
+.contact .sep{opacity:.4}
+
+/* ===================== Chrome: progress, nav, counter ===================== */
+.progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;
+  background:linear-gradient(90deg,var(--teal),var(--teal-bright));transition:width .45s cubic-bezier(.2,.7,.2,1);box-shadow:0 0 12px rgba(97,193,196,.7)}
+.chrome{position:fixed;bottom:18px;right:22px;z-index:60;display:flex;align-items:center;gap:14px}
+.counter{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:#7fa6b0;letter-spacing:.04em}
+.slide.dark ~ .chrome .counter{color:#9fc1c7}
+.navbtn{width:42px;height:42px;border-radius:11px;border:1px solid rgba(120,160,170,.4);background:rgba(255,255,255,.65);
+  color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:.18s;backdrop-filter:blur(6px)}
+.navbtn:hover{background:var(--teal);color:#04222a;border-color:var(--teal);transform:translateY(-1px)}
+.navbtn svg{width:20px;height:20px}
+.brandtag{position:fixed;bottom:20px;left:24px;z-index:60;display:flex;align-items:center;gap:10px;
+  font-size:12.5px;font-weight:600;color:#7fa6b0;letter-spacing:.01em}
+.brandtag .mark{width:20px;height:20px;opacity:.92}
+.hint{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:70;
+  background:rgba(8,28,38,.86);color:#cfe6e9;font-size:12.5px;font-weight:500;padding:9px 16px;border-radius:999px;
+  border:1px solid rgba(134,218,221,.3);backdrop-filter:blur(8px);transition:opacity .6s;display:flex;gap:8px;align-items:center}
+.hint b{color:var(--teal-bright);font-weight:700}
+.hint kbd{font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  border-radius:5px;padding:1px 6px;font-size:11px}
+
+/* ===================== Print / PDF ===================== */
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{overflow:visible;background:#fff}
+  .progress,.chrome,.brandtag,.hint{display:none!important}
+  .deck{position:static}
+  .slide{position:relative!important;display:flex!important;width:1280px;height:720px;page-break-after:always;break-after:page;inset:auto;animation:none!important}
+  .slide.dark::before,.slide.dark::after{animation:none!important}
+  .anim{opacity:1!important;animation:none!important;transform:none!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+body.printmode{overflow:auto}
+body.printmode .deck{position:static}
+body.printmode .slide{position:relative;display:flex;width:100%;height:100vh;page-break-after:always}
+body.printmode .chrome,body.printmode .progress,body.printmode .brandtag{display:none}
+
+/* ===================== Entrance animation ===================== */
+.anim{opacity:0}
+.slide.active .anim{animation:fadeUp .62s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(var(--d,0)*70ms + 120ms)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+/* responsive */
+@media (max-width:880px){
+  .pillars{grid-template-columns:repeat(2,1fr)}
+  .cols2,.memgrid,.ov,.gates,.aud,.livegrid,.cols3{grid-template-columns:1fr}
+  .statband,.tiers,.trust-row{grid-template-columns:repeat(2,1fr)}
+  .ov-x{flex-direction:row}
+}
+</style>
+</head>
+<body>
+
+<!-- Brand mark symbol (reused) -->
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+  <symbol id="bot" viewBox="0 0 100 100">
+    <path d="M18 10 L18 72 L33 57 L46 84 L54 80 L41 53 L62 53 Z" fill="#61c1c4" stroke="#61c1c4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <rect x="52" y="6" width="28" height="22" rx="5" ry="5" fill="#61c1c4"/>
+    <circle cx="60" cy="15" r="3.5" fill="#0a0a0a"/><circle cx="72" cy="15" r="3.5" fill="#0a0a0a"/>
+    <line x1="66" y1="6" x2="66" y2="0" stroke="#61c1c4" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="66" cy="0" r="2.5" fill="#61c1c4"/>
+  </symbol>
+</svg>
+
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+<!-- ========================= 1. COVER ========================= -->
+<section class="slide dark active">
+  <div class="inner">
+    <div class="cover-logo anim" style="--d:0"><svg class="mark"><use href="#bot"/></svg><span class="word">UnClick</span></div>
+    <div class="eyebrow anim" style="--d:1">Investor Overview &middot; 2026</div>
+    <h1 class="anim" style="--d:2">The universal remote <span class="grad">for AI.</span></h1>
+    <div class="cover-sub anim" style="--d:3">Where AI belongs. Humans welcome.</div>
+    <p class="lead cover-one anim" style="--d:4">One install gives any AI agent every tool it needs, memory that remembers across every session and device, and built-in proof the work was done right.</p>
+    <div class="anim" style="--d:5" ><span class="pill mt24">unclick.world &middot; Built in Melbourne, Australia</span></div>
+  </div>
+</section>
+
+<!-- ========================= 2. BIG IDEA ========================= -->
+<section class="slide dark">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">The big idea</div>
+    <h1 class="anim" style="--d:1">Let your AI stop <span class="grad">pretending to be human.</span></h1>
+    <p class="lead anim mt24" style="--d:2">Today, AI agents fake their way through screens built for people. They click buttons, fill in forms, and forget everything the moment you close the tab. UnClick gives them real rails instead: tools to act, a memory that lasts, and a control tower that proves every job was done right.</p>
+    <div class="tag anim" style="--d:3">Every tool. One install. Every AI app.</div>
+  </div>
+</section>
+
+<!-- ========================= 3. PROBLEM ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">The problem</div>
+    <h2 class="anim" style="--d:1">AI agents are powerful, but <span class="tealtext">homeless.</span></h2>
+    <p class="lead anim" style="--d:2">Every AI tool reinvents the same missing layer: identity, memory, connections, a trustworthy toolset, and proof. Switch from Claude to ChatGPT and you start over from zero.</p>
+    <div class="cols2 mt32">
+      <div class="card pain anim" style="--d:3">
+        <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg></span>The amnesia tax</h3>
+        <p>Every session starts from scratch. You re-explain your business, your preferences, your rules. Every time. Your agent made 200 decisions last week and remembers exactly none of them.</p>
+      </div>
+      <div class="card pain anim" style="--d:4">
+        <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/></svg></span>The wrong tool</h3>
+        <p>Asking your AI to work through a website built for people is like doing surgery with oven mitts. It can sort of work. It is just not the right tool for the job.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 4. COST OF OLD WAY ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Why it matters</div>
+    <h2 class="anim" style="--d:1">The old way is slow, costly, and blind.</h2>
+    <div class="ov mt16">
+      <div class="ov-card old anim" style="--d:2">
+        <div class="lbl">The old way</div>
+        <div class="ov-flow">Open browser &rarr; Navigate<br/>&rarr; Fill the form &rarr; Click submit<br/>&rarr; Wait &rarr; Read the screen</div>
+        <div class="ov-metric"><div class="m"><div class="v">~4,200ms</div><div class="k">per action</div></div><div class="m"><div class="v">~18,000</div><div class="k">tokens</div></div></div>
+      </div>
+      <div class="ov-x anim" style="--d:3"><div class="big">~110x</div><div class="cap">faster<br/>~150x fewer tokens</div></div>
+      <div class="ov-card new anim" style="--d:4">
+        <div class="lbl">The UnClick way</div>
+        <div class="ov-flow">POST /v1/schedule/events<br/>&rarr; <b>201 Created</b></div>
+        <div class="ov-metric"><div class="m"><div class="v">~38ms</div><div class="k">per action</div></div><div class="m"><div class="v">~120</div><div class="k">tokens</div></div></div>
+      </div>
+    </div>
+    <p class="small mt24 anim" style="--d:5">Same job. One path is built for humans. The other is built for agents. Across thousands of actions, that gap is the difference between an agent that is a demo and one that is a business.</p>
+  </div>
+</section>
+
+<!-- ========================= 5. WHY NOW ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Why now</div>
+    <h2 class="anim" style="--d:1">The agent wave is here. The rails are not, <span class="tealtext">yet.</span></h2>
+    <div class="cols2 mt24">
+      <div class="card anim" style="--d:2"><h3 class="tealtext">Agents are exploding</h3><p class="small mt8" style="font-size:15px;color:var(--body)">The world is shipping AI agents far faster than the infrastructure that makes them actually useful. The gap is the opportunity.</p></div>
+      <div class="card anim" style="--d:3"><h3 class="tealtext">MCP became the standard</h3><p class="small mt8" style="font-size:15px;color:var(--body)">Model Context Protocol is the "USB-C for AI", now native in Claude, ChatGPT, Cursor and Copilot. One plug fits every agent, and UnClick speaks it.</p></div>
+      <div class="card anim" style="--d:4"><h3 class="tealtext">Holding passwords went radioactive</h3><p class="small mt8" style="font-size:15px;color:var(--body)">After Amazon v. Perplexity (March 2026), brokering user credentials in the cloud became a legal minefield. UnClick's hold-nothing design is suddenly the safe one.</p></div>
+      <div class="card anim" style="--d:5"><h3 class="tealtext">The world moved to signed mandates</h3><p class="small mt8" style="font-size:15px;color:var(--body)">Cloudflare, Visa, Mastercard and Google all shifted to user-issued, signed agent permissions. UnClick is already built that exact shape.</p></div>
+    </div>
+    <div class="tag anim" style="--d:6">We ride the standard at the precise moment it consolidates.</div>
+  </div>
+</section>
+
+<!-- ========================= 6. WHAT IS UNCLICK (helicopter) ========================= -->
+<section class="slide light">
+  <div class="inner center">
+    <div class="eyebrow anim" style="--d:0">The solution &middot; helicopter view</div>
+    <h2 class="anim" style="--d:1">UnClick is the <span class="tealtext">rails</span> your agent plugs into.</h2>
+    <p class="lead anim" style="--d:2;margin:0 auto">One npm install. Five superpowers. Works behind every AI app you already use.</p>
+    <div class="hub">
+      <div class="hub-badge anim" style="--d:3"><svg class="mark"><use href="#bot"/></svg>UnClick &middot; one install</div>
+      <div class="hub-stem anim" style="--d:3"></div>
+      <div class="pillars">
+        <div class="pillar anim" style="--d:4"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><h3>Apps</h3><p>Every tool, ready to call.</p></div>
+        <div class="pillar anim" style="--d:5"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a4 4 0 0 0-4 4 3 3 0 0 0-1 5.8V17a3 3 0 0 0 6 0V3z"/><path d="M12 3a4 4 0 0 1 4 4 3 3 0 0 1 1 5.8V17a3 3 0 0 1-6 0"/></svg></span><h3>Memory</h3><p>Remembers across every session and device.</p></div>
+        <div class="pillar anim" style="--d:6"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a3 3 0 0 1 3-3h3a4 4 0 0 1 0 8h-1"/><path d="M15 12a3 3 0 0 1-3 3H9a4 4 0 0 1 0-8h1"/></svg></span><h3>Connections</h3><p>Sign in once. Every agent inherits.</p></div>
+        <div class="pillar anim" style="--d:7"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 16l3-8 4 10 3-12 4 10"/></svg></span><h3>AutoPilot</h3><p>Plans, routes, builds and checks the work.</p></div>
+        <div class="pillar anim" style="--d:8"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><h3>XPass</h3><p>Proves the work before it ships.</p></div>
+      </div>
+    </div>
+    <p class="small mt24 anim" style="--d:9">Sits behind Claude, ChatGPT, Cursor, Copilot and every MCP client. We do not compete with them. We make all of them better.</p>
+  </div>
+</section>
+
+<!-- ========================= 7. PILLAR 1 APPS ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Pillar 1 &middot; Apps</div>
+    <h2 class="anim" style="--d:1">An <span class="tealtext">app store</span> for AI agents.</h2>
+    <p class="lead anim" style="--d:2">One install, and your agent can actually do things: send an email, charge a card on Stripe, post to Slack, open a GitHub pull request, check the weather, read the news. No more wiring up six servers by hand.</p>
+    <div class="statband">
+      <div class="stat anim" style="--d:3"><div class="num">450+</div><div class="lbl">Callable endpoints</div></div>
+      <div class="stat anim" style="--d:4"><div class="num">178+</div><div class="lbl">Tools</div></div>
+      <div class="stat anim" style="--d:5"><div class="num">60+</div><div class="lbl">Integrations</div></div>
+      <div class="stat anim" style="--d:6"><div class="num">20+</div><div class="lbl">One-click connections</div></div>
+    </div>
+    <p class="small mt24 anim" style="--d:7">Your agent discovers and calls any tool on its own. New tools ship to the cloud and every connected agent picks them up automatically. No package update needed, ever.</p>
+  </div>
+</section>
+
+<!-- ========================= 8. PILLAR 2 MEMORY ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Pillar 2 &middot; Memory</div>
+    <h2 class="anim" style="--d:1">Your agent forgets everything. <span class="tealtext">We fix that.</span></h2>
+    <div class="memgrid">
+      <div class="mem-stack">
+        <div class="mem-row anim" style="--d:2"><span class="n" style="background:#1c5a6b">1</span><div><div class="t">Identity &amp; standing rules</div><div class="d">Who you are and your always-on rules, loaded first.</div></div></div>
+        <div class="mem-row anim" style="--d:3"><span class="n" style="background:#236d7e">2</span><div><div class="t">Knowledge library</div><div class="d">Your documents and briefs, neatly versioned.</div></div></div>
+        <div class="mem-row anim" style="--d:4"><span class="n" style="background:#2a8090">3</span><div><div class="t">Session summaries</div><div class="d">Picks up exactly where you left off.</div></div></div>
+        <div class="mem-row anim" style="--d:5"><span class="n" style="background:#33919f">4</span><div><div class="t">Searchable facts</div><div class="d">Conversations distilled into facts overnight.</div></div></div>
+        <div class="mem-row anim" style="--d:6"><span class="n" style="background:#3da2ac">5</span><div><div class="t">Full conversation log</div><div class="d">Every word, verbatim and searchable.</div></div></div>
+        <div class="mem-row anim" style="--d:7"><span class="n" style="background:#49b3bb">6</span><div><div class="t">Code store</div><div class="d">Code kept aside, expanded only on demand.</div></div></div>
+      </div>
+      <div class="mem-side anim" style="--d:4">
+        <h3>Your data. Your database.</h3>
+        <p>UnClick memory lives in your own store, not ours. We never see it. Others keep your memories in their cloud. We keep them in yours. If you ever leave, nothing moves. It is already yours.</p>
+        <span class="pill">Survives new models, new apps, new devices</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 9. PILLAR 3 CONNECTIONS ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Pillar 3 &middot; Connections</div>
+    <h2 class="anim" style="--d:1">Sign in once. <span class="tealtext">Every agent inherits.</span></h2>
+    <p class="lead anim" style="--d:2">Connect your accounts a single time. From then on, any agent on any device can use them, with no re-logins and no copy-pasting secret keys.</p>
+    <div class="cols3 mt32">
+      <div class="card anim" style="--d:3"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l4 4L19 6"/></svg></span><h3 class="mt16">Connect once, works forever</h3><p class="small mt8" style="font-size:14.5px;color:var(--body)">One connection flows to every agent and every device you use.</p></div>
+      <div class="card anim" style="--d:4"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 4-3.5 7-8 9-4.5-2-8-5-8-9V7z"/></svg></span><h3 class="mt16">We hold mandates, not passwords</h3><p class="small mt8" style="font-size:14.5px;color:var(--body)">Permission to act, not your raw keys. There is almost nothing to steal.</p></div>
+      <div class="card anim" style="--d:5"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 .5-4.5 4 1.5 6L12 15l-6 3.5 1.5-6L3 8.5 9 8z"/></svg></span><h3 class="mt16">The shape regulators now require</h3><p class="small mt8" style="font-size:14.5px;color:var(--body)">Built around signed user mandates, the model the industry just standardised on.</p></div>
+    </div>
+    <div class="tag anim" style="--d:6">Less for an attacker to steal. Less for you to manage. Safer by design.</div>
+  </div>
+</section>
+
+<!-- ========================= 10. PILLAR 4 AUTOPILOT ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Pillar 4 &middot; AutoPilot</div>
+    <h2 class="anim" style="--d:1">A self-driving <span class="tealtext">factory</span> for getting work done.</h2>
+    <p class="lead anim" style="--d:2">Type a request in plain English. It moves down an assembly line of specialist AI workers. One clear job goes in. One safe result comes out.</p>
+    <div class="launchbar anim" style="--d:3">
+      <div class="who"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#61c1c4" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Launchpad &middot; a human watches every step</div>
+      <span class="kill"><span class="dotr"></span>KILL SWITCH</span>
+    </div>
+    <div class="line">
+      <div class="station anim" style="--d:4"><span class="lt" style="background:var(--green)"></span><div class="s-n">01</div><div class="s-t">Intake</div><div class="s-d">Plain-English request</div></div>
+      <div class="station anim" style="--d:4"><span class="lt" style="background:var(--green)"></span><div class="s-n">02</div><div class="s-t">Research</div><div class="s-d">Explore options</div></div>
+      <div class="station anim" style="--d:5"><span class="lt" style="background:var(--green)"></span><div class="s-n">03</div><div class="s-t">Plan</div><div class="s-d">A small work packet</div></div>
+      <div class="station anim" style="--d:5"><span class="lt" style="background:var(--green)"></span><div class="s-n">04</div><div class="s-t">Build</div><div class="s-d">Focused changes</div></div>
+      <div class="station anim" style="--d:6"><span class="lt" style="background:var(--amber)"></span><div class="s-n">05</div><div class="s-t">Test</div><div class="s-d">Run the checks</div></div>
+      <div class="station anim" style="--d:6"><span class="lt" style="background:var(--green)"></span><div class="s-n">06</div><div class="s-t">Review</div><div class="s-d">A second set of eyes</div></div>
+      <div class="station anim" style="--d:7"><span class="lt" style="background:var(--green)"></span><div class="s-n">07</div><div class="s-t">Safety</div><div class="s-d">Guard the danger</div></div>
+      <div class="station anim" style="--d:7"><span class="lt" style="background:var(--green)"></span><div class="s-n">08</div><div class="s-t">Ship</div><div class="s-d">Merge, publish, prove</div></div>
+    </div>
+    <div class="legend anim" style="--d:8">
+      <span><i style="background:var(--green)"></i>Passed</span>
+      <span><i style="background:var(--amber)"></i>Waiting</span>
+      <span><i style="background:var(--red)"></i>Blocked</span>
+      <span style="color:var(--teal-deep);font-weight:700">Autonomy with Observability. Command Control at Every Step.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 11. SAFETY & PROOF (dark) ========================= -->
+<section class="slide dark">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Trust &middot; safety &middot; proof</div>
+    <h2 class="anim" style="--d:1;color:#fff">Autonomy without observability is a <span class="grad">blocker, not a feature.</span></h2>
+    <div class="gates mt16">
+      <div class="gate before anim" style="--d:2">
+        <div class="k">Before the action</div>
+        <h3>XGate</h3>
+        <p>Can this even happen? Gates block secret leaks, destructive database wipes, dangerous git history rewrites, surprise deploys and overspend, before a single line runs.</p>
+      </div>
+      <div class="gate-mid anim" style="--d:3"><div class="act">ACTION</div><div class="small">then</div></div>
+      <div class="gate after anim" style="--d:4">
+        <div class="k">After the action</div>
+        <h3>XPass</h3>
+        <p>Was it done right? Hundreds of checks across tests, security, UX, copy, legal and SEO. It loops until the work is green, then signs off.</p>
+      </div>
+    </div>
+    <div class="trust-row">
+      <div class="trust anim" style="--d:5"><h4>Kill switch</h4><p>Stop everything, instantly. If the state is unclear, the system chooses the safest option and halts.</p></div>
+      <div class="trust anim" style="--d:6"><h4>Flight recorder</h4><p>A tamper-evident log of who did what, why, and the proof. Any action can be replayed or rolled back.</p></div>
+      <div class="trust anim" style="--d:7"><h4>Separation of duties</h4><p>The worker that builds never approves its own work. Risky jobs need a builder, a reviewer and a safety check.</p></div>
+      <div class="trust anim" style="--d:8"><h4>Human in the loop</h4><p>Money, secrets, domains and launches always wait for a human yes. Routine, reversible work flows on its own.</p></div>
+    </div>
+    <div class="lockup anim" style="--d:9"><span class="grad">Transparent. Trusted. Traceable.</span></div>
+  </div>
+</section>
+
+<!-- ========================= 12. MOAT BUNDLE (dark) ========================= -->
+<section class="slide dark">
+  <div class="inner center">
+    <div class="eyebrow anim" style="--d:0">The moat &middot; why we win</div>
+    <h2 class="anim" style="--d:1;color:#fff">Everyone has a piece. We have the <span class="grad">whole stack.</span></h2>
+    <p class="lead anim" style="--d:2" style="margin:0 auto;color:#bcd9dd">Memory startups do memory. Most servers do one integration. Coding tools do code. UnClick is the only place all five live behind a single install and make each other stronger.</p>
+    <div class="bundle">
+      <div class="bchip anim" style="--d:3"><div class="bi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><div class="bt">Catalog</div><div class="bd">act, not click</div></div>
+      <span class="op anim" style="--d:3">+</span>
+      <div class="bchip anim" style="--d:4"><div class="bi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a4 4 0 0 0-4 4 3 3 0 0 0-1 5.8V17a3 3 0 0 0 6 0V3z"/><path d="M12 3a4 4 0 0 1 4 4 3 3 0 0 1 1 5.8V17a3 3 0 0 1-6 0"/></svg></div><div class="bt">Memory</div><div class="bd">you own it</div></div>
+      <span class="op anim" style="--d:4">+</span>
+      <div class="bchip anim" style="--d:5"><div class="bi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a3 3 0 0 1 3-3h3a4 4 0 0 1 0 8h-1"/><path d="M15 12a3 3 0 0 1-3 3H9a4 4 0 0 1 0-8h1"/></svg></div><div class="bt">Connections</div><div class="bd">sign in once</div></div>
+      <span class="op anim" style="--d:5">+</span>
+      <div class="bchip anim" style="--d:6"><div class="bi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 16l3-8 4 10 3-12 4 10"/></svg></div><div class="bt">AutoPilot</div><div class="bd">moves work</div></div>
+      <span class="op anim" style="--d:6">+</span>
+      <div class="bchip anim" style="--d:7"><div class="bi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div><div class="bt">Proof</div><div class="bd">done right</div></div>
+      <span class="op anim" style="--d:7">=</span>
+      <div class="bchip eq anim" style="--d:8"><div class="bi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4L19 6"/></svg></div><div class="bt">One install</div><div class="bd">the whole stack</div></div>
+    </div>
+    <div class="tag anim" style="--d:9;color:#fff;font-size:clamp(16px,1.9vw,22px)">Stripe for agents, not Windows for agents. We are the rails every harness runs on.</div>
+  </div>
+</section>
+
+<!-- ========================= 13. VS GOING IT ALONE ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Why UnClick vs going it alone</div>
+    <h2 class="anim" style="--d:1">Claude or ChatGPT can <span class="tealtext">think.</span> They cannot remember, connect, or prove.</h2>
+    <table class="vs anim" style="--d:2">
+      <thead><tr><th>What an agent needs</th><th>Claude / ChatGPT / Cursor on their own</th><th>With UnClick</th></tr></thead>
+      <tbody>
+        <tr><td>Memory across sessions &amp; tools</td><td><span class="no">Resets each chat</span></td><td class="col-u"><span class="yes">Remembers everywhere</span></td></tr>
+        <tr><td>Real tools (act, not click)</td><td><span class="no">Limited or none</span></td><td class="col-u"><span class="yes">450+ endpoints</span></td></tr>
+        <tr><td>Sign in once across accounts</td><td><span class="no">Re-auth every time</span></td><td class="col-u"><span class="yes">Connect once</span></td></tr>
+        <tr><td>Works across every AI app</td><td><span class="no">Locked to one vendor</span></td><td class="col-u"><span class="yes">Any MCP client</span></td></tr>
+        <tr><td>A team of agents that coordinate</td><td><span class="no">One model, alone</span></td><td class="col-u"><span class="yes">Governed worker fleet</span></td></tr>
+        <tr><td>Safety gates &amp; an audit trail</td><td><span class="no">Trust the prompt</span></td><td class="col-u"><span class="yes">Gates + flight recorder</span></td></tr>
+        <tr><td>Your data stays yours</td><td><span class="no">Their cloud</span></td><td class="col-u"><span class="yes">Your database</span></td></tr>
+      </tbody>
+    </table>
+    <p class="small mt16 anim" style="--d:3">UnClick is not another chatbot. It is the layer that makes the chatbot you already pay for actually get things done.</p>
+  </div>
+</section>
+
+<!-- ========================= 14. WHY LABS CAN'T COPY ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Defensibility</div>
+    <h2 class="anim" style="--d:1">The one position the AI labs <span class="tealtext">structurally cannot take.</span></h2>
+    <p class="lead anim" style="--d:2">UnClick's customer is the user, not any single model. An independent layer that audits and holds every model accountable, including Anthropic's and OpenAI's, is a trust feature for users and a conflict of interest for the labs.</p>
+    <div class="cols3 mt32">
+      <div class="card anim" style="--d:3"><h3 class="tealtext">Neutral by design</h3><p class="small mt8" style="font-size:14.5px;color:var(--body)">We back every harness, so we are welcome inside all of them. We do not pick a side in the model wars.</p></div>
+      <div class="card anim" style="--d:4"><h3 class="tealtext">A compounding data moat</h3><p class="small mt8" style="font-size:14.5px;color:var(--body)">Our edge grows on data only we hold: our own run outcomes and proof history across every model.</p></div>
+      <div class="card anim" style="--d:5"><h3 class="tealtext">We win on trust, not size</h3><p class="small mt8" style="font-size:14.5px;color:var(--body)">Integration count is a commodity. We compete on curation, reliability and proof that work was done right.</p></div>
+    </div>
+    <div class="tag anim" style="--d:6">The place where any frontier model is held accountable.</div>
+  </div>
+</section>
+
+<!-- ========================= 15. BUSINESS MODEL ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Business model</div>
+    <h2 class="anim" style="--d:1">Simple subscriptions, plus a marketplace that compounds.</h2>
+    <div class="mm anim" style="--d:2">You pay OpenAI for the AI. You pay UnClick for the agent infrastructure.</div>
+    <div class="tiers">
+      <div class="tier anim" style="--d:3"><div class="name">Free</div><div class="price">$0</div><div class="for">The full toolbox. 100 calls a day. Self-hosted memory.</div></div>
+      <div class="tier pop anim" style="--d:4"><div class="badge">Most popular</div><div class="name">Pro</div><div class="price">$29<small>/mo</small></div><div class="for">Unlimited calls. Managed memory with nightly fact extraction and a dashboard.</div></div>
+      <div class="tier anim" style="--d:5"><div class="name">Team</div><div class="price">$79<small>/mo</small></div><div class="for">Up to 5 seats. Shared business context and team observability.</div></div>
+      <div class="tier anim" style="--d:6"><div class="name">Enterprise</div><div class="price">Custom</div><div class="for">SSO, on-prem and custom tooling. Sales-led.</div></div>
+    </div>
+    <p class="market-note small anim" style="--d:7"><b style="color:var(--teal-deep)">The second engine:</b> a developer marketplace. Builders ship tools and keep 80% of what they earn; UnClick takes 20%. Subscription-only billing means we never resell AI tokens, so provider price swings cannot touch our margin.</p>
+  </div>
+</section>
+
+<!-- ========================= 16. MARKET ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Market</div>
+    <h2 class="anim" style="--d:1">Every agent user. <span class="tealtext">Whichever AI they use.</span></h2>
+    <div class="aud">
+      <div class="card anim" style="--d:2"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 6a3 3 0 0 1 0 6M15 20a6 6 0 0 1 6-6"/></svg></span>Businesses &amp; creators</h3><p>Millions already pay for Claude, ChatGPT and Cursor and do not want to wire up six servers by hand. They want their agent to just work.</p></div>
+      <div class="card anim" style="--d:3"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/></svg></span>Developers</h3><p>Builders who want distribution and a way to earn from the tools they make. UnClick is the shelf and the checkout, all at once.</p></div>
+    </div>
+    <div class="card mt24 anim" style="--d:4;background:linear-gradient(135deg,rgba(97,193,196,.1),rgba(97,193,196,.03));border-color:rgba(97,193,196,.4)">
+      <p style="margin:0;font-size:clamp(14px,1.6vw,19px);color:var(--ink);font-weight:500;line-height:1.5">Because we are the <b>substrate, not a competitor</b>, our market is the entire agent ecosystem, and it grows every single time a new harness or a new model launches.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 17. TRACTION ========================= -->
+<section class="slide light">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">Where we are today</div>
+    <h2 class="anim" style="--d:1">Live, in the wild, at <span class="tealtext">unclick.world</span></h2>
+    <div class="livegrid mt16">
+      <div class="live anim" style="--d:2"><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4L19 6"/></svg></span><div><div class="lt">The catalog is live</div><div class="ld">450+ endpoints across 60+ integrations, callable today.</div></div></div>
+      <div class="live anim" style="--d:3"><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4L19 6"/></svg></span><div><div class="lt">Memory engine in production</div><div class="ld">Six-layer, user-owned, cross-session memory.</div></div></div>
+      <div class="live anim" style="--d:4"><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4L19 6"/></svg></span><div><div class="lt">Works across every major client</div><div class="ld">Claude, ChatGPT, Cursor, Copilot, Windsurf and more.</div></div></div>
+      <div class="live anim" style="--d:5"><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4L19 6"/></svg></span><div><div class="lt">AutoPilot fleet running</div><div class="ld">Governed multi-agent pipeline with safety gates and audit.</div></div></div>
+      <div class="live anim" style="--d:6"><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4L19 6"/></svg></span><div><div class="lt">Pricing live</div><div class="ld">Free, Pro, Team and Enterprise tiers shipped.</div></div></div>
+      <div class="live anim" style="--d:7"><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4L19 6"/></svg></span><div><div class="lt">Australian made</div><div class="ld">Built in Melbourne, with data-sovereignty options.</div></div></div>
+    </div>
+    <div class="placeholder anim" style="--d:8">Add your live traction here &rarr; active users &middot; calls per month &middot; MRR &middot; week-on-week growth</div>
+  </div>
+</section>
+
+<!-- ========================= 18. VISION (dark) ========================= -->
+<section class="slide dark">
+  <div class="inner">
+    <div class="eyebrow anim" style="--d:0">The vision</div>
+    <h2 class="anim" style="--d:1;color:#fff">The trust layer for the entire <span class="grad">agent economy.</span></h2>
+    <p class="lead anim" style="--d:2" style="color:#bcd9dd">Today, UnClick is the invisible plumbing that makes agents useful. Tomorrow, it is the place where any AI, from any lab, is held accountable: every action proven, every memory owned by you, every job traceable.</p>
+    <div class="vision-big anim" style="--d:3">Where AI belongs. <span class="grad">Humans welcome.</span></div>
+  </div>
+</section>
+
+<!-- ========================= 19. ASK / CLOSE (dark) ========================= -->
+<section class="slide dark">
+  <div class="inner">
+    <div class="cover-logo anim" style="--d:0"><svg class="mark"><use href="#bot"/></svg><span class="word">UnClick</span></div>
+    <div class="eyebrow anim" style="--d:1">Join us</div>
+    <h2 class="anim" style="--d:2;color:#fff">Let's build <span class="grad">where AI belongs.</span></h2>
+    <div class="ask-list">
+      <div class="ai anim" style="--d:3"><span class="n">01</span><div><b>Grow the catalog</b> &middot; more tools, more integrations, more one-click connections.</div></div>
+      <div class="ai anim" style="--d:4"><span class="n">02</span><div><b>Open the marketplace</b> &middot; turn on developer payouts and the two-sided flywheel.</div></div>
+      <div class="ai anim" style="--d:5"><span class="n">03</span><div><b>Scale the AutoPilot fleet</b> &middot; more governed autonomy, more proof, more throughput.</div></div>
+    </div>
+    <div class="placeholder anim" style="--d:6;border-color:rgba(134,218,221,.5);background:rgba(97,193,196,.1);color:var(--teal-bright)">Add your ask here &rarr; we are raising $X to reach Y over the next N months</div>
+    <div class="contact anim" style="--d:7">
+      <span><a href="https://unclick.world">unclick.world</a></span><span class="sep">|</span>
+      <span><a href="mailto:creativelead@malamutemayhem.com">creativelead@malamutemayhem.com</a></span><span class="sep">|</span>
+      <span>Built in Melbourne, Australia</span>
+    </div>
+  </div>
+</section>
+
+</div><!-- /deck -->
+
+<!-- chrome -->
+<div class="brandtag"><svg class="mark"><use href="#bot"/></svg>UnClick &middot; Where AI belongs. Humans welcome.</div>
+<div class="chrome">
+  <button class="navbtn" id="prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <span class="counter" id="counter">1 / 19</span>
+  <button class="navbtn" id="next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg></button>
+</div>
+<div class="hint" id="hint"><b>&larr; &rarr;</b> navigate <span style="opacity:.4">|</span> <kbd>F</kbd> fullscreen <span style="opacity:.4">|</span> <kbd>P</kbd> print to PDF</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var i = 0;
+  var progress = document.getElementById('progress');
+  var counter = document.getElementById('counter');
+  var hint = document.getElementById('hint');
+
+  function clamp(n){ return Math.max(0, Math.min(total-1, n)); }
+  function show(n){
+    i = clamp(n);
+    slides.forEach(function(s,k){ s.classList.toggle('active', k===i); });
+    progress.style.width = (i/(total-1)*100) + '%';
+    counter.textContent = (i+1) + ' / ' + total;
+    if (location.hash !== '#'+(i+1)) history.replaceState(null,'','#'+(i+1));
+  }
+  function next(){ show(i+1); }
+  function prev(){ show(i-1); }
+
+  document.getElementById('next').addEventListener('click', next);
+  document.getElementById('prev').addEventListener('click', prev);
+
+  window.addEventListener('hashchange', function(){
+    var n = parseInt((location.hash||'').replace('#',''),10);
+    if (!isNaN(n) && (n-1)!==i) show(n-1);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey||e.ctrlKey||e.altKey) return;
+    var k = e.key;
+    if (k==='ArrowRight'||k==='PageDown'||k===' '||k==='Enter'){ next(); e.preventDefault(); }
+    else if (k==='ArrowLeft'||k==='PageUp'){ prev(); e.preventDefault(); }
+    else if (k==='Home'){ show(0); }
+    else if (k==='End'){ show(total-1); }
+    else if (k==='f'||k==='F'){ toggleFs(); }
+    else if (k==='p'||k==='P'){ document.body.classList.toggle('printmode'); }
+    else if (k>='1'&&k<='9'){ /* jump by tens not needed */ }
+  });
+
+  // touch swipe
+  var x0=null;
+  document.addEventListener('touchstart', function(e){ x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0===null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50){ dx<0 ? next() : prev(); }
+    x0=null;
+  }, {passive:true});
+
+  function toggleFs(){
+    if (!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){})(); }
+    else { (document.exitFullscreen||function(){})(); }
+  }
+
+  // start from hash if present
+  var start = parseInt((location.hash||'').replace('#',''),10);
+  show(isNaN(start) ? 0 : start-1);
+
+  // fade the hint
+  setTimeout(function(){ hint.style.opacity='0'; }, 5200);
+  setTimeout(function(){ hint.style.display='none'; }, 6000);
+})();
+</script>
+</body>
+</html>
