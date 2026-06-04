@@ -32,6 +32,7 @@ import {
   type MemoryTypedLinkStoredRow,
 } from "./typed-links.js";
 import {
+  rankLocalMemorySearchRows,
   scoreLocalMemoryContent,
   tokenizeLocalMemoryQuery,
   writeMemoryTaxonomySnapshotsToLibrary,
@@ -339,10 +340,7 @@ export class LocalBackend implements MemoryBackend {
           category: fact.category,
           confidence: fact.confidence,
           created_at: fact.created_at,
-          final_score: score.finalScore,
-          rrf_score: 0,
-          kw_score: score.matchedTokenCount,
-          cosine_score: 0,
+          score,
         };
       });
 
@@ -363,10 +361,7 @@ export class LocalBackend implements MemoryBackend {
           category: "session",
           confidence: 1,
           created_at: session.created_at,
-          final_score: score.finalScore,
-          rrf_score: 0,
-          kw_score: score.matchedTokenCount,
-          cosine_score: 0,
+          score,
         };
       });
 
@@ -387,20 +382,11 @@ export class LocalBackend implements MemoryBackend {
           category: row.role,
           confidence: 0.5,
           created_at: row.created_at,
-          final_score: score.finalScore,
-          rrf_score: 0,
-          kw_score: score.matchedTokenCount,
-          cosine_score: 0,
+          score,
         };
       });
 
-    return [...facts, ...sessions, ...conversations]
-      .filter((row) => row.final_score > 0)
-      .sort((a, b) => {
-        const scoreDiff = b.final_score - a.final_score;
-        return scoreDiff !== 0 ? scoreDiff : b.created_at.localeCompare(a.created_at);
-      })
-      .slice(0, maxResults);
+    return rankLocalMemorySearchRows([...facts, ...sessions, ...conversations], maxResults, asOf);
   }
 
   async searchFacts(query: string): Promise<unknown> {
