@@ -32,7 +32,17 @@ import type {
   MemoryTaxonomySnapshotWriteResult,
   MemoryTaxonomySnapshotSource,
   SaveTypedLinkCandidatesResult,
+  MemoryPassportAuditRecord,
+  MemoryPassportExportInput,
+  MemoryPassportExportResult,
+  MemoryPassportImportInput,
+  MemoryPassportImportResult,
 } from "./types.js";
+import {
+  buildMemoryPassportBundle,
+  buildMemoryPassportImportResult,
+  verifyMemoryPassportBundle,
+} from "./passport.js";
 import {
   filterAndRankMemoryTypedLinks,
   type MemoryTypedLinkCandidate,
@@ -1507,6 +1517,190 @@ export class SupabaseBackend implements MemoryBackend {
   async manageDecay(): Promise<unknown> {
     return this.rpc("manage_decay", {}, "mc_manage_decay", {});
   }
+
+  // --- lane-10: eval harness and memory passport ---
+  async exportMemoryPassport(input: MemoryPassportExportInput = {}): Promise<MemoryPassportExportResult> {
+    const [businessContext, facts, sessions] = await Promise.all([
+      this.readPassportRows(
+        this.tables.business_context,
+        "category,key,value,priority,created_at,updated_at",
+        "category"
+      ),
+      this.readPassportRows(
+        this.tables.extracted_facts,
+        [
+          "id",
+          "fact",
+          "category",
+          "confidence",
+          "source_session_id",
+          "source_type",
+          "startup_fact_kind",
+          "status",
+          "superseded_by",
+          "invalidated_at",
+          "invalidation_reason",
+          "invalidated_by_session_id",
+          "valid_from",
+          "valid_to",
+          "created_at",
+          "updated_at",
+          "extractor_id",
+          "prompt_version",
+          "model_id",
+          "commit_sha",
+          "pr_number",
+        ].join(","),
+        "created_at"
+      ),
+      input.include_sessions === false
+        ? Promise.resolve([])
+        : this.readPassportRows(
+            this.tables.session_summaries,
+            "session_id,summary,topics,open_loops,decisions,platform,duration_minutes,created_at",
+            "created_at"
+          ),
+    ]);
+    const result = buildMemoryPassportBundle({
+      ...input,
+      source_backend: "supabase",
+      business_context: businessContext,
+      facts,
+      session_summaries: sessions,
+    });
+    await this.recordPassportAudit(result.audit);
+    return result;
+  }
+
+  async importMemoryPassport(input: MemoryPassportImportInput): Promise<MemoryPassportImportResult> {
+    const verification = verifyMemoryPassportBundle(input.bundle, input.signing_secret);
+    if (!verification.verified) {
+      throw new Error(`Memory passport verification failed: ${verification.reason ?? "unknown"}`);
+    }
+
+    const dryRun = input.dry_run === true;
+    let insertedBusinessContext = 0;
+    let insertedFacts = 0;
+    let insertedSessions = 0;
+    let skippedExisting = 0;
+
+    for (const row of input.bundle.identity.business_context) {
+      if (!dryRun) {
+        await this.setBusinessContext(row.category, row.key, row.value, row.priority);
+      }
+      insertedBusinessContext++;
+    }
+
+    for (const row of input.bundle.memory.facts) {
+      if (await this.passportFactExists(row.fact)) {
+        skippedExisting++;
+        continue;
+      }
+      if (!dryRun) {
+        await this.addFact({
+          fact: row.fact,
+          category: row.category,
+          confidence: row.confidence,
+          source_session_id: row.source_session_id ?? input.source_session_id,
+          startup_fact_kind: row.startup_fact_kind ?? "durable",
+          valid_from: row.valid_from ?? undefined,
+          extractor_id: row.extractor_id ?? undefined,
+          prompt_version: row.prompt_version ?? undefined,
+          model_id: row.model_id ?? undefined,
+          commit_sha: row.commit_sha ?? undefined,
+          pr_number: row.pr_number,
+        });
+      }
+      insertedFacts++;
+    }
+
+    for (const row of input.bundle.memory.session_summaries) {
+      if (await this.passportSessionExists(row.session_id, row.summary)) {
+        skippedExisting++;
+        continue;
+      }
+      if (!dryRun) {
+        await this.writeSessionSummary({
+          session_id: row.session_id,
+          summary: row.summary,
+          topics: row.topics,
+          open_loops: row.open_loops,
+          decisions: row.decisions,
+          platform: row.platform,
+          duration_minutes: row.duration_minutes,
+        });
+      }
+      insertedSessions++;
+    }
+
+    const result = buildMemoryPassportImportResult({
+      bundle: input.bundle,
+      inserted_facts: insertedFacts,
+      inserted_business_context: insertedBusinessContext,
+      inserted_sessions: insertedSessions,
+      skipped_existing: skippedExisting,
+      dry_run: dryRun,
+    });
+    await this.recordPassportAudit(result.audit);
+    return result;
+  }
+
+  private async readPassportRows(table: string, columns: string, orderBy: string): Promise<Array<Record<string, unknown>>> {
+    let query = this.client.from(table).select(columns).order(orderBy);
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await query;
+    if (error) throw pgError(`passport select ${table}`, error);
+    return (data ?? []) as unknown as Array<Record<string, unknown>>;
+  }
+
+  private async passportFactExists(fact: string): Promise<boolean> {
+    let query = this.client
+      .from(this.tables.extracted_facts)
+      .select("id")
+      .eq("fact", fact)
+      .limit(1);
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await query.maybeSingle();
+    if (error) throw pgError("passport fact exists", error);
+    return Boolean(data);
+  }
+
+  private async passportSessionExists(sessionId: string, summary: string): Promise<boolean> {
+    let query = this.client
+      .from(this.tables.session_summaries)
+      .select("id")
+      .eq("session_id", sessionId)
+      .eq("summary", summary)
+      .limit(1);
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await query.maybeSingle();
+    if (error) throw pgError("passport session exists", error);
+    return Boolean(data);
+  }
+
+  private async recordPassportAudit(audit: MemoryPassportAuditRecord): Promise<void> {
+    const table = this.tenancy.mode === "managed" ? "mc_memory_passport_audit" : "memory_passport_audit";
+    try {
+      await this.client.from(table).insert(this.withTenancy({
+        operation: audit.operation,
+        bundle_version: audit.bundle_version,
+        signature_digest: audit.signature_digest,
+        exported_records: audit.exported_records,
+        imported_records: audit.imported_records,
+        redacted_records: audit.redacted_records,
+        credential_leakage: audit.credential_leakage,
+      }));
+    } catch {
+      // Passport audit must not block an otherwise valid export/import.
+    }
+  }
+  // --- end lane-10 ---
 
   async getMemoryStatus(): Promise<unknown> {
     const tableKeys: Array<keyof TableNames> = [

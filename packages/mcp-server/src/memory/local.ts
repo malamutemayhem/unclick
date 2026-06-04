@@ -24,7 +24,17 @@ import type {
   MemoryTaxonomySnapshotWriteOptions,
   MemoryTaxonomySnapshotWriteResult,
   SaveTypedLinkCandidatesResult,
+  MemoryPassportAuditRecord,
+  MemoryPassportExportInput,
+  MemoryPassportExportResult,
+  MemoryPassportImportInput,
+  MemoryPassportImportResult,
 } from "./types.js";
+import {
+  buildMemoryPassportBundle,
+  buildMemoryPassportImportResult,
+  verifyMemoryPassportBundle,
+} from "./passport.js";
 import {
   filterAndRankMemoryTypedLinks,
   type MemoryTypedLinkCandidate,
@@ -150,8 +160,14 @@ interface FactRow {
   valid_to?: string;
   created_at: string;
   updated_at: string;
+  extractor_id?: string;
+  prompt_version?: string;
+  model_id?: string;
   commit_sha?: string;
   pr_number?: number;
+  source_agent_id?: string;
+  source_ref?: string;
+  receipt_id?: string;
 }
 
 interface ConversationRow {
@@ -175,6 +191,11 @@ interface TypedLinkRow extends MemoryTypedLinkStoredRow {
   evidence_end: number;
   evidence_text: string;
   redaction_state: MemoryTypedLinkStoredRow["redaction_state"];
+  created_at: string;
+}
+
+interface PassportAuditRow extends MemoryPassportAuditRecord {
+  id: string;
   created_at: string;
 }
 
@@ -481,6 +502,9 @@ export class LocalBackend implements MemoryBackend {
       valid_to: undefined,
       created_at: now(),
       updated_at: now(),
+      extractor_id: data.extractor_id,
+      prompt_version: data.prompt_version,
+      model_id: data.model_id,
       commit_sha: data.commit_sha,
       pr_number: data.pr_number,
     });
@@ -802,6 +826,114 @@ export class LocalBackend implements MemoryBackend {
     writeTable("extracted_facts", rows);
     return { invalidated_at: invalidatedAt };
   }
+
+  // --- lane-10: eval harness and memory passport ---
+  async exportMemoryPassport(input: MemoryPassportExportInput = {}): Promise<MemoryPassportExportResult> {
+    const result = buildMemoryPassportBundle({
+      ...input,
+      source_backend: "local",
+      business_context: readTable<Record<string, unknown>>("business_context"),
+      facts: readTable<Record<string, unknown>>("extracted_facts"),
+      session_summaries: readTable<Record<string, unknown>>("session_summaries"),
+    });
+    this.recordPassportAudit(result.audit);
+    return result;
+  }
+
+  async importMemoryPassport(input: MemoryPassportImportInput): Promise<MemoryPassportImportResult> {
+    const verification = verifyMemoryPassportBundle(input.bundle, input.signing_secret);
+    if (!verification.verified) {
+      throw new Error(`Memory passport verification failed: ${verification.reason ?? "unknown"}`);
+    }
+
+    const dryRun = input.dry_run === true;
+    let insertedBusinessContext = 0;
+    let insertedFacts = 0;
+    let insertedSessions = 0;
+    let skippedExisting = 0;
+
+    const existingFacts = new Set(
+      readTable<FactRow>("extracted_facts").map((row) => row.fact.toLowerCase().trim())
+    );
+    const existingSessions = new Set(
+      readTable<SessionRow>("session_summaries").map((row) => `${row.session_id}\n${row.summary}`)
+    );
+
+    for (const row of input.bundle.identity.business_context) {
+      if (!dryRun) {
+        await this.setBusinessContext(row.category, row.key, row.value, row.priority);
+      }
+      insertedBusinessContext++;
+    }
+
+    for (const row of input.bundle.memory.facts) {
+      const key = row.fact.toLowerCase().trim();
+      if (existingFacts.has(key)) {
+        skippedExisting++;
+        continue;
+      }
+      if (!dryRun) {
+        await this.addFact({
+          fact: row.fact,
+          category: row.category,
+          confidence: row.confidence,
+          source_session_id: row.source_session_id ?? input.source_session_id,
+          startup_fact_kind: row.startup_fact_kind ?? "durable",
+          valid_from: row.valid_from ?? undefined,
+          extractor_id: row.extractor_id ?? undefined,
+          prompt_version: row.prompt_version ?? undefined,
+          model_id: row.model_id ?? undefined,
+          commit_sha: row.commit_sha ?? undefined,
+          pr_number: row.pr_number,
+        });
+        existingFacts.add(key);
+      }
+      insertedFacts++;
+    }
+
+    for (const row of input.bundle.memory.session_summaries) {
+      const key = `${row.session_id}\n${row.summary}`;
+      if (existingSessions.has(key)) {
+        skippedExisting++;
+        continue;
+      }
+      if (!dryRun) {
+        await this.writeSessionSummary({
+          session_id: row.session_id,
+          summary: row.summary,
+          topics: row.topics,
+          open_loops: row.open_loops,
+          decisions: row.decisions,
+          platform: row.platform,
+          duration_minutes: row.duration_minutes,
+        });
+        existingSessions.add(key);
+      }
+      insertedSessions++;
+    }
+
+    const result = buildMemoryPassportImportResult({
+      bundle: input.bundle,
+      inserted_facts: insertedFacts,
+      inserted_business_context: insertedBusinessContext,
+      inserted_sessions: insertedSessions,
+      skipped_existing: skippedExisting,
+      dry_run: dryRun,
+    });
+    this.recordPassportAudit(result.audit);
+    return result;
+  }
+
+  private recordPassportAudit(audit: MemoryPassportAuditRecord): void {
+    const rows = readTable<PassportAuditRow>("memory_passport_audit");
+    rows.push({
+      id: uuid(),
+      created_at: now(),
+      ...audit,
+    });
+    writeTable("memory_passport_audit", rows);
+  }
+  // --- end lane-10 ---
 }
 
 function typedLinkKey(row: Pick<TypedLinkRow, "source_kind" | "source_id" | "relation" | "target_kind" | "target_text">): string {

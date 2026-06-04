@@ -174,6 +174,125 @@ export interface MemoryTaxonomySnapshotWriteResult {
   }>;
 }
 
+export type MemoryPassportStartupFactKind = "durable" | "operational" | "excluded" | "legacy_unspecified";
+
+export interface MemoryPassportBusinessContextRecord {
+  category: string;
+  key: string;
+  value: unknown;
+  priority: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MemoryPassportFactRecord {
+  id?: string;
+  fact: string;
+  category: string;
+  confidence: number;
+  source_session_id?: string | null;
+  source_type?: string;
+  startup_fact_kind?: MemoryPassportStartupFactKind;
+  status?: string;
+  superseded_by?: string | null;
+  invalidated_at?: string | null;
+  invalidation_reason?: string | null;
+  invalidated_by_session_id?: string | null;
+  valid_from?: string | null;
+  valid_to?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  extractor_id?: string | null;
+  prompt_version?: string | null;
+  model_id?: string | null;
+  commit_sha?: string | null;
+  pr_number?: number;
+  source_agent_id?: string | null;
+  source_ref?: string | null;
+  receipt_id?: string | null;
+}
+
+export interface MemoryPassportSessionRecord {
+  session_id: string;
+  summary: string;
+  topics: string[];
+  open_loops: string[];
+  decisions: string[];
+  platform: string;
+  duration_minutes?: number;
+  created_at?: string;
+}
+
+export interface MemoryPassportSignature {
+  algorithm: "hmac-sha256";
+  key_id: string;
+  value: string;
+}
+
+export interface MemoryPassportBundle {
+  version: "memory-passport-v1";
+  exported_at: string;
+  subject_id?: string;
+  source_backend: "local" | "supabase";
+  identity: {
+    business_context: MemoryPassportBusinessContextRecord[];
+  };
+  memory: {
+    facts: MemoryPassportFactRecord[];
+    session_summaries: MemoryPassportSessionRecord[];
+  };
+  summary: {
+    exported_records: number;
+    redacted_records: number;
+  };
+  signature: MemoryPassportSignature;
+}
+
+export interface MemoryPassportMetrics {
+  passport_roundtrip_fidelity: number | null;
+  passport_credential_leakage: number;
+}
+
+export interface MemoryPassportAuditRecord {
+  operation: "export" | "import";
+  bundle_version: string;
+  signature_digest: string;
+  exported_records: number;
+  imported_records: number;
+  redacted_records: number;
+  credential_leakage: number;
+}
+
+export interface MemoryPassportExportInput {
+  subject_id?: string;
+  include_sessions?: boolean;
+  signing_secret?: string;
+}
+
+export interface MemoryPassportExportResult {
+  bundle: MemoryPassportBundle;
+  metrics: MemoryPassportMetrics;
+  audit: MemoryPassportAuditRecord;
+}
+
+export interface MemoryPassportImportInput {
+  bundle: MemoryPassportBundle;
+  dry_run?: boolean;
+  signing_secret?: string;
+  source_session_id?: string;
+}
+
+export interface MemoryPassportImportResult {
+  imported: boolean;
+  dry_run: boolean;
+  inserted_facts: number;
+  inserted_business_context: number;
+  inserted_sessions: number;
+  skipped_existing: number;
+  metrics: MemoryPassportMetrics;
+  audit: MemoryPassportAuditRecord;
+}
+
 export interface MemoryBackend {
   /** Load startup context (business context + recent sessions + hot facts). */
   getStartupContext(numSessions: number): Promise<unknown>;
@@ -237,4 +356,9 @@ export interface MemoryBackend {
 
   /** Mark a fact as invalidated (does not delete it). Writes an audit row. */
   invalidateFact(input: InvalidateFactInput): Promise<{ invalidated_at: string }>;
+
+  // --- lane-10: eval harness and memory passport ---
+  exportMemoryPassport(input?: MemoryPassportExportInput): Promise<MemoryPassportExportResult>;
+  importMemoryPassport(input: MemoryPassportImportInput): Promise<MemoryPassportImportResult>;
+  // --- end lane-10 ---
 }
