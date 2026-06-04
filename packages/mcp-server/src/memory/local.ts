@@ -17,6 +17,8 @@ import type {
   SessionSummaryInput,
   FactInput,
   InvalidateFactInput,
+  ForgetInput,
+  ForgetReceipt,
   ConversationInput,
   CodeInput,
   LibraryDocInput,
@@ -85,6 +87,14 @@ import {
   writeGateCandidateFromRankedSearchRow,
 } from "./write-gate.js";
 // --- end lane-07 ---
+// --- lane-05: true-forget ---
+import {
+  FORGOTTEN_TOMBSTONE_TEXT,
+  factSnapshotPointer,
+  scrubForgottenFactFromSnapshots,
+  sessionEventBelongsToForgottenFact,
+} from "./forget.js";
+// --- end lane-05 ---
 
 function dataDir(): string {
   return process.env.MEMORY_LOCAL_DATA_DIR || path.join(os.homedir(), ".unclick", "memory");
@@ -256,6 +266,10 @@ interface FactRow {
   consolidation_group_id?: string | null;
   consolidation_receipt?: Record<string, unknown> | null;
   // --- end lane-08 ---
+  // --- lane-05: true-forget tombstone fields ---
+  forgotten_at?: string;
+  forgotten_reason?: string;
+  // --- end lane-05 ---
 }
 
 interface ConversationRow {
@@ -1248,6 +1262,95 @@ export class LocalBackend implements MemoryBackend {
     writeTable("extracted_facts", rows);
     return { invalidated_at: invalidatedAt };
   }
+
+  // --- lane-05: true-forget (MEMORY_HARD_FORGET_ENABLED) ---
+  async forgetMemory(input: ForgetInput): Promise<ForgetReceipt> {
+    const rows = readTable<FactRow>("extracted_facts");
+    const fact = rows.find((row) => row.id === input.fact_id);
+    if (!fact) throw new Error(`Fact ${input.fact_id} not found`);
+
+    const originalText = fact.fact;
+    const forgottenAt = now();
+
+    // 1. Tombstone the fact row: move it out of every status='active' read path,
+    //    invalidate it bi-temporally, and scrub the stored content so it cannot
+    //    be recovered. The id and the forgotten_at marker remain for audit.
+    fact.status = "forgotten";
+    fact.invalidated_at = forgottenAt;
+    fact.valid_to = forgottenAt;
+    fact.invalidation_reason = input.reason;
+    fact.invalidated_by_session_id = input.session_id;
+    fact.forgotten_at = forgottenAt;
+    fact.forgotten_reason = input.reason;
+    fact.fact = FORGOTTEN_TOMBSTONE_TEXT;
+    fact.decay_tier = "cold";
+    fact.updated_at = forgottenAt;
+    writeTable("extracted_facts", rows);
+
+    // 2. Delete typed links derived from this fact.
+    const links = readTable<TypedLinkRow>("memory_typed_links");
+    const keptLinks = links.filter(
+      (row) => !(row.source_id === input.fact_id && row.source_kind === "fact")
+    );
+    const typedLinksDeleted = links.length - keptLinks.length;
+    if (typedLinksDeleted > 0) writeTable("memory_typed_links", keptLinks);
+
+    // 2b. Sweep Worker 9's episodic store: drop session_events linked to the
+    //     forgotten fact (source_fact_id) or carrying its verbatim content
+    //     (fact_route episodes). No-op when the typed-split store is absent.
+    const events = readTable<{ source_fact_id?: string; content?: string }>("session_events");
+    const keptEvents = events.filter(
+      (row) => !sessionEventBelongsToForgottenFact(row, input.fact_id, originalText)
+    );
+    const sessionEventsDeleted = events.length - keptEvents.length;
+    if (sessionEventsDeleted > 0) writeTable("session_events", keptEvents);
+
+    // 3. Scrub the forgotten fact out of derived taxonomy snapshots.
+    const snapshots = await scrubForgottenFactFromSnapshots(this, input.fact_id);
+
+    // 4. Purge library version-history that still embeds the fact pointer, so the
+    //    forgotten content is not recoverable from an archived snapshot version.
+    const pointer = factSnapshotPointer(input.fact_id);
+    const history = readTable<KnowledgeHistoryRow>("knowledge_library_history");
+    const keptHistory = history.filter((row) => !(row.content ?? "").includes(pointer));
+    const historyPurged = history.length - keptHistory.length;
+    if (historyPurged > 0) writeTable("knowledge_library_history", keptHistory);
+
+    // 5. Verify the forgotten fact no longer surfaces in any recall path.
+    const verifiedClean =
+      snapshots.clean && !(await this.factSurfacesInRecall(input.fact_id, originalText));
+
+    return {
+      fact_id: input.fact_id,
+      backend: "local",
+      forgotten_at: forgottenAt,
+      fact_tombstoned: true,
+      content_scrubbed: true,
+      embedding_cleared: true, // local backend stores no embeddings
+      typed_links_deleted: typedLinksDeleted,
+      snapshots_regenerated: snapshots.snapshots_regenerated,
+      snapshots_neutralized: snapshots.snapshots_neutralized,
+      history_entries_purged: historyPurged,
+      session_events_deleted: sessionEventsDeleted,
+      surfaces_swept: [
+        "extracted_facts",
+        "memory_typed_links",
+        "session_events",
+        "knowledge_library(memory_snapshot)",
+        "knowledge_library_history",
+      ],
+      verified_clean: verifiedClean,
+    };
+  }
+
+  /** Post-forget assertion: the fact id must not appear in fact or recall search. */
+  private async factSurfacesInRecall(factId: string, originalText: string): Promise<boolean> {
+    const facts = (await this.searchFacts(originalText)) as Array<{ id?: string }>;
+    if (facts.some((row) => row?.id === factId)) return true;
+    const recall = (await this.searchMemory(originalText, 50)) as Array<{ id?: string }>;
+    return recall.some((row) => row?.id === factId);
+  }
+  // --- end lane-05 ---
 }
 
 function typedLinkKey(row: Pick<TypedLinkRow, "source_kind" | "source_id" | "relation" | "target_kind" | "target_text">): string {
