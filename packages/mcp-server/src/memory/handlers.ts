@@ -38,8 +38,10 @@ import {
   countCorrections,
   emitCorrectionConsultMetric,
 } from "./corrections.js";
+import { isMemoryPassportEnabled, MEMORY_PASSPORT_FLAG } from "./passport.js";
 import type {
   MemoryBackend,
+  MemoryPassportBundle,
   MemoryProfileCard,
   MemoryProfileCardReceipt,
   MemoryProfileCardSourceKind,
@@ -80,6 +82,10 @@ function arr(v: unknown): string[] {
 
 function bool(v: unknown, fallback = false): boolean {
   return typeof v === "boolean" ? v : fallback;
+}
+
+function memoryPassportSigningSecret(): string | undefined {
+  return process.env.MEMORY_PASSPORT_SIGNING_SECRET;
 }
 
 function capText(text: string, max: number): string {
@@ -1167,4 +1173,42 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return { corrections: relevant, count: relevant.length, total, flag_enabled: true };
   },
   // --- end lane-05 ---
+  // --- lane-10: eval harness and memory passport ---
+  async export_memory_passport(args) {
+    if (!isMemoryPassportEnabled()) {
+      return { enabled: false, flag: MEMORY_PASSPORT_FLAG };
+    }
+    const signingSecret = memoryPassportSigningSecret();
+    if (!signingSecret) {
+      throw new Error("MEMORY_PASSPORT_SIGNING_SECRET is required when MEMORY_PASSPORT_ENABLED is on");
+    }
+    const db = await getBackend();
+    return db.exportMemoryPassport({
+      subject_id: typeof args.subject_id === "string" ? args.subject_id : undefined,
+      include_sessions: bool(args.include_sessions, true),
+      signing_secret: signingSecret,
+    });
+  },
+
+  async import_memory_passport(args) {
+    if (!isMemoryPassportEnabled()) {
+      return { enabled: false, flag: MEMORY_PASSPORT_FLAG };
+    }
+    const signingSecret = memoryPassportSigningSecret();
+    if (!signingSecret) {
+      throw new Error("MEMORY_PASSPORT_SIGNING_SECRET is required when MEMORY_PASSPORT_ENABLED is on");
+    }
+    const bundle = args.bundle as MemoryPassportBundle | undefined;
+    if (!bundle || typeof bundle !== "object") {
+      throw new Error("bundle is required for import_memory_passport");
+    }
+    const db = await getBackend();
+    return db.importMemoryPassport({
+      bundle,
+      dry_run: bool(args.dry_run, false),
+      signing_secret: signingSecret,
+      source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
+    });
+  },
+  // --- end lane-10 ---
 };
