@@ -20,6 +20,11 @@ import { buildSearchMemoryCard } from "../cards/search-memory-card.js";
 import { extractMemoryTypedLinkCandidates } from "./typed-links.js";
 import { isTypedMemorySplitEnabled, normalizeMemoryClass } from "./typed-memory.js";
 import {
+  autoCaptureFromTurn,
+  codeAutoCaptureEnabled,
+  libraryAutoCaptureEnabled,
+} from "./auto-capture.js";
+import {
   isFlagEnabled,
   MEMORY_CONSOLIDATION_FLAG,
   MEMORY_DECAY_V2_FLAG,
@@ -856,6 +861,15 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       source_id: receipt.receipt_id,
       text: str(args.content),
     });
+    // Auto-capture (flag-gated, default off, best-effort). When both flags are
+    // off this is a no-op and the write path is byte-identical to before.
+    if (codeAutoCaptureEnabled() || libraryAutoCaptureEnabled()) {
+      await autoCaptureFromTurn(db, {
+        session_id: str(args.session_id),
+        role: str(args.role),
+        content: str(args.content),
+      }).catch(() => undefined);
+    }
     return receipt;
   },
 
