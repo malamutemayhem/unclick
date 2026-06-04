@@ -29,6 +29,14 @@ export interface FactInput {
   // Git linkage (Anti-Stomp)
   commit_sha?: string;
   pr_number?: number;
+  // --- lane-03: provenance & receipts (persisted only when MEMORY_PROVENANCE_ENABLED) ---
+  /** Canonical agent-identity column: which agent learned/wrote this fact (owner == source). */
+  source_agent_id?: string;
+  /** Origin pointer (url / tool-call id / message id / pr / commit). Never a secret. */
+  source_ref?: string;
+  /** Linkage to an XPass/AnswerPass/conversation receipt, when one exists. */
+  receipt_id?: string;
+  // --- end lane-03 ---
 }
 
 export type StartupFactKind = "durable" | "operational" | "excluded" | "legacy_unspecified";
@@ -43,6 +51,11 @@ export interface MemoryProfileCardReceipt {
   confidence?: number;
   redaction_state: MemoryReceiptRedactionState;
   last_verified_at?: string | null;
+  // --- lane-03: provenance surfacing (populated only when MEMORY_PROVENANCE_ENABLED) ---
+  source_agent_id?: string | null;
+  source_ref?: string | null;
+  receipt_id?: string | null;
+  // --- end lane-03 ---
 }
 
 export interface MemoryProfileCard {

@@ -18,6 +18,7 @@
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
+import { provenanceWriteFields } from "./provenance.js";
 import type {
   MemoryBackend,
   SessionSummaryInput,
@@ -1024,6 +1025,9 @@ export class SupabaseBackend implements MemoryBackend {
           model_id: data.model_id ?? null,
           commit_sha: data.commit_sha ?? null,
           pr_number: data.pr_number ?? null,
+          // --- lane-03: provenance & receipts (only written when MEMORY_PROVENANCE_ENABLED) ---
+          ...(provenanceWriteFields(data) ?? {}),
+          // --- end lane-03 ---
         })
       )
       .select()
