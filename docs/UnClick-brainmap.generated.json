@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 610,
-    "source_manifest": 190,
-    "pages": 82,
+    "inventory": 616,
+    "source_manifest": 192,
+    "pages": 84,
     "tools": 219,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 48
+      "count": 50
     },
     {
       "id": "public-surfaces",
@@ -63,19 +63,19 @@
       "id": "automations",
       "name": "Automations",
       "meaning": "Scheduled jobs, wake routes, cron workflows, and recurring checks.",
-      "count": 119
+      "count": 121
     },
     {
       "id": "ledgers-and-proof",
       "name": "Ledgers and proof",
       "meaning": "Receipts, audits, evidence, and proof-of-work surfaces.",
-      "count": 6
+      "count": 7
     },
     {
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 10
+      "count": 11
     },
     {
       "id": "modules-and-apps",
@@ -392,6 +392,16 @@
       "tags": []
     },
     {
+      "id": "admin-surfaces-admin-page-admin-truth-rate-src-pages-admin-admintruthrate-tsx-admin-truth-rate",
+      "division": "Admin surfaces",
+      "name": "Admin Truth Rate",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin Truth Rate.",
+      "source": "src/pages/admin/AdminTruthRate.tsx",
+      "route": "/admin/truth-rate",
+      "tags": []
+    },
+    {
       "id": "admin-surfaces-admin-page-admin-users-src-pages-admin-adminusers-tsx-admin-users",
       "division": "Admin surfaces",
       "name": "Admin Users",
@@ -409,6 +419,16 @@
       "meaning": "Admin surface for Admin Ecosystem Pages.",
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
       "route": "/admin/workers",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-xgate-src-pages-admin-adminxgate-tsx-admin-xgate",
+      "division": "Admin surfaces",
+      "name": "Admin XGate",
+      "kind": "admin page",
+      "meaning": "Admin surface for Admin XGate.",
+      "source": "src/pages/admin/AdminXGate.tsx",
+      "route": "/admin/xgate",
       "tags": []
     },
     {
@@ -1472,6 +1492,26 @@
       "tags": []
     },
     {
+      "id": "automations-script-pinballwake-writerlane-live-catalog-scripts-pinballwake-writerlane-live-catalog-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake writerlane live catalog",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-live-catalog.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "automations-script-pinballwake-writerlane-live-catalog-test-scripts-pinballwake-writerlane-live-catalog-test-mjs-no-route",
+      "division": "Automations",
+      "name": "pinballwake writerlane live catalog.test",
+      "kind": "script",
+      "meaning": "PinballWake room, wake, or routing script used by the automation lane.",
+      "source": "scripts/pinballwake-writerlane-live-catalog.test.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "automations-script-pinballwake-writerlane-validator-scripts-pinballwake-writerlane-validator-mjs-no-route",
       "division": "Automations",
       "name": "pinballwake writerlane validator",
@@ -1818,6 +1858,16 @@
       "kind": "ledger",
       "meaning": "Structured evidence, proof freshness, receipts, and DONE trust surface.",
       "source": "docs/agent-observability.md",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "ledgers-and-proof-proof-module-ledger-api-lib-xgate-ledger-ts-no-route",
+      "division": "Ledgers and proof",
+      "name": "ledger",
+      "kind": "proof module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/xgate/ledger.ts",
       "route": "",
       "tags": []
     },
@@ -3789,6 +3839,16 @@
       "meaning": "Primary work source for open, in-progress, done, and dropped chips.",
       "source": "src/pages/admin/AdminJobs.tsx",
       "route": "/admin/jobs",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-boardroom-compat-api-lib-boardroom-compat-ts-no-route",
+      "division": "Source of truth",
+      "name": "boardroom compat",
+      "kind": "state module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/boardroom-compat.ts",
+      "route": "",
       "tags": []
     },
     {
@@ -6464,6 +6524,12 @@
       "src/pages/admin/testpass/TestPassCatalog.tsx"
     ],
     [
+      "/admin/truth-rate",
+      "Admin Truth Rate",
+      "Admin surface for Admin Truth Rate.",
+      "src/pages/admin/AdminTruthRate.tsx"
+    ],
+    [
       "/admin/users",
       "Admin Users",
       "Internal user management.",
@@ -6474,6 +6540,12 @@
       "Admin Workers",
       "Admin surface for Admin Ecosystem Pages.",
       "src/pages/admin/AdminEcosystemPages.tsx"
+    ],
+    [
+      "/admin/xgate",
+      "Admin XGate",
+      "Admin surface for Admin XGate.",
+      "src/pages/admin/AdminXGate.tsx"
     ],
     [
       "/admin/you",
@@ -8096,6 +8168,10 @@
     [
       "test:watch",
       "vitest"
+    ],
+    [
+      "test:writerlane-live-catalog",
+      "node --test scripts/pinballwake-writerlane-live-catalog.test.mjs"
     ]
   ],
   "source_manifest": [
@@ -8146,13 +8222,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "8c0d4c0f0c41",
-      "bytes": 14729
+      "hash": "2b407301ce05",
+      "bytes": 15047
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "2b6e2e9698d4",
-      "bytes": 22091
+      "hash": "18adc5de15d7",
+      "bytes": 24564
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -8186,8 +8262,8 @@
     },
     {
       "source": "package.json",
-      "hash": "80d780561f43",
-      "bytes": 6468
+      "hash": "8079f83c9969",
+      "bytes": 6685
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -8475,9 +8551,19 @@
       "bytes": 21847
     },
     {
+      "source": "src/pages/admin/AdminTruthRate.tsx",
+      "hash": "115c5cce9b90",
+      "bytes": 8868
+    },
+    {
       "source": "src/pages/admin/AdminUsers.tsx",
       "hash": "701e7da2f201",
       "bytes": 863
+    },
+    {
+      "source": "src/pages/admin/AdminXGate.tsx",
+      "hash": "7be724a79f83",
+      "bytes": 20219
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",

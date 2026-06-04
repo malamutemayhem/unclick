@@ -12,6 +12,7 @@ import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
 import { getDisabledApps, filterDisabledTools, isToolDisabled, appForTool } from "./tool-gating.js";
 import { crewsStartRun } from "./crews-tool.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
+import { xgatePreflight } from "./xgate-preflight.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
 import { markContextLoaded, recordToolCall } from "./memory/session-state.js";
 import { searchToolIndex } from "./memory/tool-awareness.js";
@@ -1942,6 +1943,34 @@ export function createServer(): Server {
     trackToolCall(name);
 
     try {
+      // ── XGate preflight (defense in depth): EVERY UnClick tool call is
+      // evaluated before it runs, not just unclick_call. Off by default; only
+      // when UNCLICK_XGATE_ENFORCE=1. A cheap name-based prefilter in
+      // xgatePreflight skips the network hop for ordinary benign reads, so tool
+      // latency is unaffected. Shadow mode (default when enabled) records a
+      // verdict to the ledger but never blocks; only "block" mode stops the
+      // call. Never throws (fails open). The gate logic is single-sourced in the
+      // API (api/lib/xgate); this hook calls it over HTTP.
+      {
+        const gateEndpointId =
+          name === "unclick_call" ? String(args.endpoint_id ?? "") : name;
+        const gateParams = (
+          name === "unclick_call" ? (args.params ?? {}) : args
+        ) as Record<string, unknown>;
+        const xgate = await xgatePreflight(gateEndpointId, gateParams);
+        if (xgate && !xgate.proceed) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `XGate blocked this action (${xgate.gate ?? "xgate"}: ${xgate.ruleId ?? "rule"}). ${xgate.reason ?? ""}`.trim(),
+              },
+            ],
+            isError: true,
+          };
+        }
+      }
+
       // ── Heartbeat protocol: static, read-only AI Seat tether contract ──
       if (name === "heartbeat_protocol") {
         return {
