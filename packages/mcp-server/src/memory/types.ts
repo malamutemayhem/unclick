@@ -193,6 +193,13 @@ export interface MemoryWriteGateCandidate {
   confidence?: number | null;
   content_hash?: string | null;
   created_at?: string | null;
+  source?: "fact" | "session" | "conversation" | string;
+  final_score?: number | null;
+  rrf_score?: number | null;
+  kw_score?: number | null;
+  cosine_score?: number | null;
+  keyword_rank?: number | null;
+  vector_rank?: number | null;
 }
 
 export interface AdmissionDecision {

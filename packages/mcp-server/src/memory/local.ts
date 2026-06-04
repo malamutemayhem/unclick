@@ -43,6 +43,7 @@ import {
   memoryWriteGateContentHash,
   selectAdmissionDecision,
   syntheticWriteGateId,
+  writeGateCandidateFromRankedSearchRow,
 } from "./write-gate.js";
 
 function dataDir(): string {
@@ -475,7 +476,14 @@ export class LocalBackend implements MemoryBackend {
 
   // --- lane-07: write-gate admission ---
   async admitWrite(data: FactInput): Promise<AdmissionDecision> {
-    const candidates: MemoryWriteGateCandidate[] = readTable<FactRow>("extracted_facts")
+    const candidates = new Map<string, MemoryWriteGateCandidate>();
+    const searchRows = await this.searchMemory(data.fact, 25);
+    const rankedRows = Array.isArray(searchRows) ? searchRows : [];
+    for (const row of rankedRows) {
+      const candidate = writeGateCandidateFromRankedSearchRow(row);
+      if (candidate) candidates.set(candidate.id, candidate);
+    }
+    for (const row of readTable<FactRow>("extracted_facts")
       .filter((row) => row.status === "active" && !row.invalidated_at)
       .map((row) => ({
         id: row.id,
@@ -484,8 +492,10 @@ export class LocalBackend implements MemoryBackend {
         confidence: row.confidence,
         content_hash: row.content_hash ?? memoryWriteGateContentHash(row.fact),
         created_at: row.created_at,
-      }));
-    return selectAdmissionDecision(data, candidates);
+      }))) {
+      candidates.set(row.id, { ...row, ...candidates.get(row.id) });
+    }
+    return selectAdmissionDecision(data, Array.from(candidates.values()));
   }
 
   private routeWriteGateEvent(data: FactInput, gate: AdmissionDecision): { id: string; write_gate: AdmissionDecision; source_kind: "conversation_turn" } {

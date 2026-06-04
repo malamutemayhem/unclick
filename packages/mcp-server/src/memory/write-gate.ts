@@ -86,6 +86,38 @@ export function tokenizeMemoryWriteGateText(text: string): string[] {
     });
 }
 
+function finiteNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+export function writeGateCandidateFromRankedSearchRow(row: unknown): MemoryWriteGateCandidate | null {
+  if (!row || typeof row !== "object") return null;
+  const r = row as Record<string, unknown>;
+  if (r.source !== "fact") return null;
+  const id = typeof r.id === "string" ? r.id : null;
+  const fact = typeof r.content === "string"
+    ? r.content
+    : typeof r.fact === "string"
+      ? r.fact
+      : null;
+  if (!id || !fact) return null;
+  return {
+    id,
+    fact,
+    category: typeof r.category === "string" ? r.category : "general",
+    confidence: finiteNumber(r.confidence),
+    content_hash: typeof r.content_hash === "string" ? r.content_hash : null,
+    created_at: typeof r.created_at === "string" ? r.created_at : null,
+    source: "fact",
+    final_score: finiteNumber(r.final_score),
+    rrf_score: finiteNumber(r.rrf_score),
+    kw_score: finiteNumber(r.kw_score),
+    cosine_score: finiteNumber(r.cosine_score),
+    keyword_rank: finiteNumber(r.keyword_rank),
+    vector_rank: finiteNumber(r.vector_rank),
+  };
+}
+
 function normalizedText(text: string): string {
   return tokenizeMemoryWriteGateText(text).join(" ");
 }
@@ -116,6 +148,22 @@ function withinCoolDown(candidate: MemoryWriteGateCandidate, nowMs: number): boo
   const createdAt = Date.parse(candidate.created_at);
   if (!Number.isFinite(createdAt)) return false;
   return nowMs - createdAt <= WRITE_GATE_COOL_DOWN_SECONDS * 1000;
+}
+
+function workerSixCosineSimilarity(candidate: MemoryWriteGateCandidate): number {
+  return typeof candidate.cosine_score === "number" && Number.isFinite(candidate.cosine_score)
+    ? Math.max(0, Math.min(1, candidate.cosine_score))
+    : 0;
+}
+
+function rankSignal(candidate: MemoryWriteGateCandidate): number {
+  const finalScore = typeof candidate.final_score === "number" && Number.isFinite(candidate.final_score)
+    ? candidate.final_score
+    : 0;
+  const rrfScore = typeof candidate.rrf_score === "number" && Number.isFinite(candidate.rrf_score)
+    ? candidate.rrf_score
+    : 0;
+  return finalScore + rrfScore;
 }
 
 export function scoreMemoryWriteSimilarity(left: string, right: string): number {
@@ -241,8 +289,10 @@ export function selectAdmissionDecision(
     const existingHash = existing.content_hash ?? memoryWriteGateContentHash(existing.fact);
     const similarity = existingHash === candidateHash
       ? 1
-      : scoreMemoryWriteSimilarity(candidate.fact, existing.fact);
+      : Math.max(scoreMemoryWriteSimilarity(candidate.fact, existing.fact), workerSixCosineSimilarity(existing));
     if (!best || similarity > best.similarity) {
+      best = { candidate: existing, similarity };
+    } else if (best && similarity === best.similarity && rankSignal(existing) > rankSignal(best.candidate)) {
       best = { candidate: existing, similarity };
     }
   }

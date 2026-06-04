@@ -9,6 +9,7 @@ import {
   memoryWriteGateContentHash,
   scoreMemoryWriteSimilarity,
   selectAdmissionDecision,
+  writeGateCandidateFromRankedSearchRow,
 } from "../write-gate.js";
 import type { FactInput, MemoryWriteGateCandidate } from "../types.js";
 
@@ -22,16 +23,19 @@ function readRows<T>(table: string): T[] {
 
 function fakeSupabaseClient(rows: unknown[]) {
   return {
-    from() {
+    from(table: string) {
+      const data = table?.includes("session") ? [] : rows;
       const builder = {
         select() { return builder; },
         eq() { return builder; },
+        ilike() { return builder; },
         is() { return builder; },
+        lte() { return builder; },
         limit() { return builder; },
         or() { return builder; },
         order() { return builder; },
         then(resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) {
-          return Promise.resolve({ data: rows, error: null }).then(resolve, reject);
+          return Promise.resolve({ data, error: null }).then(resolve, reject);
         },
       };
       return builder;
@@ -75,6 +79,53 @@ describe("write-gate policy", () => {
     assert.equal(semantic.action, "NOOP");
     assert.equal(semantic.reason, "semantic_duplicate");
     assert.equal(semantic.matched_id, "fact-1");
+  });
+
+  test("parses Worker 6 ranked rows for admission", () => {
+    const candidate = writeGateCandidateFromRankedSearchRow({
+      id: "ranked-fact-1",
+      source: "fact",
+      content: "Chris prefers durable memory deduplication.",
+      category: "technical",
+      confidence: 0.91,
+      created_at: "2026-06-04T00:00:00.000Z",
+      final_score: 0.35,
+      rrf_score: 0.08,
+      kw_score: 4,
+      cosine_score: 0.93,
+      keyword_rank: 1,
+      vector_rank: 2,
+    });
+
+    assert.equal(candidate?.id, "ranked-fact-1");
+    assert.equal(candidate?.source, "fact");
+    assert.equal(candidate?.final_score, 0.35);
+    assert.equal(candidate?.rrf_score, 0.08);
+    assert.equal(candidate?.kw_score, 4);
+    assert.equal(candidate?.cosine_score, 0.93);
+    assert.equal(candidate?.keyword_rank, 1);
+    assert.equal(candidate?.vector_rank, 2);
+  });
+
+  test("uses Worker 6 cosine score for semantic duplicate admission", () => {
+    const decision = selectAdmissionDecision({
+      fact: "Chris wants memory writes collapsed.",
+      category: "technical",
+      confidence: 0.95,
+    }, [{
+      id: "ranked-fact-2",
+      fact: "The operator prefers deduplicated durable memory admission.",
+      category: "technical",
+      confidence: 0.95,
+      created_at: "2026-06-04T00:00:00.000Z",
+      cosine_score: 0.94,
+      final_score: 0.2,
+      rrf_score: 0.05,
+    }]);
+
+    assert.equal(decision.action, "NOOP");
+    assert.equal(decision.reason, "semantic_duplicate");
+    assert.equal(decision.matched_id, "ranked-fact-2");
   });
 
   test("returns UPDATE only for a compatible expansion", () => {
@@ -223,7 +274,10 @@ describe("write-gate Supabase admission adapter", () => {
     const backend = Object.create(SupabaseBackend.prototype) as SupabaseBackend;
     (backend as any).client = fakeSupabaseClient([row]);
     (backend as any).tenancy = { mode: "byod" };
-    (backend as any).tables = { extracted_facts: "extracted_facts" };
+    (backend as any).tables = {
+      extracted_facts: "extracted_facts",
+      session_summaries: "session_summaries",
+    };
 
     const decision = await backend.admitWrite({
       fact: "Chris prefers TypeScript for UnClick agent work.",

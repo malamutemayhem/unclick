@@ -48,6 +48,7 @@ import {
   selectAdmissionDecision,
   syntheticWriteGateId,
   tokenizeMemoryWriteGateText,
+  writeGateCandidateFromRankedSearchRow,
 } from "./write-gate.js";
 
 function pgError(context: string, err: unknown): Error {
@@ -994,6 +995,12 @@ export class SupabaseBackend implements MemoryBackend {
     const selectColumns = "id, fact, category, confidence, created_at, content_hash";
     const candidateHash = memoryWriteGateContentHash(data.fact);
     const candidates = new Map<string, MemoryWriteGateCandidate>();
+    const searchRows = await this.searchMemory(data.fact, 25);
+    const rankedRows = Array.isArray(searchRows) ? searchRows : [];
+    for (const row of rankedRows) {
+      const candidate = writeGateCandidateFromRankedSearchRow(row);
+      if (candidate) candidates.set(candidate.id, candidate);
+    }
     const addRows = (rows: unknown[] | null | undefined): void => {
       for (const row of rows ?? []) {
         const r = row as {
@@ -1005,14 +1012,15 @@ export class SupabaseBackend implements MemoryBackend {
           content_hash?: unknown;
         };
         if (typeof r.id !== "string" || typeof r.fact !== "string") continue;
-        candidates.set(r.id, {
+        const directCandidate: MemoryWriteGateCandidate = {
           id: r.id,
           fact: r.fact,
           category: typeof r.category === "string" ? r.category : "general",
           confidence: typeof r.confidence === "number" ? r.confidence : null,
           content_hash: typeof r.content_hash === "string" ? r.content_hash : null,
           created_at: typeof r.created_at === "string" ? r.created_at : null,
-        });
+        };
+        candidates.set(r.id, { ...directCandidate, ...candidates.get(r.id) });
       }
     };
 
