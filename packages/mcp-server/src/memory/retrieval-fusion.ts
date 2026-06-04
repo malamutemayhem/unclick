@@ -53,8 +53,8 @@ export const MEMORY_SOURCE_SCOPE_WEIGHT: Record<MemorySearchSource, number> = {
   conversation: 1.0,
 };
 
-export function scopeWeightForSource(source: MemorySearchSource): number {
-  return MEMORY_SOURCE_SCOPE_WEIGHT[source] ?? 1.0;
+export function scopeWeightForSource(source: string): number {
+  return MEMORY_SOURCE_SCOPE_WEIGHT[source as MemorySearchSource] ?? 1.0;
 }
 
 /**
@@ -117,7 +117,9 @@ export function scoreBusinessContextRows(
       category: row.category,
       confidence: 1,
       created_at: row.created_at ?? "",
-      final_score: score.finalScore * scopeWeight,
+      // Scope weight is NOT baked in here; orderByEffectiveScore applies it once
+      // at load-ordering time so the keyword-only and fused paths agree.
+      final_score: score.finalScore,
       rrf_score: 0,
       kw_score: score.matchedTokenCount,
       cosine_score: 0,
@@ -194,6 +196,60 @@ export function fuseRankedSearchLanes(
   return fused
     .sort((a, b) => {
       const diff = b.final_score - a.final_score;
+      return diff !== 0 ? diff : (b.created_at ?? "").localeCompare(a.created_at ?? "");
+    })
+    .slice(0, maxResults);
+}
+
+/** Recency half-life in days. Matches Worker 6 / Worker 8 (90-day decay). */
+export const MEMORY_RECENCY_DECAY_DAYS = 90;
+
+function recencyWeight(createdAt: string | null | undefined, asOf?: string): number {
+  // Standing rules carry no timestamp; they must not be recency-penalised.
+  if (!createdAt) return 1;
+  const created = Date.parse(createdAt);
+  if (!Number.isFinite(created)) return 1;
+  const ref = asOf ? Date.parse(asOf) : Date.now();
+  if (!Number.isFinite(ref)) return 1;
+  const ageDays = Math.max(0, (ref - created) / 86_400_000);
+  return Math.exp(-ageDays / MEMORY_RECENCY_DECAY_DAYS);
+}
+
+/** Minimal row shape orderByEffectiveScore needs; both backends satisfy it. */
+export interface EffectiveScoreRow {
+  source: string;
+  final_score: number;
+  created_at?: string | null;
+  effective_score?: number;
+  scope_weight?: number;
+}
+
+/**
+ * Increment 3: compute the load/startup order as a principled effective score
+ * instead of raw term frequency (Gap 7). effective_score =
+ * base * scope_weight * recency, where base is Worker 8's decay-derived
+ * effective_score when present and the fused/keyword final_score otherwise
+ * (graceful degradation while lane-08 is unmerged). scope_weight pins identity
+ * and standing rules to the top by scope precedence (the CLAUDE.md precedence
+ * model), not by how many tokens a verbose log happens to contain.
+ *
+ * The computed composite is written back to effective_score so Worker 10's eval
+ * harness can read exactly what we ordered on. Terminal step: call once.
+ */
+export function orderByEffectiveScore<T extends EffectiveScoreRow>(
+  rows: T[],
+  maxResults: number,
+  asOf?: string
+): T[] {
+  return rows
+    .map((row) => {
+      const base = typeof row.effective_score === "number" ? row.effective_score : row.final_score;
+      const weight = typeof row.scope_weight === "number" ? row.scope_weight : scopeWeightForSource(row.source);
+      const effective = base * weight * recencyWeight(row.created_at, asOf);
+      return { ...row, effective_score: effective } as T;
+    })
+    .sort((a, b) => {
+      const diff = (b.effective_score ?? 0) - (a.effective_score ?? 0);
       return diff !== 0 ? diff : (b.created_at ?? "").localeCompare(a.created_at ?? "");
     })
     .slice(0, maxResults);

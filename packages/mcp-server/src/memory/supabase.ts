@@ -41,7 +41,7 @@ import {
 } from "./typed-links.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
 // --- lane-01: retrieval fusion (read path) ---
-import { isFusedRetrievalEnabled, scoreBusinessContextRows, fuseRankedSearchLanes } from "./retrieval-fusion.js";
+import { isFusedRetrievalEnabled, scoreBusinessContextRows, fuseRankedSearchLanes, orderByEffectiveScore } from "./retrieval-fusion.js";
 import type { MemorySearchResultRow } from "./types.js";
 // --- end lane-01 ---
 
@@ -734,14 +734,16 @@ export class SupabaseBackend implements MemoryBackend {
     // contract). Flag-gated; flag off keeps today's keyword-first behaviour. ---
     if (isFusedRetrievalEnabled()) {
       const semanticResults = await this.semanticSearch(query, maxResults, asOf);
-      if (semanticResults.length > 0) {
-        return fuseRankedSearchLanes(
-          localResults as MemorySearchResultRow[],
-          semanticResults as MemorySearchResultRow[],
-          maxResults
-        );
-      }
-      return localResults;
+      const fused =
+        semanticResults.length > 0
+          ? fuseRankedSearchLanes(
+              localResults as MemorySearchResultRow[],
+              semanticResults as MemorySearchResultRow[],
+              maxResults
+            )
+          : (localResults as MemorySearchResultRow[]);
+      // lane-01 increment 3: scope-precedence effective-score load order.
+      return orderByEffectiveScore(fused, maxResults, asOf);
     }
     // --- end lane-01 ---
 

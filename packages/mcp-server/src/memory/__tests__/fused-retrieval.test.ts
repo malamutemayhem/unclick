@@ -206,3 +206,77 @@ describe("Supabase searchMemory: keyword + vector fusion", () => {
     }
   });
 });
+
+// ─── 3. orderByEffectiveScore (increment 3) ──────────────────────────────────
+
+function eff(
+  id: string,
+  source: string,
+  finalScore: number,
+  createdAt: string,
+  opts: { scope_weight?: number; effective_score?: number } = {}
+): {
+  id: string;
+  source: string;
+  content: string;
+  category: string;
+  confidence: number;
+  created_at: string;
+  final_score: number;
+  rrf_score: number;
+  kw_score: number;
+  cosine_score: number;
+  scope_weight?: number;
+  effective_score?: number;
+} {
+  return {
+    id,
+    source,
+    content: id,
+    category: "x",
+    confidence: 1,
+    created_at: createdAt,
+    final_score: finalScore,
+    rrf_score: finalScore,
+    kw_score: 0,
+    cosine_score: 0,
+    ...opts,
+  };
+}
+
+describe("lane-01 orderByEffectiveScore", () => {
+  test("business_context outranks a higher-scored fact via scope weight", async () => {
+    const { orderByEffectiveScore } = await import("../retrieval-fusion.js");
+    const fact = eff("f", "fact", 1.0, "2026-05-01T00:00:00Z");
+    const bc = eff("bc", "business_context", 0.8, "", { scope_weight: 1.5 });
+    const ordered = orderByEffectiveScore([fact, bc], 10, "2026-06-04T00:00:00Z");
+    assert.equal(ordered[0].id, "bc");
+    assert.equal(typeof ordered[0].effective_score, "number");
+  });
+
+  test("consumes Worker 8 effective_score as the base when present", async () => {
+    const { orderByEffectiveScore } = await import("../retrieval-fusion.js");
+    const plain = eff("plain", "fact", 1.0, "");
+    const decayed = eff("decayed", "fact", 0.1, "", { effective_score: 9 });
+    const ordered = orderByEffectiveScore([plain, decayed], 10);
+    assert.equal(ordered[0].id, "decayed");
+  });
+
+  test("standing rule with no timestamp is not recency-penalized", async () => {
+    const { orderByEffectiveScore } = await import("../retrieval-fusion.js");
+    const fresh = eff("fresh", "fact", 1.0, "");
+    const old = eff("old", "fact", 1.0, "2020-01-01T00:00:00Z");
+    const ordered = orderByEffectiveScore([old, fresh], 10, "2026-06-04T00:00:00Z");
+    assert.equal(ordered[0].id, "fresh");
+  });
+
+  test("respects maxResults", async () => {
+    const { orderByEffectiveScore } = await import("../retrieval-fusion.js");
+    const ordered = orderByEffectiveScore(
+      [eff("a", "fact", 0.3, ""), eff("b", "fact", 0.2, ""), eff("c", "fact", 0.1, "")],
+      2
+    );
+    assert.equal(ordered.length, 2);
+    assert.deepEqual(ordered.map((r) => r.id), ["a", "b"]);
+  });
+});

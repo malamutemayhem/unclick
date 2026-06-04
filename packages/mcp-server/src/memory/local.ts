@@ -37,7 +37,7 @@ import {
   writeMemoryTaxonomySnapshotsToLibrary,
 } from "./supabase.js";
 // --- lane-01: retrieval fusion (read path) ---
-import { isFusedRetrievalEnabled, scoreBusinessContextRows } from "./retrieval-fusion.js";
+import { isFusedRetrievalEnabled, scoreBusinessContextRows, orderByEffectiveScore } from "./retrieval-fusion.js";
 // --- end lane-01 ---
 
 function dataDir(): string {
@@ -412,8 +412,16 @@ export class LocalBackend implements MemoryBackend {
       : [];
     // --- end lane-01 ---
 
-    return [...facts, ...sessions, ...conversations, ...businessContext]
-      .filter((row) => row.final_score > 0)
+    const pool = [...facts, ...sessions, ...conversations, ...businessContext]
+      .filter((row) => row.final_score > 0);
+
+    // --- lane-01 increment 3: scope-precedence effective-score load order when fused ---
+    if (isFusedRetrievalEnabled()) {
+      return orderByEffectiveScore(pool, maxResults, asOf);
+    }
+    // --- end lane-01 ---
+
+    return pool
       .sort((a, b) => {
         const scoreDiff = b.final_score - a.final_score;
         return scoreDiff !== 0 ? scoreDiff : b.created_at.localeCompare(a.created_at);
