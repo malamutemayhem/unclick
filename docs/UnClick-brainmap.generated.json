@@ -8172,6 +8172,10 @@
       "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
     [
+      "test:git-hygiene",
+      "node --test scripts/check-checkout-hygiene.test.mjs scripts/check-dirty-branch.test.mjs scripts/salvage-worktrees.test.mjs"
+    ],
+    [
       "test:memory-eval",
       "node --test scripts/memory-retrieval-eval.test.mjs"
     ],
@@ -8276,8 +8280,8 @@
     },
     {
       "source": "package.json",
-      "hash": "c5c0ba95988e",
-      "bytes": 6824
+      "hash": "82714e796f84",
+      "bytes": 6974
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
