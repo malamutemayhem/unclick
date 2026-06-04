@@ -289,3 +289,40 @@ export interface MemoryBackend {
   listSessionEvents(query?: SessionEventQuery): Promise<unknown>;
   // --- end lane-09 ---
 }
+
+// --- lane-01: retrieval fusion (read path) ---
+/**
+ * Source a search hit came from. Lane-01 adds "business_context" so standing
+ * rules / identity are searchable, not just always-loaded at startup.
+ */
+export type MemorySearchSource = "fact" | "session" | "conversation" | "business_context";
+
+/**
+ * Canonical search-result row emitted by searchMemory in both backends and
+ * scored by Worker 10's eval harness. The keyword/RRF score fields
+ * (final_score / rrf_score / kw_score / cosine_score) are already produced
+ * today; lane-01 adds business_context as a source plus the ordering inputs.
+ * effective_score is supplied by lane-08 (decay) when available; lane-01 orders
+ * on it when present and degrades to final_score when absent.
+ */
+export interface MemorySearchResultRow {
+  id: string;
+  source: MemorySearchSource;
+  content: string;
+  category: string;
+  confidence: number;
+  created_at: string;
+  final_score: number;
+  rrf_score: number;
+  kw_score: number;
+  cosine_score: number;
+  /** 1-based rank in the keyword lane (lane-06 ranking contract; null when absent). */
+  keyword_rank?: number | null;
+  /** 1-based rank in the vector / semantic lane (lane-06 ranking contract; null when absent). */
+  vector_rank?: number | null;
+  /** Scope-precedence weight applied to final_score (lane-01 ordering, Gap 7). */
+  scope_weight?: number;
+  /** Decay-derived effective score (lane-08); lane-01 orders on it when present. */
+  effective_score?: number;
+}
+// --- end lane-01 ---

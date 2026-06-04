@@ -49,6 +49,9 @@ import {
   isTypedMemorySplitEnabled,
   normalizeMemoryClass,
 } from "./typed-memory.js";
+// --- lane-01: retrieval fusion (read path) ---
+import { isFusedRetrievalEnabled, scoreBusinessContextRows, orderByEffectiveScore } from "./retrieval-fusion.js";
+// --- end lane-01 ---
 
 function dataDir(): string {
   return process.env.MEMORY_LOCAL_DATA_DIR || path.join(os.homedir(), ".unclick", "memory");
@@ -437,6 +440,30 @@ export class LocalBackend implements MemoryBackend {
           score,
         };
       });
+
+    // --- lane-01: fused read path (flag on) adds business_context (Gap 2) + effective-score order.
+    // Flag off keeps lane-06 canonical ranking, byte-identical. ---
+    if (isFusedRetrievalEnabled()) {
+      const businessContext = scoreBusinessContextRows(
+        query,
+        readTable<BusinessContextRow>("business_context").map((r) => ({
+          id: r.id,
+          category: r.category,
+          key: r.key,
+          value: r.value,
+          created_at: r.created_at,
+        }))
+      );
+      // Lane 6 owns keyword ranking; run the keyword rows through it (assigns
+      // final_score) before fusing with the already-scored business_context rows.
+      const ranked = rankLocalMemorySearchRows(
+        [...facts, ...sessions, ...conversations],
+        Math.max(maxResults * 4, maxResults + businessContext.length),
+        asOf
+      );
+      return orderByEffectiveScore([...ranked, ...businessContext], maxResults, asOf);
+    }
+    // --- end lane-01 ---
 
     return rankLocalMemorySearchRows([...facts, ...sessions, ...conversations], maxResults, asOf);
   }

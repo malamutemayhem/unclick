@@ -52,6 +52,10 @@ import {
   isTypedMemorySplitEnabled,
   normalizeMemoryClass,
 } from "./typed-memory.js";
+// --- lane-01: retrieval fusion (read path) ---
+import { isFusedRetrievalEnabled, scoreBusinessContextRows, fuseRankedSearchLanes, orderByEffectiveScore } from "./retrieval-fusion.js";
+import type { MemorySearchResultRow } from "./types.js";
+// --- end lane-01 ---
 
 function pgError(context: string, err: unknown): Error {
   if (err instanceof Error) return err;
@@ -849,30 +853,53 @@ export class SupabaseBackend implements MemoryBackend {
 
   async searchMemory(query: string, maxResults: number, asOf?: string): Promise<unknown> {
     const localResults = await this.keywordFallback(query, maxResults, asOf);
-    if (localResults.length > 0) return localResults;
 
-    // Optional high-accuracy lane: BM25 + pgvector RRF over facts and
-    // sessions. This only runs when MEMORY_OPENAI_EMBEDDINGS_ENABLED is set.
+    // --- lane-01 increment 2: fuse keyword + semantic instead of letting the
+    // keyword lane short-circuit and shadow the vector lane (Gap 1). The
+    // semantic lane is the BM25 + pgvector RRF RPC (Worker 6's ranking
+    // contract). Flag-gated; flag off keeps today's keyword-first behaviour. ---
+    if (isFusedRetrievalEnabled()) {
+      const semanticResults = await this.semanticSearch(query, maxResults, asOf);
+      const fused =
+        semanticResults.length > 0
+          ? fuseRankedSearchLanes(
+              localResults as MemorySearchResultRow[],
+              semanticResults as MemorySearchResultRow[],
+              maxResults
+            )
+          : (localResults as MemorySearchResultRow[]);
+      // lane-01 increment 3: scope-precedence effective-score load order.
+      return orderByEffectiveScore(fused, maxResults, asOf);
+    }
+    // --- end lane-01 ---
+
+    if (localResults.length > 0) return localResults;
+    return this.semanticSearch(query, maxResults, asOf);
+  }
+
+  // --- lane-01: semantic (BM25 + pgvector RRF) lane, factored out of
+  // searchMemory so both the fused path and the legacy keyword-first path share
+  // it. Returns [] when embeddings are disabled or the lane errors. ---
+  private async semanticSearch(query: string, maxResults: number, asOf?: string): Promise<unknown[]> {
     try {
       const { embedText } = await import("./embeddings.js");
       const embedding = await embedText(query);
-      if (embedding) {
-        const results = await this.rpc<unknown>(
-          "search_memory_hybrid",
-          { search_query: query, query_embedding: embedding, max_results: maxResults, as_of: asOf ?? null },
-          "mc_search_memory_hybrid",
-          { p_search_query: query, p_query_embedding: embedding, p_max_results: maxResults, p_as_of: asOf ?? null }
-        );
-        if (Array.isArray(results) && results.length > 0) {
-          const visibleResults = await this.filterRecallVisibleSearchResults(results, asOf ?? now());
-          if (visibleResults.length > 0) return visibleResults;
-        }
+      if (!embedding) return [];
+      const results = await this.rpc<unknown>(
+        "search_memory_hybrid",
+        { search_query: query, query_embedding: embedding, max_results: maxResults, as_of: asOf ?? null },
+        "mc_search_memory_hybrid",
+        { p_search_query: query, p_query_embedding: embedding, p_max_results: maxResults, p_as_of: asOf ?? null }
+      );
+      if (Array.isArray(results) && results.length > 0) {
+        return await this.filterRecallVisibleSearchResults(results, asOf ?? now());
       }
     } catch (err) {
       console.error("[search_memory] optional hybrid search failed:", err);
     }
     return [];
   }
+  // --- end lane-01 ---
 
   /**
    * ILIKE-based keyword fallback over mc_extracted_facts +
@@ -894,6 +921,12 @@ export class SupabaseBackend implements MemoryBackend {
     const factSelect = isTypedMemorySplitEnabled()
       ? "id, fact, category, confidence, created_at, source_type, startup_fact_kind, memory_class, valid_from, valid_to, invalidated_at"
       : "id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at";
+
+    // --- lane-01: business_context as a search source (Gap 2); flag-gated ---
+    const bcResults: MemorySearchResultRow[] = isFusedRetrievalEnabled()
+      ? await this.searchBusinessContextRows(query)
+      : [];
+    // --- end lane-01 ---
 
     const runScan = async (mode: "and" | "or"): Promise<unknown[]> => {
       let factQ = this.client
@@ -982,6 +1015,21 @@ export class SupabaseBackend implements MemoryBackend {
           score: s,
         };
       });
+      // --- lane-01: fused keyword pool adds business_context; flag off keeps lane-06 ranking ---
+      if (isFusedRetrievalEnabled()) {
+        const ranked = rankLocalMemorySearchRows(
+          [...facts, ...sessions],
+          Math.max(maxResults * 4, maxResults + bcResults.length),
+          effectiveAsOf
+        );
+        return [...ranked, ...bcResults]
+          .sort((a, b) => {
+            const d = (b.final_score ?? 0) - (a.final_score ?? 0);
+            return d !== 0 ? d : (b.created_at ?? "").localeCompare(a.created_at ?? "");
+          })
+          .slice(0, maxResults);
+      }
+      // --- end lane-01 ---
       return rankLocalMemorySearchRows([...facts, ...sessions], maxResults, effectiveAsOf);
     };
 
@@ -989,6 +1037,37 @@ export class SupabaseBackend implements MemoryBackend {
     if (andResults.length > 0 || tokens.length < 2) return andResults;
     return runScan("or");
   }
+
+  // --- lane-01: business_context retrieval (Gap 2) ---
+  /**
+   * Fetch tenant-scoped business_context rows and score them against the query
+   * with the shared keyword scorer (via retrieval-fusion). Standing rules are
+   * pinned by a scope weight so identity surfaces. Tenant scoping mirrors
+   * getBusinessContext exactly, so this never widens RLS. Degrades to [] on a
+   * backend error rather than failing the whole search.
+   */
+  private async searchBusinessContextRows(query: string): Promise<MemorySearchResultRow[]> {
+    let bcQuery = this.client
+      .from(this.tables.business_context)
+      .select("id, category, key, value");
+    if (this.tenancy.mode === "managed") {
+      bcQuery = bcQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await bcQuery;
+    if (error) {
+      console.error("[search_memory] business_context scan failed:", error);
+      return [];
+    }
+    type BcRow = { id: string; category: string; key: string; value: unknown };
+    const rows = ((data ?? []) as BcRow[]).map((r) => ({
+      id: r.id,
+      category: r.category,
+      key: r.key,
+      value: r.value,
+    }));
+    return scoreBusinessContextRows(query, rows);
+  }
+  // --- end lane-01 ---
 
   private async filterRecallVisibleSearchResults(results: unknown[], asOf: string): Promise<unknown[]> {
     type SearchResult = {
