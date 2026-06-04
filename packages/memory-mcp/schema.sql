@@ -278,6 +278,10 @@ BEGIN
   FROM (
     SELECT * FROM extracted_facts
     WHERE status = 'active' AND decay_tier = 'hot'
+      AND invalidated_at IS NULL
+      AND valid_from <= now()
+      AND (valid_to IS NULL OR valid_to > now())
+      AND COALESCE(startup_fact_kind, 'legacy_unspecified') NOT IN ('operational', 'excluded')
     ORDER BY confidence DESC, created_at DESC
     LIMIT 50
   ) hot_facts;
@@ -285,7 +289,11 @@ BEGIN
   UPDATE extracted_facts
   SET access_count = access_count + 1,
       last_accessed = now()
-  WHERE status = 'active' AND decay_tier = 'hot';
+  WHERE status = 'active' AND decay_tier = 'hot'
+    AND invalidated_at IS NULL
+    AND valid_from <= now()
+    AND (valid_to IS NULL OR valid_to > now())
+    AND COALESCE(startup_fact_kind, 'legacy_unspecified') NOT IN ('operational', 'excluded');
 
   result := jsonb_build_object(
     'business_context', ctx,
