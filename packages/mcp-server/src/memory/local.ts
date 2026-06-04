@@ -36,6 +36,10 @@ import {
   tokenizeLocalMemoryQuery,
   writeMemoryTaxonomySnapshotsToLibrary,
 } from "./supabase.js";
+// --- lane-02: contradiction reconciliation & supersession ---
+import type { ReconcileOptions, ReconcileResult, ContradictionEvent } from "./types.js";
+import type { ExistingFact } from "./reconcile.js";
+// --- end lane-02 ---
 
 function dataDir(): string {
   return process.env.MEMORY_LOCAL_DATA_DIR || path.join(os.homedir(), ".unclick", "memory");
@@ -462,6 +466,10 @@ export class LocalBackend implements MemoryBackend {
   }
 
   async addFact(data: FactInput): Promise<{ id: string }> {
+    // --- lane-02: reconcile against same-subject live facts before insert (flag-gated, default off) ---
+    const reconciled = await this.maybeReconcileOnWrite(data);
+    if (reconciled) return reconciled;
+    // --- end lane-02 ---
     const id = uuid();
     const rows = readTable<FactRow>("extracted_facts");
     rows.push({
@@ -520,6 +528,73 @@ export class LocalBackend implements MemoryBackend {
     writeTable("extracted_facts", rows);
     return newId;
   }
+
+  // --- lane-02: contradiction reconciliation & supersession ---
+  async reconcileFact(candidate: FactInput, options: ReconcileOptions = {}): Promise<ReconcileResult> {
+    const { isReconcileEnabled, reconcileCandidate } = await import("./reconcile.js");
+    if (!isReconcileEnabled()) {
+      return { enabled: false, classification: "distinct", decision: "add" };
+    }
+    const existing: ExistingFact[] = readTable<FactRow>("extracted_facts")
+      .filter((f) => f.category === candidate.category && isRecallVisibleFact(f))
+      .map((f) => ({
+        id: f.id,
+        fact: f.fact,
+        category: f.category,
+        confidence: f.confidence,
+        recorded_at: f.created_at,
+        valid_from: f.valid_from,
+        commit_sha: f.commit_sha,
+        pr_number: f.pr_number,
+      }));
+
+    const result = await reconcileCandidate(
+      candidate,
+      existing,
+      {
+        supersede: (oldId, newText, category, confidence) =>
+          this.supersedeFact(oldId, newText, category, confidence),
+        emit: (event) => this.recordContradiction(event),
+        now,
+      },
+      options
+    );
+
+    const { logMemoryLoadEvent } = await import("./instrumentation.js");
+    logMemoryLoadEvent({
+      tool_name: "memory_reconcile",
+      params: { classification: result.classification, decision: result.decision },
+    });
+    return result;
+  }
+
+  /**
+   * Flag-gated write-path hook. Cooperates with lane-07's admission gate; kept
+   * tiny and additive so the two merge mechanically. Returns a resolved id when
+   * reconciliation handled the write, or null to let the normal insert proceed.
+   * Never throws.
+   */
+  private async maybeReconcileOnWrite(data: FactInput): Promise<{ id: string } | null> {
+    const { isReconcileEnabled } = await import("./reconcile.js");
+    if (!isReconcileEnabled() || data.preserve_as_blob) return null;
+    try {
+      const result = await this.reconcileFact(data);
+      if (result.decision === "supersede" && result.fact_id) return { id: result.fact_id };
+      if (result.decision === "noop" && (result.fact_id || result.matched_fact_id)) {
+        return { id: (result.fact_id ?? result.matched_fact_id) as string };
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  private recordContradiction(event: ContradictionEvent): void {
+    const rows = readTable<ContradictionEvent & { id: string }>("contradiction_events");
+    rows.push({ id: uuid(), ...event });
+    writeTable("contradiction_events", rows);
+  }
+  // --- end lane-02 ---
 
   async logConversation(data: ConversationInput) {
     const rows = readTable<ConversationRow>("conversation_log");

@@ -40,6 +40,10 @@ import {
   type MemoryTypedLinkStoredRow,
 } from "./typed-links.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
+// --- lane-02: contradiction reconciliation & supersession ---
+import type { ReconcileOptions, ReconcileResult, ContradictionEvent } from "./types.js";
+import type { ExistingFact } from "./reconcile.js";
+// --- end lane-02 ---
 
 function pgError(context: string, err: unknown): Error {
   if (err instanceof Error) return err;
@@ -1003,6 +1007,11 @@ export class SupabaseBackend implements MemoryBackend {
     const { data: existing } = await dupQuery.maybeSingle();
     if (existing) return { id: (existing as { id: string }).id };
 
+    // --- lane-02: reconcile against same-subject live facts before insert (flag-gated, default off) ---
+    const reconciled = await this.maybeReconcileOnWrite(data);
+    if (reconciled) return reconciled;
+    // --- end lane-02 ---
+
     const { data: row, error } = await this.client
       .from(this.tables.extracted_facts)
       .insert(
@@ -1196,6 +1205,87 @@ export class SupabaseBackend implements MemoryBackend {
     if (error) throw new Error(`rpc(supersede_fact) failed: ${error.message}`);
     return String(data);
   }
+
+  // --- lane-02: contradiction reconciliation & supersession ---
+  async reconcileFact(candidate: FactInput, options: ReconcileOptions = {}): Promise<ReconcileResult> {
+    const { isReconcileEnabled, reconcileCandidate } = await import("./reconcile.js");
+    if (!isReconcileEnabled()) {
+      return { enabled: false, classification: "distinct", decision: "add" };
+    }
+    // Fetch same-category live candidates, tenant-scoped and bi-temporally visible.
+    let q = this.client
+      .from(this.tables.extracted_facts)
+      .select(
+        "id, fact, category, confidence, recorded_at, valid_from, extractor_id, model_id, prompt_version, commit_sha, pr_number"
+      )
+      .eq("category", candidate.category)
+      .is("invalidated_at", null)
+      .eq("status", "active")
+      .order("recorded_at", { ascending: false })
+      .limit(50);
+    if (this.tenancy.mode === "managed") {
+      q = q.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data: rows } = await q;
+    const existing = (Array.isArray(rows) ? rows : []) as ExistingFact[];
+
+    const result = await reconcileCandidate(
+      candidate,
+      existing,
+      {
+        supersede: (oldId, newText, category, confidence) =>
+          this.supersedeFact(oldId, newText, category, confidence),
+        emit: (event) => this.emitContradiction(event),
+        now,
+      },
+      options
+    );
+
+    // Make the outcome observable for the eval harness (Worker 10).
+    const { logMemoryLoadEvent } = await import("./instrumentation.js");
+    logMemoryLoadEvent({
+      tool_name: "memory_reconcile",
+      params: { classification: result.classification, decision: result.decision },
+    });
+    return result;
+  }
+
+  /**
+   * Flag-gated write-path hook. Cooperates with lane-07's admission gate (which
+   * calls reconcile's classifier directly); kept tiny and additive so the two
+   * merge mechanically. Returns a resolved id when reconciliation handled the
+   * write, or null to let the normal insert proceed. Never throws.
+   */
+  private async maybeReconcileOnWrite(data: FactInput): Promise<{ id: string } | null> {
+    const { isReconcileEnabled } = await import("./reconcile.js");
+    if (!isReconcileEnabled() || data.preserve_as_blob) return null;
+    try {
+      const result = await this.reconcileFact(data);
+      if (result.decision === "supersede" && result.fact_id) return { id: result.fact_id };
+      if (result.decision === "noop" && (result.fact_id || result.matched_fact_id)) {
+        return { id: (result.fact_id ?? result.matched_fact_id) as string };
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async emitContradiction(event: ContradictionEvent): Promise<void> {
+    const { emitSignal, currentApiKeyHash } = await import("../signals/emit.js");
+    const hash = this.tenancy.mode === "managed" ? this.tenancy.apiKeyHash : currentApiKeyHash();
+    if (!hash) return;
+    await emitSignal({
+      apiKeyHash: hash,
+      tool: "memory",
+      action: "memory_contradiction",
+      severity: "action_needed",
+      summary: `Contradiction on "${event.subject}": "${event.existing.fact}" superseded by "${event.incoming.fact}"`,
+      deepLink: "/admin/memory?tab=facts",
+      payload: { contradiction: event },
+    });
+  }
+  // --- end lane-02 ---
 
   async logConversation(data: ConversationInput) {
     await this.enforceCaps("general");

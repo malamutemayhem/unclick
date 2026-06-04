@@ -810,4 +810,27 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       session_id: typeof args.session_id === "string" ? args.session_id : undefined,
     });
   },
+
+  // --- lane-02: contradiction reconciliation & supersession ---
+  async reconcile_fact(args) {
+    const db = await getBackend();
+    return db.reconcileFact(
+      {
+        fact: str(args.fact),
+        category: str(args.category, "general"),
+        confidence: num(args.confidence, 0.9),
+        source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
+        extractor_id: typeof args.extractor_id === "string" ? args.extractor_id : undefined,
+        model_id: typeof args.model_id === "string" ? args.model_id : undefined,
+        prompt_version: typeof args.prompt_version === "string" ? args.prompt_version : undefined,
+        commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
+        pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
+      },
+      {
+        session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+        dry_run: bool(args.dry_run, false),
+      }
+    );
+  },
+  // --- end lane-02 ---
 };

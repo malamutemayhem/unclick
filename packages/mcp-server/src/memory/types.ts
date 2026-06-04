@@ -174,6 +174,73 @@ export interface MemoryTaxonomySnapshotWriteResult {
   }>;
 }
 
+// --- lane-02: contradiction reconciliation & supersession ---
+/** How an incoming fact relates to an existing live fact on the same subject. */
+export type ReconciliationClassification =
+  | "distinct"        // different subject; no interaction
+  | "duplicate"       // same subject, same value (near-identical / subsumed)
+  | "refinement"      // same subject, compatible / more-specific value
+  | "contradiction";  // same subject, mutually-exclusive value
+
+/** The action taken to resolve an incoming fact against the store. */
+export type ReconcileDecision =
+  | "add"        // insert as a new fact (distinct, or no live match)
+  | "noop"       // drop the incoming write (duplicate of a live fact)
+  | "supersede"; // replace the prior fact newest-wins, history preserved
+
+/** One side of a contradiction, carrying provenance through (Worker 3 fields). */
+export interface ContradictionParty {
+  fact_id?: string;
+  fact: string;
+  category: string;
+  confidence?: number;
+  recorded_at?: string;
+  valid_from?: string;
+  extractor_id?: string;
+  model_id?: string;
+  prompt_version?: string;
+  commit_sha?: string;
+  pr_number?: number;
+}
+
+/** A first-class contradiction event raised for Boardroom / admin visibility. */
+export interface ContradictionEvent {
+  kind: "memory_contradiction";
+  subject: string;
+  category: string;
+  classification: ReconciliationClassification;
+  resolution: ReconcileDecision;
+  similarity: number;
+  incoming: ContradictionParty;
+  existing: ContradictionParty;
+  detected_at: string;
+  session_id?: string;
+}
+
+export interface ReconcileOptions {
+  session_id?: string;
+  /** Override same-subject / duplicate thresholds (eval-harness tuning). */
+  thresholds?: { sameSubject?: number; duplicate?: number };
+  /** When true, classify and report but do not supersede or emit. */
+  dry_run?: boolean;
+}
+
+export interface ReconcileResult {
+  /** false when MEMORY_RECONCILE_ENABLED is off (a pass-through no-op). */
+  enabled: boolean;
+  classification: ReconciliationClassification;
+  decision: ReconcileDecision;
+  /** id of the live fact that was superseded (decision === "supersede"). */
+  superseded_fact_id?: string;
+  /** id of the newly written or kept fact. */
+  fact_id?: string;
+  /** the matched live fact id for duplicate / refinement / contradiction. */
+  matched_fact_id?: string;
+  similarity?: number;
+  contradiction?: ContradictionEvent;
+}
+// --- end lane-02 ---
+
 export interface MemoryBackend {
   /** Load startup context (business context + recent sessions + hot facts). */
   getStartupContext(numSessions: number): Promise<unknown>;
@@ -237,4 +304,14 @@ export interface MemoryBackend {
 
   /** Mark a fact as invalidated (does not delete it). Writes an audit row. */
   invalidateFact(input: InvalidateFactInput): Promise<{ invalidated_at: string }>;
+
+  // --- lane-02: contradiction reconciliation & supersession ---
+  /**
+   * Reconcile an incoming fact against existing live facts on the same subject.
+   * Newest-wins supersession with history preserved; a genuine contradiction
+   * raises exactly one contradiction event. Flag-gated by
+   * MEMORY_RECONCILE_ENABLED; a disabled call returns an "distinct"/"add" no-op.
+   */
+  reconcileFact(candidate: FactInput, options?: ReconcileOptions): Promise<ReconcileResult>;
+  // --- end lane-02 ---
 }
