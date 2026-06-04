@@ -18,6 +18,8 @@ import { triggerSessionInspection } from "./session-inspection-trigger.js";
 import { emitSignal } from "../signals/emit.js";
 import { buildSearchMemoryCard } from "../cards/search-memory-card.js";
 import { extractMemoryTypedLinkCandidates } from "./typed-links.js";
+import { isHardForgetEnabled, forgetComplianceScore } from "./forget.js";
+import { logMemoryLoadEvent } from "./instrumentation.js";
 import type {
   MemoryBackend,
   MemoryProfileCard,
@@ -810,4 +812,60 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       session_id: typeof args.session_id === "string" ? args.session_id : undefined,
     });
   },
+
+  // --- lane-05: true-forget (MEMORY_HARD_FORGET_ENABLED) ---
+  async forget(args) {
+    const db = await getBackend();
+    const factId = str(args.fact_id) || str(args.memory_id);
+    if (!factId) throw new Error("forget requires fact_id (or memory_id)");
+    const reason = typeof args.reason === "string" ? args.reason : undefined;
+    const sessionId = typeof args.session_id === "string" ? args.session_id : undefined;
+
+    // Default OFF: fall back to the existing soft invalidate so production
+    // behaviour is unchanged until the coordinator flips the flag.
+    if (!isHardForgetEnabled()) {
+      const soft = await db.invalidateFact({ fact_id: factId, reason, session_id: sessionId });
+      return {
+        mode: "soft_invalidate",
+        flag: "MEMORY_HARD_FORGET_ENABLED",
+        flag_enabled: false,
+        fact_id: factId,
+        invalidated_at: soft.invalidated_at,
+        note: "Hard forget is flag-gated off; fell back to reversible soft invalidate.",
+      };
+    }
+
+    const receipt = await db.forgetMemory({ fact_id: factId, reason, session_id: sessionId });
+    const forget_compliance = forgetComplianceScore(receipt);
+
+    // Emit the lane-05 metric so Worker 10's harness can score forget_compliance.
+    logMemoryLoadEvent({
+      tool_name: "memory.forget",
+      params: {
+        fact_id: factId,
+        forget_compliance,
+        verified_clean: receipt.verified_clean,
+        typed_links_deleted: receipt.typed_links_deleted,
+        snapshots_regenerated: receipt.snapshots_regenerated,
+        snapshots_neutralized: receipt.snapshots_neutralized,
+        history_entries_purged: receipt.history_entries_purged,
+        backend: receipt.backend,
+      },
+    });
+
+    const hash = currentApiKeyHash();
+    if (hash) {
+      void emitSignal({
+        apiKeyHash: hash,
+        tool: "memory",
+        action: "memory_forgotten",
+        severity: "info",
+        summary: `Memory forgotten and swept from ${receipt.surfaces_swept.length} derived surfaces`,
+        deepLink: "/admin/memory?tab=facts",
+      });
+    }
+
+    return { mode: "hard_forget", flag_enabled: true, forget_compliance, ...receipt };
+  },
+  // --- end lane-05 ---
 };

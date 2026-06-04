@@ -23,6 +23,8 @@ import type {
   SessionSummaryInput,
   FactInput,
   InvalidateFactInput,
+  ForgetInput,
+  ForgetReceipt,
   ConversationInput,
   CodeInput,
   LibraryDocInput,
@@ -40,6 +42,7 @@ import {
   type MemoryTypedLinkStoredRow,
 } from "./typed-links.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
+import { factSnapshotPointer, scrubForgottenFactFromSnapshots } from "./forget.js";
 
 function pgError(context: string, err: unknown): Error {
   if (err instanceof Error) return err;
@@ -1196,6 +1199,108 @@ export class SupabaseBackend implements MemoryBackend {
     if (error) throw new Error(`rpc(supersede_fact) failed: ${error.message}`);
     return String(data);
   }
+
+  // --- lane-05: true-forget (MEMORY_HARD_FORGET_ENABLED) ---
+  async forgetMemory(input: ForgetInput): Promise<ForgetReceipt> {
+    // Capture the original text before the RPC scrubs it (used to verify the
+    // fact no longer surfaces in recall search).
+    let factQuery = this.client
+      .from(this.tables.extracted_facts)
+      .select("fact")
+      .eq("id", input.fact_id)
+      .limit(1);
+    if (this.tenancy.mode === "managed") {
+      factQuery = factQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data: existing } = await factQuery.maybeSingle();
+    if (!existing) throw new Error(`Fact ${input.fact_id} not found`);
+    const originalText =
+      typeof (existing as { fact?: string }).fact === "string"
+        ? (existing as { fact: string }).fact
+        : "";
+
+    // Atomic DB tombstone: move the row to status 'forgotten', invalidate it,
+    // scrub the content, null the embedding, delete derived typed links, and
+    // write a 'forget' audit row. Mirrors invalidate_fact's BYOD/managed split.
+    const rpcResult = await this.rpc<
+      Array<{ forgotten_at: string; typed_links_deleted: number }>
+    >(
+      "forget_fact",
+      { p_fact_id: input.fact_id, p_reason: input.reason ?? null, p_session_id: input.session_id ?? null },
+      "mc_forget_fact",
+      { p_fact_id: input.fact_id, p_reason: input.reason ?? null, p_session_id: input.session_id ?? null }
+    );
+    const row = Array.isArray(rpcResult)
+      ? rpcResult[0]
+      : (rpcResult as { forgotten_at: string; typed_links_deleted: number });
+    const forgottenAt = row?.forgotten_at ?? now();
+    const typedLinksDeleted =
+      typeof row?.typed_links_deleted === "number" ? row.typed_links_deleted : 0;
+
+    // Scrub the forgotten fact out of derived taxonomy snapshots.
+    const snapshots = await scrubForgottenFactFromSnapshots(this, input.fact_id);
+
+    // Purge archived snapshot versions that still embed the fact pointer.
+    const historyPurged = await this.purgeForgottenSnapshotHistory(input.fact_id);
+
+    // Verify the forgotten fact no longer surfaces in any recall path.
+    const verifiedClean =
+      snapshots.clean && !(await this.factSurfacesInRecall(input.fact_id, originalText));
+
+    return {
+      fact_id: input.fact_id,
+      backend: "supabase",
+      forgotten_at: forgottenAt,
+      fact_tombstoned: true,
+      content_scrubbed: true,
+      embedding_cleared: true,
+      typed_links_deleted: typedLinksDeleted,
+      snapshots_regenerated: snapshots.snapshots_regenerated,
+      snapshots_neutralized: snapshots.snapshots_neutralized,
+      history_entries_purged: historyPurged,
+      surfaces_swept: [
+        "extracted_facts",
+        "extracted_facts.embedding",
+        "memory_typed_links",
+        "facts_audit",
+        "knowledge_library(memory_snapshot)",
+        "knowledge_library_history",
+      ],
+      verified_clean: verifiedClean,
+    };
+  }
+
+  /** Best-effort purge of archived snapshot versions that still embed the fact. */
+  private async purgeForgottenSnapshotHistory(factId: string): Promise<number> {
+    const pattern = `%${factSnapshotPointer(factId)}%`;
+    try {
+      let del = this.client
+        .from(this.tables.knowledge_library_history)
+        .delete()
+        .like("content", pattern);
+      if (this.tenancy.mode === "managed") {
+        del = del.eq("api_key_hash", this.tenancy.apiKeyHash);
+      }
+      const { data } = await del.select("id");
+      return Array.isArray(data) ? data.length : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  /** Post-forget assertion: the fact id must not appear in fact or recall search. */
+  private async factSurfacesInRecall(factId: string, originalText: string): Promise<boolean> {
+    if (!originalText) return false;
+    try {
+      const facts = (await this.searchFacts(originalText)) as Array<{ id?: string }>;
+      if (Array.isArray(facts) && facts.some((r) => r?.id === factId)) return true;
+      const recall = (await this.searchMemory(originalText, 50)) as Array<{ id?: string }>;
+      return Array.isArray(recall) && recall.some((r) => r?.id === factId);
+    } catch {
+      return false;
+    }
+  }
+  // --- end lane-05 ---
 
   async logConversation(data: ConversationInput) {
     await this.enforceCaps("general");

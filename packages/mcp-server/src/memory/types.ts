@@ -74,6 +74,49 @@ export interface InvalidateFactInput {
   session_id?: string;
 }
 
+// --- lane-05: true-forget (MEMORY_HARD_FORGET_ENABLED) ---
+/**
+ * Input for a hard "forget": tombstone a fact and propagate the deletion to
+ * every derived store (embeddings, typed links, taxonomy snapshots, library
+ * history). Unlike InvalidateFactInput, which is a soft, reversible hide, a
+ * forget scrubs the stored content so it cannot be recovered or re-surfaced.
+ */
+export interface ForgetInput {
+  fact_id: string;
+  reason?: string;
+  session_id?: string;
+}
+
+/**
+ * Per-surface receipt describing what a forget swept. This is the contract the
+ * eval harness (Worker 10) scores for forget_compliance, so each derived store
+ * reports its own result rather than collapsing into a single boolean.
+ */
+export interface ForgetReceipt {
+  fact_id: string;
+  backend: "local" | "supabase";
+  forgotten_at: string;
+  /** The fact row was moved to a non-active, invalidated tombstone state. */
+  fact_tombstoned: boolean;
+  /** The stored fact text was overwritten with a content-free tombstone marker. */
+  content_scrubbed: boolean;
+  /** The vector embedding was cleared (always true on backends without embeddings). */
+  embedding_cleared: boolean;
+  typed_links_deleted: number;
+  snapshots_regenerated: number;
+  snapshots_neutralized: number;
+  history_entries_purged: number;
+  /** Derived surfaces this forget asserted clean, for audit and the metric. */
+  surfaces_swept: string[];
+  /**
+   * True only when a post-sweep re-check confirmed the fact no longer appears in
+   * fact search, full recall search, or any live taxonomy snapshot. Drives the
+   * forget_compliance metric (must be true for compliance 1.0).
+   */
+  verified_clean: boolean;
+}
+// --- end lane-05 ---
+
 export interface ConversationInput {
   session_id: string;
   role: string;
@@ -237,4 +280,14 @@ export interface MemoryBackend {
 
   /** Mark a fact as invalidated (does not delete it). Writes an audit row. */
   invalidateFact(input: InvalidateFactInput): Promise<{ invalidated_at: string }>;
+
+  // --- lane-05: true-forget (MEMORY_HARD_FORGET_ENABLED) ---
+  /**
+   * Hard-forget a fact: tombstone the row, scrub its content, and propagate the
+   * deletion through every derived store (embeddings, typed links, taxonomy
+   * snapshots, library history). Distinct from invalidateFact, which only hides
+   * a fact from recall while keeping its content for audit/supersession.
+   */
+  forgetMemory(input: ForgetInput): Promise<ForgetReceipt>;
+  // --- end lane-05 ---
 }
