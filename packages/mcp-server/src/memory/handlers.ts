@@ -20,6 +20,18 @@ import { buildSearchMemoryCard } from "../cards/search-memory-card.js";
 import { extractMemoryTypedLinkCandidates } from "./typed-links.js";
 import { isHardForgetEnabled, forgetComplianceScore } from "./forget.js";
 import { logMemoryLoadEvent } from "./instrumentation.js";
+import {
+  isCorrectionsEnabled,
+  CORRECTIONS_CATEGORY,
+  CORRECTION_PRIORITY,
+  MAX_CORRECTION_LINES,
+  correctionKey,
+  buildCorrectionValue,
+  buildCorrectionDoNotRepeatLines,
+  selectRelevantCorrections,
+  countCorrections,
+  emitCorrectionConsultMetric,
+} from "./corrections.js";
 import type {
   MemoryBackend,
   MemoryProfileCard,
@@ -361,7 +373,16 @@ function buildMemoryProfileCard(params: {
     ].filter((item) => item.line && GUARDRAIL_PATTERN.test(item.line)),
     3
   );
-  const doNotRepeat = guardrailItems.map((item) => item.line);
+  // --- lane-05: corrections are always-loaded standing rules pinned to the top ---
+  const doNotRepeat = isCorrectionsEnabled()
+    ? Array.from(
+        new Set([
+          ...buildCorrectionDoNotRepeatLines(businessRows),
+          ...guardrailItems.map((item) => item.line),
+        ])
+      ).slice(0, MAX_CORRECTION_LINES)
+    : guardrailItems.map((item) => item.line);
+  // --- end lane-05 ---
 
   const sourceReceipts: MemoryProfileCardReceipt[] = [];
   const receiptIds = new Set<string>();
@@ -866,6 +887,80 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     }
 
     return { mode: "hard_forget", flag_enabled: true, forget_compliance, ...receipt };
+  },
+
+  async save_correction(args) {
+    if (!isCorrectionsEnabled()) {
+      return {
+        saved: false,
+        flag: "MEMORY_CORRECTIONS_ENABLED",
+        flag_enabled: false,
+        note: "Corrections are flag-gated off.",
+      };
+    }
+    const db = await getBackend();
+    const correction = str(args.correction) || str(args.text) || str(args.fact);
+    if (!correction) throw new Error("save_correction requires a correction");
+    const input = {
+      correction,
+      mistake: typeof args.mistake === "string" ? args.mistake : undefined,
+      key: typeof args.key === "string" ? args.key : undefined,
+      source_agent_id: typeof args.source_agent_id === "string" ? args.source_agent_id : undefined,
+      source_ref: typeof args.source_ref === "string" ? args.source_ref : undefined,
+      receipt_id: typeof args.receipt_id === "string" ? args.receipt_id : undefined,
+    };
+    const key = correctionKey(input);
+    await db.setBusinessContext(
+      CORRECTIONS_CATEGORY,
+      key,
+      buildCorrectionValue(input, new Date().toISOString()),
+      CORRECTION_PRIORITY,
+    );
+    const hash = currentApiKeyHash();
+    if (hash) {
+      void emitSignal({
+        apiKeyHash: hash,
+        tool: "memory",
+        action: "correction_saved",
+        severity: "info",
+        summary: `Correction saved: ${correction.slice(0, 80)}`,
+        deepLink: "/admin/memory?tab=business-context",
+      });
+    }
+    return { saved: true, category: CORRECTIONS_CATEGORY, key, flag_enabled: true };
+  },
+
+  async list_corrections() {
+    const db = await getBackend();
+    const business = await db.getBusinessContext();
+    const rows = (Array.isArray(business) ? business : [])
+      .map(asRecord)
+      .filter((r): r is Record<string, unknown> => r !== null);
+    const corrections = rows
+      .filter((r) => String(r.category ?? "").toLowerCase() === CORRECTIONS_CATEGORY)
+      .map((r) => ({ key: r.key, value: r.value, priority: r.priority }));
+    return { corrections, count: corrections.length, flag_enabled: isCorrectionsEnabled() };
+  },
+
+  async consult_corrections(args) {
+    if (!isCorrectionsEnabled()) {
+      return {
+        corrections: [],
+        flag: "MEMORY_CORRECTIONS_ENABLED",
+        flag_enabled: false,
+        note: "Corrections are flag-gated off.",
+      };
+    }
+    const db = await getBackend();
+    const business = await db.getBusinessContext();
+    const rows = (Array.isArray(business) ? business : [])
+      .map(asRecord)
+      .filter((r): r is Record<string, unknown> => r !== null);
+    const query = str(args.query) || str(args.context) || str(args.draft);
+    const relevant = selectRelevantCorrections(rows, query, num(args.max_results, 5));
+    const total = countCorrections(rows);
+    emitCorrectionConsultMetric(query, relevant.length, total);
+    return { corrections: relevant, count: relevant.length, total, flag_enabled: true };
   },
   // --- end lane-05 ---
 };
