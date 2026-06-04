@@ -18,6 +18,7 @@ import { triggerSessionInspection } from "./session-inspection-trigger.js";
 import { emitSignal } from "../signals/emit.js";
 import { buildSearchMemoryCard } from "../cards/search-memory-card.js";
 import { extractMemoryTypedLinkCandidates } from "./typed-links.js";
+import { isTypedMemorySplitEnabled, normalizeMemoryClass } from "./typed-memory.js";
 import type {
   MemoryBackend,
   MemoryProfileCard,
@@ -623,6 +624,19 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return db.searchTypedLinks(str(args.query), num(args.max_results, 10));
   },
 
+  // --- lane-09: typed memory split ---
+  async list_session_events(args) {
+    if (!isTypedMemorySplitEnabled()) return [];
+    const db = await getBackend();
+    return db.listSessionEvents({
+      query: typeof args.query === "string" ? args.query : undefined,
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+      memory_class: typeof args.memory_class === "string" ? normalizeMemoryClass(args.memory_class, "episodic") : undefined,
+      limit: num(args.limit ?? args.max_results, 20),
+    });
+  },
+  // --- end lane-09 ---
+
   async search_library(args) {
     const db = await getBackend();
     return db.searchLibrary(str(args.query));
@@ -665,8 +679,9 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
 
   async add_fact(args) {
     const db = await getBackend();
+    const factText = str(args.fact);
     const result = await db.addFact({
-      fact: str(args.fact),
+      fact: factText,
       category: str(args.category, "general"),
       confidence: num(args.confidence, 0.9),
       source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
@@ -677,15 +692,21 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       preserve_as_blob: typeof args.preserve_as_blob === "boolean" ? args.preserve_as_blob : false,
       commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
       pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
+      // --- lane-09: typed memory split ---
+      memory_class: typeof args.memory_class === "string" ? normalizeMemoryClass(args.memory_class) : undefined,
+      // --- end lane-09 ---
     });
-    await persistTypedLinksForMemoryWrite(db, {
-      source_kind: "fact",
-      source_id: result.id,
-      text: str(args.fact),
-    });
+    const routedToEpisode = (result as { routed_to_episode?: boolean }).routed_to_episode === true;
+    if (!routedToEpisode) {
+      await persistTypedLinksForMemoryWrite(db, {
+        source_kind: "fact",
+        source_id: result.id,
+        text: factText,
+      });
+    }
     const hash = currentApiKeyHash();
     if (hash) {
-      const preview = str(args.fact).slice(0, 80);
+      const preview = factText.slice(0, 80);
       void emitSignal({
         apiKeyHash: hash,
         tool: "memory",
@@ -724,6 +745,25 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     });
     return receipt;
   },
+
+  // --- lane-09: typed memory split ---
+  async add_session_event(args) {
+    if (!isTypedMemorySplitEnabled()) {
+      return { enabled: false, skipped: "MEMORY_TYPED_SPLIT_ENABLED is off" };
+    }
+    const db = await getBackend();
+    return db.addSessionEvent({
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+      memory_class: typeof args.memory_class === "string" ? normalizeMemoryClass(args.memory_class, "episodic") : "episodic",
+      event_kind: str(args.event_kind, "episode"),
+      content: str(args.content),
+      summary: typeof args.summary === "string" ? args.summary : undefined,
+      payload: asRecord(args.payload) ?? undefined,
+      source_fact_id: typeof args.source_fact_id === "string" ? args.source_fact_id : undefined,
+      source_session_summary_id: typeof args.source_session_summary_id === "string" ? args.source_session_summary_id : undefined,
+    });
+  },
+  // --- end lane-09 ---
 
   async get_conversation_detail(args) {
     const db = await getBackend();
