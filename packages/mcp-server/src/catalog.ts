@@ -2211,7 +2211,8 @@ export const CATALOG: ToolDef[] = [
           properties: {
             dry_run: { type: "boolean", default: false },
             max_candidates: { type: "number", minimum: 1, maximum: 1000, default: 250 },
-            similarity_threshold: { type: "number", minimum: 0.5, maximum: 1, default: 0.82 },
+            similarity_threshold: { type: "number", minimum: 0.5, maximum: 1, default: 0.92 },
+            same_subject_threshold: { type: "number", minimum: 0, maximum: 1, default: 0.5 },
             run_decay: { type: "boolean", default: true },
             source: { type: "string", default: "manual" },
             now: { type: "string", description: "Optional ISO timestamp for deterministic runs." },

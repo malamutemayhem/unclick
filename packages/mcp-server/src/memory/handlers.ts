@@ -824,7 +824,8 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       max_candidates: num(args.max_candidates, 250),
       now: typeof args.now === "string" ? args.now : undefined,
       source,
-      similarity_threshold: num(args.similarity_threshold, 0.82),
+      similarity_threshold: num(args.similarity_threshold, 0.92),
+      same_subject_threshold: num(args.same_subject_threshold, 0.5),
     });
     recordMemoryMetric("dedup_collapse_rate", result.metrics.dedup_collapse_rate, {
       source,

@@ -158,8 +158,30 @@ interface FactRow {
   valid_to?: string | null;
   created_at: string;
   updated_at: string;
+  // --- lane-03: provenance & receipts ---
+  source_agent_id?: string | null;
+  source_ref?: string | null;
+  receipt_id?: string | null;
+  extractor_id?: string | null;
+  prompt_version?: string | null;
+  model_id?: string | null;
+  // --- end lane-03 ---
   commit_sha?: string;
   pr_number?: number;
+  // --- lane-04: scopes / credential-aware / Boardroom visibility ---
+  visibility?: string | null;
+  boardroom_id?: string | null;
+  credential_scope?: string | null;
+  quarantined_at?: string | null;
+  // --- end lane-04 ---
+  // --- lane-06: ranking row contract ---
+  final_score?: number | null;
+  rrf_score?: number | null;
+  kw_score?: number | null;
+  cosine_score?: number | null;
+  keyword_rank?: number | null;
+  vector_rank?: number | null;
+  // --- end lane-06 ---
   // --- lane-08: decay and consolidation ---
   effective_score?: number | null;
   decayed_confidence?: number | null;

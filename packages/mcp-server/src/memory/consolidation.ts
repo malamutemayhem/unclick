@@ -2,6 +2,10 @@ export const MEMORY_DECAY_V2_FLAG = "MEMORY_DECAY_V2_ENABLED";
 export const MEMORY_CONSOLIDATION_FLAG = "MEMORY_CONSOLIDATION_ENABLED";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const LANE_02_RECONCILE_THRESHOLDS = {
+  sameSubject: 0.5,
+  duplicate: 0.92,
+} as const;
 
 export type MemoryDecayTier = "hot" | "warm" | "cold";
 export type MemoryFactStatus = "active" | "superseded" | "archived" | "disputed" | string;
@@ -27,14 +31,30 @@ export interface MemoryDecayFactRow {
   effective_score?: number | null;
   decayed_confidence?: number | null;
   heat_score?: number | null;
+  final_score?: number | null;
+  rrf_score?: number | null;
+  kw_score?: number | null;
+  cosine_score?: number | null;
+  keyword_rank?: number | null;
+  vector_rank?: number | null;
   last_decay_at?: string | null;
   decay_reason?: string | null;
   archived_at?: string | null;
   consolidation_group_id?: string | null;
   consolidation_receipt?: Record<string, unknown> | null;
   source_session_id?: string | null;
+  source_agent_id?: string | null;
+  source_ref?: string | null;
+  receipt_id?: string | null;
+  extractor_id?: string | null;
+  prompt_version?: string | null;
+  model_id?: string | null;
   commit_sha?: string | null;
   pr_number?: number | null;
+  visibility?: string | null;
+  boardroom_id?: string | null;
+  credential_scope?: string | null;
+  quarantined_at?: string | null;
 }
 
 export interface MemoryDecayOptions {
@@ -46,6 +66,7 @@ export interface MemoryDecayOptions {
 
 export interface MemoryConsolidationOptions extends MemoryDecayOptions {
   similarity_threshold?: number;
+  same_subject_threshold?: number;
 }
 
 export interface MemoryDecayPatch {
@@ -95,6 +116,7 @@ export interface MemoryConsolidationGroup {
   canonical_id: string;
   duplicate_ids: string[];
   average_similarity: number;
+  average_same_subject_overlap: number;
 }
 
 export interface MemoryConsolidationPlan {
@@ -363,6 +385,17 @@ function tokensFor(text: string): Set<string> {
   return new Set(tokens.filter((token) => token.length > 2 && !TOKEN_STOP_WORDS.has(token)));
 }
 
+function overlapCoefficient(a: string, b: string): number {
+  const aTokens = tokensFor(a);
+  const bTokens = tokensFor(b);
+  if (aTokens.size === 0 || bTokens.size === 0) return 0;
+  let intersection = 0;
+  for (const token of aTokens) {
+    if (bTokens.has(token)) intersection += 1;
+  }
+  return intersection / Math.min(aTokens.size, bTokens.size);
+}
+
 export function factSimilarity(a: string, b: string): number {
   const aTokens = tokensFor(a);
   const bTokens = tokensFor(b);
@@ -378,9 +411,14 @@ export function factSimilarity(a: string, b: string): number {
 function canonicalScore(row: MemoryDecayFactRow): number {
   const confidence = clamp01(row.confidence ?? 0.5);
   const effectiveScore = clamp01(row.effective_score ?? 0);
+  const workerSixRankScore =
+    clamp01(row.final_score ?? 0) +
+    clamp01(row.rrf_score ?? 0) +
+    clamp01(row.kw_score ?? 0) * 0.1 +
+    clamp01(row.cosine_score ?? 0) * 0.25;
   const access = Math.log1p(Math.max(0, row.access_count ?? 0)) / Math.log(11);
   const updated = parseMs(row.updated_at ?? row.created_at, 0) / 1_000_000_000_000;
-  return confidence + effectiveScore + access + updated;
+  return confidence + effectiveScore + workerSixRankScore + access + updated;
 }
 
 function groupIdFor(ids: string[], ranAt: string): string {
@@ -396,6 +434,12 @@ function provenanceFor(row: MemoryDecayFactRow): Record<string, unknown> {
   return {
     id: row.id,
     source_session_id: row.source_session_id ?? null,
+    source_agent_id: row.source_agent_id ?? null,
+    source_ref: row.source_ref ?? null,
+    receipt_id: row.receipt_id ?? null,
+    extractor_id: row.extractor_id ?? null,
+    prompt_version: row.prompt_version ?? null,
+    model_id: row.model_id ?? null,
     commit_sha: row.commit_sha ?? null,
     pr_number: row.pr_number ?? null,
     created_at: row.created_at ?? null,
@@ -404,14 +448,28 @@ function provenanceFor(row: MemoryDecayFactRow): Record<string, unknown> {
   };
 }
 
+function isConsolidationEligible(row: MemoryDecayFactRow): boolean {
+  return (
+    (row.status ?? "active") === "active" &&
+    !row.invalidated_at &&
+    !row.valid_to &&
+    !row.quarantined_at &&
+    !isOperational(row)
+  );
+}
+
 export function buildMemoryConsolidationPlan(
   rows: MemoryDecayFactRow[],
   options: MemoryConsolidationOptions = {},
 ): MemoryConsolidationPlan {
   const ranAt = options.now ?? new Date().toISOString();
-  const threshold = Math.max(0.5, Math.min(1, options.similarity_threshold ?? 0.82));
+  const threshold = Math.max(0.5, Math.min(1, options.similarity_threshold ?? LANE_02_RECONCILE_THRESHOLDS.duplicate));
+  const sameSubjectThreshold = Math.max(
+    0,
+    Math.min(1, options.same_subject_threshold ?? LANE_02_RECONCILE_THRESHOLDS.sameSubject),
+  );
   const candidates = rows
-    .filter((row) => (row.status ?? "active") === "active" && !row.invalidated_at && !row.valid_to)
+    .filter(isConsolidationEligible)
     .slice(0, Math.max(1, options.max_candidates ?? rows.length));
   const used = new Set<string>();
   const patches: MemoryConsolidationPatch[] = [];
@@ -419,13 +477,17 @@ export function buildMemoryConsolidationPlan(
 
   for (const seed of candidates) {
     if (used.has(seed.id)) continue;
-    const cluster: Array<{ row: MemoryDecayFactRow; similarity: number }> = [{ row: seed, similarity: 1 }];
+    const cluster: Array<{ row: MemoryDecayFactRow; similarity: number; sameSubjectOverlap: number }> = [
+      { row: seed, similarity: 1, sameSubjectOverlap: 1 },
+    ];
     for (const other of candidates) {
       if (other.id === seed.id || used.has(other.id)) continue;
       if ((other.category ?? "general") !== (seed.category ?? "general")) continue;
+      const sameSubjectOverlap = overlapCoefficient(seed.fact, other.fact);
+      if (sameSubjectOverlap < sameSubjectThreshold) continue;
       const similarity = factSimilarity(seed.fact, other.fact);
       if (similarity >= threshold) {
-        cluster.push({ row: other, similarity });
+        cluster.push({ row: other, similarity, sameSubjectOverlap });
       }
     }
     if (cluster.length < 2) continue;
@@ -439,6 +501,9 @@ export function buildMemoryConsolidationPlan(
     const averageSimilarity = round4(
       duplicates.reduce((total, entry) => total + entry.similarity, 0) / duplicates.length,
     );
+    const averageSameSubjectOverlap = round4(
+      duplicates.reduce((total, entry) => total + entry.sameSubjectOverlap, 0) / duplicates.length,
+    );
     const receipt = {
       kind: "memory_consolidation_receipt_v1",
       worker: "lane-08",
@@ -446,8 +511,23 @@ export function buildMemoryConsolidationPlan(
       canonical_id: canonical.id,
       duplicate_ids: duplicateIds,
       provenance_union: cluster.map((entry) => provenanceFor(entry.row)),
+      contracts: {
+        provenance: ["source_agent_id", "source_ref", "receipt_id"],
+        ranking: ["final_score", "rrf_score", "kw_score", "cosine_score", "keyword_rank", "vector_rank"],
+        reconcile: { sameSubject: sameSubjectThreshold, duplicate: threshold },
+        scope: { quarantine_field: "quarantined_at" },
+        merge: { duplicate_action: "supersede", access_count_increment: 0 },
+      },
+      classifications: duplicates.map((entry) => ({
+        id: entry.row.id,
+        classification: "duplicate",
+        similarity: round4(entry.similarity),
+        same_subject_overlap: round4(entry.sameSubjectOverlap),
+      })),
       average_similarity: averageSimilarity,
+      average_same_subject_overlap: averageSameSubjectOverlap,
       similarity_threshold: threshold,
+      same_subject_threshold: sameSubjectThreshold,
       source: options.source ?? "manual",
       ran_at: ranAt,
     };
@@ -481,6 +561,7 @@ export function buildMemoryConsolidationPlan(
       canonical_id: canonical.id,
       duplicate_ids: duplicateIds,
       average_similarity: averageSimilarity,
+      average_same_subject_overlap: averageSameSubjectOverlap,
     });
   }
 
