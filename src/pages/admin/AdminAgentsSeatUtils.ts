@@ -39,6 +39,22 @@ export interface SeatPerformanceScore {
   source: "matched-seat" | "live-profile" | "manual-seat";
 }
 
+export type SeatClientKind = "codex" | "claude" | "github-action" | "windsurf" | "unknown";
+export type SeatFreshnessKind = "live" | "warm" | "stale" | "cold" | "unknown";
+export type SeatReliabilityKind = "strong" | "watch" | "risk";
+export type SeatRoutingHint = "build" | "review" | "observe" | "avoid";
+
+export interface SeatCapabilityNote {
+  id: string;
+  label: string;
+  source: "matched-seat" | "live-profile" | "manual-seat";
+  client: SeatClientKind;
+  freshness: SeatFreshnessKind;
+  reliability: SeatReliabilityKind;
+  routingHint: SeatRoutingHint;
+  notes: string[];
+}
+
 export const AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY = "unclick_ai_seat_load_overrides_v1";
 export const AI_SEAT_LEGACY_STORAGE_KEY = "unclick_ai_seat_manual_slots_v1";
 
@@ -308,4 +324,155 @@ export function buildSeatPerformanceScores(
   }
 
   return scores.sort((left, right) => right.score - left.score || left.label.localeCompare(right.label));
+}
+
+function detectSeatClientKind(input: string | null | undefined): SeatClientKind {
+  const lower = (input ?? "").toLowerCase();
+  if (lower.includes("codex")) return "codex";
+  if (lower.includes("claude")) return "claude";
+  if (lower.includes("github-action") || lower.includes("github action") || lower.includes("queuepush")) {
+    return "github-action";
+  }
+  if (lower.includes("windsurf") || lower.includes("cascade")) return "windsurf";
+  return "unknown";
+}
+
+function classifyFreshness(checkInAt: string | null, nowMs: number): SeatFreshnessKind {
+  if (!checkInAt) return "unknown";
+  const checkInMs = Date.parse(checkInAt);
+  if (!Number.isFinite(checkInMs)) return "unknown";
+  const ageMs = Math.max(0, nowMs - checkInMs);
+  if (ageMs <= 15 * 60 * 1000) return "live";
+  if (ageMs <= 60 * 60 * 1000) return "warm";
+  if (ageMs <= 6 * 60 * 60 * 1000) return "stale";
+  return "cold";
+}
+
+function statusSignal(status: string | null | undefined): "pass" | "blocker" | null {
+  if (!status) return null;
+  const lower = status.toLowerCase();
+  if (/\b(blocker|hold|stuck|error)\b/.test(lower)) return "blocker";
+  if (/\b(pass|done|green)\b/.test(lower)) return "pass";
+  return null;
+}
+
+function reliabilityFromSignals({
+  scoreStatus,
+  freshness,
+  signal,
+}: {
+  scoreStatus: SeatPerformanceStatus;
+  freshness: SeatFreshnessKind;
+  signal: "pass" | "blocker" | null;
+}): SeatReliabilityKind {
+  if (signal === "blocker" || scoreStatus === "blocked" || freshness === "cold") return "risk";
+  if (scoreStatus === "strong" && (freshness === "live" || freshness === "warm")) return "strong";
+  return "watch";
+}
+
+function routingHintFromSignals({
+  seat,
+  client,
+  reliability,
+  signal,
+}: {
+  seat: AISeat | null;
+  client: SeatClientKind;
+  reliability: SeatReliabilityKind;
+  signal: "pass" | "blocker" | null;
+}): SeatRoutingHint {
+  const policy = seat ? normalizeSeatRoutingPolicy(seat.routingPolicy) : "auto";
+  if (policy === "blocked" || signal === "blocker") return "avoid";
+  if (client === "github-action") return "observe";
+  if (seat?.isVirtual || client === "windsurf") return "review";
+  if (reliability === "strong" && !seat?.isVirtual) return "build";
+  if (client === "claude") return "review";
+  return "observe";
+}
+
+function buildCapabilityNotes({
+  seat,
+  profile,
+  freshness,
+  signal,
+}: {
+  seat: AISeat | null;
+  profile: FishbowlProfile | null;
+  freshness: SeatFreshnessKind;
+  signal: "pass" | "blocker" | null;
+}): string[] {
+  const notes: string[] = [];
+  if (seat?.isVirtual) notes.push("virtual fallback seat");
+  if (!profile) notes.push("no live profile");
+  if (freshness === "stale" || freshness === "cold" || freshness === "unknown") {
+    notes.push(`check-in ${freshness}`);
+  }
+  const policy = seat ? normalizeSeatRoutingPolicy(seat.routingPolicy) : "auto";
+  if (policy === "blocked") notes.push("blocked for routing");
+  if (policy === "avoid") notes.push("avoid for routing");
+  if (signal === "blocker") notes.push("status reports blocker");
+  if (signal === "pass") notes.push("status reports pass");
+  if (!seat?.isVirtual && seat && normalizeSeatLoadOverride(seat.load, 0) >= 85) notes.push("high load");
+  return notes.length > 0 ? notes : ["healthy"];
+}
+
+export function buildSeatCapabilityNotes(
+  seats: AISeat[],
+  profiles: FishbowlProfile[] = [],
+  nowMs = Date.now(),
+): SeatCapabilityNote[] {
+  const seatProfiles = mapProfilesToSeats(seats, profiles);
+  const matchedProfiles = seatProfiles.values();
+  const notes: SeatCapabilityNote[] = seats.map((seat) => {
+    const profile = seatProfiles.get(seat.id) ?? null;
+    const checkedInAt = profile ? latestProfileCheckInAt(profile) : null;
+    const freshness = classifyFreshness(checkedInAt, nowMs);
+    const signal = statusSignal(profile?.current_status);
+    const client = detectSeatClientKind(
+      [profile?.user_agent_hint, profile?.display_name, seat.provider, seat.device].filter(Boolean).join(" "),
+    );
+    const score = scoreSeatPerformance({
+      id: seat.id,
+      label: seat.name,
+      seat,
+      profile,
+      nowMs,
+      source: seatProfiles.has(seat.id) ? "matched-seat" : "manual-seat",
+    });
+    const reliability = reliabilityFromSignals({ scoreStatus: score.status, freshness, signal });
+    return {
+      id: seat.id,
+      label: seat.name,
+      source: seatProfiles.has(seat.id) ? "matched-seat" : "manual-seat",
+      client,
+      freshness,
+      reliability,
+      routingHint: routingHintFromSignals({ seat, client, reliability, signal }),
+      notes: buildCapabilityNotes({ seat, profile, freshness, signal }),
+    };
+  });
+
+  for (const profile of unmatchedRecentProfiles(profiles, matchedProfiles, nowMs)) {
+    const checkedInAt = latestProfileCheckInAt(profile);
+    const freshness = classifyFreshness(checkedInAt, nowMs);
+    const signal = statusSignal(profile.current_status);
+    const client = detectSeatClientKind([profile.user_agent_hint, profile.display_name, profile.agent_id].join(" "));
+    const reliability = reliabilityFromSignals({
+      scoreStatus: freshness === "live" || freshness === "warm" ? "watch" : "stale",
+      freshness,
+      signal,
+    });
+    notes.push({
+      id: profile.agent_id,
+      label: profile.display_name?.trim() || profile.agent_id,
+      source: "live-profile",
+      client,
+      freshness,
+      reliability,
+      routingHint: routingHintFromSignals({ seat: null, client, reliability, signal }),
+      notes: buildCapabilityNotes({ seat: null, profile, freshness, signal }),
+    });
+  }
+
+  return notes.sort((left, right) => left.label.localeCompare(right.label));
 }

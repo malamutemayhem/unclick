@@ -42,6 +42,8 @@ import {
   PenSquare,
   ShieldAlert,
   Users as UsersIcon,
+  Gauge,
+  ShieldHalf,
   HeartPulse,
   ShieldCheck,
   ScrollText,
@@ -123,6 +125,7 @@ const AUTOPILOT_LINKS = [
   { path: "/admin/boardroom", label: "Boardroom", icon: MessagesSquare },
   { path: "/admin/jobs", label: "Jobs", icon: ListTodo },
   { path: "/admin/checks", label: "XPass", icon: ClipboardCheck, hasChildren: true },
+  { path: "/admin/xgate", label: "XGate", icon: ShieldHalf, hasChildren: true },
   { path: "/admin/projects", label: "Projects", icon: FolderKanban },
   { path: "/admin/ledger", label: "Ledger", icon: ReceiptText },
   { path: "/admin/workers", label: "Workers", icon: Bot },
@@ -144,6 +147,20 @@ const XPASS_LINKS = [
   { path: "/admin/checks/rotatepass", label: "RotatePass" },
   { path: "/admin/checks/wakepass", label: "WakePass" },
   { path: "/admin/checks/compliancepass", label: "CompliancePass" },
+] as const;
+
+// XGate is the pre-execution bookend twin of XPass: XPass proves what happened
+// (after), XGate decides what is allowed (before). Its members are the gates.
+// The gate sub-routes share the single XGate page for now (filtered by hash);
+// they can split into their own pages later, mirroring XPass.
+const XGATE_LINKS = [
+  { path: "/admin/xgate#commandgate", label: "CommandGate" },
+  { path: "/admin/xgate#gitgate", label: "GitGate" },
+  { path: "/admin/xgate#datagate", label: "DataGate" },
+  { path: "/admin/xgate#secretgate", label: "SecretGate" },
+  { path: "/admin/xgate#shipgate", label: "ShipGate" },
+  { path: "/admin/xgate#scopegate", label: "ScopeGate" },
+  { path: "/admin/xgate#spendgate", label: "SpendGate" },
 ] as const;
 
 function XPassNavItem({ onClick }: { onClick?: () => void }) {
@@ -195,6 +212,47 @@ function XPassNavItem({ onClick }: { onClick?: () => void }) {
   );
 }
 
+function XGateNavItem({ onClick }: { onClick?: () => void }) {
+  const location = useLocation();
+  const isXGate = location.pathname === "/admin/xgate" || location.pathname.startsWith("/admin/xgate");
+
+  return (
+    <div>
+      <NavLink
+        to="/admin/xgate"
+        onClick={onClick}
+        className={() =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isXGate
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <ShieldHalf className="h-4 w-4 shrink-0" />
+        <span className="flex-1">XGate</span>
+        {isXGate
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
+      {isXGate && (
+        <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
+          {XGATE_LINKS.map(({ path, label }) => (
+            <Link
+              key={path}
+              to={path}
+              onClick={onClick}
+              className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-card/40 hover:text-body"
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
   const location = useLocation();
   const open = location.pathname.startsWith("/admin/autopilot") ||
@@ -205,10 +263,14 @@ function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
       <SurfaceLink path="/admin/autopilot" label="AutoPilot" icon={Plane} onClick={onLinkClick} />
       {open && (
         <div className="mt-1 space-y-0.5 border-l border-primary/20 pl-3">
-          {AUTOPILOT_LINKS.map((item) => (
-            item.hasChildren ? (
-              <XPassNavItem key={item.path} onClick={onLinkClick} />
-            ) : (
+          {AUTOPILOT_LINKS.map((item) => {
+            if (item.hasChildren && item.path === "/admin/checks") {
+              return <XPassNavItem key={item.path} onClick={onLinkClick} />;
+            }
+            if (item.hasChildren && item.path === "/admin/xgate") {
+              return <XGateNavItem key={item.path} onClick={onLinkClick} />;
+            }
+            return (
               <SurfaceLink
                 key={item.path}
                 path={item.path}
@@ -216,8 +278,8 @@ function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
                 icon={item.icon}
                 onClick={onLinkClick}
               />
-            )
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -234,6 +296,7 @@ const ADMIN_SUBMENU = [
   { path: "/admin/audit-log",     label: "Audit Log",             icon: ScrollText  },
   { path: "/admin/brainmap",      label: "Ecosystem Brainmap",    icon: Sparkles    },
   { path: "/admin/benchmarks",    label: "Benchmarks",            icon: Trophy      },
+  { path: "/admin/truth-rate",    label: "Truth Rate",            icon: Gauge       },
 ] as const;
 
 function AdminSubmenu({ onLinkClick }: { onLinkClick?: () => void }) {
