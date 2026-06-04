@@ -159,8 +159,8 @@ interface FactRow {
   commit_sha?: string;
   pr_number?: number;
   // --- lane-04: scopes / credential-aware / boardroom visibility ---
+  // source_agent_id is declared by lane-03 (provenance) and consumed here.
   visibility?: string | null;
-  source_agent_id?: string | null;
   boardroom_id?: string | null;
   credential_scope?: string | null;
   quarantined_at?: string | null;

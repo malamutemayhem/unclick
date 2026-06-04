@@ -15,6 +15,7 @@ import os from "node:os";
 import path from "node:path";
 
 import {
+  deriveCredentialScopeFromSourceRef,
   isFactInScope,
   normalizeVisibility,
   resolveScopeContext,
@@ -87,6 +88,20 @@ describe("normalizeVisibility", () => {
   });
 });
 
+describe("deriveCredentialScopeFromSourceRef", () => {
+  test("extracts a connector platform slug only from connector-shaped refs", () => {
+    assert.equal(deriveCredentialScopeFromSourceRef("tool_call:stripe_charges:ch_1"), "stripe");
+    assert.equal(deriveCredentialScopeFromSourceRef("tool:gmail_send"), "gmail");
+    assert.equal(deriveCredentialScopeFromSourceRef("connector:shopify"), "shopify");
+    assert.equal(deriveCredentialScopeFromSourceRef("CONNECTOR:Stripe"), "stripe");
+    assert.equal(deriveCredentialScopeFromSourceRef("https://example.com/x"), null);
+    assert.equal(deriveCredentialScopeFromSourceRef("msg_abc123"), null);
+    assert.equal(deriveCredentialScopeFromSourceRef("pr:1290"), null);
+    assert.equal(deriveCredentialScopeFromSourceRef(null), null);
+    assert.equal(deriveCredentialScopeFromSourceRef("   "), null);
+  });
+});
+
 describe("scope env helpers", () => {
   const KEYS = [
     "MEMORY_SCOPES_ENABLED",
@@ -130,30 +145,52 @@ describe("scope env helpers", () => {
     assert.deepEqual(ctx.authorizedCredentialScopes, ["stripe", "gmail", "slack"]);
   });
 
-  test("scopeFieldsForWrite returns all-null when disabled", () => {
+  test("scopeFieldsForWrite returns inert nulls (and no source_agent_id) when disabled", () => {
     const ctx = reader({ agentId: "agent-a" });
     assert.deepEqual(scopeFieldsForWrite({ visibility: "private" }, ctx, false), {
       visibility: null,
-      source_agent_id: null,
       boardroom_id: null,
       credential_scope: null,
     });
   });
 
-  test("scopeFieldsForWrite defaults private owner and shared boardroom to the writer", () => {
+  test("scopeFieldsForWrite pins the private owner to the writer and defaults the shared Boardroom", () => {
     const ctx = reader({ agentId: "agent-a", boardroomId: "room-1" });
-    assert.deepEqual(scopeFieldsForWrite({ visibility: "private" }, ctx, true), {
-      visibility: "private",
-      source_agent_id: "agent-a",
-      boardroom_id: null,
-      credential_scope: null,
-    });
+    // Private: owner pinned to the writing agent; a caller-supplied source_agent_id is ignored.
+    assert.deepEqual(
+      scopeFieldsForWrite({ visibility: "private", source_agent_id: "agent-evil" }, ctx, true),
+      {
+        visibility: "private",
+        boardroom_id: null,
+        credential_scope: null,
+        source_agent_id: "agent-a",
+      }
+    );
+    // Shared: Boardroom defaulted; no source_agent_id emitted (lane-03 owns it elsewhere).
     assert.deepEqual(scopeFieldsForWrite({ visibility: "shared" }, ctx, true), {
       visibility: "shared",
-      source_agent_id: null,
       boardroom_id: "room-1",
       credential_scope: null,
     });
+  });
+
+  test("scopeFieldsForWrite auto-tags credential_scope from a connector source_ref", () => {
+    const ctx = reader({ agentId: "agent-a" });
+    assert.equal(
+      scopeFieldsForWrite({ source_ref: "tool_call:stripe_charges:ch_1" }, ctx, true).credential_scope,
+      "stripe"
+    );
+    // An explicit credential_scope wins over derivation.
+    assert.equal(
+      scopeFieldsForWrite({ credential_scope: "manual", source_ref: "tool_call:stripe_charges" }, ctx, true)
+        .credential_scope,
+      "manual"
+    );
+    // A non-connector ref does not tag.
+    assert.equal(
+      scopeFieldsForWrite({ source_ref: "https://example.com/x" }, ctx, true).credential_scope,
+      null
+    );
   });
 });
 

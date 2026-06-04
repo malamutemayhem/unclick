@@ -37,6 +37,7 @@ export type MemoryVisibility = (typeof MEMORY_VISIBILITY_VALUES)[number];
 export interface MemoryFactScopeFields {
   visibility?: string | null;
   source_agent_id?: string | null;
+  source_ref?: string | null;
   boardroom_id?: string | null;
   credential_scope?: string | null;
   quarantined_at?: string | null;
@@ -55,9 +56,13 @@ export interface MemoryScopeContext {
 /** Scope columns to persist on a write. */
 export interface MemoryScopeWriteFields {
   visibility: MemoryVisibility | null;
-  source_agent_id: string | null;
   boardroom_id: string | null;
   credential_scope: string | null;
+  /**
+   * Only set for private facts, pinned to the writing agent. Omitted for every
+   * other fact so lane-03's provenance source_agent_id is never clobbered.
+   */
+  source_agent_id?: string | null;
 }
 
 type EnvLike = Record<string, string | undefined>;
@@ -156,26 +161,54 @@ export function isFactInScope(fact: MemoryFactScopeFields, ctx: MemoryScopeConte
  * default their owner to the writing agent and shared facts default their
  * Boardroom to the writer's Boardroom.
  */
+// A source_ref that explicitly names a connector, e.g. "tool_call:stripe_charges",
+// "tool:gmail_send", "connector:shopify". We extract the leading platform token.
+const CONNECTOR_REF_PATTERN = /^(?:tool_call|tool|connector):([a-z0-9]+)(?:[_:].*)?$/i;
+
+/**
+ * Best-effort derive a credential scope (the connector platform_slug) from a
+ * Worker 3 provenance source_ref. Conservative: only fires when the ref
+ * explicitly names a connector, returning the leading platform token; null
+ * otherwise (so a url / message id / pr / commit ref is never mis-tagged). This
+ * is the sub-task 2 auto-tag path that consumes lane-03's source_ref.
+ */
+export function deriveCredentialScopeFromSourceRef(sourceRef: string | null | undefined): string | null {
+  const ref = nonEmpty(sourceRef);
+  if (ref === null) return null;
+  const match = CONNECTOR_REF_PATTERN.exec(ref);
+  return match ? match[1].toLowerCase() : null;
+}
+
+/**
+ * Compute the scope columns to persist for a write. When scopes are disabled
+ * this returns inert nulls (and never source_agent_id) so callers keep the
+ * write byte-identical to today. When enabled: shared facts default their
+ * Boardroom to the writer; credential_scope is taken explicitly or auto-tagged
+ * from source_ref; and a private fact's owner is pinned to the writing agent
+ * (never a caller-supplied value, which would allow write-time impersonation).
+ * source_agent_id is emitted ONLY for private facts, so lane-03's provenance
+ * value on every other fact is left untouched.
+ */
 export function scopeFieldsForWrite(
   input: MemoryFactScopeFields,
   ctx: MemoryScopeContext,
   enabled: boolean,
 ): MemoryScopeWriteFields {
   if (!enabled) {
-    return { visibility: null, source_agent_id: null, boardroom_id: null, credential_scope: null };
+    return { visibility: null, boardroom_id: null, credential_scope: null };
   }
 
   const visibility = normalizeVisibility(input.visibility);
-  const credential_scope = nonEmpty(input.credential_scope);
-  let source_agent_id = nonEmpty(input.source_agent_id);
+  const credential_scope =
+    nonEmpty(input.credential_scope) ?? deriveCredentialScopeFromSourceRef(input.source_ref);
   let boardroom_id = nonEmpty(input.boardroom_id);
-
-  if (visibility === "private" && source_agent_id === null) {
-    source_agent_id = ctx.agentId;
-  }
   if (visibility === "shared" && boardroom_id === null) {
     boardroom_id = ctx.boardroomId;
   }
 
-  return { visibility, source_agent_id, boardroom_id, credential_scope };
+  const fields: MemoryScopeWriteFields = { visibility, boardroom_id, credential_scope };
+  if (visibility === "private") {
+    fields.source_agent_id = ctx.agentId;
+  }
+  return fields;
 }

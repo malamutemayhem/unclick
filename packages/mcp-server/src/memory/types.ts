@@ -32,8 +32,8 @@ export interface FactInput {
   pr_number?: number;
   // --- lane-04: scopes / credential-aware / boardroom visibility ---
   // Optional row-level scope. Only honored when MEMORY_SCOPES_ENABLED is on.
+  // source_agent_id is declared by lane-03 (provenance) and consumed here.
   visibility?: MemoryVisibility | string;
-  source_agent_id?: string;
   boardroom_id?: string;
   credential_scope?: string;
   // --- end lane-04 ---

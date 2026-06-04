@@ -678,8 +678,8 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
       pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
       // --- lane-04: optional row-level scope (honored when MEMORY_SCOPES_ENABLED) ---
+      // source_agent_id is threaded by lane-03 (provenance); consumed here.
       visibility: typeof args.visibility === "string" ? args.visibility : undefined,
-      source_agent_id: typeof args.source_agent_id === "string" ? args.source_agent_id : undefined,
       boardroom_id: typeof args.boardroom_id === "string" ? args.boardroom_id : undefined,
       credential_scope: typeof args.credential_scope === "string" ? args.credential_scope : undefined,
       // --- end lane-04 ---
