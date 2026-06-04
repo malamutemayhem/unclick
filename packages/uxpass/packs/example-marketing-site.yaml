@@ -23,3 +23,24 @@ budgets:
 remediation:
   high-severity: fishbowl-todos
   all: report-only
+ui_toolbox:
+  sources:
+    - shadcn-ui
+    - radix-ui
+    - react-aria-components
+    - motion
+    - lucide-react
+    - 21st-dev
+    - magic-ui
+    - origin-ui
+  required_gates:
+    - source-provenance
+    - license-ok
+    - a11y-primitive
+    - design-system-fit
+    - mobile-fit
+    - reduced-motion
+    - performance-budget
+    - brand-fit
+    - screenshot-proof
+  scoreboard: true
