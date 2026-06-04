@@ -36,6 +36,9 @@ import {
   tokenizeLocalMemoryQuery,
   writeMemoryTaxonomySnapshotsToLibrary,
 } from "./supabase.js";
+// --- lane-01: retrieval fusion (read path) ---
+import { isFusedRetrievalEnabled, scoreBusinessContextRows } from "./retrieval-fusion.js";
+// --- end lane-01 ---
 
 function dataDir(): string {
   return process.env.MEMORY_LOCAL_DATA_DIR || path.join(os.homedir(), ".unclick", "memory");
@@ -394,7 +397,22 @@ export class LocalBackend implements MemoryBackend {
         };
       });
 
-    return [...facts, ...sessions, ...conversations]
+    // --- lane-01: business_context as a search source (Gap 2); flag-gated ---
+    const businessContext = isFusedRetrievalEnabled()
+      ? scoreBusinessContextRows(
+          query,
+          readTable<BusinessContextRow>("business_context").map((r) => ({
+            id: r.id,
+            category: r.category,
+            key: r.key,
+            value: r.value,
+            created_at: r.created_at,
+          }))
+        )
+      : [];
+    // --- end lane-01 ---
+
+    return [...facts, ...sessions, ...conversations, ...businessContext]
       .filter((row) => row.final_score > 0)
       .sort((a, b) => {
         const scoreDiff = b.final_score - a.final_score;

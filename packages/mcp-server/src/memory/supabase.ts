@@ -40,6 +40,10 @@ import {
   type MemoryTypedLinkStoredRow,
 } from "./typed-links.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
+// --- lane-01: retrieval fusion (read path) ---
+import { isFusedRetrievalEnabled, scoreBusinessContextRows } from "./retrieval-fusion.js";
+import type { MemorySearchResultRow } from "./types.js";
+// --- end lane-01 ---
 
 function pgError(context: string, err: unknown): Error {
   if (err instanceof Error) return err;
@@ -766,6 +770,12 @@ export class SupabaseBackend implements MemoryBackend {
     const patterns = tokens.map((t) => `%${t.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
     const effectiveAsOf = asOf ?? now();
 
+    // --- lane-01: business_context as a search source (Gap 2); flag-gated ---
+    const bcResults: MemorySearchResultRow[] = isFusedRetrievalEnabled()
+      ? await this.searchBusinessContextRows(query)
+      : [];
+    // --- end lane-01 ---
+
     const runScan = async (mode: "and" | "or"): Promise<unknown[]> => {
       let factQ = this.client
         .from(this.tables.extracted_facts)
@@ -858,7 +868,8 @@ export class SupabaseBackend implements MemoryBackend {
           cosine_score: 0,
         };
       });
-      return [...facts, ...sessions]
+      // lane-01: business_context joins the keyword pool when fused retrieval is on
+      return [...facts, ...sessions, ...bcResults]
         .sort((a, b) => {
           const d = (b.final_score ?? 0) - (a.final_score ?? 0);
           return d !== 0 ? d : (b.created_at ?? "").localeCompare(a.created_at ?? "");
@@ -870,6 +881,37 @@ export class SupabaseBackend implements MemoryBackend {
     if (andResults.length > 0 || tokens.length < 2) return andResults;
     return runScan("or");
   }
+
+  // --- lane-01: business_context retrieval (Gap 2) ---
+  /**
+   * Fetch tenant-scoped business_context rows and score them against the query
+   * with the shared keyword scorer (via retrieval-fusion). Standing rules are
+   * pinned by a scope weight so identity surfaces. Tenant scoping mirrors
+   * getBusinessContext exactly, so this never widens RLS. Degrades to [] on a
+   * backend error rather than failing the whole search.
+   */
+  private async searchBusinessContextRows(query: string): Promise<MemorySearchResultRow[]> {
+    let bcQuery = this.client
+      .from(this.tables.business_context)
+      .select("id, category, key, value");
+    if (this.tenancy.mode === "managed") {
+      bcQuery = bcQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await bcQuery;
+    if (error) {
+      console.error("[search_memory] business_context scan failed:", error);
+      return [];
+    }
+    type BcRow = { id: string; category: string; key: string; value: unknown };
+    const rows = ((data ?? []) as BcRow[]).map((r) => ({
+      id: r.id,
+      category: r.category,
+      key: r.key,
+      value: r.value,
+    }));
+    return scoreBusinessContextRows(query, rows);
+  }
+  // --- end lane-01 ---
 
   private async filterRecallVisibleSearchResults(results: unknown[], asOf: string): Promise<unknown[]> {
     type SearchResult = {
