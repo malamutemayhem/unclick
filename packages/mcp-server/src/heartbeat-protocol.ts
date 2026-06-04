@@ -23,7 +23,7 @@ export type HeartbeatProtocol = {
 };
 
 export const HEARTBEAT_PROTOCOL_DATE = "2026-06-02";
-export const HEARTBEAT_PROTOCOL_REVISION = 14;
+export const HEARTBEAT_PROTOCOL_REVISION = 15;
 
 export function formatHeartbeatProtocolVersion(revision: number): string {
   return `${HEARTBEAT_PROTOCOL_DATE}.v${revision}`;
@@ -50,6 +50,7 @@ const HEARTBEAT_PROTOCOL: HeartbeatProtocol = {
     "Keep healthy heartbeat state transient. Do not save recurring healthy or no-change heartbeats as Memory facts; use save_fact only for actionable diffs, tether errors, or explicit user-relevant state changes.",
     "If every UnClick write path, tool, and context path is missing, reply with a concise BLOCKER that names the missing capability and the next packaging fix.",
     "The action heartbeat may perform one safe Fleet Action Runner step with proof when scope is clear and protected surfaces are absent. NudgeOnly may request a receipt or escalation only. IgniteOnly may request a worker wake only. PushOnly may emit a worker push envelope only. The builder tether or trusted executor lane does the actual build, patch, test, route, or proof refresh. Protected surfaces still require a BLOCKER or human decision.",
+    "When MEMORY_CONSOLIDATION_ENABLED is enabled, prefer unclick_call with endpoint_id='memory.consolidate' and params { source: 'heartbeat', run_decay: true } for scheduled memory maintenance instead of calling load_memory just to keep a seat warm.",
   ],
   alert_format: {
     heading: "UnClick alert",

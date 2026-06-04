@@ -1,3 +1,9 @@
+import type {
+  MemoryConsolidationOptions,
+  MemoryConsolidationPlan,
+  MemoryDecayOptions,
+  MemoryDecayPlan,
+} from "./consolidation.js";
 import type { MemoryTypedLinkCandidate, MemoryTypedLinkSearchResult } from "./typed-links.js";
 
 /**
@@ -237,4 +243,9 @@ export interface MemoryBackend {
 
   /** Mark a fact as invalidated (does not delete it). Writes an audit row. */
   invalidateFact(input: InvalidateFactInput): Promise<{ invalidated_at: string }>;
+
+  // --- lane-08: decay and consolidation ---
+  manageDecayV2(options?: MemoryDecayOptions): Promise<MemoryDecayPlan>;
+  consolidateMemory(options?: MemoryConsolidationOptions): Promise<MemoryConsolidationPlan>;
+  // --- end lane-08 ---
 }
