@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { trendSlopGate } from "./trendslop-gate.js";
+import { buildTrendSlopAnswerQualityRisks } from "./trendslop-receipt.js";
 import type { GateContext } from "../types.js";
 
 const baseContext: GateContext = {
@@ -33,7 +34,7 @@ describe("TrendSlopGate", () => {
     });
 
     expect(result.verdict).toBe("allow");
-    expect(result.ruleId).toBe("trendslop.not_answer_surface");
+    expect(result.ruleId).toBe("TSG-SURF-000");
   });
 
   it("rewrites over-agreeable advice without a counterpoint", () => {
@@ -42,7 +43,7 @@ describe("TrendSlopGate", () => {
     ));
 
     expect(result.verdict).toBe("rewrite");
-    expect(result.ruleId).toBe("trendslop.sycophancy_rewrite");
+    expect(result.ruleId).toBe("TSG-AGREE-001");
   });
 
   it("rewrites trend-heavy generic advice without context", () => {
@@ -51,7 +52,7 @@ describe("TrendSlopGate", () => {
     ));
 
     expect(result.verdict).toBe("rewrite");
-    expect(result.ruleId).toBe("trendslop.generic_trend_rewrite");
+    expect(result.ruleId).toBe("TSG-BUZZ-001");
   });
 
   it("asks before high-risk advice with no grounding", () => {
@@ -60,7 +61,7 @@ describe("TrendSlopGate", () => {
     ));
 
     expect(result.verdict).toBe("ask");
-    expect(result.ruleId).toBe("trendslop.high_risk_context_missing");
+    expect(result.ruleId).toBe("TSG-CTX-001");
   });
 
   it("allows grounded advice with tradeoffs and evidence language", () => {
@@ -69,7 +70,7 @@ describe("TrendSlopGate", () => {
     ));
 
     expect(result.verdict).toBe("allow");
-    expect(result.ruleId).toBe("trendslop.grounded_enough");
+    expect(result.ruleId).toBe("TSG-OK-001");
   });
 
   it("honors AnswerPass quality risk signals", () => {
@@ -84,6 +85,45 @@ describe("TrendSlopGate", () => {
     ));
 
     expect(result.verdict).toBe("rewrite");
-    expect(result.ruleId).toBe("trendslop.sycophancy_rewrite");
+    expect(result.ruleId).toBe("TSG-AGREE-001");
+  });
+
+  it("denies high-confidence risky premise validation", () => {
+    const result = trendSlopGate(context(
+      "You are absolutely right. I recommend quitting the stable job and launching the untested business today.",
+      { user_premise_validation_risk: "high" },
+    ));
+
+    expect(result.verdict).toBe("deny");
+    expect(result.ruleId).toBe("TSG-PREMISE-001");
+  });
+
+  it("rewrites stance flips made without new evidence", () => {
+    const result = trendSlopGate(context(
+      "Actually, you are right. I now recommend the opposite strategy.",
+      { stance_reversal_without_new_evidence: true },
+    ));
+
+    expect(result.verdict).toBe("rewrite");
+    expect(result.ruleId).toBe("TSG-FLIP-001");
+  });
+
+  it("builds an AnswerPass-compatible answer_quality_risks block", () => {
+    const gateResult = trendSlopGate(context(
+      "You are absolutely right. This is a brilliant idea and I recommend launching the AI-first platform play now.",
+    ));
+    const risks = buildTrendSlopAnswerQualityRisks(gateResult, "watch");
+
+    expect(risks).toMatchObject({
+      gate: "TrendSlopGate",
+      gate_mode: "watch",
+      status: "rewrite",
+      action_needed: "rewrite_suggested",
+      rewrite_offered: true,
+      triggered_rules: ["TSG-AGREE-001"],
+    });
+    expect(risks.dimensions.unsupported_agreement.signal).toBe("high");
+    expect(risks.checked).toContain("unsupported_agreement");
+    expect(risks.not_checked).toContain("factual_accuracy_of_market_claims");
   });
 });

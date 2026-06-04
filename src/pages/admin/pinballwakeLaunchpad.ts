@@ -40,6 +40,11 @@ export interface LaunchpadSetupStep {
   detail: string;
 }
 
+export interface LaunchpadBackboneRule {
+  id: string;
+  instruction: string;
+}
+
 export const LAUNCHPAD_ORCHESTRATORS: LaunchpadOrchestrator[] = [
   {
     id: "lenovo-master",
@@ -125,6 +130,37 @@ export const LAUNCHPAD_ROOM_COVERAGE: LaunchpadRoomCoverage[] = [
   { room: "Publish Room", status: "covered", primarySeat: "GitHub/Vercel", backupSeats: ["Lenovo ChatGPT"] },
 ];
 
+export const LAUNCHPAD_BACKBONE_RULES: LaunchpadBackboneRule[] = [
+  {
+    id: "use-known-context",
+    instruction: "Before strategic or high-stakes advice, use known UnClick context or ask what is missing.",
+  },
+  {
+    id: "expand-options",
+    instruction: "Expand real options before recommending one path; do not make the final high-stakes choice for the user.",
+  },
+  {
+    id: "name-counterpoint",
+    instruction: "Include one honest counterpoint or failure condition when the answer steers a decision.",
+  },
+  {
+    id: "no-flattery-openers",
+    instruction: "Do not open with flattery or automatic agreement; be a firm sounding board.",
+  },
+  {
+    id: "challenge-risky-premise",
+    instruction: "If the user's premise looks false, stale, risky, or contradicted, say so kindly before continuing.",
+  },
+  {
+    id: "strip-buzzwords",
+    instruction: "Prefer concrete situation-grounded language over fashionable frameworks and vague buzzwords.",
+  },
+  {
+    id: "calibrate-confidence",
+    instruction: "Match confidence to evidence and name what was not checked.",
+  },
+];
+
 export const LAUNCHPAD_SETUP_STEPS: LaunchpadSetupStep[] = [
   {
     id: "single-heartbeat",
@@ -147,8 +183,8 @@ export const LAUNCHPAD_SETUP_STEPS: LaunchpadSetupStep[] = [
   {
     id: "trendslop-conditioning",
     label: "TrendSlopGate conditioning",
-    status: "next",
-    detail: "Launchpad seats should challenge weak premises, flag generic fashionable advice, and route answer quality risk through XGate.",
+    status: "done",
+    detail: "Launchpad seats use Backbone rules to challenge weak premises, flag fashionable generic advice, and route answer quality risk through XGate.",
   },
   {
     id: "usage-metering",

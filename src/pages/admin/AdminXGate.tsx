@@ -4,12 +4,15 @@ import { AlertTriangle, CircleDot, Loader2, Lock, RefreshCw, ShieldCheck, Shield
 import { useSession } from "@/lib/auth";
 import {
   applyMasterXGateMode,
+  applyXGatePreset,
   defaultXGateModes,
   resolveMasterXGateMode,
   setIndividualXGateMode,
   XGATE_MODE_COPY,
   XGATE_PRODUCT_CONFIGS,
+  XGATE_PRESETS,
   type XGateControlMode,
+  type XGatePresetId,
 } from "./xgateModeModel";
 
 type XGateVerdict = "allow" | "deny" | "ask" | "rewrite";
@@ -208,10 +211,12 @@ function XGateModePanel({
   modes,
   onMasterMode,
   onGateMode,
+  onPreset,
 }: {
   modes: Record<string, XGateControlMode>;
   onMasterMode: (mode: XGateControlMode) => void;
   onGateMode: (gateId: string, mode: XGateControlMode) => void;
+  onPreset: (presetId: XGatePresetId) => void;
 }) {
   const masterMode = resolveMasterXGateMode(modes);
 
@@ -230,22 +235,37 @@ function XGateModePanel({
       </div>
 
       <div className="rounded-xl border border-white/[0.06] bg-[#111] p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold text-white">Master XGate</p>
             <p className="mt-1 text-[11px] leading-5 text-white/45">
               Off, Watch, or Block here overrides every individual gate.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {MODE_ORDER.map((mode) => (
-              <ModeButton
-                key={mode}
-                mode={mode}
-                active={masterMode === mode}
-                onClick={() => onMasterMode(mode)}
-              />
-            ))}
+          <div className="flex flex-col gap-3 sm:items-end">
+            <div className="flex flex-wrap gap-2">
+              {MODE_ORDER.map((mode) => (
+                <ModeButton
+                  key={mode}
+                  mode={mode}
+                  active={masterMode === mode}
+                  onClick={() => onMasterMode(mode)}
+                />
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {XGATE_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => onPreset(preset.id)}
+                  title={preset.detail}
+                  className="rounded-md border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-3 py-1.5 text-[11px] font-semibold text-[#61C1C4] transition-colors hover:bg-[#61C1C4]/15"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -460,6 +480,7 @@ export default function AdminXGate() {
         modes={gateModes}
         onMasterMode={(mode) => setGateModes(applyMasterXGateMode(mode))}
         onGateMode={(gateId, mode) => setGateModes((current) => setIndividualXGateMode(current, gateId, mode))}
+        onPreset={(presetId) => setGateModes((current) => applyXGatePreset(presetId, current))}
       />
 
       <KillSwitchPanel state={killSwitch} />

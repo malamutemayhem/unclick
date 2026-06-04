@@ -104,9 +104,13 @@ interface TrendSlopParsedSignals {
     sycophancy?: unknown;
     context_specificity?: unknown;
     evidence_grounding?: unknown;
+    user_premise_validation_risk?: unknown;
+    stance_reversal_risk?: unknown;
   };
   risk_level?: unknown;
   requires_decision?: unknown;
+  user_premise_validation_risk?: unknown;
+  stance_reversal_without_new_evidence?: unknown;
 }
 
 function result(
@@ -141,6 +145,8 @@ function parsedSignals(value: unknown): TrendSlopParsedSignals {
     answer_quality_risks: risks,
     risk_level: value.risk_level,
     requires_decision: value.requires_decision,
+    user_premise_validation_risk: value.user_premise_validation_risk,
+    stance_reversal_without_new_evidence: value.stance_reversal_without_new_evidence,
   };
 }
 
@@ -171,7 +177,7 @@ export const trendSlopGate: Gate = function TrendSlopGate(ctx: GateContext): Gat
     const risks = signals.answer_quality_risks;
 
     if (!isLikelyAnswerSurface(ctx, text, signals)) {
-      return result("allow", "trendslop.not_answer_surface", "The action is not an answer or advice surface.");
+      return result("allow", "TSG-SURF-000", "The action is not an answer or advice surface.");
     }
 
     const advice = includesAny(text, ADVICE_TERMS);
@@ -180,6 +186,12 @@ export const trendSlopGate: Gate = function TrendSlopGate(ctx: GateContext): Gat
     const trendCount = countMatches(text, TREND_TERMS);
     const hasCounterpoint = includesAny(text, COUNTERPOINT_TERMS);
     const hasContext = includesAny(text, CONTEXT_TERMS);
+    const premiseRisk =
+      signalIsHigh(signals.user_premise_validation_risk) ||
+      signalIsHigh(risks?.user_premise_validation_risk);
+    const stanceFlip =
+      signalIsHigh(signals.stance_reversal_without_new_evidence) ||
+      signalIsHigh(risks?.stance_reversal_risk);
     const riskHigh =
       signalIsHigh(risks?.trendslop) ||
       signalIsHigh(risks?.sycophancy) ||
@@ -193,12 +205,32 @@ export const trendSlopGate: Gate = function TrendSlopGate(ctx: GateContext): Gat
       `trend_terms:${String(trendCount)}`,
       `counterpoint:${String(hasCounterpoint)}`,
       `context:${String(hasContext)}`,
+      `premise_risk:${String(premiseRisk)}`,
+      `stance_flip:${String(stanceFlip)}`,
     ];
+
+    if (premiseRisk && agreement) {
+      return result(
+        "deny",
+        "TSG-PREMISE-001",
+        "The draft appears to agree with a risky or contradicted user premise.",
+        evidence,
+      );
+    }
+
+    if (stanceFlip && !hasContext) {
+      return result(
+        "rewrite",
+        "TSG-FLIP-001",
+        "The draft appears to change stance under pressure without new evidence.",
+        evidence,
+      );
+    }
 
     if (highRisk && advice && !hasContext) {
       return result(
         "ask",
-        "trendslop.high_risk_context_missing",
+        "TSG-CTX-001",
         "High-risk advice is missing context or evidence before it can safely steer the user.",
         evidence,
       );
@@ -207,7 +239,7 @@ export const trendSlopGate: Gate = function TrendSlopGate(ctx: GateContext): Gat
     if ((agreement || signalIsHigh(risks?.sycophancy)) && advice && !hasCounterpoint) {
       return result(
         "rewrite",
-        "trendslop.sycophancy_rewrite",
+        "TSG-AGREE-001",
         "The draft appears to accept the user's direction without enough challenge or counterpoint.",
         evidence,
       );
@@ -216,7 +248,7 @@ export const trendSlopGate: Gate = function TrendSlopGate(ctx: GateContext): Gat
     if ((trendCount >= 3 || signalIsHigh(risks?.trendslop)) && !hasContext) {
       return result(
         "rewrite",
-        "trendslop.generic_trend_rewrite",
+        "TSG-BUZZ-001",
         "The draft leans on fashionable language without enough situation-specific grounding.",
         evidence,
       );
@@ -225,7 +257,7 @@ export const trendSlopGate: Gate = function TrendSlopGate(ctx: GateContext): Gat
     if (riskHigh && !hasCounterpoint) {
       return result(
         "rewrite",
-        "trendslop.answerpass_quality_rewrite",
+        "TSG-CNTR-001",
         "AnswerPass quality signals require a clearer counterpoint, tradeoff, or uncertainty note.",
         evidence,
       );
@@ -233,14 +265,14 @@ export const trendSlopGate: Gate = function TrendSlopGate(ctx: GateContext): Gat
 
     return result(
       "allow",
-      "trendslop.grounded_enough",
+      "TSG-OK-001",
       "The answer has enough context, evidence, or counterpoint for this deterministic gate.",
       evidence,
     );
   } catch (error) {
     return result(
       "ask",
-      "trendslop.parse_error",
+      "TSG-PARSE-001",
       "TrendSlopGate could not safely evaluate the answer.",
       [error instanceof Error ? error.message : "unknown error"],
     );

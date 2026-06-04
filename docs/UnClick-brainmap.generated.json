@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 612,
+    "inventory": 613,
     "source_manifest": 191,
     "pages": 83,
     "tools": 219,
@@ -69,7 +69,7 @@
       "id": "ledgers-and-proof",
       "name": "Ledgers and proof",
       "meaning": "Receipts, audits, evidence, and proof-of-work surfaces.",
-      "count": 7
+      "count": 8
     },
     {
       "id": "source-of-truth",
@@ -1888,6 +1888,16 @@
       "kind": "proof module",
       "meaning": "pinballwake quiet window proof UnClick module.",
       "source": "scripts/pinballwake-quiet-window-proof.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "ledgers-and-proof-proof-module-trendslop-receipt-api-lib-xgate-gates-trendslop-receipt-ts-no-route",
+      "division": "Ledgers and proof",
+      "name": "trendslop receipt",
+      "kind": "proof module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/xgate/gates/trendslop-receipt.ts",
       "route": "",
       "tags": []
     },
@@ -8507,8 +8517,8 @@
     },
     {
       "source": "src/pages/admin/AdminXGate.tsx",
-      "hash": "c85116b53e93",
-      "bytes": 18588
+      "hash": "5c4381abffaf",
+      "bytes": 19472
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",

@@ -16,7 +16,11 @@ describe("XGate eval fixtures", () => {
     expect(findXGateEvalFixture("xgate.git.force_push_main")?.expected.verdict).toBe("deny");
     expect(findXGateEvalFixture("xgate.secret.commit_denied")?.expected.gate).toBe("SecretGate");
     expect(findXGateEvalFixture("xgate.scope.scoped_delete_allowed")?.expected.verdict).toBe("allow");
-    expect(findXGateEvalFixture("xgate.trendslop.sycophancy_rewrite")?.expected.gate).toBe("TrendSlopGate");
+    expect(findXGateEvalFixture("xgate.trendslop.sycophancy_rewrite")?.expected.ruleId).toBe("TSG-AGREE-001");
+    expect(findXGateEvalFixture("xgate.trendslop.context_ask")?.expected.ruleId).toBe("TSG-CTX-001");
+    expect(findXGateEvalFixture("xgate.trendslop.buzzword_rewrite")?.expected.ruleId).toBe("TSG-BUZZ-001");
+    expect(findXGateEvalFixture("xgate.trendslop.premise_deny")?.expected.ruleId).toBe("TSG-PREMISE-001");
+    expect(findXGateEvalFixture("xgate.trendslop.stance_flip_rewrite")?.expected.ruleId).toBe("TSG-FLIP-001");
   });
 
   it("stores redacted secret scenarios without hardcoded credential values", () => {

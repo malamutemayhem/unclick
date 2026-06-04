@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   activeOrchestrator,
   hasSplitBrain,
+  LAUNCHPAD_BACKBONE_RULES,
   LAUNCHPAD_ORCHESTRATORS,
   LAUNCHPAD_ROOM_COVERAGE,
   LAUNCHPAD_SEATS,
@@ -48,8 +49,21 @@ describe("PinballWake Launchpad admin model", () => {
   it("keeps TrendSlopGate conditioning visible in Launchpad setup", () => {
     const step = LAUNCHPAD_SETUP_STEPS.find((item) => item.id === "trendslop-conditioning");
 
-    expect(step?.status).toBe("next");
+    expect(step?.status).toBe("done");
     expect(step?.detail).toMatch(/challenge weak premises/i);
     expect(step?.detail).toMatch(/XGate/);
+  });
+
+  it("ships Backbone rules for worker prompt conditioning", () => {
+    expect(LAUNCHPAD_BACKBONE_RULES.map((rule) => rule.id)).toEqual([
+      "use-known-context",
+      "expand-options",
+      "name-counterpoint",
+      "no-flattery-openers",
+      "challenge-risky-premise",
+      "strip-buzzwords",
+      "calibrate-confidence",
+    ]);
+    expect(LAUNCHPAD_BACKBONE_RULES.map((rule) => rule.instruction).join(" ")).toMatch(/firm sounding board/i);
   });
 });

@@ -108,7 +108,7 @@ describe("evaluateGates", () => {
 
   it("skips gates that are explicitly off", () => {
     const decision = evaluateGatesWithModes(
-      [stubGate("TrendSlopGate", "deny", "trendslop.bad"), stubGate("GitGate", "allow", "git.ok")],
+      [stubGate("TrendSlopGate", "deny", "TSG-PREMISE-001"), stubGate("GitGate", "allow", "git.ok")],
       ctx,
       { gateModes: { TrendSlopGate: "off" } },
     );
@@ -119,7 +119,7 @@ describe("evaluateGates", () => {
 
   it("logs watch-mode gates without letting them block", () => {
     const decision = evaluateGatesWithModes(
-      [stubGate("TrendSlopGate", "rewrite", "trendslop.sycophancy_rewrite")],
+      [stubGate("TrendSlopGate", "rewrite", "TSG-AGREE-001")],
       ctx,
       { gateModes: { TrendSlopGate: "watch" } },
     );
@@ -128,7 +128,7 @@ describe("evaluateGates", () => {
     expect(decision.results[0]).toMatchObject({
       gate: "TrendSlopGate",
       verdict: "allow",
-      ruleId: "trendslop.sycophancy_rewrite.watch",
+      ruleId: "TSG-AGREE-001.watch",
     });
     expect(decision.results[0].evidence).toContain("would_verdict:rewrite");
   });
