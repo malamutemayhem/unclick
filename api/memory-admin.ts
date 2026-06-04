@@ -146,6 +146,7 @@ import {
   findExpressRoomDraftsByMirror,
   type ExpressRoomDraftQuery,
 } from "./lib/expressroom-draft-search.js";
+import { shouldSuppressNoopHeartbeatPost } from "./lib/fishbowl-quiet-post.js";
 import {
   buildFishbowlTodoHandoffDispatchRow,
   planFishbowlTodoHandoff,
@@ -9005,6 +9006,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           user_agent_hint?: string | null;
           agent_id?: string | null;
           thread_id?: string | null;
+          suppress_noop_heartbeat?: boolean | null;
         };
 
         const agentId = (body.agent_id ?? "").toString().trim();
@@ -9061,6 +9063,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
           }
           tags = body.tags;
+        }
+
+        if (
+          shouldSuppressNoopHeartbeatPost({
+            text,
+            tags,
+            suppressNoopHeartbeat: body.suppress_noop_heartbeat === true,
+          })
+        ) {
+          return res.status(200).json({
+            quiet: true,
+            suppressed: true,
+            reason: "noop_heartbeat",
+            message: null,
+          });
         }
 
         let recipients: string[] = ["all"];
