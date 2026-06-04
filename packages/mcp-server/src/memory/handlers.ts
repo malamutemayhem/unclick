@@ -18,22 +18,55 @@ import { triggerSessionInspection } from "./session-inspection-trigger.js";
 import { emitSignal } from "../signals/emit.js";
 import { buildSearchMemoryCard } from "../cards/search-memory-card.js";
 import { extractMemoryTypedLinkCandidates } from "./typed-links.js";
+import { isTypedMemorySplitEnabled, normalizeMemoryClass } from "./typed-memory.js";
+import {
+  isFlagEnabled,
+  MEMORY_CONSOLIDATION_FLAG,
+  MEMORY_DECAY_V2_FLAG,
+} from "./consolidation.js";
+import { recordMemoryMetric, logMemoryLoadEvent } from "./instrumentation.js";
+import { isHardForgetEnabled, forgetComplianceScore } from "./forget.js";
+import {
+  isCorrectionsEnabled,
+  CORRECTIONS_CATEGORY,
+  CORRECTION_PRIORITY,
+  MAX_CORRECTION_LINES,
+  correctionKey,
+  buildCorrectionValue,
+  buildCorrectionDoNotRepeatLines,
+  selectRelevantCorrections,
+  countCorrections,
+  emitCorrectionConsultMetric,
+} from "./corrections.js";
+import { isMemoryPassportEnabled, MEMORY_PASSPORT_FLAG } from "./passport.js";
 import type {
   MemoryBackend,
+  MemoryPassportBundle,
   MemoryProfileCard,
   MemoryProfileCardReceipt,
   MemoryProfileCardSourceKind,
   MemoryRetrievalPlan,
   MemoryReceiptRedactionState,
   SaveTypedLinkCandidatesResult,
+  AdmissionDecision,
 } from "./types.js";
+import type { MemoryWriteGateResultSourceKind } from "./write-gate.js";
 import type { MemoryTypedLinkSourceKind } from "./typed-links.js";
+import { receiptProvenanceFields } from "./provenance.js";
 
 function currentApiKeyHash(): string | null {
   return process.env.UNCLICK_API_KEY_HASH ?? null;
 }
 
 type Args = Record<string, unknown>;
+
+// --- lane-07: write-gate admission ---
+type AddFactResultWithGate = {
+  id: string;
+  write_gate?: AdmissionDecision;
+  source_kind?: MemoryWriteGateResultSourceKind;
+};
+// --- end lane-07 ---
 
 function str(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
@@ -49,6 +82,10 @@ function arr(v: unknown): string[] {
 
 function bool(v: unknown, fallback = false): boolean {
   return typeof v === "boolean" ? v : fallback;
+}
+
+function memoryPassportSigningSecret(): string | undefined {
+  return process.env.MEMORY_PASSPORT_SIGNING_SECRET;
 }
 
 function capText(text: string, max: number): string {
@@ -213,6 +250,10 @@ function profileReceipt(
   if (typeof row.confidence === "number" && Number.isFinite(row.confidence)) {
     receipt.confidence = row.confidence;
   }
+  // --- lane-03: surface provenance on the receipt (flag-gated; honours redaction_state) ---
+  const provenance = receiptProvenanceFields(row, receipt.redaction_state);
+  if (provenance) Object.assign(receipt, provenance);
+  // --- end lane-03 ---
   return receipt;
 }
 
@@ -359,7 +400,16 @@ function buildMemoryProfileCard(params: {
     ].filter((item) => item.line && GUARDRAIL_PATTERN.test(item.line)),
     3
   );
-  const doNotRepeat = guardrailItems.map((item) => item.line);
+  // --- lane-05: corrections are always-loaded standing rules pinned to the top ---
+  const doNotRepeat = isCorrectionsEnabled()
+    ? Array.from(
+        new Set([
+          ...buildCorrectionDoNotRepeatLines(businessRows),
+          ...guardrailItems.map((item) => item.line),
+        ])
+      ).slice(0, MAX_CORRECTION_LINES)
+    : guardrailItems.map((item) => item.line);
+  // --- end lane-05 ---
 
   const sourceReceipts: MemoryProfileCardReceipt[] = [];
   const receiptIds = new Set<string>();
@@ -623,6 +673,19 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return db.searchTypedLinks(str(args.query), num(args.max_results, 10));
   },
 
+  // --- lane-09: typed memory split ---
+  async list_session_events(args) {
+    if (!isTypedMemorySplitEnabled()) return [];
+    const db = await getBackend();
+    return db.listSessionEvents({
+      query: typeof args.query === "string" ? args.query : undefined,
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+      memory_class: typeof args.memory_class === "string" ? normalizeMemoryClass(args.memory_class, "episodic") : undefined,
+      limit: num(args.limit ?? args.max_results, 20),
+    });
+  },
+  // --- end lane-09 ---
+
   async search_library(args) {
     const db = await getBackend();
     return db.searchLibrary(str(args.query));
@@ -665,7 +728,95 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
 
   async add_fact(args) {
     const db = await getBackend();
+    const factText = str(args.fact);
     const result = await db.addFact({
+      fact: factText,
+      category: str(args.category, "general"),
+      confidence: num(args.confidence, 0.9),
+      source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
+      valid_from: typeof args.valid_from === "string" ? args.valid_from : undefined,
+      extractor_id: typeof args.extractor_id === "string" ? args.extractor_id : undefined,
+      prompt_version: typeof args.prompt_version === "string" ? args.prompt_version : undefined,
+      model_id: typeof args.model_id === "string" ? args.model_id : undefined,
+      preserve_as_blob: typeof args.preserve_as_blob === "boolean" ? args.preserve_as_blob : false,
+      commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
+      pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
+      // --- lane-03: provenance pass-through (persisted only when MEMORY_PROVENANCE_ENABLED) ---
+      source_agent_id: typeof args.source_agent_id === "string" ? args.source_agent_id : undefined,
+      source_ref: typeof args.source_ref === "string" ? args.source_ref : undefined,
+      receipt_id: typeof args.receipt_id === "string" ? args.receipt_id : undefined,
+      // --- end lane-03 ---
+      // --- lane-09: typed memory split ---
+      memory_class: typeof args.memory_class === "string" ? normalizeMemoryClass(args.memory_class) : undefined,
+      // --- end lane-09 ---
+      // --- lane-04: optional row-level scope (honored when MEMORY_SCOPES_ENABLED) ---
+      // source_agent_id is threaded by lane-03 (provenance); consumed here.
+      visibility: typeof args.visibility === "string" ? args.visibility : undefined,
+      boardroom_id: typeof args.boardroom_id === "string" ? args.boardroom_id : undefined,
+      credential_scope: typeof args.credential_scope === "string" ? args.credential_scope : undefined,
+      // --- end lane-04 ---
+    }) as AddFactResultWithGate;
+
+    // --- lane-07 + lane-09: classify the write result.
+    // lane-09 routes episodes (routed_to_episode); lane-07 may set source_kind.
+    // Typed links + the "fact_saved" signal only apply to real fact writes. ---
+    const routedToEpisode = (result as { routed_to_episode?: boolean }).routed_to_episode === true;
+    const sourceKind = result.source_kind ?? (routedToEpisode ? "episode" : "fact");
+    if (result.write_gate) {
+      logMemoryLoadEvent({
+        tool_name: "memory.write_gate",
+        params: {
+          action: result.write_gate.action,
+          reason: result.write_gate.reason,
+          route_target: result.write_gate.route_target,
+          duplicate_rate: result.write_gate.metrics.duplicate_rate,
+          write_precision: result.write_gate.metrics.write_precision,
+          source_kind: sourceKind,
+        },
+      });
+    }
+    // --- end lane-07 + lane-09 ---
+
+    if (sourceKind === "fact") {
+      await persistTypedLinksForMemoryWrite(db, {
+        source_kind: "fact",
+        source_id: result.id,
+        text: factText,
+      });
+    }
+    const hash = currentApiKeyHash();
+    if (hash) {
+      const preview = factText.slice(0, 80);
+      const action = result.write_gate?.action;
+      const signalSummary =
+        action === "ROUTE_EVENT"
+          ? "Memory write routed to event store"
+          : action === "REJECT"
+            ? "Memory write rejected by admission gate"
+            : preview ? `Fact saved: ${preview}` : "Fact saved to memory";
+      void emitSignal({
+        apiKeyHash: hash,
+        tool: "memory",
+        action: sourceKind === "fact" ? "fact_saved" : "fact_not_saved",
+        severity: "info",
+        summary: signalSummary,
+        deepLink: "/admin/memory?tab=facts",
+      });
+    }
+    return result;
+  },
+
+  // --- lane-04: quarantine memory derived from a revoked credential ---
+  async quarantine_credential_memory(args) {
+    const db = await getBackend();
+    const scope = str(args.credential_scope ?? args.platform);
+    return db.quarantineCredentialMemory(scope);
+  },
+  // --- end lane-04 ---
+  // --- lane-07: write-gate admission ---
+  async admit_write(args) {
+    const db = await getBackend();
+    return db.admitWrite({
       fact: str(args.fact),
       category: str(args.category, "general"),
       confidence: num(args.confidence, 0.9),
@@ -678,25 +829,8 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
       pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
     });
-    await persistTypedLinksForMemoryWrite(db, {
-      source_kind: "fact",
-      source_id: result.id,
-      text: str(args.fact),
-    });
-    const hash = currentApiKeyHash();
-    if (hash) {
-      const preview = str(args.fact).slice(0, 80);
-      void emitSignal({
-        apiKeyHash: hash,
-        tool: "memory",
-        action: "fact_saved",
-        severity: "info",
-        summary: preview ? `Fact saved: ${preview}` : "Fact saved to memory",
-        deepLink: "/admin/memory?tab=facts",
-      });
-    }
-    return result;
   },
+  // --- end lane-07 ---
 
   async supersede_fact(args) {
     const db = await getBackend();
@@ -724,6 +858,25 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     });
     return receipt;
   },
+
+  // --- lane-09: typed memory split ---
+  async add_session_event(args) {
+    if (!isTypedMemorySplitEnabled()) {
+      return { enabled: false, skipped: "MEMORY_TYPED_SPLIT_ENABLED is off" };
+    }
+    const db = await getBackend();
+    return db.addSessionEvent({
+      session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+      memory_class: typeof args.memory_class === "string" ? normalizeMemoryClass(args.memory_class, "episodic") : "episodic",
+      event_kind: str(args.event_kind, "episode"),
+      content: str(args.content),
+      summary: typeof args.summary === "string" ? args.summary : undefined,
+      payload: asRecord(args.payload) ?? undefined,
+      source_fact_id: typeof args.source_fact_id === "string" ? args.source_fact_id : undefined,
+      source_session_summary_id: typeof args.source_session_summary_id === "string" ? args.source_session_summary_id : undefined,
+    });
+  },
+  // --- end lane-09 ---
 
   async get_conversation_detail(args) {
     const db = await getBackend();
@@ -784,10 +937,67 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return getEmbeddingState();
   },
 
-  async manage_decay() {
+  async manage_decay(args) {
     const db = await getBackend();
+    if (isFlagEnabled(MEMORY_DECAY_V2_FLAG)) {
+      const result = await db.manageDecayV2({
+        dry_run: bool(args.dry_run, false),
+        max_candidates: num(args.max_candidates, 1000),
+        now: typeof args.now === "string" ? args.now : undefined,
+        source: str(args.source, "manual"),
+      });
+      recordMemoryMetric("hot_set_staleness", result.metrics.hot_set_staleness, {
+        source: str(args.source, "manual"),
+        dry_run: bool(args.dry_run, false),
+      });
+      return { ...result, flag: MEMORY_DECAY_V2_FLAG };
+    }
     return db.manageDecay();
   },
+
+  // --- lane-08: sleep-time consolidation ---
+  async consolidate(args) {
+    if (!isFlagEnabled(MEMORY_CONSOLIDATION_FLAG)) {
+      return {
+        skipped: "flag_disabled",
+        flag: MEMORY_CONSOLIDATION_FLAG,
+      };
+    }
+    const db = await getBackend();
+    const source = str(args.source, "manual");
+    const dryRun = bool(args.dry_run, false);
+    const result = await db.consolidateMemory({
+      dry_run: dryRun,
+      max_candidates: num(args.max_candidates, 250),
+      now: typeof args.now === "string" ? args.now : undefined,
+      source,
+      similarity_threshold: num(args.similarity_threshold, 0.92),
+      same_subject_threshold: num(args.same_subject_threshold, 0.5),
+    });
+    recordMemoryMetric("dedup_collapse_rate", result.metrics.dedup_collapse_rate, {
+      source,
+      dry_run: dryRun,
+    });
+    if (bool(args.run_decay, true) && isFlagEnabled(MEMORY_DECAY_V2_FLAG)) {
+      const decay = await db.manageDecayV2({
+        dry_run: dryRun,
+        max_candidates: num(args.max_candidates, 250),
+        now: typeof args.now === "string" ? args.now : undefined,
+        source,
+      });
+      recordMemoryMetric("hot_set_staleness", decay.metrics.hot_set_staleness, {
+        source,
+        dry_run: dryRun,
+      });
+      return { ...result, decay, flag: MEMORY_CONSOLIDATION_FLAG };
+    }
+    return {
+      ...result,
+      decay_skipped: isFlagEnabled(MEMORY_DECAY_V2_FLAG) ? "run_decay_false" : "decay_flag_disabled",
+      flag: MEMORY_CONSOLIDATION_FLAG,
+    };
+  },
+  // --- end lane-08 ---
 
   async memory_status() {
     const db = await getBackend();
@@ -810,4 +1020,195 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       session_id: typeof args.session_id === "string" ? args.session_id : undefined,
     });
   },
+
+  // --- lane-02: contradiction reconciliation & supersession ---
+  async reconcile_fact(args) {
+    const db = await getBackend();
+    return db.reconcileFact(
+      {
+        fact: str(args.fact),
+        category: str(args.category, "general"),
+        confidence: num(args.confidence, 0.9),
+        source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
+        extractor_id: typeof args.extractor_id === "string" ? args.extractor_id : undefined,
+        model_id: typeof args.model_id === "string" ? args.model_id : undefined,
+        prompt_version: typeof args.prompt_version === "string" ? args.prompt_version : undefined,
+        commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
+        pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
+      },
+      {
+        session_id: typeof args.session_id === "string" ? args.session_id : undefined,
+        dry_run: bool(args.dry_run, false),
+      }
+    );
+  },
+  // --- end lane-02 ---
+  // --- lane-05: true-forget (MEMORY_HARD_FORGET_ENABLED) ---
+  async forget(args) {
+    const db = await getBackend();
+    const factId = str(args.fact_id) || str(args.memory_id);
+    if (!factId) throw new Error("forget requires fact_id (or memory_id)");
+    const reason = typeof args.reason === "string" ? args.reason : undefined;
+    const sessionId = typeof args.session_id === "string" ? args.session_id : undefined;
+
+    // Default OFF: fall back to the existing soft invalidate so production
+    // behaviour is unchanged until the coordinator flips the flag.
+    if (!isHardForgetEnabled()) {
+      const soft = await db.invalidateFact({ fact_id: factId, reason, session_id: sessionId });
+      return {
+        mode: "soft_invalidate",
+        flag: "MEMORY_HARD_FORGET_ENABLED",
+        flag_enabled: false,
+        fact_id: factId,
+        invalidated_at: soft.invalidated_at,
+        note: "Hard forget is flag-gated off; fell back to reversible soft invalidate.",
+      };
+    }
+
+    const receipt = await db.forgetMemory({ fact_id: factId, reason, session_id: sessionId });
+    const forget_compliance = forgetComplianceScore(receipt);
+
+    // Emit the lane-05 metric so Worker 10's harness can score forget_compliance.
+    logMemoryLoadEvent({
+      tool_name: "memory.forget",
+      params: {
+        fact_id: factId,
+        forget_compliance,
+        verified_clean: receipt.verified_clean,
+        typed_links_deleted: receipt.typed_links_deleted,
+        snapshots_regenerated: receipt.snapshots_regenerated,
+        snapshots_neutralized: receipt.snapshots_neutralized,
+        history_entries_purged: receipt.history_entries_purged,
+        session_events_deleted: receipt.session_events_deleted ?? 0,
+        backend: receipt.backend,
+      },
+    });
+
+    const hash = currentApiKeyHash();
+    if (hash) {
+      void emitSignal({
+        apiKeyHash: hash,
+        tool: "memory",
+        action: "memory_forgotten",
+        severity: "info",
+        summary: `Memory forgotten and swept from ${receipt.surfaces_swept.length} derived surfaces`,
+        deepLink: "/admin/memory?tab=facts",
+      });
+    }
+
+    return { mode: "hard_forget", flag_enabled: true, forget_compliance, ...receipt };
+  },
+
+  async save_correction(args) {
+    if (!isCorrectionsEnabled()) {
+      return {
+        saved: false,
+        flag: "MEMORY_CORRECTIONS_ENABLED",
+        flag_enabled: false,
+        note: "Corrections are flag-gated off.",
+      };
+    }
+    const db = await getBackend();
+    const correction = str(args.correction) || str(args.text) || str(args.fact);
+    if (!correction) throw new Error("save_correction requires a correction");
+    const input = {
+      correction,
+      mistake: typeof args.mistake === "string" ? args.mistake : undefined,
+      key: typeof args.key === "string" ? args.key : undefined,
+      source_agent_id: typeof args.source_agent_id === "string" ? args.source_agent_id : undefined,
+      source_ref: typeof args.source_ref === "string" ? args.source_ref : undefined,
+      receipt_id: typeof args.receipt_id === "string" ? args.receipt_id : undefined,
+    };
+    const key = correctionKey(input);
+    await db.setBusinessContext(
+      CORRECTIONS_CATEGORY,
+      key,
+      buildCorrectionValue(input, new Date().toISOString()),
+      CORRECTION_PRIORITY,
+    );
+    const hash = currentApiKeyHash();
+    if (hash) {
+      void emitSignal({
+        apiKeyHash: hash,
+        tool: "memory",
+        action: "correction_saved",
+        severity: "info",
+        summary: `Correction saved: ${correction.slice(0, 80)}`,
+        deepLink: "/admin/memory?tab=business-context",
+      });
+    }
+    return { saved: true, category: CORRECTIONS_CATEGORY, key, flag_enabled: true };
+  },
+
+  async list_corrections() {
+    const db = await getBackend();
+    const business = await db.getBusinessContext();
+    const rows = (Array.isArray(business) ? business : [])
+      .map(asRecord)
+      .filter((r): r is Record<string, unknown> => r !== null);
+    const corrections = rows
+      .filter((r) => String(r.category ?? "").toLowerCase() === CORRECTIONS_CATEGORY)
+      .map((r) => ({ key: r.key, value: r.value, priority: r.priority }));
+    return { corrections, count: corrections.length, flag_enabled: isCorrectionsEnabled() };
+  },
+
+  async consult_corrections(args) {
+    if (!isCorrectionsEnabled()) {
+      return {
+        corrections: [],
+        flag: "MEMORY_CORRECTIONS_ENABLED",
+        flag_enabled: false,
+        note: "Corrections are flag-gated off.",
+      };
+    }
+    const db = await getBackend();
+    const business = await db.getBusinessContext();
+    const rows = (Array.isArray(business) ? business : [])
+      .map(asRecord)
+      .filter((r): r is Record<string, unknown> => r !== null);
+    const query = str(args.query) || str(args.context) || str(args.draft);
+    const relevant = selectRelevantCorrections(rows, query, num(args.max_results, 5));
+    const total = countCorrections(rows);
+    emitCorrectionConsultMetric(query, relevant.length, total);
+    return { corrections: relevant, count: relevant.length, total, flag_enabled: true };
+  },
+  // --- end lane-05 ---
+  // --- lane-10: eval harness and memory passport ---
+  async export_memory_passport(args) {
+    if (!isMemoryPassportEnabled()) {
+      return { enabled: false, flag: MEMORY_PASSPORT_FLAG };
+    }
+    const signingSecret = memoryPassportSigningSecret();
+    if (!signingSecret) {
+      throw new Error("MEMORY_PASSPORT_SIGNING_SECRET is required when MEMORY_PASSPORT_ENABLED is on");
+    }
+    const db = await getBackend();
+    return db.exportMemoryPassport({
+      subject_id: typeof args.subject_id === "string" ? args.subject_id : undefined,
+      include_sessions: bool(args.include_sessions, true),
+      signing_secret: signingSecret,
+    });
+  },
+
+  async import_memory_passport(args) {
+    if (!isMemoryPassportEnabled()) {
+      return { enabled: false, flag: MEMORY_PASSPORT_FLAG };
+    }
+    const signingSecret = memoryPassportSigningSecret();
+    if (!signingSecret) {
+      throw new Error("MEMORY_PASSPORT_SIGNING_SECRET is required when MEMORY_PASSPORT_ENABLED is on");
+    }
+    const bundle = args.bundle as MemoryPassportBundle | undefined;
+    if (!bundle || typeof bundle !== "object") {
+      throw new Error("bundle is required for import_memory_passport");
+    }
+    const db = await getBackend();
+    return db.importMemoryPassport({
+      bundle,
+      dry_run: bool(args.dry_run, false),
+      signing_secret: signingSecret,
+      source_session_id: typeof args.source_session_id === "string" ? args.source_session_id : undefined,
+    });
+  },
+  // --- end lane-10 ---
 };

@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 618,
+    "inventory": 619,
     "source_manifest": 192,
     "pages": 84,
     "tools": 219,
@@ -75,7 +75,7 @@
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 12
+      "count": 13
     },
     {
       "id": "modules-and-apps",
@@ -3849,6 +3849,16 @@
       "meaning": "Primary work source for open, in-progress, done, and dropped chips.",
       "source": "src/pages/admin/AdminJobs.tsx",
       "route": "/admin/jobs",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-backfill-typed-memory-events-scripts-backfill-typed-memory-events-ts-no-route",
+      "division": "Source of truth",
+      "name": "backfill typed memory events",
+      "kind": "state module",
+      "meaning": "backfill typed memory events UnClick module.",
+      "source": "scripts/backfill-typed-memory-events.ts",
+      "route": "",
       "tags": []
     },
     {
