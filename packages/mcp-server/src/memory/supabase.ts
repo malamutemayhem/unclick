@@ -1011,6 +1011,25 @@ export class SupabaseBackend implements MemoryBackend {
     return allowed;
   }
 
+  // --- lane-04: quarantine memory bound to a revoked credential scope ---
+  async quarantineCredentialMemory(credentialScope: string): Promise<{ quarantined: number }> {
+    if (!scopesEnabled()) return { quarantined: 0 };
+    const scope = credentialScope.trim();
+    if (!scope) return { quarantined: 0 };
+    let q = this.client
+      .from(this.tables.extracted_facts)
+      .update({ quarantined_at: now() })
+      .eq("credential_scope", scope)
+      .is("quarantined_at", null);
+    if (this.tenancy.mode === "managed") {
+      q = q.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await q.select("id");
+    if (error) throw pgError("quarantineCredentialMemory", error);
+    return { quarantined: Array.isArray(data) ? data.length : 0 };
+  }
+  // --- end lane-04 ---
+
   async searchLibrary(query: string): Promise<unknown> {
     return this.rpc(
       "search_library",

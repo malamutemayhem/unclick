@@ -318,4 +318,55 @@ describe("LocalBackend scope enforcement", () => {
     assert.equal(factTexts.some((f) => f.includes("epsilon")), false);
     assert.equal(factTexts.some((f) => f.includes("zeta")), true);
   });
+
+  test("quarantineCredentialMemory hides facts bound to a revoked credential", async () => {
+    process.env.MEMORY_SCOPES_ENABLED = "true";
+    const { LocalBackend } = await import("../local.js");
+    const backend = new LocalBackend();
+
+    actAs("agent-a", undefined, "stripe,gmail");
+    const stripeFact = await backend.addFact({
+      fact: "Stripe payout schedule theta detail",
+      category: "finance",
+      confidence: 1,
+      credential_scope: "stripe",
+    });
+    const gmailFact = await backend.addFact({
+      fact: "Gmail thread iota detail unrelated",
+      category: "email",
+      confidence: 1,
+      credential_scope: "gmail",
+    });
+
+    // Both visible while their credentials are authorized.
+    assert.ok(ids(await backend.searchMemory("payout schedule theta", 10)).includes(stripeFact.id));
+    assert.ok(ids(await backend.searchMemory("thread iota detail", 10)).includes(gmailFact.id));
+
+    // Revoke stripe: quarantine its derived memory.
+    const res = await backend.quarantineCredentialMemory("stripe");
+    assert.equal(res.quarantined, 1);
+
+    // The stripe fact is now hidden even though stripe is still authorized.
+    assert.equal(ids(await backend.searchMemory("payout schedule theta", 10)).includes(stripeFact.id), false);
+    // The gmail fact is untouched.
+    assert.ok(ids(await backend.searchMemory("thread iota detail", 10)).includes(gmailFact.id));
+  });
+
+  test("quarantineCredentialMemory is a no-op when scopes are disabled", async () => {
+    const { LocalBackend } = await import("../local.js");
+    const backend = new LocalBackend();
+
+    actAs("agent-a", undefined, "stripe");
+    const fact = await backend.addFact({
+      fact: "Disabled flag credential fact kappa",
+      category: "finance",
+      confidence: 1,
+      credential_scope: "stripe",
+    });
+
+    const res = await backend.quarantineCredentialMemory("stripe");
+    assert.equal(res.quarantined, 0);
+    // Nothing is quarantined and nothing is filtered when the flag is off.
+    assert.ok(ids(await backend.searchMemory("credential fact kappa", 10)).includes(fact.id));
+  });
 });

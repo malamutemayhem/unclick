@@ -245,4 +245,13 @@ export interface MemoryBackend {
 
   /** Mark a fact as invalidated (does not delete it). Writes an audit row. */
   invalidateFact(input: InvalidateFactInput): Promise<{ invalidated_at: string }>;
+
+  // --- lane-04: scopes / credential-aware memory ---
+  /**
+   * Quarantine every fact bound to a credential scope (for example on
+   * keychain_disconnect). Quarantined facts never surface in recall. No-op
+   * unless MEMORY_SCOPES_ENABLED is on. Returns the number quarantined.
+   */
+  quarantineCredentialMemory(credentialScope: string): Promise<{ quarantined: number }>;
+  // --- end lane-04 ---
 }

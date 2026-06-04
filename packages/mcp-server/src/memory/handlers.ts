@@ -704,6 +704,14 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return result;
   },
 
+  // --- lane-04: quarantine memory derived from a revoked credential ---
+  async quarantine_credential_memory(args) {
+    const db = await getBackend();
+    const scope = str(args.credential_scope ?? args.platform);
+    return db.quarantineCredentialMemory(scope);
+  },
+  // --- end lane-04 ---
+
   async supersede_fact(args) {
     const db = await getBackend();
     const newId = await db.supersedeFact(

@@ -519,6 +519,25 @@ export class LocalBackend implements MemoryBackend {
     return { id };
   }
 
+  // --- lane-04: quarantine memory bound to a revoked credential scope ---
+  async quarantineCredentialMemory(credentialScope: string): Promise<{ quarantined: number }> {
+    if (!scopesEnabled()) return { quarantined: 0 };
+    const scope = credentialScope.trim();
+    if (!scope) return { quarantined: 0 };
+    const rows = readTable<FactRow>("extracted_facts");
+    let count = 0;
+    for (const row of rows) {
+      if ((row.credential_scope ?? null) === scope && !row.quarantined_at) {
+        row.quarantined_at = now();
+        row.updated_at = now();
+        count += 1;
+      }
+    }
+    if (count > 0) writeTable("extracted_facts", rows);
+    return { quarantined: count };
+  }
+  // --- end lane-04 ---
+
   async supersedeFact(oldId: string, newText: string, category?: string, confidence?: number): Promise<string> {
     const rows = readTable<FactRow>("extracted_facts");
     const old = rows.find((f) => f.id === oldId);
