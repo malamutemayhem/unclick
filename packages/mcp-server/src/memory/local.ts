@@ -136,6 +136,9 @@ interface FactRow {
   fact: string;
   category: string;
   confidence: number;
+  source_agent_id?: string | null;
+  source_ref?: string | null;
+  receipt_id?: string | null;
   source_session_id?: string;
   source_type: string;
   startup_fact_kind: "durable" | "operational" | "excluded" | "legacy_unspecified";
@@ -314,7 +317,15 @@ export class LocalBackend implements MemoryBackend {
         session_id: s.session_id, platform: s.platform, summary: s.summary,
         decisions: s.decisions, open_loops: s.open_loops, topics: s.topics, created_at: s.created_at,
       })),
-      active_facts: facts.map((f) => ({ fact: f.fact, category: f.category, confidence: f.confidence, created_at: f.created_at })),
+      active_facts: facts.map((f) => ({
+        fact: f.fact,
+        category: f.category,
+        confidence: f.confidence,
+        created_at: f.created_at,
+        source_agent_id: f.source_agent_id ?? null,
+        source_ref: f.source_ref ?? null,
+        receipt_id: f.receipt_id ?? null,
+      })),
       loaded_at: now(),
     };
   }
