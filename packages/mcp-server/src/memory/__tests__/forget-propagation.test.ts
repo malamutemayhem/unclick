@@ -117,6 +117,62 @@ describe("LocalBackend.forgetMemory true-forget propagation", () => {
     );
   });
 
+  test("sweeps Worker 9 episodic events linked by source_fact_id or verbatim content", async () => {
+    const { LocalBackend } = await import("../local.js");
+    const backend = new LocalBackend();
+
+    const fact = await backend.addFact({
+      fact: "Amber rollout ships Thursday at 0900 UTC.",
+      category: "project",
+      confidence: 0.9,
+    });
+
+    // Seed W9's episode store the way local addSessionEvent writes it: one event
+    // FK-linked to the fact, one fact_route episode linked only by verbatim
+    // content (the router leaves source_fact_id unset), and one unrelated event.
+    const event = (id: string, extra: Record<string, unknown>) => ({
+      id,
+      memory_class: "episodic",
+      event_kind: "episode",
+      payload: {},
+      created_at: "2026-06-04T00:00:00.000Z",
+      updated_at: "2026-06-04T00:00:00.000Z",
+      ...extra,
+    });
+    fs.writeFileSync(
+      path.join(tempDir, "session_events.json"),
+      JSON.stringify(
+        [
+          event("ev-fk", { content: "Routed episode body.", source_fact_id: fact.id }),
+          event("ev-content", { event_kind: "fact_route", content: "Amber rollout ships Thursday at 0900 UTC." }),
+          event("ev-keep", { content: "Unrelated standup note." }),
+        ],
+        null,
+        2
+      )
+    );
+
+    const receipt = await backend.forgetMemory({ fact_id: fact.id });
+    assert.equal(receipt.session_events_deleted, 2, "FK-linked and content-linked episodes are swept");
+    assert.ok(receipt.surfaces_swept.includes("session_events"), "session_events is reported as a swept surface");
+
+    const remaining = readRows<{ id: string }>("session_events");
+    assert.deepEqual(remaining.map((r) => r.id), ["ev-keep"], "only the unrelated episode survives the forget");
+  });
+
+  test("session_events sweep is a no-op (0, no crash) when the typed-split store is absent", async () => {
+    const { LocalBackend } = await import("../local.js");
+    const backend = new LocalBackend();
+    const fact = await backend.addFact({
+      fact: "No episode store exists on this tenant yet.",
+      category: "technical",
+      confidence: 0.9,
+    });
+    const receipt = await backend.forgetMemory({ fact_id: fact.id });
+    assert.equal(receipt.session_events_deleted, 0);
+    assert.equal(receipt.verified_clean, true);
+  });
+
   test("scrubs the fact from taxonomy snapshots and purges snapshot history", async () => {
     const { LocalBackend } = await import("../local.js");
     const backend = new LocalBackend();

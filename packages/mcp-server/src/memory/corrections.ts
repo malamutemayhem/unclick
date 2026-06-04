@@ -9,9 +9,14 @@
  * card's do_not_repeat list so the agent does not repeat a corrected mistake,
  * and consult_corrections surfaces the relevant ones pre-response.
  *
- * Receipt-backing (Worker 3) is shaped here as optional provenance fields
- * (source_agent_id / source_ref / receipt_id, per the Part 6 contract); they are
- * populated once Worker 3 publishes the canonical columns + receipt shape.
+ * Receipt-backing uses lane-03's canonical provenance vocabulary
+ * (source_agent_id / source_ref / receipt_id, #1290): a correction records which
+ * agent issued it and the receipt it came from. Corrections live in the
+ * business_context value JSON (not lane-03's fact columns), so they carry the
+ * same field names with no dependency on lane-03's migration. source_ref is
+ * sanitised on write with the same rule as lane-03's sanitizeSourceRef, so a
+ * secret can never land in the store; collapse onto that shared helper once
+ * lane-03 is merged onto the same base.
  */
 
 import { logMemoryLoadEvent } from "./instrumentation.js";
@@ -38,7 +43,7 @@ export interface CorrectionInput {
   mistake?: string;
   /** Stable key; derived from the correction text when omitted. */
   key?: string;
-  // Receipt-backing (Worker 3 contract; optional until published).
+  // Receipt-backing: lane-03 provenance vocabulary (#1290). All optional.
   source_agent_id?: string;
   source_ref?: string;
   receipt_id?: string;
@@ -68,11 +73,33 @@ export function correctionKey(input: CorrectionInput): string {
   return input.key && input.key.trim() ? input.key.trim() : slugifyCorrection(input.correction);
 }
 
+/**
+ * Strip anything secret-shaped out of a correction's source_ref before it is
+ * persisted. Mirrors lane-03's canonical sanitizeSourceRef (#1290): a source_ref
+ * points AT an origin (a Boardroom message id, a PR url, a tool-call id); it
+ * never carries a credential. Over-rejection is the safe failure mode - we drop
+ * the ref rather than store a secret. Consolidate onto provenance.ts's helper
+ * once lane-03 is merged onto the same base.
+ */
+const MAX_CORRECTION_SOURCE_REF_LENGTH = 500;
+const SECRET_REF_PATTERN =
+  /(sk-[A-Za-z0-9]{12,}|xox[baprs]-[A-Za-z0-9-]{8,}|gh[posu]_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{12,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|bearer\s+[A-Za-z0-9._-]{12,}|authorization:\s*\S+)/i;
+
+export function sanitizeCorrectionSourceRef(ref: unknown): string | undefined {
+  if (typeof ref !== "string") return undefined;
+  const trimmed = ref.trim();
+  if (!trimmed || SECRET_REF_PATTERN.test(trimmed)) return undefined;
+  return trimmed.length > MAX_CORRECTION_SOURCE_REF_LENGTH
+    ? trimmed.slice(0, MAX_CORRECTION_SOURCE_REF_LENGTH)
+    : trimmed;
+}
+
 export function buildCorrectionValue(input: CorrectionInput, now: string): CorrectionValue {
   const value: CorrectionValue = { kind: "correction", correction: input.correction, created_at: now };
   if (input.mistake) value.mistake = input.mistake;
   if (input.source_agent_id) value.source_agent_id = input.source_agent_id;
-  if (input.source_ref) value.source_ref = input.source_ref;
+  const sourceRef = sanitizeCorrectionSourceRef(input.source_ref);
+  if (sourceRef) value.source_ref = sourceRef;
   if (input.receipt_id) value.receipt_id = input.receipt_id;
   return value;
 }

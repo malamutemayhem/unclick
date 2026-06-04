@@ -870,6 +870,7 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
         snapshots_regenerated: receipt.snapshots_regenerated,
         snapshots_neutralized: receipt.snapshots_neutralized,
         history_entries_purged: receipt.history_entries_purged,
+        session_events_deleted: receipt.session_events_deleted ?? 0,
         backend: receipt.backend,
       },
     });

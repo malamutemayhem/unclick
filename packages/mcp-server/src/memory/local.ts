@@ -42,6 +42,7 @@ import {
   FORGOTTEN_TOMBSTONE_TEXT,
   factSnapshotPointer,
   scrubForgottenFactFromSnapshots,
+  sessionEventBelongsToForgottenFact,
 } from "./forget.js";
 
 function dataDir(): string {
@@ -846,6 +847,16 @@ export class LocalBackend implements MemoryBackend {
     const typedLinksDeleted = links.length - keptLinks.length;
     if (typedLinksDeleted > 0) writeTable("memory_typed_links", keptLinks);
 
+    // 2b. Sweep Worker 9's episodic store: drop session_events linked to the
+    //     forgotten fact (source_fact_id) or carrying its verbatim content
+    //     (fact_route episodes). No-op when the typed-split store is absent.
+    const events = readTable<{ source_fact_id?: string; content?: string }>("session_events");
+    const keptEvents = events.filter(
+      (row) => !sessionEventBelongsToForgottenFact(row, input.fact_id, originalText)
+    );
+    const sessionEventsDeleted = events.length - keptEvents.length;
+    if (sessionEventsDeleted > 0) writeTable("session_events", keptEvents);
+
     // 3. Scrub the forgotten fact out of derived taxonomy snapshots.
     const snapshots = await scrubForgottenFactFromSnapshots(this, input.fact_id);
 
@@ -872,9 +883,11 @@ export class LocalBackend implements MemoryBackend {
       snapshots_regenerated: snapshots.snapshots_regenerated,
       snapshots_neutralized: snapshots.snapshots_neutralized,
       history_entries_purged: historyPurged,
+      session_events_deleted: sessionEventsDeleted,
       surfaces_swept: [
         "extracted_facts",
         "memory_typed_links",
+        "session_events",
         "knowledge_library(memory_snapshot)",
         "knowledge_library_history",
       ],

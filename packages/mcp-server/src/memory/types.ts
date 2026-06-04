@@ -106,6 +106,13 @@ export interface ForgetReceipt {
   snapshots_regenerated: number;
   snapshots_neutralized: number;
   history_entries_purged: number;
+  /**
+   * Episodic rows swept from Worker 9's typed-split episode store
+   * (session_events / mc_session_events) for the forgotten fact. 0 when the
+   * typed-split store is absent or carried no residue. Optional so receipts
+   * built before the episode store existed remain valid.
+   */
+  session_events_deleted?: number;
   /** Derived surfaces this forget asserted clean, for audit and the metric. */
   surfaces_swept: string[];
   /**

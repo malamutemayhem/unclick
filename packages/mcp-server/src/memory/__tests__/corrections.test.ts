@@ -9,6 +9,7 @@ import {
   selectRelevantCorrections,
   correctionKey,
   buildCorrectionValue,
+  sanitizeCorrectionSourceRef,
   CORRECTIONS_CATEGORY,
 } from "../corrections.js";
 
@@ -47,15 +48,37 @@ describe("corrections helpers", () => {
     assert.equal(all.length, 2);
   });
 
-  test("correctionKey derives a stable slug and buildCorrectionValue carries provenance stubs", () => {
+  test("correctionKey derives a stable slug and buildCorrectionValue carries lane-03 provenance", () => {
     assert.equal(correctionKey({ correction: "My salary target is 200k" }), "my-salary-target-is-200k");
     const value = buildCorrectionValue(
-      { correction: "x", receipt_id: "rcpt_1", source_agent_id: "agent_7" },
+      { correction: "x", receipt_id: "rcpt_1", source_agent_id: "agent_7", source_ref: "boardroom:msg_8842" },
       "2026-06-04T00:00:00.000Z"
     );
     assert.equal(value.kind, "correction");
     assert.equal(value.receipt_id, "rcpt_1");
     assert.equal(value.source_agent_id, "agent_7");
+    assert.equal(value.source_ref, "boardroom:msg_8842");
+  });
+
+  test("source_ref is sanitised so a correction can never persist a secret", () => {
+    // Ordinary origin pointers pass through untouched.
+    assert.equal(sanitizeCorrectionSourceRef("boardroom:msg_8842"), "boardroom:msg_8842");
+    assert.equal(
+      sanitizeCorrectionSourceRef("https://github.com/malamutemayhem/unclick/pull/1279"),
+      "https://github.com/malamutemayhem/unclick/pull/1279"
+    );
+    // Secret-shaped refs are dropped (over-rejection is the safe failure mode).
+    assert.equal(sanitizeCorrectionSourceRef("sk-abcdefghijklmnop1234"), undefined);
+    assert.equal(sanitizeCorrectionSourceRef("authorization: Bearer abcdef0123456789xyz"), undefined);
+    assert.equal(sanitizeCorrectionSourceRef("   "), undefined);
+    assert.equal(sanitizeCorrectionSourceRef(42), undefined);
+
+    // And a leaked ref never reaches the stored correction value.
+    const value = buildCorrectionValue(
+      { correction: "x", source_ref: "ghp_0123456789abcdefghijklmnopqrstuvwx" },
+      "2026-06-04T00:00:00.000Z"
+    );
+    assert.equal(value.source_ref, undefined);
   });
 });
 

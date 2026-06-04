@@ -46,6 +46,44 @@ export function forgetComplianceScore(receipt: ForgetReceipt): number {
   return receipt.verified_clean ? 1 : 0;
 }
 
+/**
+ * Worker 9 typed-split episode store (the `session_events` table, `mc_`-prefixed
+ * in managed cloud). A true-forget must reach it too: an episodic event derived
+ * from a fact is recall-visible via list_session_events, so leaving it behind
+ * would let the forgotten content resurface.
+ *
+ * forget tombstones (UPDATEs) the fact row rather than DELETEing it, so W9's
+ * `source_fact_id ... ON DELETE SET NULL` foreign key never fires. The sweep is
+ * therefore explicit, and matches an event to a forgotten fact two ways:
+ *   1. the canonical FK `source_fact_id` equals the fact id, OR
+ *   2. for `fact_route` episodes the router did not id-link
+ *      (factInputToSessionEventInput leaves source_fact_id unset), the event's
+ *      verbatim `content` exactly equals the pre-scrub fact text.
+ *
+ * Exact equality only - never a substring/LIKE - so a forget can never
+ * collaterally delete an unrelated episode. The pre-scrub text MUST be captured
+ * before the fact row is tombstoned, since the tombstone overwrites it.
+ */
+export const SESSION_EVENTS_TABLE_BYOD = "session_events";
+export const SESSION_EVENTS_TABLE_MANAGED = "mc_session_events";
+
+export interface ForgottenSessionEventMatch {
+  source_fact_id?: string | null;
+  content?: string | null;
+}
+
+export function sessionEventBelongsToForgottenFact(
+  row: ForgottenSessionEventMatch,
+  factId: string,
+  originalText: string
+): boolean {
+  if (typeof row.source_fact_id === "string" && row.source_fact_id === factId) return true;
+  if (originalText.length > 0 && typeof row.content === "string" && row.content === originalText) {
+    return true;
+  }
+  return false;
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)

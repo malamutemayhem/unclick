@@ -42,7 +42,12 @@ import {
   type MemoryTypedLinkStoredRow,
 } from "./typed-links.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
-import { factSnapshotPointer, scrubForgottenFactFromSnapshots } from "./forget.js";
+import {
+  factSnapshotPointer,
+  scrubForgottenFactFromSnapshots,
+  SESSION_EVENTS_TABLE_BYOD,
+  SESSION_EVENTS_TABLE_MANAGED,
+} from "./forget.js";
 
 function pgError(context: string, err: unknown): Error {
   if (err instanceof Error) return err;
@@ -1243,6 +1248,9 @@ export class SupabaseBackend implements MemoryBackend {
     // Purge archived snapshot versions that still embed the fact pointer.
     const historyPurged = await this.purgeForgottenSnapshotHistory(input.fact_id);
 
+    // Sweep Worker 9's episodic store (session_events) for the forgotten fact.
+    const sessionEventsDeleted = await this.sweepForgottenSessionEvents(input.fact_id, originalText);
+
     // Verify the forgotten fact no longer surfaces in any recall path.
     const verifiedClean =
       snapshots.clean && !(await this.factSurfacesInRecall(input.fact_id, originalText));
@@ -1258,16 +1266,50 @@ export class SupabaseBackend implements MemoryBackend {
       snapshots_regenerated: snapshots.snapshots_regenerated,
       snapshots_neutralized: snapshots.snapshots_neutralized,
       history_entries_purged: historyPurged,
+      session_events_deleted: sessionEventsDeleted,
       surfaces_swept: [
         "extracted_facts",
         "extracted_facts.embedding",
         "memory_typed_links",
+        "session_events",
         "facts_audit",
         "knowledge_library(memory_snapshot)",
         "knowledge_library_history",
       ],
       verified_clean: verifiedClean,
     };
+  }
+
+  /**
+   * Sweep Worker 9's episode store for a forgotten fact. Deletes session_events
+   * (mc_ in managed cloud) matched by the canonical FK (source_fact_id) and,
+   * separately, by verbatim content for fact_route episodes the router did not
+   * id-link. Best-effort and tenant-scoped: a missing typed-split table (the
+   * migration has not been applied / the flag is off) yields 0, never an error.
+   */
+  private async sweepForgottenSessionEvents(factId: string, originalText: string): Promise<number> {
+    const table =
+      this.tenancy.mode === "managed" ? SESSION_EVENTS_TABLE_MANAGED : SESSION_EVENTS_TABLE_BYOD;
+    let deleted = await this.deleteSessionEventsBy(table, "source_fact_id", factId);
+    // A row already removed by source_fact_id will not re-match here, so the two
+    // passes never double-count. Content is matched exactly (parameterised).
+    if (originalText.length > 0) {
+      deleted += await this.deleteSessionEventsBy(table, "content", originalText);
+    }
+    return deleted;
+  }
+
+  private async deleteSessionEventsBy(table: string, column: string, value: string): Promise<number> {
+    try {
+      let del = this.client.from(table).delete().eq(column, value);
+      if (this.tenancy.mode === "managed") {
+        del = del.eq("api_key_hash", this.tenancy.apiKeyHash);
+      }
+      const { data } = await del.select("id");
+      return Array.isArray(data) ? data.length : 0;
+    } catch {
+      return 0;
+    }
   }
 
   /** Best-effort purge of archived snapshot versions that still embed the fact. */
