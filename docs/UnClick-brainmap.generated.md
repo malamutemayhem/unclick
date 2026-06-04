@@ -91,7 +91,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminTruthRate.tsx | 115c5cce9b90 | 8868 |
 | src/pages/admin/AdminUsers.tsx | 701e7da2f201 | 863 |
 | src/pages/admin/AdminXGate.tsx | 7be724a79f83 | 20219 |
-| src/pages/admin/AdminYou.tsx | 3d0240411971 | 51024 |
+| src/pages/admin/AdminYou.tsx | 89ed912e326b | 59397 |
 | src/pages/AppDetail.tsx | 0cf7c397e1b5 | 5401 |
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
 | src/pages/AuthCallback.tsx | 41644ade9f97 | 5284 |
