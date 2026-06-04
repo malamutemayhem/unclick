@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UnClick - Investor Overview</title>
+<meta name="description" content="UnClick - the operating system for AI agents. Memory, tools, and safe autonomy for any AI." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ===================== UnClick deck - brand tokens ===================== */
+  :root{
+    --bg:#0a0a0a;            /* page background, deepest neutral */
+    --bg2:#0d0f0f;
+    --card:#121313;          /* tiles, panels */
+    --card2:#171918;
+    --border:#262626;        /* subtle dividers */
+    --fg:#e9eae9;            /* default text */
+    --body:#b7bbba;          /* paragraphs */
+    --muted:#8a8f8e;         /* captions */
+    --teal:#61c1c4;          /* THE accent */
+    --teal-bright:#86dde0;
+    --teal-dim:#3f8f92;
+    --ink:#05201f;
+    --slide-w:1280px;
+    --slide-h:720px;
+    --pad:84px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg);
+    color:var(--fg);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow:hidden;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  .mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  /* ===================== Stage (fixed 16:9, scaled to fit) ============== */
+  #stage{
+    position:fixed; left:50%; top:50%;
+    width:var(--slide-w); height:var(--slide-h);
+    transform:translate(-50%,-50%) scale(var(--s,1));
+    transform-origin:center center;
+  }
+  .slide{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    padding:var(--pad);
+    opacity:0; visibility:hidden;
+    background:
+      radial-gradient(1100px 600px at 84% -12%, rgba(97,193,196,.10), transparent 60%),
+      radial-gradient(900px 600px at -8% 112%, rgba(97,193,196,.06), transparent 60%),
+      var(--bg);
+    transition:opacity .55s ease, visibility .55s ease;
+    overflow:hidden;
+  }
+  .slide.active{opacity:1; visibility:visible; z-index:2}
+  /* faint grid texture */
+  .slide::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(120% 120% at 50% 40%,#000 55%,transparent 100%);
+    -webkit-mask-image:radial-gradient(120% 120% at 50% 40%,#000 55%,transparent 100%);
+  }
+  .slide > *{position:relative;z-index:1}
+
+  /* ===================== Reveal animation ============================== */
+  [data-reveal]{opacity:0}
+  .slide.active [data-reveal]{
+    animation:rise .62s cubic-bezier(.2,.7,.2,1) both;
+    animation-delay:calc(var(--d,0)*70ms);
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  @keyframes pulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+
+  /* ===================== Typography & chrome =========================== */
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:9px;
+    font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--teal);
+    padding:7px 14px; border:1px solid rgba(97,193,196,.32); border-radius:999px;
+    background:rgba(97,193,196,.07);
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 12px var(--teal)}
+  h1.title{font-size:84px;line-height:1.02;font-weight:800;letter-spacing:-.03em}
+  h2.head{font-size:52px;line-height:1.06;font-weight:700;letter-spacing:-.02em;max-width:18ch}
+  h2.head.wide{max-width:24ch}
+  .lede{font-size:23px;line-height:1.5;color:var(--body);max-width:60ch;font-weight:400}
+  .accent{color:var(--teal)}
+  .grad{
+    background:linear-gradient(120deg,var(--teal-bright),var(--teal) 55%,var(--teal-dim));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .spacer{flex:1}
+
+  /* footer chrome injected per slide */
+  .chrome{position:absolute;left:var(--pad);right:var(--pad);bottom:30px;
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);z-index:3}
+  .chrome .left{display:flex;align-items:center;gap:10px}
+  .chrome .num{letter-spacing:.12em}
+  .topbar{position:absolute;left:0;top:0;height:3px;background:var(--teal);width:0;z-index:5;
+    box-shadow:0 0 14px rgba(97,193,196,.6);transition:width .5s ease}
+
+  /* logo lockup */
+  .lockup{display:flex;align-items:center;gap:12px}
+  .lockup svg{width:34px;height:34px;display:block}
+  .lockup .wm{font-size:24px;font-weight:700;letter-spacing:-.02em}
+  .lockup .wm b{color:var(--teal)}
+  .mini-logo{display:flex;align-items:center;gap:8px;opacity:.85}
+  .mini-logo svg{width:18px;height:18px}
+  .mini-logo span{font-weight:600;font-size:13px;letter-spacing:-.01em}
+
+  /* cards */
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
+    border:1px solid var(--border); border-radius:18px; padding:26px;
+    backdrop-filter:blur(6px);
+  }
+  .card .ic{
+    width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    background:rgba(97,193,196,.12);border:1px solid rgba(97,193,196,.28);color:var(--teal);margin-bottom:16px;
+  }
+  .card h3{font-size:21px;font-weight:600;margin-bottom:8px}
+  .card p{font-size:15.5px;line-height:1.55;color:var(--body)}
+  .card .kicker{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+  svg.i{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  svg.i.sm{width:18px;height:18px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:10px}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--body);
+    padding:7px 13px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.03)}
+  .chip.on{color:var(--teal);border-color:rgba(97,193,196,.4);background:rgba(97,193,196,.08)}
+
+  .stat{font-family:'JetBrains Mono',monospace;font-weight:600}
+  .stat .n{font-size:46px;color:var(--teal);letter-spacing:-.02em;line-height:1}
+  .stat .l{font-size:13.5px;color:var(--muted);margin-top:8px;font-family:'Inter',sans-serif;letter-spacing:0}
+
+  /* placeholder token - obvious + easy to find */
+  .ph{color:var(--teal-bright);background:rgba(97,193,196,.10);
+    border:1px dashed rgba(97,193,196,.5);border-radius:7px;padding:1px 8px;
+    font-family:'JetBrains Mono',monospace;font-size:.82em;white-space:nowrap}
+
+  /* ===================== UI controls =================================== */
+  .deck-ui{position:fixed;inset:0;pointer-events:none;z-index:50}
+  .nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+    display:flex;align-items:center;gap:14px;pointer-events:auto;
+    background:rgba(18,19,19,.7);border:1px solid var(--border);border-radius:999px;
+    padding:8px 14px;backdrop-filter:blur(10px)}
+  .nav button{pointer-events:auto;background:none;border:none;color:var(--body);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%}
+  .nav button:hover{color:var(--teal);background:rgba(97,193,196,.12)}
+  .dots{display:flex;gap:7px;align-items:center}
+  .dots i{width:7px;height:7px;border-radius:50%;background:#3a3c3c;cursor:pointer;transition:all .25s}
+  .dots i.on{background:var(--teal);box-shadow:0 0 10px var(--teal);width:20px;border-radius:4px}
+  .hint{position:fixed;bottom:60px;right:22px;font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--muted);pointer-events:none;opacity:.8}
+  kbd{border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 6px;color:var(--body);font-size:10.5px}
+
+  /* ===================== Diagram primitives ============================ */
+  .orbit{position:relative;width:560px;height:520px;margin-left:auto}
+  .core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:150px;height:150px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 35%,rgba(97,193,196,.3),rgba(97,193,196,.06));
+    border:1px solid rgba(97,193,196,.5);color:var(--teal);text-align:center;
+    box-shadow:0 0 60px rgba(97,193,196,.25);animation:pulse 5s ease-in-out infinite}
+  .core b{font-size:15px;color:var(--fg)}
+  .core small{font-size:11px;color:var(--teal);font-family:'JetBrains Mono',monospace;margin-top:3px}
+  .node{position:absolute;width:185px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+    border:1px solid var(--border);border-radius:14px;padding:14px 15px}
+  .node .t{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15.5px;color:var(--fg)}
+  .node .t .ic{width:30px;height:30px;border-radius:8px;background:rgba(97,193,196,.12);
+    border:1px solid rgba(97,193,196,.3);color:var(--teal);display:flex;align-items:center;justify-content:center;margin:0}
+  .node p{font-size:12.5px;color:var(--body);line-height:1.4;margin-top:8px}
+
+  /* pipeline */
+  .pipe{display:flex;align-items:stretch;gap:0;width:100%}
+  .stn{flex:1;position:relative;text-align:center;padding:0 4px}
+  .stn .box{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+    border:1px solid var(--border);border-radius:11px;padding:14px 6px;min-height:78px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:7px}
+  .stn .box .ic{color:var(--teal)}
+  .stn .nm{font-size:12.5px;font-weight:600;color:var(--fg)}
+  .stn .arr{position:absolute;right:-9px;top:38px;color:var(--teal-dim);z-index:4}
+  .stn .led{position:absolute;top:9px;right:12px;width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal)}
+  .stn .led.amber{background:#d8a13a;box-shadow:0 0 8px #d8a13a}
+
+  table.cmp{width:100%;border-collapse:separate;border-spacing:0;font-size:15.5px}
+  table.cmp th,table.cmp td{padding:13px 18px;text-align:left;vertical-align:top}
+  table.cmp thead th{font-size:13px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em}
+  table.cmp .a{color:var(--muted)}
+  table.cmp .b{color:var(--fg)}
+  table.cmp tbody tr td{border-top:1px solid var(--border)}
+  table.cmp .colA{background:rgba(255,255,255,.015)}
+  table.cmp .colB{background:rgba(97,193,196,.06)}
+  table.cmp td.lead{color:var(--body);font-weight:500}
+  .xmark{color:#9a6b6b}
+  .check{color:var(--teal)}
+
+  /* concentric market */
+  .rings{position:relative;width:430px;height:430px;margin:0 auto}
+  .ring{position:absolute;border-radius:50%;border:1px solid var(--border);display:flex;align-items:flex-start;justify-content:center;
+    left:50%;top:50%;transform:translate(-50%,-50%)}
+  .ring span{margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+  .ring.r1{width:430px;height:430px;background:rgba(97,193,196,.03)}
+  .ring.r2{width:300px;height:300px;background:rgba(97,193,196,.06)}
+  .ring.r3{width:172px;height:172px;background:rgba(97,193,196,.14);border-color:rgba(97,193,196,.5);align-items:center}
+  .ring.r3 span{margin-top:0;color:var(--teal);text-align:center}
+
+  .listrow{display:flex;gap:13px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--border)}
+  .listrow:first-child{border-top:none}
+  .listrow .ic{color:var(--teal);margin-top:2px;flex-shrink:0}
+  .listrow b{color:var(--fg);font-weight:600}
+  .listrow span{color:var(--body)}
+
+  /* ===================== Print / PDF =================================== */
+  @media print{
+    @page{size:1280px 720px;margin:0}
+    html,body{overflow:visible;background:var(--bg)!important}
+    #stage{position:static;width:auto;height:auto;transform:none}
+    .slide{position:relative;inset:auto;display:flex!important;opacity:1!important;visibility:visible!important;
+      width:1280px;height:720px;page-break-after:always;break-after:page}
+    .slide [data-reveal]{opacity:1!important;animation:none!important;transform:none!important}
+    .deck-ui,.hint{display:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar"></div>
+<div id="stage">
+
+  <!-- ============ 0 · COVER ============ -->
+  <section class="slide" data-name="Cover">
+    <div class="spacer"></div>
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>Investor overview &nbsp;·&nbsp; 2026</div>
+    <div data-reveal style="--d:1;margin-top:34px" class="lockup">
+      <svg viewBox="0 0 100 100"><path d="M18 10 L18 72 L33 57 L46 84 L54 80 L41 53 L62 53 Z" fill="#61c1c4" stroke="#61c1c4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><rect x="52" y="6" width="28" height="22" rx="5" fill="#61c1c4"/><circle cx="60" cy="15" r="3.5" fill="#0a0a0a"/><circle cx="72" cy="15" r="3.5" fill="#0a0a0a"/><line x1="66" y1="6" x2="66" y2="0" stroke="#61c1c4" stroke-width="2.5" stroke-linecap="round"/><circle cx="66" cy="0" r="2.5" fill="#61c1c4"/></svg>
+      <span class="wm">Un<b>Click</b></span>
+    </div>
+    <h1 data-reveal style="--d:2;margin-top:26px" class="title">Where AI <span class="grad">belongs.</span></h1>
+    <p data-reveal style="--d:3;margin-top:24px" class="lede">The operating system for AI agents. One install gives any AI a memory that never forgets, 450+ tools to act, and a safe way to get real work done.</p>
+    <div data-reveal style="--d:4;margin-top:30px" class="chips">
+      <span class="chip on">Works with Claude</span><span class="chip on">ChatGPT</span><span class="chip on">Copilot</span><span class="chip on">Cursor</span><span class="chip on">Windsurf</span>
+    </div>
+    <div class="spacer"></div>
+    <div data-reveal style="--d:5;font-size:13px;color:var(--muted);letter-spacing:.1em" class="mono">unclick.world &nbsp;·&nbsp; Transparent. Trusted. Traceable.</div>
+  </section>
+
+  <!-- ============ 1 · BIG IDEA ============ -->
+  <section class="slide" data-name="The big idea">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>The big idea</div>
+    <div class="spacer"></div>
+    <h2 data-reveal style="--d:1" class="head wide">AI is a genius. On its own, it is a genius <span class="accent">locked in an empty room.</span></h2>
+    <p data-reveal style="--d:2;margin-top:24px" class="lede">It can think brilliantly, but it forgets you the moment you close the chat, and it cannot touch any of your real tools.</p>
+    <div data-reveal style="--d:3;margin-top:34px;max-width:74ch;border-color:rgba(97,193,196,.4);background:linear-gradient(120deg,rgba(97,193,196,.10),rgba(97,193,196,.02))" class="card">
+      <p style="font-size:24px;line-height:1.45;color:var(--fg)"><b style="font-weight:700">UnClick</b> gives any AI a <span class="accent">memory that never forgets</span> and <span class="accent">hands that actually do the work</span> - while your data stays yours.</p>
+    </div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 2 · THE PROBLEM ============ -->
+  <section class="slide" data-name="The problem">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>The problem</div>
+    <h2 data-reveal style="--d:1;margin-top:22px" class="head">Today's AI has three problems.</h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:40px">
+      <div data-reveal style="--d:2" class="card">
+        <div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.36 2.64L3 8"/><path d="M3 4v4h4"/></svg></div>
+        <h3>Amnesia</h3>
+        <p>Close the chat and it forgets everything. Your preferences, your projects, last week's decisions, gone. You re-explain yourself every single time.</p>
+      </div>
+      <div data-reveal style="--d:3" class="card">
+        <div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8"/></svg></div>
+        <h3>No hands</h3>
+        <p>It can write the email but not send it. Plan the trip but not book it. Suggest the code but not ship it. You are still the one clicking.</p>
+      </div>
+      <div data-reveal style="--d:4" class="card">
+        <div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div>
+        <h3>Locked in a box</h3>
+        <p>It only knows what is in the chat window. It cannot see your calendar, your files, or your tools. Brilliant, but cut off from your real life.</p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 3 · WHY NOW ============ -->
+  <section class="slide" data-name="Why now">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>Why now</div>
+    <div class="spacer"></div>
+    <h2 data-reveal style="--d:1" class="head wide">Everyone just got a genius. <span class="accent">Nobody connected it to their life.</span></h2>
+    <p data-reveal style="--d:2;margin-top:24px" class="lede">In two years, AI assistants went from novelty to everywhere. Claude, ChatGPT, Copilot, Cursor, Windsurf. But each one is its own island: separate memory, separate login, no shared brain, no hands.</p>
+    <div data-reveal style="--d:3;margin-top:30px" class="chips">
+      <span class="chip">🧠 brains added &nbsp;✓</span>
+      <span class="chip" style="border-color:rgba(97,193,196,.4);color:var(--teal)">🔌 the wiring is missing</span>
+      <span class="chip" style="border-color:rgba(97,193,196,.4);color:var(--teal)">← that is the opportunity</span>
+    </div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 4 · SOLUTION / 4 PILLARS ============ -->
+  <section class="slide" data-name="What UnClick is">
+    <div style="display:grid;grid-template-columns:1fr 580px;gap:30px;height:100%">
+      <div style="display:flex;flex-direction:column;justify-content:center">
+        <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>What UnClick is</div>
+        <h2 data-reveal style="--d:1;margin-top:22px" class="head">One layer that sits behind <span class="accent">every AI.</span></h2>
+        <p data-reveal style="--d:2;margin-top:22px" class="lede">Picture a brilliant new hire on day one. UnClick is everything they need to be useful: a filing cabinet, a toolbox, the keys, and a foreman who checks the work.</p>
+        <div data-reveal style="--d:3;margin-top:26px" class="chips">
+          <span class="chip on">One install</span><span class="chip">No code</span><span class="chip">Any device</span>
+        </div>
+      </div>
+      <div data-reveal style="--d:2" class="orbit">
+        <div class="core"><b>Your data island</b><small>stays yours</small></div>
+        <div class="node" style="left:0;top:8px"><div class="t"><span class="ic"><svg class="i sm" viewBox="0 0 24 24"><path d="M12 5a3 3 0 1 0-5.99.5"/><path d="M12 5a3 3 0 1 1 5.99.5"/><path d="M6 8.5A3.5 3.5 0 0 0 6 15"/><path d="M18 8.5a3.5 3.5 0 0 1 0 6.5"/><path d="M12 5v14"/><path d="M9 19a3 3 0 0 0 6 0"/></svg></span>Memory</div><p>A shared brain. Remembers across every chat, tool, and device.</p></div>
+        <div class="node" style="right:0;top:8px"><div class="t"><span class="ic"><svg class="i sm" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Apps</div><p>450+ tools. Email, calendar, money, code, and more.</p></div>
+        <div class="node" style="left:0;bottom:8px"><div class="t"><span class="ic"><svg class="i sm" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span>Connections</div><p>Sign in once. Your AI safely uses everything else.</p></div>
+        <div class="node" style="right:0;bottom:8px"><div class="t"><span class="ic"><svg class="i sm" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 3 21 3s-3 .5-4.5 2L13 8.5 4.8 6.7c-.4-.1-.8 0-1 .3l-.5.5c-.3.3-.2.8.2 1L8 11 6 13l-2-1-1 1 3 2 2 3 1-1-1-2 2-2 3.3 4.5c.2.4.7.5 1 .2l.5-.5c.3-.2.4-.6.3-1z"/></svg></span>Autopilot</div><p>Plans, builds, checks, and proves real work, with safety gates.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5 · HOW IT WORKS ============ -->
+  <section class="slide" data-name="How it works">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>How it works</div>
+    <h2 data-reveal style="--d:1;margin-top:22px" class="head">Three steps. No code.</h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:42px">
+      <div data-reveal style="--d:2" class="card">
+        <div class="stat"><span class="n">1</span></div>
+        <h3 style="margin-top:14px">Connect once</h3>
+        <p>Sign in to the accounts you choose. It takes minutes, and you decide what is shared.</p>
+      </div>
+      <div data-reveal style="--d:3" class="card">
+        <div class="stat"><span class="n">2</span></div>
+        <h3 style="margin-top:14px">Your AI levels up</h3>
+        <p>It instantly gains memory and 450+ tools. Nothing to install for each app.</p>
+      </div>
+      <div data-reveal style="--d:4" class="card">
+        <div class="stat"><span class="n">3</span></div>
+        <h3 style="margin-top:14px">Just ask</h3>
+        <p>Talk normally. It remembers, acts, and proves it, on any AI and any device.</p>
+      </div>
+    </div>
+    <div data-reveal style="--d:5;margin-top:34px;color:var(--muted);font-size:19px" class="lede">Like giving a new employee the keys to the office, a phone, and a filing cabinet.</div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 6 · MEMORY ============ -->
+  <section class="slide" data-name="Deep dive · Memory">
+    <div style="display:grid;grid-template-columns:1fr 540px;gap:36px;height:100%">
+      <div style="display:flex;flex-direction:column;justify-content:center">
+        <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>Deep dive &nbsp;·&nbsp; Memory</div>
+        <h2 data-reveal style="--d:1;margin-top:22px" class="head">Tell it once. It remembers <span class="accent">forever, everywhere.</span></h2>
+        <p data-reveal style="--d:2;margin-top:22px" class="lede">Normal AI forgets between chats. UnClick is the notebook that carries over: your preferences, decisions, and projects. And it is shared, so what you tell Claude in the morning, ChatGPT knows in the afternoon.</p>
+        <div data-reveal style="--d:3;margin-top:24px;border-color:rgba(97,193,196,.35)" class="card">
+          <p style="color:var(--fg);font-size:16px"><span class="accent">The point:</span> native AI memory is volatile. UnClick is the one place your context actually lives.</p>
+        </div>
+      </div>
+      <div data-reveal style="--d:2;display:flex;align-items:center;justify-content:center">
+        <div class="orbit" style="width:480px;height:430px;margin:0">
+          <div class="core" style="width:140px;height:140px"><b>One brain</b><small>read + write</small></div>
+          <div class="node" style="left:0;top:0;width:160px"><div class="t">Claude</div><p>writes a decision</p></div>
+          <div class="node" style="right:0;top:60px;width:160px"><div class="t">ChatGPT</div><p>reads it instantly</p></div>
+          <div class="node" style="left:30px;bottom:0;width:160px"><div class="t">Cursor</div><p>picks up the project</p></div>
+          <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 480 430"><g stroke="#3f8f92" stroke-width="1.5" fill="none" stroke-dasharray="4 5" opacity=".7"><path d="M150 60 L210 175"/><path d="M330 120 L270 195"/><path d="M150 360 L215 250"/></g></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7 · APPS & CONNECTIONS ============ -->
+  <section class="slide" data-name="Deep dive · Apps">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>Deep dive &nbsp;·&nbsp; Apps and connections</div>
+    <h2 data-reveal style="--d:1;margin-top:20px" class="head wide">Every tool your agent needs, <span class="accent">in one install.</span></h2>
+    <div data-reveal style="--d:2;margin-top:28px;display:flex;gap:46px">
+      <div class="stat"><span class="n">450+</span><div class="l">callable endpoints</div></div>
+      <div class="stat"><span class="n">178+</span><div class="l">tools</div></div>
+      <div class="stat"><span class="n">20+</span><div class="l">secure connections</div></div>
+      <div class="stat"><span class="n">∞</span><div class="l">new tools every week, auto-picked up</div></div>
+    </div>
+    <div data-reveal style="--d:3;margin-top:30px" class="chips">
+      <span class="chip">Email and messaging</span><span class="chip">Calendar and tasks</span><span class="chip">Money and payments</span><span class="chip">Developer tools</span>
+      <span class="chip">Social and media</span><span class="chip">Shopping and travel</span><span class="chip">Security and data</span><span class="chip">Knowledge and web</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px">
+      <div data-reveal style="--d:4;padding:20px" class="card"><p style="color:var(--fg);font-size:16px"><span class="accent">MCP is the universal adapter</span> - like USB-C for AI. It lets any tool plug into any AI, so one install covers everything.</p></div>
+      <div data-reveal style="--d:5;padding:20px" class="card"><p style="color:var(--fg);font-size:16px"><span class="accent">Like a translator, not a spy.</span> Tools pass information between you and the services you already use. They do not store or sell it.</p></div>
+    </div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 8 · AUTOPILOT ============ -->
+  <section class="slide" data-name="Deep dive · Autopilot">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>Deep dive &nbsp;·&nbsp; Autopilot</div>
+    <h2 data-reveal style="--d:1;margin-top:18px" class="head wide">A factory floor for AI work, <span class="accent">with a big red stop button.</span></h2>
+    <p data-reveal style="--d:2;margin-top:18px;max-width:78ch" class="lede">For bigger jobs, Autopilot runs work down an assembly line. Every stage checks the one before it. Nothing ships until it passes.</p>
+    <div data-reveal style="--d:3;margin-top:30px" class="pipe">
+      <div class="stn"><span class="led"></span><div class="box"><span class="nm">Intake</span></div><svg class="arr i" viewBox="0 0 24 24" width="16"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></div>
+      <div class="stn"><span class="led"></span><div class="box"><span class="nm">Plan</span></div><svg class="arr i" viewBox="0 0 24 24" width="16"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></div>
+      <div class="stn"><span class="led"></span><div class="box"><span class="nm">Build</span></div><svg class="arr i" viewBox="0 0 24 24" width="16"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></div>
+      <div class="stn"><span class="led amber"></span><div class="box"><span class="nm">Test</span></div><svg class="arr i" viewBox="0 0 24 24" width="16"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></div>
+      <div class="stn"><span class="led"></span><div class="box"><span class="nm">QC</span></div><svg class="arr i" viewBox="0 0 24 24" width="16"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></div>
+      <div class="stn"><span class="led"></span><div class="box"><span class="nm">Safety</span></div><svg class="arr i" viewBox="0 0 24 24" width="16"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></div>
+      <div class="stn"><span class="led"></span><div class="box"><span class="nm">Merge</span></div><svg class="arr i" viewBox="0 0 24 24" width="16"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></div>
+      <div class="stn"><span class="led"></span><div class="box"><span class="nm">Publish</span></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:26px">
+      <div data-reveal style="--d:4;padding:18px" class="card"><div class="kicker">Launchpad</div><p style="color:var(--fg)">Your control desk. Pause or stop anything, at any moment.</p></div>
+      <div data-reveal style="--d:5;padding:18px" class="card"><div class="kicker">Boardroom</div><p style="color:var(--fg)">Where the AI workers coordinate, out in the open.</p></div>
+      <div data-reveal style="--d:6;padding:18px;border-color:rgba(97,193,196,.35)" class="card"><div class="kicker" style="color:var(--teal)">The promise</div><p style="color:var(--fg)">Autonomy with observability. You stay in command.</p></div>
+    </div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 9 · TRUST ============ -->
+  <section class="slide" data-name="Trust">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>Trust</div>
+    <h2 data-reveal style="--d:1;margin-top:22px" class="head">Transparent. Trusted. <span class="accent">Traceable.</span></h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:40px">
+      <div data-reveal style="--d:2" class="card">
+        <div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <h3>Your data stays yours</h3>
+        <p>Processed in real time, not stored or sold. Connections are encrypted. You choose exactly what is shared.</p>
+      </div>
+      <div data-reveal style="--d:3" class="card">
+        <div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg></div>
+        <h3>Every action is logged</h3>
+        <p>An audit trail records who asked, who approved, the exact scope, the proof, and how it can be stopped.</p>
+      </div>
+      <div data-reveal style="--d:4" class="card">
+        <div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg></div>
+        <h3>You hold the kill switch</h3>
+        <p>High-impact actions need permission. If anything drifts, one switch stops it immediately.</p>
+      </div>
+    </div>
+    <div data-reveal style="--d:5;margin-top:26px;font-size:14px;color:var(--muted)" class="mono">Five questions, always answerable: who requested it · who approved it · what scope · what proof · how to stop it</div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 10 · MOAT ============ -->
+  <section class="slide" data-name="Why UnClick wins">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>Why UnClick wins &nbsp;·&nbsp; the moat</div>
+    <h2 data-reveal style="--d:1;margin-top:16px" class="head wide">We do not compete with ChatGPT or Claude. <span class="accent">We make all of them better.</span></h2>
+    <div style="display:grid;grid-template-columns:1.15fr .85fr;gap:26px;margin-top:24px">
+      <div data-reveal style="--d:2">
+        <table class="cmp">
+          <thead><tr><th class="a">AI on its own</th><th class="b accent">AI + UnClick</th></tr></thead>
+          <tbody>
+            <tr><td class="colA a"><span class="xmark">✕</span> Forgets between sessions</td><td class="colB b"><span class="check">✓</span> Remembers forever</td></tr>
+            <tr><td class="colA a"><span class="xmark">✕</span> Memory trapped in one vendor</td><td class="colB b"><span class="check">✓</span> One brain across all AIs</td></tr>
+            <tr><td class="colA a"><span class="xmark">✕</span> Cannot touch your tools</td><td class="colB b"><span class="check">✓</span> 450+ tools to act</td></tr>
+            <tr><td class="colA a"><span class="xmark">✕</span> No safety trail</td><td class="colB b"><span class="check">✓</span> Full audit + kill switch</td></tr>
+            <tr><td class="colA a"><span class="xmark">✕</span> Re-setup everywhere</td><td class="colB b"><span class="check">✓</span> Set up once, works everywhere</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div data-reveal style="--d:3;display:flex;flex-direction:column;gap:12px">
+        <div class="kicker mono" style="color:var(--muted)">The moat gets deeper over time</div>
+        <div class="listrow"><span class="ic"><svg class="i sm" viewBox="0 0 24 24"><path d="M12 3v18M5 10l7-7 7 7"/></svg></span><span><b>Memory gravity.</b> The more it remembers, the more it would cost to leave.</span></div>
+        <div class="listrow"><span class="ic"><svg class="i sm" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></span><span><b>Connection gravity.</b> Sign in once. All your accounts live here.</span></div>
+        <div class="listrow"><span class="ic"><svg class="i sm" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span><span><b>Tool network.</b> 450+ and growing weekly, picked up automatically.</span></div>
+        <div class="listrow"><span class="ic"><svg class="i sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 12 2 2 4-4"/></svg></span><span><b>Model-agnostic.</b> Whichever AI wins the race, UnClick wins with it.</span></div>
+      </div>
+    </div>
+    <div data-reveal style="--d:4;margin-top:20px;color:var(--teal);font-size:20px;font-weight:500" class="lede">The more you connect, the more it does. That is the moat.</div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 11 · MARKET ============ -->
+  <section class="slide" data-name="The opportunity">
+    <div style="display:grid;grid-template-columns:1fr 480px;gap:36px;height:100%">
+      <div style="display:flex;flex-direction:column;justify-content:center">
+        <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>The opportunity</div>
+        <h2 data-reveal style="--d:1;margin-top:22px" class="head">Every AI needs a <span class="accent">memory and hands.</span></h2>
+        <p data-reveal style="--d:2;margin-top:22px" class="lede">Every knowledge worker is getting an AI assistant. Every one of them is amnesiac and tool-less out of the box. UnClick is the layer that fixes that, for individuals first, then teams, then enterprises.</p>
+        <div data-reveal style="--d:3;margin-top:22px;padding:18px 20px" class="card"><p class="mono" style="font-size:13px;color:var(--muted)">Sizing to confirm with live figures &nbsp;→&nbsp; see PLACEHOLDERS.md</p></div>
+      </div>
+      <div data-reveal style="--d:2;display:flex;align-items:center;justify-content:center">
+        <div class="rings">
+          <div class="ring r1"><span>TAM &nbsp;<span class="ph">[ all AI users worldwide ]</span></span></div>
+          <div class="ring r2"><span>SAM &nbsp;<span class="ph">[ AI subscribers you can reach ]</span></span></div>
+          <div class="ring r3"><span>SOM<br/><span class="ph">[ year 1 ]</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 12 · TRACTION ============ -->
+  <section class="slide" data-name="Where we are">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>Where we are</div>
+    <h2 data-reveal style="--d:1;margin-top:22px" class="head">The product is real, live, and <span class="accent">shipping.</span></h2>
+    <div data-reveal style="--d:2;margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+      <div class="card" style="padding:20px"><div class="stat"><span class="n">450+</span><div class="l">callable endpoints, live</div></div></div>
+      <div class="card" style="padding:20px"><div class="stat"><span class="n">178+</span><div class="l">tools across 21 groups</div></div></div>
+      <div class="card" style="padding:20px"><div class="stat"><span class="n">5+</span><div class="l">AI clients supported</div></div></div>
+    </div>
+    <div data-reveal style="--d:3;margin-top:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px">
+      <div class="card" style="padding:18px"><div class="stat"><span class="n"><span class="ph">[ users ]</span></span><div class="l">active users</div></div></div>
+      <div class="card" style="padding:18px"><div class="stat"><span class="n"><span class="ph">[ # ]</span></span><div class="l">memories stored</div></div></div>
+      <div class="card" style="padding:18px"><div class="stat"><span class="n"><span class="ph">[ % ]</span></span><div class="l">weekly growth</div></div></div>
+      <div class="card" style="padding:18px"><div class="stat"><span class="n"><span class="ph">[ # ]</span></span><div class="l">sessions / week</div></div></div>
+    </div>
+    <div data-reveal style="--d:4;margin-top:26px;font-size:18px;color:var(--muted)" class="lede">Live at unclick.world. Built by an AI fleet that runs on UnClick itself.</div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 13 · ROADMAP ============ -->
+  <section class="slide" data-name="Where it is going">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>Where it is going</div>
+    <h2 data-reveal style="--d:1;margin-top:22px" class="head wide">From personal assistant to <span class="accent">the standard layer for all AI.</span></h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:42px">
+      <div data-reveal style="--d:2" class="card">
+        <div class="kicker" style="color:var(--teal)">Now</div>
+        <p style="color:var(--fg);font-size:16px;margin-top:6px">Memory and 450+ tools, live across every major AI client. One install, any device.</p>
+      </div>
+      <div data-reveal style="--d:3" class="card">
+        <div class="kicker" style="color:var(--teal)">Next</div>
+        <p style="color:var(--fg);font-size:16px;margin-top:6px">Teams and Crews. Deeper Autopilot autonomy. More connectors, every week.</p>
+      </div>
+      <div data-reveal style="--d:4" class="card">
+        <div class="kicker" style="color:var(--teal)">Later</div>
+        <p style="color:var(--fg);font-size:16px;margin-top:6px">Enterprise-grade compliance and audit. The default memory and tool layer for AI.</p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 14 · TEAM ============ -->
+  <section class="slide" data-name="Team">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>Team</div>
+    <h2 data-reveal style="--d:1;margin-top:22px" class="head">Builders who <span class="accent">dogfood their own product.</span></h2>
+    <p data-reveal style="--d:2;margin-top:20px;max-width:74ch" class="lede">UnClick is built using UnClick. The same Autopilot, memory, and safety gates we offer are what we ship with every day. That is the strongest proof the system works.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:34px;max-width:900px">
+      <div data-reveal style="--d:3" class="card">
+        <div class="kicker">Founder</div>
+        <p style="color:var(--fg);font-size:17px;margin-top:6px"><span class="ph">[ Founder name ]</span></p>
+        <p style="margin-top:8px"><span class="ph">[ one line on background and why you ]</span></p>
+      </div>
+      <div data-reveal style="--d:4" class="card">
+        <div class="kicker">Team and advisors</div>
+        <p style="color:var(--fg);font-size:17px;margin-top:6px"><span class="ph">[ key people ]</span></p>
+        <p style="margin-top:8px"><span class="ph">[ notable experience or advisors ]</span></p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 15 · CLOSE ============ -->
+  <section class="slide" data-name="Close">
+    <div class="spacer"></div>
+    <div data-reveal style="--d:0" class="lockup">
+      <svg viewBox="0 0 100 100"><path d="M18 10 L18 72 L33 57 L46 84 L54 80 L41 53 L62 53 Z" fill="#61c1c4" stroke="#61c1c4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><rect x="52" y="6" width="28" height="22" rx="5" fill="#61c1c4"/><circle cx="60" cy="15" r="3.5" fill="#0a0a0a"/><circle cx="72" cy="15" r="3.5" fill="#0a0a0a"/><line x1="66" y1="6" x2="66" y2="0" stroke="#61c1c4" stroke-width="2.5" stroke-linecap="round"/><circle cx="66" cy="0" r="2.5" fill="#61c1c4"/></svg>
+      <span class="wm" style="font-size:28px">Un<b>Click</b></span>
+    </div>
+    <h1 data-reveal style="--d:1;margin-top:24px;font-size:72px" class="title">Where AI belongs. <span class="grad">Humans welcome.</span></h1>
+    <p data-reveal style="--d:2;margin-top:22px;font-size:22px" class="lede">AI you can trust, that remembers you, and actually gets things done.</p>
+    <div data-reveal style="--d:3;margin-top:34px" class="chips">
+      <span class="chip on">Let's talk &nbsp;·&nbsp; <span class="ph">[ your email ]</span></span>
+      <span class="chip">unclick.world</span>
+    </div>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- ============ 16 · APPENDIX GLOSSARY ============ -->
+  <section class="slide" data-name="Appendix">
+    <div data-reveal style="--d:0" class="eyebrow"><span class="dot"></span>Appendix &nbsp;·&nbsp; the words in plain English</div>
+    <h2 data-reveal style="--d:1;margin-top:18px" class="head">No jargon required.</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 48px;margin-top:30px">
+      <div data-reveal style="--d:2" class="listrow"><span><b>UnClick</b> &nbsp; the whole platform. Memory, tools, and safe autonomy for any AI.</span></div>
+      <div data-reveal style="--d:2" class="listrow"><span><b>Memory</b> &nbsp; the shared notebook your AI never forgets, across every device.</span></div>
+      <div data-reveal style="--d:3" class="listrow"><span><b>Apps</b> &nbsp; the 450+ tools your AI can use to actually do things.</span></div>
+      <div data-reveal style="--d:3" class="listrow"><span><b>Connections</b> &nbsp; sign in once, your AI safely uses the rest.</span></div>
+      <div data-reveal style="--d:4" class="listrow"><span><b>Autopilot</b> &nbsp; the assembly line that plans, builds, checks, and proves work.</span></div>
+      <div data-reveal style="--d:4" class="listrow"><span><b>Launchpad</b> &nbsp; the control desk, with the kill switch.</span></div>
+      <div data-reveal style="--d:5" class="listrow"><span><b>Boardroom</b> &nbsp; where the AI workers coordinate in the open.</span></div>
+      <div data-reveal style="--d:5" class="listrow"><span><b>MCP</b> &nbsp; the universal adapter for AI tools. USB-C for AI.</span></div>
+    </div>
+    <div class="spacer"></div>
+  </section>
+
+</div>
+
+<!-- ===================== UI ===================== -->
+<div class="deck-ui">
+  <div class="nav">
+    <button id="prev" aria-label="Previous"><svg class="i" viewBox="0 0 24 24" width="18"><path d="m15 18-6-6 6-6"/></svg></button>
+    <div class="dots" id="dots"></div>
+    <button id="next" aria-label="Next"><svg class="i" viewBox="0 0 24 24" width="18"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+</div>
+<div class="hint">Use <kbd>←</kbd> <kbd>→</kbd> · <kbd>F</kbd> fullscreen · <kbd>P</kbd> print / PDF</div>
+
+<script>
+(function(){
+  var stage=document.getElementById('stage');
+  var slides=Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var dotsWrap=document.getElementById('dots');
+  var topbar=document.getElementById('topbar');
+  var i=0, n=slides.length;
+
+  // build chrome (footer + counter) and dots
+  slides.forEach(function(s,idx){
+    var c=document.createElement('div'); c.className='chrome';
+    c.innerHTML='<div class="left"><span class="mini-logo">'+
+      '<svg viewBox="0 0 100 100"><path d="M18 10 L18 72 L33 57 L46 84 L54 80 L41 53 L62 53 Z" fill="#61c1c4"/><rect x="52" y="6" width="28" height="22" rx="5" fill="#61c1c4"/><circle cx="60" cy="15" r="3.5" fill="#0a0a0a"/><circle cx="72" cy="15" r="3.5" fill="#0a0a0a"/></svg>'+
+      '<span>Un<span style="color:#61c1c4">Click</span></span></span>'+
+      '<span style="opacity:.5">·</span><span>'+(s.getAttribute('data-name')||'')+'</span></div>'+
+      '<div class="num">'+String(idx).padStart(2,'0')+' / '+String(n-1).padStart(2,'0')+'</div>';
+    s.appendChild(c);
+    var d=document.createElement('i'); d.title=s.getAttribute('data-name');
+    d.addEventListener('click',function(){go(idx)});
+    dotsWrap.appendChild(d);
+  });
+  var dots=Array.prototype.slice.call(dotsWrap.children);
+
+  function fit(){
+    var s=Math.min(window.innerWidth/1280, window.innerHeight/720);
+    stage.style.setProperty('--s', s);
+  }
+  function go(x){
+    i=Math.max(0,Math.min(n-1,x));
+    slides.forEach(function(s,idx){ s.classList.toggle('active', idx===i); });
+    dots.forEach(function(d,idx){ d.classList.toggle('on', idx===i); });
+    topbar.style.width=((i)/(n-1)*100)+'%';
+    if(location.hash!=='#'+i) history.replaceState(null,'','#'+i);
+  }
+  function next(){ go(i+1) } function prev(){ go(i-1) }
+
+  document.getElementById('next').addEventListener('click',next);
+  document.getElementById('prev').addEventListener('click',prev);
+  window.addEventListener('resize',fit);
+  window.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ') {e.preventDefault();next();}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev();}
+    else if(e.key==='Home'){go(0)} else if(e.key==='End'){go(n-1)}
+    else if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    else if(e.key==='p'||e.key==='P'){ window.print(); }
+  });
+  // touch swipe
+  var x0=null;
+  window.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
+  window.addEventListener('touchend',function(e){ if(x0===null)return; var dx=e.changedTouches[0].clientX-x0; if(Math.abs(dx)>50){ dx<0?next():prev(); } x0=null; });
+
+  fit();
+  var start=parseInt((location.hash||'#0').slice(1),10); go(isNaN(start)?0:start);
+})();
+</script>
+</body>
+</html>
