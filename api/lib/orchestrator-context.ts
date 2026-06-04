@@ -263,6 +263,28 @@ export interface OrchestratorSeatHandshake {
   source_pointers: OrchestratorSourceLink[];
 }
 
+export interface OrchestratorSceneBuilderPacket {
+  packet_id: "receipt-first-scene-builder-v0";
+  job_id: string | null;
+  source_of_truth: "Boardroom Jobs";
+  intent_summary: string;
+  proof_state: "proof_missing" | "proof_required" | "proof_not_needed";
+  blockers: string[];
+  risk_level: "low" | "medium" | "high";
+  next_safe_action: string;
+  stop_conditions: string[];
+  chris_needed: boolean;
+  source_receipts: OrchestratorSourceLink[];
+  memory_lease_expires_at: string;
+  copyroom_required: boolean;
+  copyroom_receipt_contract: {
+    required_when: string[];
+    expected_fields: string[];
+    missing_receipt_blocker: "COPYROOM_MISSING";
+    drift_blocker: "FIDELITY_DRIFT_RISK";
+  };
+}
+
 export interface OrchestratorContext {
   version: "orchestrator-context-v1";
   generated_at: string;
@@ -312,6 +334,11 @@ export interface OrchestratorContext {
     // rule themselves. Verdict-only - this field does not gate any
     // downstream behavior in the builder; consumers act on it.
     health_verdict: CommonSensePassResult;
+    // scene_builder_packet is the Receipt-First Scene Builder v0 card:
+    // a read-only, source-linked worker scene derived from Boardroom truth.
+    // It exposes memory lease expiry and CopyRoom receipt requirements so
+    // seats refresh stale context and avoid exact-copy drift before acting.
+    scene_builder_packet: OrchestratorSceneBuilderPacket;
     harness_card: {
       source_of_truth: "Boardroom Jobs";
       queue_state: "active_work" | "needs_claim" | "quiet";
@@ -631,6 +658,14 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
       blockers,
       zero_touch_scoreboard: zeroTouchScoreboard,
       health_verdict: healthVerdict,
+      scene_builder_packet: buildSceneBuilderPacket({
+        generatedAt: input.generatedAt,
+        activeTodos,
+        activeJobsCount,
+        queuedTodoCount,
+        blockers,
+        healthVerdict,
+      }),
       harness_card: buildHarnessCard({
         activeJobsCount,
         queuedTodoCount,
@@ -662,6 +697,72 @@ export function buildOrchestratorContext(input: BuildOrchestratorContextInput): 
       library_snapshots_available: allLibrarySnapshots.length,
       library_snapshots_truncated: allLibrarySnapshots.length > librarySnapshots.length,
     },
+  };
+}
+
+function buildSceneBuilderPacket({
+  generatedAt,
+  activeTodos,
+  activeJobsCount,
+  queuedTodoCount,
+  blockers,
+  healthVerdict,
+}: {
+  generatedAt: string;
+  activeTodos: OrchestratorTodoRow[];
+  activeJobsCount: number;
+  queuedTodoCount: number;
+  blockers: string[];
+  healthVerdict: CommonSensePassResult;
+}): OrchestratorSceneBuilderPacket {
+  const focusTodo = activeTodos.find((todo) => todo.status === "in_progress") ?? activeTodos[0] ?? null;
+  const sourceReceipts = focusTodo
+    ? [
+        {
+          source_kind: "todo" as const,
+          source_id: focusTodo.id,
+          deep_link: `/admin/jobs#todo-${focusTodo.id}`,
+          created_at: focusTodo.updated_at ?? focusTodo.created_at,
+        },
+      ]
+    : [];
+  const proofState =
+    queuedTodoCount > 0 && activeJobsCount === 0
+      ? "proof_missing"
+      : activeJobsCount > 0
+        ? "proof_required"
+        : "proof_not_needed";
+  const riskLevel =
+    healthVerdict.verdict === "BLOCKER" || queuedTodoCount > 0
+      ? "high"
+      : activeJobsCount > 0
+        ? "medium"
+        : "low";
+  const nextSafeAction =
+    proofState === "proof_missing"
+      ? "Claim one scoped Boardroom job or post the exact missing proof/blocker; never mark DONE from status text alone."
+      : proofState === "proof_required"
+        ? "Continue the fresh active job only with named proof, tests, PR, deploy, screenshot, or blocker evidence."
+        : "Stay quiet unless new Boardroom work, proof drift, or a Chris decision appears.";
+  const memoryLeaseExpiresAt = new Date(Date.parse(generatedAt) + ACTIVE_WINDOW_MS).toISOString();
+
+  return {
+    packet_id: "receipt-first-scene-builder-v0",
+    job_id: focusTodo?.id ?? null,
+    source_of_truth: "Boardroom Jobs",
+    intent_summary: focusTodo
+      ? compactText(`${focusTodo.priority} ${focusTodo.status}: ${focusTodo.title}`, 180)
+      : "No visible Boardroom job needs action in this snapshot.",
+    proof_state: proofState,
+    blockers,
+    risk_level: riskLevel,
+    next_safe_action: nextSafeAction,
+    stop_conditions: sceneBuilderStopConditions,
+    chris_needed: blockers.some((blocker) => /human|chris|operator|decision/i.test(blocker)),
+    source_receipts: sourceReceipts,
+    memory_lease_expires_at: memoryLeaseExpiresAt,
+    copyroom_required: focusTodo != null,
+    copyroom_receipt_contract: copyRoomReceiptContract,
   };
 }
 
@@ -842,6 +943,30 @@ const requiredProofRules = [
   "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
   "healthy/no_work/PASS needs queued_todo_count=0 or a fresh claim/blocker proof",
 ];
+
+const sceneBuilderStopConditions = [
+  "refresh the memory lease before acting after expiry",
+  "stop if Boardroom source receipts are missing or conflict with Orchestrator narrative",
+  "stop if the next action would close, merge, deploy, touch secrets, billing, DNS, production data, force-push, or hard reset",
+  "stop and post COPYROOM_MISSING or FIDELITY_DRIFT_RISK when exact source material lacks a CopyRoom receipt",
+];
+
+const copyRoomReceiptContract = {
+  required_when: ["exact source text", "code", "tables", "prompts", "labels", "source data"],
+  expected_fields: [
+    "source_kind",
+    "source_uri",
+    "source_hash_or_pointer",
+    "target_uri",
+    "target_hash_or_diff",
+    "copied_ranges_or_refs",
+    "transformed",
+    "worker_agent_id",
+    "timestamp",
+  ],
+  missing_receipt_blocker: "COPYROOM_MISSING",
+  drift_blocker: "FIDELITY_DRIFT_RISK",
+} as const;
 
 const cleanupRule =
   "Do not mark DONE from green chips or stale receipts; close only after required proof is observable.";
