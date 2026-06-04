@@ -160,7 +160,7 @@ interface FactRow {
   pr_number?: number;
   // --- lane-04: scopes / credential-aware / boardroom visibility ---
   visibility?: string | null;
-  owner_agent_id?: string | null;
+  source_agent_id?: string | null;
   boardroom_id?: string | null;
   credential_scope?: string | null;
   quarantined_at?: string | null;

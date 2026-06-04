@@ -780,7 +780,7 @@ export class SupabaseBackend implements MemoryBackend {
     const scopesOn = scopesEnabled();
     const scopeCtx = resolveScopeContext();
     const factSelect = scopesOn
-      ? "id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, visibility, owner_agent_id, boardroom_id, credential_scope, quarantined_at"
+      ? "id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, visibility, source_agent_id, boardroom_id, credential_scope, quarantined_at"
       : "id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at";
     // --- end lane-04 ---
 
@@ -831,7 +831,7 @@ export class SupabaseBackend implements MemoryBackend {
         valid_to?: string | null;
         invalidated_at?: string | null;
         visibility?: string | null;
-        owner_agent_id?: string | null;
+        source_agent_id?: string | null;
         boardroom_id?: string | null;
         credential_scope?: string | null;
         quarantined_at?: string | null;
@@ -913,7 +913,7 @@ export class SupabaseBackend implements MemoryBackend {
     const scopesOn = scopesEnabled();
     const scopeCtx = resolveScopeContext();
     const recallSelect = scopesOn
-      ? "id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at, visibility, owner_agent_id, boardroom_id, credential_scope, quarantined_at"
+      ? "id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at, visibility, source_agent_id, boardroom_id, credential_scope, quarantined_at"
       : "id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at";
     // --- end lane-04 ---
 
@@ -952,7 +952,7 @@ export class SupabaseBackend implements MemoryBackend {
         invalidated_at?: string | null;
         created_at?: string | null;
         visibility?: string | null;
-        owner_agent_id?: string | null;
+        source_agent_id?: string | null;
         boardroom_id?: string | null;
         credential_scope?: string | null;
         quarantined_at?: string | null;
@@ -994,7 +994,7 @@ export class SupabaseBackend implements MemoryBackend {
     if (factIds.length === 0) return new Set();
     let q = this.client
       .from(this.tables.extracted_facts)
-      .select("id, visibility, owner_agent_id, boardroom_id, credential_scope, quarantined_at")
+      .select("id, visibility, source_agent_id, boardroom_id, credential_scope, quarantined_at")
       .in("id", factIds);
     if (this.tenancy.mode === "managed") {
       q = q.eq("api_key_hash", this.tenancy.apiKeyHash);

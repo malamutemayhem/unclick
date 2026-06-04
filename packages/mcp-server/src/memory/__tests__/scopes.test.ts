@@ -38,7 +38,7 @@ describe("isFactInScope", () => {
   });
 
   test("private is visible only to the owning agent", () => {
-    const fact = { visibility: "private", owner_agent_id: "agent-a" };
+    const fact = { visibility: "private", source_agent_id: "agent-a" };
     assert.equal(isFactInScope(fact, reader({ agentId: "agent-a" })), true);
     assert.equal(isFactInScope(fact, reader({ agentId: "agent-b" })), false);
     // Unknown reader identity must default-deny.
@@ -64,7 +64,7 @@ describe("isFactInScope", () => {
   test("quarantined facts are never visible, even to the owner", () => {
     const fact = {
       visibility: "private",
-      owner_agent_id: "agent-a",
+      source_agent_id: "agent-a",
       quarantined_at: "2026-06-04T00:00:00.000Z",
     };
     assert.equal(isFactInScope(fact, reader({ agentId: "agent-a" })), false);
@@ -134,7 +134,7 @@ describe("scope env helpers", () => {
     const ctx = reader({ agentId: "agent-a" });
     assert.deepEqual(scopeFieldsForWrite({ visibility: "private" }, ctx, false), {
       visibility: null,
-      owner_agent_id: null,
+      source_agent_id: null,
       boardroom_id: null,
       credential_scope: null,
     });
@@ -144,13 +144,13 @@ describe("scope env helpers", () => {
     const ctx = reader({ agentId: "agent-a", boardroomId: "room-1" });
     assert.deepEqual(scopeFieldsForWrite({ visibility: "private" }, ctx, true), {
       visibility: "private",
-      owner_agent_id: "agent-a",
+      source_agent_id: "agent-a",
       boardroom_id: null,
       credential_scope: null,
     });
     assert.deepEqual(scopeFieldsForWrite({ visibility: "shared" }, ctx, true), {
       visibility: "shared",
-      owner_agent_id: null,
+      source_agent_id: null,
       boardroom_id: "room-1",
       credential_scope: null,
     });
@@ -287,10 +287,10 @@ describe("LocalBackend scope enforcement", () => {
 
     const rows = JSON.parse(
       fs.readFileSync(path.join(tempDir, "extracted_facts.json"), "utf8")
-    ) as Array<{ id: string; visibility?: string | null; owner_agent_id?: string | null }>;
+    ) as Array<{ id: string; visibility?: string | null; source_agent_id?: string | null }>;
     const stored = rows.find((r) => r.id === fact.id);
     assert.equal(stored?.visibility ?? null, null);
-    assert.equal(stored?.owner_agent_id ?? null, null);
+    assert.equal(stored?.source_agent_id ?? null, null);
   });
 
   test("startup context excludes another agent's private facts", async () => {

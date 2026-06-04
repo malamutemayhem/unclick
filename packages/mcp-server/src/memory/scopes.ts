@@ -12,7 +12,8 @@
  *   - user-global : visible to every agent under the tenant (the legacy
  *                   default; rows with NULL/blank visibility are treated as
  *                   user-global so nothing is hidden before the flag flips).
- *   - private     : visible only to the owning agent (owner_agent_id).
+ *   - private     : visible only to the source agent (source_agent_id, the
+ *                   canonical agent-identity column declared by lane-03).
  *   - shared      : visible only to agents inside the fact's Boardroom
  *                   (boardroom_id).
  *
@@ -35,7 +36,7 @@ export type MemoryVisibility = (typeof MEMORY_VISIBILITY_VALUES)[number];
 /** Scope columns as stored on a fact row (all nullable; NULL = legacy). */
 export interface MemoryFactScopeFields {
   visibility?: string | null;
-  owner_agent_id?: string | null;
+  source_agent_id?: string | null;
   boardroom_id?: string | null;
   credential_scope?: string | null;
   quarantined_at?: string | null;
@@ -54,7 +55,7 @@ export interface MemoryScopeContext {
 /** Scope columns to persist on a write. */
 export interface MemoryScopeWriteFields {
   visibility: MemoryVisibility | null;
-  owner_agent_id: string | null;
+  source_agent_id: string | null;
   boardroom_id: string | null;
   credential_scope: string | null;
 }
@@ -135,8 +136,8 @@ export function isFactInScope(fact: MemoryFactScopeFields, ctx: MemoryScopeConte
   if (visibility === "" || visibility === "user-global") return true;
 
   if (visibility === "private") {
-    const owner = nonEmpty(fact.owner_agent_id);
-    return ctx.agentId !== null && owner !== null && owner === ctx.agentId;
+    const source = nonEmpty(fact.source_agent_id);
+    return ctx.agentId !== null && source !== null && source === ctx.agentId;
   }
 
   if (visibility === "shared") {
@@ -161,20 +162,20 @@ export function scopeFieldsForWrite(
   enabled: boolean,
 ): MemoryScopeWriteFields {
   if (!enabled) {
-    return { visibility: null, owner_agent_id: null, boardroom_id: null, credential_scope: null };
+    return { visibility: null, source_agent_id: null, boardroom_id: null, credential_scope: null };
   }
 
   const visibility = normalizeVisibility(input.visibility);
   const credential_scope = nonEmpty(input.credential_scope);
-  let owner_agent_id = nonEmpty(input.owner_agent_id);
+  let source_agent_id = nonEmpty(input.source_agent_id);
   let boardroom_id = nonEmpty(input.boardroom_id);
 
-  if (visibility === "private" && owner_agent_id === null) {
-    owner_agent_id = ctx.agentId;
+  if (visibility === "private" && source_agent_id === null) {
+    source_agent_id = ctx.agentId;
   }
   if (visibility === "shared" && boardroom_id === null) {
     boardroom_id = ctx.boardroomId;
   }
 
-  return { visibility, owner_agent_id, boardroom_id, credential_scope };
+  return { visibility, source_agent_id, boardroom_id, credential_scope };
 }

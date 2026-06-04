@@ -10,7 +10,10 @@
 --
 -- Scope model:
 --   visibility       : 'private' | 'shared' | 'user-global' (NULL = user-global)
---   owner_agent_id   : owning agent for a 'private' fact
+--   source_agent_id  : source/owning agent for a 'private' fact. This is the
+--                      canonical agent-identity column DECLARED by lane-03
+--                      (Worker 3, band 01xx) and only CONSUMED here. This band
+--                      does not declare it, per the coordinator ruling.
 --   boardroom_id     : the Boardroom a 'shared' fact belongs to
 --   credential_scope : the connector credential a fact was derived from
 --   quarantined_at   : set when the backing credential is revoked (fact hidden)
@@ -23,7 +26,6 @@
 
 ALTER TABLE mc_extracted_facts
   ADD COLUMN IF NOT EXISTS visibility       TEXT,
-  ADD COLUMN IF NOT EXISTS owner_agent_id   TEXT,
   ADD COLUMN IF NOT EXISTS boardroom_id     TEXT,
   ADD COLUMN IF NOT EXISTS credential_scope TEXT,
   ADD COLUMN IF NOT EXISTS quarantined_at   TIMESTAMPTZ;
@@ -32,7 +34,6 @@ ALTER TABLE mc_extracted_facts
 
 ALTER TABLE extracted_facts
   ADD COLUMN IF NOT EXISTS visibility       TEXT,
-  ADD COLUMN IF NOT EXISTS owner_agent_id   TEXT,
   ADD COLUMN IF NOT EXISTS boardroom_id     TEXT,
   ADD COLUMN IF NOT EXISTS credential_scope TEXT,
   ADD COLUMN IF NOT EXISTS quarantined_at   TIMESTAMPTZ;
@@ -60,7 +61,7 @@ END $$;
 -- ─── 4. Indexes: only index the rows that are not user-global ───────────────
 
 CREATE INDEX IF NOT EXISTS idx_mc_ef_scope
-  ON mc_extracted_facts (api_key_hash, visibility, owner_agent_id, boardroom_id)
+  ON mc_extracted_facts (api_key_hash, visibility, boardroom_id)
   WHERE visibility IS NOT NULL AND visibility <> 'user-global';
 
 CREATE INDEX IF NOT EXISTS idx_mc_ef_credential
@@ -68,7 +69,7 @@ CREATE INDEX IF NOT EXISTS idx_mc_ef_credential
   WHERE credential_scope IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_ef_scope
-  ON extracted_facts (visibility, owner_agent_id, boardroom_id)
+  ON extracted_facts (visibility, boardroom_id)
   WHERE visibility IS NOT NULL AND visibility <> 'user-global';
 
 CREATE INDEX IF NOT EXISTS idx_ef_credential
@@ -83,7 +84,7 @@ CREATE INDEX IF NOT EXISTS idx_ef_credential
 
 CREATE OR REPLACE FUNCTION memory_fact_in_scope_v1(
   p_visibility          TEXT,
-  p_owner_agent_id      TEXT,
+  p_source_agent_id     TEXT,
   p_boardroom_id        TEXT,
   p_credential_scope    TEXT,
   p_quarantined_at      TIMESTAMPTZ,
@@ -109,8 +110,8 @@ AS $$
         WHEN 'user-global' THEN TRUE
         WHEN 'private' THEN (
           p_reader_agent_id IS NOT NULL
-          AND nullif(trim(coalesce(p_owner_agent_id, '')), '') IS NOT NULL
-          AND trim(p_owner_agent_id) = p_reader_agent_id
+          AND nullif(trim(coalesce(p_source_agent_id, '')), '') IS NOT NULL
+          AND trim(p_source_agent_id) = p_reader_agent_id
         )
         WHEN 'shared' THEN (
           p_reader_boardroom_id IS NOT NULL

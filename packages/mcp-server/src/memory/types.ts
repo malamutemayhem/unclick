@@ -33,7 +33,7 @@ export interface FactInput {
   // --- lane-04: scopes / credential-aware / boardroom visibility ---
   // Optional row-level scope. Only honored when MEMORY_SCOPES_ENABLED is on.
   visibility?: MemoryVisibility | string;
-  owner_agent_id?: string;
+  source_agent_id?: string;
   boardroom_id?: string;
   credential_scope?: string;
   // --- end lane-04 ---
