@@ -152,36 +152,145 @@ function normalizeLocalMemoryText(text: string): string {
   return (text.toLowerCase().match(/[a-z0-9][a-z0-9_-]*/g) ?? []).join(" ");
 }
 
+function tokenizeLocalMemoryText(text: string): string[] {
+  return text.toLowerCase().match(/[a-z0-9][a-z0-9_-]*/g) ?? [];
+}
+
+const LOCAL_MEMORY_BM25_K1 = 1.2;
+const LOCAL_MEMORY_BM25_B = 0.75;
+const LOCAL_MEMORY_AVG_DOC_LENGTH = 24;
+const MEMORY_RRF_K = 60;
+const MEMORY_RECENCY_DECAY_DAYS = 90;
+
+function clampUnit(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(1, value));
+}
+
+function daysBetween(createdAt: string | null | undefined, asOf?: string): number {
+  if (!createdAt) return 0;
+  const createdMs = Date.parse(createdAt);
+  const asOfMs = asOf ? Date.parse(asOf) : Date.now();
+  if (!Number.isFinite(createdMs) || !Number.isFinite(asOfMs)) return 0;
+  return Math.max(0, (asOfMs - createdMs) / 86_400_000);
+}
+
+export function reciprocalRankScore(keywordRank?: number | null, vectorRank?: number | null): number {
+  const keyword = keywordRank && keywordRank > 0 ? 1 / (MEMORY_RRF_K + keywordRank) : 0;
+  const vector = vectorRank && vectorRank > 0 ? 1 / (MEMORY_RRF_K + vectorRank) : 0;
+  return keyword + vector;
+}
+
+export function memoryRecencyWeight(createdAt: string | null | undefined, asOf?: string): number {
+  return Math.exp(-daysBetween(createdAt, asOf) / MEMORY_RECENCY_DECAY_DAYS);
+}
+
+export interface LocalMemoryContentScore {
+  finalScore: number;
+  matchedTokenCount: number;
+  exactPhrase: boolean;
+  kwScore: number;
+  documentTokenCount: number;
+}
+
 export function scoreLocalMemoryContent(input: {
   query: string;
   tokens: string[];
   text: string;
   confidence?: number | null;
   source?: "fact" | "session";
-}): { finalScore: number; matchedTokenCount: number; exactPhrase: boolean } {
+}): LocalMemoryContentScore {
   const { query, tokens, text } = input;
   if (tokens.length === 0) {
-    return { finalScore: 0, matchedTokenCount: 0, exactPhrase: false };
+    return { finalScore: 0, matchedTokenCount: 0, exactPhrase: false, kwScore: 0, documentTokenCount: 0 };
   }
 
   const normalizedText = normalizeLocalMemoryText(text);
   const normalizedQuery = normalizeLocalMemoryText(query);
-  const matchedTokenCount = tokens.reduce(
-    (count, token) => count + (normalizedText.includes(token) ? 1 : 0),
-    0
-  );
+  const textTokens = tokenizeLocalMemoryText(text);
+  const documentTokenCount = textTokens.length;
+  const tokenCounts = new Map<string, number>();
+  for (const token of textTokens) {
+    tokenCounts.set(token, (tokenCounts.get(token) ?? 0) + 1);
+  }
+  const matchedTokenCount = tokens.reduce((count, token) => count + (tokenCounts.has(token) ? 1 : 0), 0);
   const exactPhrase =
     normalizedQuery.length >= 4 &&
     normalizedText.includes(normalizedQuery);
-  const phraseBonus = exactPhrase ? Math.max(1, tokens.length) : 0;
-  const coverage = (matchedTokenCount + phraseBonus) / (tokens.length * 2);
+  const bm25Sum = tokens.reduce((sum, token) => {
+    const frequency = tokenCounts.get(token) ?? 0;
+    if (frequency === 0) return sum;
+    const denominator =
+      frequency +
+      LOCAL_MEMORY_BM25_K1 *
+        (1 - LOCAL_MEMORY_BM25_B + LOCAL_MEMORY_BM25_B * (documentTokenCount / LOCAL_MEMORY_AVG_DOC_LENGTH));
+    return sum + (frequency * (LOCAL_MEMORY_BM25_K1 + 1)) / denominator;
+  }, 0);
+  const coverage = matchedTokenCount / tokens.length;
+  const phraseBonus = exactPhrase ? 0.35 : 0;
+  const lengthDampening = Math.min(1, Math.sqrt(LOCAL_MEMORY_AVG_DOC_LENGTH / Math.max(1, documentTokenCount)));
+  const kwScore = (bm25Sum / tokens.length + coverage * 0.1 + phraseBonus) * lengthDampening;
   const confidence = Math.max(0, Math.min(1, input.confidence ?? 1));
   const sourceWeight = input.source === "session" ? 0.5 : 1;
   return {
-    finalScore: coverage * confidence * sourceWeight,
+    finalScore: kwScore * confidence * sourceWeight,
     matchedTokenCount,
     exactPhrase,
+    kwScore,
+    documentTokenCount,
   };
+}
+
+export interface LocalMemorySearchCandidate {
+  id: string;
+  source: string;
+  content: string;
+  category: string;
+  confidence: number;
+  created_at: string;
+  score: LocalMemoryContentScore;
+}
+
+export function rankLocalMemorySearchRows<T extends LocalMemorySearchCandidate>(
+  rows: T[],
+  maxResults: number,
+  asOf?: string
+): Array<Omit<T, "score"> & {
+  final_score: number;
+  rrf_score: number;
+  kw_score: number;
+  cosine_score: null;
+  keyword_rank: number;
+  vector_rank: null;
+}> {
+  return rows
+    .filter((row) => row.score.kwScore > 0)
+    .sort((a, b) => {
+      const scoreDiff = b.score.finalScore - a.score.finalScore;
+      return scoreDiff !== 0 ? scoreDiff : b.created_at.localeCompare(a.created_at);
+    })
+    .map((row, index) => {
+      const keywordRank = index + 1;
+      const rrfScore = reciprocalRankScore(keywordRank, null);
+      const confidence = clampUnit(row.confidence);
+      const sourceWeight = row.source === "session" || row.source === "conversation" ? 0.5 : 1;
+      const finalScore = rrfScore * confidence * sourceWeight * memoryRecencyWeight(row.created_at, asOf);
+      const { score: _score, ...rest } = row;
+      return {
+        ...rest,
+        final_score: finalScore,
+        rrf_score: rrfScore,
+        kw_score: row.score.kwScore,
+        cosine_score: null,
+        keyword_rank: keywordRank,
+        vector_rank: null,
+      };
+    })
+    .sort((a, b) => {
+      const scoreDiff = b.final_score - a.final_score;
+      return scoreDiff !== 0 ? scoreDiff : b.created_at.localeCompare(a.created_at);
+    })
+    .slice(0, maxResults);
 }
 
 interface TaxonomySeed {
@@ -832,10 +941,7 @@ export class SupabaseBackend implements MemoryBackend {
           category: r.category,
           confidence: r.confidence,
           created_at: r.created_at,
-          final_score: s.finalScore,
-          rrf_score: 0,
-          kw_score: s.matchedTokenCount,
-          cosine_score: 0,
+          score: s,
         };
       });
       const sessions = ((sessRes.data ?? []) as SessRow[]).map((r) => {
@@ -853,18 +959,10 @@ export class SupabaseBackend implements MemoryBackend {
           category: "session",
           confidence: 1,
           created_at: r.created_at,
-          final_score: s.finalScore,
-          rrf_score: 0,
-          kw_score: s.matchedTokenCount,
-          cosine_score: 0,
+          score: s,
         };
       });
-      return [...facts, ...sessions]
-        .sort((a, b) => {
-          const d = (b.final_score ?? 0) - (a.final_score ?? 0);
-          return d !== 0 ? d : (b.created_at ?? "").localeCompare(a.created_at ?? "");
-        })
-        .slice(0, maxResults);
+      return rankLocalMemorySearchRows([...facts, ...sessions], maxResults, effectiveAsOf);
     };
 
     const andResults = await runScan("and");
