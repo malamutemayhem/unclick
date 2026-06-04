@@ -36,6 +36,7 @@ import {
   tokenizeLocalMemoryQuery,
   writeMemoryTaxonomySnapshotsToLibrary,
 } from "./supabase.js";
+import { provenanceWriteFields, isProvenanceEnabled } from "./provenance.js";
 
 function dataDir(): string {
   return process.env.MEMORY_LOCAL_DATA_DIR || path.join(os.homedir(), ".unclick", "memory");
@@ -152,6 +153,11 @@ interface FactRow {
   updated_at: string;
   commit_sha?: string;
   pr_number?: number;
+  // --- lane-03: provenance & receipts ---
+  source_agent_id?: string | null;
+  source_ref?: string | null;
+  receipt_id?: string | null;
+  // --- end lane-03 ---
 }
 
 interface ConversationRow {
@@ -313,7 +319,22 @@ export class LocalBackend implements MemoryBackend {
         session_id: s.session_id, platform: s.platform, summary: s.summary,
         decisions: s.decisions, open_loops: s.open_loops, topics: s.topics, created_at: s.created_at,
       })),
-      active_facts: facts.map((f) => ({ fact: f.fact, category: f.category, confidence: f.confidence, created_at: f.created_at })),
+      active_facts: facts.map((f) => ({
+        fact: f.fact,
+        category: f.category,
+        confidence: f.confidence,
+        created_at: f.created_at,
+        // --- lane-03: carry id + provenance so the profile card can surface receipts (flag-gated) ---
+        ...(isProvenanceEnabled()
+          ? {
+              id: f.id,
+              source_agent_id: f.source_agent_id ?? null,
+              source_ref: f.source_ref ?? null,
+              receipt_id: f.receipt_id ?? null,
+            }
+          : {}),
+        // --- end lane-03 ---
+      })),
       loaded_at: now(),
     };
   }
@@ -483,6 +504,9 @@ export class LocalBackend implements MemoryBackend {
       updated_at: now(),
       commit_sha: data.commit_sha,
       pr_number: data.pr_number,
+      // --- lane-03: provenance & receipts (only written when MEMORY_PROVENANCE_ENABLED) ---
+      ...(provenanceWriteFields(data) ?? {}),
+      // --- end lane-03 ---
     });
     writeTable("extracted_facts", rows);
     return { id };

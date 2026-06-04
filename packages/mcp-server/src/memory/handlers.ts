@@ -28,6 +28,7 @@ import type {
   SaveTypedLinkCandidatesResult,
 } from "./types.js";
 import type { MemoryTypedLinkSourceKind } from "./typed-links.js";
+import { receiptProvenanceFields } from "./provenance.js";
 
 function currentApiKeyHash(): string | null {
   return process.env.UNCLICK_API_KEY_HASH ?? null;
@@ -213,6 +214,10 @@ function profileReceipt(
   if (typeof row.confidence === "number" && Number.isFinite(row.confidence)) {
     receipt.confidence = row.confidence;
   }
+  // --- lane-03: surface provenance on the receipt (flag-gated; honours redaction_state) ---
+  const provenance = receiptProvenanceFields(row, receipt.redaction_state);
+  if (provenance) Object.assign(receipt, provenance);
+  // --- end lane-03 ---
   return receipt;
 }
 
@@ -677,6 +682,11 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       preserve_as_blob: typeof args.preserve_as_blob === "boolean" ? args.preserve_as_blob : false,
       commit_sha: typeof args.commit_sha === "string" ? args.commit_sha : undefined,
       pr_number: typeof args.pr_number === "number" ? Math.floor(args.pr_number) : undefined,
+      // --- lane-03: provenance pass-through (persisted only when MEMORY_PROVENANCE_ENABLED) ---
+      source_agent_id: typeof args.source_agent_id === "string" ? args.source_agent_id : undefined,
+      source_ref: typeof args.source_ref === "string" ? args.source_ref : undefined,
+      receipt_id: typeof args.receipt_id === "string" ? args.receipt_id : undefined,
+      // --- end lane-03 ---
     });
     await persistTypedLinksForMemoryWrite(db, {
       source_kind: "fact",
