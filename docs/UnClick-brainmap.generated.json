@@ -8600,8 +8600,8 @@
     },
     {
       "source": "src/pages/AuthCallback.tsx",
-      "hash": "41644ade9f97",
-      "bytes": 5284
+      "hash": "c7dba82923b5",
+      "bytes": 4875
     },
     {
       "source": "src/pages/VerifyMfa.tsx",
@@ -8670,8 +8670,8 @@
     },
     {
       "source": "src/pages/Login.tsx",
-      "hash": "0cfc79660be5",
-      "bytes": 8862
+      "hash": "86f887990094",
+      "bytes": 8440
     },
     {
       "source": "src/pages/MemoryConnect.tsx",
@@ -8710,8 +8710,8 @@
     },
     {
       "source": "src/pages/Signup.tsx",
-      "hash": "8eee366a8e3f",
-      "bytes": 9045
+      "hash": "bb69e5123b4b",
+      "bytes": 8623
     },
     {
       "source": "src/pages/SmartHome.tsx",
