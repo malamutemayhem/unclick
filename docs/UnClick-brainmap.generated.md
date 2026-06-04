@@ -56,7 +56,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSeatHeartbeat.tsx | 9c138bfc810d | 11515 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
 | src/pages/admin/AdminAnalytics.tsx | 8e3ab82ef00f | 10336 |
-| src/pages/admin/AdminTools.tsx | 94d7806189d8 | 5681 |
+| src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
 | src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
 | src/pages/admin/AdminEcosystemPages.tsx | 0f2003fd8242 | 12106 |
