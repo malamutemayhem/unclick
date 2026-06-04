@@ -8184,6 +8184,10 @@
       "node --test scripts/rotatepass-redaction-guard.test.mjs"
     ],
     [
+      "test:tier2-rollback",
+      "node --test scripts/tier2-rollback.test.mjs"
+    ],
+    [
       "test:watch",
       "vitest"
     ],
@@ -8280,8 +8284,8 @@
     },
     {
       "source": "package.json",
-      "hash": "82714e796f84",
-      "bytes": 6974
+      "hash": "4a9c0d70b172",
+      "bytes": 7048
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
