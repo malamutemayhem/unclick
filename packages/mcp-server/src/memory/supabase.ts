@@ -715,6 +715,15 @@ export class SupabaseBackend implements MemoryBackend {
       "mc_get_startup_context",
       { p_num_sessions: numSessions }
     );
+    // --- lane-04: scope the startup active_facts (parity with local.ts). The
+    // startup RPC does not expose the scope columns, so subtract the reader-
+    // denied restrictive facts here. Over-removal is the safe direction. ---
+    if (scopesEnabled() && Array.isArray(data.active_facts)) {
+      data.active_facts = await this.filterStartupActiveFactsByScope(
+        data.active_facts as Array<{ fact?: unknown }>
+      );
+    }
+    // --- end lane-04 ---
     return {
       agent_instructions: [
         "You are connected to UnClick Memory - a persistent memory system that works across all sessions and devices.",
@@ -1027,6 +1036,35 @@ export class SupabaseBackend implements MemoryBackend {
     const { data, error } = await q.select("id");
     if (error) throw pgError("quarantineCredentialMemory", error);
     return { quarantined: Array.isArray(data) ? data.length : 0 };
+  }
+
+  // Subtract reader-denied restrictive facts from the startup active_facts
+  // payload. The startup RPC returns facts without ids or scope columns, so we
+  // match on fact text; a text collision can only over-remove, never leak.
+  private async filterStartupActiveFactsByScope(
+    activeFacts: Array<{ fact?: unknown }>
+  ): Promise<Array<{ fact?: unknown }>> {
+    const ctx = resolveScopeContext();
+    let q = this.client
+      .from(this.tables.extracted_facts)
+      .select("fact, visibility, source_agent_id, boardroom_id, credential_scope, quarantined_at")
+      .or("visibility.in.(private,shared),credential_scope.not.is.null,quarantined_at.not.is.null");
+    if (this.tenancy.mode === "managed") {
+      q = q.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await q;
+    if (error) {
+      console.error("[get_startup_context] scope filter failed:", error.message);
+      return activeFacts;
+    }
+    const deniedTexts = new Set<string>();
+    for (const row of (data ?? []) as Array<MemoryFactScopeFields & { fact?: string | null }>) {
+      if (typeof row.fact === "string" && !isFactInScope(row, ctx)) {
+        deniedTexts.add(row.fact);
+      }
+    }
+    if (deniedTexts.size === 0) return activeFacts;
+    return activeFacts.filter((f) => !(typeof f.fact === "string" && deniedTexts.has(f.fact)));
   }
   // --- end lane-04 ---
 
