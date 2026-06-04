@@ -110,6 +110,14 @@ describe("memory passport", () => {
       assert.equal(results.some((row) => row.content.includes("lane-ten-teal")), true);
       const context = await target.getBusinessContext() as Array<{ category: string; key: string; value: unknown }>;
       assert.equal(context.some((row) => row.category === "identity" && row.key === "preferred_name"), true);
+      const reexported = await target.exportMemoryPassport({
+        signing_secret: SIGNING_SECRET,
+        include_sessions: false,
+      });
+      const reexportedFact = reexported.bundle.memory.facts.find((row) => row.fact.includes("lane-ten-teal"));
+      assert.equal(reexportedFact?.extractor_id, "lane-10-test");
+      assert.equal(reexportedFact?.prompt_version, "passport-v1");
+      assert.equal(reexportedFact?.model_id, "test-model");
     } finally {
       fs.rmSync(targetDir, { recursive: true, force: true });
     }
