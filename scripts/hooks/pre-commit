@@ -1,0 +1,42 @@
+#!/bin/sh
+# UnClick opt-in pre-commit hook: checkout-drift guard.
+#
+# Warns (does not block) when you are about to commit inside a cloud-sync root
+# (Google Drive, OneDrive, Dropbox, iCloud, Box, pCloud) or from an orphan clone
+# with no origin remote. These are the conditions that stranded the
+# C:\G\UnClick\repos\ checkouts.
+#
+# Install (opt-in, per developer):
+#   git config core.hooksPath scripts/hooks
+# or copy this file to .git/hooks/pre-commit and mark it executable.
+#
+# Make it blocking instead of warn-only by exporting:
+#   UNCLICK_CHECKOUT_GUARD_STRICT=1
+#
+# Add site-specific synced mounts (for example a mapped Drive letter) with:
+#   UNCLICK_EXTRA_SYNC_ROOTS="C:\\G;Z:\\Other computers"
+
+if ! command -v node >/dev/null 2>&1; then
+  exit 0
+fi
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+[ -z "$ROOT" ] && exit 0
+GUARD="$ROOT/scripts/check-checkout-hygiene.mjs"
+[ -f "$GUARD" ] || exit 0
+
+node "$GUARD"
+STATUS=$?
+
+if [ "$STATUS" -ne 0 ]; then
+  echo ""
+  echo "checkout-drift guard flagged this checkout (see above)."
+  echo "Preserve work safely with docs/worktree-salvage-runbook.md before relocating."
+  if [ "${UNCLICK_CHECKOUT_GUARD_STRICT:-0}" = "1" ]; then
+    echo "Blocking commit because UNCLICK_CHECKOUT_GUARD_STRICT=1. Bypass with: git commit --no-verify"
+    exit 1
+  fi
+  echo "Warn-only. Bypass entirely with: git commit --no-verify"
+fi
+
+exit 0

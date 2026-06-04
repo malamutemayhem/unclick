@@ -16,8 +16,8 @@
 //    class are evaluated; everything else is allowed (the gates are about
 //    destructive shell/sql/git/secret/ship, not ordinary catalog reads).
 
-import { evaluateGates } from "./policy-engine.js";
-import type { ActionClass, Environment, AutonomyLevel, GateContext, Gate } from "./types.js";
+import { evaluateGatesWithModes } from "./policy-engine.js";
+import type { ActionClass, Environment, AutonomyLevel, GateContext, Gate, GateMode, GateResult, GateVerdict } from "./types.js";
 import { secretGate } from "./gates/secret-gate.js";
 import { dataGate } from "./gates/data-gate.js";
 import { gitGate } from "./gates/git-gate.js";
@@ -25,9 +25,10 @@ import { commandGate } from "./gates/command-gate.js";
 import { shipGate } from "./gates/ship-gate.js";
 import { scopeGate } from "./gates/scope-gate.js";
 import { spendGate } from "./gates/spend-gate.js";
+import { trendSlopGate } from "./gates/trendslop-gate.js";
 
 export const PREFLIGHT_GATES: Gate[] = [
-  secretGate, dataGate, gitGate, commandGate, shipGate, scopeGate, spendGate,
+  secretGate, dataGate, gitGate, commandGate, shipGate, scopeGate, spendGate, trendSlopGate,
 ];
 
 export type PreflightMode = "off" | "shadow" | "block";
@@ -40,6 +41,7 @@ export interface PreflightOptions {
   autonomyLevel?: AutonomyLevel;
   tainted?: boolean;
   now?: number;
+  gateModes?: Record<string, GateMode>;
 }
 
 export interface PreflightOutcome {
@@ -66,6 +68,27 @@ export function resolveMode(opts: PreflightOptions = {}): PreflightMode {
   if (!enforce) return "off";
   const envMode = (process.env.UNCLICK_XGATE_MODE ?? "shadow").toLowerCase();
   return envMode === "block" ? "block" : "shadow";
+}
+
+function modeToGateMode(mode: PreflightMode): GateMode {
+  return mode === "shadow" ? "watch" : mode;
+}
+
+function watchedVerdict(result: GateResult): GateVerdict | null {
+  const evidence = result.evidence.find((entry) => entry.startsWith("would_verdict:"));
+  const verdict = evidence?.slice("would_verdict:".length);
+  return verdict === "deny" || verdict === "ask" || verdict === "rewrite" || verdict === "allow" ? verdict : null;
+}
+
+function strongestWatchedResult(results: GateResult[]): { result: GateResult; verdict: GateVerdict } | null {
+  const rank: Record<GateVerdict, number> = { deny: 3, ask: 2, rewrite: 1, allow: 0 };
+  let strongest: { result: GateResult; verdict: GateVerdict } | null = null;
+  for (const result of results) {
+    const verdict = watchedVerdict(result);
+    if (!verdict || verdict === "allow") continue;
+    if (!strongest || rank[verdict] > rank[strongest.verdict]) strongest = { result, verdict };
+  }
+  return strongest;
 }
 
 /**
@@ -153,7 +176,10 @@ export function runPreflight(
 
   let decision;
   try {
-    decision = evaluateGates(PREFLIGHT_GATES, ctx);
+    decision = evaluateGatesWithModes(PREFLIGHT_GATES, ctx, {
+      defaultMode: modeToGateMode(mode),
+      gateModes: opts.gateModes,
+    });
   } catch {
     // Defense in depth: the engine should never throw, but if it does, fail
     // closed in block mode (deny) and open in shadow mode (proceed + report).
@@ -170,24 +196,24 @@ export function runPreflight(
 
   const blocking = decision.verdict === "deny" || decision.verdict === "ask";
   if (!blocking) {
+    const watched = strongestWatchedResult(decision.results);
+    if (watched) {
+      return {
+        proceed: true,
+        mode,
+        verdict: watched.verdict,
+        gate: watched.result.gate,
+        ruleId: watched.result.ruleId,
+        reason: watched.result.reason,
+        shadowed: true,
+        classified: true,
+        actionClass: classified.class,
+      };
+    }
     return { proceed: true, mode, verdict: decision.verdict, classified: true, actionClass: classified.class };
   }
 
-  if (mode === "shadow") {
-    return {
-      proceed: true,
-      mode,
-      verdict: decision.verdict,
-      gate: decision.deciding.gate,
-      ruleId: decision.deciding.ruleId,
-      reason: decision.deciding.reason,
-      shadowed: true,
-      classified: true,
-      actionClass: classified.class,
-    };
-  }
-
-  // block mode: stop the call.
+  // Block mode or an individually blocked gate: stop the call.
   return {
     proceed: false,
     mode,

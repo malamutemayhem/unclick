@@ -27,6 +27,7 @@
     "test:enterprisepass-receipt": "node --test scripts/enterprisepass-receipt-guard.test.mjs",
     "test:rotatepass-redaction": "node --test scripts/rotatepass-redaction-guard.test.mjs",
     "test:api-lib-esm-extension": "node --test scripts/api-lib-esm-extension-guard.test.mjs",
+    "test:git-hygiene": "node --test scripts/check-checkout-hygiene.test.mjs scripts/check-dirty-branch.test.mjs scripts/salvage-worktrees.test.mjs",
     "test:writerlane-live-catalog": "node --test scripts/pinballwake-writerlane-live-catalog.test.mjs",
     "test:watch": "vitest",
     "test:api": "npm run test --workspace=apps/api",

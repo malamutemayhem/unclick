@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 618,
+    "inventory": 619,
     "source_manifest": 192,
     "pages": 84,
     "tools": 219,
@@ -69,7 +69,7 @@
       "id": "ledgers-and-proof",
       "name": "Ledgers and proof",
       "meaning": "Receipts, audits, evidence, and proof-of-work surfaces.",
-      "count": 7
+      "count": 8
     },
     {
       "id": "source-of-truth",
@@ -1918,6 +1918,16 @@
       "kind": "proof module",
       "meaning": "pinballwake quiet window proof UnClick module.",
       "source": "scripts/pinballwake-quiet-window-proof.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "ledgers-and-proof-proof-module-trendslop-receipt-api-lib-xgate-gates-trendslop-receipt-ts-no-route",
+      "division": "Ledgers and proof",
+      "name": "trendslop receipt",
+      "kind": "proof module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/xgate/gates/trendslop-receipt.ts",
       "route": "",
       "tags": []
     },
@@ -8182,6 +8192,10 @@
       "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
     [
+      "test:git-hygiene",
+      "node --test scripts/check-checkout-hygiene.test.mjs scripts/check-dirty-branch.test.mjs scripts/salvage-worktrees.test.mjs"
+    ],
+    [
       "test:memory-eval",
       "node --test scripts/memory-retrieval-eval.test.mjs"
     ],
@@ -8246,13 +8260,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "2b407301ce05",
+      "hash": "1f196048a2b9",
       "bytes": 15047
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "18adc5de15d7",
-      "bytes": 24564
+      "hash": "7f369084b44d",
+      "bytes": 24686
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -8286,8 +8300,8 @@
     },
     {
       "source": "package.json",
-      "hash": "c5c0ba95988e",
-      "bytes": 6824
+      "hash": "82714e796f84",
+      "bytes": 6974
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -8586,8 +8600,8 @@
     },
     {
       "source": "src/pages/admin/AdminXGate.tsx",
-      "hash": "7be724a79f83",
-      "bytes": 20219
+      "hash": "db31f326ff07",
+      "bytes": 26775
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
@@ -8606,8 +8620,8 @@
     },
     {
       "source": "src/pages/AuthCallback.tsx",
-      "hash": "41644ade9f97",
-      "bytes": 5284
+      "hash": "c7dba82923b5",
+      "bytes": 4875
     },
     {
       "source": "src/pages/VerifyMfa.tsx",
@@ -8676,8 +8690,8 @@
     },
     {
       "source": "src/pages/Login.tsx",
-      "hash": "0cfc79660be5",
-      "bytes": 8862
+      "hash": "86f887990094",
+      "bytes": 8440
     },
     {
       "source": "src/pages/MemoryConnect.tsx",
@@ -8716,8 +8730,8 @@
     },
     {
       "source": "src/pages/Signup.tsx",
-      "hash": "8eee366a8e3f",
-      "bytes": 9045
+      "hash": "bb69e5123b4b",
+      "bytes": 8623
     },
     {
       "source": "src/pages/SmartHome.tsx",
