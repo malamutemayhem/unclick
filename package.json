@@ -22,6 +22,7 @@
     "compliancepass:report": "npm run build --workspace=@unclick/compliancepass && node scripts/build-compliancepass-report.mjs",
     "memory:eval": "node scripts/memory-retrieval-eval.mjs",
     "test:memory-eval": "node --test scripts/memory-retrieval-eval.test.mjs",
+    "test:boardroom-signal-polish": "vitest run api/boardroom-signal-polish.test.ts",
     "test:compliancepass-receipt": "node --test scripts/enterprisepass-receipt-guard.test.mjs",
     "test:continuous-improvement-watch": "node --test scripts/pinballwake-continuous-improvement-watch.test.mjs",
     "test:enterprisepass-receipt": "node --test scripts/enterprisepass-receipt-guard.test.mjs",

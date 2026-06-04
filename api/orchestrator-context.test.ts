@@ -497,7 +497,13 @@ describe("orchestrator context", () => {
       conversationTurns: [],
     });
 
-    expect(context.continuity_events.filter((event) => event.kind === "blocker")).toHaveLength(2);
+    const staleEvents = context.continuity_events.filter((event) => event.source_id.startsWith("dispatch-stale-"));
+    expect(staleEvents).toHaveLength(2);
+    expect(staleEvents.find((event) => event.source_id === "dispatch-stale-wakepass")?.kind).toBe("blocker");
+    expect(staleEvents.find((event) => event.source_id === "dispatch-stale-fishbowl")?.kind).toBe("status");
+    expect(staleEvents.find((event) => event.source_id === "dispatch-stale-fishbowl")?.tags).toContain(
+      "noise:stale-source",
+    );
     expect(context.current_state_card.active_todo_count).toBe(0);
     expect(context.current_state_card.blocker_count).toBe(0);
     expect(context.current_state_card.blockers).toHaveLength(0);
@@ -535,7 +541,11 @@ describe("orchestrator context", () => {
       conversationTurns: [],
     });
 
-    expect(context.continuity_events.filter((event) => event.kind === "blocker")).toHaveLength(1);
+    const staleWake = context.continuity_events.find(
+      (event) => event.source_id === "dispatch-fresh-issue-comment-wake",
+    );
+    expect(staleWake?.kind).toBe("status");
+    expect(staleWake?.tags).toContain("noise:stale-source");
     expect(context.current_state_card.blocker_count).toBe(0);
     expect(context.current_state_card.blockers).toHaveLength(0);
     expect(context.rolling_snapshot.active_blockers).toHaveLength(0);
@@ -604,8 +614,9 @@ describe("orchestrator context", () => {
     const blockerEvents = context.continuity_events.filter((event) => event.kind === "blocker");
     const activeBlockerIds = context.rolling_snapshot.active_blockers.map((event) => event.source_id);
 
-    expect(blockerEvents.map((event) => event.source_id)).toEqual(
-      expect.arrayContaining(["dispatch-superseded-wakepass", "dispatch-real-wakepass"]),
+    expect(blockerEvents.map((event) => event.source_id)).toEqual(["dispatch-real-wakepass"]);
+    expect(context.continuity_events.find((event) => event.source_id === "dispatch-superseded-wakepass")?.kind).toBe(
+      "status",
     );
     expect(context.current_state_card.active_todo_count).toBe(1);
     expect(context.current_state_card.blocker_count).toBe(1);
@@ -660,8 +671,9 @@ describe("orchestrator context", () => {
       conversationTurns: [],
     });
 
-    expect(context.continuity_events.find((event) => event.source_id === "dispatch-old-checkin")?.kind).toBe(
-      "blocker",
+    expect(context.continuity_events.find((event) => event.source_id === "dispatch-old-checkin")?.kind).toBe("status");
+    expect(context.continuity_events.find((event) => event.source_id === "dispatch-old-checkin")?.tags).toContain(
+      "noise:stale-source",
     );
     expect(context.current_state_card.active_todo_count).toBe(1);
     expect(context.current_state_card.blocker_count).toBe(0);

@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 618,
+    "inventory": 619,
     "source_manifest": 192,
     "pages": 84,
     "tools": 219,
@@ -75,7 +75,7 @@
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 12
+      "count": 13
     },
     {
       "id": "modules-and-apps",
@@ -3868,6 +3868,16 @@
       "kind": "state module",
       "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
       "source": "api/lib/boardroom-read-bounds.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-boardroom-signal-polish-api-lib-boardroom-signal-polish-ts-no-route",
+      "division": "Source of truth",
+      "name": "boardroom signal polish",
+      "kind": "state module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/boardroom-signal-polish.ts",
       "route": "",
       "tags": []
     },
@@ -8166,6 +8176,10 @@
       "node --test scripts/api-lib-esm-extension-guard.test.mjs"
     ],
     [
+      "test:boardroom-signal-polish",
+      "vitest run api/boardroom-signal-polish.test.ts"
+    ],
+    [
       "test:brainmap",
       "node --test scripts/UnClick-brainmap.test.mjs"
     ],
@@ -8290,8 +8304,8 @@
     },
     {
       "source": "package.json",
-      "hash": "82714e796f84",
-      "bytes": 6974
+      "hash": "475c10903425",
+      "bytes": 7060
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",

@@ -5,6 +5,10 @@ import {
   createAutopilotZeroTouchMetrics,
   type AutopilotTouchMetricsRow,
 } from "./autopilot-control-ledger.js";
+import {
+  isRetiredBoardroomSignalNoise,
+  polishBoardroomSignal,
+} from "./boardroom-signal-polish.js";
 import type { CommonSensePassResult } from "../../packages/commonsensepass/src/index.js";
 
 export interface OrchestratorProfileRow {
@@ -1301,6 +1305,7 @@ function isActiveBlockerEvent(
   profileLastSeenByAgent: Map<string, string | null>,
 ): boolean {
   if (event.kind !== "blocker") return false;
+  if (isPolishedSignalNoiseEvent(event)) return false;
   if (isWakeIssueCommentStale(event, activeTodos)) return false;
   if (isSuppressedWakePassStatusDispatch(event)) return false;
   if (isSupersededMissedCheckinDispatch(event, profileLastSeenByAgent, nowMs)) return false;
@@ -1319,7 +1324,7 @@ function isSupersededMissedCheckinDispatch(
   const summary = event.summary.toLowerCase();
   const text = `${summary} ${tags.join(" ")}`;
   const isStale = tags.includes("stale") || /\bstale\b/.test(text);
-  if (!isStale || !text.includes("fishbowl-checkin:")) return false;
+  if (!isStale || !/\b(?:fishbowl|boardroom)-checkin:/.test(text)) return false;
 
   const agentId = extractMissedCheckinAgentId(event);
   if (!agentId) return false;
@@ -1334,7 +1339,7 @@ function isSupersededMissedCheckinDispatch(
 }
 
 function extractMissedCheckinAgentId(event: OrchestratorContinuityEvent): string | null {
-  const match = event.summary.match(/\bfishbowl-checkin:([^:\s{]+):/i);
+  const match = event.summary.match(/\b(?:fishbowl|boardroom)-checkin:([^:\s{]+):/i);
   if (match?.[1]) return match[1];
   return event.actor_agent_id && !/^\p{Emoji_Presentation}$/u.test(event.actor_agent_id)
     ? event.actor_agent_id
@@ -1555,6 +1560,9 @@ function uniqueSourcePointers(items: OrchestratorRollingSnapshotItem[]): Orchest
 }
 
 function isSnapshotNoise(event: OrchestratorContinuityEvent): boolean {
+  if (isPolishedSignalNoiseEvent(event)) {
+    return true;
+  }
   const summary = event.summary.toLowerCase();
   const tags = (event.tags ?? []).map((tag) => tag.toLowerCase());
   if (event.kind === "decision" && !tags.includes("heartbeat")) {
@@ -1565,6 +1573,20 @@ function isSnapshotNoise(event: OrchestratorContinuityEvent): boolean {
   }
   const text = `${summary} ${tags.join(" ")}`;
   return isHeartbeatAutomationText(text) || /heartbeat|quiet-status|dont_notify|don't notify|no user action needed|unchanged ack|raw transcript/.test(text);
+}
+
+function isPolishedSignalNoiseEvent(event: OrchestratorContinuityEvent): boolean {
+  return isRetiredBoardroomSignalNoise({
+    sourceKind: event.source_kind,
+    status:
+      event.tags?.find((tag) => {
+        const lower = tag.toLowerCase();
+        return lower === "stale" || lower === "failed" || lower === "leased";
+      }) ?? null,
+    summary: event.summary,
+    tags: event.tags,
+    actorAgentId: event.actor_agent_id,
+  });
 }
 
 function buildProfileCard(profile: OrchestratorProfileRow, nowMs: number): OrchestratorProfileCard {
@@ -1681,6 +1703,8 @@ function commentToEvent(comment: OrchestratorCommentRow): OrchestratorContinuity
 
 function dispatchToEvent(dispatch: OrchestratorDispatchRow): OrchestratorContinuityEvent {
   const payloadTags = dispatchPayloadEvidenceTags(dispatch.payload);
+  const actorAgentId = dispatch.lease_owner ?? dispatch.target_agent_id;
+  const tags = ["dispatch", dispatch.source, dispatch.status, ...payloadTags];
   const detail = [
     dispatch.source,
     dispatch.status,
@@ -1689,15 +1713,30 @@ function dispatchToEvent(dispatch: OrchestratorDispatchRow): OrchestratorContinu
   ]
     .filter(Boolean)
     .join(" ");
+  const polish = polishBoardroomSignal({
+    sourceKind: "dispatch",
+    source: dispatch.source,
+    status: dispatch.status,
+    summary: detail,
+    tags,
+    actorAgentId,
+    payload: dispatch.payload,
+  });
+  const baseKind =
+    dispatch.status === "leased"
+      ? "handoff"
+      : dispatch.status === "failed" || dispatch.status === "stale"
+        ? "blocker"
+        : "status";
   return {
     source_kind: "dispatch",
     source_id: dispatch.dispatch_id,
     deep_link: dispatch.task_ref?.startsWith("todo:") ? `/admin/jobs#${dispatch.task_ref}` : null,
     created_at: dispatch.updated_at ?? dispatch.created_at,
-    kind: dispatch.status === "leased" ? "handoff" : dispatch.status === "failed" || dispatch.status === "stale" ? "blocker" : "status",
-    actor_agent_id: dispatch.lease_owner ?? dispatch.target_agent_id,
-    summary: compactText(detail, 240),
-    tags: ["dispatch", dispatch.source, dispatch.status, ...payloadTags],
+    kind: polish.isNoise ? "status" : baseKind,
+    actor_agent_id: actorAgentId,
+    summary: compactText(polish.summary, 240),
+    tags: polish.tags,
   };
 }
 
@@ -1713,14 +1752,29 @@ function dispatchPayloadEvidenceTags(payload: OrchestratorDispatchRow["payload"]
 }
 
 function signalToEvent(signal: OrchestratorSignalRow): OrchestratorContinuityEvent {
+  const tags = ["signal", signal.tool, signal.action, signal.severity];
+  const summary = `${signal.tool} ${signal.action}: ${signal.summary}`;
+  const polish = polishBoardroomSignal({
+    sourceKind: "signal",
+    tool: signal.tool,
+    action: signal.action,
+    severity: signal.severity,
+    summary,
+    tags,
+    payload: signal.payload,
+  });
   return {
     source_kind: "signal",
     source_id: signal.id,
     deep_link: signal.deep_link ?? null,
     created_at: signal.created_at,
-    kind: signal.severity === "critical" || signal.severity === "action_needed" ? "blocker" : classify([signal.action, signal.severity], signal.summary),
-    summary: compactText(`${signal.tool} ${signal.action}: ${signal.summary}`, 240),
-    tags: ["signal", signal.tool, signal.action, signal.severity],
+    kind: polish.isNoise
+      ? "status"
+      : signal.severity === "critical" || signal.severity === "action_needed"
+        ? "blocker"
+        : classify([signal.action, signal.severity], signal.summary),
+    summary: compactText(polish.summary, 240),
+    tags: polish.tags,
   };
 }
 
