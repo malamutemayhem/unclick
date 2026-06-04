@@ -43,8 +43,12 @@ import {
 } from "./typed-links.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
 import {
+  hasMemoryWriteGateEpisodeBackend,
   isMemoryWriteGateEnabled,
+  isMemoryWriteGateEpisodeStoreEnabled,
   memoryWriteGateContentHash,
+  memoryWriteGateSessionEventInput,
+  type MemoryWriteGateResultSourceKind,
   selectAdmissionDecision,
   syntheticWriteGateId,
   tokenizeMemoryWriteGateText,
@@ -1066,7 +1070,11 @@ export class SupabaseBackend implements MemoryBackend {
   private async routeWriteGateEvent(
     data: FactInput,
     gate: AdmissionDecision
-  ): Promise<{ id: string; write_gate: AdmissionDecision; source_kind: "conversation_turn" }> {
+  ): Promise<{ id: string; write_gate: AdmissionDecision; source_kind: MemoryWriteGateResultSourceKind }> {
+    if (isMemoryWriteGateEpisodeStoreEnabled() && hasMemoryWriteGateEpisodeBackend(this)) {
+      const event = await this.addSessionEvent(memoryWriteGateSessionEventInput(data, gate));
+      return { id: event.id, write_gate: gate, source_kind: "session_event" };
+    }
     await this.enforceCaps("general");
     const { data: row, error } = await this.client
       .from(this.tables.conversation_log)
@@ -1111,7 +1119,7 @@ export class SupabaseBackend implements MemoryBackend {
   private async applyWriteGateDecision(
     data: FactInput,
     gate: AdmissionDecision
-  ): Promise<({ id: string; write_gate: AdmissionDecision; source_kind: "fact" | "conversation_turn" | "none" }) | null> {
+  ): Promise<({ id: string; write_gate: AdmissionDecision; source_kind: MemoryWriteGateResultSourceKind }) | null> {
     if (gate.action === "ADD") return null;
     if (gate.action === "NOOP" && gate.matched_id) {
       return { id: gate.matched_id, write_gate: gate, source_kind: "fact" };

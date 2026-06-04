@@ -29,6 +29,7 @@ import type {
   SaveTypedLinkCandidatesResult,
   AdmissionDecision,
 } from "./types.js";
+import type { MemoryWriteGateResultSourceKind } from "./write-gate.js";
 import type { MemoryTypedLinkSourceKind } from "./typed-links.js";
 
 function currentApiKeyHash(): string | null {
@@ -41,7 +42,7 @@ type Args = Record<string, unknown>;
 type AddFactResultWithGate = {
   id: string;
   write_gate?: AdmissionDecision;
-  source_kind?: "fact" | "conversation_turn" | "none";
+  source_kind?: MemoryWriteGateResultSourceKind;
 };
 // --- end lane-07 ---
 

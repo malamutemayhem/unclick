@@ -8,10 +8,13 @@ import type {
 } from "./types.js";
 
 export const MEMORY_WRITE_GATE_FLAG = "MEMORY_WRITE_GATE_ENABLED";
+export const MEMORY_WRITE_GATE_EPISODE_FLAG = "MEMORY_TYPED_SPLIT_ENABLED";
 export const WRITE_GATE_CONFIDENCE_THRESHOLD = 0.7;
-export const WRITE_GATE_NOOP_SIMILARITY = 0.9;
-export const WRITE_GATE_UPDATE_SIMILARITY = 0.76;
-export const WRITE_GATE_COOL_DOWN_SIMILARITY = 0.72;
+export const WRITE_GATE_SAME_SUBJECT_OVERLAP = 0.5;
+export const WRITE_GATE_DUPLICATE_SIMILARITY = 0.92;
+export const WRITE_GATE_NOOP_SIMILARITY = WRITE_GATE_DUPLICATE_SIMILARITY;
+export const WRITE_GATE_UPDATE_SIMILARITY = WRITE_GATE_SAME_SUBJECT_OVERLAP;
+export const WRITE_GATE_COOL_DOWN_SIMILARITY = WRITE_GATE_SAME_SUBJECT_OVERLAP;
 export const WRITE_GATE_COOL_DOWN_SECONDS = 5 * 60;
 
 const STOP_WORDS = new Set([
@@ -63,6 +66,10 @@ export function isMemoryWriteGateEnabled(env: NodeJS.ProcessEnv = process.env): 
   return flagEnabled(env[MEMORY_WRITE_GATE_FLAG]);
 }
 
+export function isMemoryWriteGateEpisodeStoreEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return flagEnabled(env[MEMORY_WRITE_GATE_EPISODE_FLAG]);
+}
+
 export function memoryWriteGateContentHash(text: string): string {
   return createHash("sha256").update(text.toLowerCase().trim(), "utf8").digest("hex");
 }
@@ -88,6 +95,58 @@ export function tokenizeMemoryWriteGateText(text: string): string[] {
 
 function finiteNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+type MemoryWriteGateProvenanceInput = FactInput & {
+  source_agent_id?: string | null;
+  source_ref?: string | null;
+  receipt_id?: string | null;
+};
+
+export interface MemoryWriteGateSessionEventInput {
+  session_id?: string;
+  memory_class: "episodic";
+  event_kind: string;
+  content: string;
+  summary?: string;
+  payload: Record<string, unknown>;
+}
+
+export interface MemoryWriteGateSessionEventResult {
+  id: string;
+  memory_class: string;
+}
+
+export type MemoryWriteGateResultSourceKind = "fact" | "conversation_turn" | "session_event" | "none";
+
+export interface MemoryWriteGateEpisodeBackend {
+  addSessionEvent(data: MemoryWriteGateSessionEventInput): Promise<MemoryWriteGateSessionEventResult>;
+}
+
+export function hasMemoryWriteGateEpisodeBackend(value: unknown): value is MemoryWriteGateEpisodeBackend {
+  return Boolean(value && typeof value === "object" && typeof (value as { addSessionEvent?: unknown }).addSessionEvent === "function");
+}
+
+export function memoryWriteGateSessionEventInput(data: FactInput, gate: AdmissionDecision): MemoryWriteGateSessionEventInput {
+  return {
+    session_id: data.source_session_id,
+    memory_class: "episodic",
+    event_kind: "write_gate_route",
+    content: data.fact,
+    summary: data.fact.length > 240 ? `${data.fact.slice(0, 237)}...` : data.fact,
+    payload: {
+      category: data.category,
+      confidence: data.confidence,
+      startup_fact_kind: data.startup_fact_kind ?? "durable",
+      routed_from: "add_fact",
+      write_gate: {
+        action: gate.action,
+        reason: gate.reason,
+        candidate_hash: gate.candidate_hash,
+        route_target: gate.route_target,
+      },
+    },
+  };
 }
 
 export function writeGateCandidateFromRankedSearchRow(row: unknown): MemoryWriteGateCandidate | null {
@@ -123,7 +182,7 @@ function normalizedText(text: string): string {
 }
 
 function hasAdmissionProvenance(input: FactInput): boolean {
-  const extra = input as FactInput & Record<string, unknown>;
+  const typed = input as MemoryWriteGateProvenanceInput;
   return Boolean(
     input.source_session_id ||
       input.commit_sha ||
@@ -131,9 +190,9 @@ function hasAdmissionProvenance(input: FactInput): boolean {
       input.prompt_version ||
       input.model_id ||
       (input.extractor_id && input.extractor_id !== "manual") ||
-      extra.source_agent_id ||
-      extra.source_ref ||
-      extra.receipt_id
+      typed.source_agent_id ||
+      typed.source_ref ||
+      typed.receipt_id
   );
 }
 
@@ -166,6 +225,19 @@ function rankSignal(candidate: MemoryWriteGateCandidate): number {
   return finalScore + rrfScore;
 }
 
+export function scoreMemoryWriteSubjectOverlap(left: string, right: string): number {
+  const leftTokens = tokenizeMemoryWriteGateText(left);
+  const rightTokens = tokenizeMemoryWriteGateText(right);
+  if (leftTokens.length === 0 || rightTokens.length === 0) return 0;
+  const leftSet = new Set(leftTokens);
+  const rightSet = new Set(rightTokens);
+  let shared = 0;
+  for (const token of leftSet) {
+    if (rightSet.has(token)) shared += 1;
+  }
+  return shared / Math.min(leftSet.size, rightSet.size);
+}
+
 export function scoreMemoryWriteSimilarity(left: string, right: string): number {
   const leftHash = memoryWriteGateContentHash(left);
   const rightHash = memoryWriteGateContentHash(right);
@@ -180,11 +252,10 @@ export function scoreMemoryWriteSimilarity(left: string, right: string): number 
   const rightTokens = tokenizeMemoryWriteGateText(right);
   if (leftTokens.length === 0 || rightTokens.length === 0) return 0;
 
-  const leftSet = new Set(leftTokens);
   const rightSet = new Set(rightTokens);
   const intersection = leftTokens.filter((token) => rightSet.has(token)).length;
   const union = new Set([...leftTokens, ...rightTokens]).size;
-  const overlap = intersection / Math.min(leftSet.size, rightSet.size);
+  const overlap = scoreMemoryWriteSubjectOverlap(left, right);
   const jaccard = intersection / union;
   const shorter = leftNormalized.length <= rightNormalized.length ? leftNormalized : rightNormalized;
   const longer = leftNormalized.length > rightNormalized.length ? leftNormalized : rightNormalized;
@@ -287,9 +358,16 @@ export function selectAdmissionDecision(
   const candidateHash = memoryWriteGateContentHash(candidate.fact);
   for (const existing of existingCandidates) {
     const existingHash = existing.content_hash ?? memoryWriteGateContentHash(existing.fact);
-    const similarity = existingHash === candidateHash
+    const exact = existingHash === candidateHash;
+    const subjectOverlap = exact ? 1 : scoreMemoryWriteSubjectOverlap(candidate.fact, existing.fact);
+    const cosineSimilarity = exact ? 1 : workerSixCosineSimilarity(existing);
+    const sameSubject = exact ||
+      subjectOverlap >= WRITE_GATE_SAME_SUBJECT_OVERLAP ||
+      cosineSimilarity >= WRITE_GATE_SAME_SUBJECT_OVERLAP;
+    if (!sameSubject) continue;
+    const similarity = exact
       ? 1
-      : Math.max(scoreMemoryWriteSimilarity(candidate.fact, existing.fact), workerSixCosineSimilarity(existing));
+      : Math.max(scoreMemoryWriteSimilarity(candidate.fact, existing.fact), cosineSimilarity);
     if (!best || similarity > best.similarity) {
       best = { candidate: existing, similarity };
     } else if (best && similarity === best.similarity && rankSignal(existing) > rankSignal(best.candidate)) {

@@ -6,11 +6,15 @@ import path from "node:path";
 import { LocalBackend } from "../local.js";
 import { SupabaseBackend } from "../supabase.js";
 import {
+  WRITE_GATE_DUPLICATE_SIMILARITY,
+  WRITE_GATE_SAME_SUBJECT_OVERLAP,
   memoryWriteGateContentHash,
   scoreMemoryWriteSimilarity,
+  scoreMemoryWriteSubjectOverlap,
   selectAdmissionDecision,
   writeGateCandidateFromRankedSearchRow,
 } from "../write-gate.js";
+import type { MemoryWriteGateSessionEventInput } from "../write-gate.js";
 import type { FactInput, MemoryWriteGateCandidate } from "../types.js";
 
 let tempDir = "";
@@ -58,7 +62,19 @@ describe("write-gate policy", () => {
       "Chris prefers TypeScript for UnClick agent work.",
       existing.fact
     );
-    assert.ok(score >= 0.9);
+    assert.ok(score >= WRITE_GATE_DUPLICATE_SIMILARITY);
+  });
+
+  test("uses Worker 2 shared subject and duplicate thresholds", () => {
+    assert.equal(WRITE_GATE_SAME_SUBJECT_OVERLAP, 0.5);
+    assert.equal(WRITE_GATE_DUPLICATE_SIMILARITY, 0.92);
+    assert.equal(
+      scoreMemoryWriteSubjectOverlap(
+        "Chris prefers TypeScript for UnClick agent work.",
+        existing.fact
+      ),
+      1
+    );
   });
 
   test("returns NOOP for exact or semantic duplicates", () => {
@@ -157,6 +173,25 @@ describe("write-gate policy", () => {
     assert.equal(decision.route_target, "none");
   });
 
+  test("accepts low-confidence writes with Worker 3 typed provenance columns", () => {
+    const input: FactInput & {
+      source_agent_id?: string;
+      source_ref?: string;
+      receipt_id?: string;
+    } = {
+      fact: "Maybe Chris prefers receipt-backed memory admission.",
+      category: "preference",
+      confidence: 0.2,
+      source_agent_id: "worker-3",
+      source_ref: "boardroom-message:test",
+      receipt_id: "receipt-1",
+    };
+
+    const decision = selectAdmissionDecision(input, []);
+    assert.equal(decision.action, "ADD");
+    assert.equal(decision.reason, "no_duplicate_or_admission_block");
+  });
+
   test("routes transient events away from the fact store", () => {
     const decision = selectAdmissionDecision({
       fact: "heartbeat: queue unchanged and no new signals",
@@ -181,6 +216,7 @@ describe("write-gate local backend parity", () => {
   afterEach(() => {
     delete process.env.MEMORY_LOCAL_DATA_DIR;
     delete process.env.MEMORY_WRITE_GATE_ENABLED;
+    delete process.env.MEMORY_TYPED_SPLIT_ENABLED;
     if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
     tempDir = "";
   });
@@ -218,7 +254,7 @@ describe("write-gate local backend parity", () => {
     assert.equal(readRows("extracted_facts").length, 0);
   });
 
-  test("routes transient local writes to the episode fallback", async () => {
+  test("routes transient local writes to the conversation fallback without W9", async () => {
     const backend = new LocalBackend();
     const result = await backend.addFact({
       fact: "heartbeat: no new signals and queue unchanged",
@@ -236,6 +272,41 @@ describe("write-gate local backend parity", () => {
     assert.equal(events[0].id, result.id);
     assert.equal(events[0].role, "memory_write_gate_event");
     assert.equal(events[0].session_id, "heartbeat-session");
+  });
+
+  test("routes transient local writes to W9 session events when available", async () => {
+    process.env.MEMORY_TYPED_SPLIT_ENABLED = "1";
+    const backend = new LocalBackend();
+    const events: MemoryWriteGateSessionEventInput[] = [];
+    (backend as unknown as {
+      addSessionEvent(data: MemoryWriteGateSessionEventInput): Promise<{ id: string; memory_class: string }>;
+    }).addSessionEvent = async (event) => {
+      events.push(event);
+      return { id: "session-event-1", memory_class: event.memory_class };
+    };
+
+    const result = await backend.addFact({
+      fact: "heartbeat: no new signals and queue unchanged",
+      category: "system",
+      confidence: 1,
+      startup_fact_kind: "operational",
+      source_session_id: "heartbeat-session",
+    }) as { id: string; write_gate?: { action: string }; source_kind?: string };
+
+    assert.equal(result.id, "session-event-1");
+    assert.equal(result.write_gate?.action, "ROUTE_EVENT");
+    assert.equal(result.source_kind, "session_event");
+    assert.equal(readRows("conversation_log").length, 0);
+    assert.equal(events.length, 1);
+    assert.equal(events[0]?.event_kind, "write_gate_route");
+    assert.equal(events[0]?.memory_class, "episodic");
+    assert.equal(events[0]?.session_id, "heartbeat-session");
+    assert.deepEqual(events[0]?.payload.write_gate, {
+      action: "ROUTE_EVENT",
+      reason: "transient_event",
+      candidate_hash: memoryWriteGateContentHash("heartbeat: no new signals and queue unchanged"),
+      route_target: "episode_store",
+    });
   });
 
   test("supersedes a local fact for compatible expansions", async () => {
@@ -262,6 +333,43 @@ describe("write-gate local backend parity", () => {
 });
 
 describe("write-gate Supabase admission adapter", () => {
+  test("routes Supabase ROUTE_EVENT decisions to W9 session events when available", async () => {
+    process.env.MEMORY_TYPED_SPLIT_ENABLED = "1";
+    try {
+      const backend = Object.create(SupabaseBackend.prototype) as SupabaseBackend;
+      const events: MemoryWriteGateSessionEventInput[] = [];
+      (backend as unknown as {
+        addSessionEvent(data: MemoryWriteGateSessionEventInput): Promise<{ id: string; memory_class: string }>;
+      }).addSessionEvent = async (event) => {
+        events.push(event);
+        return { id: "supabase-session-event-1", memory_class: event.memory_class };
+      };
+      const input: FactInput = {
+        fact: "heartbeat: no new signals and queue unchanged",
+        category: "system",
+        confidence: 1,
+        startup_fact_kind: "operational",
+        source_session_id: "heartbeat-session",
+      };
+      const gate = selectAdmissionDecision(input, []);
+
+      const result = await (backend as any).applyWriteGateDecision(input, gate) as {
+        id: string;
+        write_gate?: { action: string };
+        source_kind?: string;
+      };
+
+      assert.equal(result.id, "supabase-session-event-1");
+      assert.equal(result.write_gate?.action, "ROUTE_EVENT");
+      assert.equal(result.source_kind, "session_event");
+      assert.equal(events.length, 1);
+      assert.equal(events[0]?.event_kind, "write_gate_route");
+      assert.equal(events[0]?.memory_class, "episodic");
+    } finally {
+      delete process.env.MEMORY_TYPED_SPLIT_ENABLED;
+    }
+  });
+
   test("uses Supabase candidates with the shared admission policy", async () => {
     const row = {
       id: "supabase-fact-1",
