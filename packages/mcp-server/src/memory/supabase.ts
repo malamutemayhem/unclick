@@ -67,6 +67,14 @@ import {
 import { isFusedRetrievalEnabled, scoreBusinessContextRows, fuseRankedSearchLanes, orderByEffectiveScore } from "./retrieval-fusion.js";
 import type { MemorySearchResultRow } from "./types.js";
 // --- end lane-01 ---
+import {
+  isFactInScope,
+  resolveScopeContext,
+  scopeFieldsForWrite,
+  scopesEnabled,
+  type MemoryScopeContext,
+  type MemoryFactScopeFields,
+} from "./scopes.js";
 
 function pgError(context: string, err: unknown): Error {
   if (err instanceof Error) return err;
@@ -848,6 +856,15 @@ export class SupabaseBackend implements MemoryBackend {
       "mc_get_startup_context",
       { p_num_sessions: numSessions }
     );
+    // --- lane-04: scope the startup active_facts (parity with local.ts). The
+    // startup RPC does not expose the scope columns, so subtract the reader-
+    // denied restrictive facts here. Over-removal is the safe direction. ---
+    if (scopesEnabled() && Array.isArray(data.active_facts)) {
+      data.active_facts = await this.filterStartupActiveFactsByScope(
+        data.active_facts as Array<{ fact?: unknown }>
+      );
+    }
+    // --- end lane-04 ---
     return {
       agent_instructions: [
         "You are connected to UnClick Memory - a persistent memory system that works across all sessions and devices.",
@@ -929,15 +946,24 @@ export class SupabaseBackend implements MemoryBackend {
     if (tokens.length === 0) return [];
     const patterns = tokens.map((t) => `%${t.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
     const effectiveAsOf = asOf ?? now();
-    const factSelect = isTypedMemorySplitEnabled()
-      ? "id, fact, category, confidence, created_at, source_type, startup_fact_kind, memory_class, valid_from, valid_to, invalidated_at"
-      : "id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at";
 
     // --- lane-01: business_context as a search source (Gap 2); flag-gated ---
     const bcResults: MemorySearchResultRow[] = isFusedRetrievalEnabled()
       ? await this.searchBusinessContextRows(query)
       : [];
     // --- end lane-01 ---
+
+    // --- lane-04: scope-aware recall. Only selects scope columns and filters
+    // when MEMORY_SCOPES_ENABLED is on, so flag-off is unchanged and has no
+    // schema dependency on the new columns. ---
+    const scopesOn = scopesEnabled();
+    const scopeCtx = resolveScopeContext();
+    const factSelect =
+      (scopesOn
+        ? "id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, visibility, source_agent_id, boardroom_id, credential_scope, quarantined_at"
+        : "id, fact, category, confidence, created_at, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at") +
+      (isTypedMemorySplitEnabled() ? ", memory_class" : "");
+    // --- end lane-04 ---
 
     const runScan = async (mode: "and" | "or"): Promise<unknown[]> => {
       let factQ = this.client
@@ -986,10 +1012,16 @@ export class SupabaseBackend implements MemoryBackend {
         valid_from?: string | null;
         valid_to?: string | null;
         invalidated_at?: string | null;
+        visibility?: string | null;
+        source_agent_id?: string | null;
+        boardroom_id?: string | null;
+        credential_scope?: string | null;
+        quarantined_at?: string | null;
       };
       type SessRow = { id: string; summary: string; created_at: string };
       const facts = ((factsRes.data ?? []) as unknown as FactRow[]).filter((r) =>
-        !isMemoryFactOperational(r) && isMemoryFactVisibleAt(r, effectiveAsOf)
+        !isMemoryFactOperational(r) && isMemoryFactVisibleAt(r, effectiveAsOf) &&
+        (!scopesOn || isFactInScope(r, scopeCtx))
       ).map((r) => {
         const s = scoreLocalMemoryContent({
           query,
@@ -1094,13 +1126,19 @@ export class SupabaseBackend implements MemoryBackend {
       .map((row) => row.id as string);
     if (factIds.length === 0) return results;
 
+    // --- lane-04: scope-aware recall (only selects scope columns when on) ---
+    const scopesOn = scopesEnabled();
+    const scopeCtx = resolveScopeContext();
+    const recallSelect =
+      (scopesOn
+        ? "id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at, visibility, source_agent_id, boardroom_id, credential_scope, quarantined_at"
+        : "id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at") +
+      (isTypedMemorySplitEnabled() ? ", memory_class" : "");
+    // --- end lane-04 ---
+
     let query = this.client
       .from(this.tables.extracted_facts)
-      .select(
-        isTypedMemorySplitEnabled()
-          ? "id, fact, category, source_type, startup_fact_kind, memory_class, valid_from, valid_to, invalidated_at, created_at"
-          : "id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at"
-      )
+      .select(recallSelect)
       .in("id", factIds);
     if (this.tenancy.mode === "managed") {
       query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
@@ -1111,6 +1149,9 @@ export class SupabaseBackend implements MemoryBackend {
       console.error("[search_memory] recall-visibility filter failed:", error.message);
       return rows.filter((row) => {
         if (row.source !== "fact") return true;
+        // lane-04: fail closed when scope cannot be verified so a transient
+        // error never leaks a private or quarantined fact.
+        if (scopesOn) return false;
         return !isMemoryFactOperational({
           category: typeof row.category === "string" ? row.category : undefined,
           fact: typeof row.content === "string" ? row.content : undefined,
@@ -1130,8 +1171,14 @@ export class SupabaseBackend implements MemoryBackend {
         valid_to?: string | null;
         invalidated_at?: string | null;
         created_at?: string | null;
+        visibility?: string | null;
+        source_agent_id?: string | null;
+        boardroom_id?: string | null;
+        credential_scope?: string | null;
+        quarantined_at?: string | null;
       }>)
-        .filter((row) => isMemoryFactVisibleAt(row, asOf) && !isMemoryFactOperational(row))
+        .filter((row) => isMemoryFactVisibleAt(row, asOf) && !isMemoryFactOperational(row) &&
+          (!scopesOn || isFactInScope(row, scopeCtx)))
         .map((row) => row.id)
     );
 
@@ -1185,13 +1232,102 @@ export class SupabaseBackend implements MemoryBackend {
         }));
     }
 
-    return this.rpc(
+    const result = await this.rpc<unknown>(
       "search_facts",
       { search_query: query },
       "mc_search_facts",
       { p_search_query: query }
     );
+    // --- lane-04: scope-filter fact-search results when enabled ---
+    if (!scopesEnabled() || !Array.isArray(result)) return result;
+    const ids = (result as Array<{ id?: unknown }>)
+      .filter((r) => typeof r.id === "string")
+      .map((r) => r.id as string);
+    const allowed = await this.filterFactIdsByScope(ids, resolveScopeContext());
+    return (result as Array<{ id?: unknown }>).filter(
+      (r) => typeof r.id === "string" && allowed.has(r.id as string)
+    );
+    // --- end lane-04 ---
   }
+
+  // --- lane-04: re-fetch scope columns for a set of fact ids and return the
+  // ids the reader may see. Fails closed (drops unverified facts) on error so
+  // a transient failure never leaks a private or quarantined fact. ---
+  private async filterFactIdsByScope(
+    factIds: string[],
+    ctx: MemoryScopeContext
+  ): Promise<Set<string>> {
+    if (factIds.length === 0) return new Set();
+    let q = this.client
+      .from(this.tables.extracted_facts)
+      .select("id, visibility, source_agent_id, boardroom_id, credential_scope, quarantined_at")
+      .in("id", factIds);
+    if (this.tenancy.mode === "managed") {
+      q = q.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await q;
+    if (error) {
+      console.error("[search_facts] scope filter failed:", error.message);
+      return new Set();
+    }
+    const allowed = new Set<string>();
+    for (const row of (data ?? []) as Array<MemoryFactScopeFields & { id: string }>) {
+      if (isFactInScope(row, ctx)) allowed.add(row.id);
+    }
+    return allowed;
+  }
+
+  // --- lane-04: quarantine memory bound to a revoked credential scope ---
+  async quarantineCredentialMemory(credentialScope: string): Promise<{ quarantined: number }> {
+    if (!scopesEnabled()) return { quarantined: 0 };
+    const scope = credentialScope.trim();
+    if (!scope) return { quarantined: 0 };
+    let q = this.client
+      .from(this.tables.extracted_facts)
+      .update({ quarantined_at: now() })
+      .eq("credential_scope", scope)
+      .is("quarantined_at", null);
+    if (this.tenancy.mode === "managed") {
+      q = q.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await q.select("id");
+    if (error) throw pgError("quarantineCredentialMemory", error);
+    return { quarantined: Array.isArray(data) ? data.length : 0 };
+  }
+
+  // Subtract reader-denied restrictive facts from the startup active_facts
+  // payload. The startup RPC returns facts without ids or scope columns, so we
+  // match on fact text; a text collision can only over-remove, never leak.
+  private async filterStartupActiveFactsByScope(
+    activeFacts: Array<{ fact?: unknown }>
+  ): Promise<Array<{ fact?: unknown }>> {
+    const ctx = resolveScopeContext();
+    let q = this.client
+      .from(this.tables.extracted_facts)
+      .select("fact, visibility, source_agent_id, boardroom_id, credential_scope, quarantined_at")
+      .or("visibility.in.(private,shared),credential_scope.not.is.null,quarantined_at.not.is.null");
+    if (this.tenancy.mode === "managed") {
+      q = q.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await q;
+    if (error) {
+      // Fail closed (consistent with the recall paths): prefer an empty
+      // active_facts over risking a private or quarantined fact leaking into
+      // another agent's startup on a transient error. business_context, recent
+      // sessions, and the library still load, and search_memory stays available.
+      console.error("[get_startup_context] scope filter failed:", error.message);
+      return [];
+    }
+    const deniedTexts = new Set<string>();
+    for (const row of (data ?? []) as Array<MemoryFactScopeFields & { fact?: string | null }>) {
+      if (typeof row.fact === "string" && !isFactInScope(row, ctx)) {
+        deniedTexts.add(row.fact);
+      }
+    }
+    if (deniedTexts.size === 0) return activeFacts;
+    return activeFacts.filter((f) => !(typeof f.fact === "string" && deniedTexts.has(f.fact)));
+  }
+  // --- end lane-04 ---
 
   async searchLibrary(query: string): Promise<unknown> {
     return this.rpc(
@@ -1300,6 +1436,9 @@ export class SupabaseBackend implements MemoryBackend {
     // --- lane-03: provenance & receipts (only written when MEMORY_PROVENANCE_ENABLED) ---
     Object.assign(insertRow, provenanceWriteFields(data) ?? {});
     // --- end lane-03 ---
+    // --- lane-04: stamp scope columns only when MEMORY_SCOPES_ENABLED ---
+    if (scopesEnabled()) Object.assign(insertRow, scopeFieldsForWrite(data, resolveScopeContext(), true));
+    // --- end lane-04 ---
 
     const { data: row, error } = await this.client
       .from(this.tables.extracted_facts)

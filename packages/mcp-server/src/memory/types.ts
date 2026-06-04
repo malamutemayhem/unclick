@@ -5,6 +5,7 @@ import type {
   MemoryDecayPlan,
 } from "./consolidation.js";
 import type { MemoryTypedLinkCandidate, MemoryTypedLinkSearchResult } from "./typed-links.js";
+import type { MemoryVisibility } from "./scopes.js";
 
 /**
  * Shared types for UnClick Memory backends (local + Supabase).
@@ -46,6 +47,13 @@ export interface FactInput {
   /** Linkage to an XPass/AnswerPass/conversation receipt, when one exists. */
   receipt_id?: string;
   // --- end lane-03 ---
+  // --- lane-04: scopes / credential-aware / boardroom visibility ---
+  // Optional row-level scope. Only honored when MEMORY_SCOPES_ENABLED is on.
+  // source_agent_id is declared by lane-03 (provenance) and consumed here.
+  visibility?: MemoryVisibility | string;
+  boardroom_id?: string;
+  credential_scope?: string;
+  // --- end lane-04 ---
 }
 
 export type StartupFactKind = "durable" | "operational" | "excluded" | "legacy_unspecified";
@@ -298,6 +306,14 @@ export interface MemoryBackend {
   manageDecayV2(options?: MemoryDecayOptions): Promise<MemoryDecayPlan>;
   consolidateMemory(options?: MemoryConsolidationOptions): Promise<MemoryConsolidationPlan>;
   // --- end lane-08 ---
+  // --- lane-04: scopes / credential-aware memory ---
+  /**
+   * Quarantine every fact bound to a credential scope (for example on
+   * keychain_disconnect). Quarantined facts never surface in recall. No-op
+   * unless MEMORY_SCOPES_ENABLED is on. Returns the number quarantined.
+   */
+  quarantineCredentialMemory(credentialScope: string): Promise<{ quarantined: number }>;
+  // --- end lane-04 ---
 }
 
 // --- lane-01: retrieval fusion (read path) ---

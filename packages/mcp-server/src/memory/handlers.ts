@@ -711,6 +711,12 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
       // --- lane-09: typed memory split ---
       memory_class: typeof args.memory_class === "string" ? normalizeMemoryClass(args.memory_class) : undefined,
       // --- end lane-09 ---
+      // --- lane-04: optional row-level scope (honored when MEMORY_SCOPES_ENABLED) ---
+      // source_agent_id is threaded by lane-03 (provenance); consumed here.
+      visibility: typeof args.visibility === "string" ? args.visibility : undefined,
+      boardroom_id: typeof args.boardroom_id === "string" ? args.boardroom_id : undefined,
+      credential_scope: typeof args.credential_scope === "string" ? args.credential_scope : undefined,
+      // --- end lane-04 ---
     });
     const routedToEpisode = (result as { routed_to_episode?: boolean }).routed_to_episode === true;
     if (!routedToEpisode) {
@@ -734,6 +740,14 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     }
     return result;
   },
+
+  // --- lane-04: quarantine memory derived from a revoked credential ---
+  async quarantine_credential_memory(args) {
+    const db = await getBackend();
+    const scope = str(args.credential_scope ?? args.platform);
+    return db.quarantineCredentialMemory(scope);
+  },
+  // --- end lane-04 ---
 
   async supersede_fact(args) {
     const db = await getBackend();

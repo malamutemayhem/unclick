@@ -60,6 +60,12 @@ import {
 // --- lane-01: retrieval fusion (read path) ---
 import { isFusedRetrievalEnabled, scoreBusinessContextRows, orderByEffectiveScore } from "./retrieval-fusion.js";
 // --- end lane-01 ---
+import {
+  isFactInScope,
+  resolveScopeContext,
+  scopeFieldsForWrite,
+  scopesEnabled,
+} from "./scopes.js";
 
 function dataDir(): string {
   return process.env.MEMORY_LOCAL_DATA_DIR || path.join(os.homedir(), ".unclick", "memory");
@@ -204,6 +210,7 @@ interface FactRow {
   commit_sha?: string;
   pr_number?: number;
   // --- lane-04: scopes / credential-aware / Boardroom visibility ---
+  // source_agent_id is declared by lane-03 (provenance) and consumed here.
   visibility?: string | null;
   boardroom_id?: string | null;
   credential_scope?: string | null;
@@ -329,6 +336,10 @@ export class LocalBackend implements MemoryBackend {
   }
 
   async getStartupContext(numSessions: number): Promise<unknown> {
+    // --- lane-04: scope-aware startup (no-op unless MEMORY_SCOPES_ENABLED) ---
+    const startupScopesOn = scopesEnabled();
+    const startupScopeCtx = resolveScopeContext();
+    // --- end lane-04 ---
     const bc = readTable<BusinessContextRow>("business_context")
       .filter((r) => r.decay_tier === "hot" || r.decay_tier === "warm")
       .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
@@ -340,6 +351,7 @@ export class LocalBackend implements MemoryBackend {
     const allFacts = readTable<FactRow>("extracted_facts");
     const facts = allFacts
       .filter(isStartupFact)
+      .filter((fact) => !startupScopesOn || isFactInScope(fact, startupScopeCtx))
       .sort((a, b) => {
         const penalty = startupFactPenalty(a) - startupFactPenalty(b);
         if (penalty !== 0) return penalty;
@@ -413,8 +425,15 @@ export class LocalBackend implements MemoryBackend {
     const tokens = tokenizeLocalMemoryQuery(query);
     if (tokens.length === 0) return [];
 
+    // --- lane-04: scope-aware recall (no-op unless MEMORY_SCOPES_ENABLED) ---
+    const scopesOn = scopesEnabled();
+    const scopeCtx = resolveScopeContext();
+    const inScope = (fact: FactRow): boolean => !scopesOn || isFactInScope(fact, scopeCtx);
+    // --- end lane-04 ---
+
     const facts = readTable<FactRow>("extracted_facts")
       .filter((fact) => isRecallVisibleFact(fact, asOf))
+      .filter(inScope)
       .map((fact) => {
         const score = scoreLocalMemoryContent({
           query,
@@ -504,8 +523,11 @@ export class LocalBackend implements MemoryBackend {
   }
 
   async searchFacts(query: string): Promise<unknown> {
+    const scopesOn = scopesEnabled();
+    const scopeCtx = resolveScopeContext();
     return readTable<FactRow>("extracted_facts")
       .filter((f) => isRecallVisibleFact(f) && matches(f.fact, query))
+      .filter((f) => !scopesOn || isFactInScope(f, scopeCtx))
       .sort((a, b) => b.confidence - a.confidence)
       .slice(0, 20)
       .map((f) => ({ id: f.id, fact: f.fact, category: f.category, confidence: f.confidence, status: f.status, created_at: f.created_at }));
@@ -601,10 +623,32 @@ export class LocalBackend implements MemoryBackend {
       // --- lane-03: provenance & receipts (only written when MEMORY_PROVENANCE_ENABLED) ---
       ...(provenanceWriteFields(data) ?? {}),
       // --- end lane-03 ---
+      // --- lane-04: stamp scope columns (null unless MEMORY_SCOPES_ENABLED) ---
+      ...scopeFieldsForWrite(data, resolveScopeContext(), scopesEnabled()),
+      // --- end lane-04 ---
     });
     writeTable("extracted_facts", rows);
     return { id };
   }
+
+  // --- lane-04: quarantine memory bound to a revoked credential scope ---
+  async quarantineCredentialMemory(credentialScope: string): Promise<{ quarantined: number }> {
+    if (!scopesEnabled()) return { quarantined: 0 };
+    const scope = credentialScope.trim();
+    if (!scope) return { quarantined: 0 };
+    const rows = readTable<FactRow>("extracted_facts");
+    let count = 0;
+    for (const row of rows) {
+      if ((row.credential_scope ?? null) === scope && !row.quarantined_at) {
+        row.quarantined_at = now();
+        row.updated_at = now();
+        count += 1;
+      }
+    }
+    if (count > 0) writeTable("extracted_facts", rows);
+    return { quarantined: count };
+  }
+  // --- end lane-04 ---
 
   async supersedeFact(oldId: string, newText: string, category?: string, confidence?: number): Promise<string> {
     const rows = readTable<FactRow>("extracted_facts");
