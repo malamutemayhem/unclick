@@ -33,7 +33,7 @@ describe("heartbeat_protocol payload", () => {
       "watch_state_key",
     ]);
     expect(protocol.version).toMatch(/^\d{4}-\d{2}-\d{2}\.v\d+$/);
-    expect(protocol.procedure).toHaveLength(18);
+    expect(protocol.procedure).toHaveLength(19);
     expect(protocol.procedure[0]).toContain("full heartbeat policy");
     expect(protocol.procedure[1]).toContain("continuity receipts");
     expect(protocol.procedure[2]).toContain("unclick-builder-tether-seat");
@@ -66,6 +66,8 @@ describe("heartbeat_protocol payload", () => {
     expect(protocol.procedure[10]).toContain("Do not stop at NudgeOnly alone");
     expect(protocol.procedure[11]).toContain("read UI");
     expect(protocol.procedure[16]).toContain("missing capability");
+    expect(protocol.procedure[18]).toContain("memory.consolidate");
+    expect(protocol.procedure[18]).toContain("source: 'heartbeat'");
     expect(protocol.alert_format).toEqual({
       heading: "UnClick alert",
       line_template: "owner -- target -- status -- next safe action",
@@ -89,9 +91,9 @@ describe("heartbeat_protocol payload", () => {
       procedure: [...protocol.procedure, "new instruction"],
     };
 
-    expect(formatHeartbeatProtocolVersion(14)).toBe("2026-06-02.v14");
-    expect(protocol.version).toBe("2026-06-02.v14");
-    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("fee442ed68f0fde9");
+    expect(formatHeartbeatProtocolVersion(15)).toBe("2026-06-02.v15");
+    expect(protocol.version).toBe("2026-06-02.v15");
+    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("65c8ca2fb099b26b");
     expect(heartbeatProtocolContentFingerprint(changed)).not.toBe(
       heartbeatProtocolContentFingerprint(protocol),
     );

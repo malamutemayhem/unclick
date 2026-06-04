@@ -44,6 +44,17 @@ import {
   type MemoryTypedLinkSearchResult,
   type MemoryTypedLinkStoredRow,
 } from "./typed-links.js";
+import {
+  buildMemoryConsolidationPlan,
+  buildMemoryDecayPlan,
+  type MemoryConsolidationOptions,
+  type MemoryConsolidationPatch,
+  type MemoryConsolidationPlan,
+  type MemoryDecayFactRow,
+  type MemoryDecayOptions,
+  type MemoryDecayPatch,
+  type MemoryDecayPlan,
+} from "./consolidation.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
 import {
   classifyMemoryClass,
@@ -1837,6 +1848,112 @@ export class SupabaseBackend implements MemoryBackend {
   async manageDecay(): Promise<unknown> {
     return this.rpc("manage_decay", {}, "mc_manage_decay", {});
   }
+
+  // --- lane-08: decay and consolidation ---
+  private async readDecayFactRows(maxCandidates: number): Promise<MemoryDecayFactRow[]> {
+    let query = this.client
+      .from(this.tables.extracted_facts)
+      .select(
+        [
+          "id",
+          "fact",
+          "category",
+          "confidence",
+          "source_session_id",
+          "source_type",
+          "startup_fact_kind",
+          "status",
+          "superseded_by",
+          "invalidated_at",
+          "access_count",
+          "last_accessed",
+          "decay_tier",
+          "valid_from",
+          "valid_to",
+          "created_at",
+          "updated_at",
+          "source_agent_id",
+          "source_ref",
+          "receipt_id",
+          "extractor_id",
+          "prompt_version",
+          "model_id",
+          "commit_sha",
+          "pr_number",
+          "visibility",
+          "boardroom_id",
+          "credential_scope",
+          "quarantined_at",
+          "effective_score",
+          "decayed_confidence",
+          "heat_score",
+          "last_decay_at",
+          "decay_reason",
+          "archived_at",
+          "consolidation_group_id",
+          "consolidation_receipt",
+        ].join(", ")
+      )
+      .order("updated_at", { ascending: false })
+      .limit(maxCandidates);
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { data, error } = await query;
+    if (error) throw pgError("lane-08 read extracted_facts", error);
+    return (data ?? []) as unknown as MemoryDecayFactRow[];
+  }
+
+  private async updateDecayPatch(patch: MemoryDecayPatch): Promise<void> {
+    const { id, ...rawPatch } = patch;
+    const update = Object.fromEntries(
+      Object.entries(rawPatch).filter((entry) => entry[1] !== undefined)
+    );
+    let query = this.client.from(this.tables.extracted_facts).update(update).eq("id", id);
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { error } = await query;
+    if (error) throw pgError("lane-08 decay update", error);
+  }
+
+  private async updateConsolidationPatch(patch: MemoryConsolidationPatch): Promise<void> {
+    const { id, ...rawPatch } = patch;
+    const update = Object.fromEntries(
+      Object.entries(rawPatch).filter((entry) => entry[1] !== undefined)
+    );
+    let query = this.client.from(this.tables.extracted_facts).update(update).eq("id", id);
+    if (this.tenancy.mode === "managed") {
+      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    }
+    const { error } = await query;
+    if (error) throw pgError("lane-08 consolidation update", error);
+  }
+
+  async manageDecayV2(options: MemoryDecayOptions = {}): Promise<MemoryDecayPlan> {
+    const maxCandidates = Math.max(1, Math.min(5000, options.max_candidates ?? 1000));
+    const rows = await this.readDecayFactRows(maxCandidates);
+    const plan = buildMemoryDecayPlan(rows, { ...options, max_candidates: maxCandidates });
+    if (!options.dry_run) {
+      for (const patch of plan.patches) {
+        await this.updateDecayPatch(patch);
+      }
+    }
+    return plan;
+  }
+
+  async consolidateMemory(options: MemoryConsolidationOptions = {}): Promise<MemoryConsolidationPlan> {
+    const maxCandidates = Math.max(1, Math.min(1000, options.max_candidates ?? 250));
+    const rows = await this.readDecayFactRows(maxCandidates);
+    const plan = buildMemoryConsolidationPlan(rows, { ...options, max_candidates: maxCandidates });
+    if (!options.dry_run) {
+      for (const patch of plan.patches) {
+        await this.updateConsolidationPatch(patch);
+      }
+    }
+    return plan;
+  }
+  // --- end lane-08 ---
 
   async getMemoryStatus(): Promise<unknown> {
     const tableKeys: Array<keyof TableNames> = [

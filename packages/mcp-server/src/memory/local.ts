@@ -36,6 +36,14 @@ import {
   type MemoryTypedLinkStoredRow,
 } from "./typed-links.js";
 import {
+  buildMemoryConsolidationPlan,
+  buildMemoryDecayPlan,
+  type MemoryConsolidationOptions,
+  type MemoryConsolidationPlan,
+  type MemoryDecayOptions,
+  type MemoryDecayPlan,
+} from "./consolidation.js";
+import {
   rankLocalMemorySearchRows,
   scoreLocalMemoryContent,
   tokenizeLocalMemoryQuery,
@@ -174,7 +182,7 @@ interface FactRow {
   memory_class?: MemoryClass;
   // --- end lane-09 ---
   status: string;
-  superseded_by?: string;
+  superseded_by?: string | null;
   invalidated_at?: string;
   invalidation_reason?: string;
   invalidated_by_session_id?: string;
@@ -182,16 +190,43 @@ interface FactRow {
   last_accessed: string;
   decay_tier: string;
   valid_from?: string;
-  valid_to?: string;
+  valid_to?: string | null;
   created_at: string;
   updated_at: string;
-  commit_sha?: string;
-  pr_number?: number;
   // --- lane-03: provenance & receipts ---
   source_agent_id?: string | null;
   source_ref?: string | null;
   receipt_id?: string | null;
+  extractor_id?: string | null;
+  prompt_version?: string | null;
+  model_id?: string | null;
   // --- end lane-03 ---
+  commit_sha?: string;
+  pr_number?: number;
+  // --- lane-04: scopes / credential-aware / Boardroom visibility ---
+  visibility?: string | null;
+  boardroom_id?: string | null;
+  credential_scope?: string | null;
+  quarantined_at?: string | null;
+  // --- end lane-04 ---
+  // --- lane-06: ranking row contract ---
+  final_score?: number | null;
+  rrf_score?: number | null;
+  kw_score?: number | null;
+  cosine_score?: number | null;
+  keyword_rank?: number | null;
+  vector_rank?: number | null;
+  // --- end lane-06 ---
+  // --- lane-08: decay and consolidation ---
+  effective_score?: number | null;
+  decayed_confidence?: number | null;
+  heat_score?: number | null;
+  last_decay_at?: string | null;
+  decay_reason?: string | null;
+  archived_at?: string | null;
+  consolidation_group_id?: string | null;
+  consolidation_receipt?: Record<string, unknown> | null;
+  // --- end lane-08 ---
 }
 
 interface ConversationRow {
@@ -228,7 +263,7 @@ interface CodeRow {
   created_at: string;
 }
 
-function parsedTime(value: string | undefined): number | null {
+function parsedTime(value: string | null | undefined): number | null {
   if (!value) return null;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : null;
@@ -901,6 +936,55 @@ export class LocalBackend implements MemoryBackend {
       extracted_facts_decayed: efDecayed,
     };
   }
+
+  // --- lane-08: decay and consolidation ---
+  async manageDecayV2(options: MemoryDecayOptions = {}): Promise<MemoryDecayPlan> {
+    const rows = readTable<FactRow>("extracted_facts");
+    const plan = buildMemoryDecayPlan(rows, options);
+    if (!options.dry_run) {
+      const byId = new Map(rows.map((row) => [row.id, row]));
+      for (const patch of plan.patches) {
+        const row = byId.get(patch.id);
+        if (!row) continue;
+        row.confidence = patch.confidence ?? row.confidence;
+        row.status = patch.status ?? row.status;
+        row.decay_tier = patch.decay_tier ?? row.decay_tier;
+        row.effective_score = patch.effective_score ?? row.effective_score;
+        row.decayed_confidence = patch.decayed_confidence ?? row.decayed_confidence;
+        row.heat_score = patch.heat_score ?? row.heat_score;
+        row.last_decay_at = patch.last_decay_at ?? row.last_decay_at;
+        row.decay_reason = patch.decay_reason ?? row.decay_reason;
+        row.archived_at = patch.archived_at === undefined ? row.archived_at : patch.archived_at;
+        row.updated_at = patch.updated_at ?? row.updated_at;
+      }
+      writeTable("extracted_facts", rows);
+    }
+    return plan;
+  }
+
+  async consolidateMemory(options: MemoryConsolidationOptions = {}): Promise<MemoryConsolidationPlan> {
+    const rows = readTable<FactRow>("extracted_facts");
+    const plan = buildMemoryConsolidationPlan(rows, options);
+    if (!options.dry_run) {
+      const byId = new Map(rows.map((row) => [row.id, row]));
+      for (const patch of plan.patches) {
+        const row = byId.get(patch.id);
+        if (!row) continue;
+        row.fact = patch.fact ?? row.fact;
+        row.confidence = patch.confidence ?? row.confidence;
+        row.status = patch.status ?? row.status;
+        row.superseded_by = patch.superseded_by === undefined ? row.superseded_by : patch.superseded_by;
+        row.valid_to = patch.valid_to === undefined ? row.valid_to : patch.valid_to;
+        row.decay_tier = patch.decay_tier ?? row.decay_tier;
+        row.consolidation_group_id = patch.consolidation_group_id ?? row.consolidation_group_id;
+        row.consolidation_receipt = patch.consolidation_receipt ?? row.consolidation_receipt;
+        row.updated_at = patch.updated_at ?? row.updated_at;
+      }
+      writeTable("extracted_facts", rows);
+    }
+    return plan;
+  }
+  // --- end lane-08 ---
 
   async getMemoryStatus(): Promise<unknown> {
     const tables = ["business_context", "knowledge_library", "session_summaries", "extracted_facts", "session_events", "conversation_log", "code_dumps"] as const;

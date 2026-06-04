@@ -19,6 +19,12 @@ import { emitSignal } from "../signals/emit.js";
 import { buildSearchMemoryCard } from "../cards/search-memory-card.js";
 import { extractMemoryTypedLinkCandidates } from "./typed-links.js";
 import { isTypedMemorySplitEnabled, normalizeMemoryClass } from "./typed-memory.js";
+import {
+  isFlagEnabled,
+  MEMORY_CONSOLIDATION_FLAG,
+  MEMORY_DECAY_V2_FLAG,
+} from "./consolidation.js";
+import { recordMemoryMetric } from "./instrumentation.js";
 import type {
   MemoryBackend,
   MemoryProfileCard,
@@ -834,10 +840,67 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
     return getEmbeddingState();
   },
 
-  async manage_decay() {
+  async manage_decay(args) {
     const db = await getBackend();
+    if (isFlagEnabled(MEMORY_DECAY_V2_FLAG)) {
+      const result = await db.manageDecayV2({
+        dry_run: bool(args.dry_run, false),
+        max_candidates: num(args.max_candidates, 1000),
+        now: typeof args.now === "string" ? args.now : undefined,
+        source: str(args.source, "manual"),
+      });
+      recordMemoryMetric("hot_set_staleness", result.metrics.hot_set_staleness, {
+        source: str(args.source, "manual"),
+        dry_run: bool(args.dry_run, false),
+      });
+      return { ...result, flag: MEMORY_DECAY_V2_FLAG };
+    }
     return db.manageDecay();
   },
+
+  // --- lane-08: sleep-time consolidation ---
+  async consolidate(args) {
+    if (!isFlagEnabled(MEMORY_CONSOLIDATION_FLAG)) {
+      return {
+        skipped: "flag_disabled",
+        flag: MEMORY_CONSOLIDATION_FLAG,
+      };
+    }
+    const db = await getBackend();
+    const source = str(args.source, "manual");
+    const dryRun = bool(args.dry_run, false);
+    const result = await db.consolidateMemory({
+      dry_run: dryRun,
+      max_candidates: num(args.max_candidates, 250),
+      now: typeof args.now === "string" ? args.now : undefined,
+      source,
+      similarity_threshold: num(args.similarity_threshold, 0.92),
+      same_subject_threshold: num(args.same_subject_threshold, 0.5),
+    });
+    recordMemoryMetric("dedup_collapse_rate", result.metrics.dedup_collapse_rate, {
+      source,
+      dry_run: dryRun,
+    });
+    if (bool(args.run_decay, true) && isFlagEnabled(MEMORY_DECAY_V2_FLAG)) {
+      const decay = await db.manageDecayV2({
+        dry_run: dryRun,
+        max_candidates: num(args.max_candidates, 250),
+        now: typeof args.now === "string" ? args.now : undefined,
+        source,
+      });
+      recordMemoryMetric("hot_set_staleness", decay.metrics.hot_set_staleness, {
+        source,
+        dry_run: dryRun,
+      });
+      return { ...result, decay, flag: MEMORY_CONSOLIDATION_FLAG };
+    }
+    return {
+      ...result,
+      decay_skipped: isFlagEnabled(MEMORY_DECAY_V2_FLAG) ? "run_decay_false" : "decay_flag_disabled",
+      flag: MEMORY_CONSOLIDATION_FLAG,
+    };
+  },
+  // --- end lane-08 ---
 
   async memory_status() {
     const db = await getBackend();

@@ -89,6 +89,24 @@ export function logMemoryLoadEvent(event: Omit<MemoryLoadEvent, "created_at">): 
   }
 }
 
+// --- lane-08: decay and consolidation metrics ---
+export function recordMemoryMetric(
+  metric: "hot_set_staleness" | "dedup_collapse_rate",
+  value: number,
+  params: Record<string, unknown> = {},
+): void {
+  logMemoryLoadEvent({
+    tool_name: "memory.metric",
+    params: {
+      metric,
+      value,
+      lane: "08",
+      ...params,
+    },
+  });
+}
+// --- end lane-08 ---
+
 /** Called from the Initialize handler. */
 export function trackInitialize(
   clientInfo: { name?: string; version?: string } | undefined,

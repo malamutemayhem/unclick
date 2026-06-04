@@ -2189,7 +2189,35 @@ export const CATALOG: ToolDef[] = [
         method: "POST",
         path: "/v1/memory/decay",
         requiresAuth: false,
-        inputSchema: { type: "object", properties: {} },
+        inputSchema: {
+          type: "object",
+          properties: {
+            dry_run: { type: "boolean", default: false },
+            max_candidates: { type: "number", minimum: 1, maximum: 5000, default: 1000 },
+            source: { type: "string", default: "manual" },
+            now: { type: "string", description: "Optional ISO timestamp for deterministic runs." },
+          },
+        },
+      },
+      {
+        id: "memory.consolidate",
+        name: "Consolidate Memory",
+        description: "Consolidate Memory - Run the lane-08 sleep-time pass that collapses near-duplicate facts and can recompute decay scores when enabled.",
+        method: "POST",
+        path: "/v1/memory/consolidate",
+        requiresAuth: false,
+        inputSchema: {
+          type: "object",
+          properties: {
+            dry_run: { type: "boolean", default: false },
+            max_candidates: { type: "number", minimum: 1, maximum: 1000, default: 250 },
+            similarity_threshold: { type: "number", minimum: 0.5, maximum: 1, default: 0.92 },
+            same_subject_threshold: { type: "number", minimum: 0, maximum: 1, default: 0.5 },
+            run_decay: { type: "boolean", default: true },
+            source: { type: "string", default: "manual" },
+            now: { type: "string", description: "Optional ISO timestamp for deterministic runs." },
+          },
+        },
       },
       {
         id: "memory.memory_status",
