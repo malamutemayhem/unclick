@@ -1054,8 +1054,12 @@ export class SupabaseBackend implements MemoryBackend {
     }
     const { data, error } = await q;
     if (error) {
+      // Fail closed (consistent with the recall paths): prefer an empty
+      // active_facts over risking a private or quarantined fact leaking into
+      // another agent's startup on a transient error. business_context, recent
+      // sessions, and the library still load, and search_memory stays available.
       console.error("[get_startup_context] scope filter failed:", error.message);
-      return activeFacts;
+      return [];
     }
     const deniedTexts = new Set<string>();
     for (const row of (data ?? []) as Array<MemoryFactScopeFields & { fact?: string | null }>) {
