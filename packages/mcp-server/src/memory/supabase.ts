@@ -41,7 +41,7 @@ import {
 } from "./typed-links.js";
 import { shouldEnforceManagedMemoryCaps } from "./quota-policy.js";
 // --- lane-01: retrieval fusion (read path) ---
-import { isFusedRetrievalEnabled, scoreBusinessContextRows } from "./retrieval-fusion.js";
+import { isFusedRetrievalEnabled, scoreBusinessContextRows, fuseRankedSearchLanes } from "./retrieval-fusion.js";
 import type { MemorySearchResultRow } from "./types.js";
 // --- end lane-01 ---
 
@@ -727,30 +727,51 @@ export class SupabaseBackend implements MemoryBackend {
 
   async searchMemory(query: string, maxResults: number, asOf?: string): Promise<unknown> {
     const localResults = await this.keywordFallback(query, maxResults, asOf);
-    if (localResults.length > 0) return localResults;
 
-    // Optional high-accuracy lane: BM25 + pgvector RRF over facts and
-    // sessions. This only runs when MEMORY_OPENAI_EMBEDDINGS_ENABLED is set.
+    // --- lane-01 increment 2: fuse keyword + semantic instead of letting the
+    // keyword lane short-circuit and shadow the vector lane (Gap 1). The
+    // semantic lane is the BM25 + pgvector RRF RPC (Worker 6's ranking
+    // contract). Flag-gated; flag off keeps today's keyword-first behaviour. ---
+    if (isFusedRetrievalEnabled()) {
+      const semanticResults = await this.semanticSearch(query, maxResults, asOf);
+      if (semanticResults.length > 0) {
+        return fuseRankedSearchLanes(
+          localResults as MemorySearchResultRow[],
+          semanticResults as MemorySearchResultRow[],
+          maxResults
+        );
+      }
+      return localResults;
+    }
+    // --- end lane-01 ---
+
+    if (localResults.length > 0) return localResults;
+    return this.semanticSearch(query, maxResults, asOf);
+  }
+
+  // --- lane-01: semantic (BM25 + pgvector RRF) lane, factored out of
+  // searchMemory so both the fused path and the legacy keyword-first path share
+  // it. Returns [] when embeddings are disabled or the lane errors. ---
+  private async semanticSearch(query: string, maxResults: number, asOf?: string): Promise<unknown[]> {
     try {
       const { embedText } = await import("./embeddings.js");
       const embedding = await embedText(query);
-      if (embedding) {
-        const results = await this.rpc<unknown>(
-          "search_memory_hybrid",
-          { search_query: query, query_embedding: embedding, max_results: maxResults, as_of: asOf ?? null },
-          "mc_search_memory_hybrid",
-          { p_search_query: query, p_query_embedding: embedding, p_max_results: maxResults, p_as_of: asOf ?? null }
-        );
-        if (Array.isArray(results) && results.length > 0) {
-          const visibleResults = await this.filterRecallVisibleSearchResults(results, asOf ?? now());
-          if (visibleResults.length > 0) return visibleResults;
-        }
+      if (!embedding) return [];
+      const results = await this.rpc<unknown>(
+        "search_memory_hybrid",
+        { search_query: query, query_embedding: embedding, max_results: maxResults, as_of: asOf ?? null },
+        "mc_search_memory_hybrid",
+        { p_search_query: query, p_query_embedding: embedding, p_max_results: maxResults, p_as_of: asOf ?? null }
+      );
+      if (Array.isArray(results) && results.length > 0) {
+        return await this.filterRecallVisibleSearchResults(results, asOf ?? now());
       }
     } catch (err) {
       console.error("[search_memory] optional hybrid search failed:", err);
     }
     return [];
   }
+  // --- end lane-01 ---
 
   /**
    * ILIKE-based keyword fallback over mc_extracted_facts +

@@ -265,6 +265,10 @@ export interface MemorySearchResultRow {
   rrf_score: number;
   kw_score: number;
   cosine_score: number;
+  /** 1-based rank in the keyword lane (lane-06 ranking contract; null when absent). */
+  keyword_rank?: number | null;
+  /** 1-based rank in the vector / semantic lane (lane-06 ranking contract; null when absent). */
+  vector_rank?: number | null;
   /** Scope-precedence weight applied to final_score (lane-01 ordering, Gap 7). */
   scope_weight?: number;
   /** Decay-derived effective score (lane-08); lane-01 orders on it when present. */

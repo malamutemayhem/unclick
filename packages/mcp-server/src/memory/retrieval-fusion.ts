@@ -126,3 +126,75 @@ export function scoreBusinessContextRows(
   }
   return out;
 }
+
+/**
+ * RRF constant. Matches Worker 6's ranking contract (memory_rrf_score_v1 default
+ * k = 60) so the keyword and vector lanes fuse on the same scale.
+ */
+export const MEMORY_RRF_K = 60;
+
+/**
+ * Increment 2: fuse two already-ordered retriever lanes with Reciprocal Rank
+ * Fusion (Gap 1). The keyword lane is the ILIKE keyword-fallback (which also
+ * carries business_context from increment 1); the semantic lane is the BM25 +
+ * pgvector RRF RPC (Worker 6). RRF operates on RANK, not raw score, so the two
+ * lanes fuse correctly even though their score scales differ - which is exactly
+ * why the old "keyword first, vector only on empty" short-circuit was wrong.
+ *
+ * A row present in both lanes accumulates both reciprocal-rank contributions and
+ * therefore outranks a row found by only one lane. final_score is set to the
+ * fused rrf_score here (scope-neutral); lane-01 increment 3 layers scope
+ * precedence and decay-derived effective_score on top of this.
+ */
+export function fuseRankedSearchLanes(
+  keywordLane: MemorySearchResultRow[],
+  semanticLane: MemorySearchResultRow[],
+  maxResults: number,
+  k: number = MEMORY_RRF_K
+): MemorySearchResultRow[] {
+  const merged = new Map<
+    string,
+    { row: MemorySearchResultRow; keywordRank: number | null; vectorRank: number | null }
+  >();
+
+  keywordLane.forEach((row, index) => {
+    const entry = merged.get(row.id);
+    if (entry) {
+      entry.keywordRank = index + 1;
+    } else {
+      merged.set(row.id, { row, keywordRank: index + 1, vectorRank: null });
+    }
+  });
+  semanticLane.forEach((row, index) => {
+    const entry = merged.get(row.id);
+    if (entry) {
+      entry.vectorRank = index + 1;
+      // Carry the semantic lane's cosine score when the keyword row lacked one.
+      if ((entry.row.cosine_score ?? 0) === 0 && (row.cosine_score ?? 0) !== 0) {
+        entry.row = { ...entry.row, cosine_score: row.cosine_score };
+      }
+    } else {
+      merged.set(row.id, { row, keywordRank: null, vectorRank: index + 1 });
+    }
+  });
+
+  const fused: MemorySearchResultRow[] = [];
+  for (const { row, keywordRank, vectorRank } of merged.values()) {
+    const rrf =
+      (keywordRank ? 1 / (k + keywordRank) : 0) + (vectorRank ? 1 / (k + vectorRank) : 0);
+    fused.push({
+      ...row,
+      rrf_score: rrf,
+      final_score: rrf,
+      keyword_rank: keywordRank,
+      vector_rank: vectorRank,
+    });
+  }
+
+  return fused
+    .sort((a, b) => {
+      const diff = b.final_score - a.final_score;
+      return diff !== 0 ? diff : (b.created_at ?? "").localeCompare(a.created_at ?? "");
+    })
+    .slice(0, maxResults);
+}
