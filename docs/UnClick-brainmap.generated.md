@@ -189,7 +189,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/datadog-tool.ts | 529fa672eb0e | 8255 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
-| .github/workflows/autonomous-runner.yml | a8c83efde889 | 15338 |
+| .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
 | .github/workflows/dirty-branch-hygiene.yml | 3df7d09eebc7 | 2190 |
 | .github/workflows/dogfood-report.yml | 65897c4393aa | 6605 |
