@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AdminYou from "./AdminYou";
@@ -121,6 +121,31 @@ describe("AdminYou API key card", () => {
 
     expect(await screen.findByText(/stores only a hash after setup/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Create new copyable key/i })).toBeInTheDocument();
+    await waitForInitialAdminYouFetches();
+  });
+
+  it("shows the first-run compass and active My Data controls", async () => {
+    stubFetch("uc_test_1234567890");
+
+    renderPage();
+
+    expect(await screen.findByText(/First-visit compass/i)).toBeInTheDocument();
+    expect(screen.getByText(/Always on/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Download Memory/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Download Sessions & Orchestrator/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Download Preferences/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Download Export All/i })).toBeInTheDocument();
+    expect(screen.getByText(/No file staged yet/i)).toBeInTheDocument();
+
+    const fileInput = screen.getByLabelText(/Choose data file/i);
+    fireEvent.change(fileInput, {
+      target: {
+        files: [new File(["# Notes"], "notes.md", { type: "text/markdown" })],
+      },
+    });
+
+    expect(await screen.findByText(/Markdown notes/i)).toBeInTheDocument();
+    expect(screen.getByText(/Suggest categories/i)).toBeInTheDocument();
     await waitForInitialAdminYouFetches();
   });
 });

@@ -358,6 +358,59 @@ describe("orchestrator context", () => {
     expect(context.seat_handshake.next_prompt).toContain("Australia/Sydney");
   });
 
+  it("surfaces the operator ai_style directive into the seat handoff prompt", () => {
+    const directive =
+      "Operator AI style, always honor unless overridden in-session: keep answers short; explain simply; use bullet points; no emoji.";
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-10T01:00:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [
+        {
+          id: "bc-ai-style",
+          category: "preference",
+          key: "ai_style",
+          value: {
+            directive,
+            response_length: "short",
+            updated_at: "2026-05-10T00:50:00.000Z",
+          },
+          priority: 99,
+          updated_at: "2026-05-10T00:50:00.000Z",
+        },
+      ],
+      conversationTurns: [],
+    });
+
+    expect(context.operator_ai_style?.directive).toBe(directive);
+    expect(context.seat_handshake.next_prompt).toContain(directive);
+  });
+
+  it("omits the ai_style line from the handoff prompt when no preference is set", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-10T01:00:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.operator_ai_style).toBeNull();
+    expect(context.seat_handshake.next_prompt).toContain("Use this compact handoff. Orchestrator");
+  });
+
   it("labels profile-card check-in freshness for AI seats", () => {
     const context = buildOrchestratorContext({
       generatedAt: "2026-05-09T12:00:00.000Z",

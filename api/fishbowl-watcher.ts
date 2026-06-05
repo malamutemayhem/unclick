@@ -88,7 +88,8 @@ const STATUS_STALE_WINDOW_MS = 30 * 60 * 1000;
 const WORKER_SELF_HEALING_SIGNAL_DEDUP_WINDOW_MS = 30 * 60 * 1000;
 export const CHECKIN_ACTIVE_GRACE_MS = 30 * 60 * 1000;
 export const CHECKIN_OVERDUE_SUPPRESS_MS = 12 * 60 * 60 * 1000;
-export const CHECKIN_DORMANT_SUPPRESS_MS = 7 * 24 * 60 * 60 * 1000;
+export const WAKEPASS_DORMANT_AGENT_SUPPRESS_MS = 24 * 60 * 60 * 1000;
+export const CHECKIN_DORMANT_SUPPRESS_MS = WAKEPASS_DORMANT_AGENT_SUPPRESS_MS;
 export const CHECKIN_ACK_LEASE_SECONDS = 600;
 const STALE_DISPATCH_RECLAIM_LIMIT = 50;
 const WORKER_SELF_HEALING_TODO_SWEEP_LIMIT = 50;
@@ -272,7 +273,7 @@ export function isMissedCheckinCandidate(profile: ProfileRow, nowMs: number): bo
   const seenMs = profile.last_seen_at ? new Date(profile.last_seen_at).getTime() : 0;
   if (Number.isNaN(seenMs)) return false;
   if (seenMs > 0 && nowMs - seenMs <= CHECKIN_ACTIVE_GRACE_MS) return false;
-  if (seenMs > 0 && nowMs - seenMs >= CHECKIN_DORMANT_SUPPRESS_MS) return false;
+  if (isDormantWakepassTarget(profile, nowMs)) return false;
   return seenMs < dueMs;
 }
 
@@ -1146,6 +1147,46 @@ export function buildDispatchReclaimSignal(row: DispatchRow, nowMs: number) {
   );
 }
 
+export function isDormantWakepassTarget(
+  profile: Pick<ProfileRow, "last_seen_at"> | null | undefined,
+  nowMs: number,
+  cutoffMs = WAKEPASS_DORMANT_AGENT_SUPPRESS_MS,
+): boolean {
+  const seenMs = profile?.last_seen_at
+    ? Date.parse(profile.last_seen_at)
+    : Number.NaN;
+  return Number.isFinite(seenMs) && seenMs > 0 && nowMs - seenMs >= cutoffMs;
+}
+
+export function buildDormantWakepassReclaimSignal(params: {
+  row: DispatchRow;
+  signal: NonNullable<ReturnType<typeof buildDispatchReclaimSignal>>;
+  profile: ProfileRow | null | undefined;
+  nowMs: number;
+}) {
+  if (params.signal.action !== "handoff_ack_missing") return null;
+  if (!isDormantWakepassTarget(params.profile, params.nowMs)) return null;
+
+  const lastSeenMs = Date.parse(params.profile?.last_seen_at ?? "");
+  const targetLastSeenAgeMinutes = Number.isFinite(lastSeenMs)
+    ? Math.max(1, Math.round((params.nowMs - lastSeenMs) / 60_000))
+    : null;
+
+  return {
+    action: "stale_dispatch_reclaimed" as const,
+    summary: `Suppressed WakePass missed ACK for dormant ${params.row.target_agent_id}`,
+    payload: {
+      ...params.signal.payload,
+      dormant_target_suppressed: true,
+      original_action: params.signal.action,
+      target_agent_id: params.row.target_agent_id,
+      target_last_seen_at: params.profile?.last_seen_at ?? null,
+      target_last_seen_age_minutes: targetLastSeenAgeMinutes,
+      dormant_cutoff_hours: Math.round(WAKEPASS_DORMANT_AGENT_SUPPRESS_MS / 3_600_000),
+    },
+  };
+}
+
 export function shouldMarkDispatchStaleAfterReclaimSignalInsert(
   signalErr: { message?: string } | null | undefined,
 ): boolean {
@@ -1516,30 +1557,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         profileCache.set(row.api_key_hash, profiles);
       }
 
-      const reroutePlan = buildWakepassAutoReroutePlan({
+      const targetProfile = profiles.find((profile) => profile.agent_id === row.target_agent_id);
+      const dormantSignal = buildDormantWakepassReclaimSignal({
         row,
         signal,
-        profiles,
+        profile: targetProfile,
         nowMs,
       });
 
-      if (reroutePlan) {
-        const { error: rerouteErr } = await supabase
-          .from("mc_agent_dispatches")
-          .upsert(dispatchToDbRow(reroutePlan.dispatch), {
-            onConflict: "api_key_hash,dispatch_id",
-          });
+      if (dormantSignal) {
+        signalToInsert = {
+          action: dormantSignal.action,
+          severity: "info",
+          summary: dormantSignal.summary,
+          payload: dormantSignal.payload,
+        };
+      } else {
+        const reroutePlan = buildWakepassAutoReroutePlan({
+          row,
+          signal,
+          profiles,
+          nowMs,
+        });
 
-        if (rerouteErr) {
-          staleDispatchRerouteFailures++;
-          console.error(
-            "[fishbowl-watcher] missed ACK reroute dispatch upsert error:",
-            rerouteErr.message,
-          );
-        } else {
-          await postWakepassRerouteMessage(supabase, row, reroutePlan, nowIso);
-          staleDispatchesRerouted++;
-          signalToInsert = reroutePlan.signal;
+        if (reroutePlan) {
+          const { error: rerouteErr } = await supabase
+            .from("mc_agent_dispatches")
+            .upsert(dispatchToDbRow(reroutePlan.dispatch), {
+              onConflict: "api_key_hash,dispatch_id",
+            });
+
+          if (rerouteErr) {
+            staleDispatchRerouteFailures++;
+            console.error(
+              "[fishbowl-watcher] missed ACK reroute dispatch upsert error:",
+              rerouteErr.message,
+            );
+          } else {
+            await postWakepassRerouteMessage(supabase, row, reroutePlan, nowIso);
+            staleDispatchesRerouted++;
+            signalToInsert = reroutePlan.signal;
+          }
         }
       }
     }

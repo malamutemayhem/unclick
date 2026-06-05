@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 616,
+    "inventory": 620,
     "source_manifest": 192,
     "pages": 84,
     "tools": 219,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 16
+      "count": 17
     },
     {
       "id": "wrappers-and-protocols",
@@ -69,13 +69,13 @@
       "id": "ledgers-and-proof",
       "name": "Ledgers and proof",
       "meaning": "Receipts, audits, evidence, and proof-of-work surfaces.",
-      "count": 7
+      "count": 8
     },
     {
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 11
+      "count": 13
     },
     {
       "id": "modules-and-apps",
@@ -442,6 +442,16 @@
       "tags": []
     },
     {
+      "id": "admin-surfaces-admin-page-boardroom-src-pages-admin-fishbowl-tsx-admin-boardroom",
+      "division": "Admin surfaces",
+      "name": "Boardroom",
+      "kind": "admin page",
+      "meaning": "Boardroom discussion surface for worker coordination.",
+      "source": "src/pages/admin/Fishbowl.tsx",
+      "route": "/admin/boardroom",
+      "tags": []
+    },
+    {
       "id": "admin-surfaces-admin-page-copy-pass-catalog-src-pages-admin-copypass-copypasscatalog-tsx-admin-copypass",
       "division": "Admin surfaces",
       "name": "Copy Pass Catalog",
@@ -509,16 +519,6 @@
       "meaning": "Crews admin page for Crews Settings.",
       "source": "src/pages/admin/crews/CrewsSettings.tsx",
       "route": "/admin/crews/settings",
-      "tags": []
-    },
-    {
-      "id": "admin-surfaces-admin-page-fishbowl-src-pages-admin-fishbowl-tsx-admin-boardroom",
-      "division": "Admin surfaces",
-      "name": "Fishbowl",
-      "kind": "admin page",
-      "meaning": "Boardroom discussion surface for worker coordination.",
-      "source": "src/pages/admin/Fishbowl.tsx",
-      "route": "/admin/boardroom",
       "tags": []
     },
     {
@@ -1922,6 +1922,16 @@
       "tags": []
     },
     {
+      "id": "ledgers-and-proof-proof-module-trendslop-receipt-api-lib-xgate-gates-trendslop-receipt-ts-no-route",
+      "division": "Ledgers and proof",
+      "name": "trendslop receipt",
+      "kind": "proof module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/xgate/gates/trendslop-receipt.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-app-module-app-log-store-src-lib-jobsmith-applogstore-ts-no-route",
       "division": "Modules and apps",
       "name": "app Log Store",
@@ -3082,6 +3092,16 @@
       "tags": []
     },
     {
+      "id": "passes-and-gates-component-source-gate-uipass-toolbox-packages-uxpass-src-ui-toolbox-ts-no-route",
+      "division": "Passes and gates",
+      "name": "UIPass Toolbox",
+      "kind": "component source gate",
+      "meaning": "Curated UI source registry and proof scoreboard for shadcn, Radix, React Aria, Base UI, Floating UI, Motion, 21st.dev, Magic UI, Aceternity, Origin UI, and advisory design intelligence.",
+      "source": "packages/uxpass/src/ui-toolbox.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "passes-and-gates-fidelity-gate-copyroom-docs-unclick-brainmap-generated-md-no-route",
       "division": "Passes and gates",
       "name": "CopyRoom",
@@ -3842,12 +3862,32 @@
       "tags": []
     },
     {
+      "id": "source-of-truth-state-module-backfill-typed-memory-events-scripts-backfill-typed-memory-events-ts-no-route",
+      "division": "Source of truth",
+      "name": "backfill typed memory events",
+      "kind": "state module",
+      "meaning": "backfill typed memory events UnClick module.",
+      "source": "scripts/backfill-typed-memory-events.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "source-of-truth-state-module-boardroom-compat-api-lib-boardroom-compat-ts-no-route",
       "division": "Source of truth",
       "name": "boardroom compat",
       "kind": "state module",
       "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
       "source": "api/lib/boardroom-compat.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-boardroom-read-bounds-api-lib-boardroom-read-bounds-ts-no-route",
+      "division": "Source of truth",
+      "name": "boardroom read bounds",
+      "kind": "state module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/boardroom-read-bounds.ts",
       "route": "",
       "tags": []
     },
@@ -6321,7 +6361,7 @@
     ],
     [
       "/admin/boardroom",
-      "Fishbowl",
+      "Boardroom",
       "Boardroom discussion surface for worker coordination.",
       "src/pages/admin/Fishbowl.tsx"
     ],
@@ -8162,8 +8202,20 @@
       "node --test scripts/enterprisepass-receipt-guard.test.mjs"
     ],
     [
+      "test:git-hygiene",
+      "node --test scripts/check-checkout-hygiene.test.mjs scripts/check-dirty-branch.test.mjs scripts/salvage-worktrees.test.mjs"
+    ],
+    [
+      "test:memory-eval",
+      "node --test scripts/memory-retrieval-eval.test.mjs"
+    ],
+    [
       "test:rotatepass-redaction",
       "node --test scripts/rotatepass-redaction-guard.test.mjs"
+    ],
+    [
+      "test:tier2-rollback",
+      "node --test scripts/tier2-rollback.test.mjs"
     ],
     [
       "test:watch",
@@ -8187,8 +8239,8 @@
     },
     {
       "source": "docs/unclick-context-boot-packet.md",
-      "hash": "259a136f762b",
-      "bytes": 6132
+      "hash": "8af9b8fedfc4",
+      "bytes": 11213
     },
     {
       "source": "docs/agent-observability.md",
@@ -8222,13 +8274,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "2b407301ce05",
+      "hash": "1f196048a2b9",
       "bytes": 15047
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "18adc5de15d7",
-      "bytes": 24564
+      "hash": "7f369084b44d",
+      "bytes": 24686
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -8262,8 +8314,8 @@
     },
     {
       "source": "package.json",
-      "hash": "8079f83c9969",
-      "bytes": 6685
+      "hash": "4a9c0d70b172",
+      "bytes": 7048
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
@@ -8392,8 +8444,8 @@
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "94d7806189d8",
-      "bytes": 5681
+      "hash": "5d2838bcd848",
+      "bytes": 6470
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
@@ -8562,13 +8614,13 @@
     },
     {
       "source": "src/pages/admin/AdminXGate.tsx",
-      "hash": "7be724a79f83",
-      "bytes": 20219
+      "hash": "db31f326ff07",
+      "bytes": 26775
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "3d0240411971",
-      "bytes": 51024
+      "hash": "89ed912e326b",
+      "bytes": 59397
     },
     {
       "source": "src/pages/AppDetail.tsx",
@@ -8582,8 +8634,8 @@
     },
     {
       "source": "src/pages/AuthCallback.tsx",
-      "hash": "41644ade9f97",
-      "bytes": 5284
+      "hash": "c7dba82923b5",
+      "bytes": 4875
     },
     {
       "source": "src/pages/VerifyMfa.tsx",
@@ -8652,8 +8704,8 @@
     },
     {
       "source": "src/pages/Login.tsx",
-      "hash": "0cfc79660be5",
-      "bytes": 8862
+      "hash": "86f887990094",
+      "bytes": 8440
     },
     {
       "source": "src/pages/MemoryConnect.tsx",
@@ -8692,8 +8744,8 @@
     },
     {
       "source": "src/pages/Signup.tsx",
-      "hash": "8eee366a8e3f",
-      "bytes": 9045
+      "hash": "bb69e5123b4b",
+      "bytes": 8623
     },
     {
       "source": "src/pages/SmartHome.tsx",
