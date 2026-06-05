@@ -8314,8 +8314,8 @@
     },
     {
       "source": "package.json",
-      "hash": "4a9c0d70b172",
-      "bytes": 7048
+      "hash": "ba1c1aa52c7d",
+      "bytes": 7047
     },
     {
       "source": "seed/skills/agent-handoff-packet-writer.skill.md",
