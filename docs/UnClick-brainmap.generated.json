@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 617,
+    "inventory": 620,
     "source_manifest": 192,
     "pages": 84,
     "tools": 219,
@@ -51,7 +51,7 @@
       "id": "passes-and-gates",
       "name": "Passes and gates",
       "meaning": "Quality, proof, safety, and fidelity checks.",
-      "count": 16
+      "count": 17
     },
     {
       "id": "wrappers-and-protocols",
@@ -69,13 +69,13 @@
       "id": "ledgers-and-proof",
       "name": "Ledgers and proof",
       "meaning": "Receipts, audits, evidence, and proof-of-work surfaces.",
-      "count": 7
+      "count": 8
     },
     {
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 12
+      "count": 13
     },
     {
       "id": "modules-and-apps",
@@ -442,6 +442,16 @@
       "tags": []
     },
     {
+      "id": "admin-surfaces-admin-page-boardroom-src-pages-admin-fishbowl-tsx-admin-boardroom",
+      "division": "Admin surfaces",
+      "name": "Boardroom",
+      "kind": "admin page",
+      "meaning": "Boardroom discussion surface for worker coordination.",
+      "source": "src/pages/admin/Fishbowl.tsx",
+      "route": "/admin/boardroom",
+      "tags": []
+    },
+    {
       "id": "admin-surfaces-admin-page-copy-pass-catalog-src-pages-admin-copypass-copypasscatalog-tsx-admin-copypass",
       "division": "Admin surfaces",
       "name": "Copy Pass Catalog",
@@ -509,16 +519,6 @@
       "meaning": "Crews admin page for Crews Settings.",
       "source": "src/pages/admin/crews/CrewsSettings.tsx",
       "route": "/admin/crews/settings",
-      "tags": []
-    },
-    {
-      "id": "admin-surfaces-admin-page-fishbowl-src-pages-admin-fishbowl-tsx-admin-boardroom",
-      "division": "Admin surfaces",
-      "name": "Fishbowl",
-      "kind": "admin page",
-      "meaning": "Boardroom discussion surface for worker coordination.",
-      "source": "src/pages/admin/Fishbowl.tsx",
-      "route": "/admin/boardroom",
       "tags": []
     },
     {
@@ -1922,6 +1922,16 @@
       "tags": []
     },
     {
+      "id": "ledgers-and-proof-proof-module-trendslop-receipt-api-lib-xgate-gates-trendslop-receipt-ts-no-route",
+      "division": "Ledgers and proof",
+      "name": "trendslop receipt",
+      "kind": "proof module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/xgate/gates/trendslop-receipt.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-app-module-app-log-store-src-lib-jobsmith-applogstore-ts-no-route",
       "division": "Modules and apps",
       "name": "app Log Store",
@@ -3082,6 +3092,16 @@
       "tags": []
     },
     {
+      "id": "passes-and-gates-component-source-gate-uipass-toolbox-packages-uxpass-src-ui-toolbox-ts-no-route",
+      "division": "Passes and gates",
+      "name": "UIPass Toolbox",
+      "kind": "component source gate",
+      "meaning": "Curated UI source registry and proof scoreboard for shadcn, Radix, React Aria, Base UI, Floating UI, Motion, 21st.dev, Magic UI, Aceternity, Origin UI, and advisory design intelligence.",
+      "source": "packages/uxpass/src/ui-toolbox.ts",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "passes-and-gates-fidelity-gate-copyroom-docs-unclick-brainmap-generated-md-no-route",
       "division": "Passes and gates",
       "name": "CopyRoom",
@@ -3839,6 +3859,16 @@
       "meaning": "Primary work source for open, in-progress, done, and dropped chips.",
       "source": "src/pages/admin/AdminJobs.tsx",
       "route": "/admin/jobs",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-backfill-typed-memory-events-scripts-backfill-typed-memory-events-ts-no-route",
+      "division": "Source of truth",
+      "name": "backfill typed memory events",
+      "kind": "state module",
+      "meaning": "backfill typed memory events UnClick module.",
+      "source": "scripts/backfill-typed-memory-events.ts",
+      "route": "",
       "tags": []
     },
     {
@@ -6331,7 +6361,7 @@
     ],
     [
       "/admin/boardroom",
-      "Fishbowl",
+      "Boardroom",
       "Boardroom discussion surface for worker coordination.",
       "src/pages/admin/Fishbowl.tsx"
     ],
@@ -8209,8 +8239,8 @@
     },
     {
       "source": "docs/unclick-context-boot-packet.md",
-      "hash": "259a136f762b",
-      "bytes": 6132
+      "hash": "8af9b8fedfc4",
+      "bytes": 11213
     },
     {
       "source": "docs/agent-observability.md",
@@ -8244,13 +8274,13 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "2b407301ce05",
+      "hash": "1f196048a2b9",
       "bytes": 15047
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "18adc5de15d7",
-      "bytes": 24564
+      "hash": "7f369084b44d",
+      "bytes": 24686
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -8584,8 +8614,8 @@
     },
     {
       "source": "src/pages/admin/AdminXGate.tsx",
-      "hash": "7be724a79f83",
-      "bytes": 20219
+      "hash": "db31f326ff07",
+      "bytes": 26775
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",

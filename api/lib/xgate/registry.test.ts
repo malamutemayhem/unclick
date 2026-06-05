@@ -11,6 +11,7 @@ describe("XGate registry", () => {
       "ship",
       "scope",
       "spend",
+      "trendslop",
     ]);
   });
 

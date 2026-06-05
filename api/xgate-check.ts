@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
 import { loadXGateRegistry } from "./lib/xgate/registry.js";
+import type { GateMode } from "./lib/xgate/types.js";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -27,10 +28,35 @@ const AUTONOMY_LEVELS = new Set(["interactive", "unattended"]);
 
 export type XGateMode = "off" | "shadow" | "block";
 const XGATE_SETTINGS_KEY = "global";
+const GATE_MODES = new Set(["off", "watch", "block"]);
+
+interface XGateSettings {
+  mode: XGateMode;
+  gateModes: Record<string, GateMode>;
+}
 
 /** Clamp any input to a valid 3-state dial value, falling back when unknown. */
 export function normalizeMode(value: unknown, fallback: XGateMode = "shadow"): XGateMode {
   return value === "off" || value === "shadow" || value === "block" ? value : fallback;
+}
+
+function normalizeGateMode(value: unknown): GateMode | null {
+  if (typeof value !== "string") return null;
+  return GATE_MODES.has(value) ? value as GateMode : null;
+}
+
+function sanitizeGateModes(value: unknown): Record<string, GateMode> {
+  if (!isRecord(value)) return {};
+  const out: Record<string, GateMode> = {};
+  for (const [key, rawMode] of Object.entries(value)) {
+    const mode = normalizeGateMode(rawMode);
+    if (mode && key.trim()) out[key.trim()] = mode;
+  }
+  return out;
+}
+
+function xgateModeToGateMode(mode: XGateMode): GateMode {
+  return mode === "shadow" ? "watch" : mode;
 }
 
 type GateVerdict = "allow" | "deny" | "ask" | "rewrite";
@@ -81,7 +107,11 @@ interface ParsedXGateCheckBody {
 type ParseResult = { ok: true; value: ParsedXGateCheckBody } | { ok: false; error: string };
 
 interface XGateCore {
-  evaluateGates: (gates: unknown[], ctx: XGateContext) => XGateDecision;
+  evaluateGates: (
+    gates: unknown[],
+    ctx: XGateContext,
+    policy?: { defaultMode?: GateMode; gateModes?: Record<string, GateMode> },
+  ) => XGateDecision;
   applyAutonomy: (decision: XGateDecision, ctx: XGateContext, budget: unknown) => unknown;
   applyKillSwitch: (decision: XGateDecision, state: unknown) => unknown;
   buildLedgerEntry: (
@@ -313,7 +343,9 @@ export async function loadXGateCore(): Promise<XGateCoreLoad> {
     if (entry.reason) missing.push({ module: entry.moduleName, reason: entry.reason });
   }
 
-  const evaluateGates = getFunction(byName.get("policy-engine")?.mod, "evaluateGates");
+  const evaluateGates =
+    getFunction(byName.get("policy-engine")?.mod, "evaluateGatesWithModes") ??
+    getFunction(byName.get("policy-engine")?.mod, "evaluateGates");
   const applyAutonomy = getFunction(byName.get("autonomy")?.mod, "applyAutonomy");
   const applyKillSwitch = getFunction(byName.get("kill-switch")?.mod, "applyKillSwitch");
   const buildLedgerEntry = getFunction(byName.get("ledger")?.mod, "buildLedgerEntry");
@@ -377,31 +409,35 @@ async function readKillSwitchState(db: ReturnType<typeof createClient>, apiKeyHa
   };
 }
 
-let modeCache: { mode: XGateMode; at: number } | null = null;
+let settingsCache: { settings: XGateSettings; at: number } | null = null;
 
 /**
- * The live dial value (off/shadow/block) from mc_xgate_settings, cached briefly
- * so the hot path does not read the DB on every call. Falls back to the
- * UNCLICK_XGATE_MODE env (then shadow) when no row exists, so behaviour is
+ * The live dial value and per-gate overrides from mc_xgate_settings, cached
+ * briefly so the hot path does not read the DB on every call. Falls back to
+ * the UNCLICK_XGATE_MODE env (then shadow) when no row exists, so behaviour is
  * unchanged until the dial is first used. Never throws.
  */
-async function readXGateMode(db: ReturnType<typeof createClient>): Promise<XGateMode> {
-  if (modeCache && Date.now() - modeCache.at < 15000) return modeCache.mode;
+async function readXGateSettings(db: ReturnType<typeof createClient>): Promise<XGateSettings> {
+  if (settingsCache && Date.now() - settingsCache.at < 15000) return settingsCache.settings;
   const envFallback = normalizeMode(process.env.UNCLICK_XGATE_MODE, "shadow");
-  let mode: XGateMode = envFallback;
+  const fallback: XGateSettings = { mode: envFallback, gateModes: {} };
+  let settings = fallback;
   try {
     const { data } = await db
       .from("mc_xgate_settings")
-      .select("mode")
+      .select("mode,gate_modes")
       .eq("api_key_hash", XGATE_SETTINGS_KEY)
       .maybeSingle();
     const raw = isRecord(data) ? data.mode : undefined;
-    mode = typeof raw === "string" ? normalizeMode(raw, envFallback) : envFallback;
+    settings = {
+      mode: typeof raw === "string" ? normalizeMode(raw, envFallback) : envFallback,
+      gateModes: sanitizeGateModes(isRecord(data) ? data.gate_modes : undefined),
+    };
   } catch {
-    mode = envFallback;
+    settings = fallback;
   }
-  modeCache = { mode, at: Date.now() };
-  return mode;
+  settingsCache = { settings, at: Date.now() };
+  return settings;
 }
 
 function setCors(res: VercelResponse) {
@@ -438,16 +474,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .select("id,ts,verdict,rule_id,action_class,environment,tool,reason")
         .order("ts", { ascending: false })
         .limit(50);
-      const mode = await readXGateMode(db);
-      return json(res, 200, { decisions: rows ?? [], mode });
+      const settings = await readXGateSettings(db);
+      return json(res, 200, { decisions: rows ?? [], mode: settings.mode, gateModes: settings.gateModes });
     }
     return json(res, 400, { error: "Unknown GET action" });
   }
 
   if (req.method !== "POST") return json(res, 405, { error: "POST required" });
 
-  // The dial: set the live XGate posture (off / shadow / block). Admin session
-  // only -- the cron token may evaluate but may not change posture.
+  // The dial: set the live XGate posture (off / shadow / block) plus optional
+  // per-gate modes. Admin session only; cron may evaluate but may not change posture.
   if (action === "set_mode") {
     if (authority.authority !== "human") {
       return json(res, 403, { error: "Admin session required to change XGate mode" });
@@ -455,18 +491,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const parsed = parseMaybeJsonBody(req.body);
     const bodyObj = parsed.ok && isRecord(parsed.value) ? parsed.value : {};
     const mode = normalizeMode(bodyObj.mode);
+    const gateModes = sanitizeGateModes(bodyObj.gateModes);
     const db = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const { error } = await db
       .from("mc_xgate_settings")
       .upsert(
-        { api_key_hash: XGATE_SETTINGS_KEY, mode, updated_at: new Date().toISOString() },
+        { api_key_hash: XGATE_SETTINGS_KEY, mode, gate_modes: gateModes, updated_at: new Date().toISOString() },
         { onConflict: "api_key_hash" },
       );
-    if (error) return json(res, 503, { error: "Could not save XGate mode", detail: error.message });
-    modeCache = { mode, at: Date.now() };
-    return json(res, 200, { mode });
+    if (error) {
+      const retry = await db
+        .from("mc_xgate_settings")
+        .upsert(
+          { api_key_hash: XGATE_SETTINGS_KEY, mode, updated_at: new Date().toISOString() },
+          { onConflict: "api_key_hash" },
+        );
+      if (retry.error) return json(res, 503, { error: "Could not save XGate mode", detail: error.message });
+      settingsCache = { settings: { mode, gateModes: {} }, at: Date.now() };
+      return json(res, 200, { mode, gateModes: {}, gateModesPersisted: false });
+    }
+    settingsCache = { settings: { mode, gateModes }, at: Date.now() };
+    return json(res, 200, { mode, gateModes, gateModesPersisted: true });
   }
 
   // Preflight mode: the MCP tool hot path posts { endpointId, params } and gets
@@ -481,8 +528,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const db = createClient(supabaseUrl, serviceRoleKey, {
         auth: { persistSession: false, autoRefreshToken: false },
       });
-      const mode = await readXGateMode(db);
-      const outcome = runPreflight(endpointId, params, { mode });
+      const settings = await readXGateSettings(db);
+      const outcome = runPreflight(endpointId, params, { mode: settings.mode, gateModes: settings.gateModes });
 
       // Observability: record evaluated (risk-classified) decisions to the
       // control ledger so shadow mode is visible. Benign/unclassified calls are
@@ -542,7 +589,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return json(res, 503, { error: "XGate kill switch state unavailable", detail: killSwitch.error });
   }
 
-  const policyDecision = coreLoad.core.evaluateGates(registry.gates, parsed.value.context);
+  const settings = await readXGateSettings(db);
+  const policyDecision = coreLoad.core.evaluateGates(registry.gates, parsed.value.context, {
+    defaultMode: xgateModeToGateMode(settings.mode),
+    gateModes: settings.gateModes,
+  });
   const autonomyOutcome = coerceDecisionOutcome(
     coreLoad.core.applyAutonomy(policyDecision, parsed.value.context, parsed.value.budget),
     policyDecision,
