@@ -6,4 +6,5 @@ export * from "./runner.js";
 export * from "./reporter.js";
 export * from "./visual-audit.js";
 export * from "./design-director.js";
+export * from "./ui-toolbox.js";
 export type * from "./types.js";

@@ -51,15 +51,9 @@ export default function AuthCallbackPage() {
         provider,
         created_at: user.created_at,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const umamiTrack = (window as any).umami?.track;
       if (isNewUser) {
-        // TODO(posthog-migration): remove umami call once PostHog validated
-        umamiTrack?.("new_user_signup", { method, email: user.email });
         posthog.capture("signup_completed", { method, email: user.email });
       } else {
-        // TODO(posthog-migration): remove umami call once PostHog validated
-        umamiTrack?.("returning_user_signin", { method });
         posthog.capture("signin_completed", { method });
       }
       // Check if MFA is required before entering the admin shell

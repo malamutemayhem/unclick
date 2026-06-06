@@ -158,9 +158,11 @@ const XGATE_LINKS = [
   { path: "/admin/xgate#gitgate", label: "GitGate" },
   { path: "/admin/xgate#datagate", label: "DataGate" },
   { path: "/admin/xgate#secretgate", label: "SecretGate" },
+  { path: "/admin/xgate#trendslopgate", label: "TrendSlopGate" },
   { path: "/admin/xgate#shipgate", label: "ShipGate" },
   { path: "/admin/xgate#scopegate", label: "ScopeGate" },
   { path: "/admin/xgate#spendgate", label: "SpendGate" },
+  { path: "/admin/xgate#killgate", label: "KillGate" },
 ] as const;
 
 function XPassNavItem({ onClick }: { onClick?: () => void }) {

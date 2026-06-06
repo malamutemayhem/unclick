@@ -1,0 +1,65 @@
+{
+  "suite_id": "memory-hardening-eval-v1",
+  "generated_at": "2026-06-04T03:19:12.802Z",
+  "backend": "local",
+  "note": "Frozen lane-10 baseline from the deterministic LocalBackend diagnostic harness. Existing proof-as-reward docs/eval-baseline.json is left intact.",
+  "diagnostics": {
+    "total": 6,
+    "passed": 4,
+    "failed": 2
+  },
+  "metrics": {
+    "recall@5": 1,
+    "identity_hit_rate": null,
+    "latest_value_accuracy": 1,
+    "contradiction_precision": null,
+    "provenance_coverage": null,
+    "scope_leakage": 1,
+    "forget_compliance": 1,
+    "correction_adherence": null,
+    "ndcg@10": null,
+    "vector_recall@5": null,
+    "duplicate_rate": 0.666667,
+    "write_precision": 1,
+    "hot_set_staleness": null,
+    "dedup_collapse_rate": null,
+    "fact_index_purity": null,
+    "passport_roundtrip_fidelity": 1,
+    "passport_credential_leakage": 0,
+    "scorecard": 0.666667
+  },
+  "scenarios": [
+    {
+      "id": "paraphrase-recall",
+      "kind": "paraphrase_recall",
+      "passed": true
+    },
+    {
+      "id": "latest-value",
+      "kind": "latest_value",
+      "passed": true
+    },
+    {
+      "id": "scope-bleed",
+      "kind": "scope_bleed",
+      "passed": false,
+      "expected_owner": "Worker 4"
+    },
+    {
+      "id": "no-answer",
+      "kind": "no_answer",
+      "passed": true
+    },
+    {
+      "id": "forget",
+      "kind": "forget",
+      "passed": true
+    },
+    {
+      "id": "duplicate-storm",
+      "kind": "duplicate_storm",
+      "passed": false,
+      "expected_owner": "Worker 7"
+    }
+  ]
+}

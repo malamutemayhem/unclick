@@ -128,6 +128,14 @@ CREATE TABLE IF NOT EXISTS extracted_facts (
   access_count INTEGER DEFAULT 0,
   last_accessed TIMESTAMPTZ DEFAULT now(),
   decay_tier TEXT DEFAULT 'hot' CHECK (decay_tier IN ('hot', 'warm', 'cold')),
+  effective_score REAL DEFAULT 0,
+  decayed_confidence REAL DEFAULT 0,
+  heat_score REAL DEFAULT 0,
+  last_decay_at TIMESTAMPTZ,
+  decay_reason TEXT,
+  archived_at TIMESTAMPTZ,
+  consolidation_group_id TEXT,
+  consolidation_receipt JSONB,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -135,6 +143,8 @@ CREATE TABLE IF NOT EXISTS extracted_facts (
 CREATE INDEX IF NOT EXISTS idx_ef_status ON extracted_facts(status);
 CREATE INDEX IF NOT EXISTS idx_ef_category ON extracted_facts(category);
 CREATE INDEX IF NOT EXISTS idx_ef_decay_tier ON extracted_facts(decay_tier);
+CREATE INDEX IF NOT EXISTS idx_ef_lane08_effective_score ON extracted_facts(status, decay_tier, effective_score DESC);
+CREATE INDEX IF NOT EXISTS idx_ef_lane08_consolidation_group ON extracted_facts(consolidation_group_id) WHERE consolidation_group_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_ef_created_at ON extracted_facts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ef_source_session ON extracted_facts(source_session_id);
 CREATE INDEX IF NOT EXISTS idx_ef_valid_window ON extracted_facts(valid_from, valid_to, invalidated_at);
@@ -278,6 +288,10 @@ BEGIN
   FROM (
     SELECT * FROM extracted_facts
     WHERE status = 'active' AND decay_tier = 'hot'
+      AND invalidated_at IS NULL
+      AND valid_from <= now()
+      AND (valid_to IS NULL OR valid_to > now())
+      AND COALESCE(startup_fact_kind, 'legacy_unspecified') NOT IN ('operational', 'excluded')
     ORDER BY confidence DESC, created_at DESC
     LIMIT 50
   ) hot_facts;
@@ -285,7 +299,11 @@ BEGIN
   UPDATE extracted_facts
   SET access_count = access_count + 1,
       last_accessed = now()
-  WHERE status = 'active' AND decay_tier = 'hot';
+  WHERE status = 'active' AND decay_tier = 'hot'
+    AND invalidated_at IS NULL
+    AND valid_from <= now()
+    AND (valid_to IS NULL OR valid_to > now())
+    AND COALESCE(startup_fact_kind, 'legacy_unspecified') NOT IN ('operational', 'excluded');
 
   result := jsonb_build_object(
     'business_context', ctx,
