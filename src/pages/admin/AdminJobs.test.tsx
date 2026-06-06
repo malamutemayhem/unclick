@@ -170,6 +170,13 @@ describe("AdminJobs", () => {
     expect(screen.getByTitle("UI or browser proof is still missing.")).toBeInTheDocument();
     expect(screen.getByTestId("job-row-title")).not.toHaveClass("line-through");
 
+    const workedCard = screen.getByText("Being worked").closest("div");
+    const proofHoldCard = screen.getByText("Proof holds").closest("div");
+    expect(workedCard).not.toBeNull();
+    expect(proofHoldCard).not.toBeNull();
+    expect(within(workedCard as HTMLElement).getByText("0")).toBeInTheDocument();
+    expect(within(proofHoldCard as HTMLElement).getByText("1")).toBeInTheDocument();
+
     const activeSection = screen.getByRole("button", { name: /Active/i }).closest("section");
     const completedSection = screen.getByRole("button", { name: /Completed/i }).closest("section");
     expect(activeSection).not.toBeNull();
