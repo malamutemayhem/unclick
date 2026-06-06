@@ -102,6 +102,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin",  "https://unclick.world");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+  // This endpoint returns decrypted, per-user secrets. Forbid any shared or
+  // browser cache from storing the response so it can never be served to
+  // another user (defense-in-depth against cache poisoning / deception).
+  res.setHeader("Cache-Control", "no-store");
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();

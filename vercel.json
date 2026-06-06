@@ -34,7 +34,7 @@
     { "source": "/api/mcp",               "destination": "/api/mcp" },
     { "source": "/og-image.svg",  "destination": "/og-image.svg" },
     { "source": "/og-image.png",  "destination": "/og-image.png" },
-    { "source": "/(.*)",          "destination": "/index.html" }
+    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
   ],
   "crons": [
     {
