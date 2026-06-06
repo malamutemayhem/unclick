@@ -121,6 +121,25 @@ describe("evaluateFishbowlCompletionPolicy", () => {
     expect(result).toMatchObject({ allowed: false, code: "release_or_live_proof_required" });
   });
 
+  it("blocks scheduled wake routes when merge proof lacks live availability proof", () => {
+    const result = evaluateFishbowlCompletionPolicy({
+      todo: {
+        ...baseTodo,
+        title: "Implement Cowork scheduled-task wake route",
+        description: "Dry-run route validates due tasks, but live wake availability is still not proved.",
+      },
+      comments: [
+        {
+          author_agent_id: "reviewer-seat",
+          text: "PASS: PR #1260 merged and CI passed; proof: actions/runs/26270000000.",
+        },
+      ],
+      closerAgentId: "builder-seat",
+    });
+
+    expect(result).toMatchObject({ allowed: false, code: "release_or_live_proof_required" });
+  });
+
   it("allows runtime tool work with registry and discovery proof", () => {
     const result = evaluateFishbowlCompletionPolicy({
       todo: {

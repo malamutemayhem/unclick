@@ -59,7 +59,7 @@ const noCodeNeededPattern =
   /\b(no[_\s-]?code[_\s-]?needed|no code needed|non-code|no code change|policy only|comment only|routing only|docs only)\b/i;
 
 const runtimeDeliveryTodoPattern =
-  /\b(mcp\s+(?:server|tool)|publish(?:ed|ing)?|registry|npm|release|deploy(?:ed|ment)?|production|live\s+(?:tool|receipt|api|proof)|expos(?:e|ed|ing)|workers?\s+may\s+request|worker(?:s)?\s+tool)\b/i;
+  /\b(mcp[-\s]+(?:server|tool)|publish(?:ed|ing)?|registry|npm|release|deploy(?:ed|ment)?|production|live\s+(?:tool|receipt|api|proof)|expos(?:e|ed|ing)|workers?\s+may\s+request|worker(?:s)?\s+tool|wake\s+route|scheduled[-\s]task\s+wake)\b/i;
 
 const runtimeDeliveryProofPattern =
   /\b(published|npm\s+(?:view|latest|dist-tag)|registry\s+(?:confirms|shows|latest)|deployed|deployment|live\s+on\s+production|production\s+live|vercel\.app|tool(?:s)?\s+(?:discoverable|available|exposed)|(?:mcp|tool)\s+discovery|live\s+(?:receipt|api|tool)|fidelitycopy_(?:copy|verify)|fidelitypass_verify_copy)\b/i;
