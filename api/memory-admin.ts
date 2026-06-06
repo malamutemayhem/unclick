@@ -5548,19 +5548,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ok: boolean;
           error?: string;
           decayed?: unknown;
+          ephemera_archived?: number;
+          ephemera_error?: string;
         }> = [];
+
+        // Operational-ephemera sweep (flag-gated, default off). Archives
+        // (recoverable: status='archived') the heartbeat_last_state dumps and
+        // dated build/PR/Boardroom-Job log facts that the worker fleet writes,
+        // so active memory stays signal not noise. Durable facts are untouched.
+        const sweepRaw = (process.env.MEMORY_EPHEMERA_SWEEP_ENABLED ?? "").trim().toLowerCase();
+        const ephemeraSweepOn = sweepRaw === "1" || sweepRaw === "true";
 
         for (const row of keys ?? []) {
           const { data: decayed, error: decayErr } = await supabase.rpc(
             "mc_manage_decay",
             { p_api_key_hash: row.key_hash }
           );
+
+          let ephemeraArchived: number | undefined;
+          let ephemeraError: string | undefined;
+          if (ephemeraSweepOn) {
+            const { data: swept, error: sweepErr } = await supabase.rpc(
+              "mc_archive_ephemera",
+              { p_api_key_hash: row.key_hash }
+            );
+            if (sweepErr) ephemeraError = sweepErr.message;
+            else ephemeraArchived = typeof swept === "number" ? swept : Number(swept ?? 0) || 0;
+          }
+
           if (decayErr) {
             results.push({
               api_key_hash: row.key_hash,
               tier: row.tier,
               ok: false,
               error: decayErr.message,
+              ephemera_archived: ephemeraArchived,
+              ephemera_error: ephemeraError,
             });
           } else {
             results.push({
@@ -5568,6 +5591,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               tier: row.tier,
               ok: true,
               decayed,
+              ephemera_archived: ephemeraArchived,
+              ephemera_error: ephemeraError,
             });
           }
         }
