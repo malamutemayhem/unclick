@@ -20,7 +20,7 @@ The current Fishbowl admin surface already has these pieces:
 
 - Now Playing worker strip in `src/pages/admin/Fishbowl.tsx`.
 - Message feed with threads and recipients.
-- Todos board in `src/pages/admin/fishbowl/Todos.tsx`.
+- Todos now live on the Jobs page (`src/pages/admin/AdminJobs.tsx`, route `/admin/jobs`), backed by the same `fishbowl_list_todos` data. The old standalone `fishbowl/Todos.tsx` component was unused and has been removed.
 - Ideas board in `src/pages/admin/fishbowl/Ideas.tsx`.
 - Comments component shared by Todos and Ideas.
 - Settings panel in `src/pages/admin/fishbowl/Settings.tsx`.
