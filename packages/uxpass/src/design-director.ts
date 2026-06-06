@@ -162,7 +162,7 @@ function headlineFor(archetype: PageArchetype, summary: VisualAuditSummary): str
 
 function builderBrief(report: Omit<VisualDesignDirectorReport, "builder_brief">): string {
   if (report.directives.length === 0) {
-    return `UXPass director: ${report.archetype}. Keep the visual baseline, then verify with screenshots across mobile, tablet, and desktop.`;
+    return `UXPass director: ${report.archetype}. Keep the visual baseline, state the strongest visual direction, then verify with screenshots across mobile, tablet, and desktop.`;
   }
   const top = report.directives.slice(0, 3).map((item, index) => {
     const action = item.actions[0] ?? item.title;
@@ -171,6 +171,7 @@ function builderBrief(report: Omit<VisualDesignDirectorReport, "builder_brief">)
   return [
     `UXPass director: ${report.archetype}. ${report.headline}`,
     ...top,
+    "Name the strongest direction and the weakest tradeoff in plain language.",
     "Do not count the fix complete without before/after screenshot proof and a rerun of the visual audit.",
   ].join("\n");
 }
@@ -245,6 +246,19 @@ export function buildVisualDesignDirectorReport(
         "Replace decorative colour variety with spacing, weight, and layout hierarchy.",
       ],
       ["flat_type_scale", "palette_indiscipline"],
+      summary,
+    ),
+    directive(
+      "product-specificity",
+      "medium",
+      "Make the surface unmistakably product-specific",
+      "A polished page can still feel weak when it sounds and looks like a generic AI template instead of exposing the real product mechanics.",
+      [
+        "Replace broad AI promises with a concrete metaphor, named systems, tools, routes, jobs, checks, proof states, or human decision points.",
+        "Show the operating pieces above the fold so the user can see how the product works before reading claims about it.",
+        "Give the builder an explicit judgment: what feels owned, what feels generic, and which direction is strongest.",
+      ],
+      ["generic_ai_surface", "missing_product_mechanics"],
       summary,
     ),
     directive(

@@ -49,15 +49,18 @@ describe("UnClick ecosystem Brainmap", () => {
   it("attaches meaning to pages, tools, workers, and safety lanes", async () => {
     const generated = await generateBrainmap({ root: process.cwd() });
     assert.match(generated, /\| \/admin\/brainmap \| Admin Brainmap \| Generated ecosystem map/);
+    assert.match(generated, /\| \/admin\/controltower \| Admin Control Tower \| Big-job coordinator/);
     assert.match(generated, /\| \/admin\/agents\/heartbeat \| Admin Seat Heartbeat \| Master heartbeat copy policy/);
     assert.match(generated, /\| NudgeOnly \| NudgeOnly low-token receipt bridge/);
     assert.match(generated, /\| IgniteOnly \| IgniteOnly verified worker wake packet bridge/);
     assert.match(generated, /\| Passes and gates \| fidelity gate \| CopyRoom \| Exact-copy room/);
     assert.match(generated, /\| Wrappers and protocols \| claim lifecycle \| SeatRelay \| Stale release/);
     assert.match(generated, /\| Coordinator \| Routes work/);
-    assert.match(generated, /\| 4 \| Pass through Brainmap \| Use the generated ecosystem map/);
-    assert.match(generated, /\| 5 \| Choose the Launchpad lane \| Route the work/);
-    assert.match(generated, /\| 6 \| Ask Crews Council if needed \| Run Council Lite on material work/);
+    assert.match(generated, /\| 4 \| Check Control Tower \| For big jobs/);
+    assert.match(generated, /\| 5 \| Pass through Brainmap \| Use the generated ecosystem map/);
+    assert.match(generated, /\| 6 \| Choose the Launchpad lane \| Route the work/);
+    assert.match(generated, /\| 7 \| Ask Crews Council if needed \| Run Council Lite on material work/);
+    assert.match(generated, /\| Launch and onboarding \| coordination layer \| Control Tower/);
     assert.match(generated, /\| Launch and onboarding \| judgement prompt \| Crews Council Induction/);
     assert.match(generated, /Council Lite for light dissent/);
     assert.match(generated, /Admin-only surfaces use `RequireAdmin`/);
@@ -95,7 +98,9 @@ describe("UnClick ecosystem Brainmap", () => {
     assert.ok(data.inventory.some((item) => item.name === "CopyRoom" && item.division === "Passes and gates"));
     assert.ok(data.inventory.some((item) => item.name === "JobSmith" && item.division === "Modules and apps"));
     assert.ok(data.inventory.some((item) => item.name === "Ecosystem Brainmap" && item.route === "/admin/brainmap"));
+    assert.ok(data.inventory.some((item) => item.name === "Control Tower" && item.route === "/admin/controltower"));
     assert.ok(data.inventory.some((item) => item.name === "Crews Council Induction" && item.division === "Launch and onboarding"));
+    assert.ok(data.inductionRows.some((row) => row[1] === "Check Control Tower"));
     assert.ok(data.inductionRows.some((row) => row[1] === "Pass through Brainmap"));
     assert.ok(data.inductionRows.some((row) => row[1] === "Ask Crews Council if needed"));
   });
@@ -104,6 +109,7 @@ describe("UnClick ecosystem Brainmap", () => {
     const data = JSON.parse(await generateBrainmapData({ root: process.cwd() }));
     const routes = new Set(data.pageRows.map((row) => row[0]));
     assert.ok(routes.has("/admin/pinballwake"));
+    assert.ok(routes.has("/admin/controltower"));
     assert.ok(routes.has("/admin/testpass"));
     assert.ok(routes.has("/admin/boardroom"));
     assert.ok(routes.has("/admin/autopilot/expressbuild"));

@@ -13,6 +13,8 @@ export type VisualAuditIssueKind =
   | "unclear_primary_action"
   | "flat_type_scale"
   | "palette_indiscipline"
+  | "generic_ai_surface"
+  | "missing_product_mechanics"
   | "unlabelled_action"
   | "crowded_action_cluster";
 
@@ -99,6 +101,8 @@ const ALL_KINDS: VisualAuditIssueKind[] = [
   "unclear_primary_action",
   "flat_type_scale",
   "palette_indiscipline",
+  "generic_ai_surface",
+  "missing_product_mechanics",
   "unlabelled_action",
   "crowded_action_cluster",
 ];
@@ -107,9 +111,91 @@ const ALL_SEVERITIES: VisualAuditSeverity[] = ["critical", "high", "medium", "lo
 
 const MIN_TOUCH_TARGET = 24;
 const TEXT_CLIP_TOLERANCE = 2;
+const GENERIC_AI_TERMS = [
+  "ai",
+  "agent",
+  "agents",
+  "automation",
+  "workflow",
+  "workflows",
+  "productivity",
+  "platform",
+  "intelligent",
+  "smart",
+  "seamless",
+  "effortless",
+  "powerful",
+  "supercharge",
+  "streamline",
+  "unlock",
+  "transform",
+  "scale",
+  "all in one",
+  "next generation",
+] as const;
+const PRODUCT_MECHANIC_TERMS = [
+  "tool",
+  "tools",
+  "connector",
+  "connectors",
+  "memory",
+  "history",
+  "rules",
+  "github",
+  "gmail",
+  "calendar",
+  "browser",
+  "vercel",
+  "boardroom",
+  "crews",
+  "uipass",
+  "uxpass",
+  "xpass",
+  "testpass",
+  "securitypass",
+  "legalpass",
+  "copypass",
+  "scope",
+  "guard",
+  "checks",
+  "proof",
+  "screenshot",
+  "commit",
+  "pull request",
+  "pr",
+  "deploy",
+  "route",
+  "routing",
+  "lane",
+  "patch",
+  "run",
+  "job",
+  "jobs",
+  "queue",
+  "owner",
+  "human",
+  "handoff",
+  "rollback",
+  "audit",
+  "ci",
+] as const;
 
 function compactText(value: string | undefined | null): string {
   return (value ?? "").replace(/\s+/g, " ").trim();
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function matchedTerms(text: string, terms: readonly string[]): string[] {
+  const normalized = compactText(text).toLowerCase();
+  return terms.filter((term) => {
+    const pattern = term.includes(" ")
+      ? new RegExp(`(^|\\W)${escapeRegExp(term).replace(/\\ /g, "\\s+")}(\\W|$)`, "i")
+      : new RegExp(`\\b${escapeRegExp(term)}\\b`, "i");
+    return pattern.test(normalized);
+  });
 }
 
 function visibleElements(snapshot: VisualAuditSnapshot): VisualAuditElement[] {
@@ -665,6 +751,48 @@ export function evaluateVisualAuditSnapshot(snapshot: VisualAuditSnapshot): Visu
         })).slice(0, 10),
       },
       remediation: "Provide one clearly labelled primary action with stable dimensions, and demote secondary actions visually.",
+    });
+  }
+
+  const firstViewportText = firstViewportElements
+    .map((element) => compactText(element.text))
+    .filter(Boolean)
+    .join(" ");
+  const genericAiTerms = matchedTerms(firstViewportText, GENERIC_AI_TERMS);
+  const productMechanicTerms = matchedTerms(firstViewportText, PRODUCT_MECHANIC_TERMS);
+  const genericPressure = genericAiTerms.length;
+  const concreteMechanics = productMechanicTerms.length;
+
+  if (genericPressure >= 5 && concreteMechanics < 4) {
+    pushIssue(issues, {
+      kind: "generic_ai_surface",
+      severity: "medium",
+      title: "First viewport leans on generic AI language",
+      description: "The first screen uses broad AI/productivity claims without enough concrete product mechanics to make the surface feel owned.",
+      evidence: {
+        generic_terms: genericAiTerms,
+        product_mechanic_terms: productMechanicTerms,
+        generic_term_count: genericPressure,
+        product_mechanic_count: concreteMechanics,
+        viewport: snapshot.viewport,
+      },
+      remediation: "Replace generic AI promise language with a distinctive product metaphor, named tools, visible routes, proof states, jobs, owners, checks, or other concrete mechanics.",
+    });
+  }
+
+  if (firstViewportText.length > 160 && concreteMechanics < 3) {
+    pushIssue(issues, {
+      kind: "missing_product_mechanics",
+      severity: "medium",
+      title: "First viewport hides how the product actually works",
+      description: "The first screen has enough copy to explain the surface, but it does not expose enough named mechanics, tools, routes, or proof signals.",
+      evidence: {
+        product_mechanic_terms: productMechanicTerms,
+        product_mechanic_count: concreteMechanics,
+        text_sample: firstViewportText.slice(0, 320),
+        viewport: snapshot.viewport,
+      },
+      remediation: "Show the operating pieces: named tools, memory, checks, routes, jobs, proof, owners, human approval, or product-specific systems instead of relying on abstract benefits.",
     });
   }
 
