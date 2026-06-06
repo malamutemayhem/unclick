@@ -53,12 +53,12 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | seed/skills/write-tests-for-changed-code.skill.md | 0c2617abce77 | 1049 |
 | src/pages/Index.tsx | 87bc594da785 | 1598 |
 | src/pages/admin/AdminActivity.tsx | 9de4fed78407 | 14774 |
-| src/pages/admin/AdminSeatHeartbeat.tsx | 9c138bfc810d | 11515 |
+| src/pages/admin/AdminSeatHeartbeat.tsx | cbafa8394842 | 11617 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
 | src/pages/admin/AdminAnalytics.tsx | 8e3ab82ef00f | 10336 |
 | src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
 | src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
-| src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
+| src/pages/admin/AdminExpressBuild.tsx | 426fed992766 | 22902 |
 | src/pages/admin/AdminEcosystemPages.tsx | 0f2003fd8242 | 12106 |
 | src/pages/admin/AdminBenchmarks.tsx | 69eb15aaf438 | 25684 |
 | src/pages/admin/Fishbowl.tsx | ec3c5b4f4b4f | 37557 |
@@ -136,7 +136,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-merge-room.mjs | 3645da5c0c93 | 8431 |
 | scripts/pinballwake-overlap-resolver-room.mjs | 14d03ef6acd3 | 6787 |
 | scripts/pinballwake-personality-room.mjs | c1ca769346f1 | 9644 |
-| scripts/pinballwake-planning-room.mjs | 080c2946a794 | 9714 |
+| scripts/pinballwake-planning-room.mjs | 5465541d24a6 | 9784 |
 | scripts/pinballwake-post-merge-watch-room.mjs | 144227650844 | 5462 |
 | scripts/pinballwake-publish-room.mjs | ec1dbd36ed22 | 7526 |
 | scripts/pinballwake-queue-health-room.mjs | ddefab91d886 | 2842 |
