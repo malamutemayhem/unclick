@@ -67,6 +67,7 @@ describe("assessUIToolboxCandidate", () => {
       "reduced-motion",
       "performance-budget",
       "brand-fit",
+      "product-specificity",
       "screenshot-proof",
     ]);
   });
