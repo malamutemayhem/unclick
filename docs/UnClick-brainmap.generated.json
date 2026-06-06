@@ -8445,8 +8445,8 @@
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
-      "hash": "9c138bfc810d",
-      "bytes": 11515
+      "hash": "cbafa8394842",
+      "bytes": 11617
     },
     {
       "source": "src/pages/admin/AdminAgents.tsx",
@@ -8470,8 +8470,8 @@
     },
     {
       "source": "src/pages/admin/AdminExpressBuild.tsx",
-      "hash": "4dadebd9c4aa",
-      "bytes": 22681
+      "hash": "426fed992766",
+      "bytes": 22902
     },
     {
       "source": "src/pages/admin/AdminEcosystemPages.tsx",
@@ -8865,8 +8865,8 @@
     },
     {
       "source": "scripts/pinballwake-planning-room.mjs",
-      "hash": "080c2946a794",
-      "bytes": 9714
+      "hash": "5465541d24a6",
+      "bytes": 9784
     },
     {
       "source": "scripts/pinballwake-post-merge-watch-room.mjs",

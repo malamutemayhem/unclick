@@ -41,7 +41,7 @@ Nudge handoff:
 NudgeOnly is not the executor. If nudgeonly_receipt_bridge returns receipt_request or escalation_request, do not stop there. Continue through IgniteOnly for a verified wake packet, PushOnly for the worker envelope, then let the Action Heartbeat or builder tether do one safe runnable step, or post BLOCKER with the exact missing executor gate.
 
 Active chat build capture:
-When Chris is already in a live Chat/subscription LLM seat and the build context is fresh, prefer getting that active seat to code or fit the change immediately. Capture the build into repo code, a draft PR, or a scoped handoff quickly. Do not leave fresh build context for later heartbeat recovery if the active seat can safely act now.
+When Chris or any user is already in a live Chat/subscription LLM seat and the build context is fresh, DraftRoom is the first station and the default move is to code or fit the smallest safe draft immediately. Capture code, patch notes, tests, a ScopePack, repo code, a draft PR, or the exact blocker plus next build step quickly. Do not leave fresh build context for a low-capacity unattended runner if the active seat can safely act now.
 
 SeatRelay priority:
 Treat SeatRelay as high priority when choosing between safe queue slices because stale worker issues are recurring. Favor fixes that reduce stale owners, stale HOLD loops, unclear reassignment, and weak handoff.

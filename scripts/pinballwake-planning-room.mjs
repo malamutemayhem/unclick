@@ -2,7 +2,7 @@
 
 import { readFile } from "node:fs/promises";
 
-import { chooseAutopilotRoute, diffBucketForLines, validateScopePack } from "./pinballwake-autopilot-triage.mjs";
+import { WARM_CHAT_BUILD_RULE, chooseAutopilotRoute, diffBucketForLines, validateScopePack } from "./pinballwake-autopilot-triage.mjs";
 
 function getArg(name, fallback = "") {
   const prefix = `--${name}=`;
@@ -207,6 +207,7 @@ export function createPlanningRoomScopePack(job = {}, options = {}) {
     scopepack_id: compactText(job.scopepack_id || `scopepack:${compactText(job.id || job.job_id || "manual", 60)}:${options.now || Date.now()}`, 120),
     route: route.route,
     tier: route.tier,
+    warm_chat_build_rule: WARM_CHAT_BUILD_RULE,
     chip_title: compactText(job.title || job.chip || "Untitled Planning Room chip", 120),
     problem_statement: compactText(
       job.problem_statement || job.description || job.context || "Planning Room converted this job into an executable ScopePack.",
