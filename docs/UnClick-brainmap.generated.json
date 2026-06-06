@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 621,
-    "source_manifest": 194,
-    "pages": 85,
+    "inventory": 624,
+    "source_manifest": 197,
+    "pages": 86,
     "tools": 219,
     "rooms": 23,
     "workers": 8
@@ -21,7 +21,7 @@
       "id": "admin-surfaces",
       "name": "Admin surfaces",
       "meaning": "Private operator views and internal control panels.",
-      "count": 50
+      "count": 51
     },
     {
       "id": "public-surfaces",
@@ -87,7 +87,7 @@
       "id": "launch-and-onboarding",
       "name": "Launch and onboarding",
       "meaning": "Launchpad, Heartbeat, Brainmap, and first-seat orientation.",
-      "count": 5
+      "count": 7
     }
   ],
   "inventory": [
@@ -199,6 +199,16 @@
       "meaning": "Internal source and architecture orientation surface.",
       "source": "src/pages/admin/AdminCodebase.tsx",
       "route": "/admin/codebase",
+      "tags": []
+    },
+    {
+      "id": "admin-surfaces-admin-page-admin-control-tower-src-pages-admin-admincontroltower-tsx-admin-controltower",
+      "division": "Admin surfaces",
+      "name": "Admin Control Tower",
+      "kind": "admin page",
+      "meaning": "Big-job coordinator that turns broad work into worker lanes and proof paths.",
+      "source": "src/pages/admin/AdminControlTower.tsx",
+      "route": "/admin/controltower",
       "tags": []
     },
     {
@@ -1818,6 +1828,26 @@
       "kind": "brainmap source",
       "meaning": "Un Click brainmap UnClick module.",
       "source": "scripts/UnClick-brainmap.mjs",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "launch-and-onboarding-coordination-layer-control-tower-src-pages-admin-admincontroltower-tsx-admin-controltower",
+      "division": "Launch and onboarding",
+      "name": "Control Tower",
+      "kind": "coordination layer",
+      "meaning": "Big-job coordinator that creates worker lanes, Master Copy Box prompts, worker counts, stale takeovers, and XGate/XPass/Crews proof paths.",
+      "source": "src/pages/admin/AdminControlTower.tsx",
+      "route": "/admin/controltower",
+      "tags": []
+    },
+    {
+      "id": "launch-and-onboarding-coordination-layer-controltower-src-lib-controltower-ts-no-route",
+      "division": "Launch and onboarding",
+      "name": "controltower",
+      "kind": "coordination layer",
+      "meaning": "controltower shared frontend logic.",
+      "source": "src/lib/controltower.ts",
       "route": "",
       "tags": []
     },
@@ -6400,6 +6430,12 @@
       "src/pages/admin/AdminCodebase.tsx"
     ],
     [
+      "/admin/controltower",
+      "Admin Control Tower",
+      "Big-job coordinator that turns broad work into worker lanes and proof paths.",
+      "src/pages/admin/AdminControlTower.tsx"
+    ],
+    [
       "/admin/copypass",
       "Copy Pass Catalog",
       "Admin surface for Copy Pass Catalog.",
@@ -6838,41 +6874,48 @@
     ],
     [
       "4",
+      "Check Control Tower",
+      "For big jobs, use Control Tower to split work into worker lanes, copy boxes, stale takeovers, and proof paths.",
+      "Control Tower",
+      "/admin/controltower"
+    ],
+    [
+      "5",
       "Pass through Brainmap",
       "Use the generated ecosystem map to find current routes, tools, rooms, workers, aliases, and safety gates.",
       "Ecosystem Brainmap",
       "/admin/brainmap"
     ],
     [
-      "5",
+      "6",
       "Choose the Launchpad lane",
       "Route the work through the safest current Autopilot lane before acting or handing off.",
       "Launchpad",
       "/admin/pinballwake"
     ],
     [
-      "6",
+      "7",
       "Ask Crews Council if needed",
       "Run Council Lite on material work, then prompt full Crews Council for launch, risk, mixed proof, or broad XPass evidence.",
       "Crews Council",
       "scripts/pinballwake-launchpad-room.mjs"
     ],
     [
-      "7",
+      "8",
       "Check proof gates",
       "Name required PR, commit, test, CI, live, screenshot, CopyRoom, or NO_CODE_NEEDED proof before closing.",
       "Proof Ledger",
       "docs/agent-observability.md"
     ],
     [
-      "8",
+      "9",
       "Dogtest the outcome",
       "Run the focused local tests and browser or live proof that match the touched surface.",
       "XPass and CI",
       "package.json"
     ],
     [
-      "9",
+      "10",
       "Reply and log proof",
       "End with PASS or BLOCKER, proof link or id, cleanup state, and next safe step.",
       "Boardroom and Orchestrator",
@@ -8290,13 +8333,28 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "ebaa5ea27177",
-      "bytes": 15180
+      "hash": "1957fc5513d9",
+      "bytes": 15323
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "7f369084b44d",
-      "bytes": 24686
+      "hash": "f1d9032ae6ed",
+      "bytes": 24781
+    },
+    {
+      "source": "src/pages/admin/AdminControlTower.tsx",
+      "hash": "6ca638bd7002",
+      "bytes": 17570
+    },
+    {
+      "source": "src/lib/controltower.ts",
+      "hash": "4f5aef742c4a",
+      "bytes": 18625
+    },
+    {
+      "source": "docs/prd/controltower.md",
+      "hash": "db23d54c71d8",
+      "bytes": 3830
     },
     {
       "source": "src/pages/admin/AdminSkills.tsx",
@@ -8490,8 +8548,8 @@
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
-      "hash": "7d9f49ee973c",
-      "bytes": 26510
+      "hash": "e0edf4d7c409",
+      "bytes": 26533
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",

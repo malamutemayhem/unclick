@@ -63,6 +63,7 @@ import {
   FileCode2,
   SlidersHorizontal,
   Trophy,
+  TowerControl,
 } from "lucide-react";
 
 function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
@@ -124,6 +125,7 @@ const AUTOPILOT_LINKS = [
   { path: "/admin/autopilot/expressbuild", label: "DraftRoom", icon: FileCode2 },
   { path: "/admin/boardroom", label: "Boardroom", icon: MessagesSquare },
   { path: "/admin/jobs", label: "Jobs", icon: ListTodo },
+  { path: "/admin/controltower", label: "Control Tower", icon: TowerControl },
   { path: "/admin/checks", label: "XPass", icon: ClipboardCheck, hasChildren: true },
   { path: "/admin/xgate", label: "XGate", icon: ShieldHalf, hasChildren: true },
   { path: "/admin/projects", label: "Projects", icon: FolderKanban },

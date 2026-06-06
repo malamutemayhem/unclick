@@ -82,6 +82,7 @@ import AdminModeration from "./pages/admin/AdminModeration.tsx";
 import AdminAuditLog from "./pages/admin/AdminAuditLog.tsx";
 import AdminBrainmap from "./pages/admin/AdminBrainmap.tsx";
 import AdminJobs from "./pages/admin/AdminJobs.tsx";
+import AdminControlTower from "./pages/admin/AdminControlTower.tsx";
 import AdminJobsmith from "./pages/admin/AdminJobsmith.tsx";
 import AdminBenchmarks from "./pages/admin/AdminBenchmarks.tsx";
 import AdminTruthRate from "./pages/admin/AdminTruthRate.tsx";
@@ -188,6 +189,7 @@ const App = () => (
             <Route path="agents/heartbeat" element={<AdminSeatHeartbeatPage />} />
             <Route path="workers" element={<AdminWorkers />} />
             <Route path="jobs" element={<AdminJobs />} />
+            <Route path="controltower" element={<AdminControlTower />} />
             <Route path="jobsmith" element={<AdminJobsmith />} />
             <Route path="todos" element={<Navigate to="/admin/jobs" replace />} />
             <Route path="checks" element={<AdminChecks />} />
