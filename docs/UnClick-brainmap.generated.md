@@ -205,6 +205,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | .github/workflows/testpass-pr-check.yml | bca601f0a1c2 | 20251 |
 | .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
 | .github/workflows/tier2-auto-merge-queue-check.yml | 5abfca8c42dc | 830 |
+| .github/workflows/tier2-rollback.yml | 1468c05586fb | 1495 |
 
 ## Division Index
 
@@ -217,7 +218,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 121 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 122 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 116 |
@@ -737,6 +738,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | workflow | testpass pr check.yml | testpass pr check GitHub automation workflow. | - | .github/workflows/testpass-pr-check.yml |
 | Automations | workflow | testpass scheduled smoke.yml | testpass scheduled smoke GitHub automation workflow. | - | .github/workflows/testpass-scheduled-smoke.yml |
 | Automations | workflow | tier2 auto merge queue check.yml | tier2 auto merge queue check GitHub automation workflow. | - | .github/workflows/tier2-auto-merge-queue-check.yml |
+| Automations | workflow | tier2 rollback.yml | tier2 rollback GitHub automation workflow. | - | .github/workflows/tier2-rollback.yml |
 | Launch and onboarding | brainmap source | Un Click brainmap | Un Click brainmap UnClick module. | - | scripts/UnClick-brainmap.mjs |
 | Launch and onboarding | judgement prompt | Crews Council Induction | Launchpad prompt that runs Council Lite on material work and asks for a full Crews Council only when launch, risk, mixed proof, or broad XPass evidence needs judgement. | /admin/pinballwake | scripts/pinballwake-launchpad-room.mjs |
 | Launch and onboarding | map | Ecosystem Brainmap | Generated sitemap and system map that teaches seats what UnClick contains. | /admin/brainmap | src/pages/admin/AdminBrainmap.tsx |

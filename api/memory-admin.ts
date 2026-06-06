@@ -1186,6 +1186,20 @@ async function resolveSessionUser(
   }
 }
 
+export type ChannelStatusAuthOutcome =
+  | { kind: "authorized" }
+  | { kind: "soft_unconfigured" }
+  | { kind: "unauthorized" };
+
+export function resolveChannelStatusAuthOutcome(input: {
+  apiKeyHash: string | null;
+  hasValidSession: boolean;
+}): ChannelStatusAuthOutcome {
+  if (input.apiKeyHash) return { kind: "authorized" };
+  if (input.hasValidSession) return { kind: "soft_unconfigured" };
+  return { kind: "unauthorized" };
+}
+
 // ─── AI chat helpers ───────────────────────────────────────────────────────
 
 type ChatProvider = "google" | "openai" | "anthropic";
@@ -6969,7 +6983,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case "admin_channel_status": {
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
-        if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
+        const hasValidSession = apiKeyHash
+          ? true
+          : Boolean(await resolveSessionUser(req, supabaseUrl, supabaseKey));
+        const authOutcome = resolveChannelStatusAuthOutcome({ apiKeyHash, hasValidSession });
+        if (authOutcome.kind === "unauthorized") {
+          return res.status(401).json({ error: "Authorization header required" });
+        }
+        if (authOutcome.kind === "soft_unconfigured") {
+          return res.status(200).json({
+            channel_active: false,
+            configured: false,
+            last_seen: null,
+            client_info: null,
+          });
+        }
+
         const { data, error } = await supabase
           .from("channel_status")
           .select("last_seen, client_info")
@@ -6983,6 +7012,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         return res.status(200).json({
           channel_active: active,
+          configured: true,
           last_seen: lastSeen,
           client_info: data?.client_info ?? null,
         });
