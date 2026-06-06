@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { describe, expect, test } from "vitest";
 
@@ -12,7 +13,7 @@ import {
   JOBSMITH_RULE_PACK_HANDOFF,
 } from "./cvChecklistSources";
 
-const jobsmithRoot = process.cwd();
+const jobsmithRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 describe("JobSmith CV checklist CopyRoom manifest", () => {
   test("declares the five exact source files Chris supplied", () => {
