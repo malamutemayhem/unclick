@@ -29,7 +29,7 @@ creating another copy.
 
 The build-ready rule pack derived from these sources lives in `../rules/`:
 
-- `jobsmith-universal-rules-v1.md`: human-readable rule pack (229 rules, 13
+- `jobsmith-universal-rules-v1.md`: human-readable rule pack (232 rules, 13
   categories, every rule with what, why, sources, applies_when, check_method,
   severity, decay).
 - `jobsmith-universal-rules-v1.yaml`: the same pack as an engine-parseable flat

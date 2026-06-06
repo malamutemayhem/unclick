@@ -81,7 +81,7 @@ describe("JobsmithPage", () => {
     expect(welcomePacket).toHaveTextContent("Loaded CV corpus and voice profile");
     const rulePack = screen.getByRole("region", { name: "Jobsmith universal rules" });
     expect(rulePack).toHaveTextContent("Universal Rules v1");
-    expect(rulePack).toHaveTextContent("229");
+    expect(rulePack).toHaveTextContent("232");
     expect(rulePack).toHaveTextContent("Standard headings pass");
     const managedRunReport = screen.getByRole("region", { name: "Jobsmith managed run report" });
     expect(managedRunReport).toHaveTextContent("Managed Run Report");
