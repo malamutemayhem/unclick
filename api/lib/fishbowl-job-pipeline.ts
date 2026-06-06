@@ -62,6 +62,10 @@ const PROOF_PARTIAL_RE = /\b(partial|partial\/blocker|proof ceiling|follow-?up n
 const PROOF_PARKED_RE = /\b(parked|parking|deferred|not next|scopepack needed|missing scopepack)\b/i;
 const PROOF_STALE_RE = /\b(stale|old|outdated)\s+(?:receipt|proof|green chip|claim)|\bfalse[- ]done\b|\bfalse green\b/i;
 const PROOF_WRONG_SCOPE_RE = /\b(wrong scope|scope mismatch|wrong surface|different scope|wrong job|not the requested surface)\b/i;
+const RUNTIME_DELIVERY_TODO_RE =
+  /\b(mcp[-\s]+(?:server|tool)|publish(?:ed|ing)?|registry|npm|release|deploy(?:ed|ment)?|production|live\s+(?:tool|receipt|api|proof)|expos(?:e|ed|ing)|workers?\s+may\s+request|worker(?:s)?\s+tool|wake\s+route|scheduled[-\s]task\s+wake)\b/i;
+const RUNTIME_DELIVERY_PROOF_RE =
+  /\b(published|npm\s+(?:view|latest|dist-tag)|registry\s+(?:confirms|shows|latest)|deployed|deployment|live\s+on\s+production|production\s+live|vercel\.app|tool(?:s)?\s+(?:discoverable|available|exposed)|(?:mcp|tool)\s+discovery|live\s+(?:receipt|api|tool)|fidelitycopy_(?:copy|verify)|fidelitypass_verify_copy)\b/i;
 
 function positiveStageHit(text: string, positive: RegExp, negative?: RegExp): boolean {
   if (!positive.test(text)) return false;
@@ -177,6 +181,10 @@ export function inferFishbowlJobPipeline(
   comments: FishbowlJobPipelineComment[] = [],
 ): FishbowlJobPipelineState {
   const segments = buildSegments(todo, comments);
+  const todoCorpus = [todo.title, todo.description]
+    .filter((value) => typeof value === "string" && value.trim().length > 0)
+    .join("\n")
+    .toLowerCase();
   const latestResetIndex = segments.reduce((latest, segment, index) => {
     return PROOF_RESET_RE.test(segment) || PROOF_MISSING_RE.test(segment) || PROOF_UI_MISSING_RE.test(segment)
       ? index
@@ -273,20 +281,38 @@ export function inferFishbowlJobPipeline(
     source = "receipt: ship";
   }
 
+  const fallbackProofState: Pick<FishbowlJobPipelineState, "proof_state" | "proof_state_reason"> = {
+    proof_state:
+      activeCount >= stageRank.ship && evidence.length > 0 ? "close_eligible" : status === "done" ? "missing" : "live",
+    proof_state_reason:
+      activeCount >= stageRank.ship && evidence.length > 0
+        ? "Ship proof is linked with no newer proof warning."
+        : status === "done"
+          ? "Completed job needs observable proof."
+          : "No newer proof warning is recorded.",
+  };
+
+  const runtimeDeliveryNeedsLiveProof =
+    activeCount >= stageRank.ship &&
+    evidence.length > 0 &&
+    RUNTIME_DELIVERY_TODO_RE.test(todoCorpus) &&
+    !RUNTIME_DELIVERY_PROOF_RE.test(corpus);
+
   return withEffectiveStatus(status, {
     pipeline_stage_count: activeCount,
     pipeline_progress: stageProgress[activeCount] ?? stageProgress[stageRank.brief],
     pipeline_source: source,
     pipeline_evidence: evidence,
-    ...proofStateFromWarning(activeSegments, latestActiveProgressIndex, {
-      proof_state:
-        activeCount >= stageRank.ship && evidence.length > 0 ? "close_eligible" : status === "done" ? "missing" : "live",
-      proof_state_reason:
-        activeCount >= stageRank.ship && evidence.length > 0
-          ? "Ship proof is linked with no newer proof warning."
-          : status === "done"
-            ? "Completed job needs observable proof."
-          : "No newer proof warning is recorded.",
-    }),
+    ...proofStateFromWarning(
+      activeSegments,
+      latestActiveProgressIndex,
+      runtimeDeliveryNeedsLiveProof
+        ? {
+            proof_state: "missing",
+            proof_state_reason:
+              "Runtime, package, or tool jobs need release/live availability proof before close.",
+          }
+        : fallbackProofState,
+    ),
   });
 }
