@@ -6,21 +6,26 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pull-requests: read
+  contents: write
+  pull-requests: write
   checks: read
   statuses: read
 
 jobs:
   queue-check:
-    name: Scheduled tier-2 merge no-op check
+    name: Scheduled tier-2 guarded merge check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Check live open PR queue
+      - name: Check and merge safe live open PR queue
         env:
           GH_TOKEN: ${{ github.token }}
           TIER2_AUTOMERGE_PR_LIMIT: "30"
+          TIER2_AUTOMERGE_EXECUTE: "false"
+          TIER2_AUTOMERGE_ALLOW_UNREVIEWED_LOW_RISK: "true"
+          TIER2_AUTOMERGE_ALLOW_REVIEW_PROOF_COMMENTS: "true"
+          TIER2_AUTOMERGE_MAX_MERGES: "1"
+          TIER2_AUTOMERGE_HYDRATE_POTENTIAL_CANDIDATES: "true"
         run: node scripts/tier2-auto-merge-queue-check.mjs

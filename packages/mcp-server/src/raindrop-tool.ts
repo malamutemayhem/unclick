@@ -36,15 +36,24 @@ async function raindropFetch(
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
+  const RAINDROP_TIMEOUT_MS = Number(process.env.RAINDROP_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RAINDROP_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Raindrop API request timed out after ${RAINDROP_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error reaching Raindrop API: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 401) return { error: "Raindrop token is invalid or expired. Check your RAINDROP_TOKEN.", status: 401 };

@@ -48,7 +48,7 @@ async function rpc(
 
   const controller = new AbortController();
   const tid = setTimeout(() => controller.abort(), timeoutMs);
-  const headers = buildMcpHeaders();
+  const headers = buildMcpHeaders(url);
   try {
     const res = await fetch(url, {
       method: "POST",

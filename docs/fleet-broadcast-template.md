@@ -37,7 +37,7 @@ Current focus:
 Known holds:
 - Do not touch secrets, env vars, auth, billing, DNS/domains, migrations, RLS, CSP, or destructive cleanup without Chris.
 - Do not print raw secret values.
-- Do not weaken TestPass, UXPass, SecurityPass, EnterprisePass, WakePass, or dogfood gates just to turn checks green.
+- Do not weaken TestPass, UIPass, UXPass, SecurityPass, CompliancePass, WakePass, or dogfood gates just to turn checks green.
 - Do not start broad new product lanes from old notes unless Chris explicitly reactivates them.
 - Do not edit another worker's active files or force-push another worker's branch.
 - If a PR has incomplete verification, hold it with the exact missing proof.
@@ -46,7 +46,7 @@ Worker routing:
 - 🦾 ChatGPT Plex PC: focused implementation chips.
 - 🍿 Claude Plex: QC, review, merge-readiness, blockers.
 - 🤖 ChatGPT Lenovo PC: CEO assistant, backlog drain, board cleanup.
-- 🧪 XPass Assistant: TestPass, UXPass, SecurityPass, EnterprisePass, dogfood proof.
+- 🧪 XPass Assistant: TestPass, UIPass, UXPass, SecurityPass, CompliancePass, dogfood proof.
 - 🛠️ Forge: focused implementation, small non-overlap fixes.
 - 🧭 Navigator: scouting, non-overlap, next-chip recommendations.
 - 🛰️ Relay: concise status and cross-worker summaries.

@@ -3,7 +3,13 @@
 // Docs: https://platform.seatgeek.com/
 // Env var: SEATGEEK_CLIENT_ID
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const SEATGEEK_BASE = "https://api.seatgeek.com/2";
+
+const SEATGEEK_TIMEOUT_MS = Number(process.env.SEATGEEK_TIMEOUT_MS) || 15000;
 
 async function seatgeekGet(
   clientId: string,
@@ -14,7 +20,23 @@ async function seatgeekGet(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") qs.set(k, String(v));
   }
-  const res = await fetch(`${SEATGEEK_BASE}${path}?${qs}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SEATGEEK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SEATGEEK_BASE}${path}?${qs}`, { signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`SeatGeek API request timed out after ${SEATGEEK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`SeatGeek API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`SeatGeek API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`SeatGeek API HTTP ${res.status}: ${body || res.statusText}`);
@@ -22,10 +44,8 @@ async function seatgeekGet(
   return res.json() as Promise<Record<string, unknown>>;
 }
 
-function getClientId(args: Record<string, unknown>): string {
-  const id = String(args.client_id ?? process.env.SEATGEEK_CLIENT_ID ?? "").trim();
-  if (!id) throw new Error("client_id is required (or set SEATGEEK_CLIENT_ID env var).");
-  return id;
+function getClientId(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("seatgeek", args);
 }
 
 // ── Tool functions ─────────────────────────────────────────────────────────────
@@ -33,6 +53,7 @@ function getClientId(args: Record<string, unknown>): string {
 export async function seatgeekSearchEvents(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
+    if (typeof clientId !== "string") return clientId;
     const params: Record<string, string | number> = {};
     if (args.query)          params.q              = String(args.query);
     if (args.venue_id)       params["venue.id"]    = String(args.venue_id);
@@ -44,10 +65,14 @@ export async function seatgeekSearchEvents(args: Record<string, unknown>): Promi
     if (args.per_page)       params.per_page       = Number(args.per_page);
     if (args.page)           params.page           = Number(args.page);
     const data = await seatgeekGet(clientId, "/events", params);
-    return {
+    return stampMeta({
       total:  data.meta ? (data.meta as Record<string, unknown>).total : undefined,
       events: data.events,
-    };
+    }, {
+      source: "SeatGeek",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use seatgeek_get_event with a result id, or seatgeek_search_performers to find acts."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -56,6 +81,7 @@ export async function seatgeekSearchEvents(args: Record<string, unknown>): Promi
 export async function seatgeekGetEvent(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
+    if (typeof clientId !== "string") return clientId;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await seatgeekGet(clientId, `/events/${encodeURIComponent(id)}`);
@@ -68,7 +94,8 @@ export async function seatgeekGetEvent(args: Record<string, unknown>): Promise<u
 export async function seatgeekSearchPerformers(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
-    const query = String(args.query ?? "").trim();
+    if (typeof clientId !== "string") return clientId;
+    const query = String((args.q ?? args.query) ?? "").trim();
     if (!query) return { error: "query is required." };
     const params: Record<string, string | number> = { q: query };
     if (args.per_page) params.per_page = Number(args.per_page);
@@ -86,6 +113,7 @@ export async function seatgeekSearchPerformers(args: Record<string, unknown>): P
 export async function seatgeekGetPerformer(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
+    if (typeof clientId !== "string") return clientId;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await seatgeekGet(clientId, `/performers/${encodeURIComponent(id)}`);
@@ -98,8 +126,9 @@ export async function seatgeekGetPerformer(args: Record<string, unknown>): Promi
 export async function seatgeekSearchVenues(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
+    if (typeof clientId !== "string") return clientId;
     const params: Record<string, string | number> = {};
-    if (args.query)   params.q                = String(args.query);
+    if ((args.q ?? args.query))   params.q                = String((args.q ?? args.query));
     if (args.city)    params["venue.city"]    = String(args.city);
     if (args.state)   params["venue.state"]   = String(args.state);
     if (args.country) params["venue.country"] = String(args.country);
@@ -118,6 +147,7 @@ export async function seatgeekSearchVenues(args: Record<string, unknown>): Promi
 export async function seatgeekGetVenue(args: Record<string, unknown>): Promise<unknown> {
   try {
     const clientId = getClientId(args);
+    if (typeof clientId !== "string") return clientId;
     const id = String(args.id ?? "").trim();
     if (!id) return { error: "id is required." };
     const data = await seatgeekGet(clientId, `/venues/${encodeURIComponent(id)}`);

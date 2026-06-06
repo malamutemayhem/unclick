@@ -8,6 +8,14 @@ interface InfoCardProps {
   learnMore?: string;
 }
 
+function rememberDismissedInfoCard(storageKey: string): void {
+  try {
+    localStorage.setItem(storageKey, '1');
+  } catch {
+    return;
+  }
+}
+
 export function InfoCard({ id, title, description, learnMore }: InfoCardProps) {
   const storageKey = `unclick_dismissed_${id}`;
   const [dismissed, setDismissed] = useState(() => {
@@ -25,7 +33,7 @@ export function InfoCard({ id, title, description, learnMore }: InfoCardProps) {
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-white/70">{title}</span>
             <button
-              onClick={() => { setDismissed(true); try { localStorage.setItem(storageKey, '1'); } catch {} }}
+              onClick={() => { setDismissed(true); rememberDismissedInfoCard(storageKey); }}
               className="text-white/20 hover:text-white/40 p-0.5"
             >
               <X size={12} />

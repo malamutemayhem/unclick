@@ -5,6 +5,7 @@ export type DispatchSource =
   | "connectors"
   | "wakepass"
   | "testpass"
+  | "uipass"
   | "uxpass"
   | "flowpass"
   | "securitypass"
@@ -365,6 +366,7 @@ export function parseOptionalFilterToken(
   if (/\s/.test(value)) {
     return { error: `${fieldName} must not contain whitespace` };
   }
+  // eslint-disable-next-line no-control-regex -- rejects literal control characters in external filter tokens.
   if (/[\u0000-\u001F\u007F]/.test(value)) {
     return { error: `${fieldName} contains invalid control characters` };
   }

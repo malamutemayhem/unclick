@@ -1,5 +1,4 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import React from "react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -13,27 +12,18 @@ vi.mock("@/lib/auth", () => ({
 
 async function renderAdminTools() {
   const { default: AdminTools } = await import("./AdminTools");
-
   render(
     <MemoryRouter>
       <AdminTools />
     </MemoryRouter>,
   );
-
   await screen.findByRole("heading", { name: "Apps" });
-  await waitFor(() =>
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/memory-admin?action=admin_tools",
-      expect.objectContaining({
-        headers: { Authorization: "Bearer test-session-token" },
-      }),
-    ),
-  );
 }
 
-describe("AdminTools", () => {
+describe("AdminTools (Apps library)", () => {
   beforeEach(() => {
     vi.resetModules();
+    localStorage.clear();
     vi.stubGlobal(
       "fetch",
       vi.fn(() =>
@@ -51,25 +41,35 @@ describe("AdminTools", () => {
     vi.restoreAllMocks();
   });
 
-  it("shows the curated Skills Library preview with provenance and risk state", async () => {
+  it("loads connection status from admin_tools", async () => {
     await renderAdminTools();
-
-    expect(screen.getByRole("heading", { name: "Skills Library" })).toBeInTheDocument();
-    expect(screen.getByText(/OpenClaw and similar ecosystems are discovery inputs/i)).toBeInTheDocument();
-    expect(screen.getByText("OpenClaw compatibility input")).toBeInTheDocument();
-    expect(screen.getByText("Quarantined")).toBeInTheDocument();
-    expect(screen.getByText("License review required")).toBeInTheDocument();
-    expect(screen.getByText("upstream preview")).toBeInTheDocument();
-    expect(screen.getByText(/No credential access/i)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/memory-admin?action=admin_tools",
+        expect.objectContaining({
+          headers: { Authorization: "Bearer test-session-token" },
+        }),
+      ),
+    );
   });
 
-  it("keeps preview and fork affordances disabled until install execution exists", async () => {
+  it("renders the unified app rows with admin controls and search", async () => {
     await renderAdminTools();
-
-    expect(screen.getByRole("button", { name: "Preview PR Monitor and Reviewer" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Install PR Monitor and Reviewer" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Fork Research Pack" })).toBeDisabled();
-    expect(screen.getByText("Preview only, no live install or execution")).toBeInTheDocument();
-    expect(screen.getByText("Forkable draft, reversible copy path")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/search apps/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /turn all on/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /turn all off/i })).toBeInTheDocument();
+    // A known app from the generated catalog renders as a row.
+    expect(screen.getByText("GitHub")).toBeInTheDocument();
   });
+
+  it("links to Passport and the Skills Library instead of inlining everything", async () => {
+    await renderAdminTools();
+    expect(screen.getByRole("link", { name: /Skills Library/i })).toHaveAttribute("href", "/admin/skills");
+    expect(screen.getByRole("link", { name: /Passport/i })).toHaveAttribute("href", "/admin/keychain");
+  });
+
+  // Note: the toggle->admin_set_app_state persistence path is covered by the
+  // enforcement unit tests (tool-gating.test.ts) and the API handler; a full
+  // render-and-click integration test over the real ~200-app catalog is too slow
+  // in jsdom (it can stall the suite), so it is intentionally omitted here.
 });

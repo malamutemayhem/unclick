@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, Loader2, Plus, ThumbsDown, ThumbsUp } from "lucide-react";
 import Comments from "./Comments";
+import { ageLabel, partitionIdeas } from "./ideaActivity";
 
 interface Idea {
   id: string;
@@ -150,6 +151,7 @@ function IdeaRow({
   humanAgentId,
   pollSeq,
   onMutated,
+  nowMs,
 }: {
   idea: Idea;
   expanded: boolean;
@@ -158,6 +160,7 @@ function IdeaRow({
   humanAgentId: string | null;
   pollSeq: number;
   onMutated: () => void;
+  nowMs: number;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -232,6 +235,9 @@ function IdeaRow({
             <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-[#666]">
               {statusPill(idea.status)}
               <span>by {idea.created_by_agent_id}</span>
+              <span title={new Date(idea.updated_at).toLocaleString()}>
+                updated {ageLabel(idea.updated_at, nowMs)}
+              </span>
               {(idea.comment_count ?? 0) > 0 && (
                 <span className="text-[#888]">💬 {idea.comment_count}</span>
               )}
@@ -298,6 +304,8 @@ export default function FishbowlIdeas({ authHeader, humanAgentId }: IdeasProps) 
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [pollSeq, setPollSeq] = useState(0);
+  const [showStale, setShowStale] = useState(false);
+  const [showResolved, setShowResolved] = useState(false);
 
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
@@ -331,10 +339,12 @@ export default function FishbowlIdeas({ authHeader, humanAgentId }: IdeasProps) 
     }
   }, [authHeader, humanAgentId]);
 
+  // Fetch once as soon as we have an identity (even while collapsed) so the
+  // header badge can show an accurate active-idea count without opening the
+  // panel. Polling below stays gated on the panel being open.
   useEffect(() => {
-    if (collapsed) return;
     void fetchIdeas();
-  }, [collapsed, fetchIdeas]);
+  }, [fetchIdeas]);
 
   useEffect(() => {
     if (collapsed) return;
@@ -359,7 +369,23 @@ export default function FishbowlIdeas({ authHeader, humanAgentId }: IdeasProps) 
     });
   };
 
-  const activeCount = ideas.filter((i) => i.status === "proposed" || i.status === "voting").length;
+  const nowMs = Date.now();
+  const { active, stale, resolved } = partitionIdeas(ideas, nowMs);
+
+  const renderIdea = (i: Idea) => (
+    <li key={i.id}>
+      <IdeaRow
+        idea={i}
+        expanded={expanded.has(i.id)}
+        onToggle={() => toggleRow(i.id)}
+        authHeader={authHeader}
+        humanAgentId={humanAgentId}
+        pollSeq={pollSeq}
+        onMutated={onMutated}
+        nowMs={nowMs}
+      />
+    </li>
+  );
 
   return (
     <section className="rounded-xl border border-white/[0.06] bg-white/[0.02]">
@@ -372,9 +398,9 @@ export default function FishbowlIdeas({ authHeader, humanAgentId }: IdeasProps) 
         <span className="flex items-center gap-2 text-sm font-semibold text-[#ccc]">
           <span aria-hidden>💡</span>
           <span>Ideas</span>
-          {activeCount > 0 && (
+          {active.length > 0 && (
             <span className="rounded-full bg-[#E2B93B]/15 px-2 py-0.5 text-[10px] font-medium text-[#E2B93B]">
-              {activeCount} open
+              {active.length} active
             </span>
           )}
         </span>
@@ -404,24 +430,68 @@ export default function FishbowlIdeas({ authHeader, humanAgentId }: IdeasProps) 
 
           {ideas.length === 0 ? (
             <p className="rounded-md border border-white/[0.04] bg-black/20 px-3 py-4 text-center text-xs text-[#666]">
-              No ideas yet. Propose one above.
+              No ideas yet. Propose one above. Ideas are quick proposals you or
+              your agents can vote on and promote to a TODO.
             </p>
           ) : (
-            <ul className="space-y-2">
-              {ideas.map((i) => (
-                <li key={i.id}>
-                  <IdeaRow
-                    idea={i}
-                    expanded={expanded.has(i.id)}
-                    onToggle={() => toggleRow(i.id)}
-                    authHeader={authHeader}
-                    humanAgentId={humanAgentId}
-                    pollSeq={pollSeq}
-                    onMutated={onMutated}
-                  />
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-3">
+              {active.length > 0 ? (
+                <ul className="space-y-2">{active.map(renderIdea)}</ul>
+              ) : (
+                <p className="rounded-md border border-white/[0.04] bg-black/20 px-3 py-3 text-center text-xs text-[#666]">
+                  No active ideas. Everything below has either gone quiet or been
+                  decided.
+                </p>
+              )}
+
+              {stale.length > 0 && (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowStale((s) => !s)}
+                    className="flex w-full items-center gap-1.5 text-left text-xs font-medium text-[#888] hover:text-[#ccc]"
+                    aria-expanded={showStale}
+                  >
+                    {showStale ? (
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    ) : (
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    )}
+                    Stale ideas ({stale.length})
+                    <span className="font-normal text-[#555]">
+                      no activity in 3+ weeks
+                    </span>
+                  </button>
+                  {showStale && (
+                    <ul className="space-y-2 opacity-70">{stale.map(renderIdea)}</ul>
+                  )}
+                </div>
+              )}
+
+              {resolved.length > 0 && (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowResolved((s) => !s)}
+                    className="flex w-full items-center gap-1.5 text-left text-xs font-medium text-[#888] hover:text-[#ccc]"
+                    aria-expanded={showResolved}
+                  >
+                    {showResolved ? (
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    ) : (
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    )}
+                    Resolved ideas ({resolved.length})
+                    <span className="font-normal text-[#555]">
+                      locked, parked, or rejected
+                    </span>
+                  </button>
+                  {showResolved && (
+                    <ul className="space-y-2 opacity-70">{resolved.map(renderIdea)}</ul>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}

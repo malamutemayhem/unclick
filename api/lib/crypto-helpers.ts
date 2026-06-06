@@ -52,7 +52,7 @@ export class CryptoHelperError extends Error {
 }
 
 function asError(code: string, message: string): never {
-  throw new CryptoHelperError(message, code);
+  throw new CryptoHelperError(`${code}: ${message}`, code);
 }
 
 // --- PBKDF2 ---

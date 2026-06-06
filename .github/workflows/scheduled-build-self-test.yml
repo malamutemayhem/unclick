@@ -1,0 +1,48 @@
+name: Scheduled Build Self-Test
+
+on:
+  schedule:
+    - cron: "7,17,27,37,47,57 * * * *"
+  pull_request:
+    paths:
+      - ".github/workflows/scheduled-build-self-test.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/**"
+      - "src/**"
+      - "apps/**"
+      - "packages/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scheduled-build-self-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-self-test:
+    name: Build self-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      - name: Brainmap guard
+        run: npm run brainmap:check
+
+      - name: PinballWake proof-runner smoke
+        run: node --test scripts/pinballwake-openhands-proof-runner.test.mjs

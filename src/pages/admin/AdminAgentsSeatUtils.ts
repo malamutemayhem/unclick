@@ -27,6 +27,34 @@ export interface AISeat {
   routingPolicy?: SeatRoutingPolicy;
 }
 
+export type SeatPerformanceStatus = "strong" | "watch" | "stale" | "blocked";
+
+export interface SeatPerformanceScore {
+  id: string;
+  label: string;
+  score: number;
+  status: SeatPerformanceStatus;
+  reasons: string[];
+  lastCheckInAt: string | null;
+  source: "matched-seat" | "live-profile" | "manual-seat";
+}
+
+export type SeatClientKind = "codex" | "claude" | "github-action" | "windsurf" | "unknown";
+export type SeatFreshnessKind = "live" | "warm" | "stale" | "cold" | "unknown";
+export type SeatReliabilityKind = "strong" | "watch" | "risk";
+export type SeatRoutingHint = "build" | "review" | "observe" | "avoid";
+
+export interface SeatCapabilityNote {
+  id: string;
+  label: string;
+  source: "matched-seat" | "live-profile" | "manual-seat";
+  client: SeatClientKind;
+  freshness: SeatFreshnessKind;
+  reliability: SeatReliabilityKind;
+  routingHint: SeatRoutingHint;
+  notes: string[];
+}
+
 export const AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY = "unclick_ai_seat_load_overrides_v1";
 export const AI_SEAT_LEGACY_STORAGE_KEY = "unclick_ai_seat_manual_slots_v1";
 
@@ -188,4 +216,263 @@ export function rankSeatsForRouting(
       const rightScore = policyScore(rightPolicy) + liveScore(right) + capacityScore(right) - (right.isVirtual ? 25 : 0);
       return rightScore - leftScore || left.name.localeCompare(right.name);
     });
+}
+
+function clampScore(value: number): number {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function freshnessPenalty(checkedInAt: string | null, nowMs: number): { penalty: number; reason: string } {
+  if (!checkedInAt) return { penalty: 45, reason: "no live check-in" };
+  const checkedInMs = Date.parse(checkedInAt);
+  if (!Number.isFinite(checkedInMs)) return { penalty: 45, reason: "invalid check-in time" };
+  const ageMs = Math.max(0, nowMs - checkedInMs);
+  if (ageMs <= 15 * 60 * 1000) return { penalty: 0, reason: "live" };
+  if (ageMs <= 30 * 60 * 1000) return { penalty: 10, reason: "warming up" };
+  if (ageMs <= 4 * 60 * 60 * 1000) return { penalty: 25, reason: "quiet" };
+  if (ageMs <= 24 * 60 * 60 * 1000) return { penalty: 45, reason: "stale" };
+  return { penalty: 65, reason: "cold" };
+}
+
+function missedCheckInPenalty(profile: FishbowlProfile | null, nowMs: number): { penalty: number; reason: string | null } {
+  if (!profile?.next_checkin_at) return { penalty: 0, reason: null };
+  const nextMs = Date.parse(profile.next_checkin_at);
+  if (!Number.isFinite(nextMs) || nowMs <= nextMs) return { penalty: 0, reason: null };
+  return { penalty: 25, reason: "missed check-in" };
+}
+
+function scoreSeatPerformance({
+  id,
+  label,
+  seat = null,
+  profile = null,
+  nowMs,
+  source,
+}: {
+  id: string;
+  label: string;
+  seat?: AISeat | null;
+  profile?: FishbowlProfile | null;
+  nowMs: number;
+  source: SeatPerformanceScore["source"];
+}): SeatPerformanceScore {
+  const reasons: string[] = [];
+  const checkedInAt = profile ? latestProfileCheckInAt(profile) : null;
+  const freshness = freshnessPenalty(checkedInAt, nowMs);
+  if (freshness.reason !== "live") reasons.push(freshness.reason);
+
+  const missed = missedCheckInPenalty(profile, nowMs);
+  if (missed.reason) reasons.push(missed.reason);
+
+  const routingPolicy = seat ? normalizeSeatRoutingPolicy(seat.routingPolicy) : "auto";
+  const routingPenalty = routingPolicy === "blocked" ? 35 : routingPolicy === "avoid" ? 10 : 0;
+  if (routingPolicy === "blocked") reasons.push("blocked for routing");
+  if (routingPolicy === "avoid") reasons.push("avoid for routing");
+
+  const load = seat ? normalizeSeatLoadOverride(seat.load, 0) : 25;
+  const loadPenalty = load >= 90 ? 15 : load >= 75 ? 8 : 0;
+  if (loadPenalty) reasons.push("high load");
+
+  const issuePenalty = seat?.issue ? 20 : 0;
+  if (seat?.issue) reasons.push(seat.issue);
+  if (profile && !profile.current_status) reasons.push("no current status");
+
+  const preferBonus = routingPolicy === "prefer" ? 5 : 0;
+  const score = clampScore(100 - freshness.penalty - missed.penalty - routingPenalty - loadPenalty - issuePenalty + preferBonus);
+  const status: SeatPerformanceStatus =
+    score >= 80 ? "strong" : score >= 60 ? "watch" : score >= 35 ? "stale" : "blocked";
+
+  return {
+    id,
+    label,
+    score,
+    status,
+    reasons: reasons.length > 0 ? reasons : ["healthy"],
+    lastCheckInAt: checkedInAt,
+    source,
+  };
+}
+
+export function buildSeatPerformanceScores(
+  seats: AISeat[],
+  profiles: FishbowlProfile[] = [],
+  nowMs = Date.now(),
+): SeatPerformanceScore[] {
+  const seatProfiles = mapProfilesToSeats(seats, profiles);
+  const matchedProfiles = seatProfiles.values();
+  const scores = seats.map((seat) =>
+    scoreSeatPerformance({
+      id: seat.id,
+      label: seat.name,
+      seat,
+      profile: seatProfiles.get(seat.id) ?? null,
+      nowMs,
+      source: seatProfiles.has(seat.id) ? "matched-seat" : "manual-seat",
+    }),
+  );
+
+  for (const profile of unmatchedRecentProfiles(profiles, matchedProfiles, nowMs)) {
+    scores.push(
+      scoreSeatPerformance({
+        id: profile.agent_id,
+        label: profile.display_name?.trim() || profile.agent_id,
+        profile,
+        nowMs,
+        source: "live-profile",
+      }),
+    );
+  }
+
+  return scores.sort((left, right) => right.score - left.score || left.label.localeCompare(right.label));
+}
+
+function detectSeatClientKind(input: string | null | undefined): SeatClientKind {
+  const lower = (input ?? "").toLowerCase();
+  if (lower.includes("codex")) return "codex";
+  if (lower.includes("claude")) return "claude";
+  if (lower.includes("github-action") || lower.includes("github action") || lower.includes("queuepush")) {
+    return "github-action";
+  }
+  if (lower.includes("windsurf") || lower.includes("cascade")) return "windsurf";
+  return "unknown";
+}
+
+function classifyFreshness(checkInAt: string | null, nowMs: number): SeatFreshnessKind {
+  if (!checkInAt) return "unknown";
+  const checkInMs = Date.parse(checkInAt);
+  if (!Number.isFinite(checkInMs)) return "unknown";
+  const ageMs = Math.max(0, nowMs - checkInMs);
+  if (ageMs <= 15 * 60 * 1000) return "live";
+  if (ageMs <= 60 * 60 * 1000) return "warm";
+  if (ageMs <= 6 * 60 * 60 * 1000) return "stale";
+  return "cold";
+}
+
+function statusSignal(status: string | null | undefined): "pass" | "blocker" | null {
+  if (!status) return null;
+  const lower = status.toLowerCase();
+  if (/\b(blocker|hold|stuck|error)\b/.test(lower)) return "blocker";
+  if (/\b(pass|done|green)\b/.test(lower)) return "pass";
+  return null;
+}
+
+function reliabilityFromSignals({
+  scoreStatus,
+  freshness,
+  signal,
+}: {
+  scoreStatus: SeatPerformanceStatus;
+  freshness: SeatFreshnessKind;
+  signal: "pass" | "blocker" | null;
+}): SeatReliabilityKind {
+  if (signal === "blocker" || scoreStatus === "blocked" || freshness === "cold") return "risk";
+  if (scoreStatus === "strong" && (freshness === "live" || freshness === "warm")) return "strong";
+  return "watch";
+}
+
+function routingHintFromSignals({
+  seat,
+  client,
+  reliability,
+  signal,
+}: {
+  seat: AISeat | null;
+  client: SeatClientKind;
+  reliability: SeatReliabilityKind;
+  signal: "pass" | "blocker" | null;
+}): SeatRoutingHint {
+  const policy = seat ? normalizeSeatRoutingPolicy(seat.routingPolicy) : "auto";
+  if (policy === "blocked" || signal === "blocker") return "avoid";
+  if (client === "github-action") return "observe";
+  if (seat?.isVirtual || client === "windsurf") return "review";
+  if (reliability === "strong" && !seat?.isVirtual) return "build";
+  if (client === "claude") return "review";
+  return "observe";
+}
+
+function buildCapabilityNotes({
+  seat,
+  profile,
+  freshness,
+  signal,
+}: {
+  seat: AISeat | null;
+  profile: FishbowlProfile | null;
+  freshness: SeatFreshnessKind;
+  signal: "pass" | "blocker" | null;
+}): string[] {
+  const notes: string[] = [];
+  if (seat?.isVirtual) notes.push("virtual fallback seat");
+  if (!profile) notes.push("no live profile");
+  if (freshness === "stale" || freshness === "cold" || freshness === "unknown") {
+    notes.push(`check-in ${freshness}`);
+  }
+  const policy = seat ? normalizeSeatRoutingPolicy(seat.routingPolicy) : "auto";
+  if (policy === "blocked") notes.push("blocked for routing");
+  if (policy === "avoid") notes.push("avoid for routing");
+  if (signal === "blocker") notes.push("status reports blocker");
+  if (signal === "pass") notes.push("status reports pass");
+  if (!seat?.isVirtual && seat && normalizeSeatLoadOverride(seat.load, 0) >= 85) notes.push("high load");
+  return notes.length > 0 ? notes : ["healthy"];
+}
+
+export function buildSeatCapabilityNotes(
+  seats: AISeat[],
+  profiles: FishbowlProfile[] = [],
+  nowMs = Date.now(),
+): SeatCapabilityNote[] {
+  const seatProfiles = mapProfilesToSeats(seats, profiles);
+  const matchedProfiles = seatProfiles.values();
+  const notes: SeatCapabilityNote[] = seats.map((seat) => {
+    const profile = seatProfiles.get(seat.id) ?? null;
+    const checkedInAt = profile ? latestProfileCheckInAt(profile) : null;
+    const freshness = classifyFreshness(checkedInAt, nowMs);
+    const signal = statusSignal(profile?.current_status);
+    const client = detectSeatClientKind(
+      [profile?.user_agent_hint, profile?.display_name, seat.provider, seat.device].filter(Boolean).join(" "),
+    );
+    const score = scoreSeatPerformance({
+      id: seat.id,
+      label: seat.name,
+      seat,
+      profile,
+      nowMs,
+      source: seatProfiles.has(seat.id) ? "matched-seat" : "manual-seat",
+    });
+    const reliability = reliabilityFromSignals({ scoreStatus: score.status, freshness, signal });
+    return {
+      id: seat.id,
+      label: seat.name,
+      source: seatProfiles.has(seat.id) ? "matched-seat" : "manual-seat",
+      client,
+      freshness,
+      reliability,
+      routingHint: routingHintFromSignals({ seat, client, reliability, signal }),
+      notes: buildCapabilityNotes({ seat, profile, freshness, signal }),
+    };
+  });
+
+  for (const profile of unmatchedRecentProfiles(profiles, matchedProfiles, nowMs)) {
+    const checkedInAt = latestProfileCheckInAt(profile);
+    const freshness = classifyFreshness(checkedInAt, nowMs);
+    const signal = statusSignal(profile.current_status);
+    const client = detectSeatClientKind([profile.user_agent_hint, profile.display_name, profile.agent_id].join(" "));
+    const reliability = reliabilityFromSignals({
+      scoreStatus: freshness === "live" || freshness === "warm" ? "watch" : "stale",
+      freshness,
+      signal,
+    });
+    notes.push({
+      id: profile.agent_id,
+      label: profile.display_name?.trim() || profile.agent_id,
+      source: "live-profile",
+      client,
+      freshness,
+      reliability,
+      routingHint: routingHintFromSignals({ seat: null, client, reliability, signal }),
+      notes: buildCapabilityNotes({ seat: null, profile, freshness, signal }),
+    });
+  }
+
+  return notes.sort((left, right) => left.label.localeCompare(right.label));
 }

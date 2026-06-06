@@ -17,6 +17,7 @@ export function parseBuildDeskIdempotencyKey(value: unknown): IdempotencyKeyPars
   if (!trimmed) return {};
   if (trimmed.length > 256) return { error: "idempotency_key must be at most 256 characters" };
   if (/\s/.test(trimmed)) return { error: "idempotency_key must not contain whitespace" };
+  // eslint-disable-next-line no-control-regex -- rejects literal control characters in external idempotency keys.
   if (/[\u0000-\u001f\u007f]/.test(trimmed)) {
     return { error: "idempotency_key contains invalid control characters" };
   }

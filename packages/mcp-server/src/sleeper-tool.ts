@@ -2,12 +2,33 @@
 // No authentication required.
 // Base URL: https://api.sleeper.app/v1/
 
+import { stampMeta } from "./connector-meta.js";
+
 const SLEEPER_BASE = "https://api.sleeper.app/v1";
 
+const SLEEPER_TIMEOUT_MS = Number(process.env.SLEEPER_TIMEOUT_MS) || 15000;
+
 async function sleeperFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${SLEEPER_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SLEEPER_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SLEEPER_BASE}${path}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Sleeper API request timed out after ${SLEEPER_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Sleeper API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Sleeper API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) throw new Error(`Sleeper API HTTP ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -28,7 +49,7 @@ interface NflState {
 
 export async function getNflState(_args: Record<string, unknown>): Promise<unknown> {
   const data = await sleeperFetch<NflState>("/state/nfl");
-  return {
+  return stampMeta({
     current_week: data.week,
     display_week: data.display_week,
     season: data.season,
@@ -36,7 +57,11 @@ export async function getNflState(_args: Record<string, unknown>): Promise<unkno
     season_start_date: data.season_start_date,
     previous_season: data.previous_season,
     leg: data.leg,
-  };
+  }, {
+    source: "Sleeper",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use sleeper_league for a league, or sleeper_trending_players for adds/drops."],
+  });
 }
 
 // ─── get_sleeper_players ──────────────────────────────────────────────────────

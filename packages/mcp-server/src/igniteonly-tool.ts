@@ -29,36 +29,43 @@ const WORKER_ROUTES = [
   {
     painpoint_type: "stale_ack",
     worker: "Reviewer",
+    worker_aliases: [],
     wake_reason: "A stale ACK needs a review receipt, blocker receipt, or WakePass escalation.",
   },
   {
     painpoint_type: "duplicate_wake",
     worker: "Job Manager",
+    worker_aliases: ["wakepass-cleanup-worker"],
     wake_reason: "Duplicate wakes need consolidation or a clear reason to keep both.",
   },
   {
     painpoint_type: "unclear_owner",
     worker: "Job Manager",
+    worker_aliases: [],
     wake_reason: "A visible blocker needs an owning job and next expected receipt.",
   },
   {
     painpoint_type: "queue_hydration_failure",
     worker: "pinballwake-jobs-worker",
+    worker_aliases: [],
     wake_reason: "Backlog exists while active jobs are zero, so the existing Jobs Worker needs to hydrate, scope, or route the queue.",
   },
   {
     painpoint_type: "missing_proof",
     worker: "Builder",
+    worker_aliases: [],
     wake_reason: "A claimed or expected build step needs a commit, PR, run ID, receipt, or blocker.",
   },
   {
     painpoint_type: "noisy_thread",
     worker: "Heartbeat Seat",
+    worker_aliases: [],
     wake_reason: "Repeated pulse noise needs a compact material state receipt.",
   },
   {
     painpoint_type: "dormant_worker",
     worker: "Job Manager",
+    worker_aliases: [],
     wake_reason: "A dormant worker lane needs a safe owner check before a specialist is woken.",
   },
 ] as const;
@@ -180,8 +187,9 @@ function workerFrom(request: Record<string, unknown>, painpointType: string): st
   const explicit = safeText(request.worker);
   const route = routeFor(painpointType);
   if (!route) return null;
-  if (explicit && explicit !== route.worker) return null;
-  return route.worker;
+  const knownWorkers: readonly string[] = [route.worker, ...route.worker_aliases];
+  if (explicit && !knownWorkers.includes(explicit)) return null;
+  return explicit ?? route.worker;
 }
 
 function targetFrom(args: Record<string, unknown>, bridge: Record<string, unknown>, request: Record<string, unknown>): string | null {

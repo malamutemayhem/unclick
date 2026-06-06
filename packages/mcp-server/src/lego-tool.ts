@@ -7,6 +7,10 @@
 // BrickSet: https://brickset.com/api/v3.asmx
 //   Env var: BRICKSET_API_KEY
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const REBRICKABLE_BASE = "https://rebrickable.com/api/v3/lego";
 const BRICKSET_BASE = "https://brickset.com/api/v3.asmx";
 
@@ -24,6 +28,8 @@ function requireRebrickableKey(args: Record<string, unknown>): string {
   return key;
 }
 
+const REBRICKABLE_TIMEOUT_MS = Number(process.env.REBRICKABLE_TIMEOUT_MS) || 10000;
+
 async function rebrickableFetch<T>(
   path: string,
   apiKey: string,
@@ -34,14 +40,31 @@ async function rebrickableFetch<T>(
     if (v !== undefined && v !== "") url.searchParams.set(k, v);
   }
 
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `key ${apiKey}`,
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REBRICKABLE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `key ${apiKey}`,
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Rebrickable API request timed out after ${REBRICKABLE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Rebrickable API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Rebrickable API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
 
-  const body = (await res.json()) as Record<string, unknown>;
+  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {
     throw new Error(
       `Rebrickable API HTTP ${res.status}: ${String(body.detail ?? "Unknown error")}`
@@ -60,7 +83,10 @@ export async function legoSearchSets(
   const params: Record<string, string> = {};
   if (args.search) params.search = String(args.search);
   if (args.theme_id) params.theme_id = String(args.theme_id);
-  if (args.year) params.min_year = String(args.year), params.max_year = String(args.year);
+  if (args.year) {
+    params.min_year = String(args.year);
+    params.max_year = String(args.year);
+  }
 
   const data = await rebrickableFetch<Record<string, unknown>>(
     "/sets/",
@@ -69,7 +95,7 @@ export async function legoSearchSets(
   );
   const results = (data.results as Record<string, unknown>[]) ?? [];
 
-  return {
+  return stampMeta({
     count: data.count ?? 0,
     next: data.next ?? null,
     sets: results.map((s) => ({
@@ -81,7 +107,11 @@ export async function legoSearchSets(
       set_img_url: s.set_img_url ?? null,
       set_url: s.set_url ?? null,
     })),
-  };
+  }, {
+    source: "Rebrickable (LEGO)",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use lego_get_set for full detail, or lego_set_parts for the parts list."],
+  });
 }
 
 // ─── lego_get_set ─────────────────────────────────────────────────────────────
@@ -204,17 +234,11 @@ export async function legoThemes(
 
 // ─── BrickSet helpers ─────────────────────────────────────────────────────────
 
-function requireBricksetKey(args: Record<string, unknown>): string {
-  const key = String(
-    args.brickset_api_key ?? process.env.BRICKSET_API_KEY ?? ""
-  ).trim();
-  if (!key) {
-    throw new Error(
-      "BRICKSET_API_KEY is required. Register at https://brickset.com/tools/webservices/requestkey"
-    );
-  }
-  return key;
+function requireBricksetKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("brickset", args);
 }
+
+const BRICKSET_TIMEOUT_MS = Number(process.env.BRICKSET_TIMEOUT_MS) || 10000;
 
 async function bricksetFetch(
   method: string,
@@ -226,10 +250,27 @@ async function bricksetFetch(
   url.searchParams.set("userHash", "");
   url.searchParams.set("params", JSON.stringify(params));
 
-  const res = await fetch(url.toString(), {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), BRICKSET_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`BrickSet API request timed out after ${BRICKSET_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`BrickSet API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`BrickSet API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     throw new Error(`BrickSet API HTTP ${res.status}`);
   }
@@ -277,6 +318,7 @@ export async function bricksetSearch(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireBricksetKey(args);
+  if (typeof key !== "string") return key;
   const query = String(args.query ?? "").trim();
   if (!query) return { error: "query is required." };
 
@@ -300,6 +342,7 @@ export async function bricksetGetSet(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireBricksetKey(args);
+  if (typeof key !== "string") return key;
   const setNumber = String(args.setNumber ?? "").trim();
   if (!setNumber) return { error: "setNumber is required (e.g. 75192-1)." };
 

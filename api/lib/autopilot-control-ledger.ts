@@ -49,6 +49,37 @@ export interface AutopilotEventRow {
   created_at: string;
 }
 
+export interface AutopilotTouchMetricsRow {
+  event_type: string;
+  actor_agent_id: string;
+  ref_kind: string;
+  ref_id: string;
+  payload: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface AutopilotZeroTouchRefMetric {
+  ref_kind: string;
+  ref_id: string;
+  event_count: number;
+  automation_event_count: number;
+  human_touch_count: number;
+  zero_touch: boolean;
+  first_human_touch_at: string | null;
+  last_event_at: string | null;
+  human_touch_reasons: Record<string, number>;
+}
+
+export interface AutopilotZeroTouchMetrics {
+  total_refs: number;
+  zero_touch_refs: number;
+  human_touched_refs: number;
+  human_touch_count: number;
+  automation_event_count: number;
+  touch_reason_counts: Record<string, number>;
+  refs: AutopilotZeroTouchRefMetric[];
+}
+
 export interface TodoLedgerPlanInput {
   todoId: string;
   actorAgentId: string;
@@ -76,6 +107,21 @@ export interface AutoPilotKitRecommendationLedgerInput {
   now?: Date;
 }
 
+export interface AutopilotIqOutcomeLedgerInput {
+  actorAgentId: string;
+  refId: string;
+  refKind?: AutopilotRefKind | string;
+  source?: string;
+  outcome?: string | null;
+  learnedSignal?: string | null;
+  proofRefs?: Array<Record<string, unknown> | string> | null;
+  rewardDelta?: number | null;
+  penaltyDelta?: number | null;
+  confidence?: number | null;
+  staleAfterDays?: number | null;
+  now?: Date;
+}
+
 const EVENT_TYPE_SET = new Set<string>(AUTOPILOT_EVENT_TYPES);
 const REF_KIND_SET = new Set<string>(AUTOPILOT_REF_KINDS);
 const SENSITIVE_KEY_RE = /(api[_-]?key|secret|token|password|credential|authorization|cookie)/i;
@@ -85,6 +131,10 @@ const SENSITIVE_TEXT_RE =
 function compact(value: unknown, max = 500): string {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
   return text.length > max ? `${text.slice(0, max - 3)}...` : text;
+}
+
+function lowerText(value: unknown): string {
+  return compact(value, 240).toLowerCase();
 }
 
 function stableJson(value: unknown): string {
@@ -114,6 +164,54 @@ function normalizeEventType(value: string): AutopilotEventType {
 function normalizeRefKind(value: string): AutopilotRefKind {
   if (!REF_KIND_SET.has(value)) throw new Error(`Unsupported autopilot ref_kind: ${value}`);
   return value as AutopilotRefKind;
+}
+
+function incrementCount(map: Record<string, number>, key: string): void {
+  map[key] = (map[key] ?? 0) + 1;
+}
+
+function boundedNumber(value: unknown, fallback: number, min: number, max: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.max(min, Math.min(max, value));
+}
+
+const HUMAN_ACTOR_RE = /(^human[-_:]|^operator[-_:]|^chris$|^malamutemayhem$|\boperator\b|\bhuman\b)/i;
+const HUMAN_TOUCH_RE =
+  /\b(human|operator|chris|manual|operator_chat|human_operator_chat|live_chat|user_chat|walk[-_ ]?in)\b/i;
+const HUMAN_TOUCH_BOOLEAN_KEYS = new Set([
+  "human_touch",
+  "operator_touch",
+  "manual_touch",
+  "requires_operator",
+]);
+const HUMAN_TOUCH_TEXT_KEYS = new Set([
+  "actor_kind",
+  "decision_source",
+  "input_source",
+  "origin",
+  "route_source",
+  "source",
+  "trigger",
+  "trigger_source",
+  "wake_source",
+]);
+
+function humanTouchReasons(row: AutopilotTouchMetricsRow): string[] {
+  const reasons = new Set<string>();
+  if (HUMAN_ACTOR_RE.test(row.actor_agent_id)) reasons.add("human_actor");
+
+  const payload = row.payload ?? {};
+  for (const [key, value] of Object.entries(payload)) {
+    const normalizedKey = key.toLowerCase();
+    if (HUMAN_TOUCH_BOOLEAN_KEYS.has(normalizedKey) && value === true) {
+      reasons.add(normalizedKey);
+    }
+    if (HUMAN_TOUCH_TEXT_KEYS.has(normalizedKey) && HUMAN_TOUCH_RE.test(lowerText(value))) {
+      reasons.add(`${normalizedKey}:${lowerText(value).slice(0, 40)}`);
+    }
+  }
+
+  return [...reasons].sort();
 }
 
 function sanitizeUnknown(key: string, value: unknown): unknown {
@@ -188,6 +286,72 @@ export function buildAutopilotEventRow(input: AutopilotEventInput): AutopilotEve
     payload,
     idempotency_key: idempotencyKey,
     created_at: now.toISOString(),
+  };
+}
+
+export function createAutopilotZeroTouchMetrics(
+  rows: AutopilotTouchMetricsRow[],
+): AutopilotZeroTouchMetrics {
+  const refs = new Map<string, AutopilotZeroTouchRefMetric>();
+  const touchReasonCounts: Record<string, number> = {};
+  let humanTouchCount = 0;
+  let automationEventCount = 0;
+
+  for (const row of rows) {
+    const refKind = compact(row.ref_kind, 64) || "unknown";
+    const refId = compact(row.ref_id, 160) || "unknown";
+    const key = `${refKind}:${refId}`;
+    const metric =
+      refs.get(key) ??
+      {
+        ref_kind: refKind,
+        ref_id: refId,
+        event_count: 0,
+        automation_event_count: 0,
+        human_touch_count: 0,
+        zero_touch: true,
+        first_human_touch_at: null,
+        last_event_at: null,
+        human_touch_reasons: {},
+      };
+
+    metric.event_count++;
+    if (!metric.last_event_at || row.created_at > metric.last_event_at) {
+      metric.last_event_at = row.created_at;
+    }
+
+    const reasons = humanTouchReasons(row);
+    if (reasons.length > 0) {
+      metric.zero_touch = false;
+      metric.human_touch_count++;
+      humanTouchCount++;
+      if (!metric.first_human_touch_at || row.created_at < metric.first_human_touch_at) {
+        metric.first_human_touch_at = row.created_at;
+      }
+      for (const reason of reasons) {
+        incrementCount(metric.human_touch_reasons, reason);
+        incrementCount(touchReasonCounts, reason);
+      }
+    } else {
+      metric.automation_event_count++;
+      automationEventCount++;
+    }
+
+    refs.set(key, metric);
+  }
+
+  const refMetrics = [...refs.values()].sort((left, right) =>
+    String(right.last_event_at ?? "").localeCompare(String(left.last_event_at ?? "")),
+  );
+
+  return {
+    total_refs: refMetrics.length,
+    zero_touch_refs: refMetrics.filter((metric) => metric.zero_touch).length,
+    human_touched_refs: refMetrics.filter((metric) => !metric.zero_touch).length,
+    human_touch_count: humanTouchCount,
+    automation_event_count: automationEventCount,
+    touch_reason_counts: touchReasonCounts,
+    refs: refMetrics,
   };
 }
 
@@ -351,6 +515,100 @@ export function planAutoPilotKitRecommendationLedgerEvents(
       } satisfies AutopilotEventInput;
     })
     .filter((event): event is AutopilotEventInput => event !== null);
+}
+
+function normalizeAutopilotIqOutcome(value: unknown): string {
+  const outcome = lowerText(value);
+  if (["win", "miss", "blocked", "stale", "neutral"].includes(outcome)) return outcome;
+  return "neutral";
+}
+
+function normalizeProofRefs(
+  proofRefs: Array<Record<string, unknown> | string> | null | undefined,
+): Array<Record<string, unknown>> {
+  if (!Array.isArray(proofRefs)) return [];
+  return proofRefs
+    .map((proofRef) => {
+      if (typeof proofRef === "string") {
+        const ref = compact(proofRef, 160);
+        return ref ? { kind: "receipt", ref } : null;
+      }
+      if (!proofRef || typeof proofRef !== "object") return null;
+      const kind = compact(proofRef.kind ?? "receipt", 40);
+      const ref = compact(proofRef.ref ?? proofRef.id ?? proofRef.url ?? "", 160);
+      const note = compact(proofRef.note ?? "", 240);
+      if (!ref && !note) return null;
+      return {
+        kind: kind || "receipt",
+        ref: ref || null,
+        note: note || null,
+      };
+    })
+    .filter((proofRef): proofRef is Record<string, unknown> => proofRef !== null)
+    .slice(0, 8);
+}
+
+function defaultRewardDelta(outcome: string): number {
+  if (outcome === "win") return 1;
+  if (outcome === "neutral") return 0;
+  return 0;
+}
+
+function defaultPenaltyDelta(outcome: string): number {
+  if (outcome === "miss" || outcome === "blocked" || outcome === "stale") return 1;
+  return 0;
+}
+
+export function planAutopilotIqOutcomeLedgerEvent(input: AutopilotIqOutcomeLedgerInput): AutopilotEventInput {
+  const now = input.now ?? new Date();
+  const outcome = normalizeAutopilotIqOutcome(input.outcome);
+  const proofRefs = normalizeProofRefs(input.proofRefs);
+  const rewardDelta = boundedNumber(input.rewardDelta, defaultRewardDelta(outcome), -10, 10);
+  const penaltyDelta = boundedNumber(input.penaltyDelta, defaultPenaltyDelta(outcome), -10, 10);
+  const requestedConfidence = boundedNumber(input.confidence, proofRefs.length > 0 ? 0.65 : 0.25, 0, 1);
+  const confidence = proofRefs.length > 0 ? requestedConfidence : Math.min(requestedConfidence, 0.25);
+  const staleAfterDays = Math.round(boundedNumber(input.staleAfterDays, 14, 1, 90));
+  const staleAfter = new Date(now.getTime() + staleAfterDays * 24 * 60 * 60 * 1000).toISOString();
+  const quarantineReasons: string[] = [];
+
+  if (proofRefs.length === 0) quarantineReasons.push("missing_proof_refs");
+  if (outcome === "miss" || outcome === "blocked" || outcome === "stale") {
+    quarantineReasons.push("non_win_outcome");
+  }
+  if (confidence < 0.5) quarantineReasons.push("low_confidence");
+  if (penaltyDelta > rewardDelta) quarantineReasons.push("penalty_exceeds_reward");
+
+  return {
+    apiKeyHash: "",
+    eventType: "proof_result",
+    actorAgentId: input.actorAgentId,
+    refKind: input.refKind ?? "todo",
+    refId: input.refId,
+    now,
+    payload: {
+      schema_version: "autopilotiq_outcome_v1",
+      source: compact(input.source ?? "autopilotiq", 120),
+      storage: "mc_autopilot_events",
+      capture_mode: "shadow",
+      advisory: true,
+      execute: false,
+      applies_to_future_routing: false,
+      outcome,
+      learned_signal: compact(input.learnedSignal ?? "outcome captured for later replay", 240),
+      reward_delta: rewardDelta,
+      penalty_delta: penaltyDelta,
+      confidence,
+      proof_refs: proofRefs,
+      stale_after: staleAfter,
+      quarantine: quarantineReasons.length > 0,
+      bad_learning_prevention: {
+        shadow_mode_only: true,
+        requires_proof_refs: true,
+        stale_after_required: true,
+        quarantine_reasons: quarantineReasons,
+      },
+    },
+  };
 }
 
 export async function recordAutopilotEvent(

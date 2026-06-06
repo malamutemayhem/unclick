@@ -99,6 +99,24 @@ describe("Jobs and GitHub sync helpers", () => {
     });
   });
 
+  it("lets structured proof state override stale green links", () => {
+    const blockedJob = {
+      ...baseJob,
+      status: "done" as const,
+      description: "Old PR #699 merged and checks passed.",
+      pipeline_evidence: ["build", "proof", "ship"],
+      proof_state: "missing_ui_proof" as const,
+      proof_state_reason: "UI or browser proof is still missing.",
+    };
+
+    expect(jobHasProofReset(blockedJob)).toBe(true);
+    expect(buildJobGithubSyncSignal(blockedJob)).toEqual({
+      label: "UI proof",
+      detail: "UI or browser proof is still missing.",
+      tone: "alert",
+    });
+  });
+
   it("lets current pipeline proof clear old reopened wording", () => {
     const recoveredJob = {
       ...baseJob,

@@ -2,47 +2,78 @@
 // Uses the Pika REST API via fetch - no external dependencies.
 // Users must supply an API key from pika.art.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const PIKA_API_BASE = "https://api.pika.art/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at pika.art.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("pika", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 async function pikaGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${PIKA_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const PIKA_TIMEOUT_MS = Number(process.env.PIKA_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PIKA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${PIKA_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pika request timed out after ${PIKA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pika network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Pika rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Pika error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function pikaPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${PIKA_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const PIKA_TIMEOUT_MS = Number(process.env.PIKA_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PIKA_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${PIKA_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Pika request timed out after ${PIKA_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Pika network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Pika rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Pika error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -52,6 +83,7 @@ async function pikaPost<T>(apiKey: string, path: string, body: unknown): Promise
 
 export async function pika_generate_video(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
 
@@ -78,6 +110,7 @@ export async function pika_generate_video(args: Record<string, unknown>): Promis
 
 export async function pika_get_generation(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const generationId = String(args.generation_id ?? "").trim();
   if (!generationId) throw new Error("generation_id is required.");
 
@@ -85,7 +118,7 @@ export async function pika_get_generation(args: Record<string, unknown>): Promis
     apiKey, `/generations/${encodeURIComponent(generationId)}`
   );
 
-  return {
+  return stampMeta({
     generation_id: generationId,
     status: result.status ?? null,
     video_url: result.video_url ?? result.url ?? null,
@@ -94,11 +127,16 @@ export async function pika_get_generation(args: Record<string, unknown>): Promis
     created_at: result.created_at ?? result.createdAt ?? null,
     error: result.error ?? null,
     raw: result,
-  };
+  }, {
+    source: "Pika",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not finished, poll pika_get_generation again; once done, use video_url."],
+  });
 }
 
 export async function pika_list_styles(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await pikaGet<{ styles?: unknown[]; data?: unknown[] } & Record<string, unknown>>(
     apiKey, "/styles"
   );

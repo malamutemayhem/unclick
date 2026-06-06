@@ -25,7 +25,13 @@ const runnerFreshnessGraceMinutes = parseBoundedInt(
 );
 const runnerFreshnessRunLimit = parseBoundedInt(process.env.QUEUEPUSH_RUNNER_RUN_LIMIT, 20, 5, 100);
 export const QUEUEPUSH_DUPLICATE_WAKE_WINDOW_MS = 10 * 60 * 1000;
-export const DORMANT_OWNER_REQUEUE_THRESHOLD_MS = 48 * 60 * 60 * 1000;
+const dormantOwnerRequeueMinutes = parseBoundedInt(
+  process.env.QUEUEPUSH_DORMANT_OWNER_REQUEUE_MINUTES,
+  60,
+  15,
+  48 * 60,
+);
+export const DORMANT_OWNER_REQUEUE_THRESHOLD_MS = dormantOwnerRequeueMinutes * 60 * 1000;
 const dormantOwnerTodoLimit = parseBoundedInt(process.env.QUEUEPUSH_DORMANT_OWNER_TODO_LIMIT, 50, 1, 100);
 const dormantOwnerPacketLimit = parseBoundedInt(process.env.QUEUEPUSH_DORMANT_OWNER_PACKET_LIMIT, 10, 1, 10);
 const agentId = "github-action-queuepush";
@@ -150,6 +156,59 @@ function normalizeText(value) {
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
+}
+
+const PROTECTED_OWNER_LIFT_LANE_TERMS = [
+  "operator_only",
+  "operator-only",
+  "operator only",
+  "chris-only",
+  "chris only",
+  "human decision",
+  "human approval",
+  "human policy",
+  "rotatepass",
+  "xpass",
+  "system credential",
+  "system-credential",
+  "systemcredential",
+  "adminkeychain",
+  "connectedservices",
+  "secret",
+  "credential",
+  "api key",
+  "billing",
+  "dns",
+  "production data",
+  "prod data",
+  "customer data",
+  "live data",
+  "novel product call",
+  "new product call",
+  "keychain",
+];
+
+function isDraftGreenOwnerLiftState(state) {
+  return state === "draft_green_needs_owner_lift";
+}
+
+function isProtectedOwnerLiftLane(lane) {
+  const text = normalizeText(lane);
+  return PROTECTED_OWNER_LIFT_LANE_TERMS.some((term) => text.includes(term));
+}
+
+export function queuepushRoutingLabel(pr, files = [], state = "") {
+  if (state === "blocked_chris_only") return "operator_only";
+  if (!isDraftGreenOwnerLiftState(state)) return null;
+  const haystack = normalizeText(
+    [
+      state,
+      pr.title,
+      pr.body,
+      ...files.map((file) => file.filename || file.path || ""),
+    ].join(" "),
+  );
+  return isProtectedOwnerLiftLane(haystack) ? "operator_only" : "walkin_eligible";
 }
 
 function isMissingFinalQcText(text) {
@@ -291,10 +350,22 @@ function isSystemBotOwner(todo) {
   );
 }
 
+function isHumanOwner(todo) {
+  const owner = normalizeText(todoOwner(todo));
+  const kind = normalizeText(todo?.owner_kind || todo?.ownerKind || todo?.owner_type || todo?.ownerType);
+  return (
+    kind === "human" ||
+    kind === "person" ||
+    owner.startsWith("human-") ||
+    owner.startsWith("chris") ||
+    owner === "creativelead"
+  );
+}
+
 export function detectDormantOwner(todo, now = Date.now(), thresholdMs = DORMANT_OWNER_REQUEUE_THRESHOLD_MS) {
   const id = todoId(todo);
   const owner = todoOwner(todo);
-  if (!id || !owner || isSystemBotOwner(todo)) return null;
+  if (!id || !owner || isSystemBotOwner(todo) || isHumanOwner(todo)) return null;
 
   const lastSeenMs = parseTime(todoOwnerLastSeenAt(todo));
   if (!Number.isFinite(lastSeenMs)) return null;
@@ -645,6 +716,9 @@ export function routeWorkerForPr(pr, files = [], state = "") {
       ...files.map((file) => file.filename || file.path || ""),
     ].join(" "),
   );
+  if (isDraftGreenOwnerLiftState(state) && !isProtectedOwnerLiftLane(haystack)) {
+    return "🧭";
+  }
   const runner = chooseQueuePushRunner({
     kind: jobKindForState(state),
     lane: haystack,
@@ -716,7 +790,10 @@ function packetHeadingForJobKind(jobKind) {
   }
 }
 
-function packetInstructionForJobKind(jobKind) {
+function packetInstructionForJobKind(jobKind, state) {
+  if (isDraftGreenOwnerLiftState(state)) {
+    return "You are assigned routine lift now. ACK/CLAIM with a non-author lift hat; escalate only for protected surfaces or an exact HOLD.";
+  }
   switch (jobKind) {
     case "implementation":
       return "You are assigned this now. Build it or reply blocker; do not just observe.";
@@ -787,7 +864,7 @@ export function classifyPullRequest(input) {
 export function expectedProofForState(state, pr) {
   switch (state) {
     case "draft_green_needs_owner_lift":
-      return "Update PR body with owner/non-overlap/status/tests, then lift draft or state exact HOLD.";
+      return "Non-author lift proof: verify CI, mergeability, reviewer separation, and current PR proof; then undraft/merge if policy allows or state exact HOLD.";
     case "missing_review_safety_ack":
       return "Reviewer/Safety latest head only; reply PASS/BLOCKER with exact boundary evidence, then hand back for draft lift.";
     case "missing_final_qc_ack":
@@ -810,7 +887,7 @@ export function expectedProofForState(state, pr) {
 export function directActionForState(state) {
   switch (state) {
     case "draft_green_needs_owner_lift":
-      return "Claim it, refresh proof, then lift draft or reply with the exact HOLD.";
+      return "Claim with non-author lift hat, verify green/clean/reviewer separation, then lift/merge if policy allows or post exact HOLD.";
     case "missing_review_safety_ack":
       return "Claim review, check latest head for safety and authority boundaries, then PASS/BLOCKER with evidence.";
     case "missing_final_qc_ack":
@@ -845,6 +922,8 @@ export function buildQueuePacket(input) {
   const worker = routeWorkerForPr(pr, files, state);
   const packetId = queuepushPacketId(pr, state);
   const jobKind = jobKindForState(state);
+  const routingLabel = queuepushRoutingLabel(pr, files, state);
+  const tags = ["needs-doing", "queuepush", routingLabel].filter(Boolean);
   const chip = `PR #${pr.number} ${state}`;
   const filePreview = files
     .slice(0, 4)
@@ -860,9 +939,10 @@ export function buildQueuePacket(input) {
   const text = [
     `QueuePush ID: ${packetId}`,
     packetHeadingForJobKind(jobKind),
-    packetInstructionForJobKind(jobKind),
+    packetInstructionForJobKind(jobKind, state),
     `worker: ${worker}`,
     `job kind: ${jobKind}`,
+    ...(routingLabel ? [`routing label: ${routingLabel}`] : []),
     `requires code: ${stateRequiresCode(state) ? "yes" : "no"}`,
     `chip: ${chip}`,
     `context: ${context}`,
@@ -881,6 +961,8 @@ export function buildQueuePacket(input) {
     jobKind,
     requiresCode: stateRequiresCode(state),
     recipient: agentMap[worker] || worker,
+    routingLabel,
+    tags,
     state,
     pr: pr.number,
     text,
@@ -1164,7 +1246,7 @@ async function postQueuePacket(packet) {
   return postMemoryAdmin("fishbowl_post", {
     agent_id: agentId,
     recipients: [packet.recipient],
-    tags: ["needs-doing", "queuepush"],
+    tags: packet.tags || ["needs-doing", "queuepush"],
     text: packet.text,
   });
 }

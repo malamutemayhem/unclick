@@ -4,6 +4,7 @@
 // Base URL: https://boardgamegeek.com/xmlapi2
 
 import { XMLParser } from "fast-xml-parser";
+import { stampMeta } from "./connector-meta.js";
 
 const BGG_BASE = "https://boardgamegeek.com/xmlapi2";
 
@@ -15,9 +16,24 @@ const parser = new XMLParser({
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 async function bggFetch(path: string): Promise<Record<string, unknown>> {
-  const res = await fetch(`${BGG_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+  const BGG_TIMEOUT_MS = Number(process.env.BGG_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), BGG_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${BGG_BASE}${path}`, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`BGG API request timed out after ${BGG_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`BGG API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("BGG API rate limit reached. Please wait and retry.");
   if (!res.ok) throw new Error(`BGG API HTTP ${res.status}`);
   const xml = await res.text();
   return parser.parse(xml) as Record<string, unknown>;
@@ -29,10 +45,24 @@ async function bggFetchWithRetry(
   maxRetries = 5,
   delayMs = 2000
 ): Promise<Record<string, unknown>> {
+  const BGG_TIMEOUT_MS = Number(process.env.BGG_TIMEOUT_MS) || 15000;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
-    const res = await fetch(`${BGG_BASE}${path}`, {
-      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), BGG_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(`${BGG_BASE}${path}`, {
+        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+        signal: controller.signal,
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new Error(`BGG API request timed out after ${BGG_TIMEOUT_MS}ms.`);
+      }
+      throw new Error(`BGG API network error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      clearTimeout(timer);
+    }
     if (res.status === 202) {
       if (attempt < maxRetries - 1) {
         await new Promise((r) => setTimeout(r, delayMs));
@@ -42,6 +72,7 @@ async function bggFetchWithRetry(
         "BGG collection is still being prepared. Please try again in a few seconds."
       );
     }
+    if (res.status === 429) throw new Error("BGG API rate limit reached. Please wait and retry.");
     if (!res.ok) throw new Error(`BGG API HTTP ${res.status}`);
     const xml = await res.text();
     return parser.parse(xml) as Record<string, unknown>;
@@ -86,7 +117,7 @@ export async function bggSearch(args: Record<string, unknown>): Promise<unknown>
   const root = (data.items ?? {}) as Record<string, unknown>;
   const items = (root.item as Record<string, unknown>[]) ?? [];
 
-  return {
+  return stampMeta({
     total: Number(attr(root, "total") ?? items.length),
     results: items.slice(0, 20).map((item) => ({
       id: attr(item, "id"),
@@ -94,7 +125,11 @@ export async function bggSearch(args: Record<string, unknown>): Promise<unknown>
       name: primaryName(item.name),
       year_published: val(item.yearpublished) || null,
     })),
-  };
+  }, {
+    source: "BoardGameGeek",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use bgg_game_details with a result id, or bgg_top_games for the current rankings."],
+  });
 }
 
 // ─── bgg_game_details ─────────────────────────────────────────────────────────

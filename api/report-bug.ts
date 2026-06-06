@@ -85,6 +85,21 @@ function classifySeverity(errorMessage: string, requestPayload?: unknown): strin
   return "medium";
 }
 
+function normalizeAgentContext(agentContext: unknown): string | null {
+  if (!agentContext) return null;
+  if (typeof agentContext === "string") return agentContext;
+  try {
+    return JSON.stringify(agentContext);
+  } catch {
+    return String(agentContext);
+  }
+}
+
+function normalizeSeverity(value: unknown, fallback: string): string {
+  if (typeof value !== "string") return fallback;
+  return ["critical", "high", "medium", "low"].includes(value) ? value : fallback;
+}
+
 // ---------------------------------------------------------------------------
 // Email notification via Resend
 // ---------------------------------------------------------------------------
@@ -160,7 +175,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { tool_name, error_message, request_payload, expected_behavior, agent_context } =
+  const { tool_name, error_message, request_payload, expected_behavior, agent_context, notify, severity: requested_severity } =
     req.body ?? {};
 
   if (!tool_name || !error_message) {
@@ -174,7 +189,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const rawApiKey = authHeader || bodyApiKey;
   const apiKeyHash = rawApiKey ? sha256hex(rawApiKey) : null;
 
-  const severity = classifySeverity(String(error_message), request_payload);
+  const severity = normalizeSeverity(requested_severity, classifySeverity(String(error_message), request_payload));
+  const normalizedAgentContext = normalizeAgentContext(agent_context);
 
   // ---------------------------------------------------------------------------
   // Supabase write
@@ -204,7 +220,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       error_message: String(error_message),
       request_payload: request_payload ?? null,
       expected_behavior: expected_behavior ? String(expected_behavior) : null,
-      agent_context: agent_context ? String(agent_context) : null,
+      agent_context: normalizedAgentContext,
       severity,
       status: "open",
       api_key_hash: apiKeyHash,
@@ -218,14 +234,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Await the email so Vercel doesn't terminate before the request completes
-  await sendBugEmail({
-    tool_name: String(tool_name),
-    error_message: String(error_message),
-    severity,
-    expected_behavior: expected_behavior ? String(expected_behavior) : undefined,
-    agent_context: agent_context ? String(agent_context) : undefined,
-    created_at: data.created_at ?? new Date().toISOString(),
-  });
+  if (notify !== false) {
+    await sendBugEmail({
+      tool_name: String(tool_name),
+      error_message: String(error_message),
+      severity,
+      expected_behavior: expected_behavior ? String(expected_behavior) : undefined,
+      agent_context: normalizedAgentContext ?? undefined,
+      created_at: data.created_at ?? new Date().toISOString(),
+    });
+  }
 
   return res.status(201).json({
     ...data,

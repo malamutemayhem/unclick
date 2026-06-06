@@ -6,9 +6,10 @@
  * only) are written to uxpass_findings and the run row is updated with the
  * UX Score, breakdown jsonb, and summary text.
  *
- * No browser, no LLM. Playwright capture, hat-panel parallel LLM calls and
- * the Synthesiser land in later chunks; this runner is the bridge that
- * unblocks dogfood + visibility while those chunks get built.
+ * Browser evidence is optional: callers can attach a VisualAuditSnapshot from
+ * Playwright capture for layout checks, while the default fetch-only path keeps
+ * those checks N/A. Hat-panel parallel LLM calls and the Synthesiser land in
+ * later chunks.
  */
 
 import {
@@ -21,10 +22,12 @@ import {
 } from "./checks.js";
 import { createFindings, updateRunStatus, type RunManagerConfig } from "./run-manager.js";
 import type { CheckEvaluation, RunBreakdown, RunSummaryStats, RuntimeFinding } from "./types.js";
+import type { VisualAuditSnapshot } from "./visual-audit.js";
 
 export interface CaptureOptions {
   fetchTimeoutMs?: number;
   fetch?: typeof fetch;
+  visualAudit?: VisualAuditSnapshot;
 }
 
 export async function captureContext(
@@ -37,10 +40,10 @@ export async function captureContext(
   const controller = new AbortController();
   const tid = setTimeout(() => controller.abort(), timeoutMs);
   const start = Date.now();
-  let status = 0;
-  let bodyText = "";
-  let headers: Record<string, string> = {};
-  let bodySize = 0;
+  let status: number;
+  let bodyText: string;
+  const headers: Record<string, string> = {};
+  let bodySize: number;
   try {
     const res = await f(url, {
       signal: controller.signal,
@@ -59,7 +62,7 @@ export async function captureContext(
   const responseTimeMs = Date.now() - start;
 
   // Best-effort sidecar probe; never blocks the run.
-  let llmsTxtStatus: number | null = null;
+  let llmsTxtStatus: number | null;
   try {
     const llmsUrl = new URL("/llms.txt", url).toString();
     const lc = new AbortController();
@@ -77,7 +80,7 @@ export async function captureContext(
     llmsTxtStatus = null;
   }
 
-  return { url, status, headers, responseTimeMs, bodyText, bodySize, llmsTxtStatus };
+  return { url, status, headers, responseTimeMs, bodyText, bodySize, llmsTxtStatus, visualAudit: opts.visualAudit };
 }
 
 export function summariseStats(evaluations: CheckEvaluation[]): RunSummaryStats {

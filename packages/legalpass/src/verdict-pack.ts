@@ -8,6 +8,7 @@ import {
   type LegalPassGeoPassAdapter,
   type LegalPassHatDefinition,
   type LegalPassHatResult,
+  type LegalPassPhaseOneHatId,
   type LegalPassReport,
   type LegalPassReportVerdict,
   type LegalPassTarget,
@@ -20,6 +21,7 @@ export interface CreateLegalPassVerdictPackInput {
   target: LegalPassTarget;
   jurisdictions?: JurisdictionCode[];
   generated_at?: string;
+  hat_ids?: LegalPassPhaseOneHatId[];
   geo_pass?: LegalPassGeoPassAdapter;
 }
 
@@ -31,7 +33,11 @@ export function createLegalPassVerdictPack(
   input: CreateLegalPassVerdictPackInput,
 ): LegalPassReport {
   const jurisdictions = input.jurisdictions ?? ["AU", "EU", "US-CA"];
-  const hats = getPhaseOneLegalPassHats({ jurisdictions });
+  const hats = getPhaseOneLegalPassHats({
+    hat_ids: input.hat_ids,
+    jurisdictions,
+  });
+  assertPhaseOneHats(hats, jurisdictions);
   const report = {
     target: input.target,
     generated_at: input.generated_at ?? new Date().toISOString(),
@@ -59,10 +65,12 @@ export function createFixtureLegalPassReport(
   input: CreateFixtureLegalPassReportInput,
 ): LegalPassReport {
   const jurisdictions = input.jurisdictions ?? ["AU", "EU", "US-CA"];
-  const documents = input.documents.map((document) =>
-    LegalPassFixtureDocumentSchema.parse(document),
-  );
-  const hats = getPhaseOneLegalPassHats({ jurisdictions });
+  const documents = input.documents.map(parsePublicFixtureDocument);
+  const hats = getPhaseOneLegalPassHats({
+    hat_ids: input.hat_ids,
+    jurisdictions,
+  });
+  assertPhaseOneHats(hats, jurisdictions);
   const hatResults = hats.map((hat) => evaluateHatAgainstFixtures(hat, documents));
   const overall_score = Math.round(
     hatResults.reduce((total, result) => total + result.score, 0) / hatResults.length,
@@ -83,11 +91,34 @@ export function createFixtureLegalPassReport(
     },
     disclaimers: [ISSUE_SPOTTER_DISCLAIMER],
     notes: [
-      "Fixture-only LegalPass report. Findings are deterministic text signals and require human practitioner review before action.",
+      "Fixture-only LegalPass report. Findings are deterministic text signals and may warrant human practitioner review before action.",
     ],
   };
 
   return LegalPassReportSchema.parse(report);
+}
+
+function parsePublicFixtureDocument(
+  document: LegalPassFixtureDocumentInput,
+): LegalPassFixtureDocument {
+  const parsed = LegalPassFixtureDocumentSchema.parse(document);
+  if (parsed.public_only !== true) {
+    throw new Error(
+      "LegalPass fixture reports require public_only documents; private uploads need a later guarded ingestion path",
+    );
+  }
+
+  return parsed;
+}
+
+function assertPhaseOneHats(
+  hats: LegalPassHatDefinition[],
+  jurisdictions: JurisdictionCode[],
+): void {
+  if (hats.length > 0) return;
+  throw new Error(
+    `LegalPass requires at least one phase-one hat for jurisdictions: ${jurisdictions.join(", ")}`,
+  );
 }
 
 function createPlanOnlyHatResult(hat: LegalPassHatDefinition): LegalPassHatResult {
@@ -113,6 +144,7 @@ function evaluateHatAgainstFixtures(
   const searchableText = normalizeText(
     relevantDocuments.map((document) => document.text).join(" "),
   );
+  const evidence = evidenceForHat(hat, relevantDocuments);
   const findings = hat.checks.flatMap((check) => {
     const matchedTerms = check.fixture_terms.filter((term) =>
       searchableText.includes(normalizeText(term)),
@@ -130,12 +162,7 @@ function evaluateHatAgainstFixtures(
         title: `${check.label} fixture signal missing`,
         summary:
           "The provided public fixture text did not include the configured issue-spotting signal.",
-        evidence: relevantDocuments.map((document) => ({
-          kind: "fixture" as const,
-          label: document.title,
-          source_url: document.source_url,
-          summary: `Checked public fixture document ${document.id}.`,
-        })),
+        evidence,
         issue_spotting_note: check.issue_spotting_note,
         practitioner_review_flag: check.severity === "critical" || check.severity === "high",
       },
@@ -155,6 +182,29 @@ function evaluateHatAgainstFixtures(
       `Evaluated ${relevantDocuments.length} public fixture document(s) for ${hat.label}.`,
     ],
   };
+}
+
+function evidenceForHat(
+  hat: LegalPassHatDefinition,
+  relevantDocuments: LegalPassFixtureDocument[],
+): LegalPassHatResult["findings"][number]["evidence"] {
+  if (relevantDocuments.length === 0) {
+    return [
+      {
+        kind: "fixture",
+        label: `${hat.label} fixture coverage`,
+        summary:
+          "No public fixture document matched the configured document kinds for this hat.",
+      },
+    ];
+  }
+
+  return relevantDocuments.map((document) => ({
+    kind: "fixture" as const,
+    label: document.title,
+    source_url: document.source_url,
+    summary: `Checked public fixture document ${document.id}.`,
+  }));
 }
 
 function toHatVerdict(score: number, findingCount: number): LegalPassHatResult["verdict"] {

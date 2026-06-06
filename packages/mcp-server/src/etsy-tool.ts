@@ -4,6 +4,10 @@
 // Base URL: https://openapi.etsy.com/v3
 // No external dependencies - native fetch only.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const ETSY_BASE = "https://openapi.etsy.com/v3";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -14,9 +18,9 @@ interface EtsyConfig {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function requireConfig(args: Record<string, unknown>): EtsyConfig | { error: string } {
-  const api_key = String(args.api_key ?? "").trim();
-  if (!api_key) return { error: "api_key is required (Etsy API key)." };
+function requireConfig(args: Record<string, unknown>): EtsyConfig | NotConnectedResult {
+  const api_key = requireCredential("etsy", args);
+  if (typeof api_key !== "string") return api_key;
   return { api_key };
 }
 
@@ -32,6 +36,9 @@ async function etsyFetch(
     }
   }
 
+  const ETSY_TIMEOUT_MS = Number(process.env.ETSY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ETSY_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
@@ -39,9 +46,15 @@ async function etsyFetch(
         "x-api-key": cfg.api_key,
         "Accept":    "application/json",
       },
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Etsy request timed out after ${ETSY_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 429) {
@@ -73,7 +86,7 @@ export async function etsySearchListings(args: Record<string, unknown>): Promise
   const keywords = String(args.keywords ?? "").trim();
   if (!keywords) return { error: "keywords is required for searching listings." };
 
-  return etsyFetch(cfg, "/application/listings/active", {
+  const __res = await etsyFetch(cfg, "/application/listings/active", {
     keywords,
     limit:          args.limit          ? Number(args.limit)          : 25,
     offset:         args.offset         ? Number(args.offset)         : undefined,
@@ -83,6 +96,11 @@ export async function etsySearchListings(args: Record<string, unknown>): Promise
     max_price:      args.max_price      ? Number(args.max_price)      : undefined,
     taxonomy_id:    args.taxonomy_id    ? Number(args.taxonomy_id)    : undefined,
     location:       args.location       ? String(args.location)       : undefined,
+  }) as Record<string, unknown>;
+  return stampMeta(__res, {
+    source: "Etsy",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["Use etsy_get_listing with a result id, or etsy_get_shop for the seller."],
   });
 }
 

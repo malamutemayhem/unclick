@@ -31,29 +31,50 @@ interface GeoResult {
   admin1?: string;
 }
 
+type ResolvedLocation = {
+  latitude: number;
+  longitude: number;
+  location_name: string;
+  defaults_used: string[];
+};
+
+function collectDefaults(args: Record<string, unknown>): string[] {
+  return Array.isArray(args.__unclick_memory_defaults)
+    ? args.__unclick_memory_defaults.filter((v): v is string => typeof v === "string")
+    : [];
+}
+
 async function resolveLocation(
   args: Record<string, unknown>
-): Promise<{ latitude: number; longitude: number; location_name: string } | { error: string }> {
+): Promise<ResolvedLocation | { error: string }> {
+  const defaultsUsed = collectDefaults(args);
+
   if (args.latitude !== undefined && args.longitude !== undefined) {
     return {
       latitude: Number(args.latitude),
       longitude: Number(args.longitude),
       location_name: `${args.latitude}, ${args.longitude}`,
+      defaults_used: defaultsUsed,
     };
   }
 
-  const city = String(args.city ?? "").trim();
+  let city = String(args.city ?? "").trim();
   if (!city) {
-    return { error: "Provide either (latitude + longitude) or city." };
+    // Memory default: WEATHER_HOME_CITY lets an agent ask for "the weather" with
+    // no args and get the user's home city, the same way PTV fills a home stop.
+    const home = String(process.env.WEATHER_HOME_CITY ?? "").trim();
+    if (home) {
+      city = home;
+      defaultsUsed.push("WEATHER_HOME_CITY");
+    }
+  }
+  if (!city) {
+    return { error: "Provide either (latitude + longitude) or city, or set WEATHER_HOME_CITY." };
   }
 
-  const res = await fetch(
-    `${GEO_BASE}/search?name=${encodeURIComponent(city)}&count=1&format=json`,
-    { headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" } }
-  );
-  if (!res.ok) throw new Error(`Geocoding API HTTP ${res.status}`);
-
-  const data = await res.json() as { results?: GeoResult[] };
+  const data = await omFetch(
+    `${GEO_BASE}/search?name=${encodeURIComponent(city)}&count=1&format=json`
+  ) as { results?: GeoResult[] };
   const place = data.results?.[0];
   if (!place) return { error: `City "${city}" not found.` };
 
@@ -61,19 +82,70 @@ async function resolveLocation(
     latitude: place.latitude,
     longitude: place.longitude,
     location_name: [place.name, place.admin1, place.country].filter(Boolean).join(", "),
+    defaults_used: defaultsUsed,
   };
 }
 
-async function weatherFetch(params: URLSearchParams): Promise<unknown> {
-  const url = `${WEATHER_BASE}/forecast?${params}`;
-  const res = await fetch(url, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
-  });
+// ─── Smart layer (source/freshness/next-step meta) ─────────────────────────────
+// Mirrors the L5 reference pattern in ptv-tool.ts: every response is stamped with
+// where it came from and how fresh it is, and the agent is handed its next call.
+
+const WEATHER_SOURCE = "Open-Meteo";
+
+const WEATHER_NEXT_STEPS: Record<string, string[]> = {
+  weather_current: ["Use weather_forecast for the multi-day outlook, or weather_hourly for the next 48 hours."],
+  weather_forecast: ["Use weather_hourly for hour-by-hour detail, or weather_current for conditions right now."],
+  weather_hourly: ["Use weather_forecast for the multi-day outlook."],
+};
+
+function addWeatherMeta(
+  result: Record<string, unknown>,
+  tool: keyof typeof WEATHER_NEXT_STEPS,
+  defaultsUsed: string[],
+): Record<string, unknown> {
+  return {
+    ...result,
+    unclick_meta: {
+      source: WEATHER_SOURCE,
+      fetched_at: new Date().toISOString(),
+      defaults_used: defaultsUsed,
+      next_steps: WEATHER_NEXT_STEPS[tool] ?? [],
+    },
+  };
+}
+
+const OPENMETEO_TIMEOUT_MS = Number(process.env.OPENMETEO_TIMEOUT_MS) || 10000;
+
+async function omFetch(url: string): Promise<unknown> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPENMETEO_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Open-Meteo request timed out after ${OPENMETEO_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Open-Meteo network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    throw new Error(`Open-Meteo rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Open-Meteo HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
   }
   return res.json() as Promise<unknown>;
+}
+
+async function weatherFetch(params: URLSearchParams): Promise<unknown> {
+  return omFetch(`${WEATHER_BASE}/forecast?${params}`);
 }
 
 // ─── weather_current ──────────────────────────────────────────────────────────
@@ -92,7 +164,7 @@ export async function weatherCurrent(args: Record<string, unknown>): Promise<unk
   const data = await weatherFetch(params) as Record<string, unknown>;
   const cw = data["current_weather"] as Record<string, unknown> | undefined;
 
-  return {
+  return addWeatherMeta({
     location: loc.location_name,
     latitude: loc.latitude,
     longitude: loc.longitude,
@@ -103,7 +175,7 @@ export async function weatherCurrent(args: Record<string, unknown>): Promise<unk
     weather_code: cw?.["weathercode"] ?? null,
     weather_description: WMO_CODES[Number(cw?.["weathercode"])] ?? "Unknown",
     is_day: cw?.["is_day"] === 1,
-  };
+  }, "weather_current", loc.defaults_used);
 }
 
 // ─── weather_forecast ────────────────────────────────────────────────────────
@@ -142,14 +214,14 @@ export async function weatherForecast(args: Record<string, unknown>): Promise<un
     weather_description: WMO_CODES[Number(daily?.["weathercode"]?.[i])] ?? "Unknown",
   }));
 
-  return {
+  return addWeatherMeta({
     location: loc.location_name,
     latitude: loc.latitude,
     longitude: loc.longitude,
     days: forecast.length,
     timezone: data["timezone"] ?? null,
     forecast,
-  };
+  }, "weather_forecast", loc.defaults_used);
 }
 
 // ─── weather_hourly ───────────────────────────────────────────────────────────
@@ -187,12 +259,12 @@ export async function weatherHourly(args: Record<string, unknown>): Promise<unkn
     weather_description: WMO_CODES[Number(hourly?.["weathercode"]?.[i])] ?? "Unknown",
   }));
 
-  return {
+  return addWeatherMeta({
     location: loc.location_name,
     latitude: loc.latitude,
     longitude: loc.longitude,
     timezone: data["timezone"] ?? null,
     hours: hours.length,
     hourly: hours,
-  };
+  }, "weather_hourly", loc.defaults_used);
 }

@@ -4,10 +4,6 @@ import Footer from "../components/Footer";
 import FadeIn from "../components/FadeIn";
 import { useCanonical } from "../hooks/use-canonical";
 import {
-  Code,
-  Search,
-  FileText,
-  Calendar,
   ArrowRight,
   Zap,
   Users,
@@ -20,43 +16,50 @@ import {
 
 const AGENT_PERSONAS = [
   {
-    title: "The Developer",
-    desc: "Specialist in code, architecture, and deployments. Has access to GitHub, build tools, linters, and deployment systems. Memory layer focused on technical decisions, code patterns, and system design.",
-    icon: Code,
+    title: "Captain / Chairman",
+    desc: "Owns the task, budget, and final synthesis. The Captain is a separate meta-member, so coordination never gets blurred with a specialist role.",
+    icon: Briefcase,
   },
   {
-    title: "The Researcher",
-    desc: "Expert at gathering and synthesizing information. Uses web search, news APIs, academic sources. Distills findings into Memory for the entire team to reference.",
-    icon: Search,
+    title: "Specialist Hats",
+    desc: "Researcher, writer, developer, legal, security, UX, and strategy hats bring focused opinions with scoped tools, memory, and permissions.",
+    icon: Users,
   },
   {
-    title: "The Writer",
-    desc: "Crafts polish and clarity. Handles content creation, document formatting, email drafting. Pulls context from Memory to maintain voice, style, and brand guidelines.",
-    icon: FileText,
+    title: "Tool Operators",
+    desc: "Agents can receive only the MCP tools and Passport access their role needs. The crew uses real connected tools, not broad shared credentials.",
+    icon: GitBranch,
   },
   {
-    title: "The Organiser",
-    desc: "Keeps the crew on track. Manages calendars, schedules, deadlines, and task coordination. Surfaces blockers and ensures the team moves in sync.",
-    icon: Calendar,
+    title: "Quality Reviewers",
+    desc: "XPass checks can review the work from the right angle, including TestPass, UIPass, UXPass, SecurityPass, CopyPass, LegalPass, and SlopPass.",
+    icon: Check,
   },
 ];
 
 const HOW_CREWS_WORK = [
   {
-    step: "Define",
-    title: "Create agent personas with specific tool access, memory layers, and role definitions",
+    step: "Frame",
+    title: "Choose a Council, launch stress test, creative studio, decision desk, or custom crew",
     icon: Briefcase,
   },
   {
-    step: "Coordinate",
-    title: "A lead agent delegates subtasks to specialists based on expertise",
+    step: "Deliberate",
+    title: "Specialist hats work in parallel, peer-review each other, and share only the useful memory",
     icon: Users,
   },
   {
-    step: "Deliver",
-    title: "Each agent works in parallel, sharing results through Memory",
+    step: "Prove",
+    title: "The Captain synthesises the answer, and XPass receipts show which checks actually ran",
     icon: Zap,
   },
+];
+
+const STARTER_TEMPLATES = [
+  "Business Council",
+  "Launch Stress Test",
+  "Creative Studio",
+  "Decision Desk",
 ];
 
 const COMPARISON = [
@@ -119,38 +122,38 @@ const Crews = () => {
         <div className="relative z-10 mx-auto max-w-3xl text-center">
           <FadeIn>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 backdrop-blur-sm">
-              <span className="font-mono text-xs font-medium text-primary">Coming Soon</span>
+              <span className="font-mono text-xs font-medium text-primary">Private Alpha</span>
             </div>
           </FadeIn>
 
           <FadeIn delay={0.05}>
             <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl md:text-6xl">
-              One task. Multiple specialists.{" "}
-              <span className="text-primary">Zero overhead.</span>
+              The multi-agent platform that{" "}
+              <span className="text-primary">doesn't require a developer.</span>
             </h1>
           </FadeIn>
 
           <FadeIn delay={0.1}>
             <p className="mt-4 text-lg text-body max-w-2xl mx-auto leading-relaxed">
-              UnClick Crews lets you define AI agent personas - each with their own tools, memory context, and expertise.
-              A developer, a researcher, a writer, an organiser. They collaborate through Claude's Agent Teams, powered by
-              UnClick's 178+ MCP tools.
+              UnClick Crews gives a Captain and specialist hats the right Memory, MCP tools, and Passport access for a job.
+              Crews coordinate the thinking. XPass checks the work. Together they turn multi-agent AI into a visible,
+              reviewable workflow.
             </p>
           </FadeIn>
 
           <FadeIn delay={0.2}>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
-                to="/pricing"
+                to="/admin/crews"
                 className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
               >
-                Join Waitlist
+                Open Crews
               </Link>
               <Link
-                to="/tools"
+                to="/dogfood"
                 className="rounded-lg border border-border/60 bg-card/40 px-6 py-2.5 text-sm font-medium text-heading backdrop-blur-sm transition-colors hover:bg-card/70"
               >
-                Explore Tools
+                View Dogfood Proof
               </Link>
             </div>
           </FadeIn>
@@ -165,9 +168,8 @@ const Crews = () => {
           </FadeIn>
           <FadeIn delay={0.1}>
             <p className="mt-4 text-lg text-body leading-relaxed">
-              One agent can't be an expert coder AND a thorough researcher AND a polished writer.
-              Context windows fill up. Specialisation gets diluted. You end up babysitting the AI
-              instead of the AI working for you.
+              One agent cannot be an expert coder, researcher, writer, reviewer, and risk officer at once.
+              Crews separates those jobs into explicit hats, then lets Memory carry the useful facts between them.
             </p>
           </FadeIn>
         </div>
@@ -181,7 +183,7 @@ const Crews = () => {
               Meet your crew
             </h2>
             <p className="text-center text-body max-w-xl mx-auto">
-              Each agent specializes in their domain, backed by dedicated tools and memory layers.
+              A Crew is a visible working group: a Captain, specialist hats, scoped tools, scoped credentials, and proof.
             </p>
           </FadeIn>
 
@@ -211,7 +213,7 @@ const Crews = () => {
               How Crews work
             </h2>
             <p className="text-center text-body max-w-xl mx-auto">
-              Three stages. One workflow. Maximum parallelization.
+              The live shape is Council first: clear task, independent opinions, peer review, then synthesis.
             </p>
           </FadeIn>
 
@@ -250,7 +252,7 @@ const Crews = () => {
                   <h3 className="text-sm font-semibold text-heading">Tools</h3>
                 </div>
                 <p className="text-xs text-body leading-relaxed">
-                  Each agent gets a curated subset of 178+ MCP tools. Developer gets GitHub and build tools. Writer gets CMS and formatting tools. No tool bloat, maximum focus.
+                  Each hat gets a curated tool set. Developer hats can receive repo tools, writer hats can receive content tools, and reviewers can receive XPass checks.
                 </p>
               </div>
             </FadeIn>
@@ -262,7 +264,7 @@ const Crews = () => {
                   <h3 className="text-sm font-semibold text-heading">Memory</h3>
                 </div>
                 <p className="text-xs text-body leading-relaxed">
-                  Shared business context plus per-agent working memory. Researchers store findings. Writers store brand guidelines. Developers store architecture decisions.
+                  Shared memory carries useful facts across the crew, while private working memory keeps raw role chatter separate until it matters.
                 </p>
               </div>
             </FadeIn>
@@ -274,7 +276,7 @@ const Crews = () => {
                   <h3 className="text-sm font-semibold text-heading">Passport</h3>
                 </div>
                 <p className="text-xs text-body leading-relaxed">
-                  Passport access is scoped per agent. Developer gets GitHub access. Writer gets CMS access. Organiser gets calendar access. No broad API key exposure.
+                  Passport access is scoped per hat. A security hat does not inherit a writer's CMS access, and a reviewer does not get broad deployment keys.
                 </p>
               </div>
             </FadeIn>
@@ -282,14 +284,41 @@ const Crews = () => {
             <FadeIn delay={0.2}>
               <div className="rounded-xl border border-border/60 bg-card/60 p-6 backdrop-blur-sm">
                 <div className="flex items-center gap-3 mb-3">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  <h3 className="text-sm font-semibold text-heading">The Organiser</h3>
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  <h3 className="text-sm font-semibold text-heading">XPass Receipts</h3>
                 </div>
                 <p className="text-xs text-body leading-relaxed">
-                  One dedicated agent manages the crew's calendar and task queue. Surfaces blockers. Synchronizes handoffs. Keeps everyone moving.
+                  Crews is the coordination layer. XPass is the proof layer. A crew can ask for the right Pass checks before work is treated as ready.
                 </p>
               </div>
             </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* Starter Templates */}
+      <section className="px-6 py-16">
+        <div className="mx-auto max-w-4xl">
+          <FadeIn>
+            <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl mb-3">
+              Starter crews
+            </h2>
+            <p className="text-center text-body max-w-xl mx-auto">
+              Start with a proven council pattern, then tune the hats, tools, memory, and Passport scopes.
+            </p>
+          </FadeIn>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {STARTER_TEMPLATES.map((name, i) => (
+              <FadeIn key={name} delay={0.05 * i}>
+                <div className="rounded-xl border border-border/60 bg-card/60 p-5 backdrop-blur-sm">
+                  <p className="text-sm font-semibold text-heading">{name}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-body">
+                    Built for repeatable decisions with clear roles, independent judgement, and a final synthesis.
+                  </p>
+                </div>
+              </FadeIn>
+            ))}
           </div>
         </div>
       </section>
@@ -317,19 +346,19 @@ const Crews = () => {
                 <div>
                   <p className="font-semibold text-heading mb-2">CrewAI, AutoGen, LangGraph</p>
                   <ul className="space-y-1 text-body">
-                    <li>â¢ Mock tools (fake integration)</li>
-                    <li>â¢ Custom abstraction layers</li>
-                    <li>â¢ Limited credential mgmt</li>
-                    <li>â¢ Framework lock-in</li>
+                    <li>- Code-first setup</li>
+                    <li>- Custom abstraction layers</li>
+                    <li>- Credential scoping left to the app</li>
+                    <li>- Developer-owned runtime wiring</li>
                   </ul>
                 </div>
                 <div>
                   <p className="font-semibold text-heading mb-2">UnClick Crews</p>
                   <ul className="space-y-1 text-body">
-                    <li>â¢ Real MCP tools (genuine integration)</li>
-                    <li>â¢ No abstraction overhead</li>
-                    <li>â¢ Full credential scoping</li>
-                    <li>â¢ Open standards</li>
+                    <li>- Visual crew and council surface</li>
+                    <li>- Real MCP tools</li>
+                    <li>- Passport-scoped access</li>
+                    <li>- XPass proof receipts</li>
                   </ul>
                 </div>
               </div>
@@ -381,27 +410,27 @@ const Crews = () => {
         <div className="mx-auto max-w-2xl text-center">
           <FadeIn>
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Stop doing everything yourself.
+              Put the right hats in the room.
             </h2>
           </FadeIn>
           <FadeIn delay={0.1}>
             <p className="mt-3 text-body max-w-xl mx-auto">
-              Define your crew. Assign the work. Let them collaborate. The future of AI is multi-agent.
+              Define the crew, run the Council, and use XPass to prove the work before it ships.
             </p>
           </FadeIn>
           <FadeIn delay={0.2}>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
-                to="/pricing"
+                to="/admin/crews"
                 className="rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
               >
-                Join the Waitlist
+                Open Crews
               </Link>
               <Link
-                to="/tools"
+                to="/admin/checks"
                 className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-card/40 px-6 py-3 text-sm font-medium text-heading backdrop-blur-sm transition-colors hover:bg-card/70"
               >
-                Browse Tools <ArrowRight className="h-3.5 w-3.5" />
+                View XPass <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </FadeIn>

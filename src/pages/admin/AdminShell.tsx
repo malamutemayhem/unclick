@@ -5,7 +5,8 @@
  * a global Ctrl+K search bar in the header, user avatar/email, logout.
  * Content rendered via React Router <Outlet>.
  *
- * Dark palette: bg #0A0A0A, primary teal #61C1C4, secondary amber #E2B93B.
+ * Dark palette: design tokens via Tailwind (bg-background, text-primary, etc).
+ * Amber accents on the Admin submenu intentionally signal superuser surface.
  * Each surface is extractable as a native app later.
  */
 
@@ -41,6 +42,8 @@ import {
   PenSquare,
   ShieldAlert,
   Users as UsersIcon,
+  Gauge,
+  ShieldHalf,
   HeartPulse,
   ShieldCheck,
   ScrollText,
@@ -57,7 +60,9 @@ import {
   LockKeyhole,
   Tags,
   FileStack,
+  FileCode2,
   SlidersHorizontal,
+  Trophy,
 } from "lucide-react";
 
 function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
@@ -74,8 +79,8 @@ function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
           isActive
-            ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-            : "text-[#888] hover:bg-white/[0.04] hover:text-[#ccc]"
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
         }`
       }
     >
@@ -116,13 +121,139 @@ function SeatsCascadeIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 const AUTOPILOT_LINKS = [
+  { path: "/admin/autopilot/expressbuild", label: "DraftRoom", icon: FileCode2 },
   { path: "/admin/boardroom", label: "Boardroom", icon: MessagesSquare },
   { path: "/admin/jobs", label: "Jobs", icon: ListTodo },
-  { path: "/admin/checks", label: "XPass", icon: ClipboardCheck },
+  { path: "/admin/checks", label: "XPass", icon: ClipboardCheck, hasChildren: true },
+  { path: "/admin/xgate", label: "XGate", icon: ShieldHalf, hasChildren: true },
   { path: "/admin/projects", label: "Projects", icon: FolderKanban },
   { path: "/admin/ledger", label: "Ledger", icon: ReceiptText },
   { path: "/admin/workers", label: "Workers", icon: Bot },
 ] as const;
+
+const XPASS_LINKS = [
+  { path: "/admin/checks/testpass", label: "TestPass" },
+  { path: "/admin/checks/uipass", label: "UIPass" },
+  { path: "/admin/checks/uxpass", label: "UXPass" },
+  { path: "/admin/checks/securitypass", label: "SecurityPass" },
+  { path: "/admin/checks/copypass", label: "CopyPass" },
+  { path: "/admin/checks/fidelitypass", label: "FidelityPass" },
+  { path: "/admin/checks/legalpass", label: "LegalPass" },
+  { path: "/admin/checks/sloppass", label: "SlopPass" },
+  { path: "/admin/checks/commonsensepass", label: "CommonSensePass" },
+  { path: "/admin/checks/seopass", label: "SEOPass" },
+  { path: "/admin/checks/geopass", label: "GEOPass" },
+  { path: "/admin/checks/flowpass", label: "FlowPass" },
+  { path: "/admin/checks/rotatepass", label: "RotatePass" },
+  { path: "/admin/checks/wakepass", label: "WakePass" },
+  { path: "/admin/checks/compliancepass", label: "CompliancePass" },
+] as const;
+
+// XGate is the pre-execution bookend twin of XPass: XPass proves what happened
+// (after), XGate decides what is allowed (before). Its members are the gates.
+// The gate sub-routes share the single XGate page for now (filtered by hash);
+// they can split into their own pages later, mirroring XPass.
+const XGATE_LINKS = [
+  { path: "/admin/xgate#commandgate", label: "CommandGate" },
+  { path: "/admin/xgate#gitgate", label: "GitGate" },
+  { path: "/admin/xgate#datagate", label: "DataGate" },
+  { path: "/admin/xgate#secretgate", label: "SecretGate" },
+  { path: "/admin/xgate#trendslopgate", label: "TrendSlopGate" },
+  { path: "/admin/xgate#shipgate", label: "ShipGate" },
+  { path: "/admin/xgate#scopegate", label: "ScopeGate" },
+  { path: "/admin/xgate#spendgate", label: "SpendGate" },
+  { path: "/admin/xgate#killgate", label: "KillGate" },
+] as const;
+
+function XPassNavItem({ onClick }: { onClick?: () => void }) {
+  const location = useLocation();
+  const isXPass = location.pathname === "/admin/checks" || location.pathname.startsWith("/admin/checks/");
+
+  return (
+    <div>
+      <NavLink
+        to="/admin/checks"
+        onClick={onClick}
+        className={() =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isXPass
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <ClipboardCheck className="h-4 w-4 shrink-0" />
+        <span className="flex-1">XPass</span>
+        {isXPass
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
+      {isXPass && (
+        <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
+          {XPASS_LINKS.map(({ path, label }) => {
+            const active = location.pathname === path;
+
+            return (
+              <Link
+                key={path}
+                to={path}
+                onClick={onClick}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-card/40 hover:text-body"
+                }`}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function XGateNavItem({ onClick }: { onClick?: () => void }) {
+  const location = useLocation();
+  const isXGate = location.pathname === "/admin/xgate" || location.pathname.startsWith("/admin/xgate");
+
+  return (
+    <div>
+      <NavLink
+        to="/admin/xgate"
+        onClick={onClick}
+        className={() =>
+          `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            isXGate
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
+          }`
+        }
+      >
+        <ShieldHalf className="h-4 w-4 shrink-0" />
+        <span className="flex-1">XGate</span>
+        {isXGate
+          ? <ChevronDown className="h-3 w-3 shrink-0" />
+          : <ChevronRight className="h-3 w-3 shrink-0" />}
+      </NavLink>
+      {isXGate && (
+        <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
+          {XGATE_LINKS.map(({ path, label }) => (
+            <Link
+              key={path}
+              to={path}
+              onClick={onClick}
+              className="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-card/40 hover:text-body"
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
   const location = useLocation();
@@ -130,19 +261,27 @@ function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
     AUTOPILOT_LINKS.some((item) => location.pathname.startsWith(item.path));
 
   return (
-    <div className="rounded-lg border border-[#61C1C4]/15 bg-[#61C1C4]/[0.03] p-1">
+    <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-1">
       <SurfaceLink path="/admin/autopilot" label="AutoPilot" icon={Plane} onClick={onLinkClick} />
       {open && (
-        <div className="mt-1 space-y-0.5 border-l border-[#61C1C4]/20 pl-3">
-          {AUTOPILOT_LINKS.map((item) => (
-            <SurfaceLink
-              key={item.path}
-              path={item.path}
-              label={item.label}
-              icon={item.icon}
-              onClick={onLinkClick}
-            />
-          ))}
+        <div className="mt-1 space-y-0.5 border-l border-primary/20 pl-3">
+          {AUTOPILOT_LINKS.map((item) => {
+            if (item.hasChildren && item.path === "/admin/checks") {
+              return <XPassNavItem key={item.path} onClick={onLinkClick} />;
+            }
+            if (item.hasChildren && item.path === "/admin/xgate") {
+              return <XGateNavItem key={item.path} onClick={onLinkClick} />;
+            }
+            return (
+              <SurfaceLink
+                key={item.path}
+                path={item.path}
+                label={item.label}
+                icon={item.icon}
+                onClick={onLinkClick}
+              />
+            );
+          })}
         </div>
       )}
     </div>
@@ -158,6 +297,8 @@ const ADMIN_SUBMENU = [
   { path: "/admin/moderation",    label: "Marketplace Moderation", icon: ShieldCheck },
   { path: "/admin/audit-log",     label: "Audit Log",             icon: ScrollText  },
   { path: "/admin/brainmap",      label: "Ecosystem Brainmap",    icon: Sparkles    },
+  { path: "/admin/benchmarks",    label: "Benchmarks",            icon: Trophy      },
+  { path: "/admin/truth-rate",    label: "Truth Rate",            icon: Gauge       },
 ] as const;
 
 function AdminSubmenu({ onLinkClick }: { onLinkClick?: () => void }) {
@@ -228,8 +369,8 @@ function MemoryNavItem({ onClick }: { onClick?: () => void }) {
         className={({ isActive }) =>
           `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
             isActive
-              ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-              : "text-[#888] hover:bg-white/[0.04] hover:text-[#ccc]"
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-card/40 hover:text-foreground"
           }`
         }
       >
@@ -248,8 +389,8 @@ function MemoryNavItem({ onClick }: { onClick?: () => void }) {
               onClick={onClick}
               className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 activeTab === id
-                  ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-                  : "text-[#666] hover:bg-white/[0.04] hover:text-[#aaa]"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-card/40 hover:text-body"
               }`}
             >
               <Icon className="h-3 w-3 shrink-0" />
@@ -277,8 +418,8 @@ function SeatsNavItem({ onClick }: { onClick?: () => void }) {
             onClick={onClick}
             className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
               heartbeatActive
-                ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-                : "text-[#666] hover:bg-white/[0.04] hover:text-[#aaa]"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-card/40 hover:text-body"
             }`}
           >
             <HeartPulse className="h-3 w-3 shrink-0" />
@@ -308,8 +449,8 @@ function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
             onClick={onClick}
             className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
               storyActive
-                ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-                : "text-[#666] hover:bg-white/[0.04] hover:text-[#aaa]"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-card/40 hover:text-body"
             }`}
           >
             <BookOpen className="h-3 w-3 shrink-0" />
@@ -320,8 +461,8 @@ function OrchestratorNavItem({ onClick }: { onClick?: () => void }) {
             onClick={onClick}
             className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
               timelineActive
-                ? "bg-[#61C1C4]/10 text-[#61C1C4]"
-                : "text-[#666] hover:bg-white/[0.04] hover:text-[#aaa]"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-card/40 hover:text-body"
             }`}
           >
             <Clock className="h-3 w-3 shrink-0" />
@@ -348,7 +489,8 @@ function SidebarNav({
       <SurfaceLink path="/admin/you"      label="You"                      icon={User}    onClick={onLinkClick} />
       <MemoryNavItem onClick={onLinkClick} />
       <OrchestratorNavItem onClick={onLinkClick} />
-      <SurfaceLink path="/admin/tools"    label="Apps"                     icon={AppWindow} onClick={onLinkClick} />
+      <SurfaceLink path="/admin/apps"     label="Apps"                     icon={AppWindow} onClick={onLinkClick} />
+      <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
       <SurfaceLink path="/admin/jobsmith" label="Jobsmith"                 icon={PenSquare} onClick={onLinkClick} />
       <SurfaceLink path="/admin/keychain" label="Passport"                 icon={KeyRound} onClick={onLinkClick} />
       <SeatsNavItem onClick={onLinkClick} />
@@ -414,9 +556,9 @@ export default function AdminShell() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0A0A0A] text-[#ccc]">
-      {/* ── Desktop sidebar (md+) ──────────────────────────── */}
-      <aside className="fixed left-0 z-40 hidden w-56 flex-col border-r border-white/[0.06] bg-[#0A0A0A] md:flex" style={{ top: "var(--bbn-h, 0px)", bottom: 0 }}>
+    <div className="flex min-h-screen bg-background text-foreground">
+      {/* ── Desktop sidebar (md+) ──────────────────── */}
+      <aside className="fixed left-0 z-40 hidden w-56 flex-col border-r border-border/40 bg-background md:flex" style={{ top: "var(--bbn-h, 0px)", bottom: 0 }}>
         <div className="flex h-14 items-center px-5">
           <Link to="/">
             <img
@@ -432,29 +574,29 @@ export default function AdminShell() {
           <SidebarNav isAdmin={isAdmin} signalsUnread={signalsUnread} />
           <a
             href="/memory"
-            className="text-white/30 hover:text-white/50 text-xs block px-3 py-2"
+            className="text-muted-foreground/60 hover:text-muted-foreground text-xs block px-3 py-2"
           >
             How it works →
           </a>
         </nav>
 
-        <div className="border-t border-white/[0.06] p-3">
+        <div className="border-t border-border/40 p-3">
           <BugReportButton />
         </div>
 
-        <div className="border-t border-white/[0.06] p-4">
+        <div className="border-t border-border/40 p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#61C1C4]/10 text-[#61C1C4]">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
               <User className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium text-[#ccc]">
+              <p className="truncate text-xs font-medium text-foreground">
                 {user?.email ?? "Unknown"}
               </p>
             </div>
             <button
               onClick={handleLogout}
-              className="rounded-md p-1.5 text-[#666] transition-colors hover:bg-white/[0.04] hover:text-[#ccc]"
+              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-card/40 hover:text-foreground"
               title="Sign out"
             >
               <LogOut className="h-4 w-4" />
@@ -463,8 +605,8 @@ export default function AdminShell() {
         </div>
       </aside>
 
-      {/* ── Desktop top bar (md+) with global search ───────────── */}
-      <header className="fixed inset-x-0 z-30 hidden h-14 items-center border-b border-white/[0.06] bg-[#0A0A0A] md:flex md:pl-56" style={{ top: "var(--bbn-h, 0px)" }}>
+      {/* ── Desktop top bar (md+) with global search ─────────── */}
+      <header className="fixed inset-x-0 z-30 hidden h-14 items-center border-b border-border/40 bg-background md:flex md:pl-56" style={{ top: "var(--bbn-h, 0px)" }}>
         <div className="flex flex-1 items-center gap-3 px-4 lg:px-8">
           <div className="flex-1">
             <AdminSearchBar />
@@ -473,8 +615,8 @@ export default function AdminShell() {
         </div>
       </header>
 
-      {/* ── Mobile/tablet top bar (<md) ────────────────────── */}
-      <header className="fixed inset-x-0 z-40 flex h-14 items-center justify-between border-b border-white/[0.06] bg-[#0A0A0A] px-4 md:hidden" style={{ top: "var(--bbn-h, 0px)" }}>
+      {/* ── Mobile/tablet top bar (<md) ────────────────── */}
+      <header className="fixed inset-x-0 z-40 flex h-14 items-center justify-between border-b border-border/40 bg-background px-4 md:hidden" style={{ top: "var(--bbn-h, 0px)" }}>
         <Link to="/">
           <img
             src="/logo-wordmark.svg"
@@ -486,14 +628,14 @@ export default function AdminShell() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleLogout}
-            className="rounded-md p-2 text-[#666] hover:text-[#ccc]"
+            className="rounded-md p-2 text-muted-foreground hover:text-foreground"
             title="Sign out"
           >
             <LogOut className="h-4 w-4" />
           </button>
           <button
             onClick={() => setMobileNavOpen((v) => !v)}
-            className="rounded-md p-2 text-[#888] hover:text-[#ccc]"
+            className="rounded-md p-2 text-muted-foreground hover:text-foreground"
           >
             {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -502,7 +644,7 @@ export default function AdminShell() {
 
       {/* Mobile nav drawer */}
       {mobileNavOpen && (
-        <div className="fixed inset-x-0 z-30 border-b border-white/[0.06] bg-[#0A0A0A] p-3 md:hidden" style={{ top: "calc(var(--bbn-h, 0px) + 56px)" }}>
+        <div className="fixed inset-x-0 z-30 border-b border-border/40 bg-background p-3 md:hidden" style={{ top: "calc(var(--bbn-h, 0px) + 56px)" }}>
           <div className="mb-3">
             <AdminSearchBar />
           </div>
@@ -513,18 +655,18 @@ export default function AdminShell() {
               onLinkClick={() => setMobileNavOpen(false)}
             />
           </nav>
-          <div className="mt-3 border-t border-white/[0.06] pt-3">
+          <div className="mt-3 border-t border-border/40 pt-3">
             <BugReportButton />
           </div>
-          <div className="mt-2 border-t border-white/[0.06] pt-2">
-            <p className="truncate px-3 text-xs text-[#666]">
+          <div className="mt-2 border-t border-border/40 pt-2">
+            <p className="truncate px-3 text-xs text-muted-foreground">
               {user?.email ?? "Unknown"}
             </p>
           </div>
         </div>
       )}
 
-      {/* ── Main content ────────────────────────────────── */}
+      {/* ── Main content ─────────────────────────── */}
       <main className="min-h-screen flex-1 md:ml-56" style={{ paddingTop: "calc(var(--bbn-h, 0px) + 56px)" }}>
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
           <Outlet />

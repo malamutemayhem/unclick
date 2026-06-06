@@ -136,6 +136,24 @@ describe("orchestrator context", () => {
           created_at: "2026-05-09T10:46:00.000Z",
         },
       ],
+      autopilotEvents: [
+        {
+          event_type: "claim",
+          actor_agent_id: "github-action-queuepush",
+          ref_kind: "todo",
+          ref_id: "todo-1",
+          payload: { source: "wakepass" },
+          created_at: "2026-05-09T10:33:00.000Z",
+        },
+        {
+          event_type: "merge_decision",
+          actor_agent_id: "chatgpt-codex-seat",
+          ref_kind: "pr",
+          ref_id: "700",
+          payload: { trigger_source: "operator_chat" },
+          created_at: "2026-05-09T10:52:00.000Z",
+        },
+      ],
     });
 
     expect(context.version).toBe("orchestrator-context-v1");
@@ -147,6 +165,16 @@ describe("orchestrator context", () => {
     expect(context.current_state_card.active_jobs).toBe(1);
     expect(context.current_state_card.active_seat_count).toBe(1);
     expect(context.current_state_card.blocker_count).toBe(1);
+    expect(context.current_state_card.live_sources.autopilot_events).toBe(2);
+    expect(context.current_state_card.zero_touch_scoreboard).toMatchObject({
+      events_scanned: 2,
+      total_refs: 2,
+      zero_touch_refs: 1,
+      human_touched_refs: 1,
+      human_touch_count: 1,
+      top_human_touch_reason: "trigger_source:operator_chat",
+    });
+    expect(context.current_state_card.zero_touch_scoreboard.summary).toContain("zero-touch refs");
     expect(context.current_state_card.next_actions[0]).toContain("Orchestrator context layer");
     expect(context.profile_cards.find((profile) => profile.agent_id === "human-chris")?.role).toBe("human");
     expect(context.profile_cards.find((profile) => profile.agent_id === "chatgpt-codex-seat")?.freshness_label).toBe("Live");
@@ -163,6 +191,132 @@ describe("orchestrator context", () => {
     expect(context.rolling_snapshot.active_jobs[0].source_id).toBe("todo-1");
     expect(context.rolling_snapshot.promoted_decisions.some((item) => item.source_id === "msg-user")).toBe(true);
     expect(context.rolling_snapshot.source_pointers.some((pointer) => pointer.source_id === "todo-1")).toBe(true);
+  });
+
+  it("makes the harness card red when open Boardroom work has no fresh owner", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-19T15:45:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [
+        {
+          id: "todo-open",
+          title: "HarnessKit queue truth",
+          description: "Build proof gates and queue truth.",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "orchestrator",
+          assigned_to_agent_id: null,
+          created_at: "2026-05-19T15:00:00.000Z",
+          updated_at: "2026-05-19T15:00:00.000Z",
+        },
+      ],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.current_state_card.active_jobs).toBe(0);
+    expect(context.current_state_card.queued_todo_count).toBe(1);
+    expect(context.current_state_card.health_verdict.verdict).toBe("BLOCKER");
+    expect(context.current_state_card.health_verdict.reason).toContain("queued");
+    expect(context.current_state_card.harness_card.queue_state).toBe("needs_claim");
+    expect(context.current_state_card.harness_card.gate_status).toBe("red");
+    expect(context.current_state_card.harness_card.gate_reason).toContain("no fresh active owner");
+    expect(context.current_state_card.harness_card.queue_truth).toContain("red, not healthy");
+    expect(context.rolling_snapshot.summary).toContain("0 fresh active jobs, 1 queued job needing claim");
+    expect(context.rolling_snapshot.summary).not.toContain("1 active job");
+    expect(context.seat_handshake.active_decision).toContain("Claim current priority queued job");
+    expect(context.seat_handshake.active_job).toContain("Queued job needs claim");
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "DONE, 100%, green chips, and proof badges are hints only until proof is observable",
+    );
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
+    );
+    expect(context.current_state_card.harness_card.readiness_audit).toMatchObject({
+      status: "blocked",
+      score: 78,
+    });
+    expect(context.current_state_card.harness_card.readiness_audit.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "source_of_truth",
+          status: "pass",
+          proof: "source_of_truth=Boardroom Jobs",
+        }),
+        expect.objectContaining({
+          key: "owner",
+          status: "fail",
+          action: "Claim one scoped job or post the exact blocker.",
+        }),
+        expect.objectContaining({
+          key: "next_checkin",
+          status: "fail",
+          action: "Claim with ETA before starting.",
+        }),
+      ]),
+    );
+    expect(context.current_state_card.harness_card.copyroom_rule).toContain("copy receipt");
+    expect(context.current_state_card.harness_card.test_runner_rule).toContain("Test-only runner packets");
+  });
+
+  it("keeps open backlog out of rolling snapshot active jobs", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-22T03:55:00.000Z",
+      profiles: [
+        {
+          agent_id: "fresh-builder",
+          display_name: "Fresh Builder",
+          user_agent_hint: "codex-desktop",
+          last_seen_at: "2026-05-22T03:54:00.000Z",
+        },
+      ],
+      messages: [],
+      todos: [
+        {
+          id: "todo-open",
+          title: "JobSmith application manager",
+          description: "Open urgent backlog that should stay in next actions, not active work.",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "stale-seat",
+          assigned_to_agent_id: null,
+          created_at: "2026-05-19T10:44:00.000Z",
+          updated_at: "2026-05-19T10:44:00.000Z",
+        },
+        {
+          id: "todo-active",
+          title: "Proof Ledger v2",
+          description: "Fresh in-progress active work.",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: "fresh-builder",
+          created_at: "2026-05-18T09:41:00.000Z",
+          updated_at: "2026-05-22T03:15:00.000Z",
+        },
+      ],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.current_state_card.active_jobs).toBe(1);
+    expect(context.current_state_card.queued_todo_count).toBe(1);
+    expect(context.current_state_card.next_actions.join(" ")).toContain("JobSmith application manager");
+    expect(context.rolling_snapshot.active_jobs.map((job) => job.source_id)).toEqual(["todo-active"]);
+    expect(context.rolling_snapshot.active_jobs.map((job) => job.source_id)).not.toContain("todo-open");
+    expect(context.seat_handshake.active_job).toContain("Proof Ledger v2");
+    expect(context.seat_handshake.active_job).not.toContain("Queued job needs claim");
   });
 
   it("adds human operator timezone context to compact handoffs", () => {
@@ -202,6 +356,59 @@ describe("orchestrator context", () => {
     expect(context.human_operator_time?.summary).toContain("manual override");
     expect(context.seat_handshake.next_prompt).toContain("Human operator local time");
     expect(context.seat_handshake.next_prompt).toContain("Australia/Sydney");
+  });
+
+  it("surfaces the operator ai_style directive into the seat handoff prompt", () => {
+    const directive =
+      "Operator AI style, always honor unless overridden in-session: keep answers short; explain simply; use bullet points; no emoji.";
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-10T01:00:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [
+        {
+          id: "bc-ai-style",
+          category: "preference",
+          key: "ai_style",
+          value: {
+            directive,
+            response_length: "short",
+            updated_at: "2026-05-10T00:50:00.000Z",
+          },
+          priority: 99,
+          updated_at: "2026-05-10T00:50:00.000Z",
+        },
+      ],
+      conversationTurns: [],
+    });
+
+    expect(context.operator_ai_style?.directive).toBe(directive);
+    expect(context.seat_handshake.next_prompt).toContain(directive);
+  });
+
+  it("omits the ai_style line from the handoff prompt when no preference is set", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-10T01:00:00.000Z",
+      profiles: [],
+      messages: [],
+      todos: [],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.operator_ai_style).toBeNull();
+    expect(context.seat_handshake.next_prompt).toContain("Use this compact handoff. Orchestrator");
   });
 
   it("labels profile-card check-in freshness for AI seats", () => {
@@ -458,6 +665,61 @@ describe("orchestrator context", () => {
     expect(activeBlockerIds).toEqual(["dispatch-real-wakepass"]);
     expect(JSON.stringify(context.current_state_card.blockers)).toContain("current blocker");
     expect(JSON.stringify(context.current_state_card.blockers)).not.toContain("superseded_status_comment");
+  });
+
+  it("does not count missed-checkin dispatches after the same seat checked in again", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-21T12:50:00.000Z",
+      profiles: [
+        {
+          agent_id: "unclick-builder-tether-seat",
+          display_name: "Builder Tether",
+          last_seen_at: "2026-05-21T12:49:08.568Z",
+        },
+      ],
+      messages: [],
+      todos: [
+        {
+          id: "todo-open-backlog",
+          title: "Keep backlog visible",
+          description: "Open work still needs a claim.",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "codex",
+          created_at: "2026-05-21T06:00:00.000Z",
+          updated_at: "2026-05-21T06:00:00.000Z",
+        },
+      ],
+      comments: [],
+      dispatches: [
+        {
+          dispatch_id: "dispatch-old-checkin",
+          source: "wakepass",
+          target_agent_id: "unclick-builder-tether-seat",
+          task_ref: "fishbowl-checkin:unclick-builder-tether-seat:2026-05-21T06:32:08.227Z",
+          status: "stale",
+          payload: {
+            wake_reason: "missed_next_checkin",
+            agent_id: "unclick-builder-tether-seat",
+          },
+          created_at: "2026-05-21T07:15:31.265Z",
+          updated_at: "2026-05-21T07:15:31.265Z",
+        },
+      ],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.continuity_events.find((event) => event.source_id === "dispatch-old-checkin")?.kind).toBe(
+      "blocker",
+    );
+    expect(context.current_state_card.active_todo_count).toBe(1);
+    expect(context.current_state_card.blocker_count).toBe(0);
+    expect(context.current_state_card.blockers).toHaveLength(0);
+    expect(context.rolling_snapshot.active_blockers).toHaveLength(0);
   });
 
   it("hides merged PR WakePass leased dispatches after ACK proof exists", () => {
@@ -890,8 +1152,9 @@ describe("orchestrator context", () => {
     });
 
     expect(context.rolling_snapshot.promoted_decisions).toHaveLength(0);
-    expect(context.seat_handshake.active_decision).toContain("Continue current priority job");
+    expect(context.seat_handshake.active_decision).toContain("Claim current priority queued job");
     expect(context.seat_handshake.active_decision).toContain("Orchestrator finish line proof");
+    expect(context.seat_handshake.active_job).toContain("Queued job needs claim");
     expect(context.seat_handshake.active_job).toContain("Orchestrator finish line proof");
     expect(context.seat_handshake.recent_proof).toContain("trusted fallback gate shipped");
     expect(context.seat_handshake.source_pointers.map((pointer) => pointer.source_id)).toEqual(
@@ -1396,5 +1659,154 @@ describe("computeActiveJobsCount (v9 definition)", () => {
     expect(context.response_bounds.continuity_events_available).toBe(8);
     expect(context.response_bounds.continuity_events_truncated).toBe(true);
     expect(context.rolling_snapshot.source_pointers.every((pointer) => pointer.source_id)).toBe(true);
+  });
+});
+
+describe("orchestrator truth reconciliation (Boardroom drift)", () => {
+  const emptySources = {
+    profiles: [],
+    messages: [],
+    comments: [],
+    dispatches: [],
+    signals: [],
+    sessions: [],
+    library: [],
+    businessContext: [],
+    conversationTurns: [],
+  };
+
+  it("flags drift when active_jobs=0 reads healthy while open Boardroom work is queued", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-19T15:45:00.000Z",
+      ...emptySources,
+      todos: [
+        {
+          id: "todo-open",
+          title: "Automation truth-source repair",
+          description: "Open urgent backlog with no fresh owner.",
+          status: "open",
+          priority: "urgent",
+          created_by_agent_id: "orchestrator",
+          assigned_to_agent_id: null,
+          created_at: "2026-05-19T15:00:00.000Z",
+          updated_at: "2026-05-19T15:00:00.000Z",
+        },
+      ],
+    });
+
+    const reconciliation = context.current_state_card.truth_reconciliation;
+    expect(context.current_state_card.active_jobs).toBe(0);
+    expect(context.current_state_card.queued_todo_count).toBe(1);
+    expect(reconciliation.authoritative_source).toBe("Boardroom Jobs");
+    expect(reconciliation.boardroom_open_count).toBe(1);
+    expect(reconciliation.boardroom_in_progress_count).toBe(0);
+    expect(reconciliation.boardroom_actionable_count).toBe(1);
+    expect(reconciliation.implied_health_reading).toBe("healthy_quiet");
+    expect(reconciliation.reconciled_state).toBe("needs_claim");
+    expect(reconciliation.drift_detected).toBe(true);
+    expect(reconciliation.reason_code).toBe("healthy_claim_contradicts_open_backlog");
+    expect(reconciliation.drift_reason).toContain("Boardroom is authoritative");
+    expect(reconciliation.drift_reason).toContain("not healthy");
+  });
+
+  it("flags drift when in_progress work has gone stale so active_jobs underreports it", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-22T03:55:00.000Z",
+      ...emptySources,
+      profiles: [
+        {
+          agent_id: "stale-seat",
+          display_name: "Stale Seat",
+          user_agent_hint: "codex-desktop",
+          last_seen_at: "2026-05-19T00:00:00.000Z",
+        },
+      ],
+      todos: [
+        {
+          id: "todo-stale-active",
+          title: "Proof Ledger v2",
+          description: "In_progress but the owner went quiet beyond the 24h window.",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: "stale-seat",
+          created_at: "2026-05-18T09:41:00.000Z",
+          updated_at: "2026-05-19T01:00:00.000Z",
+        },
+      ],
+    });
+
+    const reconciliation = context.current_state_card.truth_reconciliation;
+    expect(context.current_state_card.active_jobs).toBe(0);
+    expect(context.current_state_card.queued_todo_count).toBe(0);
+    expect(context.current_state_card.in_progress_todo_count).toBe(1);
+    expect(reconciliation.implied_health_reading).toBe("healthy_quiet");
+    expect(reconciliation.reconciled_state).toBe("needs_claim");
+    expect(reconciliation.drift_detected).toBe(true);
+    expect(reconciliation.reason_code).toBe("active_count_underreports_in_progress_backlog");
+    expect(reconciliation.drift_reason).toContain("stale in_progress");
+  });
+
+  it("reports no drift when fresh active work exists, even with open backlog", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-22T03:55:00.000Z",
+      ...emptySources,
+      profiles: [
+        {
+          agent_id: "fresh-builder",
+          display_name: "Fresh Builder",
+          user_agent_hint: "codex-desktop",
+          last_seen_at: "2026-05-22T03:54:00.000Z",
+        },
+      ],
+      todos: [
+        {
+          id: "todo-open",
+          title: "Queued backlog item",
+          description: "Open work waiting for claim.",
+          status: "open",
+          priority: "high",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: null,
+          created_at: "2026-05-19T10:44:00.000Z",
+          updated_at: "2026-05-19T10:44:00.000Z",
+        },
+        {
+          id: "todo-active",
+          title: "Fresh active slice",
+          description: "Fresh in-progress active work.",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "router",
+          assigned_to_agent_id: "fresh-builder",
+          created_at: "2026-05-18T09:41:00.000Z",
+          updated_at: "2026-05-22T03:15:00.000Z",
+        },
+      ],
+    });
+
+    const reconciliation = context.current_state_card.truth_reconciliation;
+    expect(context.current_state_card.active_jobs).toBe(1);
+    expect(reconciliation.implied_health_reading).toBe("active");
+    expect(reconciliation.reconciled_state).toBe("active_work");
+    expect(reconciliation.drift_detected).toBe(false);
+    expect(reconciliation.reason_code).toBe("no_drift_active");
+  });
+
+  it("reports no drift when Boardroom is genuinely quiet", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: "2026-05-22T03:55:00.000Z",
+      ...emptySources,
+      todos: [],
+    });
+
+    const reconciliation = context.current_state_card.truth_reconciliation;
+    expect(context.current_state_card.active_jobs).toBe(0);
+    expect(context.current_state_card.queued_todo_count).toBe(0);
+    expect(reconciliation.boardroom_actionable_count).toBe(0);
+    expect(reconciliation.implied_health_reading).toBe("healthy_quiet");
+    expect(reconciliation.reconciled_state).toBe("quiet");
+    expect(reconciliation.drift_detected).toBe(false);
+    expect(reconciliation.reason_code).toBe("no_drift_quiet");
   });
 });

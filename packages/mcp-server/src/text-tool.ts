@@ -61,18 +61,18 @@ export function transformText(args: Record<string, unknown>): unknown {
     snake_case: (s) =>
       s
         .replace(/([a-z])([A-Z])/g, "$1_$2")
-        .replace(/[\s\-]+/g, "_")
+        .replace(/[\s-]+/g, "_")
         .replace(/[^a-zA-Z0-9_]/g, "")
         .toLowerCase(),
     camel_case: (s) => {
-      const words = s.split(/[\s_\-]+/);
+      const words = s.split(/[\s_-]+/);
       return words[0].toLowerCase() + words.slice(1).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
     },
     kebab_case: (s) =>
       s
         .replace(/([a-z])([A-Z])/g, "$1-$2")
         .replace(/[\s_]+/g, "-")
-        .replace(/[^a-zA-Z0-9\-]/g, "")
+        .replace(/[^a-zA-Z0-9-]/g, "")
         .toLowerCase(),
     reverse: (s) => s.split("").reverse().join(""),
     remove_spaces: (s) => s.replace(/\s/g, ""),
@@ -98,7 +98,7 @@ export function extractEmails(args: Record<string, unknown>): unknown {
   const text = String(args.text ?? "");
   if (!text.trim()) return { error: "text is required." };
 
-  const emailRegex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
   const matches = text.match(emailRegex) ?? [];
   const unique = [...new Set(matches)];
 
@@ -133,7 +133,7 @@ export function extractPhoneNumbers(args: Record<string, unknown>): unknown {
   if (!text.trim()) return { error: "text is required." };
 
   // Matches AU mobile, landline, and international formats
-  const phoneRegex = /(?:\+?61|0)(?:\s?\d){8,9}|\+?[1-9]\d{1,3}[\s.\-]?\(?\d{1,4}\)?[\s.\-]?\d{1,4}[\s.\-]?\d{1,9}/g;
+  const phoneRegex = /(?:\+?61|0)(?:\s?\d){8,9}|\+?[1-9]\d{1,3}[\s.-]?\(?\d{1,4}\)?[\s.-]?\d{1,4}[\s.-]?\d{1,9}/g;
   const matches = text.match(phoneRegex) ?? [];
   const unique = [...new Set(matches.map((m) => m.trim()))];
 
@@ -148,7 +148,7 @@ export function extractPhoneNumbers(args: Record<string, unknown>): unknown {
 
 export function countOccurrences(args: Record<string, unknown>): unknown {
   const text = String(args.text ?? "");
-  const search = String(args.search_string ?? "");
+  const search = String((args.search ?? args.search_string) ?? "");
 
   if (!text) return { error: "text is required." };
   if (!search) return { error: "search_string is required." };
@@ -190,7 +190,7 @@ export function countOccurrences(args: Record<string, unknown>): unknown {
 
 export function truncateText(args: Record<string, unknown>): unknown {
   const text = String(args.text ?? "");
-  const maxChars = Math.max(1, Number(args.max_chars ?? 100));
+  const maxChars = Math.max(1, Number((args.max_length ?? args.max_chars) ?? 100));
   const useEllipsis = args.ellipsis !== false && args.ellipsis !== "false";
 
   if (!text) return { error: "text is required." };

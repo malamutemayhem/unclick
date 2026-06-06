@@ -49,6 +49,25 @@ describe("buildOpenHandsTaskPrompt", () => {
     assert.match(prompt, /docs\/openhands-integration\.md/);
     assert.match(prompt, /node --test scripts\/pinballwake-openhands-worker\.test\.mjs/);
   });
+
+  test("includes an exact docs fixture diff shape for the AFK canary seed", () => {
+    const prompt = buildOpenHandsTaskPrompt({
+      job: job({
+        todo_id: "8719dc4f-1650-4ea9-bca8-e92a9819f0ba",
+        claim_id: "coding-room-claim:unit-test",
+        title: "AFK canary seed: docs-only OpenHands proof fixture",
+        owned_files: ["docs/openhands-proof-fixture.md"],
+      }),
+      scopePack: scopePack({
+        owned_files: ["docs/openhands-proof-fixture.md"],
+        verification: ["node --test scripts/pinballwake-autonomous-runner.test.mjs"],
+      }),
+    });
+
+    assert.match(prompt, /Canary fixture diff:/);
+    assert.match(prompt, /diff --git a\/docs\/openhands-proof-fixture\.md b\/docs\/openhands-proof-fixture\.md/);
+    assert.match(prompt, /\+- proof run: coding-room-claim:unit-test/);
+  });
 });
 
 describe("runOpenHandsWorker", () => {
@@ -100,6 +119,34 @@ describe("runOpenHandsWorker", () => {
     assert.equal(coderoomCalls, 1);
   });
 
+  test("uses Boardroom source todo id in prompt and pass receipt", async () => {
+    let promptText = "";
+    const result = await runOpenHandsWorker({
+      job: job({
+        todo_id: undefined,
+        source_state: { todo_id: "boardroom-source-todo" },
+      }),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async ({ prompt }) => {
+        promptText = prompt;
+        return { ok: true, patch: patchFor(), test_run_id: "unit-test", test_exit_code: 0 };
+      },
+      coderoom: async () => ({
+        ok: true,
+        pr_url: "https://github.com/malamutemayhem/unclick/pull/874",
+        head_sha_after: "source123",
+        test_run_id: "unit-test",
+        test_exit_code: 0,
+      }),
+    });
+
+    assert.equal(result.ok, true);
+    assert.match(promptText, /Todo: boardroom-source-todo/);
+    assert.equal(result.receipt.todo_id, "boardroom-source-todo");
+  });
+
   test("returns HOLD when test mode is not enabled", async () => {
     const result = await runOpenHandsWorker({
       job: job(),
@@ -147,6 +194,73 @@ describe("runOpenHandsWorker", () => {
     assert.match(result.receipt.evidence.output, /tests failed/);
   });
 
+  test("preserves a specific OpenHands runner failure reason", async () => {
+    const result = await runOpenHandsWorker({
+      job: job(),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async () => ({
+        ok: false,
+        reason: "openhands_cli_failed",
+        exit_code: 1,
+        output: "OpenHands exited before producing a patch.",
+        attempts: [
+          {
+            modelId: "gpt-oss-120b",
+            openRouterModel: "openai/gpt-oss-120b:free",
+            status: "proven",
+            ok: false,
+            reason: "writerlane_no_file_contents",
+          },
+        ],
+      }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "openhands_cli_failed");
+    assert.equal(result.receipt.hold_reason, "openhands_cli_failed");
+    assert.match(result.receipt.evidence.output, /before producing a patch/);
+    assert.deepEqual(result.receipt.evidence.attempts, [
+      {
+        model_id: "gpt-oss-120b",
+        openrouter_model: "openai/gpt-oss-120b:free",
+        status: "proven",
+        ok: false,
+        reason: "writerlane_no_file_contents",
+        http_status: null,
+      },
+    ]);
+  });
+
+  test("keeps WriterLane model attempt reasons in HOLD evidence", async () => {
+    const result = await runOpenHandsWorker({
+      job: job(),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async () => ({
+        ok: false,
+        reason: "writerlane_free_chain_exhausted",
+        attempts: [
+          {
+            modelId: "gpt-oss-120b",
+            openRouterModel: "openai/gpt-oss-120b:free",
+            status: "proven",
+            ok: false,
+            reason: "writerlane_no_file_contents",
+          },
+        ],
+      }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "writerlane_free_chain_exhausted");
+    assert.equal(result.receipt.evidence.attempts[0].model_id, "gpt-oss-120b");
+    assert.equal(result.receipt.evidence.attempts[0].openrouter_model, "openai/gpt-oss-120b:free");
+    assert.equal(result.receipt.evidence.attempts[0].reason, "writerlane_no_file_contents");
+  });
+
   test("keeps the tail of long OpenHands failure output", async () => {
     const output = `${"installing dependency\n".repeat(400)}FINAL ERROR: missing model config`;
     const result = await runOpenHandsWorker({
@@ -177,6 +291,48 @@ describe("runOpenHandsWorker", () => {
     assert.equal(result.reason, "coderoom_rejected_patch");
     assert.equal(result.receipt.evidence.reason, "changed_file_outside_ownership");
     assert.equal(result.receipt.evidence.file, "src/outside-owned.ts");
+  });
+
+  test("includes dirty file detail when coderoom rejects a patch", async () => {
+    const result = await runOpenHandsWorker({
+      job: job(),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async () => ({ ok: true, patch: patchFor("docs/openhands-proof-fixture.md") }),
+      coderoom: async () => ({
+        ok: false,
+        reason: "dirty_worktree",
+        dirty_files: ["docs/openhands-proof-fixture.md"],
+      }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "coderoom_rejected_patch");
+    assert.deepEqual(result.receipt.evidence.dirty_files, ["docs/openhands-proof-fixture.md"]);
+  });
+
+  test("includes clipped command output when coderoom rejects a patch", async () => {
+    const output = `${"checking patch\n".repeat(200)}FINAL ERROR: missing git user.name`;
+    const result = await runOpenHandsWorker({
+      job: job(),
+      scopePack: scopePack(),
+      testMode: true,
+      now: NOW,
+      openHands: async () => ({ ok: true, patch: patchFor("docs/openhands-proof-fixture.md") }),
+      coderoom: async () => ({
+        ok: false,
+        reason: "git_commit_failed",
+        output,
+      }),
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "coderoom_rejected_patch");
+    assert.equal(result.receipt.evidence.reason, "git_commit_failed");
+    assert.match(result.receipt.evidence.output, /checking patch/);
+    assert.match(result.receipt.evidence.output, /omitted \d+ chars/);
+    assert.match(result.receipt.evidence.output, /FINAL ERROR: missing git user.name/);
   });
 
   test("default coderoom submit enforces owned files", async () => {

@@ -5,24 +5,32 @@ import {
   CHECKIN_ACTIVE_GRACE_MS,
   CHECKIN_DORMANT_SUPPRESS_MS,
   CHECKIN_OVERDUE_SUPPRESS_MS,
+  WAKEPASS_DORMANT_AGENT_SUPPRESS_MS,
+  WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT,
   WAKEPASS_REROUTE_LEASE_SECONDS,
   buildDispatchReclaimSignal,
+  buildDormantWakepassReclaimSignal,
   buildMissedCheckinDispatch,
+  buildOpenStaleTodoReleasePlan,
   buildWorkerMovementWorkflowPilotProofText,
   buildWakepassAutoReroutePlan,
   buildWorkerSelfHealingSignal,
+  hasRecentWorkerSelfHealingReleaseSignal,
   hasRecentWorkerSelfHealingTodoSignal,
   isMissedCheckinDispatch,
   isMissedCheckinCandidate,
+  isDormantWakepassTarget,
   isReclaimableDispatchCandidate,
   isWakepassAutoRerouteEligible,
   messageAcknowledgesDispatch,
   planWorkerMovementWorkflowPilot,
   planWorkerMovementWorkflowPilotProofSignal,
   planWorkerSelfHealingDecision,
+  planWorkerSelfHealingTodoRelease,
   planWorkerSelfHealingTodoSignal,
   resolveWakepassRerouteTarget,
   shouldMarkDispatchStaleAfterReclaimSignalInsert,
+  workerSelfHealingProtectedReason,
   type DispatchRow,
   type FishbowlMessageAckRow,
   type ProfileRow,
@@ -155,6 +163,29 @@ describe("fishbowl watcher PinballWake ACK coverage", () => {
     ).toBe(false);
   });
 
+  it("uses a 24h dormant cutoff for WakePass target noise", () => {
+    const nowMs = Date.parse("2026-05-08T01:22:00.000Z");
+
+    expect(WAKEPASS_DORMANT_AGENT_SUPPRESS_MS).toBe(24 * 60 * 60 * 1000);
+    expect(CHECKIN_DORMANT_SUPPRESS_MS).toBe(WAKEPASS_DORMANT_AGENT_SUPPRESS_MS);
+    expect(
+      isDormantWakepassTarget(
+        {
+          last_seen_at: new Date(nowMs - WAKEPASS_DORMANT_AGENT_SUPPRESS_MS - 1_000).toISOString(),
+        },
+        nowMs,
+      ),
+    ).toBe(true);
+    expect(
+      isDormantWakepassTarget(
+        {
+          last_seen_at: new Date(nowMs - WAKEPASS_DORMANT_AGENT_SUPPRESS_MS + 1_000).toISOString(),
+        },
+        nowMs,
+      ),
+    ).toBe(false);
+  });
+
   it("missed ACK reclaim is visible and heartbeat can close the leased dispatch", () => {
     const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
     const dispatch = buildMissedCheckinDispatch(baseProfile, nowMs);
@@ -203,6 +234,39 @@ describe("fishbowl watcher PinballWake ACK coverage", () => {
         ack_required: true,
         handoff_message_id: "msg-123",
         wake_reason: "PR ready for review",
+      },
+    });
+  });
+
+  it("downgrades missed ACK wakes for dormant targets to info receipts", () => {
+    const nowMs = Date.parse("2026-05-02T02:00:00.000Z");
+    const dormantDispatch: DispatchRow = {
+      ...baseDispatch,
+      lease_expires_at: "2026-05-02T01:50:00.000Z",
+      updated_at: "2026-05-02T01:40:00.000Z",
+    };
+    const signal = buildDispatchReclaimSignal(dormantDispatch, nowMs);
+    expect(signal?.action).toBe("handoff_ack_missing");
+
+    const dormantSignal = buildDormantWakepassReclaimSignal({
+      row: dormantDispatch,
+      signal: signal!,
+      profile: {
+        ...baseProfile,
+        last_seen_at: new Date(nowMs - WAKEPASS_DORMANT_AGENT_SUPPRESS_MS - 60_000).toISOString(),
+      },
+      nowMs,
+    });
+
+    expect(dormantSignal).toMatchObject({
+      action: "stale_dispatch_reclaimed",
+      summary: "Suppressed WakePass missed ACK for dormant worker-1",
+      payload: {
+        dormant_target_suppressed: true,
+        original_action: "handoff_ack_missing",
+        target_agent_id: "worker-1",
+        target_last_seen_age_minutes: 1441,
+        dormant_cutoff_hours: 24,
       },
     });
   });
@@ -465,6 +529,65 @@ describe("worker self-healing decision plan", () => {
     });
   });
 
+  it("protects human and manual-only work from stale lease reclaim", () => {
+    const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
+    const protectedCases = [
+      {
+        todo: {
+          id: "todo-human-owned",
+          status: "in_progress",
+          assigned_to_agent_id: "human-chris",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: 2,
+        },
+        reason: "human_owned_work_protected",
+      },
+      {
+        todo: {
+          id: "todo-manual-only",
+          title: "manual_only operator handoff",
+          status: "in_progress",
+          assigned_to_agent_id: "worker-1",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: 1,
+        },
+        reason: "manual_only_protected",
+      },
+      {
+        todo: {
+          id: "todo-human-blocker",
+          description: "human blocker: needs operator merge approval",
+          status: "in_progress",
+          assigned_to_agent_id: "worker-1",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: 0,
+        },
+        reason: "human_blocker_protected",
+      },
+    ];
+
+    for (const testCase of protectedCases) {
+      const decision = planWorkerSelfHealingDecision({
+        todo: testCase.todo,
+        profile: null,
+        latestHandoffReceiptId: "handoff-protected",
+        nowMs,
+      });
+
+      expect(decision).toMatchObject({
+        action: "no_action",
+        todo_id: testCase.todo.id,
+        next_reclaim_count: testCase.todo.reclaim_count,
+        latest_handoff_receipt_id: "handoff-protected",
+        reason: testCase.reason,
+      });
+      expect(buildWorkerSelfHealingSignal(decision)).toBeNull();
+    }
+  });
+
   it("flags a stale worker for action when no active todo lease exists", () => {
     const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
 
@@ -686,9 +809,228 @@ describe("worker self-healing decision plan", () => {
         profile_agent_id: "worker-1",
         next_checkin_at: "2026-05-01T01:10:00.000Z",
         last_seen_at: "2026-05-01T00:30:00.000Z",
+        next_reclaim_count: 1,
         reason: "missed_next_checkin_without_active_lease",
       },
     });
+  });
+
+  it("plans a proof-backed release for an expired in-progress lease", () => {
+    const decision = planWorkerSelfHealingDecision({
+      todo: {
+        id: "todo-expired-lease",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      profile: null,
+      latestHandoffReceiptId: "handoff-latest-8",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+
+    const release = planWorkerSelfHealingTodoRelease({
+      apiKeyHash: "hash_123",
+      todo: {
+        id: "todo-expired-lease",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      decision,
+      releasedAt: "2026-05-01T01:22:01.000Z",
+    });
+
+    expect(release).toMatchObject({
+      signal: {
+        action: "worker_self_healing_stale_owner_released",
+        severity: "info",
+      },
+      insert: {
+        api_key_hash: "hash_123",
+        tool: "fishbowl",
+        action: "worker_self_healing_stale_owner_released",
+        severity: "info",
+        deep_link: "/admin/jobs#todo-todo-expired-lease",
+        payload: {
+          todo_id: "todo-expired-lease",
+          previous_assigned_to_agent_id: "worker-1",
+          next_status: "open",
+          released_stale_owner: true,
+          bonded_handoff_required: true,
+          reassignment_attempts_capped_at: WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT,
+        },
+      },
+      update: {
+        status: "open",
+        assigned_to_agent_id: null,
+        lease_token: null,
+        lease_expires_at: null,
+        reclaim_count: 3,
+        updated_at: "2026-05-01T01:22:01.000Z",
+      },
+    });
+    expect(JSON.stringify(release)).not.toContain("lease-secret");
+  });
+
+  it("plans a release for a stale in-progress owner without an active lease", () => {
+    const todo = {
+      id: "todo-stale-worker",
+      status: "in_progress",
+      assigned_to_agent_id: "worker-1",
+      lease_token: null,
+      lease_expires_at: null,
+      reclaim_count: 0,
+    };
+    const decision = planWorkerSelfHealingDecision({
+      todo,
+      profile: baseProfile,
+      latestHandoffReceiptId: "handoff-latest-9",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+
+    const release = planWorkerSelfHealingTodoRelease({
+      apiKeyHash: "hash_123",
+      todo,
+      decision,
+      releasedAt: "2026-05-01T01:22:01.000Z",
+    });
+
+    expect(decision).toMatchObject({
+      action: "stale_worker_action_needed",
+      next_reclaim_count: 1,
+      reason: "missed_next_checkin_without_active_lease",
+    });
+    expect(release).toMatchObject({
+      update: {
+        status: "open",
+        assigned_to_agent_id: null,
+        reclaim_count: 1,
+      },
+      insert: {
+        payload: {
+          bonded_handoff_required: true,
+          profile_agent_id: "worker-1",
+          released_stale_owner: true,
+        },
+      },
+    });
+  });
+
+  it("does not release protected, open, or capped stale-owner candidates", () => {
+    const nowMs = Date.parse("2026-05-01T01:22:00.000Z");
+    const releaseCases = [
+      {
+        todo: {
+          id: "todo-human",
+          status: "in_progress",
+          assigned_to_agent_id: "human-chris",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: 0,
+        },
+      },
+      {
+        todo: {
+          id: "todo-open",
+          status: "open",
+          assigned_to_agent_id: "worker-1",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: 0,
+        },
+      },
+      {
+        todo: {
+          id: "todo-capped",
+          status: "in_progress",
+          assigned_to_agent_id: "worker-1",
+          lease_token: "lease-old",
+          lease_expires_at: "2026-05-01T01:10:00.000Z",
+          reclaim_count: WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT,
+        },
+      },
+    ];
+
+    for (const { todo } of releaseCases) {
+      const decision = planWorkerSelfHealingDecision({
+        todo,
+        profile: null,
+        latestHandoffReceiptId: null,
+        nowMs,
+      });
+
+      expect(
+        planWorkerSelfHealingTodoRelease({
+          apiKeyHash: "hash_123",
+          todo,
+          decision,
+          releasedAt: "2026-05-01T01:22:01.000Z",
+        }),
+      ).toBeNull();
+    }
+  });
+
+  it("dedupes release proof by todo id and release flag", () => {
+    const decision = planWorkerSelfHealingDecision({
+      todo: {
+        id: "todo-expired-lease",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      profile: null,
+      latestHandoffReceiptId: null,
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+    const release = planWorkerSelfHealingTodoRelease({
+      apiKeyHash: "hash_123",
+      todo: {
+        id: "todo-expired-lease",
+        status: "in_progress",
+        assigned_to_agent_id: "worker-1",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      decision,
+      releasedAt: "2026-05-01T01:22:01.000Z",
+    });
+
+    expect(release).not.toBeNull();
+    expect(
+      hasRecentWorkerSelfHealingReleaseSignal(
+        [
+          {
+            action: "worker_self_healing_stale_owner_released",
+            payload: {
+              todo_id: "todo-expired-lease",
+              released_stale_owner: true,
+            },
+          },
+        ],
+        release!,
+      ),
+    ).toBe(true);
+    expect(
+      hasRecentWorkerSelfHealingReleaseSignal(
+        [
+          {
+            action: "worker_self_healing_stale_owner_released",
+            payload: {
+              todo_id: "todo-expired-lease",
+              released_stale_owner: false,
+            },
+          },
+        ],
+        release!,
+      ),
+    ).toBe(false);
   });
 
   it("keeps no-action decisions quiet", () => {
@@ -716,6 +1058,296 @@ describe("worker self-healing decision plan", () => {
         apiKeyHash: "hash_123",
         decision,
         emittedAt: "2026-05-01T01:22:01.000Z",
+      }),
+    ).toBeNull();
+  });
+});
+
+describe("WriterLane Slice 2b open-stale todo release wiring", () => {
+  // Fixed reference clock. Thresholds (from fishbowl-todo-actionability): an
+  // open assigned todo is "stale" only after 6h of age AND a dormant owner
+  // (last seen > 1h ago, or no profile, or a role assignee).
+  const NOW = "2026-05-26T12:00:00.000Z";
+  const nowMs = Date.parse(NOW);
+  const HOUR = 60 * 60 * 1000;
+  const agedUpdatedAt = new Date(nowMs - 8 * HOUR).toISOString(); // > 6h: aged
+  const freshUpdatedAt = new Date(nowMs - 3 * HOUR).toISOString(); // < 6h: not aged
+  const dormantSeenAt = new Date(nowMs - 2 * HOUR).toISOString(); // > 1h: dormant
+  const liveSeenAt = new Date(nowMs - 7 * 60 * 1000).toISOString(); // < 1h: live
+
+  const openStaleTodo = (overrides: Record<string, unknown> = {}) => ({
+    id: "todo-open-stale",
+    status: "open",
+    assigned_to_agent_id: "worker-7",
+    lease_token: null,
+    lease_expires_at: null,
+    reclaim_count: 0,
+    updated_at: agedUpdatedAt,
+    created_at: agedUpdatedAt,
+    ...overrides,
+  });
+
+  const buildPlan = (
+    overrides: Record<string, unknown> = {},
+    extra: { ownerLastSeenAt?: string | null; isProtected?: boolean } = {},
+  ) =>
+    buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: openStaleTodo(overrides) as never,
+      ownerLastSeenAt:
+        "ownerLastSeenAt" in extra ? extra.ownerLastSeenAt ?? null : dormantSeenAt,
+      isProtected: extra.isProtected ?? false,
+      releasedAt: NOW,
+      nowMs,
+    });
+
+  it("releases a genuinely stale open todo with a dormant non-role owner", () => {
+    const plan = buildPlan();
+    expect(plan).toMatchObject({
+      signal: {
+        action: "worker_self_healing_stale_owner_released",
+        severity: "info",
+      },
+      insert: {
+        api_key_hash: "hash_123",
+        tool: "fishbowl",
+        action: "worker_self_healing_stale_owner_released",
+        deep_link: "/admin/jobs#todo-todo-open-stale",
+        payload: {
+          todo_id: "todo-open-stale",
+          classification: "stale_assigned_open",
+          previous_status: "open",
+          previous_assigned_to_agent_id: "worker-7",
+          next_status: "open",
+          released_stale_owner: true,
+          bonded_handoff_required: true,
+          reclaim_count: 0,
+          next_reclaim_count: 1,
+        },
+      },
+      update: {
+        status: "open",
+        assigned_to_agent_id: null,
+        lease_token: null,
+        lease_expires_at: null,
+        reclaim_count: 1,
+        updated_at: NOW,
+      },
+    });
+  });
+
+  it("releases when the owner has no profile (treated as dormant)", () => {
+    const plan = buildPlan({}, { ownerLastSeenAt: null });
+    expect(plan).not.toBeNull();
+    expect(plan!.update.assigned_to_agent_id).toBeNull();
+    expect(plan!.update.reclaim_count).toBe(1);
+  });
+
+  it("leaves a fresh-owner open todo untouched (live within 1h)", () => {
+    expect(buildPlan({}, { ownerLastSeenAt: liveSeenAt })).toBeNull();
+  });
+
+  it("leaves a not-yet-aged open todo untouched even with a dormant owner", () => {
+    expect(buildPlan({ updated_at: freshUpdatedAt, created_at: freshUpdatedAt })).toBeNull();
+  });
+
+  it("leaves role-assigned open todos untouched", () => {
+    for (const role of ["master", "coordinator", "pinballwake-job-runner"]) {
+      expect(buildPlan({ assigned_to_agent_id: role })).toBeNull();
+    }
+  });
+
+  it("never touches in_progress todos via this path", () => {
+    // status=in_progress classifies as stale_in_progress, not stale_assigned_open,
+    // so the open-stale helper declines and the existing in_progress planner owns it.
+    expect(buildPlan({ status: "in_progress" })).toBeNull();
+  });
+
+  it("never releases when the caller marks the todo protected", () => {
+    // The watcher computes isProtected via workerSelfHealingProtectedReason and
+    // passes it in; the helper trusts that flag and refuses to plan a release.
+    expect(buildPlan({}, { isProtected: true })).toBeNull();
+    expect(
+      buildPlan(
+        { title: "human_blocker: owner must approve before any move" },
+        { isProtected: true },
+      ),
+    ).toBeNull();
+    expect(
+      buildPlan({ assigned_to_agent_id: "human-chris" }, { isProtected: true }),
+    ).toBeNull();
+  });
+
+  it("protection gate (watcher input) flags human/manual todos and clears normal ones", () => {
+    // This is the gate the watcher runs before planning a release. It must flag
+    // human/manual work so isProtected=true reaches the helper.
+    expect(
+      workerSelfHealingProtectedReason({
+        id: "t",
+        status: "open",
+        assigned_to_agent_id: "worker-7",
+        title: "human_blocker: needs owner approval",
+      } as never),
+    ).toBe("human_blocker_protected");
+    expect(
+      workerSelfHealingProtectedReason({
+        id: "t",
+        status: "open",
+        assigned_to_agent_id: "worker-7",
+        title: "manual-only deploy step",
+      } as never),
+    ).toBe("manual_only_protected");
+    expect(
+      workerSelfHealingProtectedReason({
+        id: "t",
+        status: "open",
+        assigned_to_agent_id: "human-chris",
+        title: "ordinary task",
+      } as never),
+    ).toBe("human_owned_work_protected");
+    // A plain worker-owned open todo is NOT protected -> relies on age/liveness.
+    expect(
+      workerSelfHealingProtectedReason({
+        id: "t",
+        status: "open",
+        assigned_to_agent_id: "worker-7",
+        title: "ordinary task",
+      } as never),
+    ).toBeNull();
+  });
+
+  it("respects the reclaim cap (< 3) and bumps reclaim_count", () => {
+    expect(buildPlan({ reclaim_count: 3 })).toBeNull();
+    const plan = buildPlan({ reclaim_count: 2 });
+    expect(plan).not.toBeNull();
+    expect(plan!.update.reclaim_count).toBe(3);
+    expect(plan!.insert.payload.reclaim_count).toBe(2);
+    expect(plan!.insert.payload.next_reclaim_count).toBe(3);
+  });
+
+  // ── Canary safety (AFK canary seed 8719dc4f-1650-4ea9-bca8-e92a9819f0ba) ──
+  // The canary is an open todo assigned to the autonomous runner. It is now
+  // protected-by-id: workerSelfHealingProtectedReason returns a protected reason
+  // for its exact todo id, so the watcher never releases it regardless of age or
+  // owner liveness. Defense-in-depth still holds via the age + owner-liveness
+  // gates in a healthy system. The protection is scoped to this seed id only and
+  // does NOT protect the runner agent globally.
+  const canaryTodo = (overrides: Record<string, unknown> = {}) =>
+    openStaleTodo({
+      id: "8719dc4f-1650-4ea9-bca8-e92a9819f0ba",
+      title: "AFK canary seed: docs-only OpenHands proof fixture",
+      assigned_to_agent_id: "pinballwake-autonomous-runner",
+      priority: "urgent",
+      ...overrides,
+    });
+
+  it("protects the canary seed by id (returns canary_seed_protected)", () => {
+    expect(workerSelfHealingProtectedReason(canaryTodo() as never)).toBe(
+      "canary_seed_protected",
+    );
+    // Case-insensitive id match (UUIDs may arrive upper-cased).
+    expect(
+      workerSelfHealingProtectedReason(
+        canaryTodo({ id: "8719DC4F-1650-4EA9-BCA8-E92A9819F0BA" }) as never,
+      ),
+    ).toBe("canary_seed_protected");
+  });
+
+  it("does NOT release the canary even when aged AND owner dormant (protected-by-id)", () => {
+    // Worst case for the canary: aged > 6h with a dormant owner — exactly the
+    // sustained-outage edge. The watcher computes isProtected via the gate, so
+    // the open-stale sweep must refuse to plan a release.
+    const todo = canaryTodo({ updated_at: agedUpdatedAt, created_at: agedUpdatedAt });
+    const isProtected = workerSelfHealingProtectedReason(todo as never) !== null;
+    expect(isProtected).toBe(true);
+    const plan = buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: todo as never,
+      ownerLastSeenAt: dormantSeenAt,
+      isProtected,
+      releasedAt: NOW,
+      nowMs,
+    });
+    expect(plan).toBeNull();
+  });
+
+  it("does NOT protect a different runner-owned open todo (scoped to seed id only)", () => {
+    // A legitimate stale runner-owned job (NOT the canary id) must stay
+    // releasable; per-seed protection must not become global runner protection.
+    const todo = openStaleTodo({
+      id: "11111111-2222-3333-4444-555555555555",
+      assigned_to_agent_id: "pinballwake-autonomous-runner",
+    });
+    expect(workerSelfHealingProtectedReason(todo as never)).toBeNull();
+    const plan = buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: todo as never,
+      ownerLastSeenAt: dormantSeenAt,
+      isProtected: false,
+      releasedAt: NOW,
+      nowMs,
+    });
+    expect(plan).not.toBeNull();
+    expect(plan!.update.assigned_to_agent_id).toBeNull();
+  });
+
+  it("leaves the canary untouched when its owner is live (< 1h)", () => {
+    const plan = buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: canaryTodo() as never,
+      ownerLastSeenAt: liveSeenAt,
+      isProtected: false,
+      releasedAt: NOW,
+      nowMs,
+    });
+    expect(plan).toBeNull();
+  });
+
+  it("leaves the canary untouched via the age gate even if its owner is dormant", () => {
+    // Primary protection in a healthy system: the canary is re-exercised
+    // regularly so updated_at stays < 6h and it is never even classified stale.
+    const plan = buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: canaryTodo({ updated_at: freshUpdatedAt, created_at: freshUpdatedAt }) as never,
+      ownerLastSeenAt: dormantSeenAt,
+      isProtected: false,
+      releasedAt: NOW,
+      nowMs,
+    });
+    expect(plan).toBeNull();
+  });
+
+  it("leaves the canary untouched when explicitly protected", () => {
+    const plan = buildOpenStaleTodoReleasePlan({
+      apiKeyHash: "hash_123",
+      todo: canaryTodo() as never,
+      ownerLastSeenAt: dormantSeenAt,
+      isProtected: true,
+      releasedAt: NOW,
+      nowMs,
+    });
+    expect(plan).toBeNull();
+  });
+
+  it("returns null for blank apiKeyHash or releasedAt (no-op guard)", () => {
+    expect(
+      buildOpenStaleTodoReleasePlan({
+        apiKeyHash: "  ",
+        todo: openStaleTodo() as never,
+        ownerLastSeenAt: dormantSeenAt,
+        isProtected: false,
+        releasedAt: NOW,
+        nowMs,
+      }),
+    ).toBeNull();
+    expect(
+      buildOpenStaleTodoReleasePlan({
+        apiKeyHash: "hash_123",
+        todo: openStaleTodo() as never,
+        ownerLastSeenAt: dormantSeenAt,
+        isProtected: false,
+        releasedAt: "   ",
+        nowMs,
       }),
     ).toBeNull();
   });
@@ -806,6 +1438,104 @@ describe("Vercel worker movement workflow pilot plan", () => {
       },
     });
     expect(JSON.stringify(plan)).not.toContain("lease-secret");
+  });
+
+  it("posts refusal proof instead of starting workflow for protected human/manual work", () => {
+    const plan = planWorkerMovementWorkflowPilot({
+      title: "SeatRelay manual-only operator blocker",
+      todo: {
+        id: "todo-manual-only",
+        title: "manual_only operator handoff",
+        status: "in_progress",
+        assigned_to_agent_id: "human-chris",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 2,
+      },
+      profile: null,
+      latestHandoffReceiptId: "handoff-latest-protected",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+
+    expect(plan).toMatchObject({
+      mode: "dry_run",
+      action: "post_refusal_proof",
+      candidate_id: "todo-manual-only",
+      safety: {
+        allowed: false,
+        reason: "manual_only_protected",
+      },
+      signal: null,
+      decision: {
+        action: "no_action",
+        has_lease_token: true,
+        reason: "human_owned_work_protected",
+      },
+      proof: {
+        next_safe_step:
+          "post refusal proof and leave the job with its owner (manual_only_protected)",
+        payload: {
+          action: "post_refusal_proof",
+          planned_signal_action: null,
+        },
+      },
+    });
+    expect(JSON.stringify(plan)).not.toContain("lease-secret");
+  });
+
+  it("posts refusal proof for pure human-owned protected work", () => {
+    const plan = planWorkerMovementWorkflowPilot({
+      title: "ordinary stale lease",
+      todo: {
+        id: "todo-human-owned-only",
+        status: "in_progress",
+        assigned_to_agent_id: "human-chris",
+        lease_token: "lease-secret",
+        lease_expires_at: "2026-05-01T01:10:00.000Z",
+        reclaim_count: 1,
+      },
+      profile: null,
+      latestHandoffReceiptId: "handoff-human-owned",
+      nowMs: Date.parse("2026-05-01T01:22:00.000Z"),
+    });
+    const proof = planWorkerMovementWorkflowPilotProofSignal({
+      apiKeyHash: "hash_123",
+      plan,
+      emittedAt: "2026-05-01T01:22:00.000Z",
+    });
+
+    expect(plan).toMatchObject({
+      mode: "dry_run",
+      action: "post_refusal_proof",
+      candidate_id: "todo-human-owned-only",
+      safety: {
+        allowed: false,
+        reason: "human_owned_work_protected",
+      },
+      signal: null,
+      decision: {
+        action: "no_action",
+        has_lease_token: true,
+        reason: "human_owned_work_protected",
+      },
+      proof: {
+        next_safe_step:
+          "post refusal proof and leave the job with its owner (human_owned_work_protected)",
+        payload: {
+          action: "post_refusal_proof",
+          planned_signal_action: null,
+        },
+      },
+    });
+    expect(proof?.signal).toMatchObject({
+      action: "worker_movement_workflow_pilot_blocker",
+      severity: "action_needed",
+      payload: {
+        proof_status: "BLOCKER",
+        safety_reason: "human_owned_work_protected",
+      },
+    });
+    expect(JSON.stringify({ plan, proof })).not.toContain("lease-secret");
   });
 
   it("skips workflow start when existing planner finds no movement needed", () => {

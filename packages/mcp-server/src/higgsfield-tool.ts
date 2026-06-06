@@ -2,47 +2,78 @@
 // Uses the Higgsfield REST API via fetch - no external dependencies.
 // Users must supply an API key from higgsfield.ai.
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const HF_API_BASE = "https://api.higgsfield.ai/v1";
 
 // ─── Auth validation ──────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? "").trim();
-  if (!key) throw new Error("api_key is required. Get one at higgsfield.ai.");
-  return key;
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("higgsfield", args);
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 async function hfGet<T>(apiKey: string, path: string): Promise<T> {
-  const res = await fetch(`${HF_API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const HIGGSFIELD_TIMEOUT_MS = Number(process.env.HIGGSFIELD_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HIGGSFIELD_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${HF_API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Higgsfield request timed out after ${HIGGSFIELD_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Higgsfield network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Higgsfield rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Higgsfield error (${res.status}): ${msg}`);
   }
   return data as T;
 }
 
 async function hfPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${HF_API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const HIGGSFIELD_TIMEOUT_MS = Number(process.env.HIGGSFIELD_TIMEOUT_MS) || 60000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), HIGGSFIELD_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${HF_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Higgsfield request timed out after ${HIGGSFIELD_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Higgsfield network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 429) throw new Error("Higgsfield rate limit reached (HTTP 429). Please wait and retry.");
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {
-    const msg = (data.message as string) ?? (data.error as string) ?? `HTTP ${res.status}`;
+    const msg = (data.message as string) ?? (data.error as string) ?? `status ${res.status}`;
     throw new Error(`Higgsfield error (${res.status}): ${msg}`);
   }
   return data as T;
@@ -52,6 +83,7 @@ async function hfPost<T>(apiKey: string, path: string, body: unknown): Promise<T
 
 export async function higgsfield_generate_video(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
 
@@ -75,6 +107,7 @@ export async function higgsfield_generate_video(args: Record<string, unknown>): 
 
 export async function higgsfield_generate_image(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const prompt = String(args.prompt ?? "").trim();
   if (!prompt) throw new Error("prompt is required.");
 
@@ -98,6 +131,7 @@ export async function higgsfield_generate_image(args: Record<string, unknown>): 
 
 export async function higgsfield_get_styles(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const data = await hfGet<{ styles?: unknown[]; data?: unknown[] }>(apiKey, "/styles");
 
   const styles = data.styles ?? data.data ?? [];
@@ -109,12 +143,13 @@ export async function higgsfield_get_styles(args: Record<string, unknown>): Prom
 
 export async function higgsfield_get_status(args: Record<string, unknown>): Promise<unknown> {
   const apiKey = requireKey(args);
+  if (typeof apiKey !== "string") return apiKey;
   const generationId = String(args.generation_id ?? "").trim();
   if (!generationId) throw new Error("generation_id is required.");
 
   const result = await hfGet<Record<string, unknown>>(apiKey, `/generation/${encodeURIComponent(generationId)}`);
 
-  return {
+  return stampMeta({
     generation_id: generationId,
     status: result.status ?? null,
     video_url: result.video_url ?? result.url ?? null,
@@ -123,5 +158,9 @@ export async function higgsfield_get_status(args: Record<string, unknown>): Prom
     completed_at: result.completed_at ?? null,
     error: result.error ?? null,
     raw: result,
-  };
+  }, {
+    source: "Higgsfield",
+    fetched_at: new Date().toISOString(),
+    next_steps: ["If status is not completed, poll higgsfield_get_status again; once done, use the media url."],
+  });
 }

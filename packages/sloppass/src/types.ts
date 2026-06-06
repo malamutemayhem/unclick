@@ -3,6 +3,7 @@ import type {
   SlopPassCategorySchema,
   SlopPassDisclaimerSchema,
   SlopPassFindingSchema,
+  SlopPassGitContextSchema,
   SlopPassNotCheckedSchema,
   SlopPassResultSchema,
   SlopPassScopeSchema,
@@ -20,6 +21,7 @@ export type SlopPassTarget = z.output<typeof SlopPassTargetSchema>;
 export type SlopPassSourceFile = z.output<typeof SlopPassSourceFileSchema>;
 export type SlopPassScope = z.output<typeof SlopPassScopeSchema>;
 export type SlopPassFinding = z.output<typeof SlopPassFindingSchema>;
+export type SlopPassGitContext = z.output<typeof SlopPassGitContextSchema>;
 export type SlopPassNotChecked = z.output<typeof SlopPassNotCheckedSchema>;
 export type SlopPassSummary = z.output<typeof SlopPassSummarySchema>;
 export type SlopPassDisclaimer = z.output<typeof SlopPassDisclaimerSchema>;

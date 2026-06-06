@@ -45,18 +45,32 @@ async function xeroFetch(opts: XeroFetchOptions): Promise<unknown> {
     headers["Content-Type"] = "application/json";
   }
 
+  const XERO_TIMEOUT_MS = Number(process.env.XERO_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), XERO_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url.toString(), {
       method: opts.method,
       headers,
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: true, message: `Xero API request timed out after ${XERO_TIMEOUT_MS}ms.` };
+    }
     return {
       error: true,
       message: `Network error reaching Xero API: ${err instanceof Error ? err.message : String(err)}`,
     };
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("Retry-After");
+    return { error: true, status: 429, message: "Xero rate limit reached. Please wait and retry.", ...(retryAfter ? { retry_after: Number(retryAfter) } : {}) };
   }
 
   const text = await response.text();
@@ -291,7 +305,7 @@ export async function xeroReports(args: Record<string, unknown>): Promise<unknow
   if ("error" in resolved) return resolved;
   args = resolved;
 
-  const reportId = str(args.report_id);
+  const reportId = str((args.report_type ?? args.report_id));
   if (!reportId) {
     return {
       error:

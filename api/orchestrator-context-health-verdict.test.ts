@@ -26,6 +26,18 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
       source_of_truth: "Boardroom Jobs",
       queue_state: "quiet",
     });
+    expect(context.current_state_card.scene_builder_packet).toMatchObject({
+      packet_id: "receipt-first-scene-builder-v0",
+      job_id: null,
+      source_of_truth: "Boardroom Jobs",
+      proof_state: "proof_not_needed",
+      risk_level: "low",
+      copyroom_required: false,
+      source_receipts: [],
+    });
+    expect(context.current_state_card.scene_builder_packet.memory_lease_expires_at).toBe(
+      "2026-05-12T12:30:00.000Z",
+    );
   });
 
   it("emits a BLOCKER verdict when open todos sit in the queue", () => {
@@ -67,9 +79,120 @@ describe("orchestrator-context / current_state_card.health_verdict (CommonSenseP
     expect(context.current_state_card.harness_card.required_proof).toContain(
       "UI/UX jobs need screenshot proof",
     );
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "healthy/no_work/PASS needs queued_todo_count=0 or a fresh claim/blocker proof",
+    );
+    expect(context.current_state_card.harness_card.required_proof).toContain(
+      "CopyRoom/source-copy jobs need a copy receipt or COPYROOM_MISSING/FIDELITY_DRIFT_RISK blocker",
+    );
+    expect(context.current_state_card.harness_card.readiness_audit.status).toBe("blocked");
+    expect(context.current_state_card.harness_card.readiness_audit.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: "scoped_task", status: "pass" }),
+        expect.objectContaining({ key: "source_of_truth", status: "pass" }),
+        expect.objectContaining({ key: "allowed_actions", status: "pass" }),
+        expect.objectContaining({ key: "forbidden_surfaces", status: "pass" }),
+        expect.objectContaining({ key: "proof_required", status: "pass" }),
+        expect.objectContaining({ key: "cleanup_rule", status: "pass" }),
+        expect.objectContaining({ key: "recovery_path", status: "pass" }),
+        expect.objectContaining({ key: "owner", status: "fail" }),
+        expect.objectContaining({ key: "next_checkin", status: "fail" }),
+      ]),
+    );
+    expect(context.current_state_card.harness_card.copyroom_rule).toContain("CopyRoom/source packets");
+    expect(context.current_state_card.scene_builder_packet).toMatchObject({
+      packet_id: "receipt-first-scene-builder-v0",
+      job_id: "todo-actionable",
+      source_of_truth: "Boardroom Jobs",
+      proof_state: "proof_missing",
+      risk_level: "high",
+      copyroom_required: true,
+      source_receipts: [
+        {
+          source_kind: "todo",
+          source_id: "todo-actionable",
+          deep_link: "/admin/jobs#todo-todo-actionable",
+          created_at: NOW,
+        },
+      ],
+    });
+    expect(context.current_state_card.scene_builder_packet.next_safe_action).toContain(
+      "never mark DONE from status text alone",
+    );
+    expect(context.current_state_card.scene_builder_packet.stop_conditions).toContain(
+      "refresh the memory lease before acting after expiry",
+    );
+    expect(
+      context.current_state_card.scene_builder_packet.copyroom_receipt_contract.expected_fields,
+    ).toEqual(
+      expect.arrayContaining([
+        "source_kind",
+        "source_uri",
+        "target_uri",
+        "worker_agent_id",
+        "timestamp",
+      ]),
+    );
+    expect(
+      context.current_state_card.scene_builder_packet.copyroom_receipt_contract.missing_receipt_blocker,
+    ).toBe("COPYROOM_MISSING");
     // active_jobs should also be 0 (no in_progress todos), so the BLOCKER is
     // entirely driven by the actionable queue depth.
     expect(context.current_state_card.active_jobs).toBe(0);
+  });
+
+  it("keeps the harness gate red when fresh active work still has open backlog beside it", () => {
+    const context = buildOrchestratorContext({
+      generatedAt: NOW,
+      profiles: [
+        {
+          agent_id: "builder-fresh",
+          last_seen_at: new Date(NOW_MS - 2 * HOUR_MS).toISOString(),
+        },
+      ],
+      messages: [],
+      todos: [
+        {
+          id: "todo-active",
+          title: "Active build",
+          status: "in_progress",
+          priority: "urgent",
+          created_by_agent_id: "watcher",
+          assigned_to_agent_id: "builder-fresh",
+          created_at: NOW,
+        },
+        {
+          id: "todo-queued",
+          title: "Queued follow-up",
+          status: "open",
+          priority: "high",
+          created_by_agent_id: "watcher",
+          assigned_to_agent_id: null,
+          created_at: NOW,
+        },
+      ],
+      comments: [],
+      dispatches: [],
+      signals: [],
+      sessions: [],
+      library: [],
+      businessContext: [],
+      conversationTurns: [],
+    });
+
+    expect(context.current_state_card.active_jobs).toBe(1);
+    expect(context.current_state_card.queued_todo_count).toBe(1);
+    expect(context.current_state_card.health_verdict.verdict).toBe("BLOCKER");
+    expect(context.current_state_card.harness_card).toMatchObject({
+      queue_state: "active_work",
+      gate_status: "red",
+    });
+    expect(context.current_state_card.harness_card.gate_reason).toContain(
+      "open backlog is still waiting",
+    );
+    expect(context.current_state_card.harness_card.queue_truth).toContain(
+      "Open backlog with active_jobs=1 needs claim/proof work and is red, not healthy",
+    );
   });
 
   it("keeps live queue rows in the health verdict when the visible context is search-filtered", () => {

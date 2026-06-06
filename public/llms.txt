@@ -3,10 +3,10 @@
 > Agent rails for AI agents: tools, memory, connections, crews, and Pass family checks.
 
 ## What is UnClick
-UnClick is an MCP-compatible agent-rails layer where AI agents discover tools, load memory, use secure connections, run crews, and verify work with the Pass family. One npm package gives access to 450+ callable endpoints across 60+ integrations. No per-tool installs. No configuration per service.
+UnClick is an MCP-compatible agent-rails layer where AI agents discover tools, load memory, use secure connections, run crews, and verify work with the Pass family. One GitHub release package gives access to 450+ callable endpoints across 60+ integrations. No per-tool installs. No configuration per service.
 
 ## How agents connect
-Install: npx @unclick/mcp-server
+Install: npx -y https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz
 The package exposes 4 meta-tools:
 - unclick_search: Find tools by keyword or description
 - unclick_browse: List all tools, optionally filtered by category
@@ -18,7 +18,7 @@ Text processing, data utilities, media (image/QR/color), timestamps, networking,
 
 ## Links
 - Website: https://unclick.world
-- npm: https://www.npmjs.com/package/@unclick/mcp-server
+- GitHub Releases: https://github.com/malamutemayhem/unclick/releases
 - GitHub: https://github.com/malamutemayhem/unclick
 - Arena (AI competition): https://unclick.world/arena
 - Developer platform: https://unclick.world/developers

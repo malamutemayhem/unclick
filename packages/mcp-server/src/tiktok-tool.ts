@@ -3,12 +3,13 @@
 // Auth: TIKTOK_ACCESS_TOKEN (Bearer, OAuth 2.0 user access token)
 // Base: https://open.tiktokapis.com/v2
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
 const TIKTOK_BASE = "https://open.tiktokapis.com/v2";
 
-function getToken(args: Record<string, unknown>): string {
-  const token = String(args.access_token ?? process.env.TIKTOK_ACCESS_TOKEN ?? "").trim();
-  if (!token) throw new Error("access_token is required (or set TIKTOK_ACCESS_TOKEN env var).");
-  return token;
+function getToken(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("tiktok", args);
 }
 
 async function tiktokGet(
@@ -22,12 +23,26 @@ async function tiktokGet(
       if (v !== undefined && v !== "") url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const TIKTOK_TIMEOUT_MS = Number(process.env.TIKTOK_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIKTOK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`TikTok request timed out after ${TIKTOK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`TikTok network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid TikTok access token or token has expired. Re-authenticate via OAuth.");
   if (res.status === 403) throw new Error("TikTok: access forbidden. Ensure your app has the required scopes.");
   if (res.status === 429) throw new Error("TikTok rate limit exceeded.");
@@ -51,14 +66,28 @@ async function tiktokPost(
 ): Promise<unknown> {
   const url = new URL(`${TIKTOK_BASE}${path}`);
   if (fields) url.searchParams.set("fields", fields);
-  const res = await fetch(url.toString(), {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const TIKTOK_TIMEOUT_MS = Number(process.env.TIKTOK_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIKTOK_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`TikTok request timed out after ${TIKTOK_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`TikTok network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid TikTok access token or token has expired.");
   if (res.status === 403) throw new Error("TikTok: access forbidden.");
   if (res.status === 429) throw new Error("TikTok rate limit exceeded.");
@@ -78,10 +107,15 @@ async function tiktokPost(
 export async function getTiktokUser(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getToken(args);
+    if (typeof token !== "string") return token;
     const fields = "open_id,union_id,avatar_url,display_name,bio_description,profile_deep_link,is_verified,follower_count,following_count,likes_count,video_count";
     const json = await tiktokGet(token, "/user/info/", { fields }) as Record<string, unknown>;
     const data = json.data as Record<string, unknown> | undefined;
-    return data?.user ?? json;
+    return stampMeta((data?.user ?? json) as Record<string, unknown>, {
+      source: "TikTok",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use list_tiktok_videos for this user's videos, or get_tiktok_video for one video."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -91,6 +125,7 @@ export async function getTiktokUser(args: Record<string, unknown>): Promise<unkn
 export async function listTiktokVideos(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getToken(args);
+    if (typeof token !== "string") return token;
     const fields = "id,title,video_description,duration,cover_image_url,share_url,view_count,like_count,comment_count,share_count,create_time";
     const body: Record<string, unknown> = {
       max_count: Number(args.max_count ?? 20),
@@ -115,6 +150,7 @@ export async function listTiktokVideos(args: Record<string, unknown>): Promise<u
 export async function getTiktokVideo(args: Record<string, unknown>): Promise<unknown> {
   try {
     const token = getToken(args);
+    if (typeof token !== "string") return token;
     const videoId = String(args.video_id ?? "").trim();
     if (!videoId) return { error: "video_id is required." };
 

@@ -1,0 +1,45 @@
+{
+  "name": "@unclick/youtube-mcp",
+  "version": "0.1.0",
+  "mcpName": "io.github.malamutemayhem/youtube",
+  "description": "Search YouTube and get video, channel, playlist, and caption details. By UnClick (https://unclick.world).",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "unclick",
+    "youtube",
+    "video",
+    "search",
+    "captions"
+  ],
+  "author": "UnClick (https://unclick.world)",
+  "type": "module",
+  "bin": {
+    "youtube-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "server.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malamutemayhem/unclick.git",
+    "directory": "packages/standalone/youtube-mcp"
+  },
+  "homepage": "https://unclick.world"
+}

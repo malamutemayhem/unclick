@@ -1,5 +1,4 @@
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 import { loadPackFromFile } from "../pack-loader.js";
 import {
   checkDeletedFilesMentioned,
@@ -10,8 +9,10 @@ import {
 } from "../checks/anti-stomp.js";
 import { isDeterministicCheckRegistered } from "../runner/deterministic.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PACK_PATH = path.resolve(__dirname, "../../packs/anti-stomp-v0.yaml");
+const TESTPASS_ROOT = process.cwd().endsWith(`${path.sep}testpass`)
+  ? process.cwd()
+  : path.resolve(process.cwd(), "packages/testpass");
+const PACK_PATH = path.resolve(TESTPASS_ROOT, "packs/anti-stomp-v0.yaml");
 
 // ── Pack schema validation ──────────────────────────────────────────────────
 

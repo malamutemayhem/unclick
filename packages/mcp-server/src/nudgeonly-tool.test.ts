@@ -230,9 +230,9 @@ describe("NudgeOnlyAPI policy", () => {
     const previous = process.env.OPENROUTER_API_KEY;
     delete process.env.OPENROUTER_API_KEY;
 
-    await expect(nudgeonlyApi({ event_text: "wakepass stale ack" }))
-      .rejects
-      .toThrow("api_key is required");
+    const result = await nudgeonlyApi({ event_text: "wakepass stale ack" }) as Record<string, unknown>;
+    expect(result.not_connected).toBe(true);
+    expect(result.connector).toBe("openrouter");
 
     if (previous === undefined) {
       delete process.env.OPENROUTER_API_KEY;
@@ -436,6 +436,28 @@ describe("NudgeOnlyAPI policy", () => {
     });
   });
 
+  it("keeps ownerless stale ACK requests on the Reviewer route so IgniteOnly can consume them", async () => {
+    await expect(nudgeonlyReceiptBridge({
+      painpoint_detected: true,
+      painpoint_type: "stale_ack",
+      event_text: "WakePass stale ACK for issue #766, no ACK receipt yet.",
+      source_id: "todo:8b4af32b-1c1c-4f56-bac2-a87aafb64a64",
+      target: "WakePass ACK miss repair issues #766 and #767",
+      ack_status: "stale",
+      created_at: "2026-05-19T11:55:02.558Z",
+      now: "2026-05-20T04:17:30.000Z",
+      ttl_minutes: 60,
+    })).resolves.toMatchObject({
+      bridge_status: "escalation_request",
+      request: {
+        worker: "Reviewer",
+        owner: null,
+        target: "WakePass ACK miss repair issues #766 and #767",
+        painpoint_type: "stale_ack",
+      },
+    });
+  });
+
   it("suppresses ACK-only WakePass comments instead of creating duplicate stale wakes", async () => {
     await expect(nudgeonlyReceiptBridge({
       painpoint_detected: true,
@@ -505,6 +527,92 @@ describe("NudgeOnlyAPI policy", () => {
         target: "PR #705",
         painpoint_type: "unclear_owner",
         expected_receipt: "Owning job, next safe action, and expected proof receipt.",
+      },
+    });
+  });
+
+  it("treats owner silence past TTL as an expired lease, not an advisory nudge", async () => {
+    await expect(nudgeonlyReceiptBridge({
+      painpoint_detected: true,
+      painpoint_type: "unclear_owner",
+      event_text: "Owner silent for 75 minutes on a claimed job; ownership lease should lapse.",
+      source_id: "dispatch_owner_silent_705",
+      target: "PR #705",
+      owner: "claude-code-reviewer-seat",
+      owner_last_seen_at: "2026-05-11T00:00:00.000Z",
+      now: "2026-05-11T01:15:00.000Z",
+      ttl_minutes: 60,
+    })).resolves.toMatchObject({
+      bridge_status: "escalation_request",
+      painpoint_type: "unclear_owner",
+      request: {
+        worker: "Job Manager",
+        owner: "claude-code-reviewer-seat",
+        target: "PR #705",
+        painpoint_type: "unclear_owner",
+        expected_receipt: "Owning job, next safe action, and expected proof receipt.",
+      },
+      evidence: {
+        owner_lease: {
+          detected: true,
+          expired: true,
+          age_minutes: 75,
+          ttl_minutes: 60,
+          source: "owner_last_seen_at",
+          reason: "owner_lease_expired",
+        },
+      },
+    });
+  });
+
+  it("recognises plain owner-silent wording as a concrete unclear-owner cue", async () => {
+    await expect(nudgeonlyReceiptBridge({
+      painpoint_detected: true,
+      painpoint_type: "unclear_owner",
+      event_text: "Worker silent for 2 hours; no check-in has arrived.",
+      source_id: "dispatch_owner_silent_text",
+      target: "Memory Recall Check",
+      ttl_minutes: 60,
+    })).resolves.toMatchObject({
+      bridge_status: "escalation_request",
+      request: {
+        worker: "Job Manager",
+        target: "Memory Recall Check",
+        painpoint_type: "unclear_owner",
+      },
+      evidence: {
+        owner_lease: {
+          detected: true,
+          expired: true,
+          age_minutes: 120,
+          ttl_minutes: 60,
+          source: "event_text_duration",
+          reason: "owner_lease_expired",
+        },
+      },
+    });
+  });
+
+  it("does not escalate active owner leases before the TTL", async () => {
+    await expect(nudgeonlyReceiptBridge({
+      painpoint_detected: true,
+      painpoint_type: "unclear_owner",
+      event_text: "Owner silent for 15 minutes on a claimed job.",
+      source_id: "dispatch_owner_recent",
+      target: "PR #705",
+      owner_silent_minutes: 15,
+      ttl_minutes: 60,
+    })).resolves.toMatchObject({
+      bridge_status: "receipt_request",
+      evidence: {
+        owner_lease: {
+          detected: true,
+          expired: false,
+          age_minutes: 15,
+          ttl_minutes: 60,
+          source: "owner_silent_minutes",
+          reason: "owner_lease_active",
+        },
       },
     });
   });

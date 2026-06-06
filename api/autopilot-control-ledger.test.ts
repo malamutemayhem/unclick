@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildAutopilotEventRow,
+  createAutopilotZeroTouchMetrics,
+  planAutopilotIqOutcomeLedgerEvent,
   planAutoPilotKitRecommendationLedgerEvents,
   planFishbowlPostLedgerEvent,
   planTodoLedgerEvents,
@@ -246,5 +248,169 @@ describe("autopilot control ledger helpers", () => {
     })[0];
 
     expect(() => buildAutopilotEventRow({ ...event, apiKeyHash: "hash_123" })).toThrow(/sensitive text/);
+  });
+
+  it("plans AutopilotIQ outcomes as capture-only proof result rows", () => {
+    const event = planAutopilotIqOutcomeLedgerEvent({
+      actorAgentId: "autopilotiq",
+      refKind: "todo",
+      refId: "todo-123",
+      now,
+      outcome: "win",
+      learnedSignal: "Checking PR proof before marking done prevents false closure.",
+      rewardDelta: 2,
+      confidence: 0.8,
+      proofRefs: [
+        { kind: "pr", ref: "1243", note: "checks green" },
+        "boardroom-comment-1",
+      ],
+    });
+
+    expect(event).toMatchObject({
+      eventType: "proof_result",
+      actorAgentId: "autopilotiq",
+      refKind: "todo",
+      refId: "todo-123",
+      payload: {
+        schema_version: "autopilotiq_outcome_v1",
+        source: "autopilotiq",
+        storage: "mc_autopilot_events",
+        capture_mode: "shadow",
+        advisory: true,
+        execute: false,
+        applies_to_future_routing: false,
+        outcome: "win",
+        learned_signal: "Checking PR proof before marking done prevents false closure.",
+        reward_delta: 2,
+        penalty_delta: 0,
+        confidence: 0.8,
+        stale_after: "2026-05-23T00:00:00.000Z",
+        quarantine: false,
+      },
+    });
+
+    const row = buildAutopilotEventRow({ ...event, apiKeyHash: "hash_123" });
+    expect(row.payload.proof_refs).toEqual([
+      { kind: "pr", ref: "1243", note: "checks green" },
+      { kind: "receipt", ref: "boardroom-comment-1" },
+    ]);
+  });
+
+  it("quarantines weak AutopilotIQ outcomes until proof exists", () => {
+    const event = planAutopilotIqOutcomeLedgerEvent({
+      actorAgentId: "autopilotiq",
+      refId: "todo-123",
+      now,
+      outcome: "miss",
+      learnedSignal: "A stale green chip caused a false done attempt.",
+      penaltyDelta: 3,
+      confidence: 0.9,
+      proofRefs: [],
+    });
+
+    expect(event.payload).toMatchObject({
+      capture_mode: "shadow",
+      execute: false,
+      applies_to_future_routing: false,
+      outcome: "miss",
+      reward_delta: 0,
+      penalty_delta: 3,
+      confidence: 0.25,
+      quarantine: true,
+      bad_learning_prevention: {
+        shadow_mode_only: true,
+        requires_proof_refs: true,
+        stale_after_required: true,
+        quarantine_reasons: ["missing_proof_refs", "non_win_outcome", "low_confidence", "penalty_exceeds_reward"],
+      },
+    });
+  });
+
+  it("keeps AutopilotIQ outcome proof refs under the existing secret scrubber", () => {
+    const event = planAutopilotIqOutcomeLedgerEvent({
+      actorAgentId: "autopilotiq",
+      refId: "todo-123",
+      now,
+      outcome: "win",
+      proofRefs: [{ kind: "log", ref: "authorization: bearer sk-test-not-real-secret" }],
+    });
+
+    expect(() => buildAutopilotEventRow({ ...event, apiKeyHash: "hash_123" })).toThrow(/sensitive text/);
+  });
+
+  it("scores refs with only automation events as zero-touch", () => {
+    const metrics = createAutopilotZeroTouchMetrics([
+      {
+        event_type: "claim",
+        actor_agent_id: "github-action-queuepush",
+        ref_kind: "todo",
+        ref_id: "todo-123",
+        payload: { source: "wakepass" },
+        created_at: "2026-05-09T00:00:00.000Z",
+      },
+      {
+        event_type: "proof_result",
+        actor_agent_id: "unclick-builder-tether-seat",
+        ref_kind: "todo",
+        ref_id: "todo-123",
+        payload: { result: "pass" },
+        created_at: "2026-05-09T00:05:00.000Z",
+      },
+    ]);
+
+    expect(metrics).toMatchObject({
+      total_refs: 1,
+      zero_touch_refs: 1,
+      human_touched_refs: 0,
+      human_touch_count: 0,
+      automation_event_count: 2,
+    });
+    expect(metrics.refs[0]).toMatchObject({
+      ref_kind: "todo",
+      ref_id: "todo-123",
+      zero_touch: true,
+      human_touch_count: 0,
+    });
+  });
+
+  it("counts operator chat and human actors as human touches", () => {
+    const metrics = createAutopilotZeroTouchMetrics([
+      {
+        event_type: "dispatch",
+        actor_agent_id: "github-action-queuepush",
+        ref_kind: "pr",
+        ref_id: "1015",
+        payload: { source: "wakepass" },
+        created_at: "2026-05-09T00:00:00.000Z",
+      },
+      {
+        event_type: "merge_decision",
+        actor_agent_id: "unclick-builder-tether-seat",
+        ref_kind: "pr",
+        ref_id: "1015",
+        payload: { trigger_source: "operator_chat" },
+        created_at: "2026-05-09T00:02:00.000Z",
+      },
+      {
+        event_type: "ack",
+        actor_agent_id: "human-616d4beb-4960-451d-bbd3-4d4347a7f9f5",
+        ref_kind: "todo",
+        ref_id: "todo-operator",
+        payload: { blocker: "answered" },
+        created_at: "2026-05-09T00:03:00.000Z",
+      },
+    ]);
+
+    expect(metrics).toMatchObject({
+      total_refs: 2,
+      zero_touch_refs: 0,
+      human_touched_refs: 2,
+      human_touch_count: 2,
+      automation_event_count: 1,
+    });
+    expect(metrics.touch_reason_counts).toMatchObject({
+      "trigger_source:operator_chat": 1,
+      human_actor: 1,
+    });
   });
 });

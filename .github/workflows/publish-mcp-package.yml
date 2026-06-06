@@ -3,19 +3,19 @@ name: Publish MCP server
 on:
   pull_request:
     paths:
-      - '.github/workflows/publish-mcp-package.yml'
+      - ".github/workflows/publish-mcp-package.yml"
+      - "packages/mcp-server/**"
+      - "package-lock.json"
   push:
     branches:
       - main
   workflow_dispatch:
 
-# Auto-publishes @unclick/mcp-server to npm whenever files under
-# packages/mcp-server/ change on main. Bumps the patch version, pushes the
-# version bump commit back, then publishes. Skips if the last commit is
-# itself the bot bump ([skip ci]).
+# GitHub-only distribution for the MCP server.
 #
-# One-time setup: set the NPM_TOKEN repo secret to an "Automation" type
-# npm token (Bypass 2FA).
+# No npm account, npm registry, or NPM_TOKEN is required. The workflow builds
+# packages/mcp-server and publishes a stable GitHub Release tarball at:
+# https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz
 
 concurrency:
   group: publish-mcp-server
@@ -38,7 +38,7 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "should_publish=false" >> "$GITHUB_OUTPUT"
-            echo "PR registry check only; skipping publish."
+            echo "PR release check only; skipping publish."
             exit 0
           fi
 
@@ -48,7 +48,7 @@ jobs:
           fi
 
           changed_files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" 2>/dev/null || git show --name-only --format="" "${{ github.sha }}")
-          if echo "$changed_files" | grep -Eq '^(packages/mcp-server/|package-lock\.json$)'; then
+          if echo "$changed_files" | grep -Eq '^(\.github/workflows/publish-mcp-package\.yml|packages/mcp-server/)'; then
             echo "should_publish=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_publish=false" >> "$GITHUB_OUTPUT"
@@ -60,115 +60,97 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "20"
-          registry-url: "https://registry.npmjs.org"
           cache: "npm"
 
-      - name: Skip if last commit was a bot version bump
-        if: steps.scope.outputs.should_publish == 'true'
-        id: skip_check
-        run: |
-          last_msg=$(git log -1 --pretty=%B)
-          if echo "$last_msg" | grep -q "\[skip ci\]"; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Install (workspace aware)
-        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
+        if: steps.scope.outputs.should_publish == 'true'
         run: npm ci --no-audit --no-fund
 
       - name: Build
-        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
+        if: steps.scope.outputs.should_publish == 'true'
         working-directory: packages/mcp-server
         run: npm run build
 
       - name: Verify package contents
-        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
+        if: steps.scope.outputs.should_publish == 'true'
         working-directory: packages/mcp-server
         run: npm pack --dry-run
 
-      - name: Configure git identity
-        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
-        run: |
-          git config user.email "bot@unclick.world"
-          git config user.name "UnClick Bot"
-
-      - name: Bump patch version
-        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
+      - name: Read package version
+        if: steps.scope.outputs.should_publish == 'true'
+        id: version
         working-directory: packages/mcp-server
         run: |
-          remote_ver=$(npm view @unclick/mcp-server version 2>/dev/null || echo "")
-          new_ver=$(node - "$remote_ver" <<'NODE'
-          const fs = require("fs");
-          const remote = process.argv[2] || "";
-          const pkgPath = "package.json";
-          const manifestPath = "server.json";
-          const lockPath = "../../package-lock.json";
-          const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-          const parts = (version) => version.split(".").map((part) => Number(part));
-          const compare = (a, b) => {
-            const aa = parts(a);
-            const bb = parts(b);
-            for (let i = 0; i < 3; i += 1) {
-              if ((aa[i] || 0) !== (bb[i] || 0)) return (aa[i] || 0) - (bb[i] || 0);
-            }
-            return 0;
-          };
-          const base = remote && compare(remote, pkg.version) > 0 ? remote : pkg.version;
-          const next = parts(base);
-          next[2] = (next[2] || 0) + 1;
-          pkg.version = next.join(".");
-          fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
-          const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-          manifest.version = pkg.version;
-          for (const entry of manifest.packages || []) {
-            if (entry.identifier === pkg.name) entry.version = pkg.version;
-          }
-          fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-          const lock = JSON.parse(fs.readFileSync(lockPath, "utf8"));
-          if (lock.packages?.["packages/mcp-server"]) {
-            lock.packages["packages/mcp-server"].version = pkg.version;
-          }
-          fs.writeFileSync(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
-          console.log(pkg.version);
-          NODE
-          )
-          git add package.json server.json ../../package-lock.json
-          git commit -m "chore: bump mcp-server to v${new_ver} [skip ci]"
+          version=$(node -p "require('./package.json').version")
+          short_sha="${GITHUB_SHA::7}"
+          tag="mcp-server-v${version}-run-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}-${short_sha}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
 
-      - name: Push version bump
-        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
-        run: |
-          for attempt in 1 2 3; do
-            if git push; then
-              exit 0
-            fi
-            echo "Version bump push failed, rebasing on latest main before retry ${attempt}."
-            git pull --rebase origin main
-          done
-          git push
-
-      - name: Publish to npm
-        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
+      - name: Pack GitHub release tarball
+        if: steps.scope.outputs.should_publish == 'true'
+        id: pack
         working-directory: packages/mcp-server
-        run: npm publish --access public
+        run: |
+          mkdir -p ../../release-artifacts
+          packed_file=$(npm pack --pack-destination ../../release-artifacts)
+          # Primary download name is unclick.tgz; unclick-mcp-server.tgz is kept
+          # as a backwards-compatible fallback so existing install URLs keep working.
+          cp "../../release-artifacts/${packed_file}" ../../release-artifacts/unclick.tgz
+          cp "../../release-artifacts/${packed_file}" ../../release-artifacts/unclick-mcp-server.tgz
+          echo "asset=release-artifacts/unclick.tgz" >> "$GITHUB_OUTPUT"
+          echo "backup=release-artifacts/unclick-mcp-server.tgz" >> "$GITHUB_OUTPUT"
+          echo "original=release-artifacts/${packed_file}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        if: steps.scope.outputs.should_publish == 'true'
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Verify published version
-        if: steps.scope.outputs.should_publish == 'true' && steps.skip_check.outputs.skip == 'false'
-        working-directory: packages/mcp-server
+          GH_TOKEN: ${{ github.token }}
         run: |
-          local_ver=$(node -p "require('./package.json').version")
-          echo "Published @unclick/mcp-server@${local_ver}"
-          # Give npm registry a moment to propagate, then confirm.
-          for i in 1 2 3 4 5; do
-            remote_ver=$(npm view @unclick/mcp-server version 2>/dev/null || echo "")
-            if [ "$remote_ver" = "$local_ver" ]; then
-              echo "Confirmed on registry."
-              exit 0
-            fi
-            sleep 4
-          done
-          echo "Warning: registry still shows ${remote_ver}, expected ${local_ver}"
+          tag="${{ steps.version.outputs.tag }}"
+          target_sha=$(git rev-parse HEAD)
+          gh release create "$tag" "${{ steps.pack.outputs.asset }}" "${{ steps.pack.outputs.backup }}" \
+            --target "$target_sha" \
+            --title "MCP server v${{ steps.version.outputs.version }} (${{ github.sha }})" \
+            --notes "GitHub-only MCP server release. Install with: npx -y https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/unclick.tgz"
+
+      - name: Verify GitHub release asset
+        if: steps.scope.outputs.should_publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          assets=$(gh release view "$tag" --json assets --jq '.assets[].name')
+          if echo "$assets" | grep -qx 'unclick.tgz' && echo "$assets" | grep -qx 'unclick-mcp-server.tgz'; then
+            echo "Confirmed GitHub release assets (unclick.tgz + fallback) for ${tag}."
+            exit 0
+          fi
+          echo "::error::GitHub release ${tag} is missing unclick.tgz or its fallback unclick-mcp-server.tgz"
+          exit 1
+
+      - name: Update rolling latest package release
+        if: steps.scope.outputs.should_publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rolling_tag="unclick-packages-latest"
+          rolling_title="UnClick package downloads"
+          rolling_notes="Rolling GitHub-only package release for stable latest/download package URLs."
+          asset="${{ steps.pack.outputs.asset }}"
+          backup="${{ steps.pack.outputs.backup }}"
+
+          if ! gh release view "$rolling_tag" >/dev/null 2>&1; then
+            gh release create "$rolling_tag" "$asset" "$backup" \
+              --target "$(git rev-parse HEAD)" \
+              --title "$rolling_title" \
+              --notes "$rolling_notes" || true
+          fi
+
+          gh release upload "$rolling_tag" "$asset" "$backup" --clobber
+          gh release edit "$rolling_tag" --latest --title "$rolling_title" --notes "$rolling_notes"
+
+      - name: Verify stable latest download
+        if: steps.scope.outputs.should_publish == 'true'
+        run: |
+          curl --fail --location --head "https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/unclick.tgz"
+          curl --fail --location --head "https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/unclick-mcp-server.tgz"

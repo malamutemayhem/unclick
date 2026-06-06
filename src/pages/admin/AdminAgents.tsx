@@ -23,6 +23,7 @@ import {
   latestProfileCheckInAt,
   AI_SEAT_LOAD_OVERRIDE_STORAGE_KEY,
   buildSeatOverrideStoragePayload,
+  buildSeatPerformanceScores,
   loadSeatOverridesFromStorage,
   normalizeSeatRoutingPolicy,
   mapProfilesToSeats,
@@ -256,6 +257,10 @@ function AISeatsPanel() {
     () => unmatchedRecentProfiles(profiles, seatProfiles.values()),
     [profiles, seatProfiles],
   );
+  const performanceScores = useMemo(
+    () => buildSeatPerformanceScores(seats, profiles),
+    [profiles, seats],
+  );
   const matchedProfileCount = seatProfiles.size;
   const checkInSummary = profilesError
     ? profilesError
@@ -337,6 +342,8 @@ function AISeatsPanel() {
 
   return (
     <section className="space-y-4">
+      <PerformanceMonitorPanel scores={performanceScores} loading={profilesLoading || sessionLoading} />
+
       <div className="overflow-hidden rounded-xl border border-border/40 bg-card/20">
         <div className="flex flex-col gap-2 border-b border-border/40 px-4 py-3 md:flex-row md:items-center md:justify-between">
           <div>
@@ -601,6 +608,63 @@ function AISeatsPanel() {
           </ul>
         </div>
       )}
+    </section>
+  );
+}
+
+function PerformanceMonitorPanel({
+  scores,
+  loading,
+}: {
+  scores: ReturnType<typeof buildSeatPerformanceScores>;
+  loading: boolean;
+}) {
+  const topScores = scores.slice(0, 6);
+  const watchCount = scores.filter((score) => score.status !== "strong").length;
+  return (
+    <section className="overflow-hidden rounded-xl border border-border/40 bg-card/20">
+      <div className="flex flex-col gap-2 border-b border-border/40 px-4 py-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-heading">Performance monitor</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Live seat score from check-ins, missed tethers, load, and routing policy.
+          </p>
+        </div>
+        <span
+          className={`w-fit rounded-md border px-2 py-1 text-[11px] ${
+            watchCount > 0
+              ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
+              : "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+          }`}
+        >
+          {loading ? "Refreshing..." : watchCount > 0 ? `${watchCount} need watch` : "All strong"}
+        </span>
+      </div>
+      <div className="grid gap-2 p-4 md:grid-cols-2 xl:grid-cols-3">
+        {topScores.map((score) => (
+          <div key={score.id} className="rounded-lg border border-border/30 bg-card/30 p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold text-heading">{score.label}</p>
+                <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{score.reasons.join(", ")}</p>
+              </div>
+              <span
+                className={`rounded-md border px-2 py-1 text-xs font-semibold ${
+                  score.status === "strong"
+                    ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                    : score.status === "watch"
+                      ? "border-sky-400/30 bg-sky-400/10 text-sky-300"
+                      : score.status === "stale"
+                        ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                        : "border-rose-400/30 bg-rose-400/10 text-rose-300"
+                }`}
+              >
+                {score.score}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

@@ -3,12 +3,17 @@
 // Auth: URLSCAN_API_KEY (API-Key header)
 // Base: https://urlscan.io/api/v1/
 
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const URLSCAN_BASE = "https://urlscan.io/api/v1";
 
-function getApiKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.URLSCAN_API_KEY ?? "").trim();
-  if (!key) throw new Error("api_key is required (or set URLSCAN_API_KEY env var).");
-  return key;
+// Resolves the API key from args/env via the connector registry, or returns a
+// guided not-connected card (returned, never thrown, so a setup gap is not
+// mistaken for a connector fault).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("urlscan", args);
 }
 
 async function urlscanPost(
@@ -16,14 +21,28 @@ async function urlscanPost(
   path: string,
   body: Record<string, unknown>
 ): Promise<Record<string, unknown>> {
-  const res = await fetch(`${URLSCAN_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "API-Key": apiKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const URLSCAN_TIMEOUT_MS = Number(process.env.URLSCAN_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), URLSCAN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${URLSCAN_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "API-Key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`URLScan request timed out after ${URLSCAN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`URLScan network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid URLScan API key.");
   if (res.status === 429) throw new Error("URLScan rate limit exceeded. Wait and retry.");
   if (!res.ok) {
@@ -41,7 +60,20 @@ async function urlscanGet(
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   const headers: Record<string, string> = {};
   if (apiKey) headers["API-Key"] = apiKey;
-  const res = await fetch(`${URLSCAN_BASE}${path}${qs}`, { headers });
+  const URLSCAN_TIMEOUT_MS = Number(process.env.URLSCAN_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), URLSCAN_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${URLSCAN_BASE}${path}${qs}`, { headers, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`URLScan request timed out after ${URLSCAN_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`URLScan network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error("Invalid URLScan API key.");
   if (res.status === 404) throw new Error("URLScan: scan result not found. It may still be processing.");
   if (res.status === 429) throw new Error("URLScan rate limit exceeded.");
@@ -55,7 +87,8 @@ async function urlscanGet(
 // scan_url_urlscan
 export async function scanUrlUrlscan(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const apiKey = getApiKey(args);
+    const apiKey = requireKey(args);
+    if (typeof apiKey !== "string") return apiKey;
     const url = String(args.url ?? "").trim();
     if (!url) return { error: "url is required." };
     const body: Record<string, unknown> = { url };
@@ -63,14 +96,18 @@ export async function scanUrlUrlscan(args: Record<string, unknown>): Promise<unk
     else body.visibility = "public";
     if (args.tags) body.tags = args.tags;
     const data = await urlscanPost(apiKey, "/scan/", body);
-    return {
+    return stampMeta({
       uuid: data.uuid,
       api: data.api,
       result: data.result,
       visibility: data.visibility,
       message: data.message,
       note: "Scan is queued. Use get_scan_result with the uuid to retrieve results (may take 10-30 seconds).",
-    };
+    }, {
+      source: "urlscan.io",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use urlscan_get_result with the uuid once the scan finishes."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -122,7 +159,7 @@ export async function getScanResult(args: Record<string, unknown>): Promise<unkn
 // search_urlscan
 export async function searchUrlscan(args: Record<string, unknown>): Promise<unknown> {
   try {
-    const query = String(args.query ?? "").trim();
+    const query = String((args.q ?? args.query) ?? "").trim();
     if (!query) return { error: "query is required (e.g. 'domain:example.com' or 'page.ip:1.2.3.4')." };
     const params: Record<string, string> = { q: query };
     if (args.size) params.size = String(args.size);

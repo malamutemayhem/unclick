@@ -4,6 +4,10 @@
 // Auth: SENDLE_ID + SENDLE_API_KEY env vars (HTTP Basic Auth).
 // Base URL: https://api.sendle.com/api/
 
+import { notConnectedFor } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
+import { stampMeta } from "./connector-meta.js";
+
 const SENDLE_BASE = "https://api.sendle.com/api";
 
 interface SendleAuth {
@@ -11,11 +15,10 @@ interface SendleAuth {
   key: string;
 }
 
-function getAuth(args: Record<string, unknown>): SendleAuth {
+function getAuth(args: Record<string, unknown>): SendleAuth | NotConnectedResult {
   const id = String(args.sendle_id ?? process.env.SENDLE_ID ?? "").trim();
   const key = String(args.api_key ?? process.env.SENDLE_API_KEY ?? "").trim();
-  if (!id) throw new Error("sendle_id is required (or set SENDLE_ID env var).");
-  if (!key) throw new Error("api_key is required (or set SENDLE_API_KEY env var).");
+  if (!id || !key) return notConnectedFor("sendle");
   return { id, key };
 }
 
@@ -23,21 +26,36 @@ function basicAuth(auth: SendleAuth): string {
   return "Basic " + Buffer.from(`${auth.id}:${auth.key}`).toString("base64");
 }
 
+const SENDLE_TIMEOUT_MS = Number(process.env.SENDLE_TIMEOUT_MS) || 10000;
+
 async function sendleFetch(
   auth: SendleAuth,
   path: string,
   method = "GET",
   body?: unknown
 ): Promise<unknown> {
-  const res = await fetch(`${SENDLE_BASE}${path}`, {
-    method,
-    headers: {
-      Authorization: basicAuth(auth),
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SENDLE_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${SENDLE_BASE}${path}`, {
+      method,
+      headers: {
+        Authorization: basicAuth(auth),
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Sendle API request timed out after ${SENDLE_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Sendle API network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401 || res.status === 403) throw new Error("Invalid Sendle credentials.");
   if (res.status === 404) throw new Error("Resource not found.");
   if (res.status === 422) {
@@ -57,6 +75,7 @@ async function sendleFetch(
 export async function getSendleQuote(args: Record<string, unknown>): Promise<unknown> {
   try {
     const auth = getAuth(args);
+    if ("not_connected" in auth) return auth;
     const pickupPostcode = String(args.pickup_postcode ?? "").trim();
     const deliveryPostcode = String(args.delivery_postcode ?? "").trim();
     if (!pickupPostcode) return { error: "pickup_postcode is required." };
@@ -69,7 +88,7 @@ export async function getSendleQuote(args: Record<string, unknown>): Promise<unk
       "delivery_suburb": String(args.delivery_suburb ?? ""),
       "delivery_postcode": deliveryPostcode,
       "delivery_country": String(args.delivery_country ?? "AU"),
-      "weight_value": String(args.weight_kg ?? "1"),
+      "weight_value": String((args.weight_value ?? args.weight_kg) ?? "1"),
       "weight_units": "kg",
     });
 
@@ -81,7 +100,7 @@ export async function getSendleQuote(args: Record<string, unknown>): Promise<unk
     return {
       pickup_postcode: pickupPostcode,
       delivery_postcode: deliveryPostcode,
-      weight_kg: args.weight_kg ?? 1,
+      weight_kg: (args.weight_value ?? args.weight_kg) ?? 1,
       quotes: Array.isArray(data)
         ? data.map((q) => ({
             plan: q["plan_name"],
@@ -103,6 +122,7 @@ export async function getSendleQuote(args: Record<string, unknown>): Promise<unk
 export async function createSendleOrder(args: Record<string, unknown>): Promise<unknown> {
   try {
     const auth = getAuth(args);
+    if ("not_connected" in auth) return auth;
 
     const body: Record<string, unknown> = {
       pickup_date: args.pickup_date,
@@ -138,12 +158,13 @@ export async function createSendleOrder(args: Record<string, unknown>): Promise<
 export async function trackSendleParcel(args: Record<string, unknown>): Promise<unknown> {
   try {
     const auth = getAuth(args);
-    const ref = String(args.tracking_ref ?? args.sendle_reference ?? "").trim();
+    if ("not_connected" in auth) return auth;
+    const ref = String((args.tracking_id ?? args.tracking_ref) ?? args.sendle_reference ?? "").trim();
     if (!ref) return { error: "tracking_ref is required (Sendle reference number)." };
 
     const data = await sendleFetch(auth, `/tracking/${encodeURIComponent(ref)}`) as Record<string, unknown>;
 
-    return {
+    return stampMeta({
       tracking_ref: ref,
       state: data["state"],
       tracking_events: (data["tracking_events"] as Array<Record<string, unknown>> | undefined)?.map((e) => ({
@@ -153,7 +174,11 @@ export async function trackSendleParcel(args: Record<string, unknown>): Promise<
         location: e["location"],
       })),
       estimated_delivery: data["estimated_delivery"],
-    };
+    }, {
+      source: "Sendle",
+      fetched_at: new Date().toISOString(),
+      next_steps: ["Use get_sendle_quote for pricing, or create_sendle_order to book."],
+    });
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
