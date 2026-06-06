@@ -68,7 +68,7 @@ type SortDirection = "asc" | "desc";
 type DisplayStatus = JobTodo["status"] | "needs_proof";
 
 const SECTION_LABELS: Record<JobSectionKey, string> = {
-  active: "Active",
+  active: "Active + proof holds",
   next: "Next up",
   inline: "In line",
   done: "Completed",
@@ -1078,12 +1078,14 @@ function JobSection({
 
 function BoardPulse({
   activeCount,
+  proofHoldCount,
   queueCount,
   alertCount,
   queueHydrationBlocked,
   initialLoading,
 }: {
   activeCount: number;
+  proofHoldCount: number;
   queueCount: number;
   alertCount: number;
   queueHydrationBlocked: boolean;
@@ -1141,7 +1143,7 @@ function BoardPulse({
             <p className={`mt-1 max-w-xl text-sm leading-5 ${toneStyles.muted}`}>
               {initialLoading
                 ? "Reading Boardroom before any proof claim."
-                : `${activeCount} active, ${queueCount} waiting, ${alertCount} alert${alertCount === 1 ? "" : "s"}.`}
+                : `${activeCount} being worked, ${queueCount} waiting, ${proofHoldCount} proof hold${proofHoldCount === 1 ? "" : "s"}, ${alertCount} alert${alertCount === 1 ? "" : "s"}.`}
             </p>
           </div>
         </div>
@@ -1312,7 +1314,8 @@ export default function AdminJobs() {
     }),
     [grouped, manualOrder],
   );
-  const activeCount = grouped.active.length;
+  const activeCount = grouped.active.filter((todo) => displayStatusFor(todo) === "in_progress").length;
+  const proofHoldCount = grouped.active.filter((todo) => displayStatusFor(todo) === "needs_proof").length;
   const queueCount = grouped.next.length + grouped.inline.length;
   const queueHydrationBlocked = activeCount === 0 && queueCount > 0;
   const alertCount = filteredTodos.filter(needsAttention).length + (queueHydrationBlocked ? 1 : 0);
@@ -1437,7 +1440,7 @@ export default function AdminJobs() {
             One work list for jobs being worked, open backlog, in-line work, and completed proof.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-2 text-center sm:min-w-[360px]">
+        <div className="grid grid-cols-2 gap-2 text-center sm:min-w-[480px] sm:grid-cols-4">
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
             <p className="text-xs text-white/35">Being worked</p>
             <p className="mt-1 flex min-h-7 items-center justify-center text-lg font-semibold text-[#E2B93B]">
@@ -1451,6 +1454,12 @@ export default function AdminJobs() {
             </p>
           </div>
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
+            <p className="text-xs text-white/35">Proof holds</p>
+            <p className="mt-1 flex min-h-7 items-center justify-center text-lg font-semibold text-red-200">
+              {initialLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : proofHoldCount}
+            </p>
+          </div>
+          <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
             <p className="text-xs text-white/35">Alerts</p>
             <p className="mt-1 flex min-h-7 items-center justify-center text-lg font-semibold text-red-200">
               {initialLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : alertCount}
@@ -1461,6 +1470,7 @@ export default function AdminJobs() {
 
       <BoardPulse
         activeCount={activeCount}
+        proofHoldCount={proofHoldCount}
         queueCount={queueCount}
         alertCount={alertCount}
         queueHydrationBlocked={queueHydrationBlocked}
