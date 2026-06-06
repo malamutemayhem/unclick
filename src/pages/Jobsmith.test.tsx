@@ -91,6 +91,11 @@ describe("JobsmithPage", () => {
     expect(managedRunReport).toHaveTextContent("No run proof attached yet.");
     expect(managedRunReport).toHaveTextContent("Decision cards");
     expect(managedRunReport).toHaveTextContent("Not submit-ready");
+    const proofSummary = within(managedRunReport).getByTestId("jobsmith-final-report-proof-summary");
+    expect(proofSummary).toHaveTextContent("Submit-ready status: not ready");
+    expect(proofSummary).toHaveTextContent("Rules passed:");
+    expect(proofSummary).toHaveTextContent("Artifacts: 0/3 ready");
+    expect(proofSummary).toHaveTextContent("Proof receipts: 0");
     expect(screen.queryByText(/ApplyPass/i)).not.toBeInTheDocument();
   });
 
@@ -150,6 +155,11 @@ describe("JobsmithPage", () => {
     const managedRunReport = screen.getByRole("region", { name: "Jobsmith managed run report" });
     expect(managedRunReport).toHaveTextContent("Browser-local cover letter draft: Ready");
     expect(managedRunReport).toHaveTextContent("Managed run report UI");
+    const proofSummary = within(managedRunReport).getByTestId("jobsmith-final-report-proof-summary");
+    expect(proofSummary).toHaveTextContent("Submit-ready status: not ready");
+    expect(proofSummary).toHaveTextContent(/Decision cards: \d+ resolved/);
+    expect(proofSummary).toHaveTextContent("Artifacts: 1/3 ready");
+    expect(proofSummary).toHaveTextContent("Proof receipts: 2");
   });
 
   it("logs an application and persists it across a remount", async () => {
