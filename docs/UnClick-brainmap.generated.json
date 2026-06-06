@@ -9,9 +9,9 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 620,
-    "source_manifest": 193,
-    "pages": 84,
+    "inventory": 621,
+    "source_manifest": 194,
+    "pages": 85,
     "tools": 219,
     "rooms": 23,
     "workers": 8
@@ -27,7 +27,7 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 34
+      "count": 35
     },
     {
       "id": "tools",
@@ -3379,6 +3379,16 @@
       "meaning": "User-facing page for FAQPage.",
       "source": "src/pages/FAQPage.tsx",
       "route": "/faq",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-homepage-sample-src-pages-homepagesample-tsx-uipass-home-sample",
+      "division": "Public surfaces",
+      "name": "Homepage Sample",
+      "kind": "public page",
+      "meaning": "User-facing page for Homepage Sample.",
+      "source": "src/pages/HomepageSample.tsx",
+      "route": "/uipass-home-sample",
       "tags": []
     },
     {
@@ -6792,6 +6802,12 @@
       "src/pages/Tools.tsx"
     ],
     [
+      "/uipass-home-sample",
+      "Homepage Sample",
+      "User-facing page for Homepage Sample.",
+      "src/pages/HomepageSample.tsx"
+    ],
+    [
       "/xpass",
       "XPass",
       "User-facing page for XPass.",
@@ -8274,8 +8290,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "1f196048a2b9",
-      "bytes": 15047
+      "hash": "ebaa5ea27177",
+      "bytes": 15180
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -8776,6 +8792,11 @@
       "source": "src/pages/Tools.tsx",
       "hash": "1b9bc9d666a7",
       "bytes": 15377
+    },
+    {
+      "source": "src/pages/HomepageSample.tsx",
+      "hash": "ca94a52fced8",
+      "bytes": 9146
     },
     {
       "source": "src/pages/XPass.tsx",

@@ -22,7 +22,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | de9f41b265f3 | 4881 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 1f196048a2b9 | 15047 |
+| src/App.tsx | ebaa5ea27177 | 15180 |
 | src/pages/admin/AdminShell.tsx | 7f369084b44d | 24686 |
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
@@ -123,6 +123,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
+| src/pages/HomepageSample.tsx | ca94a52fced8 | 9146 |
 | src/pages/XPass.tsx | 5f07b2f32036 | 8713 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
@@ -212,7 +213,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 50 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 34 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 35 |
 | Tools | MCP and gateway capabilities available to seats. | 219 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
@@ -337,6 +338,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /tools/scheduling | Scheduling | Tool page for Scheduling. | src/pages/tools/Scheduling.tsx |
 | /tools/solve | Solve | Tool page for Solve. | src/pages/tools/Solve.tsx |
 | /tools | Tools | Public tools marketplace entry point. | src/pages/Tools.tsx |
+| /uipass-home-sample | Homepage Sample | User-facing page for Homepage Sample. | src/pages/HomepageSample.tsx |
 | /xpass | XPass | User-facing page for XPass. | src/pages/XPass.tsx |
 
 ## Tool Families and Meaning
@@ -896,6 +898,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Docs | User-facing page for Docs. | /docs | src/pages/Docs.tsx |
 | Public surfaces | public page | Dogfood Report | Public dogfood proof report. | /dogfood | src/pages/DogfoodReport.tsx |
 | Public surfaces | public page | FAQ | User-facing page for FAQPage. | /faq | src/pages/FAQPage.tsx |
+| Public surfaces | public page | Homepage Sample | User-facing page for Homepage Sample. | /uipass-home-sample | src/pages/HomepageSample.tsx |
 | Public surfaces | public page | Index | Public home and first explanation of UnClick. | / | src/pages/Index.tsx |
 | Public surfaces | public page | Install Recover | User-facing page for Install Recover. | /i | src/pages/InstallRecover.tsx |
 | Public surfaces | public page | Jobsmith | User-facing page for Jobsmith. | /jobsmith | src/pages/Jobsmith.tsx |
