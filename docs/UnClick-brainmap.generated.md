@@ -123,7 +123,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
 | src/pages/Tools.tsx | 1b9bc9d666a7 | 15377 |
-| src/pages/HomepageSample.tsx | ca94a52fced8 | 9146 |
+| src/pages/HomepageSample.tsx | 4d60be2009d8 | 14100 |
 | src/pages/XPass.tsx | 5f07b2f32036 | 8713 |
 | scripts/pinballwake-ack-ledger-room.mjs | e7dcb642bc75 | 12719 |
 | scripts/pinballwake-buildbait-room.mjs | 42445fca7b1e | 4811 |
