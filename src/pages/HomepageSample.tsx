@@ -5,17 +5,19 @@ import {
   Bot,
   Cable,
   CheckCircle2,
+  CircuitBoard,
   CircleDot,
+  Factory,
   GitBranch,
-  KeyRound,
   Layers3,
-  Link2,
   MemoryStick,
   MousePointerClick,
+  Network,
   PlugZap,
   Route,
   ShieldCheck,
   TerminalSquare,
+  Waypoints,
   Wrench,
 } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
@@ -84,8 +86,43 @@ const RULES = [
   "No generic dashboard promise",
 ];
 
+const CONCEPTS = [
+  {
+    id: "patchbay",
+    label: "Patchbay",
+    eyebrow: "AI patchbay",
+    title: "A patchbay, not a page about AI.",
+    body: "This direction stops selling an abstract promise. It makes UnClick feel like the wiring layer where agents connect to real work.",
+    lede: "Plug an AI seat into tools, memory, checks, and human boundaries from one live board.",
+    cta: "Patch a run",
+    icon: CircuitBoard,
+  },
+  {
+    id: "signal-map",
+    label: "Signal map",
+    eyebrow: "AI routing map",
+    title: "The route is the product.",
+    body: "This option treats UnClick like a live transit map for AI work: every lane is visible, every handoff has a direction, and dead ends are obvious.",
+    lede: "Route an AI request through memory, tools, checks, and humans before it moves.",
+    cta: "Route a job",
+    icon: Waypoints,
+  },
+  {
+    id: "workbench",
+    label: "Workbench",
+    eyebrow: "Agent workbench",
+    title: "Tools on the bench, not floating cards.",
+    body: "This option feels more like a physical work surface: tools, guards, and context sit within reach so the AI seat acts like a careful operator.",
+    lede: "Lay out the job, choose the tools, clamp the risk, and send the agent to work.",
+    cta: "Set the bench",
+    icon: Factory,
+  },
+] as const;
+
 type Patch = (typeof PATCHES)[number];
 type PatchId = Patch["id"];
+type Concept = (typeof CONCEPTS)[number];
+type ConceptId = Concept["id"];
 
 function CablePath({ activePatch }: { activePatch: Patch }) {
   return (
@@ -213,6 +250,151 @@ function PatchbayHero({ activePatch }: { activePatch: Patch }) {
   );
 }
 
+function SignalMapHero({ activePatch }: { activePatch: Patch }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,#080807_0%,#111109_44%,#101203_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(244,201,93,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.024)_1px,transparent_1px)] bg-[size:64px_64px]" />
+
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 1200 760" preserveAspectRatio="none">
+        <path d="M70 580 L270 420 L470 420 L650 250 L1130 250" fill="none" stroke={activePatch.color} strokeWidth="7" strokeLinecap="square" />
+        <path d="M120 245 L330 245 L500 370 L750 370 L1080 560" fill="none" stroke="#f4c95d" strokeWidth="4" strokeLinecap="square" />
+        <path d="M90 390 L255 390 L430 560 L630 560 L900 310 L1110 310" fill="none" stroke="#ff7a6b" strokeWidth="4" strokeLinecap="square" opacity="0.75" />
+        {[70, 270, 470, 650, 1130].map((x, index) => (
+          <rect key={`main-${x}`} x={x - 8} y={(index < 1 ? 580 : index < 3 ? 420 : 250) - 8} width="16" height="16" fill="#090806" stroke={activePatch.color} strokeWidth="3" />
+        ))}
+      </svg>
+
+      <div className="absolute right-7 top-28 hidden w-[390px] border border-[#f4c95d]/40 bg-black/45 p-0 font-mono text-xs uppercase text-[#f4c95d] md:block">
+        <div className="grid grid-cols-[1fr_5rem] border-b border-[#f4c95d]/30 px-4 py-3">
+          <span>route board</span>
+          <span>state</span>
+        </div>
+        {activePatch.path.map((lane, index) => (
+          <div key={`${lane}-board`} className="grid grid-cols-[1fr_5rem] border-b border-[#f4c95d]/18 px-4 py-4 last:border-b-0">
+            <span>{String(index + 1).padStart(2, "0")} {lane}</span>
+            <span className="text-primary">live</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="absolute inset-x-5 top-28 h-44 border border-[#f4c95d]/30 bg-black/35 sm:hidden">
+        <div className="grid h-full grid-cols-3 grid-rows-3">
+          {Array.from({ length: 9 }).map((_, index) => (
+            <div key={index} className="border border-[#f4c95d]/12" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WorkbenchHero({ activePatch }: { activePatch: Patch }) {
+  const tools = ["memory", "github", "uipass", "crews", "vercel", "scope"];
+
+  return (
+    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,#090807_0%,#15110d_50%,#071211_100%)]" />
+      <div className="absolute bottom-0 left-0 right-0 h-[46%] border-t border-white/10 bg-[linear-gradient(180deg,rgba(244,201,93,0.08),rgba(0,0,0,0.4))]" />
+      <div className="absolute inset-x-0 bottom-24 hidden h-[280px] grid-cols-6 gap-3 px-5 sm:grid">
+        {tools.map((tool, index) => {
+          const active = activePatch.path.map((lane) => lane.toLowerCase()).includes(tool);
+          return (
+            <div
+              key={tool}
+              className="flex flex-col justify-between border border-white/20 bg-black/80 p-4"
+              style={{
+                transform: `translateY(${index % 2 === 0 ? 0 : 28}px)`,
+                borderColor: active ? activePatch.color : "rgba(244,201,93,0.24)",
+                boxShadow: active ? `0 0 26px ${activePatch.color}22` : "none",
+              }}
+            >
+              <span className="font-mono text-xs uppercase text-white/60">tool</span>
+              <span className="text-lg font-semibold uppercase text-white">{tool}</span>
+              <span
+                className="h-2 w-full"
+                style={{ backgroundColor: active ? activePatch.color : "rgba(244,201,93,0.28)" }}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="absolute right-8 top-28 hidden w-[330px] border border-primary/35 bg-primary/[0.08] p-5 md:block">
+        <div className="mb-5 flex items-center gap-3">
+          <Network className="h-5 w-5 text-primary" />
+          <span className="font-mono text-xs uppercase text-primary">bench rules</span>
+        </div>
+        <div className="space-y-3">
+          {RULES.slice(0, 3).map((rule) => (
+            <div key={rule} className="border-l-2 border-primary/55 pl-3 text-sm text-heading">
+              {rule}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="absolute inset-x-5 top-28 h-44 border border-primary/25 bg-black/35 p-4 sm:hidden">
+        <div className="grid h-full grid-cols-3 gap-2">
+          {tools.slice(0, 6).map((tool) => (
+            <div key={tool} className="border border-white/12 bg-white/[0.03]" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConceptScene({
+  concept,
+  activePatch,
+}: {
+  concept: Concept;
+  activePatch: Patch;
+}) {
+  if (concept.id === "signal-map") {
+    return <SignalMapHero activePatch={activePatch} />;
+  }
+
+  if (concept.id === "workbench") {
+    return <WorkbenchHero activePatch={activePatch} />;
+  }
+
+  return <PatchbayHero activePatch={activePatch} />;
+}
+
+function ConceptSwitcher({
+  activeConcept,
+  onSelect,
+}: {
+  activeConcept: Concept;
+  onSelect: (id: ConceptId) => void;
+}) {
+  return (
+    <div className="mb-5 flex flex-wrap gap-2" aria-label="Homepage sample concepts">
+      {CONCEPTS.map((concept) => {
+        const selected = concept.id === activeConcept.id;
+        return (
+          <button
+            key={concept.id}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onSelect(concept.id)}
+            className={`inline-flex min-h-10 items-center gap-2 border px-3 text-xs font-semibold uppercase transition ${
+              selected
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-black/35 text-heading hover:border-primary/60"
+            }`}
+          >
+            <concept.icon className="h-4 w-4" />
+            {concept.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function PatchControl({
   activePatch,
   onSelect,
@@ -298,8 +480,11 @@ function PatchControl({
 }
 
 export default function HomepageSample() {
+  const [activeConceptId, setActiveConceptId] = useState<ConceptId>("patchbay");
   const [activePatchId, setActivePatchId] = useState<PatchId>("publish");
+  const activeConcept = CONCEPTS.find((concept) => concept.id === activeConceptId) ?? CONCEPTS[0];
   const activePatch = PATCHES.find((patch) => patch.id === activePatchId) ?? PATCHES[0];
+  const ActiveConceptIcon = activeConcept.icon;
 
   useCanonical("/uipass-home-sample");
   useMetaTags({
@@ -318,7 +503,7 @@ export default function HomepageSample() {
 
       <main>
         <section className="relative min-h-[88svh] overflow-hidden border-b border-border px-5 pb-16 pt-32 sm:px-6">
-          <PatchbayHero activePatch={activePatch} />
+          <ConceptScene concept={activeConcept} activePatch={activePatch} />
           <div
             className="absolute inset-y-0 left-0 w-full bg-[linear-gradient(90deg,hsl(var(--background))_0%,hsl(var(--background)/0.94)_34%,hsl(var(--background)/0.64)_58%,transparent_100%)] sm:w-[62rem]"
             aria-hidden="true"
@@ -327,28 +512,32 @@ export default function HomepageSample() {
           <div className="relative z-10 grid min-h-[calc(88svh-8rem)] items-center">
             <div className="max-w-3xl">
               <FadeIn>
+                <ConceptSwitcher activeConcept={activeConcept} onSelect={setActiveConceptId} />
+              </FadeIn>
+
+              <FadeIn>
                 <div className="mb-5 inline-flex items-center gap-2 border border-primary/35 bg-black/45 px-4 py-2 text-xs font-medium uppercase text-primary backdrop-blur">
-                  <Link2 className="h-3.5 w-3.5" />
-                  AI patchbay
+                  <ActiveConceptIcon className="h-3.5 w-3.5" />
+                  {activeConcept.eyebrow}
                 </div>
               </FadeIn>
 
               <FadeIn delay={0.05}>
-                <h1 className="text-5xl font-semibold leading-none text-heading sm:text-7xl md:text-8xl">
+                <h1 className="pb-2 text-5xl font-semibold !leading-[1.14] text-heading sm:text-7xl md:text-8xl">
                   UnClick
                 </h1>
               </FadeIn>
 
               <FadeIn delay={0.1}>
                 <p className="mt-6 max-w-2xl text-xl leading-relaxed text-body sm:text-2xl">
-                  Plug an AI seat into tools, memory, checks, and human boundaries from one live board.
+                  {activeConcept.lede}
                 </p>
               </FadeIn>
 
               <FadeIn delay={0.15}>
                 <div className="mt-10 flex flex-wrap gap-3">
                   <a href="#sample-run" className="inline-flex min-h-11 items-center justify-center gap-2 bg-primary px-7 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
-                    Patch a run
+                    {activeConcept.cta}
                     <ArrowRight className="h-4 w-4" />
                   </a>
                   <Link
@@ -367,12 +556,12 @@ export default function HomepageSample() {
         <section id="sample-run" className="px-5 py-16 sm:px-6">
           <div className="mx-auto max-w-6xl">
             <div className="mb-8 max-w-2xl">
-              <p className="font-mono text-xs uppercase text-primary">Sample four</p>
+              <p className="font-mono text-xs uppercase text-primary">Concept lab</p>
               <h2 className="mt-3 text-3xl font-semibold text-heading sm:text-4xl">
-                A patchbay, not a page about AI.
+                {activeConcept.title}
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-body">
-                This direction stops selling an abstract promise. It makes UnClick feel like the wiring layer where agents connect to real work.
+                {activeConcept.body}
               </p>
             </div>
 
