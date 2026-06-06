@@ -81,6 +81,26 @@ Capture the build into repo code, a draft PR, or a scoped handoff quickly. Do no
 leave fresh build context for later heartbeat recovery if the active seat can
 safely act now.
 
+This is the FRONT bookend of BookendsBuild (UnClick -> AutoPilot -> BookendsBuild)
+and it is mandatory, not optional. Build-from-the-warm-chat-seat is priority at
+the front of the loop.
+
+## BookendsBuild QC on Wake
+
+This is the BACK bookend of BookendsBuild and it carries equal, hard priority to
+the front-end build capture above. It is mandatory.
+
+On every subscription/chat-seat wake, before idling, run a QC pass over
+everything the free autopilot agents (OpenHands / CodeRoom) shipped or attempted
+since the last subscription wake. Read the diffs, PRs, and proof. If anything is
+wrong, incomplete, or low-quality, the smart subscription seat fixes it
+immediately, re-runs the checks, and repeats until clean.
+
+The smart subscription seat builds at the front and audits at the back; the free
+middle keeps things moving while the operator is away. Do not treat free-agent
+output as done until it has passed this QC pass. The loop only counts as closed
+once this back-end QC has run. See `docs/bookends-build.md`.
+
 ## SeatRelay Priority
 
 Treat SeatRelay as high priority when choosing between safe queue slices because
