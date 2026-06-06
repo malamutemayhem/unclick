@@ -3,20 +3,17 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   BadgeCheck,
-  BookMarked,
-  Cable,
   CheckCircle2,
-  ClipboardCheck,
-  Fingerprint,
-  KeyRound,
-  MousePointer2,
-  PlugZap,
-  Power,
-  Radio,
+  ClipboardList,
+  FileCheck2,
+  ListChecks,
+  NotebookTabs,
+  PenLine,
   ReceiptText,
   Route,
+  ScanLine,
   ShieldCheck,
-  SlidersHorizontal,
+  Stamp,
 } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
 import Footer from "@/components/Footer";
@@ -25,155 +22,143 @@ import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import { presets } from "@/lib/design-system";
 
-const REMOTE_KEYS = [
+const DOCKET_STEPS = [
   {
-    id: "apps",
-    label: "Apps",
-    kicker: "reach",
-    detail: "Find the right connector without a setup ritual.",
-    receipt: "tool lane chosen: GitHub, Gmail, Supabase, Slack",
-    icon: Cable,
-    tone: "border-cyan-200/45 bg-cyan-200/[0.08] text-cyan-100",
-  },
-  {
-    id: "memory",
-    label: "Memory",
-    kicker: "carry",
-    detail: "Bring back the useful facts and show where they came from.",
-    receipt: "context loaded: facts, sessions, source pointers",
-    icon: BookMarked,
-    tone: "border-amber-200/45 bg-amber-200/[0.08] text-amber-100",
+    id: "intake",
+    label: "Intake",
+    verb: "Catch the ask",
+    line: "Turn a messy request into a named job.",
+    receipt: "request accepted, context loaded, owner visible",
+    icon: ClipboardList,
   },
   {
     id: "scope",
     label: "Scope",
-    kicker: "guard",
-    detail: "Name the job, the boundaries, and the risky surfaces.",
-    receipt: "scope locked: files, route, proof, no production risk",
-    icon: Fingerprint,
-    tone: "border-emerald-200/45 bg-emerald-200/[0.08] text-emerald-100",
+    verb: "Draw the line",
+    line: "Name the safe lane before anything moves.",
+    receipt: "files, tools, risks, and proof bar declared",
+    icon: ShieldCheck,
   },
   {
-    id: "run",
-    label: "Run",
-    kicker: "act",
-    detail: "Call the tool, worker, or pass that fits the job.",
-    receipt: "work started: narrow lane, live status, Boardroom trail",
-    icon: KeyRound,
-    tone: "border-sky-200/45 bg-sky-200/[0.08] text-sky-100",
+    id: "action",
+    label: "Action",
+    verb: "Call the right pass",
+    line: "Use the connector, worker, XPass, or Council when the job needs it.",
+    receipt: "UIPass, UXPass, TestPass, CopyPass, or Crews invited",
+    icon: ListChecks,
   },
   {
     id: "proof",
     label: "Proof",
-    kicker: "finish",
-    detail: "Attach the build, screenshot, test, link, or blocker.",
-    receipt: "done held until proof is visible",
+    verb: "Stamp the result",
+    line: "No proof means not done. The receipt is the finish line.",
+    receipt: "screenshots, checks, PR, deploy, or honest blocker attached",
     icon: BadgeCheck,
-    tone: "border-rose-200/45 bg-rose-200/[0.08] text-rose-100",
   },
 ] as const;
 
-const PROOF_TAPE = [
-  "wake accepted",
-  "context read",
-  "scope chosen",
-  "tool called",
-  "receipt saved",
-  "proof linked",
+const LEDGER_LINES = [
+  "human request",
+  "memory receipt",
+  "scope packet",
+  "pass verdict",
+  "screen proof",
+  "done stamp",
 ];
 
-const WORK_ORDERS = [
+const DIFFERENCE_ROWS = [
   {
-    label: "No vague magic",
-    body: "The page shows the control loop instead of promising an invisible agent.",
-    icon: SlidersHorizontal,
+    label: "Looks less like",
+    value: "a chatbot wrapper",
+    icon: PenLine,
   },
   {
-    label: "Human stays on top",
-    body: "Permission, scope, and proof are visible before trust is asked for.",
-    icon: ShieldCheck,
+    label: "Feels more like",
+    value: "a work desk for agents",
+    icon: NotebookTabs,
   },
   {
-    label: "Agent can read it",
-    body: "The structure is plain, labelled, and easy for browser agents to follow.",
-    icon: MousePointer2,
-  },
-  {
-    label: "Proof has a shape",
-    body: "Done is not a mood. It needs a receipt, screenshot, check, or link.",
+    label: "First promise",
+    value: "proof before done",
     icon: ReceiptText,
   },
+  {
+    label: "Human role",
+    value: "approver, not passenger",
+    icon: FileCheck2,
+  },
 ];
 
-type RemoteKey = (typeof REMOTE_KEYS)[number];
-type RemoteKeyId = RemoteKey["id"];
+type DocketStep = (typeof DOCKET_STEPS)[number];
+type DocketStepId = DocketStep["id"];
 
-function RemoteHeroScene() {
+function DocketSheet({ activeStep }: { activeStep: DocketStep }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 bg-[linear-gradient(135deg,hsl(0_0%_5%)_0%,hsl(0_0%_4%)_38%,hsl(187_24%_8%)_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(0_0%_100%/0.035)_1px,transparent_1px),linear-gradient(to_bottom,hsl(0_0%_100%/0.025)_1px,transparent_1px)] bg-[size:72px_72px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_18%,hsl(182_46%_57%/0.16),transparent_26%),linear-gradient(135deg,hsl(0_0%_4%)_0%,hsl(0_0%_6%)_52%,hsl(12_28%_8%)_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(0_0%_100%/0.028)_1px,transparent_1px),linear-gradient(to_bottom,hsl(0_0%_100%/0.02)_1px,transparent_1px)] bg-[size:84px_84px]" />
 
-      <div className="absolute -right-12 top-20 hidden h-[600px] w-[310px] rotate-[-11deg] rounded-[2rem] border border-white/12 bg-[hsl(0_0%_8%)] p-5 shadow-[0_40px_120px_hsl(0_0%_0%/0.55)] sm:block lg:right-[8%]">
-        <div className="mb-5 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-body">
-            <Power className="h-4 w-4 text-primary" />
-            UNC-01
-          </div>
-          <div className="h-2 w-2 rounded-full bg-emerald-300" />
+      <div className="absolute left-[-5rem] top-28 hidden h-[520px] w-[420px] rotate-[-7deg] border border-primary/20 bg-[hsl(182_46%_57%/0.06)] px-6 py-7 font-mono text-xs uppercase text-primary/90 md:block">
+        <div className="mb-6 flex items-center justify-between border-b border-primary/25 pb-3">
+          <span>UnClick intake</span>
+          <span>live</span>
         </div>
-
-        <div className="rounded-lg border border-white/10 bg-black/45 p-4 font-mono text-[11px] leading-relaxed text-cyan-100">
-          <div>REMOTE READY</div>
-          <div>ASK - SCOPE - RUN - PROVE</div>
-          <div className="mt-3 text-emerald-200">human stays in control</div>
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          {REMOTE_KEYS.slice(0, 4).map((key) => (
-            <div key={key.id} className={`min-h-20 rounded-lg border p-3 ${key.tone}`}>
-              <key.icon className="h-4 w-4" />
-              <div className="mt-4 text-sm font-semibold text-heading">{key.label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mx-auto mt-7 flex h-24 w-24 items-center justify-center rounded-full border border-primary/45 bg-primary/[0.08]">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <CheckCircle2 className="h-6 w-6" />
-          </div>
-        </div>
-
-        <div className="mt-7 rounded-lg border border-rose-200/35 bg-rose-200/[0.08] p-3 text-rose-100">
-          <BadgeCheck className="h-4 w-4" />
-          <div className="mt-4 text-sm font-semibold text-heading">Proof</div>
-        </div>
-      </div>
-
-      <div className="absolute left-6 top-28 hidden w-64 -rotate-3 border border-dashed border-amber-200/30 bg-amber-100/[0.08] p-4 font-mono text-[11px] uppercase leading-6 text-amber-100 md:block">
-        {PROOF_TAPE.map((line) => (
-          <div key={line} className="flex items-center justify-between border-b border-amber-100/15 py-1 last:border-b-0">
+        {LEDGER_LINES.map((line, index) => (
+          <div key={line} className="flex items-center justify-between border-b border-primary/15 py-4">
+            <span>{String(index + 1).padStart(2, "0")}</span>
             <span>{line}</span>
-            <span>ok</span>
+            <CheckCircle2 className="h-4 w-4" />
           </div>
         ))}
       </div>
 
-      <div className="absolute bottom-20 left-1/2 hidden w-[760px] -translate-x-1/2 border-y border-white/10 bg-black/30 px-5 py-3 font-mono text-xs text-body backdrop-blur sm:block">
-        <div className="grid grid-cols-5 gap-3">
-          {REMOTE_KEYS.map((key) => (
-            <div key={key.id} className="flex items-center gap-2">
-              <key.icon className="h-4 w-4 text-primary" />
-              <span>{key.kicker}</span>
-            </div>
-          ))}
+      <div className="absolute right-[-2rem] top-20 hidden h-[620px] w-[455px] rotate-[5deg] border border-[hsl(48_76%_88%/0.35)] bg-[hsl(46_80%_91%)] p-7 text-[hsl(30_15%_12%)] shadow-[0_40px_130px_hsl(0_0%_0%/0.55)] lg:block">
+        <div className="mb-5 flex items-start justify-between gap-6 border-b-2 border-dashed border-[hsl(30_15%_12%/0.28)] pb-4">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-wide opacity-70">Work docket</p>
+            <p className="mt-2 text-3xl font-semibold leading-none">UNC-0001</p>
+          </div>
+          <div className="rounded-full border-2 border-[hsl(355_72%_42%/0.65)] px-4 py-2 font-mono text-xs uppercase text-[hsl(355_72%_42%)]">
+            prove it
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {DOCKET_STEPS.map((step) => {
+            const selected = step.id === activeStep.id;
+            return (
+              <div
+                key={step.id}
+                className={`grid grid-cols-[2rem_1fr] gap-3 border-b border-[hsl(30_15%_12%/0.18)] py-3 ${
+                  selected ? "opacity-100" : "opacity-45"
+                }`}
+              >
+                <step.icon className="h-5 w-5" />
+                <div>
+                  <p className="font-mono text-xs uppercase tracking-wide">{step.label}</p>
+                  <p className="mt-1 text-sm font-semibold">{step.verb}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 border-2 border-[hsl(355_72%_42%/0.55)] px-5 py-4 text-center font-mono text-sm uppercase text-[hsl(355_72%_42%)]">
+          not done until proven
         </div>
       </div>
 
-      <div className="absolute inset-x-6 top-28 h-36 rounded-[1.75rem] border border-white/10 bg-black/25 p-4 sm:hidden">
-        <div className="grid h-full grid-cols-3 gap-2">
-          {REMOTE_KEYS.slice(0, 3).map((key) => (
-            <div key={key.id} className={`rounded-lg border ${key.tone}`} />
+      <div className="absolute inset-x-5 top-28 h-40 rounded-[1.25rem] border border-primary/25 bg-primary/[0.05] p-4 sm:hidden">
+        <div className="grid h-full grid-cols-4 gap-2">
+          {DOCKET_STEPS.map((step) => (
+            <div
+              key={step.id}
+              className={`rounded-lg border ${
+                step.id === activeStep.id
+                  ? "border-primary bg-primary/[0.18]"
+                  : "border-primary/20 bg-black/20"
+              }`}
+            />
           ))}
         </div>
       </div>
@@ -181,75 +166,79 @@ function RemoteHeroScene() {
   );
 }
 
-function RemoteBench({
-  activeKey,
+function DocketConsole({
+  activeStep,
   onSelect,
 }: {
-  activeKey: RemoteKey;
-  onSelect: (id: RemoteKeyId) => void;
+  activeStep: DocketStep;
+  onSelect: (id: DocketStepId) => void;
 }) {
   return (
-    <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-stretch">
-      <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
-        <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
+    <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+      <div className="border border-border bg-background p-4">
+        <div className="flex items-center justify-between border-b border-border pb-4">
           <div>
-            <p className="font-mono text-xs uppercase text-primary">Sample remote</p>
-            <h2 className="mt-2 text-2xl font-semibold text-heading">Press a key</h2>
+            <p className="font-mono text-xs uppercase text-primary">Run docket</p>
+            <h2 className="mt-2 text-2xl font-semibold text-heading">Pick the stamp</h2>
           </div>
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-primary/40 bg-primary/[0.08] text-primary">
-            <Radio className="h-5 w-5" />
-          </div>
+          <Stamp className="h-6 w-6 text-primary" />
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5 lg:grid-cols-2">
-          {REMOTE_KEYS.map((key) => {
-            const selected = key.id === activeKey.id;
+        <div className="mt-4 grid gap-2">
+          {DOCKET_STEPS.map((step) => {
+            const selected = step.id === activeStep.id;
             return (
               <button
-                key={key.id}
+                key={step.id}
                 type="button"
                 aria-pressed={selected}
-                onClick={() => onSelect(key.id)}
-                className={`min-h-24 rounded-lg border p-4 text-left transition ${
+                onClick={() => onSelect(step.id)}
+                className={`grid min-h-20 grid-cols-[2.5rem_1fr] items-center gap-3 border px-4 text-left transition ${
                   selected
-                    ? `${key.tone} shadow-[0_0_0_1px_hsl(var(--primary)/0.25)]`
-                    : "border-border bg-secondary/35 text-body hover:border-primary/45 hover:bg-secondary/65"
+                    ? "border-primary bg-primary/[0.1]"
+                    : "border-border bg-card/40 hover:border-primary/45 hover:bg-card/70"
                 }`}
               >
-                <key.icon className="h-5 w-5" />
-                <span className="mt-5 block text-base font-semibold text-heading">{key.label}</span>
-                <span className="mt-1 block font-mono text-xs uppercase text-body">{key.kicker}</span>
+                <span className="flex h-10 w-10 items-center justify-center border border-border bg-background text-primary">
+                  <step.icon className="h-5 w-5" />
+                </span>
+                <span>
+                  <span className="block font-mono text-xs uppercase text-body">{step.label}</span>
+                  <span className="mt-1 block text-base font-semibold text-heading">{step.verb}</span>
+                </span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="rounded-lg border border-dashed border-amber-200/35 bg-amber-100/[0.06] p-5">
-        <div className="flex items-center justify-between gap-4 border-b border-amber-100/20 pb-4">
+      <div className="border border-[hsl(48_76%_88%/0.3)] bg-[hsl(46_80%_91%)] p-5 text-[hsl(30_15%_12%)]">
+        <div className="flex items-start justify-between gap-4 border-b-2 border-dashed border-[hsl(30_15%_12%/0.28)] pb-4">
           <div>
-            <p className="font-mono text-xs uppercase text-amber-100">Live receipt</p>
-            <h2 className="mt-2 text-2xl font-semibold text-heading">{activeKey.label}</h2>
+            <p className="font-mono text-xs uppercase opacity-70">Selected docket line</p>
+            <h2 className="mt-2 text-3xl font-semibold">{activeStep.label}</h2>
           </div>
-          <ReceiptText className="h-6 w-6 text-amber-100" />
-        </div>
-
-        <div className="mt-6 space-y-4 font-mono text-sm leading-relaxed text-amber-50/90">
-          <div className="flex items-start gap-3">
-            <ClipboardCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-            <span>{activeKey.receipt}</span>
-          </div>
-          <div className="flex items-start gap-3">
-            <PlugZap className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-            <span>{activeKey.detail}</span>
+          <div className="rounded-full border-2 border-[hsl(355_72%_42%/0.65)] px-4 py-2 font-mono text-xs uppercase text-[hsl(355_72%_42%)]">
+            stamped
           </div>
         </div>
 
-        <div className="mt-8 grid gap-2">
-          {PROOF_TAPE.map((line, index) => (
-            <div key={line} className="flex items-center justify-between border-t border-amber-100/15 pt-2 font-mono text-xs uppercase text-body">
+        <div className="mt-6 grid gap-5 sm:grid-cols-2">
+          <div>
+            <p className="font-mono text-xs uppercase opacity-60">What it does</p>
+            <p className="mt-2 text-lg font-semibold leading-snug">{activeStep.line}</p>
+          </div>
+          <div>
+            <p className="font-mono text-xs uppercase opacity-60">Receipt</p>
+            <p className="mt-2 text-lg font-semibold leading-snug">{activeStep.receipt}</p>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-2 font-mono text-xs uppercase">
+          {LEDGER_LINES.map((line, index) => (
+            <div key={line} className="flex items-center justify-between border-t border-[hsl(30_15%_12%/0.18)] pt-2">
               <span>{String(index + 1).padStart(2, "0")} {line}</span>
-              <span className="text-emerald-200">kept</span>
+              <span>kept</span>
             </div>
           ))}
         </div>
@@ -259,17 +248,17 @@ function RemoteBench({
 }
 
 export default function HomepageSample() {
-  const [activeKeyId, setActiveKeyId] = useState<RemoteKeyId>("proof");
-  const activeKey = REMOTE_KEYS.find((key) => key.id === activeKeyId) ?? REMOTE_KEYS[4];
+  const [activeStepId, setActiveStepId] = useState<DocketStepId>("proof");
+  const activeStep = DOCKET_STEPS.find((step) => step.id === activeStepId) ?? DOCKET_STEPS[3];
 
   useCanonical("/uipass-home-sample");
   useMetaTags({
     title: "UnClick homepage sample",
     description:
-      "A UIPass and UXPass homepage sample for UnClick, focused on a more distinctive remote-and-receipt direction.",
+      "A UIPass and UXPass homepage sample for UnClick, focused on a distinctive work-docket direction.",
     ogTitle: "UnClick homepage sample",
     ogDescription:
-      "A sample homepage direction showing UnClick as the universal remote for AI work.",
+      "A sample homepage direction showing UnClick as the work docket for AI action and proof.",
     ogUrl: "https://unclick.world/uipass-home-sample",
   });
 
@@ -279,14 +268,14 @@ export default function HomepageSample() {
 
       <main>
         <section className="relative flex min-h-[86svh] items-center overflow-hidden border-b border-border px-5 pb-24 pt-32 sm:px-6">
-          <RemoteHeroScene />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,hsl(var(--background)/0.56)_0%,hsl(var(--background)/0.72)_48%,hsl(var(--background))_100%)]" />
+          <DocketSheet activeStep={activeStep} />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,hsl(var(--background)/0.38)_0%,hsl(var(--background)/0.68)_58%,hsl(var(--background))_100%)]" />
 
           <div className="relative z-10 mx-auto max-w-4xl text-center">
             <FadeIn>
-              <div className="mb-6 inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-black/35 px-4 py-2 text-xs font-medium uppercase text-primary backdrop-blur">
-                <Power className="h-3.5 w-3.5" />
-                Universal remote for AI
+              <div className="mb-6 inline-flex items-center gap-2 border border-primary/35 bg-black/35 px-4 py-2 text-xs font-medium uppercase text-primary backdrop-blur">
+                <ScanLine className="h-3.5 w-3.5" />
+                Work docket for AI
               </div>
             </FadeIn>
 
@@ -298,14 +287,14 @@ export default function HomepageSample() {
 
             <FadeIn delay={0.1}>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-body">
-                A remote your AI reaches for before it touches your stuff. It finds the tool, carries the context, asks for scope, and prints the proof.
+                The place AI checks in before it acts. Every request gets context, scope, action, and a receipt you can inspect.
               </p>
             </FadeIn>
 
             <FadeIn delay={0.15}>
               <div className="mt-10 flex flex-wrap justify-center gap-3">
                 <a href="#sample-run" className={presets.ctaPrimary}>
-                  Press the sample
+                  Open the docket
                   <ArrowRight className="h-4 w-4" />
                 </a>
                 <Link to="/" className={presets.ctaGhost}>
@@ -320,16 +309,16 @@ export default function HomepageSample() {
         <section id="sample-run" className="px-5 py-16 sm:px-6">
           <div className="mx-auto max-w-6xl">
             <div className="mb-8 max-w-2xl">
-              <p className="font-mono text-xs uppercase text-primary">Sample two</p>
+              <p className="font-mono text-xs uppercase text-primary">Sample three</p>
               <h2 className="mt-3 text-3xl font-semibold text-heading sm:text-4xl">
-                Remote first. Receipt always.
+                A work order, not a promise.
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-body">
-                This version avoids the usual chat bubbles, fake agent panels, and vague command-centre mood. It turns the homepage into a product object with a clear promise.
+                This direction moves away from AI shine. It shows UnClick as the desk where messy AI work becomes named, scoped, checked, and proven.
               </p>
             </div>
 
-            <RemoteBench activeKey={activeKey} onSelect={setActiveKeyId} />
+            <DocketConsole activeStep={activeStep} onSelect={setActiveStepId} />
           </div>
         </section>
 
@@ -338,16 +327,16 @@ export default function HomepageSample() {
             <div className="mb-8 max-w-2xl">
               <p className="font-mono text-xs uppercase text-primary">UIPass read</p>
               <h2 className="mt-3 text-3xl font-semibold text-heading sm:text-4xl">
-                More ownable, less generic.
+                Sharper, plainer, harder to confuse with everyone else.
               </h2>
             </div>
 
             <div className="grid gap-3 md:grid-cols-4">
-              {WORK_ORDERS.map((order) => (
-                <div key={order.label} className="rounded-lg border border-border bg-card/70 p-5">
-                  <order.icon className="h-5 w-5 text-primary" />
-                  <h3 className="mt-5 text-base font-semibold text-heading">{order.label}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-body">{order.body}</p>
+              {DIFFERENCE_ROWS.map((row) => (
+                <div key={row.label} className="border border-border bg-card/65 p-5">
+                  <row.icon className="h-5 w-5 text-primary" />
+                  <p className="mt-5 font-mono text-xs uppercase text-body">{row.label}</p>
+                  <h3 className="mt-2 text-lg font-semibold text-heading">{row.value}</h3>
                 </div>
               ))}
             </div>
