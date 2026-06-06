@@ -15,22 +15,22 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | --- | --- | --- |
 | AUTOPILOT.md | 790b43137907 | 17556 |
 | FLEET_SYNC.md | 83bbf1598b48 | 14705 |
-| docs/unclick-context-boot-packet.md | 259a136f762b | 6132 |
+| docs/unclick-context-boot-packet.md | 8af9b8fedfc4 | 11213 |
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
 | docs/pinballwake-nudgeonly-api.md | e056b727ce53 | 7559 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
 | docs/fleet-worker-roles.md | de9f41b265f3 | 4881 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | bf91808d2d8d | 2169 |
-| src/App.tsx | 8c0d4c0f0c41 | 14729 |
-| src/pages/admin/AdminShell.tsx | 2b6e2e9698d4 | 22091 |
+| src/App.tsx | 1f196048a2b9 | 15047 |
+| src/pages/admin/AdminShell.tsx | 7f369084b44d | 24686 |
 | src/pages/admin/AdminSkills.tsx | 4b5e69217a39 | 14848 |
 | src/lib/skillLibrary.ts | 7d69323f9491 | 10487 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
 | .github/workflows/ci.yml | ab3e717a4ae9 | 1663 |
 | .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
 | .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | 80d780561f43 | 6468 |
+| package.json | ba1c1aa52c7d | 7047 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/browser-qa-tester.skill.md | b57ce8b2e63a | 1115 |
 | seed/skills/builder-implementation-packet.skill.md | 1fcda17af905 | 1276 |
@@ -56,7 +56,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminSeatHeartbeat.tsx | 9c138bfc810d | 11515 |
 | src/pages/admin/AdminAgents.tsx | 73353b1405ef | 45563 |
 | src/pages/admin/AdminAnalytics.tsx | 8e3ab82ef00f | 10336 |
-| src/pages/admin/AdminTools.tsx | 94d7806189d8 | 5681 |
+| src/pages/admin/AdminTools.tsx | 5d2838bcd848 | 6470 |
 | src/pages/admin/AdminAuditLog.tsx | 028edd82cb11 | 874 |
 | src/pages/admin/AdminExpressBuild.tsx | 4dadebd9c4aa | 22681 |
 | src/pages/admin/AdminEcosystemPages.tsx | 0f2003fd8242 | 12106 |
@@ -88,11 +88,13 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/testpass/ReportDetail.tsx | b3db4032aa33 | 12374 |
 | src/pages/admin/testpass/RunDetail.tsx | 52e43b795126 | 21979 |
 | src/pages/admin/testpass/TestPassCatalog.tsx | 8fc76ddd8d3f | 21847 |
+| src/pages/admin/AdminTruthRate.tsx | 115c5cce9b90 | 8868 |
 | src/pages/admin/AdminUsers.tsx | 701e7da2f201 | 863 |
-| src/pages/admin/AdminYou.tsx | 3d0240411971 | 51024 |
+| src/pages/admin/AdminXGate.tsx | db31f326ff07 | 26775 |
+| src/pages/admin/AdminYou.tsx | 89ed912e326b | 59397 |
 | src/pages/AppDetail.tsx | 0cf7c397e1b5 | 5401 |
 | src/pages/Apps.tsx | 1ccab2a4ccad | 2647 |
-| src/pages/AuthCallback.tsx | 41644ade9f97 | 5284 |
+| src/pages/AuthCallback.tsx | c7dba82923b5 | 4875 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
 | src/pages/Connect.tsx | ebf2c68ad6c3 | 29590 |
 | src/pages/Crews.tsx | 672df3eeb92b | 18792 |
@@ -106,7 +108,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/FAQPage.tsx | 507e1ed5789c | 712 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | 08e9c9874c22 | 61541 |
-| src/pages/Login.tsx | 0cfc79660be5 | 8862 |
+| src/pages/Login.tsx | 86f887990094 | 8440 |
 | src/pages/MemoryConnect.tsx | c760d37398d5 | 18534 |
 | src/pages/MemorySetup.tsx | c46cb67d413e | 19854 |
 | src/pages/Memory.tsx | cf7f06bacc89 | 18641 |
@@ -114,7 +116,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Organiser.tsx | a439fcf2092f | 16578 |
 | src/pages/Pricing.tsx | 0830c034b4a3 | 8753 |
 | src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
-| src/pages/Signup.tsx | 8eee366a8e3f | 9045 |
+| src/pages/Signup.tsx | bb69e5123b4b | 8623 |
 | src/pages/SmartHome.tsx | 3671f5d143b1 | 20733 |
 | src/pages/Terms.tsx | 4613736d1aa8 | 9327 |
 | src/pages/tools/LinkInBio.tsx | 4f20852d63d4 | 7831 |
@@ -187,7 +189,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/datadog-tool.ts | 529fa672eb0e | 8255 |
 | .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
 | .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
-| .github/workflows/autonomous-runner.yml | a8c83efde889 | 15338 |
+| .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
 | .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
 | .github/workflows/dirty-branch-hygiene.yml | 3df7d09eebc7 | 2190 |
 | .github/workflows/dogfood-report.yml | 65897c4393aa | 6605 |
@@ -208,16 +210,16 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 48 |
+| Admin surfaces | Private operator views and internal control panels. | 50 |
 | Public surfaces | Public product, docs, marketplace, and user-facing routes. | 34 |
 | Tools | MCP and gateway capabilities available to seats. | 219 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
-| Passes and gates | Quality, proof, safety, and fidelity checks. | 16 |
+| Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 119 |
-| Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 6 |
-| Source of truth | Canonical state, queue, memory, and context surfaces. | 10 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 121 |
+| Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
+| Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 116 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 5 |
 
@@ -262,7 +264,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/autopilot | Admin Autopilot | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/benchmarks | Admin Benchmarks | Admin surface for Admin Benchmarks. | src/pages/admin/AdminBenchmarks.tsx |
 | /admin/billing | Admin Billing | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
-| /admin/boardroom | Fishbowl | Boardroom discussion surface for worker coordination. | src/pages/admin/Fishbowl.tsx |
+| /admin/boardroom | Boardroom | Boardroom discussion surface for worker coordination. | src/pages/admin/Fishbowl.tsx |
 | /admin/brainmap | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | src/pages/admin/AdminBrainmap.tsx |
 | /admin/checks/:productId | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/checks | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
@@ -296,8 +298,10 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/testpass/reports/:id | Report Detail | Admin surface for Report Detail. | src/pages/admin/testpass/ReportDetail.tsx |
 | /admin/testpass/runs/:id | Run Detail | Admin surface for Run Detail. | src/pages/admin/testpass/RunDetail.tsx |
 | /admin/testpass | Test Pass Catalog | Admin surface for Test Pass Catalog. | src/pages/admin/testpass/TestPassCatalog.tsx |
+| /admin/truth-rate | Admin Truth Rate | Admin surface for Admin Truth Rate. | src/pages/admin/AdminTruthRate.tsx |
 | /admin/users | Admin Users | Internal user management. | src/pages/admin/AdminUsers.tsx |
 | /admin/workers | Admin Workers | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
+| /admin/xgate | Admin XGate | Admin surface for Admin XGate. | src/pages/admin/AdminXGate.tsx |
 | /admin/you | Admin You | Personal account, identity, and access panel. | src/pages/admin/AdminYou.tsx |
 | /admin | Admin Shell | Admin surface for Admin Shell. | src/pages/admin/AdminShell.tsx |
 | /apps/:slug | App Detail | User-facing page for App Detail. | src/pages/AppDetail.tsx |
@@ -592,9 +596,12 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin System Health | Health checks and operational status. | /admin/system-health | src/pages/admin/AdminSystemHealth.tsx |
 | Admin surfaces | admin page | Admin Test Pass | Admin surface for Admin Test Pass. | /admin/testpass/packs/:id/edit | src/pages/admin/AdminTestPass.tsx |
 | Admin surfaces | admin page | Admin Tools | Apps, tools, and connector capability surface. | /admin/apps | src/pages/admin/AdminTools.tsx |
+| Admin surfaces | admin page | Admin Truth Rate | Admin surface for Admin Truth Rate. | /admin/truth-rate | src/pages/admin/AdminTruthRate.tsx |
 | Admin surfaces | admin page | Admin Users | Internal user management. | /admin/users | src/pages/admin/AdminUsers.tsx |
 | Admin surfaces | admin page | Admin Workers | Admin surface for Admin Ecosystem Pages. | /admin/workers | src/pages/admin/AdminEcosystemPages.tsx |
+| Admin surfaces | admin page | Admin XGate | Admin surface for Admin XGate. | /admin/xgate | src/pages/admin/AdminXGate.tsx |
 | Admin surfaces | admin page | Admin You | Personal account, identity, and access panel. | /admin/you | src/pages/admin/AdminYou.tsx |
+| Admin surfaces | admin page | Boardroom | Boardroom discussion surface for worker coordination. | /admin/boardroom | src/pages/admin/Fishbowl.tsx |
 | Admin surfaces | admin page | Copy Pass Catalog | Admin surface for Copy Pass Catalog. | /admin/copypass | src/pages/admin/copypass/CopyPassCatalog.tsx |
 | Admin surfaces | admin page | Crew Composer | Crews admin page for Crew Composer. | /admin/crews/:id/edit | src/pages/admin/crews/CrewComposer.tsx |
 | Admin surfaces | admin page | Crew Composer | Crews admin page for Crew Composer. | /admin/crews/new | src/pages/admin/crews/CrewComposer.tsx |
@@ -602,7 +609,6 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Crews Catalog | Crews admin page for Crews Catalog. | /admin/crews | src/pages/admin/crews/CrewsCatalog.tsx |
 | Admin surfaces | admin page | Crews Runs | Crews admin page for Crews Runs. | /admin/crews/runs | src/pages/admin/crews/CrewsRuns.tsx |
 | Admin surfaces | admin page | Crews Settings | Crews admin page for Crews Settings. | /admin/crews/settings | src/pages/admin/crews/CrewsSettings.tsx |
-| Admin surfaces | admin page | Fishbowl | Boardroom discussion surface for worker coordination. | /admin/boardroom | src/pages/admin/Fishbowl.tsx |
 | Admin surfaces | admin page | Memory Setup Guide | User-facing page for Memory Setup Guide. | /admin/setup-guide | src/pages/MemorySetupGuide.tsx |
 | Admin surfaces | admin page | New Run Wizard | Admin surface for New Run Wizard. | /admin/testpass/new | src/pages/admin/testpass/NewRunWizard.tsx |
 | Admin surfaces | admin page | Report Detail | Admin surface for Report Detail. | /admin/testpass/reports/:id | src/pages/admin/testpass/ReportDetail.tsx |
@@ -700,6 +706,8 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | script | pinballwake writerlane free models.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-free-models.test.mjs |
 | Automations | script | pinballwake writerlane free writer | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-free-writer.mjs |
 | Automations | script | pinballwake writerlane free writer.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-free-writer.test.mjs |
+| Automations | script | pinballwake writerlane live catalog | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-live-catalog.mjs |
+| Automations | script | pinballwake writerlane live catalog.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-live-catalog.test.mjs |
 | Automations | script | pinballwake writerlane validator | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-validator.mjs |
 | Automations | script | pinballwake writerlane validator.test | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-writerlane-validator.test.mjs |
 | Automations | script | pinballwake xpass gate room | PinballWake room, wake, or routing script used by the automation lane. | - | scripts/pinballwake-xpass-gate-room.mjs |
@@ -735,11 +743,13 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Launch and onboarding | policy | Heartbeat Master | Canonical schedule prompt and procedure for safe heartbeat seats. | /admin/agents/heartbeat | src/pages/admin/AdminSeatHeartbeat.tsx |
 | Launch and onboarding | route | Launchpad | Control hub that points seats to the next safe operating lane. | /admin/pinballwake | scripts/pinballwake-launchpad-room.mjs |
 | Ledgers and proof | ledger | Proof Ledger | Structured evidence, proof freshness, receipts, and DONE trust surface. | - | docs/agent-observability.md |
+| Ledgers and proof | proof module | ledger | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/xgate/ledger.ts |
 | Ledgers and proof | proof module | pinballwake ack ledger room | pinballwake ack ledger room UnClick module. | - | scripts/pinballwake-ack-ledger-room.mjs |
 | Ledgers and proof | proof module | pinballwake event ledger room | pinballwake event ledger room UnClick module. | - | scripts/pinballwake-event-ledger-room.mjs |
 | Ledgers and proof | proof module | pinballwake openhands proof runner | pinballwake openhands proof runner UnClick module. | - | scripts/pinballwake-openhands-proof-runner.mjs |
 | Ledgers and proof | proof module | pinballwake proof executor | pinballwake proof executor UnClick module. | - | scripts/pinballwake-proof-executor.mjs |
 | Ledgers and proof | proof module | pinballwake quiet window proof | pinballwake quiet window proof UnClick module. | - | scripts/pinballwake-quiet-window-proof.mjs |
+| Ledgers and proof | proof module | trendslop receipt | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/xgate/gates/trendslop-receipt.ts |
 | Modules and apps | app module | app Log Store | app Log Store shared frontend logic. | - | src/lib/jobsmith/appLogStore.ts |
 | Modules and apps | app module | build Browser Corpus | build Browser Corpus shared frontend logic. | - | src/lib/jobsmith/buildBrowserCorpus.ts |
 | Modules and apps | app module | generate jobsmith rules | generate jobsmith rules UnClick module. | - | scripts/generate-jobsmith-rules.mjs |
@@ -856,6 +866,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | skill package | tester proof plan | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/tester-proof-plan.skill.md |
 | Modules and apps | skill package | watcher heartbeat tether | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/watcher-heartbeat-tether.skill.md |
 | Modules and apps | skill package | write tests for changed code | Agent Skills-compatible starter package with provenance, safety, and native-mode metadata. | /admin/skills | seed/skills/write-tests-for-changed-code.skill.md |
+| Passes and gates | component source gate | UIPass Toolbox | Curated UI source registry and proof scoreboard for shadcn, Radix, React Aria, Base UI, Floating UI, Motion, 21st.dev, Magic UI, Aceternity, Origin UI, and advisory design intelligence. | - | packages/uxpass/src/ui-toolbox.ts |
 | Passes and gates | fidelity gate | CopyRoom | Exact-copy room for code, docs, tables, notes, and source text so seats do not retype drift-prone material. | - | docs/UnClick-brainmap.generated.md |
 | Passes and gates | fidelity gate | FidelityPass | Checks exactness and invariant preservation when copying, refactoring, or translating content. | - | scripts/fidelitycopy.test.mjs |
 | Passes and gates | judgment gate | CommonSensePass | Plain-reasoning gate used before healthy, done, merge-ready, or PASS claims. | - | api/commonsensepass-bridge.test.ts |
@@ -932,6 +943,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Source of truth | context | Orchestrator | Continuity stream and story layer that helps seats understand what happened. | /admin/orchestrator | src/pages/admin/AdminOrchestrator.tsx |
 | Source of truth | memory | Memory Library | Source-linked facts, sessions, context, and generated memory shelves. | /admin/memory | src/pages/admin/AdminMemory.tsx |
 | Source of truth | queue | Boardroom Jobs | Primary work source for open, in-progress, done, and dropped chips. | /admin/jobs | src/pages/admin/AdminJobs.tsx |
+| Source of truth | state module | backfill typed memory events | backfill typed memory events UnClick module. | - | scripts/backfill-typed-memory-events.ts |
+| Source of truth | state module | boardroom compat | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/boardroom-compat.ts |
+| Source of truth | state module | boardroom read bounds | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/boardroom-read-bounds.ts |
 | Source of truth | state module | embed | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/memory/embed.ts |
 | Source of truth | state module | memory admin | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/memory-admin.ts |
 | Source of truth | state module | memory Data Island | memory Data Island shared frontend logic. | - | src/lib/memoryDataIsland.ts |
@@ -1267,8 +1281,12 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | test:compliancepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
 | test:continuous-improvement-watch | node --test scripts/pinballwake-continuous-improvement-watch.test.mjs |
 | test:enterprisepass-receipt | node --test scripts/enterprisepass-receipt-guard.test.mjs |
+| test:git-hygiene | node --test scripts/check-checkout-hygiene.test.mjs scripts/check-dirty-branch.test.mjs scripts/salvage-worktrees.test.mjs |
+| test:memory-eval | node --test scripts/memory-retrieval-eval.test.mjs |
 | test:rotatepass-redaction | node --test scripts/rotatepass-redaction-guard.test.mjs |
+| test:tier2-rollback | node --test scripts/tier2-rollback.test.mjs |
 | test:watch | vitest |
+| test:writerlane-live-catalog | node --test scripts/pinballwake-writerlane-live-catalog.test.mjs |
 
 - `node scripts/UnClick-brainmap.mjs --check` fails if `docs/UnClick-brainmap.generated.md` is stale.
 - `node scripts/UnClick-brainmap.mjs --check` also fails if `docs/UnClick-brainmap.generated.json` is stale.

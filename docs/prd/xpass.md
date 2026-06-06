@@ -300,6 +300,13 @@ Use an individual Pass when:
 - the check is still being built or validated
 - credentials or target setup only exist for one Pass
 
+Use UIPass when:
+
+- an app, landing page, component, or admin surface needs interface polish rather than journey-only UX review
+- an AI seat wants to use shadcn/ui, Radix, React Aria, Base UI, Floating UI, Motion, 21st.dev, Magic UI, Aceternity UI, Origin UI, cmdk, Sonner, Embla, Vaul, or UI UX Pro Max style intelligence
+- the work needs a source-and-proof scoreboard before implementation: provenance, licence fit, accessibility primitive, design-system fit, mobile proof, reduced-motion proof, performance budget, brand fit, and screenshot proof
+- repeated missing UI proof should become a continuous-improvement job rather than another manual reminder
+
 Use CopyRoom when:
 
 - the user asks to copy, duplicate, mirror, transcribe, preserve, or move source content exactly

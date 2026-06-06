@@ -46,6 +46,138 @@ interface MemoryNudge {
   fact_count: number;
 }
 
+type DataExportScope = "memory" | "orchestrator" | "preferences" | "all";
+
+interface DataExportOption {
+  scope: DataExportScope;
+  label: string;
+  hint: string;
+  fileLabel: string;
+}
+
+interface ExportPackage {
+  exported_at?: string;
+  schema_version?: number;
+  business_context?: unknown[];
+  extracted_facts?: unknown[];
+  session_summaries?: unknown[];
+  knowledge_library?: unknown[];
+  [key: string]: unknown;
+}
+
+interface ImportPreview {
+  label: string;
+  reviewSteps: string[];
+}
+
+const DATA_EXPORT_OPTIONS: DataExportOption[] = [
+  {
+    scope: "memory",
+    label: "Memory",
+    hint: "Facts, standing rules, and library docs",
+    fileLabel: "memory",
+  },
+  {
+    scope: "orchestrator",
+    label: "Sessions & Orchestrator",
+    hint: "Session summaries, decisions, and open loops",
+    fileLabel: "orchestrator",
+  },
+  {
+    scope: "preferences",
+    label: "Preferences",
+    hint: "AI style, working rules, and saved preferences",
+    fileLabel: "preferences",
+  },
+  {
+    scope: "all",
+    label: "Export All",
+    hint: "Everything in one portable JSON package",
+    fileLabel: "my-data",
+  },
+];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function filterPreferenceRows(rows: unknown[] | undefined): unknown[] {
+  return (rows ?? []).filter((row) => {
+    if (!isRecord(row)) return false;
+    const category = typeof row.category === "string" ? row.category.toLowerCase() : "";
+    const key = typeof row.key === "string" ? row.key.toLowerCase() : "";
+    return (
+      category === "preference" ||
+      category === "ai_style" ||
+      category === "standing_rule" ||
+      key.includes("preference") ||
+      key.includes("style")
+    );
+  });
+}
+
+function buildScopedExport(payload: ExportPackage, scope: DataExportScope): ExportPackage {
+  const base = {
+    exported_at: payload.exported_at ?? new Date().toISOString(),
+    schema_version: payload.schema_version ?? 1,
+    export_scope: scope,
+  };
+
+  if (scope === "memory") {
+    return {
+      ...base,
+      business_context: payload.business_context ?? [],
+      extracted_facts: payload.extracted_facts ?? [],
+      knowledge_library: payload.knowledge_library ?? [],
+    };
+  }
+
+  if (scope === "orchestrator") {
+    return {
+      ...base,
+      session_summaries: payload.session_summaries ?? [],
+    };
+  }
+
+  if (scope === "preferences") {
+    return {
+      ...base,
+      business_context: filterPreferenceRows(payload.business_context),
+    };
+  }
+
+  return {
+    ...payload,
+    ...base,
+  };
+}
+
+function getImportPreview(file: File): ImportPreview {
+  const name = file.name.toLowerCase();
+  if (file.type === "application/json" || name.endsWith(".json")) {
+    return {
+      label: "UnClick JSON package",
+      reviewSteps: ["Validate schema", "Preview changes", "Import after review"],
+    };
+  }
+  if (file.type === "text/csv" || name.endsWith(".csv")) {
+    return {
+      label: "CSV table",
+      reviewSteps: ["Map columns", "Group rows", "Review before memory"],
+    };
+  }
+  if (file.type === "text/markdown" || name.endsWith(".md") || name.endsWith(".markdown")) {
+    return {
+      label: "Markdown notes",
+      reviewSteps: ["Read headings", "Suggest categories", "Review before memory"],
+    };
+  }
+  return {
+    label: "Plain text notes",
+    reviewSteps: ["Extract topics", "Suggest memory cards", "Review before memory"],
+  };
+}
+
 const NUDGE_DISMISS_KEY = "unclick_admin_memory_nudge_dismissed_at";
 const NUDGE_SNOOZE_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -357,10 +489,10 @@ export default function AdminYou() {
   const [timezoneSaving, setTimezoneSaving] = useState(false);
   const [timezoneError, setTimezoneError] = useState<string | null>(null);
   const timezoneAutoSyncRef = useRef<string | null>(null);
-  const [exportingData, setExportingData] = useState(false);
+  const [exportingScope, setExportingScope] = useState<DataExportScope | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [importFileName, setImportFileName] = useState<string | null>(null);
-  const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   // `aiStyle` is the working copy edited in the UI; `savedAiStyle` is the last
   // value persisted to memory, used to detect unsaved changes and to show the
   // server-built directive that connected agents receive at session start.
@@ -637,9 +769,9 @@ export default function AdminYou() {
     setDevices((prev) => prev.filter((d) => d.device_id !== deviceId));
   }
 
-  async function handleExportAll() {
+  async function handleExportData(scope: DataExportScope) {
     if (!session) return;
-    setExportingData(true);
+    setExportingScope(scope);
     setExportError(null);
     try {
       const res = await fetch("/api/memory-admin?action=admin_export_all", {
@@ -651,11 +783,14 @@ export default function AdminYou() {
         return;
       }
       const text = await res.text();
-      const blob = new Blob([text], { type: "application/json" });
+      const payload = JSON.parse(text) as ExportPackage;
+      const scopedPayload = buildScopedExport(payload, scope);
+      const blob = new Blob([JSON.stringify(scopedPayload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
+      const option = DATA_EXPORT_OPTIONS.find((item) => item.scope === scope) ?? DATA_EXPORT_OPTIONS[0];
       anchor.href = url;
-      anchor.download = `unclick-my-data-${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.download = `unclick-${option.fileLabel}-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
@@ -663,7 +798,7 @@ export default function AdminYou() {
     } catch (e) {
       setExportError((e as Error).message);
     } finally {
-      setExportingData(false);
+      setExportingScope(null);
     }
   }
 
@@ -671,9 +806,7 @@ export default function AdminYou() {
     const file = event.target.files?.[0];
     if (!file) return;
     setImportFileName(file.name);
-    setImportMessage(
-      "File staged locally. The review step will organize it before anything is added to memory.",
-    );
+    setImportPreview(getImportPreview(file));
   }
 
   const provider = user?.app_metadata?.provider ?? "email";
@@ -696,6 +829,28 @@ export default function AdminYou() {
     return Array.from(zones).sort((a, b) => a.localeCompare(b));
   }, [operatorTime?.timezone, detectedTimezone]);
   const aiStyleDirty = !savedAiStyle || !aiStyleEquals(aiStyle, savedAiStyle);
+  const setupSteps = [
+    {
+      label: "Profile",
+      state: user?.email ? "Ready" : "Needs sign-in",
+      ready: Boolean(user?.email),
+    },
+    {
+      label: "My API Key",
+      state: generatedKey || profile?.api_key?.is_active ? "Active" : "Preparing",
+      ready: Boolean(generatedKey || profile?.api_key?.is_active),
+    },
+    {
+      label: "Memory loading",
+      state: generatedKey || profile?.api_key?.prefix ? "Always on" : "Waiting for key",
+      ready: Boolean(generatedKey || profile?.api_key?.prefix),
+    },
+    {
+      label: "My Data",
+      state: "Ready",
+      ready: true,
+    },
+  ];
   const youSections = [
     { id: "you-profile", label: "Profile", hint: "Identity and time", icon: User },
     { id: "you-preferences", label: "AI Style", hint: "Tone and length", icon: Sparkles },
@@ -734,6 +889,39 @@ export default function AdminYou() {
         </div>
       ) : (
         <>
+        <section aria-label="First visit compass" className="mb-6 rounded-xl border border-[#61C1C4]/20 bg-[#61C1C4]/[0.04] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Sparkles className="h-4 w-4 text-[#61C1C4]" />
+                First-visit compass
+              </h2>
+              <p className="mt-1 text-xs text-white/50">Your account, key, memory, and data controls at a glance.</p>
+            </div>
+            <Link
+              to="#you-my-data"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-3 py-1.5 text-xs font-semibold text-[#9edfe1] hover:bg-[#61C1C4]/15"
+            >
+              Open My Data <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {setupSteps.map((step) => (
+              <div key={step.label} className="flex min-h-[54px] items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-black/15 px-3 py-2">
+                <span className="min-w-0 text-xs font-medium text-white/75">{step.label}</span>
+                <span className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                  step.ready
+                    ? "border-green-400/25 bg-green-400/10 text-green-300"
+                    : "border-[#E2B93B]/30 bg-[#E2B93B]/10 text-[#E2B93B]"
+                }`}>
+                  {step.ready && <Check className="h-3 w-3" />}
+                  {step.state}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <nav aria-label="You page sections" className="mb-6 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {youSections.map(({ id, label, hint, icon: Icon }) => (
             <a
@@ -760,6 +948,9 @@ export default function AdminYou() {
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
                   <User className="h-4 w-4 text-[#E2B93B]" />
                   Profile
+                  <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
+                    Account
+                  </span>
                 </h2>
                 <div className="mt-4 grid gap-4 sm:grid-cols-3">
                   <div className="min-w-0">
@@ -806,6 +997,9 @@ export default function AdminYou() {
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <Clock className="h-4 w-4 text-[#E2B93B]" />
               Local Time
+              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
+                Orchestrator
+              </span>
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[#888]">
               Used by Orchestrator so AI seats understand your working hours. Only timezone context is saved.
@@ -873,6 +1067,9 @@ export default function AdminYou() {
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <KeyRound className="h-4 w-4 text-[#E2B93B]" />
               My API Key
+              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
+                Connection
+              </span>
             </h2>
 
             {generatedKey ? (
@@ -1007,6 +1204,9 @@ export default function AdminYou() {
               <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
                 <Sparkles className="h-4 w-4 text-[#E2B93B]" />
                 AI Style
+                <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
+                  Memory
+                </span>
               </h2>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#61C1C4]">
                 <ShieldCheck className="h-3 w-3" />
@@ -1116,57 +1316,80 @@ export default function AdminYou() {
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <Database className="h-4 w-4 text-[#E2B93B]" />
               My Data
+              <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
+                Portable
+              </span>
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[#888]">
               Keep a portable copy of your memory, sessions, preferences, and library. Imports are staged for review before anything changes.
             </p>
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-white">Export All</p>
-                    <p className="mt-1 text-xs leading-5 text-white/50">
-                      Download your UnClick data as a JSON package.
-                    </p>
+            <div className="mt-5 overflow-hidden rounded-lg border border-white/[0.06]">
+              {DATA_EXPORT_OPTIONS.map((option, index) => (
+                <div
+                  key={option.scope}
+                  className={`flex flex-col gap-3 bg-white/[0.02] p-4 sm:flex-row sm:items-center sm:justify-between ${
+                    index > 0 ? "border-t border-white/[0.06]" : ""
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-white">{option.label}</p>
+                    <p className="mt-1 text-xs leading-5 text-white/50">{option.hint}</p>
                   </div>
                   <button
                     type="button"
-                    onClick={handleExportAll}
-                    disabled={exportingData}
+                    onClick={() => handleExportData(option.scope)}
+                    disabled={exportingScope !== null}
+                    aria-label={`Download ${option.label}`}
                     className="inline-flex shrink-0 items-center gap-2 rounded-md bg-[#61C1C4] px-3 py-1.5 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
                   >
                     <Download className="h-3.5 w-3.5" />
-                    {exportingData ? "Exporting..." : "Download"}
+                    {exportingScope === option.scope ? "Exporting..." : "Download"}
                   </button>
                 </div>
-                {exportError && <p className="mt-3 text-[11px] text-red-400">{exportError}</p>}
-              </div>
+              ))}
+            </div>
+            {exportError && <p className="mt-3 text-[11px] text-red-400">{exportError}</p>}
 
-              <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-white">Load my Data</p>
-                    <p className="mt-1 text-xs leading-5 text-white/50">
-                      Accepts UnClick JSON, CSV, Markdown, and plain text files.
-                    </p>
-                  </div>
-                  <label className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/80 transition-colors hover:bg-white/[0.08]">
-                    <Upload className="h-3.5 w-3.5" />
-                    Choose file
-                    <input
-                      type="file"
-                      accept=".json,.csv,.md,.markdown,.txt,application/json,text/csv,text/markdown,text/plain"
-                      className="sr-only"
-                      onChange={handleLoadDataFile}
-                    />
-                  </label>
+            <div className="mt-5 rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium text-white">Load my Data</p>
+                  <p className="mt-1 text-xs leading-5 text-white/50">
+                    Accepts UnClick JSON, CSV, Markdown, and plain text files.
+                  </p>
                 </div>
-                {importFileName && (
-                  <p className="mt-3 text-[11px] text-white/60">
-                    Staged: <span className="font-mono text-white/80">{importFileName}</span>
+                <label className="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/80 transition-colors hover:bg-white/[0.08]">
+                  <Upload className="h-3.5 w-3.5" />
+                  Choose file
+                  <input
+                    type="file"
+                    accept=".json,.csv,.md,.markdown,.txt,application/json,text/csv,text/markdown,text/plain"
+                    aria-label="Choose data file"
+                    className="sr-only"
+                    onChange={handleLoadDataFile}
+                  />
+                </label>
+              </div>
+              <div className="mt-4 rounded-lg border border-dashed border-white/[0.08] bg-black/15 p-3">
+                {importFileName && importPreview ? (
+                  <div>
+                    <p className="text-xs text-white/60">
+                      Staged: <span className="font-mono text-white/80">{importFileName}</span>
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-white">{importPreview.label}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {importPreview.reviewSteps.map((step) => (
+                        <span key={step} className="rounded-full border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-2 py-1 text-[11px] font-medium text-[#9edfe1]">
+                          {step}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-white/45">
+                    No file staged yet. The first review row appears here before anything is added to memory.
                   </p>
                 )}
-                {importMessage && <p className="mt-1 text-[11px] text-[#61C1C4]">{importMessage}</p>}
               </div>
             </div>
           </div>
