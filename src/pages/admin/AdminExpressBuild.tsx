@@ -202,8 +202,9 @@ export default function AdminExpressBuild() {
             <h1 className="text-2xl font-semibold tracking-tight text-white">DraftRoom</h1>
             <p className="mt-2 text-sm leading-6 text-white/60">
               DraftRoom is the first station in the UnClick build line. It captures visible
-              chat-first drafts while context is fresh, then sends them into the official Jobs
-              Board conveyor belt for integration, tests, review, and proof.
+              chat-first drafts while context is fresh. A warm smart chat seat should build or fit
+              the smallest safe draft before parking work for unattended runners, then send it into
+              the official Jobs Board conveyor belt for integration, tests, review, and proof.
             </p>
           </div>
           <div className="grid gap-2 text-sm sm:grid-cols-3 lg:min-w-[420px]">
@@ -246,8 +247,9 @@ export default function AdminExpressBuild() {
             <h2 className="text-sm font-semibold text-white">Normal conveyor belt</h2>
           </div>
           <ol className="list-decimal space-y-2 pl-5 text-sm leading-6 text-white/60">
-            <li>Build a visible first draft while the user context is fresh.</li>
+            <li>Build or fit the smallest safe draft while the user context is fresh.</li>
             <li>Capture the Manual brief and supplied code in DraftRoom.</li>
+            <li>If no code is safe yet, write the exact blocker and next build step.</li>
             <li>Mirror or create the official job name so both places make sense.</li>
             <li>Insert into the Jobs Board when the draft needs real UnClick integration.</li>
             <li>Use normal repo fit, tests, PR, review, and proof before any DONE claim.</li>

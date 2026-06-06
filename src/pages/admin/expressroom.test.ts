@@ -13,8 +13,11 @@ describe("DraftRoom model", () => {
     expect(EXPRESSROOM_INDUCTION_TEXT).toContain("visible first draft");
     expect(EXPRESSROOM_INDUCTION_TEXT).toContain("official Jobs Board");
     expect(EXPRESSROOM_INDUCTION_TEXT).toContain("Do not claim DONE from DraftRoom");
+    expect(EXPRESSROOM_INDUCTION_TEXT).toContain("Warm smart-seat rule");
+    expect(EXPRESSROOM_INDUCTION_TEXT).toContain("low-capacity unattended runner");
     expect(EXPRESSROOM_GUARDRAILS.join(" ")).toContain("untrusted");
-    expect(EXPRESSROOM_GUARDRAILS.join(" ")).toContain("Build while context is fresh");
+    expect(EXPRESSROOM_GUARDRAILS.join(" ")).toContain("build or fit the smallest safe draft");
+    expect(EXPRESSROOM_GUARDRAILS.join(" ")).toContain("exact blocker and next build step");
   });
 
   it("counts the required fields for a direct chat capture", () => {
@@ -51,6 +54,8 @@ describe("DraftRoom model", () => {
     expect(description).toContain("This is a Manual draft, not finished work.");
     expect(description).toContain("export const draft = true;");
     expect(description).toContain("normal UnClick review and proof gates");
+    expect(description).toContain("Warm smart-seat rule");
+    expect(description).toContain("smallest safe draft or the exact blocker");
     expect(description).toContain("Alarm bells");
     expect(description).toContain("Do not mark this official job done from the draft alone");
   });
