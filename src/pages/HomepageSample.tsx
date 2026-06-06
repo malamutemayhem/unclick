@@ -2,163 +2,210 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
-  BadgeCheck,
+  Bot,
+  Cable,
   CheckCircle2,
-  ClipboardList,
-  FileCheck2,
-  ListChecks,
-  NotebookTabs,
-  PenLine,
-  ReceiptText,
+  CircleDot,
+  GitBranch,
+  KeyRound,
+  Layers3,
+  Link2,
+  MemoryStick,
+  MousePointerClick,
+  PlugZap,
   Route,
-  ScanLine,
   ShieldCheck,
-  Stamp,
+  TerminalSquare,
+  Wrench,
 } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
-import { presets } from "@/lib/design-system";
 
-const DOCKET_STEPS = [
+const PATCHES = [
   {
-    id: "intake",
-    label: "Intake",
-    verb: "Catch the ask",
-    line: "Turn a messy request into a named job.",
-    receipt: "request accepted, context loaded, owner visible",
-    icon: ClipboardList,
+    id: "publish",
+    label: "Publish fix",
+    ask: "Ship the homepage patch safely",
+    path: ["Memory", "GitHub", "UIPass", "Vercel"],
+    output: "draft PR, screenshots, cloud checks",
+    color: "#63d6d9",
+    icon: GitBranch,
   },
   {
-    id: "scope",
-    label: "Scope",
-    verb: "Draw the line",
-    line: "Name the safe lane before anything moves.",
-    receipt: "files, tools, risks, and proof bar declared",
+    id: "triage",
+    label: "Triage inbox",
+    ask: "Find what needs a reply",
+    path: ["Gmail", "Memory", "Calendar", "Boardroom"],
+    output: "ranked actions, owners, due dates",
+    color: "#f4c95d",
+    icon: Layers3,
+  },
+  {
+    id: "guard",
+    label: "Guard risky work",
+    ask: "Check before tools touch production",
+    path: ["Scope", "SecurityPass", "LegalPass", "Human"],
+    output: "blocked, approved, or narrowed",
+    color: "#ff7a6b",
     icon: ShieldCheck,
-  },
-  {
-    id: "action",
-    label: "Action",
-    verb: "Call the right pass",
-    line: "Use the connector, worker, XPass, or Council when the job needs it.",
-    receipt: "UIPass, UXPass, TestPass, CopyPass, or Crews invited",
-    icon: ListChecks,
-  },
-  {
-    id: "proof",
-    label: "Proof",
-    verb: "Stamp the result",
-    line: "No proof means not done. The receipt is the finish line.",
-    receipt: "screenshots, checks, PR, deploy, or honest blocker attached",
-    icon: BadgeCheck,
   },
 ] as const;
 
-const LEDGER_LINES = [
-  "human request",
-  "memory receipt",
-  "scope packet",
-  "pass verdict",
-  "screen proof",
-  "done stamp",
+const SOCKET_COLUMNS = [
+  {
+    title: "AI seat",
+    items: ["ask", "plan", "act", "report"],
+    icon: Bot,
+  },
+  {
+    title: "Context",
+    items: ["memory", "files", "history", "rules"],
+    icon: MemoryStick,
+  },
+  {
+    title: "Tools",
+    items: ["github", "gmail", "browser", "vercel"],
+    icon: Wrench,
+  },
+  {
+    title: "Guards",
+    items: ["scope", "xpass", "crews", "human"],
+    icon: ShieldCheck,
+  },
+] as const;
+
+const RULES = [
+  "No loose tool access",
+  "No mystery context",
+  "No action without a lane",
+  "No generic dashboard promise",
 ];
 
-const DIFFERENCE_ROWS = [
-  {
-    label: "Looks less like",
-    value: "a chatbot wrapper",
-    icon: PenLine,
-  },
-  {
-    label: "Feels more like",
-    value: "a work desk for agents",
-    icon: NotebookTabs,
-  },
-  {
-    label: "First promise",
-    value: "proof before done",
-    icon: ReceiptText,
-  },
-  {
-    label: "Human role",
-    value: "approver, not passenger",
-    icon: FileCheck2,
-  },
-];
+type Patch = (typeof PATCHES)[number];
+type PatchId = Patch["id"];
 
-type DocketStep = (typeof DOCKET_STEPS)[number];
-type DocketStepId = DocketStep["id"];
-
-function DocketSheet({ activeStep }: { activeStep: DocketStep }) {
+function CablePath({ activePatch }: { activePatch: Patch }) {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_18%,hsl(182_46%_57%/0.16),transparent_26%),linear-gradient(135deg,hsl(0_0%_4%)_0%,hsl(0_0%_6%)_52%,hsl(12_28%_8%)_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(0_0%_100%/0.028)_1px,transparent_1px),linear-gradient(to_bottom,hsl(0_0%_100%/0.02)_1px,transparent_1px)] bg-[size:84px_84px]" />
+    <svg
+      className="pointer-events-none absolute inset-0 h-full w-full"
+      viewBox="0 0 1200 760"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M98 350 C250 230 390 520 552 388 S835 248 1080 356"
+        fill="none"
+        stroke="rgba(255,255,255,0.08)"
+        strokeWidth="16"
+        strokeLinecap="round"
+      />
+      <path
+        d="M98 350 C250 230 390 520 552 388 S835 248 1080 356"
+        fill="none"
+        stroke={activePatch.color}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M108 468 C290 605 420 215 618 318 S860 584 1094 460"
+        fill="none"
+        stroke="rgba(255,255,255,0.06)"
+        strokeWidth="10"
+        strokeLinecap="round"
+      />
+      <path
+        d="M92 236 C310 120 430 300 610 246 S880 126 1100 230"
+        fill="none"
+        stroke="rgba(244,201,93,0.16)"
+        strokeWidth="3"
+        strokeDasharray="14 16"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
-      <div className="absolute left-[-5rem] top-28 hidden h-[520px] w-[420px] rotate-[-7deg] border border-primary/20 bg-[hsl(182_46%_57%/0.06)] px-6 py-7 font-mono text-xs uppercase text-primary/90 md:block">
-        <div className="mb-6 flex items-center justify-between border-b border-primary/25 pb-3">
-          <span>UnClick intake</span>
-          <span>live</span>
-        </div>
-        {LEDGER_LINES.map((line, index) => (
-          <div key={line} className="flex items-center justify-between border-b border-primary/15 py-4">
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <span>{line}</span>
+function Socket({
+  label,
+  active,
+  color,
+}: {
+  label: string;
+  active: boolean;
+  color: string;
+}) {
+  return (
+    <div className="flex items-center justify-between border-t border-white/10 py-3">
+      <span className="font-mono text-[11px] uppercase text-white/55">{label}</span>
+      <span
+        className="h-3.5 w-3.5 border"
+        style={{
+          borderColor: active ? color : "rgba(255,255,255,0.22)",
+          backgroundColor: active ? color : "transparent",
+          boxShadow: active ? `0 0 22px ${color}` : "none",
+        }}
+      />
+    </div>
+  );
+}
+
+function PatchbayHero({ activePatch }: { activePatch: Patch }) {
+  const activeWords = new Set(activePatch.path.map((word) => word.toLowerCase()));
+
+  return (
+    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,#090806_0%,#11100d_48%,#061312_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.026)_1px,transparent_1px)] bg-[size:44px_44px]" />
+      <CablePath activePatch={activePatch} />
+
+      <div className="absolute inset-x-5 bottom-8 hidden grid-cols-4 gap-3 lg:grid">
+        {SOCKET_COLUMNS.map((column) => (
+          <div key={column.title} className="border border-white/12 bg-black/42 p-5 backdrop-blur-sm">
+            <div className="mb-5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <column.icon className="h-4 w-4 text-primary" />
+                <span className="font-mono text-xs uppercase text-white/70">{column.title}</span>
+              </div>
+              <CircleDot className="h-4 w-4 text-white/30" />
+            </div>
+            {column.items.map((item) => (
+              <Socket
+                key={item}
+                label={item}
+                active={activeWords.has(item) || activePatch.ask.toLowerCase().includes(item)}
+                color={activePatch.color}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div className="absolute right-8 top-28 hidden w-[340px] border border-[#f4c95d]/35 bg-[#f4c95d]/10 p-5 font-mono text-xs uppercase text-[#f4c95d] md:block">
+        {RULES.map((rule) => (
+          <div key={rule} className="flex items-center justify-between border-b border-[#f4c95d]/20 py-3 last:border-b-0">
+            <span>{rule}</span>
             <CheckCircle2 className="h-4 w-4" />
           </div>
         ))}
       </div>
 
-      <div className="absolute right-[-2rem] top-20 hidden h-[620px] w-[455px] rotate-[5deg] border border-[hsl(48_76%_88%/0.35)] bg-[hsl(46_80%_91%)] p-7 text-[hsl(30_15%_12%)] shadow-[0_40px_130px_hsl(0_0%_0%/0.55)] lg:block">
-        <div className="mb-5 flex items-start justify-between gap-6 border-b-2 border-dashed border-[hsl(30_15%_12%/0.28)] pb-4">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-wide opacity-70">Work docket</p>
-            <p className="mt-2 text-3xl font-semibold leading-none">UNC-0001</p>
-          </div>
-          <div className="rounded-full border-2 border-[hsl(355_72%_42%/0.65)] px-4 py-2 font-mono text-xs uppercase text-[hsl(355_72%_42%)]">
-            prove it
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {DOCKET_STEPS.map((step) => {
-            const selected = step.id === activeStep.id;
-            return (
-              <div
-                key={step.id}
-                className={`grid grid-cols-[2rem_1fr] gap-3 border-b border-[hsl(30_15%_12%/0.18)] py-3 ${
-                  selected ? "opacity-100" : "opacity-45"
-                }`}
-              >
-                <step.icon className="h-5 w-5" />
-                <div>
-                  <p className="font-mono text-xs uppercase tracking-wide">{step.label}</p>
-                  <p className="mt-1 text-sm font-semibold">{step.verb}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-8 border-2 border-[hsl(355_72%_42%/0.55)] px-5 py-4 text-center font-mono text-sm uppercase text-[hsl(355_72%_42%)]">
-          not done until proven
-        </div>
-      </div>
-
-      <div className="absolute inset-x-5 top-28 h-40 rounded-[1.25rem] border border-primary/25 bg-primary/[0.05] p-4 sm:hidden">
+      <div className="absolute inset-x-5 top-28 h-44 border border-primary/20 bg-black/30 p-4 sm:hidden">
         <div className="grid h-full grid-cols-4 gap-2">
-          {DOCKET_STEPS.map((step) => (
-            <div
-              key={step.id}
-              className={`rounded-lg border ${
-                step.id === activeStep.id
-                  ? "border-primary bg-primary/[0.18]"
-                  : "border-primary/20 bg-black/20"
-              }`}
-            />
+          {SOCKET_COLUMNS.map((column) => (
+            <div key={column.title} className="border border-white/12 bg-white/[0.03]">
+              <div
+                className="h-full w-full"
+                style={{
+                  background:
+                    column.items.some((item) => activeWords.has(item))
+                      ? `${activePatch.color}22`
+                      : "transparent",
+                }}
+              />
+            </div>
           ))}
         </div>
       </div>
@@ -166,45 +213,49 @@ function DocketSheet({ activeStep }: { activeStep: DocketStep }) {
   );
 }
 
-function DocketConsole({
-  activeStep,
+function PatchControl({
+  activePatch,
   onSelect,
 }: {
-  activeStep: DocketStep;
-  onSelect: (id: DocketStepId) => void;
+  activePatch: Patch;
+  onSelect: (id: PatchId) => void;
 }) {
   return (
-    <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+    <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
       <div className="border border-border bg-background p-4">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div>
-            <p className="font-mono text-xs uppercase text-primary">Run docket</p>
-            <h2 className="mt-2 text-2xl font-semibold text-heading">Pick the stamp</h2>
+            <p className="font-mono text-xs uppercase text-primary">Patch sample</p>
+            <h2 className="mt-2 text-2xl font-semibold text-heading">Choose a job</h2>
           </div>
-          <Stamp className="h-6 w-6 text-primary" />
+          <PlugZap className="h-6 w-6 text-primary" />
         </div>
 
         <div className="mt-4 grid gap-2">
-          {DOCKET_STEPS.map((step) => {
-            const selected = step.id === activeStep.id;
+          {PATCHES.map((patch) => {
+            const selected = patch.id === activePatch.id;
             return (
               <button
-                key={step.id}
+                key={patch.id}
                 type="button"
                 aria-pressed={selected}
-                onClick={() => onSelect(step.id)}
-                className={`grid min-h-20 grid-cols-[2.5rem_1fr] items-center gap-3 border px-4 text-left transition ${
+                onClick={() => onSelect(patch.id)}
+                className={`grid min-h-20 grid-cols-[2.75rem_1fr] items-center gap-3 border px-4 text-left transition ${
                   selected
-                    ? "border-primary bg-primary/[0.1]"
-                    : "border-border bg-card/40 hover:border-primary/45 hover:bg-card/70"
+                    ? "bg-white/[0.08]"
+                    : "border-border bg-card/35 hover:bg-card/70"
                 }`}
+                style={{ borderColor: selected ? patch.color : undefined }}
               >
-                <span className="flex h-10 w-10 items-center justify-center border border-border bg-background text-primary">
-                  <step.icon className="h-5 w-5" />
+                <span
+                  className="flex h-10 w-10 items-center justify-center border bg-background"
+                  style={{ borderColor: patch.color, color: patch.color }}
+                >
+                  <patch.icon className="h-5 w-5" />
                 </span>
                 <span>
-                  <span className="block font-mono text-xs uppercase text-body">{step.label}</span>
-                  <span className="mt-1 block text-base font-semibold text-heading">{step.verb}</span>
+                  <span className="block text-base font-semibold text-heading">{patch.label}</span>
+                  <span className="mt-1 block text-sm text-body">{patch.ask}</span>
                 </span>
               </button>
             );
@@ -212,35 +263,34 @@ function DocketConsole({
         </div>
       </div>
 
-      <div className="border border-[hsl(48_76%_88%/0.3)] bg-[hsl(46_80%_91%)] p-5 text-[hsl(30_15%_12%)]">
-        <div className="flex items-start justify-between gap-4 border-b-2 border-dashed border-[hsl(30_15%_12%/0.28)] pb-4">
+      <div className="border border-border bg-card/45 p-5">
+        <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
           <div>
-            <p className="font-mono text-xs uppercase opacity-70">Selected docket line</p>
-            <h2 className="mt-2 text-3xl font-semibold">{activeStep.label}</h2>
+            <p className="font-mono text-xs uppercase text-primary">Live patch</p>
+            <h2 className="mt-2 text-2xl font-semibold text-heading">{activePatch.label}</h2>
           </div>
-          <div className="rounded-full border-2 border-[hsl(355_72%_42%/0.65)] px-4 py-2 font-mono text-xs uppercase text-[hsl(355_72%_42%)]">
-            stamped
-          </div>
+          <Cable className="h-6 w-6" style={{ color: activePatch.color }} />
         </div>
 
-        <div className="mt-6 grid gap-5 sm:grid-cols-2">
-          <div>
-            <p className="font-mono text-xs uppercase opacity-60">What it does</p>
-            <p className="mt-2 text-lg font-semibold leading-snug">{activeStep.line}</p>
-          </div>
-          <div>
-            <p className="font-mono text-xs uppercase opacity-60">Receipt</p>
-            <p className="mt-2 text-lg font-semibold leading-snug">{activeStep.receipt}</p>
-          </div>
-        </div>
-
-        <div className="mt-8 grid gap-2 font-mono text-xs uppercase">
-          {LEDGER_LINES.map((line, index) => (
-            <div key={line} className="flex items-center justify-between border-t border-[hsl(30_15%_12%/0.18)] pt-2">
-              <span>{String(index + 1).padStart(2, "0")} {line}</span>
-              <span>kept</span>
+        <div className="mt-6 grid gap-4 sm:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] sm:items-center">
+          {activePatch.path.map((lane, index) => (
+            <div key={`${lane}-${index}`} className="contents">
+              <div className="border border-white/12 bg-background p-4">
+                <p className="font-mono text-xs uppercase text-body">lane {index + 1}</p>
+                <p className="mt-2 text-lg font-semibold text-heading">{lane}</p>
+              </div>
+              {index < activePatch.path.length - 1 && (
+                <ArrowRight className="hidden h-5 w-5 text-body sm:block" />
+              )}
             </div>
           ))}
+        </div>
+
+        <div className="mt-6 flex items-start gap-3 border-t border-border pt-5">
+          <TerminalSquare className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <p className="text-sm leading-relaxed text-body">
+            Output: <span className="text-heading">{activePatch.output}</span>
+          </p>
         </div>
       </div>
     </div>
@@ -248,95 +298,95 @@ function DocketConsole({
 }
 
 export default function HomepageSample() {
-  const [activeStepId, setActiveStepId] = useState<DocketStepId>("proof");
-  const activeStep = DOCKET_STEPS.find((step) => step.id === activeStepId) ?? DOCKET_STEPS[3];
+  const [activePatchId, setActivePatchId] = useState<PatchId>("publish");
+  const activePatch = PATCHES.find((patch) => patch.id === activePatchId) ?? PATCHES[0];
 
   useCanonical("/uipass-home-sample");
   useMetaTags({
     title: "UnClick homepage sample",
     description:
-      "A UIPass and UXPass homepage sample for UnClick, focused on a distinctive work-docket direction.",
+      "A UIPass and UXPass homepage sample for UnClick, focused on a distinctive AI patchbay direction.",
     ogTitle: "UnClick homepage sample",
     ogDescription:
-      "A sample homepage direction showing UnClick as the work docket for AI action and proof.",
+      "A sample homepage direction showing UnClick as the patchbay between AI, tools, memory, and safeguards.",
     ogUrl: "https://unclick.world/uipass-home-sample",
   });
 
   return (
-    <div className={presets.page}>
+    <div className="relative min-h-screen bg-background text-foreground antialiased">
       <Navbar />
 
       <main>
-        <section className="relative flex min-h-[86svh] items-center overflow-hidden border-b border-border px-5 pb-24 pt-32 sm:px-6">
-          <DocketSheet activeStep={activeStep} />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,hsl(var(--background)/0.38)_0%,hsl(var(--background)/0.68)_58%,hsl(var(--background))_100%)]" />
+        <section className="relative min-h-[88svh] overflow-hidden border-b border-border px-5 pb-16 pt-32 sm:px-6">
+          <PatchbayHero activePatch={activePatch} />
+          <div
+            className="absolute inset-y-0 left-0 w-full bg-[linear-gradient(90deg,hsl(var(--background))_0%,hsl(var(--background)/0.94)_34%,hsl(var(--background)/0.64)_58%,transparent_100%)] sm:w-[62rem]"
+            aria-hidden="true"
+          />
 
-          <div className="relative z-10 mx-auto max-w-4xl text-center">
-            <FadeIn>
-              <div className="mb-6 inline-flex items-center gap-2 border border-primary/35 bg-black/35 px-4 py-2 text-xs font-medium uppercase text-primary backdrop-blur">
-                <ScanLine className="h-3.5 w-3.5" />
-                Work docket for AI
-              </div>
-            </FadeIn>
+          <div className="relative z-10 grid min-h-[calc(88svh-8rem)] items-center">
+            <div className="max-w-3xl">
+              <FadeIn>
+                <div className="mb-5 inline-flex items-center gap-2 border border-primary/35 bg-black/45 px-4 py-2 text-xs font-medium uppercase text-primary backdrop-blur">
+                  <Link2 className="h-3.5 w-3.5" />
+                  AI patchbay
+                </div>
+              </FadeIn>
 
-            <FadeIn delay={0.05}>
-              <h1 className="text-5xl font-semibold leading-none text-heading sm:text-7xl md:text-8xl">
-                UnClick
-              </h1>
-            </FadeIn>
+              <FadeIn delay={0.05}>
+                <h1 className="text-5xl font-semibold leading-none text-heading sm:text-7xl md:text-8xl">
+                  UnClick
+                </h1>
+              </FadeIn>
 
-            <FadeIn delay={0.1}>
-              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-body">
-                The place AI checks in before it acts. Every request gets context, scope, action, and a receipt you can inspect.
-              </p>
-            </FadeIn>
+              <FadeIn delay={0.1}>
+                <p className="mt-6 max-w-2xl text-xl leading-relaxed text-body sm:text-2xl">
+                  Plug an AI seat into tools, memory, checks, and human boundaries from one live board.
+                </p>
+              </FadeIn>
 
-            <FadeIn delay={0.15}>
-              <div className="mt-10 flex flex-wrap justify-center gap-3">
-                <a href="#sample-run" className={presets.ctaPrimary}>
-                  Open the docket
-                  <ArrowRight className="h-4 w-4" />
-                </a>
-                <Link to="/" className={presets.ctaGhost}>
-                  Compare current homepage
-                  <Route className="h-4 w-4" />
-                </Link>
-              </div>
-            </FadeIn>
+              <FadeIn delay={0.15}>
+                <div className="mt-10 flex flex-wrap gap-3">
+                  <a href="#sample-run" className="inline-flex min-h-11 items-center justify-center gap-2 bg-primary px-7 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+                    Patch a run
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                  <Link
+                    to="/"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 border border-border bg-black/35 px-6 py-3 text-sm font-medium text-heading backdrop-blur-sm transition-colors hover:bg-card/70"
+                  >
+                    Compare current homepage
+                    <Route className="h-4 w-4" />
+                  </Link>
+                </div>
+              </FadeIn>
+            </div>
           </div>
         </section>
 
         <section id="sample-run" className="px-5 py-16 sm:px-6">
           <div className="mx-auto max-w-6xl">
             <div className="mb-8 max-w-2xl">
-              <p className="font-mono text-xs uppercase text-primary">Sample three</p>
+              <p className="font-mono text-xs uppercase text-primary">Sample four</p>
               <h2 className="mt-3 text-3xl font-semibold text-heading sm:text-4xl">
-                A work order, not a promise.
+                A patchbay, not a page about AI.
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-body">
-                This direction moves away from AI shine. It shows UnClick as the desk where messy AI work becomes named, scoped, checked, and proven.
+                This direction stops selling an abstract promise. It makes UnClick feel like the wiring layer where agents connect to real work.
               </p>
             </div>
 
-            <DocketConsole activeStep={activeStep} onSelect={setActiveStepId} />
+            <PatchControl activePatch={activePatch} onSelect={setActivePatchId} />
           </div>
         </section>
 
         <section className="border-y border-border bg-secondary/30 px-5 py-14 sm:px-6">
           <div className="mx-auto max-w-6xl">
-            <div className="mb-8 max-w-2xl">
-              <p className="font-mono text-xs uppercase text-primary">UIPass read</p>
-              <h2 className="mt-3 text-3xl font-semibold text-heading sm:text-4xl">
-                Sharper, plainer, harder to confuse with everyone else.
-              </h2>
-            </div>
-
             <div className="grid gap-3 md:grid-cols-4">
-              {DIFFERENCE_ROWS.map((row) => (
-                <div key={row.label} className="border border-border bg-card/65 p-5">
-                  <row.icon className="h-5 w-5 text-primary" />
-                  <p className="mt-5 font-mono text-xs uppercase text-body">{row.label}</p>
-                  <h3 className="mt-2 text-lg font-semibold text-heading">{row.value}</h3>
+              {RULES.map((rule) => (
+                <div key={rule} className="border border-border bg-background p-5">
+                  <MousePointerClick className="h-5 w-5 text-primary" />
+                  <p className="mt-5 text-base font-semibold text-heading">{rule}</p>
                 </div>
               ))}
             </div>
